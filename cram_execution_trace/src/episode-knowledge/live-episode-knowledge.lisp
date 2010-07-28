@@ -76,9 +76,6 @@
     (let ((new-instances (make-hash-table)))
       ;; 1. Empty the queue
       (loop for instance = (dequeue trace-queue)
-         ;; Using m-v-l here is a bit ugly and might cons (unless the compiler
-         ;; is able to optimize), but seems to me the most concise portable
-         ;; idiom for doing what i want.
          while instance
          do (push instance (gethash (name instance) new-instances)))
       ;; 2. Then append the new instances to the ones allready in execution-trace

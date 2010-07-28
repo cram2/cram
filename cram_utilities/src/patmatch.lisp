@@ -158,7 +158,7 @@
 (defun pat-match-p (pat seq &optional (bdgs nil) &rest rest)
   "Pattern matching predicate. Does not return bdgs but only T or nil,
   indicating if the pattern matches."
-  (cadr (multiple-value-list (apply #'pat-match pat seq bdgs rest))))
+  (nth-value 1 (apply #'pat-match pat seq bdgs rest)))
 
 ;;; NOTE #demmeln: Some of the following functions do not handle segvars at
 ;;; all. Should they?
