@@ -85,6 +85,38 @@
               (trace-fluent fluent value)))))
       (lambda (value) (trace-fluent fluent value))))
 
+;;;
+;;; ABOUT REGISTER-FLUENTS
+;;;
+;;; We keep all fluents created in a hash table (used like a hash set). If a
+;;; fluent is created while an episode is running, it is stored in the
+;;; episodes hash table, otherwise in a global hash table.
+;;;
+;;; All episode fluents get their fluent tracing callback unregistered when
+;;; their episode stops. This is to avoid them being traced in the next
+;;; episode (a fluent-net might be pulsed by a global fluent like the robot
+;;; position or other sensor data, even after the episode has ended).
+;;;
+;;; All global fluents are traced when an episode starts, so their initial
+;;; value is in the trace (for episode fluents this is not neccessary, since
+;;; they are created while an episode is running and thus their initial-value
+;;; is recorded in the "constructor").
+;;;
+
+(defvar *global-fluents* (make-synchronized-hash-table :test 'eq :weakness :key))
+
+(defun register-fluent (fluent)
+  (if (and *episode-knowledge* (running-p *episode-knowledge*))
+      (register-episode-fluent fluent *episode-knowledge*)
+      (register-global-fluent fluent)))
+
+(defun register-global-fluent (fluent)
+  (setf (gethash fluent *global-fluents*) t))
+
+(defun trace-global-fluents ()
+  (loop for fluent being the hash-keys in *global-fluents*
+     do (trace-fluent fluent (peek-value fluent))))
+
 ;;; TODO, FIXME: We need to ensure, that the initial value of fluents is
 ;;; traced when an episode starts. For this we 1) need to trace it upon
 ;;; creation (in on-make-fluent-hook) and 2) need to trace it when an epsiode
@@ -96,4 +128,5 @@
   (when allow-tracing
     (register-update-callback fluent :fluent-tracing-callback
                               (trace-fluent-callback fluent max-tracing-freq))
+    (register-fluent fluent)
     (trace-fluent fluent (peek-value fluent))))
