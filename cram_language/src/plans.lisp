@@ -29,6 +29,7 @@
 
 (in-package :cpl-impl)
 
+;;; TODO@demmeln: update following note.
 ;;; We need to manage the task trees somehow. The idea is to have a hash-table
 ;;; containing one task-tree for every top-level plan. Otherwise, the
 ;;; task-tree management would become really really messy.

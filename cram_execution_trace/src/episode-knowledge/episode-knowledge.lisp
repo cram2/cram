@@ -32,18 +32,18 @@
 
 (define-task-variable *episode-knowledge* nil
   "The episode knowledge of the current episode. This will be bound within a
-   cram top level using the hooks privided there.")
+   cram top level using the hooks provided there.")
 
 (defvar *last-episode-knowledge* nil
   "This always contains the episode-knowledge object of the episode that was
-   executed last. This is used for easy interactive access.")
+   executed (and finished) last. This is used for easy interactive access.")
 
 (defclass episode-knowledge ()
   ((zero-time :accessor zero-time :initarg :zero-time :type (or nil timestamp)
               :documentation "Start time of episode.")
    (end-time  :accessor end-time  :initarg :end-time :type (or nil timestamp)
               :documentation "End time of episode.")
-   (task-tree :reader task-tree :initarg :task-tree :type cpl:task-tree-node)
+   (task-tree :reader task-tree :initarg :task-tree :type task-tree-node)
    (execution-trace :initarg :execution-trace :type hash-table
                     :documentation "Hash table with all traced instances
                     indexed by fluet name.")))
