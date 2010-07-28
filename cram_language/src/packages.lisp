@@ -144,6 +144,7 @@
            #:on-top-level-setup-hook
            #:on-top-level-cleanup-hook
            ;; plans.lisp
+           #:on-def-top-level-plan-hook
            #:def-top-level-plan #:get-top-level-task-tree #:def-plan
            ;; goals.lisp
            #:declare-goal #:def-goal #:goal #:register-goal))
