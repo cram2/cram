@@ -73,10 +73,7 @@
 (declaim (inline unify-p))
 (defun unify-p (lhs rhs &optional bdgs)
   "Returns T if `lhs' and `rhs' unify."
-  (multiple-value-bind (_ matched?)
-      (unify lhs rhs bdgs)
-    (declare (ignore _))
-    matched?))
+  (nth-value 1 (unify lhs rhs bdgs)))
 
 (defun prove-one (goal binds)
   (let ((handler (get-prolog-handler (car goal))))

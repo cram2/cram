@@ -146,11 +146,9 @@
    group is replaced. Signals an error if predicates defined in other fact
    groups are extended, except if the functors is listed in
    `extendable-predicates'."
-  (multiple-value-bind (_ found?) (gethash name *fact-group-facts*)
-    (declare (ignore _))
-    (when found?
-      (style-warn "Redefining prolog fact-group ~a." name)
-      (remove-fact-group name)))
+  (when (nth-value 1 (gethash name *fact-group-facts*))
+    (style-warn "Redefining prolog fact-group ~a." name)
+    (remove-fact-group name))
   (unless (every #'is-valid-functor extendable-predicates)
     (error "Extendible predicates in the definition of fact group ~a
             contained an invalid functor ~a."
