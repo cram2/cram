@@ -98,6 +98,7 @@
            #:make-fluent
            #:on-make-fluent-hook
            #:register-update-callback
+           #:remove-update-callback
            ;; failures.lisp
            #:fail #:simple-plan-error #:rethrown-error
            #:plan-error #:plan-error-message #:plan-error-data
