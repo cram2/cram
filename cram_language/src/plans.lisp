@@ -42,6 +42,9 @@
 ;;; plans, which would not be picked up by WITH-TAGS / EXPAND-PLAN.  See the
 ;;; comment before the definition of WITH-TAGS for more details.
 
+(define-hook on-def-top-level-plan-hook (plan-name)
+  (:documentation "Executed when a top-level-plan is defined."))
+
 (defmacro def-top-level-plan (name args &body body)
   "Defines a top-level plan. Every top-level plan has its own
    episode-knowledge and task-tree."
@@ -50,7 +53,8 @@
        (eval-when (:load-toplevel)
          (setf (get ',name 'plan-type) :top-level-plan)
          (setf (get ',name 'plan-lambda-list) ',args)
-         (setf (get ',name 'plan-sexp) ',body))
+         (setf (get ',name 'plan-sexp) ',body)
+         (on-def-top-level-plan-hook ',name))
        (defun ,name (&rest ,call-args)
          (named-top-level (:name ,name)
            (replaceable-function ,name ,args ,call-args `(top-level ,',name)
