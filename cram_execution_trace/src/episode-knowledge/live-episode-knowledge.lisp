@@ -40,11 +40,15 @@
    (trace-queue :accessor trace-queue :type queue
                 :documentation "One queue for all fluents to add their traced
                 instances to. This needs to be a queue with thread safe
-                access.")))
+                access.")
+   (fluents :accessor fluents :type hash-table
+            :documentation "Weak hash table of all fluents that are created
+            while this episode was running.")))
 
 (defmethod initialize-instance :after ((episode live-episode-knowledge) &key new-task-tree)
-  (with-slots (execution-trace) episode
+  (with-slots (execution-trace fluents) episode
     (setf execution-trace (make-synchronized-hash-table :test 'eq))
+    (setf fluents (make-synchronized-hash-table :test 'eq :weakness :key))
     (reset episode new-task-tree)))
 
 (defmethod max-time ((episode live-episode-knowledge))
@@ -111,9 +115,11 @@
                       (max-time episode)))
 
 (defun reset (live-episode new-task-tree)
-  (with-slots (execution-trace task-tree zero-time end-time running-flag trace-queue)
+  (with-slots (execution-trace task-tree zero-time
+               end-time running-flag trace-queue fluents)
       live-episode
     (clrhash execution-trace)
+    (clrhash fluents)
     (setf zero-time       nil
           end-time        nil
           running-flag    nil
@@ -131,6 +137,13 @@
 (defmethod running-p ((episode live-episode-knowledge))
   (and episode (running-flag episode)))
 
+(defun unregister-fluent-callbacks (episode)
+  (loop for fluent being the hash-keys in (fluents episode)
+     do (remove-update-callback fluent :fluent-tracing-callback)))
+
+(defun register-episode-fluent (fluent episode)
+  (setf (gethash fluent (fluents episode)) t))
+
 ;; TODO: Evaluate if we need to export reset, stop, start etc since we use
 ;; hooks now. Also maybe dont export the top-level-episode-knowledge access
 ;; (maybe do though, for introspection)
@@ -141,10 +154,13 @@
                 (make-instance 'live-episode-knowledge))))
     (reset ek task-tree)
     (start ek)
+    (let ((*episode-knowledge* ek))
+      (trace-global-fluents))
     (cons (list '*episode-knowledge*) (list ek))))
 
 (defmethod on-top-level-cleanup-hook :execution-trace (top-level-name)
   (stop *episode-knowledge*)
+  (unregister-fluent-callbacks *episode-knowledge*)
   (setf *last-episode-knowledge* *episode-knowledge*)
   (when (auto-tracing-enabled)
     (save-episode *episode-knowledge* (auto-tracing-filepath top-level-name))))
