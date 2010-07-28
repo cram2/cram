@@ -117,13 +117,6 @@
   (loop for fluent being the hash-keys in *global-fluents*
      do (trace-fluent fluent (peek-value fluent))))
 
-;;; TODO, FIXME: We need to ensure, that the initial value of fluents is
-;;; traced when an episode starts. For this we 1) need to trace it upon
-;;; creation (in on-make-fluent-hook) and 2) need to trace it when an epsiode
-;;; starts (in case the fluent was created prior to the epsiode start). For
-;;; this to work we need to register all fluents in a global weak hash-table
-;;; to be able to trigger tracing.
-
 (defmethod on-make-fluent-hook :execution-trace (fluent allow-tracing max-tracing-freq)
   (when allow-tracing
     (register-update-callback fluent :fluent-tracing-callback
