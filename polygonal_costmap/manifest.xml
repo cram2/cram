@@ -1,0 +1,17 @@
+<package>
+  <description brief="polygonal_costmap">
+
+     polygonal_costmap
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/polygonal_costmap</url>
+  <depend package="rospy"/>
+  <depend package="nav_msgs"/>
+  <depend package="mapping_msgs"/>
+
+</package>
+
+

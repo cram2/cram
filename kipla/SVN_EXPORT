@@ -1,0 +1,3 @@
+Updated dependecies since CRAM is now a stack and we need to directly depend on
+the packages.
+

@@ -1,0 +1,28 @@
+<package>
+  <description brief="Cram based kimp planner.">
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <depend package="cram_language"/>
+  <depend package="cram_execution_trace"/>
+  <depend package="cram_reasoning"/>
+  <depend package="cram_utilities"/>
+  <depend package="cram_math"/>
+  <depend package="designators"/>
+  <depend package="liswip"/>
+  <depend package="process_modules"/>
+  <depend package="cljlo"/>
+  <depend package="vision_srvs"/>
+  <depend package="roslisp_runtime"/>
+  <depend package="cogman_msgs"/>
+  <depend package="alexandria"/>
+  <depend package="navp_action"/>
+  <depend package="ias_semantic_map"/>
+  <depend package="cl_json_pl_client"/>
+  <depend package="comp_missingobj"/>
+  <depend package="pr2_msgs"/>
+  <depend package="actionlib_lisp"/>
+  <depend package="nav_msgs"/>
+  <depend package="cl_utils"/>  
+</package>
