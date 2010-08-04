@@ -1,0 +1,16 @@
+<package>
+  <description brief="map_annotation">
+
+     map_annotation
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/map_annotation</url>
+  <depend package="geometry_msgs"/>
+  <depend package="rospy"/>
+
+</package>
+
+

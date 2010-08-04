@@ -1,0 +1,153 @@
+#!/usr/bin/env python
+
+import roslib; roslib.load_manifest('map_annotation')
+
+import rospy
+import Tkinter as tk
+import tkFileDialog
+import yaml
+import threading
+import geometry_msgs.msg as geometry_msgs
+import time
+
+class Gui(object):
+    def __init__(self):
+        # List of tuples, first element annotation, second element point
+        self.points = []
+        self.current_selection = None
+        
+        self.root = tk.Tk()
+
+        self.edit_root_frame = tk.Frame(self.root)
+        self.edit_root_frame.pack(side=tk.TOP)
+        self.button_frame = tk.Frame(self.root)
+        self.button_frame.pack(side=tk.TOP)
+
+        
+        self.select_frame = tk.Frame(self.edit_root_frame)
+        self.select_frame.pack(side=tk.LEFT)
+
+        self.points_list_sb = tk.Scrollbar(self.select_frame, orient=tk.VERTICAL)
+        self.points_list = tk.Listbox(self.select_frame, selectmode=tk.SINGLE,
+                                      yscrollcommand=self.points_list_sb.set)
+        self.points_list_sb['command'] = self.points_list.yview
+        self.points_list.pack(side=tk.LEFT)
+        self.points_list_sb.pack(side=tk.RIGHT, fill=tk.Y)
+        self.points_list.bind('<<ListboxSelect>>', self.selection_changed)
+
+        self.edit_frame = tk.Frame(self.edit_root_frame)
+        self.edit_frame.pack(side=tk.LEFT)
+
+        self.point_x_value = tk.StringVar()
+        self.point_x_value.set('x: ')
+        self.point_x_label = tk.Label(self.edit_frame, textvariable=self.point_x_value)
+        self.point_x_label.pack(side=tk.TOP)
+        self.point_y_value = tk.StringVar()
+        self.point_y_value.set('y: ')
+        self.point_y_label = tk.Label(self.edit_frame, textvariable=self.point_y_value)
+        self.point_y_label.pack(side=tk.TOP)
+        self.point_z_value = tk.StringVar()
+        self.point_z_value.set('z: ')
+        self.point_z_label = tk.Label(self.edit_frame, textvariable=self.point_z_value)
+        self.point_z_label.pack(side=tk.TOP)
+
+        self.point_annotation = tk.Entry(self.edit_frame, text="Bar")
+        self.point_annotation.pack(side=tk.TOP)
+
+        self.edit_button_frame = tk.Frame(self.edit_frame)
+        self.edit_button_frame.pack(side=tk.TOP)
+
+        self.apply_button = tk.Button(self.edit_button_frame, text='Apply', command=self.apply)
+        self.apply_button.pack(side=tk.LEFT)
+
+        self.delete_button = tk.Button(self.edit_button_frame, text='Delete', command=self.delete)
+        self.delete_button.pack(side=tk.LEFT)
+        
+        self.save_button = tk.Button(self.button_frame, text='Save', command=self.save)
+        self.save_button.pack(side=tk.LEFT)
+
+        self.exit_button = tk.Button(self.button_frame, text='Quit', command=self.root.destroy)
+        self.exit_button.pack(side=tk.LEFT)
+
+    def save(self):
+        filename = tkFileDialog.asksaveasfilename(defaultextension='.yaml',
+                                                  filetypes=[('YAML Files', '*.yaml')],
+                                                  title='Select YAML filename')
+        data = [{'name': v[0], 'point': {'x': v[1].x, 'y': v[1].y, 'z': v[1].z}} for v in self.points]
+        f = open(filename, 'w')
+        yaml.dump(data, f)
+        f.close()
+
+    def apply(self):
+        if self.current_selection == None:
+            return
+        self.points[self.current_selection] = (self.point_annotation.get(),
+                                               self.points[self.current_selection][1])
+        self.points_list.insert(self.current_selection, self.point_annotation.get())
+        self.points_list.delete(self.current_selection + 1)
+
+    def delete(self):
+        sel = self.points_list.curselection()
+        if len(sel) < 1:
+            return
+        sel = int(sel[0])
+        del(self.points[sel])
+        self.points_list.delete(sel)
+        self.points_list.select_clear(0, tk.END)
+        if sel < self.points_list.size():
+            self.points_list.select_set(sel)
+        else:
+            self.points_list.select_set(tk.END)
+        self.selection_changed()
+
+    def add(self, point):
+        self.points += [('Unnamed', point)]
+        self.points_list.insert(tk.END, self.points[-1][0])
+        self.points_list.see(tk.END)
+        self.points_list.select_clear(0, tk.END)
+        self.points_list.select_set(tk.END)
+        self.selection_changed()
+
+    def selection_changed(self, *args):
+        sel = self.points_list.curselection()
+        if len(sel) < 1:
+            self.current_selection = None
+            self.point_x_value.set('x:')
+            self.point_y_value.set('y:')
+            self.point_z_value.set('z:')
+            self.point_annotation.delete(0, tk.END)
+            return
+
+        sel = int(sel[0])
+        self.current_selection = sel
+        p = self.points[sel]
+        self.point_x_value.set('x: %f' % p[1].x)
+        self.point_y_value.set('y: %f' % p[1].y) 
+        self.point_z_value.set('z: %f' % p[1].z)       
+        self.point_annotation.delete(0, tk.END)
+        self.point_annotation.insert(0, p[0])
+
+    def run(self):
+        self.root.mainloop()
+
+def make_pose_cb(gui):
+    def cb(msg):
+        gui.add(msg.pose.position)
+    return cb
+
+def main():
+    gui = Gui()
+
+    rospy.init_node('map_annotation_gui')
+    sub = rospy.Subscriber('~pose', geometry_msgs.PoseStamped, make_pose_cb(gui))
+
+    thrd = threading.Thread(target=rospy.spin)
+    thrd.start()
+    
+    gui.run()
+
+    rospy.signal_shutdown('exit')
+
+if __name__ == '__main__':
+    main()
+
