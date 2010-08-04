@@ -1,0 +1,3 @@
+---
+string[] labels
+geometry_msgs/Point[] points
