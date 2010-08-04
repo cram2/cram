@@ -1,0 +1,13 @@
+<package>
+  <description brief="CL-STORE">
+      CL-STORE
+      http://common-lisp.net/project/cl-store/
+  </description>
+  <author>Sean Ross</author>
+  <license>MIT</license>
+  <review status="unreviewed" notes=""/>
+
+  <rosdep name="darcs"/>
+</package>
+
+

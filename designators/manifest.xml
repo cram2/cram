@@ -1,0 +1,13 @@
+<package>
+  <description brief="The designators class and protocol.">
+    This package contains the designators class and defines the
+    protocol to work with designators.
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <url>http://ros.org/wiki/designators</url>
+  <review status="unreviewed" notes=""/>
+  <depend package="sbcl"/>
+  <depend package="alexandria"/>
+  <depend package="cram_utilities"/>
+</package>

@@ -1,0 +1,14 @@
+<package>
+  <description brief="CRAM utilities.">
+    This packages contains some basic lisp utilities. This includes
+    pattern matching and lazy lists.
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <url>http://ros.org/wiki/cram_utilities</url>
+  <review status="unreviewed" notes=""/>
+  <depend package="sbcl"/>
+  <depend package="alexandria"/>
+  <depend package="synchronization_tools"/>
+  <depend package="cram_test_utilities"/>
+</package>

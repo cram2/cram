@@ -1,0 +1,271 @@
+/**
+\mainpage
+\htmlinclude manifest.html
+
+The \b cram-language is a set of macros and functions on top of Common
+Lisp. It is a re-implementation of Drew McDermott's RPL on a modern
+Common Lisp compiler (sbcl), heavily utilizing operating system
+threads. The cram-language provides special language forms to easily
+create threads, synchronize on them and suspend them and provides
+clear exception semantics even across multiple threads.
+
+This document contains the API documentation for the high-level
+language forms, extracted from the common lisp doc strings. The ROS
+wiki documents concepts and provides a tutorial.
+
+\section codeapi Code API
+
+\subsection plan_def Forms for defining plans.
+
+   <a name="Macro-def_002dplan"></a>
+<div class="defun">
+&mdash; Macro: <b>def-plan</b><var> name lambda-list &amp;rest body<a name="index-def_002dplan-50"></a></var><br>
+<p><a name="index-def_002dplan-51"></a>Defines a plan. All functions that should appear in the task-tree
+   must be defined with def-plan. 
+</p></div>
+
+   <a name="Macro-def_002dtop_002dlevel_002dplan"></a>
+<div class="defun">
+&mdash; Macro: <b>def-top-level-plan</b><var> name args &amp;body body<a name="index-def_002dtop_002dlevel_002dplan-52"></a></var><br>
+<p><a name="index-def_002dtop_002dlevel_002dplan-53"></a>Defines a top-level plan. Every top-level plan has its own
+   episode-knowledge and task-tree. 
+</p></div>
+
+   <a name="Macro-def_002dgoal"></a>
+<div class="defun">
+&mdash; Macro: <b>def-goal</b> (<var>name &amp;rest pattern</var>)<var> &amp;body body<a name="index-def_002dgoal-48"></a></var><br>
+<p><a name="index-def_002dgoal-49"></a>
+Defines a new goal. Goals always have the form
+
+        <p>(&lt;name&gt; [pattern]*)
+
+        <p>where patterns can be arbitrary expressions containing
+variables (indicated by a ?-prefix) and symbols. 
+Example: (achieve (loc ?obj ?location)) When defining goals with
+similar expressions (e.g. (loc Robot ?l) and (loc ?a ?b)) the most
+specific expression must be defined first. Otherwise, the previously
+defined expression will be overwritten. 
+</p></div>
+
+\subsection failures Failure Handling
+
+   <a name="Function-fail"></a>
+<div class="defun">
+&mdash; Function: <b>fail</b><var> &amp;rest args<a name="index-fail-54"></a></var><br>
+<p><a name="index-fail-55"></a>Like the common lisp function error but throws a simple-plan-error per default.
+</p></div>
+
+   <a name="Macro-with_002dfailure_002dhandling"></a>
+<div class="defun">
+&mdash; Macro: <b>with-failure-handling</b><var> clauses &amp;body body<a name="index-with_002dfailure_002dhandling-134"></a></var><br>
+<p><a name="index-with_002dfailure_002dhandling-135"></a>Macro that replaces handler-case in cram-language. This is
+necessary because error handling does not work across multiple
+threads. When an error is signaled, it is put into an envelope to
+avoid invocation of the debugger multiple times. When handling errors,
+this envelope must also be taken into account.
+
+        <p>We also need a mechanism to retry since errors can be caused by plan
+execution and the environment is highly non-deterministic. Therefore,
+it is possible to use the function `retry' that is lexically bound
+within with-failure-handling and causes a re-execution of the body.
+
+        <p>When an error is unhandled, it is passed up to the next failure
+handling form (exactly like handler-bind). Errors are handled by
+invoking the retry function or by doing a non-local exit. Note that
+with-failure-handling implicitly creates an unnamed block,
+i.e. `return' can be used. 
+</p></div>
+   <a name="Macro-with_002dsuspension"></a>
+
+\subsection control_flow Control Flow
+
+   <a name="Macro-top_002dlevel"></a>
+<div class="defun">
+&mdash; Macro: <b>top-level</b><var> &amp;body body<a name="index-top_002dlevel-121"></a></var><br>
+<p><a name="index-top_002dlevel-122"></a>Creates a new task, executes body in it and waits until it is
+   finished. All plan macros can only be used within the dynamic
+   scope of a top-level form. 
+</p></div>
+
+   <a name="Macro-seq"></a>
+<div class="defun">
+&mdash; Macro: <b>seq</b><var> &amp;body forms<a name="index-seq-87"></a></var><br>
+<p><a name="index-seq-88"></a>Executes forms sequentially. Fails if one fail. Succeeds if all
+   succeed. 
+</p></div>
+
+   <a name="Macro-par"></a>
+<div class="defun">
+&mdash; Macro: <b>par</b><var> &amp;body forms<a name="index-par-76"></a></var><br>
+<p><a name="index-par-77"></a>Executes forms in parallel. Fails if one fails. Succeeds if all
+   succeed. 
+</p></div>
+
+   <a name="Macro-pursue"></a>
+<div class="defun">
+&mdash; Macro: <b>pursue</b><var> &amp;body forms<a name="index-pursue-80"></a></var><br>
+<p><a name="index-pursue-81"></a>Execute forms in parallel. Succeed if one succeeds, fail if one
+   fails. 
+</p></div>
+
+   <a name="Macro-try_002dall"></a>
+<div class="defun">
+&mdash; Macro: <b>try-all</b><var> &amp;body forms<a name="index-try_002dall-123"></a></var><br>
+<p><a name="index-try_002dall-124"></a>Try forms in parallel. Succeed if one succeeds, fail if all fail. 
+   In the case of a failure, a condition of type 'composite-failure'
+   is signaled, containing the list of all error messages and data. 
+</p></div>
+   <a name="Macro-try_002din_002dorder"></a>
+
+   <a name="Macro-try_002din_002dorder"></a>
+<div class="defun">
+&mdash; Macro: <b>try-in-order</b><var> &amp;body forms<a name="index-try_002din_002dorder-125"></a></var><br>
+<p><a name="index-try_002din_002dorder-126"></a>Execute forms sequentially. Succeed if one succeeds, fail if all fail. 
+   In case of failure, a composite-failure is signaled. 
+</p></div>
+
+   <a name="Macro-with_002dtags"></a>
+<div class="defun">
+&mdash; Macro: <b>with-tags</b><var> &amp;body body &amp;environment lexenv<a name="index-with_002dtags-138"></a></var><br>
+<p><a name="index-with_002dtags-139"></a>Execute body with all tags bound to the corresponding lexically
+   bound variables. 
+</p></div>
+
+<a name="Macro-partial_002dorder"></a>
+<div class="defun">
+&mdash; Macro: <b>partial-order</b> (<var>&amp;body steps</var>)<var> &amp;body orderings<a name="index-partial_002dorder-78"></a></var><br>
+<p><a name="index-partial_002dorder-79"></a>Specify ordering constraints for `steps'. `steps' are executed in
+an implicit <code>par</code> form. `orderings' is a list of orderings. An ordering
+always has the form:
+
+     <pre class="lisp">            (:order &lt;contstraining-task&gt; &lt;constrained-task&gt;)
+</pre>
+        <p>`constraining-task' and `constrained-task' are task objects. That
+means, they can be either be defined in the current lexical
+environment (over a :tag) or by either using the function <code>task</code> to
+reference the task by its absolute path or the function <code>sub-task</code> to
+reference it by its path relative to the <code>partial-order</code> form. 
+</p></div>
+
+   <a name="Macro-with_002dtask_002dsuspended"></a>
+<div class="defun">
+&mdash; Macro: <b>with-task-suspended</b><var> task &amp;body body<a name="index-with_002dtask_002dsuspended-140"></a></var><br>
+<p><a name="index-with_002dtask_002dsuspended-141"></a>Execute body with 'task' being suspended. 
+</p></div>
+
+\subsection fluents Fluents
+
+<a name="Function-make_002dfluent"></a>
+<div class="defun">
+&mdash; Function: <b>make-fluent</b><var> &amp;rest args &amp;key name &amp;allow-other-keys<a name="index-make_002dfluent-70"></a></var><br>
+<p><a name="index-make_002dfluent-71"></a>Construct a fluent. 
+</p></div>
+
+<a name="Generic_002dFunction-wait_002dfor"></a>
+<div class="defun">
+&mdash; Generic Function: <b>wait-for</b><var> fluent &amp;key timeout value-changed wait-status handle-missed-pulses <a name="index-wait_002dfor-130"></a></var><br>
+<p><a name="index-wait_002dfor-131"></a>Method to block the current thread until the value of `fluent'
+    becomes non-nil. When it is already true and `value-changed' is
+    nil, <code>wait-for</code> imediately returns. Otherwise it waits for at least
+    timeout.  The parameter `wait-status' indicates the status of the
+    task when it is waiting. The parameter `handle-missed-pulses' can
+    be either <code>:never</code> <code>:once</code> or <code>:always:</code>
+
+          <ul>
+<li><code>:never</code> means that missed pulses are ignored,
+
+          <li><code>:once</code> means that independent of the number of missed pulses,
+        they are handled only once, and
+
+          <li><code>:always</code> means that the internal pulse count is only
+        incremented by one, allowing for being triggered on every
+        missed pulse.
+
+        </ul>
+            The handling of missed pulses is performed on a per-thread
+    basis. 
+</p></div>
+   <a name="Macro-whenever"></a>
+
+<div class="defun">
+&mdash; Macro: <b>whenever</b> (<var>condition-fluent &amp;key wait-status handle-missed-pulses</var>)<var> &amp;body body<a name="index-whenever-132"></a></var><br>
+<p><a name="index-whenever-133"></a>Executes `body' whenever `condition-fluent' is pulsed or non-nil. 
+   The `body' forms are executed in an implicit block named <code>whenever</code>. 
+   The parameters `wait-status' and `handle-missed-pulses' have the
+   same meaning as in <code>wait-for</code>
+</p></div>
+
+<a name="Generic_002dFunction-pulse"></a>
+<div class="defun">
+&mdash; Generic Function: <b>pulse</b><var> fluent<a name="index-pulse-78"></a></var><br>
+<p><a name="index-pulse-79"></a>Method to trigger the fluent, i.e. notifying all waiting threads,
+                   but without actually changing the fluent value. 
+</p></div>
+
+\subsection fluent_nets Fluent Networks
+
+Fluents can be combined to fluent networks. The standard comparison
+operators \b <, \b >, \b =, \b eq, \b eql, \b +, \b -, \b * and \b /
+are redefined to return a fluent network whenever they are called with
+at least one fluent as a parameter. In addition, the following special
+fluent operators are defined.
+
+<div class="defun">
+&mdash; Function: <b>fl-and</b><var> &amp;rest fl-args393<a name="index-fl_002dand-56"></a></var><br>
+<p><a name="index-fl_002dand-57"></a>The and-operator for fluents. It is fundamentally different to the
+   definition of common-lisp's and in that it is not implemented as a
+   macro. That means, all args are evaluated when using fl-and. 
+</p></div>
+   <a name="Function-fl_002dfuncall"></a>
+
+<div class="defun">
+&mdash; Function: <b>fl-funcall</b><var> &amp;rest fl-args454<a name="index-fl_002dfuncall-58"></a></var><br>
+<p><a name="index-fl_002dfuncall-59"></a>Generic fluent-operator. Applys args to function whenever a
+   fluent in args changes. 
+</p></div>
+   <a name="Function-fl_002dor"></a>
+
+<div class="defun">
+&mdash; Function: <b>fl-or</b><var> &amp;rest fl-args413<a name="index-fl_002dor-60"></a></var><br>
+<p><a name="index-fl_002dor-61"></a>The or-operator for fluents. For more information on why it is a
+   function please refere to the documentation of fl-and. 
+</p></div>
+   <a name="Function-fl_002dpulsed"></a>
+
+<div class="defun">
+&mdash; Function: <b>fl-pulsed</b><var> &amp;rest fl-args434<a name="index-fl_002dpulsed-62"></a></var><br>
+<p><a name="index-fl_002dpulsed-63"></a>Returns true and is invoked whenever one of its
+   argument fluents gets pulsed. 
+</p></div>
+
+\subsection protection_forms Protection forms.
+
+<a name="Macro-suspend_002dprotect"></a>
+<div class="defun">
+&mdash; Macro: <b>suspend-protect</b><var> form &amp;body protection-forms<a name="index-suspend_002dprotect-97"></a></var><br>
+<p><a name="index-suspend_002dprotect-98"></a>When the current task is suspended during the execution of `form',
+   execute `protection-forms' just before suspending. 
+</p></div>
+
+   <a name="Macro-without_002dsuspension"></a>
+<div class="defun">
+&mdash; Macro: <b>without-suspension</b><var> &amp;body body<a name="index-without_002dsuspension-146"></a></var><br>
+<p><a name="index-without_002dsuspension-147"></a>Execution of `body' cannot be interrupted by a suspension. If a suspension
+</p></div>
+
+   <a name="Macro-with_002dsuspension"></a>
+<div class="defun">
+&mdash; Macro: <b>with-suspension</b><var> &amp;body body<a name="index-with_002dsuspension-136"></a></var><br>
+<p><a name="index-with_002dsuspension-137"></a>Explicitly allows suspension. To be used within the dynamic context
+   of <code>without-suspension</code>. 
+</p></div>
+
+<a name="Macro-on_002dsuspension"></a>
+<div class="defun">
+&mdash; Macro: <b>on-suspension</b><var> when-suspended-form &amp;body body<a name="index-on_002dsuspension-74"></a></var><br>
+<p><a name="index-on_002dsuspension-75"></a>Executes `when-suspended-form' whenever a suspension signal occurs
+   while `form' is being executed. 
+</p></div>
+
+
+*/
