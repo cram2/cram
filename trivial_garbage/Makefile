@@ -3,7 +3,8 @@ PACKAGE_DIR=$(shell rospack find trivial_garbage)
 
 all: installed
 
-downloaded:
+downloaded: Makefile
+	make clean
 	darcs get http://common-lisp.net/~loliveira/darcs/trivial-garbage/
 	touch rospack_nosubdirs
 	touch downloaded
