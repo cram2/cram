@@ -1,0 +1,56 @@
+#!/usr/bin/env python
+
+import roslib; roslib.load_manifest('map_annotation')
+
+import rospy
+import yaml
+import geometry_msgs.msg
+import math
+from map_annotation.srv import *
+
+points = None
+
+def load_points_file(filename):
+    def yaml_to_pt_tuple(pt):
+        return (pt['name'], geometry_msgs.msg.Point(x=pt['point']['x'],
+                                                    y=pt['point']['y'],
+                                                    z=pt['point']['z']))
+    f = open(filename, 'r')
+    points_yaml = yaml.load(f)
+    return [yaml_to_pt_tuple(p) for p in points_yaml]
+
+def get_annotated_points_cb(req):
+    global points
+    
+    return GetAnnotatedPointsResponse(labels=[p[0] for p in points],
+                                      points=[p[1] for p in points])
+
+def euclidean_distance(p1, p2):
+    return math.sqrt((p1.x - p2.x)**2 + (p1.y - p2.y)**2 + (p1.z - p2.z)**2)
+    
+def find_closest_annotation_cb(req):
+    global points
+    
+    def dist(p):
+        return euclidean_distance(req.point, p[1])
+    return FindClosestAnnotationResponse(min(points, key=dist)[0])
+
+def main():
+    global points
+
+    rospy.init_node('map_annotation_server')
+    if not rospy.has_param('~file') and rospy.myargv() < 2:
+        print "No 'file' parameter or file command line argument specified."
+        print "Usage: %s [filename]" % rospy.myargv()[0]
+
+    filename = rospy.get_param('~file', rospy.myargv()[1])
+    rospy.loginfo("Loading annotations from file `%s'" % filename)
+    points = load_points_file(filename)
+
+    get_annotated_pts_srv = rospy.Service('~get_annotated_points', GetAnnotatedPoints, get_annotated_points_cb)
+    find_closest_pt_srv = rospy.Service('~find_closest_annotation', FindClosestAnnotation, find_closest_annotation_cb)
+
+    rospy.spin()
+
+if __name__ == '__main__':
+    main()
