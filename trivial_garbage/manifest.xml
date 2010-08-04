@@ -1,0 +1,13 @@
+<package>
+  <description brief="trivial-garbage">
+      trivial-garbage
+      http://www.cliki.net/trivial-garbage
+  </description>
+  <author>Luis Oliveira</author>
+  <license>Public domain</license>
+  <review status="unreviewed" notes=""/>
+
+  <rosdep name="darcs"/>
+</package>
+
+
