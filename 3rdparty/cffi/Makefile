@@ -4,10 +4,12 @@ PACKAGE_DIR=$(shell rospack find cffi)
 
 all: installed
 
-$(CFFI_ARCHIVE):
+downloaded: Makefile
+	make clean
 	wget http://common-lisp.net/project/cffi/releases/$(CFFI_ARCHIVE)
+	touch downloaded
 
-installed: $(CFFI_ARCHIVE)
+installed: downloaded
 	tar xvzf $(CFFI_ARCHIVE)
 	mkdir -p asdf
 	touch rospack_nosubdirs

@@ -3,7 +3,8 @@ PACKAGE_DIR=$(shell rospack find trivial_features)
 
 all: installed
 
-downloaded:
+downloaded: Makefile
+	make clean
 	darcs get http://common-lisp.net/~loliveira/darcs/trivial-features
 	touch rospack_nosubdirs
 	touch downloaded

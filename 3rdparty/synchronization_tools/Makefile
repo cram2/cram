@@ -3,7 +3,8 @@ PACKAGE_DIR=$(shell rospack find synchronization_tools)
 
 all: installed
 
-downloaded:
+downloaded: Makefile
+	make clean
 	darcs get http://common-lisp.net/~trittweiler/darcs/synchronization-tools/
 	touch rospack_nosubdirs
 	touch downloaded
