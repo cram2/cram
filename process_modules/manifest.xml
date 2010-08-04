@@ -1,0 +1,12 @@
+<package>
+  <description brief="A common interface definition for lower level control routines.">
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <url>http://ros.org/wiki/process_modules</url>
+  <review status="unreviewed" notes=""/>
+  <depend package="sbcl"/>
+  <depend package="alexandria"/>
+  <depend package="designators"/>
+  <depend package="cram_language"/>
+</package>

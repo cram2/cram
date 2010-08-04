@@ -1,0 +1,15 @@
+<package>
+  <description brief="babel">
+      Babel
+      http://common-lisp.net/project/babel/
+  </description>
+  <author>Luis Oliveira</author>
+  <license>babel</license>
+  <review status="unreviewed" notes=""/>
+
+  <rosdep name="darcs"/>
+  <depend package="alexandria"/>
+  <depend package="trivial_features"/>
+</package>
+
+

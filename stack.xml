@@ -1,0 +1,11 @@
+<stack>
+  <description brief="The CRAM Plan Language stack">
+    A set of libraries for implementing AI enabled robot control programs.
+  </description>
+  <author>Maintained by Lorenz Moesenlechner</author>
+  <license>BSD</license>  
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cram</url>
+  <depend stack="ros" />
+
+</stack>

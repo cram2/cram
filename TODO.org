@@ -1,0 +1,175 @@
+
+* TODO update copyright statements.
+  * update year (2009-2010).
+  * Maybe remove names
+  * Maybe remove completely
+  * Maybe also dont include the passus about willow garage :)
+    ;;;     * Neither the name of Willow Garage, Inc. nor the names of its
+    ;;;       contributors may be used to endorse or promote products derived from
+    ;;;       this software without specific prior written permission.
+    * We can remove this third clause completely.
+    * See http://opensource.org/licenses/bsd-license.php
+      * Also, you may optionally omit clause 3 and still be OSD conformant.
+  * Could we also get rid of the per-file notices and just provide a COPYRIGHT file or somehting. 
+
+* TODO define-cram-test, possible to specify (:timeout nil)
+
+  ** (:timeout nil) means no timeout at all, useful when debugging
+     test case hanging.
+
+
+* TODO define-cram-test, reuse 5am::*debug-on-failure*
+
+  ** to get us into the debugger at the right spot. Might be tricky,
+     and may require some thought.
+
+  ** also how to handle errors in spawned tasks?
+
+
+* TODO define-cram-test, expansion to interpret variables at run-time
+
+  ** Talking of `*ignore-skips*', and `+n-runs+' 
+
+  ** At the moment these are dealt with at macroexpansion time,
+     so if you change them, you have to recompile all tests.
+
+
+* TODO naming convention for task-local variables.
+
+  ** I like **foo**. But that's the SBCL convention for their global
+     variables extension. I'd use it nontheless.
+
+
+* TODO naming convention for functions returning fluents.
+
+  ** maybe just -FLUENT suffix? E.g. (TASK-DEAD-FLUENT <task>)?
+
+
+* TODO (MAKE-INSTANCE 'TASK ...) vs (MAKE-TASK ...)
+
+  ** When to use what? Please document appropriately.
+
+  ** MAKE-TASK returns runnable, but _not_ yet running tasks.
+
+  ** WITH-TAGS uses MAKE-TASK whereas TOP-LEVEL and WITH-TASK use
+     MAKE-INSTANCE.
+
+
+* TODO episode-knowledge.lisp uses DEFINE-TASK-VARIABLE
+
+  ** the package CRAM-EXECUTION-TRACE should perhaps use CPL-IMPL
+
+  ** and cram-language.asd makes this dependency not explicit 
+
+
+* TODO task-local variables shared not only between tasks
+
+  ** task-local variables do not only get their initial-binding from
+     local bindings in other tasks, but in fact from any local binding
+     in other _threads_.
+
+  ** This property seems to implicitly used in TOP-LEVEL with its
+     *EPISODE-KNOWLEDGE* binding.
+
+
+* TODO get rid of :serial t in the .asd files
+
+  ** make dependencies explicit.
+
+  ** also revisit which systems depend on which. Don't forget to take
+     the -test systems into account, too.
+
+  ** *EPISODE-KNOWLEDGE* is bound locally special in TOP-LEVEL because
+     its definition comes later in the build. Think of ways to
+     structure the build to overcome it.
+
+     *** Is execution-trace self-contained? Can it come before CPL?
+         etc.
+
+
+* DONE what's the point of WITH-TASK?
+
+  ** and its use in WITH-PARALLEL-CHILDS? Why spawn a new task and
+     then join it? To give the new task a specific name?
+
+  ** seems wasteful
+
+  ** The reason is that we need to at least evaporate all children
+     that are still running at the end of the WITh-PARALLEL-CHILD
+     form. By creating a new task, we get this behavior implicitly. Of
+     course, it would be possible to handle it explicitly in
+     WITH-PARALLEL-CHILD but that would introduce new bugs and
+     replicate behavior that is already there. I think creating one
+     more thread that does nothing but sleeping does not consume too
+     many resources.
+
+
+* DONE WITH-TAGS does not check for duplicates
+
+  ** and because it expands to a LET*, SBCL won't complain either.
+  
+  ** It's the users fault when he uses the same tag names twice within
+     the same lexical scope. This is the same as declaring variables
+     with the same name, isn't it?
+
+
+* TODO WITH-TAGS should expand :TAG to a common global function
+
+  ** less code explosion; better for ICACHE and compilation speed
+
+
+* TODO better name for EXECUTE-TASK-TREE-NODE
+
+  ** it is not clear from its name that the function waits until the
+     task finishes
+
+
+* TODO rename TASK-RUNNING-P, and RUNNING arg in WITH-PARALLEL-CHILD
+
+  ** call it TASK-ALIVE-P, and ALIVE instead.
+
+
+* DONE fluent returned by FL-PULSED has always value T
+
+  ** Fix FL-PULSED.1
+
+  ** Fix WITH-PARALLEL-CHILDS.1
+
+
+* TODO Fix WITH-PARALLEL-CHILDS.2
+
+* DONE WHENEVER, WAIT-FOR, :HANDLE-MISSED-PULSES
+
+  ** maybe fix WAIT-FOR.4
+
+  ** fix WHENEVER.5
+
+  ** add more test cases
+
+  ** maybe get rid of :HANDLE-MISSED-PULSES in WAIT-FOR and WHENEVER, and
+     instead introduce (fl-pulsed <fluent> :handle-missed-pulses):
+
+     *** seems implementable.
+
+     *** update callbacks would have to be passed the current
+         (updated) pulse-count.
+
+     *** say in case of :ALWAYS, fl-pulsed returns a fluent which:
+
+           - knows old pulse-count of its parent fluent
+
+           - hence knows # missed pulses
+
+           - pulses its subscribers for #missed times.
+
+           - this does not solve the problem that fl-pulsed needed to
+             trigger the condition just after wait-for sleeps
+             again. This seems hard to implement.
+
+           
+
+* TODO cram_reasoning: rete-holds seems to have a bug.
+  
+  Example: Rete net contains (desig-bound d1 'foo) and (desig-bound d2 'bar).
+  (rete-holds (desig-bound ?x ?_) is fine, but (desig-bind d1 ?_) returns
+  NIL twice.
