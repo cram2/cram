@@ -3,7 +3,8 @@ PACKAGE_DIR=$(shell rospack find alexandria)
 
 all: installed
 
-downloaded:
+downloaded: Makefile
+	make clean
 	darcs get http://common-lisp.net/project/alexandria/darcs/alexandria
 	mkdir -p asdf
 	touch rospack_nosubdirs
