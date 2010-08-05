@@ -142,6 +142,8 @@
       #:condition-variable-broadcast
       #:make-synchronized-hash-table
       #:with-hash-table-locked
+      ;; utils
+      #:minimum #:maximum #:extremum
       ;; semaphores, reexported from sb-thread
       ,@+semaphore-symbols+
       ;; mailboxes, reexported from sb-concurrency
