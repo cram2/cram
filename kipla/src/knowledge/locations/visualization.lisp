@@ -2,10 +2,13 @@
 (in-package :kipla)
 
 (defvar *location-costmap-grid-publisher* nil)
+(defvar *marker-publisher* nil)
 
 (defun location-costmap-vis-init ()
   (setf *location-costmap-grid-publisher*
-        (roslisp:advertise "/kipla/location_costmap" "nav_msgs/GridCells")))
+        (roslisp:advertise "/kipla/location_costmap" "nav_msgs/GridCells"))
+  (setf *marker-publisher*
+        (roslisp:advertise "/kipla/location_marker" "visualization_msgs/Marker")))
 
 (register-ros-init-function location-costmap-vis-init)
 
@@ -33,3 +36,27 @@
                                               map
                                               :z-scaling-factor z-scaling-factor
                                               :frame-id frame-id)))
+
+(let ((current-index 0))
+  
+  (defun publish-point (point)
+    (publish *marker-publisher*
+             (make-message "visualization_msgs/Marker"
+                           (stamp header) (ros-time)
+                           (frame_id header) "/map"
+                           ns "kipla_locations"
+                           id (incf current-index)
+                           type (symbol-code 'visualization_msgs-msg:<marker> :sphere)
+                           action (symbol-code 'visualization_msgs-msg:<marker> :add)
+                           (x position pose) (cl-transforms:x point)
+                           (y position pose) (cl-transforms:y point)
+                           (z position pose) (cl-transforms:z point)
+                           (w orientation pose) 0
+                           (x scale) 0.1
+                           (y scale) 0.1
+                           (z scale) 0.1
+                           (r color) (random 1.0)
+                           (g color) (random 1.0)
+                           (b color) (random 1.0)
+                           (a color) 1))))
+

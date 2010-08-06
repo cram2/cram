@@ -65,6 +65,7 @@
                  cl-utils
                  cl-transforms
                  map_annotation-srv
+                 visualization_msgs-msg
                  #+kipla-contrib-oro oro_ros-srv
                  #+kipla-contrib-oro yason
                  #+kipla-contrib-hri web_hri-srv)
@@ -97,12 +98,14 @@
                                   :depends-on ("designators")
                                   :components
                                   ((:file "location-facts"
-                                          :depends-on ("ros-types" "location-prolog-handlers"))
+                                          :depends-on ("ros-types"
+                                                       "location-prolog-handlers"
+                                                       "cost-functions"))
                                    (:file "location-prolog-handlers"
-                                          :depends-on ("location-map" "ros-handlers"))
-                                   (:file "location-map")
+                                          :depends-on ("location-costmap" "ros-handlers"))
+                                   (:file "location-costmap")
                                    (:file "ros-handlers")
-                                   (:file "object-cost-functions")
+                                   (:file "cost-functions")
                                    (:file "visualization")
                                    (:module "ros-types"
                                             :components

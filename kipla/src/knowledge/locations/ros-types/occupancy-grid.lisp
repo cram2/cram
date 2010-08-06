@@ -229,8 +229,7 @@ otherwise."
                       (setf (aref cov-matrix 0 1) (aref cov-matrix 1 0))
                       (return cov-matrix))))))
 
-
-(defun occupied-grid-metadata (map &key key)
+(defun occupancy-grid-metadata (map &key key)
   "Returns a list containing the map metadata. The list can be
 destructured and contains the
 keys :width, :height, :resolution, :origin-x and :origin-y"

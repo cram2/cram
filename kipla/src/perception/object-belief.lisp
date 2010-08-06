@@ -107,6 +107,7 @@
            (rete-retract `(,?lhs ,perceived-object ,?rhs))))))
 
 (defun compatible-properties (props-1 props-2)
+  ;; TODO: use knowrob for this: comp_cop:cop_compatible_results(A, B)
   (or (null props-1)
       (let ((prop-1-value (cadar props-1))
             (prop-2-value (cadr (assoc (caar props-1) props-2))))

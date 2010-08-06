@@ -27,4 +27,5 @@
   <depend package="cl_utils"/>
   <depend package="cl_transforms"/>
   <depend package="map_annotation"/>
+  <depend package="visualization_msgs"/>
 </package>

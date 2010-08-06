@@ -17,7 +17,7 @@
 (in-package :kipla-reasoning)
 
 (defun make-grid-cells-cost-function (grid-cells &key (invert nil) padding)
-  "Returns a cost-function to be used in a LOCATION-COST-MAP. It
+  "Returns a cost-function to be used in a LOCATION-COSTMAP. It
 returns 1 for all entries in the ros map that are free for sure and 0
 otherwise."
   (assert (value grid-cells) () "No grid-cells costmap available.")

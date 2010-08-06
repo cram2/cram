@@ -46,7 +46,7 @@
     (assert (is-var ?cm) ()
             "?CM is an output parameter and therefore must be a variable.")
     (let ((cm (or (var-value-strict ?cm bdgs)
-                  (apply #'make-instance 'location-cost-map (costmap-metadata))))
+                  (apply #'make-instance 'location-costmap (costmap-metadata))))
           (fun (cond ((is-var ?generator-fun)
                       (symbol-function (var-value-strict ?generator-fun bdgs)))
                      ((and ?generator-fun (symbolp ?generator-fun))
