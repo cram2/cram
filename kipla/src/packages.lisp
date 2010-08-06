@@ -27,14 +27,20 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
+(defpackage :kipla-utils
+    (:documentation "Utilities")
+  (:use #:common-lisp)
+  (:export #:lispify-ros-name #:rosify-lisp-name))
+
 (defpackage :kipla-reasoning
-  (:documentation "All the prolog stuff used in kipla.")
+  (:documentation "All the prolog and reasoning stuff used in kipla.")
   (:use #:common-lisp
         #:cram-utilities
         #:cram-language-implementation ;; we don't want the fluent operators
         #:cram-designators
         #:cram-reasoning
-        #:cram-execution-trace)
+        #:cram-execution-trace
+        #:kipla-utils)
   (:shadowing-import-from #:cram-reasoning #:fail)
   (:import-from #:alexandria
                 #:curry #:rcurry #:compose
@@ -76,7 +82,6 @@
    #:cop-desig-query-info #:cop-desig-query-info-object-classes
    #:cop-desig-query-info-object-ids #:cop-desig-query-info-poses
    #:cop-desig-query-info-matches
-   #:lispify-cop-name #:copify-lisp-name
    #:make-cop-desig-query-info #:copy-cop-desig-query-info
    #:cop-desig-location-info #:cop-desig-location-info-poses
    #:cop-desig-info #:cop-desig-info-designator #:cop-desig-info-query
@@ -134,7 +139,8 @@
         #:cram-language ;; cram-language reexports all of package :common-lisp
         #:cram-designators
         #:cram-process-modules
-        #:kipla-reasoning)
+        #:kipla-reasoning
+        #:kipla-utils)
   (:export #:log-msg #:run-demo-counter-to-table
            #:run-demo-table-to-counter #:look-at
            #:drive-to-waypoints-main

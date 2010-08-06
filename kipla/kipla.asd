@@ -75,6 +75,7 @@
                (:file "logging" :depends-on ("packages"))
                (:file "ros-node" :depends-on ("packages"))
                (:file "speech" :depends-on ("packages"))
+               (:file "utils" :depends-on ("packages"))
                (:module "designators"
                         :depends-on ("packages" "config" "knowledge")
                         :components
@@ -87,7 +88,7 @@
                         :components
                         ((:file "belief-state")))
                (:module "knowledge"
-                        :depends-on ("packages" "ros-node" "config")
+                        :depends-on ("packages" "ros-node" "config" "utils")
                         :components
                         ((:file "prolog-utils")
                          (:module "locations"
@@ -112,7 +113,7 @@
                          (:file "liswip")
                          (:file "swi-predicates" :depends-on ("liswip"))))
                (:module "perception"
-                        :depends-on ("packages" "config" "ros-node" "designators")
+                        :depends-on ("packages" "config" "ros-node" "designators" "utils")
                         :components
                         ((:file "object-belief")
                          (:file "process-module"
