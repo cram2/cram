@@ -16,13 +16,17 @@
 
 (in-package :kipla-reasoning)
 
+(defun grid-value-occupied-p (val)
+  (and (> val 0) (<= val 127)))
+
+(defun grid-value-not-occupied-p (val)
+  (eql val 0))
+
 (defun make-occupancy-grid-cost-function (map &key (invert nil) (padding nil))
   "Returns a cost-function to be used in a LOCATION-COST-MAP. It
 returns 1 for all entries in the ros map that are free for sure and 0
 otherwise."
-  (flet ((occupied-p (val) (and (> val 0) (<= val 127)))
-         (not-occupied-p (val) (eql val 0))
-         (extend-map (2d-map padding)
+  (flet ((extend-map (2d-map padding)
            (let* ((padding (round padding))
                   (new-map (make-array (list (+ (array-dimension 2d-map 0) (* 2 padding))
                                              (+ (array-dimension 2d-map 1) (* 2 padding)))
@@ -49,7 +53,7 @@ otherwise."
              (origin-y (if padding (- origin-y padding) origin-y))
              (padding (when padding (round (/ padding resolution))))
              (padding-mask (when padding (make-inflation-mask (* 2 padding) 1)))
-             (pred (if invert #'not-occupied-p #'occupied-p))
+             (pred (if invert #'grid-value-not-occupied-p #'grid-value-occupied-p))
              (map-2d (if padding
                          (extend-map (make-array `(,height ,width) :displaced-to map-data) padding)
                          (make-array `(,height ,width) :displaced-to map-data)))
@@ -111,63 +115,120 @@ otherwise."
 (defun inflate-map (map padding &key (invert nil))
   "Inflates the occupied space inside the map. Free space with
   distance <= padding to occupied space gets marked as occupied."
-  (flet ((occupied-p (val) (and (> val 0) (<= val 127)))
-         (not-occupied-p (val) (eql val 0)))
-    (roslisp:with-fields ((resolution (resolution info))
-                          (width (width info))
-                          (height (height info))
-                          (header header)
-                          (info info)
-                          (map-data data))
-        map
-      (let ((map-2d (make-array `(,height ,width)
-                                :displaced-to map-data))
-            (new-map-2d (make-array `(,width ,height)
-                                    :element-type (array-element-type map-data)))
-            (inflation-mask (make-inflation-mask (round (/ padding resolution)) 1))
-            (width (coerce width 'fixnum))
-            (height (coerce height 'fixnum))
-            (pred (if invert #'not-occupied-p #'occupied-p)))
-        (do ((y 0 (+ y 1))) ((>= y height))
-          (do ((x 0 (+ x 1))) ((>= x width))
-            (when (and (funcall pred (aref map-2d y x))
-                       (point-in-range-mask-p map-2d x y inflation-mask))
-              (setf (aref new-map-2d y x) 127))))
-        (roslisp:make-message "nav_msgs/OccupancyGrid"
-                              header header
-                              info info
-                              data (make-array (array-dimension map-data 0) :displaced-to new-map-2d))))))
+  (roslisp:with-fields ((resolution (resolution info))
+                        (width (width info))
+                        (height (height info))
+                        (header header)
+                        (info info)
+                        (map-data data))
+      map
+    (let ((map-2d (make-array `(,height ,width)
+                              :displaced-to map-data))
+          (new-map-2d (make-array `(,width ,height)
+                                  :element-type (array-element-type map-data)))
+          (inflation-mask (make-inflation-mask (round (/ padding resolution)) 1))
+          (width (coerce width 'fixnum))
+          (height (coerce height 'fixnum))
+          (pred (if invert #'grid-value-not-occupied-p #'grid-value-occupied-p)))
+      (do ((y 0 (+ y 1))) ((>= y height))
+        (do ((x 0 (+ x 1))) ((>= x width))
+          (when (and (funcall pred (aref map-2d y x))
+                     (point-in-range-mask-p map-2d x y inflation-mask))
+            (setf (aref new-map-2d y x) 127))))
+      (roslisp:make-message "nav_msgs/OccupancyGrid"
+                            header header
+                            info info
+                            data (make-array (array-dimension map-data 0) :displaced-to new-map-2d)))))
 
 (defun map->grid-cells (map &key (invert nil))
-  (flet ((occupied-p (val) (and (> val 0) (<= val 127)))
-         (not-occupied-p (val) (eql val 0)))
-    (roslisp:with-fields ((resolution (resolution info))
-                          (height (height info))
-                          (width (width info))
-                          (origin-x (x position origin info))
-                          (origin-y (y position origin info))
-                          (map-data data))
-        map
-      (let ((cells nil)
-            (width (round (truncate width)))
-            (height (round (truncate height)))
-            (occupied-pred (if invert
-                               #'not-occupied-p
-                               #'occupied-p)))
-        (loop for y from 0 below width do
-          (loop for x from 0 below height do
-            (when (funcall occupied-pred (aref map-data (+ (* y height) x)))
-              (push (make-instance 'geometry_msgs-msg:<Point>
-                                   :x (+ (* x resolution) origin-x (/ resolution 2))
-                                   :y (+ (* y resolution) origin-y (/ resolution 2))
-                                   :z 0)
-                    cells))))
-        (roslisp:make-message "nav_msgs/GridCells"
-                              (frame_id header) "/map"
-                              (stamp header) (roslisp:ros-time)
-                              cell_width resolution
-                              cell_height resolution
-                              cells (map 'vector #'identity cells))))))
+  (roslisp:with-fields ((resolution (resolution info))
+                        (height (height info))
+                        (width (width info))
+                        (origin-x (x position origin info))
+                        (origin-y (y position origin info))
+                        (map-data data))
+      map
+    (let ((cells nil)
+          (width (round (truncate width)))
+          (height (round (truncate height)))
+          (occupied-pred (if invert
+                             #'grid-value-not-occupied-p
+                             #'grid-value-occupied-p)))
+      (loop for y from 0 below height do
+        (loop for x from 0 below width do
+          (when (funcall occupied-pred (aref map-data (+ (* y height) x)))
+            (push (make-instance 'geometry_msgs-msg:<Point>
+                                 :x (+ (* x resolution) origin-x (/ resolution 2))
+                                 :y (+ (* y resolution) origin-y (/ resolution 2))
+                                 :z 0)
+                  cells))))
+      (roslisp:make-message "nav_msgs/GridCells"
+                            (frame_id header) "/map"
+                            (stamp header) (roslisp:ros-time)
+                            cell_width resolution
+                            cell_height resolution
+                            cells (map 'vector #'identity cells)))))
+
+(defun occupancy-grid-mean (map &key (invert nil))
+  (roslisp:with-fields ((resolution (resolution info))
+                        (width (width info))
+                        (height (height info))
+                        (origin-x (x position origin info))
+                        (origin-y (y position origin info))
+                        (map-data data))
+      map
+    (let ((pred (if invert #'grid-value-not-occupied-p #'grid-value-occupied-p))
+          (size (length map-data)))
+      (loop for y from 0 below height
+            with cntr = 0
+            with sum-x = 0.0
+            with sum-y = 0.0
+            do (loop for x from 0 below width
+                     when (funcall pred (aref map-data cntr)) do
+                       (setf sum-x (+ sum-x x))
+                       (setf sum-y (+ sum-y y))
+                     do (incf cntr))
+            finally (return (cl-transforms:make-3d-vector
+                             (+ (* (/ sum-x size) resolution) origin-x)
+                             (+ (* (/ sum-y size) resolution) origin-y)
+                             0))))))
+
+(defun occupancy-grid-covariance (map &key (mean nil) (invert nil))
+  (roslisp:with-fields ((resolution (resolution info))
+                        (width (width info))
+                        (height (height info))
+                        (origin-x (x position origin info))
+                        (origin-y (y position origin info))
+                        (map-data data))
+      map
+    (let* ((mean (or mean (occupancy-grid-mean map :invert invert)))
+           (cov-matrix (make-array '(2 2) :initial-element 0.0))
+           (pred (if invert #'grid-value-not-occupied-p #'grid-value-occupied-p))
+           (size (length map-data)))
+      (loop for y from 0 below height
+            with cntr = 0
+            do (loop for x from 0 below width
+                     for x-scaled = (* x resolution)
+                     for y-scaled = (* y resolution)
+                     when (funcall pred (aref map-data cntr)) do
+                       (setf (aref cov-matrix 0 0)
+                             (+ (aref cov-matrix 0 0)
+                                (expt (- x-scaled origin-x (cl-transforms:x mean)) 2)))
+                       (setf (aref cov-matrix 1 0)
+                             (+ (aref cov-matrix 1 0)
+                                (* (- x-scaled origin-x (cl-transforms:x mean))
+                                   (- y-scaled origin-y (cl-transforms:y mean)))))
+                       (setf (aref cov-matrix 1 1)
+                             (+ (aref cov-matrix 1 1)
+                                (expt (- y-scaled origin-y (cl-transforms:y mean)) 2)))
+                     do (incf cntr))
+            finally (progn
+                      (setf (aref cov-matrix 0 0) (/ (aref cov-matrix 0 0) size))
+                      (setf (aref cov-matrix 1 0) (/ (aref cov-matrix 1 0) size)) 
+                      (setf (aref cov-matrix 1 1) (/ (aref cov-matrix 1 1) size))
+                      (setf (aref cov-matrix 0 1) (aref cov-matrix 1 0))
+                      (return cov-matrix))))))
+
 
 (defun occupied-grid-metadata (map &key key)
   "Returns a list containing the map metadata. The list can be
