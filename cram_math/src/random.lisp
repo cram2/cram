@@ -9,8 +9,8 @@
    
    `p-fun' is the probability distripution that maps a variable to a
    probability within the interval [0;1]."
-  (let* ((t-val (random 1.0))
-         (u-val (random 1.0))
+  (let* ((t-val (random 1.0d0))
+         (u-val (random 1.0d0))
          (var (funcall var-fun t-val)))
     (if (<= u-val (funcall p-fun var))
         var
