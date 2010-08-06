@@ -51,11 +51,11 @@
   t)
 
 (defmethod object-classes ((obj cop-perceived-object))
-  (mapcar (alexandria:compose #'copify-lisp-name #'cadr)
+  (mapcar (alexandria:compose #'rosify-lisp-name #'cadr)
           (object-properties obj)))
 
 (defmethod object-classes ((obj queried-object))
-  (mapcar (alexandria:compose #'copify-lisp-name #'cadr)
+  (mapcar (alexandria:compose #'rosify-lisp-name #'cadr)
           (object-properties obj)))
 
 (defmethod kipla-reasoning:make-new-desig-description ((old-desig object-designator)
@@ -176,8 +176,8 @@
 ;;         quality: 0.957078
 
 (defun cop-model->property (m)
-  (list (lispify-cop-name (vision_msgs-msg:type-val m))
-        (lispify-cop-name (vision_msgs-msg:sem_class-val m))))
+  (list (lispify-ros-name (vision_msgs-msg:type-val m))
+        (lispify-ros-name (vision_msgs-msg:sem_class-val m))))
 
 (defun cop-reply->perceived-object (reply)
   (make-instance 'cop-perceived-object
