@@ -17,12 +17,12 @@
 
 (in-package :kipla-reasoning)
 
-(defclass location-cost-map ()
+(defclass location-costmap ()
   ((width :initarg :width :reader width)
    (height :initarg :height :reader height)
    (origin-x :initarg :origin-x :reader origin-x :initform 0.0)
    (origin-y :initarg :origin-y :reader origin-y :initform 0.0)
-   (resolution :initarg :resolution :reader resolution :initform 0.01
+   (resolution :initarg :resolution :reader resolution :initform 0.05
                :documentation "The resolution of the cost map,
                i.e. the step size used when evaluating the cost
                functions.")
@@ -38,7 +38,7 @@
   (:documentation "Returns the costmap as a two-dimensional array of
   FLOAT."))
 
-(defgeneric get-map-value (map &key x y)
+(defgeneric get-map-value (map x y)
   (:documentation "Returns the cost of a specific pose."))
 
 (defgeneric register-cost-function (map fun &optional score)
@@ -46,7 +46,7 @@
   argument `score' allows to define an order in which to apply each
   cost function. Higher scores are evaluated first."))
 
-(defmethod get-cost-map ((map location-cost-map))
+(defmethod get-cost-map ((map location-costmap))
   (flet ((calculate-map-value (map x y)
            (reduce (lambda (prev-value cost-function)
                      ;; (format t "prev-value: ~a cost-function ~a~%" prev-value cost-function)
@@ -84,10 +84,38 @@
           (setf (slot-value map 'cost-map) new-cost-map)))
       (slot-value map 'cost-map))))
 
-(defmethod get-map-value ((map location-cost-map) &key x y)
+(defmethod get-map-value ((map location-costmap) x y)
   (aref (get-cost-map map)
-        (/ x (slot-value map 'resolution))
-        (/ y (slot-value map 'resolution))))
+        (truncate (- x (slot-value map 'origin-x))
+                  (slot-value map 'resolution))
+        (truncate (- y (slot-value map 'origin-y))
+                  (slot-value map 'resolution))))
 
-(defmethod register-cost-function ((map location-cost-map) fun &optional (score 0))
+(defmethod register-cost-function ((map location-costmap) fun &optional (score 0))
   (push (cons fun score) (slot-value map 'cost-functions)))
+
+(defun merge-costmaps (cm-1 &rest costmaps)
+  (etypecase cm-1
+    (list (apply #'merge-costmaps cm-1 costmaps))
+    (location-costmap
+       (setf (slot-value cm-1 'cost-functions)
+             (reduce #'append (mapcar #'cost-functions costmaps)))
+       (setf (slot-value cm-1 'cost-map) nil))))
+
+(defmethod gen-costmap-sample ((map location-costmap))
+  (flet ((make-var-fun ()
+           "Returns a function that maps a number within the interval
+            [0;1) to a coordinate that can be used in the probability
+            function."
+           (with-slots (width height origin-x origin-y) map
+             (let ((n-pts (* width height)))
+               (lambda (v)
+                 (let ((index (* v n-pts)))
+                   (cons (+ (mod index height) origin-x)
+                         (+ (/ index height) origin-y)))))))
+         (p-fun (pt)
+           ;; (format t "map value: ~a ~a ~a~%" (car pt) (cdr pt) (get-map-value map (car pt) (cdr pt)))
+           (get-map-value map (car pt) (cdr pt))))
+    (with-slots (origin-x origin-y) map
+      (let ((coord (cma:sample (make-var-fun) #'p-fun)))
+        (cl-transforms:make-3d-vector (car coord) (cdr coord) 0)))))
