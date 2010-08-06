@@ -85,9 +85,6 @@
     ;; Ignore all non goal tasks for high level reasoning
     (lisp-fun cet:episode-knowledge-goal-task-list ?tasks)
     (or (top-level ?task) (member ?task ?tasks)))
-
-  (<- (foo ?bar)
-    (or (== ?bar 10) (== ?bar 20)))
   
   ;; for now really filter out any non-goal task children etc
   ;; (<- (task ?task)
