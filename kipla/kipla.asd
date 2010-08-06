@@ -63,6 +63,8 @@
                  navp_action-msg
                  nav_msgs-msg
                  cl-utils
+                 cl-transforms
+                 map_annotation-srv
                  #+kipla-contrib-oro oro_ros-srv
                  #+kipla-contrib-oro yason
                  #+kipla-contrib-hri web_hri-srv)

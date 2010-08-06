@@ -24,5 +24,7 @@
   <depend package="pr2_msgs"/>
   <depend package="actionlib_lisp"/>
   <depend package="nav_msgs"/>
-  <depend package="cl_utils"/>  
+  <depend package="cl_utils"/>
+  <depend package="cl_transforms"/>
+  <depend package="map_annotation"/>
 </package>
