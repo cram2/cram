@@ -63,6 +63,7 @@
            #:once
            #:findall
            #:forall
+           #:bagof
            #:filter-bindings
            #:query-var
            ;; Rete
