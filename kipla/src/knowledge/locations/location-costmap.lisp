@@ -107,14 +107,13 @@
            "Returns a function that maps a number within the interval
             [0;1) to a coordinate that can be used in the probability
             function."
-           (with-slots (width height origin-x origin-y) map
-             (let ((n-pts (* width height)))
+           (with-slots (width height origin-x origin-y resolution) map
+             (let ((n-pts (* width height (/ resolution))))
                (lambda (v)
                  (let ((index (* v n-pts)))
                    (cons (+ (mod index height) origin-x)
-                         (+ (/ index height) origin-y)))))))
+                         (+ (/ index (/ height resolution)) origin-y)))))))
          (p-fun (pt)
-           ;; (format t "map value: ~a ~a ~a~%" (car pt) (cdr pt) (get-map-value map (car pt) (cdr pt)))
            (get-map-value map (car pt) (cdr pt))))
     (with-slots (origin-x origin-y) map
       (let ((coord (cma:sample (make-var-fun) #'p-fun)))
