@@ -23,7 +23,7 @@
   (eql val 0))
 
 (defun make-occupancy-grid-cost-function (map &key (invert nil) (padding nil))
-  "Returns a cost-function to be used in a LOCATION-COST-MAP. It
+  "Returns a cost-function to be used in a LOCATION-COSTMAP. It
 returns 1 for all entries in the ros map that are free for sure and 0
 otherwise."
   (flet ((extend-map (2d-map padding)
@@ -208,19 +208,19 @@ otherwise."
       (loop for y from 0 below height
             with cntr = 0
             do (loop for x from 0 below width
-                     for x-scaled = (* x resolution)
-                     for y-scaled = (* y resolution)
+                     for x-scaled = (+ (* x resolution) origin-x)
+                     for y-scaled = (+ (* y resolution) origin-y)
                      when (funcall pred (aref map-data cntr)) do
                        (setf (aref cov-matrix 0 0)
                              (+ (aref cov-matrix 0 0)
-                                (expt (- x-scaled origin-x (cl-transforms:x mean)) 2)))
+                                (expt (- x-scaled (cl-transforms:x mean)) 2)))
                        (setf (aref cov-matrix 1 0)
                              (+ (aref cov-matrix 1 0)
-                                (* (- x-scaled origin-x (cl-transforms:x mean))
-                                   (- y-scaled origin-y (cl-transforms:y mean)))))
+                                (* (- x-scaled (cl-transforms:x mean))
+                                   (- y-scaled (cl-transforms:y mean)))))
                        (setf (aref cov-matrix 1 1)
                              (+ (aref cov-matrix 1 1)
-                                (expt (- y-scaled origin-y (cl-transforms:y mean)) 2)))
+                                (expt (- y-scaled (cl-transforms:y mean)) 2)))
                      do (incf cntr))
             finally (progn
                       (setf (aref cov-matrix 0 0) (/ (aref cov-matrix 0 0) size))
