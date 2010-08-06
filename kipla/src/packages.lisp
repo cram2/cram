@@ -147,7 +147,8 @@
            #:startup-ros #:shutdown-ros
            #:register-ros-init-function
            #:register-ros-cleanup-function
-           #:*map-fl* #:*table-costmap-fl*)
+           #:*map-fl* #:*table-costmap-fl*
+           #:get-closest-annotation)
   (:import-from #:alexandria
                 #:with-gensyms #:curry #:rcurry)
   (:import-from #:cram-reasoning
