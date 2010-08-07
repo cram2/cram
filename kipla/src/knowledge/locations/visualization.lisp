@@ -12,17 +12,20 @@
 
 (register-ros-init-function location-costmap-vis-init)
 
-(defun location-costmap->grid-cells-msg (map &key (z-scaling-factor 1.0) (frame-id "/map"))
+(defun location-costmap->grid-cells-msg (map &key (frame-id "/map"))
   (with-slots (origin-x origin-y resolution) map
     (let* ((map-array (get-cost-map map))
-           (grid-cells nil))
+           (grid-cells nil)
+           (max-val (loop for y from 0 below (array-dimension map-array 1)
+                          maximizing (loop for x from 0 below (array-dimension map-array 1)
+                                           maximizing (aref map-array x y)))))
       (loop for y from 0 below (array-dimension map-array 1)
                              do (loop for x from 0 below (array-dimension map-array 0)
                                       do (when (> (aref map-array x y) 0.0)
                                            (push (make-message "geometry_msgs/Point"
                                                         x (+ (* x resolution) origin-x)
                                                         y (+ (* y resolution) origin-y)
-                                                        z (* (aref map-array x y) z-scaling-factor))
+                                                        z (/ (aref map-array x y) max-val))
                                                  grid-cells))))
       (make-message "nav_msgs/GridCells"
                     (frame_id header) frame-id
@@ -31,11 +34,9 @@
                     cell_height resolution
                     cells (map 'vector #'identity grid-cells)))))
 
-(defun publish-location-costmap (map &key (z-scaling-factor 1.0) (frame-id "/map"))
+(defun publish-location-costmap (map &key (frame-id "/map"))
   (publish *location-costmap-grid-publisher* (location-costmap->grid-cells-msg
-                                              map
-                                              :z-scaling-factor z-scaling-factor
-                                              :frame-id frame-id)))
+                                              map :frame-id frame-id)))
 
 (let ((current-index 0))
   
