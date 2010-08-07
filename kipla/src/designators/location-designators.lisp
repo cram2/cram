@@ -36,54 +36,128 @@
 ;;; provided to post-process the solutions from reasoning, e.g. to
 ;;; sort according to eucledian distance.
 
+(defconstant +costmap-n-samples+ 3)
 
-;;; Same locations must not only be equatable but also eq!
-;;; This is necessary to make rete work!
+(defgeneric make-location-proxy (type value)
+  (:documentation "Creates a location proxy of `type' and initializes
+  it with `value'."))
 
-(defvar *location-designators* nil
-  "An alist containing a mapping of desig descriptions to the
-   designator instance.")
+(defgeneric location-proxy-current-solution (proxy)
+  (:documentation "Returns the current solution of the proxy"))
+
+(defgeneric location-proxy-next-solution (proxy)
+  (:documentation "Returns the next solution of the proxy object or
+  NIL if no more solutions exist."))
+
+(defgeneric location-proxy-precedence-value (proxy)
+  (:documentation "Returns a number that indicates the proxie's
+  precedence. Lower numbers correspond to lower precedence."))
+
+(defgeneric location-proxy-solution->pose (desig solution)
+  (:method (desig (solution cl-transforms:pose))
+    solution))
+
+(defclass pose-location-proxy ()
+  ((pose :accessor location-proxy-current-solution :initarg :pose))
+  (:documentation "Proxy class for designators that contain poses."))
+
+(defclass point-location-proxy ()
+  ((point :accessor location-proxy-current-solution :initarg :pose))
+  (:documentation "Proxy class for designators that contain poses."))
+
+(defclass costmap-location-proxy (point-location-proxy)
+  ((next-solutions :accessor :next-solutions :initform nil
+                   :documentation "List of the next solution. We want
+                   to minimize driving distances, so we always
+                   generate a bunch of solutions, order them by
+                   distance to the robot and always chose the closest
+                   one when generating a new solution.")
+   (costmap :initarg :costmap :reader costmap))
+  (:documentation "Proxy class to generate designator solutions from a
+  costmap."))
 
 (defclass location-designator (designator designator-id-mixin)
-  ())
+  ((current-solution :reader current-solution :initform nil)))
+
 (register-designator-type location location-designator)
 
-(defmethod make-designator :around ((type (eql (find-class 'location-designator)))
-                                    description &optional parent)
-  (declare (ignore parent))
-  (flet ((compare-fun (obj-1 obj-2)
-           (or (equal obj-1 obj-2)
-               (eql (object-id obj-1)
-                    (object-id obj-2)))))
-    (let ((old-desig (cdr (assoc description
-                                 *location-designators*
-                                 :test (rcurry #'tree-equal :test #'compare-fun)))))
-      (or old-desig
-          (let ((desig (call-next-method)))
-            (push (cons description desig) *location-designators*)
-            desig)))))
-
 (defmethod reference ((desig location-designator))
-  (unless (slot-value desig 'data)
-    (setf (slot-value desig 'data)
-          (lazy-mapcar (alexandria:compose #'(lambda (descr)
-                                               (etypecase descr
-                                                 (string (jlo:make-jlo :name descr))
-                                                 (number (jlo:make-jlo :id descr))
-                                                 (jlo:jlo descr)))
-                                           (curry #'var-value '?loc))
-                       (prolog `(desig-loc ,desig ?loc))))
-    (rete-assert `(desig-bound ,desig ,(slot-value desig 'data))))
-  (or (lazy-car (slot-value desig 'data))
-      (error "Unable to resolve location designator `~a'" (description desig))))
+  (with-slots (data current-solution) desig
+    (unless current-solution
+      (setf data (mapcar (curry #'apply #'make-location-proxy)
+                         (sort (mapcar (curry #'var-value '?value)
+                                       (force-ll (prolog `(desig-loc ,desig ?value))))
+                               #'> :key #'location-proxy-precedence-value)))
+      (assert data () (format nil "Unable to resolve designator `~a'" desig))
+      (setf current-solution (location-proxy-solution->pose
+                              desig
+                              (location-proxy-current-solution (car data))))
+      (assert current-solution () (format nil "Unable to resolve designator `~a'" desig)))
+    current-solution))
 
 (defmethod next-solution ((desig location-designator))
+  ;; Make sure that we initialized the designator properly
+  (unless (slot-value desig 'current-solution)
+    (reference desig))
   (with-slots (data) desig
-    (when (car (cut:lazy-cdr data))
-      (cond ((successor desig)
-             (successor desig))
-            (t
-             (let ((new-desig (make-designator 'location (description desig) desig)))
-               (setf (slot-value new-desig 'data) (cut:lazy-cdr data))
-               (rete-assert `(desig-bound ,new-desig ,(slot-value new-desig 'data)))
-               new-desig))))))
+    (or (successor desig)
+        (let ((new-desig (make-designator 'location (description desig))))
+          (or
+           (let ((next (location-proxy-next-solution (car data))))
+             (when next
+               (setf (slot-value new-desig 'data) data)
+               (setf (slot-value new-desig 'current-solution)
+                     (location-proxy-solution->pose new-desig next))
+               (equate desig new-desig)))
+           (when (cdr data)
+             (let ((next (location-proxy-current-solution (cadr data))))
+               (when next
+                 (setf (slot-value new-desig 'data) (cdr data))
+                 (setf (slot-value new-desig 'current-solution)
+                       (location-proxy-solution->pose new-desig next))
+                 (equate desig new-desig)))))))))
+
+;; Todo: make the poses stamped
+(defmethod make-location-proxy ((type (eql 'point)) (value cl-transforms:3d-vector))
+  (make-instance 'pose-location-proxy
+                 :pose (cl-transforms:make-pose
+                        value (cl-transforms:make-quaternion 0 0 0 1))))
+
+(defmethod make-location-proxy ((type (eql 'pose)) (value cl-transforms:pose))
+  (make-instance 'pose-location-proxy
+                 :pose value))
+
+(defmethod location-proxy-next-solution ((proxy pose-location-proxy))
+  nil)
+
+(defmethod location-proxy-precedence-value ((proxy pose-location-proxy))
+  1)
+
+(defmethod make-location-proxy ((type (eql 'costmap)) (val location-costmap))
+  (make-instance 'costmap-location-proxy :costmap val))
+
+(defmethod initialize-instance :after ((proxy costmap-location-proxy) &key &allow-other-keys)
+  (location-proxy-next-solution proxy))
+
+(defmethod location-proxy-next-solution ((proxy costmap-location-proxy))
+  (with-slots (point next-solutions costmap)
+      proxy
+    (let ((solutions (or next-solutions
+                         (loop repeat +costmap-n-samples+
+                               collecting (gen-costmap-sample costmap)))))
+      ;; Todo: take the closest next solution, not the first one
+      ;; Todo: add orientation
+      (setf next-solutions (cdr solutions))
+      (setf point (car solutions)))))
+
+(defmethod location-proxy-precedence-value ((proxy costmap-location-proxy))
+  0)
+
+(defmethod location-proxy-solution->pose (desig (solution cl-transforms:3d-vector))
+  (with-vars-bound (?o)
+      (lazy-car (prolog `(desig-orientation ,desig ,solution ?o)))
+    (cl-transforms:make-pose
+     solution
+     (or (unless (is-var ?o)
+           ?o)
+         (cl-transforms:make-quaternion 0 0 0 1)))))
