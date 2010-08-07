@@ -96,11 +96,17 @@
 
 (defun merge-costmaps (cm-1 &rest costmaps)
   (etypecase cm-1
-    (list (apply #'merge-costmaps cm-1 costmaps))
+    (list (apply #'merge-costmaps (append cm-1 costmaps)))
     (location-costmap
-       (setf (slot-value cm-1 'cost-functions)
-             (reduce #'append (mapcar #'cost-functions costmaps)))
-       (setf (slot-value cm-1 'cost-map) nil))))
+       ;; Todo: assert euqal size of all costmaps
+       (make-instance 'location-costmap
+                      :width (width cm-1)
+                      :height (height cm-1)
+                      :origin-x (origin-x cm-1)
+                      :origin-y (origin-y cm-1)
+                      :resolution (resolution cm-1)
+                      :cost-functions (reduce #'append (mapcar #'cost-functions costmaps)
+                                              :initial-value (cost-functions cm-1))))))
 
 (defmethod gen-costmap-sample ((map location-costmap))
   (flet ((make-var-fun ()
