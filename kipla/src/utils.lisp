@@ -25,3 +25,4 @@
                     (princ (char-upcase ch) strm)
                     (princ (char-downcase ch) strm))
                 (setf upcase nil)))))
+

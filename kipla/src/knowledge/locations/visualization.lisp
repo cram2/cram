@@ -12,7 +12,7 @@
 
 (register-ros-init-function location-costmap-vis-init)
 
-(defun location-costmap->grid-cells-msg (map &key (frame-id "/map"))
+(defun location-costmap->grid-cells-msg (map &key (frame-id "/map") (threshold 0.0005))
   (with-slots (origin-x origin-y resolution) map
     (let* ((map-array (get-cost-map map))
            (grid-cells nil)
@@ -21,7 +21,7 @@
                                            maximizing (aref map-array x y)))))
       (loop for y from 0 below (array-dimension map-array 1)
                              do (loop for x from 0 below (array-dimension map-array 0)
-                                      do (when (> (aref map-array x y) 0.0)
+                                      do (when (> (aref map-array x y) threshold)
                                            (push (make-message "geometry_msgs/Point"
                                                         x (+ (* x resolution) origin-x)
                                                         y (+ (* y resolution) origin-y)
@@ -34,9 +34,9 @@
                     cell_height resolution
                     cells (map 'vector #'identity grid-cells)))))
 
-(defun publish-location-costmap (map &key (frame-id "/map"))
+(defun publish-location-costmap (map &key (frame-id "/map") (threshold 0.0005))
   (publish *location-costmap-grid-publisher* (location-costmap->grid-cells-msg
-                                              map :frame-id frame-id)))
+                                              map :frame-id frame-id :threshold threshold)))
 
 (let ((current-index 0))
   
@@ -52,12 +52,37 @@
                            (x position pose) (cl-transforms:x point)
                            (y position pose) (cl-transforms:y point)
                            (z position pose) (cl-transforms:z point)
-                           (w orientation pose) 0
-                           (x scale) 0.1
-                           (y scale) 0.1
-                           (z scale) 0.1
+                           (w orientation pose) 1
+                           (x scale) 0.05
+                           (y scale) 0.05
+                           (z scale) 0.05
                            (r color) (random 1.0)
                            (g color) (random 1.0)
                            (b color) (random 1.0)
-                           (a color) 1))))
+                           (a color) 1)))
 
+  (defun publish-pose (pose)
+    (let ((point (cl-transforms:origin pose))
+          (rot (cl-transforms:orientation pose)))
+      (publish *marker-publisher*
+               (make-message "visualization_msgs/Marker"
+                             (stamp header) (ros-time)
+                             (frame_id header) "/map"
+                             ns "kipla_locations"
+                             id (incf current-index)
+                             type (symbol-code 'visualization_msgs-msg:<marker> :arrow)
+                             action (symbol-code 'visualization_msgs-msg:<marker> :add)
+                             (x position pose) (cl-transforms:x point)
+                             (y position pose) (cl-transforms:y point)
+                             (z position pose) (cl-transforms:z point)
+                             (x orientation pose) (cl-transforms:x rot)
+                             (y orientation pose) (cl-transforms:y rot)
+                             (z orientation pose) (cl-transforms:z rot)                             
+                             (w orientation pose) (cl-transforms:w rot)
+                             (x scale) 0.15
+                             (y scale) 0.15
+                             (z scale) 0.15
+                             (r color) 1
+                             (g color) 0
+                             (b color) 0
+                             (a color) 1)))))
