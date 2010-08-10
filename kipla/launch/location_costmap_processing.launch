@@ -1,0 +1,5 @@
+
+<launch>
+  <include file="$(find table_costmap)/launch/table_costmap.launch"/>
+  <include file="$(find ias_map_annotations)/launch/table_annotations.launch"/>
+</launch>
