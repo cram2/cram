@@ -75,4 +75,4 @@
 
 (defmethod running-p ((episode offline-episode-knowledge))
   (declare (ignore episode))
-  (error "Cannot check the running state of an offline episode."))
+  nil)
