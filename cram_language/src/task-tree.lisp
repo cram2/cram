@@ -195,7 +195,8 @@
              :path path))
 
 (defun clear-tasks (task-tree-node)
-  "Removes recursively all tasks from the tree."
+  "Removes recursively all tasks from the tree. Keeps tree structure and
+   leaves code-replacements in place."
   (when (task-tree-node-code task-tree-node)
     (setf (code-task (task-tree-node-code task-tree-node)) nil
           (code-sexp (task-tree-node-code task-tree-node)) nil

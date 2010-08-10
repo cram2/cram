@@ -126,7 +126,7 @@
   (fluent-durations episode fluent-name))
 
 (defun episode-running ()
-  "Returns T if an episode is currently running. False otherwise."
+  "Returns T if an episode is currently running. NIL otherwise."
   (and *episode-knowledge* (running-p *episode-knowledge*)))
 
 (defmacro with-episode-knowledge (episode-knowledge &body body)

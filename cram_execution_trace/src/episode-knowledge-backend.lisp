@@ -52,7 +52,7 @@
                     stream)
       (store-object (cdr obj) stream)))
 
-;;; Note: No two restored cons cells will be eq (at the moment). This also
+;;; NOTE: No two restored cons cells will be eq (at the moment). This also
 ;;; means circular lists can't be restored, which is good enough for now.
 (defrestore-episode-knowledge-backend (cons stream)
   (cons (restore-object stream)
