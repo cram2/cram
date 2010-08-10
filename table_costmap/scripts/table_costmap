@@ -27,7 +27,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-import roslib; roslib.load_manifest('polygonal_costmap')
-from polygonal_costmap.node import main
+import roslib; roslib.load_manifest('table_costmap')
+from table_costmap.node import main
 
 main()

@@ -27,7 +27,6 @@
 
 import rospy
 import nav_msgs.msg as nav_msgs
-import mapping_msgs.msg as mapping_msgs
 import geometry_msgs.msg as geometry_msgs
 
 from polygrid import *
@@ -38,12 +37,11 @@ class PolygonalMapSubscription(object):
         self.update_cb = update_cb
         self.header = None
 
-    def __call__(self, poly_map_msg):
+    def __call__(self, poly_msg):
         if self.header:
-            assert(self.header.frame_id == poly_map_msg.header.frame_id)
-        self.header = poly_map_msg.header
-        for polygon in poly_map_msg.polygons:
-            self.grid.updateGrid([(p.x, p.y) for p in polygon.points])
+            assert(self.header.frame_id == poly_msg.header.frame_id)
+        self.header = poly_msg.header
+        self.grid.updateGrid([(p.x, p.y) for p in poly_msg.polygon.points])
         self.update_cb(self.header, self.grid)
 
 class PolyGridCellsPublication(object):
@@ -99,7 +97,7 @@ def main():
     grid_cells_pub = PolyGridCellsPublication('~grid_cells')
     occupancy_grid_pub = PolyOccupancyGridPublication('~occupancy_grid')
     input_sub = rospy.Subscriber(
-        '~input', mapping_msgs.PolygonalMap,
+        '~input', geometry_msgs.PolygonStamped,
         PolygonalMapSubscription(
             resolution, resolution,
             apply_every([grid_cells_pub, occupancy_grid_pub])))

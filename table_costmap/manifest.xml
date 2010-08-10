@@ -1,7 +1,7 @@
 <package>
-  <description brief="polygonal_costmap">
+  <description brief="table_costmap">
 
-     polygonal_costmap
+     table_costmap
 
   </description>
   <author>Lorenz Moesenlechner</author>

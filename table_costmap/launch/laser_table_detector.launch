@@ -72,11 +72,10 @@
       <remap from="~input" to="extract_planar_clusters/output"/>
     </node>
 
-    <node pkg="polygonal_costmap" type="pcl_hull_to_polygon" name="table_polygon">
+    <node pkg="table_costmap" type="pcl_hull_to_polygon" name="table_polygon">
       <remap from="~input" to="table_convex_hull/output"/>
     </node>
     
   </group>
   
 </launch>
-
