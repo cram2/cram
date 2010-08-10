@@ -39,11 +39,16 @@ def main():
     global points
 
     rospy.init_node('map_annotation_server')
-    if not rospy.has_param('~file') and rospy.myargv() < 2:
+    argv = rospy.myargv()
+    
+    if not rospy.has_param('~file') and len(argv) < 2:
         print "No 'file' parameter or file command line argument specified."
         print "Usage: %s [filename]" % rospy.myargv()[0]
 
-    filename = rospy.get_param('~file', rospy.myargv()[1])
+    if len(argv) > 1:
+        filename = rospy.myargv()[1]
+    else:
+        filename = rospy.get_param('~file')
     rospy.loginfo("Loading annotations from file `%s'" % filename)
     points = load_points_file(filename)
 
