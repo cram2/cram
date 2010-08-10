@@ -1,0 +1,15 @@
+<package>
+  <description brief="ias_map_annotations">
+
+     ias_map_annotations
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/ias_map_annotations</url>
+  <depend package="map_annotation"/>
+
+</package>
+
+
