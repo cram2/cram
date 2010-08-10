@@ -29,25 +29,19 @@
 
 (in-package :cpl-impl)
 
-;;; TODO@demmeln: update following note.
-;;; We need to manage the task trees somehow. The idea is to have a hash-table
-;;; containing one task-tree for every top-level plan. Otherwise, the
-;;; task-tree management would become really really messy.
-;;; --> see episode knowledge.
-
-;;; TODO@demmeln: Add this to the docstring!
-;;; Note: Don't have (certain kinds of) surrounding FLET / LABLES / MACROLET /
-;;; SYMBOL-MACROLET / LET / ...  when using DEF-TOP-LEVEL-PLAN or
-;;; DEF-PLAN. They could mess with (WITH-TAGS ...) or shadow globally defined
-;;; plans, which would not be picked up by WITH-TAGS / EXPAND-PLAN.  See the
-;;; comment before the definition of WITH-TAGS for more details.
-
 (define-hook on-def-top-level-plan-hook (plan-name)
   (:documentation "Executed when a top-level-plan is defined."))
 
 (defmacro def-top-level-plan (name args &body body)
   "Defines a top-level plan. Every top-level plan has its own
-   episode-knowledge and task-tree."
+   episode-knowledge and task-tree.
+
+   CAVEAT: Don't have surrounding FLET / LABLES / MACROLET / SYMBOL-MACROLET /
+   LET / etc when using DEF-TOP-LEVEL-PLAN or DEF-PLAN (unless you really know
+   what you are doing). They could mess with (WITH-TAGS ...) or shadow
+   globally defined plans, which would not be picked up by WITH-TAGS /
+   EXPAND-PLAN.  See the comment before the definition of WITH-TAGS for more
+   details."
   (with-gensyms (call-args)
     `(progn
        (eval-when (:load-toplevel)
@@ -63,7 +57,9 @@
 
 (defmacro def-plan (name lambda-list &rest body)
   "Defines a plan. All functions that should appear in the task-tree
-   must be defined with def-plan."
+   must be defined with def-plan.
+
+   CAVEAT: See docstring of def-top-level-plan."
   (with-gensyms (call-args)
     `(progn
        (eval-when (:load-toplevel)

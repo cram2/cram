@@ -111,6 +111,10 @@
   the return values of ON-TOP-LEVEL-SETUP-HOOK is still in effect. The call to
   this hook is protected by an unwind protect."))
 
+;;; We need to manage the task trees somehow. The idea is to have a hash-table
+;;; containing one task-tree for every top-level plan. Otherwise, the
+;;; task-tree management would become really really messy.
+
 (defvar *top-level-task-trees* (make-hash-table :test 'eq)
   "The task tree for named top levels (top level plans) is stored in this
    hash-table by indexed by the plan name (which is a symbol).")
@@ -122,6 +126,9 @@
    e.g. in a test suite."
   (declare (type symbol name))
   (remhash name *top-level-task-trees*))
+
+;; TODO: Maybe introduce a register-top-level-task-tree akin to
+;; register-top-level-episode-knowledge
 
 (defun get-top-level-task-tree (name)
   "Returns the task tree for a named top level (top level plan)."
@@ -156,7 +163,8 @@
          (declare (special *task-tree* *current-task-tree-node* *current-path*))
          (when *current-task*
            (error "top-level calls cannot be nested."))
-         (clear-tasks *task-tree*) ;; TODO@demmeln: clearing seems not always to be a good idea...
+         (clear-tasks *task-tree*) ; Note: this leaves the tree structure and
+                                   ; code replacements intact.
          (single-form-progv (on-top-level-setup-hook ',name *task-tree*)
            (unwind-protect
                 (let ((,task (make-instance 'task
