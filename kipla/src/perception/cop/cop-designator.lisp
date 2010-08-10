@@ -63,7 +63,7 @@
 (register-object-desig-resolver * :cop (result desig)
   (let ((desig-info (ensure-desig-info result desig)))
     (setf (cop-desig-query-info-object-classes (cop-desig-info-query desig-info))
-          (nconc (mapcar (compose #'copify-lisp-name #'cadr)
+          (nconc (mapcar (compose #'rosify-lisp-name #'cadr)
                          (remove-if #'cop-ignore-property-p (description desig)))
                   (cop-desig-query-info-object-classes (cop-desig-info-query desig-info))))
     desig-info))
