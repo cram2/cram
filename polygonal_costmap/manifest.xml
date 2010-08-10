@@ -10,7 +10,11 @@
   <url>http://ros.org/wiki/polygonal_costmap</url>
   <depend package="rospy"/>
   <depend package="nav_msgs"/>
-  <depend package="mapping_msgs"/>
+  <depend package="geometry_msgs"/>
+  <depend package="sensor_msgs"/>
+  <depend package="pcl"/>
+  <depend package="pcl_ros"/>  
+  <depend package="point_cloud_converter"/>  
 
 </package>
 
