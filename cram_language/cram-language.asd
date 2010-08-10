@@ -39,8 +39,7 @@
      (:module "walker"
               :depends-on ("packages")
               :components
-              ((:file "augment-environment-sbcl-patch")
-               (:file "env")
+              ((:file "env")
                (:file "env-impl-specific")
                (:file "plan-tree")
                (:file "walker")
