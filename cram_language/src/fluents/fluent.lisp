@@ -105,7 +105,9 @@
 
 (defmethod register-update-callback ((fluent fluent) name update-fun)
   (with-fluent-locked fluent
-    (setf (gethash name (slot-value fluent 'on-update)) update-fun)))
+    (if (gethash name (slot-value fluent 'on-update))
+        (error "Callback with name ~a is already registered." name)
+        (setf (gethash name (slot-value fluent 'on-update)) update-fun))))
 
 (defmethod remove-update-callback ((fluent fluent) name)
   (with-fluent-locked fluent
