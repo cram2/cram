@@ -112,6 +112,7 @@
       #:current-timestamp
       #:set-default-timestamp-function
       #:set-timestamp-function
+      #:microsecond-timestamp-function
       #:timestamp
       #:current-string-timestamp
       ;; quad-tree
