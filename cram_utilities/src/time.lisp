@@ -38,13 +38,34 @@
   'double-float)
 
 (defun default-timestamp-function ()
-  "A function that returns the current time in seconds as a double float."
+  "A function that returns the current time in seconds as a double
+   float. Precision depends on the CL implementation, more precisely on the
+   value of INTERNAL-TIME-UNITS-PER-SECOND."
   (float
    (/ (get-internal-real-time)
       internal-time-units-per-second)
    ;; CAVEAT: Using double-float-epsilon here is tied to timestamp being type
    ;; "double float"
    double-float-epsilon)) 
+
+(defparameter *zero-time-seconds*
+  #+sbcl (sb-ext:get-time-of-day)
+  #-sbcl (error "Not supported")
+  "Timestamp in seconds when lisp image was started. Used as a reference for
+   to create 'small', 'relative' timestamps.")
+
+(defun microsecond-timestamp-function (&key relative)
+  "Returns current time in seconds as double precise to the micro second. If
+   `relative' is true, the seconds will be counted from the startup of the
+   lisp image, not from unix epoch (i.e. you get much smaller numbers, which
+   could be nice if you are only interested in relative times)."
+  #+sbcl
+  (multiple-value-bind (sec usec) (sb-ext:get-time-of-day)
+    (+ (if relative
+           (- sec *zero-time-seconds*)
+           sec)
+       (/ usec 1d6)))
+  #-sbcl (error "Not supported"))
 
 (defvar *timestamp-function* #'default-timestamp-function
   "A function that returns the current time in seconds as a double float.")
