@@ -30,6 +30,36 @@
 ;;; Live episodes
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;;;; TODO: REVIEW especially thread safety of execution trace access.
+
+;;; NOTE ON THREAD SAFETY
+;;;
+;;; For live episode knowledge we make some limited guarantees on thread
+;;; safety.
+;;;
+;;; 1. We assume that the running-flag need not be protected by a lock. The
+;;; operations STRAT, STOP and RUNNING-P should not interfere since all they
+;;; do is either read oder setf the slot which we assume to be atomic. The
+;;; worst that could happen is that a fluent wants to add a trace "at the same
+;;; time" as STOP is called. So the trace might be added to the queue even
+;;; though the episode is not strictly running any more. This should be
+;;; fine. At the moment UNREGISTER-FLUENT-CALLBACKS is called straight after
+;;; STOP. UNREGISTER-FLUENT-CALLBACKS implicitely has to aquire each fluent's
+;;; value lock, so after UNREGISTER-FLUENT-CALLBACKS has returned no more
+;;; stray traces should come in.
+;;;
+;;; 2. We assume that there is no parallel access to the episode-knowledge
+;;; before START and after STOP (except for checking the running flag).
+;;;
+;;; 3. Appending traced instances is synchronized by using a thread safe
+;;; queue.
+;;;
+;;; 4. Access to the execution trace is synchronized by using a synchronized
+;;; hash table and locking in the apporpriate places.
+;;;
+;;; 5. Access to the task tree is not synchronized and may not be thread safe.
+;;; 
+
 (defclass live-episode-knowledge (episode-knowledge)
   ((running-flag :accessor running-flag :type boolean :initform nil 
                  :documentation "We use this to start logging at the beginning
@@ -42,8 +72,8 @@
                 instances to. This needs to be a queue with thread safe
                 access.")
    (fluents :accessor fluents :type hash-table
-            :documentation "Weak hash table of all fluents that are created
-            while this episode was running.")))
+            :documentation "Weak, synchronized hash table of all fluents that
+            are created while this episode was running.")))
 
 (defmethod initialize-instance :after ((episode live-episode-knowledge) &key new-task-tree)
   (with-slots (execution-trace fluents) episode
@@ -53,6 +83,7 @@
 
 (defmethod max-time ((episode live-episode-knowledge))
   "Compute the max time by searching all the traces."
+  (update-execution-trace episode)
   (with-slots (execution-trace zero-time) episode
     (with-hash-table-locked (execution-trace)
       (calculate-max-time execution-trace #'identity zero-time))))
@@ -74,15 +105,16 @@
   it."
   (with-slots (trace-queue execution-trace) episode
     (let ((new-instances (make-hash-table)))
-      ;; 1. Empty the queue
+      ;; 1. Empty the queue into a temporary hash table
       (loop for instance = (dequeue trace-queue)
          while instance
          do (push instance (gethash (name instance) new-instances)))
       ;; 2. Then append the new instances to the ones allready in execution-trace
-      (loop for rev-inst-list being the hash-values in new-instances using (hash-key inst-name)
-         do (setf (gethash inst-name execution-trace)
-                  (append (gethash inst-name execution-trace)
-                          (reverse rev-inst-list)))))))
+      (with-hash-table-locked (execution-trace)
+        (loop for rev-inst-list being the hash-values in new-instances using (hash-key inst-name)
+           do (setf (gethash inst-name execution-trace)
+                    (append (gethash inst-name execution-trace)
+                            (reverse rev-inst-list))))))))
 
 (defmethod traced-fluent-instances ((episode live-episode-knowledge) fluent-name)
   (update-execution-trace episode)
@@ -132,18 +164,15 @@
   (setf (end-time live-episode) (current-timestamp)))
 
 (defmethod running-p ((episode live-episode-knowledge))
-  (and episode (running-flag episode)))
+  (running-flag episode))
 
 (defun unregister-fluent-callbacks (episode)
-  (loop for fluent being the hash-keys in (fluents episode)
-     do (remove-update-callback fluent :fluent-tracing-callback)))
+  (with-hash-table-locked ((fluents episode))
+    (loop for fluent being the hash-keys in (fluents episode)
+       do (remove-update-callback fluent :fluent-tracing-callback))))
 
 (defun register-episode-fluent (fluent episode)
   (setf (gethash fluent (fluents episode)) t))
-
-;; TODO: Evaluate if we need to export reset, stop, start etc since we use
-;; hooks now. Also maybe dont export the top-level-episode-knowledge access
-;; (maybe do though, for introspection)
 
 (defmethod on-top-level-setup-hook :execution-trace (top-level-name task-tree)
   (let ((ek (if top-level-name
@@ -151,13 +180,13 @@
                 (make-instance 'live-episode-knowledge))))
     (reset ek task-tree)
     (start ek)
-    (let ((*episode-knowledge* ek))
-      (trace-global-fluents))
+    (global-fluents-register-callbacks ek)
     (cons (list '*episode-knowledge*) (list ek))))
 
 (defmethod on-top-level-cleanup-hook :execution-trace (top-level-name)
   (stop *episode-knowledge*)
   (unregister-fluent-callbacks *episode-knowledge*)
+  (global-fluents-unregister-callbacks)
   (setf *last-episode-knowledge* *episode-knowledge*)
   (when (auto-tracing-enabled)
     (save-episode *episode-knowledge* (auto-tracing-filepath top-level-name))))

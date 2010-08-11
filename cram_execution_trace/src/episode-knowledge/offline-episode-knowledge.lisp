@@ -30,6 +30,12 @@
 ;;; Offline episodes
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;; NOTE ON THREAD SAFETY
+;;;
+;;; We guarantee no thread safety for offline episodes. We don't see why one
+;;; would need to access this from multiple threads. If the use case arises,
+;;; we can change it.
+
 (defclass offline-episode-knowledge (episode-knowledge)
   ((max-time :reader max-time
              :type timestamp)
