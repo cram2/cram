@@ -28,3 +28,18 @@
 ;;;
 
 (in-package :kipla-reasoning)
+
+;;; TODO: This should probably not be part of KIPLA but some other utility
+;;; package that depends on CRAM-REASONING and JSON-PROLOG-CLIENT
+(def-prolog-handler json-prolog (bdgs form &rest key-args &key prologify lispify package)
+  (declare (ignore prologify lispify package))
+  (let* ((form (substitute-vars form bdgs))
+         (vars (remove-if #'is-unnamed-var (vars-in form)))
+         ;; force-ll to make sure the json query is finished immediately
+         (result (force-ll (apply #'json-prolog:prolog form key-args))))
+    (lazy-mapcan (lambda (binding)
+                   (prolog `(and ,@(mapcar (lambda (var)
+                                             `(== ,var ,(var-value var binding)))
+                                           vars))
+                           bdgs))
+                 result)))
