@@ -88,6 +88,13 @@
     (with-hash-table-locked (execution-trace)
       (calculate-max-time execution-trace #'identity zero-time))))
 
+(defmethod task-tree ((episode live-episode-knowledge))
+  (let ((top-level (cdar (task-tree-node-children (slot-value episode 'task-tree)))))
+    (unless top-level
+      (error "Task tree has no top level node."))
+    (filter-task-tree (compose #'not #'stale-task-tree-node-p)
+                      top-level)))
+
 (defmethod task-list ((episode live-episode-knowledge))
   (calculate-task-list (task-tree episode)))
 

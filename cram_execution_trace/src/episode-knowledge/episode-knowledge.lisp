@@ -43,7 +43,7 @@
               :documentation "Start time of episode.")
    (end-time  :accessor end-time  :initarg :end-time :type (or nil timestamp)
               :documentation "End time of episode.")
-   (task-tree :reader task-tree :initarg :task-tree :type task-tree-node)
+   (task-tree :initarg :task-tree :type task-tree-node)
    (execution-trace :initarg :execution-trace :type hash-table
                     :documentation "Hash table with all traced instances
                     indexed by fluet name.")))
@@ -53,7 +53,12 @@
 ;; most recent traced fluent change.
 
 (defgeneric max-time (episode-knowledge))
-  
+
+(defgeneric task-tree (episode-knowledge)
+  (:documentation "Returns the task tree. (The tree will be returned without
+  stale nodes and without the dummy root with no path, i.e. the top-level node
+  will be the root node.)"))
+
 (defgeneric task-list (episode-knowledge))
 
 (defgeneric goal-task-list (episode-knowledge))
