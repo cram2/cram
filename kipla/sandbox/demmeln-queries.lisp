@@ -2,31 +2,17 @@
 (in-package :kipla-reasoning)
 
 ;;(defparameter +et-path+ "/home/demmeln/work/et/mac/grasp-cluster-1.ek")
-(defparameter +et-path+ "/home/demmeln/work/et/mac/demo-traces/3-COMPLETE-MISSING-OBJS.ek")
+;;(defparameter +et-path+ "/home/demmeln/work/et/mac/demo-traces/5-COMPLETE-MISSING-OBJS.ek")
+;;(defparameter +et-path+ "/home/demmeln/work/et/mac/demo-traces/trace-complete-objects.et")
 
 (progn
-  (import 'kipla::achieve :kipla-reasoning)
-  (import 'kipla::object-in-hand :kipla-reasoning)
-  (import 'kipla::object-placed-at :kipla-reasoning)
-;;  (import 'kipla::loc :kipla-reasoning)
-  (import 'kipla::robot :kipla-reasoning)
-  (import 'kipla::perceive :kipla-reasoning)
-  (import 'kipla::perceive-all :kipla-reasoning)
-;;  (import 'kipla::?obj :kipla-reasoning)
-;;  (import 'kipla::?side :kipla-reasoning)
-  (import 'kipla::owl-type :kipla-reasoning)
-  (import 'kipla::cowsmilk-product :kipla-reasoning)
-  (import 'kipla::shape :kipla-reasoning)
-  (import 'kipla::arms-at :kipla-reasoning)
-;;  (import 'kipla::?traj :kipla-reasoning)
-  (import 'kipla::looking-at :kipla-reasoning)
-;;  (import 'kipla::?lo :kipla-reasoning)
-  (import 'kipla::arm-parked :kipla-reasoning)
-;;  (import 'kipla::?loc :kipla-reasoning)
   (setf cpl-impl::*task-tree-print-children* nil)
   (setf cpl-impl::*task-tree-print-path* :one)
   (eval-when (:load-toplevel)
     (setf cet:*episode-knowledge* (cet:load-episode-knowledge +et-path+))))
+
+;; TODO
+;; * make explicit path constructs for loop and retry
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; BASIC QUERIES
@@ -68,14 +54,16 @@
 ;;; * Which hand did the robot use?
 ;;; * Where was the object, when it was held by the robot? (TODO)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defparameter +food-or-drink+ "'http://ias.cs.tum.edu/kb/knowrob.owl#FoodOrDrink'")
+(defparameter +cowsmilk-product+ "'http://ias.cs.tum.edu/kb/knowrob.owl#CowsMilk-Product'")
+
 (defun is-food-or-drink (desig-type)
-  (eq 'cowsmilk-product desig-type)
-  #+nil(force-ll (json-prolog:prolog
-             `(owl-subclass-of ,(desig-type->owl-type-hack desig-type) "knowrob:'FoodOrDrink'"))))
+  (json-prolog:prolog-1
+   `(owl-subclass-of ,(desig-type->owl-type-hack desig-type) ,+food-or-drink+)))
 
 (defun desig-type->owl-type-hack (desig-type)
   (case desig-type
-    (cowsmilk-product "knowrob:'CowsMilk-Product'")))
+    (cowsmilk-product +cowsmilk-product+)))
 
 (defun demmeln-query-knowledge-base-1 ()
   (force-ll (prolog '(and
@@ -84,7 +72,6 @@
                       (desig-prop ?object (owl-type ?owl-type))
                       (lisp-pred is-food-or-drink ?owl-type))))
     ;; wie bekommen ich object typ?
-    ;; (force-ll (json-prolog:prolog `("owl_subclass_of" ?A  "knowrob:'FoodOrDrink'")))
     ;; wie bekommen ich den grasp?
     ;; evt jlo anfrage zur den koordinaten?
     )
@@ -157,6 +144,7 @@
                         (>= ?sibling-create-time ?failed-end-time)
                         (task-goal ?sibling ?sibling-goal))
                        ?sibling-list)))))
+;; TODO: implement this via the path.
 (defun demmeln-query-failed-tasks-retries ()
   (force-ll (prolog '(filter-bindings (?failed-task ?failed-goal ?sibling ?sibling-outcome)
                       (task ?failed-task)

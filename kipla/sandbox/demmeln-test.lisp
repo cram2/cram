@@ -62,6 +62,10 @@
     (achieve '(happy :lenz))))
 
 (defun run-demmeln-test ()
+;;  (set-timestamp-function (lambda () (microsecond-timestamp-function :relative t)))
+;;  (set-timestamp-function #'microsecond-timestamp-function)
+;;  (set-timestamp-function #'roslisp:ros-time)
+  (set-default-timestamp-function)
   (setf roslisp::*ros-log-stream* *standard-output*)
   (cet:enable-fluent-tracing)
   (retract-occasion '(happy :lenz))
