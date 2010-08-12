@@ -130,6 +130,8 @@
            #:task
            #:clear-tasks
            #:*task-tree*
+           #:stale-task-tree-node-p
+           #:filter-task-tree
            #:flatten-task-tree
            #:task-tree-node-parameters
            #:task-tree-node-status-fluent
