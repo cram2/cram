@@ -60,6 +60,9 @@
                                                        :key (rcurry #'changes->durations
                                                                     max-time)))))
 
+(defmethod task-tree ((episode offline-episode-knowledge))
+  (slot-value episode 'task-tree))
+
 (defmethod traced-fluent-instances ((episode offline-episode-knowledge) fluent-name)
   (with-slots (execution-trace) episode
     (gethash fluent-name execution-trace)))
