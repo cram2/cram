@@ -40,8 +40,11 @@
            #:bound
            #:ground
            #:member
+           #:string-concat
            #:==
            #:format
+           #:warn
+           #:error
            #:?_
            #:fail
            #:and
