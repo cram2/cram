@@ -32,9 +32,8 @@
 ;;; Note: #demmeln: not handling code replacements in any way atm.
 
 (defun task-status-fluent-name (task-tree-node)
-  (and task-tree-node
-        (task-tree-node-status-fluent task-tree-node)
-        (name (task-tree-node-status-fluent task-tree-node))))
+  "Assume node is not stale."
+  (name (task-tree-node-status-fluent task-tree-node)))
 
 (defgeneric extract-task-error (err)
   (:method ((err plan-error))
@@ -53,7 +52,7 @@
   ;; FLUENT
   (<- (fluent ?fluent)
     (not (bound ?fluent))
-    (lisp-fun cet:episode-knowledge-traced-fluent-names ?fluents)
+    (lisp-fun episode-knowledge-traced-fluent-names ?fluents)
     (member ?fluent ?fluents))
 
   (<- (fluent ?fluent)
@@ -64,7 +63,7 @@
   ;; HOLDS FLUENT-VALUE
   (<- (holds (fluent-value ?fluent ?value) ?t)
     (fluent ?fluent)
-    (lisp-fun cet:episode-knowledge-fluent-durations ?fluent ?durations)
+    (lisp-fun episode-knowledge-fluent-durations ?fluent ?durations)
     (member (?value . ?duration) ?durations)
     (duration-includes ?duration ?t))
 
@@ -76,17 +75,18 @@
 
   ;; TOP-LEVEL
   (<- (top-level ?top-level-task)
-    (lisp-fun cet:episode-knowledge-task-tree ?root-node)
-    (lisp-fun task-children ?root-node (?top-level-task))) ;; root node should only have 1 child
+    (lisp-fun episode-knowledge-task-tree ?top-level-task))
   
   ;; TASK
   (<- (task ?task)
-;;    (not (bound ?task))
-    ;; Ignore all non goal tasks for high level reasoning
-    (lisp-fun cet:episode-knowledge-goal-task-list ?tasks)
-    (or (top-level ?task) (member ?task ?tasks)))
+    (lisp-fun episode-knowledge-task-list ?tasks)
+    (member ?task ?tasks))
+
+  (<- (goal-task ?task)
+    (lisp-fun episode-knowledge-goal-task-list ?tasks)
+    (member ?task ?tasks))
   
-  ;; for now really filter out any non-goal task children etc
+  ;; for dont use this optimization
   ;; (<- (task ?task)
   ;;   (bound ?task)
   ;;   (lisp-pred task-tree-node-p ?task))
@@ -95,13 +95,13 @@
   (<- (subtask ?task ?subtask)
     (bound ?task)
     (lisp-fun task-children ?task ?children)
-    (member ?subtask ?children)
-    (task ?subtask))
+    (member ?subtask ?children))
 
   (<- (subtask ?task ?subtask)
     (not (bound ?task))
     (bound ?subtask)
-    (lisp-fun task-tree-node-parent ?subtask ?task))
+    (lisp-fun task-tree-node-parent ?subtask ?task)
+    (not (== ?task nil)))
 
   (<- (subtask ?task ?subtask)
     (not (bound ?task))
@@ -131,21 +131,20 @@
     (not (== ?sibling ?task)))
 
   ;; TASK-NEXT-SIBLING
-  ;; we should not simply use temporal, but rater causal relations
+  ;; FIXME: we should not simply use temporal, but rater causal relations
   (<- (task-next-sibling ?task ?next)
     (bound ?task)
-    (crs::list-of ?sib (task-sibling ?task ?sib) ?siblings)
+    (list-of ?sib (task-sibling ?task ?sib) ?siblings)
     (member ?next ?siblings)
     (task-created-at ?task ?ct-task)
     (task-created-at ?next ?ct-next)
     (<= ?ct-task ?ct-next)
-    (crs::forall (and
-                  (member ?other ?siblings)
-                  (not (== ?next ?other))
-                  (task-created-at ?other ?ct-other)
-                  (<= ?ct-task ?ct-other))
-                 (<= ?ct-next ?ct-other)))
-
+    (forall (and
+             (member ?other ?siblings)
+             (not (== ?next ?other))
+             (task-created-at ?other ?ct-other)
+             (<= ?ct-task ?ct-other))
+            (<= ?ct-next ?ct-other)))
   
   ;; TASK-STATUS-FLUENT
   (<- (task-status-fluent ?task ?fluent)
@@ -154,7 +153,7 @@
 
   ;; TASK-GOAL
   (<- (task-goal ?task ?goal)
-    (task ?task)
+    (goal-task ?task)
     (lisp-pred goal-task-tree-node-p ?task)
     (lisp-fun goal-task-tree-node-goal ?task ?goal))
 
@@ -178,6 +177,10 @@
   (<- (error-type ?error ?type)
     (bound ?error)
     (lisp-fun type-of ?error ?type))
+
+  (<- (error-type ?error ?type)
+    (not (nound ?error))
+    (warn "Trying to call ERROR-TYPE on unbound variable."))
 
   ;; HOLDS TASK-STATUS
   (<- (holds (task-status ?task ?status) ?t)
