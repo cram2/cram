@@ -14,5 +14,6 @@
             :components
             ((:file "package")
              (:file "random" :depends-on ("package"))
-             (:file "functions" :depends-on ("package"))
+             (:file "matrix" :depends-on ("package"))
+             (:file "functions" :depends-on ("package" "matrix"))
              (:file "geometry" :depends-on ("package"))))))
