@@ -1,21 +1,14 @@
 
 (in-package :kipla-reasoning)
 
-(defun lisp-array->foreign-array (arr &optional (type (array-element-type arr)))
-  (grid:make-foreign-array type
-                           :dimensions (array-dimensions arr)
-                           :initial-contents (map-tree (rcurry #'coerce type) (grid:contents arr))))
-
-(defun list->foreign-array (l &optional (type (type-of (car l))))
-  (grid:make-foreign-array type :dimensions (length l)
-                           :initial-contents (mapcar (rcurry #'coerce type) l)))
-
-
 (defun make-gauss-cost-function (mean cov)
-  (let ((gauss-fun (cma:gauss (lisp-array->foreign-array cov 'double-float)
-                              (lisp-array->foreign-array mean 'double-float))))
+  (let ((gauss-fun (cma:gauss (cma:double-matrix-from-array cov)
+                              (cma:double-matrix-from-array mean)))
+        (pos (cma:make-double-vector 2)))
     (lambda (x y)
-      (funcall gauss-fun (list->foreign-array `(,x ,y) 'double-float)))))
+      (setf (aref pos 0 0) x)
+      (setf (aref pos 1 0) y)
+      (funcall gauss-fun pos))))
 
 (defun make-location-cost-function (loc std-dev)
   (let ((loc (cl-transforms:origin loc)))
@@ -23,13 +16,12 @@
                                                                     (cl-transforms:y loc)))
                               (make-array '(2 2)
                                           :initial-contents `((,(coerce (* std-dev std-dev)
-                                                                        'float) 0)
+                                                                        'double-float) 0)
                                                               (0 ,(coerce (* std-dev std-dev)
-                                                                          'float)))))))
+                                                                          'double-float)))))))
 
-(defun make-table-cost-function (occupancy-grid &optional (magic-scaling-factor 1.0))
-  (let* ((mean (occupancy-grid-mean occupancy-grid))
-         (cov (occupancy-grid-covariance occupancy-grid :mean mean))
+(defun make-table-cost-function (name &optional (std-dev 1.0))
+  (let* ((mean (kipla:get-annotated-point name))
          (mean-vec (make-array 2 :initial-contents `(,(cl-transforms:x mean) ,(cl-transforms:y mean))))
-         (scaled-cov (grid:map-grid :source cov :element-function (curry #'* magic-scaling-factor))))
+         (scaled-cov (make-array '(2 2) :initial-contents `((,std-dev 0) (0 ,std-dev)))))
     (make-gauss-cost-function mean-vec scaled-cov)))
