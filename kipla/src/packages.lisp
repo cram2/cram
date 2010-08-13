@@ -148,7 +148,8 @@
            #:register-ros-init-function
            #:register-ros-cleanup-function
            #:*map-fl* #:*table-costmap-fl*
-           #:get-closest-annotation)
+           #:get-closest-annotation
+           #:get-annotated-point)
   (:import-from #:alexandria
                 #:with-gensyms #:curry #:rcurry)
   (:import-from #:cram-reasoning
