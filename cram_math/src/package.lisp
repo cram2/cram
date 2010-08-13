@@ -38,10 +38,11 @@
    ;; math
    #:sample #:sample-discrete
    ;; matrix
-   #:matrix #:width #:height #:make-matrix #:make-vector
-   #:vector-size #:fill-matrix #:matrix-from-array
-   #:matrix-from-grid #:grid-from-matrix #:mref #:map-matrix
-   #:map-matrix-into #:matrix-transpose #:matrix-product
+   #:double-matrix #:width #:height #:make-double-matrix #:make-double-vector
+   #:double-vector-size #:fill-double-matrix #:double-matrix-from-array
+   #:double-matrix-from-grid #:grid-from-double-matrix #:mref #:map-double-matrix
+   #:map-double-matrix-into #:double-matrix-transpose #:double-matrix-product
+   #:m.+ #:m.- #:m.* #:m./
    ;; functions
    #:determinant #:gauss
    ;; geometry
