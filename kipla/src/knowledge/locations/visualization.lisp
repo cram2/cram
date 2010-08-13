@@ -3,10 +3,13 @@
 
 (defvar *location-costmap-grid-publisher* nil)
 (defvar *marker-publisher* nil)
+(defvar *occupancy-grid-publisher* nil)
 
 (defun location-costmap-vis-init ()
   (setf *location-costmap-grid-publisher*
         (roslisp:advertise "/kipla/location_costmap" "nav_msgs/GridCells"))
+  (setf *occupancy-grid-publisher*
+        (roslisp:advertise "/kipla/location_occupancy_grid" "nav_msgs/OccupancyGrid"))  
   (setf *marker-publisher*
         (roslisp:advertise "/kipla/location_marker" "visualization_msgs/Marker")))
 
