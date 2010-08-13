@@ -92,12 +92,6 @@
   (loop for prop in properties
      do (rete-assert `(,(car prop) ,perceived-object ,@(cdr prop)))))
 
-(defun assert-desig-binding (desig perceived-object)
-  (rete-assert `(desig-bound ,desig ,perceived-object)))
-
-(defun retract-desig-binding (desig perceived-object)
-  (rete-retract `(desig-bound ,desig ,perceived-object)))
-
 (defun retract-perceived-object (perceived-object)
   "Retracts all facts the were asserted for `perceived-object'"
   (let ((bdgs (rete-holds `(?lhs ,perceived-object . ?rhs))))

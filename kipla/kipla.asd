@@ -83,8 +83,10 @@
                         :depends-on ("packages" "config" "knowledge")
                         :components
                         ((:file "designator-id-mixin")
+                         (:file "rete-integration" :depends-on ("designator-id-mixin"))
                          (:file "object-designators" :depends-on ("designator-id-mixin"))
-                         (:file "location-designators" :depends-on ("designator-id-mixin"))
+                         (:file "location-designators"
+                                :depends-on ("designator-id-mixin" "rete-integration"))
                          (:file "action-designators" :depends-on ("designator-id-mixin"))))
                (:module "belief"
                         :depends-on ("packages" "config")
@@ -105,7 +107,7 @@
                                           :depends-on ("location-costmap" "ros-handlers"))
                                    (:file "location-costmap")
                                    (:file "ros-handlers")
-                                   (:file "cost-functions")
+                                   (:file "cost-functions" :depends-on ("ros-handlers"))
                                    (:file "visualization")
                                    (:module "ros-types"
                                             :components
