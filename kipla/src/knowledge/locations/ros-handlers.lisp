@@ -40,16 +40,16 @@
                      (make-fluent-setter-callback *table-costmap-fl*)))
 
 (defun init-annotated-points ()
-  (unless (roslisp:wait-for-service "/map_annotation_server/get_annotated_points" 1.0)
+  (unless (roslisp:wait-for-service "/table_annotations/get_annotated_points" 1.0)
     (error
      'simple-error :format-control
-     "Could not connect to service '/map_annotation_server/get_annotated_points'"))
-  (let ((srv-result (roslisp:call-service "/map_annotation_server/get_annotated_points"
+     "Could not connect to service '/table_annotations/get_annotated_points'"))
+  (let ((srv-result (roslisp:call-service "/table_annotations/get_annotated_points"
                                           "map_annotation/GetAnnotatedPoints")))
     (map 'list (lambda (label point)
                  (with-fields ((x x) (y y) (z z))
                      point
-                   (cons (lispify-ros-name label)
+                   (cons (lispify-ros-name label (find-package :kipla))
                          (make-instance 'cl-transforms:3d-vector
                                         :x x :y y :z z))))
          (map_annotation-srv:labels-val srv-result)
@@ -70,5 +70,10 @@
     (when *annotated-points*
       (car (find-closest-point (cdr *annotated-points*) (car *annotated-points*)
                                (cl-transforms:v-dist (cdar *annotated-points*) point))))))
+
+(defun get-annotated-point (name)
+  (unless *annotated-points*
+    (setf *annotated-points* (init-annotated-points)))
+  (cdr (assoc name *annotated-points*)))
 
 (register-ros-init-function ros-location-costmaps-init)
