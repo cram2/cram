@@ -37,6 +37,11 @@
   (:export
    ;; math
    #:sample #:sample-discrete
+   ;; matrix
+   #:matrix #:width #:height #:make-matrix #:make-vector
+   #:vector-size #:fill-matrix #:matrix-from-array
+   #:matrix-from-grid #:grid-from-matrix #:mref #:map-matrix
+   #:map-matrix-into #:matrix-transpose #:matrix-product
    ;; functions
    #:determinant #:gauss
    ;; geometry
