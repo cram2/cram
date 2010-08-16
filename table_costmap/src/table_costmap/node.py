@@ -46,7 +46,7 @@ class PolygonalMapSubscription(object):
 
 class PolyGridCellsPublication(object):
     def __init__(self, topic):
-        self.pub = rospy.Publisher(topic, nav_msgs.GridCells, latch=true)
+        self.pub = rospy.Publisher(topic, nav_msgs.GridCells, latch=True)
 
     def __call__(self, header, grid):
         grid_points = grid.getGrid()
@@ -59,7 +59,7 @@ class PolyGridCellsPublication(object):
 
 class PolyOccupancyGridPublication(object):
     def __init__(self, topic):
-        self.pub = rospy.Publisher(topic, nav_msgs.OccupancyGrid, latch=true)
+        self.pub = rospy.Publisher(topic, nav_msgs.OccupancyGrid, latch=True)
 
     def __call__(self, header, grid):
         width = grid.image.size[0]
