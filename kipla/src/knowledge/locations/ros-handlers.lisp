@@ -27,6 +27,8 @@
   "The newest GridCells message received on the polygonal_grid topic
   for detected tables.")
 
+(defvar *table-grid-cells-fl* (make-fluent :name '*table-grid-cells-fl*))
+
 (defvar *annotated-points* nil
   "alist of annotations and the corresponding points.")
 
@@ -37,7 +39,10 @@
                      (make-fluent-setter-callback *map-fl*))
   (roslisp:subscribe (roslisp:get-param "~table-costmap-topic" "/table_costmap/occupancy_grid")
                      "nav_msgs/OccupancyGrid"
-                     (make-fluent-setter-callback *table-costmap-fl*)))
+                     (make-fluent-setter-callback *table-costmap-fl*))
+  (roslisp:subscribe (roslisp:get-param "~table-costmap-topic" "/table_costmap/grid_cells")
+                     "nav_msgs/GridCells"
+                     (make-fluent-setter-callback *table-grid-cells-fl*)))
 
 (defun init-annotated-points ()
   (unless (roslisp:wait-for-service "/table_annotations/get_annotated_points" 1.0)
