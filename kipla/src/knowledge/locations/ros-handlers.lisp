@@ -79,6 +79,6 @@
 (defun get-annotated-point (name)
   (unless *annotated-points*
     (setf *annotated-points* (init-annotated-points)))
-  (cdr (assoc name *annotated-points*)))
+  (cdr (assoc (symbol-name name) *annotated-points* :key #'symbol-name :test #'equal)))
 
 (register-ros-init-function ros-location-costmaps-init)
