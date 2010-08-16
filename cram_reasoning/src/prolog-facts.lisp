@@ -104,6 +104,7 @@
     (bound ?slot)
     (not (bound ?value))
     (lisp-fun prolog-get-slot-value ?obj ?slot ?value))
+
   (<- (slot-value ?obj ?slot ?value)
     (bound ?obj)
     (bound ?slot)
@@ -119,14 +120,14 @@
     (bound ?type)
     (not (bound ?obj))
     (lisp-fun make-instance ?type ?obj))
+  
   (<- (instance-of ?type ?obj)
-    (not (bound ?type))
-    (bound ?obj)
-    (lisp-fun type-of ?obj ?type))
-  (<- (instance-of ?type ?obj)
-    (bound ?type)
-    (bound ?obj)
-    (lisp-pred typep ?obj ?type))
+    (lisp-type ?obj ?type))
 
   (<- (symbol-value ?sym ?val)
     (lisp-fun symbol-value ?sym ?val)))
+
+(def-fact-group lisp-types ()
+  (<- (lisp-type ?var ?type)
+    (bound ?var)
+    (lisp-fun type-of ?var ?type)))
