@@ -76,7 +76,7 @@
   (<- (costmap-origin ?x ?y)
     (symbol-value kipla:*map-fl* ?map-fl)
     (fluent-value ?map-fl ?map)
-    (lisp-fun occupancy-grid-metadata ?map :key :origin (?x ?y)))
+    (lisp-fun occupancy-grid-msg-metadata ?map :key :origin (?x ?y)))
 
   (<- (occupancy-grid ?msg ?grid)
     (occupancy-grid ?msg ?grid (padding nil)))
@@ -102,7 +102,7 @@
     (lisp-type ?msg nav_msgs-msg:<gridcells>)
     (lisp-fun grid-cells-msg->occupancy-grid ?msg ?p ?grid))
 
-  (<- (occupancy-grid ?msg ?grid (padding ?p))
+  (<- (inverted-occupancy-grid ?msg ?grid (padding ?p))
     (not (bound ?grid))
     (bound ?msg)
     (lisp-type ?msg nav_msgs-msg:<gridcells>)
@@ -124,7 +124,8 @@
     (costmap-with-function 10 (make-occupancy-grid-cost-function ?free-space) ?cm)
     (costmap-with-function 9 (make-occupancy-grid-cost-function ?static-occupied :invert t)
                            ?cm)
-    (costmap-with-function 8 (make-occupancy-grid-cost-function ?tables-occupied :invert t)))
+    (costmap-with-function 8 (make-occupancy-grid-cost-function ?tables-occupied :invert t)
+                           ?cm))
 
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (on table))
@@ -142,7 +143,7 @@
     (global-fluent-value kipla:*table-grid-cells-fl* ?table-msg)
     (occupancy-grid ?table-msg ?table-costmap)
     (costmap ?cm)
-    (costmap-with-function 10 (make-occupancy-grid-cost-function ?table-costmap) ?cm))
+    (costmap-with-function 11 (make-occupancy-grid-cost-function ?table-costmap) ?cm))
 
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (to see))

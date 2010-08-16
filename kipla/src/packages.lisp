@@ -124,7 +124,7 @@
    #:arm-parked
    #:?loc
    ;; Locations
-   #:location-cost-map #:width #:height #:origin-x #:origin-y #:resolution
+   #:location-costmap #:width #:height #:origin-x #:origin-y #:resolution
    #:get-map-value #:get-cost-map
    #:occupancy-grid-metadata #:occupancy-grid #:grid #:make-occupancy-grid
    #:copy-occupancy-grid #:invert-occupancy-grid #:set-grid-cell

@@ -69,6 +69,7 @@
               (resolution (coerce resolution 'double-float)))
           (declare (type double-float sum cost-value curr-x curr-y resolution))
           (dotimes (row (cma:height new-cost-map))
+            (setf curr-x origin-x)
             (dotimes (col (cma:width new-cost-map))
               (setf cost-value (calculate-map-value map curr-x curr-y))
               (incf curr-x resolution)
@@ -115,7 +116,7 @@
                    (cons (+ (mod index height) origin-x)
                          (+ (/ index (/ height resolution)) origin-y)))))))
          (p-fun (pt)
-           (get-map-value map (car pt) (cdr pt))))
+           (get-map-value map (cdr pt) (car pt))))
     (with-slots (origin-x origin-y) map
       (let ((coord (cma:sample (make-var-fun) #'p-fun)))
         (cl-transforms:make-3d-vector (car coord) (cdr coord) 0)))))
