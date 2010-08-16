@@ -37,6 +37,25 @@
                     cell_height resolution
                     cells (map 'vector #'identity grid-cells)))))
 
+(defun occupancy-grid->grid-cells-msg (grid &key (frame-id "/map") (z 0.0))
+  (with-slots (origin-x origin-y width height resolution) grid
+    (let ((grid-arr (grid grid))
+          (resolution/2 (/ resolution 2)))
+      (declare (type (simple-array fixnum 2) grid-arr))
+      (make-message "nav_msgs/GridCells"
+                    (frame_id header) frame-id
+                    (stamp header) (ros-time)
+                    cell_width resolution
+                    cell_height resolution
+                    cells (map 'vector #'identity
+                               (loop for row below (array-dimension grid-arr 0)
+                                     nconcing (loop for col below (array-dimension grid-arr 1)
+                                                    when (eql (aref grid-arr row col) 1) collect
+                                                      (make-message "geometry_msgs/Point"
+                                                           x (+ (* col resolution) resolution/2 origin-x)
+                                                           y (+ (* row resolution) resolution/2 origin-y)
+                                                           z z))))))))
+
 (defun publish-location-costmap (map &key (frame-id "/map") (threshold 0.0005))
   (publish *location-costmap-grid-publisher* (location-costmap->grid-cells-msg
                                               map :frame-id frame-id :threshold threshold)))

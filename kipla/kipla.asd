@@ -105,14 +105,18 @@
                                                        "cost-functions"))
                                    (:file "location-prolog-handlers"
                                           :depends-on ("location-costmap" "ros-handlers"))
-                                   (:file "location-costmap")
+                                   (:file "occupancy-grid")
+                                   (:file "location-costmap" :depends-on ("occupancy-grid"))
+                                   (:file "padding-mask")                                   
                                    (:file "ros-handlers")
                                    (:file "cost-functions" :depends-on ("ros-handlers"))
-                                   (:file "visualization")
+                                   (:file "occupancy-grid-cost-function" :depends-on ("occupancy-grid"))
+                                   (:file "visualization" :depends-on ("occupancy-grid"))
                                    (:module "ros-types"
                                             :components
                                             ((:file "occupancy-grid")
-                                             (:file "grid-cells")))))
+                                             (:file "grid-cells"))
+                                            :depends-on ("occupancy-grid" "padding-mask"))))
                          (:file "time")
                          (:file "tasks")
                          (:file "designators")

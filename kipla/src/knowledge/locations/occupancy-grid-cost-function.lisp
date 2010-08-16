@@ -1,0 +1,20 @@
+
+(in-package :kipla-reasoning)
+
+(defun make-occupancy-grid-cost-function (grid &key invert)
+  (let* ((grid (if invert
+                   (invert-occupancy-grid grid)
+                   grid))
+         (resolution (resolution grid))
+         (origin-x (origin-x grid))
+         (origin-y (origin-y grid))
+         (max-x (+ (width grid) origin-x))
+         (max-y (+ (height grid) origin-y)))
+    (lambda (x y)
+      (if (and (>= x origin-x) (>= y origin-y)
+               (< x max-x) (< y max-y))
+          (coerce (aref (grid grid)
+                        (truncate (/ (+ y origin-y) resolution))
+                        (truncate (/ (+ x origin-x) resolution)))
+                  'double-float)
+          0.0d0))))

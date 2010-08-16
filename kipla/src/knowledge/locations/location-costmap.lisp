@@ -17,16 +17,8 @@
 
 (in-package :kipla-reasoning)
 
-(defclass location-costmap ()
-  ((width :initarg :width :reader width)
-   (height :initarg :height :reader height)
-   (origin-x :initarg :origin-x :reader origin-x :initform 0.0)
-   (origin-y :initarg :origin-y :reader origin-y :initform 0.0)
-   (resolution :initarg :resolution :reader resolution :initform 0.05
-               :documentation "The resolution of the cost map,
-               i.e. the step size used when evaluating the cost
-               functions.")
-   (cost-map)
+(defclass location-costmap (occupancy-grid-metadata)
+  ((cost-map)
    (cost-functions :reader cost-functions :initarg :cost-functions
                    :initform nil
                    :documentation "Sequence of closures that take an a
@@ -84,8 +76,7 @@
               (setf (aref new-cost-map row col) cost-value))
             (incf curr-y resolution))
           (cma:m./ new-cost-map sum)
-          (setf (slot-value map 'cost-map) new-cost-map))
-        (format t "costmap data generated~%"))
+          (setf (slot-value map 'cost-map) new-cost-map)))
       (slot-value map 'cost-map))))
 
 (defmethod get-map-value ((map location-costmap) x y)

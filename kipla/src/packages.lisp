@@ -126,6 +126,9 @@
    ;; Locations
    #:location-cost-map #:width #:height #:origin-x #:origin-y #:resolution
    #:get-map-value #:get-cost-map
+   #:occupancy-grid-metadata #:occupancy-grid #:grid #:make-occupancy-grid
+   #:copy-occupancy-grid #:invert-occupancy-grid #:set-grid-cell
+   #:clear-grid-cell #:get-grid-cell
    ;; other
    #+kipla-contrib-oro #:oro-call
    #+kipla-contrib-oro #:oro-assert
@@ -148,6 +151,7 @@
            #:register-ros-init-function
            #:register-ros-cleanup-function
            #:*map-fl* #:*table-costmap-fl*
+           #:*table-grid-cells-fl*
            #:get-closest-annotation
            #:get-annotated-point)
   (:import-from #:alexandria
