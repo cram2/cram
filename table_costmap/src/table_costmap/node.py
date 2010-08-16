@@ -90,16 +90,20 @@ def main():
 
     try:
         resolution = rospy.get_param('~resolution')
+        publish_grid_cells = rospy.get_param('~publish_grid_cells', True)
+        publish_occupancy_grid = rospy.get_param('~publish_occupancy_grid', True)
     except KeyError, key:
         rospy.logfatal('Cannot read ros parameter: %s' % str(key))
         return
 
-    grid_cells_pub = PolyGridCellsPublication('~grid_cells')
-    occupancy_grid_pub = PolyOccupancyGridPublication('~occupancy_grid')
+
+    publishers = []
+    if publish_grid_cells:
+        publishers += [PolyGridCellsPublication('~grid_cells')]
+    if publish_occupancy_grid:
+        publishers += [PolyOccupancyGridPublication('~occupancy_grid')]
     input_sub = rospy.Subscriber(
         '~input', geometry_msgs.PolygonStamped,
-        PolygonalMapSubscription(
-            resolution, resolution,
-            apply_every([grid_cells_pub, occupancy_grid_pub])))
+        PolygonalMapSubscription(resolution, resolution, apply_every(publishers)))
     
     rospy.spin()
