@@ -13,7 +13,8 @@
 
   :depends-on (trivial-garbage
                alexandria
-               cram-utilities)
+               cram-utilities
+               sb-cltl2)
   :components
   ((:module "src"
     :components
