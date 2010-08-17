@@ -24,7 +24,13 @@
                    :documentation "Sequence of closures that take an a
                                    x and a y coordinate and return the
                                    corresponding cost in the interval
-                                   [0;1]")))
+                                   [0;1]")
+   (generators :reader generators :initarg :generators
+               :initform (list #'gen-costmap-sample)
+               :documentation "List of generator functions that
+               generate points from the costmap. If a generator
+               function returns nil, the next generator function in
+               the sequece is called.")))
 
 (defgeneric get-cost-map (map)
   (:documentation "Returns the costmap as a two-dimensional array of
@@ -37,6 +43,9 @@
   (:documentation "Registers a new cost function. The optional
   argument `score' allows to define an order in which to apply each
   cost function. Higher scores are evaluated first."))
+
+(defgeneric generate-point (map)
+  (:documentation "Generates a point and returns it."))
 
 (defgeneric gen-costmap-sample (map)
   (:documentation "Draws a sample from the costmap `map' interpreted
@@ -103,6 +112,10 @@
                       :resolution (resolution cm-1)
                       :cost-functions (reduce #'append (mapcar #'cost-functions costmaps)
                                               :initial-value (cost-functions cm-1))))))
+
+(defmethod generate-point ((map location-costmap))
+  (with-slots (generators) map
+    (some (rcurry #'funcall map) generators)))
 
 (defmethod gen-costmap-sample ((map location-costmap))
   (flet ((make-var-fun ()

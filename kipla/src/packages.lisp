@@ -125,7 +125,7 @@
    #:?loc
    ;; Locations
    #:location-costmap #:width #:height #:origin-x #:origin-y #:resolution
-   #:get-map-value #:get-cost-map
+   #:get-map-value #:get-cost-map #:generate-point #:gen-costmap-sample
    #:occupancy-grid-metadata #:occupancy-grid #:grid #:make-occupancy-grid
    #:copy-occupancy-grid #:invert-occupancy-grid #:set-grid-cell
    #:clear-grid-cell #:get-grid-cell
