@@ -148,9 +148,8 @@
       proxy
     (let ((solutions (or next-solutions
                          (loop repeat +costmap-n-samples+
-                               collecting (gen-costmap-sample costmap)))))
+                               collecting (generate-point costmap)))))
       ;; Todo: take the closest next solution, not the first one
-      ;; Todo: add orientation
       (setf next-solutions (cdr solutions))
       (setf point (car solutions)))))
 
