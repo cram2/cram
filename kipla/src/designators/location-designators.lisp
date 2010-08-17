@@ -92,7 +92,8 @@
       (setf current-solution (location-proxy-solution->pose
                               desig
                               (location-proxy-current-solution (car data))))
-      (assert current-solution () (format nil "Unable to resolve designator `~a'" desig)))
+      (assert current-solution () (format nil "Unable to resolve designator `~a'" desig))
+      (assert-desig-binding desig current-solution))
     current-solution))
 
 (defmethod next-solution ((desig location-designator))
@@ -108,14 +109,17 @@
                (setf (slot-value new-desig 'data) data)
                (setf (slot-value new-desig 'current-solution)
                      (location-proxy-solution->pose new-desig next))
-               (equate desig new-desig)))
+               (prog1 (equate desig new-desig)
+                 (assert-desig-binding new-desig (slot-value new-desig 'current-solution)))))
            (when (cdr data)
              (let ((next (location-proxy-current-solution (cadr data))))
                (when next
                  (setf (slot-value new-desig 'data) (cdr data))
                  (setf (slot-value new-desig 'current-solution)
                        (location-proxy-solution->pose new-desig next))
-                 (equate desig new-desig)))))))))
+                 (prog1
+                     (equate desig new-desig)
+                   (assert-desig-binding new-desig (slot-value new-desig 'current-solution)))))))))))
 
 ;; Todo: make the poses stamped
 (defmethod make-location-proxy ((type (eql 'point)) (value cl-transforms:3d-vector))
