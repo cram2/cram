@@ -63,7 +63,7 @@
                  navp_action-msg
                  nav_msgs-msg
                  cl-utils
-                 cl-transforms
+                 cl-tf
                  map_annotation-srv
                  visualization_msgs-msg
                  #+kipla-contrib-oro oro_ros-srv
@@ -77,6 +77,7 @@
                (:file "config" :depends-on ("packages"))
                (:file "logging" :depends-on ("packages"))
                (:file "ros-node" :depends-on ("packages"))
+               (:file "tf" :depends-on ("packages"))
                (:file "speech" :depends-on ("packages"))
                (:file "utils" :depends-on ("packages"))
                (:module "designators"
@@ -93,7 +94,7 @@
                         :components
                         ((:file "belief-state")))
                (:module "knowledge"
-                        :depends-on ("packages" "ros-node" "config" "utils")
+                        :depends-on ("packages" "ros-node" "config" "utils" "tf")
                         :components
                         ((:file "prolog-utils")
                          (:module "locations"
