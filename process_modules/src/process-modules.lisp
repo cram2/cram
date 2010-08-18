@@ -192,10 +192,11 @@
   (pm-status (gethash pm *process-modules*)))
 
 (defmacro def-process-module (name (pm-name) &body body)
-  `(progn
-     (defclass ,name (process-module) ())
-     (setf (gethash ',name *process-modules*) (make-instance ',name :name ',name))
-     (defmethod pm-run ((,pm-name ,name))
-
-       (block nil
-         ,@body))))
+  (with-gensyms (pm-var-name)
+    `(progn
+       (defclass ,name (process-module) ())
+       (setf (gethash ',name *process-modules*) (make-instance ',name :name ',name))
+       (defmethod pm-run ((,pm-var-name ,name))
+         (block nil
+           (let ((,pm-name (current-desig (value (slot-value ,pm-var-name 'input)))))
+             ,@body))))))

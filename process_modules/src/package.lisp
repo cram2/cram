@@ -33,7 +33,8 @@
   (:documentation "Package containing process module interfaces.")
   (:use #:common-lisp
         #:cram-language
-        #:cram-designators)
+        #:cram-designators
+        #:alexandria)
   (:nicknames :cpm)
   (:export #:process-module #:name #:input #:feedback #:result
            #:status #:cancel #:priority #:caller #:pm-run #:pm-execute
