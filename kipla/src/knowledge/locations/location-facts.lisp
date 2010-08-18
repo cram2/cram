@@ -63,21 +63,22 @@ than threshold * highest-probability."
              max-value)))
     (let ((solution-cnt 0))
       (lambda (map)
-        (unless (>= solution-cnt n-solutions)
+        (unless (and (>= solution-cnt n-solutions) kipla:*tf*)
           (incf solution-cnt)
-          (let* ((robot-pos (cl-transforms:translation
-                             (cl-tf:lookup-transform
-                              kipla:*tf* :source-frame "/map" :target-frame "/base_link")))
-                 (x (cl-transforms:x robot-pos))
-                 (y (cl-transforms:y robot-pos))
-                 (map-arr (get-cost-map map))
-                 (max-value (max-map-value map-arr)))
-            (declare (type cma:double-matrix map-arr))
-            (format t "robot pos: x ~a y ~a val ~a threshold ~a cond ~a~%"
-                    x y (get-map-value map x y) (* threshold max-value)
-                    (> (get-map-value map x y) (* threshold max-value)))
-            (when (> (get-map-value map x y) (* threshold max-value))
-              robot-pos)))))))
+          (when (cl-tf:can-transform kipla:*tf* :source-frame "/map" :target-frame "/base-link")
+            (let* ((robot-pos (cl-transforms:translation
+                               (cl-tf:lookup-transform
+                                kipla:*tf* :source-frame "/map" :target-frame "/base_link")))
+                   (x (cl-transforms:x robot-pos))
+                   (y (cl-transforms:y robot-pos))
+                   (map-arr (get-cost-map map))
+                   (max-value (max-map-value map-arr)))
+              (declare (type cma:double-matrix map-arr))
+              (format t "robot pos: x ~a y ~a val ~a threshold ~a cond ~a~%"
+                      x y (get-map-value map x y) (* threshold max-value)
+                      (> (get-map-value map x y) (* threshold max-value)))
+              (when (> (get-map-value map x y) (* threshold max-value))
+                robot-pos))))))))
 
 (defun nav-angle-to-point (p p-ref)
   "Calculates the angle from `p-ref' to face at `p'"
