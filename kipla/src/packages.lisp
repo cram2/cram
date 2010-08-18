@@ -73,6 +73,7 @@
    #:jlo-list #:jlo #:trajectory
    #:grasp #:navigate #:pose #:parked #:open #:lift #:carry #:put-down
    #:obj #:gripper #:close #:resolve-object-desig
+   #:costmap-location-proxy
    ;; trajectory-actions
    #:trajectory-action #:side #:trajectory-type #:stored-pose-type
    #:object-type #:hand-primitive #:end-effector-pose
@@ -150,6 +151,7 @@
            #:startup-ros #:shutdown-ros
            #:register-ros-init-function
            #:register-ros-cleanup-function
+           #:*tf*
            #:*map-fl* #:*table-costmap-fl*
            #:*table-grid-cells-fl*
            #:get-closest-annotation
