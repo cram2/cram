@@ -69,3 +69,20 @@
         (check-type score integer)
         (register-cost-function cm (apply fun (sublis bdgs args)) score)
         (list bdgs)))))
+
+(def-prolog-handler costmap-add-generator (bdgs ?generator ?cm)
+  (assert (is-bound ?generator bdgs))
+  (assert (is-var ?cm))
+  (assert (is-bound ?cm bdgs))
+  (etypecase ?generator
+    (symbol (push (symbol-function ?generator) (generators ?cm)))
+    (function (push ?generator (generators ?cm)))
+    (list
+       (destructuring-bind (generator-fun &rest args)
+           (var-value ?generator bdgs)
+         (push (apply (etypecase generator-fun
+                        (function generator-fun)
+                        (symbol (symbol-function generator-fun)))
+                      (sublis bdgs args))
+               (generators (var-value ?cm bdgs))))))
+  (list bdgs))
