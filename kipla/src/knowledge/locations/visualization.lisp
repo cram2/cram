@@ -112,6 +112,7 @@
 
 (defun publish-location-desig-cost-function (desig)
   (reference desig)
-  (let ((cm (find-if (rcurry #'typep 'kipla-reasoning:location-costmap) (slot-value desig 'data))))
+  (let ((cm (find-if (rcurry #'typep 'kipla-reasoning:costmap-location-proxy)
+                     (slot-value desig 'data))))
     (assert cm () "No location costmap found. Cannot visualize.")
     (publish-location-costmap (kipla-reasoning::costmap cm))))
