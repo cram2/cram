@@ -49,6 +49,36 @@
              loc-desig)
     (reference loc-desig)))
 
+(defun make-robot-pos-generator (threshold &key (n-solutions 1))
+  "Returns a function that returns the position of the robot in the
+map if its probability value in the corresponding costmap is greater
+than threshold * highest-probability."
+  (flet ((max-map-value (map-arr)
+           (declare (type cma:double-matrix map-arr))
+           (let ((max-value 0.0d0))
+             (dotimes (row (array-dimension map-arr 0))
+               (dotimes (col (array-dimension map-arr 1))
+                 (when (> (aref map-arr row col) max-value)
+                   (setq max-value (aref map-arr row col)))))
+             max-value)))
+    (let ((solution-cnt 0))
+      (lambda (map)
+        (unless (>= solution-cnt n-solutions)
+          (incf solution-cnt)
+          (let* ((robot-pos (cl-transforms:translation
+                             (cl-tf:lookup-transform
+                              kipla:*tf* :source-frame "/map" :target-frame "/base_link")))
+                 (x (cl-transforms:x robot-pos))
+                 (y (cl-transforms:y robot-pos))
+                 (map-arr (get-cost-map map))
+                 (max-value (max-map-value map-arr)))
+            (declare (type cma:double-matrix map-arr))
+            (format t "robot pos: x ~a y ~a val ~a threshold ~a cond ~a~%"
+                    x y (get-map-value map x y) (* threshold max-value)
+                    (> (get-map-value map x y) (* threshold max-value)))
+            (when (> (get-map-value map x y) (* threshold max-value))
+              robot-pos)))))))
+
 (defun nav-angle-to-point (p p-ref)
   "Calculates the angle from `p-ref' to face at `p'"
   (cl-transforms:axis-angle->quaternion
@@ -121,11 +151,12 @@
     (occupancy-grid ?map ?static-occupied (padding ?padding))
     (occupancy-grid ?tables ?tables-occupied (padding ?padding))
     (costmap ?cm)
-    (costmap-with-function 10 (make-occupancy-grid-cost-function ?free-space) ?cm)
-    (costmap-with-function 9 (make-occupancy-grid-cost-function ?static-occupied :invert t)
-                           ?cm)
-    (costmap-with-function 8 (make-occupancy-grid-cost-function ?tables-occupied :invert t)
-                           ?cm))
+    (costmap-add-function 10 (make-occupancy-grid-cost-function ?free-space) ?cm)
+    (costmap-add-function 9 (make-occupancy-grid-cost-function ?static-occupied :invert t)
+                          ?cm)
+    (costmap-add-function 8 (make-occupancy-grid-cost-function ?tables-occupied :invert t)
+                          ?cm)
+    (costmap-add-generator (make-robot-pos-generator 0.1) ?cm))
 
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (on table))
@@ -134,8 +165,8 @@
     (global-fluent-value kipla:*table-grid-cells-fl* ?table-msg)
     (occupancy-grid ?table-msg ?table-costmap)
     (costmap ?cm)
-    (costmap-with-function 5 (make-table-cost-function ?table-name 1.0) ?cm)
-    (costmap-with-function 10 (make-occupancy-grid-cost-function ?table-costmap) ?cm))
+    (costmap-add-function 5 (make-table-cost-function ?table-name 1.0) ?cm)
+    (costmap-add-function 10 (make-occupancy-grid-cost-function ?table-costmap) ?cm))
 
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (on table))
@@ -143,21 +174,21 @@
     (global-fluent-value kipla:*table-grid-cells-fl* ?table-msg)
     (occupancy-grid ?table-msg ?table-costmap)
     (costmap ?cm)
-    (costmap-with-function 11 (make-occupancy-grid-cost-function ?table-costmap) ?cm))
+    (costmap-add-function 11 (make-occupancy-grid-cost-function ?table-costmap) ?cm))
 
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (to see))
     (desig-location-prop ?desig ?loc)
     (costmap ?cm)
     (drivable-location-costmap ?cm)
-    (costmap-with-function 5 (make-location-cost-function ?loc 0.4) ?cm))
+    (costmap-add-function 5 (make-location-cost-function ?loc 0.4) ?cm))
 
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (to reach))
     (desig-location-prop ?desig ?loc)
     (costmap ?cm)
     (drivable-location-costmap ?cm)
-    (costmap-with-function 5 (make-location-cost-function ?loc 0.2) ?cm))
+    (costmap-add-function 5 (make-location-cost-function ?loc 0.2) ?cm))
 
   ;; Missing: (for ?obj-type)
   )

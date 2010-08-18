@@ -46,7 +46,7 @@
        (when (typep (var-value ?cm bdgs) 'location-costmap)
          bdgs))))
 
-(def-prolog-handler costmap-with-function (bdgs ?score ?generator-pat ?cm)
+(def-prolog-handler costmap-add-function (bdgs ?score ?generator-pat ?cm)
   (destructuring-bind (?generator-fun &rest args)
       (var-value ?generator-pat bdgs)
     (flet ((var-value-strict (var bdgs)
