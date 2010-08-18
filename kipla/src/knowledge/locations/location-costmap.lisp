@@ -25,7 +25,7 @@
                                    x and a y coordinate and return the
                                    corresponding cost in the interval
                                    [0;1]")
-   (generators :reader generators :initarg :generators
+   (generators :accessor generators :initarg :generators
                :initform (list #'gen-costmap-sample)
                :documentation "List of generator functions that
                generate points from the costmap. If a generator
@@ -111,7 +111,9 @@
                       :origin-y (origin-y cm-1)
                       :resolution (resolution cm-1)
                       :cost-functions (reduce #'append (mapcar #'cost-functions costmaps)
-                                              :initial-value (cost-functions cm-1))))))
+                                              :initial-value (cost-functions cm-1))
+                      :generators (reduce #'append (mapcar #'generators costmaps)
+                                          :initial-value (generators cm-1))))))
 
 (defmethod generate-point ((map location-costmap))
   (with-slots (generators) map
