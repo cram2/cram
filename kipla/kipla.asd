@@ -66,6 +66,7 @@
                  cl-tf
                  map_annotation-srv
                  visualization_msgs-msg
+                 mapping_msgs-msg
                  #+kipla-contrib-oro oro_ros-srv
                  #+kipla-contrib-oro yason
                  #+kipla-contrib-hri web_hri-srv)

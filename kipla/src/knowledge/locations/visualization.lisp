@@ -1,13 +1,13 @@
 
 (in-package :kipla)
 
-(defvar *location-costmap-grid-publisher* nil)
+(defvar *location-costmap-publisher* nil)
 (defvar *marker-publisher* nil)
 (defvar *occupancy-grid-publisher* nil)
 
 (defun location-costmap-vis-init ()
-  (setf *location-costmap-grid-publisher*
-        (roslisp:advertise "/kipla/location_costmap" "nav_msgs/GridCells"))
+  (setf *location-costmap-publisher*
+        (roslisp:advertise "/kipla/location_costmap" "mapping_msgs/CollisionMap"))
   (setf *occupancy-grid-publisher*
         (roslisp:advertise "/kipla/location_occupancy_grid" "nav_msgs/OccupancyGrid"))  
   (setf *marker-publisher*
@@ -15,28 +15,33 @@
 
 (register-ros-init-function location-costmap-vis-init)
 
-(defun location-costmap->grid-cells-msg (map &key (frame-id "/map") (threshold 0.0005))
+(defun location-costmap->collision-map (map &key (frame-id "/map") (threshold 0.0005))
   (with-slots (origin-x origin-y resolution) map
     (let* ((map-array (get-cost-map map))
-           (grid-cells nil)
+           (boxes nil)
            (max-val (loop for y from 0 below (array-dimension map-array 1)
                           maximizing (loop for x from 0 below (array-dimension map-array 1)
                                            maximizing (aref map-array y x)))))
       (declare (type cma:double-matrix map-array))
-      (loop for y from 0 below (array-dimension map-array 1)
-                             do (loop for x from 0 below (array-dimension map-array 0)
-                                      do (when (> (aref map-array y x) threshold)
-                                           (push (make-message "geometry_msgs/Point"
-                                                        x (+ (* x resolution) origin-x)
-                                                        y (+ (* y resolution) origin-y)
-                                                        z (/ (aref map-array y x) max-val))
-                                                 grid-cells))))
-      (make-message "nav_msgs/GridCells"
+      (dotimes (row (array-dimension map-array 0))
+        (dotimes (col (array-dimension map-array 0))
+          (when (> (aref map-array row col) threshold)
+            (push (make-message "mapping_msgs/OrientedBoundingBox"
+                                (x center) (+ (* col resolution) origin-x)
+                                (y center) (+ (* row resolution) origin-y)
+                                (z center) (/ (aref map-array row col) max-val)
+                                (x extents) resolution
+                                (y extents) resolution
+                                (z extents) resolution
+                                (x axis) 1
+                                (y axis) 0
+                                (z axis) 0
+                                angle 0)
+                  boxes))))
+      (make-message "mapping_msgs/CollisionMap"
                     (frame_id header) frame-id
                     (stamp header) (ros-time)
-                    cell_width resolution
-                    cell_height resolution
-                    cells (map 'vector #'identity grid-cells)))))
+                    boxes (map 'vector #'identity boxes)))))
 
 (defun occupancy-grid->grid-cells-msg (grid &key (frame-id "/map") (z 0.0))
   (with-slots (origin-x origin-y width height resolution) grid
@@ -58,8 +63,8 @@
                                                            z z))))))))
 
 (defun publish-location-costmap (map &key (frame-id "/map") (threshold 0.0005))
-  (publish *location-costmap-grid-publisher* (location-costmap->grid-cells-msg
-                                              map :frame-id frame-id :threshold threshold)))
+  (publish *location-costmap-publisher* (location-costmap->collision-map
+                                         map :frame-id frame-id :threshold threshold)))
 
 (let ((current-index 0))
   
