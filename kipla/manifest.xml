@@ -28,4 +28,5 @@
   <depend package="cl_tf"/>
   <depend package="map_annotation"/>
   <depend package="visualization_msgs"/>
+  <depend package="mapping_msgs"/>
 </package>
