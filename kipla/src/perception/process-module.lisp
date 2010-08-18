@@ -163,23 +163,22 @@
                              (perceived-object->designator desig perceived-object)))))
                   sorted-perceived-objects))))))
 
-(def-process-module perception (pm)
+(def-process-module perception (input)
   ;; This process module receives an instance of cop-desig-info and
   ;; returns a designator. It updates the robot's belief state with
   ;; all information gathered during execution.
   (unless (member :perception *kipla-features*)
     (sleep 0.1)
     (return nil))
-  (let ((input (current-desig (value (slot-value pm 'input)))))
-    (assert (typep input 'object-designator))
-    (let ((productuion-name (gensym "DESIG-PRODUCTION-")))
-      (unwind-protect
-           (progn
-             (crs:register-production productuion-name
-                                      (designator->production input '?perceived-object))
-             (cond (; Designator that has alrady been equated
-                    (parent input)
-                    (find-with-parent-desig input productuion-name))
-                   (t
-                    (find-with-new-desig input productuion-name))))
-        (crs:remove-production productuion-name)))))
+  (assert (typep input 'object-designator))
+  (let ((productuion-name (gensym "DESIG-PRODUCTION-")))
+    (unwind-protect
+         (progn
+           (crs:register-production productuion-name
+                                    (designator->production input '?perceived-object))
+           (cond (;; Designator that has alrady been equated
+                  (parent input)
+                  (find-with-parent-desig input productuion-name))
+                 (t
+                  (find-with-new-desig input productuion-name))))
+      (crs:remove-production productuion-name))))

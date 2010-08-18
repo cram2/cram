@@ -37,7 +37,7 @@
 
 (defvar *manipulation-action-designator* nil)
 
-(def-process-module manipulation (pm)
+(def-process-module manipulation (input)
   ;; This process module navigates the robot to the location given as
   ;; input.
   (unless (member :manipulation *kipla-features*)
@@ -55,27 +55,24 @@
                                                        :format-control "Grasp failed.")))
                (:cancelled (fail (make-condition 'manipulation-failed
                                                  :format-control "Manipulation was canceled.")))
-               (t (log-msg :info "Action `~a', result: ~a"
-                           (description (value (slot-value pm 'input)))
-                           action-result))))))
+               (t (log-msg :info "Action `~a', result: ~a" (description input) action-result))))))
     ;; We need to fix this. Why can input become nil?
-    (when (value (slot-value pm 'input))
-      (let ((action (reference (value (slot-value pm 'input)))))
-        (log-msg :info "[Manipulation process module] received input ~a~%"
-                 (description (value (slot-value pm 'input))))
-        (setf *manipulation-action-designator* (value (slot-value pm 'input)))
-        (with-failure-handling
-            ((manipulation-action-error (e)
-               (log-msg :warn "[Manipulation process module] received MANIPULATION-ACTION-ERROR condition (terminal state ~a)."
-                        (final-status e))
-               (fail (make-condition 'manipulation-failed :format-control "manipulation failed."))))
-          (ecase (side action)
-            ((:left :right) (check-result (execute-arm-action action)))
-            (:both (let ((left (copy-trajectory-action action))
-                         (right (copy-trajectory-action action)))
-                     (setf (slot-value left 'side) :left)
-                     (setf (slot-value right 'side) :right)
-                     (par
-                       (check-result (execute-arm-action left))
-                       (check-result (execute-arm-action right))))))))))
+    (let ((action (reference input)))
+      (log-msg :info "[Manipulation process module] received input ~a~%"
+               (description input))
+      (setf *manipulation-action-designator* input)
+      (with-failure-handling
+          ((manipulation-action-error (e)
+             (log-msg :warn "[Manipulation process module] received MANIPULATION-ACTION-ERROR condition (terminal state ~a)."
+                      (final-status e))
+             (fail (make-condition 'manipulation-failed :format-control "manipulation failed."))))
+        (ecase (side action)
+          ((:left :right) (check-result (execute-arm-action action)))
+          (:both (let ((left (copy-trajectory-action action))
+                       (right (copy-trajectory-action action)))
+                   (setf (slot-value left 'side) :left)
+                   (setf (slot-value right 'side) :right)
+                   (par
+                     (check-result (execute-arm-action left))
+                     (check-result (execute-arm-action right)))))))))
   (log-msg :info "[Manipulation process module] returning."))

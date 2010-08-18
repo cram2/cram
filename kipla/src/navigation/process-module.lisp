@@ -47,21 +47,19 @@
         (navigation-execute-goal (jlo:id goal))
         (wait-for (< *navigation-distance-to-goal-fluent* threshold)))))
 
-(def-process-module navigation (pm)
+(def-process-module navigation (input)
   ;; This process module navigates the robot to the location given as
   ;; input.
   (unless (member :navigation *kipla-features*)
     (sleep 0.1)
     (return nil))
-  (with-slots (input) pm
-    (log-msg :info "[Navigation process module] received input ~a~%" (reference (value input)))
-    (let ((waypoints (get-nav-waypoints (reference (value input)))))
-      (log-msg :info "[Navigation process module] waypoints `~a'" waypoints)
-      (pursue
-       (loop while waypoints
-             do
-          (log-msg :info "Drive to waypoint `~a'" (car waypoints))
-          (approach-waypoint (car waypoints) (not (cdr waypoints)))
-          (sleep 0.1)
-          (setf waypoints (cdr waypoints)))))
-    (log-msg :info "[Navigation process module] returning.~%")))
+  (log-msg :info "[Navigation process module] received input ~a~%" (reference input))
+  (let ((waypoints (get-nav-waypoints (pose->jlo (reference input)))))
+    (log-msg :info "[Navigation process module] waypoints `~a'" waypoints)
+    (loop while waypoints
+          do
+       (log-msg :info "Drive to waypoint `~a'" (car waypoints))
+       (approach-waypoint (car waypoints) (not (cdr waypoints)))
+       (sleep 0.1)
+       (setf waypoints (cdr waypoints))))
+  (log-msg :info "[Navigation process module] returning.~%"))
