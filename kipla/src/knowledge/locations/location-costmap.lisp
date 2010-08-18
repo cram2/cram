@@ -91,9 +91,9 @@
 
 (defmethod get-map-value ((map location-costmap) x y)
   (aref (get-cost-map map)
-        (truncate (- x (slot-value map 'origin-x))
-                  (slot-value map 'resolution))
         (truncate (- y (slot-value map 'origin-y))
+                  (slot-value map 'resolution))
+        (truncate (- x (slot-value map 'origin-x))
                   (slot-value map 'resolution))))
 
 (defmethod register-cost-function ((map location-costmap) fun &optional (score 0))
@@ -131,7 +131,7 @@
                    (cons (+ (mod index height) origin-x)
                          (+ (/ index (/ height resolution)) origin-y)))))))
          (p-fun (pt)
-           (get-map-value map (cdr pt) (car pt))))
+           (get-map-value map (car pt) (cdr pt))))
     (with-slots (origin-x origin-y) map
       (let ((coord (cma:sample (make-var-fun) #'p-fun)))
         (cl-transforms:make-3d-vector (car coord) (cdr coord) 0)))))
