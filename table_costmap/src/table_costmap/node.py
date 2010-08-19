@@ -27,6 +27,7 @@
 
 import rospy
 import nav_msgs.msg as nav_msgs
+import std_srvs.srv as std_srvs
 import geometry_msgs.msg as geometry_msgs
 
 from polygrid import *
@@ -85,6 +86,10 @@ def main():
             for fun in funs:
                 fun(*args)
         return doit
+
+    def clear_grid(req):
+        poly_sub_handler.grid.clearGrid()
+        return std_srvs.EmptyResponse()
                 
     rospy.init_node('polygon_costmap')
 
@@ -95,15 +100,17 @@ def main():
     except KeyError, key:
         rospy.logfatal('Cannot read ros parameter: %s' % str(key))
         return
-
-
+    
+    clear_grid_srv = rospy.Service('~clear', std_srvs.Empty, clear_grid)
+    
     publishers = []
     if publish_grid_cells:
         publishers += [PolyGridCellsPublication('~grid_cells')]
     if publish_occupancy_grid:
         publishers += [PolyOccupancyGridPublication('~occupancy_grid')]
+    poly_sub_handler = PolygonalMapSubscription(resolution, resolution, apply_every(publishers))
     input_sub = rospy.Subscriber(
         '~input', geometry_msgs.PolygonStamped,
-        PolygonalMapSubscription(resolution, resolution, apply_every(publishers)))
+        poly_sub_handler)
     
     rospy.spin()
