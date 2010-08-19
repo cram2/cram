@@ -26,11 +26,14 @@
                     (princ (char-downcase ch) strm))
                 (setf upcase nil)))))
 
+(defgeneric pose->jlo (pose))
+
 (defmethod pose->jlo ((p cl-transforms:pose))
   (let ((p-matrix (cl-transforms:transform->matrix p)))
-    (jlo:make-jlo :parent "/map" :pose (make-array (array-total-size p-matrix)
-                                                   :displaced-to p-matrix
-                                                   :element-type (array-element-type p-matrix)))))
+    (jlo:make-jlo :parent (jlo:make-jlo :name "/map")
+                  :pose (make-array (array-total-size p-matrix)
+                                    :displaced-to p-matrix
+                                    :element-type (array-element-type p-matrix)))))
 
 (defmethod pose->jlo ((p cl-transforms:pose))
   (pose->jlo (cl-transforms:make-transform
@@ -39,13 +42,14 @@
 
 (defmethod pose->jlo ((p cl-transforms:transform))
   (let ((p-matrix (cl-transforms:transform->matrix p)))
-    (jlo:make-jlo :parent "/map" :pose (make-array (array-total-size p-matrix)
-                                                   :displaced-to p-matrix
-                                                   :element-type (array-element-type p-matrix)))))
+    (jlo:make-jlo :parent (jlo:make-jlo :name "/map")
+                  :pose (make-array (array-total-size p-matrix)
+                                    :displaced-to p-matrix
+                                    :element-type (array-element-type p-matrix)))))
 
 (defmethod pose->jlo ((p cl-tf:stamped-transform))
   (let ((p-matrix (cl-transforms:transform->matrix p)))
-    (jlo:make-jlo :parent (cl-tf:frame-id p)
+    (jlo:make-jlo :parent (jlo:make-jlo :name (cl-tf:frame-id p))
                   :name (cl-tf:child-frame-id p)
                   :pose (make-array (array-total-size p-matrix)
                                     :displaced-to p-matrix

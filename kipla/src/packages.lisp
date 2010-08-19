@@ -30,7 +30,8 @@
 (defpackage :kipla-utils
     (:documentation "Utilities")
   (:use #:common-lisp)
-  (:export #:lispify-ros-name #:rosify-lisp-name))
+  (:export #:lispify-ros-name #:rosify-lisp-name
+           #:pose->jlo))
 
 (defpackage :kipla-reasoning
   (:documentation "All the prolog and reasoning stuff used in kipla.")
