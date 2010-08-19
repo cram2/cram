@@ -30,7 +30,7 @@
 (in-package :kipla-reasoning)
 
 ;;; Currently implemented keys for location designators:
-;;; (on table) (on counter)
+;;; (on table)
 ;;; (to reach) (to see)
 ;;; (location ?loc)
 ;;; (pose ?p)
@@ -65,7 +65,7 @@ than threshold * highest-probability."
       (lambda (map)
         (unless (and (>= solution-cnt n-solutions) kipla:*tf*)
           (incf solution-cnt)
-          (when (cl-tf:can-transform kipla:*tf* :source-frame "/map" :target-frame "/base-link")
+          (when (cl-tf:can-transform kipla:*tf* :source-frame "/map" :target-frame "/base_link")
             (let* ((robot-pos (cl-transforms:translation
                                (cl-tf:lookup-transform
                                 kipla:*tf* :source-frame "/map" :target-frame "/base_link")))
@@ -74,9 +74,6 @@ than threshold * highest-probability."
                    (map-arr (get-cost-map map))
                    (max-value (max-map-value map-arr)))
               (declare (type cma:double-matrix map-arr))
-              (format t "robot pos: x ~a y ~a val ~a threshold ~a cond ~a~%"
-                      x y (get-map-value map x y) (* threshold max-value)
-                      (> (get-map-value map x y) (* threshold max-value)))
               (when (> (get-map-value map x y) (* threshold max-value))
                 robot-pos))))))))
 
@@ -102,7 +99,7 @@ than threshold * highest-probability."
     (lisp-fun occupancy-grid-msg-metadata ?map :key :height ?height))
 
   (<- (costmap-resolution 0.05))
-  (<- (costmap-padding 0.45))
+  (<- (costmap-padding 0.85))
 
   (<- (costmap-origin ?x ?y)
     (symbol-value kipla:*map-fl* ?map-fl)
@@ -152,6 +149,9 @@ than threshold * highest-probability."
     (occupancy-grid ?map ?static-occupied (padding ?padding))
     (occupancy-grid ?tables ?tables-occupied (padding ?padding))
     (costmap ?cm)
+    (lisp-fun cl-transforms:make-3d-vector 0 0 0 ?map-origin)
+    (costmap-add-function 11 (make-range-cost-function ?map-origin 2.0)
+                          ?cm)
     (costmap-add-function 10 (make-occupancy-grid-cost-function ?free-space) ?cm)
     (costmap-add-function 9 (make-occupancy-grid-cost-function ?static-occupied :invert t)
                           ?cm)
