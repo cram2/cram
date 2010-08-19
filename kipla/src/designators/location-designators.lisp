@@ -87,7 +87,7 @@
       (setf data (mapcar (curry #'apply #'make-location-proxy)
                          (sort (mapcar (curry #'var-value '?value)
                                        (force-ll (prolog `(desig-loc ,desig ?value))))
-                               #'> :key #'location-proxy-precedence-value)))
+                               #'> :key (compose #'location-proxy-precedence-value #'car))))
       (assert data () (format nil "Unable to resolve designator `~a'" desig))
       (setf current-solution (location-proxy-solution->pose
                               desig
@@ -131,14 +131,17 @@
   (make-instance 'pose-location-proxy
                  :pose value))
 
+(defmethod location-proxy-precedence-value ((type (eql 'pose)))
+  1)
+
 (defmethod location-proxy-next-solution ((proxy pose-location-proxy))
   nil)
 
-(defmethod location-proxy-precedence-value ((proxy pose-location-proxy))
-  1)
-
 (defmethod make-location-proxy ((type (eql 'costmap)) (val location-costmap))
   (make-instance 'costmap-location-proxy :costmap val))
+
+(defmethod location-proxy-precedence-value ((type (eql 'costmap)))
+  0)
 
 (defmethod initialize-instance :after ((proxy costmap-location-proxy) &key &allow-other-keys)
   (location-proxy-next-solution proxy))
@@ -152,9 +155,6 @@
       ;; Todo: take the closest next solution, not the first one
       (setf next-solutions (cdr solutions))
       (setf point (car solutions)))))
-
-(defmethod location-proxy-precedence-value ((proxy costmap-location-proxy))
-  0)
 
 (defmethod location-proxy-solution->pose (desig (solution cl-transforms:3d-vector))
   (with-vars-bound (?o)
