@@ -67,7 +67,7 @@
    #:action #:object #:location
    #:action-designator #:location-designator #:object-designator
    #:type #:mug #:icetea #:cluster #:jug #:placemat #:coke
-   #:object #:object-id
+   #:object #:object-id #:pose
    #:color #:black #:red #:white #:green #:blue
    #:at #:matches #:show
    #:to #:reach #:on #:for #:see #:counter #:table #:of
