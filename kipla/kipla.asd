@@ -142,7 +142,7 @@
                                   :components
                                   ((:file "knowrob-objects")))))
                (:module "navigation"
-                        :depends-on ("packages" "config" "ros-node" "designators")
+                        :depends-on ("packages" "config" "ros-node" "designators" "utils")
                         :components
                         ((:file "ros-connection")
                          (:file "process-module" :depends-on ("ros-connection"))))
