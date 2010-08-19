@@ -32,9 +32,10 @@
 (def-top-level-plan nav-to (obj)
   (pursue
     (run-process-modules)
-    (with-designators ((loc (location `((on ,obj))))
+    (with-designators ((loc (location `((on table) (name ,obj))))
                        (see-loc (location `((to see) (location ,loc)))))
       (sleep 0.5)
+      (publish-pose (reference see-loc))
       (achieve `(loc Robot ,see-loc)))))
 
 (def-top-level-plan perceive-cluster (&optional (loc 'table))
