@@ -1,0 +1,16 @@
+
+<launch>
+  <!-- RAW PointCloud to PointCloud2 converter -->
+  <group ns="/laser_table_detector">
+    <node pkg="point_cloud_converter" type="point_cloud_converter" name="convert_cloud" output="screen">
+      <remap from="/points_in" to="/shoulder_cloud" />
+      <remap from="/points2_out" to="assembled_cloud2" />
+    </node>
+  </group>
+  <include file="$(find table_costmap)/launch/laser_table_detector.launch"/>
+  
+  <node name="table_costmap" pkg="table_costmap" type="table_costmap">
+    <remap from="~input" to="/laser_table_detector/table_polygon/output"/>
+    <param name="resolution" value="0.05"/>
+  </node>
+</launch>
