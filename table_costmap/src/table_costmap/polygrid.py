@@ -39,7 +39,7 @@ class PolyGrid(object):
         Resizes the current image to new size (width, height) and
         center origin
         """
-        new_img = Image.new('1', (int(size[0] / self.cell_width), int(size[1] / self.cell_height)))
+        new_img = Image.new('F', (int(size[0] / self.cell_width), int(size[1] / self.cell_height)))
         if self.image:
             new_img.paste(self.image, (int((origin[0]-self.origin[0])/self.cell_width),
                                        int((origin[1]-self.origin[1])/self.cell_height)))
@@ -69,19 +69,21 @@ class PolyGrid(object):
 
         return (max_x - min_x, max_y - min_y), (-min_x, -min_y)
 
-
-    def updateGrid(self, points):
+    def updateGrid(self, points, color):
         self.resizeImage(*self.calculateNewSize(points))
         draw = ImageDraw.Draw(self.image)
-        draw.polygon([((p[0]+self.origin[0])/self.cell_width, (p[1]+self.origin[1])/self.cell_height) for p in points], fill=1)
+        draw.polygon([((p[0]+self.origin[0])/self.cell_width, (p[1]+self.origin[1])/self.cell_height) for p in points], fill=color)
 
     def getGrid(self):
         if not self.image:
             return []
-        return [(x*self.cell_width - self.origin[0] + self.cell_width/2, y*self.cell_height - self.origin[1] + self.cell_height/2)
+        return [(x*self.cell_width - self.origin[0] + self.cell_width/2,
+                 y*self.cell_height - self.origin[1] + self.cell_height/2,
+                 self.image.getpixel((x, y)))
                 for y in xrange(self.image.size[1])
                 for x in xrange(self.image.size[0])
-                if self.image.getpixel((x, y)) != 0]
+                if self.image.getpixel((x, y)) > 0]
 
     def clearGrid(self):
         self.image = None
+

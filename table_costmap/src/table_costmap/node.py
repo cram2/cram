@@ -32,6 +32,10 @@ import geometry_msgs.msg as geometry_msgs
 
 from polygrid import *
 
+def mean(seq):
+    s = reduce(lambda a, b: a+b, seq)
+    return s / len(seq)
+
 class PolygonalMapSubscription(object):
     def __init__(self, cell_width, cell_height, update_cb):
         self.grid = PolyGrid(cell_width, cell_height)
@@ -42,7 +46,8 @@ class PolygonalMapSubscription(object):
         if self.header:
             assert(self.header.frame_id == poly_msg.header.frame_id)
         self.header = poly_msg.header
-        self.grid.updateGrid([(p.x, p.y) for p in poly_msg.polygon.points])
+        color = mean([p.z for p in poly_msg.polygon.points])
+        self.grid.updateGrid([(p.x, p.y, p.z) for p in poly_msg.polygon.points], color)
         self.update_cb(self.header, self.grid)
 
 class PolyGridCellsPublication(object):
@@ -56,7 +61,7 @@ class PolyGridCellsPublication(object):
                 header=header,
                 cell_width=grid.cell_width,
                 cell_height=grid.cell_height,
-                cells = [geometry_msgs.Point(x=p[0], y=p[1]) for p in grid_points]))
+                cells = [geometry_msgs.Point(x=p[0], y=p[1], z=p[2]) for p in grid_points]))
 
 class PolyOccupancyGridPublication(object):
     def __init__(self, topic):
