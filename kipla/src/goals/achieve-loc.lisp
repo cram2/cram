@@ -30,26 +30,13 @@
 (in-package :kipla)
 
 (defun distance-to-drive (goal)
-  (let* ((loc-1 (reference goal))
-         (current-loc-occasion (var-value '?loc (car (holds `(loc Robot ?loc)))))
-         (loc-2 (when (not (is-var current-loc-occasion))
-                  (reference current-loc-occasion))))
-    (cond ((and loc-1 loc-2)
-           (let ((jlo-1 (etypecase loc-1
-                          (number (warn "Depricated type!")
-                                  (jlo:make-jlo :id loc-1))
-                          (string (warn "Depricated type!")
-                                  (jlo:make-jlo :name loc-1))
-                          (jlo:jlo loc-1)))
-                 (jlo-2 (etypecase loc-2
-                          (number (warn "Depricated type!")
-                                  (jlo:make-jlo :id loc-1))
-                          (string (warn "Depricated type!")
-                                  (jlo:make-jlo :name loc-1))
-                          (jlo:jlo loc-2))))
-             (jlo:euclidean-distance jlo-1 jlo-2)))
-          (t
-           100))))
+  (let ((loc-1 (reference goal))
+        (current-loc (cl-tf:lookup-transform
+                      *tf*
+                      :source-frame "/map"
+                      :target-frame "/base_link")))
+    (cl-transforms:v-dist (cl-transforms:origin loc-1)
+                          (cl-transforms:translation current-loc))))
 
 (def-goal (achieve (loc Robot ?loc))
   (log-msg :info "Driving to location.")

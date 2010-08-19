@@ -25,3 +25,12 @@
          (mean-vec (make-array 2 :initial-contents `(,(cl-transforms:x mean) ,(cl-transforms:y mean))))
          (scaled-cov (make-array '(2 2) :initial-contents `((,std-dev 0) (0 ,std-dev)))))
     (make-gauss-cost-function mean-vec scaled-cov)))
+
+(defun make-range-cost-function (point distance)
+  "Returns a costfunction that returns 1 for every point that is not
+  further than distance away from point."
+  (lambda (x y)
+    (if (> (cl-transforms:v-dist point (cl-transforms:make-3d-vector x y 0))
+           distance)
+        0.0d0
+        1.0d0)))
