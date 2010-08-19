@@ -220,11 +220,11 @@ than threshold * highest-probability."
     (bagof ?c (desig-costmap ?desig ?c) ?costmaps)
     (lisp-fun merge-costmaps ?costmaps ?cm))
 
-  (<- (loc-desig ?desig (pose ?p))
+  (<- (desig-loc ?desig (pose ?p))
     (loc-desig? ?desig)
     (desig-prop ?desig (pose ?p)))
 
-  (<- (loc-desig ?desig (pose ?p))
+  (<- (desig-loc ?desig (pose ?p))
     (loc-desig? ?desig)
     (desig-prop ?desig (of ?obj))
     (lisp-fun object-desig-location ?obj ?p)))
