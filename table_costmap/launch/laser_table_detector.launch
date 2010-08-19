@@ -5,12 +5,6 @@
     <!-- PCL Manager -->
     <node pkg="nodelet" type="nodelet" name="table_detector_pcl_manager" args="manager" output="screen"/>
 
-    <!-- RAW PointCloud to PointCloud2 converter -->
-    <node pkg="point_cloud_converter" type="point_cloud_converter" name="convert_cloud" output="screen">
-      <remap from="/points_in" to="/assembled_cloud" />
-      <remap from="/points2_out" to="assembled_cloud2" />
-    </node>
-    
     <!-- Run a passthrough filter to clean NaNs -->
     <node pkg="nodelet" type="nodelet" name="passthrough" args="load pcl/VoxelGrid table_detector_pcl_manager" output="screen">
       <remap from="~input" to="assembled_cloud2" />
@@ -44,7 +38,7 @@
         optimize_coefficients : true
 
         axis: [0.0, 0.0, 1.0]
-        eps_angle: 20
+        eps_angle: 0.3
       </rosparam>
     </node>
 
