@@ -14,7 +14,7 @@
 
 (declaim (ftype (function (fixnum fixnum &optional list) double-matrix) make-double-matrix))
 (defun make-double-matrix (width height &optional initial-contents)
-  (let ((result (make-array (list height width) :element-type 'double-float)))
+  (let ((result (make-array (list height width) :element-type 'double-float :initial-element 0.0d0)))
     (when initial-contents
       (fill-double-matrix result :initial-contents initial-contents))
     result))
