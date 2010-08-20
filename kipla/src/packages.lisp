@@ -131,6 +131,8 @@
    #:occupancy-grid-metadata #:occupancy-grid #:grid #:make-occupancy-grid
    #:copy-occupancy-grid #:invert-occupancy-grid #:set-grid-cell
    #:clear-grid-cell #:get-grid-cell
+   #:grid-cells-msg->occupancy-grid
+   #:grid-cells-msg->height-map
    ;; other
    #+kipla-contrib-oro #:oro-call
    #+kipla-contrib-oro #:oro-assert
@@ -153,8 +155,9 @@
            #:register-ros-init-function
            #:register-ros-cleanup-function
            #:*tf*
-           #:*map-fl* #:*table-costmap-fl*
+           #:*map-fl*
            #:*table-grid-cells-fl*
+           #:*table-height-map-fl*
            #:get-closest-annotation
            #:get-annotated-point)
   (:import-from #:alexandria

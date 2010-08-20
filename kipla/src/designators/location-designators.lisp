@@ -159,8 +159,11 @@
 (defmethod location-proxy-solution->pose (desig (solution cl-transforms:3d-vector))
   (with-vars-bound (?o)
       (lazy-car (prolog `(desig-orientation ,desig ,solution ?o)))
-    (cl-transforms:make-pose
-     solution
-     (or (unless (is-var ?o)
-           ?o)
-         (cl-transforms:make-quaternion 0 0 0 1)))))
+    (with-vars-bound (?z)
+        (lazy-car (prolog `(desig-z-value ,desig ,solution ?z)))
+      (cl-transforms:make-pose
+       (cl-transforms:make-3d-vector
+        (cl-transforms:x solution)
+        (cl-transforms:y solution)
+        (if (is-var ?z) 0.0d0 ?z))
+       (if (is-var ?o) (cl-transforms:make-quaternion 0 0 0 1) ?o)))))

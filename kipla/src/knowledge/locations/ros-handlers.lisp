@@ -23,11 +23,12 @@
 (defvar *map-fl* (make-fluent :name '*map-fluent*)
   "Newest map received on the map topic.")
 
-(defvar *table-costmap-fl* (make-fluent :name '*table-costmap*)
+(defvar *table-grid-cells-fl* (make-fluent :name '*table-grid-cells-fl*)
   "The newest GridCells message received on the polygonal_grid topic
   for detected tables.")
 
-(defvar *table-grid-cells-fl* (make-fluent :name '*table-grid-cells-fl*))
+(defvar *table-height-map-fl* (make-fluent :name '*table-height-map-fl*)
+  "Contains the current height map of all tables.")
 
 (defvar *annotated-points* nil
   "alist of annotations and the corresponding points.")
@@ -37,12 +38,13 @@
   (roslisp:subscribe (roslisp:get-param "~map-topic" "/map")
                      "nav_msgs/OccupancyGrid"
                      (make-fluent-setter-callback *map-fl*))
-  (roslisp:subscribe (roslisp:get-param "~table-costmap-topic" "/table_costmap/occupancy_grid")
-                     "nav_msgs/OccupancyGrid"
-                     (make-fluent-setter-callback *table-costmap-fl*))
   (roslisp:subscribe (roslisp:get-param "~table-costmap-topic" "/table_costmap/grid_cells")
                      "nav_msgs/GridCells"
-                     (make-fluent-setter-callback *table-grid-cells-fl*)))
+                     #'table-grid-cells-cb))
+
+(defun table-grid-cells-cb (msg)
+  (setf (value *table-grid-cells-fl*) msg)
+  (setf (value *table-height-map-fl*) (grid-cells-msg->height-map msg)))
 
 (defun init-annotated-points ()
   (unless (roslisp:wait-for-service "/table_annotations/get_annotated_points" 1.0)
