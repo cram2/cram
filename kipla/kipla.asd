@@ -52,7 +52,6 @@
                  roslisp
                  std_msgs-msg
                  geometry_msgs-msg
-                 nav_pcontroller-msg
                  vision_srvs-srv
                  cogman_msgs-msg
                  actionlib
