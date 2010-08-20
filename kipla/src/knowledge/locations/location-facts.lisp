@@ -33,6 +33,7 @@
 ;;; (on table)
 ;;; (to reach) (to see)
 ;;; (location ?loc)
+;;; (obj ?obj)
 ;;; (pose ?p)
 ;;; (of ?obj)
 ;;; (for ?obj-type)
@@ -189,7 +190,7 @@ than threshold * highest-probability."
     (desig-location-prop ?desig ?loc)
     (costmap ?cm)
     (drivable-location-costmap ?cm)
-    (costmap-add-function 5 (make-location-cost-function ?loc 0.2) ?cm))
+    (costmap-add-function 5 (make-location-cost-function ?loc 0.3) ?cm))
 
   ;; Missing: (for ?obj-type)
   )
@@ -202,6 +203,13 @@ than threshold * highest-probability."
     (desig-location-prop ?desig ?loc)
     (lisp-fun cl-transforms:origin ?loc ?loc-p)
     (lisp-fun nav-angle-to-point ?loc-p ?point ?orientation)))
+
+(def-fact-group location-z-values ()
+  (<- (desig-z-value ?desig ?point ?z)
+    (global-fluent-value kipla:*table-height-map-fl* ?table-heightmap)
+    (lisp-fun cl-transforms:x ?point ?x)
+    (lisp-fun cl-transforms:y ?point ?y)    
+    (lisp-fun height-map-lookup ?table-heightmap ?x ?y ?z)))
 
 (def-fact-group location-designators ()
   (<- (loc-desig? ?desig)
