@@ -146,14 +146,12 @@
         #:cram-language ;; cram-language reexports all of package :common-lisp
         #:cram-designators
         #:cram-process-modules
+        #:cram-roslisp-common
         #:kipla-reasoning
         #:kipla-utils)
   (:export #:log-msg #:run-demo-counter-to-table
            #:run-demo-table-to-counter #:look-at
            #:drive-to-waypoints-main
-           #:startup-ros #:shutdown-ros
-           #:register-ros-init-function
-           #:register-ros-cleanup-function
            #:*tf*
            #:*map-fl*
            #:*table-grid-cells-fl*

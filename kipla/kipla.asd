@@ -50,6 +50,7 @@
                  process-modules
                  liswip
                  roslisp
+                 cram-roslisp-common
                  std_msgs-msg
                  geometry_msgs-msg
                  vision_srvs-srv
@@ -76,7 +77,6 @@
               ((:file "packages")
                (:file "config" :depends-on ("packages"))
                (:file "logging" :depends-on ("packages"))
-               (:file "ros-node" :depends-on ("packages"))
                (:file "tf" :depends-on ("packages"))
                (:file "speech" :depends-on ("packages"))
                (:file "utils" :depends-on ("packages"))
@@ -94,7 +94,7 @@
                         :components
                         ((:file "belief-state")))
                (:module "knowledge"
-                        :depends-on ("packages" "ros-node" "config" "utils" "tf")
+                        :depends-on ("packages" "config" "utils" "tf")
                         :components
                         ((:file "prolog-utils")
                          (:module "locations"
@@ -126,7 +126,7 @@
                          (:file "liswip")
                          (:file "swi-predicates" :depends-on ("liswip"))))
                (:module "perception"
-                        :depends-on ("packages" "config" "ros-node" "designators" "utils")
+                        :depends-on ("packages" "config" "designators" "utils")
                         :components
                         ((:file "object-belief")
                          (:file "process-module"
@@ -142,12 +142,12 @@
                                   :components
                                   ((:file "knowrob-objects")))))
                (:module "navigation"
-                        :depends-on ("packages" "config" "ros-node" "designators" "utils")
+                        :depends-on ("packages" "config" "designators" "utils")
                         :components
                         ((:file "ros-connection")
                          (:file "process-module" :depends-on ("ros-connection"))))
                (:module "manipulation"
-                        :depends-on ("packages" "config" "ros-node" "designators")
+                        :depends-on ("packages" "config" "designators")
                         :components
                         ((:file "ros-connection")
                          (:file "manipulation-designator")
@@ -174,7 +174,7 @@
                          (:file "achieve-object-manipulation"))
                         :serial t)
                (:module "contrib"
-                        :depends-on ("ros-node")
+                        :depends-on ()
                         :components
                         (#+kipla-contrib-oro
                          (:module "oro"

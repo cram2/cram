@@ -10,6 +10,7 @@
   <depend package="cram_utilities"/>
   <depend package="cram_math"/>
   <depend package="designators"/>
+  <depend package="cram_roslisp_common"/>
   <depend package="liswip"/>
   <depend package="process_modules"/>
   <depend package="cljlo"/>
