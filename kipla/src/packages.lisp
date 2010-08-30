@@ -30,8 +30,7 @@
 (defpackage :kipla-utils
     (:documentation "Utilities")
   (:use #:common-lisp)
-  (:export #:lispify-ros-name #:rosify-lisp-name
-           #:pose->jlo))
+  (:export #:pose->jlo))
 
 (defpackage :kipla-reasoning
   (:documentation "All the prolog and reasoning stuff used in kipla.")
@@ -41,7 +40,8 @@
         #:cram-designators
         #:cram-reasoning
         #:cram-execution-trace
-        #:kipla-utils)
+        #:kipla-utils
+        #:cram-roslisp-common)
   (:shadowing-import-from #:cram-reasoning #:fail)
   (:import-from #:alexandria
                 #:curry #:rcurry #:compose
