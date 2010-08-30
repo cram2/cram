@@ -64,7 +64,6 @@
                  navp_action-msg
                  nav_msgs-msg
                  cl-utils
-                 cl-tf
                  map_annotation-srv
                  visualization_msgs-msg
                  mapping_msgs-msg
@@ -78,7 +77,6 @@
               ((:file "packages")
                (:file "config" :depends-on ("packages"))
                (:file "logging" :depends-on ("packages"))
-               (:file "tf" :depends-on ("packages"))
                (:file "speech" :depends-on ("packages"))
                (:file "utils" :depends-on ("packages"))
                (:module "designators"
@@ -95,7 +93,7 @@
                         :components
                         ((:file "belief-state")))
                (:module "knowledge"
-                        :depends-on ("packages" "config" "utils" "tf")
+                        :depends-on ("packages" "config" "utils")
                         :components
                         ((:file "prolog-utils")
                          (:module "locations"
