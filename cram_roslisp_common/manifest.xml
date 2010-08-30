@@ -1,0 +1,15 @@
+<package>
+  <description brief="cram_roslisp_common">
+
+     cram_roslisp_common
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cram_roslisp_common</url>
+  <depend package="roslisp_runtime"/>
+
+</package>
+
+
