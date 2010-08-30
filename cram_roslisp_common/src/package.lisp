@@ -8,4 +8,5 @@
            #:startup-ros
            #:shutdown-ros
            #:lispify-ros-name
-           #:rosify-lisp-name))
+           #:rosify-lisp-name
+           #:*tf*))
