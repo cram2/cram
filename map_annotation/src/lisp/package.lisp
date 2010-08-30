@@ -2,6 +2,7 @@
 (in-package :cl-user)
 
 (defpackage map-annotation
-    (:use :cl :roslisp :cram-roslisp-common)
+    (:use :cl :roslisp :cram-roslisp-common :crs)
   (:export #:get-closest-annotation
-           #:get-annotated-point))
+           #:get-annotated-point
+           #:annotated-point))
