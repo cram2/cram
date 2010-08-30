@@ -138,10 +138,6 @@ than threshold * highest-probability."
     (lisp-fun grid-cells-msg->occupancy-grid ?msg ?p ?tmp-grid)
     (lisp-fun invert-occupancy-grid ?tmp-grid ?grid))
 
-  (<- (annotated-point ?name ?pt)
-    (lisp-fun kipla:get-annotated-point ?name ?pt)
-    (lisp-pred identity ?pt))
-  
   (<- (drivable-location-costmap ?cm)
     (costmap-padding ?padding)
     (global-fluent-value kipla:*map-fl* ?map)
