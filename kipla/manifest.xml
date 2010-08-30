@@ -27,7 +27,6 @@
   <depend package="actionlib_lisp"/>
   <depend package="nav_msgs"/>
   <depend package="cl_utils"/>
-  <depend package="cl_tf"/>
   <depend package="map_annotation"/>
   <depend package="visualization_msgs"/>
   <depend package="mapping_msgs"/>
