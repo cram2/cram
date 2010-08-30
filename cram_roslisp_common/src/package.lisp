@@ -6,4 +6,6 @@
   (:export #:register-ros-init-function
            #:register-ros-cleanup-function
            #:startup-ros
-           #:shutdown-ros))
+           #:shutdown-ros
+           #:lispify-ros-name
+           #:rosify-lisp-name))
