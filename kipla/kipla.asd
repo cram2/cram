@@ -51,6 +51,7 @@
                  liswip
                  roslisp
                  cram-roslisp-common
+                 map-annotation
                  std_msgs-msg
                  geometry_msgs-msg
                  vision_srvs-srv
