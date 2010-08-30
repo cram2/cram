@@ -130,14 +130,14 @@
                         :components
                         ((:file "object-belief")
                          (:file "process-module"
-                                :depends-on ("object-belief" "knowrob"))
+                                :depends-on ("object-belief" "passive"))
                          (:module "cop"
                                   :depends-on ("object-belief" "process-module")
                                   :components
                                   ((:file "cop-designator")
                                    (:file "ros-connection" :depends-on ("cop-designator"))
                                    (:file "cop-search-handlers" :depends-on ("cop-designator"))))
-                         (:module "knowrob"
+                         (:module "passive"
                                   :depends-on ("object-belief")
                                   :components
                                   ((:file "knowrob-objects")))))
