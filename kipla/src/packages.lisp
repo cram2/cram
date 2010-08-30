@@ -41,7 +41,8 @@
         #:cram-reasoning
         #:cram-execution-trace
         #:kipla-utils
-        #:cram-roslisp-common)
+        #:cram-roslisp-common
+        #:map-annotation)
   (:shadowing-import-from #:cram-reasoning #:fail)
   (:import-from #:alexandria
                 #:curry #:rcurry #:compose
