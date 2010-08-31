@@ -38,7 +38,7 @@
 (defmethod equate :around ((parent designator-id-mixin) (succ designator-id-mixin))
   (flet ((maybe-retract-desig-bdg (desig)
            (with-vars-bound (?bdg)
-               (rete-holds `(desig-bound ,desig ?bdg))
+               (lazy-car (rete-holds `(desig-bound ,desig ?bdg)))
              (unless (is-var ?bdg)
                (retract-desig-binding desig ?bdg)
                ?bdg))))
