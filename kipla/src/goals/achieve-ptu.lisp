@@ -29,12 +29,13 @@
 
 (in-package :kipla)
 
-(def-goal (achieve (looking-at ?lo))
-  (cond ((not ?lo)
+(def-goal (achieve (looking-at ?pose))
+  (cond ((not ?pose)
          (ros-warn :kipla "Jlo id not set. cannot look at it"))
         (t
-         (etypecase ?lo
-           (jlo:jlo (look-long-at ?lo))
+         (etypecase ?pose
+           (cl-transforms:pose (look-long-at (pose->jlo ?pose)))
+           (jlo:jlo (look-long-at ?pose))
            (symbol
-              (ecase ?lo
+              (ecase ?pose
                 (:forward (look-at (jlo:make-jlo :name "/look_forward")))))))))
