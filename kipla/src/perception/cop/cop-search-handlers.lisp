@@ -60,8 +60,12 @@
 
 (defmethod kipla-reasoning:make-new-desig-description ((old-desig object-designator)
                                                        (po cop-perceived-object))
-  (append (remove-if-not #'cop-ignore-property-p (description old-desig))
-          (object-properties po)))
+  (let ((obj-loc-desig (make-designator 'location `((pose ,(jlo->pose (object-pose po))))))
+        (old-obj-loc-desig (desig-prop-value old-desig 'at)))
+    (equate old-obj-loc-desig obj-loc-desig)
+    (append (remove-if-not #'cop-ignore-property-p (description old-desig))
+            (object-properties po)
+            (list 'at obj-loc-desig))))
 
 (defun do-cop-search (desig query-info &key (command :localize))
   (let ((cop-reply (cop-query query-info :command command)))
