@@ -13,4 +13,4 @@
       (if (and (>= x origin-x) (>= y origin-y)
                (< x max-x) (< y max-y))
           (coerce (get-grid-cell grid x y) 'double-float)
-          0.0d0))))
+          (if invert 1.0d0 0.0d0)))))
