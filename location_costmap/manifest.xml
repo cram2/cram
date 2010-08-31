@@ -1,0 +1,22 @@
+<package>
+  <description brief="location_costmap">
+
+     location_costmap
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/location_costmap</url>
+  <depend package="alexandria"/>
+  <depend package="cram_utilities"/>
+  <depend package="cram_roslisp_common"/>
+  <depend package="cl_transforms"/>
+  <depend package="cram_math"/>
+  <depend package="cram_reasoning"/>
+  <depend package="nav_msgs"/>
+  <depend package="visualization_msgs"/>
+
+</package>
+
+
