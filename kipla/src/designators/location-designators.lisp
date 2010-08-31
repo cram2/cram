@@ -36,7 +36,7 @@
 ;;; post-process the solutions from reasoning, e.g. to sort according
 ;;; to eucledian distance.
 
-(defconstant +costmap-n-samples+ 3)
+(defconstant +costmap-n-samples+ 5)
 
 (defgeneric make-location-proxy (type value)
   (:documentation "Creates a location proxy of `type' and initializes
@@ -147,14 +147,31 @@
   (location-proxy-next-solution proxy))
 
 (defmethod location-proxy-next-solution ((proxy costmap-location-proxy))
-  (with-slots (point next-solutions costmap)
-      proxy
-    (let ((solutions (or next-solutions
-                         (loop repeat +costmap-n-samples+
-                               collecting (generate-point costmap)))))
-      ;; Todo: take the closest next solution, not the first one
-      (setf next-solutions (cdr solutions))
-      (setf point (car solutions)))))
+  (flet ((take-closest-point (points)
+           (let ((closest (car points))
+                 (dist (cl-transforms:v-dist (cl-transforms:translation
+                                              (cl-tf:lookup-transform
+                                               *tf*
+                                               :source-frame "/map"
+                                               :target-frame "/base_link"))
+                                             (car points))))
+             (dolist (p (cdr points) closest)
+               (let ((new-dist (cl-transforms:v-dist (cl-transforms:translation
+                                                      (cl-tf:lookup-transform
+                                                       *tf*
+                                                       :source-frame "/map"
+                                                       :target-frame "/base_link"))
+                                                     p)))
+                 (when (< new-dist dist)
+                   (setf dist new-dist)
+                   (setf closest p)))))))
+    (with-slots (point next-solutions costmap)
+        proxy
+      (let ((solutions (or next-solutions
+                           (loop repeat +costmap-n-samples+
+                                 collecting (generate-point costmap)))))
+        (prog1 (setf point (take-closest-point solutions))
+          (setf next-solutions (delete point solutions)))))))
 
 (defmethod location-proxy-solution->pose (desig (solution cl-transforms:3d-vector))
   (with-vars-bound (?o)
