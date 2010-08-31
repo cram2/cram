@@ -30,7 +30,7 @@
 (defpackage :kipla-utils
     (:documentation "Utilities")
   (:use #:common-lisp)
-  (:export #:pose->jlo))
+  (:export #:pose->jlo #:jlo->pose))
 
 (defpackage :kipla-reasoning
   (:documentation "All the prolog and reasoning stuff used in kipla.")
