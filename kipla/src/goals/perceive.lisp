@@ -42,8 +42,9 @@
 
 (def-goal (perceive-all ?obj-desig)
   (log-msg :info "Perceiving `~a'" (description ?obj-desig))
-  (let ((pre-initialized-desig (or (knowrob-pre-initialize-desig ?obj-desig)
-                                   ?obj-desig)))
+  (let* ((pre-initialized-desig (or (knowrob-pre-initialize-desig ?obj-desig)
+                                   ?obj-desig))
+         (obj-loc-desig (desig-prop-value ?obj-desig 'at)))
     (with-designators ((loc (location `((to see) (obj ,?obj-desig)))))
       (with-failure-handling
           ((object-not-found (e)
@@ -51,12 +52,22 @@
              (log-msg :warn "Object not found failure.")
              (setf loc (next-solution loc))
              (when (and loc (reference loc))
-               (log-msg :info "Retrying at different location.")
+               (log-msg :info "Retrying at different location ~a." (reference loc))
+               (retract-occasion `(loc Robot ?_))               
                (retry))
              (log-msg :warn "Failing at object-not-found failure.")))
         (at-location (loc)
-          (achieve `(looking-at ,(obj-desig-location pre-initialized-desig)))
-          (pm-execute 'perception pre-initialized-desig))))))
+          (let ((obj-loc-retry-cnt 0))
+            (with-failure-handling
+                ((object-not-found (e)
+                   (declare (ignore e))
+                   (log-msg :warn "Object not found failure.")
+                   (when (< obj-loc-retry-cnt 3)
+                     (incf obj-loc-retry-cnt)
+                     (when (next-solution obj-loc-desig)
+                       (retry)))))
+              (achieve `(looking-at ,(obj-desig-location pre-initialized-desig)))
+              (pm-execute 'perception pre-initialized-desig))))))))
 
 ;;; Try to find the object described by ?obj-desig and equate the
 ;;; resulting designator with ?obj-desig. If several objects match,
