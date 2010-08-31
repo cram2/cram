@@ -11,11 +11,16 @@
                       (round (/ height resolution))))))
 
 (defun height-map-lookup (map x y)
-  (with-slots (resolution origin-x origin-y height-map) map
+  (with-slots (resolution origin-x origin-y height-map width height) map
     (declare (type cma:double-matrix height-map))
-    (aref height-map
-          (round (/ (- y origin-y) resolution))
-          (round (/ (- x origin-x) resolution)))))
+    (if (or (< (- x origin-x) 0)
+            (< (- y origin-y) 0)
+            (> (- x origin-x) width)
+            (> (- y origin-y) height))
+        0
+        (aref height-map
+              (round (/ (- y origin-y) resolution))
+              (round (/ (- x origin-x) resolution))))))
 
 (declaim (inline height-map-set))
 (defun height-map-set (map x y value)
