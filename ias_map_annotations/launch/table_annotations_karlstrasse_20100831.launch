@@ -1,0 +1,6 @@
+
+<launch>
+  <node name="table_annotations" pkg="map_annotation" type="map_annotation_server">
+    <param name="file" value="$(find ias_map_annotations)/annotations/tables_karlstrasse_20100831.yaml"/>
+  </node>
+</launch>
