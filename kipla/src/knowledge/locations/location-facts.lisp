@@ -39,11 +39,9 @@
 ;;; (for ?obj-type)
 
 (defun obj-desig-location (obj-desig)
-  (when (typep obj-desig 'object-designator)
-    (cond ((and (valid obj-desig) (reference obj-desig))
-           (object-pose (reference obj-desig)))
-          ((desig-prop-value obj-desig 'at)
-           (reference (desig-prop-value obj-desig 'at))))))
+  (when (and (typep obj-desig 'object-designator)
+             (desig-prop-value obj-desig 'at))
+    (reference (current-desig (desig-prop-value obj-desig 'at)))))
 
 (defun loc-desig-location (loc-desig)
   (when (and (typep loc-desig 'location-designator)
@@ -100,7 +98,7 @@ than threshold * highest-probability."
     (lisp-fun occupancy-grid-msg-metadata ?map :key :height ?height))
 
   (<- (costmap-resolution 0.05))
-  (<- (costmap-padding 0.85))
+  (<- (costmap-padding 0.75))
 
   (<- (costmap-origin ?x ?y)
     (symbol-value kipla:*map-fl* ?map-fl)
@@ -147,8 +145,6 @@ than threshold * highest-probability."
     (occupancy-grid ?tables ?tables-occupied (padding ?padding))
     (costmap ?cm)
     (lisp-fun cl-transforms:make-3d-vector 0 0 0 ?map-origin)
-    (costmap-add-function 11 (make-range-cost-function ?map-origin 2.0)
-                          ?cm)
     (costmap-add-function 10 (make-occupancy-grid-cost-function ?free-space) ?cm)
     (costmap-add-function 9 (make-occupancy-grid-cost-function ?static-occupied :invert t)
                           ?cm)
@@ -179,14 +175,14 @@ than threshold * highest-probability."
     (desig-location-prop ?desig ?loc)
     (costmap ?cm)
     (drivable-location-costmap ?cm)
-    (costmap-add-function 5 (make-location-cost-function ?loc 0.4) ?cm))
+    (costmap-add-function 5 (make-location-cost-function ?loc 0.5) ?cm))
 
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (to reach))
     (desig-location-prop ?desig ?loc)
     (costmap ?cm)
     (drivable-location-costmap ?cm)
-    (costmap-add-function 5 (make-location-cost-function ?loc 0.3) ?cm))
+    (costmap-add-function 5 (make-location-cost-function ?loc 0.4) ?cm))
 
   ;; Missing: (for ?obj-type)
   )
