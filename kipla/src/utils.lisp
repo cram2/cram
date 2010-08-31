@@ -2,6 +2,7 @@
 (in-package :kipla-utils)
 
 (defgeneric pose->jlo (pose))
+(defgeneric jlo->pose (jlo))
 
 (defmethod pose->jlo ((p cl-transforms:pose))
   (let ((p-matrix (cl-transforms:transform->matrix p)))
@@ -36,3 +37,8 @@
                   :pose (make-array (array-total-size p-matrix)
                                     :displaced-to p-matrix
                                     :element-type (array-element-type p-matrix)))))
+
+(defmethod jlo->pose (jlo)
+  (cl-transforms:matrix->transform
+   (make-array '(4 4) :displaced-to (vision_msgs-msg:pose-val
+                                     (jlo:partial-lo jlo)))))
