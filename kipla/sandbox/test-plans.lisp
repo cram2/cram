@@ -38,10 +38,10 @@
       (publish-pose (reference see-loc))
       (achieve `(loc Robot ,see-loc)))))
 
-(def-top-level-plan perceive-cluster (&optional (loc 'table))
+(def-top-level-plan perceive-cluster (&optional (loc 'kitchen-island))
   (pursue
     (run-process-modules)
-    (with-designators ((loc (location `((on ,loc))))
+    (with-designators ((loc (location `((on table) (name,loc))))
                        (cluster (object `((type cluster) (at ,loc)))))
       (sleep 0.5)
       (perceive cluster))))
