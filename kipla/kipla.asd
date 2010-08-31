@@ -62,11 +62,9 @@
                  cl-json-pl-client
                  pr2_msgs-msg
                  navp_action-msg
-                 nav_msgs-msg
                  cl-utils
-                 map_annotation-srv
                  visualization_msgs-msg
-                 mapping_msgs-msg
+                 table-costmap
                  #+kipla-contrib-oro oro_ros-srv
                  #+kipla-contrib-oro yason
                  #+kipla-contrib-hri web_hri-srv)
@@ -99,25 +97,7 @@
                          (:module "locations"
                                   :depends-on ("designators")
                                   :components
-                                  ((:file "location-facts"
-                                          :depends-on ("ros-types"
-                                                       "location-prolog-handlers"
-                                                       "cost-functions"))
-                                   (:file "location-prolog-handlers"
-                                          :depends-on ("location-costmap" "ros-handlers"))
-                                   (:file "occupancy-grid")
-                                   (:file "location-costmap" :depends-on ("occupancy-grid"))
-                                   (:file "height-map")
-                                   (:file "padding-mask")                                   
-                                   (:file "ros-handlers" :depends-on ("ros-types"))
-                                   (:file "cost-functions" :depends-on ("ros-handlers"))
-                                   (:file "occupancy-grid-cost-function" :depends-on ("occupancy-grid"))
-                                   (:file "visualization" :depends-on ("occupancy-grid"))
-                                   (:module "ros-types"
-                                            :components
-                                            ((:file "occupancy-grid")
-                                             (:file "grid-cells"))
-                                            :depends-on ("occupancy-grid" "padding-mask" "height-map"))))
+                                  ((:file "location-facts")))
                          (:file "time")
                          (:file "tasks")
                          (:file "designators")
