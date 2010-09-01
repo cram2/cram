@@ -227,4 +227,4 @@ than threshold * highest-probability."
   (<- (desig-loc ?desig (pose ?p))
     (loc-desig? ?desig)
     (desig-prop ?desig (of ?obj))
-    (lisp-fun object-desig-location ?obj ?p)))
+    (lisp-fun obj-desig-location ?obj ?p)))
