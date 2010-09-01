@@ -61,7 +61,7 @@
     :grasp-distance (slot-value ref 'grasp-distance)
     :supporting-plane (slot-value ref 'supporting-plane)))
 
-(defun calculate-put-down-end-effector-lo (supporting obj)
+(defun calculate-put-down-end-effector-pose (supporting obj)
   (assert (typep supporting 'location-designator))
   (assert (typep obj 'object-designator))
   (reference supporting)
@@ -175,8 +175,9 @@
     (slot-value ?act side ?side)
     (slot-value ?act trajectory-type "put_down")
     (slot-value ?act object-type "IceTea")
-    (lisp-fun calculate-put-down-end-effector-lo
-              ?loc-desig ?obj-desig ?jlo)
+    (lisp-fun calculate-put-down-end-effector-pose
+              ?loc-desig ?obj-desig ?pose)
+    (lisp-fun pose->jlo ?pose ?jlo)
     (slot-value ?act end-effector-pose ?jlo))
 
   (<- (action-desig ?desig ?act)
