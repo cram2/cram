@@ -72,11 +72,8 @@
          (:right
           (log-msg :info "[manipulation action] sending right goal.")
           (actionlib:call-goal *right-arm-action-client* action-goal)))
-      (unless (eq state :succeeded)
-        (error 'manipulation-action-error
-               :format-control "Manipulation action failure."
-               :final-status state))
-      (list (intern (string-upcase (cogman_msgs-msg:situation-val result))
+      (list state
+            (intern (string-upcase (cogman_msgs-msg:situation-val result))
                     (find-package :keyword))
             (map 'list #'identity (cogman_msgs-msg:better_base_ids-val result))
             (cogman_msgs-msg:distance_to_goal-val result)))))

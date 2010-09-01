@@ -44,18 +44,19 @@
     (sleep 0.1)
     (return nil))
   (flet ((check-result (action-result)
-           (destructuring-bind (action-result better-lo-ids distance-to-goal)
+           (destructuring-bind (state action-result better-lo-ids distance-to-goal)
                action-result
              (declare (ignore distance-to-goal))
-             (case action-result
-               (:could-not-reach (fail (make-condition 'manipulation-pose-unreachable
-                                                       :format-control "Manipulation pose unreachable."
-                                                       :alternative-poses better-lo-ids)))
-               (:could-not-grasp (fail (make-condition 'manipulation-failed
-                                                       :format-control "Grasp failed.")))
-               (:cancelled (fail (make-condition 'manipulation-failed
-                                                 :format-control "Manipulation was canceled.")))
-               (t (log-msg :info "Action `~a', result: ~a" (description input) action-result))))))
+             (case state
+               (:succeeded (log-msg :info "Action `~a', result: ~a" (description input) action-result))
+               (t (case action-result
+                    (:could-not-reach (fail (make-condition 'manipulation-pose-unreachable
+                                                            :format-control "Manipulation pose unreachable."
+                                                            :alternative-poses better-lo-ids)))
+                    (:could-not-grasp (fail (make-condition 'manipulation-failed
+                                                            :format-control "Grasp failed.")))
+                    (:cancelled (fail (make-condition 'manipulation-failed
+                                                      :format-control "Manipulation was canceled.")))))))))
     ;; We need to fix this. Why can input become nil?
     (let ((action (reference input)))
       (log-msg :info "[Manipulation process module] received input ~a~%"
