@@ -39,7 +39,7 @@
                           (cl-transforms:translation current-loc))))
 
 (def-goal (achieve (loc Robot ?loc))
-  (log-msg :info "Driving to location.")
+  (log-msg :info "Driving to location ~a." ?loc)
   (unless (reference ?loc)
     (fail "Location designator invalid."))
   (when (> (distance-to-drive ?loc) 0.5)
