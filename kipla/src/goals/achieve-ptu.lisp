@@ -31,8 +31,9 @@
 
 (def-goal (achieve (looking-at ?pose))
   (cond ((not ?pose)
-         (ros-warn :kipla "Jlo id not set. cannot look at it"))
+         (ros-warn :kipla "Pose not set. cannot look at it"))
         (t
+         (ros-info :kipla "Looking at pose: ~a~%" ?pose)
          (etypecase ?pose
            (cl-transforms:pose (look-long-at (pose->jlo ?pose)))
            (jlo:jlo (look-long-at ?pose))
