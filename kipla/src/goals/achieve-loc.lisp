@@ -42,7 +42,7 @@
   (log-msg :info "Driving to location ~a." ?loc)
   (unless (reference ?loc)
     (fail "Location designator invalid."))
-  (when (> (distance-to-drive ?loc) 0.5)
+  (when (> (distance-to-drive ?loc) 0.75)
     (log-msg :info "Distance to drive: ~a, parking arms.~%"
              (distance-to-drive ?loc))
     (achieve `(looking-at :forward))
