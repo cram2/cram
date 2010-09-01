@@ -96,7 +96,6 @@
            (setf alternative-poses-cnt 0)
            (say "Failed to grasp. I try again.")           
            (achieve `(arms-at ,(make-designator 'action `((type trajectory) (pose open) (side ,?side)))))
-           (achieve `(arm-parked ,?side))
            (when (< (incf retry-count) 3)
              (retry))))
       (setf ?obj (perceive ?obj))
@@ -111,15 +110,20 @@
                (log-msg :warn "Got unreachable grasp pose. Trying alternatives")
                (when (< alternative-poses-cnt 3)
                  (incf alternative-poses-cnt)
-                 ;; ;; Evil: assert already in parked position. __EVIL__
-                 ;; (assert-occasion `(arm-parked :both))
+                 (setf pick-up-loc (next-solution pick-up-loc))
+                 (retract-occasion `(loc Robot ?_))
                  (retry))))
-          ;; Pretty bad hacky. We need to open the arms before
-          ;; approaching the grasp pose. TODO: Move the
-          ;; open-trajectory goal back into the at-location somehow.
+
+          ;; It is not good to open the arm and then drive as long as
+          ;; driving might tuck the arms again. Right now, we open
+          ;; them twice just in case that happens, but this is a
+          ;; pretty bad solution. The right solution would be to pass
+          ;; some semantic information to at-location, e.g. that we
+          ;; navigate to go to a good grasp position and that we do
+          ;; not want to move the arms in such a case.
           (achieve `(arms-at ,open-trajectory))
           (at-location (pick-up-loc)
-            (log-msg :info "object-in-hand: trying to grasp object.")
+            (achieve `(arms-at ,open-trajectory))
             (achieve `(looking-at ,(reference (make-designator 'location `((of ,?obj))))))
             (achieve `(arms-at ,grasp-trajectory))
             (achieve `(arms-at ,lift-trajectory))))))
