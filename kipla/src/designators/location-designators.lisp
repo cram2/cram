@@ -127,6 +127,11 @@
                  :pose (cl-transforms:make-pose
                         value (cl-transforms:make-quaternion 0 0 0 1))))
 
+(defmethod make-location-proxy ((type (eql 'pose)) (value cl-transforms:transform))
+  (make-instance 'pose-location-proxy
+                 :pose (cl-transforms:make-pose (cl-transforms:translation value)
+                                                (cl-transforms:rotation value))))
+
 (defmethod make-location-proxy ((type (eql 'pose)) (value cl-transforms:pose))
   (make-instance 'pose-location-proxy
                  :pose value))
