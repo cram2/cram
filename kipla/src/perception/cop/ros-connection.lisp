@@ -110,7 +110,7 @@
   (actionlib:call-goal *ptu-action-client*
                        (make-message "cogman_msgs/PtuGoal"
                                      :lo_id (jlo:id jlo)
-                                     :mode 0))
+                                     :mode 1))
   (sleep 1.5))
 
 (defun wait-for-shoulder-scan ()
