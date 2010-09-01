@@ -98,7 +98,7 @@ than threshold * highest-probability."
     (lisp-fun occupancy-grid-msg-metadata ?map :key :height ?height))
 
   (<- (costmap-resolution 0.05))
-  (<- (costmap-padding 0.75))
+  (<- (costmap-padding 0.70))
 
   (<- (costmap-origin ?x ?y)
     (symbol-value kipla:*map-fl* ?map-fl)
