@@ -41,4 +41,6 @@
 (defmethod jlo->pose (jlo)
   (cl-transforms:matrix->transform
    (make-array '(4 4) :displaced-to (vision_msgs-msg:pose-val
-                                     (jlo:partial-lo jlo)))))
+                                     (jlo:partial-lo (jlo:frame-query
+                                                      (jlo:make-jlo :id 1)
+                                                      jlo))))))
