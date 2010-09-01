@@ -97,7 +97,8 @@
   ;;   (desig-prop ?obj (type coke)))
 
   (<- (grasp-info ?obj "Cluster" "3pinch" 0.04)
-    (desig-prop ?obj (type ?_)))
+    ;; (desig-prop ?obj (type ?_))
+    )
   
   (<- (action-desig ?desig ?act)
     (manip-desig? ?desig)
@@ -107,8 +108,9 @@
     (instance-of trajectory-action ?act)
     (slot-value ?act side ?side)
     (slot-value ?act trajectory-type "reach_primitive")
-    (obj-desig-location ?obj ?obj-loc)
-    (slot-value ?act end-effector-pose ?obj-loc)
+    (lisp-fun obj-desig-location ?obj ?obj-loc)
+    (lisp-fun pose->jlo ?obj-loc ?obj-loc-jlo)
+    (slot-value ?act end-effector-pose ?obj-loc-jlo)
     (grasp-info ?obj ?object-type ?hand-primitive ?dist)
     (slot-value ?act object-type ?object-type)
     (slot-value ?act hand-primitive ?hand-primitive)
