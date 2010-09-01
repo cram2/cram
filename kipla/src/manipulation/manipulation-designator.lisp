@@ -143,8 +143,10 @@
     (desig-prop ?desig (side ?side))
     (instance-of trajectory-action ?act)
     (slot-value ?act side ?side)
-    (slot-value ?act trajectory-type "arm_cart_pose")
-    (slot-value ?act stored-pose-type "show"))
+    (lisp-fun symbol-name ?side ?side-str)
+    (lisp-fun concatenate string ?side-str "_show" ?pose-type-str)
+    (slot-value ?act trajectory-type "arm_joint_pose")
+    (slot-value ?act stored-pose-type ?pose-type-str))
   
   (<- (action-desig ?desig ?act)
     (manip-desig? ?desig)
