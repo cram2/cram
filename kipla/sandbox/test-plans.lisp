@@ -133,10 +133,10 @@
       (sleep 0.5)      
       (achieve `(object-in-hand ,icetea :right)))))
 
-(def-top-level-plan grasp-cluster (&optional (loc 'table))
+(def-top-level-plan grasp-cluster (&optional (loc 'kitchen-island))
   (pursue
     (run-process-modules)
-    (with-designators ((loc (location `((on ,loc))))
+    (with-designators ((loc (location `((on table) (name ,loc))))
                        (cluster (object `((type cluster) (at ,loc)))))
       (sleep 0.5)      
       (achieve `(object-in-hand ,cluster :right))
