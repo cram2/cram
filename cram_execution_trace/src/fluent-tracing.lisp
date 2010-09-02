@@ -127,9 +127,10 @@
 (defun global-fluents-register-callbacks (episode)
   (loop for fluent being the hash-keys in *global-fluents* using (hash-value options)
      for max-tracing-freq = (getf options :max-tracing-freq)
-     do (register-update-callback fluent :fluent-tracing-callback
-                                  (trace-fluent-callback fluent max-tracing-freq episode))
-        (trace-fluent fluent (peek-value fluent) episode)))
+        unless (get-update-callback fluent :fluent-tracing-callback)
+          do (register-update-callback fluent :fluent-tracing-callback
+                                              (trace-fluent-callback fluent max-tracing-freq episode))
+             (trace-fluent fluent (peek-value fluent) episode)))
 
 (defun global-fluents-unregister-callbacks ()
   (loop for fluent being the hash-keys in *global-fluents*
