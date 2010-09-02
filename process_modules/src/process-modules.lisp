@@ -90,12 +90,37 @@
 
 (defmethod initialize-instance :after ((pm process-module) &key
                                        (name (error "Process modules need a name."))
-                                       (input (make-fluent :name (intern (concatenate 'string (symbol-name name) "-INPUT"))))
-                                       (feedback (make-fluent :name (intern (concatenate 'string (symbol-name name) "-FEEDBACK"))))
-                                       (result (make-fluent :name (intern (concatenate 'string (symbol-name name) "-RESULT"))))
-                                       (cancel (make-fluent :name (intern (concatenate 'string (symbol-name name) "-CANCEL"))))
-                                       (status (make-fluent :name (intern (concatenate 'string (symbol-name name) "-STATUS"))))
-                                       (caller (make-fluent :name (intern (concatenate 'string (symbol-name name) "-CALLER")))))
+                                       (input (make-fluent
+                                               :name (intern
+                                                      (concatenate 'string
+                                                                   (symbol-name name)
+                                                                   "-INPUT"))))
+                                       (feedback (make-fluent
+                                                  :name (intern
+                                                         (concatenate 'string
+                                                                      (symbol-name name)
+                                                                      "-FEEDBACK"))))
+                                       (result (make-fluent
+                                                :name (intern
+                                                       (concatenate 'string
+                                                                    (symbol-name name)
+                                                                    "-RESULT"))))
+                                       (cancel (make-fluent
+                                                :name (intern
+                                                       (concatenate 'string
+                                                                    (symbol-name name)
+                                                                    "-CANCEL"))))
+                                       (status (make-fluent
+                                                :name (intern
+                                                       (concatenate 'string
+                                                                    (symbol-name name)
+                                                                    "-STATUS"))
+                                                :value :offline))
+                                       (caller (make-fluent
+                                                :name (intern
+                                                       (concatenate 'string
+                                                                    (symbol-name name)
+                                                                    "-CALLER")))))
   (setf (slot-value pm 'name) name
         (slot-value pm 'input) input
         (slot-value pm 'feedback) feedback
@@ -105,42 +130,46 @@
         (slot-value pm 'caller) caller))
 
 (defmethod pm-run :around ((pm process-module))
+  (assert (eq (value (slot-value pm 'status)) :offline) ()
+          "Process module `~a' already running." pm)
   (setf (value (slot-value pm 'input)) nil
         (value (slot-value pm 'status)) :waiting
         (value (slot-value pm 'cancel)) nil)
   (with-slots (input cancel status result) pm
-    (block pm-body
-      (whenever ((not (eq input nil)))
-        (when (value input)
-          (restart-case
-              (handler-bind ((error #'invoke-debugger))
-                (setf (value status) :running)
-                (setf (value cancel) nil)
-                (pursue
-                  (seq
-                    (wait-for cancel)
-                    (setf (value status) :waiting))
-                  (handler-case
-                      (handler-bind ((error (lambda (e)
-                                              (setf (value result) e)
-                                              (setf (value status) :failed))))
-                        (let ((result-val nil))
-                          (unwind-protect
-                               (when (value input)
-                                 (setf result-val (call-next-method)))
-                            (setf (value input) nil)
-                            (when result-val
-                              (setf (value result) result-val))
-                            (unless (eq (value status) :failed)
-                              (setf (value status) :waiting)))))
-                    (plan-error (e)
-                      (declare (ignore e))
-                      nil))))
-            (terminate-pm ()
-              :report "Terminate process module"
-              (return-from pm-body))
-            (continue-pm ()
-              :report "Ignore error and restart process module main loop.")))))))
+    (unwind-protect
+         (block pm-body
+           (whenever ((not (eq input nil)))
+             (when (value input)
+               (restart-case
+                   (handler-bind ((error #'invoke-debugger))
+                     (setf (value status) :running)
+                     (setf (value cancel) nil)
+                     (pursue
+                       (seq
+                         (wait-for cancel)
+                         (setf (value status) :waiting))
+                       (handler-case
+                           (handler-bind ((error (lambda (e)
+                                                   (setf (value result) e)
+                                                   (setf (value status) :failed))))
+                             (let ((result-val nil))
+                               (unwind-protect
+                                    (when (value input)
+                                      (setf result-val (call-next-method)))
+                                 (setf (value input) nil)
+                                 (when result-val
+                                   (setf (value result) result-val))
+                                 (unless (eq (value status) :failed)
+                                   (setf (value status) :waiting)))))
+                         (plan-error (e)
+                           (declare (ignore e))
+                           nil))))
+                 (terminate-pm ()
+                   :report "Terminate process module"
+                   (return-from pm-body))
+                 (continue-pm ()
+                   :report "Ignore error and restart process module main loop.")))))
+      (setf (value status) :offline))))
 
 (defmethod pm-run ((pm symbol))
   (pm-run (gethash pm *process-modules*)))
@@ -150,6 +179,9 @@
                        (task *current-task*))
   ;; Note: priorities are unused currently.
   (with-slots (status result caller) pm
+    (when (eq (value status) :offline)
+      (warn "Process module not running. Waiting for it to come up.")
+      (wait-for (not (eq status :offline))))
     (when (eq (value status) :running)
       (unless  wait-for-free
         (fail "Process module already processing an input."))
