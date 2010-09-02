@@ -29,14 +29,28 @@
 
 (in-package :kipla)
 
+(defvar *process-modules-thread* nil)
+(defvar *process-modules-running* (make-fluent :name '*process-modules-running* :value nil))
+
 (def-plan run-process-modules ()
-  (par
-    (pm-run 'perception)
-    (pm-run 'navigation)
-    (pm-run 'manipulation)
-    ;; (seq
-    ;;   (wait-for (and (eq (pm-status 'perception) :waiting)
-    ;;                  (eq (pm-status 'navigation) :waiting)
-    ;;                  (eq (pm-status 'manipulation) :waiting)))
-    ;;   (log-msg :info "Process modules up and running"))
-    ))
+  (unwind-protect
+       (seq
+         (setf (value *process-modules-running*) t)
+         (pursue
+           (pm-run 'perception)
+           (pm-run 'navigation)
+           (pm-run 'manipulation)
+           (wait-for (not *process-modules-running*))))
+    (setf (value *process-modules-running*) nil)))
+
+(defun start-process-modules ()
+  (assert (not (value *process-modules-running*)) ()
+          "Cannot start process modules when they are already running")
+  (setf *process-modules-thread* (sb-thread:make-thread (lambda ()
+                                                          (top-level
+                                                            (run-process-modules))))))
+
+(defun stop-process-modules ()
+  (assert (value *process-modules-thread*) ()
+          "Process modules are not running.")
+  (setf (value *process-modules-running*) nil))
