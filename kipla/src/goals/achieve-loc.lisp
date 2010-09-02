@@ -33,8 +33,8 @@
   (let ((loc-1 (reference goal))
         (current-loc (cl-tf:lookup-transform
                       *tf*
-                      :source-frame "/map"
-                      :target-frame "/base_link")))
+                      :target-frame "/map"
+                      :source-frame "/base_link")))
     (cl-transforms:v-dist (cl-transforms:origin loc-1)
                           (cl-transforms:translation current-loc))))
 

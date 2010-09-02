@@ -157,15 +157,15 @@
                  (dist (cl-transforms:v-dist (cl-transforms:translation
                                               (cl-tf:lookup-transform
                                                *tf*
-                                               :source-frame "/map"
-                                               :target-frame "/base_link"))
+                                               :target-frame "/map"
+                                               :source-frame "/base_link"))
                                              (car points))))
              (dolist (p (cdr points) closest)
                (let ((new-dist (cl-transforms:v-dist (cl-transforms:translation
                                                       (cl-tf:lookup-transform
                                                        *tf*
-                                                       :source-frame "/map"
-                                                       :target-frame "/base_link"))
+                                                       :target-frame "/map"
+                                                       :source-frame "/base_link"))
                                                      p)))
                  (when (< new-dist dist)
                    (setf dist new-dist)
