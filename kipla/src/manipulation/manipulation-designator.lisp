@@ -72,6 +72,30 @@
   ;;     base->supporting))
   )
 
+(defun calculate-lift-pose (side &optional (distance 0.1))
+  (let ((gripper-pose (cl-tf:lookup-transform
+                       *tf*
+                       :target-frame "/base_link"
+                       :source-frame (concatenate
+                                      'string
+                                      "/"
+                                      (side-str side)
+                                      "_arm_hand_link")))
+        (offset-transform (cl-transforms:make-transform
+                           (cl-transforms:make-3d-vector 0 0 distance)
+                           (cl-transforms:make-quaternion 0 0 0 1))))
+    (assert gripper-pose () "Cannot look up gripper frame.")
+    (let ((lift-pose (cl-transforms:transform* offset-transform gripper-pose)))
+      (cl-tf:make-pose-stamped
+       "/base_link" (cl-tf:stamp gripper-pose)
+       (cl-transforms:translation lift-pose)
+       (cl-transforms:rotation lift-pose)))))
+
+(defun side-str (side)
+  (etypecase side
+    (symbol (string-downcase (symbol-name side)))
+    (string side)))
+
 ;;; Possible trajectory configs:
 ;;; (to grasp)
 ;;; (to unhand)
@@ -143,7 +167,7 @@
     (desig-prop ?desig (side ?side))
     (instance-of trajectory-action ?act)
     (slot-value ?act side ?side)
-    (lisp-fun symbol-name ?side ?side-str)
+    (lisp-fun side-str ?side ?side-str)
     (lisp-fun concatenate string ?side-str "_show" ?pose-type-str)
     (slot-value ?act trajectory-type "arm_joint_pose")
     (slot-value ?act stored-pose-type ?pose-type-str))
@@ -154,8 +178,10 @@
     (desig-prop ?desig (side ?side))
     (instance-of trajectory-action ?act)
     (slot-value ?act side ?side)
-    (slot-value ?act trajectory-type "lift")
-    (slot-value ?act grasp-distance 0.10))
+    (lisp-fun calculate-lift-pose ?side ?lift-pose)
+    (lisp-fun pose->jlo ?lift-pose ?lift-jlo)
+    (slot-value ?act trajectory-type "arm_cart_loid")
+    (slot-value ?act end-effector-pose ?lift-jlo))
 
   (<- (action-desig ?desig ?act)
     (manip-desig? ?desig)
