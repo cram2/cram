@@ -32,8 +32,8 @@
                                     :element-type (array-element-type p-matrix)))))
 
 (defmethod pose->jlo ((p cl-tf:pose-stamped))
-  (let ((p-matrix (cl-transforms:transform->matrix p)))
-    (jlo:make-jlo :parent (cl-tf:frame-id p)
+  (let ((p-matrix (cl-transforms:pose->matrix p)))
+    (jlo:make-jlo :parent (jlo:make-jlo :name (cl-tf:frame-id p))
                   :pose (make-array (array-total-size p-matrix)
                                     :displaced-to p-matrix
                                     :element-type (array-element-type p-matrix)))))
