@@ -64,10 +64,10 @@ than threshold * highest-probability."
       (lambda (map)
         (unless (and (>= solution-cnt n-solutions) kipla:*tf*)
           (incf solution-cnt)
-          (when (cl-tf:can-transform kipla:*tf* :source-frame "/map" :target-frame "/base_link")
+          (when (cl-tf:can-transform kipla:*tf* :target-frame "/map" :source-frame "/base_link")
             (let* ((robot-pos (cl-transforms:translation
                                (cl-tf:lookup-transform
-                                kipla:*tf* :source-frame "/map" :target-frame "/base_link")))
+                                kipla:*tf* :target-frame "/map" :source-frame "/base_link")))
                    (x (cl-transforms:x robot-pos))
                    (y (cl-transforms:y robot-pos))
                    (map-arr (get-cost-map map))
