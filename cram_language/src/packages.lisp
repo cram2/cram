@@ -99,6 +99,7 @@
            #:on-make-fluent-hook
            #:register-update-callback
            #:remove-update-callback
+           #:get-update-callback
            #:def-cpl-parameter
            ;; failures.lisp
            #:fail #:simple-plan-error #:rethrown-error

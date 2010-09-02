@@ -62,6 +62,9 @@
 (defgeneric remove-update-callback (fluent name)
   (:documentation "Method to remove the update callback with the given name."))
 
+(defgeneric get-update-callback (fluent name)
+  (:documentation "Returns the callback with given name or NIL if it doesn't exist."))
+
 (defgeneric wait-for (fluent &key timeout wait-status)
   (:documentation
    "Method to block the current thread until the value of `fluent'
@@ -108,6 +111,10 @@
     (if (gethash name (slot-value fluent 'on-update))
         (error "Callback with name ~a is already registered." name)
         (setf (gethash name (slot-value fluent 'on-update)) update-fun))))
+
+(defmethod get-update-callback ((fluent fluent) name)
+  (with-fluent-locked fluent
+    (gethash name (slot-value fluent 'on-update))))
 
 (defmethod remove-update-callback ((fluent fluent) name)
   (with-fluent-locked fluent
