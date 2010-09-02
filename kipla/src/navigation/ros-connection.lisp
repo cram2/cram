@@ -32,6 +32,8 @@
 (define-condition nav-action-error (simple-plan-error)
   ((final-status :initarg :final-status :reader final-status)))
 
+(defconstant +min-nav-distance-threshold+ 0.05)
+
 (defvar *navigation-speed-fluent*
   (make-fluent :name 'navigation-speed-fluent :value 0))
 (defvar *navigation-distance-to-goal-fluent*
@@ -56,8 +58,11 @@
                                           (setf (value *navigation-distance-to-goal-fluent*)
                                                 (std_msgs-msg:data-val
                                                  (navp_action-msg:distance-val x)))))
-    (unless (eq state :succeeded)
+    (when (and (not (eq state :succeeded))
+               (> (std_msgs-msg:data-val (navp_action-msg:distance-val result))
+                  +min-nav-distance-threshold+))
       (error 'nav-action-error
-             :format-control "Navigation action failed."
+             :format-control "Navigation action failed: ~a."
+             :format-arguments (list result)
              :final-status state))
     result))
