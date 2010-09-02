@@ -98,7 +98,8 @@ than threshold * highest-probability."
     (lisp-fun occupancy-grid-msg-metadata ?map :key :height ?height))
 
   (<- (costmap-resolution 0.05))
-  (<- (costmap-padding 0.70))
+  (<- (costmap-padding 0.75))
+  (<- (costmap-manipulation-padding 0.6))
 
   (<- (costmap-origin ?x ?y)
     (symbol-value kipla:*map-fl* ?map-fl)
@@ -136,8 +137,7 @@ than threshold * highest-probability."
     (lisp-fun grid-cells-msg->occupancy-grid ?msg ?p ?tmp-grid)
     (lisp-fun invert-occupancy-grid ?tmp-grid ?grid))
 
-  (<- (drivable-location-costmap ?cm)
-    (costmap-padding ?padding)
+  (<- (drivable-location-costmap ?cm ?padding)
     (global-fluent-value kipla:*map-fl* ?map)
     (global-fluent-value kipla:*table-grid-cells-fl* ?tables)
     (inverted-occupancy-grid ?map ?free-space)
@@ -174,14 +174,16 @@ than threshold * highest-probability."
     (desig-prop ?desig (to see))
     (desig-location-prop ?desig ?loc)
     (costmap ?cm)
-    (drivable-location-costmap ?cm)
+    (costmap-padding ?padding)
+    (drivable-location-costmap ?cm ?padding)
     (costmap-add-function 5 (make-location-cost-function ?loc 0.5) ?cm))
 
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (to reach))
     (desig-location-prop ?desig ?loc)
     (costmap ?cm)
-    (drivable-location-costmap ?cm)
+    (costmap-manipulation-padding ?padding)
+    (drivable-location-costmap ?cm ?padding)
     (costmap-add-function 5 (make-location-cost-function ?loc 0.4) ?cm))
 
   ;; Missing: (for ?obj-type)
