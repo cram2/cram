@@ -88,10 +88,11 @@
                          (:file "location-designators"
                                 :depends-on ("designator-id-mixin" "rete-integration"))
                          (:file "action-designators" :depends-on ("designator-id-mixin"))))
-               (:module "belief"
+               (:module "rete"
                         :depends-on ("packages" "config")
                         :components
-                        ((:file "belief-state")))
+                        ((:file "rete-utils")
+                         (:file "occasions" :depends-on ("rete-utils"))))
                (:module "knowledge"
                         :depends-on ("packages" "config" "utils")
                         :components
@@ -159,7 +160,7 @@
                                      "speech"
                                      "knowledge"
                                      "designators"
-                                     "belief"
+                                     "rete"
                                      "perception"
                                      "navigation"
                                      "manipulation")
