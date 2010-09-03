@@ -74,7 +74,7 @@
    #:to #:reach #:on #:for #:see #:counter #:table #:of
    #:jlo-list #:jlo #:trajectory
    #:grasp #:navigate #:pose #:parked #:open #:lift #:carry #:put-down
-   #:obj #:gripper #:close #:resolve-object-desig
+   #:obj #:gripper #:close #:resolve-object-desig #:orientation
    #:costmap-location-proxy
    ;; trajectory-actions
    #:trajectory-action #:side #:trajectory-type #:stored-pose-type
