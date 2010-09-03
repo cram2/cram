@@ -51,6 +51,7 @@
                                                             (run-process-modules))))))
 
 (defun stop-process-modules ()
-  (assert (value *process-modules-thread*) ()
+  (assert (and (value *process-modules-thread*)
+               (sb-thread:thread-alive-p *process-modules-thread*)) ()
           "Process modules are not running.")
   (setf (value *process-modules-running*) nil))
