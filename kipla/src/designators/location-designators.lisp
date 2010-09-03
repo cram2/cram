@@ -55,6 +55,14 @@
 
 (defgeneric location-proxy-solution->pose (desig solution)
   (:method (desig (solution cl-transforms:pose))
+    (cl-tf:make-pose-stamped "/map" (roslisp:ros-time)
+                             (cl-transforms:origin solution)
+                             (cl-transforms:orientation solution)))
+  (:method (desig (solution cl-transforms:transform))
+    (cl-tf:make-pose-stamped "/map" (roslisp:ros-time)
+                             (cl-transforms:translation solution)
+                             (cl-transforms:rotation solution)))
+  (:method (desig (solution cl-tf:pose-stamped))
     solution))
 
 (defclass pose-location-proxy ()
@@ -136,6 +144,16 @@
   (make-instance 'pose-location-proxy
                  :pose value))
 
+(defmethod make-location-proxy ((type (eql 'pose)) (value cl-tf:pose-stamped))
+  (make-instance 'pose-location-proxy :pose value))
+
+(defmethod make-location-proxy ((type (eql 'pose)) (value cl-tf:stamped-transform))
+  (make-instance 'pose-location-proxy
+                 :pose (cl-tf:make-pose-stamped
+                        (cl-tf:frame-id value) (cl-tf:stamp value)
+                        (cl-transforms:translation value)
+                        (cl-transforms:rotation value))))
+
 (defmethod location-proxy-precedence-value ((type (eql 'pose)))
   1)
 
@@ -183,9 +201,12 @@
       (lazy-car (prolog `(desig-orientation ,desig ,solution ?o)))
     (with-vars-bound (?z)
         (lazy-car (prolog `(desig-z-value ,desig ,solution ?z)))
-      (cl-transforms:make-pose
+      (cl-tf:make-pose-stamped
+       "/map" (roslisp:ros-time)
        (cl-transforms:make-3d-vector
         (cl-transforms:x solution)
         (cl-transforms:y solution)
         (if (is-var ?z) 0.0d0 ?z))
-       (if (is-var ?o) (cl-transforms:make-quaternion 0 0 0 1) ?o)))))
+       (if (is-var ?o)
+           (cl-transforms:make-quaternion 0 0 0 1)
+           ?o)))))
