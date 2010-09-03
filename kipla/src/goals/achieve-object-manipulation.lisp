@@ -126,9 +126,9 @@
             (achieve `(arms-at ,open-trajectory))
             (achieve `(looking-at ,(reference (make-designator 'location `((of ,?obj))))))
             (achieve `(arms-at ,grasp-trajectory))
-            (achieve `(arms-at ,lift-trajectory))))))
-    (retract-occasion `(object-placed-at ,?obj))
-    (assert-occasion `(object-in-hand ,?obj ,?side)))
+            (retract-occasion `(object-placed-at ,?obj))
+            (assert-occasion `(object-in-hand ,?obj ,?side))
+            (achieve `(arms-at ,lift-trajectory)))))))
   ?obj)
 
 (def-goal (achieve (object-placed-at ?obj ?loc))
