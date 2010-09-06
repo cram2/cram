@@ -72,7 +72,12 @@
   ;;     base->supporting))
   )
 
-(defun calculate-lift-pose (side &optional (distance 0.1))
+(defun side-str (side)
+  (etypecase side
+    (symbol (string-downcase (symbol-name side)))
+    (string side)))
+
+(defun calculate-lift-pose (side &optional (distance 0.15))
   (let ((gripper-pose (cl-tf:lookup-transform
                        *tf*
                        :target-frame "/base_link"
@@ -91,10 +96,48 @@
        (cl-transforms:translation lift-pose)
        (cl-transforms:rotation lift-pose)))))
 
-(defun side-str (side)
-  (etypecase side
-    (symbol (string-downcase (symbol-name side)))
-    (string side)))
+(defun calculate-carry-pose (side)
+  (let ((carried-obj (var-value '?o (car
+                                     (force-ll
+                                      (rete-holds '(object-in-hand ?o ?s)))))))
+    (assert carried-obj () "Not carrying an object in ~a gripper." side)
+    (assert (desig-prop-value carried-obj 'at) () "No location designator for object found.")
+    (let* ((obj-loc-desig (desig-prop-value (current-desig carried-obj) 'at))
+           (obj-pose (reference obj-loc-desig))
+           (hand-trans (cl-tf:lookup-transform *tf*
+                                               :target-frame "/base_link"
+                                               :source-frame "/right_arm_hand_link"))
+           (carry-pose (cl-tf:transform-pose
+                        *tf*
+                        :pose (cl-tf:make-pose-stamped
+                               "/gs_cam" (roslisp:ros-time)
+                               (cl-transforms:make-3d-vector 0.35 0.15 0.25)
+                               (cl-transforms:make-quaternion 0 0 0 1))
+                        :target-frame "/base_link"))
+           (hand-orientation (or (desig-prop-value obj-loc-desig  'orientation)
+                                 (error 'simple-error
+                                        :format-control "Cannot find object orientation in designator `~a'"
+                                        :format-arguments (list carried-obj)))))
+      (ecase side
+        (:right
+           (cl-tf:make-pose-stamped
+            "/base_link" (roslisp:ros-time)
+            (cl-transforms:make-3d-vector
+             (cl-transforms:x (cl-transforms:origin carry-pose))
+             (cl-transforms:y (cl-transforms:origin carry-pose))
+             (cl-transforms:z (cl-transforms:translation hand-trans)))
+            ;; (cl-transforms:origin carry-pose)
+            (cl-transforms:q* hand-orientation
+                              (cl-transforms:q-inv (cl-transforms:orientation obj-pose)))))))))
+
+(defun obj-desig-jlo-id (desig)
+  "Returns the jlo id of the current perceived object of the object
+  designator. Throws an error if the object doesn't contain a
+  PERCEIVED-OBJECT."
+  (let ((po (reference (current-desig desig))))
+    (assert po () "Designator `~a' doesn't containt a valid PERCEIVED-OBJECT.")
+    (check-type (object-pose po) jlo:jlo)
+    (object-pose po)))
 
 ;;; Possible trajectory configs:
 ;;; (to grasp)
@@ -132,8 +175,7 @@
     (instance-of trajectory-action ?act)
     (slot-value ?act side ?side)
     (slot-value ?act trajectory-type "reach_primitive")
-    (lisp-fun obj-desig-location ?obj ?obj-loc)
-    (lisp-fun pose->jlo ?obj-loc ?obj-loc-jlo)
+    (lisp-fun obj-desig-jlo-id ?obj ?obj-loc-jlo)
     (slot-value ?act end-effector-pose ?obj-loc-jlo)
     (grasp-info ?obj ?object-type ?hand-primitive ?dist)
     (slot-value ?act object-type ?object-type)
@@ -168,9 +210,8 @@
     (instance-of trajectory-action ?act)
     (slot-value ?act side ?side)
     (lisp-fun side-str ?side ?side-str)
-    (lisp-fun concatenate string ?side-str "_show" ?pose-type-str)
     (slot-value ?act trajectory-type "arm_joint_pose")
-    (slot-value ?act stored-pose-type ?pose-type-str))
+    (slot-value ?act stored-pose-type "show"))
   
   (<- (action-desig ?desig ?act)
     (manip-desig? ?desig)
@@ -188,9 +229,11 @@
     (desig-prop ?desig (to carry))
     (desig-prop ?desig (side ?side))
     (instance-of trajectory-action ?act)
+    (lisp-fun calculate-carry-pose ?side ?carry-pose)
+    (lisp-fun pose->jlo ?carry-pose ?carry-jlo)
     (slot-value ?act side ?side)
-    (slot-value ?act trajectory-type "arm_cart_pose")
-    (slot-value ?act stored-pose-type "carry"))
+    (slot-value ?act trajectory-type "arm_cart_loid")
+    (slot-value ?act end-effector-pose ?carry-jlo))
 
   (<- (action-desig ?desig ?act)
     (manip-desig? ?desig)
@@ -224,4 +267,16 @@
     (instance-of trajectory-action ?act)
     (slot-value ?act side ?side)
     (slot-value ?act trajectory-type "hand_primitive")
-    (slot-value ?act hand-primitive "3pinch")))
+    (slot-value ?act hand-primitive "3pinch"))
+
+  (<- (action-desig ?desig ?act)
+    (manip-desig? ?desig)
+    (desig-prop ?desig (pose ?p))
+    (desig-prop ?desig (side ?side))
+    (or (lisp-type ?p cl-tf:stamped-transform)
+        (lisp-type ?p cl-tf:pose-stamped))
+    (lisp-fun pose->jlo ?p ?jlo)
+    (instance-of trajectory-action ?act)
+    (slot-value ?act side ?side)
+    (slot-value ?act trajectory-type "arm_cart_loid")
+    (slot-value ?act end-effector-pose ?jlo)))
