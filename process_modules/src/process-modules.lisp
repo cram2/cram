@@ -144,26 +144,25 @@
                    (handler-bind ((error #'invoke-debugger))
                      (setf (value status) :running)
                      (setf (value cancel) nil)
-                     (pursue
-                       (seq
-                         (wait-for cancel)
-                         (setf (value status) :waiting))
-                       (handler-case
-                           (handler-bind ((error (lambda (e)
-                                                   (setf (value result) e)
-                                                   (setf (value status) :failed))))
-                             (let ((result-val nil))
-                               (unwind-protect
-                                    (when (value input)
-                                      (setf result-val (call-next-method)))
-                                 (setf (value input) nil)
-                                 (when result-val
-                                   (setf (value result) result-val))
-                                 (unless (eq (value status) :failed)
-                                   (setf (value status) :waiting)))))
-                         (plan-error (e)
-                           (declare (ignore e))
-                           nil))))
+                     (unwind-protect
+                          (pursue
+                            (wait-for cancel)
+                            (handler-case
+                                (handler-bind ((error (lambda (e)
+                                                        (setf (value result) e)
+                                                        (setf (value status) :failed))))
+                                  (let ((result-val nil))
+                                    (unwind-protect
+                                         (when (value input)
+                                           (setf result-val (call-next-method)))
+                                      (setf (value input) nil)
+                                      (when result-val
+                                        (setf (value result) result-val)))))
+                              (plan-error (e)
+                                (declare (ignore e))
+                                nil)))
+                       (unless (eq (value status) :failed)
+                         (setf (value status) :waiting))))
                  (terminate-pm ()
                    :report "Terminate process module"
                    (return-from pm-body))
@@ -181,7 +180,7 @@
   (with-slots (status result caller) pm
     (when (eq (value status) :offline)
       (warn "Process module not running. Waiting for it to come up.")
-      (wait-for (not (eq status :offline))))
+      (wait-for (not (eq status :waiting))))
     (when (eq (value status) :running)
       (unless  wait-for-free
         (fail "Process module already processing an input."))
