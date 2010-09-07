@@ -61,23 +61,32 @@
     :grasp-distance (slot-value ref 'grasp-distance)
     :supporting-plane (slot-value ref 'supporting-plane)))
 
-(defun calculate-put-down-end-effector-pose (supporting obj)
-  (assert (typep supporting 'location-designator))
-  (assert (typep obj 'object-designator))
-  (reference supporting)
-  ;; (with-desig-props (at) obj
-  ;;   (let ((z-dist (jlo:component-distance (object-pose (reference obj)) (reference at) :axis :z))
-  ;;         (base->supporting (jlo:frame-query (jlo:make-jlo :name "/base_link") (reference supporting))))
-  ;;     (incf (jlo:pose base->supporting 2 3) (+ z-dist 0.01))
-  ;;     base->supporting))
-  )
+(defun calculate-put-down-pose (dest-loc-desig obj-desig)
+  (check-type dest-loc-desig location-designator)
+  (check-type obj-desig object-designator)
+  (with-desig-props (at) (current-desig obj-desig)
+    (assert at ()
+            "Object designator `~a' does not contain a location."
+            (current-desig obj-desig))
+    (with-desig-props (pose orientation)
+        at
+      (assert pose () "Location designator `~a' does not contain a valid pose." at)
+      (assert orientation () "Location designator `~a' does not contain a valid orientation" at)
+      (let ((put-down-in-base (cl-tf:transform-pose
+                               *tf* :pose (reference dest-loc-desig)
+                               :target-frame "/base_link")))
+        (cl-tf:make-pose-stamped "/base_link" (roslisp:ros-time)
+                                 (cl-transforms:v-
+                                  (cl-transforms:origin put-down-in-base)
+                                  (cl-transforms:origin pose))
+                                 orientation)))))
 
 (defun side-str (side)
   (etypecase side
     (symbol (string-downcase (symbol-name side)))
     (string side)))
 
-(defun calculate-lift-pose (side &optional (distance 0.15))
+(defun calculate-lift-pose (side &optional (distance 0.10))
   (let ((gripper-pose (cl-tf:lookup-transform
                        *tf*
                        :target-frame "/base_link"
@@ -241,10 +250,8 @@
     (grasp-info ?obj-desig ?obj-type ?_ ?_)
     (instance-of trajectory-action ?act)
     (slot-value ?act side ?side)
-    (slot-value ?act trajectory-type "put_down")
-    (slot-value ?act object-type "IceTea")
-    (lisp-fun calculate-put-down-end-effector-pose
-              ?loc-desig ?obj-desig ?pose)
+    (slot-value ?act trajectory-type "arm_cart_loid")
+    (lisp-fun calculate-put-down-pose ?loc-desig ?obj-desig ?pose)
     (lisp-fun pose->jlo ?pose ?jlo)
     (slot-value ?act end-effector-pose ?jlo))
 
