@@ -134,6 +134,7 @@
    #:clear-grid-cell #:get-grid-cell
    #:grid-cells-msg->occupancy-grid
    #:grid-cells-msg->height-map
+   #:height-map #:height-map-lookup #:height-map-set
    ;; other
    #+kipla-contrib-oro #:oro-call
    #+kipla-contrib-oro #:oro-assert
