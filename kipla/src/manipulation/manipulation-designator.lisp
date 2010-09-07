@@ -103,7 +103,6 @@
     (assert carried-obj () "Not carrying an object in ~a gripper." side)
     (assert (desig-prop-value carried-obj 'at) () "No location designator for object found.")
     (let* ((obj-loc-desig (desig-prop-value (current-desig carried-obj) 'at))
-           (obj-pose (reference obj-loc-desig))
            (hand-trans (cl-tf:lookup-transform *tf*
                                                :target-frame "/base_link"
                                                :source-frame "/right_arm_hand_link"))
@@ -126,9 +125,7 @@
              (cl-transforms:x (cl-transforms:origin carry-pose))
              (cl-transforms:y (cl-transforms:origin carry-pose))
              (cl-transforms:z (cl-transforms:translation hand-trans)))
-            ;; (cl-transforms:origin carry-pose)
-            (cl-transforms:q* hand-orientation
-                              (cl-transforms:q-inv (cl-transforms:orientation obj-pose)))))))))
+            hand-orientation))))))
 
 (defun obj-desig-jlo-id (desig)
   "Returns the jlo id of the current perceived object of the object
