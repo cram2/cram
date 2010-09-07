@@ -119,7 +119,10 @@
                         *tf*
                         :pose (cl-tf:make-pose-stamped
                                "/gs_cam" (roslisp:ros-time)
-                               (cl-transforms:make-3d-vector 0.35 0.15 0.25)
+                               (cl-transforms:make-3d-vector (ecase side
+                                                               (:right 0.35)
+                                                               (:left -0.35))
+                                                             0.15 0.25)
                                (cl-transforms:make-quaternion 0 0 0 1))
                         :target-frame "/base_link"))
            (hand-orientation (or (desig-prop-value obj-loc-desig  'orientation)
