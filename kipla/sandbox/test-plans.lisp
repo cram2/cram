@@ -251,7 +251,7 @@
 (def-top-level-plan put-down (obj)
   (pursue
     (run-process-modules)
-    (with-designators ((loc (location `((on counter) (for ,obj)))))
+    (with-designators ((loc (location `((on table) (name kitchen-island)))))
       (format t "putting down to loc ~a~%" (reference loc))
       (sleep 0.5)
       (achieve `(object-placed-at ,obj ,loc)))))
