@@ -34,19 +34,40 @@
 
 (defun on-object-picked-up (op &key ?obj ?side)
   (when (eq op :assert)
-    (let* ((obj-pose (obj-desig-location ?obj))
-           (obj-in-world (cl-tf:transform-pose
-                          *tf* :pose obj-pose
-                          :target-frame "/map"))
+    (let* ((obj-pose (cl-tf:transform-pose
+                      *tf* :pose (obj-desig-location ?obj)
+                      :target-frame "/map"))
+           (hand-in-base (cl-tf:lookup-transform
+                          *tf*
+                         :target-frame "/base_link"
+                         :source-frame (format nil "/~a_arm_hand_link"
+                                               (string-downcase (symbol-name ?side)))))
            (new-loc (make-designator
                      'location
                      `((in gripper)
                        (side ,?side)
                        (pose ,(cl-tf:transform-pose
-                               *tf* :pose obj-pose
+                               *tf* :pose (let ((result
+                                                 (cl-tf:make-pose-stamped
+                                                  (cl-tf:frame-id obj-pose) (roslisp:ros-time)
+                                                  (cl-transforms:make-3d-vector
+                                                   (cl-transforms:x (cl-transforms:origin obj-pose))
+                                                   (cl-transforms:y (cl-transforms:origin obj-pose))
+                                                   (kipla-reasoning:height-map-lookup
+                                                    (value kipla:*table-height-map-fl*)
+                                                    (cl-transforms:x (cl-transforms:origin obj-pose))
+                                                    (cl-transforms:y (cl-transforms:origin obj-pose))))
+                                                  (cl-transforms:orientation obj-pose))))
+                                            (prog1 result
+                                              (break "height-map ~a ~a"
+                                                     (kipla-reasoning:height-map-lookup
+                                                      (value kipla:*table-height-map-fl*)
+                                                      (cl-transforms:x (cl-transforms:origin obj-pose))
+                                                      (cl-transforms:y (cl-transforms:origin obj-pose)))
+                                                     result)))
                                :target-frame (format nil "/~a_arm_hand_link"
                                                      (string-downcase (symbol-name ?side)))))
-                       (orientation ,(cl-transforms:orientation obj-in-world))))))
+                       (orientation ,(cl-transforms:rotation hand-in-base))))))
       (make-designator 'object
                        `((at ,new-loc) ,(remove 'at (description ?obj) :key #'car))
                        ?obj))))
