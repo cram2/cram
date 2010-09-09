@@ -140,10 +140,17 @@
                        (cluster (object `((type cluster) (at ,loc)))))
       (sleep 0.5)      
       (achieve `(object-in-hand ,cluster :right))
-      (achieve `(arms-at ,(make-designator 'action '((type trajectory) (to show) (side :right)))))
-      (look-long-at (jlo:make-jlo :name "/right_hand"))
-      (sleep 5)
-      (achieve `(object-placed-at ,cluster ,(make-designator 'location `((of ,cluster))))))))
+      (achieve `(arms-at ,(make-designator 'action '((type trajectory) (to carry) (side :right)))))
+      ;; (look-long-at (jlo:make-jlo :name "/right_hand"))
+      ;; (sleep 5)
+      ;; (achieve `(object-placed-at ,cluster ,(make-designator 'location `((of ,cluster)))))
+      )))
+
+(def-top-level-plan show-obj ()
+  (pursue
+    (run-process-modules)
+    (sleep 0.5)
+    (achieve `(arms-at ,(make-designator 'action '((type trajectory) (to lift) (side :right)))))))
 
 (def-top-level-plan putdown-obj (obj)
   (pursue
@@ -255,6 +262,11 @@
       (format t "putting down to loc ~a~%" (reference loc))
       (sleep 0.5)
       (achieve `(object-placed-at ,obj ,loc)))))
+
+(def-top-level-plan put-down-at-loc (loc obj)
+  (pursue
+    (run-process-modules)
+    (achieve `(object-placed-at ,obj ,loc))))
 
 (def-top-level-plan pick-up (obj)
   (pursue
