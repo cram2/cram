@@ -47,24 +47,17 @@
                      `((in gripper)
                        (side ,?side)
                        (pose ,(cl-tf:transform-pose
-                               *tf* :pose (let ((result
-                                                 (cl-tf:make-pose-stamped
-                                                  (cl-tf:frame-id obj-pose) (roslisp:ros-time)
-                                                  (cl-transforms:make-3d-vector
-                                                   (cl-transforms:x (cl-transforms:origin obj-pose))
-                                                   (cl-transforms:y (cl-transforms:origin obj-pose))
-                                                   (kipla-reasoning:height-map-lookup
-                                                    (value kipla:*table-height-map-fl*)
-                                                    (cl-transforms:x (cl-transforms:origin obj-pose))
-                                                    (cl-transforms:y (cl-transforms:origin obj-pose))))
-                                                  (cl-transforms:orientation obj-pose))))
-                                            (prog1 result
-                                              (break "height-map ~a ~a"
-                                                     (kipla-reasoning:height-map-lookup
-                                                      (value kipla:*table-height-map-fl*)
-                                                      (cl-transforms:x (cl-transforms:origin obj-pose))
-                                                      (cl-transforms:y (cl-transforms:origin obj-pose)))
-                                                     result)))
+                               *tf* :pose (cl-tf:make-pose-stamped
+                                           (cl-tf:frame-id obj-pose) (roslisp:ros-time)
+                                           (cl-transforms:make-3d-vector
+                                            (cl-transforms:x (cl-transforms:origin obj-pose))
+                                            (cl-transforms:y (cl-transforms:origin obj-pose))
+                                            (kipla-reasoning:height-map-lookup
+                                             (value kipla:*table-height-map-fl*)
+                                             (cl-transforms:x (cl-transforms:origin obj-pose))
+                                             (cl-transforms:y (cl-transforms:origin obj-pose))))
+                                           (cl-transforms:orientation obj-pose))
+                                            
                                :target-frame (format nil "/~a_arm_hand_link"
                                                      (string-downcase (symbol-name ?side)))))
                        (orientation ,(cl-transforms:rotation hand-in-base))))))
