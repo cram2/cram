@@ -76,9 +76,10 @@
                                *tf* :pose (reference dest-loc-desig)
                                :target-frame "/base_link")))
         (cl-tf:make-pose-stamped "/base_link" (roslisp:ros-time)
-                                 (cl-transforms:v-
+                                 (cl-transforms:v+
                                   (cl-transforms:origin put-down-in-base)
-                                  (cl-transforms:origin pose))
+                                  (cl-transforms:origin pose)
+                                  (cl-transforms:make-3d-vector 0 0 0.01))
                                  orientation)))))
 
 (defun side-str (side)
@@ -253,7 +254,7 @@
     (grasp-info ?obj-desig ?obj-type ?_ ?_)
     (instance-of trajectory-action ?act)
     (slot-value ?act side ?side)
-    (slot-value ?act trajectory-type "arm_cart_loid")
+    (slot-value ?act trajectory-type "arm_cart_move_loid")
     (lisp-fun calculate-put-down-pose ?loc-desig ?obj-desig ?pose)
     (lisp-fun pose->jlo ?pose ?jlo)
     (slot-value ?act end-effector-pose ?jlo))
