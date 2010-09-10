@@ -89,7 +89,54 @@ than threshold * highest-probability."
     (fluent-value ?fl ?value)
     (lisp-pred identity ?value)))
 
-(def-fact-group location-costmap ()
+(defun current-robot-axis-side (axis boundary)
+  (let ((robot-pos (cl-transforms:translation
+                      (cl-tf:lookup-transform
+                       *tf*
+                       :target-frame "/map"
+                       :source-frame "/base_link"))))
+    (if (< (ecase axis
+             (:x (cl-transforms:x robot-pos))
+             (:y (cl-transforms:y robot-pos)))
+           boundary)
+        :left
+        :right)))
+
+
+(defmethod costmap-generator-name->score ((name (eql 'location-neighborhood)))
+  5)
+
+(defmethod costmap-generator-name->score ((name (eql 'named-table)))
+  5)
+
+(defmethod costmap-generator-name->score ((name (eql 'all-tables)))
+  10)
+
+(defmethod costmap-generator-name->score ((name (eql 'tables-occupied)))
+  8)
+
+(defmethod costmap-generator-name->score ((name (eql 'static-occupied)))
+  9)
+
+(defmethod costmap-generator-name->score ((name (eql 'free-space)))
+  10)
+
+(defmethod costmap-generator-name->score ((name (eql 'x-axis-side)))
+  11)
+
+(def-fact-group rosie-specific-costmap-params (drivable-location-costmap)
+    (<- (costmap-padding 0.75))
+    (<- (costmap-manipulation-padding 0.6))
+
+    (<- (drivable-location-costmap ?cm ?_)
+      (costmap ?cm)
+      (lisp-fun current-robot-axis-side :x -2.0 ?side)
+      (costmap-add-function
+       x-axis-side
+       (make-axis-boundary-cost-function :x -2.0 ?side)
+       ?cm)))
+
+(def-fact-group location-costmap (drivable-location-costmap)
   
   (<- (costmap-size ?width ?height)
     (symbol-value kipla:*map-fl* ?map-fl)
@@ -98,8 +145,6 @@ than threshold * highest-probability."
     (lisp-fun occupancy-grid-msg-metadata ?map :key :height ?height))
 
   (<- (costmap-resolution 0.05))
-  (<- (costmap-padding 0.75))
-  (<- (costmap-manipulation-padding 0.6))
 
   (<- (costmap-origin ?x ?y)
     (symbol-value kipla:*map-fl* ?map-fl)
@@ -145,10 +190,10 @@ than threshold * highest-probability."
     (occupancy-grid ?tables ?tables-occupied (padding ?padding))
     (costmap ?cm)
     (lisp-fun cl-transforms:make-3d-vector 0 0 0 ?map-origin)
-    (costmap-add-function 10 (make-occupancy-grid-cost-function ?free-space) ?cm)
-    (costmap-add-function 9 (make-occupancy-grid-cost-function ?static-occupied :invert t)
+    (costmap-add-function free-space (make-occupancy-grid-cost-function ?free-space) ?cm)
+    (costmap-add-function static-occupied (make-occupancy-grid-cost-function ?static-occupied :invert t)
                           ?cm)
-    (costmap-add-function 8 (make-occupancy-grid-cost-function ?tables-occupied :invert t)
+    (costmap-add-function tables-occupied (make-occupancy-grid-cost-function ?tables-occupied :invert t)
                           ?cm)
     (costmap-add-generator (make-robot-pos-generator 0.1) ?cm))
 
@@ -159,8 +204,8 @@ than threshold * highest-probability."
     (global-fluent-value kipla:*table-grid-cells-fl* ?table-msg)
     (occupancy-grid ?table-msg ?table-costmap)
     (costmap ?cm)
-    (costmap-add-function 5 (make-table-cost-function ?table-name 1.0) ?cm)
-    (costmap-add-function 10 (make-occupancy-grid-cost-function ?table-costmap) ?cm))
+    (costmap-add-function named-table (make-table-cost-function ?table-name 1.0) ?cm)
+    (costmap-add-function all-tables (make-occupancy-grid-cost-function ?table-costmap) ?cm))
 
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (on table))
@@ -168,7 +213,7 @@ than threshold * highest-probability."
     (global-fluent-value kipla:*table-grid-cells-fl* ?table-msg)
     (occupancy-grid ?table-msg ?table-costmap)
     (costmap ?cm)
-    (costmap-add-function 11 (make-occupancy-grid-cost-function ?table-costmap) ?cm))
+    (costmap-add-function all-tables (make-occupancy-grid-cost-function ?table-costmap) ?cm))
 
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (to see))
@@ -176,7 +221,7 @@ than threshold * highest-probability."
     (costmap ?cm)
     (costmap-padding ?padding)
     (drivable-location-costmap ?cm ?padding)
-    (costmap-add-function 5 (make-location-cost-function ?loc 0.5) ?cm))
+    (costmap-add-function location-neighborhood (make-location-cost-function ?loc 0.5) ?cm))
 
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (to reach))
@@ -184,7 +229,7 @@ than threshold * highest-probability."
     (costmap ?cm)
     (costmap-manipulation-padding ?padding)
     (drivable-location-costmap ?cm ?padding)
-    (costmap-add-function 5 (make-location-cost-function ?loc 0.4) ?cm))
+    (costmap-add-function location-neighborhood (make-location-cost-function ?loc 0.4) ?cm))
 
   ;; Missing: (for ?obj-type)
   )

@@ -52,6 +52,10 @@
   as a probability function and returns it as
   cl-transforms:3d-vector."))
 
+(defgeneric costmap-generator-name->score (name)
+  (:documentation "Returns the score for the costmap generator with
+  name `name'."))
+
 (defmethod get-cost-map ((map location-costmap))
   (flet ((calculate-map-value (map x y)
            (declare (type location-costmap map)
@@ -69,7 +73,9 @@
       (check-type height integer)
       (unless (slot-boundp map 'cost-map)
         (setf (slot-value map 'cost-functions)
-              (sort (slot-value map 'cost-functions) #'> :key #'cdr))
+              (sort (remove-duplicates (slot-value map 'cost-functions)
+                                       :key #'cdr)
+                    #'> :key (compose #'costmap-generator-name->score #'cdr)))
         (let ((new-cost-map (cma:make-double-matrix (round (/ width resolution)) (round (/ height resolution))))
               (sum 0.0d0)
               (cost-value 0.0d0)              
