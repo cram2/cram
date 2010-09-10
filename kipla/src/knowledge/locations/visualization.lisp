@@ -89,7 +89,7 @@
                            (b color) (random 1.0)
                            (a color) 1)))
 
-  (defun publish-pose (pose)
+  (defun publish-pose (pose &key id)
     (let ((point (cl-transforms:origin pose))
           (rot (cl-transforms:orientation pose)))
       (publish *marker-publisher*
@@ -97,7 +97,7 @@
                              (stamp header) (ros-time)
                              (frame_id header) "/map"
                              ns "kipla_locations"
-                             id (incf current-index)
+                             id (or id (incf current-index))
                              type (symbol-code 'visualization_msgs-msg:<marker> :arrow)
                              action (symbol-code 'visualization_msgs-msg:<marker> :add)
                              (x position pose) (cl-transforms:x point)
