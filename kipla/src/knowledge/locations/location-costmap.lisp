@@ -86,7 +86,8 @@
               (setf (aref new-cost-map row col) cost-value))
             (incf curr-y resolution))
           (cma:m./ new-cost-map sum)
-          (setf (slot-value map 'cost-map) new-cost-map)))
+          (setf (slot-value map 'cost-map) new-cost-map)
+          (kipla::publish-location-costmap map)))
       (slot-value map 'cost-map))))
 
 (defmethod get-map-value ((map location-costmap) x y)
