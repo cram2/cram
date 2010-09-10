@@ -32,7 +32,25 @@
 (defvar *process-modules-thread* nil)
 (defvar *process-modules-running* (make-fluent :name '*process-modules-running* :value nil))
 
+(defvar *ever* (make-fluent :name '*ever* :value nil))
+
+(def-plan maybe-run-process-modules ()
+  (pursue
+    (if (value *process-modules-running*)
+        (wait-for *ever*)
+        (unwind-protect
+             (pursue
+               (pm-run 'perception)
+               (pm-run 'navigation)
+               (pm-run 'manipulation))
+          (setf (value *process-modules-running*) nil)))
+    (seq
+      (wait-for *process-modules-running*)
+      (wait-for (not *process-modules-running*)))))
+
 (def-plan run-process-modules ()
+  (when (value *process-modules-running*)
+    (error 'simple-error :format-control "Process modules are already running."))
   (unwind-protect
        (seq
          (setf (value *process-modules-running*) t)

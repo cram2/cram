@@ -31,7 +31,7 @@
 
 (def-top-level-plan nav-to (obj)
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (with-designators ((loc (location `((on table) (name ,obj))))
                        (see-loc (location `((to see) (location ,loc)))))
       (sleep 0.5)
@@ -40,23 +40,21 @@
 
 (def-top-level-plan perceive-cluster (&optional (loc 'kitchen-island))
   (pursue
-    (run-process-modules)
-    (with-designators ((loc (location `((on table) (name,loc))))
+    (maybe-run-process-modules)
+    (with-designators ((loc (location `((on table) (name ,loc))))
                        (cluster (object `((type cluster) (at ,loc)))))
-      (sleep 0.5)
       (perceive cluster))))
 
 (def-top-level-plan perceive-mug ()
   (pursue
-    (run-process-modules)
-    (with-designators ((table (location '((on table))))
+    (maybe-run-process-modules)
+    (with-designators ((table (location '((on table) (name kitchen-island))))
                        (mug (object `((type mug) (at ,table)))))
-      (sleep 0.5)
       (perceive mug))))
 
 (def-top-level-plan perceive-mug-no-nav ()
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (with-designators ((counter (location '((on table))))
                        (mug (object `((type mug) (at ,counter)))))
       (sleep 0.5)
@@ -64,7 +62,7 @@
 
 (def-top-level-plan perceive-icetea-no-nav ()
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (with-designators ((counter (location '((on counter))))
                        (mug (object `((type icetea) (at ,counter)))))
       (sleep 0.5)
@@ -72,7 +70,7 @@
 
 (def-top-level-plan perceive-objects ()
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (with-designators ((table (location '((on table))))
                        (obj (object `((type object) (at ,table)))))
       (sleep 0.5)
@@ -80,14 +78,14 @@
 
 (def-top-level-plan re-perceive-obj (desig)
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (seq
       (sleep 0.5)
       (perceive-all desig))))
 
 (def-top-level-plan perceive-jug ()
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (with-designators ((counter (location '((on table))))
                        (jug (object `((type jug) (at ,counter)))))
       (sleep 0.5)
@@ -95,7 +93,7 @@
 
 (def-top-level-plan perceive-icetea ()
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (with-designators ((table (location '((on table))))
                        (icetea (object `((type icetea) (at ,table)))))
       (sleep 0.5)
@@ -103,7 +101,7 @@
 
 (def-top-level-plan perceive-placemat ()
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (with-designators ((table (location '((on table))))
                        (placemat (object `((type placemat) (at ,table)))))
       (sleep 0.5)
@@ -111,7 +109,7 @@
 
 (def-top-level-plan grasp-mug ()
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (with-designators ((counter (location '((on counter))))
                        (mug (object `((type mug) (at ,counter)))))
       (sleep 0.5)      
@@ -119,7 +117,7 @@
 
 (def-top-level-plan grasp-jug ()
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (with-designators ((counter (location '((on counter))))
                        (jug (object `((type jug) (at ,counter)))))
       (sleep 0.5)      
@@ -127,7 +125,7 @@
 
 (def-top-level-plan grasp-icetea ()
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (with-designators ((table (location '((on table))))
                        (icetea (object `((type icetea) (at ,table)))))
       (sleep 0.5)      
@@ -135,7 +133,7 @@
 
 (def-top-level-plan grasp-cluster (&optional (loc 'kitchen-island))
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (with-designators ((loc (location `((on table) (name ,loc))))
                        (cluster (object `((type cluster) (at ,loc)))))
       (sleep 0.5)      
@@ -148,20 +146,20 @@
 
 (def-top-level-plan show-obj ()
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (sleep 0.5)
     (achieve `(arms-at ,(make-designator 'action '((type trajectory) (to lift) (side :right)))))))
 
 (def-top-level-plan putdown-obj (obj)
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (with-designators ((loc (location `((on table) (for ,obj)))))
       (sleep 0.5)      
       (achieve `(object-placed-at ,obj ,loc)))))
 
 (def-top-level-plan perceive-icetea&mug ()
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (with-designators ((counter (location `((on counter))))
                        (icetea (object `((type icetea) (at ,counter))))
                        (table (location `((on table))))
@@ -171,7 +169,7 @@
 
 (def-top-level-plan pick-and-place-jug ()
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (with-designators ((table (location `((on table))))
                        (obj (object `((type jug) (at ,table))))
                        (counter (location `((on table) (for ,obj)))))
@@ -180,7 +178,7 @@
 
 (def-top-level-plan pick-and-place-obj (obj)
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (with-designators ((counter (location `((on table) (for ,obj)))))
       (sleep 0.5)
       (achieve `(loc ,obj ,counter)))))
@@ -188,7 +186,7 @@
 (def-top-level-plan pick-and-place-icetea&jug ()
   (say "I will bring the icetea and the jug to the counter.")
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (with-designators ((table (location `((on table))))
                        (jug (object `((type jug) (at ,table))))
                        (icetea (object `((type icetea) (at ,table))))
@@ -204,7 +202,7 @@
 (def-top-level-plan pick-and-place-icetea&jug-2 ()
   (say "I will bring the icetea and the jug to the table.")
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (with-designators ((counter (location `((on counter))))
                        (jug (object `((type jug) (at ,counter))))
                        (icetea (object `((type icetea) (at ,counter))))
@@ -220,7 +218,7 @@
 
 (def-top-level-plan pick-and-place-icetea ()
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (with-designators ((table (location `((on table))))
                        (obj (object `((type icetea) (at ,table))))
                        (counter (location `((on counter) (for ,obj)))))
@@ -229,7 +227,7 @@
 
 (def-top-level-plan pick-and-place-coke()
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (with-designators ((table (location `((on table))))
                        (obj (object `((type coke) (at ,table))))
                        (counter (location `((on counter) (for ,obj)))))
@@ -238,7 +236,7 @@
 
 (def-top-level-plan pick-and-place-mug ()
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (with-designators ((counter (location `((on table))))
                        (obj (object `((type mug) (at ,counter))))
                        (table (location `((on table) (for ,obj)))))
@@ -247,7 +245,7 @@
 
 (def-top-level-plan pick-and-place-on-placemat ()
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (with-designators ((table (location `((on table))))
                        (obj (object `((type jug) (at ,table))))
                        (placemat (object `((type placemat) (at ,table))))
@@ -255,9 +253,17 @@
       (setf placemat (perceive placemat))
       (achieve `(loc ,obj ,dest-loc)))))
 
+(def-top-level-plan pick-and-place-cluster (from to)
+  (pursue
+    (maybe-run-process-modules)
+    (with-designators ((from (location `((on table) (name ,from))))
+                       (to (location `((on table) (name ,to))))
+                       (obj (object `((type cluster) (at ,from)))))
+      (achieve `(loc ,obj ,to)))))
+
 (def-top-level-plan put-down (obj)
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (with-designators ((loc (location `((on table) (name kitchen-island)))))
       (format t "putting down to loc ~a~%" (reference loc))
       (sleep 0.5)
@@ -265,26 +271,25 @@
 
 (def-top-level-plan put-down-at-loc (loc obj)
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (achieve `(object-placed-at ,obj ,loc))))
 
 (def-top-level-plan pick-up (obj)
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (progn
       (sleep 0.5)
       (achieve `(object-in-hand ,obj :right)))))
 
 (def-top-level-plan park-arms ()
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (seq
-      (sleep 0.5)
       (achieve '(arm-parked :both)))))
 
 (def-top-level-plan test-reach ()
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (loop for i from 1 to 100 do
          (with-designators ((loc (location `((on table))))
                             (obj (object `((type jug) (at ,loc)))))
@@ -294,7 +299,7 @@
 
 (def-top-level-plan right-carry ()
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (seq
       (sleep 0.5)
       (with-designators ((carry-desig (action '((type trajectory) (to carry) (side :right)))))
@@ -302,7 +307,7 @@
 
 (def-top-level-plan both-open ()
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (seq
       (sleep 0.5)
       (with-designators ((open-desig (action '((type trajectory) (pose open) (side :both)))))
@@ -311,7 +316,7 @@
         
 (def-top-level-plan pct ()
   (pursue
-   (run-process-modules)
+   (maybe-run-process-modules)
    (with-designators ((table (location '((on table))))
                       (cluster (object `((type cluster) (at ,table)))))
      (sleep 0.5)
@@ -320,14 +325,14 @@
 
 (def-top-level-plan nav-to-jlo (obj)
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (with-designators ((loc (location `((jlo ,obj)))))
       (sleep 0.5)
       (achieve `(loc Robot ,loc)))))
 
 (def-top-level-plan both-closed ()
   (pursue
-    (run-process-modules)
+    (maybe-run-process-modules)
     (seq
       (sleep 0.5)
       (with-designators ((close-desig (action '((type trajectory) (to close) (gripper :both)))))
@@ -335,7 +340,7 @@
 
 (def-top-level-plan relocate-cluster ()
   (pursue 
-    (run-process-modules)
+    (maybe-run-process-modules)
       (seq 
          (sleep 0.5)
 	 (with-designators ((table (location `((on table))))
@@ -345,7 +350,7 @@
 
 ;(def-top-level-plan nav-relative (x y)
 ;  (pursue 
-;   (run-process-modules)
+;   (maybe-run-process-modules)
 ;   (let ((basel (jlo:make-jlo :parent (jlo:make-jlo :name  "/base_link"))))
 ;      (with-designators ((loc (location `((jlo ,basel)))))
 ;         (setf (jlo:pose basel 1 3) y) 
@@ -354,7 +359,7 @@
 
 (def-top-level-plan nav-relative (&key (x 0) (y 0) (theta 0))
   (pursue 
-   (run-process-modules)
+   (maybe-run-process-modules)
    (let ((basel (jlo:make-jlo-rpy :x x :y y :yaw theta :parent (jlo:make-jlo :name  "/base_link"))))
       (with-designators ((loc (location `((jlo ,basel)))))
              (achieve `(loc Robot ,loc))))))
