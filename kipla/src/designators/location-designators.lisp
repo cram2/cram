@@ -102,6 +102,7 @@
                               (location-proxy-current-solution (car data))))
       (assert current-solution () (format nil "Unable to resolve designator `~a'" desig))
       (assert-desig-binding desig current-solution))
+    (kipla::publish-pose current-solution :id 100)
     current-solution))
 
 (defmethod next-solution ((desig location-designator))
