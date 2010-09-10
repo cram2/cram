@@ -34,3 +34,28 @@
            distance)
         0.0d0
         1.0d0)))
+
+(defun make-axis-boundary-cost-function (axis boundary side)
+  "Returns a cost function that has the value 1 if the pose is on the
+respective side of `boundary'.
+
+The value of `axis' is either :X or :Y.
+
+`boundary' is a NUMBER.
+
+`side' is either :left or :right. If `side' is :left, the value 1.0 is
+returned for poses < `boundary', otherwise poses > `boundary' result
+in a value of 1.0"
+
+  (let ((pred (ecase side
+                (:left #'<)
+                (:right #'>))))
+    (lambda (x y)
+      (if (funcall
+           pred
+           (ecase axis
+             (:x x)
+             (:y y))
+           boundary)
+          1.0d0
+          0.0d0))))
