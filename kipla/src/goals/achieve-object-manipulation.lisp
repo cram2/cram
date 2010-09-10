@@ -102,7 +102,8 @@
       (with-designators ((pick-up-loc (location `((to reach) (obj ,?obj))))
                          (open-trajectory (action `((type trajectory) (pose open) (side ,?side))))
                          (grasp-trajectory (action `((type trajectory) (to grasp) (obj ,?obj) (side ,?side))))
-                         (lift-trajectory (action `((type trajectory) (to lift) (obj ,?obj) (side ,?side)))))
+                         (lift-trajectory (action `((type trajectory) (to lift) (obj ,?obj) (side ,?side))))
+                         (carry-trajectory (action `((type trajectory) (to carry) (obj ,?obj) (side ,?side)))))
         (with-failure-handling
             ((manipulation-pose-unreachable (f)
                (declare (ignore f))
@@ -128,7 +129,8 @@
             (achieve `(arms-at ,grasp-trajectory))
             (retract-occasion `(object-placed-at ,?obj))
             (assert-occasion `(object-in-hand ,?obj ,?side))
-            (achieve `(arms-at ,lift-trajectory)))))))
+            (achieve `(arms-at ,lift-trajectory))
+            (achieve `(arms-at ,carry-trajectory)))))))
   ?obj)
 
 (def-goal (achieve (object-placed-at ?obj ?loc))
