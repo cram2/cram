@@ -89,7 +89,7 @@
                                 :depends-on ("designator-id-mixin" "rete-integration"))
                          (:file "action-designators" :depends-on ("designator-id-mixin"))))
                (:module "rete"
-                        :depends-on ("packages" "config")
+                        :depends-on ("packages" "config" "knowledge")
                         :components
                         ((:file "rete-utils")
                          (:file "occasions" :depends-on ("rete-utils"))))
