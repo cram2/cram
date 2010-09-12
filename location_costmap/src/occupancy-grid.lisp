@@ -1,5 +1,5 @@
 
-(in-package :kipla-reasoning)
+(in-package :location-costmap)
 
 (deftype occupancy-grid-data () '(simple-array fixnum 2))
 

@@ -53,7 +53,7 @@
                                             (cl-transforms:x (cl-transforms:origin obj-pose))
                                             (cl-transforms:y (cl-transforms:origin obj-pose))
                                             (kipla-reasoning:height-map-lookup
-                                             (value kipla:*table-height-map-fl*)
+                                             (value *table-height-map-fl*)
                                              (cl-transforms:x (cl-transforms:origin obj-pose))
                                              (cl-transforms:y (cl-transforms:origin obj-pose))))
                                            (cl-transforms:orientation obj-pose))

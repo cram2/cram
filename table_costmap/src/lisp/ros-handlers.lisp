@@ -14,7 +14,7 @@
 ;;; You should have received a copy of the GNU General Public License
 ;;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(in-package :kipla)
+(in-package :table-costmap)
 
 (defun make-fluent-setter-callback (fluent)
   (lambda (msg)
@@ -32,12 +32,12 @@
 
 (defun ros-location-costmaps-init ()
   "Subscribes to the map topic."
-  (roslisp:subscribe (roslisp:get-param "~map-topic" "/map")
-                     "nav_msgs/OccupancyGrid"
-                     (make-fluent-setter-callback *map-fl*))
-  (roslisp:subscribe (roslisp:get-param "~table-costmap-topic" "/table_costmap/grid_cells")
-                     "nav_msgs/GridCells"
-                     #'table-grid-cells-cb))
+  (subscribe (roslisp:get-param "~map-topic" "/map")
+             "nav_msgs/OccupancyGrid"
+             (make-fluent-setter-callback *map-fl*))
+  (subscribe (roslisp:get-param "~table-costmap-topic" "/table_costmap/grid_cells")
+             "nav_msgs/GridCells"
+             #'table-grid-cells-cb))
 
 (defun table-grid-cells-cb (msg)
   (setf (value *table-grid-cells-fl*) msg)

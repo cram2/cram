@@ -14,7 +14,7 @@
 ;;; You should have received a copy of the GNU General Public License
 ;;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(in-package :kipla-reasoning)
+(in-package :location-costmap)
 
 (defun grid-value-occupied-p (val)
   (and (> val 0) (<= val 127)))

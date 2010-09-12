@@ -1,5 +1,5 @@
 
-(in-package :kipla-reasoning)
+(in-package :location-costmap)
 
 (defun make-padding-mask (size)
   (let ((mask (make-array `(,(* size 2) ,(* size 2)) :element-type 'fixnum))

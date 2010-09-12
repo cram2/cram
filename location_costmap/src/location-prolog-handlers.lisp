@@ -27,7 +27,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :kipla-reasoning)
+(in-package :location-costmap)
 
 (defun costmap-metadata ()
   (with-vars-bound (?width ?height ?resolution ?origin-x ?origin-y)
