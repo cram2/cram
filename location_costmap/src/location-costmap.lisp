@@ -15,7 +15,7 @@
 ;;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-(in-package :kipla-reasoning)
+(in-package :location-costmap)
 
 (defclass location-costmap (occupancy-grid-metadata)
   ((cost-map)
@@ -93,7 +93,7 @@
             (incf curr-y resolution))
           (cma:m./ new-cost-map sum)
           (setf (slot-value map 'cost-map) new-cost-map)
-          (kipla::publish-location-costmap map)))
+          (publish-location-costmap map)))
       (slot-value map 'cost-map))))
 
 (defmethod get-map-value ((map location-costmap) x y)

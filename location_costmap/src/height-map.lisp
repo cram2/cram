@@ -1,5 +1,5 @@
 
-(in-package :kipla-reasoning)
+(in-package :location-costmap)
 
 (defclass height-map (occupancy-grid-metadata)
   ((height-map :reader height-map)))

@@ -15,7 +15,10 @@
   <depend package="sensor_msgs"/>
   <depend package="pcl"/>
   <depend package="pcl_ros"/>  
-  <depend package="point_cloud_converter"/>  
+  <depend package="point_cloud_converter"/>
+  <depend package="map_annotation"/>
+  <depend package="cram_language"/>
+  <depend package="location_costmap"/>
 
 </package>
 

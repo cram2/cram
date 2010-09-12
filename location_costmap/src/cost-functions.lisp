@@ -1,5 +1,5 @@
 
-(in-package :kipla-reasoning)
+(in-package :location-costmap)
 
 (defun make-gauss-cost-function (mean cov)
   (let ((gauss-fun (cma:gauss (cma:double-matrix-from-array cov)
@@ -19,12 +19,6 @@
                                                                         'double-float) 0)
                                                               (0 ,(coerce (* std-dev std-dev)
                                                                           'double-float)))))))
-
-(defun make-table-cost-function (name &optional (std-dev 1.0))
-  (let* ((mean (get-annotated-point name))
-         (mean-vec (make-array 2 :initial-contents `(,(cl-transforms:x mean) ,(cl-transforms:y mean))))
-         (scaled-cov (make-array '(2 2) :initial-contents `((,std-dev 0) (0 ,std-dev)))))
-    (make-gauss-cost-function mean-vec scaled-cov)))
 
 (defun make-range-cost-function (point distance)
   "Returns a costfunction that returns 1 for every point that is not
@@ -59,3 +53,16 @@ in a value of 1.0"
            boundary)
           1.0d0
           0.0d0))))
+
+(defun make-occupancy-grid-cost-function (grid &key invert)
+  (let* ((grid (if invert
+                   (invert-occupancy-grid grid)
+                   grid))
+         (origin-x (origin-x grid))
+         (origin-y (origin-y grid))
+         (max-x (+ (width grid) origin-x (- (resolution grid))))
+         (max-y (+ (height grid) origin-y (- (resolution grid)))))
+    (lambda (x y)
+      (if (and (>= x origin-x) (>= y origin-y)
+               (< x max-x) (< y max-y))
+          (coerce (get-grid-cell grid x y) 'double-float)))))

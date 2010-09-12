@@ -42,7 +42,9 @@
         #:cram-execution-trace
         #:kipla-utils
         #:cram-roslisp-common
-        #:map-annotation)
+        #:map-annotation
+        #:location-costmap
+        #:table-costmap)
   (:shadowing-import-from #:cram-reasoning #:fail)
   (:import-from #:alexandria
                 #:curry #:rcurry #:compose
@@ -150,7 +152,8 @@
         #:cram-process-modules
         #:cram-roslisp-common
         #:kipla-reasoning
-        #:kipla-utils)
+        #:kipla-utils
+        #:location-costmap)
   (:export #:log-msg #:run-demo-counter-to-table
            #:run-demo-table-to-counter #:look-at
            #:drive-to-waypoints-main
