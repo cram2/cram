@@ -65,4 +65,5 @@ in a value of 1.0"
     (lambda (x y)
       (if (and (>= x origin-x) (>= y origin-y)
                (< x max-x) (< y max-y))
-          (coerce (get-grid-cell grid x y) 'double-float)))))
+          (coerce (get-grid-cell grid x y) 'double-float)
+          0.0d0))))
