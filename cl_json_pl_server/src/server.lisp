@@ -33,8 +33,9 @@
   (format nil "{~{~{~a: ~a~}~^,~}} "
           (mapcar (lambda (bdg)
                     (destructuring-bind (var . val)
-                                  bdg
-                      (subseq (symbol-name var) 1)))
+                        bdg
+                      (list (subseq (symbol-name var) 1)
+                            (jsonify-exp val))))
                   bdgs)))
 
 (defun start-prolog-server (ns &key (package *package*))
