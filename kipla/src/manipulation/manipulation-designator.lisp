@@ -155,11 +155,7 @@
 ;;; (to carry)
 ;;; (to navigate)
 
-(def-fact-group manipulation-designators ()
-  (<- (manip-desig? ?desig)
-    (lisp-pred typep ?desig action-designator)
-    (desig-prop ?desig (type trajectory)))
-
+(def-fact-group rosie-manipulation-designators ()
   ;; (grasp-info ?obj-desig ?object-type ?hand_primitive ?distance-to-grasp)
   ;; (<- (grasp-info ?obj "Mug" "3pinch" 0.14)
   ;;   (desig-prop ?obj (type mug)))

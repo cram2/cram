@@ -46,7 +46,7 @@
                  cram-reasoning
                  cram-execution-trace
                  cram-math
-                 designators
+                 designators-ros
                  process-modules
                  liswip
                  roslisp
@@ -77,15 +77,6 @@
                (:file "logging" :depends-on ("packages"))
                (:file "speech" :depends-on ("packages"))
                (:file "utils" :depends-on ("packages"))
-               (:module "designators"
-                        :depends-on ("packages" "config" "knowledge")
-                        :components
-                        ((:file "designator-id-mixin")
-                         (:file "rete-integration" :depends-on ("designator-id-mixin"))
-                         (:file "object-designators" :depends-on ("designator-id-mixin"))
-                         (:file "location-designators"
-                                :depends-on ("designator-id-mixin" "rete-integration"))
-                         (:file "action-designators" :depends-on ("designator-id-mixin"))))
                (:module "rete"
                         :depends-on ("packages" "config" "knowledge")
                         :components
@@ -96,17 +87,15 @@
                         :components
                         ((:file "prolog-utils")
                          (:module "locations"
-                                  :depends-on ("designators")
                                   :components
                                   ((:file "location-facts")))
                          (:file "time")
                          (:file "tasks")
-                         (:file "designators")
                          (:file "objects")
                          (:file "liswip")
                          (:file "swi-predicates" :depends-on ("liswip"))))
                (:module "perception"
-                        :depends-on ("packages" "config" "designators" "utils")
+                        :depends-on ("packages" "config" "utils")
                         :components
                         ((:file "object-belief")
                          (:file "process-module"
@@ -122,12 +111,12 @@
                                   :components
                                   ((:file "knowrob-objects")))))
                (:module "navigation"
-                        :depends-on ("packages" "config" "designators" "utils")
+                        :depends-on ("packages" "config" "utils")
                         :components
                         ((:file "ros-connection")
                          (:file "process-module" :depends-on ("ros-connection"))))
                (:module "manipulation"
-                        :depends-on ("packages" "config" "designators")
+                        :depends-on ("packages" "config")
                         :components
                         ((:file "ros-connection")
                          (:file "manipulation-designator")
@@ -139,7 +128,6 @@
                                      "logging"
                                      "speech"
                                      "knowledge"
-                                     "designators"
                                      "rete"
                                      "perception"
                                      "navigation"

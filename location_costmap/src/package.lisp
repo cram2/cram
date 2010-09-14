@@ -28,7 +28,8 @@
 ;;;
 
 (defpackage location-costmap
-    (:use :cl :crs :cut :cram-roslisp-common :alexandria :roslisp)
+    (:use :cl :crs :cut :cram-roslisp-common :alexandria
+          :roslisp :designators-ros)
   (:export #:make-gauss-cost-function
            #:make-location-cost-function
            #:make-range-cost-function
@@ -41,7 +42,6 @@
            #:costmap-add-generator
            #:costmap-generator-name->score
            #:desig-costmap
-           #:desig-loc
            #:height-map
            #:height-map-lookup
            #:height-map-set
@@ -65,4 +65,5 @@
            #:occupancy-grid->grid-cells-msg
            #:publish-location-costmap
            #:publish-point
-           #:publish-pose))
+           #:publish-pose
+           #:costmap-location-proxy))

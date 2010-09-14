@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2009, Lorenz Moesenlechner <moesenle@cs.tum.edu>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,15 +27,9 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :kipla-reasoning)
+(in-package :cl-user)
 
-(defclass designator-id-mixin ()
-  ((object-id :initarg :object-id :initform (gensym "OBJ-DESIG-")
-              :reader object-id)))
-
-(defmethod equate :after ((parent designator-id-mixin) (succ designator-id-mixin))
-  (labels ((doit (curr-d &optional (id (slot-value curr-d 'object-id)))
-             (when curr-d
-               (setf (slot-value curr-d 'object-id) id)
-               (doit (successor curr-d) id))))
-    (doit (first-desig parent))))
+(defpackage :designators-ros
+    (:use #:cl #:desig #:cut #:crs)
+  (:export #:point-location-proxy #:pose-location-proxy
+           #:desig-z-value #:desig-orientation))

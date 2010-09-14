@@ -9,7 +9,7 @@
   <depend package="cram_reasoning"/>
   <depend package="cram_utilities"/>
   <depend package="cram_math"/>
-  <depend package="designators"/>
+  <depend package="designators_ros"/>
   <depend package="cram_roslisp_common"/>
   <depend package="map_annotation"/>
   <depend package="liswip"/>
