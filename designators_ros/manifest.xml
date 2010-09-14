@@ -1,0 +1,18 @@
+<package>
+  <description brief="designators_ros">
+
+     designators_ros
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/designators_ros</url>
+  <depend package="designators"/>
+  <depend package="cl_tf"/>
+  <depend package="cram_utilities"/>
+  <depend package="cram_reasoning"/>
+
+</package>
+
+

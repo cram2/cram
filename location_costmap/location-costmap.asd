@@ -34,7 +34,8 @@
                "cram-roslisp-common"
                "nav_msgs-msg"
                "mapping_msgs-msg"
-               "visualization_msgs-msg")
+               "visualization_msgs-msg"
+               "designators-ros")
   :components
   ((:module "src"
             :components

@@ -14,6 +14,7 @@
   <depend package="cl_transforms"/>
   <depend package="cram_math"/>
   <depend package="cram_reasoning"/>
+  <depend package="designators_ros"/>
   <depend package="nav_msgs"/>
   <depend package="mapping_msgs"/>
   <depend package="visualization_msgs"/>

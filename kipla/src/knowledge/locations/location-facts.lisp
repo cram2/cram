@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2009, Lorenz Moesenlechner <moesenle@cs.tum.edu>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -37,16 +37,6 @@
 ;;; (pose ?p)
 ;;; (of ?obj)
 ;;; (for ?obj-type)
-
-(defun obj-desig-location (obj-desig)
-  (when (and (typep obj-desig 'object-designator)
-             (desig-prop-value obj-desig 'at))
-    (reference (current-desig (desig-prop-value obj-desig 'at)))))
-
-(defun loc-desig-location (loc-desig)
-  (when (and (typep loc-desig 'location-designator)
-             loc-desig)
-    (reference loc-desig)))
 
 (defun current-robot-axis-side (axis boundary)
   (let ((robot-pos (cl-transforms:translation
@@ -89,24 +79,3 @@
     (symbol-value table-costmap:*map-fl* ?map-fl)
     (fluent-value ?map-fl ?map)
     (lisp-fun occupancy-grid-msg-metadata ?map :key :origin (?x ?y))))
-
-(def-fact-group location-designators (desig-loc)
-  (<- (loc-desig? ?desig)
-    (lisp-pred typep ?desig location-designator))
-
-  (<- (desig-location-prop ?desig ?loc)
-    (desig-prop ?desig (obj ?obj))
-    (lisp-fun obj-desig-location ?obj ?loc))
-
-  (<- (desig-location-prop ?desig ?loc)
-    (desig-prop ?desig (location ?loc-desig))
-    (lisp-fun loc-desig-location ?loc-desig ?loc))
-  
-  (<- (desig-loc ?desig (pose ?p))
-    (loc-desig? ?desig)
-    (desig-prop ?desig (pose ?p)))
-
-  (<- (desig-loc ?desig (pose ?p))
-    (loc-desig? ?desig)
-    (desig-prop ?desig (of ?obj))
-    (lisp-fun obj-desig-location ?obj ?p)))

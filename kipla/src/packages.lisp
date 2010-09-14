@@ -37,7 +37,7 @@
   (:use #:common-lisp
         #:cram-utilities
         #:cram-language-implementation ;; we don't want the fluent operators
-        #:cram-designators
+        #:cram-designators #:designators-ros
         #:cram-reasoning
         #:cram-execution-trace
         #:kipla-utils
@@ -63,21 +63,19 @@
    #:retract-perceived-object #:assert-desig-binding
    #:retract-desig-binding #:desig-current-perceived-object
    #:matching-object #:merge-desig-descriptions
-   #:desig-bound #:obj-desig-location
+   #:desig-bound
    #:make-new-desig-description
    ;; designators
-   #:deisig-loc #:action-desig #:manip-desig
+   #:manip-desig
    #:action #:object #:location
-   #:action-designator #:location-designator #:object-designator
-   #:type #:mug #:icetea #:cluster #:jug #:placemat #:coke
-   #:object #:object-id #:pose
+   #:mug #:icetea #:cluster #:jug #:placemat #:coke
+   #:object
    #:color #:black #:red #:white #:green #:blue
    #:at #:matches #:show
-   #:to #:reach #:on #:for #:see #:counter #:table #:of
+   #:to #:reach #:on #:for #:see #:counter #:table
    #:jlo-list #:jlo #:trajectory
    #:grasp #:navigate #:pose #:parked #:open #:lift #:carry #:put-down
    #:obj #:gripper #:close #:resolve-object-desig #:orientation
-   #:costmap-location-proxy
    ;; trajectory-actions
    #:trajectory-action #:side #:trajectory-type #:stored-pose-type
    #:object-type #:hand-primitive #:end-effector-pose
