@@ -34,6 +34,11 @@
       (lazy-car (prolog `(and (costmap-size ?width ?height)
                               (costmap-origin ?origin-x ?origin-y)
                               (costmap-resolution ?resolution))))
+    (check-type ?width number)
+    (check-type ?height number)
+    (check-type ?resolution number)
+    (check-type ?origin-x number)
+    (check-type ?origin-y number)
     (list :width ?width :height ?height :resolution ?resolution
           :origin-x ?origin-x :origin-y ?origin-y)))
 

@@ -29,6 +29,7 @@
 
 (defsystem location-costmap
   :depends-on ("cram-reasoning"
+               "cram-language"
                "cram-math"
                "cram-utilities"
                "cram-roslisp-common"
@@ -48,6 +49,7 @@
              (:file "padding-mask" :depends-on ("package"))
              (:file "ros-grid-cells" :depends-on ("package"))
              (:file "ros-occupancy-grid" :depends-on ("package"))
+             (:file "costmap-location-proxy" :depends-on ("package" "location-costmap"))
              (:file "visualization" :depends-on ("package" "occupancy-grid" "location-costmap"))
              (:file "facts" :depends-on ("package"))))))
 

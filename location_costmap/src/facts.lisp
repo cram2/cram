@@ -32,7 +32,7 @@
 (def-fact-group location-costmap-utils ()
   (<- (global-fluent-value ?name ?value)
     (symbol-value ?name ?fl)
-    (fluent-value ?fl ?value)
+    (lisp-fun cpl:value ?fl ?value)
     (lisp-pred identity ?value)))
 
 (def-fact-group location-costmap ()
@@ -68,7 +68,7 @@
     (lisp-fun grid-cells-msg->occupancy-grid ?msg ?p ?tmp-grid)
     (lisp-fun invert-occupancy-grid ?tmp-grid ?grid)))
 
-(def-fact-group location-costmap-desigs ()
+(def-fact-group location-costmap-desigs (desig-loc)
   (<- (desig-loc ?desig (costmap ?cm))
     (loc-desig? ?desig)
     (bagof ?c (desig-costmap ?desig ?c) ?costmaps)

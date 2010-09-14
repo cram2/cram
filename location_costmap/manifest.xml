@@ -13,6 +13,7 @@
   <depend package="cram_roslisp_common"/>
   <depend package="cl_transforms"/>
   <depend package="cram_math"/>
+  <depend package="cram_language"/>
   <depend package="cram_reasoning"/>
   <depend package="designators_ros"/>
   <depend package="nav_msgs"/>
