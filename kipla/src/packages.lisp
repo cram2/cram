@@ -46,6 +46,7 @@
         #:location-costmap
         #:table-costmap)
   (:shadowing-import-from #:cram-reasoning #:fail)
+  (:shadowing-import-from #:cram-language #:name)
   (:import-from #:alexandria
                 #:curry #:rcurry #:compose
                 #:format-symbol)
@@ -71,8 +72,7 @@
    #:mug #:icetea #:cluster #:jug #:placemat #:coke
    #:object
    #:color #:black #:red #:white #:green #:blue
-   #:at #:matches #:show
-   #:to #:reach #:on #:for #:see #:counter #:table
+   #:at #:matches #:show #:for
    #:jlo-list #:jlo #:trajectory
    #:grasp #:navigate #:pose #:parked #:open #:lift #:carry #:put-down
    #:obj #:gripper #:close #:resolve-object-desig #:orientation
@@ -151,7 +151,8 @@
         #:cram-roslisp-common
         #:kipla-reasoning
         #:kipla-utils
-        #:location-costmap)
+        #:location-costmap
+        #:table-costmap)
   (:export #:log-msg #:run-demo-counter-to-table
            #:run-demo-table-to-counter #:look-at
            #:drive-to-waypoints-main
@@ -164,4 +165,6 @@
   (:import-from #:alexandria
                 #:with-gensyms #:curry #:rcurry)
   (:import-from #:cram-reasoning
-                #:prolog))
+                #:prolog)
+  (:shadowing-import-from #:table-costmap
+                          #:name))

@@ -29,14 +29,16 @@
 
 (defpackage location-costmap
     (:use :cl :crs :cut :cram-roslisp-common :alexandria
-          :roslisp :designators-ros)
+          :roslisp :designators-ros #:cram-designators)
   (:export #:make-gauss-cost-function
            #:make-location-cost-function
            #:make-range-cost-function
+           #:make-occupancy-grid-cost-function
            #:global-fluent-value
            #:occupancy-grid
            #:inverted-occupancy-grid
            #:costmap-metadata
+           #:costmap-size #:costmap-origin #:costmap-resolution
            #:costmap
            #:costmap-add-function
            #:costmap-add-generator
@@ -51,6 +53,7 @@
            #:grid-cells-msg->occupancy-grid
            #:grid-cells-msg->height-map
            #:occupancy-grid-msg->occupancy-grid
+           #:occupancy-grid-msg-metadata
            #:occupancy-grid-mean
            #:occupancy-grid-covariance
            #:location-costmap
