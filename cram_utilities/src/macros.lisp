@@ -4,8 +4,10 @@
   (once-only (var)
     `(cond ,@(mapcar (lambda (case-expr)
                        (destructuring-bind (pat &rest body) case-expr
-                         `((string-equal ,var ,pat)
-                           ,@body)))
+                         (if (eq pat t)
+                             `(t ,@body)
+                             `((string-equal ,var ,pat)
+                               ,@body))))
               cases))))
 
 ;;; From swank.lisp which is public domain.
