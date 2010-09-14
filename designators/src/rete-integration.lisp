@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2009, Lorenz Moesenlechner <moesenle@cs.tum.edu>
+;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,41 +27,23 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :cl-user)
+(in-package :desig)
 
-(defpackage :cram-designators
-  (:use #:common-lisp #:cram-reasoning #:cut)
-  (:nicknames :desig)
-  (:import-from #:alexandria
-                #:curry #:rcurry #:compose #:with-gensyms
-                #:format-symbol)
-  (:import-from #:cram-utilities
-                #:timestamp)
-  (:export #:designator #:timestamp #:description #:parent #:successor
-           #:valid #:data #:equate #:desig-equal #:reference
-           #:next-solution #:register-designator-type
-           #:make-designator #:first-desig #:current-desig
-           #:with-desig-props #:with-designators
-           #:desig-prop-value #:*designator-pprint-description*
-           #:get-equal-designators
-           #:designator-id-mixin #:object-id
-           #:assert-desig-binding
-           #:retract-desig-binding
-           #:object-designator
-           #:register-object-desig-resolver
-           #:resolve-object-desig
-           #:action-designator #:action-desig
-           #:location-designator
-           #:location
-           #:make-location-proxy
-           #:location-proxy-current-solution
-           #:location-proxy-next-solution
-           #:location-proxy-precedence-value
-           #:location-proxy-solution->pose
-           #:point-location-proxy
-           #:pose-location-proxy
-           #:desig-loc #:loc-desig? #:obj-desig-location
-           #:loc-desig-location
-           #:pose #:of #:type
-           #:desig-prop #:desig-class #:desig-value
-           #:desig))
+(defun assert-desig-binding (desig bdg)
+  (rete-assert `(desig-bound ,desig ,bdg)))
+
+(defun retract-desig-binding (desig bdg)
+  (rete-retract `(desig-bound ,desig ,bdg)))
+
+(defmethod equate :around ((parent designator-id-mixin) (succ designator-id-mixin))
+  (flet ((maybe-retract-desig-bdg (desig)
+           (with-vars-bound (?bdg)
+               (lazy-car (rete-holds `(desig-bound ,desig ?bdg)))
+             (unless (is-var ?bdg)
+               (retract-desig-binding desig ?bdg)
+               ?bdg))))
+    (let ((prev-bdg (maybe-retract-desig-bdg succ)))
+      (prog1
+          (call-next-method)
+        (when prev-bdg
+          (assert-desig-binding succ prev-bdg))))))
