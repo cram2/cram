@@ -15,6 +15,7 @@
   <depend package="cram_math"/>
   <depend package="cram_reasoning"/>
   <depend package="nav_msgs"/>
+  <depend package="mapping_msgs"/>
   <depend package="visualization_msgs"/>
 
 </package>
