@@ -1,0 +1,17 @@
+<package>
+  <description brief="cl_json_pl_server">
+
+     cl_json_pl_server
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cl_json_pl_server</url>
+  <depend package="roslisp_runtime"/>
+  <depend package="cram_reasoning"/>
+  <depend package="cl_json_pl_client"/>
+
+</package>
+
+
