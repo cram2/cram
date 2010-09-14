@@ -61,65 +61,71 @@
 (defun unescape-string (str)
   (remove "\\" (copy-seq str)))
 
-(defun prolog->json (exp &key (prologify t))
-  "Converts a lisp-prolog expression into its json representation."
-  (labels ((jsonify-exp (exp)
-             "Recursively walks exp and converts every lisp-expression
+(defun jsonify-exp (exp &key prologify)
+  "Recursively walks exp and converts every lisp-expression
              into an expression that leads to the correct json
              expression when passed to JSON:ENCODE."
-             (when exp
-               (typecase exp
-                 (symbol
-                    (cond ((is-var exp)
-                           (alexandria:plist-hash-table `("variable" ,(subseq (symbol-name exp) 1))))
-                          (t (if prologify
+  (when exp
+    (typecase exp
+      (symbol
+         (cond ((is-var exp)
+                (alexandria:plist-hash-table `("variable" ,(subseq (symbol-name exp) 1))))
+               (t (if prologify
 
-                                 (escape-quotes (prologify exp))
-                                 (escape-quotes (symbol-name exp))))))
-                 (string (escape-quotes exp))
-                 (number exp)
-                 (list
-                    (cond ((eq (car exp) 'quote)
-                           (alexandria:plist-hash-table `("list" ,(mapcar #'jsonify-exp (cadr exp)))))
-                          ((eq (car exp) 'list)
-                           (alexandria:plist-hash-table `("list" ,(mapcar #'jsonify-exp (cdr exp)))))
-                          ((eq (car exp) 'and)
-                           (alexandria:plist-hash-table
-                            `("term" ("," ,(jsonify-exp (cadr exp))
-                                          ,(jsonify-exp (if (cdddr exp)
-                                                            (cons 'and (cddr exp))
-                                                            (caddr exp)))))))
-                          ((eq (car exp) 'or)
-                           (alexandria:plist-hash-table
-                            `("term" (";" ,(jsonify-exp (cadr exp))
-                                          ,(jsonify-exp (if (cdddr exp)
-                                                            (cons 'or (cddr exp))
-                                                            (caddr exp)))))))
-                          (t
-                           (alexandria:plist-hash-table `("term" ,(mapcar #'jsonify-exp exp))))))))))
-    (let ((strm (make-string-output-stream)))
-      (json:encode (gethash "term" (jsonify-exp exp)) strm)
-      (get-output-stream-string strm))))
+                      (escape-quotes (prologify exp))
+                      (escape-quotes (symbol-name exp))))))
+      (string (escape-quotes exp))
+      (number exp)
+      (list
+         (cond ((eq (car exp) 'quote)
+                (alexandria:plist-hash-table `("list" ,(mapcar #'jsonify-exp (cadr exp)))))
+               ((eq (car exp) 'list)
+                (alexandria:plist-hash-table `("list" ,(mapcar #'jsonify-exp (cdr exp)))))
+               ((eq (car exp) 'and)
+                (alexandria:plist-hash-table
+                 `("term" ("," ,(jsonify-exp (cadr exp))
+                               ,(jsonify-exp (if (cdddr exp)
+                                                 (cons 'and (cddr exp))
+                                                 (caddr exp)))))))
+               ((eq (car exp) 'or)
+                (alexandria:plist-hash-table
+                 `("term" (";" ,(jsonify-exp (cadr exp))
+                               ,(jsonify-exp (if (cdddr exp)
+                                                 (cons 'or (cddr exp))
+                                                 (caddr exp)))))))
+               (t
+                (alexandria:plist-hash-table `("term" ,(mapcar #'jsonify-exp exp)))))))))
+
+(defun prolog->json (exp &key (prologify t))
+  "Converts a lisp-prolog expression into its json representation."
+  (let ((strm (make-string-output-stream)))
+    (json:encode (gethash "term" (jsonify-exp exp :prologify prologify)) strm)
+    (get-output-stream-string strm)))
 
 (defun json->prolog (exp &key (lispify nil) (package *package*))
   "Converts a json encoded string into its lisp prolog
   representation."
-  (when exp
-    (typecase exp
-      (string (let ((exp (unescape-string exp)))
-                (if lispify
-                    (intern (lispify exp) package)
-                    (intern (concatenate 'string "'" exp "'")
-                            package))))
-      (number exp)
-      (list (mapcar #'json->prolog exp))
-      (hash-table
-         (let ((list (gethash "list" exp))
-               (term (gethash "term" exp))
-               (var (gethash "variable" exp)))
-           (cond (list (list 'quote (json->prolog list)))
-                 (term (json->prolog term))
-                 (var (intern (concatenate 'string "?" var) package))))))))
+  (flet ((map-operators (str)
+           (string-case str
+             (";" "OR")
+             ("," "AND")
+             (t str))))
+    (when exp
+      (typecase exp
+        (string (let ((exp (map-operators (unescape-string exp))))
+                  (if lispify
+                      (intern (lispify exp) package)
+                      (intern (concatenate 'string "'" exp "'")
+                              package))))
+        (number exp)
+        (list (mapcar (alexandria:rcurry #'json->prolog :lispify lispify) exp))
+        (hash-table
+           (let ((list (gethash "list" exp))
+                 (term (gethash "term" exp))
+                 (var (gethash "variable" exp)))
+             (cond (list (list 'quote (json->prolog list :lispify lispify)))
+                   (term (json->prolog term :lispify lispify))
+                   (var (intern (concatenate 'string "?" var) package)))))))))
 
 (defun json-bdgs->prolog-bdgs (bdgs-str &key (lispify nil) (package *package*))
   (loop for var being the hash-keys in (yason:parse bdgs-str)
