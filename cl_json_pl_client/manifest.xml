@@ -1,0 +1,19 @@
+<package>
+  <description brief="cl_json_pl_client">
+
+     cl_json_pl_client
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cl_json_pl_client</url>
+  <depend package="roslisp_runtime"/>
+  <depend package="json_prolog"/>
+  <depend package="yason"/>
+  <depend package="cram_utilities"/>
+  <depend package="alexandria"/>
+
+</package>
+
+
