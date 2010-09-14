@@ -33,6 +33,7 @@
                "cram-utilities"
                "cram-roslisp-common"
                "nav_msgs-msg"
+               "mapping_msgs-msg"
                "visualization_msgs-msg")
   :components
   ((:module "src"
