@@ -101,14 +101,17 @@
            (rete-retract `(,?lhs ,perceived-object ,?rhs))))))
 
 (defun compatible-properties (props-1 props-2)
-  ;; TODO: use knowrob for this: comp_cop:cop_compatible_results(A, B)
   (or (null props-1)
       (let ((prop-1-value (cadar props-1))
             (prop-2-value (cadr (assoc (caar props-1) props-2))))
         (when (or (null prop-2-value)
                   (eq prop-1-value prop-2-value)
-                  (or (prolog `(obj-subtype ,prop-1-value ,prop-2-value))
-                      (prolog `(obj-subtype ,prop-2-value ,prop-1-value))))
+                  (or
+                   (when (json-prolog:wait-for-prolog-service 0.5)
+                     (json-prolog:prolog-1
+                      `(cop-compatible-results ,prop-1-value ,prop-2-value)))
+                   (prolog `(obj-subtype ,prop-1-value ,prop-2-value))
+                   (prolog `(obj-subtype ,prop-2-value ,prop-1-value))))
           (compatible-properties (cdr props-1) props-2)))))
 
 (defun merge-desig-descriptions (old-description new-description)
