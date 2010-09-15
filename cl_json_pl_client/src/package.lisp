@@ -31,4 +31,10 @@
 
 (defpackage :json-prolog
     (:use #:common-lisp #:cram-utilities #:roslisp)
-  (:export #:prolog #:prolog-1 #:finish-query))
+  (:export #:*service-namespace*
+           #:prolog
+           #:prolog-1
+           #:prolog-simple
+           #:prolog-simple-1
+           #:finish-query
+           #:wait-for-prolog-service))
