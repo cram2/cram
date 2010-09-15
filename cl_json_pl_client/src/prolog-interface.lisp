@@ -99,3 +99,8 @@ evaluates it."
   (let ((*finish-marker* t))
     (lazy-cdr (last result))
     result))
+
+(defun wait-for-prolog-service (&optional timeout)
+  (wait-for-service
+   (concatenate 'string *service-namespace* "/query")
+   timeout))
