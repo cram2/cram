@@ -176,13 +176,6 @@
       (sleep 0.5)
       (achieve `(loc ,obj ,counter)))))
 
-(def-top-level-plan pick-and-place-obj (obj)
-  (pursue
-    (maybe-run-process-modules)
-    (with-designators ((counter (location `((on table) (for ,obj)))))
-      (sleep 0.5)
-      (achieve `(loc ,obj ,counter)))))
-
 (def-top-level-plan pick-and-place-icetea&jug ()
   (say "I will bring the icetea and the jug to the counter.")
   (pursue
@@ -252,6 +245,17 @@
                        (dest-loc (location `((of ,placemat)))))
       (setf placemat (perceive placemat))
       (achieve `(loc ,obj ,dest-loc)))))
+
+(def-top-level-plan pick-and-place-obj (obj-properties from to)
+  "Picks up an object that matches `obj-properties' from location
+`from' and places it at location `to'. `from' and `to' are lispified
+names of points that are provided by the map_annotation server."
+  (pursue
+    (maybe-run-process-modules)
+    (with-designators ((from (location `((on table) (name ,from))))
+                       (to (location `((on table) (name ,to))))
+                       (obj (object `(,@obj-properties (at ,from)))))
+      (achieve `(loc ,obj ,to)))))
 
 (def-top-level-plan pick-and-place-cluster (from to)
   (pursue

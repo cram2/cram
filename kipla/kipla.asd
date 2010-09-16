@@ -65,6 +65,7 @@
                  cl-utils
                  visualization_msgs-msg
                  table-costmap
+                 cram-plan-actionserver
                  #+kipla-contrib-oro oro_ros-srv
                  #+kipla-contrib-oro yason
                  #+kipla-contrib-hri web_hri-srv)

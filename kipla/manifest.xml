@@ -32,4 +32,5 @@
   <depend package="mapping_msgs"/>
   <depend package="location_costmap"/>
   <depend package="table_costmap"/>
+  <depend package="cram_plan_actionserver"/>
 </package>
