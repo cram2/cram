@@ -43,17 +43,21 @@
    EXPAND-PLAN.  See the comment before the definition of WITH-TAGS for more
    details."
   (with-gensyms (call-args)
-    `(progn
-       (eval-when (:load-toplevel)
-         (setf (get ',name 'plan-type) :top-level-plan)
-         (setf (get ',name 'plan-lambda-list) ',args)
-         (setf (get ',name 'plan-sexp) ',body)
-         (on-def-top-level-plan-hook ',name))
-       (defun ,name (&rest ,call-args)
-         (named-top-level (:name ,name)
-           (replaceable-function ,name ,args ,call-args `(top-level ,',name)
-             (with-tags
-               ,@body)))))))
+    (multiple-value-bind (body-forms declarations doc-string)
+        (parse-body body :documentation t)
+      `(progn
+         (eval-when (:load-toplevel)
+           (setf (get ',name 'plan-type) :top-level-plan)
+           (setf (get ',name 'plan-lambda-list) ',args)
+           (setf (get ',name 'plan-sexp) ',body)
+           (on-def-top-level-plan-hook ',name))
+         (defun ,name (&rest ,call-args)
+           ,doc-string
+           ,@declarations
+           (named-top-level (:name ,name)
+             (replaceable-function ,name ,args ,call-args `(top-level ,',name)
+               (with-tags
+                 ,@body-forms))))))))
 
 (defmacro def-plan (name lambda-list &rest body)
   "Defines a plan. All functions that should appear in the task-tree
@@ -61,12 +65,16 @@
 
    CAVEAT: See docstring of def-top-level-plan."
   (with-gensyms (call-args)
-    `(progn
-       (eval-when (:load-toplevel)
-         (setf (get ',name 'plan-type) :plan)
-         (setf (get ',name 'plan-lambda-list) ',lambda-list)
-         (setf (get ',name 'plan-sexp) ',body))
-       (defun ,name (&rest ,call-args)
-         (replaceable-function ,name ,lambda-list ,call-args (list ',name)
-           (with-tags
-             ,@body))))))
+    (multiple-value-bind (body-forms declarations doc-string)
+        (parse-body body :documentation t)
+      `(progn
+         (eval-when (:load-toplevel)
+           (setf (get ',name 'plan-type) :plan)
+           (setf (get ',name 'plan-lambda-list) ',lambda-list)
+           (setf (get ',name 'plan-sexp) ',body))
+         (defun ,name (&rest ,call-args)
+           ,doc-string
+           ,@declarations
+           (replaceable-function ,name ,lambda-list ,call-args (list ',name)
+             (with-tags
+               ,@body-forms)))))))
