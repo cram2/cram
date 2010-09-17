@@ -54,7 +54,10 @@ than threshold * highest-probability."
    (let ((p-rel (cl-transforms:v- p p-ref)))
      (atan (cl-transforms:y p-rel) (cl-transforms:x p-rel)))))
 
-(def-fact-group table-costmap (desig-costmap desig-orientation desig-z-value)
+(def-fact-group table-costmap (desig-costmap
+                               desig-orientation
+                               desig-z-value
+                               drivable-location-costmap)
 
   (<- (drivable-location-costmap ?cm ?padding)
     (global-fluent-value *map-fl* ?map)

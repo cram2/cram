@@ -151,6 +151,7 @@
         #:cram-roslisp-common
         #:kipla-reasoning
         #:kipla-utils
+        #:designators-ros
         #:location-costmap
         #:table-costmap)
   (:export #:log-msg #:run-demo-counter-to-table

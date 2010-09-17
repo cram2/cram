@@ -34,6 +34,7 @@
            #:make-location-cost-function
            #:make-range-cost-function
            #:make-occupancy-grid-cost-function
+           #:make-axis-boundary-cost-function           
            #:global-fluent-value
            #:occupancy-grid
            #:inverted-occupancy-grid
@@ -49,6 +50,8 @@
            #:height-map-set
            #:make-padding-mask
            #:point-in-padding-mask-p
+           #:costmap-padding
+           #:padding
            #:occupancy-grid-put-mask
            #:grid-cells-msg->occupancy-grid
            #:grid-cells-msg->height-map
