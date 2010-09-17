@@ -32,4 +32,5 @@
 (defpackage :designators-ros
     (:use #:cl #:desig #:cut #:crs)
   (:export #:point-location-proxy #:pose-location-proxy
-           #:desig-z-value #:desig-orientation))
+           #:desig-z-value #:desig-orientation
+           #:point #:pose))
