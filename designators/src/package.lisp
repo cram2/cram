@@ -47,10 +47,10 @@
            #:designator-id-mixin #:object-id
            #:assert-desig-binding
            #:retract-desig-binding
-           #:object-designator
+           #:object #:object-designator
            #:register-object-desig-resolver
            #:resolve-object-desig
-           #:action-designator #:action-desig
+           #:action-designator #:action-desig #:action
            #:location-designator
            #:location
            #:make-location-proxy
@@ -62,6 +62,8 @@
            #:pose-location-proxy
            #:desig-loc #:loc-desig? #:obj-desig-location
            #:loc-desig-location
-           #:pose #:of #:type
+           #:pose #:of #:type #:at
            #:desig-prop #:desig-class #:desig-value
-           #:desig))
+           #:desig-location-prop #:obj
+           #:desig
+           #:manip-desig? #:trajectory))
