@@ -12,5 +12,9 @@
            #:table #:obj #:location
            #:costmap-padding
            #:costmap-manipulation-padding
-           #:drivable-location-costmap)
+           #:drivable-location-costmap
+           #:table-properties
+           #:*initial-stddev*
+           #:*accept-threshold*
+           #:process-table-grid-cells-msg)
   (:import-from :cpl #:make-fluent #:value))

@@ -25,5 +25,6 @@
   ((:file "package")
    (:file "cost-functions" :depends-on ("package"))
    (:file "ros-handlers" :depends-on ("package"))
+   (:file "table-properties" :depends-on ("package" "cost-functions"))
    (:file "facts" :depends-on ("package" "ros-handlers" "cost-functions"))))
 
