@@ -20,9 +20,7 @@
   <depend package="cogman_msgs"/>
   <depend package="alexandria"/>
   <depend package="navp_action"/>
-  <depend package="ias_semantic_map"/>
   <depend package="cl_json_pl_client"/>
-  <depend package="comp_missingobj"/>
   <depend package="pr2_msgs"/>
   <depend package="actionlib_lisp"/>
   <depend package="nav_msgs"/>
