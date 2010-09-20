@@ -46,7 +46,7 @@
     (multiple-value-bind (body-forms declarations doc-string)
         (parse-body body :documentation t)
       `(progn
-         (eval-when (:load-toplevel)
+         (eval-when (:compile-toplevel :load-toplevel :execute)
            (setf (get ',name 'plan-type) :top-level-plan)
            (setf (get ',name 'plan-lambda-list) ',args)
            (setf (get ',name 'plan-sexp) ',body)
