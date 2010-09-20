@@ -8,6 +8,7 @@
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cram_plan_actionserver</url>
+  <depend package="actionlib"/>
   <depend package="actionlib_msgs"/>
   <depend package="roslisp_runtime"/>
   <depend package="actionlib_lisp"/>

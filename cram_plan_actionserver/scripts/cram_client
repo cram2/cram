@@ -1,0 +1,79 @@
+#!/usr/bin/env python
+
+import roslib; roslib.load_manifest('cram_plan_actionserver')
+
+import rospy
+import actionlib
+import cram_plan_actionserver.msg
+import cram_plan_actionserver.srv
+import actionlib_msgs.msg
+
+def print_usage():
+    print """
+  Usage: cram_client [list|info|exe] [options]*
+
+Commands:
+\tcram_client list\t\tLists all plans that can be executed
+\tcram_client info <plan>\t\tPrints information about a plan
+\tcram-client exe <plan> [args]*\tExecutes a plan and waits for termination
+"""
+    return 1
+
+def cmd_list():
+    plans = rospy.ServiceProxy('/cram_actionserver/list_plans', cram_plan_actionserver.srv.PlanList)()
+    for plan in plans.plans:
+        print plan
+        
+def cmd_info(name):
+    plans = rospy.ServiceProxy('/cram_actionserver/list_plans', cram_plan_actionserver.srv.PlanList)()
+    index = plans.plans.index(name.upper())
+    print "%s:\n%s\n" % (plans.plans[index], plans.descriptions[index])
+
+def cmd_exe(name, *args):
+    goal = cram_plan_actionserver.msg.ExecutePlanGoal(
+        plan = name.upper(),
+        parameters = list(args))
+
+    client = actionlib.SimpleActionClient(
+        '/cram_actionserver/execute_plan',
+        cram_plan_actionserver.msg.ExecutePlanAction)
+    rospy.loginfo('Waiting for actionserver.')
+    client.wait_for_server()
+    rospy.loginfo('Executing goal.')
+    try:
+        client.send_goal(goal)
+        client.wait_for_result()
+        result_state = client.get_state()
+        if result_state == actionlib_msgs.msg.GoalStatus.SUCCEEDED:
+            print 'Plan succeeded: %s' % client.get_result()
+        else:
+            print 'Plan failed with status %s' % result_state
+            print 'result: %s' % client.get_result()
+    finally:
+        if client.simple_state != actionlib.SimpleGoalState.DONE:
+            client.cancel_goal()
+    
+def main():
+    rospy.init_node('cram_client', anonymous=True, disable_signals=True)
+
+    args = rospy.myargv()
+
+    try:
+        if args[1] == 'list':
+            cmd_list()
+        elif args[1] == 'info':
+            cmd_info(args[2])
+        elif args[1] == 'exe':
+            cmd_exe(*args[2:])
+        else:
+            return print_usage()
+    except KeyboardInterrupt:
+        rospy.signal_shutdown('Keyboard interrupt')
+        rospy.spin()
+    except Exception, e:
+        print 'Error: %s\n', str(e)
+        return print_usage()
+    return 0
+
+if __name__ == '__main__':
+    main()
