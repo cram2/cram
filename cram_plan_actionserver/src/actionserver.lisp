@@ -29,19 +29,28 @@
 
 (in-package :cram-actionserver)
 
-(defvar *results* (make-hash-table))
-
 (actionlib:def-exec-callback cram-actionserver-execute (plan parameters)
   (handler-case
-      (let ((plan-symbol (assoc plan *plans* :test #'string-equal)))
+      (let ((plan-symbol (cdr (assoc plan *plans* :test #'string-equal))))
         (unless plan-symbol
           (actionlib:abort-current result "Plan not found."))
-        (pursue
-          (apply (symbol-function plan-symbol)
-                 (let ((*read-eval* nil)) (map 'list #'read-from-string parameters)))
-          (loop-at-most-every 0.1
-            (when (actionlib:cancel-request-received)
-              (actionlib:abort-current)))))
+        (let ((worker-thread nil)
+              (result nil))
+          (unwind-protect
+               (progn
+                 (setf worker-thread (sb-thread:make-thread
+                                      (lambda ()
+                                        (setf result
+                                              (apply (symbol-function plan-symbol)
+                                                     (let ((*read-eval* nil))
+                                                       (map 'list #'read-from-string parameters)))))))
+                 (loop-at-most-every 0.1
+                   (when (actionlib:cancel-request-received)
+                     (actionlib:abort-current))
+                   (when (not (sb-thread:thread-alive-p worker-thread))
+                     (actionlib:succeed-current :result (format nil "~a" result)))))
+            (when (and worker-thread (sb-thread:thread-alive-p worker-thread))
+              (sb-thread:terminate-thread worker-thread)))))
     (error (e)
       (actionlib:abort-current result (format nil "~a" e)))))
 
@@ -49,7 +58,9 @@
   (flet ((plan-description (plan-sym)
            (let ((doc-string (documentation (symbol-function plan-sym) 'function))
                  (lambda-list (get plan-sym 'cpl-impl::plan-lambda-list)))
-             (format nil "~a~%Lambda list: ~a~%" doc-string lambda-list))))
+             (format nil "~a~%Lambda list: ~a~%"
+                     (or doc-string "No documentation available")
+                     (or lambda-list "()")))))
     (make-response :plans (map 'vector #'car *plans*)
                    :descriptions (map 'vector (alexandria:compose #'plan-description #'cdr)
                                       *plans*))))
@@ -58,9 +69,10 @@
   "Runs the actionserver and blocks."
   (unwind-protect
        (progn
+         (setf cpl-impl::*break-on-plan-failures* nil)
          (startup-ros :name "cram_actionserver" :anonymous nil)
          (register-service-fn "~list_plans" #'plan-list 'cram_plan_actionserver-srv:planlist)
          (actionlib:start-action-server
-          "~execute_plan" "cram_plan_actionserver/ExecutePlanAction"
+          "~execute_plan" "cram_plan_actionserver/ExecutePlan"
           #'cram-actionserver-execute))
     (shutdown-ros)))
