@@ -40,3 +40,8 @@
   (unless *annotated-points*
     (setf *annotated-points* (init-annotated-points)))
   (cdr (assoc (symbol-name name) *annotated-points* :key #'symbol-name :test #'equal)))
+
+(defun get-annotation-names ()
+  (unless *annotated-points*
+    (setf *annotated-points* (init-annotated-points)))
+  (mapcar #'car *annotated-points*))
