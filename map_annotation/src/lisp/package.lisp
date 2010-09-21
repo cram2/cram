@@ -5,4 +5,5 @@
     (:use :cl :roslisp :cram-roslisp-common :crs)
   (:export #:get-closest-annotation
            #:get-annotated-point
-           #:annotated-point))
+           #:annotated-point
+           #:get-annotation-names))
