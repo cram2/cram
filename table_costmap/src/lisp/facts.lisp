@@ -81,7 +81,7 @@ than threshold * highest-probability."
     (global-fluent-value *table-grid-cells-fl* ?table-msg)
     (occupancy-grid ?table-msg ?table-costmap)
     (costmap ?cm)
-    (costmap-add-function named-table (make-table-cost-function ?table-name 1.0) ?cm)
+    (costmap-add-function named-table (make-table-cost-function ?table-name) ?cm)
     (costmap-add-function all-tables (make-occupancy-grid-cost-function ?table-costmap) ?cm))
 
   (<- (desig-costmap ?desig ?cm)

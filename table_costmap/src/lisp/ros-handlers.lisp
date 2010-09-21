@@ -37,10 +37,12 @@
              (make-fluent-setter-callback *map-fl*))
   (subscribe (roslisp:get-param "~table-costmap-topic" "/table_costmap/grid_cells")
              "nav_msgs/GridCells"
-             #'table-grid-cells-cb))
+             #'table-grid-cells-cb)
+  (init-table-clusters))
 
 (defun table-grid-cells-cb (msg)
   (setf (value *table-grid-cells-fl*) msg)
-  (setf (value *table-height-map-fl*) (grid-cells-msg->height-map msg)))
+  (setf (value *table-height-map-fl*) (grid-cells-msg->height-map msg))
+  (setf *table-clusters* (cluster-tables *table-clusters* msg)))
 
 (register-ros-init-function ros-location-costmaps-init)
