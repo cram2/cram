@@ -16,5 +16,11 @@
            #:table-properties
            #:*initial-stddev*
            #:*accept-threshold*
-           #:process-table-grid-cells-msg)
+           #:cluster-tables
+           #:get-table-cluster
+           #:init-table-clusters
+           #:table-cluster
+           #:cov #:mean
+           #:*initial-stddev*
+           #:*accept-threshold*)
   (:import-from :cpl #:make-fluent #:value))

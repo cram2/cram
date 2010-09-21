@@ -23,8 +23,8 @@
                "nav_msgs-msg")
   :components
   ((:file "package")
-   (:file "cost-functions" :depends-on ("package"))
-   (:file "ros-handlers" :depends-on ("package"))
-   (:file "table-properties" :depends-on ("package" "cost-functions"))
+   (:file "table-clusters" :depends-on ("package"))
+   (:file "cost-functions" :depends-on ("package" "table-clusters"))
+   (:file "ros-handlers" :depends-on ("package" "table-clusters"))
    (:file "facts" :depends-on ("package" "ros-handlers" "cost-functions"))))
 
