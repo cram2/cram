@@ -96,7 +96,7 @@
                          (:file "liswip")
                          (:file "swi-predicates" :depends-on ("liswip"))))
                (:module "perception"
-                        :depends-on ("packages" "config" "utils")
+                        :depends-on ("packages" "config" "utils" "rete")
                         :components
                         ((:file "object-belief")
                          (:file "process-module"
@@ -105,6 +105,7 @@
                                   :depends-on ("object-belief" "process-module")
                                   :components
                                   ((:file "cop-designator")
+                                   (:file "occasion-handlers")
                                    (:file "ros-connection" :depends-on ("cop-designator"))
                                    (:file "cop-search-handlers" :depends-on ("cop-designator"))))
                          (:module "passive"

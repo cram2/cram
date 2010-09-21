@@ -92,6 +92,8 @@
            (when (< (incf retry-count) 3)
              (retry)))
          (manipulation-failed (f)
+           (assert-occasion
+            `(object-in-hand-failure manipulation-failed ?obj ?side))           
            (log-msg :warn "Manipulation action failed. ~a" f)
            (setf alternative-poses-cnt 0)
            (say "Failed to grasp. I try again.")           
@@ -107,6 +109,8 @@
         (with-failure-handling
             ((manipulation-pose-unreachable (f)
                (declare (ignore f))
+               (assert-occasion
+                `(object-in-hand-failure manipulation-pose-unreachable ?obj ?side))
                (say "Cannot reach object. Trying another position.")
                (log-msg :warn "Got unreachable grasp pose. Trying alternatives")
                (when (< alternative-poses-cnt 3)
@@ -127,7 +131,6 @@
             (achieve `(arms-at ,open-trajectory))
             (achieve `(looking-at ,(reference (make-designator 'location `((of ,?obj))))))
             (achieve `(arms-at ,grasp-trajectory))
-            (retract-occasion `(object-placed-at ,?obj))
             (assert-occasion `(object-in-hand ,?obj ,?side))
             (achieve `(arms-at ,lift-trajectory))
             (achieve `(arms-at ,carry-trajectory)))))))

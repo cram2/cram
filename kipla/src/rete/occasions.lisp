@@ -32,6 +32,14 @@
 (def-production object-picked-up
   (object-in-hand ?obj ?side))
 
+(def-production object-in-hand-failure
+  (object-in-hand-failure ?f ?obj ?side))
+
+(defun on-obj-in-hand-retractions (op &key ?obj ?side)
+  (declare (ignore ?side))
+  (when (eql op :assert)
+    (retract-occasion `(object-placed-at ,?obj))))
+
 (defun on-object-picked-up (op &key ?obj ?side)
   (when (eq op :assert)
     (let* ((obj-pose (cl-tf:transform-pose
@@ -66,5 +74,3 @@
                        ?obj))))
 
 (register-production-handler 'object-picked-up #'on-object-picked-up)
-
-
