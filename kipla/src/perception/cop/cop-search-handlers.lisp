@@ -103,7 +103,12 @@
            (setf (cop-desig-query-info-matches query-info) 1))
           (t
            (setf (cop-desig-query-info-poses query-info)
-                 (list (jlo:make-jlo :name "/sr4")))))
+                 (when (desig-prop-value desig 'at)
+                   (let ((loc (desig-prop-value desig 'at)))
+                     (when (and (eql (desig-prop-value loc 'on) 'table)
+                                (desig-prop-value loc 'name))
+                       (list (table-cluster->jlo (get-table-cluster
+                                                  (desig-prop-value loc 'name))))))))))
     (do-cop-search desig query-info)))
 
 (defmethod object-search-function ((type (cl:eql 'object)) desig &optional perceived-object)
