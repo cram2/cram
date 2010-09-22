@@ -27,7 +27,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :kipla)
+(in-package :navp-pm)
 
 (define-condition navigation-failure (plan-error)
   ((location :initarg :location :initform nil :reader navigation-failure-location)))
@@ -50,16 +50,13 @@
 (def-process-module navigation (input)
   ;; This process module navigates the robot to the location given as
   ;; input.
-  (unless (member :navigation *kipla-features*)
-    (sleep 0.1)
-    (return nil))
-  (log-msg :info "[Navigation process module] received input ~a~%" (reference input))
+  (ros-info (nav process-module) "[Navigation process module] received input ~a~%" (reference input))
   (let ((waypoints (get-nav-waypoints (pose->jlo (reference input)))))
-    (log-msg :info "[Navigation process module] waypoints `~a'" waypoints)
+    (ros-info (nav process-module) "[Navigation process module] waypoints `~a'" waypoints)
     (loop while waypoints
           do
-       (log-msg :info "Drive to waypoint `~a'" (car waypoints))
+       (ros-info (nav process-module) "Drive to waypoint `~a'" (car waypoints))
        (approach-waypoint (car waypoints) (not (cdr waypoints)))
        (sleep 0.1)
        (setf waypoints (cdr waypoints))))
-  (log-msg :info "[Navigation process module] returning.~%"))
+  (ros-info (nav process-module) "[Navigation process module] returning.~%"))

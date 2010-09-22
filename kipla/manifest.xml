@@ -11,7 +11,6 @@
   <depend package="cram_math"/>
   <depend package="designators_ros"/>
   <depend package="cram_roslisp_common"/>
-  <depend package="map_annotation"/>
   <depend package="liswip"/>
   <depend package="process_modules"/>
   <depend package="cljlo"/>
@@ -19,16 +18,12 @@
   <depend package="roslisp_runtime"/>
   <depend package="cogman_msgs"/>
   <depend package="alexandria"/>
-  <depend package="navp_action"/>
   <depend package="cl_json_pl_client"/>
   <depend package="pr2_msgs"/>
   <depend package="actionlib_lisp"/>
-  <depend package="nav_msgs"/>
   <depend package="cl_utils"/>
-  <depend package="map_annotation"/>
-  <depend package="visualization_msgs"/>
-  <depend package="mapping_msgs"/>
   <depend package="location_costmap"/>
   <depend package="table_costmap"/>
   <depend package="cram_plan_actionserver"/>
+  <depend package="jlo_navp_process_module"/>
 </package>

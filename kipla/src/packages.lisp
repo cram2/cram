@@ -61,16 +61,6 @@
    #:matching-object #:merge-desig-descriptions
    #:desig-bound
    #:make-new-desig-description
-   ;; designators
-   #:manip-desig
-   #:action #:object #:location
-   #:mug #:icetea #:cluster #:jug #:placemat #:coke
-   #:object
-   #:color #:black #:red #:white #:green #:blue
-   #:at #:matches #:show #:for
-   #:jlo-list #:jlo #:trajectory
-   #:grasp #:navigate #:pose #:parked #:open #:lift #:carry #:put-down
-   #:obj #:gripper #:close #:resolve-object-desig #:orientation
    ;; trajectory-actions
    #:trajectory-action #:side #:trajectory-type #:stored-pose-type
    #:object-type #:hand-primitive #:end-effector-pose
@@ -122,15 +112,6 @@
    #:?lo
    #:arm-parked
    #:?loc
-   ;; Locations
-   #:location-costmap #:width #:height #:origin-x #:origin-y #:resolution
-   #:get-map-value #:get-cost-map #:generate-point #:gen-costmap-sample
-   #:occupancy-grid-metadata #:occupancy-grid #:grid #:make-occupancy-grid
-   #:copy-occupancy-grid #:invert-occupancy-grid #:set-grid-cell
-   #:clear-grid-cell #:get-grid-cell
-   #:grid-cells-msg->occupancy-grid
-   #:grid-cells-msg->height-map
-   #:height-map #:height-map-lookup #:height-map-set
    ;; other
    #+kipla-contrib-oro #:oro-call
    #+kipla-contrib-oro #:oro-assert
@@ -149,7 +130,8 @@
         #:cljlo-utils
         #:designators-ros
         #:location-costmap
-        #:table-costmap)
+        #:table-costmap
+        #:navp-pm)
   (:export #:log-msg #:run-demo-counter-to-table
            #:run-demo-table-to-counter #:look-at
            #:drive-to-waypoints-main

@@ -27,7 +27,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :kipla)
+(in-package :navp-pm)
 
 (define-condition nav-action-error (simple-plan-error)
   ((final-status :initarg :final-status :reader final-status)))
@@ -46,8 +46,9 @@
                              "navp_action/nav_actionAction")))
 
 (register-ros-init-function nav-action-init)
+
 (defun navigation-execute-goal (lo-id)
-  (log-msg :info "executing nav action")
+  (ros-info (nav process-module) "executing nav action")
   (multiple-value-bind (result state)
       (actionlib:call-goal *nav-action-client*
                            (make-message "navp_action/nav_actionGoal" (data target_lo) lo-id)
