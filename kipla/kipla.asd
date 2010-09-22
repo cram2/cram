@@ -153,5 +153,4 @@
               ((:file "test-plans")
                (:file "drive-to-waypoints")
                (:file "launch")
-               (:file "liswip-desig-demo")
                (:file "knowrob-missing-objects")))))
