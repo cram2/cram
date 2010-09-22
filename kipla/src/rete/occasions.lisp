@@ -60,7 +60,7 @@
                                            (cl-transforms:make-3d-vector
                                             (cl-transforms:x (cl-transforms:origin obj-pose))
                                             (cl-transforms:y (cl-transforms:origin obj-pose))
-                                            (kipla-reasoning:height-map-lookup
+                                            (height-map-lookup
                                              (value *table-height-map-fl*)
                                              (cl-transforms:x (cl-transforms:origin obj-pose))
                                              (cl-transforms:y (cl-transforms:origin obj-pose))))

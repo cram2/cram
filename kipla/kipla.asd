@@ -60,11 +60,11 @@
                  alexandria
                  cl-json-pl-client
                  pr2_msgs-msg
-                 navp_action-msg
                  cl-utils
                  visualization_msgs-msg
                  table-costmap
                  cram-plan-actionserver
+                 jlo-navp-process-module
                  cljlo-utils
                  #+kipla-contrib-oro oro_ros-srv
                  #+kipla-contrib-oro yason
@@ -109,11 +109,6 @@
                                   :depends-on ("object-belief")
                                   :components
                                   ((:file "knowrob-objects")))))
-               (:module "navigation"
-                        :depends-on ("packages" "config" "utils")
-                        :components
-                        ((:file "ros-connection")
-                         (:file "process-module" :depends-on ("ros-connection"))))
                (:module "manipulation"
                         :depends-on ("packages" "config")
                         :components
@@ -129,7 +124,6 @@
                                      "knowledge"
                                      "rete"
                                      "perception"
-                                     "navigation"
                                      "manipulation")
                         :components
                         ((:file "process-modules")
