@@ -1,0 +1,16 @@
+<package>
+  <description brief="cljlo_utils">
+
+     cljlo_utils
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cljlo_utils</url>
+  <depend package="cljlo"/>
+  <depend package="cl_tf"/>
+
+</package>
+
+
