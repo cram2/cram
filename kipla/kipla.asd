@@ -48,7 +48,6 @@
                  cram-math
                  designators-ros
                  process-modules
-                 liswip
                  roslisp
                  cram-roslisp-common
                  map-annotation
@@ -92,9 +91,7 @@
                                   ((:file "location-facts")))
                          (:file "time")
                          (:file "tasks")
-                         (:file "objects")
-                         (:file "liswip")
-                         (:file "swi-predicates" :depends-on ("liswip"))))
+                         (:file "objects")))
                (:module "perception"
                         :depends-on ("packages" "config" "utils" "rete")
                         :components
