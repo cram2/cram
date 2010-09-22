@@ -65,6 +65,7 @@
                  visualization_msgs-msg
                  table-costmap
                  cram-plan-actionserver
+                 cljlo-utils
                  #+kipla-contrib-oro oro_ros-srv
                  #+kipla-contrib-oro yason
                  #+kipla-contrib-hri web_hri-srv)
@@ -76,14 +77,13 @@
                (:file "config" :depends-on ("packages"))
                (:file "logging" :depends-on ("packages"))
                (:file "speech" :depends-on ("packages"))
-               (:file "utils" :depends-on ("packages"))
                (:module "rete"
                         :depends-on ("packages" "config" "knowledge")
                         :components
                         ((:file "rete-utils")
                          (:file "occasions" :depends-on ("rete-utils"))))
                (:module "knowledge"
-                        :depends-on ("packages" "config" "utils")
+                        :depends-on ("packages" "config")
                         :components
                         ((:file "prolog-utils")
                          (:module "locations"
@@ -93,7 +93,7 @@
                          (:file "tasks")
                          (:file "objects")))
                (:module "perception"
-                        :depends-on ("packages" "config" "utils" "rete")
+                        :depends-on ("packages" "config" "rete")
                         :components
                         ((:file "object-belief")
                          (:file "process-module"

@@ -27,12 +27,6 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(defpackage :kipla-utils
-    (:documentation "Utilities")
-  (:use #:common-lisp)
-  (:export #:pose->jlo #:jlo->pose
-           #:table-cluster->jlo))
-
 (defpackage :kipla-reasoning
   (:documentation "All the prolog and reasoning stuff used in kipla.")
   (:use #:common-lisp
@@ -41,7 +35,7 @@
         #:cram-designators #:designators-ros
         #:cram-reasoning
         #:cram-execution-trace
-        #:kipla-utils
+        #:cljlo-utils
         #:cram-roslisp-common
         #:map-annotation
         #:location-costmap
@@ -152,7 +146,7 @@
         #:cram-process-modules
         #:cram-roslisp-common
         #:kipla-reasoning
-        #:kipla-utils
+        #:cljlo-utils
         #:designators-ros
         #:location-costmap
         #:table-costmap)
