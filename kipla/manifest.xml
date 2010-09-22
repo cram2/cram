@@ -11,7 +11,6 @@
   <depend package="cram_math"/>
   <depend package="designators_ros"/>
   <depend package="cram_roslisp_common"/>
-  <depend package="liswip"/>
   <depend package="process_modules"/>
   <depend package="cljlo"/>
   <depend package="vision_srvs"/>
