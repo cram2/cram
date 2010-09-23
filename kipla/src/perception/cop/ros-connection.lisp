@@ -52,29 +52,36 @@
   "Executes a cop query.  `command' can be :localize, :track, :refine,
    :prove, :stop-track, :start-attend or :stop-attend."
   (wait-for-service "/cop/in")
-  (call-service "/cop/in" 'vision_srvs-srv:cop_call
-                :outputtopic "/kipla/cop_reply"
-                :object_classes (make-array (list-length (cop-desig-query-info-object-classes query-info))
-                                            :initial-contents (cop-desig-query-info-object-classes query-info))
-                :object_ids (make-array (list-length (cop-desig-query-info-object-ids query-info))
-                                        :initial-contents (cop-desig-query-info-object-ids query-info))
-                :action_type (ecase command
-                               (:localize #x0000)
-                               (:track #x0100)
-                               (:refine #x0300)
-                               (:prove #x0400)
-                               (:stop-track #x0800)
-                               (:start-attend #x1600)
-                               (:stop-attend #x3200))
-                :number_of_objects (cop-desig-query-info-matches query-info)
-                :list_of_poses (make-array (list-length (cop-desig-query-info-poses query-info))
-                                           :initial-contents (mapcar (lambda (id)
-                                                                       (make-instance 'vision_msgs-msg:<apriori_position>
-                                                                                      :probability 0.9
-                                                                                      :positionid (jlo:id id)))
-                                                                     (cop-desig-query-info-poses query-info))))
-  (wait-for *cop-output-queue* :handle-missed-pulses :never)
-  (pop (value *cop-output-queue*)))
+  (let ((service-result
+         (call-service "/cop/in" 'vision_srvs-srv:cop_call
+                       :outputtopic "/kipla/cop_reply"
+                       :object_classes (make-array (list-length (cop-desig-query-info-object-classes query-info))
+                                                   :initial-contents (cop-desig-query-info-object-classes query-info))
+                       :object_ids (make-array (list-length (cop-desig-query-info-object-ids query-info))
+                                               :initial-contents (cop-desig-query-info-object-ids query-info))
+                       :action_type (ecase command
+                                      (:localize #x0000)
+                                      (:track #x0100)
+                                      (:refine #x0300)
+                                      (:prove #x0400)
+                                      (:stop-track #x0800)
+                                      (:start-attend #x1600)
+                                      (:stop-attend #x3200))
+                       :number_of_objects (cop-desig-query-info-matches query-info)
+                       :list_of_poses (make-array (list-length (cop-desig-query-info-poses query-info))
+                                                  :initial-contents (mapcar (lambda (id)
+                                                                              (make-instance 'vision_msgs-msg:<apriori_position>
+                                                                                             :probability 0.9
+                                                                                             :positionid (jlo:id id)))
+                                                                            (cop-desig-query-info-poses query-info))))))
+    (whenever ((pulsed *cop-output-queue* :handle-missed-pulses :once))
+      (let ((result (find (vision_srvs-srv:perception_primitive-val service-result)
+                          (value *cop-output-queue*)
+                          :key #'vision_msgs-msg:perception_primitive-val)))
+        (when result
+          (setf (value *cop-output-queue*)
+                (remove result (value *cop-output-queue*)))
+          (return-from cop-query result))))))
 
 (defvar *ptu-action-client*)
 

@@ -42,7 +42,9 @@
 (defclass cop-perceived-object (perceived-object)
   ((object-id :initarg :object-id :accessor object-id)
    (object-properties :initarg :properties
-                      :accessor object-properties)))
+                      :accessor object-properties)
+   (perception-primitive :initarg :perception-primitive
+                         :accessor perception-primitive)))
 
 (defmethod has-cop-info ((obj cop-perceived-object))
   t)
@@ -75,7 +77,10 @@
   (let ((cop-reply (cop-query query-info :command command)))
     (when (equal (vision_msgs-msg:error-val cop-reply) "")
       (map 'list (lambda (found-pose)
-                   (let ((perceived-object (cop-reply->perceived-object found-pose)))
+                   (let ((perceived-object (cop-reply->perceived-object
+                                            found-pose
+                                            (vision_msgs-msg:perception_primitive-val
+                                             cop-reply))))
                      (assert-perceived-object perceived-object (description desig))
                      perceived-object))
            (vision_msgs-msg:found_poses-val cop-reply)))))
@@ -196,9 +201,10 @@
   (list (lispify-ros-name (vision_msgs-msg:type-val m))
         (lispify-ros-name (vision_msgs-msg:sem_class-val m))))
 
-(defun cop-reply->perceived-object (reply)
+(defun cop-reply->perceived-object (reply perception-primitive)
   (make-instance 'cop-perceived-object
                  :pose (jlo:make-jlo :id (vision_msgs-msg:position-val reply))
                  :object-id (vision_msgs-msg:objectid-val reply)
                  :properties (map 'list #'cop-model->property (vision_msgs-msg:models-val reply))
-                 :probability (vision_msgs-msg:probability-val reply)))
+                 :probability (vision_msgs-msg:probability-val reply)
+                 :perception-primitive perception-primitive))
