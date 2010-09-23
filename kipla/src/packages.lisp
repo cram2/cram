@@ -39,7 +39,9 @@
         #:cram-roslisp-common
         #:map-annotation
         #:location-costmap
-        #:table-costmap)
+        #:table-costmap
+        #:kuka-pm
+        #:perception-pm)
   (:shadowing-import-from #:cram-reasoning #:fail)
   (:shadowing-import-from #:cram-language #:name)
   (:import-from #:alexandria
@@ -49,31 +51,6 @@
    ;; belief-state
    #:update-belief #:clear-belief #:*believed-occasions*
    #:assert-occasion #:retract-occasion #:holds
-   ;; object-belief
-   #:perceived-object #:queried-object #:object-properties
-   #:object-pose #:perceived-object-probability #:object-desig
-   #:object-timestamp #:*perceived-objects*
-   #:clear-object-belief #:update-perceived-object
-   #:perceived-objects-equal? #:compatible-properties
-   #:designator->production #:assert-perceived-object
-   #:retract-perceived-object #:assert-desig-binding
-   #:retract-desig-binding #:desig-current-perceived-object
-   #:matching-object #:merge-desig-descriptions
-   #:desig-bound
-   #:make-new-desig-description
-   ;; trajectory-actions
-   #:trajectory-action #:side #:trajectory-type #:stored-pose-type
-   #:object-type #:hand-primitive #:end-effector-pose
-   #:obstacles #:grasp-distance #:supporting-plane
-   #:copy-trajectory-action
-   ;; cop-designators
-   #:cop-desig-query-info #:cop-desig-query-info-object-classes
-   #:cop-desig-query-info-object-ids #:cop-desig-query-info-poses
-   #:cop-desig-query-info-matches
-   #:make-cop-desig-query-info #:copy-cop-desig-query-info
-   #:cop-desig-location-info #:cop-desig-location-info-poses
-   #:cop-desig-info #:cop-desig-info-designator #:cop-desig-info-query
-   #:cop-desig-info-location #:cop-ignore-property-p
    ;; prolog
    #:fluent
    #:fluent-value
@@ -131,7 +108,9 @@
         #:designators-ros
         #:location-costmap
         #:table-costmap
-        #:navp-pm)
+        #:navp-pm
+        #:kuka-pm
+        #:perception-pm)
   (:export #:log-msg #:run-demo-counter-to-table
            #:run-demo-table-to-counter #:look-at
            #:drive-to-waypoints-main

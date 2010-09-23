@@ -51,17 +51,13 @@
                  cram-roslisp-common
                  map-annotation
                  geometry_msgs-msg
-                 cogman_msgs-msg
-                 actionlib
-                 cljlo
                  alexandria
                  pr2_msgs-msg
                  cl-utils
-                 visualization_msgs-msg
                  table-costmap
                  cram-plan-actionserver
                  jlo-navp-process-module
-                 cljlo-utils
+                 kuka-arm-hand-process-module
                  perception-process-module
                  #+kipla-contrib-oro oro_ros-srv
                  #+kipla-contrib-oro yason
@@ -86,21 +82,13 @@
                          (:file "location-facts")
                          (:file "time")
                          (:file "tasks")))
-               (:module "manipulation"
-                        :depends-on ("packages" "config")
-                        :components
-                        ((:file "ros-connection")
-                         (:file "manipulation-designator")
-                         (:file "process-module"
-                                :depends-on ("ros-connection" "manipulation-designator"))))
                (:module "goals"
                         :depends-on ("packages"
                                      "config"
                                      "logging"
                                      "speech"
                                      "knowledge"
-                                     "rete"
-                                     "manipulation")
+                                     "rete")
                         :components
                         ((:file "process-modules")
                          (:file "achieve")
