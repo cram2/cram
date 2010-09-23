@@ -96,13 +96,13 @@
 
 (let ((current-index 0))
   
-  (defun publish-point (point)
+  (defun publish-point (point &key id)
     (publish *marker-publisher*
              (make-message "visualization_msgs/Marker"
                            (stamp header) (ros-time)
                            (frame_id header) "/map"
                            ns "kipla_locations"
-                           id (incf current-index)
+                           id (or id (incf current-index))
                            type (symbol-code 'visualization_msgs-msg:<marker> :sphere)
                            action (symbol-code 'visualization_msgs-msg:<marker> :add)
                            (x position pose) (cl-transforms:x point)
