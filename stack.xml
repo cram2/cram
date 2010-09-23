@@ -1,0 +1,9 @@
+<stack>
+  <description brief="cram_process_modules_pr2">cram_process_modules_pr2</description>
+  <author>Maintained by Lorenz Moesenlechner</author>
+  <license>BSD</license>  
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cram_process_modules_pr2</url>
+  <depend stack="ros" />
+
+</stack>
