@@ -33,17 +33,21 @@
     (:documentation "The preception process module")
   (:nicknames :perception-pm)
   (:use #:common-lisp
-        #:cram-process-modules
         #:cram-roslisp-common
         #:crs
         #:cut
         #:desig
-        #:designators-ros)
+        #:designators-ros
+        #:cljlo-utils
+        #:table-costmap
+        #:roslisp)
   (:export
    #:perception #:object-not-found
    #:object-search-function
    #:execute-object-search-function
    #:newest-valid-designator
+   #:look-at #:look-long-at #:register-owl-type
+   #:wait-for-shoulder-scan #:knowrob-pre-initialize-desig
    ;; object-belief
    #:perceived-object #:queried-object #:object-properties
    #:object-pose #:perceived-object-probability #:object-desig
@@ -72,4 +76,12 @@
                 #:pulsed
                 #:whenever
                 #:value
-                #:make-fluent))
+                #:make-fluent
+                #:pulse
+                #:wait-for)
+  (:shadowing-import-from #:cpl
+                          #:fail)
+  (:import-from #:alexandria
+                #:curry #:rcurry #:compose)
+  (:import-from #:cram-process-modules
+                #:def-process-module))

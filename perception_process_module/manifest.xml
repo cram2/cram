@@ -23,5 +23,7 @@
   <depend package="cram_language"/>
   <depend package="std_msgs"/>
   <depend package="actionlib_lisp"/>
+  <depend package="alexandria"/>
+  <depend package="table_costmap"/>
 
 </package>
