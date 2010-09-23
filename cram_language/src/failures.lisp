@@ -34,6 +34,10 @@
   "When t, invoke the debugger on plan failures. Otherwise, they are
   just passed up to the parent task.")
 
+(defvar *break-on-errors* t
+  "When T, invoke the debugger on common lisp errors. Otherwise, pass
+  them up to the parent task.")
+
 ;;; Condition to cause a plan failure without invoking the debugger.
 (define-condition plan-error (error) ())
 (define-condition simple-plan-error (simple-condition plan-error) ())

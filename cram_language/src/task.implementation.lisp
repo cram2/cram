@@ -172,7 +172,12 @@
                          (terminate task :failed
                                     (make-condition 'rethrown-error
                                                     :error condition)))))
-                  (error #'task-error-handler))
+                  (error (lambda (condition)
+                           (if *break-on-errors*
+                               (task-error-handler condition)
+                               (terminate task :failed
+                                          (make-condition 'rethrown-error
+                                                          :error condition))))))
                (update-status task :running)
                (when *save-tasks*
                  (enqueue task *tasks*))
