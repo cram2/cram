@@ -3,9 +3,10 @@
     A set of libraries for implementing AI enabled robot control programs.
   </description>
   <author>Maintained by Lorenz Moesenlechner</author>
-  <license>BSD</license>  
+  <license>GPL,Public domain,,trivial-features,babel,cffi,BSD,MIT</license>  
   <review status="unreviewed" notes=""/>
-  <url>http://ros.org/wiki/cram</url>
+  <url>http://ros.org/wiki/cram_pl</url>
   <depend stack="ros" />
+  <depend stack="roslisp_support" /> <!-- sbcl -->
 
 </stack>
