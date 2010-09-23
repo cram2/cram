@@ -27,40 +27,13 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :kipla)
+(in-package :plan-lib)
 
-(defun distance-to-drive (goal)
-  (let ((loc-1 (reference goal))
-        (current-loc (cl-tf:lookup-transform
-                      *tf*
-                      :target-frame "/map"
-                      :source-frame "/base_link")))
-    (cl-transforms:v-dist (cl-transforms:origin loc-1)
-                          (cl-transforms:translation current-loc))))
-
-(def-goal (achieve (loc Robot ?loc))
-  (log-msg :info "Driving to location ~a." ?loc)
-  (unless (reference ?loc)
-    (fail "Location designator invalid."))
-  (when (> (distance-to-drive ?loc) 0.75)
-    (log-msg :info "Distance to drive: ~a, parking arms.~%"
-             (distance-to-drive ?loc))
-    (achieve `(looking-at :forward))
-    (achieve '(arm-parked :both)))
-  (pm-execute 'navigation ?loc)
-  (retract-occasion `(loc Robot ?_))
-  (assert-occasion `(loc Robot ,?loc)))
-
-(def-goal (achieve (loc ?obj ?loc))
-  (log-msg :info "(achieve (loc ?obj ?loc)")
-  (log-msg :info "?obj `~a' ?loc `~a'" (description ?obj) (description ?loc))
-  (let ((retry-count 0))
-    (with-failure-handling
-        ((object-lost (f)
-           (declare (ignore f))
-           (when (< (incf retry-count) 3)
-             (retry))))
-      (achieve `(object-in-hand ,?obj :right))
-      (achieve `(object-placed-at ,?obj ,?loc))))
-  (retract-occasion `(loc ,?obj ?_))
-  (assert-occasion `(loc ,?obj ,?loc)))
+(def-goal (achieve (looking-at ?pose))
+  (cond ((not ?pose)
+         (ros-warn (achieve plan-lib) "Pose not set. cannot look at it"))
+        (t
+         (ros-info (achieve plan-lib) "Looking at pose: ~a~%" ?pose)
+         (typecase ?pose
+           (symbol (look-at ?pose))
+           (t (look-long-at ?pose))))))

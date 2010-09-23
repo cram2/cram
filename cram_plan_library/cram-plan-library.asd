@@ -27,16 +27,35 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :kipla)
+(defsystem cram-plan-library
+  :author "Lorenz Moesenlechner"
+  :license "BSD"
+  :description "A library of plans for the IAS kitchen environment"
 
-(def-goal (achieve (looking-at ?pose))
-  (cond ((not ?pose)
-         (ros-warn :kipla "Pose not set. cannot look at it"))
-        (t
-         (ros-info :kipla "Looking at pose: ~a~%" ?pose)
-         (etypecase ?pose
-           (cl-transforms:pose (look-long-at (pose->jlo ?pose)))
-           (jlo:jlo (look-long-at ?pose))
-           (symbol
-              (ecase ?pose
-                (:forward (look-at (jlo:make-jlo :name "/look_forward")))))))))
+  :depends-on (cram-language
+               cram-reasoning
+               process-modules
+               designators
+               cram-roslisp-common
+               cram-occasions
+               alexandria)
+  :components
+  ((:module "src"
+            :components
+            ((:file "package")
+             (:module "plans"
+                      :depends-on ("package")
+                      :components
+                        ((:file "process-modules")
+                         (:file "achieve")
+                         (:file "achieve-loc")
+                         (:file "achieve-ptu")
+                         (:file "at-location")
+                         (:file "perceive")
+                         (:file "achieve-object-manipulation")))
+             (:module "rete"
+                      :depends-on ("package" "plans")
+                      :components
+                      ((:file "occasions")
+                       ;; (:file "cop-occasion-handlers" :depends-on ("occasions"))
+                       ))))))

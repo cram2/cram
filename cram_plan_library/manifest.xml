@@ -1,0 +1,22 @@
+<package>
+  <description brief="cram_plan_library">
+
+     cram_plan_library
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cram_plan_library</url>
+  <depend package="cram_language"/>
+  <depend package="cram_utilities"/>
+  <depend package="process_modules"/>
+  <depend package="cram_reasoning"/>
+  <depend package="designators"/>
+  <depend package="cram_roslisp_common"/>
+  <depend package="cram_occasions"/>
+  <depend package="alexandria"/>
+
+</package>
+
+

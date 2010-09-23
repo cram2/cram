@@ -27,40 +27,18 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :kipla-reasoning)
+(in-package :plan-lib)
 
-(defgeneric update-belief (data &optional reference-object)
-  (:documentation "Updates the belief state and returns the anchored
-                   instance of data."))
+(define-condition location-lost-failure (plan-error) ())
 
-(defvar *believed-occasions* (make-fluent :name 'believed-occasions))
-
-(defun occasion-equal-test (lhs rhs)
-  (if (and (typep lhs 'designator)
-           (typep rhs 'designator))
-      (desig-equal lhs rhs)
-      (eql lhs rhs)))
-
-(defun clear-belief (&key (clear-jlo-cache nil))
-  (setf (value *believed-occasions*) nil)
-  (when clear-jlo-cache
-    (jlo:empty-cache))
-  (clear-alpha-network))
-
-(defun assert-occasion (occ)
-  (kipla:log-msg :info "Asserting occasion `~a'" occ)
-  (pushnew occ (value *believed-occasions*)
-           :test (rcurry #'pat-match-p :test #'occasion-equal-test))
-  (rete-assert occ))
-
-(defun retract-occasion (occ)
-  (kipla:log-msg :info "Retracting occasion `~a'" occ)
-  (setf (value *believed-occasions*)
-        (remove-if (lambda (current)
-                     (when (pat-match-p occ current :test #'occasion-equal-test)
-                       (rete-retract current)
-                       t))
-                   (value *believed-occasions*))))
-
-(defun holds (occ)
-  (force-ll (rete-holds occ #'occasion-equal-test)))
+(defmacro at-location ((loc-var &key (retry-count 3)) &body body)
+  (with-gensyms (retry-count-var)
+    `(let ((,retry-count-var ,retry-count))
+       (with-failure-handling
+           ((location-lost-failure (f)
+              (declare (ignore f))
+              (when (>= (decf ,retry-count-var) 0)
+                (retry))))
+         (achieve `(loc Robot ,,loc-var))
+         ;; Todo: monitor location and throw a location-lost-failure
+         ,@body))))

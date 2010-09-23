@@ -27,7 +27,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :kipla)
+(in-package :plan-lib)
 
 (defvar *process-modules-thread* nil)
 (defvar *process-modules-running* (make-fluent :name '*process-modules-running* :value nil))

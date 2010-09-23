@@ -27,7 +27,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :kipla)
+(in-package :plan-lib)
 
 (define-condition ambiguous-perception (simple-plan-error) ())
 
@@ -41,7 +41,7 @@
   (declare (ignore obj)))
 
 (def-goal (perceive-all ?obj-desig)
-  (log-msg :info "Perceiving `~a'" (description ?obj-desig))
+  (ros-info (perceive plan-lib) "Perceiving `~a'" (description ?obj-desig))
   (let* ((pre-initialized-desig (or (knowrob-pre-initialize-desig ?obj-desig)
                                    ?obj-desig))
          (obj-loc-desig (desig-prop-value ?obj-desig 'at)))
@@ -49,19 +49,19 @@
       (with-failure-handling
           ((object-not-found (e)
              (declare (ignore e))
-             (log-msg :warn "Object not found failure.")
+             (ros-warn (perceive plan-lib) "Object not found failure.")
              (setf loc (next-solution loc))
              (when (and loc (reference loc))
-               (log-msg :info "Retrying at different location ~a." (reference loc))
+               (ros-info (perceive plan-lib) "Retrying at different location ~a." (reference loc))
                (retract-occasion `(loc Robot ?_))               
                (retry))
-             (log-msg :warn "Failing at object-not-found failure.")))
+             (ros-warn (perceive plan-lib) "Failing at object-not-found failure.")))
         (at-location (loc)
           (let ((obj-loc-retry-cnt 0))
             (with-failure-handling
                 ((object-not-found (e)
                    (declare (ignore e))
-                   (log-msg :warn "Object not found failure.")
+                   (ros-warn (perceive plan-lib) "Object not found failure.")
                    (when (< obj-loc-retry-cnt 3)
                      (incf obj-loc-retry-cnt)
                      (when (next-solution obj-loc-desig)
