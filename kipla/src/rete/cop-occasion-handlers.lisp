@@ -27,7 +27,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :perception-pm)
+(in-package :kipla-reasoning)
 
 (defvar *cop-feedback-pub* nil)
 

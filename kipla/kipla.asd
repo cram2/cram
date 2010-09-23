@@ -74,7 +74,8 @@
                         :depends-on ("packages" "config" "knowledge")
                         :components
                         ((:file "rete-utils")
-                         (:file "occasions" :depends-on ("rete-utils"))))
+                         (:file "occasions" :depends-on ("rete-utils"))
+                         (:file "cop-occasion-handlers" :depends-on ("occasions"))))
                (:module "knowledge"
                         :depends-on ("packages" "config")
                         :components

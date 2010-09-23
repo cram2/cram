@@ -43,6 +43,7 @@
    #:perception #:object-not-found
    #:object-search-function
    #:execute-object-search-function
+   #:newest-valid-designator
    ;; object-belief
    #:perceived-object #:queried-object #:object-properties
    #:object-pose #:perceived-object-probability #:object-desig
@@ -55,6 +56,9 @@
    #:matching-object #:merge-desig-descriptions
    #:desig-bound
    #:make-new-desig-description
+   ;; cop stuff
+   #:cop-perceived-object
+   #:perception-primitive
    ;; cop-designators
    #:cop-desig-query-info #:cop-desig-query-info-object-classes
    #:cop-desig-query-info-object-ids #:cop-desig-query-info-poses
