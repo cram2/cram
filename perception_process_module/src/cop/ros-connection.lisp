@@ -27,7 +27,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :kipla)
+(in-package :perception-pm)
 
 (defvar *cop-output-queue* (make-fluent :name '*cop-output-queue* :value nil))
 (defvar *cop-parameters* (make-hash-table :test 'cl:eq))

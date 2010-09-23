@@ -27,7 +27,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :kipla)
+(in-package :perception-pm)
 
 (defgeneric has-cop-info (obj)
   (:documentation "Returns T if the object contains cop information
@@ -60,8 +60,8 @@
   (mapcar (alexandria:compose #'rosify-lisp-name #'cadr)
           (object-properties obj)))
 
-(defmethod kipla-reasoning:make-new-desig-description ((old-desig object-designator)
-                                                       (po cop-perceived-object))
+(defmethod make-new-desig-description ((old-desig object-designator)
+                                       (po cop-perceived-object))
   (let ((obj-loc-desig (make-designator 'location `((pose ,(jlo->pose (object-pose po))))))
         ;; (old-obj-loc-desig (desig-prop-value old-desig 'at))
         )

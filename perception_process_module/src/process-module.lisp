@@ -27,7 +27,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :kipla)
+(in-package :perception-pm)
 
 (define-condition object-not-found (plan-error)
   ((object-desig :initarg :object-desig :initform nil :reader object-not-found-desig)))
@@ -47,7 +47,7 @@
 
 (defun perceived-object->designator (desig obj &optional parent-desig)
   (let ((new-desig (make-designator 'object
-                                    (kipla-reasoning:make-new-desig-description
+                                    (make-new-desig-description
                                      desig obj))))
     ;; Todo: Merge the object properties with the desinator's props
     ;; Todo: Use weak references here to make desigs gc-able
@@ -172,12 +172,6 @@
     (find-valid-desig (current-desig desig))))
 
 (def-process-module perception (input)
-  ;; This process module receives an instance of cop-desig-info and
-  ;; returns a designator. It updates the robot's belief state with
-  ;; all information gathered during execution.
-  (unless (member :perception *kipla-features*)
-    (sleep 0.1)
-    (return nil))
   (assert (typep input 'object-designator))
   (let ((productuion-name (gensym "DESIG-PRODUCTION-")))
     (unwind-protect

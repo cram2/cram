@@ -1,0 +1,27 @@
+<package>
+  <description brief="perception_process_module">
+
+     perception_process_module
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/perception_process_module</url>
+
+  <depend package="cram_roslisp_common"/>
+  <depend package="process_modules"/>
+  <depend package="vision_msgs"/>
+  <depend package="vision_srvs"/>
+  <depend package="cram_reasoning"/>
+  <depend package="designators"/>
+  <depend package="designators_ros"/>
+  <depend package="cljlo"/>
+  <depend package="cljlo_utils"/>
+  <depend package="cl_json_pl_client"/>
+  <depend package="cram_utilities"/>
+  <depend package="cram_language"/>
+  <depend package="std_msgs"/>
+  <depend package="actionlib_lisp"/>
+
+</package>

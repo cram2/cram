@@ -27,7 +27,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :kipla-reasoning)
+(in-package :perception-pm)
 
 (defgeneric object-pose (obj)
   (:documentation "Returns the pose of a designator reference."))
