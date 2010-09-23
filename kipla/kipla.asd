@@ -50,14 +50,11 @@
                  roslisp
                  cram-roslisp-common
                  map-annotation
-                 std_msgs-msg
                  geometry_msgs-msg
-                 vision_srvs-srv
                  cogman_msgs-msg
                  actionlib
                  cljlo
                  alexandria
-                 cl-json-pl-client
                  pr2_msgs-msg
                  cl-utils
                  visualization_msgs-msg
@@ -65,6 +62,7 @@
                  cram-plan-actionserver
                  jlo-navp-process-module
                  cljlo-utils
+                 perception-process-module
                  #+kipla-contrib-oro oro_ros-srv
                  #+kipla-contrib-oro yason
                  #+kipla-contrib-hri web_hri-srv)
@@ -87,25 +85,7 @@
                         ((:file "prolog-utils")
                          (:file "location-facts")
                          (:file "time")
-                         (:file "tasks")
-                         (:file "objects")))
-               (:module "perception"
-                        :depends-on ("packages" "config" "rete")
-                        :components
-                        ((:file "object-belief")
-                         (:file "process-module"
-                                :depends-on ("object-belief" "passive"))
-                         (:module "cop"
-                                  :depends-on ("object-belief" "process-module")
-                                  :components
-                                  ((:file "cop-designator")
-                                   (:file "occasion-handlers")
-                                   (:file "ros-connection" :depends-on ("cop-designator"))
-                                   (:file "cop-search-handlers" :depends-on ("cop-designator"))))
-                         (:module "passive"
-                                  :depends-on ("object-belief")
-                                  :components
-                                  ((:file "knowrob-objects")))))
+                         (:file "tasks")))
                (:module "manipulation"
                         :depends-on ("packages" "config")
                         :components
@@ -120,7 +100,6 @@
                                      "speech"
                                      "knowledge"
                                      "rete"
-                                     "perception"
                                      "manipulation")
                         :components
                         ((:file "process-modules")
