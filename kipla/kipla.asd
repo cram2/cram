@@ -33,8 +33,7 @@
 
 (asdf:defsystem kipla
     :name "kipla"
-    :author "Lorenz Moesenlechner <moesenle@cs.tum.edu>,
-             Piotr Esden-Tempski <esdentem@cs.tum.edu>"
+    :author "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
     :version "0.1"
     :maintainer "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
     :license "GPLv3"
@@ -86,9 +85,7 @@
                         :depends-on ("packages" "config")
                         :components
                         ((:file "prolog-utils")
-                         (:module "locations"
-                                  :components
-                                  ((:file "location-facts")))
+                         (:file "location-facts")
                          (:file "time")
                          (:file "tasks")
                          (:file "objects")))
