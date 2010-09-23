@@ -105,6 +105,8 @@
            #:fail #:simple-plan-error #:rethrown-error
            #:plan-error #:plan-error-message #:plan-error-data
            #:with-failure-handling #:retry
+           #:*break-on-plan-failures*
+           #:*break-on-errors*
            ;; task.lisp
            #:*current-task*
            #:status #:result
