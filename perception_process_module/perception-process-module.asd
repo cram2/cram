@@ -45,7 +45,9 @@
                actionlib
                vision_msgs-msg
                vision_srvs-srv
-               std_msgs-msg)
+               std_msgs-msg
+               alexandria
+               table-costmap)
   :components
   ((:module "src"
             :components

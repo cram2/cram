@@ -95,10 +95,7 @@
   (assert (typep jlo 'jlo::jlo))
   ;; Note: we seem to have an evil race condition here. When taking
   ;; out the sleep, we get failures.
-  (log-msg :info "Looking at ~a" jlo)
-  (unless (member :ptu *kipla-features*)
-    (sleep 0.5)
-    (return-from look-at nil))
+  (ros-info (cop process-module) "Looking at ~a" jlo)
   (actionlib:call-goal *ptu-action-client*
                        (make-message "cogman_msgs/PtuGoal"
                                      :lo_id (jlo:id jlo)
@@ -110,10 +107,7 @@
   (assert (typep jlo 'jlo::jlo))
   ;; Note: we seem to have an evil race condition here. When taking
   ;; out the sleep, we get failures.
-  (log-msg :info "PTU following ~a" jlo)
-  (unless (member :ptu *kipla-features*)
-    (sleep 0.5)
-    (return-from look-long-at nil))
+  (ros-info (cop process-module) "PTU following ~a" jlo)
   (actionlib:call-goal *ptu-action-client*
                        (make-message "cogman_msgs/PtuGoal"
                                      :lo_id (jlo:id jlo)

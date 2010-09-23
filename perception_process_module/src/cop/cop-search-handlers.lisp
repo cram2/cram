@@ -115,8 +115,9 @@
                     (let ((loc (desig-prop-value desig 'at)))
                       (when (and (eql (desig-prop-value loc 'on) 'table)
                                  (desig-prop-value loc 'name))
-                        (list (table-cluster->jlo (get-table-cluster
-                                                   (desig-prop-value loc 'name)))))))
+                        (list (let ((cluster (get-table-cluster
+                                              (desig-prop-value loc 'name))))
+                                (gaussian->jlo (name cluster) (mean cluster) (cov cluster)))))))
                   (list (jlo:make-jlo :name "/sr4"))))))
     (do-cop-search desig query-info)))
 
