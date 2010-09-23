@@ -163,6 +163,14 @@
                              (perceived-object->designator desig perceived-object)))))
                   sorted-perceived-objects))))))
 
+(defun newest-valid-designator (desig)
+  (labels ((find-valid-desig (desig)
+             (cond ((not desig) nil)
+                   ((valid desig)
+                    desig)
+                   (t (find-valid-desig (parent desig))))))
+    (find-valid-desig (current-desig desig))))
+
 (def-process-module perception (input)
   ;; This process module receives an instance of cop-desig-info and
   ;; returns a designator. It updates the robot's belief state with
@@ -178,7 +186,7 @@
                                     (designator->production input '?perceived-object))
            (cond (;; Designator that has alrady been equated
                   (parent input)
-                  (find-with-parent-desig input productuion-name))
+                  (find-with-parent-desig (newest-valid-designator input) productuion-name))
                  (t
                   (find-with-new-desig input productuion-name))))
       (crs:remove-production productuion-name))))
