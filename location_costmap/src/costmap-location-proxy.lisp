@@ -76,4 +76,5 @@
                            (loop repeat +costmap-n-samples+
                                  collecting (generate-point costmap)))))
         (prog1 (setf point (take-closest-point solutions))
+          (publish-point point)
           (setf next-solutions (delete point solutions)))))))
