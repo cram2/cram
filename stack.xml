@@ -4,14 +4,17 @@
   <license>BSD</license>  
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cram_highlevel</url>
-  <depend stack="common_msgs" /> <!-- nav_msgs -->
-  <depend stack="cram_pl" /> <!-- cram_reasoning, alexandria, designators, cram_math, liswip, cram_utilities, process_modules, cram_language, cram_execution_trace -->
-  <depend stack="ias_common" /> <!-- vision_srvs, navp_action -->
-  <depend stack="knowrob" /> <!-- cl_json_pl_client, ias_semantic_map -->
+  <depend stack="common" /> <!-- actionlib -->
+  <depend stack="common_msgs" /> <!-- nav_msgs, sensor_msgs, actionlib_msgs, geometry_msgs -->
+  <depend stack="cram_pl" /> <!-- cram_reasoning, alexandria, trivial_garbage, designators, cram_math, process_modules, cram_utilities, cram_language, cram_execution_trace -->
+  <depend stack="cram_rosie" /> <!-- kuka_arm_hand_process_module, jlo_navp_process_module -->
+  <depend stack="ias_common" /> <!-- vision_msgs, vision_srvs, cogman_msgs -->
+  <depend stack="knowrob" /> <!-- yason, json_prolog -->
   <depend stack="motion_planning_common" /> <!-- mapping_msgs -->
-  <depend stack="pr2_common" /> <!-- pr2_msgs -->
-  <depend stack="ros" /> <!-- rospy -->
-  <depend stack="roslisp_common" /> <!-- actionlib_lisp, cl_utils -->
+  <depend stack="point_cloud_perception" /> <!-- point_cloud_converter, pcl, pcl_ros -->
+  <depend stack="ros" /> <!-- std_msgs, roslisp, rospy, std_srvs -->
+  <depend stack="roslisp_common" /> <!-- actionlib_lisp, cl_transforms, cl_utils, cl_tf -->
   <depend stack="roslisp_support" /> <!-- roslisp_runtime -->
+  <depend stack="visualization_common" /> <!-- visualization_msgs -->
 
 </stack>
