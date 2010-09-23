@@ -32,13 +32,13 @@
 
 (defun ros-location-costmaps-init ()
   "Subscribes to the map topic."
+  (init-table-clusters)  
   (subscribe (roslisp:get-param "~map-topic" "/map")
              "nav_msgs/OccupancyGrid"
              (make-fluent-setter-callback *map-fl*))
   (subscribe (roslisp:get-param "~table-costmap-topic" "/table_costmap/grid_cells")
              "nav_msgs/GridCells"
-             #'table-grid-cells-cb)
-  (init-table-clusters))
+             #'table-grid-cells-cb))
 
 (defun table-grid-cells-cb (msg)
   (setf (value *table-grid-cells-fl*) msg)
