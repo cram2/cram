@@ -40,19 +40,25 @@
                (progn
                  (setf worker-thread (sb-thread:make-thread
                                       (lambda ()
-                                        (setf result
-                                              (apply (symbol-function plan-symbol)
-                                                     (let ((*read-eval* nil))
-                                                       (map 'list #'read-from-string parameters)))))))
+                                        (handler-case
+                                            (setf result
+                                                  (apply (symbol-function plan-symbol)
+                                                         (let ((*read-eval* nil))
+                                                           (map 'list #'read-from-string parameters))))
+                                          (condition (e)
+                                            (setf result e))))))
                  (loop-at-most-every 0.1
                    (when (actionlib:cancel-request-received)
                      (actionlib:abort-current))
                    (when (not (sb-thread:thread-alive-p worker-thread))
-                     (actionlib:succeed-current :result (format nil "~a" result)))))
+                     (typecase result
+                       (condition
+                          (actionlib:abort-current :result (format nil "~a" result)))
+                       (t (actionlib:succeed-current :result (format nil "~a" result)))))))
             (when (and worker-thread (sb-thread:thread-alive-p worker-thread))
               (sb-thread:terminate-thread worker-thread)))))
     (error (e)
-      (actionlib:abort-current result (format nil "~a" e)))))
+      (actionlib:abort-current :result (format nil "~a" e)))))
 
 (def-service-callback (plan-list cram_plan_actionserver-srv:planlist) ()
   (flet ((plan-description (plan-sym)
