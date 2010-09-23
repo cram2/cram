@@ -40,7 +40,8 @@
                :actionlib
                :cram_plan_actionserver-msg
                :cram_plan_actionserver-srv
-               :cram-roslisp-common)
+               :cram-roslisp-common
+               :cram-execution-trace)
 
   :components
   ((:module "src"
