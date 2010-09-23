@@ -65,13 +65,24 @@
                    :descriptions (map 'vector (alexandria:compose #'plan-description #'cdr)
                                       *plans*))))
 
+(defun maybe-setup-tracing ()
+  (let ((tracing-enabled (get-param "~record_execution_trace" nil))
+        (tracing-dir (get-param "~execution_trace_dir" nil)))
+    (when tracing-enabled
+      (if (not tracing-dir)
+          (ros-fatal (actonserver cram)
+                     "Recording of execution traces enabled but no directory specified. Please set the parameter execution_trace_dir.")
+          (cet:setup-auto-tracing (make-pathname :directory tracing-dir) :ensure-directory t)))))
+
 (defun server ()
   "Runs the actionserver and blocks."
   (unwind-protect
        (progn
-         (setf cpl-impl::*break-on-plan-failures* nil)
+         (setf cpl-impl:*break-on-plan-failures* nil)
+         (setf cpl-impl:*break-on-errors* nil)
          (startup-ros :name "cram_actionserver" :anonymous nil)
          (register-service-fn "~list_plans" #'plan-list 'cram_plan_actionserver-srv:planlist)
+         (maybe-setup-tracing)
          (actionlib:start-action-server
           "~execute_plan" "cram_plan_actionserver/ExecutePlan"
           #'cram-actionserver-execute))
