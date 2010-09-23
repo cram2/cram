@@ -65,5 +65,6 @@
            #:pose #:of #:type #:at
            #:desig-prop #:desig-class #:desig-value
            #:desig-location-prop #:obj
+           #:to
            #:desig
            #:manip-desig? #:trajectory))
