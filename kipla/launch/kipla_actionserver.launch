@@ -1,0 +1,8 @@
+
+<launch>
+  <include file="$(find kipla)/launch/location_costmap_processing_kimp.launch"/>
+  <node name="cram_actionserver" pkg="kipla" type="kipla_action" output="screen">
+    <param name="record_execution_trace" value="true"/>
+    <param name="execution_trace_dir" value="$(find kipla)/execution_traces"/>
+  </node>
+</launch>
