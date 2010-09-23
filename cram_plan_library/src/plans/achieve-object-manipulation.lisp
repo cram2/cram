@@ -27,76 +27,23 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :kipla)
-
-(define-condition destination-location-occupied (plan-error) ())
-
-(defun optimized-manipulation-location (side &optional obj)
-  (let* ((robot->obj (and obj
-                          (jlo:frame-query (jlo:make-jlo :name "/base_link")
-                                           (object-pose (reference obj))))))
-    (when (or (not obj)
-              (= (jlo:pose robot->obj 1 3) 0.0)
-              (> (abs (/ (jlo:pose robot->obj 0 3)
-                         (jlo:pose robot->obj 1 3)))
-                 (tan (ecase side
-                        (:right (- (/ (* 30 pi)
-                                      180)))
-                        (:left (/ (* 30 pi)
-                                  180))))))
-      (let ((new-lo (jlo:make-jlo-rpy :parent (jlo:make-jlo :name "/base_link")
-                                      :yaw (ecase side
-                                             (:right (/ (* 30 pi)
-                                                        180))
-                                             (:left (- (/ (* 30 pi)
-                                                          180)))))))
-        (make-designator 'location `((jlo ,new-lo)))))
-    ;; (cond (ignore-alternative-poses
-    ;;        (setf pick-up-loc (next-solution pick-up-loc)))
-    ;;       (t
-    ;;        (setf ignore-alternative-poses t)
-    ;;        (setf pick-up-loc
-    ;;              (merge-designators (make-designator 'location `((jlo-list ,(alternative-poses f))))
-    ;;                                 pick-up-loc))))
-))
-
-(defun location-at-side (loc)
-  "Returns if a location is left or right of the robot."
-  (let ((base->loc (jlo:frame-query (jlo:make-jlo :name "/base_link")
-                                    (reference loc))))
-    (if (>= (jlo:pose base->loc 1 3) 0)
-        :left
-        :right)))
-
-(defun alternative-put-down-location (loc offset)
-  (let ((new-loc (jlo:frame-query (jlo:make-jlo :name "/base_link")
-                                  (reference loc))))
-    (incf (jlo:pose new-loc 1 3) offset)
-    (make-designator 'location `((jlo ,new-loc)))))
-
-;; (defun clusters-within-range (loc range)
-;;   (loop for c in *perceived-objects*
-;;      when (< (jlo:euclidean-distance (reference loc)
-;;                                      (object-pose c))
-;;              range)
-;;      collecting c))
+(in-package :plan-lib)
 
 (def-goal (achieve (object-in-hand ?obj ?side))
-  (log-msg :info "(achieve (object-in-hand))")
+  (ros-info (achieve plan-lib) "(achieve (object-in-hand))")
   (let ((retry-count 0)
         (alternative-poses-cnt 0))
     (with-failure-handling
         ((object-lost (f)
            (declare (ignore f))
-           (log-msg :warn "Object lost.")
+           (ros-warn (achieve plan-lib) "Object lost.")
            (when (< (incf retry-count) 3)
              (retry)))
          (manipulation-failed (f)
            (assert-occasion
             `(object-in-hand-failure manipulation-failed ,?obj ,?side))
-           (log-msg :warn "Manipulation action failed. ~a" f)
+           (ros-warn (achieve plan-lib) "Manipulation action failed. ~a" f)
            (setf alternative-poses-cnt 0)
-           (say "Failed to grasp. I try again.")           
            (achieve `(arms-at ,(make-designator 'action `((type trajectory) (pose open) (side ,?side)))))
            (when (< (incf retry-count) 3)
              (retry))))
@@ -111,8 +58,7 @@
                (declare (ignore f))
                (assert-occasion
                 `(object-in-hand-failure manipulation-pose-unreachable ,?obj ,?side))
-               (say "Cannot reach object. Trying another position.")
-               (log-msg :warn "Got unreachable grasp pose. Trying alternatives")
+               (ros-warn (achieve plan-lib) "Got unreachable grasp pose. Trying alternatives")
                (when (< alternative-poses-cnt 3)
                  (incf alternative-poses-cnt)
                  (setf pick-up-loc (next-solution pick-up-loc))
@@ -137,7 +83,7 @@
   ?obj)
 
 (def-goal (achieve (object-placed-at ?obj ?loc))
-  (log-msg :info "(achieve (object-placed-at))")
+  (ros-info (achieve plan-lib) "(achieve (object-placed-at))")
   (setf ?obj (current-desig ?obj))
   (let ((object-in-hand-bdgs (holds `(object-in-hand ,?obj ?side)))
         (alternative-poses-cnt 0)
@@ -150,8 +96,7 @@
       (with-failure-handling
           ((manipulation-failed (f)
              (declare (ignore f))
-             (log-msg :warn "Manipulation action failed.")
-             (say "Failed to put down. I try again.")
+             (ros-warn (achieve plan-lib) "Manipulation action failed.")
              (with-designators ((open-trajectory (action `((type trajectory) (pose open) (side ,side)))))
                (achieve `(arms-at ,open-trajectory)))
              (when (< (incf retry-count) 3)
@@ -161,33 +106,18 @@
                                                           (obj ,obj) (at ,?loc) (side ,side))))
                            (open-trajectory (action `((type trajectory) (pose open) (side ,side))))
                            (hand-open-trajectory (action `((type trajectory) (to open) (gripper ,side))))
-                           (unhand-trajectory (action `((type trajectory) (to lift) (side ,side))))
-                           ;; (clusters (object `((type cluster) (matches 10) (at ,?loc))))
-                           )
+                           (unhand-trajectory (action `((type trajectory) (to lift) (side ,side)))))
           (with-failure-handling
               ((manipulation-pose-unreachable (f)
                  (declare (ignore f))
-                 (say "Cannot reach position. Trying to turn for better position.")
-                 (log-msg :warn "Got unreachable put-down pose. Trying alternatives")
+                 (ros-warn (achieve plan-lib) "Got unreachable put-down pose. Trying alternatives")
                  (let ((optimized-loc (optimized-manipulation-location side)))
                    (when (and (< alternative-poses-cnt 3)
                               optimized-loc (reference optimized-loc))
-                     (log-msg :info "Setting alternative pose to ~a" (reference optimized-loc))
-                     ;; (setf put-down-loc optimized-loc)
-                     (retry))))
-               ;; (destination-location-occupied (e)
-               ;;   (declare (ignore e))
-               ;;   (log-msg :warn "Destination location occupied.")
-               ;;   (setf ?loc (alternative-put-down-location
-               ;;               ?loc (if (eq side :left)
-               ;;                        0.10
-               ;;                        -0.10))))
-               )
+                     (ros-info (achieve plan-lib) "Setting alternative pose to ~a" (reference optimized-loc))
+                     (retry)))))
             (at-location (put-down-loc)
               (achieve `(looking-at ,(reference ?loc)))
-              ;; (perceive clusters)
-              ;; (when (clusters-within-range 0.1)
-              ;;   (fail (make-condition 'destination-location-occupied)))
               (achieve `(arms-at ,open-trajectory))              
               (achieve `(arms-at ,put-down-trajectory))
               (achieve `(arms-at ,hand-open-trajectory))
@@ -211,7 +141,7 @@
            (unless (holds `(arm-parked ,side))
              (if (holds `(object-in-hand ?_ ,side))
                  (with-designators ((parking (action `((type trajectory) (to carry) (side ,side)))))
-                   (log-msg :info "going to left carry pose")
+                   (ros-info (achieve plan-lib) "going to left carry pose")
                    (achieve `(arms-at ,parking)))
                  (with-designators ((hand-open (action `((type trajectory) (to open) (gripper ,side))))
                                     (hand-closed (action `((type trajectory) (to close) (gripper ,side))))
@@ -222,11 +152,11 @@
                    (achieve `(arms-at ,hand-closed))
                    (achieve `(arms-at ,parking))))
              (assert-occasion `(arm-parked ,side)))))
-    (log-msg :info "(achieve (arm-parked ~a))" ?side)
+    (ros-info (achieve plan-lib) "(achieve (arm-parked ~a))" ?side)
     (let ((parked-arms (remove nil (list (holds `(arm-parked :left))
                                          (holds `(arm-parked :right)))))
           (carried-objs (holds `(object-in-hand ?_ ?_))))
-      (log-msg :info "Already parked arms ~a~%" parked-arms)
+      (ros-info (achieve plan-lib) "Already parked arms ~a~%" parked-arms)
       (case ?side
         (:both (cond ((or parked-arms carried-objs)
                       (park-one-arm :left)

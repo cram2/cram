@@ -27,13 +27,13 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :kipla-reasoning)
+(in-package :plan-lib)
 
 (defvar *cop-feedback-pub* nil)
 
 (defun init-cop-feedback ()
   (setf *cop-feedback-pub*
-        (roslisp:advertise
+        (advertise
          "/cop/feedback"
          "vision_msgs/cop_feedback")))
 (register-ros-init-function init-cop-feedback)
@@ -46,30 +46,30 @@
   (when (eq op :assert)
     (let ((perceived-object (reference (newest-valid-designator ?obj))))
       (when (typep perceived-object 'cop-perceived-object)
-        (roslisp:publish *cop-feedback-pub*
-                         (roslisp:make-message
-                          "vision_msgs/cop_feedback"
-                          perception_primitive (perception-primitive
-                                                perceived-object)
-                          evaluation 1.0))))))
+        (publish *cop-feedback-pub*
+                 (make-message
+                  "vision_msgs/cop_feedback"
+                  perception_primitive (perception-primitive
+                                        perceived-object)
+                  evaluation 1.0))))))
 
 (defun cop-failed-pick-up (op &key ?f ?obj ?side)
   (declare (ignore ?side))
   (when (eq op :assert)
     (let ((perceived-object (reference (newest-valid-designator ?obj))))
       (when (typep perceived-object 'cop-perceived-object)
-        (roslisp:publish *cop-feedback-pub*
-                         (roslisp:make-message
-                          "vision_msgs/cop_feedback"
-                          perception_primitive (perception-primitive
-                                                perceived-object)
-                          evaluation 0.0
-                          error (vector
-                                 (roslisp:make-message
-                                  "vision_msgs/system_error"
-                                  error_id 0
-                                  node_name roslisp:*ros-node-name*
-                                  error_description (symbol-name ?f)))))))))
+        (publish *cop-feedback-pub*
+                 (make-message
+                  "vision_msgs/cop_feedback"
+                  perception_primitive (perception-primitive
+                                        perceived-object)
+                  evaluation 0.0
+                  error (vector
+                         (make-message
+                          "vision_msgs/system_error"
+                          error_id 0
+                          node_name *ros-node-name*
+                          error_description (symbol-name ?f)))))))))
 
 (register-production-handler 'object-picked-up #'cop-successful-pick-up)
 (register-production-handler 'object-in-hand-failure #'cop-failed-pick-up)

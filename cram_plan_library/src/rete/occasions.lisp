@@ -27,12 +27,12 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :kipla-reasoning)
+(in-package :plan-lib)
 
-(def-production object-picked-up
+(crs:def-production object-picked-up
   (object-in-hand ?obj ?side))
 
-(def-production object-in-hand-failure
+(crs:def-production object-in-hand-failure
   (object-in-hand-failure ?f ?obj ?side))
 
 (defun on-obj-in-hand-retractions (op &key ?obj ?side)
@@ -56,7 +56,7 @@
                        (side ,?side)
                        (pose ,(cl-tf:transform-pose
                                *tf* :pose (cl-tf:make-pose-stamped
-                                           (cl-tf:frame-id obj-pose) (roslisp:ros-time)
+                                           (cl-tf:frame-id obj-pose) (ros-time)
                                            (cl-transforms:make-3d-vector
                                             (cl-transforms:x (cl-transforms:origin obj-pose))
                                             (cl-transforms:y (cl-transforms:origin obj-pose))
@@ -73,4 +73,4 @@
                        `((at ,new-loc) ,(remove 'at (description ?obj) :key #'car))
                        ?obj))))
 
-(register-production-handler 'object-picked-up #'on-object-picked-up)
+(crs:register-production-handler 'object-picked-up #'on-object-picked-up)

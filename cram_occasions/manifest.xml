@@ -1,0 +1,19 @@
+<package>
+  <description brief="cram_occasions">
+
+     cram_occasions
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cram_occasions</url>
+  <depend package="cram_reasoning"/>
+  <depend package="cram_language"/>
+  <depend package="cram_utilities"/>
+  <depend package="alexandria"/>
+  <depend package="designators"/>
+
+</package>
+
+

@@ -27,18 +27,16 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :kipla)
-
-(define-condition location-lost-failure (navigation-failure) ())
-
-(defmacro at-location ((loc-var &key (retry-count 3)) &body body)
-  (with-gensyms (retry-count-var)
-    `(let ((,retry-count-var ,retry-count))
-       (with-failure-handling
-           ((location-lost-failure (f)
-              (declare (ignore f))
-              (when (>= (decf ,retry-count-var) 0)
-                (retry))))
-         (achieve `(loc Robot ,,loc-var))
-         ;; Todo: monitor location and throw a location-lost-failure
-         ,@body))))
+(defpackage cram-occasions
+    (:use #:common-lisp
+          #:cram-reasoning
+          #:alexandria
+          #:desig
+          #:cram-utilities)
+  (:export #:clear-belief
+           #:assert-occasion
+           #:retract-occasion
+           #:holds)
+  (:import-from #:cpl
+                #:make-fluent
+                #:value))
