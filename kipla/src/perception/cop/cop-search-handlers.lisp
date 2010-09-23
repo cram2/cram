@@ -80,9 +80,11 @@
                      perceived-object))
            (vision_msgs-msg:found_poses-val cop-reply)))))
 
-(defun get-clusters ()
-  (with-designators ((clusters (object '((type cluster)))))
-    (execute-object-search-function clusters)))
+(defun get-clusters (desig)
+  (with-desig-props (at) desig
+    (with-designators ((clusters (object `((type cluster) ,(when at
+                                                             `(at ,at))))))
+      (execute-object-search-function clusters))))
 
 (defun pre-process-perceived-objects (desig objects)
   (declare (ignore desig))  
@@ -103,12 +105,14 @@
            (setf (cop-desig-query-info-matches query-info) 1))
           (t
            (setf (cop-desig-query-info-poses query-info)
-                 (when (desig-prop-value desig 'at)
-                   (let ((loc (desig-prop-value desig 'at)))
-                     (when (and (eql (desig-prop-value loc 'on) 'table)
-                                (desig-prop-value loc 'name))
-                       (list (table-cluster->jlo (get-table-cluster
-                                                  (desig-prop-value loc 'name))))))))))
+                 (or
+                  (when (desig-prop-value desig 'at)
+                    (let ((loc (desig-prop-value desig 'at)))
+                      (when (and (eql (desig-prop-value loc 'on) 'table)
+                                 (desig-prop-value loc 'name))
+                        (list (table-cluster->jlo (get-table-cluster
+                                                   (desig-prop-value loc 'name)))))))
+                  (list (jlo:make-jlo :name "/sr4"))))))
     (do-cop-search desig query-info)))
 
 (defmethod object-search-function ((type (cl:eql 'object)) desig &optional perceived-object)
@@ -131,7 +135,7 @@
            nil)
           (t
            (append (find-flat-objects)
-                   (refine-clusters (get-clusters)))))))
+                   (refine-clusters (get-clusters desig)))))))
 
 (defmethod object-search-function ((type t) desig &optional previous-object)
   ;; The default behavior is the following: If no perceived-object is
@@ -153,7 +157,7 @@
               (list (object-pose previous-object))))
       (let ((perceived-objects (or (when previous-object
                                      (list previous-object))
-                                   (get-clusters))))
+                                   (get-clusters desig))))
         (setf (cop-desig-query-info-poses query-info)
               (mapcar #'object-pose
                       (pre-process-perceived-objects desig perceived-objects)))
