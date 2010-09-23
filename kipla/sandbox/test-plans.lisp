@@ -255,7 +255,8 @@ names of points that are provided by the map_annotation server."
     (with-designators ((from (location `((on table) (name ,from))))
                        (to (location `((on table) (name ,to))))
                        (obj (object `(,@obj-properties (at ,from)))))
-      (achieve `(loc ,obj ,to)))))
+      (achieve `(loc ,obj ,to))
+      (achieve '(arm-parked :both)))))
 
 (def-top-level-plan pick-and-place-cluster (from to)
   (pursue
