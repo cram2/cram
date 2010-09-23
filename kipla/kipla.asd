@@ -52,7 +52,6 @@
                  map-annotation
                  geometry_msgs-msg
                  alexandria
-                 pr2_msgs-msg
                  cl-utils
                  table-costmap
                  cram-plan-actionserver

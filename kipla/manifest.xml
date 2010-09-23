@@ -18,7 +18,6 @@
   <depend package="cogman_msgs"/>
   <depend package="alexandria"/>
   <depend package="cl_json_pl_client"/>
-  <depend package="pr2_msgs"/>
   <depend package="actionlib_lisp"/>
   <depend package="cl_utils"/>
   <depend package="location_costmap"/>
