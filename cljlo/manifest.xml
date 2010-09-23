@@ -1,0 +1,14 @@
+<package>
+  <description brief="cljlo, a jlo interface for common lisp">
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <rosdep name="sbcl"/>
+  <depend package="roslisp"/>
+  <depend package="vision_srvs"/>
+  <depend package="alexandria"/>
+  <depend package="trivial_garbage"/>
+</package>
+
+
