@@ -30,64 +30,6 @@
 
 (in-package :cpm)
 
-;;; Process modules
-;;;
-;;; A process module encapsulates interaction with the outer
-;;; world. Implementing a new process module is rather easy:
-;;; 
-;;; (def-process-module test-pm (pm)
-;;;   (format t "received input ~a~%" (input pm))
-;;;
-;;; Use pm-execute to send input to a running pm and use pm-cancel to
-;;; cancel execution.
-;;;
-;;; Handling of priorities is not implemented yet.
-
-
-
-(defclass process-module ()
-  ((name :reader name :documentation "The name of the process-module")
-   (input :reader input :documentation "Input fluent.")
-   (feedback :reader feedback :documentation "Feedback fluent.")
-   (result :reader result :documentation "Result fluent")
-   (status :reader status
-           :documentation "Status fluent. Possible status: 
-                           :waiting :running :failed")
-   (cancel :reader cancel :documentation "Cancel request fluent")
-   (priority :reader priority :initform nil
-             :documentation "Priority of the currently running
-                             process. Only higher priorized processes
-                             can send new inputs while the process
-                             module is running.")
-   (caller :reader caller
-           :documentation "Fluent containing the task that sent the
-                           current input.")))
-
-(defgeneric pm-run (process-module)
-  (:documentation "Represents the main event loop of the process
-                   Module. Note: pm-run will never return (due to an
-                   around method). Otherwise, the process module would
-                   be dead. When a cancel is triggered, the pm-run method
-                   is evaporated and restarted. status and result are
-                   set implicitly. pm-run must not set these
-                   values. Feedback can be used to provide feedback
-                   information."))
-
-(defgeneric pm-execute (process-module input &key async priority wait-for-free task)
-  (:documentation "Executes a process module.  
-
-                   async: return immediately after sending the input
-                          and triggering execution.
-                   priority: priority of the task triggering the pm.
-                   wait-for-free: if already running wait for exit and send input.
-                   task: the task triggering the pm."))
-
-(defgeneric pm-cancel (process-module))
-
-(defgeneric pm-status (process-module))
-
-(defvar *process-modules* (make-hash-table :test 'cl:eq))
-
 (defmethod initialize-instance :after ((pm process-module) &key
                                        (name (error "Process modules need a name."))
                                        (input (make-fluent
@@ -171,7 +113,7 @@
       (setf (value status) :offline))))
 
 (defmethod pm-run ((pm symbol))
-  (pm-run (gethash pm *process-modules*)))
+  (pm-run (cdr (assoc pm *process-modules*))))
 
 (defmethod pm-execute ((pm process-module) input &key
                        (async nil) (priority 0) (wait-for-free t)
@@ -201,33 +143,16 @@
         (pm-cancel pm))
       (value result))))
 
-(defmethod pm-execute ((pm symbol) input &key
-                       (async nil) (priority 0) (wait-for-free t)
-                       (task *current-task*))
-  (pm-execute (gethash pm *process-modules*) input
-              :async async :priority priority
-              :wait-for-free wait-for-free :task task))
-
 (defmethod pm-cancel ((pm process-module))
   (setf (value (slot-value pm 'cancel)) t)
   ;; (wait-for (not (eq (slot-value pm 'status) :running)))
   )
 
 (defmethod pm-cancel ((pm symbol))
-  (pm-cancel (gethash pm *process-modules*)))
+  (pm-cancel (cdr (assoc pm *process-modules*))))
 
 (defmethod pm-status ((pm process-module))
   (slot-value pm 'status))
 
 (defmethod pm-status ((pm symbol))
-  (pm-status (gethash pm *process-modules*)))
-
-(defmacro def-process-module (name (pm-name) &body body)
-  (with-gensyms (pm-var-name)
-    `(progn
-       (defclass ,name (process-module) ())
-       (setf (gethash ',name *process-modules*) (make-instance ',name :name ',name))
-       (defmethod pm-run ((,pm-var-name ,name))
-         (block nil
-           (let ((,pm-name (current-desig (value (slot-value ,pm-var-name 'input)))))
-             ,@body))))))
+  (pm-status (cdr (assoc pm *process-modules*))))
