@@ -27,16 +27,22 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(defpackage cram-occasions
+(defpackage cram-plan-knowledge
     (:use #:common-lisp
           #:cram-reasoning
           #:alexandria
           #:desig
-          #:cram-utilities)
+          #:cram-utilities
+          #:cram-execution-trace)
+  (:nicknames #:plan-knowledge)
   (:export #:clear-belief
            #:assert-occasion
            #:retract-occasion
            #:holds)
-  (:import-from #:cpl
+  (:import-from #:cpl-impl
                 #:make-fluent
-                #:value))
+                #:value
+                #:plan-error
+                #:rethrown-error
+                #:task-tree-node-children
+                #:task-tree-node-status-fluent))

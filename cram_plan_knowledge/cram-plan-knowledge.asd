@@ -27,32 +27,21 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :cram-occasions)
+(defsystem cram-plan-knowledge
+  :author "Lorenz Moesenlechner <moesenle@in.tum.de>"
+  :license "BSD"
+  :description "Utilities for working with occasions and rete"
 
-(defvar *believed-occasions* (make-fluent :name 'believed-occasions))
-
-(defun occasion-equal-test (lhs rhs)
-  (if (and (typep lhs 'designator)
-           (typep rhs 'designator))
-      (desig-equal lhs rhs)
-      (eql lhs rhs)))
-
-(defun clear-belief ()
-  (setf (value *believed-occasions*) nil)
-  (clear-alpha-network))
-
-(defun assert-occasion (occ)
-  (pushnew occ (value *believed-occasions*)
-           :test (rcurry #'pat-match-p :test #'occasion-equal-test))
-  (rete-assert occ))
-
-(defun retract-occasion (occ)
-  (setf (value *believed-occasions*)
-        (remove-if (lambda (current)
-                     (when (pat-match-p occ current :test #'occasion-equal-test)
-                       (rete-retract current)
-                       t))
-                   (value *believed-occasions*))))
-
-(defun holds (occ)
-  (force-ll (rete-holds occ #'occasion-equal-test)))
+  :depends-on (cram-reasoning
+               cram-language
+               cram-utilities
+               cram-execution-trace
+               alexandria
+               designators)
+  :components
+  ((:module "src"
+            :components
+            ((:file "package")
+             (:file "occasions" :depends-on ("package"))
+             (:file "tasks" :depends-on ("package" "time"))
+             (:file "time" :depends-on ("package"))))))

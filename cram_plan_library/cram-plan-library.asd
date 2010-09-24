@@ -37,7 +37,7 @@
                process-modules
                designators
                cram-roslisp-common
-               cram-occasions
+               cram-plan-knowledge
                alexandria)
   :components
   ((:module "src"

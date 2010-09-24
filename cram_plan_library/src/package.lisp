@@ -37,7 +37,7 @@
         #:cram-process-modules
         #:roslisp
         #:cram-roslisp-common
-        #:cram-occasions
+        #:cram-plan-knowledge
         #:alexandria)
   (:nicknames :plan-lib)
   (:export #:achieve
