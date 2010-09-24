@@ -91,27 +91,31 @@
 
 (register-ros-init-function init-ptu-action)
 
-(defun look-at (jlo)
-  (assert (typep jlo 'jlo::jlo))
-  ;; Note: we seem to have an evil race condition here. When taking
-  ;; out the sleep, we get failures.
-  (ros-info (cop process-module) "Looking at ~a" jlo)
-  (actionlib:call-goal *ptu-action-client*
-                       (make-message "cogman_msgs/PtuGoal"
-                                     :lo_id (jlo:id jlo)
-                                     :mode 0))
+(defun look-at-pose->jlo (pose)
+  (ecase pose
+    (cl-transforms:pose (pose->jlo ?pose))
+    (jlo:jlo pose)
+    (symbol
+       (ecase pose
+         (:forward (jlo:make-jlo :name "/look_forward"))))))
+
+(defun look-at (pose)
+  (let ((jlo (look-at-pose->jlo pose)))
+    (ros-info (cop process-module) "Looking at ~a" jlo)
+    (actionlib:call-goal *ptu-action-client*
+                         (make-message "cogman_msgs/PtuGoal"
+                                       :lo_id (jlo:id jlo)
+                                       :mode 0)))
   (sleep 1.5))
 
                                                
-(defun look-long-at (jlo)
-  (assert (typep jlo 'jlo::jlo))
-  ;; Note: we seem to have an evil race condition here. When taking
-  ;; out the sleep, we get failures.
-  (ros-info (cop process-module) "PTU following ~a" jlo)
-  (actionlib:call-goal *ptu-action-client*
-                       (make-message "cogman_msgs/PtuGoal"
-                                     :lo_id (jlo:id jlo)
-                                     :mode 0))
+(defun look-long-at (pose)
+  (let ((jlo (look-at-pose->jlo pose)))
+    (ros-info (cop process-module) "PTU following ~a" jlo)
+    (actionlib:call-goal *ptu-action-client*
+                         (make-message "cogman_msgs/PtuGoal"
+                                       :lo_id (jlo:id jlo)
+                                       :mode 0)))
   (sleep 1.5))
 
 (defun wait-for-shoulder-scan ()
