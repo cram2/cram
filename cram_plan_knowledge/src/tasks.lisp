@@ -27,7 +27,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :kipla-reasoning)
+(in-package :cram-plan-knowledge)
 
 ;;; Note: #demmeln: not handling code replacements in any way atm.
 

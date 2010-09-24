@@ -1,5 +1,5 @@
 <package>
-  <description brief="cram_occasions">
+  <description brief="cram_plan_knowledge">
 
      cram_occasions
 
@@ -11,6 +11,7 @@
   <depend package="cram_reasoning"/>
   <depend package="cram_language"/>
   <depend package="cram_utilities"/>
+  <depend package="cram_execution_trace"/>
   <depend package="alexandria"/>
   <depend package="designators"/>
 
