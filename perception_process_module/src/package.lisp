@@ -40,7 +40,8 @@
         #:designators-ros
         #:cljlo-utils
         #:table-costmap
-        #:roslisp)
+        #:roslisp
+        #:cram-plan-failures)
   (:export
    #:perception #:object-not-found
    #:object-search-function

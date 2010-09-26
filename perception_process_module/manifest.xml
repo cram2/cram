@@ -25,5 +25,6 @@
   <depend package="actionlib_lisp"/>
   <depend package="alexandria"/>
   <depend package="table_costmap"/>
+  <depend package="cram_plan_failures"/>
 
 </package>

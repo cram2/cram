@@ -27,34 +27,12 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :cl-user)
+(in-package :cram-plan-failures)
 
-(defpackage cram-plan-library
-    (:documentation "Library of plans for pick-and-place tasks.")
-  (:use #:cpl
-        #:cram-designators
-        #:cram-utilities
-        #:cram-process-modules
-        #:roslisp
-        #:cram-roslisp-common
-        #:cram-plan-knowledge
-        #:cram-plan-failures
-        #:alexandria)
-  (:nicknames :plan-lib)
-  (:export #:achieve
-           #:loc
-           #:object-in-hand
-           #:object-placed-at
-           #:arm-parked
-           #:arms-at
-           #:looking-at
-           #:at-location
-           #:perceive #:perceive-all #:perceive-the
-           #:maybe-run-process-modules
-           #:run-process-modules
-           #:start-process-modules
-           #:stop-process-modules
-           ;; rete and occasions
-           #:object-picked-up
-           #:object-in-hand-failurea))
+(define-condition object-lost (simple-plan-error) ())
 
+(define-condition manipulation-failed (simple-plan-error) ())
+
+(define-condition manipulation-pose-unreachable (simple-plan-error)
+  ((alternative-poses :initform nil :initarg :alternative-poses
+                       :reader alternative-poses)))
