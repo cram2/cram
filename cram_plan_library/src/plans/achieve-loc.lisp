@@ -47,7 +47,7 @@
               (distance-to-drive ?loc))
     (achieve `(looking-at :forward))
     (achieve '(arm-parked :both)))
-  (pm-execute 'navigation ?loc)
+  (pm-execute :navigation ?loc)
   (retract-occasion `(loc Robot ?_))
   (assert-occasion `(loc Robot ,?loc)))
 

@@ -67,7 +67,7 @@
                      (when (next-solution obj-loc-desig)
                        (retry)))))
               (achieve `(looking-at ,(obj-desig-location pre-initialized-desig)))
-              (pm-execute 'perception pre-initialized-desig))))))))
+              (pm-execute :perception pre-initialized-desig))))))))
 
 ;;; Try to find the object described by ?obj-desig and equate the
 ;;; resulting designator with ?obj-desig. If several objects match,

@@ -168,7 +168,7 @@
 (def-goal (achieve (arms-at ?traj))
   (let ((side (desig-prop-value ?traj 'side)))
     (retract-occasion `(arms-at ?_))    
-    (pm-execute 'manipulation ?traj)
+    (pm-execute :manipulation ?traj)
     (when (member side '(:both :left))
       (retract-occasion `(arm-parked :left)))
     (when (member side '(:both :right))
