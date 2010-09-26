@@ -49,11 +49,17 @@
                       :components
                         ((:file "process-modules")
                          (:file "achieve")
-                         (:file "achieve-loc")
-                         (:file "achieve-ptu")
+                         (:file "achieve-loc" :depends-on ("achieve"
+                                                           "achieve-object-manipulation"
+                                                           "achieve-ptu"))
+                         (:file "achieve-ptu" :depends-on ("achieve"))
                          (:file "at-location")
-                         (:file "perceive")
-                         (:file "achieve-object-manipulation")))
+                         (:file "perceive" :depends-on ("achieve-ptu"
+                                                        "at-location"))
+                         (:file "achieve-object-manipulation"
+                                :depends-on ("achieve"
+                                             "perceive"
+                                             "achieve-ptu"))))
              (:module "rete"
                       :depends-on ("package" "plans")
                       :components
