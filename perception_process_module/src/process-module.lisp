@@ -29,9 +29,6 @@
 
 (in-package :perception-pm)
 
-(define-condition object-not-found (plan-error)
-  ((object-desig :initarg :object-desig :initform nil :reader object-not-found-desig)))
-
 (defgeneric object-search-function (type desig &optional perceived-object)
   (:documentation "A function that performs a search of an object of a
                    specific type. `desig' is the designator describing

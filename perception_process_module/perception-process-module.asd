@@ -47,7 +47,8 @@
                vision_srvs-srv
                std_msgs-msg
                alexandria
-               table-costmap)
+               table-costmap
+               cram-plan-failures)
   :components
   ((:module "src"
             :components

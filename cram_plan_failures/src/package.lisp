@@ -29,32 +29,19 @@
 
 (in-package :cl-user)
 
-(defpackage cram-plan-library
-    (:documentation "Library of plans for pick-and-place tasks.")
-  (:use #:cpl
-        #:cram-designators
-        #:cram-utilities
-        #:cram-process-modules
-        #:roslisp
-        #:cram-roslisp-common
-        #:cram-plan-knowledge
-        #:cram-plan-failures
-        #:alexandria)
-  (:nicknames :plan-lib)
-  (:export #:achieve
-           #:loc
-           #:object-in-hand
-           #:object-placed-at
-           #:arm-parked
-           #:arms-at
-           #:looking-at
-           #:at-location
-           #:perceive #:perceive-all #:perceive-the
-           #:maybe-run-process-modules
-           #:run-process-modules
-           #:start-process-modules
-           #:stop-process-modules
-           ;; rete and occasions
-           #:object-picked-up
-           #:object-in-hand-failurea))
-
+(defpackage cram-plan-failures
+    (:use #:cpl)
+  (:export
+   ;; navigation
+   #:navigation-failure
+   #:location-not-reached-failure
+   #:location-reached-but-not-terminated
+   #:navigation-failure-location
+   ;; perception
+   #:object-not-found
+   #:object-not-found-desig
+   ;; manipulation
+   #:object-lost
+   #:manipulation-failed
+   #:manipulation-pose-unreachable
+   #:alternative-poses))

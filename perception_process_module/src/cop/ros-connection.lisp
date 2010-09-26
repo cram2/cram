@@ -92,8 +92,8 @@
 (register-ros-init-function init-ptu-action)
 
 (defun look-at-pose->jlo (pose)
-  (ecase pose
-    (cl-transforms:pose (pose->jlo ?pose))
+  (etypecase pose
+    (cl-transforms:pose (pose->jlo pose))
     (jlo:jlo pose)
     (symbol
        (ecase pose

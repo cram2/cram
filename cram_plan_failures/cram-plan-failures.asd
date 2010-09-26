@@ -27,34 +27,16 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :cl-user)
+(defsystem cram-plan-failures
+  :author "Lorenz Moesenlechner <moesenle@in.tum.de>"
+  :license "BSD"
+  :description "Conditions used in process modules and plans"
 
-(defpackage cram-plan-library
-    (:documentation "Library of plans for pick-and-place tasks.")
-  (:use #:cpl
-        #:cram-designators
-        #:cram-utilities
-        #:cram-process-modules
-        #:roslisp
-        #:cram-roslisp-common
-        #:cram-plan-knowledge
-        #:cram-plan-failures
-        #:alexandria)
-  (:nicknames :plan-lib)
-  (:export #:achieve
-           #:loc
-           #:object-in-hand
-           #:object-placed-at
-           #:arm-parked
-           #:arms-at
-           #:looking-at
-           #:at-location
-           #:perceive #:perceive-all #:perceive-the
-           #:maybe-run-process-modules
-           #:run-process-modules
-           #:start-process-modules
-           #:stop-process-modules
-           ;; rete and occasions
-           #:object-picked-up
-           #:object-in-hand-failurea))
-
+  :depends-on (cram-language)
+  :components
+  ((:module "src"
+            :components
+            ((:file "package")
+             (:file "manipulation" :depends-on ("package"))
+             (:file "navigation" :depends-on ("package"))
+             (:file "perception" :depends-on ("package"))))))

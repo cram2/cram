@@ -1,0 +1,15 @@
+<package>
+  <description brief="cram_plan_failures">
+
+     cram_plan_failures
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cram_plan_failures</url>
+  <depend package="cram_language"/>
+
+</package>
+
+
