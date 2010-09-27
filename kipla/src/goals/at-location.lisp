@@ -31,14 +31,12 @@
 
 (define-condition location-lost-failure (navigation-failure) ())
 
-(defmacro at-location ((loc-var &key (retry-count 3)) &body body)
-  (with-gensyms (retry-count-var)
-    `(let ((,retry-count-var ,retry-count))
-       (with-failure-handling
-           ((location-lost-failure (f)
-              (declare (ignore f))
-              (when (>= (decf ,retry-count-var) 0)
-                (retry))))
-         (achieve `(loc Robot ,,loc-var))
-         ;; Todo: monitor location and throw a location-lost-failure
-         ,@body))))
+(defmacro at-location (&whole sexp (loc-var) &body body)
+  `(with-task-tree-node (:path-part `(at-location ,',loc-var)
+                         :name ,(format nil "AT-LOCATION")
+                         :sexp ',sexp
+                         :lambda-list '(loc-var)
+                         :parameters (list ,loc-var))
+     (achieve `(loc Robot ,,loc-var))
+     ,@body))
+
