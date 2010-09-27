@@ -57,7 +57,8 @@
    #:assert-occasion #:retract-occasion #:holds
    ;; object-belief
    #:perceived-object #:queried-object #:object-properties
-   #:object-pose #:perceived-object-probability #:object-desig
+   #:object-pose #:object-jlo
+   #:perceived-object-probability #:object-desig
    #:object-timestamp #:*perceived-objects*
    #:clear-object-belief #:update-perceived-object
    #:perceived-objects-equal? #:compatible-properties
