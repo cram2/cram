@@ -146,8 +146,8 @@
   PERCEIVED-OBJECT."
   (let ((po (reference (current-desig desig))))
     (assert po () "Designator `~a' doesn't containt a valid PERCEIVED-OBJECT.")
-    (check-type (object-pose po) jlo:jlo)
-    (object-pose po)))
+    (check-type (object-jlo po) jlo:jlo)
+    (object-jlo po)))
 
 ;;; Possible trajectory configs:
 ;;; (to grasp)
