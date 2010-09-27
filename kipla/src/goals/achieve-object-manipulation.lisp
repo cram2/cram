@@ -31,35 +31,6 @@
 
 (define-condition destination-location-occupied (plan-error) ())
 
-(defun optimized-manipulation-location (side &optional obj)
-  (let* ((robot->obj (and obj
-                          (jlo:frame-query (jlo:make-jlo :name "/base_link")
-                                           (object-pose (reference obj))))))
-    (when (or (not obj)
-              (= (jlo:pose robot->obj 1 3) 0.0)
-              (> (abs (/ (jlo:pose robot->obj 0 3)
-                         (jlo:pose robot->obj 1 3)))
-                 (tan (ecase side
-                        (:right (- (/ (* 30 pi)
-                                      180)))
-                        (:left (/ (* 30 pi)
-                                  180))))))
-      (let ((new-lo (jlo:make-jlo-rpy :parent (jlo:make-jlo :name "/base_link")
-                                      :yaw (ecase side
-                                             (:right (/ (* 30 pi)
-                                                        180))
-                                             (:left (- (/ (* 30 pi)
-                                                          180)))))))
-        (make-designator 'location `((jlo ,new-lo)))))
-    ;; (cond (ignore-alternative-poses
-    ;;        (setf pick-up-loc (next-solution pick-up-loc)))
-    ;;       (t
-    ;;        (setf ignore-alternative-poses t)
-    ;;        (setf pick-up-loc
-    ;;              (merge-designators (make-designator 'location `((jlo-list ,(alternative-poses f))))
-    ;;                                 pick-up-loc))))
-))
-
 (defun location-at-side (loc)
   "Returns if a location is left or right of the robot."
   (let ((base->loc (jlo:frame-query (jlo:make-jlo :name "/base_link")
@@ -167,14 +138,15 @@
           (with-failure-handling
               ((manipulation-pose-unreachable (f)
                  (declare (ignore f))
-                 (say "Cannot reach position. Trying to turn for better position.")
-                 (log-msg :warn "Got unreachable put-down pose. Trying alternatives")
-                 (let ((optimized-loc (optimized-manipulation-location side)))
-                   (when (and (< alternative-poses-cnt 3)
-                              optimized-loc (reference optimized-loc))
-                     (log-msg :info "Setting alternative pose to ~a" (reference optimized-loc))
-                     ;; (setf put-down-loc optimized-loc)
-                     (retry))))
+                 (assert-occasion
+                  `(object-in-hand-failure manipulation-pose-unreachable ,?obj ,side))
+                 (say "Cannot reach object. Trying another position.")
+                 (log-msg :warn "Got unreachable grasp pose. Trying alternatives")
+                 (when (< alternative-poses-cnt 3)
+                   (incf alternative-poses-cnt)
+                   (setf put-down-loc (next-solution put-down-loc))
+                   (retract-occasion `(loc Robot ?_))
+                   (retry)))
                ;; (destination-location-occupied (e)
                ;;   (declare (ignore e))
                ;;   (log-msg :warn "Destination location occupied.")
