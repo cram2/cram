@@ -57,10 +57,6 @@
                                                            0
                                                            (jlo:id (end-effector-pose action-description)))
                                     :obstacle_ids nil
-                                    ;; (let ((content (remove (jlo:id (end-effector-pose action-description))
-                                    ;;                        (remove-duplicates
-                                    ;;                         (mapcar (alexandria:compose #'jlo:id #'object-pose) *perceived-objects*)))))
-                                    ;;   (make-array (list-length content) :initial-contents content))
                                     :distance (grasp-distance action-description)
                                     ;; :supporting_plane (unused)
                                     )))
