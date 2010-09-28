@@ -112,6 +112,7 @@
            #:status #:result
            #:suspend-protect #:without-suspension #:with-suspension #:on-suspension
            #:with-termination-handler #:ignore-termination #:without-termination
+           #:terminate
            ;; task-tree.lisp
            #:code
            #:code-parameters
