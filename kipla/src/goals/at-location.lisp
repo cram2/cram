@@ -35,7 +35,7 @@
   `(with-task-tree-node (:path-part `(at-location ,',loc-var)
                          :name ,(format nil "AT-LOCATION")
                          :sexp ',sexp
-                         :lambda-list '(loc-var)
+                         :lambda-list (,loc-var)
                          :parameters (list ,loc-var))
      (achieve `(loc Robot ,,loc-var))
      ,@body))
