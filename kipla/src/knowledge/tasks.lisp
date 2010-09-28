@@ -195,4 +195,9 @@
   (<- (task-ended-at ?task ?time)
     (member ?status (:succeeded :failed :evaporated))
     (holds (task-status ?task ?status) (at ?time)))
-  )
+
+  (<- (task-location-context ?task ?loc)
+    (task ?task)
+    (task ?loc-task)
+    (task-goal ?loc-task (at-location (?loc)))
+    (subtask+ ?loc-task ?task)))

@@ -101,6 +101,7 @@
    #:task-outcome
    #:task-result
    #:task-error
+   #:task-location-context
    #:error-type
    #:holds
    #:task-status
