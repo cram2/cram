@@ -39,4 +39,5 @@
            (jlo:jlo (look-long-at ?pose))
            (symbol
               (ecase ?pose
-                (:forward (look-at (jlo:make-jlo :name "/look_forward")))))))))
+                (:forward (look-at (jlo:make-jlo :name "/look_forward"))))))
+         (ros-info :kipl "Looging at done~%"))))
