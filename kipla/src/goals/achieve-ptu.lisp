@@ -40,4 +40,4 @@
            (symbol
               (ecase ?pose
                 (:forward (look-at (jlo:make-jlo :name "/look_forward"))))))
-         (ros-info :kipl "Looging at done~%"))))
+         (ros-info :kipla "Looking at done~%"))))
