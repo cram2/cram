@@ -50,13 +50,17 @@
                  (loop-at-most-every 0.1
                    (when (actionlib:cancel-request-received)
                      (actionlib:abort-current))
-                   (when (not (sb-thread:thread-alive-p worker-thread))
+                   (unless (sb-thread:thread-alive-p worker-thread)
                      (typecase result
                        (condition
                           (actionlib:abort-current :result (format nil "~a" result)))
                        (t (actionlib:succeed-current :result (format nil "~a" result)))))))
             (when (and worker-thread (sb-thread:thread-alive-p worker-thread))
-              (sb-thread:terminate-thread worker-thread)))))
+              (let* ((task-tree (get-top-level-task-tree plan-symbol))
+                     (code (task-tree-node-effective-code (cdr (car (task-tree-node-children task-tree))))))
+                (assert code () "Task tree node doesn't contain a CODE. This is a bug.")
+                (assert (code-task code) () "Task tree code doesn't contain a task. This is a bug.")
+                (terminate (code-task code) :evaporated))))))
     (error (e)
       (actionlib:abort-current :result (format nil "~a" e)))))
 
