@@ -31,8 +31,6 @@
 
 (in-package :cpl-impl)
 
-(declaim (optimize (debug 3)))
-
 ;;; NOTE: DOC: Paths in CRAM are read from right to left, such that when
 ;;; decending a task-tree or plan-tree, the path grows at the left.
 
@@ -338,10 +336,9 @@
 (defun goal-task-tree-node-p (task-tree-node)
   "Returns true if `task-tree-node' is a goal task."
   (let ((p (task-tree-node-path task-tree-node)))
-    (eq 'goal
-        (and (consp p)
-             (consp (car p))
-             (caar p)))))
+    (and (consp p)
+         (consp (car p))
+         (member (caar p) '(goal goal-context)))))
 
 (defun goal-task-tree-node-pattern (task-tree-node)
   (assert (goal-task-tree-node-p task-tree-node))
