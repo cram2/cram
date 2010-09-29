@@ -62,7 +62,7 @@
     (lisp-fun obj-desig-location ?obj ?p)))
 
 (def-fact-group manipulation-designator (action-desig)
-  (<- (manip-desig? ?desig)
+  (<- (trajectory-desig? ?desig)
     (lisp-pred typep ?desig action-designator)
     (desig-prop ?desig (type trajectory))))
 
