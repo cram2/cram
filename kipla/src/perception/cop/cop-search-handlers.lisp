@@ -63,10 +63,7 @@
 
 (defmethod kipla-reasoning:make-new-desig-description ((old-desig object-designator)
                                                        (po cop-perceived-object))
-  (let ((obj-loc-desig (make-designator 'location `((pose ,(jlo->pose (object-jlo po))))))
-        ;; (old-obj-loc-desig (desig-prop-value old-desig 'at))
-        )
-    ;; (equate old-obj-loc-desig obj-loc-desig)
+  (let ((obj-loc-desig (make-designator 'location `((pose ,(jlo->pose (object-jlo po)))))))
     (append (remove-if (lambda (e)
                          (or (eq (car e) 'at)
                              (not (cop-ignore-property-p e))))
@@ -199,8 +196,8 @@
 ;;         quality: 0.957078
 
 (defun cop-model->property (m)
-  (list (lispify-ros-name (vision_msgs-msg:type-val m))
-        (lispify-ros-name (vision_msgs-msg:sem_class-val m))))
+  (list (lispify-ros-name (vision_msgs-msg:type-val m) (find-package :kipla-reasoning))
+        (lispify-ros-name (vision_msgs-msg:sem_class-val m) (find-package :kipla-reasoning))))
 
 (defun cop-reply->perceived-object (reply perception-primitive)
   (let ((jlo (jlo:make-jlo :id (vision_msgs-msg:position-val reply))))
