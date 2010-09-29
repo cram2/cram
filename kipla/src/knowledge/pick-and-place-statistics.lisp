@@ -108,7 +108,20 @@
       (roslisp:ros-warn (query-manipulation-info kipla) "Service callback failed: ~a" e)
       (roslisp:make-response))))
 
+(roslisp:def-service-callback kipla-srv:ListExecutionTraces ()
+  (handler-case
+      (roslisp:make-response
+       :filenames (map 'vector #'namestring
+                       (directory (merge-pathnames
+                                   (make-pathname :type "ek" :name :wild)
+                                   (make-pathname
+                                    :directory (roslisp:get-param "~execution_trace_dir"))))))
+    (error (e)
+      (roslisp:ros-warn (list-execution-traces kipla) "Service callback failed: ~a" e)
+      (roslisp:make-response))))
+
 (defun init-pick-and-place-info-srv ()
-  (roslisp:register-service "/kipla/query_manipulation_info" kipla-srv:QueryManipulationInfo))
+  (roslisp:register-service "~query_manipulation_info" kipla-srv:QueryManipulationInfo)
+  (roslisp:register-service "~list_exectuon_traces" kipla-srv:ListExecutionTraces))
 
 (cram-roslisp-common:register-ros-init-function init-pick-and-place-info-srv)
