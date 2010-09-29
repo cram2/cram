@@ -70,7 +70,7 @@
                                                      (string-downcase (symbol-name ?side)))))
                        (orientation ,(cl-transforms:rotation hand-in-base))))))
       (make-designator 'object
-                       `((at ,new-loc) ,(remove 'at (description ?obj) :key #'car))
+                       `((at ,new-loc) . ,(remove 'at (description ?obj) :key #'car))
                        ?obj))))
 
 (register-production-handler 'object-picked-up #'on-object-picked-up)
