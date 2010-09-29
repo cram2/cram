@@ -5,5 +5,8 @@ set(ROS_BUILD_TYPE Release)
 
 rosbuild_init()
 
+rosbuild_genmsg()
+rosbuild_gensrv()
+
 rospack_add_lisp_executable(bin/drive_to_waypoints kipla kipla:drive-to-waypoints-main)
 rospack_add_lisp_executable(bin/kipla_action kipla cram-actionserver:server)

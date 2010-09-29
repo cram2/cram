@@ -65,6 +65,7 @@
                  cl-utils
                  visualization_msgs-msg
                  table-costmap
+                 kipla-srv
                  cram-plan-actionserver
                  #+kipla-contrib-oro oro_ros-srv
                  #+kipla-contrib-oro yason
@@ -91,9 +92,10 @@
                                   :components
                                   ((:file "location-facts")))
                          (:file "time")
-                         (:file "tasks")
+                         (:file "tasks" :depends-on ("time"))
                          (:file "objects")
                          (:file "liswip")
+                         (:file "pick-and-place-statistics" :depends-on ("tasks"))
                          (:file "swi-predicates" :depends-on ("liswip"))))
                (:module "perception"
                         :depends-on ("packages" "config" "utils" "rete")
