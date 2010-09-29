@@ -1,0 +1,5 @@
+string execution_trace_filename
+---
+kipla/PlanInfo[] perceives
+kipla/PlanInfo[] pick_ups
+kipla/PlanInfo[] put_downs

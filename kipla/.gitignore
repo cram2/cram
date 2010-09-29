@@ -1,3 +1,10 @@
 *.fasl
 *~
 execution_traces
+msg/lisp
+msg/java
+msg/oct
+srv/lisp
+srv/java
+srv/oct
+src/kipla
