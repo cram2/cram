@@ -1,0 +1,16 @@
+<package>
+  <description brief="fake_process_modules">
+
+     fake_process_modules
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/fake_process_modules</url>
+  <depend package="process_modules"/>
+  <depend package="designators"/>
+
+</package>
+
+
