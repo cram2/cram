@@ -43,7 +43,7 @@
            (goal-fun `(lambda (,bdgs-var)
                         (with-task-tree-node (:path-part `(goal (,',name ,',@pattern))
                                               :name ,(format nil "GOAL-~a" name)
-                                              :sexp `(,',name ,',@pattern ,',body)
+                                              :sexp (,name ,@pattern ,body)
                                               :lambda-list ,(cut:vars-in pattern)
                                               :parameters (mapcar (alexandria:rcurry #'cut:var-value ,bdgs-var)
                                                                   ',(cut:vars-in pattern)))
