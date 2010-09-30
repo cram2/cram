@@ -121,6 +121,7 @@
   "Returns a list containing the map metadata. The list can be
 destructured and contains the
 keys :width, :height, :resolution, :origin-x and :origin-y"
+  (assert map () "No occupancy grid specifed")
   (roslisp:with-fields ((resolution (resolution info))
                         (height (height info))
                         (width (width info))
