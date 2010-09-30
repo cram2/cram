@@ -40,37 +40,37 @@
   (when (eql op :assert)
     (retract-occasion `(object-placed-at ,?obj))))
 
-(defun on-object-picked-up (op &key ?obj ?side)
-  (when (eq op :assert)
-    (let* ((obj-pose (cl-tf:transform-pose
-                      *tf* :pose (obj-desig-location ?obj)
-                      :target-frame "/map"))
-           (hand-in-base (cl-tf:lookup-transform
-                          *tf*
-                         :target-frame "/base_link"
-                         :source-frame (format nil "/~a_arm_hand_link"
-                                               (string-downcase (symbol-name ?side)))))
-           (new-loc (make-designator
-                     'location
-                     `((in gripper)
-                       (side ,?side)
-                       (pose ,(cl-tf:transform-pose
-                               *tf* :pose (cl-tf:make-pose-stamped
-                                           (cl-tf:frame-id obj-pose) (ros-time)
-                                           (cl-transforms:make-3d-vector
-                                            (cl-transforms:x (cl-transforms:origin obj-pose))
-                                            (cl-transforms:y (cl-transforms:origin obj-pose))
-                                            (height-map-lookup
-                                             (value *table-height-map-fl*)
-                                             (cl-transforms:x (cl-transforms:origin obj-pose))
-                                             (cl-transforms:y (cl-transforms:origin obj-pose))))
-                                           (cl-transforms:orientation obj-pose))
+;; (defun on-object-picked-up (op &key ?obj ?side)
+;;   (when (eq op :assert)
+;;     (let* ((obj-pose (cl-tf:transform-pose
+;;                       *tf* :pose (obj-desig-location ?obj)
+;;                       :target-frame "/map"))
+;;            (hand-in-base (cl-tf:lookup-transform
+;;                           *tf*
+;;                          :target-frame "/base_link"
+;;                          :source-frame (format nil "/~a_arm_hand_link"
+;;                                                (string-downcase (symbol-name ?side)))))
+;;            (new-loc (make-designator
+;;                      'location
+;;                      `((in gripper)
+;;                        (side ,?side)
+;;                        (pose ,(cl-tf:transform-pose
+;;                                *tf* :pose (cl-tf:make-pose-stamped
+;;                                            (cl-tf:frame-id obj-pose) (ros-time)
+;;                                            (cl-transforms:make-3d-vector
+;;                                             (cl-transforms:x (cl-transforms:origin obj-pose))
+;;                                             (cl-transforms:y (cl-transforms:origin obj-pose))
+;;                                             (height-map-lookup
+;;                                              (value *table-height-map-fl*)
+;;                                              (cl-transforms:x (cl-transforms:origin obj-pose))
+;;                                              (cl-transforms:y (cl-transforms:origin obj-pose))))
+;;                                            (cl-transforms:orientation obj-pose))
                                             
-                               :target-frame (format nil "/~a_arm_hand_link"
-                                                     (string-downcase (symbol-name ?side)))))
-                       (orientation ,(cl-transforms:rotation hand-in-base))))))
-      (make-designator 'object
-                       `((at ,new-loc) ,(remove 'at (description ?obj) :key #'car))
-                       ?obj))))
+;;                                :target-frame (format nil "/~a_arm_hand_link"
+;;                                                      (string-downcase (symbol-name ?side)))))
+;;                        (orientation ,(cl-transforms:rotation hand-in-base))))))
+;;       (make-designator 'object
+;;                        `((at ,new-loc) ,(remove 'at (description ?obj) :key #'car))
+;;                        ?obj))))
 
-(crs:register-production-handler 'object-picked-up #'on-object-picked-up)
+;; (crs:register-production-handler 'object-picked-up #'on-object-picked-up)
