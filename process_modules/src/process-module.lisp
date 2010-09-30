@@ -121,7 +121,7 @@
   ;; Note: priorities are unused currently.
   (with-slots (status result caller) pm
     (when (eq (value status) :offline)
-      (warn "Process module not running. Waiting for it to come up.")
+      (warn "Process module ~a not running. Waiting for it to come up." pm)
       (wait-for (not (eq status :waiting))))
     (when (eq (value status) :running)
       (unless  wait-for-free
