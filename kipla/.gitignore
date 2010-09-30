@@ -1,5 +1,0 @@
-*.fasl
-*~
-execution_traces
-doc/*.html
-doc/*.png
