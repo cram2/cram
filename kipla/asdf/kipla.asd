@@ -1,1 +1,0 @@
-../kipla.asd
