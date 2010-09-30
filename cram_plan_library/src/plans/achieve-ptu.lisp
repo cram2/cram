@@ -34,6 +34,9 @@
          (ros-warn (achieve plan-lib) "Pose not set. cannot look at it"))
         (t
          (ros-info (achieve plan-lib) "Looking at pose: ~a~%" ?pose)
-         (typecase ?pose
-           (symbol (look-at ?pose))
-           (t (look-long-at ?pose))))))
+         (with-designators ((look-at-desig (action `((type trajectory)
+                                                     (to ,(typecase ?pose
+                                                            (symbol 'see)
+                                                            (t 'follow)))
+                                                     (pose ,?pose)))))
+           (pm-execute :ptu look-at-desig)))))
