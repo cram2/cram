@@ -40,9 +40,10 @@
         (wait-for *ever*)
         (unwind-protect
              (pursue
-               (pm-run 'perception)
-               (pm-run 'navigation)
-               (pm-run 'manipulation))
+               (pm-run :perception)
+               (pm-run :navigation)
+               (pm-run :manipulation)
+               (pm-run :ptu))
           (setf (value *process-modules-running*) nil)))
     (seq
       (wait-for *process-modules-running*)
