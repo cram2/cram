@@ -30,6 +30,7 @@
 (defpackage cram-plan-knowledge
     (:use #:common-lisp
           #:cram-reasoning
+          #:cpl-impl
           #:alexandria
           #:desig
           #:cram-utilities
@@ -38,11 +39,49 @@
   (:export #:clear-belief
            #:assert-occasion
            #:retract-occasion
-           #:holds)
+           #:holds
+           ;; prolog
+           #:fluent
+           #:fluent-value
+           #:task-goal
+           #:task
+           #:task-status-fluent
+           #:task-goal
+           #:task-outcome
+           #:task-result
+           #:task-error
+           #:error-type
+           #:holds
+           #:task-status
+           #:duration-includes
+           #:throughout
+           #:during
+           ;; Symbols used in plans and thus the execution trace.
+           #:achieve
+           #:object-in-hand
+           #:object-placed-at
+           #:object-in-hand-failure
+           #:loc
+           #:robot
+           #:perceive
+           #:perceive-all
+           #:?obj
+           #:?side
+           #:owl-type
+           #:cowsmilk-product
+           #:shape
+           #:arms-at
+           #:?traj
+           #:looking-at
+           #:?lo
+           #:arm-parked
+           #:?loc)
   (:import-from #:cpl-impl
                 #:make-fluent
                 #:value
                 #:plan-error
                 #:rethrown-error
                 #:task-tree-node-children
-                #:task-tree-node-status-fluent))
+                #:task-tree-node-status-fluent)
+  (:shadowing-import-from #:cram-reasoning
+                          #:fail))
