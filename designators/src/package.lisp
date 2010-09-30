@@ -65,7 +65,7 @@
            #:pose #:of #:type #:at
            #:desig-prop #:desig-class #:desig-value
            #:desig-location-prop #:obj
-           #:to #:see #:follow
+           #:to #:see #:follow #:reach
            #:desig
            #:manip-desig? #:trajectory
            #:grasp #:side #:to #:navigate #:pose #:parked
