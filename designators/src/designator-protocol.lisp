@@ -37,7 +37,7 @@
 (in-package :desig)
 
 (defclass designator ()
-  ((timestamp :reader timestamp :initform nil
+  ((timestamp :reader timestamp :initform (current-timestamp)
               :documentation "Timestamp of creation of reference or nil
                              if still not referencing an object.")
    (description :reader description :initarg :description

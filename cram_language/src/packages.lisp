@@ -112,6 +112,7 @@
            #:status #:result
            #:suspend-protect #:without-suspension #:with-suspension #:on-suspension
            #:with-termination-handler #:ignore-termination #:without-termination
+           #:terminate
            ;; task-tree.lisp
            #:code
            #:code-parameters
@@ -153,7 +154,7 @@
            #:on-def-top-level-plan-hook
            #:def-top-level-plan #:get-top-level-task-tree #:def-plan
            ;; goals.lisp
-           #:declare-goal #:def-goal #:goal #:register-goal))
+           #:declare-goal #:def-goal #:goal #:register-goal #:goal-context))
         (fluent-ops
          '(;; fluent-net.lisp
            #:fl< #:fl> #:fl=  #:fl+ #:fl- #:fl* #:fl/

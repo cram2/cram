@@ -118,3 +118,6 @@
     :status (make-instance 'offline-fluent
               :name (restore-object stream))
     :result (restore-object stream)))
+
+(defrestore-episode-knowledge-backend (function stream)
+  `(function ,(restore-object stream)))
