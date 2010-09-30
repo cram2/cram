@@ -41,6 +41,7 @@
 
 (defclass cop-perceived-object (perceived-object)
   ((object-id :initarg :object-id :accessor object-id)
+   (jlo :initarg :jlo :accessor object-jlo)
    (object-properties :initarg :properties
                       :accessor object-properties)
    (perception-primitive :initarg :perception-primitive
@@ -62,10 +63,7 @@
 
 (defmethod make-new-desig-description ((old-desig object-designator)
                                        (po cop-perceived-object))
-  (let ((obj-loc-desig (make-designator 'location `((pose ,(jlo->pose (object-pose po))))))
-        ;; (old-obj-loc-desig (desig-prop-value old-desig 'at))
-        )
-    ;; (equate old-obj-loc-desig obj-loc-desig)
+  (let ((obj-loc-desig (make-designator 'location `((pose ,(jlo->pose (object-jlo po)))))))
     (append (remove-if (lambda (e)
                          (or (eq (car e) 'at)
                              (not (cop-ignore-property-p e))))
@@ -105,7 +103,7 @@
            (setf (cop-desig-query-info-object-ids query-info)
                  (list (object-id perceived-object)))
            (setf (cop-desig-query-info-poses query-info)
-                 (list (object-pose perceived-object)))
+                 (list (object-jlo perceived-object)))
            (setf (cop-desig-query-info-object-classes query-info) nil)
            (setf (cop-desig-query-info-matches query-info) 1))
           (t
@@ -132,7 +130,7 @@
                        (setf (cop-desig-query-info-object-ids query-info)
                              (list (object-id cluster)))
                        (setf (cop-desig-query-info-poses query-info)
-                             (list (object-pose cluster)))
+                             (list (object-jlo cluster)))
                        (setf (cop-desig-query-info-object-classes query-info) nil)
                        (do-cop-search desig query-info :command :refine))
                      clusters))))
@@ -160,16 +158,16 @@
         (setf (cop-desig-query-info-object-ids query-info)
               (list (object-id previous-object)))
         (setf (cop-desig-query-info-poses query-info)
-              (list (object-pose previous-object))))
+              (list (object-jlo previous-object))))
       (let ((perceived-objects (or (when previous-object
                                      (list previous-object))
                                    (get-clusters desig))))
         (setf (cop-desig-query-info-poses query-info)
-              (mapcar #'object-pose
+              (mapcar #'object-jlo
                       (pre-process-perceived-objects desig perceived-objects)))
         (mapcan (alexandria:compose (alexandria:curry #'do-cop-search desig)
                                     (alexandria:curry #'set-perceived-object-pose query-info)
-                                    #'object-pose)
+                                    #'object-jlo)
                 perceived-objects)))))
 
 
@@ -199,13 +197,15 @@
 ;;         quality: 0.957078
 
 (defun cop-model->property (m)
-  (list (lispify-ros-name (vision_msgs-msg:type-val m))
-        (lispify-ros-name (vision_msgs-msg:sem_class-val m))))
+  (list (lispify-ros-name (vision_msgs-msg:type-val m) (find-package :perception-pm))
+        (lispify-ros-name (vision_msgs-msg:sem_class-val m) (find-package :perception-pm))))
 
 (defun cop-reply->perceived-object (reply perception-primitive)
-  (make-instance 'cop-perceived-object
-                 :pose (jlo:make-jlo :id (vision_msgs-msg:position-val reply))
-                 :object-id (vision_msgs-msg:objectid-val reply)
-                 :properties (map 'list #'cop-model->property (vision_msgs-msg:models-val reply))
-                 :probability (vision_msgs-msg:probability-val reply)
-                 :perception-primitive perception-primitive))
+  (let ((jlo (jlo:make-jlo :id (vision_msgs-msg:position-val reply))))
+    (make-instance 'cop-perceived-object
+                   :pose (jlo->pose jlo)
+                   :jlo jlo
+                   :object-id (vision_msgs-msg:objectid-val reply)
+                   :properties (map 'list #'cop-model->property (vision_msgs-msg:models-val reply))
+                   :probability (vision_msgs-msg:probability-val reply)
+                   :perception-primitive perception-primitive)))
