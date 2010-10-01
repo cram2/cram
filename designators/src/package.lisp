@@ -67,6 +67,6 @@
            #:desig-location-prop #:obj
            #:to #:see #:follow #:reach
            #:desig
-           #:manip-desig? #:trajectory
+           #:trajectory-desig? #:trajectory
            #:grasp #:side #:to #:navigate #:pose #:parked
            #:open #:show #:carry #:lift #:put-down #:at #:gripper))
