@@ -20,5 +20,5 @@ clean:
 	rm -rf split-sequence asdf
 	rm -f $(SPLIT_SEQ_ARCHIVE)
 	rm -f rospack_nosubdirs
-	rm -f installed
+	rm -f installed downloaded
 
