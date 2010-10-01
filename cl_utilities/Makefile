@@ -21,5 +21,5 @@ clean:
 	rm -rf cl-utilities-1.2.4 asdf
 	rm -f $(CL_UTILS_ARCHIVE)
 	rm -f rospack_nosubdirs
-	rm -f installed
+	rm -f installed downloaded
 
