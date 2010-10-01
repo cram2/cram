@@ -21,6 +21,6 @@ installed: downloaded
 clean:
 	rm -rf cffi_0.10.5 asdf
 	rm -f $(CFFI_ARCHIVE)
-	rm -f rospack_nosubdirs
+	rm -f rospack_nosubdirs downloaded
 	rm -f installed
 
