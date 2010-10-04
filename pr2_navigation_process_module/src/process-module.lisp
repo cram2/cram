@@ -47,7 +47,7 @@
 
 (defun init-pr2-navigation-process-module ()
   (setf *move-base-client* (actionlib:make-action-client
-                            "/move_base"
+                            "/pr2_move_base"
                             "move_base_msgs/MoveBaseAction"))
   (setf *navp-client* (actionlib:make-action-client
                        "/nav_pcontroller/move_base"
