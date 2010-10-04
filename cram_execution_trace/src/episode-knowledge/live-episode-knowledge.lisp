@@ -73,7 +73,12 @@
                 access.")
    (fluents :accessor fluents :type hash-table
             :documentation "Weak, synchronized hash table of all fluents that
-            are created while this episode was running.")))
+            are created while this episode was running.")
+   (filtered-task-tree :reader task-tree :type task-tree-node
+                       :documentation "The filtered task tree. We need
+                       to cache that value since filtering creates new
+                       task objects and we need to assure equality of
+                       tasks with the same path.")))
 
 (defmethod initialize-instance :after ((episode live-episode-knowledge) &key new-task-tree)
   (with-slots (execution-trace fluents) episode
@@ -88,12 +93,14 @@
     (with-hash-table-locked (execution-trace)
       (calculate-max-time execution-trace #'identity zero-time))))
 
-(defmethod task-tree ((episode live-episode-knowledge))
-  (let ((top-level (cdar (task-tree-node-children (slot-value episode 'task-tree)))))
-    (unless top-level
-      (error "Task tree has no top level node."))
-    (filter-task-tree (compose #'not #'stale-task-tree-node-p)
-                      top-level)))
+(defmethod task-tree :before ((episode live-episode-knowledge))
+  (unless (slot-boundp episode 'filtered-task-tree)
+    (let ((top-level (cdar (task-tree-node-children (slot-value episode 'task-tree)))))
+      (unless top-level
+        (error "Task tree has no top level node."))
+      (setf (slot-value episode 'filtered-task-tree)
+            (filter-task-tree (compose #'not #'stale-task-tree-node-p)
+                              top-level)))))
 
 (defmethod task-list ((episode live-episode-knowledge))
   (calculate-task-list (task-tree episode)))
@@ -160,7 +167,8 @@
           end-time        nil
           running-flag    nil
           trace-queue     (make-queue :name "Trace queue")
-          task-tree       new-task-tree)))
+          task-tree       new-task-tree)
+    (slot-makunbound live-episode 'filtered-task-tree)))
 
 (defun start (live-episode)
   (setf (zero-time live-episode) (current-timestamp)
