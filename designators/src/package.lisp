@@ -69,4 +69,5 @@
            #:desig
            #:trajectory-desig? #:trajectory
            #:grasp #:side #:to #:navigate #:pose #:parked
-           #:open #:show #:carry #:lift #:put-down #:at #:gripper))
+           #:open #:show #:carry #:lift #:put-down #:at #:gripper
+           #:orientation))
