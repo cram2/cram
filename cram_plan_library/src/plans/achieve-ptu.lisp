@@ -34,9 +34,18 @@
          (ros-warn (achieve plan-lib) "Pose not set. cannot look at it"))
         (t
          (ros-info (achieve plan-lib) "Looking at pose: ~a~%" ?pose)
-         (with-designators ((look-at-desig (action `((type trajectory)
-                                                     (to ,(typecase ?pose
-                                                            (symbol 'see)
-                                                            (t 'follow)))
-                                                     (pose ,?pose)))))
+         (with-designators ((look-at-desig
+                             (action `((type trajectory)
+                                       ,@(typecase ?pose
+                                           (symbol
+                                              (ecase ?pose
+                                                (:forward
+                                                   `((to see)
+                                                     (pose ,(tf:make-pose-stamped
+                                                             "/base_link" 0
+                                                             (cl-transforms:make-3d-vector
+                                                              3.0 0.0 1.5)
+                                                             (cl-transforms:make-quaternion
+                                                              0 0 0 1)))))))
+                                           (t `((to follow) (pose ,?pose))))))))
            (pm-execute :ptu look-at-desig)))))
