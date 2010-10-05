@@ -74,8 +74,7 @@
                                                       jlo))))))
 (defun gaussian->jlo (name mean cov)
   (declare (type symbol name)
-           (type (or cl-transforms:transform
-                     cl-tf:stamped-transform)
+           (type cl-transforms:3d-vector
                  mean)
            (type (simple-array * (3 3)) cov))
   (flet ((pose-cov->jlo-cov (cov)
@@ -84,21 +83,24 @@
                (dotimes (x 3)
                  (setf (aref result (+ (* y 6) x)) (aref cov y x))))
              result)))
-    (jlo:make-jlo :name (symbol-name name)
-                  :pose (make-array
-                         16 :initial-contents
-                         `(1 0 0 ,(cl-transforms:x mean)
-                             0 1 0 ,(cl-transforms:y mean)
-                             0 0 1 ,(cl-transforms:z mean)
-                             0 0 0 1))
-                  :cov (let ((cov (pose-cov->jlo-cov cov)))
-                         (dotimes (i 2)
-                           (setf (aref cov (+ (* i 6) 2)) 0.0d0)
-                           (setf (aref cov (+ (* 2 6) i)) 0.0d0))
-                         (setf (aref cov 14) 0.1d0)
-                         cov)
-                  :parent (typecase mean
-                            (cl-tf:stamped-transform
-                               (jlo:make-jlo :name (cl-tf:frame-id mean)))                            
-                            (cl-transforms:transform
-                               (jlo:make-jlo :name "/map"))))))
+    (let ((result
+           (jlo:make-jlo :name (symbol-name name)
+                         :pose (make-array
+                                16 :initial-contents
+                                `(1 0 0 ,(cl-transforms:x mean)
+                                    0 1 0 ,(cl-transforms:y mean)
+                                    0 0 1 ,(cl-transforms:z mean)
+                                    0 0 0 1))
+                         :cov (let ((cov (pose-cov->jlo-cov cov)))
+                                (dotimes (i 2)
+                                  (setf (aref cov (+ (* i 6) 2)) 0.0d0)
+                                  (setf (aref cov (+ (* 2 6) i)) 0.0d0))
+                                (setf (aref cov 14) 0.1d0)
+                                cov)
+                         :parent (typecase mean
+                                   (cl-tf:stamped-transform
+                                      (jlo:make-jlo :name (cl-tf:frame-id mean)))                            
+                                   (cl-transforms:transform
+                                      (jlo:make-jlo :name "/map"))))))
+      (roslisp:ros-info (gaussian-to-jlo cop-perception) "Search space id: ~a" (jlo:id result))
+      result)))
