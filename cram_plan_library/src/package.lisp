@@ -56,5 +56,5 @@
            #:stop-process-modules
            ;; rete and occasions
            #:object-picked-up
-           #:object-in-hand-failurea))
+           #:object-in-hand-failure))
 
