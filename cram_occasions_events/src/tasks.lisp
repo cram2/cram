@@ -191,6 +191,11 @@
   (<- (task-created-at ?task ?time)
     (holds (task-status ?task :created) (at ?time)))
 
+  (<- (task-started-at ?task ?time)
+    (bagof ?t (holds (task-status ?task :running) (at ?t))
+           ?times)
+    (sort ?times < (?time . ?_)))
+
   ;; TASK-ENDED-AT
   (<- (task-ended-at ?task ?time)
     (member ?status (:succeeded :failed :evaporated))
@@ -198,6 +203,6 @@
 
   (<- (task-location-context ?task ?loc)
     (task ?task)
-    (task ?loc-task)
-    (task-goal ?loc-task (at-location (?loc)))
-    (subtask+ ?loc-task ?task)))
+    (subtask+ ?loc-task ?task)
+    (task-goal ?loc-task (at-location (?loc)))    
+    (task ?loc-task)))

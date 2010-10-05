@@ -56,6 +56,11 @@
            #:duration-includes
            #:throughout
            #:during
+           #:task-started-at
+           #:task-created-at
+           #:task-ended-at
+           #:subtask
+           #:subtask+
            ;; Symbols used in plans and thus the execution trace.
            #:achieve
            #:object-in-hand
