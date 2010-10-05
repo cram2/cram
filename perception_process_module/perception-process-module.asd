@@ -46,6 +46,7 @@
                vision_msgs-msg
                vision_srvs-srv
                std_msgs-msg
+               pr2_msgs-msg
                alexandria
                table-costmap
                cram-plan-failures)
