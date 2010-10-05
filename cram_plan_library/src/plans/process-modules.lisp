@@ -56,9 +56,10 @@
        (seq
          (setf (value *process-modules-running*) t)
          (pursue
-           (pm-run 'perception)
-           (pm-run 'navigation)
-           (pm-run 'manipulation)
+           (pm-run :perception)
+           (pm-run :navigation)
+           (pm-run :manipulation)
+           (pm-run :ptu)
            (wait-for (not *process-modules-running*))))
     (setf (value *process-modules-running*) nil)))
 
