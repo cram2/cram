@@ -36,5 +36,7 @@
                                                        "location-proxy"
                                                        "facts"))
              (:file "location-proxy" :depends-on ("package"))
+             (:file "designator-location-proxy" :depends-on ("package"
+                                                             "location-proxy"))
              (:file "facts" :depends-on ("package"))
              (:file "utils" :depends-on ("package"))))))

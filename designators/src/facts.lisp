@@ -56,10 +56,11 @@
     (loc-desig? ?desig)
     (desig-prop ?desig (pose ?p)))
 
-  (<- (desig-loc ?desig (pose ?p))
+  (<- (desig-loc ?desig (loc-desig ?loc))
     (loc-desig? ?desig)
     (desig-prop ?desig (of ?obj))
-    (lisp-fun obj-desig-location ?obj ?p)))
+    (lisp-fun current-desig ?obj ?curr-obj)
+    (desig-prop ?curr-obj (at ?loc))))
 
 (def-fact-group manipulation-designator (action-desig)
   (<- (trajectory-desig? ?desig)
