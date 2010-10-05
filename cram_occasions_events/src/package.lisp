@@ -60,7 +60,6 @@
            #:achieve
            #:object-in-hand
            #:object-placed-at
-           #:object-in-hand-failure
            #:loc
            #:robot
            #:perceive
