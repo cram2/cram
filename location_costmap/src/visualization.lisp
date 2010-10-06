@@ -33,6 +33,8 @@
 (defvar *marker-publisher* nil)
 (defvar *occupancy-grid-publisher* nil)
 
+(defvar *z-padding* 0.0)
+
 (defun location-costmap-vis-init ()
   (setf *location-costmap-publisher*
         (advertise "/kipla/location_costmap" "mapping_msgs/CollisionMap"))
@@ -43,7 +45,7 @@
 
 (register-ros-init-function location-costmap-vis-init)
 
-(defun location-costmap->collision-map (map &key (frame-id "/map") (threshold 0.0005))
+(defun location-costmap->collision-map (map &key (frame-id "/map") (threshold 0.0005) (z *z-padding*))
   (with-slots (origin-x origin-y resolution) map
     (let* ((map-array (get-cost-map map))
            (boxes nil)
@@ -57,7 +59,7 @@
             (push (make-message "mapping_msgs/OrientedBoundingBox"
                                 (x center) (+ (* col resolution) origin-x)
                                 (y center) (+ (* row resolution) origin-y)
-                                (z center) (/ (aref map-array row col) max-val)
+                                (z center) (+ z (/ (aref map-array row col) max-val))
                                 (x extents) resolution
                                 (y extents) resolution
                                 (z extents) resolution
@@ -71,7 +73,7 @@
                     (stamp header) (ros-time)
                     boxes (map 'vector #'identity boxes)))))
 
-(defun occupancy-grid->grid-cells-msg (grid &key (frame-id "/map") (z 0.0))
+(defun occupancy-grid->grid-cells-msg (grid &key (frame-id "/map") (z *z-padding*))
   (with-slots (origin-x origin-y width height resolution) grid
     (let ((grid-arr (grid grid))
           (resolution/2 (/ resolution 2)))
@@ -90,9 +92,10 @@
                                                            y (+ (* row resolution) resolution/2 origin-y)
                                                            z z))))))))
 
-(defun publish-location-costmap (map &key (frame-id "/map") (threshold 0.0005))
+(defun publish-location-costmap (map &key (frame-id "/map") (threshold 0.0005) (z *z-padding*))
   (publish *location-costmap-publisher* (location-costmap->collision-map
-                                         map :frame-id frame-id :threshold threshold)))
+                                         map :frame-id frame-id :threshold threshold
+                                         :z z)))
 
 (let ((current-index 0))
   
