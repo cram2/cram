@@ -41,7 +41,8 @@
   ((:module "src"
             :components
             ((:file "package")
-             (:file "cost-functions" :depends-on ("package" "occupancy-grid"))
+             (:file "cost-functions"
+                    :depends-on ("package" "occupancy-grid" "padding-mask"))
              (:file "height-map" :depends-on ("package" "occupancy-grid"))
              (:file "location-costmap" :depends-on ("package" "occupancy-grid"))
              (:file "location-prolog-handlers" :depends-on ("package" "location-costmap"))

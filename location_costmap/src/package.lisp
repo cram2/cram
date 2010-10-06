@@ -34,7 +34,8 @@
            #:make-location-cost-function
            #:make-range-cost-function
            #:make-occupancy-grid-cost-function
-           #:make-axis-boundary-cost-function           
+           #:make-axis-boundary-cost-function
+           #:make-padded-costmap-cost-function
            #:global-fluent-value
            #:occupancy-grid
            #:inverted-occupancy-grid
@@ -67,6 +68,7 @@
            #:gen-costmap-sample
            #:generators
            #:cost-functions
+           #:merge-costmaps
            #:location-costmap->collision-map
            #:occupancy-grid->grid-cells-msg
            #:publish-location-costmap
