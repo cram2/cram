@@ -74,4 +74,5 @@
            #:publish-location-costmap
            #:publish-point
            #:publish-pose
-           #:costmap-location-proxy))
+           #:costmap-location-proxy
+           #:*z-padding*))
