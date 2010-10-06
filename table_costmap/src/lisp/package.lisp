@@ -10,8 +10,10 @@
            #:*table-height-map-fl*
            #:on #:name #:to #:see #:reach
            #:table #:obj #:location
+           #:in #:reach
            #:costmap-padding
            #:costmap-manipulation-padding
+           #:costmap-in-reach-padding
            #:drivable-location-costmap
            #:table-properties
            #:*initial-stddev*
