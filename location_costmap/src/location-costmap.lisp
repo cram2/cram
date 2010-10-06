@@ -92,8 +92,7 @@
               (setf (aref new-cost-map row col) cost-value))
             (incf curr-y resolution))
           (cma:m./ new-cost-map sum)
-          (setf (slot-value map 'cost-map) new-cost-map)
-          (publish-location-costmap map)))
+          (setf (slot-value map 'cost-map) new-cost-map)))
       (slot-value map 'cost-map))))
 
 (defmethod get-map-value ((map location-costmap) x y)

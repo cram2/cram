@@ -48,8 +48,9 @@
 (defmethod location-proxy-precedence-value ((type (eql 'costmap)))
   0)
 
-(defmethod initialize-instance :after ((proxy costmap-location-proxy) &key &allow-other-keys)
-  (location-proxy-next-solution proxy))
+(defmethod initialize-instance :after ((proxy costmap-location-proxy) &key)
+  (location-proxy-next-solution proxy)
+  (publish-location-costmap (costmap proxy)))
 
 (defmethod location-proxy-next-solution ((proxy costmap-location-proxy))
   (flet ((take-closest-point (points)
