@@ -69,3 +69,4 @@
           ((>= mask-col mask-size-x))
         (when (eql (aref mask mask-row mask-col) 1)
           (setf (aref grid-arr grid-row grid-col) 1))))))
+

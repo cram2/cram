@@ -76,3 +76,18 @@
     (aref grid-arr
           (round (/ (- y (origin-y grid)) (resolution grid)))
           (round (/ (- x (origin-x grid)) (resolution grid))))))
+
+(defun matrix->occupancy-grid (origin-x origin-y resolution matrix &optional (threshold 0.0d0))
+  "Creates an occupancy grid from the matrix. Sets all values above
+  `threshold' to 1."
+  (let* ((grid (make-occupancy-grid (* (array-dimension matrix 1) resolution)
+                                   (* (array-dimension matrix 0) resolution)
+                                   origin-x origin-y
+                                   resolution))
+         (grid-arr (grid grid)))
+    (declare (type (simple-array * 2) matrix))
+    (dotimes (y (array-dimension matrix 0))
+      (dotimes (x (array-dimension matrix 1))
+        (when (> (aref matrix y x) threshold)
+          (setf (aref grid-arr y x) 1))))
+    grid))
