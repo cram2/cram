@@ -35,4 +35,4 @@
 
 (define-condition manipulation-pose-unreachable (simple-plan-error)
   ((alternative-poses :initform nil :initarg :alternative-poses
-                       :reader alternative-poses)))
+                      :reader alternative-poses)))
