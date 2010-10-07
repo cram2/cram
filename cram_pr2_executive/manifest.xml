@@ -1,0 +1,30 @@
+<package>
+  <description brief="cram_pr2_executive">
+
+     cram_pr2_executive
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cram_pr2_executive</url>
+  <depend package="cram_language"/>
+  <depend package="cram_execution_trace"/>
+  <depend package="cram_reasoning"/>
+  <depend package="cram_utilities"/>
+  <depend package="cram_math"/>
+  <depend package="designators_ros"/>
+  <depend package="cram_roslisp_common"/>
+  <depend package="cram_plan_library"/>
+  <depend package="cram_plan_knowledge"/>
+  <depend package="location_costmap"/>
+  <depend package="table_costmap"/>
+  <depend package="cram_plan_actionserver"/>
+  <depend package="pr2_navigation_process_module"/>
+  <depend package="perception_process_module"/>
+  <depend package="point_head_process_module"/>
+  <depend package="pr2_manipulation_process_module"/>
+
+</package>
+
+
