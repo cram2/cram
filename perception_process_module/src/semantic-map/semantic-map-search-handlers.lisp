@@ -90,9 +90,9 @@
       ?obj)))
 
 (defmethod object-search-function ((type (cl:eql 'fridge)) desig &optional perceived-object)
-  (declare (ignore perceived-object))
-  (assert-semantic-map-desig desig))
+  (or perceived-object
+      (assert-semantic-map-desig desig)))
 
 (defmethod object-search-function ((type (cl:eql 'drawer)) desig &optional perceived-object)
-  (declare (ignore perceived-object))  
-  (assert-semantic-map-desig desig))
+  (or perceived-object
+      (assert-semantic-map-desig desig)))
