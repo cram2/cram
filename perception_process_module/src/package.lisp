@@ -34,6 +34,7 @@
   (:nicknames :perception-pm)
   (:use #:common-lisp
         #:cram-roslisp-common
+        #:cram-reasoning
         #:crs
         #:cut
         #:desig
@@ -71,7 +72,13 @@
    #:make-cop-desig-query-info #:copy-cop-desig-query-info
    #:cop-desig-location-info #:cop-desig-location-info-poses
    #:cop-desig-info #:cop-desig-info-designator #:cop-desig-info-query
-   #:cop-desig-info-location #:cop-ignore-property-p)
+   #:cop-desig-info-location #:cop-ignore-property-p
+   ;; semantic map stuff (currently hacked for pr2 fridge demo
+   #:fridge #:left-of-sink #:drawer
+   #:low #:middle #:top #:height
+   #:semantic-map-object
+   #:position-idx #:height-idx)
+  
   (:import-from #:cpl
                 #:plan-error
                 #:pulsed
