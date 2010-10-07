@@ -69,4 +69,8 @@
              (:module "passive"
                       :depends-on ("object-belief" "package")
                       :components
-                      ((:file "knowrob-objects")))))))
+                      ((:file "knowrob-objects")))
+             (:module "semantic-map"
+                      :depends-on ("object-belief" "process-module" "package")
+                      :components
+                      ((:file "semantic-map-search-handlers")))))))
