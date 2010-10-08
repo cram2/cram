@@ -139,10 +139,14 @@ than threshold * highest-probability."
   
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (to see))
-    (desig-location-prop ?desig ?loc)
     (costmap ?cm)
     (costmap-padding ?padding)
-    (drivable-location-costmap ?cm ?padding)
+    (drivable-location-costmap ?cm ?padding))
+
+  (<- (desig-costmap ?desig ?cm)
+    (desig-prop ?desig (to see))
+    (costmap ?cm)
+    (desig-location-prop ?desig ?loc)
     (costmap-add-function location-neighborhood (make-location-cost-function ?loc 0.5) ?cm))
 
   (<- (desig-costmap ?desig ?cm)
