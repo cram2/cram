@@ -48,10 +48,16 @@
                          (sort (mapcar (curry #'var-value '?value)
                                        (force-ll (prolog `(desig-loc ,desig ?value))))
                                #'> :key (compose #'location-proxy-precedence-value #'car))))
-      (assert data () (format nil "Unable to resolve designator `~a'" desig))
+      (unless data
+        (error 'designator-error
+               :format-control "Unable to resolve designator `~a'"
+               :format-arguments (list desig)))
       (setf current-solution (location-proxy-solution->pose desig
                               (location-proxy-current-solution (car data))))
-      (assert current-solution () (format nil "Unable to resolve designator `~a'" desig))
+      (unless current-solution
+        (error 'designator-error
+               :format-control "Unable to resolve designator `~a'"
+               :format-arguments (list desig)))
       (assert-desig-binding desig current-solution))
     current-solution))
 
