@@ -40,6 +40,10 @@
   (:documentation "Returns the designator that references this object
   instance."))
 
+(defgeneric (setf object-desig) (new-val obj)
+  (:documentation "Returns the designator that references this object
+  instance."))
+
 (defgeneric object-timestamp (obj)
   (:documentation "Returns the timestamp this object has been
   detected."))
@@ -135,19 +139,44 @@
   (merge-desig-descriptions (description old-desig) (object-properties qo)))
 
 (defmethod matching-object :euclidean-distance (object candidates)
-  (labels ((closest-object (o seq &optional curr)
-             (cond ((null seq)
-                    (values (car curr) (cdr curr)))
-                   (t
-                    (closest-object o (cdr seq)
-                                    (let ((dist (jlo:euclidean-distance (object-pose o)
-                                                                        (object-pose (car seq)))))
-                                      (if (or (not curr) (< dist (cdr curr)))
-                                          (cons (car seq) dist)
-                                          curr)))))))
-    (when candidates
-      (multiple-value-bind (obj dist)
-          (closest-object object candidates)
-        ;; TODO: Use some customizable constant here
-        (when (< dist 0.5)
-          (cons obj 1))))))
+  (labels ((as-pose-stamped (obj)
+             (typecase obj
+               (jlo:jlo (jlo->pose obj))
+               (tf:stamped-transform
+                  (tf:make-pose-stamped
+                   (tf:frame-id obj)
+                   (tf:stamp obj)
+                   (cl-transforms:translation obj)
+                   (cl-transforms:rotation obj)))
+               (cl-transforms:transform
+                  (tf:make-pose-stamped
+                   "/map" (ros-time)
+                   (cl-transforms:translation obj)
+                   (cl-transforms:rotation obj)))
+               (cl-transforms::pose
+                  (tf:make-pose-stamped
+                   "/map" (ros-time)
+                   (cl-transforms:origin obj)
+                   (cl-transforms:orientation obj)))
+               (t obj)))
+           (distance (obj-1 obj-2)
+             (let ((pose-1 (as-pose-stamped obj-1))
+                   (pose-2 (as-pose-stamped obj-2)))
+               (cl-transforms:v-dist (cl-transforms:origin pose-1)
+                                     (cl-transforms:origin pose-2)))))
+    (labels ((closest-object (o seq &optional curr)
+               (cond ((null seq)
+                      (values (car curr) (cdr curr)))
+                     (t
+                      (closest-object
+                       o (cdr seq)
+                       (let ((dist (distance (object-pose o) (object-pose (car seq))) ))
+                         (if (or (not curr) (< dist (cdr curr)))
+                             (cons (car seq) dist)
+                             curr)))))))
+      (when candidates
+        (multiple-value-bind (obj dist)
+            (closest-object object candidates)
+          ;; TODO: Use some customizable constant here
+          (when (< dist 0.5)
+            (cons obj 1)))))))
