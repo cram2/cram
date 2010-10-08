@@ -50,6 +50,7 @@
    #:newest-valid-designator
    #:look-at #:look-long-at #:register-owl-type
    #:wait-for-shoulder-scan #:knowrob-pre-initialize-desig
+   #:cluster #:plate #:object
    ;; object-belief
    #:perceived-object #:queried-object #:object-properties
    #:object-pose #:perceived-object-probability #:object-desig
