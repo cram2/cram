@@ -36,6 +36,9 @@
 
 (in-package :desig)
 
+(define-condition designator-error (simple-error)
+  ())
+
 (defclass designator ()
   ((timestamp :reader timestamp :initform (current-timestamp)
               :documentation "Timestamp of creation of reference or nil

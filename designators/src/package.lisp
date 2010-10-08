@@ -38,6 +38,7 @@
   (:import-from #:cram-utilities
                 #:timestamp)
   (:export #:designator #:timestamp #:description #:parent #:successor
+           #:designator-error
            #:valid #:data #:equate #:desig-equal #:reference
            #:next-solution #:register-designator-type
            #:make-designator #:first-desig #:current-desig
