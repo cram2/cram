@@ -2,7 +2,7 @@
 <launch>
   <group ns="/laser_table_detector">
     <node pkg="laser_assembler" type="point_cloud_assembler" name="table_costmap_tilting_assembler">
-      <remap from="cloud" to="/tilt_scan_cloud"/>
+      <remap from="cloud" to="/tilt_scan_filtered"/>
       <param name="max_clouds" value="600"/>
       <param name="fixed_frame" value="/map"/>
     </node>
