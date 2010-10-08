@@ -31,6 +31,9 @@
 
 (defclass semantic-map-object ()
   ((pose :initarg :pose :reader object-pose)
+   (desig :initarg :desig :accessor object-desig :initform nil)
+   (timestamp :initarg :timestamp :reader object-timestamp)
+   (properties :initarg :properties :reader object-properties)
    (position-idx :initarg :position-idx
                  :reader position-idx)
    (height-idx :initarg :height-idx
@@ -62,7 +65,11 @@
     (link-pose ?frame ?pose)
     (slot-value ?descr pose ?pose)
     (slot-value ?descr position-idx ?p-id)
-    (slot-value ?descr height-idx ?h-id))
+    (slot-value ?descr height-idx ?h-id)
+    (lisp-fun cut:current-timestamp ?timestamp)
+    (lisp-fun description ?desig ?props)
+    (slot-value ?descr timestamp ?timestamp)
+    (slot-value ?descr properties ?props))
 
   (<- (semantic-map-obj ?desig ?descr)
     (desig-prop ?desig (type drawer))
@@ -74,7 +81,11 @@
     (instance-of semantic-map-object ?descr)
     (slot-value ?descr pose ?pose)    
     (slot-value ?descr position-idx ?p-id)
-    (slot-value ?descr height-idx ?h-id)))
+    (slot-value ?descr height-idx ?h-id)
+    (lisp-fun cut:current-timestamp ?timestamp)
+    (lisp-fun description ?desig ?props)
+    (slot-value ?descr timestamp ?timestamp)
+    (slot-value ?descr properties ?props)))
 
 (defmethod make-new-desig-description ((old-desig object-designator)
                                        (po semantic-map-object))
