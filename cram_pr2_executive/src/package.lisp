@@ -31,7 +31,8 @@
 
 (defpackage cram-pr2-reasoning
     (:nicknames :pr2-ex-reasoning)
-  (:use #:crs
+  (:use #:cl
+        #:crs
         #:cram-designators
         #:designators-ros
         #:cram-plan-knowledge
