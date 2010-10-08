@@ -61,9 +61,55 @@
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to close))
     (desig-prop ?desig (obj ?obj))
+    (desig-prop ?desig (side ?obj))
     (rete-holds (object-opened ?obj ?side))
     (rete-holds (object-open-handle ?obj ?handle))
     (side-id ?side ?s-id)
     (ros-message "ias_drawer_executive/OperateHandleGoal"
                  (:arm ?s-id
-                  :handle ?handle))))
+                  :handle ?handle)))
+
+  (<- (action-desig ?desig (plate-grasped ?action ()))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to grasp))
+    (desig-prop ?desig (obj ?obj))
+    (desig-prop ?desig (side ?side))
+    (desig-prop ?obj (type plate))
+    (side-id ?side ?s-id)
+    (ros-message "ias_drawer_executive/PickPlateAction"
+                 (:arm ?s-id)))
+
+  (<- (action-desig ?desig (bottle-grasped ?action ()))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to grasp))
+    (desig-prop ?desig (obj ?obj))
+    (desig-prop ?desig (side ?side))
+    (desig-prop ?obj (type bottle))
+    (side-id ?side ?s-id)
+    (ros-message "ias_drawer_executive/PickBottleAction"
+                 (:arm ?s-id)))
+  
+  ;; Noop stubs to be implemented
+  (<- (action-desig ?desig (noop nil nil))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (pose open)))
+
+  (<- (action-desig ?desig (noop nil nil))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (pose parked)))
+
+  (<- (action-desig ?desig (noop nil nil))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to lift)))
+
+  (<- (action-desig ?desig (noop nil nil))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to carry)))
+
+  (<- (action-desig ?desig (noop nil nil))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to open)))
+
+  (<- (action-desig ?desig (noop nil nil))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to close))))

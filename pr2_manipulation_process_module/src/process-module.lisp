@@ -31,14 +31,22 @@
 
 (defvar *open-handle-action* nil)
 (defvar *close-handle-action* nil)
+(defvar *pick-bottle-action* nil)
+(defvar *pick-plate-action* nil)
 
 (defun init-pr2-manipulation-process-module ()
   (setf *open-handle-action* (actionlib:make-action-client
-                              "/foo/bar"
+                              "/operate_handle_action"
                               "ias_drawer_executive/OperateHandleAction"))
   (setf *close-handle-action* (actionlib:make-action-client
-                               "/foo/baz"
-                               "ias_drawer_executive/CloseHandleAction")))
+                               "/close_handle_action"
+                               "ias_drawer_executive/CloseHandleAction"))
+  (setf *pick-bottle-action* (actionlib:make-action-client
+                              "/pick_bottle_action"
+                              "ias_drawer_executive/PickBottleAction"))
+  (setf *pick-plate-action* (actionlib:make-action-client
+                             "/pick_plate_action"
+                             "ias_drawer_executive/PickPlateAction")))
 
 (register-ros-init-function init-pr2-manipulation-process-module)
 
@@ -46,25 +54,38 @@
 
 (defmethod call-action ((action-sym (eql 'object-opened)) goal params)
   (destructuring-bind (obj side) params
-    (multiple-value-bind (result status)
-        (actionlib:call-goal *open-handle-action* goal)
-      (unless (eq status :succeeded)
-        (cpl-impl:fail 'manipulation-failed))
+    (let ((result (execute-goal *open-handle-action* goal)))
       (roslisp:with-fields (trajectoryhandle) result
         (retract-occasion `(object-closed ?obj))
         (assert-occasion `(object-opened ,obj ,side))
         (assert-occasion `(object-open-handle ,obj ,trajectoryhandle))))))
 
 (defmethod call-action ((action-sym (eql 'object-closed)) goal params)
+  (execute-goal *close-handle-action* goal)
   (destructuring-bind (obj side) params
-    (multiple-value-bind (result status)
-        (actionlib:call-goal *close-handle-action* goal)
-      (declare (ignore result))
-      (unless (eq status :succeeded)
-        (cpl-impl:fail 'manipulation-failed))
-      (retract-occasion `(object-opened ,obj ,side))
-      (retract-occasion `(object-open-handle ,obj ?_))
-      (assert-occasion `(object-closed ?obj)))))
+    (retract-occasion `(object-opened ,obj ,side))
+    (retract-occasion `(object-open-handle ,obj ?_))
+    (assert-occasion `(object-closed ?obj))))
+
+(defmethod call-action ((action-sym (eql 'plate-grasped)) goal params)
+  (execute-goal *pick-plate-action* goal))
+
+(defmethod call-action ((action-sym (eql 'plate-grasped)) goal params)
+  (execute-goal *pick-bottle-action* goal))
+
+(defmethod call-action ((action-sym t) goal params)
+  (declare (ignore goal params))
+  (roslisp:ros-info (pr2-manip process-module)
+                    "Unimplemented operation `~a'. Doing nothing."
+                    action-sym)
+  (sleep 0.5))
+
+(defun execute-goal (server goal)
+  (multiple-value-bind (result status)
+      (actionlib:call-goal server goal)
+    (unless (eq status :succeeded)
+      (cpl-impl:fail 'manipulation-failed))
+    result))
 
 (def-process-module pr2-manipulation-process-module (desig)
   (apply #'call-action (reference desig)))
