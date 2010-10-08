@@ -27,33 +27,9 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(defsystem cram-pr2-executive
-  :author "Lorenz Moesenlechner"
-  :license "BSD"
+(in-package :pr2-ex)
 
-  :depends-on (cram-utilities
-               cram-language
-               cram-reasoning
-               cram-execution-trace
-               cram-math
-               designators-ros
-               cram-roslisp-common
-               cram-plan-library
-               cram-plan-knowledge
-               geometry_msgs-msg
-               alexandria
-               cl-utils
-               table-costmap
-               cram-plan-actionserver
-               perception-process-module
-               point-head-process-module
-               pr2-navigation-process-module
-               pr2-manipulation-process-module)
-  :components
-  ((:module "src"
-            :components
-            ((:file "package")
-             (:file "goals" :depends-on ("package"))
-             (:file "location-facts" :depends-on ("package"))
-             (:file "process-modules" :depends-on ("package"))))))
-
+(cpm:process-module-alias :manipulation 'pr2-manip-pm:pr2-manipulation-process-module)
+(cpm:process-module-alias :navigation 'pr2-navigation-process-module:pr2-navigation-process-module)
+(cpm:process-module-alias :perception 'perception-pm:perception)
+(cpm:process-module-alias :ptu 'point-head-process-module:point-head-process-module)
