@@ -46,10 +46,12 @@
 
   (<- (desig-location-prop ?desig ?loc)
     (desig-prop ?desig (obj ?obj))
-    (lisp-fun obj-desig-location ?obj ?loc))
+    (lisp-fun current-desig ?obj ?curr-obj)
+    (lisp-fun obj-desig-location ?curr-obj ?loc))
 
   (<- (desig-location-prop ?desig ?loc)
     (desig-prop ?desig (location ?loc-desig))
+    (lisp-fun current-desig ?loc-desig ?curr-loc-desig)
     (lisp-fun loc-desig-location ?loc-desig ?loc))
   
   (<- (desig-loc ?desig (pose ?p))
