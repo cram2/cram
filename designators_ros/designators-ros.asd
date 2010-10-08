@@ -10,7 +10,8 @@
                :designators
                :cl-tf
                :cram-utilities
-               :cram-reasoning)
+               :cram-reasoning
+               :cram-roslisp-common)
 
   :components
   ((:module "src"
