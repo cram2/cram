@@ -40,6 +40,16 @@
                         (z point) (cl-transforms:z
                                    (cl-transforms:origin ps))))
 
+(defun ensure-pose-stamped (pose)
+  (etypecase pose
+    (tf:pose-stamped pose)
+    (tf:stamped-transform
+       (tf:make-pose-stamped
+        (tf:frame-id pose) (tf:stamp pose)
+        (cl-transforms:translation pose)
+        (cl-transforms:rotation pose)))
+    (location-designator (reference pose))))
+
 (defun make-action-goal (pose-stamped)
   (roslisp:make-message "pr2_controllers_msgs/PointHeadGoal"
                         max_velocity 10
@@ -50,7 +60,7 @@
                         (z pointing_axis) 0.0
                         target (pose-stamped->point-stamped-msg
                                 (tf:transform-pose
-                                 *tf* :pose pose-stamped
+                                 *tf* :pose (ensure-pose-stamped pose-stamped)
                                  :target-frame "/base_link"))))
 
 (def-fact-group point-head (action-desig)

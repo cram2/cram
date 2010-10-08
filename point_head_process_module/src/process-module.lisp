@@ -39,14 +39,21 @@
 (register-ros-init-function init-point-head-action)
 
 (def-process-module point-head-process-module (goal)
-  (destructuring-bind (cmd action-goal) (reference goal)
-    (maybe-shutdown-thread)
-    (ecase cmd
-      (point
-         (actionlib:call-goal *action-client* action-goal))
-      (follow (setf *point-head-thread*
-                    (sb-thread:make-thread
-                     (curry #'follow-pose-thread-fun action-goal)))))))
+  (handler-case
+      (destructuring-bind (cmd action-goal) (reference goal)
+        (maybe-shutdown-thread)
+        (ecase cmd
+          (point
+             (actionlib:call-goal *action-client* action-goal))
+          (follow (setf *point-head-thread*
+                        (sb-thread:make-thread
+                         (curry #'follow-pose-thread-fun action-goal))))))
+    ;; Ugly hack. We shouldn't catch errors here but find a way to
+    ;; resolve all designators.
+    (designator-error (e)
+      (declare (ignore e))
+      (roslisp:ros-warn (point-head process-module) "Cannot resolve designator ~a. Ignoring."
+                        goal))))
 
 (defun maybe-shutdown-thread ()
   (when (and *point-head-thread*
