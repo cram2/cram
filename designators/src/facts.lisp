@@ -47,7 +47,8 @@
   (<- (desig-location-prop ?desig ?loc)
     (desig-prop ?desig (obj ?obj))
     (lisp-fun current-desig ?obj ?curr-obj)
-    (lisp-fun obj-desig-location ?curr-obj ?loc))
+    (lisp-fun obj-desig-location ?curr-obj ?loc)
+    (lisp-pred identity ?loc))
 
   (<- (desig-location-prop ?desig ?loc)
     (desig-prop ?desig (location ?loc-desig))
