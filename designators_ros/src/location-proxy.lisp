@@ -92,5 +92,8 @@
         (cl-transforms:y solution)
         (if (is-var ?z) 0.0d0 ?z))
        (if (is-var ?o)
-           (cl-transforms:make-quaternion 0 0 0 1)
+           (cl-transforms:rotation (tf:lookup-transform
+                                    *tf*
+                                    :target-frame "/map"
+                                    :source-frame "/base_link"))
            ?o)))))

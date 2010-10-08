@@ -12,6 +12,7 @@
   <depend package="cl_tf"/>
   <depend package="cram_utilities"/>
   <depend package="cram_reasoning"/>
+  <depend package="cram_roslisp_common"/>
 
 </package>
 

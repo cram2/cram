@@ -30,7 +30,8 @@
 (in-package :cl-user)
 
 (defpackage :designators-ros
-    (:use #:cl #:desig #:cut #:crs)
+    (:use #:cl #:desig #:cut #:crs
+          #:cram-roslisp-common)
   (:export #:point-location-proxy #:pose-location-proxy
            #:desig-z-value #:desig-orientation
            #:point #:pose))
