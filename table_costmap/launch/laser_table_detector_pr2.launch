@@ -1,0 +1,78 @@
+<launch>
+
+  <include file="$(find pr2_machine)/$(optenv ROBOT pr2).machine"/>
+  
+  <group ns="/laser_table_detector">
+
+    <!-- PCL Manager -->
+    <node pkg="nodelet" type="nodelet" name="table_detector_pcl_manager" args="manager" output="screen"
+          machine="c2"/>
+
+    <!-- Run a passthrough filter to clean NaNs -->
+    <node pkg="nodelet" type="nodelet" name="passthrough" args="load pcl/VoxelGrid table_detector_pcl_manager" output="screen">
+      <remap from="~input" to="assembled_cloud2" />
+      <rosparam>
+        leaf_size: 0.03
+        filter_field_name: z
+        filter_limit_min: 0.6
+        filter_limit_max: 1.2
+      </rosparam>
+    </node>
+
+    <!-- Estimate point normals -->
+    <node pkg="nodelet" type="nodelet" name="normal_estimation" args="load pcl/NormalEstimation table_detector_pcl_manager" output="screen">
+      <remap from="~input"   to="passthrough/output" />
+      <rosparam>
+        k_search: 0
+        radius_search: 0.1
+        spatial_locator: 0
+      </rosparam>
+    </node>
+
+    <!-- Segment the table plane -->
+    <node pkg="nodelet" type="nodelet" name="planar_segmentation" args="load pcl/SACSegmentationFromNormals table_detector_pcl_manager" output="screen">
+      <remap from="~input" to="passthrough/output" />
+      <remap from="~normals" to="normal_estimation/output" />
+      <rosparam>
+        model_type: 11
+        method_type: 0
+        model_threshold: 0.05
+        normal_distance_weight: 0.1
+        optimize_coefficients : true
+
+        axis: [0.0, 0.0, 1.0]
+        eps_angle: 0.3
+      </rosparam>
+    </node>
+
+    <!-- Inliers PointCloud2 extraction -->
+    <node pkg="nodelet" type="nodelet" name="extract_plane_indices" args="load pcl/ExtractIndices table_detector_pcl_manager" output="screen">
+      <remap from="~input"   to="passthrough/output" />
+      <remap from="~indices" to="planar_segmentation/inliers" />
+      <rosparam>
+        negative: false
+      </rosparam>
+    </node>
+
+
+    <node pkg="nodelet" type="nodelet" name="extract_planar_clusters" args="load pcl/EuclideanClusterExtraction table_detector_pcl_manager" output="screen">
+      <remap from="~input" to="extract_plane_indices/output" />
+      <rosparam>
+        cluster_tolerance: 0.2
+        spatial_locator: 0
+        cluster_min_size: 100
+        max_clusters: 1
+      </rosparam>
+    </node>
+
+    <node pkg="nodelet" type="nodelet" name="table_convex_hull" args="load pcl/ConvexHull2D table_detector_pcl_manager" output="screen">
+      <remap from="~input" to="extract_planar_clusters/output"/>
+    </node>
+
+    <node pkg="table_costmap" type="pcl_hull_to_polygon" name="table_polygon">
+      <remap from="~input" to="table_convex_hull/output"/>
+    </node>
+    
+  </group>
+  
+</launch>
