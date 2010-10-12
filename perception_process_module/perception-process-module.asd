@@ -59,6 +59,10 @@
              (:file "facts" :depends-on ("package"))
              (:file "process-module"
                     :depends-on ("object-belief" "passive" "package"))
+             (:module "fake-perception"
+                      :depends-on ("package" "object-belief" "process-module")
+                      :components
+                      ((:file "fake-search-handlers")))
              (:module "cop"
                       :depends-on ("object-belief" "process-module" "package")
                       :components

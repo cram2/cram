@@ -141,28 +141,51 @@
            (append (find-flat-objects)
                    (refine-clusters (get-clusters desig)))))))
 
-(defmethod object-search-function ((type (eql 'plate)) desig &optional previous-object)
-  ;; The default behavior is the following: If no perceived-object is
-  ;; passed, first search for clusters and use the result for finding
-  ;; the object. Otherwise, use `perceived-object' for it.
-  (let ((query-info (cop-desig-info-query (resolve-object-desig desig :cop))))
-    ;; When iterating over clusters, we want to find only one
-    ;; object.
-    (setf (cop-desig-query-info-matches query-info) 1)
-    (when (and previous-object (has-cop-info previous-object))
-      (setf (cop-desig-query-info-object-ids query-info)
-            (list (object-id previous-object)))
-      (setf (cop-desig-query-info-poses query-info)
-            (list (object-jlo previous-object))))
-    (setf (cop-desig-query-info-poses query-info)
-          (when (desig-prop-value desig 'at)
-            (let ((loc (desig-prop-value desig 'at)))
-              (when (and (eql (desig-prop-value loc 'on) 'table)
-                         (desig-prop-value loc 'name))
-                (list (let ((cluster (get-table-cluster
-                                      (desig-prop-value loc 'name))))
-                        (gaussian->jlo (name cluster) (mean cluster) (cov cluster))))))))
-    (do-cop-search desig query-info)))
+;; (defmethod object-search-function ((type (eql 'round-plate)) desig &optional previous-object)
+;;   ;; The default behavior is the following: If no perceived-object is
+;;   ;; passed, first search for clusters and use the result for finding
+;;   ;; the object. Otherwise, use `perceived-object' for it.
+;;   (let ((query-info (cop-desig-info-query (resolve-object-desig desig :cop))))
+;;     ;; When iterating over clusters, we want to find only one
+;;     ;; object.
+;;     (setf (cop-desig-query-info-matches query-info) 1)
+;;     (when (and previous-object (has-cop-info previous-object))
+;;       (setf (cop-desig-query-info-object-ids query-info)
+;;             (list (object-id previous-object)))
+;;       (setf (cop-desig-query-info-poses query-info)
+;;             (list (object-jlo previous-object))))
+;;     (setf (cop-desig-query-info-poses query-info)
+;;           (when (desig-prop-value desig 'at)
+;;             (let ((loc (desig-prop-value desig 'at)))
+;;               (when (and (eql (desig-prop-value loc 'on) 'table)
+;;                          (desig-prop-value loc 'name))
+;;                 (list (let ((cluster (get-table-cluster
+;;                                       (desig-prop-value loc 'name))))
+;;                         (gaussian->jlo (name cluster) (mean cluster) (cov cluster))))))))
+;;     (do-cop-search desig query-info)))
+
+;; (defmethod object-search-function ((type (eql 'plate)) desig &optional previous-object)
+;;   ;; The default behavior is the following: If no perceived-object is
+;;   ;; passed, first search for clusters and use the result for finding
+;;   ;; the object. Otherwise, use `perceived-object' for it.
+;;   (let ((query-info (cop-desig-info-query (resolve-object-desig desig :cop))))
+;;     ;; When iterating over clusters, we want to find only one
+;;     ;; object.
+;;     (setf (cop-desig-query-info-matches query-info) 1)
+;;     (when (and previous-object (has-cop-info previous-object))
+;;       (setf (cop-desig-query-info-object-ids query-info)
+;;             (list (object-id previous-object)))
+;;       (setf (cop-desig-query-info-poses query-info)
+;;             (list (object-jlo previous-object))))
+;;     (setf (cop-desig-query-info-poses query-info)
+;;           (when (desig-prop-value desig 'at)
+;;             (let ((loc (desig-prop-value desig 'at)))
+;;               (when (and (eql (desig-prop-value loc 'on) 'table)
+;;                          (desig-prop-value loc 'name))
+;;                 (list (let ((cluster (get-table-cluster
+;;                                       (desig-prop-value loc 'name))))
+;;                         (gaussian->jlo (name cluster) (mean cluster) (cov cluster))))))))
+;;     (do-cop-search desig query-info)))
 
 (defmethod object-search-function ((type t) desig &optional previous-object)
   ;; The default behavior is the following: If no perceived-object is
