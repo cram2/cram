@@ -31,11 +31,12 @@
 
 (def-goal (achieve (object-opened ?obj ?side))
   (roslisp:ros-info (achieve plan-lib) "(achieve (object-opened ~a ~a))" ?obj ?side)
+  (setf ?obj (perceive ?obj))
   (with-designators ((robot-pose (location `((to see) (obj ,?obj))))
                      (open-traj (action `((type trajectory) (to open) (obj ,?obj) (side ,?side)))))
     (at-location (robot-pose)
       (achieve `(arms-at ,open-traj)))))
 
 (def-goal (achieve (object-closed ?obj))
-  (with-designators ((close-traj (action `((type trajectory) (to close) (obj ,?obj)))))
+  (with-designators ((close-traj (action `((type trajectory) (to close) (obj ,(current-desig ?obj))))))
     (achieve `(arms-at ,close-traj))))
