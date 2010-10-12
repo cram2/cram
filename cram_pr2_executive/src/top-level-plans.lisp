@@ -51,21 +51,21 @@
 
 (def-top-level-plan grasp-plate ()
   (with-designators ((drawer (object '((type drawer) (position left-of-sink) (height top))))
-                     (plate-loc (location `((in ,drawer))))
+                     (plate-loc (location `((inside ,drawer))))
                      (plate (object `((type round-plate) (at ,plate-loc)))))
     (setf drawer (perceive drawer))
     (achieve `(object-in-hand ,plate :right))))
 
 (def-top-level-plan grasp-bottle ()
   (with-designators ((fridge (object '((type fridge))))
-                     (bottle-loc (location `((in ,fridge))))
+                     (bottle-loc (location `((inside ,fridge))))
                      (bottle (object `((type bottle) (at ,bottle-loc)))))
     (setf fridge (perceive fridge))
     (achieve `(object-in-hand ,bottle :right))))
 
 (def-plan do-place-bottle ()
   (with-designators ((fridge (object '((type fridge))))
-                     (bottle-loc (location `((in ,fridge))))
+                     (bottle-loc (location `((inside ,fridge))))
                      (bottle (object `((type bottle) (at ,bottle-loc))))
                      (table (location `((on table) (name kitchen-island) (for ,bottle)))))
     (achieve `(object-opened ,fridge :right))
@@ -78,7 +78,7 @@
 
 (def-plan do-place-plate ()
   (with-designators ((drawer (object '((type drawer) (position left-of-sink) (height top))))
-                     (plate-loc (location `((in ,drawer))))
+                     (plate-loc (location `((inside ,drawer))))
                      (plate (object `((type round-plate) (at ,plate-loc))))
                      (table (location `((on table) (name kitchen-island) (for ,plate)))))
     (achieve `(object-opened ,drawer :right))
