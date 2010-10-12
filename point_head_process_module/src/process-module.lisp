@@ -45,9 +45,12 @@
         (ecase cmd
           (point
              (actionlib:call-goal *action-client* action-goal))
-          (follow (setf *point-head-thread*
-                        (sb-thread:make-thread
-                         (curry #'follow-pose-thread-fun action-goal))))))
+          (follow
+             (actionlib:call-goal *action-client* action-goal)
+             ;; (setf *point-head-thread*
+             ;;       (sb-thread:make-thread
+             ;;        (curry #'follow-pose-thread-fun action-goal)))
+             )))
     ;; Ugly hack. We shouldn't catch errors here but find a way to
     ;; resolve all designators.
     (designator-error (e)
