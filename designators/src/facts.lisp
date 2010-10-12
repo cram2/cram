@@ -63,6 +63,12 @@
     (loc-desig? ?desig)
     (desig-prop ?desig (of ?obj))
     (lisp-fun current-desig ?obj ?curr-obj)
+    (desig-prop ?curr-obj (at ?loc)))
+
+  (<- (desig-loc ?desig (loc-desig ?loc))
+    (loc-desig? ?desig)
+    (desig-prop ?desig (in ?obj))
+    (lisp-fun current-desig ?obj ?curr-obj)
     (desig-prop ?curr-obj (at ?loc))))
 
 (def-fact-group manipulation-designator (action-desig)
