@@ -29,12 +29,25 @@
 
 (in-package :pr2-ex-reasoning)
 
+(defun bottle-put-down-pose ()
+  (tf:make-pose-stamped
+   "/map" 0
+   (cl-transforms:make-3d-vector -1.87 2.29 0.976)
+   (cl-transforms:make-quaternion 0 0 0 1)))
+
+(defun plate-put-down-pose ()
+  (tf:make-pose-stamped
+   "/map" 0
+   (cl-transforms:make-3d-vector -1.75 2.10 0.976)
+   (cl-transforms:make-quaternion 0 0 0 1)))
+
+
 (def-fact-group pr2-specific-costmap-params (drivable-location-costmap)
   (<- (costmap-padding 0.6))
-  (<- (costmap-manipulation-padding 0.35))
+  (<- (costmap-manipulation-padding 0.4))
   (<- (costmap-in-reach-padding 1.0)))
 
-(def-fact-group costmap-metadata ()
+(def-fact-group costmap-metadata (desig-loc)
   (<- (costmap-size ?width ?height)
     (symbol-value table-costmap:*map-fl* ?map-fl)
     (fluent-value ?map-fl ?map)
@@ -46,4 +59,10 @@
   (<- (costmap-origin ?x ?y)
     (symbol-value table-costmap:*map-fl* ?map-fl)
     (fluent-value ?map-fl ?map)
-    (lisp-fun occupancy-grid-msg-metadata ?map :key :origin (?x ?y))))
+    (lisp-fun occupancy-grid-msg-metadata ?map :key :origin (?x ?y)))
+
+  (<- (desig-loc ?desig (pose ?p))
+    (loc-desig? ?desig)
+    (desig-prop ?desig (pr2-ex::for ?obj))
+    (desig-prop ?obj (type bottle))
+    (lisp-fun bottle-put-down-pose ?p)))
