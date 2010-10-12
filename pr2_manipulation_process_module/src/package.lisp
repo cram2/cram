@@ -40,9 +40,11 @@
         #:cram-process-modules
         #:cram-plan-failures
         #:cram-plan-knowledge
+        #:table-costmap
         #:perception-pm)
   (:export
    #:pr2-manipulation-process-module
    #:to #:open #:close #:obj #:side
    ;; Rete facts
-   #:object-opened #:object-closed))
+   #:object-opened #:object-closed)
+  (:shadowing-import-from #:table-costmap #:name))
