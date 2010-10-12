@@ -46,7 +46,6 @@
   (let ((new-desig (make-designator 'object
                                     (make-new-desig-description
                                      desig obj))))
-    ;; Todo: Merge the object properties with the desinator's props
     ;; Todo: Use weak references here to make desigs gc-able
     (assert (null (object-desig obj)) ()
             "Cannot bind a perceived-object when it's already bound.")
@@ -66,26 +65,27 @@
    otherwise."
   (let* ((parent-desig (current-desig desig))
          (perceived-object (or (desig-current-perceived-object parent-desig)
-                               (desig-current-perceived-object parent-desig 'queried-object)))
+                               (desig-current-perceived-object parent-desig 'queried-object)
+                               (desig-current-perceived-object parent-desig 'semantic-map-object)))
          (perceived-objects nil))
-    (assert perceived-object)
     (or
-     (crs:with-production-handlers
-         ((production-name (op &key ?perceived-object)
-            (when (eq op :assert)
-              (pushnew ?perceived-object perceived-objects))))
-       ;; We ignore objects that have already been perceived
-       ;; since we got the info we are interested in already
-       ;; (by the desig's reference) Note: Later, when falling
-       ;; back to the default search, this information _is_
-       ;; used, but in FIND-WITH-NEW-DESIG
-       (setf perceived-objects nil)
-       (execute-object-search-function parent-desig perceived-object)
-       (when perceived-objects
-         (list (perceived-object->designator parent-desig
-                                             (car (sort perceived-objects #'>
-                                                        :key #'perceived-object-probability))
-                                             parent-desig))))
+     (when perceived-object
+       (crs:with-production-handlers
+           ((production-name (op &key ?perceived-object)
+              (when (eq op :assert)
+                (pushnew ?perceived-object perceived-objects))))
+         ;; We ignore objects that have already been perceived
+         ;; since we got the info we are interested in already
+         ;; (by the desig's reference) Note: Later, when falling
+         ;; back to the default search, this information _is_
+         ;; used, but in FIND-WITH-NEW-DESIG
+         (setf perceived-objects nil)
+         (execute-object-search-function parent-desig perceived-object)
+         (when perceived-objects
+           (list (perceived-object->designator parent-desig
+                                               (car (sort perceived-objects #'>
+                                                          :key #'perceived-object-probability))
+                                               parent-desig)))))
       ;; Ok. No object found so far. We need to use our fallback
       ;; solution.  It is like searching with a new designator, but we
       ;; need to asure that the result is not bound to any other

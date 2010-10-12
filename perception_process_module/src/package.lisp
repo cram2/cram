@@ -78,7 +78,10 @@
    #:fridge #:left-of-sink #:drawer
    #:low #:middle #:top #:height
    #:semantic-map-object
-   #:position-idx #:height-idx)
+   #:position-idx #:height-idx
+   ;; Fake perception
+   #:round-plate #:bottle #:silverware
+   )
   
   (:import-from #:cpl
                 #:plan-error
