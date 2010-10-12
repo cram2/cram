@@ -67,7 +67,7 @@
 
   (<- (desig-loc ?desig (loc-desig ?loc))
     (loc-desig? ?desig)
-    (desig-prop ?desig (in ?obj))
+    (desig-prop ?desig (inside ?obj))
     (lisp-fun current-desig ?obj ?curr-obj)
     (desig-prop ?curr-obj (at ?loc))))
 
