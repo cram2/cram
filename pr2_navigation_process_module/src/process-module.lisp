@@ -42,8 +42,8 @@
   "When the distance to goal is smaller than *NAVP-GOAL-MAX-DISTANCE*,
   we might use nav-p controller.")
 
-(defvar *xy-goal-tolerance* 0.1)
-(defvar *yaw-goal-tolerance* 0.05)
+(defvar *xy-goal-tolerance* 0.15)
+(defvar *yaw-goal-tolerance* 0.10)
 
 (defun init-pr2-navigation-process-module ()
   (setf *move-base-client* (actionlib:make-action-client
@@ -115,29 +115,40 @@
 (defun call-nav-action (client desig)
   (let ((goal (make-action-goal (reference desig))))
     (multiple-value-bind (result status)
-        (actionlib:call-goal client goal)
-      (declare (ignore result))
-      (unless (and (eq status :succeeded)
-                   (goal-reached? (reference desig)))
-        (cpl-impl:fail 'location-not-reached-failure
-                       :location (reference desig))))))
+        (let ((actionlib:*action-server-timeout* 10.0))
+          (actionlib:call-goal client goal))
+      (declare (ignore result status))
+      (roslisp:ros-info (pr2-nav process-module) "Nav action finished.")
+      ;; (unless (and ;; (eq status :succeeded)
+      ;;              (goal-reached? (reference desig)))
+      ;;   (cpl-impl:fail 'location-not-reached-failure
+      ;;                  :location (reference desig)))
+      )))
 
 (def-process-module pr2-navigation-process-module (goal)
-  (cond ((use-navp? (reference goal))
-         (roslisp:ros-info (pr2-nav process-module)
-                           "Using nav-pcontroller.")
-         (call-nav-action *navp-client* goal))
-        (t
-         (block nil
-           (handler-bind ((location-not-reached-failure
-                           (lambda (e)
-                             (declare (ignore e))
-                             (roslisp:ros-info (pr2-nav process-module)
-                                               "Could not reach goal.")
-                             (when (use-navp? (reference goal))
-                               (roslisp:ros-info (pr2-nav process-module)
-                                                 "Falling back to nav-pcontroller.")                               
-                               (return (call-nav-action *navp-client* goal))))))
-             (roslisp:ros-info (pr2-nav process-module)
-                               "Using move_base.")
-             (call-nav-action *move-base-client* goal))))))
+  (unwind-protect
+       (cpl-impl:pursue
+         (progn
+           (roslisp:ros-info (pr2-nav process-module)
+                             "Using nav-pcontroller.")
+           (call-nav-action *navp-client* goal))
+         (sleep 20))
+       ;; (cond ((use-navp? (reference goal))
+       ;;        (roslisp:ros-info (pr2-nav process-module)
+       ;;                          "Using nav-pcontroller.")
+       ;;        (call-nav-action *navp-client* goal))
+       ;;       (t
+       ;;        (block nil
+       ;;          (handler-bind ((location-not-reached-failure
+       ;;                          (lambda (e)
+       ;;                            (declare (ignore e))
+       ;;                            (roslisp:ros-info (pr2-nav process-module)
+       ;;                                              "Could not reach goal.")
+       ;;                            (when (use-navp? (reference goal))
+       ;;                              (roslisp:ros-info (pr2-nav process-module)
+       ;;                                                "Falling back to nav-pcontroller.")                               
+       ;;                              (return (call-nav-action *navp-client* goal))))))
+       ;;            (roslisp:ros-info (pr2-nav process-module)
+       ;;                              "Using move_base.")
+       ;;            (call-nav-action *move-base-client* goal)))))
+    (roslisp:ros-info (pr2-nav process-module) "Navigation finished.")))
