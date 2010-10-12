@@ -40,54 +40,96 @@
   (<- (side-id :right 0))
   (<- (side-id :left 1))
 
-  (<- (action-desig ?desig (object-opened ?action (?obj ?side)))
+  (<- (action-desig ?desig (fridge-opened ?action (?obj ?side)))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to open))
     (desig-prop ?desig (obj ?obj))
     (desig-prop ?desig (side ?side))
     (side-id ?side ?s-id)
-    (lisp-fun current-desig ?obj ?curr-obj)
-    (lisp-fun reference ?curr-obj ?sem-map-obj)
-    (lisp-type ?sem-map-obj semantic-map-object)
-    (slot-value ?sem-map-obj position-idx ?p-idx)
-    (slot-value ?sem-map-obj height-idx ?h-idx)
-    (ros-message "ias_drawer_executive/OperateHandleGoal"
-                 (:arm ?s-id
-                  :positionIdx ?p-idx
-                  :heightIdx ?h-idx)
+    (desig-prop ?obj (type fridge))
+    (ros-message "ias_drawer_executive/GenericGoal"
+                 (:arm ?s-id)
                  ?action))
   
-  (<- (action-desig ?desig (object-closed ?action (?obj ?side)))
+  (<- (action-desig ?desig (fridge-closed ?action (?obj ?side)))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to close))
     (desig-prop ?desig (obj ?obj))
-    (desig-prop ?desig (side ?obj))
+    (desig-prop ?obj (type fridge))
     (rete-holds (object-opened ?obj ?side))
-    (rete-holds (object-open-handle ?obj ?handle))
-    (side-id ?side ?s-id)
-    (ros-message "ias_drawer_executive/OperateHandleGoal"
-                 (:arm ?s-id
-                  :handle ?handle)))
+    (rete-holds (fridge-open-handle ?obj ?handle))
+    (ros-message "ias_drawer_executive/GenericGoal"
+                 (:arm ?handle)
+                 ?action))
 
-  (<- (action-desig ?desig (plate-grasped ?action ()))
+  (<- (action-desig ?desig (drawer-opened ?action (?obj ?side)))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to open))
+    (desig-prop ?desig (obj ?obj))
+    (desig-prop ?desig (side ?side))
+    (side-id ?side ?s-id)
+    (desig-prop ?obj (type drawer))
+    (ros-message "ias_drawer_executive/GenericGoal"
+                 (:arm ?s-id)
+                 ?action))
+  
+  (<- (action-desig ?desig (noop ?action (?obj ?side)))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to close))
+    (desig-prop ?desig (obj ?obj))
+    (desig-prop ?obj (type drawer))
+    (rete-holds (drawer-open-handle ?obj ?handle))
+    (ros-message "ias_drawer_executive/GenericGoal"
+                 (:arm ?handle)
+                 ?action))
+  
+  (<- (action-desig ?desig (plate-grasped-drawer ?action (?obj)))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to grasp))
     (desig-prop ?desig (obj ?obj))
-    (desig-prop ?desig (side ?side))
-    (desig-prop ?obj (type plate))
-    (side-id ?side ?s-id)
-    (ros-message "ias_drawer_executive/PickPlateAction"
-                 (:arm ?s-id)))
+    (desig-prop ?obj (type round-plate))
+    (ros-message "ias_drawer_executive/GenericGoal"
+                 (:arm 0)
+                 ?action))
 
-  (<- (action-desig ?desig (bottle-grasped ?action ()))
+  (<- (action-desig ?desig (bottle-grasped ?action (?obj)))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to grasp))
     (desig-prop ?desig (obj ?obj))
     (desig-prop ?desig (side ?side))
     (desig-prop ?obj (type bottle))
-    (side-id ?side ?s-id)
-    (ros-message "ias_drawer_executive/PickBottleAction"
-                 (:arm ?s-id)))
+    (ros-message "ias_drawer_executive/GenericGoal"
+                 (:arm 0)
+                 ?action))
+
+  (<- (action-desig ?desig (plate-put-down-island ?action (?obj)))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to put-down))
+    (desig-prop ?desig (obj ?obj))
+    (desig-prop ?desig (at ?loc))
+    (desig-prop ?obj (type round-plate))
+    (desig-prop ?loc (name ?name-sym))
+    (lisp-fun symbol-name ?name-sym ?name-str)
+    (lisp-pred equal ?name-str "KITCHEN-ISLAND")
+    (format "bla~%")
+    (rete-holds (plate-grasped-handle ?obj ?handle))
+    (ros-message "ias_drawer_executive/GenericGoal"
+                 (:arm ?handle)
+                 ?action))
+
+  (<- (action-desig ?desig (bottle-put-down-island ?action (?obj)))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to put-down))
+    (desig-prop ?desig (obj ?obj))
+    (desig-prop ?desig (at ?loc))
+    (desig-prop ?obj (type bottle))
+    (desig-prop ?loc (name ?name-sym))
+    (lisp-fun symbol-name ?name-sym ?name-str)
+    (lisp-pred equal ?name-str "KITCHEN-ISLAND")
+    (rete-holds (bottle-grasped-handle ?obj ?handle))
+    (ros-message "ias_drawer_executive/GenericGoal"
+                 (:arm ?handle)
+                 ?action))  
   
   ;; Noop stubs to be implemented
   (<- (action-desig ?desig (noop nil nil))
