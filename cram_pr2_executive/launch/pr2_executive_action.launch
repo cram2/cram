@@ -1,0 +1,8 @@
+
+<launch>
+  <include file="$(find cram_pr2_executive)/launch/location_costmap_processing_pr2.launch"/>
+  <node name="cram_actionserver" pkg="cram_pr2_executive" type="pr2_executive_action" output="screen">
+    <param name="record_execution_trace" value="true"/>
+    <param name="execution_trace_dir" value="$(find cram_pr2_executive)/execution_traces"/>
+  </node>
+</launch>
