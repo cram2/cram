@@ -34,6 +34,7 @@
    (desig :initarg :desig :accessor object-desig :initform nil)
    (timestamp :initarg :timestamp :reader object-timestamp)
    (properties :initarg :properties :reader object-properties)
+   (probability :initform 0.0 :accessor perceived-object-probability)
    (position-idx :initarg :position-idx
                  :reader position-idx)
    (height-idx :initarg :height-idx
@@ -91,7 +92,7 @@
                                        (po semantic-map-object))
   (let ((obj-loc-desig (make-designator 'location `((pose ,(object-pose po))))))
     (cons `(at ,obj-loc-desig)
-          (description old-desig))))
+          (remove 'at (description old-desig) :key #'car))))
 
 (defun assert-semantic-map-desig (desig)
   (with-vars-bound (?obj)
@@ -101,9 +102,9 @@
       ?obj)))
 
 (defmethod object-search-function ((type (cl:eql 'fridge)) desig &optional perceived-object)
-  (or perceived-object
-      (assert-semantic-map-desig desig)))
+  (declare (ignore perceived-object))  
+  (assert-semantic-map-desig desig))
 
 (defmethod object-search-function ((type (cl:eql 'drawer)) desig &optional perceived-object)
-  (or perceived-object
-      (assert-semantic-map-desig desig)))
+  (declare (ignore perceived-object))
+  (assert-semantic-map-desig desig))
