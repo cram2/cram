@@ -47,7 +47,9 @@
            (achieve `(arms-at ,(make-designator 'action `((type trajectory) (pose open) (side ,?side)))))
            (when (< (incf retry-count) 3)
              (retry))))
+      (ros-info (achieve plan-lib) "Calling perceive")
       (setf ?obj (perceive ?obj))
+      (ros-info (achieve plan-lib) "Perceive done")
       (with-designators ((pick-up-loc (location `((to reach) (obj ,?obj))))
                          (open-trajectory (action `((type trajectory) (pose open) (side ,?side))))
                          (grasp-trajectory (action `((type trajectory) (to grasp) (obj ,?obj) (side ,?side))))
@@ -72,6 +74,7 @@
           ;; some semantic information to at-location, e.g. that we
           ;; navigate to go to a good grasp position and that we do
           ;; not want to move the arms in such a case.
+          (ros-info (achieve plan-lib) "Grasping")
           (achieve `(arms-at ,open-trajectory))
           (at-location (pick-up-loc)
             (achieve `(arms-at ,open-trajectory))
