@@ -59,5 +59,6 @@
         #:location-costmap
         #:perception-pm)
   (:shadowing-import-from #:table-costmap
-                          #:name))
+                          #:name)
+  (:export #:object-opened #:object-closed))
 
