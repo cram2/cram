@@ -1,1 +1,235 @@
-Re-export of the cram_pl stack
+commit e6161ac24768ae959a5534fb763a2a595599f7a3
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Tue Oct 12 20:05:06 2010 +0200
+
+    Renamed designator prop IN to INSIDE
+
+commit c1c0df51bbb37e7e9bc7fb4120603ea93621c934
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Tue Oct 12 10:47:24 2010 +0200
+
+    Added designator property IN
+
+commit 7665692d7b1f4b92ab876b0c3c33cb5803c5f602
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Fri Oct 8 20:47:04 2010 +0200
+
+    Unresolvable designators result in DESIGNATOR-ERROR conditions now
+    
+    This makes it possible to handle them
+
+commit ba341d6e8a50ee99cd3f93dd2286a33fb64eee9d
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Fri Oct 8 20:45:40 2010 +0200
+
+    Fail when location in OBJECT-DESIG-LOCATION is undefined
+
+commit 614827fb01f4479995ea9d2ffc7dfe86106f4221
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Fri Oct 8 14:56:58 2010 +0200
+
+    Designator properties obj and location should take the current desig
+
+commit 6cde31235651db6e585171d6fd1a454a493276ad
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Thu Oct 7 20:17:14 2010 +0200
+
+    Updated package exports
+
+commit 0d2afb578d8b4bef4e9ed23b7f4c94d5b3ae629f
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Thu Oct 7 19:07:50 2010 +0200
+
+    Added RETE-HOLDS prolog handler
+
+commit f5041db2d117895cc6165eb3b91dc22bdad717a6
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Tue Oct 5 15:51:02 2010 +0200
+
+    Added DESIGNATOR-LOCATION-PROXY
+    
+    For location designators with a description like ((of obj)), we need to
+    create a new location designator that proxies the actual location
+    designator of the object
+
+commit 2390369227e060bf24e29126d661afd699f884ca
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Tue Oct 5 15:45:17 2010 +0200
+
+    Updated designator package exports
+
+commit efd93aeaedac577c582493ecb1f6a50084244d9c
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Tue Oct 5 00:14:37 2010 +0200
+
+    Fixed LIVE-EPISODE-KNOWLEDGE
+    
+    We need to cache the result of the TASK-TREE method since task tree filtering
+    creates new TASK-TREE-NODE instances. Caching restores task equality during
+    prolog queries.
+
+commit 51a6e6e5578dc1bb3cd5a6c4edb4e02af7f2f70a
+Author: Lorenz Mösenlechner <moesenle@in.tum.de>
+Date:   Fri Oct 1 12:33:47 2010 +0200
+
+    Fixed designator package exports again...
+
+commit 208198c305e2218ed168d383e6aa4260f98193e2
+Author: Lorenz Mösenlechner <moesenle@in.tum.de>
+Date:   Fri Oct 1 11:12:32 2010 +0200
+
+    Fixed makefiles
+    
+    make clean didn't remove the file downloaded which caused a re-build to
+    fail.
+
+commit 6149efc55868db00bd6cef49787d48c3472ec8cb
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Thu Sep 30 16:15:43 2010 +0200
+
+    Better error message when waiting for a process module to come up
+
+commit 8e7e5066b137052a649022daf6d74c201d7e0cb6
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Thu Sep 30 16:15:00 2010 +0200
+
+    Updated rosie_executive and designators package exports
+
+commit 2a55eb25aac7e4dee6e77bb3b9e3f4fe80d1820f
+Merge: dc107da 09cb3ed
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Thu Sep 30 14:53:35 2010 +0200
+
+    Merge branch 'master' into modular_executive
+    
+    Conflicts:
+    	stacks/cram_highlevel/cram_plan_library/src/plans/achieve-object-manipulation.lisp
+    	stacks/cram_highlevel/kipla/.gitignore
+    	stacks/cram_highlevel/kipla/kipla.asd
+    	stacks/cram_highlevel/kipla/manifest.xml
+    	stacks/cram_highlevel/kipla/src/packages.lisp
+    	stacks/cram_highlevel/perception_process_module/src/cop/cop-search-handlers.lisp
+    	stacks/cram_rosie/jlo_navp_process_module/jlo-navp-process-module.asd
+    	stacks/cram_rosie/rosie_executive/CMakeLists.txt
+    	stacks/cram_rosie/rosie_executive/src/package.lisp
+
+commit 8706948190966db378cdabbc87472391a049a75e
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Thu Sep 30 11:36:54 2010 +0200
+
+    Added powercube process module
+
+commit bc64dfbdbf4403b99e0e07c75b8cb751040a0763
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Wed Sep 29 17:23:36 2010 +0200
+
+    Renamed MANIP-DESIG? to MANIP-DESIG?
+
+commit 55ab7995abc478344601bf6fddf4ea58e9c3f2cf
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Fri Sep 24 15:30:32 2010 +0200
+
+    Added more symbol exports to designator package
+
+commit b4afb04a81f1c293ba9779c0c394830bcdb35ab2
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Thu Sep 23 19:43:07 2010 +0200
+
+    Updated stack.xml files
+
+commit a5f28fdec47b50600537ba79881fc81990f25153
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Thu Sep 23 19:16:24 2010 +0200
+
+    Added support for process module aliases
+    
+    This should make it possible to use different process modules in
+    different plans. Aliases can be added/removed/changed in plans now since
+    we use task-variables instead of dynamic variables now. The macro
+    WITH-PROCESS-MODULE adds aliases to the current dynamic environment.
+
+commit bc463e7d68dd065e6fd603b19377ddcac0d5dcba
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Wed Sep 29 16:01:30 2010 +0200
+
+    Default timestamp for designators
+
+commit 84d6eb7dc8fa61a416f6d48d954bf129f3d98c7d
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Tue Sep 28 14:57:37 2010 +0200
+
+    Fixed quoting in task s-expressions
+
+commit 9ca7e0fcaefe79ecdde345c87a43a54f90be9e40
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Tue Sep 28 14:57:04 2010 +0200
+
+    Added new task path variant GOAL-CONTEXT
+
+commit 91b92632ec65015f9c680beea8611d41ee1efbbf
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Tue Sep 28 12:13:31 2010 +0200
+
+    Exported TERMINATE method
+
+commit 76de254a9678c2c0b68a94bef80cdf3c16d10946
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Mon Sep 27 17:48:37 2010 +0200
+
+    Functions that are stored in the execution trace are ignored now
+    
+    This caused problems with lambda functions which couldn't be fdefined.
+
+commit c5dc4108c2bd881d5397d9770b1b143c155da151
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Thu Sep 23 17:38:44 2010 +0200
+
+    Fixed error handler
+
+commit b6add573e2e5d4e1ce486b0f9d9d87b13bbb8726
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Thu Sep 23 17:38:17 2010 +0200
+
+    Designators package exports symbol TO
+
+commit d5dea1257d93f51f59aaf840b6428970feff24d7
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Thu Sep 23 12:36:13 2010 +0200
+
+    Added variable *BREAK-ON-ERRORS*
+    
+    When NIL common lisp errors are propagated up to the root task.
+
+commit 46d2fc4446f4382f4ba196477deeaf9cc1e629f0
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Mon Sep 20 15:54:53 2010 +0200
+
+    Use correct eval-when form
+    
+    Register plan metainfo not only at :LOAD-TOPLEVEL but also at :COMPILE-TOPLEVEL
+
+commit c5676e8707d8145db59ae5376af3b2f837d70b89
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Fri Sep 17 14:47:05 2010 +0200
+
+    Fixed a whole bunch of package exports
+
+commit 2f70ae5adc392dd845e7b722efc5f3d285cc31d4
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Thu Sep 16 19:03:59 2010 +0200
+
+    Set doc-string correctly for plans
+
+commit 15a2ae57cbf0bd7412cbc0df23da6f7b96b40b14
+Author: Lorenz Mösenlechner <moesenle@in.tum.de>
+Date:   Tue Sep 14 19:41:24 2010 +0200
+
+    STRING-CASE support for default handler if no case matches
+
+commit e55b257e411b401645b38be3ffd9c9b3cac51ceb
+Author: Lorenz Mösenlechner <moesenle@in.tum.de>
+Date:   Tue Sep 14 15:15:05 2010 +0200
+
+    Moved designators from kipla to designators package
+    
+    Factored out the ros specific stuff into the package designators_ros
