@@ -1,0 +1,116 @@
+commit ffa360cf65b42f06352912c17042b933ab420b5b
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Tue Oct 12 20:06:49 2010 +0200
+
+    Renamed in to inside in plans
+
+commit 8de48895ecdeffd40b6186115f8b510d7db22686
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Tue Oct 12 17:50:35 2010 +0200
+
+    pr2_executive package exports
+
+commit b74e28e53307652483d5a7b6f2933ec3fa0c3dcb
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Tue Oct 12 11:30:10 2010 +0200
+
+    Full bottle and plate serving demo in CRAM
+
+commit d9252c95129f5095f7e5ff53133f2b50fc4d25b0
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Tue Oct 12 10:48:53 2010 +0200
+
+    Commented out move_base for the moment and added timeout to nav_p call
+
+commit ac53adb8e788f0376201f7dfa417a027b141a4f1
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Tue Oct 12 10:48:32 2010 +0200
+
+    Made manipulation process module work for demo
+
+commit 8e1104165bc409f791a7024b3d50b1debf8691f5
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Tue Oct 12 10:47:54 2010 +0200
+
+    Disabled head following
+
+commit 11a77e08f0df3dfd8f9586b952a3e964fe7bb2fa
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Tue Oct 12 10:43:31 2010 +0200
+
+    Launch files
+
+commit c646c87c76a173b8229ebedaa3367eb102569c31
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Mon Oct 11 16:44:57 2010 +0200
+
+    Updated and moved pr2 highlevel launch scripts
+
+commit 42ba2291bf332d361483a38c7e3ef7185d089828
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Fri Oct 8 20:49:14 2010 +0200
+
+    Added support for plate and bottle grasping
+
+commit 0ff2f6fc70a1e59dc76563a58f42560955f5a309
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Fri Oct 8 20:47:39 2010 +0200
+
+    Made the head process module work
+    
+    It works for poses, transforms and location designators now and just does
+    nothing when it cannot resolve a location. **HACK**
+
+commit c2d8196aed1f4da84c4fc50b6479d57212bacb8c
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Fri Oct 8 20:45:15 2010 +0200
+
+    Added missing package use of cl
+
+commit 64a35c0793e3e29630c46e2bf3c6504596542bf1
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Fri Oct 8 15:00:27 2010 +0200
+
+    Added process module aliases to cram-pr2-executive
+
+commit 249d8b21a5477c293ede133ea5d192e58e5c9dd8
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Fri Oct 8 14:59:31 2010 +0200
+
+    Fixed pr2 ptu. Don't specify a timestamp otherwise the action blocks
+
+commit 0f80c29de8da61f7edd63e31e5a85355cfdc0d30
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Thu Oct 7 19:08:56 2010 +0200
+
+    Initial commit of pr2 cram executive
+
+commit e3ce88f2d3e72c2b875f189dfe343a792a34a219
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Thu Oct 7 19:08:21 2010 +0200
+
+    Added pr2 manipulation process module
+
+commit 548cb5b68b92c96de6ec853d9fae7bda012ff96d
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Mon Oct 4 16:46:50 2010 +0200
+
+    Changed move_base action to pr2_move_base in process module
+
+commit 790d7ce6609d643bab20151d68df942e42562547
+Author: Lorenz Mösenlechner <moesenle@in.tum.de>
+Date:   Fri Oct 1 13:56:49 2010 +0200
+
+    Added pr2_navigation_process_module
+
+commit 0a46451c236916a9f95857f95a13287d3e4dbaa1
+Author: Lorenz Mösenlechner <moesenle@in.tum.de>
+Date:   Fri Oct 1 12:34:16 2010 +0200
+
+    Added process module for pointing the PR2 head
+
+commit 1dd3ef851d76f48a7369371495c1e75f3ffff3b0
+Author: Lorenz Moesenlechner <moesenle@in.tum.de>
+Date:   Thu Sep 23 16:20:43 2010 +0200
+
+    Created stack cram_pr2
