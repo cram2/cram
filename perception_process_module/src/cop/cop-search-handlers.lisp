@@ -73,7 +73,8 @@
 
 (defun do-cop-search (desig query-info &key (command :localize))
   (let ((cop-reply (cop-query query-info :command command)))
-    (when (equal (vision_msgs-msg:error-val cop-reply) "")
+    (when (or (equal (vision_msgs-msg:error-val cop-reply) "")
+              (equal (vision_msgs-msg:error-val cop-reply) "No Refinement Found!"))
       (map 'list (lambda (found-pose)
                    (let ((perceived-object (cop-reply->perceived-object
                                             found-pose
