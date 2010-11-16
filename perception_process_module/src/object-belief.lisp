@@ -87,12 +87,14 @@
 
 (defun designator->production (desig var-name)
   (loop for prop in (description desig)
-     collecting `(,(car prop) ,var-name ,@(cdr prop))))
+        unless (eq (car prop) 'at)
+          collecting `(,(car prop) ,var-name ,@(cdr prop))))
 
 (defun assert-perceived-object (perceived-object properties)
   ;; For now, properties is a desig description. Not sure if this
   ;; makes sense, but we will see.  TODO: read perceived-object
   ;; properties and do additional assertions.
+  (format t "asserting desig: ~a ~a~%" properties perceived-object)
   (loop for prop in properties
      do (rete-assert `(,(car prop) ,perceived-object ,@(cdr prop)))))
 
