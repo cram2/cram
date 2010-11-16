@@ -94,7 +94,6 @@
   ;; For now, properties is a desig description. Not sure if this
   ;; makes sense, but we will see.  TODO: read perceived-object
   ;; properties and do additional assertions.
-  (format t "asserting desig: ~a ~a~%" properties perceived-object)
   (loop for prop in properties
      do (rete-assert `(,(car prop) ,perceived-object ,@(cdr prop)))))
 
