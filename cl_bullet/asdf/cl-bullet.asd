@@ -1,1 +1,1 @@
-../cl-bullet.asd
+../src/lisp/cl-bullet.asd
