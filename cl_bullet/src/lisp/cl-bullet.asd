@@ -35,9 +35,7 @@
 
   :depends-on (:cffi :ros-load-manifest :split-sequence :cl-transforms)
   :components
-  ((:module "src"
-            :components
-            ((:file "package")
-             (:file "ros-utils" :depends-on ("package"))
-             (:file "foreign-types" :depends-on ("package"))
-             (:file "cffi" :depends-on ("package" "ros-utils" "foreign-types"))))))
+  ((:file "package")
+   (:file "ros-utils" :depends-on ("package"))
+   (:file "foreign-types" :depends-on ("package"))
+   (:file "cffi" :depends-on ("package" "ros-utils" "foreign-types"))))
