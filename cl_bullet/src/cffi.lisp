@@ -30,22 +30,26 @@
 
 (in-package :bt)
 
+;;;
+;;; Currently, the following functions from Bullet-C-Api.h are missing:
+;;; 
+;;; * plCreateCollisionWorld
+;;; 
+;;; * plGetOpenGLMatrix
+;;; 
+;;; * plSetEuler
+;;; 
+;;; * plSetOpenGLMatrix
+;;; 
+;;; * plRayCast (this function cannot be implemented so easily since
+;;;   it requires a struct to be passed by value. We will need to wrap
+;;;   it.)
+;;; 
+;;; * plNearestPoints
+;;; 
+
 (define-foreign-library bullet-dynamics
   (:unix "libBulletDynamics.so"))
-
-(defun ros-library-paths (pkg-name)
-  "Returns the list of library paths as exported by the ROS package
-  with name `pkg-name' in its cpp tag. This function parses the lflags
-  attribute and collects all library paths specified by -L."
-  (mapcar (lambda (seq)
-            (subseq seq 2))
-          (delete-if-not
-           (lambda (seq)
-             (equal (subseq seq 0 2) "-L"))
-           (split-sequence:split-sequence
-            #\Space
-            (car (ros-load:rospack "export" "--lang=cpp" "--attrib=lflags" pkg-name))
-            :remove-empty-subseqs t))))
 
 #.(loop for path in (ros-library-paths ros-load:*current-ros-package*)
         do (pushnew (concatenate 'string path "/")
@@ -53,3 +57,133 @@
                     :test #'equal))
 
 (use-foreign-library bullet-dynamics)
+
+(defcfun ("plNewBulledSdk" new-bullet-sdk) :pointer)
+
+(defcfun ("plDeletePhysicsSdk" delete-bullet-sdk) :void
+  (sdk-handle :pointer))
+
+(defcfun ("plCreateSapBroadphase" create-broadphase) :pointer
+  (begin-callback :pointer)
+  (end-callback :pointer))
+
+(defcfun ("plDestroyBroadphase" destroy-broadphase) :void
+  (broadphase-handle :pointer))
+
+(defcfun ("plCreateProxy" create-broadphase-proxy) :pointer
+  (broadphase-handle :pointer)
+  (client-data :pointer)
+  (min-x :double)
+  (min-y :double)
+  (min-z :double)
+  (max-x :double)
+  (max-y :double)
+  (max-z :double))
+
+(defcfun ("plDestroyProxy" destroy-broadphase-proxy) :void
+  (broadphase-handle :pointer)
+  (broadphase-proxy-handle :pointer))
+
+(defcfun ("plSetBoundingBox" set-broadphase-proxy-bounding-box) :void
+  (broadphase-proxy-handle :pointer)
+  (min-x :double)
+  (min-y :double)
+  (min-z :double)
+  (max-x :double)
+  (max-y :double)
+  (max-z :double))
+
+(defcfun ("plCreateDynamicsWorld" create-dynamics-world) :pointer
+  (sdk-handle :pointer))
+
+(defcfun ("plDeleteDynamicsWorld" delete-dynamics-world) :void
+  (dynamics-world-handle :pointer))
+
+(defcfun ("plStepSimulation" step-simulation) :void
+  (dynamics-world-handle :pointer)
+  (time-step :double))
+
+(defcfun ("plAddRigidBody" add-rigid-body) :void
+  (dynamics-world-handle :pointer)
+  (rigid-body-handle :pointer))
+
+(defcfun ("plRemoveRigidBody" remove-rigid-body) :void
+  (dynamics-world-handle :pointer)
+  (rigid-body-handle :pointer))
+
+(defcfun ("plCreateRigidBody" create-rigid-body) :pointer
+  (user-data :pointer)
+  (mass :float)
+  (collision-shape-handle :pointer))
+
+(defcfun ("plDeleteRigidBody" delete-rigid-body) :pointer
+  (rigid-body-handle :pointer))
+
+(defcfun ("plNewSphereShape" new-sphere-shape) :pointer
+  (radius :double))
+
+(defcfun ("plNewBoxShape" new-box-shape) :pointer
+  (length :double)
+  (width :double)
+  (height :double))
+
+(defcfun ("plNewCapsuleShape" new-capsule-shape) :pointer
+  (radius :double)
+  (height :double))
+
+(defcfun ("plNewConeShape" new-cone-shape) :pointer
+  (radius :double)
+  (height :double))
+
+(defcfun ("plNewCylinderShape" new-cylinder-shape) :pointer
+  (radius :double)
+  (height :double))
+
+(defcfun ("plNewCompoundShape" new-compoind-shape) :pointer)
+
+(defcfun ("plAddChildShape" add-child-shape) :void
+  (compound-shape-handle :pointer)
+  (child-shape-handle :pointer)
+  (position bt-3d-vector)
+  (rotation bt-quaternion))
+
+(defcfun ("plDeleteShape" delete-shape) :void
+  (shape-handle :pointer))
+
+(defcfun ("plNewConvexHullShape" new-convex-hull-shape) :pointer)
+
+(defcfun ("plAddVertex" add-vertex) :void
+  (convex-hull-handle :pointer)
+  (x :double)
+  (y :double)
+  (z :double))
+
+(defcfun ("plNewMeshInterface" new-mesh-interface) :pointer)
+
+(defcfun ("plAddTriangle" add-triangle) :void
+  (mesh-interface-handle :pointer)
+  (v-0 bt-3d-vector)
+  (v-1 bt-3d-vector)
+  (v-2 bt-3d-vector))
+
+(defcfun ("plSetScaling" set-scaling) :pointer
+  (collision-shape-handle :pointer)
+  (scaling bt-3d-vector))
+
+(defun get-position (rigid-body-handle)
+  (with-foreign-object (result :double 3)
+    (foreign-funcall "plGetPosition" :pointer rigid-body-handle :pointer result)
+    (translate-from-foreign result (make-instance 'bt-3d-vector))))
+
+(defun get-orientation (rigid-body-handle)
+  (with-foreign-object (result :double 4)
+    (foreign-funcall "plGetOrientation" :pointer rigid-body-handle :pointer result)
+    (translate-from-foreign result (make-instance 'bt-quaternion))))
+
+(defcfun ("plSetPosition" set-position) :void
+  (rigid-body-handle :pointer)
+  (position bt-3d-vector))
+
+(defcfun ("plSetOrientation" set-orientation) :void
+  (rigid-body-handle :pointer)
+  (position bt-quaternion))

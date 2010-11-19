@@ -28,16 +28,18 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(defsystem cl-bullet
-  :author "Lorenz Moesenlechner <moesenle@in.tum.de>"
-  :license "BSD"
-  :description "A common lisp wrapper for the bullet library"
+(in-package :cl-bullet)
 
-  :depends-on (:cffi :ros-load-manifest :split-sequence :cl-transforms)
-  :components
-  ((:module "src"
-            :components
-            ((:file "package")
-             (:file "ros-utils" :depends-on ("package"))
-             (:file "foreign-types" :depends-on ("package"))
-             (:file "cffi" :depends-on ("package" "ros-utils" "foreign-types"))))))
+(defun ros-library-paths (pkg-name)
+  "Returns the list of library paths as exported by the ROS package
+  with name `pkg-name' in its cpp tag. This function parses the lflags
+  attribute and collects all library paths specified by -L."
+  (mapcar (lambda (seq)
+            (subseq seq 2))
+          (delete-if-not
+           (lambda (seq)
+             (equal (subseq seq 0 2) "-L"))
+           (split-sequence:split-sequence
+            #\Space
+            (car (ros-load:rospack "export" "--lang=cpp" "--attrib=lflags" pkg-name))
+            :remove-empty-subseqs t))))
