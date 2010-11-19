@@ -1,0 +1,18 @@
+<package>
+  <description brief="cl_bullet">
+
+     cl_bullet
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cl_bullet</url>
+  <depend package="roslisp_runtime"/>
+  <depend package="bullet"/>
+  <depend package="cffi"/>
+  <depend package="split_sequence"/>
+
+</package>
+
+
