@@ -1,0 +1,12 @@
+<stack>
+  <description brief="cram_physics">cram_physics</description>
+  <author>Maintained by Lorenz Moesenlechner</author>
+  <license>BSD</license>  
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cram_physics</url>
+  <depend stack="cram_pl" /> <!-- cffi, split_sequence -->
+  <depend stack="geometry" /> <!-- bullet -->
+  <depend stack="ros" />
+  <depend stack="roslisp_support" /> <!-- roslisp_runtime -->
+
+</stack>
