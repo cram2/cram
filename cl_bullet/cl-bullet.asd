@@ -38,5 +38,5 @@
   ((:module "src"
             :components
             ((:file "package")
-             (:file "cffi" :depends-on "package")))))
+             (:file "cffi" :depends-on ("package"))))))
 
