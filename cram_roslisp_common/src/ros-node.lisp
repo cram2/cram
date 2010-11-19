@@ -41,10 +41,12 @@
          (symbol-function ',name)))
 
 (defun startup-ros (&key
-                    (master-uri (make-uri "localhost" 11311))
+                    (master-uri (make-uri "localhost" 11311) master-uri?)
                     (name "cram_hl")
                     (anonymous t))
-  (start-ros-node name :anonymous anonymous :master-uri master-uri)
+  (if master-uri?
+      (start-ros-node name :anonymous anonymous :master-uri master-uri)
+      (start-ros-node name :anonymous anonymous))
   (loop for f being the hash-values of *ros-init-functions*
         do (funcall f)))
 
