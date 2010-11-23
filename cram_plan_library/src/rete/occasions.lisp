@@ -35,7 +35,23 @@
 (crs:def-production object-in-hand-failure
   (object-in-hand-failure ?f ?obj ?side))
 
+(crs:def-production object-placed-at
+  (object-placed-at ?obj ?loc))
+
 (defun on-obj-in-hand-retractions (op &key ?obj ?side)
   (declare (ignore ?side))
   (when (eql op :assert)
     (retract-occasion `(object-placed-at ,?obj))))
+
+(defun on-obj-put-down (op &key ?obj ?loc)
+  (when (eql op :assert)
+    (let ((side (var-value '?side (car (holds `(object-in-hand ?obj ?side))))))
+      (retract-occasion `(object-in-hand ?obj ,side))
+      (make-designator
+       'object
+       (append (remove 'at (description ?obj) :key #'car)
+               `((at ,?loc)))
+       ?obj))))
+
+(crs:register-production-handler 'object-picked-up #'on-obj-in-hand-retractions)
+(crs:register-production-handler 'object-placed-at #'on-obj-put-down)
