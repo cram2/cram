@@ -126,7 +126,9 @@
       (publish *marker-publisher*
                (make-message "visualization_msgs/Marker"
                              (stamp header) (ros-time)
-                             (frame_id header) "/map"
+                             (frame_id header) (typecase pose
+                                                 (tf:pose-stamped (tf:frame-id pose))
+                                                 (t "/map"))
                              ns "kipla_locations"
                              id (or id (incf current-index))
                              type (symbol-code 'visualization_msgs-msg:<marker> :arrow)
