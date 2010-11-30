@@ -17,6 +17,8 @@
 
 (in-package :location-costmap)
 
+(define-condition invalid-probability-distribution (error) ())
+
 (defclass location-costmap (occupancy-grid-metadata)
   ((cost-map)
    (cost-functions :reader cost-functions :initarg :cost-functions
@@ -125,18 +127,18 @@
     (some (rcurry #'funcall map) generators)))
 
 (defmethod gen-costmap-sample ((map location-costmap))
-  (flet ((make-var-fun ()
-           "Returns a function that maps a number within the interval
-            [0;1) to a coordinate that can be used in the probability
-            function."
-           (with-slots (width height origin-x origin-y resolution) map
-             (let ((n-pts (* width height (/ resolution))))
-               (lambda (v)
-                 (let ((index (* v n-pts)))
-                   (cons (+ (mod index height) origin-x)
-                         (+ (/ index (/ height resolution)) origin-y)))))))
-         (p-fun (pt)
-           (get-map-value map (car pt) (cdr pt))))
-    (with-slots (origin-x origin-y) map
-      (let ((coord (cma:sample (make-var-fun) #'p-fun)))
-        (cl-transforms:make-3d-vector (car coord) (cdr coord) 0)))))
+  (let ((rand (random 1.0))
+        (cntr 0.0)
+        (cost-map (get-cost-map map)))
+    (declare (type cma:double-matrix cost-map))
+    (with-slots (origin-x origin-y resolution) map
+      (dotimes (row (cma:height cost-map))
+        (dotimes (col (cma:width cost-map))
+          (setf cntr (+ cntr (aref cost-map row col)))
+          (when (> cntr rand)
+            (return-from gen-costmap-sample
+              (cl-transforms:make-3d-vector
+               (+ (* col resolution) origin-x)
+               (+ (* row resolution) origin-y)
+               0.0)))))))
+  (error 'invalid-probability-distribution))
