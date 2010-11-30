@@ -63,6 +63,7 @@
            #:location-costmap
            #:get-cost-map
            #:get-map-value
+           #:invalid-probability-distribution
            #:register-cost-function
            #:generate-point
            #:gen-costmap-sample
