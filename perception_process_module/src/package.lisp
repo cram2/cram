@@ -74,6 +74,7 @@
    #:cop-desig-location-info #:cop-desig-location-info-poses
    #:cop-desig-info #:cop-desig-info-designator #:cop-desig-info-query
    #:cop-desig-info-location #:cop-ignore-property-p
+   #:object-id
    ;; semantic map stuff (currently hacked for pr2 fridge demo
    #:fridge #:left-of-sink #:drawer
    #:low #:middle #:top #:height
