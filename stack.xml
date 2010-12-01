@@ -5,7 +5,7 @@
   <author>Maintained by Lorenz Moesenlechner</author>
   <license>GPL,Public domain,,trivial-features,babel,cffi,BSD,MIT</license>  
   <review status="unreviewed" notes=""/>
-  <url>http://ros.org/wiki/cram-pl</url>
+  <url>http://ros.org/wiki/cram_pl</url>
   <depend stack="ros" />
   <depend stack="roslisp_support" /> <!-- sbcl -->
 
