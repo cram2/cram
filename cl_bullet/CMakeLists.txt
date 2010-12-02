@@ -21,7 +21,8 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 rosbuild_add_library(bullet_cl
   src/dynamics_world.cpp src/rigid_body.cpp
-  src/motion_state.cpp)
+  src/motion_state.cpp src/collision_shapes.cpp)
+
 #target_link_libraries(${PROJECT_NAME} another_library)
 #rosbuild_add_boost_directories()
 #rosbuild_link_boost(${PROJECT_NAME} thread)
