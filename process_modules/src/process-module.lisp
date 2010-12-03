@@ -100,7 +100,7 @@
                                       (setf (value input) nil)
                                       (when result-val
                                         (setf (value result) result-val)))))
-                              (plan-error (e)
+                              (plan-failure (e)
                                 (declare (ignore e))
                                 nil)))
                        (unless (eq (value status) :failed)
