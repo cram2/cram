@@ -65,7 +65,7 @@
     (hangs (wait-for (fl-value-changed fluent)))))
 
 (define-cram-test wait-for.2
-    "Test WAIT-FOR's :VALUE-CHANGED parameter."
+    "More WAIT-FOR & FL-VALUE-CHANGED."
     ((:n-runs 1))
   (let ((fluent (make-fluent :name "test" :value 'foo)))
     (finishes (wait-for fluent))
@@ -82,10 +82,9 @@
     (sleep 1)))
 
 (define-cram-test wait-for.4
-    "Verify that :VALUE-CHANGED really means that the underlaying
-     value changed. Arguably this test is bogus. However, in that
-     case, the name :VALUE-CHANGED is unfortunately chosen." ()
-  (let ((fluent (make-fluent :name "test" :value 'foo)))
+    "Verify that FL-VALUE-CHANGED really means that the underlaying
+     value changed." ()
+  (let ((fluent (fluent 'foo)))
     (with-task-hierarchy ((P -> ))
         ((:task P (sleep 0.05) (pulse fluent)))
       (hangs (wait-for (fl-value-changed fluent))))))
@@ -100,9 +99,8 @@
 
 (define-cram-test wait-for-with-timeout
     "FIXME" ()
-  (let ((fluent (make-fluent :name :test-fluent :value nil)))
-    (wait-for fluent :timeout 0.05)
-    (pass)))
+  (wait-for (end-of-time) :timeout 0.05)
+  (pass))
 
 (define-cram-test wait-for-fluent-network-not-eq
     "FIXME" ()

@@ -63,12 +63,11 @@
         (worker-terminated nil))
     (handler-case
         (top-level
-          (par (seq (sleep 0.01) (fail))
-               (seq (sleep 1.0)  (setf worker-terminated t))))
-      (error (e)
+          (par (seq (sleep* 0.01) (fail))
+               (seq (sleep* 1.0)  (setf worker-terminated t))))
+      (plan-failure (e)
         (setf failure e)))
-    (is (not worker-terminated))
-    (is (typep failure 'plan-error))))
+    (is (not worker-terminated))))
 
 ;; (test test-with-tags
 ;;   (for-all ()
@@ -85,7 +84,7 @@
 (define-cram-test par-failure-final-status-of-tasks
     "FIXME" ()
   (let ((p) (w1) (w2) (w3))
-    (signals plan-error
+    (signals plan-failure
       (top-level
         (with-tags
           (setf p producer)
@@ -93,13 +92,13 @@
           (setf w2 worker-2)
           (setf w3 worker-3)
           (par (:tag producer
-                 (sleep 0.1)
+                 (sleep* 0.1)
                  (fail))
                (:tag worker-1
                  (par (:tag worker-2
-                        (sleep 10))
+                        (sleep* 10))
                       (:tag worker-3
-                        (sleep 10))))))))
+                        (sleep* 10))))))))
     (wait-until (become +dead+) p w1 w2 w3)
     (has-status p :failed)
     (has-status w1 :evaporated)
@@ -114,36 +113,82 @@
         (bag '()))
     (top-level
       (with-tags
-        (seq (:tag A (push 'A bag) (sleep (random +sleep+)))
-             (:tag B (push 'B bag) (sleep (random +sleep+)))
-             (:tag C (push 'C bag) (sleep (random +sleep+)))
-             (:tag D (push 'D bag) (sleep (random +sleep+)))
-             (:tag E (push 'E bag) (sleep (random +sleep+))))))
+        (seq (:tag A (push 'A bag) (sleep* (random +sleep+)))
+             (:tag B (push 'B bag) (sleep* (random +sleep+)))
+             (:tag C (push 'C bag) (sleep* (random +sleep+)))
+             (:tag D (push 'D bag) (sleep* (random +sleep+)))
+             (:tag E (push 'E bag) (sleep* (random +sleep+))))))
     (is (equal '(A B C D E) (nreverse bag)))))
 
-(define-cram-test test-task-blocking
+(define-cram-test with-task-suspended.1
+    "Basics. Test suspending, then wakeup." ()
+  (top-level 
+    (with-tags
+      (par (:tag slave (sleep* 0.2))
+           (seq (with-task-suspended (slave)
+                  (wait-until (become :suspended) slave))
+                (wait-until (become :running) slave)))))
+  (pass))
+
+(define-cram-test with-task-suspended.2
+    "Ensure that WITH-TASK-SUSPENDED suspends and wakeup a whole tree
+     of tasks." ()
+  (let ((knob (fluent nil))
+        (result))
+    (top-level
+      (with-tags
+        (par (:tag waiters
+               (pursue (:tag winner (seq (wait-for knob) :A))
+                       (seq (wait-for (end-of-time)) :B)
+                       (seq (wait-for (end-of-time)) :C)))
+             (with-task-suspended (waiters)
+               (setf (value knob) t)))
+        (setq result (result winner))))
+    (is (eq :A result))))
+
+(define-cram-test with-task-suspended.3
+    "Again ensure that WITH-TASK-SUSPENDED works on tree of tasks." ()
+  (let ((knob (fluent nil))
+        (counter 0)
+        (aux))
+    (flet ((wait ()
+             (wait-for knob)
+             ;; INCF is no problem as we don't care for its exact
+             ;; working.
+             (incf counter)))
+      (top-level 
+        (with-tags
+          (par (:tag waiters (par (wait) (par (wait) (wait) (wait)) (wait)))
+               (with-task-suspended (waiters)
+                 (setf (value knob) t)
+                 (sleep 0.1)
+                 (setq aux counter))))))
+    (is (= 0 aux))))
+
+(define-cram-test with-task-suspended.4
     "FIXME" ()
   (flet ((time-equal (t1 t2  &key (threshold 0.01))
            (<  (/ (abs (- t2 t1))
                   internal-time-units-per-second)
                threshold)))
     (let ((final-times (make-array 2))
-          (blockee-trigger (make-fluent :name :blockee-trigger :value nil)))
+          (blockee-ready    (fluent nil))
+          (blocker-finished (fluent nil)))
       (top-level
         (with-tags
           (par (:tag blocker
                  (let ((start-time nil))
-                   (wait-for (fl-eq (status blockee) :waiting))
-                   (with-task-suspended blockee
+                   (wait-for blockee-ready)
+                   (with-task-suspended (blockee)
                      (setf start-time (get-internal-real-time))
-                     (setf (value blockee-trigger) t)
-                     (sleep 0.1)
+                     (setf (value blocker-finished) t)
+                     (sleep* 0.1)
                      (setf (aref final-times 0) (- (get-internal-real-time) start-time)))))
                (:tag blockee
                  (let ((start-time nil))
-                   (on-suspension
-                       (setf start-time (get-internal-real-time))
-                     (wait-for blockee-trigger))
+                   (on-suspension (setf start-time (get-internal-real-time))
+                     (setf (value blockee-ready) t)
+                     (wait-for blocker-finished))
                    (setf (aref final-times 1) (- (get-internal-real-time) start-time)))))))
       (is (>= (aref final-times 1) (aref final-times 0))))))
 
@@ -162,14 +207,14 @@
 ;;                 (par
 ;;                   (:tag blocker
 ;;                     (wait-for (not (eq (status blockee) :created)))
-;;                     (sleep 0.05)
+;;                     (sleep* 0.05)
 ;;                     (with-task-suspended blockee
-;;                       (sleep 0.05)))
+;;                       (sleep* 0.05)))
 ;;                   (:tag blockee
 ;;                     (suspend-protect
 ;;                         (progn
 ;;                           (incf runs)
-;;                           (sleep 0.15))
+;;                           (sleep* 0.15))
 ;;                       (setf protected t))))))
 ;;           (is (eq protected t))
 ;;           (is (eql runs 2)))))))
@@ -184,10 +229,10 @@
         (setq w1 worker-1)
         (setq w2 worker-2)
         (pursue (:tag worker-1
-                  (sleep 0.2)
+                  (sleep* 0.2)
                   (setf w1-terminated t))
                 (:tag worker-2
-                  (sleep 0.05)
+                  (sleep* 0.05)
                   (setf w2-terminated t)))))
     (wait-until (become +dead+) w1 w2)
     (is (eq 'nil w1-terminated))
@@ -199,13 +244,13 @@
     "Make sure that PURSUE evaporates still-running childs if another
      child fails. Also make sure that the failure propagates." ()
   (let ((w1) (w2))
-    (signals plan-error
+    (signals plan-failure
       (top-level
         (with-tags
           (setq w1 worker-1)
           (setq w2 worker-2)
-          (pursue (:tag worker-1 (sleep 0.2))
-                  (:tag worker-2 (sleep 0.05) (fail))))))
+          (pursue (:tag worker-1 (sleep* 0.2))
+                  (:tag worker-2 (sleep* 0.05) (fail))))))
     (wait-until (become +dead+) w1 w2)
     (has-status w1 :evaporated)
     (has-status w2 :failed)))
@@ -221,13 +266,13 @@
         (setq w winner)
         (setq l loser)
         (setq s signaller)
-        (ignore-some-conditions (plan-error rethrown-error)
+        (ignore-some-conditions (plan-failure)
           (pursue (:tag winner (wait-on-semaphore sem))
                   (:tag loser  (wait-on-semaphore sem) (fail))
                   (:tag signaller                  
-                    (sleep 0.05)
+                    (sleep* 0.05)
                     (signal-semaphore sem 2)
-                    (sleep 1.0))))))
+                    (sleep* 1.0))))))
     (wait-until (become +dead+) w l s)
     ;; Even if W1 succeeds, before W2 gets properly evaporated, it may
     ;; already have changed its status to :failed.
@@ -235,6 +280,33 @@
     (is (member (value (status l)) '(:failed :evaporated)))
     (is (eq (value (status s)) :evaporated))))
 
+(define-cram-test with-failure-handling.1
+    "Ensure that WITH-FAILURE-HANDLING can catch normal CL errors." ()
+  (let ((got-it? nil))
+    (top-level 
+      (pursue (with-failure-handling ((error (e)
+                                        (setq got-it? e)
+                                        (return)))
+                (error "foof"))
+              (sleep* 1.0)))
+    (is-true (typep got-it? 'error))))
+
+(define-cram-test with-failure-handling.2
+    "Ensure that WITH-FAILURE-HANDLING can catch plan failures." ()
+  (top-level 
+    (pursue (with-failure-handling ((plan-failure (e) (return e)))
+              (fail "foof"))
+            (sleep* 1.0)))
+  (pass))
+
+(define-cram-test with-failure-handling.3
+    "Ensure that WITH-FAILURE-HANDLING does not catch plan failures as
+     normal CL errors." ()
+  (signals plan-failure
+    (top-level 
+      (pursue (with-failure-handling ((error (e) (return e)))
+                (fail "foof"))
+              (sleep* 1.0)))))
 
 (define-cram-test try-all.1
     "Basic workingness of TRY-ALL. W1 succeeds, W2 must hence get
@@ -249,7 +321,7 @@
           (:tag worker-1 (setf w1-finished t))
           (:tag worker-2
             (seq
-              (sleep 0.5)
+              (sleep* 0.5)
               (setf w2-finished t))))))
     (is (eq 't   w1-finished))
     (is (eq 'nil w2-finished))
@@ -265,7 +337,7 @@
         (worker-3-exec nil)
         (err nil))
     (with-failure-handling
-        ((plan-error (e)
+        ((plan-failure (e)
            (setf err e)
            (return nil)))
       (top-level
@@ -308,40 +380,31 @@
 
 (define-cram-test with-parallel-childs.1
     "Make sure that WITH-PARALLEL-CHILDS' watcher-body is executed
-     once and only once per status change."
-    (#+nil (:skip "Fails as of 2010-04-14. Plz fix"))
+     once and only once per status change." ()
   (let ((n-watches 0))
     (hangs
       (top-level
         (cpl-impl::with-parallel-childs nil (running done failed)
-            ((sleep 0.01))
+            ((sleep* 0.01))
           (declare (ignore running done failed))
           (incf n-watches))))
     (is (= 2 n-watches))))
 
-(define-cram-test with-parallel-childs.2
-    "Even though does not make sense to pass no child forms to
-     WITH-PARALLEL-CHILDS, it should still probably not barf on the
-     attempt."
-    ((:skip "Fails as of 2010-04-14. Plz fix"))
-  (hangs
-    (top-level
-      (cpl-impl::with-parallel-childs nil (running done failed)
-          ()
-        (declare (ignore running done failed))))))
-
 (define-cram-test partial-order.1
     "Check the simplest case of a partial ordering. One task directly
-    depends on another task. It must not execute before the first task
-    has terminated." ()
+     depends on another task. It must not execute before the first task
+     has terminated." ()
   (let ((t-1 nil)
-        (t-2 nil))
+        (t-2 nil)
+        (+sleep+ 0.1))
     (top-level
       (with-tags
         (partial-order
             ((:tag worker-1
+               (sleep* (random +sleep+))
                (setf t-1 (get-internal-real-time)))
              (:tag worker-2
+               (sleep* (random +sleep+))
                (setf t-2 (get-internal-real-time))))
           (:order worker-1 worker-2))))
     (is (<= t-1 t-2))))
@@ -350,15 +413,19 @@
     "Checks the sequential ordering of more than two tasks." ()
   (let ((t-1 nil)
         (t-2 nil)
-        (t-3 nil))
+        (t-3 nil)
+        (+sleep+ 0.1))
     (top-level
       (with-tags
         (partial-order
             ((:tag worker-1
+               (sleep* (random +sleep+))
                (setf t-1 (get-internal-real-time)))
              (:tag worker-2
+               (sleep* (random +sleep+))
                (setf t-2 (get-internal-real-time)))
              (:tag worker-3
+               (sleep* (random +sleep+))
                (setf t-3 (get-internal-real-time))))
           (:order worker-1 worker-3)
           (:order worker-3 worker-2))))
@@ -370,15 +437,19 @@
     i.e. it must not run before both terminated." ()
   (let ((t-1 nil)
         (t-2 nil)
-        (t-3 nil))
+        (t-3 nil)
+        (+sleep+ 0.1))
     (top-level
       (with-tags
         (partial-order
             ((:tag worker-1
+               (sleep* (random +sleep+))
                (setf t-1 (get-internal-real-time)))
              (:tag worker-2
+               (sleep* (random +sleep+))
                (setf t-2 (get-internal-real-time)))
              (:tag worker-3
+               (sleep* (random +sleep+))
                (setf t-3 (get-internal-real-time))))
           (:order worker-1 worker-3)
           (:order worker-2 worker-3))))
@@ -386,14 +457,50 @@
     (is (<= t-2 t-3))))
 
 (define-cram-test partial-order.4
-    "Ring dependencies in orderings will always lead to deadlocks." ()
+    "Ring dependencies in orderings will always lead to deadlocks."
+    ((:n-runs 10) (:timeout nil))
   (hangs
     (top-level
       (with-tags
         (partial-order
-            ((:tag worker-1
-               (5am:fail))
-             (:tag worker-2
-               (5am:fail)))
+            ((:tag worker-1)
+             (:tag worker-2))
           (:order worker-1 worker-2)
           (:order worker-2 worker-1))))))
+
+
+(define-cram-test misc.1
+    "Check that after wakeup deadline will be active again." ()
+  (let ((fluent (fluent nil)))
+    (top-level
+      (with-tags
+        (par (:tag waiter (wait-for fluent) :A)
+             (:tag controller
+               (sleep* 0.1)
+               (suspend waiter)
+               (sleep* 0.1)
+               (wake-up waiter)
+               (sleep* 0.1)
+               (evaporate waiter)
+               (sleep* 1.0)
+               :B))
+        (wait-until (become +dead+) waiter controller)))
+    (pass)))
+
+(define-cram-test failure.1
+    "Test that failures are propagated." ()
+  (let ((knob (fluent nil)))
+    (signals plan-failure
+      (top-level 
+        (with-tags
+          (par
+            (:tag slave 
+              (pursue (seq (wait-for knob) (fail))
+                      (seq (sleep* 3.0) :B)
+                      (seq (sleep* 3.0) :C)))
+            (with-task-suspended (slave)
+              (setf (value knob) t))))))))
+
+
+
+

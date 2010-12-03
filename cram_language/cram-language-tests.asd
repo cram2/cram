@@ -19,13 +19,14 @@
      (:file "suite"                 :depends-on ("package"))
      (:file "test-infrastructure"   :depends-on ("package"))
      (:file "task-utils"            :depends-on ("package"))
+     (:file "fluent-utils"          :depends-on ("package"))
      (:file "walker-tests"          :depends-on ("package" "suite" "test-infrastructure"))
      (:file "task-tests"            :depends-on ("package" "suite" "test-infrastructure"
-                                                           "task-utils"))
+                                                           "task-utils" "fluent-utils"))
      (:file "fluent-tests"          :depends-on ("package" "suite" "test-infrastructure"
-                                                           "task-utils"))
+                                                           "task-utils" "fluent-tests"))
      (:file "language-tests"        :depends-on ("package" "suite" "test-infrastructure"
-                                                           "task-utils"))
+                                                           "task-utils" "fluent-utils"))
      (:file "execution-trace-tests" :depends-on ("package" "suite" "test-infrastructure"))))))
 
 (defmethod asdf:perform ((o asdf:test-op)

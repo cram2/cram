@@ -36,6 +36,12 @@
    (test :initarg :test :initform #'eql
          :documentation "Test to check for value changes (used in setf value).")))
 
+(defmethod print-object ((fluent value-fluent) stream)
+  (print-unreadable-object (fluent stream :type nil :identity nil)
+    (format stream "~@<FLUENT ~A ~:_[~S]~:>"
+            (name fluent)
+            (slot-value fluent 'value))))
+
 (defgeneric (setf value) (new-value fluent)
   (:documentation "Setter method to set the new value of the fluent"))
 
@@ -45,9 +51,9 @@
 
 (defmethod (setf value) (new-value (fluent value-fluent))
   (let ((need-pulse? nil))
-    (with-slots (value-lock test value) fluent
-      (without-termination
-        (with-unsuspendable-lock value-lock
+    (with-slots (test value) fluent
+      (without-scheduling
+        (with-fluent-locked fluent
           (unless (funcall test value new-value)
             (setf (slot-value fluent 'value) new-value)
             (setf need-pulse? t)))

@@ -43,3 +43,26 @@ corresponding values in the CDR of VALUE."
                  `((flet (,(first bindings))
                       ,@(gen (rest bindings) body))))))
     (car (gen bindings body))))
+
+(defun body-context (forms)
+  (let ((*print-length* 3)
+        (*print-level* 3)
+        (*print-pretty* t))
+    (prin1-to-string forms)))
+
+(defun %assert-no-returning (ctx thunk)
+  (funcall thunk)
+  (error "Asserted~%  ~@<~A~:>~%not to return. But we did return." ctx))
+
+(defmacro assert-no-returning (&body body)
+  `(%assert-no-returning ,(body-context body) #'(lambda () ,@body)))
+
+(defun %assert-no-nlx (ctx thunk)
+  (unwind-protect-case ()
+      (funcall thunk)
+    (:abort
+     (error "Asserted~%  ~@<~A~:>~%not to perform a non-local ~
+             exit. Caught attempt to do so." ctx))))
+
+(defmacro assert-no-nlx (&body body)
+  `(%assert-no-nlx ,(body-context body) #'(lambda () ,@body)))

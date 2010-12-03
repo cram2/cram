@@ -17,35 +17,43 @@
   :components
   ((:module "src"
     :components
-    ((:file "packages")
-     (:file "utils" :depends-on ("packages"))
-     (:file "task" :depends-on ("packages" "utils"))
-     (:file "failures" :depends-on ("packages"))
-     (:file "task-tree" :depends-on ("packages" "task"))
-     (:file "task.implementation"
-            :depends-on ("packages" "fluents" "task" "failures"))
-     (:file "base" :depends-on ("packages" "task" "walker" "task-tree"))
-     (:file "plans" :depends-on ("packages" "task" "task-tree"))
-     (:file "goals" :depends-on ("packages" "task-tree"))
-     (:file "language" :depends-on ("packages" "fluents"))
-     (:file "swank-indentation")
+    (;; Roots of the dependency graph
+     (:file "packages")
+     (:file "utils"            :depends-on ("packages"))
+     (:file "task-interface"   :depends-on ("packages" "utils"))
+     (:file "fluent-interface" :depends-on ("packages"))
+     (:file "logging"          :depends-on ("packages" "task-interface"))
+     ;; TASKS, implementation
+     (:module "tasks"
+      :depends-on ("packages" "task-interface" "fluent-interface" "utils" "logging")
+      :components
+      ((:file "task"           :depends-on ())
+       (:file "failures"       :depends-on ("task"))
+       (:file "task-tree"      :depends-on ("task"))))
+     ;; FLUENTS, implementation
      (:module "fluents"
-              :depends-on ("packages" "task")
-              :components
-              ((:file "fluent")
-               (:file "value-fluent" :depends-on ("fluent"))
-               (:file "fluent-net" :depends-on ("fluent"))
-               (:file "pulse-fluent" :depends-on ("fluent"))))
+      :depends-on ("packages" "fluent-interface" "task-interface" "logging")
+      :components
+      ((:file "fluent")
+       (:file "value-fluent"   :depends-on ("fluent"))
+       (:file "fluent-net"     :depends-on ("fluent"))
+       (:file "pulse-fluent"   :depends-on ("fluent"))))
+     ;; WALKER
      (:module "walker"
-              :depends-on ("packages")
-              :components
-              ((:file "augment-environment-sbcl-patch")
-               (:file "env")
-               (:file "env-impl-specific")
-               (:file "plan-tree")
-               (:file "walker")
-               (:file "interface"))
-              :serial t)))))
+      :components
+      ((:file "augment-environment-sbcl-patch")
+       (:file "env")
+       (:file "env-impl-specific")
+       (:file "plan-tree")
+       (:file "walker")
+       (:file "interface"))
+      :serial t)
+     ;; CRAM, The Language
+     (:file "base"             :depends-on ("packages" "walker" "tasks" "fluents" "logging"))
+     (:file "plans"            :depends-on ("packages" "tasks"))
+     (:file "goals"            :depends-on ("packages" "tasks"))
+     (:file "language"         :depends-on ("packages" "fluents"))
+     (:file "swank-indentation")))))
 
 (defmethod asdf:perform ((o asdf:test-op)
                          (c (eql (asdf:find-system 'cram-language))))

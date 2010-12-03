@@ -89,6 +89,7 @@
            #:expand-plan
            ;; fluent.lisp
            #:fluent
+           #:value-fluent
            #:value
            #:peek-value
            #:wait-for
@@ -99,13 +100,14 @@
            #:on-make-fluent-hook
            #:register-update-callback
            ;; failures.lisp
-           #:fail #:simple-plan-error #:rethrown-error
-           #:plan-error #:plan-error-message #:plan-error-data
-           #:with-failure-handling #:retry
+           #:fail 
+           #:plan-failure #:simple-plan-failure
+           #:with-failure-handling
+           #:retry
            ;; task.lisp
            #:*current-task*
            #:status #:result
-           #:suspend-protect #:without-suspension #:with-suspension #:on-suspension
+           #:on-suspension #:unwind-on-suspension
            #:with-termination-handler #:ignore-termination #:without-termination
            ;; task-tree.lisp
            #:code
@@ -152,14 +154,34 @@
            #:fl-eq #:fl-eql #:fl-not #:fl-and #:fl-or 
            #:fl-pulsed #:fl-funcall #:fl-apply #:fl-value-changed))
         (cpl-impl-ext-symbols
-         '(#:+alive+
+         '(;; logging.lisp
+           #:*log-output*
+           #:*log-right-margin*
+           #:log-event
+           #:+log-all+
+           #:+log-default+
+           #:+log-verbose+
+           #:+log-very-verbose+
+           #:+log-language+
+           #:logging-enabled-p
+           #:list-available-log-tags
+           #:list-active-log-tags
+           #:log-enable
+           #:log-disable
+           #:log-set
+           ;; 
+           #:+alive+
            #:+dead+
            #:+done+
+           #:*break-on-plan-failures*
            #:*save-tasks*
            #:*tasks*
+           #:current-task
            #:define-task-variable
            #:list-saved-tasks
-           #:status-indicator))
+           #:status-indicator
+           #:task #:toplevel-task
+           #:event))
         (cl-symbols
          (let (r) (do-external-symbols (s :cl r) (push s r)))))
 

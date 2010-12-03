@@ -30,32 +30,68 @@
 
 (in-package :cpl-impl)
 
-(defvar *break-on-plan-failures* nil
-  "When t, invoke the debugger on plan failures. Otherwise, they are
-  just passed up to the parent task.")
+(define-task-variable *break-on-plan-failures* nil
+  "Like *BREAK-ON-SIGNALS*, but for plan failures."
+  :type (or symbol list))               ; type-specifier
 
-;;; Condition to cause a plan failure without invoking the debugger.
-(define-condition plan-error (error) ())
-(define-condition simple-plan-error (simple-condition plan-error) ())
+(define-condition plan-failure (serious-condition) ()
+  (:documentation
+   "Condition which denotes a plan failure."))
 
-(define-condition composite-failure (plan-error)
+(define-condition simple-plan-failure (simple-condition plan-failure) ())
+
+(define-condition composite-failure (plan-failure)
   ((failures :initform nil :initarg :failures :reader composite-failures)))
 
-(define-condition rethrown-error (error)
-  ((error :initarg :error :initform nil :reader rethrown-error)))
+(defun coerce-to-condition (datum arguments default-type)
+  (etypecase datum
+    (condition (prog1 datum (assert (null arguments))))
+    (symbol    (apply #'make-condition datum arguments))
+    (string    (make-condition default-type
+                               :format-control datum
+                               :format-arguments arguments))))
 
-(declaim (inline fail))
+(defun %fail (datum args)
+  (let ((current-task *current-task*)
+        (condition (coerce-to-condition datum args 'simple-plan-failure)))
+    (log-event
+      (:context "FAIL")
+      (:display "~S: ~_\"~A\"" condition condition)
+      (:tags :fail))
+    (cond
+      ;; The main thread will perform JOIN-TASK on the TOPLEVEL-TASK,
+      ;; signal the condition for that case.
+      ((not current-task)
+       (error condition))
+      ;; The condition does not designate a plan failure so just
+      ;; signal it, entering the debugger if it remains unhandled.
+      ((not (typep condition 'plan-failure))
+       (error condition))
+      ;; Does the user want us to enter the debugger on the plan
+      ;; failure?
+      ((and (typep condition *break-on-plan-failures*)
+            (restart-case
+                (with-condition-restarts condition
+                    (list (find-restart 'propagate))
+                  (without-scheduling
+                    (invoke-debugger condition)))
+              (continue ()
+                :report "Continue failure signalling."
+                nil))))                 ; fall through COND clause
+      ;; An actual plan failure. Use SIGNAL here, too, so
+      ;; WITH-FAILURE-HANDLING can be implemented on top of the normal
+      ;; CL condition system.
+      ;;
+      ;; At the moment, ASSERT-NO-RETURNING, but in case inter-task
+      ;; restarts are implemented, this has to change.
+      (t
+       (assert-no-returning
+         (signal condition))))))
+
 (defun fail (&rest args)
-  "Like error but throws a simple-plan-error per default."
-  ;; Todo: Really behave like error. I guess only some cases are handled here.
-  (if args
-      (typecase (car args)
-        (error (error (car args)))
-        (symbol (error (apply #'make-condition (car args) (cdr args))))
-        (t (error (make-condition 'simple-plan-error
-                                  :format-control (car args)
-                                  :format-arguments (cadr args)))))
-      (error (make-condition 'simple-plan-error :format-control "Plan failure."))))
+  (if (null args)
+      (%fail "Plan failure." nil)
+      (%fail (car args) (cdr args))))
 
 
 (defmacro with-failure-handling (clauses &body body)
@@ -91,12 +127,7 @@ i.e. `return' can be used."
                                     ,@body)))
                              clauses)
                 (handler-bind
-                    ((rethrown-error (lambda (condition)
-                                       (typecase (rethrown-error condition)
-                                         ,@(mapcar (lambda (err-def)
-                                                     `(,(car err-def) (,(cdr err-def) (rethrown-error condition))))
-                                                   condition-handler-syms))))
-                     ,@(mapcar (lambda (clause)
-                                 `(,(car clause) #',(cdr (assoc (car clause) condition-handler-syms))))
-                               clauses))
+                    ,(mapcar (lambda (clause)
+                               `(,(car clause) #',(cdr (assoc (car clause) condition-handler-syms))))
+                             clauses)
                   (return (progn ,@body))))))))))

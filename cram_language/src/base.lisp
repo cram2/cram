@@ -1,10 +1,10 @@
 ;;;
 ;;; Copyright (c) 2009, Lorenz Moesenlechner <moesenle@cs.tum.edu>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
@@ -13,7 +13,7 @@
 ;;;     * Neither the name of Willow Garage, Inc. nor the names of its
 ;;;       contributors may be used to endorse or promote products derived from
 ;;;       this software without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -31,6 +31,22 @@
 (in-package :cpl-impl)
 
 (defmacro def-plan-macro (name lambda-list &body body)
+  "Wrapper around DEFMACRO for defining macros constituting cpl constructs
+   used in plans.
+
+   DEF-PLAN-MACRO wraps `body' in code that checks that it is only used within
+   cpl plans. More precicesly the macro includes a check that it is used in a
+   dynamic context where *CURRENT-TASK* is not nil. Otherwise an ERROR
+   condition is signaled (at runtime).
+
+   DEF-PLAN-MACRO also adds information about the plan macro (`lambda-list'
+   and `body') to the symbol `name', so the plan walker can use this
+   information during plan expansion. This information can also be used for
+   plan transformation.
+
+   See Also
+
+     WALKER::EXPAND-PLAN"
   (setf (get name 'plan-type) :plan-macro)
   (setf (get name 'plan-lambda-list) lambda-list)
   (setf (get name 'plan-sexp) body)
@@ -61,28 +77,43 @@
    name the tasks spawned for `child-forms'.
 
    All spawned child tasks will be terminated on leave."
-  (with-unique-names (child-tasks child-states)
-    `(with-task (:name ,(or name "WITH-PARALLEL-CHILDS"))
-       ,@(loop with n = (length child-forms)
-               for form in child-forms and i from 1
-               collect `(make-instance 'task
-                          :name ',(format-gensym "[~A-CHILD-#~D/~D]-"
-                                                 (or name "PARALLEL") i n)
-                          :thread-fun (lambda () ,form)))
-       (let* ((,child-tasks (child-tasks *current-task*))
-              (,child-states (mapcar #'status ,child-tasks)))
-         (wait-for (fl-apply #'notany (curry #'eq :created) ,child-states))
-         (block nil
+  (let ((macro-name (or name "WITH-PARALLEL-CHILDS"))
+        (child-name (or name "PARALLEL")))
+    (with-unique-names (child-tasks child-states n-running n-done n-failed)
+      `(with-task (:name ,macro-name)
+         ,@(loop with n = (length child-forms)
+                 for form in child-forms and i from 1
+                 collect `(make-instance 'task
+                            :name ',(format-gensym "[~A-CHILD-#~D/~D]-"
+                                                   child-name i n)
+                            :thread-fun (lambda () ,form)))
+         (let* ((,child-tasks (child-tasks *current-task*))
+                (,child-states (mapcar #'status ,child-tasks)))
+           (wait-for (fl-apply #'notany (curry #'eq :created) ,child-states))
            (whenever ((apply #'fl-or (mapcar (rcurry #'fl-pulsed :handle-missed-pulses :once)
-                                             ,child-states)) :wait-status nil)
-             (multiple-value-bind (,running ,done ,failed)
+                                             ,child-states)))
+             (multiple-value-bind (,n-running ,n-done ,n-failed)
                  (loop for task in ,child-tasks
                        when (task-running-p task) collect task into running
                        when (task-done-p task)    collect task into done
                        when (task-failed-p task)  collect task into failed
                        finally
-                         (return (values running done failed)))
-               ,@watcher-body)))))))
+                       (return (values running done failed)))
+               (log-event
+                 (:context "~A" ,macro-name)
+                 (:display "~@[R: ~{~A~^, ~} ~]~
+                            ~@[~:_D: ~{~A~^, ~} ~]~
+                            ~@[~:_F: ~{~A~^, ~}~]"
+                           (mapcar #'task-abbreviated-name ,n-running)
+                           (mapcar #'task-abbreviated-name ,n-done)
+                           (mapcar #'task-abbreviated-name ,n-failed))
+                 (:tags ,(make-keyword macro-name)))
+               ;; We have to take this detour (using N-FOO) because
+               ;; WATCHER-BODY may legitimately contain IGNORE.
+               (let ((,running ,n-running)
+                     (,done    ,n-done)
+                     (,failed  ,n-failed))
+                 ,@watcher-body))))))))
 
 ;;; TODO@demmeln: Maybe put this top level stuff in a seperate file
 
@@ -168,9 +199,16 @@
                          (error e))
                        (error (e)
                          (error e)))
-                    (unwind-protect
-                         (join-task ,task)
-                      (terminate ,task :evaporated))))
+                    (unwind-protect-case ()
+                        (join-task ,task)
+                      (:abort
+                      ;; As TOP-LEVEL will be used from within a normal
+                      ;; thread rather than task, we have to make sure that
+                      ;; the task and all its children will get evaporated
+                      ;; in case the thread is killed.
+                      (evaporate ,task
+                                 :sync nil
+                                 :reason ,(format nil "~A aborted." name))))))
              (on-top-level-cleanup-hook ',name)))))))
 
 (defmacro top-level (&body body)
@@ -178,13 +216,14 @@
    details."
   `(named-top-level () ,@body))
 
-(def-plan-macro with-task ((&key (name "WITH-TASK")) &body body)
+(def-plan-macro with-task ((&key (class 'task) (name "WITH-TASK")) &body body)
   "Executes body in a separate task and joins it."
-  (with-gensyms (task)
-    `(let ((,task (make-instance 'task
-                    :name ',(gensym (format nil "[~a]-" name))
-                    :thread-fun (lambda () ,@body))))
-       (join-task ,task))))
+  (let ((name (gensym (format nil "[~a]-" name))))
+    (with-gensyms (task)
+      `(let ((,task (make-instance ',class
+                      :name ',name
+                      :thread-fun (lambda () ,@body))))
+         (join-task ,task)))))
 
 (defmacro seq (&body forms)
   "Executes forms sequentially. Fails if one fail. Succeeds if all
@@ -204,7 +243,7 @@
 (defmacro :tag (name &body body)
   "Create a tag named name in the current lexical scope."
   (declare (ignore body))
-  (error (format nil ":tag '~a' used without a 'with-tags' environment." name)))
+  (error "(:TAG ~S ..) used outside of WITH-TAGS." name))
 
 ;;; - Don't nest with-tags calls, since code walking will mess up the result.
 ;;; - Don't use with-tags within macrole/symbol-macrolet/..., if those macros expand
@@ -217,12 +256,11 @@
 (def-plan-macro with-tags (&body body &environment lexenv)
   "Execute body with all tags bound to the corresponding lexically
    bound variables."
-  (let ((tags (list))
-        (tags-body `(progn ,@body)))
+  (let ((tags (list)))
     (flet ((tags-handler (tag-name body)
              (declare (ignore body))
              (push tag-name tags)))
-      (walk-with-tag-handler tags-body #'tags-handler lexenv)
+      (walk-with-tag-handler `(progn ,@body) #'tags-handler lexenv)
       (with-gensyms (current-path tag-path)
         `(let* ((,current-path *current-path*)
                 ,@(mapcar (lambda (tag)
@@ -246,19 +284,15 @@
                            (execute-task-tree-node
                             (register-task-code ',tag-body (lambda () ,@tag-body)
                                                 :path ,',tag-path)))))
-             (unwind-protect
-                  ,tags-body
-               ,@(mapcar (lambda (tag)
-                           `(terminate ,tag :evaporated))
-                         tags))))))))
+             ,@body))))))
 
-(def-plan-macro with-task-suspended (task &body body)
+(def-plan-macro with-task-suspended ((task &key reason) &body body)
   "Execute body with 'task' being suspended."
   (with-gensyms (task-sym)
     `(let ((,task-sym ,task))
        (unwind-protect
             (progn
-              (suspend ,task-sym)
+              (suspend ,task-sym :sync t :reason ,reason)
               (wait-for (fl-eq (status ,task-sym) :suspended))
               ,@body)
          (wake-up ,task-sym)))))
@@ -294,12 +328,15 @@
     `(block nil
        (let ((,failures (list)))
          ,@(mapcar (lambda (form)
+                     ;; FIXME: TODO, use with-failure-handling
                      `(handler-case (return ,form)
-                        (plan-error (err)
+                        (plan-failure (err)
                           (push err ,failures))))
                    forms)
          (fail (make-condition 'composite-failure
                                :failures ,failures))))))
+
+;;; FIXME: circular ordering could be detected at compile-time.
 
 (def-plan-macro partial-order ((&body steps) &body orderings)
   "Specify ordering constraints for `steps'. `steps' are executed in
@@ -323,6 +360,8 @@ reference it by its path relative to the PARTIAL-ORDER form."
          collect (list constraining-name constrained-name) into orders
          finally (return (values bindings orders)))
     `(let ,bindings
+       ;;; This is not thread-unsafe because the tasks are supposed
+       ;;; not to run yet. FIXME: this should probably be asserted.
        ,@(loop for (constraining constrained) in orders
             collect `(push (task-dead ,constraining)
                            (task-constraints ,constrained)))

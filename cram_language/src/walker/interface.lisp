@@ -29,6 +29,9 @@
 
 (in-package :walker)
 
+;;;; FIXME: The walker currently has some bugs. Most noteably plan macros are
+;;;; not walked correctely.
+
 (defun expand-plan (form)
   "Expand-plan takes a sexp and macroexpands it. Whenever it encounters a call
    to a plan it continues by expanding the sexp that defined that plan and

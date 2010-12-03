@@ -2,10 +2,10 @@
 ;;; Copyright (c) 2009, Lorenz Moesenlechner <moesenle@cs.tum.edu>,
 ;;;                     Nikolaus Demmel <demmeln@cs.tum.edu>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
@@ -14,7 +14,7 @@
 ;;;     * Neither the name of Willow Garage, Inc. nor the names of its
 ;;;       contributors may be used to endorse or promote products derived from
 ;;;       this software without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -33,12 +33,25 @@
 (defmacro hangs (&body body)
   "Generates a pass if `body' hangs, and a failure if it returns."
   `(handler-case
-       (let ((result (sb-ext:with-timeout 0.35
-                       (sb-sys:with-deadline (:seconds 0.2 :override t)
-                         ,@body))))
+       (let ((result
+              ;; Kludge: We must be pretty gratituous about this
+              ;; timeout value because in (HANGS (TOP-LEVEL ...)) the
+              ;; main thread will evaporate+wait until the toplevel
+              ;; task and all its subtasks shut down---however, this
+              ;; timeout could mistakenly interrupt that wait in case
+              ;; the DEADLINE fired.
+              (sb-ext:with-timeout 3.0
+                ;; NB. As HANGS will be used in the main thread, only,
+                ;; not in a task, this won't be mistaken for an
+                ;; entrance into a task's event loop.
+                (sb-sys:with-deadline (:seconds 0.5 :override t)
+                  ,@body))))
          (5am:fail "~@<Expected ~S to hang, but it returned: ~S~@:>"
                    ',body result))
      (sb-ext:timeout ()
+       (cpl-impl::log-event
+         (:context "*** TIMEOUT ***")
+         (:tags :finish))
        (pass))))
 
 (defun symbol-set-equal (a b)
@@ -91,3 +104,40 @@
               (loop for i from 0 to (length-all subperm)
                  collecting (append-all (subseq-all subperm 0 i)
                                         (cons-all (car-all l) (subseq-all subperm i)))))))))
+
+;;; FIXME:
+
+(declaim (inline float-/))
+(defun float-/ (a b)
+  (/ (float a 1.0d0) (float b 1.0d0)))
+
+(defun sleep* (seconds)
+  (let ((seconds (coerce seconds 'double-float)))
+    (declare (double-float seconds))
+    #+nil (declare (optimize speed))
+    (cpl-impl::log-event
+      (:context "- SLEEP -")
+      (:display "~S" seconds)
+      (:tags :finish))
+    (prog ((deadline-seconds sb-impl::*deadline-seconds*)
+           (stop-time
+            (+ (sb-impl::seconds-to-internal-time seconds)
+               (get-internal-real-time))))
+     :retry
+     (cond ((not deadline-seconds)
+            (sleep seconds))
+           ((> deadline-seconds seconds)
+            (sleep seconds))
+           (t
+            (sleep deadline-seconds)
+            (sb-sys:signal-deadline)
+            (setq deadline-seconds sb-impl::*deadline-seconds*)
+            (setf seconds (float-/ (- stop-time (get-internal-real-time))
+                                   internal-time-units-per-second))
+            (when (plusp seconds)
+              (go :retry)))))
+    (cpl-impl::log-event
+      (:context "- WAKE -")
+      (:display "~S" seconds)
+      (:tags :finish))))
+

@@ -1,10 +1,10 @@
 ;;;
 ;;; Copyright (c) 2009, Lorenz Moesenlechner <moesenle@cs.tum.edu>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
@@ -13,7 +13,7 @@
 ;;;     * Neither the name of Willow Garage, Inc. nor the names of its
 ;;;       contributors may be used to endorse or promote products derived from
 ;;;       this software without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -71,16 +71,16 @@
    returned fluent net. This is solved by havin a second value. When
    the body returns a non-nil second value, the fluent net is always
    pulsed, otherwise only when the fluent net value has changed."
-  (multiple-value-bind (body decls docstring) 
+  (multiple-value-bind (body decls docstring)
       (parse-body body :documentation t :whole w)
     (with-gensyms (fl-args)
       `(defun ,name (&rest ,fl-args)
          ,docstring
          (labels ((,name ,args ,@decls ,@body))
            (let ((fluents (remove-if-not (of-type 'fluent) ,fl-args)))
-             (if fluents 
-                 (call-as-fluent-operator #',name ,fl-args 
-                                          :fluents fluents 
+             (if fluents
+                 (call-as-fluent-operator #',name ,fl-args
+                                          :fluents fluents
                                           :name ',name)
                  (apply #',name ,fl-args))))))))
 
@@ -94,7 +94,7 @@
             dependecy changes its value."
            (lambda (value)
              (declare (ignore value))
-             (without-termination
+             (without-scheduling
                (let ((result-fluent (tg:weak-pointer-value weak-result-fluent)))
                  (cond (result-fluent
                         (pulse result-fluent))
@@ -103,7 +103,7 @@
                         ;; fluent is no longer valid.
                         (dolist (fluent fluents)
                           (remove-update-callback fluent fl-name)))))))))
-    (let* ((fl-name (format-gensym "FN-~A" name)) 
+    (let* ((fl-name (format-gensym "FN-~A" name))
            (result-fluent (make-fluent
                            :class (if (and (not force-no-cache)
                                            (every (rcurry #'typep 'fl-cacheable-value-mixin)
@@ -114,48 +114,41 @@
                            :calculate-value-fun (lambda ()
                                                   (apply function args))))
            (weak-result-fluent (tg:make-weak-pointer result-fluent)))
-      (without-termination
+      (without-scheduling
         (dolist (fluent fluents)
           (register-update-callback
            fluent fl-name
            (make-fluent-callback weak-result-fluent fl-name))))
       result-fluent)))
 
-(macrolet ((wrap (fn args)
-             ;; This solution is not the fastest one and not the
-             ;; because of the use of mapcar, which causes at least
-             ;; two iterations over args.
-             `(apply #',fn (mapcar #'value ,args))))
+;;; FIXME: allow arbitrary arglist, use PARSE-ORDINARY-ARGLIST,
+;;; and generate call template from that.
+(macrolet ((define-wrapper (name required-args wrapped-fn)
+             `(def-fluent-operator ,name ,required-args
+                (,wrapped-fn ,@(loop for arg in required-args
+                                     collect `(value ,arg))))))
 
-  (def-fluent-operator fl< (&rest args)
-    (wrap < args))
+  (define-wrapper fl< (x y) <)
 
-  (def-fluent-operator fl> (&rest args)
-    (wrap > args))
+  (define-wrapper fl> (x y) >)
 
-  (def-fluent-operator fl= (&rest args)
-    (wrap = args))
+  (define-wrapper fl= (x y) =)
 
-  (def-fluent-operator fl-eq (&rest args)
-    (wrap eq args))
+  (define-wrapper fl-eq (x y) eq)
 
-  (def-fluent-operator fl-eql (&rest args)
-    (wrap eql args))
-  
-  (def-fluent-operator fl+ (&rest args)
-    (wrap + args))
+  (define-wrapper fl-eql (x y) eql)
 
-  (def-fluent-operator fl- (&rest args)
-    (wrap - args))
+  (define-wrapper fl-member (item list) member)
 
-  (def-fluent-operator fl* (&rest args)
-    (wrap * args))
+  (define-wrapper fl+ (x y) +)
 
-  (def-fluent-operator fl/ (&rest args)
-    (wrap / args)))
+  (define-wrapper fl- (x y) -)
 
-(def-fluent-operator fl-not (arg)
-  (not (value arg)))
+  (define-wrapper fl* (x y) *)
+
+  (define-wrapper fl/ (x y) /)
+
+  (define-wrapper fl-not (arg) not))
 
 ;;; AND and OR cannot be implemented as macros for fluent. All
 ;;; previous operators return whether a fluent or the value, depending

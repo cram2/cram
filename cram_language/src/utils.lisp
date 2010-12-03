@@ -30,8 +30,7 @@
 
 (in-package :cpl-impl)
 
-(deftype thread ()
-  'sb-thread:thread)
+;;; FIXME: Put these into CRAM-UTILITIES
 
 (deftype list-of (type)
   `(or null (cons ,type list)))
@@ -39,19 +38,23 @@
 (defun format-gensym (format-string &rest format-args)
   (make-gensym (apply #'format-symbol nil format-string format-args)))
 
-(defun partition (predicate list)
+(defun partition (predicate list &key key)
   "Equivalent to (VALUES (REMOVE-IF-NOT P L) (REMOVE-IF P L))."
   (declare (optimize speed))
   (declare (function predicate))
   (declare (list list))
-  (let ((other-bucket '()))
+  (let ((key (if key (ensure-function key) #'identity))
+        (other-bucket '()))
     (values
      (remove-if-not #'(lambda (x)
-                        (if (funcall predicate x)
+                        (if (funcall predicate (funcall key x))
                             t
                             (prog1 nil (push x other-bucket))))
                     list)
      (nreverse other-bucket))))
+
+;;; FIXME: get rid of these, there's ASSOC-VALUE, and (SETF ASSOC-VALUE)
+;;;        in Alexandria nowadays.
 
 (defun get-alist (name alist &rest keys &key key test test-not)
   (declare (ignore key test test-not))

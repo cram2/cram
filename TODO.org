@@ -1,4 +1,3 @@
-
 * TODO update copyright statements.
   * update year (2009-2010).
   * Maybe remove names
@@ -44,15 +43,18 @@
 
   ** maybe just -FLUENT suffix? E.g. (TASK-DEAD-FLUENT <task>)?
 
+  ** Maybe -F?
+
 
 * TODO (MAKE-INSTANCE 'TASK ...) vs (MAKE-TASK ...)
 
-  ** When to use what? Please document appropriately.
+  ** The former is implementation detail. The latter should be used.
 
   ** MAKE-TASK returns runnable, but _not_ yet running tasks.
 
   ** WITH-TAGS uses MAKE-TASK whereas TOP-LEVEL and WITH-TASK use
      MAKE-INSTANCE.
+
 
 
 * TODO episode-knowledge.lisp uses DEFINE-TASK-VARIABLE
@@ -87,35 +89,32 @@
          etc.
 
 
-* DONE what's the point of WITH-TASK?
+* TODO WITH-TAGS does not check for duplicates
 
-  ** and its use in WITH-PARALLEL-CHILDS? Why spawn a new task and
-     then join it? To give the new task a specific name?
-
-  ** seems wasteful
-
-  ** The reason is that we need to at least evaporate all children
-     that are still running at the end of the WITh-PARALLEL-CHILD
-     form. By creating a new task, we get this behavior implicitly. Of
-     course, it would be possible to handle it explicitly in
-     WITH-PARALLEL-CHILD but that would introduce new bugs and
-     replicate behavior that is already there. I think creating one
-     more thread that does nothing but sleeping does not consume too
-     many resources.
-
-
-* DONE WITH-TAGS does not check for duplicates
-
-  ** and because it expands to a LET*, SBCL won't complain either.
+  ** and because it expands to a LET*, SBCL won't complain either. --tcr
   
   ** It's the users fault when he uses the same tag names twice within
      the same lexical scope. This is the same as declaring variables
-     with the same name, isn't it?
+     with the same name, isn't it? --lorenz
+
+  ** The problem is that it'll compile through, and do the wrong
+     thing. What's the point? checking for duplicates is SMOP. --tcr
+
+  ** I'm with tcr. Its definately a possibly subtle bug and easy enough to
+     check. -- demmeln
+
+
+* TODO in the PULSE method use HASH-TABLE-VALUES
+
+  ** We could use HASH-TABLE-VALUES instead of copying the hash table. This
+     should not change the semantics but be more perdormant, right?
 
 
 * TODO WITH-TAGS should expand :TAG to a common global function
 
   ** less code explosion; better for ICACHE and compilation speed
+
+  ** and less confusing macro definition
 
 
 * TODO better name for EXECUTE-TASK-TREE-NODE
@@ -123,48 +122,227 @@
   ** it is not clear from its name that the function waits until the
      task finishes
 
+  ** It's coupled with the item directly above:
 
-* TODO rename TASK-RUNNING-P, and RUNNING arg in WITH-PARALLEL-CHILD
+     *** make :TAG inside WITH-TAGS expand to something like
 
-  ** call it TASK-ALIVE-P, and ALIVE instead.
-
-
-* DONE fluent returned by FL-PULSED has always value T
-
-  ** Fix FL-PULSED.1
-
-  ** Fix WITH-PARALLEL-CHILDS.1
+         (JOIN-TASK (EXECUTE-TAGGED-TASK ...))
 
 
-* TODO Fix WITH-PARALLEL-CHILDS.2
+* TODO the FIXME at the top of tasks/task.lisp.
 
-* DONE WHENEVER, WAIT-FOR, :HANDLE-MISSED-PULSES
 
-  ** maybe fix WAIT-FOR.4
+* TODO See FIXMEs in cram-test-utilities/src/misc-utils.lisp
 
-  ** fix WHENEVER.5
 
-  ** add more test cases
+* TODO PARTIAL-ORDER FIXMEs
 
-  ** maybe get rid of :HANDLE-MISSED-PULSES in WAIT-FOR and WHENEVER, and
-     instead introduce (fl-pulsed <fluent> :handle-missed-pulses):
+  ** could detect cyclic dependencies at compile-time.
 
-     *** seems implementable.
+  ** is not thread safe; if two PARTIAL-ORDER forms are used
+     concurrently, which both specify the same task in (:order)
+     -> two PUSHes will be executed concurrently.
 
-     *** update callbacks would have to be passed the current
-         (updated) pulse-count.
 
-     *** say in case of :ALWAYS, fl-pulsed returns a fluent which:
+* TODO ressurect RETHROWN-ERROR
 
-           - knows old pulse-count of its parent fluent
+  ** I took it because I wasn't sure what it was used for and if it's needed.
 
-           - hence knows # missed pulses
+  ** I now see it was used for errors inside a sub task when
+     propagating up its parents.
 
-           - pulses its subscribers for #missed times.
+  ** Maybe call it CHILD-ERROR.
 
-           - this does not solve the problem that fl-pulsed needed to
-             trigger the condition just after wait-for sleeps
-             again. This seems hard to implement.
+
+* TODO get rid of WITH-PRODUCER-CONSUMER-THREADS again
+
+  ** test suite will only kill tasks not threads after test
+
+
+* TODO get rid of *task-pprint-verbosity*
+
+  ** no need for it. Just don't go over VALUE, but (SLOT-VALUE <fluent> 'value)
+
+
+* TODO get rid of synchronization-tools
+
+  ** do not need it after all
+
+  ** it's used in with-task-hierarchy; might be tricky to get rid of
+     it after all.
+
+
+* TODO get rid of SLEEP*
+
+  ** CL:SLEEP does not take deadlines into account
+
+  ** hence I wrote SLEEP*, but it's not good.
+
+  ** it works on absolute times which does not mesh well
+     with context switches.
+
+  ** I suggest get rid of it alltogether, instead introduce a special
+     fluent (FL-TIMED <timeout>) which pulses after timeout expired.
+
+     That would go well with existing stuff.
+
+  ** Change test cases accordingly to use (WAIT-FOR (FL-TIMED ..))
+     instead of SLEEP*.
+
+
+* TODO get rid of LOG-EVENTS in cram-utilities.
+
+  ** added them for debugging, forgot to remove.
+
+
+* TODO improve REASON arg handling of events
+
+  ** Instead of using "Parent did foo." make the reason be
+     an implicit 
+
+        (format nil "~A ~A." (task-abbreviated-name *current-task*) reason)
+
+     so people can write (foo ... :reason "aborted") etc.
+
+
+* TODO integrate cpl's logging stuff into roslog
+
+  ** then remove log-msg from kipla
+
+
+* TODO Synchronize parent & childs depending on variable
+
+  ** Add :sync *some-global-flags* to uses of evaporate, suspend in
+     base.lisp.
+ 
+
+* TODO rename log-event to log-msg
+
+
+* TODO rename log-set to log-use
+
+
+* TODO docstring of define-cram-test is not up to date
+
+
+* TODO get rid of *failure-behaviour* again
+
+  ** It's not needed. User setting *break-on-signal* is enough.
+
+
+* TODO get rid of *break-on-plan-failure*
+
+  ** It's not needed. User setting *break-on-signal* is enough.
+
+
+* TODO (make-task) outside top-level
+
+  ** the error signaled should probably just say that we're outside
+     top-level.
+
+
+* TODO processed-pulse-count in pulse-count
+
+  ** docstring says "pulses we have processed so far. We don't want to
+     use pulse-count since it is used in wait-for to determine if
+     something changed. This slot is used to compute the value"
+
+  ** with the simplification of wait-for, it does not need (and in
+    fact does not) use the pulse-count anymore.
+
+
+* TODO without-scheduling in fluent code
+
+  ** everything which was once without-termination etc I just replaced
+     with without-scheduling without having reviewed the code.
+
+  ** I think in most cases, in can actually be got rid of.
+
+
+* TODO change make-fluent
+
+  ** make it work regardless of this set-fluent-make-function stuff
+
+  ** get rid of that set-fluent-make-function stuff; maybe use
+     task-variables.
+
+  ** make make-fluent default to the value-fluent class if not an
+     explicit class is provided. Check for incompatibility if :value
+     is given, but class is not a value-fluent.
+
+
+* TODO anonymous fluents
+
+  ** if possible, do _not_ make the name parameter of make-fluent be
+     required. Instead default to "ANONYMOUS".
+
+  ** see the function FLUENT in cram-test-utilities. (Which can then
+     be get rid of.)
+
+
+* TODO what about errors in fluent-nets
+
+  ** e.g. (fl-funcall #'1+ <fluent>)
+
+  ** what is if <fluent>'s value is set to :foo?
+
+
+* TODO (fl-apply #'+ *fluents*) does not work
+
+  ** bug in fl-apply
+
+
+* TODO Determining good value for `+time-quantum+'
+
+  ** add timestamp to MESSAGE in tasks/task.lisp
+
+     Use it to see how long it takes from sending a message to its processing.
+
+  ** count # of enters into event loop without processing msg
+
+
+* TODO WHENEVER & WITH-PARALLEL-CHILDS 
+
+  ** PAR etc. go periodically into event-loop
+
+  ** Rather add event (:WAIT ...) which will make them really
+     wait inside the event-loop.
+
+
+* TODO JOIN-TASK & WAIT-FOR 
+
+  ** Similiarly like above. The task doing the join enters event-loop
+     most often in vain.
+
+* TODO gratitious task creation in with-tags
+
+  ** (with-tags (:tag X (par (:tag A ..) (:tag B ..)))
+
+  ** will create PAR-#1/2 and PAR-#2/2
+
+  ** and A, B
+
+  ** events take some time to propagate, e.g.
+
+       (top-level 
+         (with-tags
+           (par
+             (:tag slave 
+               (pursue (seq (sleep* 0.5) :A)
+                       (seq (sleep* 1.0) :B)
+                       (seq (sleep* 1.0) :C)))
+             (with-task-suspended slave
+               (sleep* 1.0)))))
+
+       SLAVE <- [PAR-#2/2]  -- (:SUSPEND)
+
+       SLAVE -> [PURSUE]    -- (:SUSPEND)
+
+       [PURSUE-#1/2] succeeds...
+
+       [PURSUE] teardown
+ 
+         ignores :SUSPEND
 
            
 
