@@ -31,8 +31,6 @@
 
 (in-package :cpl-impl)
 
-(declaim (optimize (debug 3)))
-
 ;;; NOTE: DOC: Paths in CRAM are read from right to left, such that when
 ;;; decending a task-tree or plan-tree, the path grows at the left.
 
@@ -195,7 +193,8 @@
              :path path))
 
 (defun clear-tasks (task-tree-node)
-  "Removes recursively all tasks from the tree."
+  "Removes recursively all tasks from the tree. Keeps tree structure and
+   leaves code-replacements in place."
   (when (task-tree-node-code task-tree-node)
     (setf (code-task (task-tree-node-code task-tree-node)) nil
           (code-sexp (task-tree-node-code task-tree-node)) nil
@@ -267,8 +266,47 @@
 ;;; Task tree utilities
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;; Note: No error handling at the momment, e.g. no testing if a tasks trees
-;;; CODE slot is NIL or if the CODE slots TASK slot is NIL.
+;;;
+;;; STALE TASK TREE NODES
+;;;
+;;; Stale task tree nodes are nodes in a task tree that have no associated
+;;; task object. This means they have not actually participated in the most
+;;; recent execution of the high level plan the task tree belongs to. Those
+;;; nodes are present in the task tree since CLEAR-TASKS leaves the task-tree
+;;; structure intact and only clears all task, function, sexp and parameter
+;;; slots.
+;;;
+;;; Stale task tree nodes are filtered for execution trace reasoning, but are
+;;; needed for plan transformations.
+;;;
+
+(defun stale-task-tree-node-p (node)
+  "Returns true if node is stale, i.e. it has no associated task object."
+  (not (and (task-tree-node-code node)
+            (code-task (task-tree-node-code node)))))
+
+(defun filter-task-tree (predicate tree)
+  "Returns a copy of the task tree which contains only nodes that satisfy
+   `predicate'. CAVEAT: If a node does not satisfy `predicate' then none of
+   its descendants will appear in the filtered tre, even if they satisfy
+   `preidacte'. Assume that the root saisfies `predicate', otherwise there
+   would be no tree to return."
+  (assert (funcall predicate tree))
+  ;; We assume the task object has no reference to the task tree nodes (which
+  ;; would be out of sync with the copied tree)
+  (labels ((%do-filter (node parent)
+             (make-task-tree-node :code (task-tree-node-code node)
+                                  :code-replacements (task-tree-node-code-replacements node)
+                                  :path (task-tree-node-path node)
+                                  :parent parent
+                                  :children
+                                  (mapcar (lambda (child)
+                                            (cons (car child)
+                                                  (%do-filter (cdr child) node)))
+                                          (remove-if-not predicate
+                                                         (task-tree-node-children node)
+                                                         :key #'cdr)))))
+    (%do-filter tree nil)))
 
 (defun flatten-task-tree (task-tree)
   "Returns a list of all the nodes in the tree."
@@ -277,18 +315,17 @@
                 (task-tree-node-children task-tree))))
 
 (defun task-tree-node-parameters (task-tree-node)
-  "Return the parameters with which the task was called."
+  "Return the parameters with which the task was called. Assume node is not stale."
   (let ((code (task-tree-node-code task-tree-node)))
     (code-parameters code)))
 
 (defun task-tree-node-status-fluent (task-tree-node)
-  "Return the tasks status fluent."
+  "Return the tasks status fluent. Assume node is not stale."
   (let ((code (task-tree-node-code task-tree-node)))
-    (and (code-task code)
-         (status (code-task code)))))
+    (status (code-task code))))
 
 (defun task-tree-node-result (task-tree-node)
-  "Return the tasks result."
+  "Return the tasks result. Assume node is not stale."
   (let ((code (task-tree-node-code task-tree-node)))
     (result (code-task code))))
 
@@ -296,16 +333,12 @@
 ;;; Goal task tree utilities
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;; Note: No error handling at the momment, e.g. no testing if a tasks trees
-;;; CODE slot is NIL or if the CODE slots TASK slot is NIL.
-
 (defun goal-task-tree-node-p (task-tree-node)
   "Returns true if `task-tree-node' is a goal task."
   (let ((p (task-tree-node-path task-tree-node)))
-    (eq 'goal
-        (and (consp p)
-             (consp (car p))
-             (caar p)))))
+    (and (consp p)
+         (consp (car p))
+         (member (caar p) '(goal goal-context)))))
 
 (defun goal-task-tree-node-pattern (task-tree-node)
   (assert (goal-task-tree-node-p task-tree-node))

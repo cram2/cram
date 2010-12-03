@@ -229,7 +229,7 @@
     (unless production
       (error 'simple-error
              :format-control "Production `~a' unknown."
-             :format-arguments production-name))
+             :format-arguments (list production-name)))
     (pushnew callback (production-definition-callbacks production))
     (unless (production-definition-node production)
       (setf (production-definition-node production)

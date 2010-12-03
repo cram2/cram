@@ -35,17 +35,6 @@
    (children :initform (make-hash-table))
    (key :reader alpha-node-key :initarg :key)))
 
-(defgeneric object-id (obj)
-  (:documentation "Returns an identifier that is used to identify the
-  object. Object ids that are EQL indicate that objects are
-  equal. This can be used to state that two tokens are equal although
-  their references are not EQL.")
-  (:method ((obj t))
-    obj))
-
-(defgeneric clear-facts (node)
-  (:documentation "Retract all facts in order to clear the network."))
-
 (defmethod clear-facts ((node alpha-node))
   (maphash (lambda (a b)
              (declare (ignore a))

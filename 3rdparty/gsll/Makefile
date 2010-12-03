@@ -4,7 +4,8 @@ REV_SHA_ID=7591d6dda666ac3b9353d3d38d0d394ab3a62688
 
 all: installed
 
-downloaded:
+downloaded: Makefile
+	make clean
 	git clone git://repo.or.cz/gsll.git
 	cd gsll; git checkout ${REV_SHA_ID} -b ros
 	touch rospack_nosubdirs

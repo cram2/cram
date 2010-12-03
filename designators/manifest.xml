@@ -10,4 +10,5 @@
   <depend package="sbcl"/>
   <depend package="alexandria"/>
   <depend package="cram_utilities"/>
+  <depend package="cram_reasoning"/>
 </package>

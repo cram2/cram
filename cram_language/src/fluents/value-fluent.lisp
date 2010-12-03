@@ -89,3 +89,23 @@
   (:documentation "This is a generic function with hook method
   combination. All defined methods are executed after a fluent is created."))
 
+(defmacro def-cpl-parameter (name &optional (val nil) (doc nil))
+  "Defines a global variable (like DEFPARAMETER) that is implemented as a
+   fluent. You can access it like a lisp variable with \"NAME\", and also setf
+   it like a lisp variable \"(SETF NAME)\" - note there is no need for
+   \"(VALUE NAME)\". However the variable being implemented as a fluent means
+   that the access is implicitely synchronized with a lock, and all changes
+   are traced if fluent tracing is enabled.
+
+   You cannot directly access the implementing fluent which means that you
+   cannot use it for building fluent nets or in cpl-constructs like
+   WHENEVER. (Just use a normal variable containing a fluent for those
+   purposes).
+
+   You can use this for example for defining global datastructures that need
+   not participate directly in cpl constructs, but should be traced in the
+   execution trace and/or accessed by multiple tasks/threads simultaniously."
+  (let ((glob-var (gensym (concatenate 'string "CPL-PARAMETER-"(symbol-name name) "-"))))
+    `(progn
+       (defparameter ,glob-var (make-fluent :name ',glob-var :value ,val) ,doc)
+       (define-symbol-macro ,name (value ,glob-var)))))

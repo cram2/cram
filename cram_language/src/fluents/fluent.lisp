@@ -52,7 +52,30 @@
   printed by the pretty-printer. This is not the case for PULSE
   fluents, for instance."))
 
-;;; FIXME: get rid of this
+(defgeneric value (fluent)
+  (:documentation "Reader method, returning the fluent's value"))
+
+(defgeneric register-update-callback (fluent name update-fun)
+  (:documentation "Method to register an update callback under the corresponding name.
+                   When the name is already known, an error is signaled."))
+
+(defgeneric remove-update-callback (fluent name)
+  (:documentation "Method to remove the update callback with the given name."))
+
+(defgeneric get-update-callback (fluent name)
+  (:documentation "Returns the callback with given name or NIL if it doesn't exist."))
+
+(defgeneric wait-for (fluent &key timeout wait-status)
+  (:documentation
+   "Method to block the current thread until the value of `fluent'
+    becomes non-nil. If `timeout' is specified, waits for at least
+    timeout and returns. The parameter `wait-status' indicates the
+    status of the task when it is waiting."))
+
+(defgeneric pulse (fluent)
+  (:documentation "Method to trigger the fluent, i.e. notifying all waiting threads,
+                   but without actually changing the fluent value."))
+
 (defmacro with-fluent-locked (fluent &body body)
   `(with-lock-held ((slot-value ,fluent 'value-lock))
      ,@body))
@@ -85,7 +108,13 @@
 
 (defmethod register-update-callback ((fluent fluent) name update-fun)
   (with-fluent-locked fluent
-    (setf (gethash name (slot-value fluent 'on-update)) update-fun)))
+    (if (gethash name (slot-value fluent 'on-update))
+        (error "Callback with name ~a is already registered." name)
+        (setf (gethash name (slot-value fluent 'on-update)) update-fun))))
+
+(defmethod get-update-callback ((fluent fluent) name)
+  (with-fluent-locked fluent
+    (gethash name (slot-value fluent 'on-update))))
 
 (defmethod remove-update-callback ((fluent fluent) name)
   (with-fluent-locked fluent

@@ -55,17 +55,17 @@
   ((name :initarg :name :reader name)
    (traced-value :initarg :traced-value :reader traced-value)))
 
-(defun trace-fluent (fluent value)
+(defun trace-fluent (fluent value episode)
   "Trace the current value of `fluent'."
   ;; Enqueuing must be thread safe, since multiple threads trace fluents at
   ;; the same time.
-  (when (and (fluent-tracing-enabled) (episode-running))
+  (when (and (fluent-tracing-enabled) (running-p episode))
     (enqueue (make-instance 'traced-fluent
                :name (name fluent)
                :traced-value (durable-copy value))
-             (fluent-trace-queue *episode-knowledge* fluent))))
+             (fluent-trace-queue episode fluent))))
 
-(defun trace-fluent-callback (fluent max-tracing-freq)
+(defun trace-fluent-callback (fluent max-tracing-freq episode)
   "Returns a closure to be registerd as a on-update callback for fluents. If
    `max-tracing-freq' is not NIL it will be used to make sure that the
    frequency with which updates to this fluent are traced does not exceed the
@@ -82,18 +82,72 @@
             ;; only trace if enough time has ellapsed
             (when (<= min-time-between-traces (- current-time last-time))
               (setf last-time current-time)
-              (trace-fluent fluent value)))))
-      (lambda (value) (trace-fluent fluent value))))
+              (trace-fluent fluent value episode)))))
+      (lambda (value) (trace-fluent fluent value episode))))
 
-;;; TODO, FIXME: We need to ensure, that the initial value of fluents is
-;;; traced when an episode starts. For this we 1) need to trace it upon
-;;; creation (in on-make-fluent-hook) and 2) need to trace it when an epsiode
-;;; starts (in case the fluent was created prior to the epsiode start). For
-;;; this to work we need to register all fluents in a global weak hash-table
-;;; to be able to trigger tracing.
+;;;
+;;; ABOUT REGISTER-FLUENTS
+;;;
+;;; We keep all fluents created in a hash table. If a fluent is created while
+;;; an episode is running, it is stored in the episodes hash table, otherwise
+;;; in a global hash table.
+;;;
+;;; The update-callback that does the tracing for each fluent is a closure
+;;; over the episode-knowledge object it should trace to. It does not use the
+;;; *episode-knowledge* variable, since it has task-local bindings only. If a
+;;; fluent is pulsed by a thread that with no binding for *episode-knowledge*
+;;; (i.e. a non-task thread), tracing would not work if we relied on
+;;; *epiosde-knowledge* being set. (Of course we could just never rebind
+;;; *episode-knowledge* and setf the one global binding, but I don't want to
+;;; do that for other reasons).
+;;;
+;;; For "episode-local" fluents the callback is registered immediately after
+;;; creation, since the episode is allready running then. For all global
+;;; fluents the callbacks are registered whenever an episode is started. Note
+;;; that we need to immediately trace the (initial) value after registering
+;;; the callback, since a fluent might never pulse during the course of an
+;;; episode, but it still has a value.
+;;;
+;;; All fluents get their fluent tracing callback unregistered when their
+;;; episode stops. This is to avoid them being traced in the next episode (a
+;;; fluent-net might be pulsed by a global fluent like the robot position or
+;;; other sensor data, even after the episode has ended).
+;;;
+
+(defvar *global-fluents* (make-synchronized-hash-table :test 'eq :weakness :key))
+
+(defun register-fluent (fluent options)
+  (if (episode-running)
+      (register-episode-fluent fluent *episode-knowledge*)
+      (register-global-fluent fluent options)))
+
+(defun register-global-fluent (fluent options)
+  (setf (gethash fluent *global-fluents*) options))
+
+(defun global-fluents-register-callbacks (episode)
+  (loop for fluent being the hash-keys in *global-fluents* using (hash-value options)
+     for max-tracing-freq = (getf options :max-tracing-freq)
+        unless (get-update-callback fluent :fluent-tracing-callback)
+          do (register-update-callback fluent :fluent-tracing-callback
+                                              (trace-fluent-callback fluent max-tracing-freq episode))
+             (trace-fluent fluent (peek-value fluent) episode)))
+
+(defun global-fluents-unregister-callbacks ()
+  (loop for fluent being the hash-keys in *global-fluents*
+     do (remove-update-callback fluent :fluent-tracing-callback)))
 
 (defmethod on-make-fluent-hook :execution-trace (fluent allow-tracing max-tracing-freq)
   (when allow-tracing
-    (register-update-callback fluent :fluent-tracing-callback
-                              (trace-fluent-callback fluent max-tracing-freq))
-    (trace-fluent fluent (peek-value fluent))))
+    ;; NOTE: Possible race condition if other thread (1) setfs
+    ;; *episode-knowledge* or the (2) running status changes within the
+    ;; following couple of commands. However neither might actually occour in
+    ;; practice. (1) prob. can not happen since we use thread local bindings
+    ;; for *episode-knowledge*. (2) prob. can not happen since the episode
+    ;; stops only when all tasks have finished, meaning their threads have
+    ;; stopped as well.
+    (register-fluent fluent `(:max-tracing-freq ,max-tracing-freq))
+    (when (episode-running)
+      (register-update-callback fluent :fluent-tracing-callback
+                                (trace-fluent-callback fluent max-tracing-freq
+                                                       *episode-knowledge*))
+      (trace-fluent fluent (peek-value fluent) *episode-knowledge*))))

@@ -5,10 +5,12 @@ PACKAGE_DIR=$(shell rospack find cl_utilities)
 
 all: installed
 
-$(CL_UTILS_ARCHIVE):
+downloaded: Makefile
+	make clean
 	wget $(CL_UTILS_URL)
+	touch downloaded
 
-installed: $(CL_UTILS_ARCHIVE)
+installed: downloaded
 	tar xvzf $(CL_UTILS_ARCHIVE)
 	mkdir -p asdf
 	touch rospack_nosubdirs
@@ -19,5 +21,5 @@ clean:
 	rm -rf cl-utilities-1.2.4 asdf
 	rm -f $(CL_UTILS_ARCHIVE)
 	rm -f rospack_nosubdirs
-	rm -f installed
+	rm -f installed downloaded
 

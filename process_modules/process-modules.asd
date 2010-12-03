@@ -21,5 +21,5 @@
   ((:module "src"
             :components
             ((:file "package")
-             (:file "process-modules"))
-            :serial t)))
+             (:file "process-module-protocol" :depends-on ("package"))
+             (:file "process-module" :depends-on ("package" "process-module-protocol"))))))

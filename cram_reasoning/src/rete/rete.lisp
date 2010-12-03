@@ -43,6 +43,17 @@
   (:documentation "Removes nodes in the network that are no longer used.")
   (:method (node) nil))
 
+(defgeneric object-id (obj)
+  (:documentation "Returns an identifier that is used to identify the
+  object. Object ids that are EQL indicate that objects are
+  equal. This can be used to state that two tokens are equal although
+  their references are not EQL.")
+  (:method ((obj t))
+    obj))
+
+(defgeneric clear-facts (node)
+  (:documentation "Retract all facts in order to clear the network."))
+
 (defvar *prolog-facts* (make-hash-table :test 'eq))
 
 (defmacro def-prolog-fact (name &rest pattern)

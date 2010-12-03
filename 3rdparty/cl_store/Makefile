@@ -3,7 +3,8 @@ PACKAGE_DIR=$(shell rospack find cl_store)
 
 all: installed
 
-downloaded:
+downloaded: Makefile
+	make clean
 	darcs get http://common-lisp.net/project/cl-store/darcs/cl-store/
 	mkdir -p asdf
 	touch rospack_nosubdirs

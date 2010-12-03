@@ -29,43 +29,52 @@
 
 (in-package :cpl-impl)
 
-;;; We need to manage the task trees somehow. The idea is to have a hash-table
-;;; containing one task-tree for every top-level plan. Otherwise, the
-;;; task-tree management would become really really messy.
-;;; --> see episode knowledge.
-
-;;; TODO@demmeln: Add this to the docstring!
-;;; Note: Don't have (certain kinds of) surrounding FLET / LABLES / MACROLET /
-;;; SYMBOL-MACROLET / LET / ...  when using DEF-TOP-LEVEL-PLAN or
-;;; DEF-PLAN. They could mess with (WITH-TAGS ...) or shadow globally defined
-;;; plans, which would not be picked up by WITH-TAGS / EXPAND-PLAN.  See the
-;;; comment before the definition of WITH-TAGS for more details.
+(define-hook on-def-top-level-plan-hook (plan-name)
+  (:documentation "Executed when a top-level-plan is defined."))
 
 (defmacro def-top-level-plan (name args &body body)
   "Defines a top-level plan. Every top-level plan has its own
-   episode-knowledge and task-tree."
+   episode-knowledge and task-tree.
+
+   CAVEAT: Don't have surrounding FLET / LABLES / MACROLET / SYMBOL-MACROLET /
+   LET / etc when using DEF-TOP-LEVEL-PLAN or DEF-PLAN (unless you really know
+   what you are doing). They could mess with (WITH-TAGS ...) or shadow
+   globally defined plans, which would not be picked up by WITH-TAGS /
+   EXPAND-PLAN.  See the comment before the definition of WITH-TAGS for more
+   details."
   (with-gensyms (call-args)
-    `(progn
-       (eval-when (:load-toplevel)
-         (setf (get ',name 'plan-type) :top-level-plan)
-         (setf (get ',name 'plan-lambda-list) ',args)
-         (setf (get ',name 'plan-sexp) ',body))
-       (defun ,name (&rest ,call-args)
-         (named-top-level (:name ,name)
-           (replaceable-function ,name ,args ,call-args `(top-level ,',name)
-             (with-tags
-               ,@body)))))))
+    (multiple-value-bind (body-forms declarations doc-string)
+        (parse-body body :documentation t)
+      `(progn
+         (eval-when (:compile-toplevel :load-toplevel :execute)
+           (setf (get ',name 'plan-type) :top-level-plan)
+           (setf (get ',name 'plan-lambda-list) ',args)
+           (setf (get ',name 'plan-sexp) ',body)
+           (on-def-top-level-plan-hook ',name))
+         (defun ,name (&rest ,call-args)
+           ,doc-string
+           ,@declarations
+           (named-top-level (:name ,name)
+             (replaceable-function ,name ,args ,call-args `(top-level ,',name)
+               (with-tags
+                 ,@body-forms))))))))
 
 (defmacro def-plan (name lambda-list &rest body)
   "Defines a plan. All functions that should appear in the task-tree
-   must be defined with def-plan."
+   must be defined with def-plan.
+
+   CAVEAT: See docstring of def-top-level-plan."
   (with-gensyms (call-args)
-    `(progn
-       (eval-when (:load-toplevel)
-         (setf (get ',name 'plan-type) :plan)
-         (setf (get ',name 'plan-lambda-list) ',lambda-list)
-         (setf (get ',name 'plan-sexp) ',body))
-       (defun ,name (&rest ,call-args)
-         (replaceable-function ,name ,lambda-list ,call-args (list ',name)
-           (with-tags
-             ,@body))))))
+    (multiple-value-bind (body-forms declarations doc-string)
+        (parse-body body :documentation t)
+      `(progn
+         (eval-when (:load-toplevel)
+           (setf (get ',name 'plan-type) :plan)
+           (setf (get ',name 'plan-lambda-list) ',lambda-list)
+           (setf (get ',name 'plan-sexp) ',body))
+         (defun ,name (&rest ,call-args)
+           ,doc-string
+           ,@declarations
+           (replaceable-function ,name ,lambda-list ,call-args (list ',name)
+             (with-tags
+               ,@body-forms)))))))
