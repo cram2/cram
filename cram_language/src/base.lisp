@@ -203,7 +203,7 @@
                                :thread-fun (lambda () ,@body)
                                :ignore-no-parent t)))
                   (with-failure-handling
-                      ((plan-error (e)
+                      ((plan-failure (e)
                          (error e))
                        (error (e)
                          (error e)))

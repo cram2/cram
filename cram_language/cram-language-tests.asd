@@ -24,7 +24,7 @@
      (:file "task-tests"            :depends-on ("package" "suite" "test-infrastructure"
                                                            "task-utils" "fluent-utils"))
      (:file "fluent-tests"          :depends-on ("package" "suite" "test-infrastructure"
-                                                           "task-utils" "fluent-tests"))
+                                                           "task-utils" "fluent-utils"))
      (:file "language-tests"        :depends-on ("package" "suite" "test-infrastructure"
                                                            "task-utils" "fluent-utils"))
      (:file "execution-trace-tests" :depends-on ("package" "suite" "test-infrastructure"))))))

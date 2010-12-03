@@ -37,12 +37,14 @@
 (deftype timestamp ()
   'double-float)
 
-(defun default-timestamp-function ()
+(defun default-timestamp-function (&optional (what-time :real))
   "A function that returns the current time in seconds as a double
    float. Precision depends on the CL implementation, more precisely on the
    value of INTERNAL-TIME-UNITS-PER-SECOND."
   (float
-   (/ (get-internal-real-time)
+   (/ (ecase what-time
+        (:real (get-internal-real-time))
+        (:run (get-internal-run-time)))
       internal-time-units-per-second)
    ;; CAVEAT: Using double-float-epsilon here is tied to timestamp being type
    ;; "double float"
@@ -79,9 +81,11 @@
   (setf *timestamp-function* #'default-timestamp-function))
 
 (declaim (inline current-timestamp))
-(defun current-timestamp (&optional (what-time :real))
+(defun current-timestamp (&optional what-time)
   "Returns the current time in seconds as a double float"
-  (funcall *timestamp-function*))
+  (if what-time
+      (default-timestamp-function what-time)
+      (funcall *timestamp-function*)))
 
 (defun current-string-timestamp ()
   "Returns the current time as string in the format YYYYMMDDHHMMSS. Could be

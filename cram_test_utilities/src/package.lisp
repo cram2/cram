@@ -41,5 +41,3 @@
    #:permute #:permute-all
    #:sleep*)
   (:shadowing-import-from :cram-language-implementation #:fail))
-   #:permute #:permute-all)
-  )
