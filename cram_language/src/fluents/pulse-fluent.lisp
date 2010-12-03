@@ -1,10 +1,10 @@
 ;;;
 ;;; Copyright (c) 2009, Lorenz Moesenlechner <moesenle@cs.tum.edu>,
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
@@ -13,7 +13,7 @@
 ;;;     * Neither the name of Willow Garage, Inc. nor the names of its
 ;;;       contributors may be used to endorse or promote products derived from
 ;;;       this software without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -42,13 +42,12 @@
                           fluent we are monitoring.")))
 
 (defmethod value ((fluent pulse-fluent))
-  (with-slots (value-lock
-               pulse-count
+  (with-slots (pulse-count
                processed-pulse-count
                reference-pulse-count
                handle-missed-pulses)
       fluent
-    (with-unsuspendable-lock value-lock
+    (with-fluent-locked fluent
       (when (< processed-pulse-count reference-pulse-count)
         (unless *peek-value*
           (ecase handle-missed-pulses
@@ -60,9 +59,6 @@
             ((:once :never)
              (setf processed-pulse-count reference-pulse-count))))
         t))))
-
-(defmethod print-object ((fluent pulse-fluent) stream)
-  (print-unreadable-object (fluent stream :type t :identity t)))
 
 (defun fl-pulsed (fluent &key (handle-missed-pulses :once))
   "Returns a fluent whose value becomes T only and only if its parent
@@ -88,7 +84,7 @@ behavior if one thread catches pulses another one was to handle."
   (flet ((make-fluent-callback (weak-result-fluent fl-name)
            (lambda (value)
              (declare (ignore value))
-             (without-termination
+             (without-scheduling
                (let ((result-fluent (tg:weak-pointer-value weak-result-fluent)))
                  (cond (result-fluent
                         (with-fluent-locked result-fluent
@@ -106,7 +102,7 @@ behavior if one thread catches pulses another one was to handle."
                                                                 ((:once :always) 0))
                                        :reference-pulse-count (slot-value fluent 'pulse-count)))
            (weak-result-fluent (tg:make-weak-pointer result-fluent)))
-      (without-termination
+      (without-scheduling
         (register-update-callback
          fluent fl-name
          (make-fluent-callback weak-result-fluent fl-name)))

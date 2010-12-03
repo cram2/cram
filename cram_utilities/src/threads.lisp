@@ -8,13 +8,17 @@
 
 (in-package :cram-utilities)
 
-(defun current-thread ()
+(defmacro defsubst (name arglist &body body)
+  `(progn (declaim (inline ,name))
+          (defun ,name ,arglist ,@body)))
+
+(defsubst current-thread ()
   sb-thread:*current-thread*)
 
-(defun all-threads ()
+(defsubst all-threads ()
   (sb-thread:list-all-threads))
 
-(defun thread-name (thread)
+(defsubst thread-name (thread)
   (sb-thread:thread-name thread))
 
 (defun spawn-thread (name function &rest args)
@@ -113,18 +117,6 @@
     (sb-ext:timeout ()
       nil)))
 
-
-;;; Misc
-
-;; AS-ATOMIC-OPERATION is deeply wrong, we really have to get rid of it.
-
-(defvar *atomic-operation-lock*
-  (sb-thread::make-spinlock :name "Atomic operation"))
-
-(defmacro as-atomic-operation (&body body)
-  `(sb-thread::with-spinlock (*atomic-operation-lock*)
-     ,@body))
-
 ;;; Synchronized hash-table
 
 ;; Functions operating on one key like GETHASH, (SETF GETHASH),
@@ -140,3 +132,10 @@
 (defmacro with-hash-table-locked ((hash-table) &body body)
   `(sb-ext:with-locked-hash-table (,hash-table)
      ,@body))
+
+
+;;; Thread-Local Bindings
+
+(defsubst thread-local-binding-p (symbol)
+  (nth-value 1 (sb-thread:symbol-value-in-thread symbol (current-thread) nil)))
+

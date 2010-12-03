@@ -2,10 +2,10 @@
 ;;; Copyright (c) 2009, Lorenz Moesenlechner <moesenle@cs.tum.edu>,
 ;;;                     Nikolaus Demmel <demmeln@cs.tum.edu>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
@@ -14,7 +14,7 @@
 ;;;     * Neither the name of Willow Garage, Inc. nor the names of its
 ;;;       contributors may be used to endorse or promote products derived from
 ;;;       this software without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -80,7 +80,7 @@
 (defpackage :cram-utilities
   (:use :common-lisp :alexandria)
   (:nicknames :cut)
-  #.`(:import-from :sb-thread             ,@+semaphore-symbols+)
+  #.`(:import-from :sb-thread             #:thread ,@+semaphore-symbols+)
   #.`(:import-from :sb-concurrency        ,@+queue-symbols+)
   #.`(:import-from :sb-concurrency        ,@+mailbox-symbols+)
   #.`(:import-from :synchronization-tools ,@+barrier-symbols+)
@@ -119,7 +119,10 @@
       #:quad-tree-closest-point-in-range #:make-quad-tree-point
       #:quad-tree-point-x #:quad-tree-point-y
       ;; macros
-      #:string-case #:destructure-case #:flet*
+      #:assert-no-returning #:assert-no-nlx
+      #:string-case
+      #:destructure-case
+      #:flet*
       ;; threads
       #:thread
       #:current-thread
@@ -129,9 +132,9 @@
       #:spawn-threads
       #:run-in-thread
       #:thread-alive-p
+      #:thread-local-binding-p
       #:kill-thread
       #:join-thread
-      #:as-atomic-operation
       #:make-lock
       #:make-recursive-lock
       #:with-lock-held
@@ -148,6 +151,6 @@
       ,@+mailbox-symbols+
       ;; queuees, reexported from sb-concurrency
       ,@+queue-symbols+
-      ;; barriers, reexported from synchronization-tools 
+      ;; barriers, reexported from synchronization-tools
       ,@+barrier-symbols+
       ))

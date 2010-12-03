@@ -2,10 +2,10 @@
 ;;; Copyright (c) 2009, Lorenz Moesenlechner <moesenle@cs.tum.edu>,
 ;;;                     Nikolaus Demmel <demmeln@cs.tum.edu>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
@@ -14,7 +14,7 @@
 ;;;     * Neither the name of Willow Garage, Inc. nor the names of its
 ;;;       contributors may be used to endorse or promote products derived from
 ;;;       this software without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -52,29 +52,9 @@
   printed by the pretty-printer. This is not the case for PULSE
   fluents, for instance."))
 
-(defgeneric value (fluent)
-  (:documentation "Reader method, returning the fluent's value"))
-
-(defgeneric register-update-callback (fluent name update-fun)
-  (:documentation "Method to register an update callback under the corresponding name.
-                   When the name is already known, an error is signaled."))
-
-(defgeneric remove-update-callback (fluent name)
-  (:documentation "Method to remove the update callback with the given name."))
-
-(defgeneric wait-for (fluent &key timeout wait-status)
-  (:documentation
-   "Method to block the current thread until the value of `fluent'
-    becomes non-nil. If `timeout' is specified, waits for at least
-    timeout and returns. The parameter `wait-status' indicates the
-    status of the task when it is waiting."))
-
-(defgeneric pulse (fluent)
-  (:documentation "Method to trigger the fluent, i.e. notifying all waiting threads,
-                   but without actually changing the fluent value."))
-
+;;; FIXME: get rid of this
 (defmacro with-fluent-locked (fluent &body body)
-  `(with-unsuspendable-lock (slot-value ,fluent 'value-lock)
+  `(with-lock-held ((slot-value ,fluent 'value-lock))
      ,@body))
 
 (defvar *peek-value* nil "This is used to implement PEEK-VALUE.")
@@ -99,9 +79,9 @@
     (setf value-lock (make-recursive-lock :name (format nil "~a-lock" name)))
     (setf changed-condition (make-condition-variable :lock value-lock))))
 
-(defmethod print-object ((fluent fl-printable-mixin) stream)
-  (print-unreadable-object (fluent stream :type t :identity t)
-    (format stream "[~s]" (value fluent))))
+(defmethod print-object ((fluent fluent) stream)
+  (print-unreadable-object (fluent stream :type nil :identity nil)
+    (format stream "~@<FLUENT ~A~:>" (name fluent))))
 
 (defmethod register-update-callback ((fluent fluent) name update-fun)
   (with-fluent-locked fluent
@@ -111,47 +91,42 @@
   (with-fluent-locked fluent
     (remhash name (slot-value fluent 'on-update))))
 
-(defmethod wait-for ((fluent fluent) &key
-                     (timeout nil) (wait-status :waiting))
-  (with-slots (changed-condition value-lock pulse-count) fluent
-    (with-status (wait-status)
-      (let ((start-time (get-internal-real-time))
-            ;; Make sure that the value method is evaluated only once
-            ;; per iteration. This is because pulsed-fluent keeps its
-            ;; truth value only for one read.
-            (value nil))
-        (without-suspension
-          (tagbody retry
-             (let ((old-pulse-count (with-unsuspendable-lock value-lock pulse-count)))
-               (or (setf value (value fluent))
-                   ;; We need to do ugly explicit handling of suspension
-                   ;; here.  WAIT-FOR is a very special case since we need
-                   ;; to ensure that even if CONDITION-VARIABLE-WAIT gets
-                   ;; suspended, the value-lock is released and we wait
-                   ;; again after suspension.
-                   (with-suspension
-                     (handler-case
-                         (with-lock-held (value-lock)
-                           (unless (> pulse-count old-pulse-count)
-                             (if timeout
-                                 (condition-variable-wait-with-timeout changed-condition timeout)
-                                 (condition-variable-wait changed-condition))))
-                       (suspension (c)
-                         (signal-suspension c)
-                         t)))
-                   (unless (or (and timeout (>= (/ (- (get-internal-real-time)
-                                                      start-time)
-                                                   internal-time-units-per-second)
-                                                timeout))
-                               (and (setf value (value fluent))
-                                    (with-lock-held (value-lock)
-                                      (> pulse-count old-pulse-count))))
-                     (go retry))))))
-        value))))
+(defmethod wait-for ((fluent fluent) &key (timeout nil))
+  (log-event
+    (:context "WAIT-FOR")
+    (:display "~S~@[ ~:_:TIMEOUT ~S~]" fluent timeout)
+    (:tags :wait-for))
+  (if timeout
+      (%timed-wait-for fluent timeout)
+      (let ((condition-var (slot-value fluent 'changed-condition))
+            (value-lock    (slot-value fluent 'value-lock)))
+        (retry-after-suspension
+         (with-lock-held (value-lock)
+           (loop when (value fluent) return it
+                 else do (condition-variable-wait condition-var)))))))
+
+(declaim (inline recalculate-timeout))
+(defun recalculate-timeout (timeout start-time)
+  (- timeout (/ (float (- (get-internal-real-time) start-time) 1d0)
+                (float internal-time-units-per-second 1d0))))
+
+(defun %timed-wait-for (fluent timeout)
+  (declare (fluent fluent))
+  (let ((condition-var (slot-value fluent 'changed-condition))
+        (value-lock    (slot-value fluent 'value-lock))
+        (start-time    (get-internal-real-time)))
+    (retry-after-suspension
+      (setq timeout (recalculate-timeout timeout start-time))
+      (with-lock-held (value-lock)
+        (loop when (value fluent)        return it
+              when (not (plusp timeout)) return nil
+              else do
+                (condition-variable-wait-with-timeout condition-var timeout)
+                (setq timeout (recalculate-timeout timeout start-time)))))))
 
 (defmethod pulse ((fluent fluent))
   (with-slots (changed-condition pulse-count on-update) fluent
-    (without-termination
+    (without-scheduling
       (let ((on-update-list (with-fluent-locked fluent
                               (hash-table-values on-update)))
             (value nil))

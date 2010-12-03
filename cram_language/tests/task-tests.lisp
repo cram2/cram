@@ -10,8 +10,8 @@
     "Child awakes before parent." ()
   (with-task-hierarchy ((A -> B)
                         (B ->  ))      
-      ((:task A (sleep 0.1))
-       (:task B (sleep 0.025)))
+      ((:task A (sleep* 0.1))
+       (:task B (sleep* 0.025)))
     (wait-until (become +dead+) A B)
     (has-status A :succeeded)
     (has-status B :succeeded)))
@@ -22,11 +22,28 @@
     "Parent awakes before child." ()
   (with-task-hierarchy ((A -> B)
                         (B ->  ))      
-      ((:task A (sleep 0.025))
-       (:task B (sleep 0.05)))
+      ((:task A (sleep* 0.025))
+       (:task B (wait-for (end-of-time))))
     (wait-until (become +dead+) A B)
     (has-status A :succeeded)
     (has-status B :evaporated)))
+
+(define-cram-test basics.3
+    "Grant-childs awake before childs awake before parent."
+    ((:timeout 10.0)
+     (:n-runs  10)
+     (:generators (n-Bs (gen-integer :min 1 :max 20))
+                  (n-Cs (gen-integer :min 1 :max 5))))
+  (with-task-hierarchy ((A  -> Bs)
+                        (Bs -> Cs)
+                        (Cs ->   ))      
+      ((:task  A       (sleep* 0.5))
+       (:tasks Bs n-Bs (sleep* 0.1))
+       (:tasks Cs n-Cs (sleep* 0.01)))
+    (wait-until (become +dead+) A Bs Cs)
+    (has-status  A  :succeeded)
+    (have-status Bs :succeeded)
+    (have-status Cs :succeeded)))
 
 ;;; Parent suspends => child suspends
 
@@ -34,14 +51,18 @@
     "Suspend parent, make sure child becomes suspended, too.
      Then wake up parent, make sure child awakes, too."
     ()
-  (with-task-hierarchy ((A -> B)
-                        (B ->  ))      
-      ((:task A (sleep 10.0))
-       (:task B (sleep 10.0)))
-    (suspend A) (wait-until (become :suspended) A B)
-    (wake-up A) (wait-until (become :running) A B)
-    (evaporate-and-wait A B)
-    (pass)))
+  (let ((knob (fluent nil)))
+    (with-task-hierarchy ((A -> B)
+                          (B ->  ))      
+        ((:task A (wait-for knob))
+         (:task B (wait-for knob)))
+      (suspend A) (wait-until (become :suspended) A B)
+      (setf (value knob) t)
+      ;; Still suspended?
+      (sleep 0.1) (have-status `(,A ,B) :suspended)
+      (wake-up A) (wait-until (become +dead+) A B)
+      (has-status A :succeeded)
+      (has-status B :succeeded :evaporated))))
 
 ;;; Parent & child suspended, child wake-up => error
 
@@ -53,8 +74,8 @@
     ((:skip "Fails as of 2010-04-11"))
   (with-task-hierarchy ((A -> B)
                         (B ->  ))      
-      ((:task A (sleep 10.0))
-       (:task B (sleep 10.0)))
+      ((:task A (sleep* 10.0))
+       (:task B (sleep* 10.0)))
     (suspend A) (wait-until (become :suspended) A B)
     (signals error
       (wake-up B))
@@ -64,16 +85,35 @@
 
 (define-cram-test tasks--suspend.3
     "Suspend child, make sure parent is not affected.
-     Then wake up the child again." ()
-  (with-task-hierarchy ((A -> B)
-                        (B ->  ))      
-      ((:task A (sleep 10.0))
-       (:task B (sleep 10.0)))
-    (suspend B)  (wait-until (become :suspended) B)
-    (sleep 0.01) (has-status A :running)
-    (wake-up B)  (wait-until (become :running) B)
-    (evaporate-and-wait A B)
-    (pass)))
+     Let parent succeed, check child gets evaporated." ()
+  (let ((knob (fluent nil)))
+    (with-task-hierarchy ((A -> B)
+                          (B ->  ))      
+        ((:task A (wait-for knob))
+         (:task B (wait-for knob)))
+      (suspend B)  (wait-until (become :suspended) B)      
+      (sleep* 0.1)
+      (has-status A :running) (has-status B :suspended)
+      (setf (value knob) t)
+      (wait-until (become +dead+) A B)
+      (has-status A :succeeded) (has-status B :evaporated))))
+
+(define-cram-test tasks--suspend.4
+    "Suspend child, make sure parent is not affected. Let parent
+     succeed, and at the same time wake the child again." ()
+  (let ((knob (fluent nil)))
+    (with-task-hierarchy ((A -> B)
+                          (B ->  ))      
+        ((:task A (wait-for knob))
+         (:task B (wait-for knob)))
+      (suspend B)  (wait-until (become :suspended) B)      
+      (sleep* 0.1)
+      (has-status A :running) (has-status B :suspended)
+      (setf (value knob) t)
+      (wake-up B)
+      (wait-until (become +dead+) A B)
+      (has-status A :succeeded)
+      (has-status B :succeeded :evaporated))))
 
 ;;; Parent evaporates => child evaporates
 
@@ -81,8 +121,8 @@
     "Evaporate parent, make sure child gets evaporated, too." ()
   (with-task-hierarchy ((A -> B)
                         (B ->  ))      
-      ((:task A (sleep 10.0))
-       (:task B (sleep 10.0)))
+      ((:task A (sleep* 10.0))
+       (:task B (sleep* 10.0)))
     (evaporate A)
     (wait-until (become :evaporated) A B)
     (pass)))
@@ -94,8 +134,8 @@
     ((:skip "Fails as of 2010-04-11"))
   (with-task-hierarchy ((A -> B)
                         (B ->  ))      
-      ((:task A (sleep 10.0))
-       (:task B (sleep 10.0)))
+      ((:task A (sleep* 10.0))
+       (:task B (sleep* 10.0)))
     (signals error
       (evaporate B))
     (evaporate-and-wait (become :evaporated) A B)))
@@ -106,22 +146,43 @@
     "Parent fails, make sure child gets evaporated." ()
   (with-task-hierarchy ((A -> B)
                         (B ->  ))      
-      ((:task A (sleep 10.0))
-       (:task B (sleep 10.0)))
-    (terminate A :failed)
+      ((:task A (sleep* 0.1) (fail))
+       (:task B (sleep* 10.0)))
     (wait-until (become :failed) A)
     (wait-until (become :evaporated) B)
     (pass)))
 
 ;;; Child fails => parent fails
 
+#||
+  (define-cram-test tasks--failure.2
+      "Child fails, make sure parent fails, too."
+      ((:skip "Fails as of 2010-04-11"))
+    (with-task-hierarchy ((A -> B)
+                          (B ->  ))      
+        ((:task A (sleep* 10.0))
+         (:task B (sleep* 10.0)))
+      (terminate B :failed)
+      (wait-until (become :failed) A B)
+      (pass)))
+||#
+
+;;; Because failures are implemented by explicit propagating in the
+;;; plan-macros, the above commented out test case can not work, and
+;;; we have to use the constructs of the CRAM language:
+
 (define-cram-test tasks--failure.2
-    "Child fails, make sure parent fails, too."
-    ((:skip "Fails as of 2010-04-11"))
-  (with-task-hierarchy ((A -> B)
-                        (B ->  ))      
-      ((:task A (sleep 10.0))
-       (:task B (sleep 10.0)))
-    (terminate B :failed)
-    (wait-until (become :failed) A B)
-    (pass)))
+    "Child fails, make sure parent fails, too." ()
+  (let ((parent) (child1) (child2))
+    (signals plan-failure
+      (top-level
+        (with-tags
+          (setq parent P) (setq child1 C1) (setq child2 C2)
+          (:tag P
+            (par (:tag C1 (sleep* 0.1) (fail))
+                 (:tag C2 (sleep* 10.0)))))))
+    (wait-until (become +dead+) parent child1 child2)
+    (has-status parent :failed)
+    (has-status child1 :failed)
+    (has-status child2 :evaporated)))
+

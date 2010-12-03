@@ -18,7 +18,7 @@
 ;;;
 ;;;   (with-task-hierarchy ((A  -> Bs)
 ;;;                         (Bs -> Cs)
-;;;                         (Cs ->   ))      
+;;;                         (Cs ->   ))
 ;;;         ((:task  A     ..body A...)
 ;;;          (:tasks Bs N1 ..body Bs..)
 ;;;          (:tasks Cs N2 ..body Cs..))
@@ -174,9 +174,9 @@
                                      (t expr)))
                    (t expr))))))
     (let* ((old-total (td-total-count td))
-           (count (td-count td))                    
+           (count (td-count td))
            (new (simplify `(cl:* ,count-so-far ,count))))
-      (setf (td-total-count td) (simplify `(cl:+ ,old-total ,new)))      
+      (setf (td-total-count td) (simplify `(cl:+ ,old-total ,new)))
       (dolist (child (td-childs td))
         (fill-total-counts child new))
       (when (td-singlep td)
@@ -186,10 +186,9 @@
                 (td-name td) (td-name td) (td-total-count td)))
       td)))
 ;;; Generate code to construct a TASK, and enqueue it in QUEUE.
-(defun generate-enqueued-task (&key name queue thread-fun no-parent)
-  `(enqueue (make-instance 'task
+(defun generate-enqueued-task (class &key name queue thread-fun)
+  `(enqueue (make-instance ',class
               :name ,name
-              ,@(when no-parent `(:ignore-no-parent t))
               :run-thread t
               :thread-fun ,thread-fun)
             ,queue))
@@ -200,14 +199,14 @@
 ;;; children. We emit code such that the constructors for Cs are
 ;;; executed within P.
 (defun generate-task-hierarchy (root-td barrier)
-  (labels ((generate (td &optional no-parent)
+  (labels ((generate (td &optional toplevel)
              (let ((td-name (td-name td))
-                   (td-body (td-body td)))
+                   (td-body (td-body td))
+                   (class   (if toplevel 'toplevel-task 'task)))
                `(dotimes (i ,(td-count td))
-                  ,(generate-enqueued-task
+                  ,(generate-enqueued-task class
                     :name `(format nil "~A-~D" ',td-name i)
                     :queue td-name
-                    :no-parent no-parent
                     :thread-fun `#'(lambda ()
                                      ,@(mapcar #'generate (td-childs td))
                                      (enter-barrier ,barrier)
@@ -326,29 +325,28 @@
 (defun task-status (task)
   (value (status task)))
 
-(defun has-status (task status)
-  (let ((actual-status (task-status task)))
-    (is (eq status actual-status)
-        "~@<Task ~S has status ~S, ~:_expected ~S~:>"
-        task actual-status status)))
+(defun has-status (task status &rest more)
+  (let ((actual-status (task-status task))
+        (expected (cons status more)))
+    (is (member actual-status expected)
+        "~@<Task ~S has status ~S, ~:_expected ~:[~S~;one of ~{~S~^, ~}~]~:>"
+        task actual-status more (if more expected status))))
 
-(defun have-status (tasks status)
+(defun have-status (tasks status &rest more)
   (dolist (task tasks)
-    (has-status task status)))
+    (apply #'has-status task status more)))
 
-(defun suspend (task)
-  (mapc #'cpl-impl::suspend (ensure-list task)))
+(defun suspend (&rest tasks)
+  (dolist (task (ensure-flattened-list tasks))
+    (cpl-impl::suspend task)))
 
-(defun wake-up (task)
-  (mapc #'cpl-impl::wake-up (ensure-list task)))
-
-(defun terminate (task termination-status)
-  (dolist (task (ensure-list task))
-    (cpl-impl::terminate task termination-status)))
+(defun wake-up (&rest tasks)
+  (dolist (task (ensure-flattened-list tasks))
+    (cpl-impl::wake-up task)))
 
 (defun evaporate (&rest tasks)
   (dolist (task (ensure-flattened-list tasks))
-    (terminate task :evaporated)))
+    (cpl-impl::evaporate task)))
 
 (defun evaporate-and-wait (&rest tasks)
   (apply #'evaporate tasks)
