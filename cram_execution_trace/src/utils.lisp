@@ -74,10 +74,10 @@
                         (order-of-magnitude +equal-time-precision+))))
 
 (defun calculate-task-list (task-tree)
-  (cpl:flatten-task-tree task-tree))
+  (flatten-task-tree task-tree))
 
 (defun calculate-goal-task-list (task-list)
-  (remove-if-not #'cpl:goal-task-tree-node-p task-list))
+  (remove-if-not #'goal-task-tree-node-p task-list))
 
 (defun calc-delta (count)
   (if (< count 10)

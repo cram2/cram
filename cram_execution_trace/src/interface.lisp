@@ -61,13 +61,15 @@
   "The episode knowledge for named top-levels (top level plans) is stored in
    this hash-table indexed by the plan name (which is a symbol).")
 
-(defun remove-top-level-episode-knowledge (name)
-  "Remove the top level episode knowledge for a certain name from the table of
-   stored top level episode knowledge objects. Usually you won't need to use
-   this, but you can use it to clean up after you used named-top-level
-   directly, e.g. in a test suite."
-  (declare (type symbol name))
-  (remhash name *top-level-episode-knowledge*))
+(defun register-top-level-episode-knowledge (name)
+  "Registers a live-episode-knowledge object for `name'. This is done
+   automatically for top-level plans. If you want to use named-top-levels with
+   tracing manually, you need to register the name manually."
+  (setf (gethash name *top-level-episode-knowledge*)
+        (make-instance 'live-episode-knowledge)))
+
+(defmethod on-def-top-level-plan-hook :execution-trace (plan-name)
+  (register-top-level-episode-knowledge plan-name))
 
 (defun get-top-level-episode-knowledge (name)
   "Returns the episode-knowledge of the top level plan.
@@ -77,10 +79,9 @@
    importantly, you can easily access it with this function after the plan has
    run."
   (declare (type symbol name))
-  ;; TODO@demmeln: Think about this. Maybe have users explicitely declare top
-  ;; level names (i.e. counterpart to remove-top-level-....
   (or (gethash name *top-level-episode-knowledge*)
-      (setf (gethash name *top-level-episode-knowledge*) (make-instance 'live-episode-knowledge))))
+      (error "Accessing top-level episode-knowledge for unregisterd top-level plan ~a."
+             name)))
 
 (defun episode-knowledge-zero-time (&optional (episode *episode-knowledge*))
   "Starting time of episode. All timestampes (e.g. in traces) can be
@@ -125,7 +126,7 @@
   (fluent-durations episode fluent-name))
 
 (defun episode-running ()
-  "Returns T if an episode is currently running. False otherwise."
+  "Returns T if an episode is currently running. NIL otherwise."
   (and *episode-knowledge* (running-p *episode-knowledge*)))
 
 (defmacro with-episode-knowledge (episode-knowledge &body body)

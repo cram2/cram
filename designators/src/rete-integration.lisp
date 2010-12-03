@@ -1,6 +1,5 @@
 ;;;
-;;; Copyright (c) 2009, Lorenz Moesenlechner <moesenle@cs.tum.edu>,
-;;;                     Nikolaus Demmel <demmeln@cs.tum.edu>
+;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -28,22 +27,23 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
+(in-package :desig)
 
-(in-package :cl-user)
+(defun assert-desig-binding (desig bdg)
+  (rete-assert `(desig-bound ,desig ,bdg)))
 
-(defpackage :cram-math
-  (:use #:common-lisp #:alexandria)
-  (:nicknames :cma)
-  (:export
-   ;; math
-   #:sample #:sample-discrete
-   ;; matrix
-   #:double-matrix #:width #:height #:make-double-matrix #:make-double-vector
-   #:double-vector-size #:fill-double-matrix #:double-matrix-from-array
-   #:double-matrix-from-grid #:grid-from-double-matrix #:mref #:map-double-matrix
-   #:map-double-matrix-into #:double-matrix-transpose #:double-matrix-product
-   #:m.+ #:m.- #:m.* #:m./
-   ;; functions
-   #:determinant #:gauss
-   ;; geometry
-   #:2d-point #:polygon #:point-in-polygon))
+(defun retract-desig-binding (desig bdg)
+  (rete-retract `(desig-bound ,desig ,bdg)))
+
+(defmethod equate :around ((parent designator-id-mixin) (succ designator-id-mixin))
+  (flet ((maybe-retract-desig-bdg (desig)
+           (with-vars-bound (?bdg)
+               (lazy-car (rete-holds `(desig-bound ,desig ?bdg)))
+             (unless (is-var ?bdg)
+               (retract-desig-binding desig ?bdg)
+               ?bdg))))
+    (let ((prev-bdg (maybe-retract-desig-bdg succ)))
+      (prog1
+          (call-next-method)
+        (when prev-bdg
+          (assert-desig-binding succ prev-bdg))))))

@@ -4,10 +4,12 @@ PACKAGE_DIR=$(shell rospack find split_sequence)
 
 all: installed
 
-$(SPLIT_SEQ_ARCHIVE):
+downloaded: Makefile
+	make clean
 	wget http://ftp.linux.org.uk/pub/lisp/experimental/cclan/$(SPLIT_SEQ_ARCHIVE)
+	touch downloaded
 
-installed: $(SPLIT_SEQ_ARCHIVE)
+installed: downloaded
 	tar xvzf $(SPLIT_SEQ_ARCHIVE)
 	mkdir -p asdf
 	touch rospack_nosubdirs
@@ -18,5 +20,5 @@ clean:
 	rm -rf split-sequence asdf
 	rm -f $(SPLIT_SEQ_ARCHIVE)
 	rm -f rospack_nosubdirs
-	rm -f installed
+	rm -f installed downloaded
 

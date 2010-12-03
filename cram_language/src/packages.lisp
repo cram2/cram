@@ -2,10 +2,10 @@
 ;;; Copyright (c) 2009, Lorenz Moesenlechner <moesenle@cs.tum.edu>,
 ;;;                     Nikolaus Demmel <demmeln@cs.tum.edu>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
@@ -14,7 +14,7 @@
 ;;;     * Neither the name of Willow Garage, Inc. nor the names of its
 ;;;       contributors may be used to endorse or promote products derived from
 ;;;       this software without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -32,7 +32,7 @@
 
 (defpackage :cram-walker
   (:nicknames :walker)
-  (:documentation 
+  (:documentation
    "A fairly basic code walker for use in CPL for expanding plans.")
   (:use #:common-lisp)
   (:export
@@ -67,16 +67,16 @@
 ;;;      CPL additionally reexports all of CL. So users are supposed
 ;;;      to simply write (:USE :CPL), and to not include :CL there.
 ;;;
-;;;  ii) The fluent operations are prefixed with "FL" in CPL-IMPL; 
+;;;  ii) The fluent operations are prefixed with "FL" in CPL-IMPL;
 ;;;      however, in CPL, these are exported as +,-,*,/,etc.
-;;; 
+;;;
 ;;;      E.g. CPL:+ is actually CPL-IMPL:FL+.
 ;;;
 ;;; iii) CPL-IMPL also exports some bits used in its implementation
 ;;;      which may be good for other uses, too. In particular for the
 ;;;      test suite.
 ;;;
-;;; Caveat: 
+;;; Caveat:
 ;;;   CPL:EQL is not the same as CL:EQL. That means, if you want to
 ;;;   use, e.g., eql-specializers in a package which uses CPL, you
 ;;;   have to write CL:EQL explicitly.
@@ -84,7 +84,7 @@
 #.(let ((cpl-symbols
          '(;; walker
            #:plan-tree-node #:plan-tree-node-sexp #:plan-tree-node-parent
-           #:plan-tree-node-children #:plan-tree-node-path 
+           #:plan-tree-node-children #:plan-tree-node-path
            #:find-plan-node
            #:expand-plan
            ;; fluent.lisp
@@ -99,16 +99,21 @@
            #:make-fluent
            #:on-make-fluent-hook
            #:register-update-callback
+           #:remove-update-callback
+           #:get-update-callback
+           #:def-cpl-parameter
            ;; failures.lisp
-           #:fail 
-           #:plan-failure #:simple-plan-failure
-           #:with-failure-handling
-           #:retry
+           #:fail #:simple-plan-failure
+           #:plan-failure
+           #:with-failure-handling #:retry
+           #:*break-on-plan-failures*
+           #:*break-on-errors*
            ;; task.lisp
            #:*current-task*
            #:status #:result
            #:on-suspension #:unwind-on-suspension
            #:with-termination-handler #:ignore-termination #:without-termination
+           #:terminate
            ;; task-tree.lisp
            #:code
            #:code-parameters
@@ -130,6 +135,8 @@
            #:task
            #:clear-tasks
            #:*task-tree*
+           #:stale-task-tree-node-p
+           #:filter-task-tree
            #:flatten-task-tree
            #:task-tree-node-parameters
            #:task-tree-node-status-fluent
@@ -145,13 +152,14 @@
            #:on-top-level-setup-hook
            #:on-top-level-cleanup-hook
            ;; plans.lisp
+           #:on-def-top-level-plan-hook
            #:def-top-level-plan #:get-top-level-task-tree #:def-plan
            ;; goals.lisp
-           #:declare-goal #:def-goal #:goal #:register-goal))
+           #:declare-goal #:def-goal #:goal #:register-goal #:goal-context))
         (fluent-ops
          '(;; fluent-net.lisp
            #:fl< #:fl> #:fl=  #:fl+ #:fl- #:fl* #:fl/
-           #:fl-eq #:fl-eql #:fl-not #:fl-and #:fl-or 
+           #:fl-eq #:fl-eql #:fl-not #:fl-and #:fl-or
            #:fl-pulsed #:fl-funcall #:fl-apply #:fl-value-changed))
         (cpl-impl-ext-symbols
          '(;; logging.lisp
@@ -169,7 +177,7 @@
            #:log-enable
            #:log-disable
            #:log-set
-           ;; 
+           ;;
            #:+alive+
            #:+dead+
            #:+done+
@@ -190,7 +198,7 @@
        (defpackage :cram-language-implementation
          (:nicknames :cpl-impl)
          (:documentation "Internal implementation package of CPL.")
-         (:use :common-lisp 
+         (:use :common-lisp
                :walker
                :cram-utilities
                :trivial-garbage
@@ -199,11 +207,11 @@
 
        (defpackage :cram-language
          (:nicknames :cpl)
-         (:documentation 
+         (:documentation
           "Main package of a new planning language similar to RPL.")
          (:use :common-lisp
                :cram-language-implementation)
-         (:export ,@cl-symbols 
+         (:export ,@cl-symbols
                   ,@cpl-symbols
                   ;; Wrappers are defined in src/language.lisp.
                   #:< #:> #:+ #:- #:* #:/ #:= #:eq #:eql #:not

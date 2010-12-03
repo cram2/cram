@@ -33,6 +33,16 @@
 
 (in-suite fluent-tests)
 
+(def-cpl-parameter test-cpl-parameter 42)
+
+(test cpl-parameter
+  (is (= 42 test-cpl-parameter))
+  (is-true (typep test-cpl-parameter 'number))
+  (setf test-cpl-parameter ())
+  (is (eq () test-cpl-parameter))
+  (push 23 test-cpl-parameter)
+  (is (equal '(23) test-cpl-parameter)))
+
 (define-cram-test fl-funcall-vs-fl-apply
     "Basic workingness of FL-FUNCALL and FL-APPLY." ()
   (let ((knob (make-semaphore)))

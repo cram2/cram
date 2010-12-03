@@ -30,6 +30,12 @@
 ;;; Offline episodes
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;; NOTE ON THREAD SAFETY
+;;;
+;;; We guarantee no thread safety for offline episodes. We don't see why one
+;;; would need to access this from multiple threads. If the use case arises,
+;;; we can change it.
+
 (defclass offline-episode-knowledge (episode-knowledge)
   ((max-time :reader max-time
              :type timestamp)
@@ -54,6 +60,9 @@
                                                        :key (rcurry #'changes->durations
                                                                     max-time)))))
 
+(defmethod task-tree ((episode offline-episode-knowledge))
+  (slot-value episode 'task-tree))
+
 (defmethod traced-fluent-instances ((episode offline-episode-knowledge) fluent-name)
   (with-slots (execution-trace) episode
     (gethash fluent-name execution-trace)))
@@ -75,4 +84,4 @@
 
 (defmethod running-p ((episode offline-episode-knowledge))
   (declare (ignore episode))
-  (error "Cannot check the running state of an offline episode."))
+  nil)

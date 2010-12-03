@@ -12,18 +12,21 @@
   "Returns a function that calculates the multivariate gauss for `cov'
    and `mean'
 
-   This function works on gsll matrices and vectors."
-  (flet ((vector-to-matrix (vec)
-           (grid:make-foreign-array (gsll:element-type vec)
-                                    :dimensions `(,(gsll:dim0 vec) 1)
-                                    :initial-contents (loop for i below (gsll:dim0 vec)
-                                                            collecting (list (grid:gref vec i))))))
-    (let* ((k (gsll:dim0 mean))
-           (det^1/2 (sqrt (determinant cov)))
-           (c (/ (* (expt (* 2 pi) (/ k 2)) det^1/2)))
-           (cov-inv (gsll:invert-matrix cov)))
-      (lambda (x)
-        (let ((x-matrix (vector-to-matrix (gsll:elt- x mean))))
-          (* c (exp (* -0.5 (grid:gref (gsll:matrix-product (gsll:matrix-transpose x-matrix)
-                                                            (gsll:matrix-product cov-inv x-matrix))
-                                       0 0)))))))))
+   This function works on cram_math matrices"
+  (let* ((k (double-vector-size mean))
+         (det^1/2 (sqrt (determinant (grid-from-double-matrix cov))))
+         (c (/ (* (expt (* 2 pi) (/ k 2)) det^1/2)))
+         (cov-inv (double-matrix-from-grid (gsll:invert-matrix (grid-from-double-matrix cov))))
+         (x-mean-trans (make-double-matrix (double-vector-size mean) 1))
+         (cov-x-prod (make-double-vector (height cov)))
+         (e-factor-mat (make-double-matrix 1 1))
+         (x-mean (make-double-vector (double-vector-size mean))))
+    (declare (type double-float c))
+    (lambda (x)
+      (declare (type cma:double-matrix x))
+      (* c (exp (* -0.5 (aref (double-matrix-product
+                               (double-matrix-transpose (m- x mean x-mean)
+                                                        x-mean-trans)
+                               (double-matrix-product cov-inv x-mean cov-x-prod)
+                               e-factor-mat)
+                              0 0)))))))

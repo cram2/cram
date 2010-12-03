@@ -1,6 +1,5 @@
 ;;;
-;;; Copyright (c) 2009, Lorenz Moesenlechner <moesenle@cs.tum.edu>,
-;;;                     Nikolaus Demmel <demmeln@cs.tum.edu>
+;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -28,22 +27,19 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
+(in-package :crs)
 
-(in-package :cl-user)
-
-(defpackage :cram-math
-  (:use #:common-lisp #:alexandria)
-  (:nicknames :cma)
-  (:export
-   ;; math
-   #:sample #:sample-discrete
-   ;; matrix
-   #:double-matrix #:width #:height #:make-double-matrix #:make-double-vector
-   #:double-vector-size #:fill-double-matrix #:double-matrix-from-array
-   #:double-matrix-from-grid #:grid-from-double-matrix #:mref #:map-double-matrix
-   #:map-double-matrix-into #:double-matrix-transpose #:double-matrix-product
-   #:m.+ #:m.- #:m.* #:m./
-   ;; functions
-   #:determinant #:gauss
-   ;; geometry
-   #:2d-point #:polygon #:point-in-polygon))
+(def-prolog-handler rete-holds (bdgs pattern)
+  (let ((rete-solutions (rete-holds pattern)))
+    (block nil
+      (lazy-mapcan (lambda (rete-bdgs)
+                     (block nil
+                       (list
+                        (reduce
+                         (lambda (bdgs curr-bdg)
+                           (destructuring-bind (var . val) curr-bdg
+                             (or (add-bdg var val bdgs)
+                                 (return nil))))
+                         rete-bdgs
+                         :initial-value bdgs))))
+                   rete-solutions))))

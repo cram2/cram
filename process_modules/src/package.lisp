@@ -31,14 +31,11 @@
 
 (defpackage :cram-process-modules
   (:documentation "Package containing process module interfaces.")
-  (:use #:common-lisp
-        #:cram-language
-        #:cram-designators)
+  (:use #:cpl
+        #:cram-designators
+        #:alexandria)
   (:nicknames :cpm)
   (:export #:process-module #:name #:input #:feedback #:result
            #:status #:cancel #:priority #:caller #:pm-run #:pm-execute
-           #:pm-cancel #:pm-status #:def-process-module)
-  (:shadowing-import-from
-   #:cpl
-   #:< #:> #:+ #:- #:* #:/ #:= #:eq #:eql #:not
-   #:fail))
+           #:pm-cancel #:pm-status #:def-process-module
+           #:process-module-alias #:with-process-module-aliases))

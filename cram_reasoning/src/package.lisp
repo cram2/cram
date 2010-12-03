@@ -40,8 +40,11 @@
            #:bound
            #:ground
            #:member
+           #:string-concat
            #:==
            #:format
+           #:warn
+           #:error
            #:?_
            #:fail
            #:and
@@ -60,11 +63,14 @@
            #:slot-value
            #:get-slot-value
            #:instance-of
+           #:lisp-type
            #:once
            #:findall
            #:forall
+           #:bagof
            #:filter-bindings
            #:query-var
+           #:symbol-value
            ;; Rete
            #:clear-alpha-network #:rete-assert #:rete-retract
            #:with-facts-asserted #:object-id

@@ -1,7 +1,7 @@
 
 (in-package :cma)
 
-(defun sample (var-fun p-fun)
+(defun sample (var-fun p-fun &optional (max-retries 10000000))
   "Draw a variable from a probability distripution.
 
    `var-fun' is a function that maps a value within the interval [0;1)
@@ -9,12 +9,15 @@
    
    `p-fun' is the probability distripution that maps a variable to a
    probability within the interval [0;1]."
-  (let* ((t-val (random 1.0))
-         (u-val (random 1.0))
+  (when (<= max-retries 0)
+    (error 'simple-error
+           :format-control "Could not draw a sample. Maximal retries exeeded."))
+  (let* ((t-val (random 1.0d0))
+         (u-val (random 1.0d0))
          (var (funcall var-fun t-val)))
     (if (<= u-val (funcall p-fun var))
         var
-        (sample var-fun p-fun))))
+        (sample var-fun p-fun (- max-retries 1)))))
 
 (defun sample-discrete (var-probs)
   "Draws a sample from a discrete probability distribution.

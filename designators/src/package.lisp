@@ -27,20 +27,48 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-
 (in-package :cl-user)
 
 (defpackage :cram-designators
-  (:use #:common-lisp)
+  (:use #:common-lisp #:cram-reasoning #:cut)
   (:nicknames :desig)
   (:import-from #:alexandria
-                #:curry #:rcurry #:compose #:with-gensyms)
+                #:curry #:rcurry #:compose #:with-gensyms
+                #:format-symbol)
   (:import-from #:cram-utilities
                 #:timestamp)
   (:export #:designator #:timestamp #:description #:parent #:successor
+           #:designator-error
            #:valid #:data #:equate #:desig-equal #:reference
            #:next-solution #:register-designator-type
            #:make-designator #:first-desig #:current-desig
            #:with-desig-props #:with-designators
            #:desig-prop-value #:*designator-pprint-description*
-           #:get-equal-designators) )
+           #:get-equal-designators
+           #:designator-id-mixin #:object-id
+           #:assert-desig-binding
+           #:retract-desig-binding
+           #:object #:object-designator
+           #:register-object-desig-resolver
+           #:resolve-object-desig
+           #:action-designator #:action-desig #:action
+           #:location-designator
+           #:location
+           #:make-location-proxy
+           #:location-proxy-current-solution
+           #:location-proxy-next-solution
+           #:location-proxy-precedence-value
+           #:location-proxy-solution->pose
+           #:point-location-proxy
+           #:pose-location-proxy
+           #:desig-loc #:loc-desig? #:obj-desig-location
+           #:loc-desig-location
+           #:pose #:of #:type #:at
+           #:desig-prop #:desig-class #:desig-value
+           #:desig-location-prop #:obj
+           #:to #:see #:follow #:reach #:inside
+           #:desig
+           #:trajectory-desig? #:trajectory
+           #:grasp #:side #:to #:navigate #:pose #:parked
+           #:open #:show #:carry #:lift #:put-down #:at #:gripper
+           #:orientation))

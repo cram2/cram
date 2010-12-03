@@ -1,6 +1,5 @@
 ;;;
-;;; Copyright (c) 2009, Lorenz Moesenlechner <moesenle@cs.tum.edu>,
-;;;                     Nikolaus Demmel <demmeln@cs.tum.edu>
+;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -28,22 +27,22 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
+(in-package :desig)
 
-(in-package :cl-user)
+(defgeneric make-location-proxy (type value)
+  (:documentation "Creates a location proxy of `type' and initializes
+  it with `value'."))
 
-(defpackage :cram-math
-  (:use #:common-lisp #:alexandria)
-  (:nicknames :cma)
-  (:export
-   ;; math
-   #:sample #:sample-discrete
-   ;; matrix
-   #:double-matrix #:width #:height #:make-double-matrix #:make-double-vector
-   #:double-vector-size #:fill-double-matrix #:double-matrix-from-array
-   #:double-matrix-from-grid #:grid-from-double-matrix #:mref #:map-double-matrix
-   #:map-double-matrix-into #:double-matrix-transpose #:double-matrix-product
-   #:m.+ #:m.- #:m.* #:m./
-   ;; functions
-   #:determinant #:gauss
-   ;; geometry
-   #:2d-point #:polygon #:point-in-polygon))
+(defgeneric location-proxy-current-solution (proxy)
+  (:documentation "Returns the current solution of the proxy"))
+
+(defgeneric location-proxy-next-solution (proxy)
+  (:documentation "Returns the next solution of the proxy object or
+  NIL if no more solutions exist."))
+
+(defgeneric location-proxy-precedence-value (proxy)
+  (:documentation "Returns a number that indicates the proxie's
+  precedence. Lower numbers correspond to lower precedence."))
+
+(defgeneric location-proxy-solution->pose (desig solution)
+  (:documentation "Returns a pose-stamped for a location proxy."))

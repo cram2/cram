@@ -56,8 +56,7 @@
      MAKE-INSTANCE.
 
 
-
-* TODO episode-knowledge.lisp uses DEFINE-TASK-VARIABLE
+* DONE episode-knowledge.lisp uses DEFINE-TASK-VARIABLE
 
   ** the package CRAM-EXECUTION-TRACE should perhaps use CPL-IMPL
 
@@ -80,6 +79,9 @@
 
   ** also revisit which systems depend on which. Don't forget to take
      the -test systems into account, too.
+
+
+* DONE make separate package out of execution trace
 
   ** *EPISODE-KNOWLEDGE* is bound locally special in TOP-LEVEL because
      its definition comes later in the build. Think of ways to

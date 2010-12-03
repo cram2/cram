@@ -1,6 +1,5 @@
 ;;;
-;;; Copyright (c) 2009, Lorenz Moesenlechner <moesenle@cs.tum.edu>,
-;;;                     Nikolaus Demmel <demmeln@cs.tum.edu>
+;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -28,22 +27,15 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
+(in-package :desig)
 
-(in-package :cl-user)
+(defclass designator-id-mixin ()
+  ((object-id :initarg :object-id :initform (gensym "OBJ-ID-")
+              :reader object-id)))
 
-(defpackage :cram-math
-  (:use #:common-lisp #:alexandria)
-  (:nicknames :cma)
-  (:export
-   ;; math
-   #:sample #:sample-discrete
-   ;; matrix
-   #:double-matrix #:width #:height #:make-double-matrix #:make-double-vector
-   #:double-vector-size #:fill-double-matrix #:double-matrix-from-array
-   #:double-matrix-from-grid #:grid-from-double-matrix #:mref #:map-double-matrix
-   #:map-double-matrix-into #:double-matrix-transpose #:double-matrix-product
-   #:m.+ #:m.- #:m.* #:m./
-   ;; functions
-   #:determinant #:gauss
-   ;; geometry
-   #:2d-point #:polygon #:point-in-polygon))
+(defmethod equate :after ((parent designator-id-mixin) (succ designator-id-mixin))
+  (labels ((doit (curr-d &optional (id (slot-value curr-d 'object-id)))
+             (when curr-d
+               (setf (slot-value curr-d 'object-id) id)
+               (doit (successor curr-d) id))))
+    (doit (first-desig parent))))

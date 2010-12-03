@@ -13,7 +13,8 @@
 
   :depends-on (trivial-garbage
                alexandria
-               cram-utilities)
+               cram-utilities
+               sb-cltl2)
   :components
   ((:module "src"
     :components
@@ -40,9 +41,9 @@
        (:file "pulse-fluent"   :depends-on ("fluent"))))
      ;; WALKER
      (:module "walker"
+      :depends-on ("packages")
       :components
-      ((:file "augment-environment-sbcl-patch")
-       (:file "env")
+      ((:file "env")
        (:file "env-impl-specific")
        (:file "plan-tree")
        (:file "walker")

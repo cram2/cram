@@ -101,6 +101,18 @@
       (when matched?
         (list new-bdgs)))))
 
+(def-prolog-handler bagof (bdgs var-pattern pattern result-pattern)
+  (let ((result (prolog pattern bdgs)))
+    (when result
+      (multiple-value-bind (new-bdgs matched?)
+          (unify result-pattern (loop for binding in (force-ll result)
+                                      for bound-vars = (substitute-vars var-pattern binding)
+                                      when (is-ground bound-vars nil)
+                                        collect bound-vars)
+                 bdgs)
+        (when matched?
+          (list new-bdgs))))))
+
 ;; action must succeed for all bindins of cond
 (def-prolog-handler forall (bdgs cond action)
   (let ((result (prolog cond bdgs)))
