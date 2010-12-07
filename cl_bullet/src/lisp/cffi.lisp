@@ -92,8 +92,10 @@
 (defcfun ("newRigidBody" new-rigid-body) :pointer
   (mass :double)
   (motion-state :pointer)
-  (collision-shape :pointer)
-  (inertia bt-3d-vector))
+  (collision-shape :pointer))
+
+(defcfun ("deleteRigidBody" delete-rigid-body) :void
+  (body-handle :pointer))
 
 (defun get-total-force (body-handle)
   (with-foreign-object (result :double 3)
