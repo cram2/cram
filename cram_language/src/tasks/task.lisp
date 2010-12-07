@@ -41,6 +41,8 @@
 (define-task-variable *current-task-tree-node* nil
   "FIXME")
 
+(defvar *synchronous-events* t "Indicates if we want to use synchronized events")
+
 (defclass abstract-task ()
   ((name
     :reader task-name
@@ -211,13 +213,13 @@
         (:display "~S -> ~S" old-status new-status)
         (:tags :change-status)))))
 
-(defmethod suspend ((task abstract-task) &key reason sync)
+(defmethod suspend ((task abstract-task) &key reason (sync *synchronous-events*))
   (send-event task (make-event :suspend reason sync)))
 
-(defmethod wake-up ((task abstract-task) &key reason sync)
+(defmethod wake-up ((task abstract-task) &key reason (sync *synchronous-events*))
   (send-event task (make-event :wakeup reason sync)))
 
-(defmethod evaporate ((task abstract-task) &key reason sync)
+(defmethod evaporate ((task abstract-task) &key reason (sync *synchronous-events*))
   (send-event task (make-event :evaporate reason sync)))
 
 
@@ -473,10 +475,12 @@
                                  (:wakeup    :running)
                                  (:fail      :failed)
                                  (:evaporate :evaporated))
-                               ;; Tasks may succeed or fail at any
-                               ;; time; in particular, before
-                               ;; receiving an event.
+                               ;; Tasks may succeed, fail or get
+                               ;; evaporated at any time; in
+                               ;; particular, before receiving an
+                               ;; event.
                                :succeeded
+                               :evaporated
                                :failed)))
              #'(lambda (task)
                  (fl-member (status task) states)))))
