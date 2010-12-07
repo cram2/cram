@@ -198,10 +198,9 @@
                                    ; code replacements intact.
          (single-form-progv (on-top-level-setup-hook ',name *task-tree*)
            (unwind-protect
-                (let ((,task (make-instance 'task
+                (let ((,task (make-instance 'toplevel-task
                                :name ',task-name
-                               :thread-fun (lambda () ,@body)
-                               :ignore-no-parent t)))
+                               :thread-fun (lambda () ,@body))))
                   (with-failure-handling
                       ((plan-failure (e)
                          (error e))
