@@ -52,4 +52,14 @@ extern "C"
     forceVector[2] = forceVectorBt.z();
   }
 
+  btMotionState *getMotionState(btRigidBody *body)
+  {
+    return body->getMotionState();
+  }
+
+  void setMotionState(btRigidBody *body, btMotionState *motionState)
+  {
+    body->setMotionState(motionState);
+  }
+
 }
