@@ -38,9 +38,9 @@
 
 (defmethod translate-to-foreign ((value cl-transforms:3d-vector) (type bt-3d-vector))
   (let ((native-vector (foreign-alloc :double :count 3)))
-    (setf (mem-aref native-vector :double 0) (cl-transforms:x value))
-    (setf (mem-aref native-vector :double 1) (cl-transforms:y value))
-    (setf (mem-aref native-vector :double 2) (cl-transforms:z value))
+    (setf (mem-aref native-vector :double 0) (coerce (cl-transforms:x value) 'double-float))
+    (setf (mem-aref native-vector :double 1) (coerce (cl-transforms:y value) 'double-float))
+    (setf (mem-aref native-vector :double 2) (coerce (cl-transforms:z value) 'double-float))
     native-vector))
 
 (defmethod translate-from-foreign (pointer (type bt-3d-vector))
@@ -57,14 +57,14 @@
   () (:actual-type :pointer :double))
 
 (define-parse-method bt-quaternion (&key)
-  (make-instance 'bt-3d-vector))
+  (make-instance 'bt-quaternion))
 
 (defmethod translate-to-foreign ((value cl-transforms:quaternion) (type bt-quaternion))
   (let ((native-vector (foreign-alloc :double :count 4)))
-    (setf (mem-aref native-vector :double 0) (cl-transforms:x value))
-    (setf (mem-aref native-vector :double 1) (cl-transforms:y value))
-    (setf (mem-aref native-vector :double 2) (cl-transforms:z value))
-    (setf (mem-aref native-vector :double 3) (cl-transforms:w value))
+    (setf (mem-aref native-vector :double 0) (coerce (cl-transforms:x value) 'double-float))
+    (setf (mem-aref native-vector :double 1) (coerce (cl-transforms:y value) 'double-float))
+    (setf (mem-aref native-vector :double 2) (coerce (cl-transforms:z value) 'double-float))
+    (setf (mem-aref native-vector :double 3) (coerce (cl-transforms:w value) 'double-float))
     native-vector))
 
 (defmethod translate-from-foreign (pointer (type bt-quaternion))
