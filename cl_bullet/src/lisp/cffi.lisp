@@ -48,142 +48,152 @@
 ;;; * plNearestPoints
 ;;; 
 
-(define-foreign-library bullet-dynamics
-  (:unix "libBulletDynamics.so"))
+(define-foreign-library bullet-cl
+  (:unix "libbullet_cl.so"))
 
 #.(loop for path in (ros-library-paths ros-load:*current-ros-package*)
         do (pushnew (concatenate 'string path "/")
                     *foreign-library-directories*
                     :test #'equal))
 
-(use-foreign-library bullet-dynamics)
+(use-foreign-library bullet-cl)
 
-(defcfun ("plNewBulledSdk" new-bullet-sdk) :pointer)
 
-(defcfun ("plDeletePhysicsSdk" delete-bullet-sdk) :void
-  (sdk-handle :pointer))
+;;; dynamics_world.cpp
+(defcfun ("newDiscreteDynamicsWorld" new-discrete-dynamics-world) :pointer)
 
-(defcfun ("plCreateSapBroadphase" create-broadphase) :pointer
-  (begin-callback :pointer)
-  (end-callback :pointer))
+(defcfun ("deleteDiscreteDynamicsWorld" delete-discrete-dynamics-world) :void
+  (handle :pointer))
 
-(defcfun ("plDestroyBroadphase" destroy-broadphase) :void
-  (broadphase-handle :pointer))
-
-(defcfun ("plCreateProxy" create-broadphase-proxy) :pointer
-  (broadphase-handle :pointer)
-  (client-data :pointer)
-  (min-x :double)
-  (min-y :double)
-  (min-z :double)
-  (max-x :double)
-  (max-y :double)
-  (max-z :double))
-
-(defcfun ("plDestroyProxy" destroy-broadphase-proxy) :void
-  (broadphase-handle :pointer)
-  (broadphase-proxy-handle :pointer))
-
-(defcfun ("plSetBoundingBox" set-broadphase-proxy-bounding-box) :void
-  (broadphase-proxy-handle :pointer)
-  (min-x :double)
-  (min-y :double)
-  (min-z :double)
-  (max-x :double)
-  (max-y :double)
-  (max-z :double))
-
-(defcfun ("plCreateDynamicsWorld" create-dynamics-world) :pointer
-  (sdk-handle :pointer))
-
-(defcfun ("plDeleteDynamicsWorld" delete-dynamics-world) :void
-  (dynamics-world-handle :pointer))
-
-(defcfun ("plStepSimulation" step-simulation) :void
-  (dynamics-world-handle :pointer)
+(defcfun ("stepSimulation" step-simulation) :void
+  (world-handle :pointer)
   (time-step :double))
 
-(defcfun ("plAddRigidBody" add-rigid-body) :void
-  (dynamics-world-handle :pointer)
-  (rigid-body-handle :pointer))
+(defcfun ("addConstraint" add-constraint) :void
+  (world-handle :pointer)
+  (constraint :pointer)
+  (disable-collisions :boolean))
 
-(defcfun ("plRemoveRigidBody" remove-rigid-body) :void
-  (dynamics-world-handle :pointer)
-  (rigid-body-handle :pointer))
+(defcfun ("removeConstraint" remove-constraint) :void
+  (world-handle :pointer)
+  (constraint :pointer))
 
-(defcfun ("plCreateRigidBody" create-rigid-body) :pointer
-  (user-data :pointer)
-  (mass :float)
-  (collision-shape-handle :pointer))
+(defcfun ("addRigidBody" add-rigid-body) :void
+  (world-handle :pointer)
+  (body :pointer))
 
-(defcfun ("plDeleteRigidBody" delete-rigid-body) :pointer
-  (rigid-body-handle :pointer))
+(defcfun ("removeRigidBody" remove-rigid-body) :void
+  (world-handle :pointer)
+  (body :pointer))
 
-(defcfun ("plNewSphereShape" new-sphere-shape) :pointer
-  (radius :double))
+;;; rigid_body.cpp
 
-(defcfun ("plNewBoxShape" new-box-shape) :pointer
-  (length :double)
-  (width :double)
-  (height :double))
+(defcfun ("newRigidBody" new-rigid-body) :pointer
+  (mass :double)
+  (motion-state :pointer)
+  (collision-shape :pointer)
+  (inertia bt-3d-vector))
 
-(defcfun ("plNewCapsuleShape" new-capsule-shape) :pointer
-  (radius :double)
-  (height :double))
-
-(defcfun ("plNewConeShape" new-cone-shape) :pointer
-  (radius :double)
-  (height :double))
-
-(defcfun ("plNewCylinderShape" new-cylinder-shape) :pointer
-  (radius :double)
-  (height :double))
-
-(defcfun ("plNewCompoundShape" new-compoind-shape) :pointer)
-
-(defcfun ("plAddChildShape" add-child-shape) :void
-  (compound-shape-handle :pointer)
-  (child-shape-handle :pointer)
-  (position bt-3d-vector)
-  (rotation bt-quaternion))
-
-(defcfun ("plDeleteShape" delete-shape) :void
-  (shape-handle :pointer))
-
-(defcfun ("plNewConvexHullShape" new-convex-hull-shape) :pointer)
-
-(defcfun ("plAddVertex" add-vertex) :void
-  (convex-hull-handle :pointer)
-  (x :double)
-  (y :double)
-  (z :double))
-
-(defcfun ("plNewMeshInterface" new-mesh-interface) :pointer)
-
-(defcfun ("plAddTriangle" add-triangle) :void
-  (mesh-interface-handle :pointer)
-  (v-0 bt-3d-vector)
-  (v-1 bt-3d-vector)
-  (v-2 bt-3d-vector))
-
-(defcfun ("plSetScaling" set-scaling) :pointer
-  (collision-shape-handle :pointer)
-  (scaling bt-3d-vector))
-
-(defun get-position (rigid-body-handle)
+(defun get-total-force (body-handle)
   (with-foreign-object (result :double 3)
-    (foreign-funcall "plGetPosition" :pointer rigid-body-handle :pointer result)
+    (foreign-funcall "getTotalForce" :pointer body-handle :pointer result)
     (translate-from-foreign result (make-instance 'bt-3d-vector))))
 
-(defun get-orientation (rigid-body-handle)
-  (with-foreign-object (result :double 4)
-    (foreign-funcall "plGetOrientation" :pointer rigid-body-handle :pointer result)
-    (translate-from-foreign result (make-instance 'bt-quaternion))))
+(defcfun ("getMotionState" get-motion-state) :pointer
+  (body-handle :pointer))
 
-(defcfun ("plSetPosition" set-position) :void
-  (rigid-body-handle :pointer)
-  (position bt-3d-vector))
+(defcfun ("setMotionState" set-motion-state) :void
+  (body-handle :pointer)
+  (motion-state :pointer))
 
-(defcfun ("plSetOrientation" set-orientation) :void
-  (rigid-body-handle :pointer)
-  (position bt-quaternion))
+;;; motion_state.cpp
+
+(defcfun ("newMotionState" new-motion-state) :pointer
+  (position bt-3d-vector)
+  (orientation bt-quaternion))
+
+(defcfun ("deleteMotionState" delete-motion-state) :void
+  (motion-state-handle :pointer))
+
+(defcfun ("setCenterOfMass" set-center-of-mass) :void
+  (motion-state-handle :pointer)
+  (center-off-mass bt-3d-vector))
+
+(defun get-world-transform (motion-state-handle)
+  (with-foreign-objects ((position :double 3)
+                         (orientation :double 4))
+    (foreign-funcall "getWorldTransform"
+                     :pointer motion-state-handle
+                     :pointer position :pointer orientation)
+    (cl-transforms:make-transform
+     (translate-from-foreign position (make-instance 'bt-3d-vector))
+     (translate-from-foreign orientation (make-instance 'bt-quaternion)))))
+
+;;; collision_shapes.cpp
+
+(defcfun ("deleteCollisionShape" delete-collision-shape) :void
+  (shape-handle :pointer))
+
+(defcfun ("newBoxShape" new-box-shape) :pointer
+  (half-extents bt-3d-vector))
+
+(defcfun ("isBoxShape" box-shape-p) :boolean
+  (shape :pointer))
+
+(defcfun ("newStaticPlaneShape" new-static-plane-shape) :pointer
+  (normal bt-3d-vector)
+  (constant :double))
+
+(defcfun ("isStaticPlaneShape" static-plane-shape-p) :boolean
+  (shape :pointer))
+
+(defcfun ("newSphereShape" new-sphere-shape) :pointer
+  (radius :double))
+
+(defcfun ("isBoxShape" sphere-shape-p) :boolean
+  (shape :pointer))
+
+(defcfun ("newCylinderShape" new-cyliner-shape) :pointer
+  (half-extents bt-3d-vector))
+
+(defcfun ("isCylinerShape" cylinder-shape-p) :boolean
+  (shape :pointer))
+
+(defcfun ("newConeShape" new-cone-shape) :pointer
+  (radius :double)
+  (height :double))
+
+(defcfun ("isConeShape" cone-shape-p) :boolean
+  (shape :pointer))
+
+(defcfun ("newCompoundShape" new-compound-shape) :pointer)
+
+(defcfun ("isCompoundShape" compound-shape-p) :boolean
+  (shape :pointer))
+
+(defcfun ("addChildShape" add-child-shape) :void
+  (parent :pointer)
+  (position bt-3d-vector)
+  (orientation bt-quaternion)
+  (shape :pointer))
+
+(defun new-convex-hull-shape (points)
+  (flet ((points->foreign (native-vector points)
+           (loop for i below (* (length points) 3) by 3
+                 for p in points
+                 do (with-slots (cl-transforms:x cl-transforms:y cl-transforms:z)
+                        p
+                      (setf (mem-aref native-vector i) cl-transforms:x)
+                      (setf (mem-aref native-vector (+ i 1)) cl-transforms:y)
+                      (setf (mem-aref native-vector (+ i 2)) cl-transforms:z)))
+           points))
+    (with-foreign-object (native-points :double (* 3 (length points)))
+      (points->foreign native-points points)
+      (foreign-funcall "newConvexHullShape" :pointer native-points :int (length points)))))
+
+(defcfun ("isConvexHullShape" convex-hull-shape-p) :boolean
+  (shape :pointer))
+
+(defcfun ("addPoint" add-point) :void
+  (shape :pointer)
+  (point bt-3d-vector))
