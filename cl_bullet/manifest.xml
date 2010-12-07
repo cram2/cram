@@ -1,7 +1,7 @@
 <package>
   <description brief="cl_bullet">
 
-     cl_bullet
+     A Common Lisp wrapper of the bullet physics engine
 
   </description>
   <author>Lorenz Moesenlechner</author>
