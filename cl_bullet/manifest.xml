@@ -13,6 +13,9 @@
   <depend package="cffi"/>
   <depend package="split_sequence"/>
   <depend package="cl_transforms"/>
+  <export>
+    <cpp lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lbullet_cl"/>
+  </export>
 
 </package>
 
