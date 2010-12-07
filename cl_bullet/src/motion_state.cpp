@@ -44,6 +44,11 @@ extern "C"
                                                           position[2])));
   }
 
+  void deleteMotionState(btDefaultMotionState *motionState)
+  {
+    delete motionState;
+  }
+
   void setCenterOfMass(btDefaultMotionState *motionState, const double *centerOfMass)
   {
     motionState->m_centerOfMassOffset = btTransform(btQuaternion(0, 0, 0, 1),
