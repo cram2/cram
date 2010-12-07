@@ -33,10 +33,11 @@
 extern "C"
 {
 
-  btRigidBody *newRigidBody(double mass, btMotionState *motionState, btCollisionShape *collisionShape, double *inertia)
+  btRigidBody *newRigidBody(double mass, btMotionState *motionState, btCollisionShape *collisionShape)
   {
-    return new btRigidBody(mass, motionState, collisionShape,
-                           btVector3(inertia[0], inertia[1], inertia[2]));
+    btVector3 intertia(0, 0, 0);
+    collisionShape->calculateLocalInertia(mass, intertia);
+    return new btRigidBody(mass, motionState, collisionShape, intertia);
   }
 
   void deleteRigidBody(btRigidBody *body)
