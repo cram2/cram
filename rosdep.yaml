@@ -7,3 +7,5 @@ libgsl:
 swi_prolog:
   debian: swi-prolog
   ubuntu: swi-prolog
+git:
+  ubuntu: git-core
