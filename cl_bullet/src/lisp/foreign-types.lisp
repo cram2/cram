@@ -30,6 +30,21 @@
 
 (in-package :cl-bullet)
 
+(defcenum activation-state
+  (:active-tag 1)
+  (:island-sleeping 2)
+  (:wants-deactivation 3)
+  (:disable-deactivation 4)
+  (:disable-simulation 5))
+
+(defcenum collision-flags
+  (:cf-static-object 1)
+  (:cf-kinematic-object 2)
+  (:cf-no-contact-response 4)
+  (:cf-custom-material-callback 8)
+  (:cf-character-object 16)
+  (:cf-disable-visualize-object 32))
+
 (define-foreign-type bt-3d-vector ()
   () (:actual-type :pointer :double))
 
