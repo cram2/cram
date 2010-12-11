@@ -137,14 +137,11 @@
   (center-off-mass bt-3d-vector))
 
 (defun get-world-transform (motion-state-handle)
-  (with-foreign-objects ((position :double 3)
-                         (orientation :double 4))
+  (with-foreign-object (transform :double 7)
     (foreign-funcall "getWorldTransform"
                      :pointer motion-state-handle
-                     :pointer position :pointer orientation)
-    (cl-transforms:make-transform
-     (translate-from-foreign position (make-instance 'bt-3d-vector))
-     (translate-from-foreign orientation (make-instance 'bt-quaternion)))))
+                     :pointer transform)
+    (translate-from-foreign transform (make-instance 'bt-transform))))
 
 ;;; collision_shapes.cpp
 

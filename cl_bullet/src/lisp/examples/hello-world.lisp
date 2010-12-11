@@ -34,8 +34,12 @@
   (let* ((world (new-discrete-dynamics-world (make-3d-vector 0 0 -9.81)))
          (plane-shape (new-static-plane-shape (make-3d-vector 0 0 1) 0.0d0))
          (sphere-shape (new-sphere-shape 0.5d0))
-         (plane-motion-state (new-motion-state (make-3d-vector 0 0 0) (make-quaternion 0 0 0 1)))
-         (sphere-motion-state (new-motion-state (make-3d-vector 0 0 5.0) (make-quaternion 0 0 0 1)))
+         (plane-motion-state (new-motion-state (make-transform
+                                                (make-3d-vector 0 0 0)
+                                                (make-quaternion 0 0 0 1))))
+         (sphere-motion-state (new-motion-state (make-transform
+                                                 (make-3d-vector 0 0 5.0)
+                                                 (make-quaternion 0 0 0 1))))
          (plane-body (new-rigid-body 0.0d0 plane-motion-state plane-shape))
          (sphere-body (new-rigid-body 1.0d0 sphere-motion-state sphere-shape)))
     (unwind-protect

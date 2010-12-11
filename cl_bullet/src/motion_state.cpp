@@ -33,15 +33,17 @@
 extern "C"
 {
 
-  btDefaultMotionState *newMotionState(const double *position, const double *orientation)
+  btDefaultMotionState *newMotionState(const double *transform)
   {
-    return new btDefaultMotionState(btTransform(btQuaternion(orientation[0],
-                                                             orientation[1],
-                                                             orientation[2],
-                                                             orientation[3]),
-                                                btVector3(position[0],
-                                                          position[1],
-                                                          position[2])));
+    return new btDefaultMotionState(
+      btTransform(
+        btQuaternion(transform[3],
+          transform[4],
+          transform[5],
+          transform[6]),
+        btVector3(transform[0],
+          transform[1],
+          transform[2])));
   }
 
   void deleteMotionState(btDefaultMotionState *motionState)
@@ -57,18 +59,31 @@ extern "C"
                                                               centerOfMass[2]));
   }
 
-  void getWorldTransform(btMotionState *motionState, double *position, double *orientation)
+  void setWorldTransform(btMotionState *motionState, double *transform)
+  {
+    motionState->setWorldTransform(
+      btTransform(
+        btQuaternion(transform[3],
+          transform[4],
+          transform[5],
+          transform[6]),
+        btVector3(transform[0],
+          transform[1],
+          transform[2])));
+  }
+  
+  void getWorldTransform(btMotionState *motionState, double *transform)
   {
     btTransform result;
 
     motionState->getWorldTransform(result);
-    position[0] = result.getOrigin().x();
-    position[1] = result.getOrigin().y();
-    position[2] = result.getOrigin().z();
-    orientation[0] = result.getRotation().x();
-    orientation[1] = result.getRotation().y();
-    orientation[2] = result.getRotation().z();
-    orientation[3] = result.getRotation().w();
+    transform[0] = result.getOrigin().x();
+    transform[1] = result.getOrigin().y();
+    transform[2] = result.getOrigin().z();
+    transform[3] = result.getRotation().x();
+    transform[4] = result.getRotation().y();
+    transform[5] = result.getRotation().z();
+    transform[6] = result.getRotation().w();
   }
   
 }

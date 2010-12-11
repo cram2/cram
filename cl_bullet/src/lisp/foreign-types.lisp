@@ -59,10 +59,10 @@
     native-vector))
 
 (defmethod translate-from-foreign (pointer (type bt-3d-vector))
-  (make-instance 'cl-transforms:3d-vector
-                 :x (mem-aref pointer :double 0)
-                 :y (mem-aref pointer :double 1)
-                 :z (mem-aref pointer :double 2)))
+  (cl-transforms:make-3d-vector
+   (mem-aref pointer :double 0)
+   (mem-aref pointer :double 1)
+   (mem-aref pointer :double 2)))
 
 (defmethod free-translated-object (value (type bt-3d-vector) param)
   (declare (ignore param))
@@ -83,12 +83,60 @@
     native-vector))
 
 (defmethod translate-from-foreign (pointer (type bt-quaternion))
-  (make-instance 'cl-transforms:quaternion
-                 :x (mem-aref pointer :double 0)
-                 :y (mem-aref pointer :double 1)
-                 :z (mem-aref pointer :double 2)
-                 :w (mem-aref pointer :double 3)))
+  (cl-transforms:make-quaternion
+   (mem-aref pointer :double 0)
+   (mem-aref pointer :double 1)
+   (mem-aref pointer :double 2)
+   (mem-aref pointer :double 3)))
 
 (defmethod free-translated-object (value (type bt-quaternion) param)
+  (declare (ignore param))
+  (foreign-free value))
+
+(define-foreign-type bt-transform ()
+  () (:actual-type :pointer :double))
+
+(define-parse-method bt-transform (&key)
+  (make-instance 'bt-transform))
+
+(defmethod translate-to-foreign ((value cl-transforms:transform) (type bt-transform))
+  (let ((native-vector (foreign-alloc :double :count 7))
+        (translation (cl-transforms:translation value))
+        (rotation (cl-transforms:rotation value)))
+    (setf (mem-aref native-vector :double 0) (coerce (cl-transforms:x translation) 'double-float))
+    (setf (mem-aref native-vector :double 1) (coerce (cl-transforms:y translation) 'double-float))
+    (setf (mem-aref native-vector :double 2) (coerce (cl-transforms:z translation) 'double-float))
+    (setf (mem-aref native-vector :double 3) (coerce (cl-transforms:x rotation) 'double-float))
+    (setf (mem-aref native-vector :double 4) (coerce (cl-transforms:y rotation) 'double-float))
+    (setf (mem-aref native-vector :double 5) (coerce (cl-transforms:z rotation) 'double-float))
+    (setf (mem-aref native-vector :double 6) (coerce (cl-transforms:w rotation) 'double-float))
+    native-vector))
+
+(defmethod translate-to-foreign ((value cl-transforms:pose) (type bt-transform))
+  (let ((native-vector (foreign-alloc :double :count 7))
+        (translation (cl-transforms:origin value))
+        (rotation (cl-transforms:orientation value)))
+    (setf (mem-aref native-vector :double 0) (coerce (cl-transforms:x translation) 'double-float))
+    (setf (mem-aref native-vector :double 1) (coerce (cl-transforms:y translation) 'double-float))
+    (setf (mem-aref native-vector :double 2) (coerce (cl-transforms:z translation) 'double-float))
+    (setf (mem-aref native-vector :double 3) (coerce (cl-transforms:x rotation) 'double-float))
+    (setf (mem-aref native-vector :double 4) (coerce (cl-transforms:y rotation) 'double-float))
+    (setf (mem-aref native-vector :double 5) (coerce (cl-transforms:z rotation) 'double-float))
+    (setf (mem-aref native-vector :double 6) (coerce (cl-transforms:w rotation) 'double-float))
+    native-vector))
+
+(defmethod translate-from-foreign (pointer (type bt-transform))
+  (cl-transforms:make-transform
+   (cl-transforms:make-3d-vector
+    (mem-aref pointer :double 0)
+    (mem-aref pointer :double 1)
+    (mem-aref pointer :double 2))
+   (cl-transforms:make-quaternion
+    (mem-aref pointer :double 3)
+    (mem-aref pointer :double 4)
+    (mem-aref pointer :double 5)
+    (mem-aref pointer :double 6))))
+
+(defmethod free-translated-object (value (type bt-transform) param)
   (declare (ignore param))
   (foreign-free value))
