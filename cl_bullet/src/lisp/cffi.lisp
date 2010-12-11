@@ -200,3 +200,294 @@
 (defcfun ("addPoint" add-point) :void
   (shape :pointer)
   (point bt-3d-vector))
+
+;;; constraints.cpp
+
+(defcfun ("deleteConstraint" delete-constraint) :void
+  (constant :pointer))
+
+;;; point-2-point constraint
+(defcfun ("newPoint2PointConstraint" new-point-2-point-constraint) :pointer
+  (rb-a :pointer)
+  (rb-b :pointer)
+  (pivot-in-a bt-3d-vector)
+  (pivot-in-b bt-3d-vector))
+
+(defcfun ("isPoint2PointConstraint" point-2-point-constraint-p) :boolean
+  (constraint :pointer))
+
+;;; hinge constraint
+(defcfun ("newHingeConstraint" new-hinge-constraint) :pointer
+  (rb-a :pointer)
+  (rb-b :pointer)
+  (pivot-in-a bt-3d-vector)
+  (pivot-in-b bt-3d-vector)
+  (axis-in-a bt-3d-vector)
+  (axis-in-b bt-3d-vector))
+
+(defcfun ("isHingeConstraint" hinge-constraint-p) :boolean
+  (constraint :pointer))
+
+(defcfun ("setAngularOnly" set-angular-only) :void
+  (hinge :pointer)
+  (angular-only :boolean))
+
+(defcfun ("getAngularOnly" get-angular-only) :boolean
+  (hinge :pointer))
+
+(defcfun ("enableAngularMotor" enable-angular-motor) :void
+  (hinge :pointer)
+  (enable-motor :boolean)
+  (target-velocity :double)
+  (max-motor-impulse :double))
+
+(defcfun ("enableMotor" enable-motor) :void
+  (hinge :pointer)
+  (enable-motor :boolean))
+
+(defcfun ("setMaxMotorImpulse" set-max-motor-impulse) :void
+  (hinge :pointer)
+  (max-motor-impulse :double))
+
+(defcfun ("getMaxMotorImpulse" get-max-motor-impulse) :double
+  (hinge :pointer))
+
+(defcfun ("getMotorTargetVelocity" get-motor-target-velocity) :double
+  (hinge :pointer))
+
+(defcfun ("setMotorTarget" set-motor-target) :void
+  (hinge :pointer)
+  (target-angle :double)
+  (dt :double))
+
+(defcfun ("setLimit" set-limit) :void
+  (hinge :pointer)
+  (low :double)
+  (high :double))
+
+(defcfun ("setLimitComplex" set-limit-complex) :void
+  (hinge :pointer)
+  (low :double)
+  (high :double)
+  (softness :double)
+  (bias-factor :double)
+  (relaxation-factor :double))
+
+(defcfun ("getHingeAngle" get-hinge-angle) :double
+  (hinge :pointer))
+
+(defcfun ("getLowerLimit" get-lower-limit) :double
+  (hinge :pointer))
+
+(defcfun ("getUpperLimit" get-upper-limit) :double
+  (hinge :pointer))
+
+;;; slider constraint
+
+(defcfun ("newSliderConstraint" new-slider-constraint) :pointer
+  (rb-a :pointer)
+  (rb-b :pointer)
+  (frame-in-a bt-transform)
+  (frame-in-b bt-transform))
+
+(defcfun ("isSliderConstraint" slider-constraint-p) :boolean
+  (constraint :pointer))
+
+(defcfun ("getLowerLinLimit" get-lower-lin-limit) :double
+  (slider :pointer))
+
+(defcfun ("setLowerLinLimit" set-lower-lin-limit) :void
+  (slider :pointer)
+  (lower-limit :double))
+
+(defcfun ("getUpperLinLimit" get-upper-lin-limit) :double
+  (slider :pointer))
+
+(defcfun ("setUpperLinLimit" set-upper-lin-limit) :void
+  (slider :pointer)
+  (upper-limit :double))
+
+(defcfun ("getLowerAngLimit" get-lower-ang-limit) :double
+  (slider :pointer))
+
+(defcfun ("setLowerAngLimit" set-lower-ang-limit) :void
+  (slider :pointer)
+  (lower-limit :double))
+
+(defcfun ("getUpperAngLimit" get-upper-ang-limit) :double
+  (slider :pointer))
+
+(defcfun ("setUpperAngLimit" set-upper-ang-limit) :void
+  (slider :pointer)
+  (upper-limit :double))
+
+(defcfun ("getSoftnessDirLin" get-softness-dir-lin) :double
+  (slider :pointer))
+
+(defcfun ("getRestitutionDirLin" get-restitution-dir-lin) :double
+  (slider :pointer))
+
+(defcfun ("getDampingDirLin" get-damping-dir-lin) :double
+  (slider :pointer))
+
+(defcfun ("getSoftnessDirAng" get-softness-dir-ang) :double
+  (slider :pointer))
+
+(defcfun ("getRestitutionDirAng" get-restitution-dir-ang) :double
+  (slider :pointer))
+
+(defcfun ("getDampingDirAng" get-damping-dir-ang) :double
+  (slider :pointer))
+
+(defcfun ("getSoftnessLimLin" get-softness-lim-lin) :double
+  (slider :pointer))
+
+(defcfun ("getRestitutionLimLin" get-restitution-lim-lin) :double
+  (slider :pointer))
+
+(defcfun ("getDampingLimLin" get-damping-lim-lin) :double
+  (slider :pointer))
+
+(defcfun ("getSoftnessLimAng" get-softness-lim-ang) :double
+  (slider :pointer))
+
+(defcfun ("getRestitutionLimAng" get-restitution-lim-ang) :double
+  (slider :pointer))
+
+(defcfun ("getDampingLimAng" get-damping-lim-ang) :double
+  (slider :pointer))
+
+(defcfun ("getSoftnessOrthoLin" get-softness-ortho-lin) :double
+  (slider :pointer))
+
+(defcfun ("getRestitutionOrthoLin" get-restitution-ortho-lin) :double
+  (slider :pointer))
+
+(defcfun ("getDampingOrthoLin" get-damping-ortho-lin) :double
+  (slider :pointer))
+
+(defcfun ("getSoftnessOrthoAng" get-softness-ortho-ang) :double
+  (slider :pointer))
+
+(defcfun ("getRestitutionOrthoAng" get-restitution-ortho-ang) :double
+  (slider :pointer))
+
+(defcfun ("getDampingOrthoAng" get-damping-ortho-ang) :double
+  (slider :pointer))
+
+(defcfun ("setSoftnessDirLin" set-softness-dir-lin) :void
+  (slider :pointer)
+  (value :double))
+
+(defcfun ("setRestitutionDirLin" set-restitution-dir-lin) :void
+  (slider :pointer)
+  (value :double))
+
+(defcfun ("setDampingDirLin" set-damping-dir-lin) :void
+  (slider :pointer)
+  (value :double))
+
+(defcfun ("setSoftnessDirAng" set-softness-dir-ang) :void
+  (slider :pointer)
+  (value :double))
+
+(defcfun ("setRestitutionDirAng" set-restitution-dir-ang) :void
+  (slider :pointer)
+  (value :double))
+
+(defcfun ("setDampingDirAng" set-damping-dir-ang) :void
+  (slider :pointer)
+  (value :double))
+
+(defcfun ("setSoftnessLimLin" set-softness-lim-lin) :void
+  (slider :pointer)
+  (value :double))
+
+(defcfun ("setRestitutionLimLin" set-restitution-lim-lin) :void
+  (slider :pointer)
+  (value :double))
+
+(defcfun ("setDampingLimLin" set-damping-lim-lin) :void
+  (slider :pointer)
+  (value :double))
+
+(defcfun ("setSoftnessLimAng" set-softness-lim-ang) :void
+  (slider :pointer)
+  (value :double))
+
+(defcfun ("setRestitutionLimAng" set-restitution-lim-ang) :void
+  (slider :pointer)
+  (value :double))
+
+(defcfun ("setDampingLimAng" set-damping-lim-ang) :void
+  (slider :pointer)
+  (value :double))
+
+(defcfun ("setSoftnessOrthoLin" set-softness-ortho-lin) :void
+  (slider :pointer)
+  (value :double))
+
+(defcfun ("setRestitutionOrthoLin" set-restitution-ortho-lin) :void
+  (slider :pointer)
+  (value :double))
+
+(defcfun ("setDampingOrthoLin" set-damping-ortho-lin) :void
+  (slider :pointer)
+  (value :double))
+
+(defcfun ("setSoftnessOrthoAng" set-softness-ortho-ang) :void
+  (slider :pointer)
+  (value :double))
+
+(defcfun ("setRestitutionOrthoAng" set-restitution-ortho-ang) :void
+  (slider :pointer)
+  (value :double))
+
+(defcfun ("setDampingOrthoAng" set-damping-ortho-ang) :void
+  (slider :pointer)
+  (value :double))
+
+(defcfun ("setPoweredLinMotor" set-powered-lin-motor) :void
+  (slider :pointer)
+  (on-off :boolean))
+
+(defcfun ("getPoweredLinMotor" get-powered-lin-motor) :boolean
+  (slider :pointer))
+
+(defcfun ("setTargetLinMotorVelocity" set-target-lin-motor-velocity) :void
+  (slider :pointer)
+  (target-lin-motor-velocity :double))
+
+(defcfun ("getTargetLinMotorVelocity" get-target-lin-motor-velocity) :double
+  (slider :pointer))
+
+(defcfun ("setMaxLinMotorForce" set-max-lin-motor-force) :void
+  (slider :pointer)
+  (max-lin-motor-force :double))
+
+(defcfun ("getMaxLinMotorForce" get-max-lin-motor-force) :double
+  (slider :pointer))
+
+(defcfun ("setPoweredAngMotor" set-powered-ang-motor) :void
+  (slider :pointer)
+  (on-off :boolean))
+
+(defcfun ("getPoweredAngMotor" get-powered-ang-motor) :boolean
+  (slider :pointer))
+
+(defcfun ("setTargetAngMotorVelocity" set-target-ang-motor-velocity) :void
+  (slider :pointer)
+  (target-ang-motor-velocity :double))
+
+(defcfun ("getTargetAngMotorVelocity" get-target-ang-motor-velocity) :double
+  (slider :pointer))
+
+(defcfun ("setMaxAngMotorForce" set-max-ang-motor-force) :void
+  (slider :pointer)
+  (max-ang-motor-force :double))
+
+(defcfun ("getMaxAngMotorForce" get-max-ang-motor-force) :double
+  (slider :pointer))
+
+(defcfun ("getLinearPos" get-linear-pos) :double
+  (slider :pointer))
