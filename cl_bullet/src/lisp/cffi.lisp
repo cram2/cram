@@ -51,10 +51,11 @@
 (define-foreign-library bullet-cl
   (:unix "libbullet_cl.so"))
 
-#.(loop for path in (ros-library-paths ros-load:*current-ros-package*)
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (loop for path in (ros-library-paths ros-load:*current-ros-package*)
         do (pushnew (concatenate 'string path "/")
                     *foreign-library-directories*
-                    :test #'equal))
+                    :test #'equal)))
 
 (use-foreign-library bullet-cl)
 
@@ -172,7 +173,7 @@
 (defcfun ("newCylinderShape" new-cyliner-shape) :pointer
   (half-extents bt-3d-vector))
 
-(defcfun ("isCylinerShape" cylinder-shape-p) :boolean
+(defcfun ("isCylinderShape" cylinder-shape-p) :boolean
   (shape :pointer))
 
 (defcfun ("newConeShape" new-cone-shape) :pointer
