@@ -35,20 +35,26 @@ class CLBulletDebugDraw : public btIDebugDraw
 public:
   struct Callbacks
   {
-    void (*drawLine)(const double */*from*/, const double */*to*/, const double */*color*/);
-    void (*drawSphere)(const double */*p*/, double /*radius*/, const double */*color*/);
-    void (*drawTriangle)(const double */*v0*/, const double */*v1*/, const double */*v2*/, const double */*color*/, double /*alpha*/);
-    void (*drawBox)(const double */*boxMin*/, const double */*boxMax*/, const double */*color*/, double /*alpha*/);
-    void (*drawAabb)(const double */*from*/, const double */*to*/, const double */*color*/);
-    void (*drawTransform)(const double */*transform*/, double /*orthoLen*/);
-    void (*drawArc)(const double */*center*/, const double */*normal*/, const double */*axis*/, double /*radiusA*/, double /*radiusB*/,
-                    double /*minAngle*/, double /*maxAngle*/, const double */*color*/, bool /*drawSect*/, double /*stepDegrees*/);
-    void (*drawSpherePatch)(const double */*center*/, const double */*up*/, const double */*axis*/, double /*radius*/, 
-                            double /*minTh*/, double /*maxTh*/, double /*minPs*/, double /*maxPs*/, const double */*color*/,
-                            double /*stepDegrees*/);
-    void (*drawContactPoint)(const double */*PointOnB*/, const double */*normalOnB*/, double /*distance*/, int /*lifeTime*/, const double */*color*/);
-    void (*reportErrorWarning)(const char */*warningString*/);
-    void (*draw3dText)(const double */*location*/, const char */*string*/); 
+    void (*drawLine)(const double */*from*/, const double */*to*/, const double */*color*/, void *);
+    void (*drawSphere)(const double */*p*/, double /*radius*/, const double */*color*/, void *);
+    void (*drawTriangle)(const double */*v0*/, const double */*v1*/, const double */*v2*/,
+                         const double */*color*/, double /*alpha*/, void *);
+    void (*drawBox)(const double */*boxMin*/, const double */*boxMax*/,
+                    const double */*color*/, double /*alpha*/, void *);
+    void (*drawAabb)(const double */*from*/, const double */*to*/, const double */*color*/, void *);
+    void (*drawTransform)(const double */*transform*/, double /*orthoLen*/, void *);
+    void (*drawArc)(const double */*center*/, const double */*normal*/,
+                    const double */*axis*/, double /*radiusA*/, double /*radiusB*/,
+                    double /*minAngle*/, double /*maxAngle*/, const double */*color*/,
+                    bool /*drawSect*/, double /*stepDegrees*/, void *);
+    void (*drawSpherePatch)(const double */*center*/, const double */*up*/, const double */*axis*/,
+                            double /*radius*/, double /*minTh*/, double /*maxTh*/, double /*minPs*/,
+                            double /*maxPs*/, const double */*color*/,
+                            double /*stepDegrees*/, void *);
+    void (*drawContactPoint)(const double */*PointOnB*/, const double */*normalOnB*/, double /*distance*/,
+                             int /*lifeTime*/, const double */*color*/, void *);
+    void (*reportErrorWarning)(const char */*warningString*/, void *);
+    void (*draw3dText)(const double */*location*/, const char */*string*/, void *); 
 
     Callbacks()
       : drawLine(0), drawSphere(0), drawTriangle(0), drawBox(0),
@@ -57,14 +63,15 @@ public:
   };
 
 
-  CLBulletDebugDraw()
-    : debug_mode_(DBG_NoDebug) {}
-
-  CLBulletDebugDraw(const Callbacks &callbacks)
+  CLBulletDebugDraw(void *arg=0)
     : debug_mode_(DBG_NoDebug),
-      callbacks_(callbacks) {}
-  
-  
+      arg_(arg) {}
+
+  CLBulletDebugDraw(const Callbacks &callbacks, void *arg=0)
+    : debug_mode_(DBG_NoDebug),
+      callbacks_(callbacks),
+      arg_(arg) {}
+    
   virtual void	drawLine(const btVector3& from,const btVector3& to,const btVector3& color)
   {
     double from_[3] = {from.x(), from.y(), from.z()};
@@ -72,7 +79,7 @@ public:
     double color_[3] = {color.x(), color.y(), color.z()};
     
     if(callbacks_.drawLine)
-      (*callbacks_.drawLine)(from_, to_, color_);
+      (*callbacks_.drawLine)(from_, to_, color_, arg_);
   }
 
   virtual void	drawSphere (const btVector3& p, btScalar radius, const btVector3& color)
@@ -81,7 +88,7 @@ public:
     double color_[3] = {color.x(), color.y(), color.z()};
 
     if(callbacks_.drawSphere)
-      (*callbacks_.drawSphere)(p_, radius, color_);
+      (*callbacks_.drawSphere)(p_, radius, color_, arg_);
   }
 
   virtual void drawTriangle(const btVector3& v0,const btVector3& v1,const btVector3& v2,const btVector3& color, btScalar alpha)
@@ -91,7 +98,7 @@ public:
     double v2_[3] = {v2.x(), v2.y(), v2.z()};
 
     if(callbacks_.drawTriangle)
-      (callbacks_.drawTriangle)(v0_, v1_, v2_, color, alpha);
+      (callbacks_.drawTriangle)(v0_, v1_, v2_, color, alpha, arg_);
   }
 
   virtual void drawBox (const btVector3& boxMin, const btVector3& boxMax, const btVector3& color, btScalar alpha)
@@ -100,7 +107,7 @@ public:
     double boxMax_[3] = {boxMax.x(), boxMax.y(), boxMax.z()};
     
     if(callbacks_.drawBox)
-      (*callbacks_.drawBox)(boxMin_, boxMax_, color, alpha);
+      (*callbacks_.drawBox)(boxMin_, boxMax_, color, alpha, arg_);
   }
 
   virtual void drawAabb(const btVector3& from,const btVector3& to,const btVector3& color)
@@ -110,7 +117,7 @@ public:
     double color_[3] = {color.x(), color.y(), color.z()};
     
     if(callbacks_.drawAabb)
-      (*callbacks_.drawAabb)(from_, to_, color_);
+      (*callbacks_.drawAabb)(from_, to_, color_, arg_);
   }
 
   virtual void drawTransform(const btTransform& transform, btScalar orthoLen)
@@ -122,7 +129,7 @@ public:
                             rotation.w()};
     
     if(callbacks_.drawTransform)
-      (*callbacks_.drawTransform)(transform_, orthoLen);
+      (*callbacks_.drawTransform)(transform_, orthoLen, arg_);
   }
 
   virtual void drawArc(const btVector3& center, const btVector3& normal, const btVector3& axis, btScalar radiusA, btScalar radiusB, btScalar minAngle, btScalar maxAngle, 
@@ -134,7 +141,7 @@ public:
     double color_[3] = {color.x(), color.y(), color.z()};
 
     if(callbacks_.drawArc)
-      (*callbacks_.drawArc)(center_, normal_, axis_, radiusA, radiusB, minAngle, maxAngle, color_, drawSect, stepDegrees);
+      (*callbacks_.drawArc)(center_, normal_, axis_, radiusA, radiusB, minAngle, maxAngle, color_, drawSect, stepDegrees, arg_);
   }
 
   virtual void drawSpherePatch(const btVector3& center, const btVector3& up, const btVector3& axis, btScalar radius, 
@@ -146,7 +153,7 @@ public:
     double color_[3] = {color.x(), color.y(), color.z()};
     
     if(callbacks_.drawSpherePatch)
-      (*callbacks_.drawSpherePatch)(center_, up_, axis_, radius, minTh, maxTh, minPs, maxPs, color_, stepDegrees);
+      (*callbacks_.drawSpherePatch)(center_, up_, axis_, radius, minTh, maxTh, minPs, maxPs, color_, stepDegrees, arg_);
   }
 
   virtual void drawContactPoint(const btVector3& PointOnB,const btVector3& normalOnB,btScalar distance,int lifeTime,const btVector3& color)
@@ -156,12 +163,12 @@ public:
     double color_[3] = {color.x(), color.y(), color.z()};
 
     if(callbacks_.drawContactPoint)
-      (*callbacks_.drawContactPoint)(PointOnB_, normalOnB_, distance, lifeTime, color_);
+      (*callbacks_.drawContactPoint)(PointOnB_, normalOnB_, distance, lifeTime, color_, arg_);
   }
   virtual void reportErrorWarning(const char* warningString)
   {
     if(callbacks_.reportErrorWarning)
-      (*callbacks_.reportErrorWarning)(warningString);
+      (*callbacks_.reportErrorWarning)(warningString, arg_);
   }
 
   void draw3dText(const btVector3& location,const char* textString)
@@ -169,7 +176,7 @@ public:
     double location_[3] = {location.x(), location.y(), location.z()};
 
     if(callbacks_.draw3dText)
-      (*callbacks_.draw3dText)(location_, textString);
+      (*callbacks_.draw3dText)(location_, textString, arg_);
   }
 
   virtual void setDebugMode(int debugMode)
@@ -195,39 +202,43 @@ public:
 private:
   int debug_mode_;
   Callbacks callbacks_;
+  void *arg_;
 };
 
-
-CLBulletDebugDraw *newCLBulletDebugDraw(CLBulletDebugDraw::Callbacks *callbacks)
+extern "C"
 {
-  if(callbacks)
-    return new CLBulletDebugDraw(*callbacks);
-  else
-    return new CLBulletDebugDraw();
-}
+  
+  CLBulletDebugDraw *newCLBulletDebugDraw(CLBulletDebugDraw::Callbacks *callbacks, void *arg)
+  {
+    if(callbacks)
+      return new CLBulletDebugDraw(*callbacks, arg);
+    else
+      return new CLBulletDebugDraw(arg);
+  }
 
-void deleteCLBulletDebugDraw(CLBulletDebugDraw *ptr)
-{
-  delete ptr;
-}
+  void deleteCLBulletDebugDraw(CLBulletDebugDraw *ptr)
+  {
+    delete ptr;
+  }
 
-void setDebugMode(CLBulletDebugDraw *draw, int debugMode)
-{
-  draw->setDebugMode(debugMode);
-}
+  void setDebugMode(CLBulletDebugDraw *draw, int debugMode)
+  {
+    draw->setDebugMode(debugMode);
+  }
 
-int getDebugMode(CLBulletDebugDraw *draw)
-{
-  return draw->getDebugMode();
-}
+  int getDebugMode(CLBulletDebugDraw *draw)
+  {
+    return draw->getDebugMode();
+  }
 
-void setCallbacks(CLBulletDebugDraw *draw, CLBulletDebugDraw::Callbacks *callbacks)
-{
-  draw->setCallbacks(*callbacks);
-}
+  void setCallbacks(CLBulletDebugDraw *draw, CLBulletDebugDraw::Callbacks *callbacks)
+  {
+    draw->setCallbacks(*callbacks);
+  }
 
-CLBulletDebugDraw::Callbacks *getCallbacks(CLBulletDebugDraw *draw)
-{
-  return &draw->getCallbacks();
-}
+  CLBulletDebugDraw::Callbacks *getCallbacks(CLBulletDebugDraw *draw)
+  {
+    return &draw->getCallbacks();
+  }
 
+}
