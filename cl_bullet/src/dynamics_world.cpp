@@ -87,6 +87,16 @@ extern "C"
     handle->dynamicsWorld->addRigidBody(body);
   }
 
+  void addRigidBodyWithMask(DynamicsWorldHandle *handle, btRigidBody *body, short group, short mask)
+  {
+    btDiscreteDynamicsWorld *world = dynamic_cast<btDiscreteDynamicsWorld *>(handle->dynamicsWorld);
+
+    if(world)
+      world->addRigidBody(body, group, mask);
+    else
+      addRigidBody(handle, body);
+  }
+
   void removeRigidBody(DynamicsWorldHandle *handle, btRigidBody *body)
   {
     handle->dynamicsWorld->removeRigidBody(body);

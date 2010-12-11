@@ -83,6 +83,12 @@
   (world-handle :pointer)
   (body :pointer))
 
+(defcfun ("addRigidBodyWithMask" add-rigid-body-with-mask) :void
+  (world-handle :pointer)
+  (body :pointer)
+  (group :short)
+  (mask :short))
+
 (defcfun ("removeRigidBody" remove-rigid-body) :void
   (world-handle :pointer)
   (body :pointer))
@@ -109,11 +115,18 @@
   (body-handle :pointer)
   (motion-state :pointer))
 
+(defcfun ("setActivationState" set-activation-state) :void
+  (body-handle :pointer)
+  (new-state :int))
+
+(defcfun ("setCollisionFlags" set-collision-flags) :void
+  (body-handle :pointer)
+  (flags :int))
+
 ;;; motion_state.cpp
 
 (defcfun ("newMotionState" new-motion-state) :pointer
-  (position bt-3d-vector)
-  (orientation bt-quaternion))
+  (transform bt-transform))
 
 (defcfun ("deleteMotionState" delete-motion-state) :void
   (motion-state-handle :pointer))
