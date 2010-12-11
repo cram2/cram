@@ -40,7 +40,7 @@ public:
     void (*drawTriangle)(const double */*v0*/, const double */*v1*/, const double */*v2*/,
                          const double */*color*/, double /*alpha*/, void *);
     void (*drawBox)(const double */*boxMin*/, const double */*boxMax*/,
-                    const double */*color*/, double /*alpha*/, void *);
+                    const double */*color*/, void *);
     void (*drawAabb)(const double */*from*/, const double */*to*/, const double */*color*/, void *);
     void (*drawTransform)(const double */*transform*/, double /*orthoLen*/, void *);
     void (*drawArc)(const double */*center*/, const double */*normal*/,
@@ -72,7 +72,7 @@ public:
       callbacks_(callbacks),
       arg_(arg) {}
     
-  virtual void	drawLine(const btVector3& from,const btVector3& to,const btVector3& color)
+  virtual void drawLine(const btVector3& from,const btVector3& to,const btVector3& color)
   {
     double from_[3] = {from.x(), from.y(), from.z()};
     double to_[3] = {to.x(), to.y(), to.z()};
@@ -82,13 +82,15 @@ public:
       (*callbacks_.drawLine)(from_, to_, color_, arg_);
   }
 
-  virtual void	drawSphere (const btVector3& p, btScalar radius, const btVector3& color)
+  virtual void drawSphere (const btVector3& p, btScalar radius, const btVector3& color)
   {
     double p_[3] = {p.x(), p.y(), p.z()};
     double color_[3] = {color.x(), color.y(), color.z()};
 
     if(callbacks_.drawSphere)
       (*callbacks_.drawSphere)(p_, radius, color_, arg_);
+    else
+      btIDebugDraw::drawSphere(p, radius, color);
   }
 
   virtual void drawTriangle(const btVector3& v0,const btVector3& v1,const btVector3& v2,const btVector3& color, btScalar alpha)
@@ -96,18 +98,25 @@ public:
     double v0_[3] = {v0.x(), v0.y(), v0.z()};
     double v1_[3] = {v1.x(), v1.y(), v1.z()};
     double v2_[3] = {v2.x(), v2.y(), v2.z()};
+    double color_[3] = {color.x(), color.y(), color.z()};
+    
 
     if(callbacks_.drawTriangle)
-      (callbacks_.drawTriangle)(v0_, v1_, v2_, color, alpha, arg_);
+      (callbacks_.drawTriangle)(v0_, v1_, v2_, color_, alpha, arg_);
+    else
+      btIDebugDraw::drawTriangle(v0, v1, v2, color, alpha);
   }
 
-  virtual void drawBox (const btVector3& boxMin, const btVector3& boxMax, const btVector3& color, btScalar alpha)
+  virtual void drawBox (const btVector3& boxMin, const btVector3& boxMax, const btVector3& color)
   {
     double boxMin_[3] = {boxMin.x(), boxMin.y(), boxMin.z()}; 
     double boxMax_[3] = {boxMax.x(), boxMax.y(), boxMax.z()};
+    double color_[3] = {color.x(), color.y(), color.z()};
     
     if(callbacks_.drawBox)
-      (*callbacks_.drawBox)(boxMin_, boxMax_, color, alpha, arg_);
+      (*callbacks_.drawBox)(boxMin_, boxMax_, color_, arg_);
+    else
+      btIDebugDraw::drawBox(boxMin, boxMax, color);
   }
 
   virtual void drawAabb(const btVector3& from,const btVector3& to,const btVector3& color)
@@ -118,6 +127,8 @@ public:
     
     if(callbacks_.drawAabb)
       (*callbacks_.drawAabb)(from_, to_, color_, arg_);
+    else
+      btIDebugDraw::drawAabb(from, to, color);
   }
 
   virtual void drawTransform(const btTransform& transform, btScalar orthoLen)
@@ -130,6 +141,8 @@ public:
     
     if(callbacks_.drawTransform)
       (*callbacks_.drawTransform)(transform_, orthoLen, arg_);
+    else
+      btIDebugDraw::drawTransform(transform, orthoLen);
   }
 
   virtual void drawArc(const btVector3& center, const btVector3& normal, const btVector3& axis, btScalar radiusA, btScalar radiusB, btScalar minAngle, btScalar maxAngle, 
@@ -142,6 +155,8 @@ public:
 
     if(callbacks_.drawArc)
       (*callbacks_.drawArc)(center_, normal_, axis_, radiusA, radiusB, minAngle, maxAngle, color_, drawSect, stepDegrees, arg_);
+    else
+      btIDebugDraw::drawArc(center, normal, axis, radiusA, radiusB, minAngle, maxAngle, color, drawSect, stepDegrees);
   }
 
   virtual void drawSpherePatch(const btVector3& center, const btVector3& up, const btVector3& axis, btScalar radius, 
@@ -154,6 +169,8 @@ public:
     
     if(callbacks_.drawSpherePatch)
       (*callbacks_.drawSpherePatch)(center_, up_, axis_, radius, minTh, maxTh, minPs, maxPs, color_, stepDegrees, arg_);
+    else
+      btIDebugDraw::drawSpherePatch(center, up, axis, radius, minTh, maxTh, minPs, maxPs, color, stepDegrees);
   }
 
   virtual void drawContactPoint(const btVector3& PointOnB,const btVector3& normalOnB,btScalar distance,int lifeTime,const btVector3& color)
@@ -165,6 +182,7 @@ public:
     if(callbacks_.drawContactPoint)
       (*callbacks_.drawContactPoint)(PointOnB_, normalOnB_, distance, lifeTime, color_, arg_);
   }
+  
   virtual void reportErrorWarning(const char* warningString)
   {
     if(callbacks_.reportErrorWarning)
