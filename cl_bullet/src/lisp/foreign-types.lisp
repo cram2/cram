@@ -45,7 +45,7 @@
   (:cf-character-object 16)
   (:cf-disable-visualize-object 32))
 
-(defcstruct cl-bullet-debug-draw
+(defcstruct debug-draw-callbacks
   (draw-line :pointer)
   (draw-sphere :pointer)
   (draw-triangle :pointer)
