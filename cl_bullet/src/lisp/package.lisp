@@ -40,6 +40,9 @@
    remove-constraint
    add-rigid-body
    remove-rigid-body
+   set-debug-drawer
+   get-debug-drawer
+   debug-draw-world
    ;; rigid bodies
    new-rigid-body
    delete-rigid-body
@@ -72,5 +75,95 @@
    convex-hull-shape-p
    add-point
    ;; constraints
-   
-   ))
+   delete-constraint
+   new-point-2-point-constraint
+   point-2-point-constraint-p
+   new-hinge-constraint
+   hinge-constraint-p
+   set-angular-only
+   get-angular-only
+   enable-angular-motor
+   enable-motor
+   set-max-motor-impulse
+   get-max-motor-impulse
+   get-motor-target-velocity
+   set-motor-target
+   set-limit
+   set-limit-complex
+   get-hinge-angle
+   get-lower-limit
+   get-upper-limit
+   new-slider-constraint
+   slider-constraint-p
+   get-lower-lin-limit
+   set-lower-lin-limit
+   get-upper-lin-limit
+   set-upper-lin-limit
+   get-lower-ang-limit
+   set-lower-ang-limit
+   get-upper-ang-limit
+   set-upper-ang-limit
+   get-softness-dir-lin
+   get-restitution-dir-lin
+   get-damping-dir-lin
+   get-softness-dir-ang
+   get-restitution-dir-ang
+   get-damping-dir-ang
+   get-softness-lim-lin
+   get-restitution-lim-lin
+   get-damping-lim-lin
+   get-softness-lim-ang
+   get-restitution-lim-ang
+   get-damping-lim-ang
+   get-softness-ortho-lin
+   get-restitution-ortho-lin
+   get-damping-ortho-lin
+   get-softness-ortho-ang
+   get-restitution-ortho-ang
+   get-damping-ortho-ang
+   set-softness-dir-lin
+   set-restitution-dir-lin
+   set-damping-dir-lin
+   set-softness-dir-ang
+   set-restitution-dir-ang
+   set-damping-dir-ang
+   set-softness-lim-lin
+   set-restitution-lim-lin
+   set-damping-lim-lin
+   set-softness-lim-ang
+   set-restitution-lim-ang
+   set-damping-lim-ang
+   set-softness-ortho-lin
+   set-restitution-ortho-lin
+   set-damping-ortho-lin
+   set-softness-ortho-ang
+   set-restitution-ortho-ang
+   set-damping-ortho-ang
+   set-powered-lin-motor
+   get-powered-lin-motor
+   set-target-lin-motor-velocity
+   get-target-lin-motor-velocity
+   set-max-lin-motor-force
+   get-max-lin-motor-force
+   set-target-ang-motor-velocity
+   get-target-ang-motor-velocity
+   set-max-ang-motor-force
+   get-max-ang-motor-force
+   get-linear-pos
+   set-debug-mode
+   get-debug-mode
+   set-callbacks
+   get-callbacks
+   ;; debug-draw
+   debug-draw
+   draw-line
+   draw-sphere
+   draw-triangle
+   draw-box
+   draw-aabb
+   draw-transform
+   draw-arc
+   draw-sphere-patch
+   draw-contact-point
+   report-error-warning
+   draw-3d-text))
