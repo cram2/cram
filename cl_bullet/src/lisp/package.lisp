@@ -31,36 +31,46 @@
 (defpackage cl-bullet
     (:nicknames :bullet :bt)
   (:use #:common-lisp #:cffi)
-  (:export new-discrete-dynamics-world
-           delete-discrete-dynamics-world
-           step-simulation
-           add-constraint
-           remove-constraint
-           add-rigid-body
-           remove-rigid-body
-           new-rigid-body
-           delete-rigid-body
-           get-total-force
-           get-motion-state
-           set-motion-state
-           new-motion-state
-           delete-motion-state
-           set-center-of-mass
-           get-world-transform
-           delete-collision-shape
-           new-box-shape
-           box-shape-p
-           new-static-plane-shape
-           static-plane-shape-p
-           new-sphere-shape
-           sphere-shape-p
-           new-cyliner-shape
-           cylinder-shape-p
-           new-cone-shape
-           cone-shape-p
-           new-compound-shape
-           compound-shape-p
-           add-child-shape
-           new-convex-hull-shape
-           convex-hull-shape-p
-           add-point))
+  (:export
+   ;; dynamics world
+   new-discrete-dynamics-world
+   delete-discrete-dynamics-world
+   step-simulation
+   add-constraint
+   remove-constraint
+   add-rigid-body
+   remove-rigid-body
+   ;; rigid bodies
+   new-rigid-body
+   delete-rigid-body
+   get-total-force
+   get-motion-state
+   set-motion-state
+   set-activation-state
+   set-collision-flags
+   ;; motion states
+   new-motion-state
+   delete-motion-state
+   set-center-of-mass
+   get-world-transform
+   ;; collision shapes
+   delete-collision-shape
+   new-box-shape
+   box-shape-p
+   new-static-plane-shape
+   static-plane-shape-p
+   new-sphere-shape
+   sphere-shape-p
+   new-cyliner-shape
+   cylinder-shape-p
+   new-cone-shape
+   cone-shape-p
+   new-compound-shape
+   compound-shape-p
+   add-child-shape
+   new-convex-hull-shape
+   convex-hull-shape-p
+   add-point
+   ;; constraints
+   
+   ))
