@@ -45,6 +45,19 @@
   (:cf-character-object 16)
   (:cf-disable-visualize-object 32))
 
+(defcstruct cl-bullet-debug-draw
+  (draw-line :pointer)
+  (draw-sphere :pointer)
+  (draw-triangle :pointer)
+  (draw-box :pointer)
+  (draw-aabb :pointer)
+  (draw-transform :pointer)
+  (draw-arc :pointer)
+  (draw-sphere-patch :pointer)
+  (draw-contact-point :pointer)
+  (report-error-warning :pointer)
+  (draw-3d-text :pointer))
+
 (define-foreign-type bt-3d-vector ()
   () (:actual-type :pointer :double))
 

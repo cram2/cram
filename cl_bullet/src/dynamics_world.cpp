@@ -27,7 +27,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-   
+
 #include <btBulletDynamicsCommon.h>
 
 struct DynamicsWorldHandle
@@ -102,4 +102,32 @@ extern "C"
     handle->dynamicsWorld->removeRigidBody(body);
   }
 
+  void setDebugDrawer(DynamicsWorldHandle *handle, btIDebugDraw *debugDrawer)
+  {
+    btDiscreteDynamicsWorld *handle_ =
+      dynamic_cast<btDiscreteDynamicsWorld *>(handle->dynamicsWorld);
+
+    if(handle_)
+      handle_->setDebugDrawer(debugDrawer);
+  }
+
+  btIDebugDraw *getDebugDrawer(DynamicsWorldHandle *handle)
+  {
+    btDiscreteDynamicsWorld *handle_ =
+      dynamic_cast<btDiscreteDynamicsWorld *>(handle->dynamicsWorld);
+
+    if(handle_)
+      return handle_->getDebugDrawer();
+    else
+      return NULL;
+  }
+
+  void debugDrawWorld(DynamicsWorldHandle *handle)
+  {
+    btDiscreteDynamicsWorld *handle_ =
+      dynamic_cast<btDiscreteDynamicsWorld *>(handle->dynamicsWorld);
+
+    if(handle_)
+      handle_->debugDrawWorld();
+  }
 }

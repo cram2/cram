@@ -94,6 +94,16 @@
   (world-handle :pointer)
   (body :pointer))
 
+(defcfun ("setDebugDrawer" set-debug-drawer) :void
+  (world-handle :pointer)
+  (drawer :pointer))
+
+(defcfun ("getDebugDrawer" get-debug-drawer) :pointer
+  (world-handle :pointer))
+
+(defcfun ("debugDrawWorld" debug-draw-world) :void
+  (world-handle :pointer))
+
 ;;; rigid_body.cpp
 
 (defcfun ("newRigidBody" new-rigid-body) :pointer
@@ -502,3 +512,26 @@
 
 (defcfun ("getLinearPos" get-linear-pos) :double
   (slider :pointer))
+
+;;; debug_draw.cpp
+
+(defcfun ("newCLBulletDebugDraw" new-cl-bullet-debug-draw) :pointer
+  (callbacks :pointer)
+  (arg :pointer))
+
+(defcfun ("deleteCLBulletDebugDraw" delete-cl-bullet-debug-draw) :void
+  (handle :pointer))
+
+(defcfun ("setDebugMode" set-debug-mode) :void
+  (draw :pointer)
+  (mode :int))
+
+(defcfun ("getDebugMode" get-debug-mode) :int
+  (draw :pointer))
+
+(defcfun ("setCallbacks" set-callbacks) :void
+  (draw :pointer)
+  (callbacks :pointer))
+
+(defcfun ("getCallbacks" get-callbacks) :pointer
+  (draw :pointer))
