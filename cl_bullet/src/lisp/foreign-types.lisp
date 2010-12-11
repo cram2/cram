@@ -45,6 +45,24 @@
   (:cf-character-object 16)
   (:cf-disable-visualize-object 32))
 
+(defcenum debug-modes
+  (:dbg-no-debug 0)
+  (:dbg-draw-wireframe 1)
+  (:dbg-draw-aabb 2)
+  (:dbg-draw-features-text 4)
+  (:dbg-draw-contanct-points 8)
+  (:dbg-no-deactivation 16)
+  (:dbg-no-help-text 32)
+  (:dbg-draw-text 64)
+  (:dbg-profile-timings 128)
+  (:dbg-enable-stat-comparison 256)
+  (:dbg-disable-bullet-lcp 512)
+  (:dbg-enable-ccd 1024)
+  (:dbg-draw-constraints 2048)
+  (:dbg-draw-constraint-limits 4096)
+  (:dbg-fast-wireframe 8192)
+  (:dbg-max-debug-draw-mode 8193))
+
 (defcstruct debug-draw-callbacks
   (draw-line :pointer)
   (draw-sphere :pointer)

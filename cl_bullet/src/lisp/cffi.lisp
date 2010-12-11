@@ -524,9 +524,9 @@
 
 (defcfun ("setDebugMode" set-debug-mode) :void
   (draw :pointer)
-  (mode :int))
+  (mode debug-modes))
 
-(defcfun ("getDebugMode" get-debug-mode) :int
+(defcfun ("getDebugMode" get-debug-mode) debug-modes
   (draw :pointer))
 
 (defcfun ("setCallbacks" set-callbacks) :void
