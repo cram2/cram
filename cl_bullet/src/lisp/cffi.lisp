@@ -30,24 +30,6 @@
 
 (in-package :bt)
 
-;;;
-;;; Currently, the following functions from Bullet-C-Api.h are missing:
-;;; 
-;;; * plCreateCollisionWorld
-;;; 
-;;; * plGetOpenGLMatrix
-;;; 
-;;; * plSetEuler
-;;; 
-;;; * plSetOpenGLMatrix
-;;; 
-;;; * plRayCast (this function cannot be implemented so easily since
-;;;   it requires a struct to be passed by value. We will need to wrap
-;;;   it.)
-;;; 
-;;; * plNearestPoints
-;;; 
-
 (define-foreign-library bullet-cl
   (:unix "libbullet_cl.so"))
 
@@ -67,41 +49,41 @@
 (defcfun ("deleteDiscreteDynamicsWorld" delete-discrete-dynamics-world) :void
   (handle :pointer))
 
-(defcfun ("stepSimulation" step-simulation) :void
+(defcfun ("stepSimulation" cffi-step-simulation) :void
   (world-handle :pointer)
   (time-step :double))
 
-(defcfun ("addConstraint" add-constraint) :void
+(defcfun ("addConstraint" cffi-add-constraint) :void
   (world-handle :pointer)
   (constraint :pointer)
   (disable-collisions :boolean))
 
-(defcfun ("removeConstraint" remove-constraint) :void
+(defcfun ("removeConstraint" cffi-remove-constraint) :void
   (world-handle :pointer)
   (constraint :pointer))
 
-(defcfun ("addRigidBody" add-rigid-body) :void
+(defcfun ("addRigidBody" cffi-add-rigid-body) :void
   (world-handle :pointer)
   (body :pointer))
 
-(defcfun ("addRigidBodyWithMask" add-rigid-body-with-mask) :void
+(defcfun ("addRigidBodyWithMask" cffi-add-rigid-body-with-mask) :void
   (world-handle :pointer)
   (body :pointer)
   (group :short)
   (mask :short))
 
-(defcfun ("removeRigidBody" remove-rigid-body) :void
+(defcfun ("removeRigidBody" cffi-remove-rigid-body) :void
   (world-handle :pointer)
   (body :pointer))
 
-(defcfun ("setDebugDrawer" set-debug-drawer) :void
+(defcfun ("setDebugDrawer" cffi-set-debug-drawer) :void
   (world-handle :pointer)
   (drawer :pointer))
 
-(defcfun ("getDebugDrawer" get-debug-drawer) :pointer
+(defcfun ("getDebugDrawer" cffi-get-debug-drawer) :pointer
   (world-handle :pointer))
 
-(defcfun ("debugDrawWorld" debug-draw-world) :void
+(defcfun ("debugDrawWorld" cffi-debug-draw-world) :void
   (world-handle :pointer))
 
 ;;; rigid_body.cpp
