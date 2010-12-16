@@ -37,9 +37,8 @@
 
 (define-condition debug-draw-invalid (simple-warning) ())
 
-(defclass debug-draw ()
-  ((data-pool-id :reader :id)
-   (foreign-debug-draw :reader foreign-debug-draw)))
+(defclass debug-draw (foreign-class)
+  ((data-pool-id :reader :id)))
 
 ;; Required methods
 (defgeneric draw-line (draw from to color))
@@ -65,52 +64,54 @@
     (setf data-pool-id
           (cut:new-pool-value
            *debug-arg-pool* (tg:make-weak-pointer self)))
-    (with-foreign-object (callbacks 'debug-draw-callbacks)
-      (with-foreign-slots ((draw-line
-                            draw-sphere
-                            draw-triangle
-                            draw-box
-                            draw-aabb
-                            draw-transform
-                            draw-arc
-                            draw-sphere-patch
-                            draw-contact-point
-                            report-error-warning
-                            draw-3d-text)
-                           callbacks debug-draw-callbacks)
-        (let ((self-class (class-of self)))
-          (setf draw-line (get-callback 'draw-line-cb)
-                draw-sphere (if (find-method #'draw-sphere nil (list self-class t t t) nil)
-                                (get-callback 'draw-sphere-cb)
-                                (null-pointer))
-                draw-triangle (if (find-method #'draw-triangle nil (list self-class t t t t t) nil)
-                                  (get-callback 'draw-triangle-cb)
-                                  (null-pointer))
-                draw-box (if (find-method #'draw-box nil (list self-class t t t) nil)
-                             (get-callback 'draw-box-cb)
-                             (null-pointer))
-                draw-aabb (if (find-method #'draw-aabb nil (list self-class t t t) nil)
-                              (get-callback 'draw-aabb-cb)
+    (let ((id data-pool-id))
+      (tg:finalize self (lambda ()
+                          (cut:delete-pool-value *debug-arg-pool* id))))))
+
+(defmethod foreign-class-alloc ((self debug-draw))
+  (with-foreign-object (callbacks 'debug-draw-callbacks)
+    (with-foreign-slots ((draw-line
+                          draw-sphere
+                          draw-triangle
+                          draw-box
+                          draw-aabb
+                          draw-transform
+                          draw-arc
+                          draw-sphere-patch
+                          draw-contact-point
+                          report-error-warning
+                          draw-3d-text)
+                         callbacks debug-draw-callbacks)
+      (let ((self-class (class-of self)))
+        (setf draw-line (get-callback 'draw-line-cb)
+              draw-sphere (if (find-method #'draw-sphere nil (list self-class t t t) nil)
+                              (get-callback 'draw-sphere-cb)
                               (null-pointer))
-                draw-transform (if (find-method #'draw-transform nil (list self-class t t) nil)
-                                   (get-callback 'draw-transform-cb)
-                                   (null-pointer))
-                draw-arc (if (find-method #'draw-arc nil (list self-class t t t t t t t t t t) nil)
-                             (get-callback 'draw-arc-cb)
-                             (null-pointer))
-                draw-sphere-patch (if (find-method #'draw-sphere-patch nil (list self-class t t t t t t t t t t) nil)
-                                      (get-callback 'draw-sphere-patch-cb)
-                                      (null-pointer))
-                draw-contact-point (get-callback 'draw-contact-point-cb)
-                report-error-warning (get-callback 'report-error-warning-cb)
-                draw-3d-text (get-callback 'draw-3d-text-cb)))
-        (setf foreign-debug-draw (new-cl-bullet-debug-draw callbacks (make-pointer data-pool-id)))
-        (let ((id data-pool-id)
-              (foreign-obj foreign-debug-draw))
-          (tg:finalize self (lambda ()
-                              (format t "finalize~%")
-                              (delete-cl-bullet-debug-draw foreign-obj)
-                              (cut:delete-pool-value *debug-arg-pool* id))))))))
+              draw-triangle (if (find-method #'draw-triangle nil (list self-class t t t t t) nil)
+                                (get-callback 'draw-triangle-cb)
+                                (null-pointer))
+              draw-box (if (find-method #'draw-box nil (list self-class t t t) nil)
+                           (get-callback 'draw-box-cb)
+                           (null-pointer))
+              draw-aabb (if (find-method #'draw-aabb nil (list self-class t t t) nil)
+                            (get-callback 'draw-aabb-cb)
+                            (null-pointer))
+              draw-transform (if (find-method #'draw-transform nil (list self-class t t) nil)
+                                 (get-callback 'draw-transform-cb)
+                                 (null-pointer))
+              draw-arc (if (find-method #'draw-arc nil (list self-class t t t t t t t t t t) nil)
+                           (get-callback 'draw-arc-cb)
+                           (null-pointer))
+              draw-sphere-patch (if (find-method #'draw-sphere-patch nil (list self-class t t t t t t t t t t) nil)
+                                    (get-callback 'draw-sphere-patch-cb)
+                                    (null-pointer))
+              draw-contact-point (get-callback 'draw-contact-point-cb)
+              report-error-warning (get-callback 'report-error-warning-cb)
+              draw-3d-text (get-callback 'draw-3d-text-cb))))
+    (new-cl-bullet-debug-draw callbacks (make-pointer (slot-value self 'data-pool-id)))))
+
+(defmethod foreign-class-free-fun ((self debug-draw))
+  #'delete-cl-bullet-debug-draw)
 
 (defun %call-debug-draw-method (pool-id method &rest args)
   (let ((draw (tg:weak-pointer-value

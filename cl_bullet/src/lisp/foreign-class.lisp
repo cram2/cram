@@ -28,21 +28,19 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(defsystem cl-bullet
-  :author "Lorenz Moesenlechner <moesenle@in.tum.de>"
-  :license "BSD"
-  :description "A common lisp wrapper for the bullet library"
+(in-package :bt)
 
-  :depends-on (:cffi
-               :trivial-garbage
-               :ros-load-manifest
-               :cram-utilities
-               :split-sequence
-               :cl-transforms)
-  :components
-  ((:file "package")
-   (:file "ros-utils" :depends-on ("package"))
-   (:file "foreign-types" :depends-on ("package"))
-   (:file "cffi" :depends-on ("package" "ros-utils" "foreign-types"))
-   (:file "foreign-class" :depends-on ("package"))
-   (:file "debug-draw" :depends-on ("package" "foreign-types" "cffi" "foreign-class"))))
+(defclass foreign-class ()
+  ((foreign-obj :reader foreign-obj)))
+
+(defgeneric foreign-class-alloc (class)
+  (:documentation "Allocates a foreign class."))
+
+(defgeneric foreign-class-free-fun (class)
+  (:documentation "Returns a function that frees a foreign class."))
+
+(defmethod initialize-instance :after ((obj foreign-class) &key)
+  (let ((foreign-obj (foreign-class-alloc obj))
+        (free-fun (foreign-class-free-fun obj)))
+    (setf (slot-value obj 'foreign-obj) foreign-obj)
+    (tg:finalize obj (lambda () (funcall free-fun foreign-obj)))))
