@@ -28,21 +28,8 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(defsystem cl-bullet
-  :author "Lorenz Moesenlechner <moesenle@in.tum.de>"
-  :license "BSD"
-  :description "A common lisp wrapper for the bullet library"
+(in-package :bt)
 
-  :depends-on (:cffi
-               :trivial-garbage
-               :ros-load-manifest
-               :cram-utilities
-               :split-sequence
-               :cl-transforms)
-  :components
-  ((:file "package")
-   (:file "ros-utils" :depends-on ("package"))
-   (:file "foreign-types" :depends-on ("package"))
-   (:file "cffi" :depends-on ("package" "ros-utils" "foreign-types"))
-   (:file "foreign-class" :depends-on ("package"))
-   (:file "debug-draw" :depends-on ("package" "foreign-types" "cffi" "foreign-class"))))
+(defclass rigid-body (foreign-class)
+  ())
+
