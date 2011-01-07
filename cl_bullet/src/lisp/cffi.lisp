@@ -96,7 +96,7 @@
 (defcfun ("deleteRigidBody" delete-rigid-body) :void
   (body-handle :pointer))
 
-(defun get-total-force (body-handle)
+(defun cffi-get-total-force (body-handle)
   (with-foreign-object (result :double 3)
     (foreign-funcall "getTotalForce" :pointer body-handle :pointer result)
     (translate-from-foreign result (make-instance 'bt-3d-vector))))
