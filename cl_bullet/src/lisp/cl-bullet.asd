@@ -48,4 +48,5 @@
    (:file "debug-draw" :depends-on ("package" "foreign-types" "cffi" "foreign-class"))
    (:file "bt-world" :depends-on ("package" "cffi" "foreign-class" "rigid-body"))
    (:file "motion-state" :depends-on ("package" "cffi" "foreign-class"))
-   (:file "rigid-body" :depends-on ("package" "cffi" "foreign-class" "motion-state"))))
+   (:file "rigid-body" :depends-on ("package" "cffi" "foreign-class" "motion-state"))
+   (:file "collision-shapes" :depends-on ("package" "cffi" "foreign-class"))))

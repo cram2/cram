@@ -181,7 +181,7 @@
 (defcfun ("isCompoundShape" compound-shape-p) :boolean
   (shape :pointer))
 
-(defcfun ("addChildShape" add-child-shape) :void
+(defcfun ("addChildShape" cffi-add-child-shape) :void
   (parent :pointer)
   (position bt-3d-vector)
   (orientation bt-quaternion)
@@ -204,7 +204,7 @@
 (defcfun ("isConvexHullShape" convex-hull-shape-p) :boolean
   (shape :pointer))
 
-(defcfun ("addPoint" add-point) :void
+(defcfun ("addPoint" cffi-add-point) :void
   (shape :pointer)
   (point bt-3d-vector))
 
