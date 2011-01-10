@@ -45,4 +45,7 @@
    (:file "foreign-types" :depends-on ("package"))
    (:file "cffi" :depends-on ("package" "ros-utils" "foreign-types"))
    (:file "foreign-class" :depends-on ("package"))
-   (:file "debug-draw" :depends-on ("package" "foreign-types" "cffi" "foreign-class"))))
+   (:file "debug-draw" :depends-on ("package" "foreign-types" "cffi" "foreign-class"))
+   (:file "bt-world" :depends-on ("package" "cffi" "foreign-class" "rigid-body"))
+   (:file "motion-state" :depends-on ("package" "cffi" "foreign-class"))
+   (:file "rigid-body" :depends-on ("package" "cffi" "foreign-class" "motion-state"))))
