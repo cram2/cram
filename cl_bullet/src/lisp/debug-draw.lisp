@@ -68,7 +68,7 @@
       (tg:finalize self (lambda ()
                           (cut:delete-pool-value *debug-arg-pool* id))))))
 
-(defmethod foreign-class-alloc ((self debug-draw))
+(defmethod foreign-class-alloc ((self debug-draw) &key &allow-other-keys)
   (with-foreign-object (callbacks 'debug-draw-callbacks)
     (with-foreign-slots ((draw-line
                           draw-sphere

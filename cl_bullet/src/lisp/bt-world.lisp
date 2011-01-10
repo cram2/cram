@@ -50,7 +50,7 @@
    (foreign-free-fun :reader foreign-class-free-fun
                      :initform #'delete-discrete-dynamics-world)))
 
-(defmethod foreign-class-alloc ((world bt-world))
+(defmethod foreign-class-alloc ((world bt-world) &key &allow-other-keys)
   (funcall (foreign-alloc-fun world)))
 
 (defmethod step-simulation ((world bt-world) time-step)

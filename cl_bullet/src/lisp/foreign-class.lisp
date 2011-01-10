@@ -33,14 +33,14 @@
 (defclass foreign-class ()
   ((foreign-obj :reader foreign-obj)))
 
-(defgeneric foreign-class-alloc (class)
+(defgeneric foreign-class-alloc (class &key &allow-other-keys)
   (:documentation "Allocates a foreign class."))
 
 (defgeneric foreign-class-free-fun (class)
   (:documentation "Returns a function that frees a foreign class."))
 
-(defmethod initialize-instance :after ((obj foreign-class) &key)
-  (let ((foreign-obj (foreign-class-alloc obj))
+(defmethod initialize-instance :after ((obj foreign-class) &rest args &key &allow-other-keys)
+  (let ((foreign-obj (apply #'foreign-class-alloc obj args))
         (free-fun (foreign-class-free-fun obj)))
     (setf (slot-value obj 'foreign-obj) foreign-obj)
     (tg:finalize obj (lambda () (funcall free-fun foreign-obj)))))

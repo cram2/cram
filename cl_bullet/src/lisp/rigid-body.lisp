@@ -56,7 +56,7 @@
             (body rigid-body))
     nil))
 
-(defmethod foreign-class-alloc ((body rigid-body))
+(defmethod foreign-class-alloc ((body rigid-body) &key &allow-other-keys)
   (let ((foreign-body (new-rigid-body
                        (mass body)
                        (foreign-obj (motion-state body))
