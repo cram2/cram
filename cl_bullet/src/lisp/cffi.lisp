@@ -163,7 +163,7 @@
 (defcfun ("isSphereShape" sphere-shape-p) :boolean
   (shape :pointer))
 
-(defcfun ("newCylinderShape" new-cyliner-shape) :pointer
+(defcfun ("newCylinderShape" new-cylinder-shape) :pointer
   (half-extents bt-3d-vector))
 
 (defcfun ("isCylinderShape" cylinder-shape-p) :boolean
