@@ -1,6 +1,4 @@
 
-PACKAGE_DIR=$(shell rospack find cl_store)
-
 all: installed
 
 downloaded: Makefile
@@ -11,7 +9,7 @@ downloaded: Makefile
 	touch downloaded
 
 installed: downloaded
-	ln -s ${PACKAGE_DIR}/cl-store/cl-store.asd ${PACKAGE_DIR}/asdf
+	ln -s ../cl-store/cl-store.asd asdf/cl-store.asd
 	touch installed
 
 clean:

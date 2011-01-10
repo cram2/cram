@@ -1,7 +1,6 @@
 
 CL_UTILS_ARCHIVE=cl-utilities-1.2.4.tar.gz
 CL_UTILS_URL=http://www.common-lisp.net/project/cl-utilities/$(CL_UTILS_ARCHIVE)
-PACKAGE_DIR=$(shell rospack find cl_utilities)
 
 all: installed
 
@@ -14,7 +13,7 @@ installed: downloaded
 	tar xvzf $(CL_UTILS_ARCHIVE)
 	mkdir -p asdf
 	touch rospack_nosubdirs
-	ln -s ${PACKAGE_DIR}/cl-utilities-1.2.4/cl-utilities.asd ${PACKAGE_DIR}/asdf
+	ln -s ../cl-utilities-1.2.4/cl-utilities.asd asdf/cl-utilities.asd
 	touch installed
 
 clean:

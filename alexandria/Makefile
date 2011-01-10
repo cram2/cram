@@ -1,6 +1,4 @@
 
-PACKAGE_DIR=$(shell rospack find alexandria)
-
 all: installed
 
 downloaded: Makefile
@@ -11,7 +9,7 @@ downloaded: Makefile
 	touch downloaded
 
 installed: downloaded
-	ln -s ${PACKAGE_DIR}/alexandria/alexandria.asd ${PACKAGE_DIR}/asdf/alexandria.asd
+	ln -s ../alexandria/alexandria.asd asdf/alexandria.asd
 	touch installed
 
 clean:
