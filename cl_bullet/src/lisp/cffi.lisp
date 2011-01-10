@@ -128,6 +128,10 @@
   (motion-state-handle :pointer)
   (center-off-mass bt-3d-vector))
 
+(defcfun ("setWorldTransform" set-world-transform) :void
+  (motion-state-handle :pointer)
+  (transform bt-transform))
+
 (defun get-world-transform (motion-state-handle)
   (with-foreign-object (transform :double 7)
     (foreign-funcall "getWorldTransform"
