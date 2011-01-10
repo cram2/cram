@@ -1,6 +1,4 @@
 
-PACKAGE_DIR=$(shell rospack find babel)
-
 all: installed
 
 downloaded: Makefile
@@ -11,8 +9,8 @@ downloaded: Makefile
 	touch downloaded
 
 installed: downloaded
-	ln -s ${PACKAGE_DIR}/babel/babel.asd ${PACKAGE_DIR}/asdf/babel.asd
-	ln -s ${PACKAGE_DIR}/babel/babel-streams.asd ${PACKAGE_DIR}/asdf/babel-streams.asd
+	ln -s ../babel/babel.asd asdf/babel.asd
+	ln -s ../babel/babel-streams.asd asdf/babel-streams.asd
 	touch installed
 
 clean:
