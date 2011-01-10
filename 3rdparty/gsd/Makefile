@@ -1,5 +1,4 @@
 
-PACKAGE_DIR=$(shell rospack find gsd)
 REV_SHA_ID=a79e13b4faf34ae9d69fcabc5def6229cb91efc2
 
 all: installed
@@ -13,7 +12,7 @@ downloaded: Makefile
 
 installed: downloaded
 	mkdir -p asdf
-	ln -s ${PACKAGE_DIR}/gsd/foreign-array.asd ${PACKAGE_DIR}/gsd/grid.asd ${PACKAGE_DIR}/asdf
+	ln -s ../gsd/foreign-array.asd ../gsd/grid.asd asdf
 	touch installed
 
 clean:

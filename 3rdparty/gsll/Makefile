@@ -1,5 +1,4 @@
 
-PACKAGE_DIR=$(shell rospack find gsll)
 REV_SHA_ID=7591d6dda666ac3b9353d3d38d0d394ab3a62688
 
 all: installed
@@ -13,7 +12,7 @@ downloaded: Makefile
 
 installed: downloaded
 	mkdir -p asdf
-	ln -s ${PACKAGE_DIR}/gsll/gsll.asd ${PACKAGE_DIR}/asdf
+	ln -s ../gsll/gsll.asd asdf
 	touch installed
 
 clean:
