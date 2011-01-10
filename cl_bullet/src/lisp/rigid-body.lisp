@@ -30,6 +30,12 @@
 
 (in-package :bt)
 
+(defgeneric activation-state (body))
+(defgeneric (setf activation-state) (new-value body))
+(defgeneric collision-flags (body))
+(defgeneric (setf collision-flags) (new-value body))
+(defgeneric get-total-force (body))
+
 (defclass rigid-body (foreign-class)
   ((mass :reader mass :initarg :mass :initform 0.0d0)
    (motion-state :reader motion-state :initarg :motion-state
@@ -45,16 +51,12 @@
                     :initarg :collision-flags
                     :initform :cf-kinematic-object)))
 
-(defgeneric pose (rigid-body)
-  (:method ((body rigid-body))))
+(defmethod pose ((body rigid-body))
+  (pose (motion-state body)))
 
-(defgeneric (setf pose) (new-value rigid-body)
-  (:method ((new-value cl-transforms:transform)
-            (body rigid-body))
-    nil)
-  (:method ((new-value cl-transforms:pose)
-            (body rigid-body))
-    nil))
+(defmethod (setf pose) (new-value (body rigid-body))
+  (setf (pose (motion-state body)) new-value)
+  (set-motion-state (foreign-obj body) (foreign-obj (motion-state body))))
 
 (defmethod foreign-class-alloc ((body rigid-body) &key &allow-other-keys)
   (let ((foreign-body (new-rigid-body
