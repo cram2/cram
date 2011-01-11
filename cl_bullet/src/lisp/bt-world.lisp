@@ -50,8 +50,10 @@
    (foreign-free-fun :reader foreign-class-free-fun
                      :initform #'delete-discrete-dynamics-world)))
 
-(defmethod foreign-class-alloc ((world bt-world) &key &allow-other-keys)
-  (funcall (foreign-alloc-fun world)))
+(defmethod foreign-class-alloc ((world bt-world) &key
+                                (gravity-vector (cl-transforms:make-3d-vector 0 0 -9.81))
+                                &allow-other-keys)
+  (funcall (foreign-alloc-fun world) gravity-vector))
 
 (defmethod step-simulation ((world bt-world) time-step)
   (cffi-step-simulation (foreign-obj world) time-step))
