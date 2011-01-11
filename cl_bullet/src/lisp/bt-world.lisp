@@ -42,8 +42,8 @@
 (defgeneric debug-draw-world (world))
 
 (defclass bt-world (foreign-class)
-  ((bodies :reader bodies)
-   (constraints :reader constraints)
+  ((bodies :reader bodies :initform nil)
+   (constraints :reader constraints :initform nil)
    (debug-drawer :reader get-debug-drawer :initform nil)
    (foreign-alloc-fun :reader foreign-alloc-fun
                       :initform #'new-discrete-dynamics-world)
