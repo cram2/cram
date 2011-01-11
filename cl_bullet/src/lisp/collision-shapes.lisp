@@ -53,7 +53,7 @@
   ((radius :initarg :radius :reader radius)))
 
 (defmethod foreign-class-alloc ((obj sphere-shape) &key radius &allow-other-keys)
-  (new-sphere-shape radius))
+  (new-sphere-shape (coerce radius 'double-float)))
 
 (defclass cylinder-shape (collision-shape)
   ((half-extents :initarg half-extents :reader half-extents)))

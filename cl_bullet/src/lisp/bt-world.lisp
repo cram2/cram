@@ -56,7 +56,7 @@
   (funcall (foreign-alloc-fun world) gravity-vector))
 
 (defmethod step-simulation ((world bt-world) time-step)
-  (cffi-step-simulation (foreign-obj world) time-step))
+  (cffi-step-simulation (foreign-obj world) (coerce time-step 'double-float)))
 
 (defmethod add-rigid-body ((world bt-world) (body rigid-body) &optional group mask)
   (with-slots (bodies foreign-obj) world
