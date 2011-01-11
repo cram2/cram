@@ -41,7 +41,7 @@
                                     :collision-shape plane-shape))
          (box-body (make-instance 'rigid-body
                                      :collision-shape box-shape
-                                     :mass 1.0
+                                     :mass 0.1
                                      :pose (cl-transforms::make-pose
                                             (cl-transforms:make-3d-vector 0 0 2)
                                             (cl-transforms:axis-angle->quaternion
@@ -49,7 +49,8 @@
                                              (/ pi 10))))))
     (add-rigid-body world plane-body)
     (add-rigid-body world box-body)
-    (loop for i below 100 do
+    (loop while (eq (activation-state box-body) :active-tag)
+          for i from 1 do
       (format t "~a ~a~%" i (pose box-body))
       (format t "box:~%activation-state ~a, collision-flags: ~a~%"
                 (activation-state box-body)
