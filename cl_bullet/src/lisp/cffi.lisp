@@ -110,11 +110,17 @@
 
 (defcfun ("setActivationState" set-activation-state) :void
   (body-handle :pointer)
-  (new-state :int))
+  (new-state activation-state))
+
+(defcfun ("getActivationState" get-activation-state) activation-state
+  (body-handle :pointer))
 
 (defcfun ("setCollisionFlags" set-collision-flags) :void
   (body-handle :pointer)
-  (flags :int))
+  (flags collision-flags))
+
+(defcfun ("getCollisionFlags" get-collision-flags) collision-flags
+  (body-handle :pointer))
 
 ;;; motion_state.cpp
 

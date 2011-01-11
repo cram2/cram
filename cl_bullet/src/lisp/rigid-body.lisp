@@ -43,13 +43,7 @@
    (collision-shape :reader collision-shape :initarg :collision-shape
                     :initform (error
                                'simple-error
-                               :format-control "collision-shape argument required"))
-   (activation-state :reader activation-state
-                     :initarg :activation-state
-                     :initform :active-tag)
-   (collision-flags :reader collision-flags
-                    :initarg :collision-flags
-                    :initform :cf-kinematic-object)))
+                               :format-control "collision-shape argument required"))))
 
 (defmethod pose ((body rigid-body))
   (pose (motion-state body)))
@@ -58,15 +52,19 @@
   (setf (pose (motion-state body)) new-value)
   (set-motion-state (foreign-obj body) (foreign-obj (motion-state body))))
 
-(defmethod foreign-class-alloc ((body rigid-body) &key &allow-other-keys)
+(defmethod foreign-class-alloc ((body rigid-body) &key
+                                pose activation-state collision-flags
+                                &allow-other-keys)
+  (when pose
+    (setf (pose (motion-state body)) pose))
   (let ((foreign-body (new-rigid-body
-                       (mass body)
+                       (coerce (mass body) 'double-float)
                        (foreign-obj (motion-state body))
                        (foreign-obj (collision-shape body)))))
-    ;; Is this good? Shouldn't we better rely on foreign reader
-    ;; methods and not set anything here?
-    (set-activation-state foreign-body (activation-state body))
-    (set-collision-flags foreign-body (collision-flags body))
+    (when activation-state
+      (setf (activation-state body) activation-state))
+    (when collision-flags
+      (setf (collision-flags body) collision-flags))
     foreign-body))
 
 (defmethod foreign-class-free-fun ((body rigid-body))
@@ -75,10 +73,14 @@
 (defmethod get-total-force ((body rigid-body))
   (cffi-get-total-force (foreign-obj body)))
 
+(defmethod activation-state ((body rigid-body))
+  (get-activation-state (foreign-obj body)))
+
 (defmethod (setf activation-state) (new-value (body rigid-body))
-  (setf (slot-value body 'activation-state) new-value)
   (set-activation-state (foreign-obj body) new-value))
 
+(defmethod collision-flags ((body rigid-body))
+  (get-collision-flags (foreign-obj body)))
+
 (defmethod (setf collision-flags) (new-value (body rigid-body))
-  (setf (slot-value body 'collision-flags) new-value)
   (set-collision-flags (foreign-obj body) new-value))
