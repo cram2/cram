@@ -38,6 +38,7 @@
   (:disable-simulation 5))
 
 (defcenum collision-flags
+  (:cf-default 0)
   (:cf-static-object 1)
   (:cf-kinematic-object 2)
   (:cf-no-contact-response 4)

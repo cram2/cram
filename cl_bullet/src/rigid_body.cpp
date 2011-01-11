@@ -68,9 +68,19 @@ extern "C"
     body->setActivationState(newState);
   }
 
+  int getActivationState(btRigidBody *body)
+  {
+    return body->getActivationState();
+  }
+
   void setCollisionFlags(btRigidBody *body, int flags)
   {
     body->setCollisionFlags(flags);
+  }
+
+  int getCollisionFlags(btRigidBody *body)
+  {
+    return body->getCollisionFlags();
   }
 
 }
