@@ -31,29 +31,32 @@
 (in-package :bt-ex)
 
 (defun hello-world ()
-  (let* ((world (new-discrete-dynamics-world (make-3d-vector 0 0 -9.81)))
-         (plane-shape (new-static-plane-shape (make-3d-vector 0 0 1) 0.0d0))
-         (sphere-shape (new-sphere-shape 0.5d0))
-         (plane-motion-state (new-motion-state (make-transform
-                                                (make-3d-vector 0 0 0)
-                                                (make-quaternion 0 0 0 1))))
-         (sphere-motion-state (new-motion-state (make-transform
-                                                 (make-3d-vector 0 0 5.0)
-                                                 (make-quaternion 0 0 0 1))))
-         (plane-body (new-rigid-body 0.0d0 plane-motion-state plane-shape))
-         (sphere-body (new-rigid-body 1.0d0 sphere-motion-state sphere-shape)))
-    (unwind-protect
-         (progn
-           (add-rigid-body world plane-body)
-           (add-rigid-body world sphere-body)
-           (loop for i below 100 do
-             (format t "~a ~a~%" i (get-world-transform sphere-motion-state))
-             (step-simulation world 0.015d0)
-             (sleep 0.015)))
-      (delete-discrete-dynamics-world world)
-      (delete-rigid-body plane-body)
-      (delete-rigid-body sphere-body)
-      (delete-motion-state sphere-motion-state)
-      (delete-motion-state plane-motion-state)
-      (delete-collision-shape sphere-shape)
-      (delete-collision-shape plane-shape))))
+  (let* ((world (make-instance 'bt-world))
+         (plane-shape (make-instance 'static-plane-shape
+                                     :normal (cl-transforms:make-3d-vector 0 0 1)
+                                     :constant 0))
+         (box-shape (make-instance 'box-shape
+                                   :half-extents (cl-transforms:make-3d-vector 0.5 0.5 0.5)))
+         (plane-body (make-instance 'rigid-body
+                                    :collision-shape plane-shape))
+         (box-body (make-instance 'rigid-body
+                                     :collision-shape box-shape
+                                     :mass 1.0
+                                     :pose (cl-transforms::make-pose
+                                            (cl-transforms:make-3d-vector 0 0 2)
+                                            (cl-transforms:axis-angle->quaternion
+                                             (cl-transforms:make-3d-vector 0.5 0.5 1)
+                                             (/ pi 10))))))
+    (add-rigid-body world plane-body)
+    (add-rigid-body world box-body)
+    (loop for i below 100 do
+      (format t "~a ~a~%" i (pose box-body))
+      (format t "box:~%activation-state ~a, collision-flags: ~a~%"
+                (activation-state box-body)
+                (collision-flags box-body))
+      (format t "plane:~%activation-state ~a, collision-flags: ~a~%~%"
+                (activation-state plane-body)
+                (collision-flags plane-body))
+      (step-simulation world 0.015)
+      (sleep 0.015))))
+
