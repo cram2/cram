@@ -98,6 +98,11 @@ extern "C"
     hinge->enableMotor(enableMotor);
   }
 
+  bool getEnableMotor(btHingeConstraint *hinge)
+  {
+    return hinge->getEnableAngularMotor();
+  }
+
   void setMaxMotorImpulse(btHingeConstraint *hinge, double maxMotorImpulse)
   {
     hinge->setMaxMotorImpulse(maxMotorImpulse);

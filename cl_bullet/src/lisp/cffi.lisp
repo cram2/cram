@@ -258,6 +258,9 @@
   (hinge :pointer)
   (enable-motor :boolean))
 
+(defcfun ("getEnableMotor" get-enable-motor) :boolean
+  (hinge :pointer))
+
 (defcfun ("setMaxMotorImpulse" set-max-motor-impulse) :void
   (hinge :pointer)
   (max-motor-impulse :double))
