@@ -1,6 +1,4 @@
 
-PACKAGE_DIR=$(shell rospack find cl_opengl)
-
 all: installed
 
 downloaded: Makefile
@@ -10,11 +8,11 @@ downloaded: Makefile
 	touch downloaded
 
 installed: downloaded
-	mkdir -p ${PACKAGE_DIR}/asdf
-	ln -s ${PACKAGE_DIR}/cl-opengl/cl-opengl.asd ${PACKAGE_DIR}/asdf
-	ln -s ${PACKAGE_DIR}/cl-opengl/cl-glu.asd ${PACKAGE_DIR}/asdf
-	ln -s ${PACKAGE_DIR}/cl-opengl/cl-glut.asd ${PACKAGE_DIR}/asdf
-	ln -s ${PACKAGE_DIR}/cl-opengl/cl-glut-examples.asd ${PACKAGE_DIR}/asdf
+	mkdir -p asdf
+	ln -s ../cl-opengl/cl-opengl.asd asdf/
+	ln -s ../cl-opengl/cl-glu.asd asdf/
+	ln -s ../cl-opengl/cl-glut.asd asdf/
+	ln -s ../cl-opengl/cl-glut-examples.asd asdf/
 	touch installed
 
 clean:
