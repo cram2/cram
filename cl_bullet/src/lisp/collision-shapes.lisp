@@ -98,4 +98,5 @@
 
 (defgeneric add-point (obj point)
   (:method ((obj convex-hull-shape) (point cl-transforms:3d-vector))
+    (push point (slot-value obj 'points))
     (cffi-add-point (foreign-obj obj) point)))
