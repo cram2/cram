@@ -101,6 +101,24 @@
     (foreign-funcall "getTotalForce" :pointer body-handle :pointer result)
     (translate-from-foreign result (make-instance 'bt-3d-vector))))
 
+(defun cffi-get-total-torque (body-handle)
+  (with-foreign-object (result :double 3)
+    (foreign-funcall "getTotalTorque" :pointer body-handle :pointer result)
+    (translate-from-foreign result (make-instance 'bt-3d-vector))))
+
+(defcfun ("applyForce" cffi-apply-force) :void
+  (body-handle :pointer)
+  (force bt-3d-vector)
+  (rel-pos bt-3d-vector))
+
+(defcfun ("applyCentralForce" cffi-apply-central-force) :void
+  (body-handle :pointer)
+  (force bt-3d-vector))
+
+(defcfun ("applyTorque" cffi-apply-torque) :void
+  (body-handle :pointer)
+  (torque bt-3d-vector))
+
 (defcfun ("getMotionState" get-motion-state) :pointer
   (body-handle :pointer))
 

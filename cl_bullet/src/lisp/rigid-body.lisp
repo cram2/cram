@@ -35,6 +35,10 @@
 (defgeneric collision-flags (body))
 (defgeneric (setf collision-flags) (new-value body))
 (defgeneric get-total-force (body))
+(defgeneric get-total-torque (body))
+(defgeneric apply-force (body force rel-pos))
+(defgeneric apply-central-force (body force))
+(defgeneric apply-torque (body torque))
 
 (defclass rigid-body (foreign-class)
   ((mass :reader mass :initarg :mass :initform 0.0d0)
@@ -72,6 +76,18 @@
 
 (defmethod get-total-force ((body rigid-body))
   (cffi-get-total-force (foreign-obj body)))
+
+(defmethod get-total-torque ((body rigid-body))
+  (cffi-get-total-torque (foreign-obj body)))
+
+(defmethod apply-force ((body rigid-body) force rel-pos)
+  (cffi-apply-force (foreign-obj body) force rel-pos))
+
+(defmethod apply-central-force ((body rigid-body) force)
+  (cffi-apply-central-force (foreign-obj body) force))
+
+(defmethod apply-torque ((body rigid-body) torque)
+  (cffi-apply-torque (foreign-obj body) torque))
 
 (defmethod activation-state ((body rigid-body))
   (get-activation-state (foreign-obj body)))

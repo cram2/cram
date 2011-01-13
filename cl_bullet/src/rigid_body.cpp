@@ -53,6 +53,33 @@ extern "C"
     forceVector[2] = forceVectorBt.z();
   }
 
+  void getTotalTorque(btRigidBody *body, double *torqueVector)
+  {
+    btVector3 torqueVectorBt = body->getTotalTorque();
+    torqueVector[0] = torqueVectorBt.x();
+    torqueVector[1] = torqueVectorBt.y();
+    torqueVector[2] = torqueVectorBt.z();
+  }
+
+  void applyForce(btRigidBody *body, double *force, double *rel_pos)
+  {
+    btVector3 force_vec(force[0], force[1], force[2]);
+    btVector3 rel_pos_vec(rel_pos[0], rel_pos[1], rel_pos[2]);
+    body->applyForce(force_vec, rel_pos_vec);
+  }
+
+  void applyCentralForce(btRigidBody *body, double *force)
+  {
+    btVector3 force_vec(force[0], force[1], force[2]);
+    body->applyCentralForce(force_vec);
+  }
+
+  void applyTorque(btRigidBody *body, double *torque)
+  {
+    btVector3 torque_vec(torque[0], torque[1], torque[2]);
+    body->applyTorque(torque_vec);
+  }
+
   btMotionState *getMotionState(btRigidBody *body)
   {
     return body->getMotionState();
