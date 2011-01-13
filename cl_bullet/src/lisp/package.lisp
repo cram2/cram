@@ -33,53 +33,51 @@
   (:use #:common-lisp #:cffi)
   (:export
    ;; dynamics world
-   new-discrete-dynamics-world
-   delete-discrete-dynamics-world
+   bt-world
    step-simulation
-   add-constraint
-   remove-constraint
    add-rigid-body
    remove-rigid-body
+   bodies
+   add-constraint
+   remove-constraint
+   constraints
    set-debug-drawer
    get-debug-drawer
    debug-draw-world
    ;; rigid bodies
-   new-rigid-body
-   delete-rigid-body
+   activation-state
+   collision-flags
    get-total-force
-   get-motion-state
-   set-motion-state
-   set-activation-state
-   set-collision-flags
+   get-total-torque
+   apply-force
+   apply-central-force
+   apply-torque
+   rigid-body
+   mass
+   collision-shape
    ;; motion states
-   new-motion-state
-   delete-motion-state
-   set-center-of-mass
-   get-world-transform
+   pose
    ;; collision shapes
-   delete-collision-shape
-   new-box-shape
-   box-shape-p
-   new-static-plane-shape
-   static-plane-shape-p
-   new-sphere-shape
-   sphere-shape-p
-   new-cyliner-shape
-   cylinder-shape-p
-   new-cone-shape
-   cone-shape-p
-   new-compound-shape
-   compound-shape-p
-   add-child-shape
-   new-convex-hull-shape
-   convex-hull-shape-p
-   add-point
+   collision-shape
+   box-shape half-extents
+   static-plane-shape normal constant
+   sphere-shape radius
+   cylinder-shape
+   cone-shape height
+   compound-shape children add-child-shape child-pose
+   convex-hull-shape points add-point
    ;; constraints
-   delete-constraint
-   new-point-2-point-constraint
-   point-2-point-constraint-p
-   new-hinge-constraint
-   hinge-constraint-p
+   constraint
+   limit
+   enabled
+   max-impulse
+   target-velocity
+   set-target-lin-motor-velocity
+   motor-position
+   point-2-point-constraint
+   hinge-constraint
+   slider-constraint
+   ;; For now we keep the low-level wrappers since we didn't wrap all of them.
    set-angular-only
    get-angular-only
    enable-angular-motor
@@ -93,8 +91,6 @@
    get-hinge-angle
    get-lower-limit
    get-upper-limit
-   new-slider-constraint
-   slider-constraint-p
    get-lower-lin-limit
    set-lower-lin-limit
    get-upper-lin-limit
