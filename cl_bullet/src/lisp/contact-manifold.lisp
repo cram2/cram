@@ -28,30 +28,19 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(defsystem cl-bullet
-  :author "Lorenz Moesenlechner <moesenle@in.tum.de>"
-  :license "BSD"
-  :description "A common lisp wrapper for the bullet library"
+(in-package :bt)
 
-  :depends-on (:cffi
-               :trivial-garbage
-               :ros-load-manifest
-               :cram-utilities
-               :split-sequence
-               :cl-transforms)
-  :components
-  ((:file "package")
-   (:file "ros-utils" :depends-on ("package"))
-   (:file "foreign-types" :depends-on ("package"))
-   (:file "cffi" :depends-on ("package" "ros-utils" "foreign-types"))
-   (:file "foreign-class" :depends-on ("package"))
-   (:file "debug-draw" :depends-on ("package" "foreign-types" "cffi" "foreign-class"))
-   (:file "bt-world" :depends-on ("package" "cffi" "foreign-class" "rigid-body" "contact-manifold"))
-   (:file "contact-manifold" :depends-on ("package"))
-   (:file "motion-state" :depends-on ("package" "cffi" "foreign-class"))
-   (:file "rigid-body" :depends-on ("package" "cffi" "foreign-class" "motion-state"))
-   (:file "collision-shapes" :depends-on ("package" "cffi" "foreign-class"))
-   (:file "constraints" :depends-on ("package" "cffi" "foreign-class"))
-   (:file "point-2-point-constraint" :depends-on ("package" "cffi" "constraints"))
-   (:file "hinge-constraint" :depends-on ("package" "cffi" "constraints"))
-   (:file "slider-constraint" :depends-on ("package" "cffi" "constraints"))))
+(defclass contact-point ()
+  ((point-in-1 :initarg :point-in-1 :reader point-in-1)
+   (point-in-2 :initarg :point-in-2 :reader point-in-2)))
+
+(defclass contact-manifold ()
+  ((body-1 :initarg :body-1 :reader body-1)
+   (body-2 :initarg :body-2 :reader body-2)
+   (contact-points :initarg :contact-points :reader contact-points)))
+
+(defmethod print-object ((pt contact-point) strm)
+  (with-slots (point-in-1 point-in-2) pt
+    (print-unreadable-object (pt strm :type t :identity t)
+      (format strm "point-in-1: ~a, point-in-2: ~a"
+              point-in-1 point-in-2))))
