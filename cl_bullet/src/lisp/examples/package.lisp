@@ -29,6 +29,6 @@
 ;;;
 
 (defpackage cl-bullet-examples
-    (:use #:common-lisp #:cl-bullet #:cl-transforms)
+    (:use #:common-lisp #:cl-bullet)
   (:nicknames #:bt-ex)
   (:export #:hello-world))
