@@ -34,7 +34,7 @@ struct DynamicsWorldHandle
 {
   btBroadphaseInterface *broadphase;
   btCollisionConfiguration *collisionConfiguration;
-  btDispatcher *dispatcher;
+  btCollisionDispatcher *dispatcher;
   btConstraintSolver *solver;
   btDynamicsWorld *dynamicsWorld;
 };
@@ -130,4 +130,51 @@ extern "C"
     if(handle_)
       handle_->debugDrawWorld();
   }
+
+  /** Collisions **/
+  int getNumManifolds(DynamicsWorldHandle *handle)
+  {
+    return handle->dispatcher->getNumManifolds();
+  }
+
+  btPersistentManifold *getManifoldByIndex(DynamicsWorldHandle *handle, int index)
+  {
+    return handle->dispatcher->getManifoldByIndexInternal(index);
+  }
+
+  btCollisionObject *manifoldGetBody0(btPersistentManifold *manifold)
+  {
+    return reinterpret_cast<btCollisionObject *>(manifold->getBody0());
+  }
+
+  btCollisionObject *manifoldGetBody1(btPersistentManifold *manifold)
+  {
+    return reinterpret_cast<btCollisionObject *>(manifold->getBody1());
+  }
+
+  int manifoldGetNumContactPoints(btPersistentManifold *manifold)
+  {
+    return manifold->getNumContacts();
+  }
+
+  void manifoldGetContactPoint0(btPersistentManifold *manifold, int index, double *point)
+  {
+    btManifoldPoint &pt = manifold->getContactPoint(index);
+
+    const btVector3 &point_on_a_vec = pt.getPositionWorldOnA();
+    point[0] = point_on_a_vec.x();
+    point[1] = point_on_a_vec.y();
+    point[2] = point_on_a_vec.z();
+  }
+
+  void manifoldGetContactPoint1(btPersistentManifold *manifold, int index, double *point)
+  {
+    btManifoldPoint &pt = manifold->getContactPoint(index);
+        
+    const btVector3 &point_on_b_vec = pt.getPositionWorldOnB();
+    point[0] = point_on_b_vec.x();
+    point[1] = point_on_b_vec.y();
+    point[2] = point_on_b_vec.z();
+  }
+  
 }

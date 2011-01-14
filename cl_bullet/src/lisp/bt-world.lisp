@@ -40,6 +40,7 @@
 (defgeneric set-debug-drawer (world drawer))
 (defgeneric get-debug-drawer (world))
 (defgeneric debug-draw-world (world))
+(defgeneric contact-manifolds (world))
 
 (defclass bt-world (foreign-class)
   ((bodies :reader bodies :initform nil)
@@ -84,3 +85,25 @@
 
 (defmethod debug-draw-world ((world bt-world))
   (cffi-debug-draw-world (foreign-obj world)))
+
+(defmethod contact-manifolds ((world bt-world))
+  (flet ((get-contact-points (manifold)
+           (loop for i from 0 below (manifold-get-num-contact-points manifold)
+                 collecting (make-instance 'contact-point
+                                 :point-in-1 (manifold-get-contact-point-0 manifold i)
+                                 :point-in-2 (manifold-get-contact-point-1 manifold i)))))
+    (loop for i from 0 below (get-num-manifolds (foreign-obj world))
+          for manifold = (get-manifold-by-index (foreign-obj world) i)
+          for body-ptr-1 = (manifold-get-body-0 manifold)
+          for body-ptr-2 = (manifold-get-body-1 manifold)
+          when (> (manifold-get-num-contact-points manifold) 0)
+            collecting (make-instance 'contact-manifold
+                            :body-1 (find (manifold-get-body-0 manifold) (bodies world)
+                                          :key #'foreign-obj :test (lambda (a b)
+                                                                     (eql (pointer-address a)
+                                                                          (pointer-address b))))
+                            :body-2 (find (manifold-get-body-1 manifold) (bodies world)
+                                          :key #'foreign-obj :test (lambda (a b)
+                                                                     (eql (pointer-address a)
+                                                                          (pointer-address b))))
+                            :contact-points (get-contact-points manifold)))))

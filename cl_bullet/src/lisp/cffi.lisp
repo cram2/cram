@@ -86,6 +86,36 @@
 (defcfun ("debugDrawWorld" cffi-debug-draw-world) :void
   (world-handle :pointer))
 
+(defcfun ("getNumManifolds" get-num-manifolds) :int
+  (world-handle :pointer))
+
+(defcfun ("getManifoldByIndex" get-manifold-by-index) :pointer
+  (world-handle :pointer)
+  (index :int))
+
+(defcfun ("manifoldGetBody0" manifold-get-body-0) :pointer
+  (manifold :pointer))
+
+(defcfun ("manifoldGetBody1" manifold-get-body-1) :pointer
+  (manifold :pointer))
+
+(defcfun ("manifoldGetNumContactPoints" manifold-get-num-contact-points) :int
+  (manifold :pointer))
+
+(defun manifold-get-contact-point-0 (manifold index)
+  (with-foreign-object (result :double 3)
+    (foreign-funcall "manifoldGetContactPoint0"
+                     :pointer manifold :int index
+                     :pointer result)
+    (translate-from-foreign result (make-instance 'bt-3d-vector))))
+
+(defun manifold-get-contact-point-1 (manifold index)
+  (with-foreign-object (result :double 3)
+    (foreign-funcall "manifoldGetContactPoint1"
+                     :pointer manifold :int index
+                     :pointer result)
+    (translate-from-foreign result (make-instance 'bt-3d-vector))))
+
 ;;; rigid_body.cpp
 
 (defcfun ("newRigidBody" new-rigid-body) :pointer

@@ -44,6 +44,10 @@
    set-debug-drawer
    get-debug-drawer
    debug-draw-world
+   contact-manifolds
+   ;; contact-manifolds
+   contact-point point-in-1 point-in-2
+   contact-manifold body-1 body-2 contact-points
    ;; rigid bodies
    activation-state
    collision-flags
