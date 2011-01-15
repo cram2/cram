@@ -45,8 +45,7 @@
   (gl:light :light0 :diffuse #(1 1 1 1))
   (gl:light :light0 :specular #(1 1 1 1))
   (gl:with-pushed-matrix
-    (dolist (body (bodies (world window)))
-      (draw-rigid-body body)))
+    (draw-world (world window)))
   (glut:swap-buffers)
   (gl:flush))
 

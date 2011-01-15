@@ -42,5 +42,7 @@
                (:file "bullet-shape-visualization" :depends-on ("package" "transforms"))
                (:file "bullet-body-visualization"
                       :depends-on ("package" "transforms" "bullet-shape-visualization"))
+               (:file "bullet-world-visualization"
+                      :depends-on ("package" "bullet-body-visualization"))
                (:file "bullet-world-window"
-                      :depends-on ("package" "transforms" "bullet-body-visualization"))))))
+                      :depends-on ("package" "transforms" "bullet-world-visualization"))))))
