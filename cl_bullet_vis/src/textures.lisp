@@ -30,16 +30,28 @@
 
 (in-package :bt-vis)
 
-(defvar *current-world* nil
-  "Contains a reference to the world during drawing operations. This
-  is sort of a back-door to allow drawing functions to re-draw the
-  whole scene in order to do fancy opengl effects such as shadows and
-  reflections.")
+(defun texture-str->bitmap (str white-char &optional (transparent-char nil))
+  "Converts a simple 1-d string to an array with all chars that match
+  white-char being replaced by '(1.0 1.0 1.0 1.0) and everything else set
+  to '(0.0 0.0 0.0 0.0). The resulting list can be used as a bitmap for
+  creating a texture."
+  (map 'vector #'identity
+       (mapcan
+        (lambda (x)
+          (cond ((eql x white-char)
+                 (list 1.0 1.0 1.0 1.0))
+                ((eql x transparent-char)
+                 (list 0.0 0.0 0.0 0.0))
+                (t (list 0.0 0.0 0.0 1.0))))
+        (map 'list #'identity str))))
 
-(defgeneric draw-world (gl-context world)
-  (:method :around (gl-context world)
-    (let ((*current-world* world))
-      (call-next-method)))
-  (:method ((context gl-context) (world bt-world))
-    (dolist (body (bodies world))
-      (draw-rigid-body context body))))
+(defun make-mipmaps (texture-handle texture-array width height)
+  (gl:bind-texture :texture-2d texture-handle)
+  (gl:tex-env :texture-env :texture-env-mode :modulate)
+  (gl:tex-parameter :texture-2d :texture-min-filter :linear-mipmap-linear)
+  (gl:tex-parameter :texture-2d :texture-mag-filter :linear)
+  (gl:tex-parameter :texture-2d :texture-wrap-s :repeat)
+  (gl:tex-parameter :texture-2d :texture-wrap-t :repeat)
+  (glu:build-2d-mipmaps
+   :texture-2d 4 width height :rgba :float
+   texture-array))

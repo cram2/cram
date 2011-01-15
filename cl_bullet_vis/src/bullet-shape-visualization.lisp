@@ -1,20 +1,20 @@
 ;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
 ;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
+;;;       Technische Universitaet Muenchen nor the names of its contributors
+;;;       may be used to endorse or promote products derived from this software
 ;;;       without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -30,10 +30,10 @@
 
 (in-package :bt-vis)
 
-(defgeneric draw-collision-shape (shape)
+(defgeneric draw-collision-shape (gl-context shape)
   (:documentation "Draws a collision shape with opengl"))
 
-(defmethod draw-collision-shape ((box box-shape))
+(defmethod draw-collision-shape ((context gl-context) (box box-shape))
   (let ((size-x (* 2 (cl-transforms:x (half-extents box))))
         (size-y (* 2 (cl-transforms:y (half-extents box))))
         (size-z (* 2 (cl-transforms:z (half-extents box)))))
@@ -41,7 +41,7 @@
       (gl:scale size-x size-y size-z)
       (glut:solid-cube 1))))
 
-(defmethod draw-collision-shape ((plane static-plane-shape))
+(defmethod draw-collision-shape ((context gl-context) (plane static-plane-shape))
   (let ((normal (normal plane))
         (constant (constant plane)))
     (gl:with-pushed-matrix
@@ -67,20 +67,20 @@
         (gl:vertex -100 100))
       (gl:enable :cull-face))))
 
-(defmethod draw-collision-shape ((sphere sphere-shape))
+(defmethod draw-collision-shape ((context gl-context) (sphere sphere-shape))
   (glut:solid-sphere (radius sphere) 50 50))
 
-(defmethod draw-collision-shape ((cone cone-shape))
+(defmethod draw-collision-shape ((context gl-context) (cone cone-shape))
   (glut:solid-cone (radius cone) (height cone) 50 50))
 
-(defmethod draw-collision-shape ((shape compound-shape))
+(defmethod draw-collision-shape ((context gl-context) (shape compound-shape))
   (dolist (child (children shape))
     (gl:with-pushed-matrix
       (gl:mult-matrix
        (pose->gl-matrix (child-pose shape child)))
       (draw-collision-shape child))))
 
-(defmethod draw-collision-shape ((hull convex-hull-shape))
+(defmethod draw-collision-shape ((context gl-context) (hull convex-hull-shape))
   (gl:with-primitive :points
     (dolist (point (points hull))
       (gl:vertex
