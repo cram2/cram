@@ -28,13 +28,18 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :cl-user)
+(in-package :bt-vis)
 
-(defpackage cl-bullet-vis
-    (:nicknames :bt-vis)
-  (:use #:common-lisp #:bt)
-  (:export bullet-world-window world camera-transform
-           draw-world *current-world*
-           draw-rigid-body rigid-body-color
-           draw-collision-shape
-           matrix->gl-matrix pose->gl-matrix transform->gl-matrix))
+(defvar *current-world* nil
+  "Contains a reference to the world during drawing operations. This
+  is sort of a back-door to allow drawing functions to re-draw the
+  whole scene in order to do fancy opengl effects such as shadows and
+  reflections.")
+
+(defgeneric draw-world (world)
+  (:method :around (world)
+    (let ((*current-world* world))
+      (call-next-method)))
+  (:method ((world bt-world))
+    (dolist (body (bodies world))
+      (draw-rigid-body body))))
