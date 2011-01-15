@@ -1,14 +1,9 @@
 
 (in-package :bt-vis)
 
-(defclass bullet-world-window (glut:window)
+(defclass bullet-world-window (glut:window gl-context)
   ((world :reader world :initarg :world
           :initform (error 'simple-error :format-control "world argument required"))
-   (camera-transform :initform (cl-transforms:make-pose
-                           (cl-transforms:make-3d-vector 0 0 0)
-                           (cl-transforms:make-quaternion 0 0 0 1))
-                :initarg :camera-transform
-                :reader camera-transform)
    (motion-mode :initform nil :reader motion-mode)
    (pointer-pos :initform nil :reader pointer-pos))
   (:default-initargs :width 640 :height 480 :title "glut-teapot.lisp"
@@ -21,7 +16,8 @@
   (gl:shade-model :smooth)
   ;; (gl:light-model :light-model-local-viewer 1)
   ;; (gl:light-model :light-model-ambient #(0.5 0.5 0.5 1))
-  (gl:enable :light0 :lighting :cull-face :depth-test :color-material)
+  (gl:enable :light0 :lighting :cull-face :depth-test :color-material :blend)
+  (%gl:blend-func :src-alpha :one-minus-src-alpha)
   (gl:hint :perspective-correction-hint :nicest))
 
 (defmethod glut:display ((window bullet-world-window))
@@ -34,18 +30,22 @@
   ;;  | /-
   ;;  +-------y
   ;;
-  (gl:enable :light0 :lighting :cull-face :depth-test :color-material)
+  (gl:enable :light0 :lighting :cull-face :depth-test :color-material :blend)
   (gl:rotate 90 1 0 0)
   (gl:rotate -90 0 0 1)
   (gl:rotate 180 1 0 0)
   (gl:clear :color-buffer :depth-buffer)
   (set-camera (camera-transform window))
-  (gl:light :light0 :position #(1 1 5 0))
+  (gl:light :light0 :position (vector
+                               (cl-transforms:x (light-position window))
+                               (cl-transforms:y (light-position window))
+                               (cl-transforms:z (light-position window))
+                               0))
   (gl:light :light0 :ambient #(0 0 0 1))
   (gl:light :light0 :diffuse #(1 1 1 1))
   (gl:light :light0 :specular #(1 1 1 1))
   (gl:with-pushed-matrix
-    (draw-world (world window)))
+    (draw-world window (world window)))
   (glut:swap-buffers)
   (gl:flush))
 

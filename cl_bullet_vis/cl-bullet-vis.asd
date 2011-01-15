@@ -39,10 +39,17 @@
               :components
               ((:file "package")
                (:file "transforms" :depends-on ("package"))
-               (:file "bullet-shape-visualization" :depends-on ("package" "transforms"))
+               (:file "gl-context" :depends-on ("package"))
+               (:file "textures" :depends-on ("package"))
+               (:file "bullet-shape-visualization"
+                      :depends-on ("package" "transforms" "gl-context" "textures"))
                (:file "bullet-body-visualization"
-                      :depends-on ("package" "transforms" "bullet-shape-visualization"))
+                      :depends-on ("package"
+                                   "transforms" "gl-context"
+                                   "bullet-shape-visualization"))
                (:file "bullet-world-visualization"
-                      :depends-on ("package" "bullet-body-visualization"))
+                      :depends-on ("package" "gl-context" "bullet-body-visualization"))
                (:file "bullet-world-window"
-                      :depends-on ("package" "transforms" "bullet-world-visualization"))))))
+                      :depends-on ("package"
+                                   "transforms" "gl-context"
+                                   "bullet-world-visualization"))))))

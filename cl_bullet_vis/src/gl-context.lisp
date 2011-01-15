@@ -30,16 +30,28 @@
 
 (in-package :bt-vis)
 
-(defvar *current-world* nil
-  "Contains a reference to the world during drawing operations. This
-  is sort of a back-door to allow drawing functions to re-draw the
-  whole scene in order to do fancy opengl effects such as shadows and
-  reflections.")
+(defgeneric get-texture-handle (gl-context name))
+(defgeneric camera-transform (gl-context)
+  (:documentation "Returns the transform of the current camera as a
+  CL-TRANSFORMS:TRANSFORM."))
+(defgeneric light-position (gl-context)
+  (:documentation "Returns the position of the light as a
+  CL-TRANSFORMS:3D-VECTOR."))
 
-(defgeneric draw-world (gl-context world)
-  (:method :around (gl-context world)
-    (let ((*current-world* world))
-      (call-next-method)))
-  (:method ((context gl-context) (world bt-world))
-    (dolist (body (bodies world))
-      (draw-rigid-body context body))))
+(defclass gl-context ()
+  ((textures :initform (make-hash-table))
+   (camera-transform :initform (cl-transforms:make-pose
+                                (cl-transforms:make-3d-vector 0 0 0)
+                                (cl-transforms:make-quaternion 0 0 0 1))
+                     :initarg :camera-transform
+                     :reader camera-transform)
+   (light-position :initform (cl-transforms:make-3d-vector 1 1 5)
+                   :initarg :light-position
+                   :reader light-position)))
+
+(defmethod get-texture-handle ((context gl-context) (name symbol))
+  (or (gethash name (slot-value context 'textures))
+      (values
+        (setf (gethash name (slot-value context 'textures))
+              (car (gl:gen-textures 1)))
+        t)))
