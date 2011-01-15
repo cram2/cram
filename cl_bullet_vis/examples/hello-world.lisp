@@ -47,7 +47,7 @@
                                      :collision-shape box-shape
                                      :mass 0.1
                                      :pose (cl-transforms::make-pose
-                                            (cl-transforms:make-3d-vector 0 0 10)
+                                            (cl-transforms:make-3d-vector 0 0 3)
                                             (cl-transforms:axis-angle->quaternion
                                              (cl-transforms:make-3d-vector 0.5 0.5 1)
                                              (/ pi 4)))))
