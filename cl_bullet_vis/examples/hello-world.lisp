@@ -36,21 +36,30 @@
 
 (defun hello-world ()
   (let* ((world (make-instance 'bt-world))
-         (plane-shape (make-instance 'static-plane-shape
-                                     :normal (cl-transforms:make-3d-vector 0 0 1)
-                                     :constant 0))
-         (box-shape (make-instance 'box-shape
-                                   :half-extents (cl-transforms:make-3d-vector 0.5 0.5 0.5)))
-         (plane-body (make-instance 'rigid-body
-                                    :collision-shape plane-shape))
-         (box-body (make-instance 'rigid-body
-                                     :collision-shape box-shape
-                                     :mass 0.1
-                                     :pose (cl-transforms::make-pose
-                                            (cl-transforms:make-3d-vector 0 0 3)
-                                            (cl-transforms:axis-angle->quaternion
-                                             (cl-transforms:make-3d-vector 0.5 0.5 1)
-                                             (/ pi 4)))))
+         (plane-body (make-instance
+                      'rigid-body
+                      :collision-shape (make-instance
+                                        'static-plane-shape
+                                        :normal (cl-transforms:make-3d-vector 0 0 1)
+                                        :constant 0)))
+         (box-body (make-instance
+                    'rigid-body
+                    :collision-shape (make-instance
+                                      'box-shape
+                                      :half-extents (cl-transforms:make-3d-vector 0.5 0.5 0.5))
+                    :mass 0.1
+                    :pose (cl-transforms::make-pose
+                           (cl-transforms:make-3d-vector 0 0 3)
+                           (cl-transforms:axis-angle->quaternion
+                            (cl-transforms:make-3d-vector 0.5 0.5 1)
+                            (/ pi 4)))))
+         (sphere-body (make-instance 'rigid-body
+                                     :collision-shape (make-instance 'sphere-shape
+                                                                     :radius 0.3)
+                                     :mass 0.0
+                                     :pose (cl-transforms:make-pose
+                                            (cl-transforms:make-3d-vector 0.2 0.2 1.5)
+                                            (cl-transforms:make-quaternion 0 0 0 1))))
          (window (make-instance 'hello-world-window
                                 :camera-transform (cl-transforms:make-transform
                                                    (cl-transforms:make-3d-vector -5 0 3)
@@ -60,6 +69,7 @@
                                 :world world)))
     (add-rigid-body world plane-body)
     (add-rigid-body world box-body)
+    (add-rigid-body world sphere-body)
     (glut:display-window window)))
 
 (defmethod glut:display-window :after ((window hello-world-window))
