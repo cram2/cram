@@ -9,7 +9,7 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cl_bullet</url>
   <depend package="roslisp_runtime"/>
-  <depend package="bullet"/>
+  <depend package="bullet_trunk"/>
   <depend package="cffi"/>
   <depend package="trivial_garbage"/>
   <depend package="split_sequence"/>

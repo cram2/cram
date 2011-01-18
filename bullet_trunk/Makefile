@@ -1,0 +1,72 @@
+all: installed
+
+SVN_DIR = bullet_svn
+SVN_URL = http://bullet.googlecode.com/svn/trunk
+SVN_PATCH = deprecations.patch quaternion.patch no_extras_build.patch getsetRPY.patch gimbal_lock.patch
+SVN_REVISION=-r2270
+
+SOURCE_DIR = bullet_svn
+
+include $(shell rospack find mk)/svn_checkout.mk
+
+#TARBALL_NAME = bullet-svn$(SVN_REVISION)
+#TARBALL_NAME = bullet-2.76-patched2
+
+#TARBALL = build/$(TARBALL_NAME).tar.gz
+#TARBALL_URL = http://pr.willowgarage.com/downloads/$(TARBALL_NAME).tar.gz
+#UNPACK_CMD = tar xzf
+#MD5SUM_FILE = $(TARBALL_NAME).md5sum
+
+#include $(shell rospack find mk)/download_unpack_build.mk
+
+.PHONY: build
+
+BULLET_TARGETS = LinearMath BulletCollision BulletDynamics BulletSoftBody
+
+# Poor man's installation procedure setup
+BULLET_LIBS = $(SOURCE_DIR)/src/BulletCollision/libBulletCollision.* \
+              $(SOURCE_DIR)/src/BulletDynamics/libBulletDynamics.* \
+              $(SOURCE_DIR)/src/LinearMath/libLinearMath.* \
+              $(SOURCE_DIR)/src/BulletSoftBody/libBulletSoftBody.* 
+
+BULLET_INC_DIRS = . \
+				  BulletCollision/CollisionShapes \
+                  BulletCollision/BroadphaseCollision \
+                  BulletCollision/NarrowPhaseCollision \
+                  BulletCollision/CollisionDispatch \
+                  BulletCollision/Gimpact \
+                  BulletDynamics/ConstraintSolver \
+                  BulletDynamics/Vehicle \
+                  BulletDynamics/Dynamics \
+                  BulletDynamics/Character \
+                  LinearMath \
+		  BulletSoftBody 
+
+
+installed: wiped $(SVN_DIR)
+	cd $(SOURCE_DIR) && cmake -DCMAKE_INSTALL_PREFIX=$(CURDIR) -DCMAKE_CXX_FLAGS="-fPIC -DBT_USE_DOUBLE_PRECISION" -D BUILD_SHARED_LIBS=on . 
+	# Bullet appears not be parallel-make safe
+	#cd $(SOURCE_DIR) && make $(PARALLEL_JOBS) 
+	cd $(SOURCE_DIR) && make $(BULLET_TARGETS) 
+	# The 'install' target only works with cmake 2.6 for some reason
+	#cd $(SOURCE_DIR) && make $(PARALLEL_JOBS) install
+	mkdir -p lib
+	cp $(BULLET_LIBS) lib
+	mkdir -p include
+	$(foreach d,$(BULLET_INC_DIRS), mkdir -p include/$(d) && cp $(SOURCE_DIR)/src/$(d)/*.h include/$(d);)
+	touch installed
+
+wiped: Makefile
+	make -f Makefile.bullet wipe
+	touch wiped
+
+clean:
+	rm -f installed
+	rm -fr lib include
+	-make -C $(SVN_DIR) clean
+	-cd $(SOURCE_DIR) && make clean
+
+wipe: clean
+	-rm -f patched
+	-rm -rf bullet_svn
+
