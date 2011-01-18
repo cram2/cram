@@ -40,6 +40,7 @@
 (defgeneric set-debug-drawer (world drawer))
 (defgeneric get-debug-drawer (world))
 (defgeneric debug-draw-world (world))
+(defgeneric perform-collision-detection (world))
 (defgeneric contact-manifolds (world))
 
 (defclass bt-world (foreign-class)
@@ -85,6 +86,9 @@
 
 (defmethod debug-draw-world ((world bt-world))
   (cffi-debug-draw-world (foreign-obj world)))
+
+(defmethod perform-collision-detection ((world bt-world))
+  (cffi-perform-collision-detection (foreign-obj world)))
 
 (defmethod contact-manifolds ((world bt-world))
   (flet ((get-contact-points (manifold)

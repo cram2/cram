@@ -44,6 +44,7 @@
    set-debug-drawer
    get-debug-drawer
    debug-draw-world
+   perform-collision-detection
    contact-manifolds
    ;; contact-manifolds
    contact-point point-in-1 point-in-2
