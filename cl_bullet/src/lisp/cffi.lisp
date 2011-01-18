@@ -86,6 +86,9 @@
 (defcfun ("debugDrawWorld" cffi-debug-draw-world) :void
   (world-handle :pointer))
 
+(defcfun ("performDiscreteCollisionDetection" cffi-perform-collision-detection) :void
+  (world-handle :pointer))
+
 (defcfun ("getNumManifolds" get-num-manifolds) :int
   (world-handle :pointer))
 

@@ -132,6 +132,12 @@ extern "C"
   }
 
   /** Collisions **/
+
+  void performDiscreteCollisionDetection(DynamicsWorldHandle *handle)
+  {
+    handle->dynamicsWorld->performDiscreteCollisionDetection();
+  }
+  
   int getNumManifolds(DynamicsWorldHandle *handle)
   {
     return handle->dispatcher->getNumManifolds();
