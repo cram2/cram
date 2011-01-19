@@ -46,6 +46,9 @@
 (defclass bt-world (foreign-class)
   ((bodies :reader bodies :initform nil)
    (constraints :reader constraints :initform nil)
+   (gravity-vector :reader gravity-vector
+                   :initarg :gravity-vector
+                   :initform (cl-transforms:make-3d-vector 0 0 -9.81))
    (debug-drawer :reader get-debug-drawer :initform nil)
    (foreign-alloc-fun :reader foreign-alloc-fun
                       :initform #'new-discrete-dynamics-world)
@@ -53,9 +56,8 @@
                      :initform #'delete-discrete-dynamics-world)))
 
 (defmethod foreign-class-alloc ((world bt-world) &key
-                                (gravity-vector (cl-transforms:make-3d-vector 0 0 -9.81))
                                 &allow-other-keys)
-  (funcall (foreign-alloc-fun world) gravity-vector))
+  (funcall (foreign-alloc-fun world) (gravity-vector world)))
 
 (defmethod step-simulation ((world bt-world) time-step)
   (cffi-step-simulation (foreign-obj world) (coerce time-step 'double-float)))
@@ -80,9 +82,6 @@
 
 (defmethod set-debug-drawer ((world bt-world) drawer)
   (cffi-set-debug-drawer (foreign-obj world) (foreign-obj drawer)))
-
-(defmethod get-debug-drawer ((world bt-world))
-  (cffi-get-debug-drawer (foreign-obj world)))
 
 (defmethod debug-draw-world ((world bt-world))
   (cffi-debug-draw-world (foreign-obj world)))

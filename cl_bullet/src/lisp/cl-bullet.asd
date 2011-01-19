@@ -54,4 +54,11 @@
    (:file "constraints" :depends-on ("package" "cffi" "foreign-class"))
    (:file "point-2-point-constraint" :depends-on ("package" "cffi" "constraints"))
    (:file "hinge-constraint" :depends-on ("package" "cffi" "constraints"))
-   (:file "slider-constraint" :depends-on ("package" "cffi" "constraints"))))
+   (:file "slider-constraint" :depends-on ("package" "cffi" "constraints"))
+   (:file "world-state" :depends-on ("package"
+                                     "bt-world"
+                                     "rigid-body"
+                                     "point-2-point-constraint"
+                                     "hinge-constraint"
+                                     "slider-constraint"))))
+

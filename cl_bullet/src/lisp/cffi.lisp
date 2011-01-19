@@ -170,6 +170,28 @@
   (body-handle :pointer)
   (torque bt-3d-vector))
 
+(defun get-linear-velocity (body-handle)
+  (with-foreign-object (result :double 3)
+    (foreign-funcall "getLinearVelocity"
+                     :pointer body-handle
+                     :pointer result)
+    (translate-from-foreign result (make-instance 'bt-3d-vector))))
+
+(defcfun ("setLinearVelocity" set-linear-velocity) :void
+  (body-handle :pointer)
+  (velocity bt-3d-vector))
+
+(defun get-angular-velocity (body-handle)
+  (with-foreign-object (result :double 3)
+    (foreign-funcall "getAngularVelocity"
+                     :pointer body-handle
+                     :pointer result)
+    (translate-from-foreign result (make-instance 'bt-3d-vector))))
+
+(defcfun ("setAngularVelocity" set-angular-velocity) :void
+  (body-handle :pointer)
+  (velocity bt-3d-vector))
+
 (defcfun ("clearForces" cffi-clear-forces) :void
   (body-handle :pointer))
 
@@ -364,10 +386,8 @@
 (defcfun ("newHingeConstraint" new-hinge-constraint) :pointer
   (rb-a :pointer)
   (rb-b :pointer)
-  (pivot-in-a bt-3d-vector)
-  (pivot-in-b bt-3d-vector)
-  (axis-in-a bt-3d-vector)
-  (axis-in-b bt-3d-vector))
+  (frame-in-a bt-transform)
+  (frame-in-b bt-transform))
 
 (defcfun ("isHingeConstraint" hinge-constraint-p) :boolean
   (constraint :pointer))

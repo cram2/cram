@@ -30,19 +30,22 @@
 
 (in-package :bt)
 
-(defclass hinge-constraint (constraint) ())
+(defclass hinge-constraint (constraint)
+  ((frame-in-1 :initform (cl-transforms:make-transform
+                          (cl-transforms:make-3d-vector 0 0 0)
+                          (cl-transforms:make-quaternion 0 0 0 1))
+               :initarg :frame-in-1 :reader frame-in-1)
+   (frame-in-2 :initform (cl-transforms:make-transform
+                          (cl-transforms:make-3d-vector 0 0 0)
+                          (cl-transforms:make-quaternion 0 0 0 1))
+               :initarg :frame-in-2 :reader frame-in-2)))
 
-(defmethod foreign-class-alloc ((hinge hinge-constraint) &key
-                                body-1 body-2
-                                (point-in-1 (cl-transforms:make-3d-vector 0 0 0))
-                                (point-in-2 (cl-transforms:make-3d-vector 0 0 0))
-                                (axis-in-1 (cl-transforms:make-3d-vector 0 0 0))
-                                (axis-in-2 (cl-transforms:make-3d-vector 0 0 0)))
-  (new-hinge-constraint
-   (foreign-obj body-1)
-   (foreign-obj body-2)
-   point-in-1 point-in-2
-   axis-in-1 axis-in-2))
+(defmethod foreign-class-alloc ((hinge hinge-constraint) &key)
+  (with-slots (body-1 body-2 frame-in-1 frame-in-2) hinge
+    (new-hinge-constraint
+     (foreign-obj body-1)
+     (foreign-obj body-2)
+     frame-in-1 frame-in-2)))
 
 (defmethod limit ((hinge hinge-constraint) type)
   (ecase type

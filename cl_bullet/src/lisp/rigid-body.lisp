@@ -34,14 +34,20 @@
 (defgeneric (setf activation-state) (new-value body))
 (defgeneric collision-flags (body))
 (defgeneric (setf collision-flags) (new-value body))
-(defgeneric get-total-force (body))
-(defgeneric get-total-torque (body))
+(defgeneric total-force (body))
+(defgeneric total-torque (body))
 (defgeneric apply-force (body force rel-pos))
 (defgeneric apply-central-force (body force))
 (defgeneric apply-torque (body torque))
+(defgeneric clear-forces (body))
+(defgeneric linear-velocity (body))
+(defgeneric (setf linear-velocity) (new-value body))
+(defgeneric angular-velocity (body))
+(defgeneric (setf angular-velocity) (new-value body))
 
 (defclass rigid-body (foreign-class)
-  ((mass :reader mass :initarg :mass :initform 0.0d0)
+  ((name :reader name :initarg :name :initform (gensym "RIGID-BODY-"))
+   (mass :reader mass :initarg :mass :initform 0.0d0)
    (motion-state :reader motion-state :initarg :motion-state
                  :initform (make-instance 'motion-state))
    (collision-shape :reader collision-shape :initarg :collision-shape
@@ -66,18 +72,18 @@
                        (foreign-obj (motion-state body))
                        (foreign-obj (collision-shape body)))))
     (when activation-state
-      (setf (activation-state body) activation-state))
+      (set-activation-state foreign-body activation-state))
     (when collision-flags
-      (setf (collision-flags body) collision-flags))
+      (set-collision-flags foreign-body collision-flags))
     foreign-body))
 
 (defmethod foreign-class-free-fun ((body rigid-body))
   #'delete-rigid-body)
 
-(defmethod get-total-force ((body rigid-body))
+(defmethod total-force ((body rigid-body))
   (cffi-get-total-force (foreign-obj body)))
 
-(defmethod get-total-torque ((body rigid-body))
+(defmethod total-torque ((body rigid-body))
   (cffi-get-total-torque (foreign-obj body)))
 
 (defmethod apply-force ((body rigid-body) force rel-pos)
@@ -88,6 +94,21 @@
 
 (defmethod apply-torque ((body rigid-body) torque)
   (cffi-apply-torque (foreign-obj body) torque))
+
+(defmethod clear-forces ((body rigid-body))
+  (cffi-clear-forces (foreign-obj body)))
+
+(defmethod linear-velocity ((body rigid-body))
+  (get-linear-velocity (foreign-obj body)))
+
+(defmethod (setf linear-velocity) (new-value (body rigid-body))
+  (set-linear-velocity (foreign-obj body) new-value))
+
+(defmethod angular-velocity ((body rigid-body))
+  (get-angular-velocity (foreign-obj body)))
+
+(defmethod (setf angular-velocity) (new-value (body rigid-body))
+  (set-angular-velocity (foreign-obj body) new-value))
 
 (defmethod activation-state ((body rigid-body))
   (get-activation-state (foreign-obj body)))

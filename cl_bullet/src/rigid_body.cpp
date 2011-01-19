@@ -85,6 +85,34 @@ extern "C"
     body->clearForces();
   }
 
+  void getLinearVelocity(btRigidBody *body, double *velocity)
+  {
+    const btVector3 &vel = body->getLinearVelocity();
+    velocity[0] = vel.x();
+    velocity[1] = vel.y();
+    velocity[2] = vel.z();
+  }
+
+  void setLinearVelocity(btRigidBody *body, double *velocity)
+  {
+    body->setLinearVelocity(
+      btVector3(velocity[0], velocity[1], velocity[2]));
+  }
+
+  void getAngularVelocity(btRigidBody *body, double *velocity)
+  {
+    const btVector3 &vel = body->getAngularVelocity();
+    velocity[0] = vel.x();
+    velocity[1] = vel.y();
+    velocity[2] = vel.z();
+  }
+
+  void setAngularVelocity(btRigidBody *body, double *velocity)
+  {
+    body->setAngularVelocity(
+      btVector3(velocity[0], velocity[1], velocity[2]));
+  }
+  
   btMotionState *getMotionState(btRigidBody *body)
   {
     return body->getMotionState();

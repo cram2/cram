@@ -30,23 +30,25 @@
 
 (in-package :bt)
 
-(defclass slider-constraint (constraint) ()
+(defclass slider-constraint (constraint)
+  ((frame-in-1 :initform (cl-transforms:make-transform
+                          (cl-transforms:make-3d-vector 0 0 0)
+                          (cl-transforms:make-quaternion 0 0 0 1))
+               :initarg :frame-in-1 :reader frame-in-1)
+   (frame-in-2 :initform (cl-transforms:make-transform
+                          (cl-transforms:make-3d-vector 0 0 0)
+                          (cl-transforms:make-quaternion 0 0 0 1))
+               :initarg :frame-in-2 :reader frame-in-2))
   (:documentation "Wrapper for slider joints. To keep it as simple as
   possible, we do not wrap the rotational part of the joint but only
   the linear. We fix the angular limits so that it doesn't
   rotate. This behavior shoudl fit best to joints in urdf files."))
 
-(defmethod foreign-class-alloc ((slider slider-constraint) &key
-                                body-1 body-2
-                                (frame-in-1 (cl-transforms:make-transform
-                                             (cl-transforms:make-3d-vector 0 0 0)
-                                             (cl-transforms:make-quaternion 0 0 0 1)))
-                                (frame-in-2 (cl-transforms:make-transform
-                                             (cl-transforms:make-3d-vector 0 0 0)
-                                             (cl-transforms:make-quaternion 0 0 0 1))))
-  (new-slider-constraint
-   (foreign-obj body-1) (foreign-obj body-2)
-   frame-in-1 frame-in-2))
+(defmethod foreign-class-alloc ((slider slider-constraint) &key)
+  (with-slots (body-1 body-2 frame-in-1 frame-in-2) slider
+    (new-slider-constraint
+     (foreign-obj body-1) (foreign-obj body-2)
+     frame-in-1 frame-in-2)))
 
 (defmethod limit ((slider slider-constraint) type)
   (ecase type

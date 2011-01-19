@@ -30,7 +30,9 @@
 
 (in-package :bt)
 
-(defclass constraint (foreign-class) ())
+(defclass constraint (foreign-class)
+  ((body-1 :initarg :body-1 :reader body-1)
+   (body-2 :initarg :body-2 :reader body-2)))
 
 (defmethod foreign-class-free-fun ((constraint foreign-class))
   #'delete-constraint)

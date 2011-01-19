@@ -60,16 +60,16 @@ extern "C"
    */
   btTypedConstraint *newHingeConstraint(
     btRigidBody *rbA, btRigidBody *rbB,
-    const double *pivotInA, const double *pivotInB,
-    const double *axisInA, const double *axisInB)
+    const double *frameInA, const double *frameInB)
   {
-    btVector3 axisInAVec(axisInA[0], axisInA[1], axisInA[2]);
-    btVector3 axisInBVec(axisInB[0], axisInB[1], axisInB[2]);
+    btTransform transInA(
+      btQuaternion(frameInA[3], frameInA[4], frameInA[5], frameInA[6]),
+      btVector3(frameInA[0], frameInA[1], frameInA[2]));
+    btTransform transInB(
+      btQuaternion(frameInB[3], frameInB[4], frameInB[5], frameInB[6]),
+      btVector3(frameInB[0], frameInB[1], frameInB[2]));
     
-    return new btHingeConstraint(*rbA, *rbB,
-      btVector3(pivotInA[0], pivotInA[1], pivotInA[2]),
-      btVector3(pivotInB[0], pivotInB[1], pivotInB[2]),
-      axisInAVec, axisInBVec);
+    return new btHingeConstraint(*rbA, *rbB, transInA, transInB);
   }
 
   bool isHingeConstraint(const btTypedConstraint *ptr)
