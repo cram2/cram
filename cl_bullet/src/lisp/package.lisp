@@ -57,6 +57,9 @@
    apply-force
    apply-central-force
    apply-torque
+   clear-forces
+   linear-velocity
+   angular-velocity
    rigid-body
    mass
    collision-shape
@@ -167,4 +170,8 @@
    draw-sphere-patch
    draw-contact-point
    report-error-warning
-   draw-3d-text))
+   draw-3d-text
+   ;; world-state
+   get-state
+   restore-world-state
+   restore-state))

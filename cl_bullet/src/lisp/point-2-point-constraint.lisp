@@ -30,13 +30,18 @@
 
 (in-package :bt)
 
-(defclass point-2-point-constraint (constraint) ())
+(defclass point-2-point-constraint (constraint)
+  ((point-in-1 :initform (cl-transforms:make-3d-vector 0 0 0)
+               :initarg :point-in-1
+               :reader point-in-1)
+   (point-in-2 :initform (cl-transforms:make-3d-vector 0 0 0)
+               :initarg :point-in-2
+               :reader point-in-2)))
 
 (defmethod foreign-class-alloc ((obj point-2-point-constraint) &key
-                                body-1 body-2
-                                (point-in-1 (cl-transforms:make-3d-vector 0 0 0))
-                                (point-in-2 (cl-transforms:make-3d-vector 0 0 0))
                                 &allow-other-keys)
-  (new-point-2-point-constraint
-   (foreign-obj body-1) (foreign-obj body-2)
-   point-in-1 point-in-2))
+  (with-slots (body-1 body-2 point-in-1 point-in-2)
+      obj
+    (new-point-2-point-constraint
+     (foreign-obj body-1) (foreign-obj body-2)
+     point-in-1 point-in-2)))
