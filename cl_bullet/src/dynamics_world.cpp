@@ -82,6 +82,16 @@ extern "C"
     handle->dynamicsWorld->removeConstraint(constraint);
   }
 
+  int getNumConstraints(DynamicsWorldHandle *handle)
+  {
+    return handle->dynamicsWorld->getNumConstraints();
+  }
+
+  btTypedConstraint *getConstraint(DynamicsWorldHandle *handle, int index)
+  {
+    return handle->dynamicsWorld->getConstraint(index);
+  }
+
   void addRigidBody(DynamicsWorldHandle *handle, btRigidBody *body)
   {
     handle->dynamicsWorld->addRigidBody(body);
@@ -100,6 +110,16 @@ extern "C"
   void removeRigidBody(DynamicsWorldHandle *handle, btRigidBody *body)
   {
     handle->dynamicsWorld->removeRigidBody(body);
+  }
+
+  int getNumRigidBodies(const DynamicsWorldHandle *handle)
+  {
+    return handle->dynamicsWorld->getNumCollisionObjects();
+  }
+
+  btRigidBody *getRigidBody(const DynamicsWorldHandle *handle, int index)
+  {
+    return btRigidBody::upcast(handle->dynamicsWorld->getCollisionObjectArray()[index]);
   }
 
   void setDebugDrawer(DynamicsWorldHandle *handle, btIDebugDraw *debugDrawer)
@@ -129,6 +149,11 @@ extern "C"
 
     if(handle_)
       handle_->debugDrawWorld();
+  }
+
+  void serializeWorld(DynamicsWorldHandle *handle, btSerializer *serializer)
+  {
+    handle->dynamicsWorld->serialize(serializer);
   }
 
   /** Collisions **/

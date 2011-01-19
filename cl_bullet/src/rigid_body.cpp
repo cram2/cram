@@ -80,6 +80,11 @@ extern "C"
     body->applyTorque(torque_vec);
   }
 
+  void clearForces(btRigidBody *body)
+  {
+    body->clearForces();
+  }
+
   btMotionState *getMotionState(btRigidBody *body)
   {
     return body->getMotionState();
@@ -110,4 +115,8 @@ extern "C"
     return body->getCollisionFlags();
   }
 
+  btCollisionShape *getCollisionShape(btRigidBody *body)
+  {
+    return body->getCollisionShape();
+  }
 }

@@ -37,6 +37,11 @@ extern "C"
   {
     delete ptr;
   }
+
+  int getShapeType(btCollisionShape *ptr)
+  {
+    return ptr->getShapeType();
+  }
   
   btCollisionShape *newBoxShape(const double *half_extents)
   {
@@ -46,6 +51,14 @@ extern "C"
   bool isBoxShape(const btCollisionShape *ptr)
   {
     return dynamic_cast<const btBoxShape *>(ptr) != NULL;
+  }
+
+  void getBoxHalfExtents(const btBoxShape *box, double *half_extents)
+  {
+    btVector3 extents = box->getHalfExtentsWithMargin();
+    half_extents[0] = extents.x();
+    half_extents[1] = extents.y();
+    half_extents[2] = extents.z();
   }
 
   btCollisionShape *newStaticPlaneShape(const double *normal, double constant)
@@ -58,6 +71,19 @@ extern "C"
     return dynamic_cast<const btStaticPlaneShape *>(ptr) != NULL;
   }
 
+  void getPlaneNormal(const btStaticPlaneShape *plane, double *normal)
+  {
+    btVector3 normal_vec = plane->getPlaneNormal();
+    normal[0] = normal_vec.x();
+    normal[1] = normal_vec.y();
+    normal[2] = normal_vec.z();
+  }
+
+  double getPlaneConstant(const btStaticPlaneShape *plane)
+  {
+    return plane->getPlaneConstant();
+  }
+  
   btCollisionShape *newSphereShape(double radius)
   {
     return new btSphereShape(radius);
@@ -66,6 +92,11 @@ extern "C"
   bool isSphereShape(const btCollisionShape *ptr)
   {
     return dynamic_cast<const btSphereShape *>(ptr) != NULL;
+  }
+
+  double getSphereRadius(const btSphereShape *sphere)
+  {
+    return sphere->getRadius();
   }
 
   btCollisionShape *newCylinderShape(const double *half_extents)
@@ -77,6 +108,14 @@ extern "C"
   {
     return dynamic_cast<const btCylinderShape *>(ptr) != NULL;
   }
+
+  void getCylinderHalfExtents(const btCylinderShape *cylinder, double *half_extents)
+  {
+    btVector3 extents = cylinder->getHalfExtentsWithMargin();
+    half_extents[0] = extents.x();
+    half_extents[1] = extents.y();
+    half_extents[2] = extents.z();
+  }
   
   btCollisionShape *newConeShape(double radius, double height)
   {
@@ -86,6 +125,16 @@ extern "C"
   bool isConeShape(const btCollisionShape *ptr)
   {
     return dynamic_cast<const btConeShape *>(ptr) != NULL;
+  }
+
+  double getConeRadius(const btConeShape *cone)
+  {
+    return cone->getRadius();
+  }
+
+  double getConeHeight(const btConeShape *cone)
+  {
+    return cone->getHeight();
   }
 
   bool newCompoundShape()
@@ -114,6 +163,30 @@ extern "C"
       shape);
   }
 
+  int getNumChildShapes(btCompoundShape *shape)
+  {
+    return shape->getNumChildShapes();
+  }
+
+  const btCollisionShape *getChildShape(const btCompoundShape *shape, int index)
+  {
+    return shape->getChildShape(index);
+  }
+
+  void getChildTransform(const btCompoundShape *shape, int index, double *transform)
+  {
+    const btTransform &trans = shape->getChildTransform(index);
+    const btVector3 &pos = trans.getOrigin();
+    btQuaternion rot = trans.getRotation();
+    transform[0] = pos.x();
+    transform[1] = pos.y();
+    transform[2] = pos.z();
+    transform[3] = rot.x();
+    transform[4] = rot.y();
+    transform[5] = rot.z();
+    transform[6] = rot.w();
+  }
+
   btCollisionShape *newConvexHullShape(const double *points, int num_points)
   {
     return new btConvexHullShape(points, num_points, sizeof(double) * 3);
@@ -129,4 +202,16 @@ extern "C"
     shape->addPoint(btVector3(point[0], point[1], point[2]));
   }
 
+  int convexHullGetNumPoints(const btConvexHullShape *shape)
+  {
+    return shape->getNumPoints();
+  }
+
+  void getPoint(const btConvexHullShape *shape, int index, double *point)
+  {
+    const btVector3 &pt = shape->getUnscaledPoints()[index];
+    point[0] = pt.x();
+    point[1] = pt.y();
+    point[2] = pt.z();
+  }
 }
