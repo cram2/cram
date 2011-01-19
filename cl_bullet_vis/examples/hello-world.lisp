@@ -32,7 +32,8 @@
 
 (defclass hello-world-window (bullet-world-window)
   ((last-update :accessor last-update :initform 0)
-   (paused :accessor paused :initform t)))
+   (paused :accessor paused :initform t)
+   (stored-state :accessor stored-state :initform nil)))
 
 (defun hello-world ()
   (let* ((world (make-instance 'bt-world))
@@ -46,19 +47,19 @@
                     'rigid-body
                     :collision-shape (make-instance
                                       'box-shape
-                                      :half-extents (cl-transforms:make-3d-vector 0.5 0.5 0.5))
-                    :mass 0.1
+                                      :half-extents (cl-transforms:make-3d-vector 3 3 0.1))
+                    :mass 0.0
                     :pose (cl-transforms::make-pose
-                           (cl-transforms:make-3d-vector 0 0 3)
+                           (cl-transforms:make-3d-vector 0 0 1.5)
                            (cl-transforms:axis-angle->quaternion
-                            (cl-transforms:make-3d-vector 0.5 0.5 1)
-                            (/ pi 4)))))
+                            (cl-transforms:make-3d-vector 1 0 0)
+                            (/ pi 7)))))
          (sphere-body (make-instance 'rigid-body
                                      :collision-shape (make-instance 'sphere-shape
                                                                      :radius 0.3)
-                                     :mass 0.0
+                                     :mass 0.01
                                      :pose (cl-transforms:make-pose
-                                            (cl-transforms:make-3d-vector 0.2 0.2 1.5)
+                                            (cl-transforms:make-3d-vector 0.0 1.0 4.0)
                                             (cl-transforms:make-quaternion 0 0 0 1))))
          (window (make-instance 'hello-world-window
                                 :camera-transform (cl-transforms:make-transform
@@ -73,12 +74,16 @@
     (glut:display-window window)))
 
 (defmethod glut:display-window :after ((window hello-world-window))
+  (setf (stored-state window) (get-state (world window)))
   (glut:enable-event window :idle))
 
 (defmethod glut:keyboard ((window hello-world-window) key x y)
   (declare (ignore x y))
   (case key
     (#\p (setf (paused window) (not (paused window))))
+    (#\s (setf (stored-state window) (get-state (world window))))
+    (#\r (when (stored-state window)
+           (setf (world window) (restore-world-state (stored-state window)))))
     (t (call-next-method))))
 
 (defmethod glut:idle ((window hello-world-window))
