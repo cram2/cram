@@ -2,7 +2,7 @@
 (in-package :bt-vis)
 
 (defclass bullet-world-window (glut:window gl-context)
-  ((world :reader world :initarg :world
+  ((world :accessor world :initarg :world
           :initform (error 'simple-error :format-control "world argument required"))
    (motion-mode :initform nil :reader motion-mode)
    (pointer-pos :initform nil :reader pointer-pos))
