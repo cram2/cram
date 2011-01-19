@@ -661,17 +661,3 @@
 
 (defcfun ("getCallbacks" get-callbacks) :pointer
   (draw :pointer))
-
-;;; serializer.cpp
-
-(defcfun ("newDefaultSerialzier" new-default-serializer) :pointer)
-
-(defcfun ("deleteDefaultSerializer" delete-default-serializer) :void
-  (handle :pointer))
-
-(defcfun ("serializerGetBuffer" serializer-get-buffer-pointer) :void
-  (handle :pointer)
-  (data :pointer))
-
-(defcfun ("serializerGetBufferSize" serializer-get-buffer-size) :int
-  (handle :pointer))
