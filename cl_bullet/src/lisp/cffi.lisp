@@ -62,6 +62,13 @@
   (world-handle :pointer)
   (constraint :pointer))
 
+(defcfun ("getNumConstraints" cffi-get-num-constraints) :int
+  (world-handle :pointer))
+
+(defcfun ("getConstraint" cffi-get-constraint) :pointer
+  (world-handle :pointer)
+  (index :int))
+
 (defcfun ("addRigidBody" cffi-add-rigid-body) :void
   (world-handle :pointer)
   (body :pointer))
@@ -76,6 +83,13 @@
   (world-handle :pointer)
   (body :pointer))
 
+(defcfun ("getNumRigidBodies" cffi-get-num-rigid-bodies) :int
+  (world-handle :pointer))
+
+(defcfun ("getRigidBody" cffi-get-rigid-body) :pointer
+  (world-handle :pointer)
+  (index :int))
+
 (defcfun ("setDebugDrawer" cffi-set-debug-drawer) :void
   (world-handle :pointer)
   (drawer :pointer))
@@ -85,6 +99,10 @@
 
 (defcfun ("debugDrawWorld" cffi-debug-draw-world) :void
   (world-handle :pointer))
+
+(defcfun ("serializeWorld" serialize-world) :void
+  (world-handle :pointer)
+  (serializer :pointer))
 
 (defcfun ("performDiscreteCollisionDetection" cffi-perform-collision-detection) :void
   (world-handle :pointer))
@@ -152,6 +170,9 @@
   (body-handle :pointer)
   (torque bt-3d-vector))
 
+(defcfun ("clearForces" cffi-clear-forces) :void
+  (body-handle :pointer))
+
 (defcfun ("getMotionState" get-motion-state) :pointer
   (body-handle :pointer))
 
@@ -171,6 +192,9 @@
   (flags collision-flags))
 
 (defcfun ("getCollisionFlags" get-collision-flags) collision-flags
+  (body-handle :pointer))
+
+(defcfun ("getCollisionShape" get-collision-shape) :pointer
   (body-handle :pointer))
 
 ;;; motion_state.cpp
@@ -201,11 +225,21 @@
 (defcfun ("deleteCollisionShape" delete-collision-shape) :void
   (shape-handle :pointer))
 
+(defcfun ("getShapeType" get-shape-type) broadphase-native-type
+  (shape-handle :pointer))
+
 (defcfun ("newBoxShape" new-box-shape) :pointer
   (half-extents bt-3d-vector))
 
 (defcfun ("isBoxShape" box-shape-p) :boolean
   (shape :pointer))
+
+(defun get-box-half-extents (shape)
+  (with-foreign-object (vec :double 3)
+    (foreign-funcall "getBoxHalfExtents"
+                     :pointer shape
+                     :pointer vec)
+    (translate-from-foreign vec (make-instance 'bt-3d-vector))))
 
 (defcfun ("newStaticPlaneShape" new-static-plane-shape) :pointer
   (normal bt-3d-vector)
@@ -214,10 +248,19 @@
 (defcfun ("isStaticPlaneShape" static-plane-shape-p) :boolean
   (shape :pointer))
 
+(defcfun ("getPlaneNormal" get-plane-normal) :double
+  (shape :pointer))
+
+(defcfun ("getPlaneConstant" get-plane-constant) :double
+  (shape :pointer))
+
 (defcfun ("newSphereShape" new-sphere-shape) :pointer
   (radius :double))
 
 (defcfun ("isSphereShape" sphere-shape-p) :boolean
+  (shape :pointer))
+
+(defcfun ("getSphereRadius" get-sphere-radius) :double
   (shape :pointer))
 
 (defcfun ("newCylinderShape" new-cylinder-shape) :pointer
@@ -226,11 +269,24 @@
 (defcfun ("isCylinderShape" cylinder-shape-p) :boolean
   (shape :pointer))
 
+(defun get-cylinder-half-extents (shape)
+  (with-foreign-object (vec :double 3)
+    (foreign-funcall "getCylinderHalfExtents"
+                     :pointer shape
+                     :pointer vec)
+    (translate-from-foreign vec (make-instance 'bt-3d-vector))))
+
 (defcfun ("newConeShape" new-cone-shape) :pointer
   (radius :double)
   (height :double))
 
 (defcfun ("isConeShape" cone-shape-p) :boolean
+  (shape :pointer))
+
+(defcfun ("getConeRadius" get-cone-radius) :double
+  (shape :pointer))
+
+(defcfun ("getConeHeight" get-cone-height) :double
   (shape :pointer))
 
 (defcfun ("newCompoundShape" new-compound-shape) :pointer)
@@ -243,6 +299,20 @@
   (position bt-3d-vector)
   (orientation bt-quaternion)
   (shape :pointer))
+
+(defcfun ("getNumChildShapes" get-num-child-shapes) :int
+  (shape :pointer))
+
+(defcfun ("getChildShape" cffi-get-child-shape) :pointer
+  (shape :pointer)
+  (index :int))
+
+(defun cffi-get-child-transform (shape)
+  (with-foreign-object (vec :double 7)
+    (foreign-funcall "getChildTransform"
+                     :pointer shape
+                     :pointer vec)
+    (translate-from-foreign vec (make-instance 'bt-transform))))
 
 (defun new-convex-hull-shape (points)
   (flet ((points->foreign (native-vector points)
@@ -264,6 +334,16 @@
 (defcfun ("addPoint" cffi-add-point) :void
   (shape :pointer)
   (point bt-3d-vector))
+
+(defcfun ("convexHullGetNumPoints" convex-hull-get-num-points) :int
+  (shape :pointer))
+
+(defun cffi-get-point (shape)
+  (with-foreign-object (vec :double 2)
+    (foreign-funcall "getPoint"
+                     :pointer shape
+                     :pointer vec)
+    (translate-from-foreign vec (make-instance 'bt-3d-vector))))
 
 ;;; constraints.cpp
 
@@ -581,3 +661,17 @@
 
 (defcfun ("getCallbacks" get-callbacks) :pointer
   (draw :pointer))
+
+;;; serializer.cpp
+
+(defcfun ("newDefaultSerialzier" new-default-serializer) :pointer)
+
+(defcfun ("deleteDefaultSerializer" delete-default-serializer) :void
+  (handle :pointer))
+
+(defcfun ("serializerGetBuffer" serializer-get-buffer-pointer) :void
+  (handle :pointer)
+  (data :pointer))
+
+(defcfun ("serializerGetBufferSize" serializer-get-buffer-size) :int
+  (handle :pointer))
