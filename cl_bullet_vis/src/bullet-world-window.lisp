@@ -4,32 +4,35 @@
 (defclass bullet-world-window (glut:window gl-context)
   ((world :accessor world :initarg :world
           :initform (error 'simple-error :format-control "world argument required"))
+   (bullet-events :initform nil :accessor bullet-events)
+   (events-lock :initform (sb-thread:make-mutex) :reader  events-lock)
+   (frame-rate :initform 50 :initarg :frame-rate :reader frame-rate
+               :documentation "The desired frame rate in Hz. The
+               system tries to redisplay the window at this rate.")
    (motion-mode :initform nil :reader motion-mode)
    (pointer-pos :initform nil :reader pointer-pos))
-  (:default-initargs :width 640 :height 480 :title "glut-teapot.lisp"
+  (:default-initargs :width 640 :height 480 :title "bullet visualization"
     :mode '(:double :rgba :depth)))
+
+(defgeneric close-window (window)
+  (:method ((w bullet-world-window))
+    (sb-thread:with-mutex ((events-lock w))
+      (pushnew :close (bullet-events w)))))
 
 (defmethod glut:display-window :before ((w bullet-world-window))
   (gl:clear-color 0 0 0 0)
   (gl:cull-face :back)
   (gl:depth-func :lequal)
   (gl:shade-model :smooth)
-  ;; (gl:light-model :light-model-local-viewer 1)
-  ;; (gl:light-model :light-model-ambient #(0.5 0.5 0.5 1))
-  (gl:enable :light0 :lighting :cull-face :depth-test :color-material :blend)
-  (%gl:blend-func :src-alpha :one-minus-src-alpha)
+  (gl:blend-func :src-alpha :one-minus-src-alpha)
   (gl:hint :perspective-correction-hint :nicest))
+
+(defmethod glut:display-window :after ((w bullet-world-window))
+  (glut:disable-event w :idle)
+  (glut:enable-tick w (truncate (* (/ (frame-rate w)) 1000))))
 
 (defmethod glut:display ((window bullet-world-window))
   (gl:load-identity)
-  ;; Frst we rotate our coordinate system such that x and y are along
-  ;; the ground plane and z is up:
-  ;;  z
-  ;;  |      x
-  ;;  |   /- 
-  ;;  | /-
-  ;;  +-------y
-  ;;
   (gl:enable :light0 :lighting :cull-face :depth-test :color-material :blend)
   (gl:rotate 90 1 0 0)
   (gl:rotate -90 0 0 1)
@@ -45,7 +48,8 @@
   (gl:light :light0 :diffuse #(1 1 1 1))
   (gl:light :light0 :specular #(1 1 1 1))
   (gl:with-pushed-matrix
-    (draw-world window (world window)))
+    (with-world-locked (world window)
+      (draw-world window (world window))))
   (glut:swap-buffers)
   (gl:flush))
 
@@ -60,7 +64,7 @@
 (defmethod glut:keyboard ((window bullet-world-window) key x y)
   (declare (ignore x y))
   (when (eql key #\Esc)
-    (glut:destroy-current-window)))
+    (close-window window)))
 
 (defmethod glut:mouse ((window bullet-world-window) button state x y)
   (with-slots (motion-mode pointer-pos camera-transform) window
@@ -113,14 +117,14 @@
                                                                (cl-transforms:make-quaternion 0 0 0 1)))))))))
   (glut:post-redisplay))
 
+(defmethod glut:tick ((w bullet-world-window))
+  (sb-thread:with-mutex ((events-lock w))
+    (unless (member :closing (bullet-events w))
+      (cond ((member :close (bullet-events w))
+             (setf (bullet-events w) (delete :close (bullet-events w)))
+             (glut:destroy-current-window))
+            (t (glut:post-redisplay))))))
+
 (defun set-camera (camera-transform)
   (gl:mult-matrix (transform->gl-matrix
                    (cl-transforms:transform-inv camera-transform))))
-
-;; (defun bullet-world-window ()
-;;   (glut:display-window (make-instance 'bullet-world-window
-;;                                       :camera-transform (cl-transforms:make-transform
-;;                                                          (cl-transforms:make-3d-vector -5 0 3)
-;;                                                          (cl-transforms:axis-angle->quaternion
-;;                                                           (cl-transforms:make-3d-vector 0 1 0)
-;;                                                           (/ pi 8))))))
