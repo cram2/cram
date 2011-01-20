@@ -73,9 +73,9 @@
     (add-rigid-body world sphere-body)
     (glut:display-window window)))
 
+
 (defmethod glut:display-window :after ((window hello-world-window))
-  (setf (stored-state window) (get-state (world window)))
-  (glut:enable-event window :idle))
+  (setf (stored-state window) (get-state (world window))))
 
 (defmethod glut:keyboard ((window hello-world-window) key x y)
   (declare (ignore x y))
@@ -86,10 +86,9 @@
            (setf (world window) (restore-world-state (stored-state window)))))
     (t (call-next-method))))
 
-(defmethod glut:idle ((window hello-world-window))
+(defmethod glut:tick :before ((window hello-world-window))
   (when (and (not (paused window))
-             (>= (- (get-internal-real-time) (last-update window))
-                 (* 0.015 internal-time-units-per-second)))
+             (>=  (- (get-internal-real-time) (last-update window))
+                  (* 0.015 internal-time-units-per-second)))
     (setf (last-update window) (get-internal-real-time))
-    (step-simulation (world window) 0.015)
-    (glut:post-redisplay)))
+    (step-simulation (world window) 0.015)))
