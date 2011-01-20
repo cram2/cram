@@ -49,6 +49,17 @@
 (defcfun ("deleteDiscreteDynamicsWorld" delete-discrete-dynamics-world) :void
   (handle :pointer))
 
+(defun get-gravity (world-handle)
+  (with-foreign-object (result :double 3)
+    (foreign-funcall "getGravity"
+                     :pointer world-handle
+                     :pointer result)
+    (translate-from-foreign result (make-instance 'bt-3d-vector))))
+
+(defcfun ("setGravity" set-gravity) :void
+  (world-handle :pointer)
+  (gravity bt-3d-vector))
+
 (defcfun ("stepSimulation" cffi-step-simulation) :void
   (world-handle :pointer)
   (time-step :double))

@@ -30,6 +30,8 @@
 
 (in-package :bt)
 
+(defgeneric gravity-vector (world))
+(defgeneric (setf gravity-vector) (new-value world))
 (defgeneric step-simulation (world time-step))
 (defgeneric add-rigid-body (world body &optional group mask))
 (defgeneric remove-rigid-body (world body))
@@ -63,6 +65,9 @@
 (defmethod foreign-class-alloc ((world bt-world) &key
                                 &allow-other-keys)
   (funcall (foreign-alloc-fun world) (gravity-vector world)))
+
+(defmethod (setf gravity-vector) (new-value (world bt-world))
+  (set-gravity (foreign-obj world) new-value))
 
 (defmethod step-simulation ((world bt-world) time-step)
   (with-world-locked world

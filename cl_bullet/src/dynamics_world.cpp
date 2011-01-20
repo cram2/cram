@@ -67,6 +67,20 @@ extern "C"
     delete handle;
   }
 
+  void getGravity(DynamicsWorldHandle *handle, double *gravity)
+  {
+    btVector3 gravity_vec = handle->dynamicsWorld->getGravity();
+    gravity[0] = gravity_vec.x();
+    gravity[1] = gravity_vec.y();
+    gravity[2] = gravity_vec.z();
+  }
+
+  void setGravity(DynamicsWorldHandle *handle, double *gravity)
+  {
+    handle->dynamicsWorld->setGravity(
+      btVector3(gravity[0], gravity[1], gravity[2]));
+  }
+
   void stepSimulation(DynamicsWorldHandle *handle, double timeStep)
   {
     handle->dynamicsWorld->stepSimulation(timeStep);
