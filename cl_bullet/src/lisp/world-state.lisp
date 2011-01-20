@@ -134,18 +134,31 @@
   expensive, in particular when we have meshes with lots of vertices."
   shape)
 
-(defun restore-world-state (world-state)
-  "Returns a new BT-WORLD restored from `world-state'"
-  (let ((world (make-instance 'bt-world
-                              :gravity-vector (gravity-vector world-state))))
-    (with-slots (bodies constraints debug-drawer) world-state
-      (when debug-drawer
-        (set-debug-drawer world debug-drawer))
-      (dolist (body bodies)
-        (restore-state body world))
-      (dolist (constraint constraints)
-        (restore-state constraint world)))
-    world))
+(defun restore-world-state (world-state &optional world)
+  "Restores the state captured in `world-state' If `world' is
+specified, updates it so that it exactly matches the state in
+`world-state', otherwise a new world is created. Returns updated
+world."
+  (flet ((clear-world (world world-state)
+           (with-world-locked world
+             (dolist (constraint (constraints world))
+               (remove-constraint world constraint))
+             (dolist (body (bodies world))
+               (remove-rigid-body world body))
+             (setf (gravity-vector world) (gravity-vector world-state)))
+           world))
+    (let ((world (or (when world (clear-world world world-state))
+                     (make-instance 'bt-world
+                                    :gravity-vector (gravity-vector world-state)))))
+      (with-world-locked world
+        (with-slots (bodies constraints debug-drawer) world-state
+          (when debug-drawer
+            (set-debug-drawer world debug-drawer))
+          (dolist (body bodies)
+            (restore-state body world))
+          (dolist (constraint constraints)
+            (restore-state constraint world))))
+      world)))
 
 (defmethod restore-state ((body rigid-body-state) (world bt-world))
   (with-slots (name
