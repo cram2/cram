@@ -34,6 +34,7 @@
   (:export
    ;; dynamics world
    bt-world
+   with-world-locked
    step-simulation
    add-rigid-body
    remove-rigid-body
