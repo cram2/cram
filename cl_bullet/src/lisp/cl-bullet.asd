@@ -58,6 +58,7 @@
    (:file "world-state" :depends-on ("package"
                                      "bt-world"
                                      "rigid-body"
+                                     "collision-shapes"
                                      "point-2-point-constraint"
                                      "hinge-constraint"
                                      "slider-constraint"))))
