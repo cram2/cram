@@ -85,7 +85,8 @@
 
 (defmethod remove-rigid-body ((world bt-world) body)
   (with-world-locked world
-    (cffi-remove-rigid-body (foreign-obj world) (foreign-obj body))))
+    (cffi-remove-rigid-body (foreign-obj world) (foreign-obj body))
+    (setf (slot-value world 'bodies) (remove body (bodies world)))))
 
 (defmethod add-constraint ((world bt-world) constraint &optional disable-collision)
   (with-world-locked world
@@ -93,7 +94,8 @@
 
 (defmethod remove-constraint ((world bt-world) constraint)
   (with-world-locked world
-    (cffi-remove-constraint (foreign-obj world) (foreign-obj constraint))))
+    (cffi-remove-constraint (foreign-obj world) (foreign-obj constraint))
+    (setf (slot-value world 'constraints) (remove constraint (constraints world)))))
 
 (defmethod set-debug-drawer ((world bt-world) drawer)
   (with-world-locked world
