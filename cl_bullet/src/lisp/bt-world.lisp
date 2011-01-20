@@ -59,7 +59,7 @@
    (lock :initform (sb-thread:make-mutex))))
 
 (defmacro with-world-locked (world &body body)
-  `(sb-thread:with-mutex ((slot-value ,world 'lock))
+  `(sb-thread:with-recursive-lock ((slot-value ,world 'lock))
      ,@body))
 
 (defmethod foreign-class-alloc ((world bt-world) &key
