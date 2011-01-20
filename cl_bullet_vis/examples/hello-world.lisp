@@ -83,7 +83,7 @@
     (#\p (setf (paused window) (not (paused window))))
     (#\s (setf (stored-state window) (get-state (world window))))
     (#\r (when (stored-state window)
-           (setf (world window) (restore-world-state (stored-state window)))))
+           (restore-world-state (stored-state window) (world window))))
     (t (call-next-method))))
 
 (defmethod glut:tick :before ((window hello-world-window))
