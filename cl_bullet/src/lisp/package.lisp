@@ -62,7 +62,7 @@
    linear-velocity
    angular-velocity
    rigid-body
-   mass
+   mass name
    collision-shape
    ;; motion states
    pose
