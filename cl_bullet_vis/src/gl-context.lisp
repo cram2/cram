@@ -40,7 +40,7 @@
 
 (defclass gl-context ()
   ((textures :initform (make-hash-table))
-   (camera-transform :initform (cl-transforms:make-pose
+   (camera-transform :initform (cl-transforms:make-transform
                                 (cl-transforms:make-3d-vector 0 0 0)
                                 (cl-transforms:make-quaternion 0 0 0 1))
                      :initarg :camera-transform
