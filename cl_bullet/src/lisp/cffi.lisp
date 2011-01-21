@@ -349,13 +349,18 @@
 
 (defun new-convex-hull-shape (points)
   (flet ((points->foreign (native-vector points)
-           (loop for i below (* (length points) 3) by 3
-                 for p in points
-                 do (with-slots (cl-transforms:x cl-transforms:y cl-transforms:z)
-                        p
-                      (setf (mem-aref native-vector i) (coerce cl-transforms:x 'double-float))
-                      (setf (mem-aref native-vector (+ i 1)) (coerce cl-transforms:y 'double-float))
-                      (setf (mem-aref native-vector (+ i 2)) (coerce cl-transforms:z 'double-float))))
+           (let ((points (etypecase points
+                           (list
+                              (make-array (length points)
+                                          :initial-contents points))
+                           (array points))))
+             (loop for i below (* (length points) 3) by 3
+                   for p across points
+                   do (with-slots (cl-transforms:x cl-transforms:y cl-transforms:z)
+                          p
+                        (setf (mem-aref native-vector i) (coerce (cl-transforms:x p) 'double-float))
+                        (setf (mem-aref native-vector (+ i 1)) (coerce (cl-transforms:y p) 'double-float))
+                        (setf (mem-aref native-vector (+ i 2)) (coerce (cl-transforms:z p) 'double-float)))))
            points))
     (with-foreign-object (native-points :double (* 3 (length points)))
       (points->foreign native-points points)
