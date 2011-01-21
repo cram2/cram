@@ -34,7 +34,7 @@
     (:nicknames :bt-vis)
   (:use #:common-lisp #:bt)
   (:export bullet-world-window world camera-transform
-           draw-world *current-world*
+           closed draw-world *current-world*
            draw-rigid-body rigid-body-color
            draw-collision-shape
            matrix->gl-matrix pose->gl-matrix transform->gl-matrix))
