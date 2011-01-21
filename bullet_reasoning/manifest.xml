@@ -1,0 +1,17 @@
+<package>
+  <description brief="bullet_reasoning">
+
+     bullet_reasoning
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/bullet_reasoning</url>
+  <depend package="cram_reasoning"/>
+  <depend package="cl_bullet"/>
+  <depend package="cl_bullet_vis"/>
+
+</package>
+
+
