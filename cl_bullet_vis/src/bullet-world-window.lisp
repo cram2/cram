@@ -10,7 +10,8 @@
                :documentation "The desired frame rate in Hz. The
                system tries to redisplay the window at this rate.")
    (motion-mode :initform nil :reader motion-mode)
-   (pointer-pos :initform nil :reader pointer-pos))
+   (pointer-pos :initform nil :reader pointer-pos)
+   (closed :initform nil :reader closed))
   (:default-initargs :width 640 :height 480 :title "bullet visualization"
     :mode '(:double :rgba :depth)))
 
@@ -124,6 +125,9 @@
              (setf (bullet-events w) (delete :close (bullet-events w)))
              (glut:destroy-current-window))
             (t (glut:post-redisplay))))))
+
+(defmethod glut:close ((w bullet-world-window))
+  (setf (slot-value w 'closed) t))
 
 (defun set-camera (camera-transform)
   (gl:mult-matrix (transform->gl-matrix
