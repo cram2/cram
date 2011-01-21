@@ -56,6 +56,7 @@
                       :initform #'new-discrete-dynamics-world)
    (foreign-free-fun :reader foreign-class-free-fun
                      :initform #'delete-discrete-dynamics-world)
+   (contact-manifolds :initform nil)
    (lock :initform (sb-thread:make-mutex))))
 
 (defmacro with-world-locked (world &body body)
@@ -71,6 +72,7 @@
 
 (defmethod step-simulation ((world bt-world) time-step)
   (with-world-locked world
+    (setf (slot-value world 'contact-manifolds) nil)
     (cffi-step-simulation (foreign-obj world) (coerce time-step 'double-float))))
 
 (defmethod add-rigid-body ((world bt-world) (body rigid-body) &optional group mask)
@@ -107,27 +109,33 @@
 
 (defmethod perform-collision-detection ((world bt-world))
   (with-world-locked world
+    (setf (slot-value world 'contact-manifolds) nil)
     (cffi-perform-collision-detection (foreign-obj world))))
 
 (defmethod contact-manifolds ((world bt-world))
-  (with-world-locked world
-    (flet ((get-contact-points (manifold)
-             (loop for i from 0 below (manifold-get-num-contact-points manifold)
-                   collecting (make-instance 'contact-point
-                                   :point-in-1 (manifold-get-contact-point-0 manifold i)
-                                   :point-in-2 (manifold-get-contact-point-1 manifold i)))))
-      (loop for i from 0 below (get-num-manifolds (foreign-obj world))
-            for manifold = (get-manifold-by-index (foreign-obj world) i)
-            for body-ptr-1 = (manifold-get-body-0 manifold)
-            for body-ptr-2 = (manifold-get-body-1 manifold)
-            when (> (manifold-get-num-contact-points manifold) 0)
-              collecting (make-instance 'contact-manifold
-                              :body-1 (find (manifold-get-body-0 manifold) (bodies world)
-                                            :key #'foreign-obj :test (lambda (a b)
-                                                                       (eql (pointer-address a)
-                                                                            (pointer-address b))))
-                              :body-2 (find (manifold-get-body-1 manifold) (bodies world)
-                                            :key #'foreign-obj :test (lambda (a b)
-                                                                       (eql (pointer-address a)
-                                                                            (pointer-address b))))
-                              :contact-points (get-contact-points manifold))))))
+  (flet ((get-contact-points (manifold)
+           (let ((contact-points (make-array (manifold-get-num-contact-points manifold)
+                                             :element-type 'contact-point)))
+             (declare (type (simple-array contact-point 1) contact-points))
+             (dotimes (i (array-dimension contact-points 0) contact-points)
+               (setf (aref contact-points i)
+                     (make-instance 'contact-point
+                                    :point-in-1 (manifold-get-contact-point-0 manifold i)
+                                    :point-in-2 (manifold-get-contact-point-1 manifold i)))))))
+    (with-world-locked world
+      (or (slot-value world 'contact-manifolds)
+          (loop for i from 0 below (get-num-manifolds (foreign-obj world))
+                for manifold = (get-manifold-by-index (foreign-obj world) i)
+                for body-ptr-1 = (manifold-get-body-0 manifold)
+                for body-ptr-2 = (manifold-get-body-1 manifold)
+                when (> (manifold-get-num-contact-points manifold) 0)
+                  collecting (make-instance 'contact-manifold
+                                  :body-1 (find (manifold-get-body-0 manifold) (bodies world)
+                                                :key #'foreign-obj :test (lambda (a b)
+                                                                           (eql (pointer-address a)
+                                                                                (pointer-address b))))
+                                  :body-2 (find (manifold-get-body-1 manifold) (bodies world)
+                                                :key #'foreign-obj :test (lambda (a b)
+                                                                           (eql (pointer-address a)
+                                                                                (pointer-address b))))
+                                  :contact-points (get-contact-points manifold)))))))
