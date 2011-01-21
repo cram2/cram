@@ -1,0 +1,18 @@
+<package>
+  <description brief="cram_physics_utils">
+
+     cram_physics_utils
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/bullet_utils</url>
+  <depend package="cl_transforms"/>
+  <depend package="assimp"/>
+  <depend package="cffi"/>
+  <depend package="cffi_ros_utils"/>
+
+</package>
+
+
