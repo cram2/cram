@@ -81,7 +81,7 @@
 ;;; the complete list of remaining facts for each functor. Removing a fact
 ;;; group is needed to allow "recompilation" in interactive development.
 ;;;
-;;; *PREDIACTE-FACTS* also is a hash table that is indexed by the functors and
+;;; *PREDICATE-FACTS* also is a hash table that is indexed by the functors and
 ;;; keeps a list of all fact defintions as well as information about the fact
 ;;; groups the facts came from. The entries in this hash table are of the form
 ;;; (fact-group-names . list-of-facts), where fact-group-names is a list of
