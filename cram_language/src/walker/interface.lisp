@@ -32,10 +32,10 @@
 (defun expand-plan (form)
   "Expand-plan takes a sexp and macroexpands it. Whenever it encounters a call
    to a plan it continues by expanding the sexp that defined that plan and
-   thus builds up a hirarchie of plans (plan-tree). Expand-plan returns two
+   thus builds up a hierarchie of plans (plan-tree). Expand-plan returns two
    values: The resulting plan tree and the macroexpansion of form (with calls
    to plans still in place) of which the plan tree will be the most
-   interesting.  The root of the plan-tree returned by expand-plan doesnt
+   interesting.  The root of the plan-tree returned by expand-plan doesn't
    correspond to a plan call, but the form that was passed to expand-plan."
   (let* ((*shadowed-functions* nil)
          (*current-path* nil)
