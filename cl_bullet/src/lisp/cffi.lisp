@@ -30,14 +30,7 @@
 
 (in-package :bt)
 
-(define-foreign-library bullet-cl
-  (:unix "libbullet_cl.so"))
-
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (loop for path in (ros-library-paths ros-load:*current-ros-package*)
-        do (pushnew (concatenate 'string path "/")
-                    *foreign-library-directories*
-                    :test #'equal)))
+(define-foreign-ros-library bullet-cl "libbullet_cl.so")
 
 (use-foreign-library bullet-cl)
 
