@@ -34,6 +34,7 @@
   :description "A common lisp wrapper for the bullet library"
 
   :depends-on (:cffi
+               :cffi-ros-utils
                :trivial-garbage
                :ros-load-manifest
                :cram-utilities
@@ -41,9 +42,8 @@
                :cl-transforms)
   :components
   ((:file "package")
-   (:file "ros-utils" :depends-on ("package"))
    (:file "foreign-types" :depends-on ("package"))
-   (:file "cffi" :depends-on ("package" "ros-utils" "foreign-types"))
+   (:file "cffi" :depends-on ("package" "foreign-types"))
    (:file "foreign-class" :depends-on ("package"))
    (:file "debug-draw" :depends-on ("package" "foreign-types" "cffi" "foreign-class"))
    (:file "bt-world" :depends-on ("package" "cffi" "foreign-class" "rigid-body" "contact-manifold"))

@@ -30,7 +30,7 @@
 
 (defpackage cl-bullet
     (:nicknames :bullet :bt)
-  (:use #:common-lisp #:cffi)
+  (:use #:common-lisp #:cffi #:cffi-ros-utils)
   (:export
    ;; dynamics world
    bt-world
