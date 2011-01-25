@@ -33,6 +33,16 @@
 (defgeneric draw-collision-shape (gl-context shape)
   (:documentation "Draws a collision shape with opengl"))
 
+(defgeneric collision-shape-color (shape)
+  (:documentation "Returns the color of `shape' as a list. To change
+  the color of a collision shape, derive the class and add a custom
+  COLLISION-SHAPE-COLOR method.")
+  (:method ((body collision-shape))
+    '(0.8 0.8 0.8 1.0)))
+
+(defmethod draw-collision-shape :before ((context gl-context) (shape collision-shape))
+  (apply #'gl:color (collision-shape-color shape)))
+
 (defmethod draw-collision-shape ((context gl-context) (box box-shape))
   (let ((size-x (* 2 (cl-transforms:x (half-extents box))))
         (size-y (* 2 (cl-transforms:y (half-extents box))))
