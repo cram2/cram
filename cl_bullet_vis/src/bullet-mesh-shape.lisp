@@ -28,14 +28,24 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :cl-user)
+(in-package :bt-vis)
 
-(defpackage cl-bullet-vis
-    (:nicknames :bt-vis)
-  (:use #:common-lisp #:bt)
-  (:export bullet-world-window world camera-transform
-           closed draw-world *current-world*
-           draw-rigid-body rigid-body-color
-           draw-collision-shape
-           mesh-shape
-           matrix->gl-matrix pose->gl-matrix transform->gl-matrix))
+(defclass mesh-shape (convex-hull-shape)
+  ((faces :initarg :faces :reader faces)
+   (color :initarg :color
+          :reader collision-shape-color
+          :initform '(0.8 0.8 0.8 1.0))))
+
+
+(defmethod draw-collision-shape ((context gl-context) (mesh mesh-shape))
+  (gl:with-primitive :triangles
+    (map 'nil
+         (lambda (face)
+           (gl:normal (cl-transforms:x (physics-utils:face-normal face))
+                      (cl-transforms:y (physics-utils:face-normal face))
+                      (cl-transforms:z (physics-utils:face-normal face)))
+           (dolist (v (physics-utils:face-points face))
+             (gl:vertex (cl-transforms:x v)
+                        (cl-transforms:y v)
+                        (cl-transforms:z v))))
+         (faces mesh))))
