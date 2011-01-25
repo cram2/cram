@@ -351,13 +351,13 @@
                    for p across points
                    do (with-slots (cl-transforms:x cl-transforms:y cl-transforms:z)
                           p
-                        (setf (mem-aref native-vector i) (coerce (cl-transforms:x p) 'double-float))
-                        (setf (mem-aref native-vector (+ i 1)) (coerce (cl-transforms:y p) 'double-float))
-                        (setf (mem-aref native-vector (+ i 2)) (coerce (cl-transforms:z p) 'double-float)))))
+                        (setf (mem-aref native-vector :double i) (coerce (cl-transforms:x p) 'double-float))
+                        (setf (mem-aref native-vector :double (+ i 1)) (coerce (cl-transforms:y p) 'double-float))
+                        (setf (mem-aref native-vector :double (+ i 2)) (coerce (cl-transforms:z p) 'double-float)))))
            points))
     (with-foreign-object (native-points :double (* 3 (length points)))
       (points->foreign native-points points)
-      (foreign-funcall "newConvexHullShape" :pointer native-points :int (length points)))))
+      (foreign-funcall "newConvexHullShape" :pointer native-points :int (length points) :pointer))))
 
 (defcfun ("isConvexHullShape" convex-hull-shape-p) :boolean
   (shape :pointer))
