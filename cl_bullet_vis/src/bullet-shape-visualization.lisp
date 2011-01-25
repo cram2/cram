@@ -118,8 +118,9 @@
 
 (defmethod draw-collision-shape ((context gl-context) (hull convex-hull-shape))
   (gl:with-primitive :points
-    (dolist (point (points hull))
-      (gl:vertex
-       (cl-transforms:x point)
-       (cl-transforms:y point)
-       (cl-transforms:z point)))))
+    (map 'nil (lambda (point)
+                (gl:vertex
+                 (cl-transforms:x point)
+                 (cl-transforms:y point)
+                 (cl-transforms:z point)))
+         (points hull))))
