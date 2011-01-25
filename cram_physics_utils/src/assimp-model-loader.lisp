@@ -95,7 +95,10 @@
            (setf scene (ai-import-file (etypecase filename
                                          (string filename)
                                          (pathname (namestring filename)))
-                                       '(:join-identical-vertices :gen-normals :optimize-meshes)))
+                                       '(:join-identical-vertices
+                                         :gen-smooth-normals :optimize-meshes
+                                         :fix-infacing-normals
+                                         :triangulate)))
            (when (null-pointer-p scene)
              (error '3d-model-import-error
                     :format-control "Unable to load 3d model from file `~a'"
