@@ -32,4 +32,8 @@
 
 (defpackage physics-utils
   (:use #:common-lisp #:cffi #:cffi-ros-utils)
-  (:export))
+  (:export
+   load-3d-model
+   face make-face face-points face-normal
+   3d-model make-3d-model
+   3d-model-vertices 3d-model-faces))
