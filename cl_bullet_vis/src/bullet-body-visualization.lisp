@@ -31,16 +31,8 @@
 (in-package :bt-vis)
 
 (defgeneric draw-rigid-body (gl-context body))
-(defgeneric rigid-body-color (body)
-  (:documentation "Returns the color of `body' as a list. To change
-  the color of a rigid body, derive the class and add a custom
-  RIGID-BODY-COLOR method."))
 
 (defmethod draw-rigid-body ((context gl-context) (body rigid-body))
   (gl:with-pushed-matrix
     (gl:mult-matrix (pose->gl-matrix (pose body)))
-    (apply #'gl:color (rigid-body-color body))
     (draw-collision-shape context (collision-shape body))))
-
-(defmethod rigid-body-color ((body rigid-body))
-  '(0.8 0.8 0.8 1.0))
