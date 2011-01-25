@@ -132,7 +132,12 @@
       (simulate ?world 2.5)
       (lisp-pred stable-p ?world ?obj)
       (pose ?world ?obj ?pose-2))
-    (poses-equal ?pose-1 ?pose-2 (0.01 0.01))))
+    (poses-equal ?pose-1 ?pose-2 (0.01 0.01)))
+
+  (<- (supported-by ?world ?top ?bottom)
+    (above ?world ?top ?bottom)
+    (contact ?world ?top ?bottom)
+    (stable ?world ?top)))
 
 (def-fact-group spatial-relations ()
 
@@ -167,12 +172,7 @@
     (bound ?obj-1)
     (not (bound ?obj-2))
     (lisp-fun find-objects-above ?world ?obj-1 ?objs)
-    (member ?obj-2 ?objs))
-
-  (<- (supported-by ?world ?top ?bottom)
-    (above ?world ?top ?bottom)
-    (contact ?world ?top ?bottom)
-    (stable ?world ?top)))
+    (member ?obj-2 ?objs)))
 
 (def-fact-group debug ()
   (<- (debug-window ?world)
