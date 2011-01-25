@@ -33,7 +33,12 @@
     :license "BSD"
     :description "Simple library that allows to visualize a bullet world with opengl"
     
-    :depends-on (cl-bullet cl-opengl cl-glu cl-glut cl-transforms)
+    :depends-on (cl-bullet
+                 cl-opengl
+                 cl-glu
+                 cl-glut
+                 cl-transforms
+                 physics-utils)
     :components
     ((:module "src"
               :components
@@ -43,6 +48,8 @@
                (:file "textures" :depends-on ("package"))
                (:file "bullet-shape-visualization"
                       :depends-on ("package" "transforms" "gl-context" "textures"))
+               (:file "bullet-mesh-shape"
+                      :depends-on ("package" "gl-context"))
                (:file "bullet-body-visualization"
                       :depends-on ("package"
                                    "transforms" "gl-context"

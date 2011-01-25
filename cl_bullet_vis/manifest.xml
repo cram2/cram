@@ -9,6 +9,7 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cl_bullet_vis</url>
   <depend package="cl_bullet"/>
+  <depend package="cram_physics_utils"/>
   <depend package="cl_opengl"/>
   <depend package="cl_transforms"/>
 
