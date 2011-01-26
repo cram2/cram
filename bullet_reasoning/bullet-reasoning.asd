@@ -32,7 +32,7 @@
     :author "Lorenz Moesenlechner"
     :license "BSD"
     
-    :depends-on (cram-reasoning cl-bullet cl-bullet-vis)
+    :depends-on (cram-reasoning cl-bullet cl-bullet-vis cl-json-pl-client)
     :components
     ((:module "src"
               :components
@@ -41,4 +41,5 @@
                (:file "prolog-facts" :depends-on ("package"))
                (:file "world" :depends-on ("package"))
                (:file "objects" :depends-on ("package"))
+               (:file "semantic-map" :depends-on ("package" "objects"))
                (:file "debug-window" :depends-on ("package"))))))

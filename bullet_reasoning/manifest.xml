@@ -11,6 +11,7 @@
   <depend package="cram_reasoning"/>
   <depend package="cl_bullet"/>
   <depend package="cl_bullet_vis"/>
+  <depend package="cl_json_pl_client"/>
 
 </package>
 
