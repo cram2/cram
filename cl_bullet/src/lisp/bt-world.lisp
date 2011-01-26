@@ -57,7 +57,8 @@
    (foreign-free-fun :reader foreign-class-free-fun
                      :initform #'delete-discrete-dynamics-world)
    (contact-manifolds :initform nil)
-   (lock :initform (sb-thread:make-mutex))))
+   (lock :initform (sb-thread:make-mutex))
+   (id :initform (gensym "WORLD-") :reader world-id)))
 
 (defmacro with-world-locked (world &body body)
   `(sb-thread:with-recursive-lock ((slot-value ,world 'lock))

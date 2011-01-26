@@ -151,6 +151,7 @@ world."
                      (make-instance 'bt-world
                                     :gravity-vector (gravity-vector world-state)))))
       (with-world-locked world
+        (setf (slot-value world 'id) (gensym "WORLD-"))
         (with-slots (bodies constraints debug-drawer) world-state
           (when debug-drawer
             (set-debug-drawer world debug-drawer))
