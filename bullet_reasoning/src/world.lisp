@@ -76,12 +76,13 @@
 
 (defun find-objects (world &optional (pred (constantly t)))
   "Finds all objects that match the predicate"
-  (find-if pred (mapcar (lambda (body)
-                          (make-instance 'object-cache
-                                         :world world
-                                         :name (name body)
-                                         :body body))
-                        (bodies world))))
+  (remove-if-not
+   pred (mapcar (lambda (body)
+                  (make-instance 'object-cache
+                                 :world world
+                                 :name (name body)
+                                 :body body))
+                (bodies world))))
 
 (defun contact-p (world obj-1 obj-2)
   (let ((body-1 (body world obj-1))
