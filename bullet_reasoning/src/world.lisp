@@ -42,8 +42,13 @@
 
 (defclass object-cache ()
   ((world :initarg :world)
+   (world-id :reader world-id)
    (name :initarg :name :reader name)
    (body :initarg :body)))
+
+(defmethod initialize-instance :after ((cache object-cache) &key world)
+  (when world
+    (setf (slot-value cache 'world-id) (world-id world))))
 
 (defmethod body ((world bt-world) (cache object-cache))
   (slot-value cache 'body))
@@ -51,8 +56,10 @@
 (defmethod body :before ((world bt-world) (cache object-cache))
   (unless (and (slot-boundp cache 'body)
                (slot-boundp cache 'world)
-               (eq world (slot-value cache 'world)))
+               (eq world (slot-value cache 'world))
+               (eq (world-id world) (world-id cache)))
     (setf (slot-value cache 'world) world)
+    (setf (slot-value cache 'world-id) (world-id world))
     (setf (slot-value cache 'body)
           (find (name cache) (bodies world)
                 :key #'name :test #'equal))))
