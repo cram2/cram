@@ -30,7 +30,7 @@
 
 (in-package :btr)
 
-(defgeneric add-object (world type name pose mass &key &allow-other-keys)
+(defgeneric add-object (world type name pose &key &allow-other-keys)
   (:documentation "Adds an object of `type' named `name' to the bullet
   world `world'. The object is placed at `pose'"))
 
@@ -52,7 +52,7 @@
              (cl-transforms:make-quaternion ax ay az aw))))
     (cl-transforms:pose pose)))
 
-(defmethod add-object ((world bt-world) (type (eql 'box)) name pose mass &key size)
+(defmethod add-object ((world bt-world) (type (eql 'box)) name pose &key mass size)
   (let ((pose (ensure-pose pose)))
     (destructuring-bind (size-x size-y size-z) size
       (add-rigid-body world (make-instance
@@ -65,27 +65,27 @@
                                                               (/ size-y 2)
                                                               (/ size-z 2))))))))
 
-(defmethod add-object ((world bt-world) (type (eql 'static-plane)) name pose mass &key
+(defmethod add-object ((world bt-world) (type (eql 'static-plane)) name pose &key
                        normal constant)
   (let ((pose (ensure-pose pose)))
     (destructuring-bind (normal-x normal-y normal-z) normal
       (add-rigid-body world (make-instance
                              'rigid-body
-                             :name name :mass mass :pose pose
+                             :name name :pose pose
                              :collision-shape (make-instance
                                                'static-plane-shape
                                                :normal (cl-transforms:make-3d-vector
                                                         normal-x normal-y normal-z)
                                                :constant constant))))))
 
-(defmethod add-object ((world bt-world) (type (eql 'sphere)) name pose mass &key radius)
+(defmethod add-object ((world bt-world) (type (eql 'sphere)) name pose &key mass radius)
   (let ((pose (ensure-pose pose)))
     (add-rigid-body world (make-instance
                           'rigid-body
                           :name name :mass mass :pose pose
                           :collision-shape (make-instance 'sphere-shape :radius radius)))))
 
-(defmethod add-object ((world bt-world) (type (eql 'cylinder)) name pose mass &key size)
+(defmethod add-object ((world bt-world) (type (eql 'cylinder)) name pose &key mass size)
   (let ((pose (ensure-pose pose)))
     (destructuring-bind (size-x size-y size-z) size
       (add-rigid-body world (make-instance
@@ -97,8 +97,8 @@
                                                                             (/ size-y 2)
                                                                             (/ size-z 2))))))))
 
-(defmethod add-object ((world bt-world) (type (eql 'cone)) name pose mass &key
-                       radius height)
+(defmethod add-object ((world bt-world) (type (eql 'cone)) name pose &key
+                       mass radius height)
   (let ((pose (ensure-pose pose)))
     (add-rigid-body world (make-instance
                            'rigid-body
