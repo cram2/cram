@@ -53,7 +53,7 @@
   (<- (object ?world ?name ?obj)
     (not (bound ?name))
     (bound ?obj)
-    (lispfun name ?obj ?name))
+    (lisp-fun name ?obj ?name))
 
   (<- (object ?world ?name ?obj)
     (not (bound ?name))
@@ -117,7 +117,7 @@
     (bound ?obj-1)
     (not (bound ?obj-2))
     (lisp-fun perform-collision-detection ?world ?_)
-    (lisp-pred find-objects-in-contact ?world ?obj-1 ?objs)
+    (lisp-fun find-objects-in-contact ?world ?obj-1 ?objs)
     (member ?obj-2 ?objs))
 
   (<- (contact ?world ?obj-1 ?obj-2)
