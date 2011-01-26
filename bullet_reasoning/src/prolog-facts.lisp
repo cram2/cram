@@ -35,11 +35,10 @@
   (<- (bullet-world ?world)
     (instance-of bt-world ?world))
 
-  (<- (assert-object ?world ?object-type ?name ?pose ?mass . ?args)
+  (<- (assert-object ?world ?object-type ?name ?pose . ?args)
     (lisp-fun apply add-object
               ?world ?object-type
-              ?name ?pose ?mass
-              ?args
+              ?name ?pose ?args
               ?_))
 
   (<- (retract-object ?world ?name)
