@@ -47,6 +47,7 @@
    debug-draw-world
    perform-collision-detection
    contact-manifolds
+   world-id
    ;; contact-manifolds
    contact-point point-in-1 point-in-2
    contact-manifold body-1 body-2 contact-points
