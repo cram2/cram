@@ -123,6 +123,8 @@
     (member ?obj-2 ?objs))
 
   (<- (contact ?world ?obj-1 ?obj-2)
+    (not (bound ?obj-1))
+    (not (bound ?obj-2))
     (lisp-fun perform-collision-detection ?world ?_)
     (lisp-fun find-all-contacts ?world ?contacts)
     (member (?obj-1 ?obj-2) ?contacts))
