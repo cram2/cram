@@ -32,7 +32,10 @@
     :author "Lorenz Moesenlechner"
     :license "BSD"
     
-    :depends-on (cram-reasoning cl-bullet cl-bullet-vis cl-json-pl-client)
+    :depends-on (cram-reasoning
+                 cl-bullet cl-bullet-vis
+                 cl-json-pl-client
+                 cl-urdf)
     :components
     ((:module "src"
               :components
