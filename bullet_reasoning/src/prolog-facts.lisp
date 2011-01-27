@@ -75,7 +75,10 @@
 
   ;; Simulates the next ?t seconds with a step of ?dt
   (<- (simulate ?world ?t ?dt)
-    (lisp-fun simulate ?world ?t ?dt ?_)))
+    (lisp-fun simulate ?world ?t ?dt ?_))
+
+  (<- (simulate-realtime ?world ?t)
+    (lisp-fun simulate ?world ?t 0.01 :realtime ?_)))
 
 (def-fact-group poses ()
 
