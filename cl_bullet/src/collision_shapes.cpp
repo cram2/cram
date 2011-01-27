@@ -119,7 +119,7 @@ extern "C"
   
   btCollisionShape *newConeShape(double radius, double height)
   {
-    return new btConeShape(radius, height);
+    return new btConeShapeZ(radius, height);
   }
 
   bool isConeShape(const btCollisionShape *ptr)
