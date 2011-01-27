@@ -116,6 +116,11 @@
 (defmethod draw-collision-shape ((context gl-context) (sphere sphere-shape))
   (glut:solid-sphere (radius sphere) 50 50))
 
+(defmethod draw-collision-shape ((context gl-context) (cylinder cylinder-shape))
+  (glut:solid-cylinder (cl-transforms:x (half-extents cylinder))
+                       (* 2 (cl-transforms:z (half-extents cylinder)))
+                       50 50))
+
 (defmethod draw-collision-shape ((context gl-context) (cone cone-shape))
   (glut:solid-cone (radius cone) (height cone) 50 50))
 
