@@ -10,6 +10,9 @@
                :documentation "The desired frame rate in Hz. The
                system tries to redisplay the window at this rate.")
    (motion-mode :initform nil :reader motion-mode)
+   (camera-center-distance :reader camera-center-distance
+                           :initarg :camera-center-distance
+                           :initform 3.0)
    (pointer-pos :initform nil :reader pointer-pos)
    (closed :initform nil :reader closed))
   (:default-initargs :width 640 :height 480 :title "bullet visualization"
@@ -68,7 +71,7 @@
     (close-window window)))
 
 (defmethod glut:mouse ((window bullet-world-window) button state x y)
-  (with-slots (motion-mode pointer-pos camera-transform) window
+  (with-slots (motion-mode pointer-pos camera-transform camera-center-distance) window
     (case state
       (:up (setf motion-mode nil))
       (:down (unless motion-mode
@@ -76,41 +79,55 @@
                (case button
                  (:left-button (setf motion-mode :rotate))
                  (:right-button (setf motion-mode :translate))
-                 (:wheel-up (setf camera-transform (cl-transforms:transform*
-                                                    camera-transform
-                                                    (cl-transforms:make-transform
-                                                     (cl-transforms:make-3d-vector 0.3 0 0)
-                                                     (cl-transforms:make-quaternion 0 0 0 1)))))
-                 (:wheel-down (setf camera-transform (cl-transforms:transform*
-                                                      camera-transform
-                                                      (cl-transforms:make-transform
-                                                       (cl-transforms:make-3d-vector -0.3 0 0)
-                                                       (cl-transforms:make-quaternion 0 0 0 1))))))))))
+                 (:wheel-up
+                    (setf camera-transform (cl-transforms:transform*
+                                            camera-transform
+                                            (cl-transforms:make-transform
+                                             (cl-transforms:make-3d-vector (* 0.10 camera-center-distance) 0 0)
+                                             (cl-transforms:make-quaternion 0 0 0 1))))
+                    (setf camera-center-distance (* camera-center-distance 0.90)))
+                 (:wheel-down
+                    (setf camera-transform (cl-transforms:transform*
+                                            camera-transform
+                                            (cl-transforms:make-transform
+                                             (cl-transforms:make-3d-vector (* -0.10 camera-center-distance) 0 0)
+                                             (cl-transforms:make-quaternion 0 0 0 1))))
+                    (setf camera-center-distance (* camera-center-distance 1.10))))))))
   (glut:post-redisplay))
 
 (defmethod glut:motion ((window bullet-world-window) x y)
-  (with-slots (motion-mode camera-transform pointer-pos) window
+  (with-slots (motion-mode camera-transform camera-center-distance pointer-pos) window
     (unless pointer-pos
       (return-from glut:motion nil))
     (destructuring-bind (old-x old-y) pointer-pos
       (let ((dx (/ (- x old-x) (glut:width window)))
             (dy (/ (- y old-y) (glut:height window)))
             (y-axis-in-world (cl-transforms:rotate (cl-transforms:rotation camera-transform)
-                                                   (cl-transforms:make-3d-vector 0 1 0))))
+                                                   (cl-transforms:make-3d-vector 0 1 0)))
+            (camera-center (cl-transforms:transform-point
+                            camera-transform
+                            (cl-transforms:make-3d-vector
+                             camera-center-distance 0 0))))
         (setf pointer-pos `(,x ,y))
         (case motion-mode
           (:rotate
-             (setf camera-transform (cl-transforms:transform* (cl-transforms:make-transform
-                                                               (cl-transforms:make-3d-vector 0 0 0)
-                                                               (cl-transforms:axis-angle->quaternion
-                                                                (cl-transforms:make-3d-vector 0 0 1)
-                                                                (* dx pi)))
-                                                              (cl-transforms:make-transform
-                                                               (cl-transforms:make-3d-vector 0 0 0)
-                                                               (cl-transforms:axis-angle->quaternion
-                                                                y-axis-in-world
-                                                                (* dy pi)))                                                              
-                                                              camera-transform)))
+             (setf camera-transform (cl-transforms:transform*
+                                     (cl-transforms:make-transform
+                                      camera-center (cl-transforms:make-quaternion 0 0 0 1))
+                                     (cl-transforms:make-transform
+                                      (cl-transforms:make-3d-vector 0 0 0)
+                                      (cl-transforms:axis-angle->quaternion
+                                       (cl-transforms:make-3d-vector 0 0 1)
+                                       (* dx pi)))
+                                     (cl-transforms:make-transform
+                                      (cl-transforms:make-3d-vector 0 0 0)
+                                      (cl-transforms:axis-angle->quaternion
+                                       y-axis-in-world
+                                       (* dy pi)))
+                                     (cl-transforms:transform-inv
+                                      (cl-transforms:make-transform
+                                       camera-center (cl-transforms:make-quaternion 0 0 0 1)))
+                                     camera-transform)))
           (:translate
              (setf camera-transform (cl-transforms:transform* camera-transform
                                                               (cl-transforms:make-transform
