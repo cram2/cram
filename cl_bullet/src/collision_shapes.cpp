@@ -101,7 +101,7 @@ extern "C"
 
   btCollisionShape *newCylinderShape(const double *half_extents)
   {
-    return new btCylinderShape(btVector3(half_extents[0], half_extents[1], half_extents[2]));
+    return new btCylinderShapeZ(btVector3(half_extents[0], half_extents[1], half_extents[2]));
   }
 
   bool isCylinderShape(const btCollisionShape *ptr)
