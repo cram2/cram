@@ -56,7 +56,7 @@
   (new-sphere-shape (coerce radius 'double-float)))
 
 (defclass cylinder-shape (collision-shape)
-  ((half-extents :initarg half-extents :reader half-extents)))
+  ((half-extents :initarg :half-extents :reader half-extents)))
 
 (defmethod foreign-class-alloc ((obj cylinder-shape) &key half-extents &allow-other-keys)
   (new-cylinder-shape half-extents))
