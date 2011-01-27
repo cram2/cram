@@ -45,4 +45,5 @@
                (:file "world" :depends-on ("package"))
                (:file "objects" :depends-on ("package"))
                (:file "semantic-map" :depends-on ("package" "objects"))
+               (:file "robot-model" :depends-on ("package" "objects"))
                (:file "debug-window" :depends-on ("package"))))))
