@@ -28,17 +28,15 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :cl-user)
+(in-package :bt-vis)
 
-(defpackage cl-bullet-vis
-    (:nicknames :bt-vis)
-  (:use #:common-lisp #:bt)
-  (:export bullet-world-window world camera-transform
-           closed draw-world *current-world*
-           draw-rigid-body rigid-body-color
-           draw-collision-shape
-           collision-shape-color
-           colored-box-shape colored-sphere-shape colored-cone-shape
-           colored-compound-shape colored-convex-hull-shape
-           mesh-shape
-           matrix->gl-matrix pose->gl-matrix transform->gl-matrix))
+(defclass colored-shape-mixin ()
+  ((color :initarg :color
+          :initform '(0.8 0.8 0.8 1.0)
+          :reader collision-shape-color)))
+
+(defclass colored-box-shape (box-shape colored-shape-mixin) ())
+(defclass colored-sphere-shape (sphere-shape colored-shape-mixin) ())
+(defclass colored-cone-shape (cone-shape colored-shape-mixin) ())
+(defclass colored-compound-shape (compound-shape colored-shape-mixin) ())
+(defclass colored-convex-hull-shape (convex-hull-shape colored-shape-mixin) ())

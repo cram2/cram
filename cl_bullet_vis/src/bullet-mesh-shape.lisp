@@ -30,7 +30,7 @@
 
 (in-package :bt-vis)
 
-(defclass mesh-shape (convex-hull-shape)
+(defclass mesh-shape (convex-hull-shape colored-shape-mixin)
   ((faces :initarg :faces :reader faces)
    (color :initarg :color
           :reader collision-shape-color
