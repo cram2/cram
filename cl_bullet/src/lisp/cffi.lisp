@@ -80,8 +80,8 @@
 (defcfun ("addRigidBodyWithMask" cffi-add-rigid-body-with-mask) :void
   (world-handle :pointer)
   (body :pointer)
-  (group :short)
-  (mask :short))
+  (group collision-filters)
+  (mask collision-filters))
 
 (defcfun ("removeRigidBody" cffi-remove-rigid-body) :void
   (world-handle :pointer)
