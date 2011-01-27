@@ -35,9 +35,8 @@
   (:use #:common-lisp #:bt)
   (:export bullet-world-window world camera-transform
            closed draw-world *current-world*
-           draw-rigid-body rigid-body-color
-           draw-collision-shape
-           collision-shape-color
+           draw-rigid-body
+           draw-collision-shape collision-shape-color
            colored-box-shape colored-sphere-shape colored-cone-shape
            colored-compound-shape colored-convex-hull-shape
            mesh-shape
