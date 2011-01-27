@@ -1,0 +1,19 @@
+<package>
+  <description brief="cl_urdf">
+
+     cl_urdf
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cl_urdf</url>
+  <!-- We include roslisp here to get the s-xml library which is part
+       of roslisp's xml-rpc library -->
+  <depend package="roslisp_runtime"/>
+  <depend package="cl_transforms"/>
+  <depend package="cram_physics_utils"/>
+
+</package>
+
+
