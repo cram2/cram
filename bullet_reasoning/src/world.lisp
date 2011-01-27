@@ -64,12 +64,20 @@
           (find (name cache) (bodies world)
                 :key #'name :test #'equal))))
 
-(defun simulate (world secs &optional (dt 0.01))
+(defun simulate (world secs &optional (dt 0.01) realtime)
   (multiple-value-bind (steps rest) (truncate secs dt)
     (when (> rest 0.0)
       (incf steps))
     (dotimes (i steps)
-      (step-simulation world dt))))
+      (let ((curr-time (/ (get-internal-real-time)
+                          internal-time-units-per-second)))
+        (step-simulation world dt)
+        (when realtime
+          (let ((dt-real (- dt (- (/ (get-internal-real-time)
+                                  internal-time-units-per-second)
+                               curr-time))))
+            (when (> dt-real 0.005)
+              (sleep dt-real))))))))
 
 (defun get-object (world name)
   (make-instance 'object-cache :world world :name name))
