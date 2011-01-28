@@ -54,6 +54,20 @@
   (gl:with-pushed-matrix
     (with-world-locked (world window)
       (draw-world window (world window))))
+  ;; When we are moving around, draw a little yellow disk similar to
+  ;; that one RVIZ draws.
+  (when (or (eq (motion-mode window) :rotate)
+            (eq (motion-mode window) :translate))
+    (gl:with-pushed-matrix
+      (let ((disk-pos (cl-transforms:transform-point
+                       (camera-transform window)
+                       (cl-transforms:make-3d-vector (camera-center-distance window) 0 0))))
+        (gl:translate (cl-transforms:x disk-pos)
+                      (cl-transforms:y disk-pos)
+                      (cl-transforms:z disk-pos)))
+      (gl:color 0.8 0.8 0.0 1.0)
+      (gl:scale 1 1 0.1)
+      (glut:solid-sphere 0.1 50 50)))
   (glut:swap-buffers)
   (gl:flush))
 
