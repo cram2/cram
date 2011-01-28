@@ -42,6 +42,90 @@
           (remove-rigid-body world body)
           (warn 'simple-warning :format-control "Could not find a body named `~a'" name)))))
 
+(defclass object ()
+  ((name :initarg :name :reader name)
+   (rigid-bodies :initform (make-hash-table :test 'equal))
+   (pose-reference-body :initarg :pose-reference-body
+                        :documentation "The name of the rigid-body
+                        that is used for returning the pose of the
+                        object. It defaults to the first body that got
+                        added.")
+   (world-id :reader world-id)
+   (world :initarg :world :reader world)))
+
+(defgeneric rigid-bodies (obj)
+  (:documentation "Return the list of rigid bodies that belong to the object `obj'")
+  (:method ((obj object))
+    (with-slots (world-id world rigid-bodies) obj
+      (cond ((not (eq world-id (world-id world)))
+             (setf world-id (world-id world))
+             ;; Invalidate all objects if the world has changed
+             (let ((result nil))
+               (dolist (body (bodies world) result)
+                 (when (nth-value 1 (gethash (name body) rigid-bodies))
+                   (setf (gethash (name body) rigid-bodies) body)
+                   (push body result)))))
+            (t
+             (loop for name being the hash-keys in (slot-value obj 'rigid-bodies)
+                   using (hash-value body)
+                   collecting (or body (rigid-body obj name))))))))
+
+(defgeneric rigid-body-names (obj)
+  (:documentation "Return the list of rigid bodies that belong to the object `obj'")
+  (:method ((obj object))
+    (loop for body being the hash-keys in (slot-value obj 'rigid-bodies)
+          collecting body)))
+
+(defgeneric rigid-body (obj name)
+  (:documentation "Returns the rigid body named `name' or NIL if the body doesn't exist")
+  (:method ((obj object) name)
+    (with-slots (world world-id rigid-bodies) obj
+      (unless (eq world-id (world-id world))
+        ;; Invalidate all rigid bodies if the world has changed
+        (loop for key being the hash-keys in rigid-bodies do
+              (setf (gethash key rigid-bodies) nil))
+        (setf world-id (world-id world)))
+      (multiple-value-bind (value valid)
+          (gethash name rigid-bodies)
+        (when valid
+          (or value
+              (setf (gethash name rigid-bodies)
+                    (find name (bodies world)
+                          :key #'name
+                          :test #'equal))))))))
+
+(defun make-object (world name &optional bodies (add-to-world t) group mask)
+  (make-instance 'object
+                 :name name
+                 :world world
+                 :rigid-bodies bodies
+                 :add add-to-world
+                 :group group
+                 :mask mask))
+
+(defmethod initialize-instance :after ((object object) &key world rigid-bodies (add t) group mask)
+  (when world
+    (setf (slot-value object 'world-id) (world-id world)))
+  (when rigid-bodies
+    (setf (slot-value object 'pose-reference-body) (name (car rigid-bodies)))
+    (dolist (body rigid-bodies)
+      (when (and add world)
+        (when (typep world 'bt-reasoning-world)
+          (setf (gethash (name object) (slot-value world 'objects))
+                object))
+        (if (and group mask)
+            (add-rigid-body world body group mask)
+            (add-rigid-body world body)))
+      (setf (gethash (name body) (slot-value object 'rigid-bodies))
+            body))))
+
+(defmethod pose ((object object))
+  "Returns the pose of the object, i.e. the pose of the body named by
+  the slot `pose-reference-body'"
+  (let ((body (rigid-body object (slot-value object 'pose-reference-body))))
+    (when body
+      (pose body))))
+
 (defun ensure-pose (pose)
   (etypecase pose
     (list (destructuring-bind
@@ -52,57 +136,73 @@
              (cl-transforms:make-quaternion ax ay az aw))))
     (cl-transforms:pose pose)))
 
+(defun make-rigid-body-name (obj-name body-name)
+  (flet ((ensure-string (name)
+           (etypecase name
+             (string name)
+             (symbol (symbol-name name)))))
+    (intern (concatenate
+             'string
+             (ensure-string obj-name)
+             "."
+             (ensure-string body-name)))))
+
 (defmethod add-object ((world bt-world) (type (eql 'box)) name pose &key mass size)
-  (let ((pose (ensure-pose pose)))
-    (destructuring-bind (size-x size-y size-z) size
-      (add-rigid-body world (make-instance
-                             'rigid-body
-                             :name name :mass mass :pose pose
-                             :collision-shape (make-instance
-                                               'box-shape
-                                               :half-extents (cl-transforms:make-3d-vector
-                                                              (/ size-x 2)
-                                                              (/ size-y 2)
-                                                              (/ size-z 2))))))))
+  (destructuring-bind (size-x size-y size-z) size
+    (make-object world name
+                 (list
+                  (make-instance
+                   'rigid-body
+                   :name name :mass mass :pose (ensure-pose pose)
+                   :collision-shape (make-instance
+                                     'box-shape
+                                     :half-extents (cl-transforms:make-3d-vector
+                                                    (/ size-x 2)
+                                                    (/ size-y 2)
+                                                    (/ size-z 2))))))))
 
 (defmethod add-object ((world bt-world) (type (eql 'static-plane)) name pose &key
                        normal constant)
-  (let ((pose (ensure-pose pose)))
-    (destructuring-bind (normal-x normal-y normal-z) normal
-      (add-rigid-body world (make-instance
-                             'rigid-body
-                             :name name :pose pose
-                             :collision-shape (make-instance
-                                               'static-plane-shape
-                                               :normal (cl-transforms:make-3d-vector
-                                                        normal-x normal-y normal-z)
-                                               :constant constant))))))
+  (destructuring-bind (normal-x normal-y normal-z) normal
+    (make-object world name
+                 (list
+                  (make-instance
+                   'rigid-body
+                   :name name :pose (ensure-pose pose)
+                   :collision-shape (make-instance
+                                     'static-plane-shape
+                                     :normal (cl-transforms:make-3d-vector
+                                              normal-x normal-y normal-z)
+                                     :constant constant))))))
 
 (defmethod add-object ((world bt-world) (type (eql 'sphere)) name pose &key mass radius)
-  (let ((pose (ensure-pose pose)))
-    (add-rigid-body world (make-instance
-                          'rigid-body
-                          :name name :mass mass :pose pose
-                          :collision-shape (make-instance 'sphere-shape :radius radius)))))
+  (make-object world name
+               (list
+                (make-instance
+                 'rigid-body
+                 :name name :mass mass :pose (ensure-pose pose)
+                 :collision-shape (make-instance 'sphere-shape :radius radius)))))
 
 (defmethod add-object ((world bt-world) (type (eql 'cylinder)) name pose &key mass size)
-  (let ((pose (ensure-pose pose)))
-    (destructuring-bind (size-x size-y size-z) size
-      (add-rigid-body world (make-instance
-                             'rigid-body
-                             :name name :mass mass :pose pose
-                             :collision-shape (make-instance 'cylinder-shape
-                                                             :half-extents (cl-transforms:make-3d-vector
-                                                                            (/ size-x 2)
-                                                                            (/ size-y 2)
-                                                                            (/ size-z 2))))))))
+  (destructuring-bind (size-x size-y size-z) size
+    (make-object world name
+                 (list
+                  (make-instance
+                   'rigid-body
+                   :name name :mass mass :pose (ensure-pose pose)
+                   :collision-shape (make-instance 'cylinder-shape
+                                                   :half-extents (cl-transforms:make-3d-vector
+                                                                  (/ size-x 2)
+                                                                  (/ size-y 2)
+                                                                  (/ size-z 2))))))))
 
 (defmethod add-object ((world bt-world) (type (eql 'cone)) name pose &key
                        mass radius height)
-  (let ((pose (ensure-pose pose)))
-    (add-rigid-body world (make-instance
-                           'rigid-body
-                           :name name :mass mass :pose pose
-                           :collision-shape (make-instance 'cone-shape
-                                                           :radius radius
-                                                           :height height)))))
+  (make-object world name
+               (list
+                (make-instance
+                 'rigid-body
+                 :name name :mass mass :pose (ensure-pose pose)
+                 :collision-shape (make-instance 'cone-shape
+                                                 :radius radius
+                                                 :height height)))))

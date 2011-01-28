@@ -66,26 +66,18 @@
        (= '(?d ?w ?h) ?dim))))))
 
 (defmethod add-object ((world bt-world) (type (eql 'semantic-map)) name pose &key)
-  (flet ((make-name (prefix obj-name)
-           (intern (concatenate
-                    'string
-                    (etypecase prefix
-                      (string prefix)
-                      (symbol (symbol-name prefix)))
-                    "."
-                    (symbol-name obj-name)))))
-    (let ((objects (query-semantic-map-objects))
-          (pose-transform (cl-transforms:reference-transform
-                           (ensure-pose pose))))
-      (dolist (obj objects)
-        (add-rigid-body
-         world
-         (make-instance
-          'rigid-body
-          :name (make-name name (name obj)) :pose (cl-transforms:transform-pose
-                                                   pose-transform
-                                                   (pose obj))
-          :collision-shape (make-instance
-                            'box-shape
-                            :half-extents (cl-transforms:v* (dimensions obj)
-                                                            0.5))))))))
+  (let ((pose-transform (cl-transforms:reference-transform
+                         (ensure-pose pose))))
+    (make-object world name
+                 (mapcar (lambda (obj)
+                           (make-instance
+                            'rigid-body
+                            :name (make-rigid-body-name name (name obj))
+                            :pose (cl-transforms:transform-pose
+                                   pose-transform
+                                   (pose obj))
+                            :collision-shape (make-instance
+                                              'box-shape
+                                              :half-extents (cl-transforms:v* (dimensions obj)
+                                                                              0.5))))
+                         (query-semantic-map-objects)))))
