@@ -34,7 +34,7 @@
     (:nicknames :bt-vis)
   (:use #:common-lisp #:bt)
   (:export bullet-world-window world camera-transform
-           closed draw-world *current-world*
+           closed draw-world *current-world* init-camera
            draw-rigid-body
            draw-collision-shape collision-shape-color
            colored-box-shape colored-sphere-shape colored-cone-shape
