@@ -47,6 +47,7 @@
                (:file "gl-context" :depends-on ("package"))
                (:file "textures" :depends-on ("package"))
                (:file "gl-utils" :depends-on ("package"))
+               (:file "event-queue" :depends-on ("package"))
                (:file "bullet-shape-visualization"
                       :depends-on ("package" "transforms" "gl-context" "textures"))
                (:file "bullet-colored-shapes"
@@ -61,6 +62,5 @@
                       :depends-on ("package" "gl-context" "bullet-body-visualization"))
                (:file "bullet-world-window"
                       :depends-on ("package"
-                                   "transforms" "gl-context"
-                                   "bullet-world-visualization"
-                                   "gl-utils"))))))
+                                   "transforms" "gl-context" "event-queue"
+                                   "bullet-world-visualization"))))))

@@ -38,6 +38,7 @@
            init-camera set-camera
            get-texture-handle camera-transform light-position
            gl-context
+           event-queue post-event get-next-event
            draw-rigid-body
            draw-collision-shape collision-shape-color
            colored-box-shape colored-sphere-shape colored-cone-shape

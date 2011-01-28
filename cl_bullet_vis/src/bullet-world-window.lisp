@@ -1,11 +1,12 @@
 
 (in-package :bt-vis)
 
-(defclass bullet-world-window (glut:window gl-context)
+(defvar *bullet-window-loop-rate* 100
+  "The update rate in Hz of the event loop.")
+
+(defclass bullet-world-window (glut:window gl-context event-queue)
   ((world :accessor world :initarg :world
           :initform (error 'simple-error :format-control "world argument required"))
-   (bullet-events :initform nil :accessor bullet-events)
-   (events-lock :initform (sb-thread:make-mutex) :reader  events-lock)
    (frame-rate :initform 50 :initarg :frame-rate :reader frame-rate
                :documentation "The desired frame rate in Hz. The
                system tries to redisplay the window at this rate.")
@@ -20,8 +21,20 @@
 
 (defgeneric close-window (window)
   (:method ((w bullet-world-window))
-    (sb-thread:with-mutex ((events-lock w))
-      (pushnew :close (bullet-events w)))))
+    (post-event w '(:close))))
+
+(defgeneric process-event (window type &rest args))
+
+;; We want to implement our own main loop that can react 
+(defmethod glut:display-window :around ((w bullet-world-window))
+  (let ((glut:*run-main-loop-after-display* nil))
+    (call-next-method)
+    (loop until (closed w) do
+            (loop for ev = (get-next-event w (/ *bullet-window-loop-rate*))
+                  while ev do (apply #'process-event w ev))
+            (glut:main-loop-event))
+    ;; Clean up. Process all pending opengl events
+    (glut:main-loop-event)))
 
 (defmethod glut:display-window :before ((w bullet-world-window))
   (gl:clear-color 0 0 0 0)
@@ -147,15 +160,14 @@
   (glut:post-redisplay))
 
 (defmethod glut:tick ((w bullet-world-window))
-  (sb-thread:with-mutex ((events-lock w))
-    (unless (member :closing (bullet-events w))
-      (cond ((member :close (bullet-events w))
-             (setf (bullet-events w) (delete :close (bullet-events w)))
-             (glut:destroy-current-window))
-            (t (glut:post-redisplay))))))
+  (unless (closed w)
+    (glut:post-redisplay)))
 
-(defmethod glut:close ((w bullet-world-window))
-  (setf (slot-value w 'closed) t))
+(defmethod process-event ((w bullet-world-window) (type (eql :close)) &rest args)
+  (declare (ignore args))
+  (format t "closing~%")
+  (setf (slot-value w 'closed) t)
+  (glut:destroy-current-window))
 
 (defun init-camera ()
   "Sets the camera such that x points forward, y to the left and z
