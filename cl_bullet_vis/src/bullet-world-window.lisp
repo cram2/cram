@@ -16,6 +16,7 @@
                            :initform 3.0)
    (pointer-pos :initform nil :reader pointer-pos)
    (closed :initform nil :reader closed)
+   (redrawing :initform nil :accessor redrawing)
    (display-callbacks :initform nil :accessor display-callbacks))
   (:default-initargs :width 640 :height 480 :title "bullet visualization"
     :mode '(:double :rgba :depth)))
@@ -48,7 +49,8 @@
 
 (defmethod glut:display-window :after ((w bullet-world-window))
   (glut:disable-event w :idle)
-  (glut:enable-tick w (truncate (* (/ (frame-rate w)) 1000))))
+  (when (frame-rate w)
+    (glut:enable-tick w (truncate (* (/ (frame-rate w)) 1000)))))
 
 (defmethod glut:display ((window bullet-world-window))
   (init-camera)
@@ -83,6 +85,7 @@
   (let ((callbacks (display-callbacks window)))
     (setf (display-callbacks window) nil)
     (map 'nil #'funcall callbacks))
+  (setf (redrawing window) nil)
   (glut:swap-buffers)
   (gl:flush))
 
@@ -171,6 +174,11 @@
 (defmethod process-event ((w bullet-world-window) (type (eql :close)) &key)
   (setf (slot-value w 'closed) t)
   (glut:destroy-current-window))
+
+(defmethod process-event ((w bullet-world-window) (type (eql :redisplay)) &key)
+  (unless (or (closed w) (redrawing w))
+    (setf (redrawing w) t)
+    (glut:post-redisplay)))
 
 (defmethod process-event ((w bullet-world-window) (type (eql :display)) &key callback)
   (push callback (display-callbacks w))
