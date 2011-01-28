@@ -58,20 +58,20 @@
 
 (defmethod get-next-event ((queue event-queue) &optional timeout)
   (flet ((dequeue-event ()
-           (loop until (car (event-queue queue)) do
-             (sb-thread:condition-wait
-              (events-condition queue)
-              (events-lock queue)))
-           (prog1 (caar (event-queue queue))
-             (setf (car (event-queue queue))
-                   (cdar (event-queue queue)))
-             (unless (car (event-queue queue))
-               (setf (cdr (event-queue queue)) nil)))))
-    (sb-thread:with-mutex ((events-lock queue))
-      (if timeout
-          (sb-ext:with-timeout timeout
-              (handler-case (dequeue-event)
-                (sb-ext:timeout (c)
-                  (declare (ignore c))
-                  nil)))
-          (dequeue-event)))))
+           (sb-thread:with-mutex ((events-lock queue))
+             (loop until (car (event-queue queue)) do
+               (sb-thread:condition-wait
+                (events-condition queue)
+                (events-lock queue)))
+             (prog1 (caar (event-queue queue))
+               (setf (car (event-queue queue))
+                     (cdar (event-queue queue)))
+               (unless (car (event-queue queue))
+                 (setf (cdr (event-queue queue)) nil))))))
+    (if timeout
+        (handler-case
+            (sb-ext:with-timeout timeout
+              (dequeue-event))
+          (sb-ext:timeout ()
+            nil))
+        (dequeue-event))))
