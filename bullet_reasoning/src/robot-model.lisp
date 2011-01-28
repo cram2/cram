@@ -56,40 +56,50 @@
                  :faces (physics-utils:3d-model-faces (cl-urdf:3d-model mesh))
                  :points (physics-utils:3d-model-vertices (cl-urdf:3d-model mesh))))
 
+(defclass robot-object (object)
+  ((links :initform (make-hash-table :test 'equal))
+   (joints :initform (make-hash-table :test 'equal))
+   (urdf :initarg :urdf :reader urdf)))
+
 (defmethod add-object ((world bt-world) (type (eql 'urdf)) name pose &key
                        urdf)
-  (labels ((make-name (prefix obj-name)
-             (intern (concatenate
-                      'string
-                      (etypecase prefix
-                        (string prefix)
-                        (symbol (symbol-name prefix)))
-                      "."
-                      (etypecase obj-name
-                        (string obj-name)
-                        (symbol (symbol-name obj-name))))))
-           (add-link (pose link)
+  (labels ((make-link-bodies (pose link)
+             "Returns the list of rigid bodies of `link' and all its sub-links"
              (let ((pose-transform (cl-transforms:reference-transform pose))
                    (collision-elem (cl-urdf:collision link)))
-               (when collision-elem
-                 (add-rigid-body
-                  world
-                  (make-instance
-                   'rigid-body
-                   :name (make-name name (cl-urdf:name link))
-                   :pose (cl-transforms:transform-pose
-                          pose-transform (cl-urdf:origin collision-elem))
-                   :collision-shape (urdf-make-collision-shape
-                                     (cl-urdf:geometry collision-elem)
-                                     (cl-urdf:color (cl-urdf:material (cl-urdf:visual link))))
-                   :collision-flags '(:cf-default))
-                  :character-filter '(:default-filter :static-filter)))
-               (dolist (joint (cl-urdf:to-joints link))
-                 (add-link (cl-transforms:transform-pose
-                            pose-transform (cl-urdf:origin joint))
-                           (cl-urdf:child joint))))))
-    (let ((urdf-model (etypecase urdf
-                        (cl-urdf:robot urdf)
-                        (string (handler-bind ((cl-urdf:urdf-type-not-supported #'muffle-warning))
-                                  (cl-urdf:parse-urdf urdf))))))
-      (add-link (ensure-pose pose) (cl-urdf:root-link urdf-model)))))
+               (if collision-elem
+                   (cons (cons
+                          (cl-urdf:name link)
+                          (make-instance
+                           'rigid-body
+                           :name (make-rigid-body-name name (cl-urdf:name link))
+                           :pose (cl-transforms:transform-pose
+                                  pose-transform (cl-urdf:origin collision-elem))
+                           :collision-shape (urdf-make-collision-shape
+                                             (cl-urdf:geometry collision-elem)
+                                             (cl-urdf:color (cl-urdf:material (cl-urdf:visual link))))
+                           :collision-flags '(:cf-default)))
+                         (mapcan (lambda (joint)
+                                   (make-link-bodies (cl-transforms:transform-pose
+                                                      pose-transform (cl-urdf:origin joint))
+                                                     (cl-urdf:child joint)))
+                                 (cl-urdf:to-joints link)))
+                   (mapcan (lambda (joint)
+                             (make-link-bodies (cl-transforms:transform-pose
+                                                pose-transform (cl-urdf:origin joint))
+                                               (cl-urdf:child joint)))
+                           (cl-urdf:to-joints link))))))
+    (let* ((urdf-model (etypecase urdf
+                         (cl-urdf:robot urdf)
+                         (string (handler-bind ((cl-urdf:urdf-type-not-supported #'muffle-warning))
+                                   (cl-urdf:parse-urdf urdf)))))
+           (pose (ensure-pose pose))
+           (bodies (make-link-bodies pose (cl-urdf:root-link urdf-model))))
+      (make-instance 'robot-object
+                     :rigid-bodies (mapcar #'cdr bodies)
+                     :world world
+                     :pose-reference-body (cl-urdf:name (cl-urdf:root-link urdf-model))
+                     :name name
+                     :urdf urdf-model
+                     :group :character-filter
+                     :mask '(:default-filter :static-filter)))))

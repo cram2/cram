@@ -28,25 +28,31 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(defsystem bullet-reasoning
-    :author "Lorenz Moesenlechner"
-    :license "BSD"
-    
-    :depends-on (cram-reasoning
-                 cl-bullet cl-bullet-vis
-                 cl-json-pl-client
-                 cl-urdf)
-    :components
-    ((:module "src"
-              :components
-              ((:file "package")
-               (:file "prolog-handlers" :depends-on ("package"))
-               (:file "prolog-facts" :depends-on ("package"))
-               (:file "reasoning-world" :depends-on ("package"))
-               (:file "objects" :depends-on ("package" "reasoning-world"))
-               (:file "world-utils" :depends-on ("package"
-                                                 "reasoning-world"
-                                                 "objects"))
-               (:file "semantic-map" :depends-on ("package" "objects"))
-               (:file "robot-model" :depends-on ("package" "objects"))
-               (:file "debug-window" :depends-on ("package"))))))
+(in-package :btr)
+
+(defclass bt-reasoning-world (bt-world)
+  ((objects :initform (make-hash-table :test 'equal))))
+
+(defgeneric objects (reasoning-world)
+  (:documentation "Returns the list of objects in `reasoning-world'")
+  (:method ((world bt-reasoning-world))
+    (loop for obj being the hash-values of (slot-value world 'objects)
+          collecting obj)))
+
+(defclass bt-reasoning-world-state (world-state)
+  ((objects :reader objects :initform :objects
+            :documentation "alist of objects")))
+
+(defmethod get-state ((world bt-reasoning-world))
+  (let ((state (call-next-method)))
+    (change-class state 'bt-reasoning-world-state
+                  :objects (loop for name being the hash-keys of (objects world)
+                                 using (hash-value object)
+                                 collecting (cons name object)))))
+
+(defmethod restore-state ((world-state bt-reasoning-world-state)
+                          (world bt-reasoning-world))
+  (call-next-method)
+  (clrhash (objects world))
+  (loop for (name . obj) in (objects world-state) do
+        (setf (gethash name (objects world)) obj)))

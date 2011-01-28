@@ -33,7 +33,7 @@
 (def-fact-group bullet-world-facts ()
   
   (<- (bullet-world ?world)
-    (instance-of bt-world ?world))
+    (instance-of bt-reasoning-world ?world))
 
   (<- (assert-object ?world ?object-type ?name ?pose . ?args)
     (lisp-fun apply add-object
@@ -86,7 +86,7 @@
     (lisp-fun body ?world ?obj ?body)
     (lisp-fun pose ?body ?pose))
 
-  (<- (pose ?world ?obj ?position ?orientation)
+  (<- (pose ?obj ?position ?orientation)
     (pose ?obj ?p)
     (position ?p ?position)
     (orientation ?p ?orientation))
@@ -131,51 +131,51 @@
 
   (<- (stable ?world ?obj)
     (bound ?obj)
-    (pose ?world ?obj ?pose-1)
+    (pose ?obj ?pose-1)
     (with-stored-world ?world
       (simulate ?world 2.5)
-      (lisp-pred stable-p ?world ?obj)
-      (pose ?world ?obj ?pose-2))
+      (lisp-pred stable-p ?obj)
+      (pose ?obj ?pose-2))
     (poses-equal ?pose-1 ?pose-2 (0.01 0.01)))
 
   (<- (supported-by ?world ?top ?bottom)
-    (above ?world ?top ?bottom)
+    (above ?top ?bottom)
     (contact ?world ?top ?bottom)
     (stable ?world ?top)))
 
 (def-fact-group spatial-relations ()
 
-  (<- (above ?world ?obj-1 ?obj-2)
+  (<- (above ?obj-1 ?obj-2)
     (bound ?obj-1)
     (bound ?obj-2)
-    (lisp-pred above-p ?world ?obj-1 ?obj-2))
+    (lisp-pred above-p ?obj-1 ?obj-2))
 
-  (<- (above ?world ?obj-1 ?obj-2)
+  (<- (above ?obj-1 ?obj-2)
     (not (bound ?obj-1))
     (bound ?obj-2)
-    (lisp-fun find-objects-above ?world ?obj-2 ?objs)
+    (lisp-fun find-objects-above ?obj-2 ?objs)
     (member ?obj-1 ?objs))
 
-  (<- (above ?world ?obj-1 ?obj-2)
+  (<- (above ?obj-1 ?obj-2)
     (bound ?obj-1)
     (not (bound ?obj-2))
-    (lisp-fun find-objects-below ?world ?obj-1 ?objs)
+    (lisp-fun find-objects-below ?obj-1 ?objs)
     (member ?obj-2 ?objs))
 
-  (<- (below ?world ?obj-1 ?obj-2)
+  (<- (below ?obj-1 ?obj-2)
     (bound ?obj-1 ?obj-2)
-    (lisp-pred below-p ?world ?obj-1 ?obj-2))
+    (lisp-pred below-p ?obj-1 ?obj-2))
 
-  (<- (below ?world ?obj-1 ?obj-2)
+  (<- (below ?obj-1 ?obj-2)
     (not (bound ?obj-1))
     (bound ?obj-2)
-    (lisp-fun find-objects-below ?world ?obj-2 ?objs)
+    (lisp-fun find-objects-below ?obj-2 ?objs)
     (member ?obj-1 ?objs))
 
-  (<- (below ?world ?obj-1 ?obj-2)
+  (<- (below ?obj-1 ?obj-2)
     (bound ?obj-1)
     (not (bound ?obj-2))
-    (lisp-fun find-objects-above ?world ?obj-1 ?objs)
+    (lisp-fun find-objects-above ?obj-1 ?objs)
     (member ?obj-2 ?objs)))
 
 (def-fact-group debug ()
