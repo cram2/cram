@@ -15,7 +15,8 @@
                            :initarg :camera-center-distance
                            :initform 3.0)
    (pointer-pos :initform nil :reader pointer-pos)
-   (closed :initform nil :reader closed))
+   (closed :initform nil :reader closed)
+   (display-callbacks :initform nil :accessor display-callbacks))
   (:default-initargs :width 640 :height 480 :title "bullet visualization"
     :mode '(:double :rgba :depth)))
 
@@ -23,16 +24,17 @@
   (:method ((w bullet-world-window))
     (post-event w '(:close))))
 
-(defgeneric process-event (window type &rest args))
+(defgeneric process-event (window type &key))
 
-;; We want to implement our own main loop that can react 
+;; We want to implement our own main loop that supports different
+;; events, not only OpenGL events.
 (defmethod glut:display-window :around ((w bullet-world-window))
   (let ((glut:*run-main-loop-after-display* nil))
     (call-next-method)
     (loop until (closed w) do
-            (loop for ev = (get-next-event w (/ *bullet-window-loop-rate*))
-                  while ev do (apply #'process-event w ev))
-            (glut:main-loop-event))
+      (loop for ev = (get-next-event w (/ *bullet-window-loop-rate*))
+            while ev do (apply #'process-event w ev))
+      (glut:main-loop-event))
     ;; Clean up. Process all pending opengl events
     (glut:main-loop-event)))
 
@@ -78,6 +80,9 @@
       (gl:color 0.8 0.8 0.0 1.0)
       (gl:scale 1 1 0.1)
       (glut:solid-sphere 0.1 50 50)))
+  (let ((callbacks (display-callbacks window)))
+    (setf (display-callbacks window) nil)
+    (map 'nil #'funcall callbacks))
   (glut:swap-buffers)
   (gl:flush))
 
@@ -163,11 +168,13 @@
   (unless (closed w)
     (glut:post-redisplay)))
 
-(defmethod process-event ((w bullet-world-window) (type (eql :close)) &rest args)
-  (declare (ignore args))
-  (format t "closing~%")
+(defmethod process-event ((w bullet-world-window) (type (eql :close)) &key)
   (setf (slot-value w 'closed) t)
   (glut:destroy-current-window))
+
+(defmethod process-event ((w bullet-world-window) (type (eql :display)) &key callback)
+  (push callback (display-callbacks w))
+  (glut:post-redisplay))
 
 (defun init-camera ()
   "Sets the camera such that x points forward, y to the left and z
