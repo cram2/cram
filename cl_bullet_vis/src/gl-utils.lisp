@@ -28,17 +28,20 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :cl-user)
+(in-package :bt-vis)
 
-(defpackage cl-bullet-vis
-    (:nicknames :bt-vis)
-  (:use #:common-lisp #:bt)
-  (:export bullet-world-window world camera-transform
-           closed draw-world *current-world* init-camera
-           draw-rigid-body
-           draw-collision-shape collision-shape-color
-           colored-box-shape colored-sphere-shape colored-cone-shape
-           colored-compound-shape colored-convex-hull-shape
-           mesh-shape
-           matrix->gl-matrix pose->gl-matrix transform->gl-matrix
-           read-pixels-float))
+(defun read-pixels-float (x y width height format)
+  (let* ((mult (ecase format
+                 ((:red :green :blue :alpha :luminance) 1)
+                 ((:depth-component :color-index :stencil-index) 1)
+                 (:luminance-alpha 2)
+                 ((:rgb :bgr) 3)
+                 ((:rgba :bgra) 4)))
+         (size (* width height mult))
+         (result-data (make-array size :element-type 'single-float)))
+    (declare (type (simple-array single-float 1) result-data))
+    (cffi:with-foreign-object (array :float size)
+      (%gl:read-pixels x y width height format :float array)
+      (dotimes (i size result-data)
+        (setf (aref result-data i)
+              (cffi:mem-aref array :float i))))))
