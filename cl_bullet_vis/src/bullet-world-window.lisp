@@ -36,11 +36,8 @@
   (glut:enable-tick w (truncate (* (/ (frame-rate w)) 1000))))
 
 (defmethod glut:display ((window bullet-world-window))
-  (gl:load-identity)
+  (init-camera)
   (gl:enable :light0 :lighting :cull-face :depth-test :color-material :blend)
-  (gl:rotate 90 1 0 0)
-  (gl:rotate -90 0 0 1)
-  (gl:rotate 180 1 0 0)
   (gl:clear :color-buffer :depth-buffer)
   (set-camera (camera-transform window))
   (gl:light :light0 :position (vector
@@ -159,6 +156,14 @@
 
 (defmethod glut:close ((w bullet-world-window))
   (setf (slot-value w 'closed) t))
+
+(defun init-camera ()
+  "Sets the camera such that x points forward, y to the left and z
+upwards. This matches ROS' coordinates best."
+  (gl:load-identity)
+  (gl:rotate 90 1 0 0)
+  (gl:rotate -90 0 0 1)
+  (gl:rotate 180 1 0 0))
 
 (defun set-camera (camera-transform)
   (gl:mult-matrix (transform->gl-matrix
