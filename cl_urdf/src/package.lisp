@@ -33,7 +33,7 @@
 (defpackage cl-urdf
     (:use #:common-lisp )
   (:export
-   upper lower effort velocity
+   upper lower effort velocity joint-type
    joint type name axis origin parent child limits
    inertial mass inertia
    geometry box size cylinder radius length cylinder-length sphere
