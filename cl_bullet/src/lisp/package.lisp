@@ -174,6 +174,6 @@
    report-error-warning
    draw-3d-text
    ;; world-state
-   get-state
+   get-state world-state
    restore-world-state
    restore-state))

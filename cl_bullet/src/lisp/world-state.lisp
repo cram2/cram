@@ -139,27 +139,31 @@
 specified, updates it so that it exactly matches the state in
 `world-state', otherwise a new world is created. Returns updated
 world."
-  (flet ((clear-world (world world-state)
-           (with-world-locked world
-             (dolist (constraint (constraints world))
-               (remove-constraint world constraint))
-             (dolist (body (bodies world))
-               (remove-rigid-body world body))
-             (setf (gravity-vector world) (gravity-vector world-state)))
-           world))
-    (let ((world (or (when world (clear-world world world-state))
-                     (make-instance 'bt-world
-                                    :gravity-vector (gravity-vector world-state)))))
-      (with-world-locked world
-        (setf (slot-value world 'id) (gensym "WORLD-"))
-        (with-slots (bodies constraints debug-drawer) world-state
-          (when debug-drawer
-            (set-debug-drawer world debug-drawer))
-          (dolist (body bodies)
-            (restore-state body world))
-          (dolist (constraint constraints)
-            (restore-state constraint world))))
-      world)))
+  (restore-state
+   world-state
+   (or world
+       (make-instance 'bt-world
+                      :gravity-vector (gravity-vector world-state)))))
+
+(defmethod restore-state ((world-state world-state) (world bt-world))
+  (with-world-locked world
+    ;; First clear the world
+    (dolist (constraint (constraints world))
+      (remove-constraint world constraint))
+    (dolist (body (bodies world))
+      (remove-rigid-body world body))
+    (setf (gravity-vector world) (gravity-vector world-state))
+    ;; generate a new unique world identifier
+    (setf (slot-value world 'id) (gensym "WORLD-"))
+    ;; re-initialize the world
+    (with-slots (bodies constraints debug-drawer) world-state
+      (when debug-drawer
+        (set-debug-drawer world debug-drawer))
+      (dolist (body bodies)
+        (restore-state body world))
+      (dolist (constraint constraints)
+        (restore-state constraint world))))
+  world)
 
 (defmethod restore-state ((body rigid-body-state) (world bt-world))
   (with-slots (name
