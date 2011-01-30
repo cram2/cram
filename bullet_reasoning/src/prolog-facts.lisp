@@ -47,7 +47,7 @@
   (<- (object ?world ?name ?obj)
     (bound ?name)
     (not (bound ?obj))
-    (lisp-fun get-object ?world ?name ?obj))
+    (lisp-fun object ?world ?name ?obj))
 
   (<- (object ?world ?name ?obj)
     (not (bound ?name))
