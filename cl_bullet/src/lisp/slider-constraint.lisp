@@ -59,10 +59,14 @@
 
 (defmethod (setf limit) (new-value (slider slider-constraint) type)
   (ecase type
-    ((:lower :lower-lin) (set-lower-lin-limit (foreign-obj slider) new-value))
-    ((:upper :upper-lin) (set-upper-lin-limit (foreign-obj slider) new-value))
-    (:lower-ang (set-lower-ang-limit (foreign-obj slider) new-value))
-    (:upper-ang (set-upper-ang-limit (foreign-obj slider) new-value))))
+    ((:lower :lower-lin) (set-lower-lin-limit (foreign-obj slider)
+                                              (coerce new-value 'double-float)))
+    ((:upper :upper-lin) (set-upper-lin-limit (foreign-obj slider)
+                                              (coerce new-value 'double-float)))
+    (:lower-ang (set-lower-ang-limit (foreign-obj slider)
+                                     (coerce new-value 'double-float)))
+    (:upper-ang (set-upper-ang-limit (foreign-obj slider)
+                                     (coerce new-value 'double-float)))))
 
 (defmethod enabled ((slider slider-constraint))
   (get-powered-lin-motor (foreign-obj slider)))

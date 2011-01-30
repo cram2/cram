@@ -42,6 +42,7 @@
 
 (defmethod foreign-class-alloc ((hinge hinge-constraint) &key)
   (with-slots (body-1 body-2 frame-in-1 frame-in-2) hinge
+    (assert (and body-1 body-2) () "Hinge doesn't contain valid bodies")
     (new-hinge-constraint
      (foreign-obj body-1)
      (foreign-obj body-2)
@@ -56,10 +57,12 @@
   (ecase type
     (:lower (set-limit
              (foreign-obj hinge)
-             new-value (get-upper-limit (foreign-obj hinge))))
+             (coerce new-value 'double-float)
+             (get-upper-limit (foreign-obj hinge))))
     (:upper (set-limit
              (foreign-obj hinge)
-             (get-lower-limit (foreign-obj hinge)) new-value))))
+             (get-lower-limit (foreign-obj hinge))
+             (coerce new-value 'double-float)))))
 
 (defmethod enabled ((hinge hinge-constraint))
   (get-enable-motor (foreign-obj hinge)))
