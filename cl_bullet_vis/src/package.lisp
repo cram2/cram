@@ -36,6 +36,7 @@
   (:export bullet-world-window world camera-transform
            closed draw-world *current-world*
            init-camera set-camera
+           with-bullet-window-context
            get-texture-handle camera-transform light-position
            gl-context
            event-queue post-event get-next-event

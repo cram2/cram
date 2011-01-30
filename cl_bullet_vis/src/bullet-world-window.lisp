@@ -195,3 +195,36 @@ upwards. This matches ROS' coordinates best."
 (defun set-camera (camera-transform)
   (gl:mult-matrix (transform->gl-matrix
                    (cl-transforms:transform-inv camera-transform))))
+
+(defmacro with-bullet-window-context (window &body body)
+  (let ((lock (gensym "LOCK-"))
+        (condition (gensym "CONDITION-"))
+        (result (gensym "RESULT-"))
+        (done (gensym "DONE-")))
+    `(let ((,lock (sb-thread:make-mutex))
+           (,condition (sb-thread:make-waitqueue))
+           (,result nil)
+           (,done nil))
+       (post-event
+        ,window
+        `(:display
+          :callback ,(lambda ()
+                       (handler-case
+                           (setf ,result (list :ok (progn ,@body)))
+                         (error (e)
+                           (setf ,result (list :error e)))
+                         (warning (w)
+                           (setf ,result (list :warning w))))
+                       (sb-thread:with-mutex (,lock)
+                         (setf ,done t)
+                         (sb-thread:condition-notify ,condition)))))
+       (sb-thread:with-mutex (,lock)
+         (loop until ,done do
+           (sb-thread:condition-wait ,condition ,lock)
+               finally (destructuring-bind (status value)
+                           ,result
+                         (ecase status
+                           (:ok value)
+                           (:error (error value))
+                           (:warning (warn value)))))))))
+
