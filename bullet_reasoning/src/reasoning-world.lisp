@@ -39,6 +39,10 @@
     (loop for obj being the hash-values of (slot-value world 'objects)
           collecting obj)))
 
+(defgeneric object (world name)
+  (:method ((world bt-reasoning-world) name)
+    (gethash name (slot-value world 'objects))))
+
 (defclass bt-reasoning-world-state (world-state)
   ((objects :reader objects :initform :objects
             :documentation "alist of objects")))
