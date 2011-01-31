@@ -30,25 +30,28 @@
 
 (in-package :btr)
 
-(defclass semantic-map-object ()
+(defclass semantic-map-object (object)
+  ((pose :initarg :pose)))
+
+(defclass semantic-map-geom ()
   ((type :initarg :type :reader obj-type)
    (name :initarg :name :reader name)
    (pose :initarg :pose :reader pose)
    (dimensions :initarg :dimensions :reader dimensions)))
 
-(defgeneric make-semantic-map-object (type name pose dimensions)
+(defgeneric make-semantic-map-geom (type name pose dimensions)
   (:method ((type t) name pose dimensions)
-    (make-instance 'semantic-map-object
+    (make-instance 'semantic-map-geom
                    :type type
                    :name name
                    :pose pose
                    :dimensions dimensions)))
 
-(defun query-semantic-map-objects ()
+(defun query-semantic-map-geoms ()
   (force-ll
    (lazy-mapcar
     (lambda (bdgs)
-      (make-semantic-map-object
+      (make-semantic-map-geom
        (var-value '?type bdgs)
        (var-value '?o bdgs)
        (cl-transforms:matrix->transform
@@ -68,16 +71,24 @@
 (defmethod add-object ((world bt-world) (type (eql 'semantic-map)) name pose &key)
   (let ((pose-transform (cl-transforms:reference-transform
                          (ensure-pose pose))))
-    (make-object world name
-                 (mapcar (lambda (obj)
-                           (make-instance
-                            'rigid-body
-                            :name (make-rigid-body-name name (name obj))
-                            :pose (cl-transforms:transform-pose
-                                   pose-transform
-                                   (pose obj))
-                            :collision-shape (make-instance
-                                              'box-shape
-                                              :half-extents (cl-transforms:v* (dimensions obj)
-                                                                              0.5))))
-                         (query-semantic-map-objects)))))
+    (make-instance
+     'semantic-map-object
+     :world world
+     :name name
+     :pose (ensure-pose pose)
+     :rigid-bodies (mapcar (lambda (obj)
+                             (make-instance
+                              'rigid-body
+                              :name (make-rigid-body-name name (name obj))
+                              :pose (cl-transforms:transform-pose
+                                     pose-transform
+                                     (pose obj))
+                              :collision-shape (make-instance
+                                                'box-shape
+                                                :half-extents (cl-transforms:v*
+                                                               (dimensions obj)
+                                                               0.5))))
+                           (query-semantic-map-geoms)))))
+
+(defmethod pose ((obj semantic-map-object))
+  (slot-value obj 'pose))
