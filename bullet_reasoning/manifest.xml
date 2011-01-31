@@ -13,6 +13,7 @@
   <depend package="cl_bullet_vis"/>
   <depend package="cl_json_pl_client"/>
   <depend package="cl_urdf"/>
+  <depend package="cl_tf"/>
 
 </package>
 

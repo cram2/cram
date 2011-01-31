@@ -28,27 +28,13 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(defsystem bullet-reasoning
-    :author "Lorenz Moesenlechner"
-    :license "BSD"
-    
-    :depends-on (cram-reasoning
-                 cl-bullet cl-bullet-vis
-                 cl-json-pl-client
-                 cl-urdf
-                 cl-tf)
-    :components
-    ((:module "src"
-              :components
-              ((:file "package")
-               (:file "prolog-handlers" :depends-on ("package"))
-               (:file "prolog-facts" :depends-on ("package"))
-               (:file "reasoning-world" :depends-on ("package"))
-               (:file "objects" :depends-on ("package" "reasoning-world"))
-               (:file "world-utils" :depends-on ("package"
-                                                 "reasoning-world"
-                                                 "objects"))
-               (:file "semantic-map" :depends-on ("package" "objects"))
-               (:file "robot-model" :depends-on ("package" "objects"))
-               (:file "robot-model-utils" :depends-on ("package" "robot-model"))
-               (:file "debug-window" :depends-on ("package"))))))
+(in-package :btr)
+
+(defun set-robot-state-from-tf (tf robot &optional (reference-frame "/map"))
+  (loop for name being the hash-keys in  (slot-value robot 'links) do
+    (let ((tf-name (if (eql (elt name 0) #\/) name (concatenate 'string "/" name))))
+      (handler-case
+          (setf (link-pose robot name) (cl-transforms:transform->pose
+                                        (tf:lookup-transform tf :source-frame tf-name :target-frame reference-frame)))
+        (tf:tf-connectivity-error ()
+          nil)))))
