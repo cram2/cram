@@ -223,8 +223,9 @@ upwards. This matches ROS' coordinates best."
            (sb-thread:condition-wait ,condition ,lock)
                finally (destructuring-bind (status value)
                            ,result
-                         (ecase status
-                           (:ok value)
-                           (:error (error value))
-                           (:warning (warn value)))))))))
+                         (return
+                           (ecase status
+                             (:ok value)
+                             (:error (error value))
+                             (:warning (warn value))))))))))
 
