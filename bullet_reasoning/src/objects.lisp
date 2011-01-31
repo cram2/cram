@@ -103,11 +103,15 @@
                  :group group
                  :mask mask))
 
-(defmethod initialize-instance :after ((object object) &key world rigid-bodies (add t) group mask)
+(defmethod initialize-instance :after ((object object) &key
+                                       world rigid-bodies
+                                       pose-reference-body
+                                       (add t) group mask)
   (when world
     (setf (slot-value object 'world-id) (world-id world)))
   (when rigid-bodies
-    (setf (slot-value object 'pose-reference-body) (name (car rigid-bodies)))
+    (unless pose-reference-body
+      (setf (slot-value object 'pose-reference-body) (name (car rigid-bodies))))
     (dolist (body rigid-bodies)
       (when (and add world)
         (when (typep world 'bt-reasoning-world)
