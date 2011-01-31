@@ -139,10 +139,10 @@ current joint states"
                            (cl-transforms:transform-pose
                             pose-transform
                             (cl-transforms:transform-pose
+                             (cl-urdf:origin to-joint)
                              (joint-transform to-joint (gethash
                                                         (cl-urdf:name to-joint)
-                                                        joint-states))
-                             (cl-urdf:origin to-joint))))))))
+                                                        joint-states)))))))))
 
 (defun joint-transform (joint value)
   (case (cl-urdf:joint-type joint)
@@ -185,15 +185,26 @@ current joint states"
                                       (cl-urdf:origin (cl-urdf:collision child)))))))
               (case (cl-urdf:joint-type joint)
                 ((:revolute :continuous)
-                   (nth-value
-                    0
-                    (cl-transforms:angle-between-quaternions
-                     (cl-transforms:rotation origin)
-                     (cl-transforms:rotation child-transform))))
+                   (multiple-value-bind (angle axis)
+                       (cl-transforms:angle-between-quaternions
+                        (cl-transforms:rotation origin)
+                        (cl-transforms:rotation child-transform))
+                     (if (< (cl-transforms:dot-product
+                             axis (cl-urdf:axis joint))
+                            0)
+                         (* angle -1)
+                         angle)))
                 (:prismatic
-                   (cl-transforms:v-dist
-                    (cl-transforms:translation origin)
-                    (cl-transforms:translation child-transform)))
+                   (* (cl-transforms:v-dist
+                       (cl-transforms:translation origin)
+                       (cl-transforms:translation child-transform))
+                      (if (< (cl-transforms:dot-product
+                              (cl-transforms:v-
+                               (cl-transforms:translation child-transform)
+                               (cl-transforms:translation origin))
+                              (cl-urdf:axis joint))
+                             0)
+                          -1 1)))
                 (t 0.0d0)))))))))
 
 (defmethod invalidate-object :after ((obj robot-object))

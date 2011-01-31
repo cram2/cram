@@ -71,7 +71,6 @@
     (with-slots (world rigid-bodies) obj
       (multiple-value-bind (value valid)
           (gethash name rigid-bodies)
-        (unless valid (break))
         (when valid
           (or value
               (setf (gethash name rigid-bodies)
