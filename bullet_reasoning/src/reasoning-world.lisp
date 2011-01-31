@@ -33,6 +33,13 @@
 (defclass bt-reasoning-world (bt-world)
   ((objects :initform (make-hash-table :test 'equal))))
 
+(defgeneric invalidate-object (object)
+  (:documentation "Invalidates an object. This method is called after
+  restoring the world from a saved state and is responsible for
+  re-initializing all objects with the new rigid bodies.")
+  (:method ((obj t))
+    nil))
+
 (defgeneric objects (reasoning-world)
   (:documentation "Returns the list of objects in `reasoning-world'")
   (:method ((world bt-reasoning-world))
@@ -44,19 +51,21 @@
     (gethash name (slot-value world 'objects))))
 
 (defclass bt-reasoning-world-state (world-state)
-  ((objects :reader objects :initform :objects
+  ((objects :reader objects :initarg :objects
             :documentation "alist of objects")))
 
 (defmethod get-state ((world bt-reasoning-world))
   (let ((state (call-next-method)))
     (change-class state 'bt-reasoning-world-state
-                  :objects (loop for name being the hash-keys of (objects world)
+                  :objects (loop for name being the hash-keys of (slot-value world 'objects)
                                  using (hash-value object)
                                  collecting (cons name object)))))
 
 (defmethod restore-state ((world-state bt-reasoning-world-state)
                           (world bt-reasoning-world))
   (call-next-method)
-  (clrhash (objects world))
-  (loop for (name . obj) in (objects world-state) do
-        (setf (gethash name (objects world)) obj)))
+  (with-slots (objects) world
+    (clrhash objects)
+    (loop for (name . obj) in (objects world-state) do
+      (setf (gethash name objects) obj)
+      (invalidate-object obj))))
