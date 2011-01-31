@@ -181,7 +181,7 @@ current joint states"
                                     (cl-transforms:transform-inv
                                      (cl-transforms:reference-transform
                                       (cl-urdf:origin (cl-urdf:collision child)))))))
-              (ecase (cl-urdf:joint-type joint)
+              (case (cl-urdf:joint-type joint)
                 ((:revolute :continuous)
                    (nth-value
                     0
@@ -191,7 +191,8 @@ current joint states"
                 (:prismatic
                    (cl-transforms:v-dist
                     (cl-transforms:translation origin)
-                    (cl-transforms:translation child-transform)))))))))))
+                    (cl-transforms:translation child-transform)))
+                (t 0.0d0)))))))))
 
 (defmethod joint-state ((obj robot-object) name)
   (nth-value 0 (gethash name (slot-value obj 'joint-states))))
