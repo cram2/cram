@@ -31,7 +31,22 @@
 (in-package :btr)
 
 (defclass semantic-map-object (object)
-  ((pose :initarg :pose)))
+  ((pose :initarg :pose)
+   (geoms :initform (make-hash-table :test #'equal))))
+
+(defgeneric semantic-map-geoms (map)
+  (:method ((map semantic-map-object))
+    (loop for geom being the hash-values of (slot-value map 'geoms)
+          collecting geom)))
+
+(defgeneric semantic-map-geom-names (map)
+  (:method ((map semantic-map-object))
+    (loop for name being the hash-keys of (slot-value map 'geoms)
+          collecting name)))
+
+(defgeneric semantic-map-geom (map name)
+  (:method ((map semantic-map-object) name)
+    (gethash name (slot-value map 'geoms))))
 
 (defclass semantic-map-geom ()
   ((type :initarg :type :reader obj-type)
@@ -47,17 +62,20 @@
                    :pose pose
                    :dimensions dimensions)))
 
-(defun query-semantic-map-geoms ()
+(defun query-semantic-map-geoms (pose-transform)
   (force-ll
    (lazy-mapcar
     (lambda (bdgs)
       (make-semantic-map-geom
        (var-value '?type bdgs)
        (var-value '?o bdgs)
-       (cl-transforms:matrix->transform
-        (make-array
-         '(4 4) :displaced-to (make-array
-                               16 :initial-contents (var-value '?pose bdgs))))
+       (cl-transforms:transform->pose
+        (cl-transforms:transform*
+         pose-transform
+         (cl-transforms:matrix->transform
+          (make-array
+           '(4 4) :displaced-to (make-array
+                                 16 :initial-contents (var-value '?pose bdgs))))))
        (apply #'cl-transforms:make-3d-vector (var-value '?dim bdgs))))
     (json-prolog:prolog
      '(and ("rootObjects" ?objs)
@@ -69,26 +87,29 @@
        (= '(?d ?w ?h) ?dim))))))
 
 (defmethod add-object ((world bt-world) (type (eql 'semantic-map)) name pose &key)
-  (let ((pose-transform (cl-transforms:reference-transform
-                         (ensure-pose pose))))
-    (make-instance
-     'semantic-map-object
-     :world world
-     :name name
-     :pose (ensure-pose pose)
-     :rigid-bodies (mapcar (lambda (obj)
-                             (make-instance
-                              'rigid-body
-                              :name (make-rigid-body-name name (name obj))
-                              :pose (cl-transforms:transform-pose
-                                     pose-transform
-                                     (pose obj))
-                              :collision-shape (make-instance
-                                                'box-shape
-                                                :half-extents (cl-transforms:v*
-                                                               (dimensions obj)
-                                                               0.5))))
-                           (query-semantic-map-geoms)))))
+  (let* ((pose-transform (cl-transforms:reference-transform
+                          (ensure-pose pose)))
+         (geoms (query-semantic-map-geoms pose-transform))
+         (map
+          (make-instance
+           'semantic-map-object
+           :world world
+           :name name
+           :pose (ensure-pose pose)
+           :rigid-bodies (mapcar (lambda (obj)
+                                   (make-instance
+                                    'rigid-body
+                                    :name (make-rigid-body-name name (name obj))
+                                    :pose (pose obj)
+                                    :collision-shape (make-instance
+                                                      'box-shape
+                                                      :half-extents (cl-transforms:v*
+                                                                     (dimensions obj)
+                                                                     0.5))))
+                                 geoms))))
+    (dolist (geom geoms)
+      (setf (gethash (name geom) (slot-value map 'geoms)) geom))
+    map))
 
 (defmethod pose ((obj semantic-map-object))
   (slot-value obj 'pose))
