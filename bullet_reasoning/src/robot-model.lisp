@@ -58,7 +58,7 @@
 
 (defclass robot-object (object)
   ((links :initform (make-hash-table :test 'equal))
-   (joints :initform (make-hash-table :test 'equal))
+   (joint-states :initform (make-hash-table :test 'equal))
    (urdf :initarg :urdf :reader urdf)))
 
 (defgeneric joint-state (robot-object name)
@@ -112,9 +112,48 @@
       (loop for (name . body) in bodies do
             (setf (gethash name (slot-value object 'links))
                   body))
+      (loop for name being the hash-keys in (cl-urdf:joints urdf-model) do
+        (setf (gethash name (slot-value object 'joint-states)) 0.0d0))
       object)))
 
-(defmethod joint-state ((obj robot-object) name)
+(defun update-link-poses (robot-object link pose)
+  "Updates the pose of `link' and all its children according to
+current joint states"
+  (with-slots (links joint-states) robot-object
+    (let ((body (gethash (cl-urdf:name link) links))
+          (pose-transform (cl-transforms:reference-transform pose)))
+      (when body
+        (setf (pose body) (cl-transforms:transform-pose
+                           pose-transform
+                           (cl-urdf:origin (cl-urdf:collision link)))))
+      (dolist (to-joint (cl-urdf:to-joints link))
+        (update-link-poses robot-object
+                           (cl-urdf:child to-joint)
+                           (cl-transforms:transform-pose
+                            pose-transform
+                            (cl-transforms:transform-pose
+                             (joint-transform to-joint (gethash
+                                                        (cl-urdf:name to-joint)
+                                                        joint-states))
+                             (cl-urdf:origin to-joint))))))))
+
+(defun joint-transform (joint value)
+  (case (cl-urdf:joint-type joint)
+    ((:revolute :continuous)
+       (cl-transforms:make-transform
+        (cl-transforms:make-3d-vector 0 0 0)
+        (cl-transforms:axis-angle->quaternion
+         (cl-urdf:axis joint)
+         value)))
+    (:prismatic
+       (cl-transforms:make-transform
+        (cl-transforms:v* (cl-urdf:axis joint) value)
+        (cl-transforms:make-quaternion 0 0 0 1)))
+    (t (cl-transforms:make-transform
+        (cl-transforms:make-3d-vector 0 0 0)
+        (cl-transforms:make-quaternion 0 0 0 1)))))
+
+(defun calculate-joint-state (obj name)
   (with-slots (urdf links) obj
     (let ((joint (gethash name (cl-urdf:joints urdf))))
       (when joint
@@ -148,48 +187,29 @@
                     (cl-transforms:translation origin)
                     (cl-transforms:translation child-transform)))))))))))
 
+(defmethod joint-state ((obj robot-object) name)
+  (nth-value 0 (gethash name (slot-value obj 'joint-states))))
+
 (defmethod (setf joint-state) (new-value (obj robot-object) name)
-  (with-slots (urdf links) obj
-    (labels ((update-link-position (link pose)
-               (let ((body (gethash (cl-urdf:name link) links))
-                     (pose-transform (cl-transforms:reference-transform pose)))
-                 (when body
-                   (setf (pose body) (cl-transforms:transform-pose
-                                      pose-transform
-                                      (cl-urdf:origin (cl-urdf:collision link)))))
-                 (dolist (to-joint (cl-urdf:to-joints link))
-                   (update-link-position (cl-urdf:child to-joint)
-                                         (cl-transforms:transform-pose
-                                          pose-transform
-                                          (cl-urdf:origin to-joint)))))))
-      (let* ((joint (gethash name (cl-urdf:joints urdf)))
-             (parent (cl-urdf:parent joint))
-             (parent-body (gethash (cl-urdf:name parent) links)))
-        (when (and joint parent-body)
-          (let ((joint-transform
-                 (cl-transforms:transform*
-                  (cl-transforms:reference-transform
-                   (cl-urdf:origin joint))
-                  (case (cl-urdf:joint-type joint)
-                    ((:revolute :continuous)
-                       (cl-transforms:make-transform
-                        (cl-transforms:make-3d-vector 0 0 0)
-                        (cl-transforms:axis-angle->quaternion
-                         (cl-urdf:axis joint)
-                         new-value)))
-                    (:prismatic
-                       (cl-transforms:make-transform
-                        (cl-transforms:v* (cl-urdf:axis joint) new-value)
-                        (cl-transforms:make-quaternion 0 0 0 1)))
-                    (t (cl-transforms:make-transform
-                        (cl-transforms:make-3d-vector 0 0 0)
-                        (cl-transforms:make-quaternion 0 0 0 1)))))))
-            (update-link-position (cl-urdf:child joint)
-                                  (cl-transforms:transform*
-                                   (cl-transforms:reference-transform
-                                    (pose parent-body))
-                                   (cl-transforms:transform-inv
-                                    (cl-transforms:reference-transform
-                                     (cl-urdf:origin (cl-urdf:collision parent))))
-                                   joint-transform))))))))
+  (with-slots (urdf links joint-states) obj
+    (let* ((joint (gethash name (cl-urdf:joints urdf)))
+           (parent (cl-urdf:parent joint))
+           (parent-body (gethash (cl-urdf:name parent) links)))
+      (when (and joint parent-body)
+        (let ((joint-transform
+               (cl-transforms:transform*
+                (cl-transforms:reference-transform
+                 (cl-urdf:origin joint))
+                (joint-transform joint new-value))))
+          (setf (gethash name joint-states) new-value)
+          (update-link-poses
+           obj (cl-urdf:child joint)
+           (cl-transforms:transform*
+            (cl-transforms:reference-transform
+             (pose parent-body))
+            (cl-transforms:transform-inv
+             (cl-transforms:reference-transform
+              (cl-urdf:origin (cl-urdf:collision parent))))
+            joint-transform)))))))
+
 
