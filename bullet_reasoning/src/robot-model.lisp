@@ -68,6 +68,12 @@
   (:documentation "Sets the specific joint to a new value and updates
   all child-link positions"))
 
+(defgeneric link-pose (robot-object name)
+  (:documentation "Gets the pose of a link"))
+
+(defgeneric (setf link-pose) (new-value robot-object name)
+  (:documentation "Sets the pose of a link and all its children"))
+
 (defmethod add-object ((world bt-world) (type (eql 'urdf)) name pose &key
                        urdf)
   (labels ((make-link-bodies (pose link)
@@ -212,4 +218,39 @@ current joint states"
               (cl-urdf:origin (cl-urdf:collision parent))))
             joint-transform)))))))
 
+(defmethod link-pose ((obj robot-object) name)
+  ;; We need to handle two different cases here. One is when we have a
+  ;; rigid body for a specific link. Then reading the pose is just
+  ;; returning the pose of the body minus the pose of the collision
+  ;; object in the body. The second case is a link without a rigid
+  ;; body, i.e. without a collision model. We need to walk up the tree
+  ;; until we reach a body, collecting the transforms along that path.
+  (with-slots (links urdf) obj
+    (let ((link (gethash name (cl-urdf:links urdf)))
+          (body (gethash name links)))
+      (cond (body
+             (cl-transforms:transform->pose
+              (cl-transforms:transform*
+               (cl-transforms:reference-transform
+                (pose body))
+               (cl-transforms:transform-inv
+                (cl-transforms:reference-transform
+                 (cl-urdf:origin (cl-urdf:collision link)))))))
+            (t
+             (cl-transforms:transform-pose
+              (cl-transforms:reference-transform
+               (link-pose obj (cl-urdf:name (cl-urdf:parent
+                                             (cl-urdf:from-joint link)))))
+              (cl-urdf:origin (cl-urdf:from-joint link))))))))
 
+(defmethod (setf link-pose) (new-value (obj robot-object) name)
+  (with-slots (links joint-states urdf) obj
+    (let ((link (gethash name (cl-urdf:links urdf)))
+          (body (gethash name links)))
+      ;; Should we throw an error here?
+      (when body
+        (update-link-poses obj link new-value)
+        (let ((joint (cl-urdf:from-joint link)))
+          (when joint
+            (setf (gethash (cl-urdf:name joint) joint-states)
+                  (calculate-joint-state obj (cl-urdf:name joint)))))))))
