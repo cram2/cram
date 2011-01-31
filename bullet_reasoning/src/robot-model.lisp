@@ -86,9 +86,6 @@
                            'rigid-body
                            :name (make-rigid-body-name name (cl-urdf:name link))
                            :mass 0
-                           ;; :mass (if (cl-urdf:inertial link)
-                           ;;           (cl-urdf:mass (cl-urdf:inertial link))
-                           ;;           0)
                            :pose (cl-transforms:transform-pose
                                   pose-transform (cl-urdf:origin collision-elem))
                            :collision-shape (urdf-make-collision-shape
@@ -96,58 +93,7 @@
                                              (cl-urdf:color (cl-urdf:material (cl-urdf:visual link))))
                            :collision-flags '(:cf-default)))
                          bodies)
-                   bodies)))
-           ;; (get-joint-transform (joint)
-           ;;   (cl-urdf:origin joint))
-           ;; (make-joint (class frame body-1 body-2 &optional lower upper)
-           ;;   (let ((joint (make-instance class
-           ;;                               :frame-in-1 frame
-           ;;                               :body-1 body-1
-           ;;                               :body-2 body-2)))
-           ;;     (when lower
-           ;;       (setf (limit joint :lower) lower))
-           ;;     (when upper
-           ;;       (setf (limit joint :upper) upper))
-           ;;     joint))
-           ;; (add-joint (robot-object joint)
-           ;;   (let ((parent (gethash (cl-urdf:name (cl-urdf:parent joint))
-           ;;                           (slot-value robot-object 'links)))
-           ;;          (child (gethash (cl-urdf:name (cl-urdf:child joint))
-           ;;                          (slot-value robot-object 'links))))
-           ;;     (when (and parent child)
-           ;;       (let ((constraint (ecase (cl-urdf:joint-type joint)
-           ;;                           (:revolute
-           ;;                              (make-joint
-           ;;                               'hinge-constraint
-           ;;                               (get-joint-transform joint)
-           ;;                               parent child
-           ;;                               (cl-urdf:lower (cl-urdf:limits joint))
-           ;;                               (cl-urdf:upper (cl-urdf:limits joint))))
-           ;;                           (:continuous
-           ;;                              (make-joint
-           ;;                               'hinge-constraint
-           ;;                               (get-joint-transform joint)
-           ;;                               parent child))
-           ;;                           (:prismatic
-           ;;                              (make-joint
-           ;;                               'slider-constraint
-           ;;                               (get-joint-transform joint)
-           ;;                               parent child
-           ;;                               (cl-urdf:lower (cl-urdf:limits joint))
-           ;;                               (cl-urdf:upper (cl-urdf:limits joint))))
-           ;;                           (:fixed
-           ;;                              (make-joint
-           ;;                               'hinge-constraint
-           ;;                               (get-joint-transform joint)
-           ;;                               parent child 1 -1))
-           ;;                           (:floating nil)
-           ;;                           (:planaer nil))))
-           ;;         (setf (gethash (cl-urdf:name joint) (slot-value robot-object 'joints))
-           ;;               constraint)
-           ;;         (add-constraint world constraint)
-           ;;         (dolist (next-joint (cl-urdf:to-joints (cl-urdf:child joint)))
-           ;;           (add-joint robot-object next-joint))))))
-           )
+                   bodies))))
     (let* ((urdf-model (etypecase urdf
                          (cl-urdf:robot urdf)
                          (string (handler-bind ((cl-urdf:urdf-type-not-supported #'muffle-warning))
@@ -166,8 +112,6 @@
       (loop for (name . body) in bodies do
             (setf (gethash name (slot-value object 'links))
                   body))
-      ;; (dolist (next-joint (cl-urdf:to-joints (cl-urdf:root-link urdf-model)))
-      ;;   (add-joint object next-joint))
       object)))
 
 (defmethod joint-state ((obj robot-object) name)
