@@ -254,3 +254,9 @@ current joint states"
           (when joint
             (setf (gethash (cl-urdf:name joint) joint-states)
                   (calculate-joint-state obj (cl-urdf:name joint)))))))))
+
+(defmethod pose ((obj robot-object))
+  (link-pose obj (slot-value obj 'pose-reference-body)))
+
+(defmethod (setf pose) (new-value (obj robot-object))
+  (setf (link-pose obj (slot-value obj 'pose-reference-body)) new-value))
