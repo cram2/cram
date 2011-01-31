@@ -50,25 +50,14 @@
                         that is used for returning the pose of the
                         object. It defaults to the first body that got
                         added.")
-   (world-id :reader world-id)
    (world :initarg :world :reader world)))
 
 (defgeneric rigid-bodies (obj)
   (:documentation "Return the list of rigid bodies that belong to the object `obj'")
   (:method ((obj object))
-    (with-slots (world-id world rigid-bodies) obj
-      (cond ((not (eq world-id (world-id world)))
-             (setf world-id (world-id world))
-             ;; Invalidate all objects if the world has changed
-             (let ((result nil))
-               (dolist (body (bodies world) result)
-                 (when (nth-value 1 (gethash (name body) rigid-bodies))
-                   (setf (gethash (name body) rigid-bodies) body)
-                   (push body result)))))
-            (t
-             (loop for name being the hash-keys in (slot-value obj 'rigid-bodies)
-                   using (hash-value body)
-                   collecting (or body (rigid-body obj name))))))))
+    (loop for name being the hash-keys in (slot-value obj 'rigid-bodies)
+          using (hash-value body)
+          collecting (or body (rigid-body obj name)))))
 
 (defgeneric rigid-body-names (obj)
   (:documentation "Return the list of rigid bodies that belong to the object `obj'")
@@ -79,14 +68,10 @@
 (defgeneric rigid-body (obj name)
   (:documentation "Returns the rigid body named `name' or NIL if the body doesn't exist")
   (:method ((obj object) name)
-    (with-slots (world world-id rigid-bodies) obj
-      (unless (eq world-id (world-id world))
-        ;; Invalidate all rigid bodies if the world has changed
-        (loop for key being the hash-keys in rigid-bodies do
-              (setf (gethash key rigid-bodies) nil))
-        (setf world-id (world-id world)))
+    (with-slots (world rigid-bodies) obj
       (multiple-value-bind (value valid)
           (gethash name rigid-bodies)
+        (unless valid (break))
         (when valid
           (or value
               (setf (gethash name rigid-bodies)
@@ -107,8 +92,6 @@
                                        world rigid-bodies
                                        pose-reference-body
                                        (add t) group mask)
-  (when world
-    (setf (slot-value object 'world-id) (world-id world)))
   (when rigid-bodies
     (unless pose-reference-body
       (setf (slot-value object 'pose-reference-body) (name (car rigid-bodies))))
@@ -122,6 +105,11 @@
             (add-rigid-body world body)))
       (setf (gethash (name body) (slot-value object 'rigid-bodies))
             body))))
+
+(defmethod invalidate-object :after ((obj object))
+  (with-slots (rigid-bodies) obj
+    (loop for key being the hash-keys in rigid-bodies do
+      (setf (gethash key rigid-bodies) nil))))
 
 (defmethod pose ((object object))
   "Returns the pose of the object, i.e. the pose of the body named by

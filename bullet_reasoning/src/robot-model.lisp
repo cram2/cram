@@ -57,8 +57,8 @@
                  :points (physics-utils:3d-model-vertices (cl-urdf:3d-model mesh))))
 
 (defclass robot-object (object)
-  ((links :initform (make-hash-table :test 'equal))
-   (joint-states :initform (make-hash-table :test 'equal))
+  ((links :initform (make-hash-table :test 'equal) :reader links)
+   (joint-states :initform (make-hash-table :test 'equal) :reader joint-states)
    (urdf :initarg :urdf :reader urdf)))
 
 (defgeneric joint-state (robot-object name)
@@ -119,13 +119,14 @@
             (setf (gethash name (slot-value object 'links))
                   body))
       (loop for name being the hash-keys in (cl-urdf:joints urdf-model) do
-        (setf (gethash name (slot-value object 'joint-states)) 0.0d0))
+        (setf (gethash name (joint-states object)) 0.0d0))
       object)))
 
 (defun update-link-poses (robot-object link pose)
   "Updates the pose of `link' and all its children according to
 current joint states"
-  (with-slots (links joint-states) robot-object
+  (let ((links (links robot-object))
+        (joint-states (joint-states robot-object)))
     (let ((body (gethash (cl-urdf:name link) links))
           (pose-transform (cl-transforms:reference-transform pose)))
       (when body
@@ -160,8 +161,9 @@ current joint states"
         (cl-transforms:make-quaternion 0 0 0 1)))))
 
 (defun calculate-joint-state (obj name)
-  (with-slots (urdf links) obj
-    (let ((joint (gethash name (cl-urdf:joints urdf))))
+  (with-slots (urdf) obj
+    (let ((links (links obj))
+          (joint (gethash name (cl-urdf:joints urdf))))
       (when joint
         (let* ((parent (cl-urdf:parent joint))
                (parent-body (gethash (cl-urdf:name parent) links))
@@ -194,12 +196,23 @@ current joint states"
                     (cl-transforms:translation child-transform)))
                 (t 0.0d0)))))))))
 
+(defmethod invalidate-object :after ((obj robot-object))
+  (with-slots (world links joint-states) obj
+    (loop for name being the hash-keys in links
+          using (hash-value body) do
+            (setf (gethash name links)
+                  (rigid-body obj (name body))))
+    (loop for name being the hash-keys in joint-states do
+      (setf (gethash name joint-states) (or (calculate-joint-state obj name) 0.0d0)))))
+
 (defmethod joint-state ((obj robot-object) name)
-  (nth-value 0 (gethash name (slot-value obj 'joint-states))))
+  (nth-value 0 (gethash name (joint-states obj))))
 
 (defmethod (setf joint-state) (new-value (obj robot-object) name)
-  (with-slots (urdf links joint-states) obj
-    (let* ((joint (gethash name (cl-urdf:joints urdf)))
+  (with-slots (urdf) obj
+    (let* ((links (links obj))
+           (joint-states (joint-states obj))
+           (joint (gethash name (cl-urdf:joints urdf)))
            (parent (cl-urdf:parent joint))
            (parent-body (gethash (cl-urdf:name parent) links)))
       (when (and joint parent-body)
@@ -245,15 +258,16 @@ current joint states"
               (cl-urdf:origin (cl-urdf:from-joint link))))))))
 
 (defmethod (setf link-pose) (new-value (obj robot-object) name)
-  (with-slots (links joint-states urdf) obj
-    (let ((link (gethash name (cl-urdf:links urdf)))
+  (with-slots (urdf) obj
+    (let* ((links (links obj))
+           (link (gethash name (cl-urdf:links urdf)))
           (body (gethash name links)))
       ;; Should we throw an error here?
       (when body
         (update-link-poses obj link new-value)
         (let ((joint (cl-urdf:from-joint link)))
           (when joint
-            (setf (gethash (cl-urdf:name joint) joint-states)
+            (setf (gethash (cl-urdf:name joint) (joint-states obj))
                   (calculate-joint-state obj (cl-urdf:name joint)))))))))
 
 (defmethod pose ((obj robot-object))
