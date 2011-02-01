@@ -33,6 +33,7 @@
   (:use #:common-lisp #:cffi #:cffi-ros-utils)
   (:export
    ;; dynamics world
+   *bullet-world-scaling-factor*
    bt-world
    with-world-locked
    step-simulation

@@ -30,6 +30,8 @@
 
 #include <LinearMath/btDefaultMotionState.h>
 
+extern double bulletWorldScalingFactor;
+
 extern "C"
 {
 
@@ -41,9 +43,9 @@ extern "C"
           transform[4],
           transform[5],
           transform[6]),
-        btVector3(transform[0],
-          transform[1],
-          transform[2])));
+        btVector3(transform[0] * bulletWorldScalingFactor,
+          transform[1] * bulletWorldScalingFactor,
+          transform[2] * bulletWorldScalingFactor)));
   }
 
   void deleteMotionState(btDefaultMotionState *motionState)
@@ -53,10 +55,12 @@ extern "C"
 
   void setCenterOfMass(btDefaultMotionState *motionState, const double *centerOfMass)
   {
-    motionState->m_centerOfMassOffset = btTransform(btQuaternion(0, 0, 0, 1),
-                                                    btVector3(centerOfMass[0],
-                                                              centerOfMass[1],
-                                                              centerOfMass[2]));
+    motionState->m_centerOfMassOffset =
+      btTransform(
+        btQuaternion(0, 0, 0, 1),
+        btVector3(centerOfMass[0] * bulletWorldScalingFactor,
+          centerOfMass[1] * bulletWorldScalingFactor,
+          centerOfMass[2] * bulletWorldScalingFactor));
   }
 
   void setWorldTransform(btMotionState *motionState, double *transform)
@@ -67,9 +71,9 @@ extern "C"
           transform[4],
           transform[5],
           transform[6]),
-        btVector3(transform[0],
-          transform[1],
-          transform[2])));
+        btVector3(transform[0] * bulletWorldScalingFactor,
+          transform[1] * bulletWorldScalingFactor,
+          transform[2] * bulletWorldScalingFactor)));
   }
   
   void getWorldTransform(btMotionState *motionState, double *transform)
@@ -77,9 +81,9 @@ extern "C"
     btTransform result;
 
     motionState->getWorldTransform(result);
-    transform[0] = result.getOrigin().x();
-    transform[1] = result.getOrigin().y();
-    transform[2] = result.getOrigin().z();
+    transform[0] = result.getOrigin().x() / bulletWorldScalingFactor;
+    transform[1] = result.getOrigin().y() / bulletWorldScalingFactor;
+    transform[2] = result.getOrigin().z() / bulletWorldScalingFactor;
     transform[3] = result.getRotation().x();
     transform[4] = result.getRotation().y();
     transform[5] = result.getRotation().z();

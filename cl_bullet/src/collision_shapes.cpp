@@ -30,6 +30,8 @@
 
 #include <btBulletCollisionCommon.h>
 
+extern double bulletWorldScalingFactor;
+
 extern "C"
 {
 
@@ -45,7 +47,9 @@ extern "C"
   
   btCollisionShape *newBoxShape(const double *half_extents)
   {
-    return new btBoxShape(btVector3(half_extents[0], half_extents[1], half_extents[2]));
+    return new btBoxShape(btVector3(half_extents[0] * bulletWorldScalingFactor,
+        half_extents[1] * bulletWorldScalingFactor,
+        half_extents[2] * bulletWorldScalingFactor));
   }
 
   bool isBoxShape(const btCollisionShape *ptr)
@@ -55,7 +59,7 @@ extern "C"
 
   void getBoxHalfExtents(const btBoxShape *box, double *half_extents)
   {
-    btVector3 extents = box->getHalfExtentsWithMargin();
+    btVector3 extents = box->getHalfExtentsWithMargin() / bulletWorldScalingFactor;
     half_extents[0] = extents.x();
     half_extents[1] = extents.y();
     half_extents[2] = extents.z();
@@ -86,7 +90,7 @@ extern "C"
   
   btCollisionShape *newSphereShape(double radius)
   {
-    return new btSphereShape(radius);
+    return new btSphereShape(radius * bulletWorldScalingFactor);
   }
 
   bool isSphereShape(const btCollisionShape *ptr)
@@ -96,12 +100,16 @@ extern "C"
 
   double getSphereRadius(const btSphereShape *sphere)
   {
-    return sphere->getRadius();
+    return sphere->getRadius() / bulletWorldScalingFactor;
   }
 
   btCollisionShape *newCylinderShape(const double *half_extents)
   {
-    return new btCylinderShapeZ(btVector3(half_extents[0], half_extents[1], half_extents[2]));
+    return new btCylinderShapeZ(
+      btVector3(
+        half_extents[0] * bulletWorldScalingFactor,
+        half_extents[1] * bulletWorldScalingFactor,
+        half_extents[2] * bulletWorldScalingFactor));
   }
 
   bool isCylinderShape(const btCollisionShape *ptr)
@@ -111,7 +119,7 @@ extern "C"
 
   void getCylinderHalfExtents(const btCylinderShape *cylinder, double *half_extents)
   {
-    btVector3 extents = cylinder->getHalfExtentsWithMargin();
+    btVector3 extents = cylinder->getHalfExtentsWithMargin() / bulletWorldScalingFactor;
     half_extents[0] = extents.x();
     half_extents[1] = extents.y();
     half_extents[2] = extents.z();
@@ -119,7 +127,9 @@ extern "C"
   
   btCollisionShape *newConeShape(double radius, double height)
   {
-    return new btConeShapeZ(radius, height);
+    return new btConeShapeZ(
+      radius * bulletWorldScalingFactor,
+      height * bulletWorldScalingFactor);
   }
 
   bool isConeShape(const btCollisionShape *ptr)
@@ -129,12 +139,12 @@ extern "C"
 
   double getConeRadius(const btConeShape *cone)
   {
-    return cone->getRadius();
+    return cone->getRadius() / bulletWorldScalingFactor;
   }
 
   double getConeHeight(const btConeShape *cone)
   {
-    return cone->getHeight();
+    return cone->getHeight() / bulletWorldScalingFactor;
   }
 
   bool newCompoundShape()
@@ -157,9 +167,9 @@ extern "C"
           orientation[1],
           orientation[2],
           orientation[3]),
-        btVector3(position[0],
-          position[1],
-          position[2])),
+        btVector3(position[0] * bulletWorldScalingFactor,
+          position[1] * bulletWorldScalingFactor,
+          position[2] * bulletWorldScalingFactor)),
       shape);
   }
 
@@ -176,7 +186,7 @@ extern "C"
   void getChildTransform(const btCompoundShape *shape, int index, double *transform)
   {
     const btTransform &trans = shape->getChildTransform(index);
-    const btVector3 &pos = trans.getOrigin();
+    const btVector3 &pos = trans.getOrigin() / bulletWorldScalingFactor;
     btQuaternion rot = trans.getRotation();
     transform[0] = pos.x();
     transform[1] = pos.y();
@@ -189,7 +199,11 @@ extern "C"
 
   btCollisionShape *newConvexHullShape(const double *points, int num_points)
   {
-    return new btConvexHullShape(points, num_points, sizeof(double) * 3);
+    double *scaled_points = new double[num_points*3];
+    for(int i=0; i<num_points*3; i++)
+      scaled_points[i] = points[i] * bulletWorldScalingFactor;
+    return new btConvexHullShape(scaled_points, num_points, sizeof(double) * 3);
+    delete scaled_points;
   }
 
   bool isConvexHullShape(const btCollisionShape *ptr)
@@ -199,7 +213,8 @@ extern "C"
 
   void addPoint(btConvexHullShape *shape, const double *point)
   {
-    shape->addPoint(btVector3(point[0], point[1], point[2]));
+    shape->addPoint(btVector3(point[0] * bulletWorldScalingFactor,
+        point[1] * bulletWorldScalingFactor, point[2] * bulletWorldScalingFactor));
   }
 
   int convexHullGetNumPoints(const btConvexHullShape *shape)
@@ -209,7 +224,7 @@ extern "C"
 
   void getPoint(const btConvexHullShape *shape, int index, double *point)
   {
-    const btVector3 &pt = shape->getUnscaledPoints()[index];
+    const btVector3 &pt = shape->getUnscaledPoints()[index] / bulletWorldScalingFactor;
     point[0] = pt.x();
     point[1] = pt.y();
     point[2] = pt.z();

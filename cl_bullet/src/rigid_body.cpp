@@ -30,6 +30,8 @@
 
 #include <btBulletDynamicsCommon.h>
 
+extern double bulletWorldScalingFactor;
+
 extern "C"
 {
 
@@ -47,7 +49,7 @@ extern "C"
 
   void getTotalForce(btRigidBody *body, double *forceVector)
   {
-    btVector3 forceVectorBt = body->getTotalForce();
+    btVector3 forceVectorBt = body->getTotalForce() / bulletWorldScalingFactor;
     forceVector[0] = forceVectorBt.x();
     forceVector[1] = forceVectorBt.y();
     forceVector[2] = forceVectorBt.z();
@@ -63,14 +65,14 @@ extern "C"
 
   void applyForce(btRigidBody *body, double *force, double *rel_pos)
   {
-    btVector3 force_vec(force[0], force[1], force[2]);
-    btVector3 rel_pos_vec(rel_pos[0], rel_pos[1], rel_pos[2]);
+    btVector3 force_vec = btVector3(force[0], force[1], force[2]) * bulletWorldScalingFactor;
+    btVector3 rel_pos_vec = btVector3(rel_pos[0], rel_pos[1], rel_pos[2]) * bulletWorldScalingFactor;
     body->applyForce(force_vec, rel_pos_vec);
   }
 
   void applyCentralForce(btRigidBody *body, double *force)
   {
-    btVector3 force_vec(force[0], force[1], force[2]);
+    btVector3 force_vec = btVector3(force[0], force[1], force[2]) * bulletWorldScalingFactor;
     body->applyCentralForce(force_vec);
   }
 
@@ -87,7 +89,7 @@ extern "C"
 
   void getLinearVelocity(btRigidBody *body, double *velocity)
   {
-    const btVector3 &vel = body->getLinearVelocity();
+    const btVector3 &vel = body->getLinearVelocity() / bulletWorldScalingFactor;
     velocity[0] = vel.x();
     velocity[1] = vel.y();
     velocity[2] = vel.z();
@@ -96,7 +98,9 @@ extern "C"
   void setLinearVelocity(btRigidBody *body, double *velocity)
   {
     body->setLinearVelocity(
-      btVector3(velocity[0], velocity[1], velocity[2]));
+      btVector3(velocity[0] * bulletWorldScalingFactor,
+        velocity[1] * bulletWorldScalingFactor,
+        velocity[2] * bulletWorldScalingFactor));
   }
 
   void getAngularVelocity(btRigidBody *body, double *velocity)
