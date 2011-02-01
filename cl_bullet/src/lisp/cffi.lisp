@@ -34,6 +34,7 @@
 
 (use-foreign-library bullet-cl)
 
+(defcvar (*bullet-world-scaling-factor* "bulletWorldScalingFactor") :double)
 
 ;;; dynamics_world.cpp
 (defcfun ("newDiscreteDynamicsWorld" new-discrete-dynamics-world) :pointer

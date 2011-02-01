@@ -30,6 +30,8 @@
 
 #include <btBulletDynamicsCommon.h>
 
+extern double bulletWorldScalingFactor;
+
 extern "C"
 {
 
@@ -46,8 +48,12 @@ extern "C"
     const double *pivotInA, const double *pivotInB)
   {
     return new btPoint2PointConstraint(*rbA, *rbB,
-      btVector3(pivotInA[0], pivotInA[1], pivotInA[2]),
-      btVector3(pivotInB[0], pivotInB[1], pivotInB[2]));
+      btVector3(pivotInA[0] * bulletWorldScalingFactor,
+        pivotInA[1] * bulletWorldScalingFactor,
+        pivotInA[2] * bulletWorldScalingFactor),
+      btVector3(pivotInB[0] * bulletWorldScalingFactor,
+        pivotInB[1] * bulletWorldScalingFactor,
+        pivotInB[2] * bulletWorldScalingFactor));
   }
 
   bool isPoint2PointConstraint(const btTypedConstraint *ptr)
@@ -64,10 +70,14 @@ extern "C"
   {
     btTransform transInA(
       btQuaternion(frameInA[3], frameInA[4], frameInA[5], frameInA[6]),
-      btVector3(frameInA[0], frameInA[1], frameInA[2]));
+      btVector3(frameInA[0] * bulletWorldScalingFactor,
+        frameInA[1] * bulletWorldScalingFactor,
+        frameInA[2] * bulletWorldScalingFactor));
     btTransform transInB(
       btQuaternion(frameInB[3], frameInB[4], frameInB[5], frameInB[6]),
-      btVector3(frameInB[0], frameInB[1], frameInB[2]));
+      btVector3(frameInB[0] * bulletWorldScalingFactor,
+        frameInB[1] * bulletWorldScalingFactor,
+        frameInB[2] * bulletWorldScalingFactor));
     
     return new btHingeConstraint(*rbA, *rbB, transInA, transInB);
   }
@@ -90,7 +100,7 @@ extern "C"
   void enableAngularMotor(btHingeConstraint *hinge, bool enableMotor,
     double targetVelocity, double maxMotorImpulse)
   {
-    hinge->enableAngularMotor(enableMotor, targetVelocity, maxMotorImpulse);
+    hinge->enableAngularMotor(enableMotor, targetVelocity * bulletWorldScalingFactor, maxMotorImpulse);
   }
 
   void enableMotor(btHingeConstraint *hinge, bool enableMotor)
@@ -105,7 +115,7 @@ extern "C"
 
   void setMaxMotorImpulse(btHingeConstraint *hinge, double maxMotorImpulse)
   {
-    hinge->setMaxMotorImpulse(maxMotorImpulse);
+    hinge->setMaxMotorImpulse(maxMotorImpulse * bulletWorldScalingFactor);
   }
 
   double getMaxMotorImpulse(/*const*/ btHingeConstraint *hinge)
@@ -115,7 +125,7 @@ extern "C"
 
   double getMotorTargetVelocity(/*const*/ btHingeConstraint *hinge)
   {
-    return hinge->getMotorTargetVelosity();
+    return hinge->getMotorTargetVelosity() / bulletWorldScalingFactor;
   }
 
   void setMotorTarget(btHingeConstraint *hinge, double targetAngle, double dt)
@@ -160,10 +170,12 @@ extern "C"
     return new btSliderConstraint(*rbA, *rbB,
       btTransform(
         btQuaternion(frameInA[3], frameInA[4], frameInA[5], frameInA[6]),
-        btVector3(frameInA[0], frameInA[1], frameInA[2])),
+        btVector3(frameInA[0]  * bulletWorldScalingFactor,
+          frameInA[1] * bulletWorldScalingFactor, frameInA[2] * bulletWorldScalingFactor)),
       btTransform(
         btQuaternion(frameInB[3], frameInB[4], frameInB[5], frameInB[6]),
-        btVector3(frameInB[0], frameInB[1], frameInB[2])),
+        btVector3(frameInB[0] * bulletWorldScalingFactor,
+          frameInB[1] * bulletWorldScalingFactor, frameInB[2] * bulletWorldScalingFactor)),
       false);
   }
 
@@ -404,22 +416,22 @@ extern "C"
 
 	void setTargetLinMotorVelocity(btSliderConstraint *slider, double targetLinMotorVelocity)
   {
-    slider->setTargetLinMotorVelocity(targetLinMotorVelocity);
+    slider->setTargetLinMotorVelocity(targetLinMotorVelocity * bulletWorldScalingFactor);
   }
   
 	double getTargetLinMotorVelocity(/*const*/ btSliderConstraint *slider)
   {
-    return slider->getTargetLinMotorVelocity();
+    return slider->getTargetLinMotorVelocity() / bulletWorldScalingFactor;
   }
   
   void setMaxLinMotorForce(btSliderConstraint *slider, double maxLinMotorForce)
   {
-    slider->setMaxLinMotorForce(maxLinMotorForce);
+    slider->setMaxLinMotorForce(maxLinMotorForce * bulletWorldScalingFactor);
   }
   
 	double getMaxLinMotorForce(/*const*/ btSliderConstraint *slider)
   {
-    return slider->getMaxLinMotorForce();
+    return slider->getMaxLinMotorForce() / bulletWorldScalingFactor;
   }
   
 	void setPoweredAngMotor(btSliderConstraint *slider, bool onOff)
@@ -454,7 +466,7 @@ extern "C"
   
 	double getLinearPos(/*const*/ btSliderConstraint *slider)
   {
-    return slider->getLinearPos();
+    return slider->getLinearPos() / bulletWorldScalingFactor;
   }
   
 }

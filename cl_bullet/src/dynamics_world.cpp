@@ -38,10 +38,11 @@ struct DynamicsWorldHandle
   btConstraintSolver *solver;
   btDynamicsWorld *dynamicsWorld;
 };
+
+double bulletWorldScalingFactor = 1;
   
 extern "C"
 {
-
   DynamicsWorldHandle *newDiscreteDynamicsWorld(double *gravityVector)
   {
     DynamicsWorldHandle *handle = new DynamicsWorldHandle;
@@ -53,7 +54,12 @@ extern "C"
                                                         handle->broadphase,
                                                         handle->solver,
                                                         handle->collisionConfiguration);
-    handle->dynamicsWorld->setGravity(btVector3(gravityVector[0], gravityVector[1], gravityVector[2]));
+    handle->dynamicsWorld->setGravity(
+      btVector3(
+        gravityVector[0] * bulletWorldScalingFactor,
+        gravityVector[1] * bulletWorldScalingFactor,
+        gravityVector[2] * bulletWorldScalingFactor));
+    
     return handle;
   }
 
@@ -70,15 +76,15 @@ extern "C"
   void getGravity(DynamicsWorldHandle *handle, double *gravity)
   {
     btVector3 gravity_vec = handle->dynamicsWorld->getGravity();
-    gravity[0] = gravity_vec.x();
-    gravity[1] = gravity_vec.y();
-    gravity[2] = gravity_vec.z();
+    gravity[0] = gravity_vec.x() * bulletWorldScalingFactor;
+    gravity[1] = gravity_vec.y() * bulletWorldScalingFactor;
+    gravity[2] = gravity_vec.z() * bulletWorldScalingFactor;
   }
 
   void setGravity(DynamicsWorldHandle *handle, double *gravity)
   {
     handle->dynamicsWorld->setGravity(
-      btVector3(gravity[0], gravity[1], gravity[2]));
+      btVector3(gravity[0] * bulletWorldScalingFactor, gravity[1] * bulletWorldScalingFactor, gravity[2] * bulletWorldScalingFactor));
   }
 
   void stepSimulation(DynamicsWorldHandle *handle, double timeStep)
@@ -207,9 +213,9 @@ extern "C"
     btManifoldPoint &pt = manifold->getContactPoint(index);
 
     const btVector3 &point_on_a_vec = pt.getPositionWorldOnA();
-    point[0] = point_on_a_vec.x();
-    point[1] = point_on_a_vec.y();
-    point[2] = point_on_a_vec.z();
+    point[0] = point_on_a_vec.x() / bulletWorldScalingFactor;
+    point[1] = point_on_a_vec.y() / bulletWorldScalingFactor;
+    point[2] = point_on_a_vec.z() / bulletWorldScalingFactor;
   }
 
   void manifoldGetContactPoint1(btPersistentManifold *manifold, int index, double *point)
@@ -217,9 +223,9 @@ extern "C"
     btManifoldPoint &pt = manifold->getContactPoint(index);
         
     const btVector3 &point_on_b_vec = pt.getPositionWorldOnB();
-    point[0] = point_on_b_vec.x();
-    point[1] = point_on_b_vec.y();
-    point[2] = point_on_b_vec.z();
+    point[0] = point_on_b_vec.x() / bulletWorldScalingFactor;
+    point[1] = point_on_b_vec.y() / bulletWorldScalingFactor;
+    point[2] = point_on_b_vec.z() / bulletWorldScalingFactor;
   }
   
 }

@@ -30,6 +30,8 @@
 
 #include <LinearMath/btIDebugDraw.h>
 
+extern double bulletWorldScalingFactor;
+
 class CLBulletDebugDraw : public btIDebugDraw
 {
 public:
@@ -74,8 +76,12 @@ public:
     
   virtual void drawLine(const btVector3& from,const btVector3& to,const btVector3& color)
   {
-    double from_[3] = {from.x(), from.y(), from.z()};
-    double to_[3] = {to.x(), to.y(), to.z()};
+    double from_[3] = {from.x() / bulletWorldScalingFactor,
+                       from.y() / bulletWorldScalingFactor,
+                       from.z() / bulletWorldScalingFactor};
+    double to_[3] = {to.x() / bulletWorldScalingFactor,
+                     to.y() / bulletWorldScalingFactor,
+                     to.z() / bulletWorldScalingFactor};
     double color_[3] = {color.x(), color.y(), color.z()};
     
     if(callbacks_.drawLine)
@@ -84,99 +90,145 @@ public:
 
   virtual void drawSphere (const btVector3& p, btScalar radius, const btVector3& color)
   {
-    double p_[3] = {p.x(), p.y(), p.z()};
+    double p_[3] = {p.x() / bulletWorldScalingFactor,
+                    p.y() / bulletWorldScalingFactor,
+                    p.z() / bulletWorldScalingFactor};
     double color_[3] = {color.x(), color.y(), color.z()};
 
     if(callbacks_.drawSphere)
-      (*callbacks_.drawSphere)(p_, radius, color_, arg_);
+      (*callbacks_.drawSphere)(p_, radius / bulletWorldScalingFactor, color_, arg_);
     else
-      btIDebugDraw::drawSphere(p, radius, color);
+      btIDebugDraw::drawSphere(p/bulletWorldScalingFactor, radius / bulletWorldScalingFactor, color);
   }
 
   virtual void drawTriangle(const btVector3& v0,const btVector3& v1,const btVector3& v2,const btVector3& color, btScalar alpha)
   {
-    double v0_[3] = {v0.x(), v0.y(), v0.z()};
-    double v1_[3] = {v1.x(), v1.y(), v1.z()};
-    double v2_[3] = {v2.x(), v2.y(), v2.z()};
+    double v0_[3] = {v0.x() / bulletWorldScalingFactor,
+                     v0.y() / bulletWorldScalingFactor,
+                     v0.z() / bulletWorldScalingFactor};
+    double v1_[3] = {v1.x() / bulletWorldScalingFactor,
+                     v1.y() / bulletWorldScalingFactor,
+                     v1.z() / bulletWorldScalingFactor};
+    double v2_[3] = {v2.x() / bulletWorldScalingFactor,
+                     v2.y() / bulletWorldScalingFactor,
+                     v2.z() / bulletWorldScalingFactor};
     double color_[3] = {color.x(), color.y(), color.z()};
     
 
     if(callbacks_.drawTriangle)
       (callbacks_.drawTriangle)(v0_, v1_, v2_, color_, alpha, arg_);
     else
-      btIDebugDraw::drawTriangle(v0, v1, v2, color, alpha);
+      btIDebugDraw::drawTriangle(v0 / bulletWorldScalingFactor,
+        v1 / bulletWorldScalingFactor, v2 / bulletWorldScalingFactor,
+        color, alpha);
   }
 
   virtual void drawBox (const btVector3& boxMin, const btVector3& boxMax, const btVector3& color)
   {
-    double boxMin_[3] = {boxMin.x(), boxMin.y(), boxMin.z()}; 
-    double boxMax_[3] = {boxMax.x(), boxMax.y(), boxMax.z()};
+    double boxMin_[3] = {boxMin.x() / bulletWorldScalingFactor,
+                         boxMin.y() / bulletWorldScalingFactor,
+                         boxMin.z() / bulletWorldScalingFactor}; 
+    double boxMax_[3] = {boxMax.x() / bulletWorldScalingFactor,
+                         boxMax.y() / bulletWorldScalingFactor,
+                         boxMax.z() / bulletWorldScalingFactor};
     double color_[3] = {color.x(), color.y(), color.z()};
     
     if(callbacks_.drawBox)
       (*callbacks_.drawBox)(boxMin_, boxMax_, color_, arg_);
     else
-      btIDebugDraw::drawBox(boxMin, boxMax, color);
+      btIDebugDraw::drawBox(boxMin / bulletWorldScalingFactor, boxMax / bulletWorldScalingFactor, color);
   }
 
   virtual void drawAabb(const btVector3& from,const btVector3& to,const btVector3& color)
   {
-    double from_[3] = {from.x(), from.y(), from.z()};
-    double to_[3] = {to.x(), to.y(), to.z()};
-    double color_[3] = {color.x(), color.y(), color.z()};
+    double from_[3] = {from.x() / bulletWorldScalingFactor,
+                       from.y() / bulletWorldScalingFactor,
+                       from.z() / bulletWorldScalingFactor};
+    double to_[3] = {to.x() / bulletWorldScalingFactor,
+                     to.y() / bulletWorldScalingFactor,
+                     to.z() / bulletWorldScalingFactor};
+    double color_[3] = {color.x() / bulletWorldScalingFactor,
+                        color.y() / bulletWorldScalingFactor,
+                        color.z() / bulletWorldScalingFactor};
     
     if(callbacks_.drawAabb)
       (*callbacks_.drawAabb)(from_, to_, color_, arg_);
     else
-      btIDebugDraw::drawAabb(from, to, color);
+      btIDebugDraw::drawAabb(from / bulletWorldScalingFactor, to / bulletWorldScalingFactor, color);
   }
 
   virtual void drawTransform(const btTransform& transform, btScalar orthoLen)
   {
-    btVector3 origin = transform.getOrigin();
+    btVector3 origin = transform.getOrigin() / bulletWorldScalingFactor;
     btQuaternion rotation = transform.getRotation();
     double transform_[7] = {origin.x(), origin.y(), origin.z(),
                             rotation.x(), rotation.y(), rotation.z(),
                             rotation.w()};
     
     if(callbacks_.drawTransform)
-      (*callbacks_.drawTransform)(transform_, orthoLen, arg_);
+      (*callbacks_.drawTransform)(transform_, orthoLen / bulletWorldScalingFactor, arg_);
     else
-      btIDebugDraw::drawTransform(transform, orthoLen);
+    {
+      btTransform scaled(rotation, origin);
+      btIDebugDraw::drawTransform(scaled, orthoLen / bulletWorldScalingFactor);
+    }
   }
 
   virtual void drawArc(const btVector3& center, const btVector3& normal, const btVector3& axis, btScalar radiusA, btScalar radiusB, btScalar minAngle, btScalar maxAngle, 
                        const btVector3& color, bool drawSect, btScalar stepDegrees = btScalar(10.f))
   {
-    double center_[3] = {center.x(), center.y(), center.z()};
-    double normal_[3] = {normal.x(), normal.y(), normal.z()};
-    double axis_[3] = {axis.x(), axis.y(), axis.z()};
+    double center_[3] = {center.x() / bulletWorldScalingFactor,
+                         center.y() / bulletWorldScalingFactor,
+                         center.z() / bulletWorldScalingFactor};
+    double normal_[3] = {normal.x() / bulletWorldScalingFactor,
+                         normal.y() / bulletWorldScalingFactor,
+                         normal.z() / bulletWorldScalingFactor};
+    double axis_[3] = {axis.x() / bulletWorldScalingFactor,
+                       axis.y() / bulletWorldScalingFactor,
+                       axis.z() / bulletWorldScalingFactor};
     double color_[3] = {color.x(), color.y(), color.z()};
 
     if(callbacks_.drawArc)
-      (*callbacks_.drawArc)(center_, normal_, axis_, radiusA, radiusB, minAngle, maxAngle, color_, drawSect, stepDegrees, arg_);
+      (*callbacks_.drawArc)(center_, normal_, axis_,
+        radiusA / bulletWorldScalingFactor, radiusB / bulletWorldScalingFactor,
+        minAngle, maxAngle, color_, drawSect, stepDegrees, arg_);
     else
-      btIDebugDraw::drawArc(center, normal, axis, radiusA, radiusB, minAngle, maxAngle, color, drawSect, stepDegrees);
+      btIDebugDraw::drawArc(center / bulletWorldScalingFactor, normal / bulletWorldScalingFactor,
+        axis / bulletWorldScalingFactor, radiusA / bulletWorldScalingFactor, radiusB / bulletWorldScalingFactor,
+        minAngle, maxAngle, color, drawSect, stepDegrees);
   }
 
   virtual void drawSpherePatch(const btVector3& center, const btVector3& up, const btVector3& axis, btScalar radius, 
                                btScalar minTh, btScalar maxTh, btScalar minPs, btScalar maxPs, const btVector3& color, btScalar stepDegrees = btScalar(10.f))
   {
-    double center_[3] = {center.x(), center.y(), center.z()};
-    double up_[3] = {up.x(), up.y(), up.z()};
-    double axis_[3] = {axis.x(), axis.y(), axis.z()};
+    double center_[3] = {center.x() / bulletWorldScalingFactor,
+                         center.y() / bulletWorldScalingFactor,
+                         center.z() / bulletWorldScalingFactor};
+    double up_[3] = {up.x() / bulletWorldScalingFactor,
+                     up.y() / bulletWorldScalingFactor,
+                     up.z() / bulletWorldScalingFactor};
+    double axis_[3] = {axis.x() / bulletWorldScalingFactor,
+                       axis.y() / bulletWorldScalingFactor,
+                       axis.z() / bulletWorldScalingFactor};
     double color_[3] = {color.x(), color.y(), color.z()};
     
     if(callbacks_.drawSpherePatch)
-      (*callbacks_.drawSpherePatch)(center_, up_, axis_, radius, minTh, maxTh, minPs, maxPs, color_, stepDegrees, arg_);
+      (*callbacks_.drawSpherePatch)(center_, up_, axis_, radius / bulletWorldScalingFactor,
+        minTh, maxTh, minPs, maxPs, color_, stepDegrees, arg_);
     else
-      btIDebugDraw::drawSpherePatch(center, up, axis, radius, minTh, maxTh, minPs, maxPs, color, stepDegrees);
+      btIDebugDraw::drawSpherePatch(center / bulletWorldScalingFactor, up / bulletWorldScalingFactor,
+        axis / bulletWorldScalingFactor, radius / bulletWorldScalingFactor,
+        minTh, maxTh, minPs, maxPs, color, stepDegrees);
   }
 
   virtual void drawContactPoint(const btVector3& PointOnB,const btVector3& normalOnB,btScalar distance,int lifeTime,const btVector3& color)
   {
-    double PointOnB_[3] = {PointOnB.x(), PointOnB.y(), PointOnB.z()};
-    double normalOnB_[3] = {normalOnB.x(), normalOnB.y(), normalOnB.z()};
+    double PointOnB_[3] = {PointOnB.x() / bulletWorldScalingFactor,
+                           PointOnB.y() / bulletWorldScalingFactor,
+                           PointOnB.z() / bulletWorldScalingFactor};
+    double normalOnB_[3] = {normalOnB.x() / bulletWorldScalingFactor,
+                            normalOnB.y() / bulletWorldScalingFactor,
+                            normalOnB.z() / bulletWorldScalingFactor};
     double color_[3] = {color.x(), color.y(), color.z()};
 
     if(callbacks_.drawContactPoint)
@@ -191,7 +243,9 @@ public:
 
   void draw3dText(const btVector3& location,const char* textString)
   {
-    double location_[3] = {location.x(), location.y(), location.z()};
+    double location_[3] = {location.x() / bulletWorldScalingFactor,
+                           location.y() / bulletWorldScalingFactor,
+                           location.z() / bulletWorldScalingFactor};
 
     if(callbacks_.draw3dText)
       (*callbacks_.draw3dText)(location_, textString, arg_);
