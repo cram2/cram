@@ -133,7 +133,11 @@
     (pose ?obj ?pose-1)
     (with-stored-world ?world
       (simulate ?world 2.5)
-      (lisp-pred stable-p ?obj)
+      ;; checking for active-tag does not always work. Some bodies are
+      ;; just pretty unstable and never get deactivated,
+      ;; e.g. cylinders.
+      ;;
+      ;; (lisp-pred stable-p ?obj)
       (pose ?obj ?pose-2))
     (poses-equal ?pose-1 ?pose-2 (0.01 0.01)))
 
