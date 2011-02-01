@@ -82,9 +82,8 @@
 
 (def-fact-group poses ()
 
-  (<- (pose ?world ?obj ?pose)
-    (lisp-fun body ?world ?obj ?body)
-    (lisp-fun pose ?body ?pose))
+  (<- (pose ?obj ?pose)
+    (lisp-fun pose ?obj ?pose))
 
   (<- (pose ?obj ?position ?orientation)
     (pose ?obj ?p)
