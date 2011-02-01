@@ -117,12 +117,16 @@
   (glut:solid-sphere (radius sphere) 50 50))
 
 (defmethod draw-collision-shape ((context gl-context) (cylinder cylinder-shape))
-  (glut:solid-cylinder (cl-transforms:x (half-extents cylinder))
-                       (* 2 (cl-transforms:z (half-extents cylinder)))
-                       50 50))
+  (gl:with-pushed-matrix
+    (gl:translate 0 0 (- (cl-transforms:z (half-extents cylinder))))
+    (glut:solid-cylinder (cl-transforms:x (half-extents cylinder))
+                         (* 2 (cl-transforms:z (half-extents cylinder)))
+                         50 50)))
 
 (defmethod draw-collision-shape ((context gl-context) (cone cone-shape))
-  (glut:solid-cone (radius cone) (height cone) 50 50))
+  (gl:with-pushed-matrix
+    (gl:translate 0 0 (/ (height cone) -1))
+    (glut:solid-cone (radius cone) (* 2 (height cone)) 50 50)))
 
 (defmethod draw-collision-shape ((context gl-context) (shape compound-shape))
   (dolist (child (children shape))
