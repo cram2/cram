@@ -30,6 +30,8 @@
 
 (in-package :btr)
 
+(setf *bullet-world-scaling-factor* 30.0d0)
+
 (defclass bt-reasoning-world (bt-world)
   ((objects :initform (make-hash-table :test 'equal))))
 
