@@ -28,28 +28,25 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(defsystem bullet-reasoning
-    :author "Lorenz Moesenlechner"
-    :license "BSD"
-    
-    :depends-on (cram-reasoning
-                 cl-bullet cl-bullet-vis
-                 cl-json-pl-client
-                 cl-urdf
-                 cl-tf)
-    :components
-    ((:module "src"
-              :components
-              ((:file "package")
-               (:file "prolog-handlers" :depends-on ("package"))
-               (:file "prolog-facts" :depends-on ("package"))
-               (:file "reasoning-world" :depends-on ("package"))
-               (:file "textures" :depends-on ("package"))
-               (:file "objects" :depends-on ("package" "reasoning-world" "textures"))
-               (:file "world-utils" :depends-on ("package"
-                                                 "reasoning-world"
-                                                 "objects"))
-               (:file "semantic-map" :depends-on ("package" "objects"))
-               (:file "robot-model" :depends-on ("package" "objects"))
-               (:file "robot-model-utils" :depends-on ("package" "robot-model"))
-               (:file "debug-window" :depends-on ("package"))))))
+(in-package :btr)
+
+(defparameter *static-plane-texture*
+  (concatenate
+   'string
+   "xxxxxxxxxxxxxxxx"
+   "x              x"
+   "x              x"
+   "x              x"
+   "x              x"
+   "x              x"
+   "x              x"
+   "x              x"
+   "x              x"
+   "x              x"
+   "x              x"
+   "x              x"
+   "x              x"
+   "x              x"
+   "x              x"
+   "xxxxxxxxxxxxxxxx"))
+  
