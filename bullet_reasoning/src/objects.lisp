@@ -161,10 +161,12 @@
                    'rigid-body
                    :name name :pose (ensure-pose pose)
                    :collision-shape (make-instance
-                                     'static-plane-shape
+                                     'textured-static-plane-shape
                                      :normal (cl-transforms:make-3d-vector
                                               normal-x normal-y normal-z)
-                                     :constant constant))))))
+                                     :constant constant
+                                     :width 16 :height 16
+                                     :texture (texture-str->bitmap *static-plane-texture* #\x)))))))
 
 (defmethod add-object ((world bt-world) (type (eql 'sphere)) name pose &key mass radius)
   (make-object world name
