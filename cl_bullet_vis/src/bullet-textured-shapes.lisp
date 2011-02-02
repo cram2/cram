@@ -30,14 +30,42 @@
 
 (in-package :bt-vis)
 
-(defclass colored-shape-mixin ()
-  ((color :initarg :color
-          :initform '(0.8 0.8 0.8 1.0)
-          :reader collision-shape-color)))
+(defvar *disable-texture-rendering* nil
+  "When set to T, textures are disabled")
 
-(defclass colored-box-shape (box-shape colored-shape-mixin) ())
-(defclass colored-static-plane-shape (static-plane-shape colored-shape-mixin) ())
-(defclass colored-sphere-shape (sphere-shape colored-shape-mixin) ())
-(defclass colored-cone-shape (cone-shape colored-shape-mixin) ())
-(defclass colored-compound-shape (compound-shape colored-shape-mixin) ())
-(defclass colored-convex-hull-shape (convex-hull-shape colored-shape-mixin) ())
+(defclass textured-shape-mixin ()
+  ((texture :initarg :texture
+            :reader texture)
+   (width :initarg :width
+          :reader width)
+   (height :initarg :height
+           :reader height)
+   (texture-name :initarg :texture-name
+                 :initform (gensym)
+                 :reader texture-name)))
+
+(defun bind-texture (context name bitmap width height)
+  (multiple-value-bind (texture new?)
+      (get-texture-handle context name)
+    (gl:bind-texture :texture-2d texture)
+    (when new?
+      (make-mipmaps
+       texture bitmap
+       width height))
+    texture))
+
+(defmethod draw :around ((context gl-context) (shape textured-shape-mixin))
+  (if *disable-texture-rendering*
+      (call-next-method)
+      (gl:with-pushed-attrib (:texture-bit :enable-bit)
+        (with-slots (texture-name texture width height) shape
+          (bind-texture context texture-name texture width height)
+          (gl:enable :texture-2d)
+          (call-next-method)))))
+
+(defclass textured-box-shape (colored-box-shape textured-shape-mixin) ())
+(defclass textured-static-plane-shape (colored-static-plane-shape textured-shape-mixin) ())
+(defclass textured-sphere-shape (colored-sphere-shape textured-shape-mixin) ())
+(defclass textured-cone-shape (colored-cone-shape textured-shape-mixin) ())
+(defclass textured-compound-shape (colored-compound-shape textured-shape-mixin) ())
+(defclass textured-convex-hull-shape (colored-convex-hull-shape textured-shape-mixin) ())

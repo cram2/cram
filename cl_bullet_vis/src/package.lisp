@@ -42,8 +42,13 @@
            event-queue post-event get-next-event
            draw-rigid-body
            draw-collision-shape collision-shape-color
+           colored-shape-mixin colored-static-plane-shape
            colored-box-shape colored-sphere-shape colored-cone-shape
            colored-compound-shape colored-convex-hull-shape
+           texture-str->bitmap textured-shape-mixin
+           textured-static-plane-shape textured-box-shape
+           textured-sphere-shape textured-cone-shape
+           textured-compound-shape textured-convex-hull-shape
            mesh-shape
            matrix->gl-matrix pose->gl-matrix transform->gl-matrix
            read-pixels-float))

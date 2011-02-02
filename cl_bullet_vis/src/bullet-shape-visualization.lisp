@@ -39,7 +39,7 @@
   (:documentation "Returns the color of `shape' as a list. To change
   the color of a collision shape, derive the class and add a custom
   COLLISION-SHAPE-COLOR method.")
-  (:method ((body collision-shape))
+  (:method ((body t))
     '(0.8 0.8 0.8 1.0))
   (:method :around ((body collision-shape))
     (or *collision-shape-color-overwrite*
@@ -56,34 +56,7 @@
       (gl:scale size-x size-y size-z)
       (glut:solid-cube 1))))
 
-(defparameter *static-plane-texture*
-  (concatenate
-   'string
-   "xxxxxxxxxxxxxxxx"
-   "x              x"
-   "x              x"
-   "x              x"
-   "x              x"
-   "x              x"
-   "x              x"
-   "x              x"
-   "x              x"
-   "x              x"
-   "x              x"
-   "x              x"
-   "x              x"
-   "x              x"
-   "x              x"
-   "xxxxxxxxxxxxxxxx"))
-
 (defmethod draw ((context gl-context) (plane static-plane-shape))
-  (multiple-value-bind (texture new?)
-      (get-texture-handle context :static-plane-shape)
-    (gl:bind-texture :texture-2d texture)
-    (when new?
-      (make-mipmaps
-       texture (texture-str->bitmap *static-plane-texture* #\x)
-       16 16)))
   (let ((normal (normal plane))
         (constant (constant plane)))
     (gl:with-pushed-matrix
@@ -101,9 +74,7 @@
          (cl-transforms:y rotation-axis)
          (cl-transforms:z rotation-axis)))
       (gl:disable :cull-face)
-      (gl:enable :texture-2d)
       (gl:disable :lighting)
-      (gl:color 0.5 0.5 0.5)
       (gl:with-primitive :quads
         (gl:normal 0 0 1)
         (gl:tex-coord 0.0 0.0)
@@ -114,7 +85,6 @@
         (gl:vertex 100 100)
         (gl:tex-coord 0.0 200.0)
         (gl:vertex -100 100))
-      (gl:disable :texture-2d)
       (gl:enable :lighting)
       (gl:enable :cull-face))))
 
