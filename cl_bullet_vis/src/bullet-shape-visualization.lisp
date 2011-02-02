@@ -30,15 +30,20 @@
 
 (in-package :bt-vis)
 
-(defgeneric draw-collision-shape (gl-context shape)
-  (:documentation "Draws a collision shape with opengl"))
+(defvar *collision-shape-color-overwrite* nil
+  "When this variable is set, the actual color of the collision shape
+  is overwritten and the value of *COLLISION-SHAPE-COLOR-OVERWRITE* is
+  returned by COLLISION-SHAPE-COLOR")
 
 (defgeneric collision-shape-color (shape)
   (:documentation "Returns the color of `shape' as a list. To change
   the color of a collision shape, derive the class and add a custom
   COLLISION-SHAPE-COLOR method.")
   (:method ((body collision-shape))
-    '(0.8 0.8 0.8 1.0)))
+    '(0.8 0.8 0.8 1.0))
+  (:method :around ((body collision-shape))
+    (or *collision-shape-color-overwrite*
+        (call-next-method))))
 
 (defmethod draw :before ((context gl-context) (shape collision-shape))
   (apply #'gl:color (collision-shape-color shape)))
