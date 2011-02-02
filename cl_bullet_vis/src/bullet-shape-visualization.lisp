@@ -40,10 +40,10 @@
   (:method ((body collision-shape))
     '(0.8 0.8 0.8 1.0)))
 
-(defmethod draw-collision-shape :before ((context gl-context) (shape collision-shape))
+(defmethod draw :before ((context gl-context) (shape collision-shape))
   (apply #'gl:color (collision-shape-color shape)))
 
-(defmethod draw-collision-shape ((context gl-context) (box box-shape))
+(defmethod draw ((context gl-context) (box box-shape))
   (let ((size-x (* 2 (cl-transforms:x (half-extents box))))
         (size-y (* 2 (cl-transforms:y (half-extents box))))
         (size-z (* 2 (cl-transforms:z (half-extents box)))))
@@ -71,7 +71,7 @@
    "        xxxxxxxx"
    "        xxxxxxxx"))
 
-(defmethod draw-collision-shape ((context gl-context) (plane static-plane-shape))
+(defmethod draw ((context gl-context) (plane static-plane-shape))
   (multiple-value-bind (texture new?)
       (get-texture-handle context :static-plane-shape)
     (gl:bind-texture :texture-2d texture)
@@ -113,29 +113,29 @@
       (gl:enable :lighting)
       (gl:enable :cull-face))))
 
-(defmethod draw-collision-shape ((context gl-context) (sphere sphere-shape))
+(defmethod draw ((context gl-context) (sphere sphere-shape))
   (glut:solid-sphere (radius sphere) 50 50))
 
-(defmethod draw-collision-shape ((context gl-context) (cylinder cylinder-shape))
+(defmethod draw ((context gl-context) (cylinder cylinder-shape))
   (gl:with-pushed-matrix
     (gl:translate 0 0 (- (cl-transforms:z (half-extents cylinder))))
     (glut:solid-cylinder (cl-transforms:x (half-extents cylinder))
                          (* 2 (cl-transforms:z (half-extents cylinder)))
                          50 50)))
 
-(defmethod draw-collision-shape ((context gl-context) (cone cone-shape))
+(defmethod draw ((context gl-context) (cone cone-shape))
   (gl:with-pushed-matrix
     (gl:translate 0 0 (/ (height cone) -1))
     (glut:solid-cone (radius cone) (* 2 (height cone)) 50 50)))
 
-(defmethod draw-collision-shape ((context gl-context) (shape compound-shape))
+(defmethod draw ((context gl-context) (shape compound-shape))
   (dolist (child (children shape))
     (gl:with-pushed-matrix
       (gl:mult-matrix
        (pose->gl-matrix (child-pose shape child)))
-      (draw-collision-shape child))))
+      (draw child))))
 
-(defmethod draw-collision-shape ((context gl-context) (hull convex-hull-shape))
+(defmethod draw ((context gl-context) (hull convex-hull-shape))
   (gl:with-primitive :points
     (map 'nil (lambda (point)
                 (gl:vertex

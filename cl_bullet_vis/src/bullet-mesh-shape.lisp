@@ -37,7 +37,7 @@
           :initform '(0.8 0.8 0.8 1.0))))
 
 
-(defmethod draw-collision-shape ((context gl-context) (mesh mesh-shape))
+(defmethod draw ((context gl-context) (mesh mesh-shape))
   (gl:with-primitive :triangles
     (map 'nil
          (lambda (face)

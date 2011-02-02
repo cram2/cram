@@ -37,4 +37,3 @@
         (unwind-protect
              (prolog `(and ,@prolog-forms) bdgs)
           (restore-world-state world-state world))))))
-
