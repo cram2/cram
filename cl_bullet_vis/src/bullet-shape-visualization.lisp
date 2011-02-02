@@ -59,22 +59,22 @@
 (defparameter *static-plane-texture*
   (concatenate
    'string
-   "xxxxxxxx        "
-   "xxxxxxxx        "
-   "xxxxxxxx        "
-   "xxxxxxxx        "
-   "xxxxxxxx        "
-   "xxxxxxxx        "
-   "xxxxxxxx        "
-   "xxxxxxxx        "
-   "        xxxxxxxx"
-   "        xxxxxxxx"
-   "        xxxxxxxx"
-   "        xxxxxxxx"
-   "        xxxxxxxx"
-   "        xxxxxxxx"
-   "        xxxxxxxx"
-   "        xxxxxxxx"))
+   "xxxxxxxxxxxxxxxx"
+   "x              x"
+   "x              x"
+   "x              x"
+   "x              x"
+   "x              x"
+   "x              x"
+   "x              x"
+   "x              x"
+   "x              x"
+   "x              x"
+   "x              x"
+   "x              x"
+   "x              x"
+   "x              x"
+   "xxxxxxxxxxxxxxxx"))
 
 (defmethod draw ((context gl-context) (plane static-plane-shape))
   (multiple-value-bind (texture new?)
@@ -82,7 +82,7 @@
     (gl:bind-texture :texture-2d texture)
     (when new?
       (make-mipmaps
-       texture (texture-str->bitmap *static-plane-texture* #\x #\Space)
+       texture (texture-str->bitmap *static-plane-texture* #\x)
        16 16)))
   (let ((normal (normal plane))
         (constant (constant plane)))
