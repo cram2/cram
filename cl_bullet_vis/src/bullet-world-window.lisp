@@ -53,6 +53,10 @@
     (glut:enable-tick w (truncate (* (/ (frame-rate w)) 1000)))))
 
 (defmethod glut:display ((window bullet-world-window))
+  (gl:matrix-mode :projection)
+  (gl:load-identity)
+  (glu:perspective 50 (/ (glut:width window) (glut:height window)) 0.1 100)
+  (gl:matrix-mode :modelview)
   (init-camera)
   (gl:enable :light0 :lighting :cull-face :depth-test :color-material :blend)
   (gl:clear :color-buffer :depth-buffer)
@@ -90,12 +94,10 @@
   (gl:flush))
 
 (defmethod glut:reshape ((window bullet-world-window) width height)
-  (gl:viewport 0 0 width height)
-  (gl:matrix-mode :projection)
-  (gl:load-identity)
-  (glu:perspective 50 (/ width height) 0.5 100)
-  (gl:matrix-mode :modelview)
-  (gl:load-identity))
+  (with-slots (glut:width glut:height) window
+    (setf glut:width width)
+    (setf glut:height height)
+    (gl:viewport 0 0 width height)))
 
 (defmethod glut:keyboard ((window bullet-world-window) key x y)
   (declare (ignore x y))
