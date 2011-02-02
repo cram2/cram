@@ -34,17 +34,17 @@
     (:nicknames :bt-vis)
   (:use #:common-lisp #:bt)
   (:export bullet-world-window world camera-transform
-           closed draw-world *current-world*
+           closed draw *current-world*
            init-camera set-camera
            with-bullet-window-context
            get-texture-handle camera-transform light-position
            gl-context
            event-queue post-event get-next-event
-           draw-rigid-body
-           draw-collision-shape collision-shape-color
+           collision-shape-color *collision-shape-color-overwrite*
            colored-shape-mixin colored-static-plane-shape
            colored-box-shape colored-sphere-shape colored-cone-shape
            colored-compound-shape colored-convex-hull-shape
+           *disable-texture-rendering*
            texture-str->bitmap textured-shape-mixin
            textured-static-plane-shape textured-box-shape
            textured-sphere-shape textured-cone-shape
