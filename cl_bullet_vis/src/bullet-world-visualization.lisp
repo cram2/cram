@@ -36,10 +36,10 @@
   whole scene in order to do fancy opengl effects such as shadows and
   reflections.")
 
-(defgeneric draw-world (gl-context world)
-  (:method :around (gl-context world)
+(defgeneric draw (gl-context obj)
+  (:method :around ((context gl-context) (world bt-world))
     (let ((*current-world* world))
       (call-next-method)))
   (:method ((context gl-context) (world bt-world))
     (dolist (body (bodies world))
-      (draw-rigid-body context body))))
+      (draw context body))))

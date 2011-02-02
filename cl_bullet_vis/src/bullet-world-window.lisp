@@ -67,7 +67,7 @@
   (gl:light :light0 :specular #(1 1 1 1))
   (gl:with-pushed-matrix
     (with-world-locked (world window)
-      (draw-world window (world window))))
+      (draw window (world window))))
   ;; When we are moving around, draw a little yellow disk similar to
   ;; that one RVIZ draws.
   (when (or (eq (motion-mode window) :rotate)

@@ -30,9 +30,7 @@
 
 (in-package :bt-vis)
 
-(defgeneric draw-rigid-body (gl-context body))
-
-(defmethod draw-rigid-body ((context gl-context) (body rigid-body))
+(defmethod draw ((context gl-context) (body rigid-body))
   (gl:with-pushed-matrix
     (gl:mult-matrix (pose->gl-matrix (pose body)))
-    (draw-collision-shape context (collision-shape body))))
+    (draw context (collision-shape body))))
