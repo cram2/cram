@@ -52,4 +52,6 @@
                (:file "semantic-map" :depends-on ("package" "objects"))
                (:file "robot-model" :depends-on ("package" "objects"))
                (:file "robot-model-utils" :depends-on ("package" "robot-model"))
+               (:file "gl-scenes" :depends-on ("package"))
+               (:file "visibility-reasoning" :depends-on ("package" "gl-scenes"))
                (:file "debug-window" :depends-on ("package"))))))
