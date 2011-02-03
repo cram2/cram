@@ -117,6 +117,10 @@
     (when body
       (pose body))))
 
+(defmethod draw ((context gl-context) (object object))
+  (dolist (body (rigid-bodies object))
+    (draw context body)))
+
 (defun ensure-pose (pose)
   (etypecase pose
     (list (destructuring-bind
