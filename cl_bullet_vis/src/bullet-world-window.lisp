@@ -219,10 +219,14 @@ upwards. This matches ROS' coordinates best."
                            (setf ,result (list :warning w))))
                        (sb-thread:with-mutex (,lock)
                          (setf ,done t)
-                         (sb-thread:condition-notify ,condition)))))
+                         (sb-thread:condition-broadcast ,condition)))))
        (sb-thread:with-mutex (,lock)
          (loop until ,done do
-           (sb-thread:condition-wait ,condition ,lock)
+           (handler-case
+               (sb-ext:with-timeout 0.01
+                 (sb-thread:condition-wait ,condition ,lock))
+             (sb-ext:timeout ()
+               nil))
                finally (destructuring-bind (status value)
                            ,result
                          (return
