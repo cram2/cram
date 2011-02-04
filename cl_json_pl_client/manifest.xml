@@ -12,6 +12,7 @@
   <depend package="json_prolog"/>
   <depend package="yason"/>
   <depend package="cram_utilities"/>
+  <depend package="cram_reasoning"/>
   <depend package="alexandria"/>
 
 </package>

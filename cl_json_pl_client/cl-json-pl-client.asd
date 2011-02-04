@@ -38,11 +38,16 @@
   :license "BSD"
   :description "A Common Lisp client library for json_prolog."
 
-  :depends-on (:cram-utilities :json_prolog-srv :yason :roslisp :alexandria)
+  :depends-on (:cram-utilities
+               :cram-reasoning
+               :json_prolog-srv
+               :yason :roslisp
+               :alexandria)
 
   :components
   ((:module "src"
             :components
             ((:file "package")
              (:file "json-conversion" :depends-on ("package"))
-             (:file "prolog-interface" :depends-on ("package" "json-conversion"))))))
+             (:file "prolog-interface" :depends-on ("package" "json-conversion"))
+             (:file "prolog-handlers" :depends-on ("package" "prolog-interface"))))))
