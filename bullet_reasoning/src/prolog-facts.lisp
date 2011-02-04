@@ -138,6 +138,24 @@
   (<- (poses-equal ?pose-1 ?pose-2 (?dist-sigma ?ang-sigma))
     (lisp-pred poses-equal-p ?pose-1 ?pose-2 ?dist-sigma ?ang-sigma)))
 
+(def-fact-group robot-model ()
+
+  (<- (link-pose ?robot ?name ?pose)
+    (bound ?robot)
+    (bound ?name)
+    (-> (bound ?pose)
+        (and
+         (lisp-fun link-pose ?robot ?name ?l-p)
+         (poses-equal ?pose ?l-p 0.01 0.01))
+        (lisp-fun link-pose ?robot ?name ?pose)))
+
+  (<- (link-pose ?robot ?name ?pose)
+    (bound ?robot)
+    (not (bound ?name))
+    (lisp-fun link-names ?robot ?names)
+    (member ?name ?names)
+    (link-pose ?robot ?name ?pose)))
+
 (def-fact-group force-dynamic-states ()
 
   (<- (contact ?world ?obj-1 ?obj-2)
