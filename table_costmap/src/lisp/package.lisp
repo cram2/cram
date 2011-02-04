@@ -9,7 +9,7 @@
            #:*table-grid-cells-fl*
            #:*table-height-map-fl*
            #:on #:name #:to #:see #:reach
-           #:table #:obj #:location
+           #:table #:obj #:location #:counter
            #:in #:reach
            #:costmap-padding
            #:costmap-manipulation-padding

@@ -120,7 +120,9 @@ than threshold * highest-probability."
                           ?cm))
   
   (<- (desig-costmap ?desig ?cm)
-    (desig-prop ?desig (on table))
+    (or
+     (desig-prop ?desig (on table))
+     (desig-prop ?desig (on counter)))
     (desig-prop ?desig (name ?table-name))
     (annotated-point ?table-name ?_)
     (global-fluent-value *table-grid-cells-fl* ?table-msg)
@@ -130,7 +132,9 @@ than threshold * highest-probability."
     (costmap-add-function all-tables (make-occupancy-grid-cost-function ?table-costmap) ?cm))
 
   (<- (desig-costmap ?desig ?cm)
-    (desig-prop ?desig (on table))
+    (or
+     (desig-prop ?desig (on table))
+     (desig-prop ?desig (on counter)))
     (not (desig-prop ?desig (name ?_)))
     (global-fluent-value *table-grid-cells-fl* ?table-msg)
     (occupancy-grid ?table-msg ?table-costmap)
