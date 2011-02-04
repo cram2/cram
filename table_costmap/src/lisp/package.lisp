@@ -37,9 +37,6 @@
   (:export #:*map-fl*
            #:*table-grid-cells-fl*
            #:*table-height-map-fl*
-           #:on #:name #:to #:see #:reach
-           #:table #:obj #:location #:counter
-           #:in #:reach
            #:costmap-padding
            #:costmap-manipulation-padding
            #:costmap-in-reach-padding
@@ -55,3 +52,7 @@
            #:*initial-stddev*
            #:*accept-threshold*)
   (:import-from :cpl #:make-fluent #:value))
+
+(desig:register-designator-properties
+ on name to see reach table
+ obj location counter in reach)
