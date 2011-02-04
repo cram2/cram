@@ -117,6 +117,14 @@
     (when body
       (pose body))))
 
+(defmethod (setf pose) (new-value (object object))
+  (let ((body (rigid-body object (slot-value object 'pose-reference-body))))
+    (when body
+      (setf (pose body) new-value))))
+
+(defun set-object-pose (object new-pose)
+  (setf (pose object) new-pose))
+
 (defmethod draw ((context gl-context) (object object))
   (dolist (body (rigid-bodies object))
     (draw context body)))
