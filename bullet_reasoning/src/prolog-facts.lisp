@@ -232,6 +232,21 @@
     (lisp-fun find-objects-above ?obj-1 ?objs)
     (member ?obj-2 ?objs)))
 
+(def-fact-group visibility ()
+  (<- (visible ?world ?camera-pose ?obj)
+    (ground (?world ?camera-pose))
+    (object ?world ?_ ?obj)
+    (lisp-pred object-visible-p ?world ?camera-pose ?obj))
+
+  (<- (occluding-objects ?world ?camera-pose ?obj ?objs)
+    (ground (?world ?camera-pose))
+    (object ?world ?_ ?obj)
+    (lisp-fun occluding-objects ?world ?camera-pose ?obj ?objs))
+
+  (<- (occluding-object ?world ?camera-pose ?obj ?occluding-obj)
+    (occluding-objects ?world ?camera-pose ?obj ?objs)
+    (member ?occluding-obj ?objs)))
+
 (def-fact-group debug ()
   (<- (debug-window ?world)
     (lisp-fun add-debug-window ?world ?_)))
