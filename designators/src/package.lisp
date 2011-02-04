@@ -53,7 +53,6 @@
            #:resolve-object-desig
            #:action-designator #:action-desig #:action
            #:location-designator
-           #:location
            #:make-location-proxy
            #:location-proxy-current-solution
            #:location-proxy-next-solution
@@ -63,12 +62,37 @@
            #:pose-location-proxy
            #:desig-loc #:loc-desig? #:obj-desig-location
            #:loc-desig-location
-           #:pose #:of #:type #:at
+           #:register-designator-properties
+           ;; Properties
+           #:obj #:location
+           #:pose #:of #:at #:inside
+           #:type #:trajectory
            #:desig-prop #:desig-class #:desig-value
-           #:desig-location-prop #:obj
-           #:to #:see #:follow #:reach #:inside
+           #:desig-location-prop
            #:desig
-           #:trajectory-desig? #:trajectory
-           #:grasp #:side #:to #:navigate #:pose #:parked
-           #:open #:show #:carry #:lift #:put-down #:at #:gripper
-           #:orientation))
+           #:trajectory-desig?))
+
+(defun desig::find-conflicting-symbols (syms package)
+  (let ((conflicting nil))
+    (dolist (pkg (package-used-by-list package) conflicting)
+      (do-symbols (sym pkg)
+        (let ((c-sym (car (member (symbol-name sym) syms :key #'symbol-name :test #'equal))))
+          (when (and c-sym (not (eq (symbol-package sym) package)))
+            (pushnew (list sym pkg) conflicting)))))))
+
+(defun desig::shadow-conflicting-symbols (syms package)
+  (mapcar (lambda (c) (apply #'shadow c))
+          (desig::find-conflicting-symbols syms package)))
+
+(defmacro desig:register-designator-properties (&rest properties)
+  "Tries to export every symbol in `properties' from the
+CRAM-DESIGNATORS package. Conflicting symbols are ignored."
+  (let ((desig-package (find-package :desig)))
+    `(progn
+       (desig::shadow-conflicting-symbols ',properties ,desig-package)
+       (export (mapcar (lambda (sym-name) (intern sym-name ,desig-package))
+                       ',(mapcar (lambda (sym)
+                                   (etypecase sym
+                                     (symbol (symbol-name sym))
+                                     (string sym)))
+                                 properties)) ,desig-package))))
