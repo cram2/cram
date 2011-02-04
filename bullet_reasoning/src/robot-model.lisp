@@ -68,6 +68,12 @@
   (:documentation "Sets the specific joint to a new value and updates
   all child-link positions"))
 
+(defgeneric link-names (robot-object)
+  (:documentation "Returns a list of link names")
+  (:method ((robot-object robot-object))
+    (loop for name being the hash-keys in (links robot-object)
+          collecting name)))
+
 (defgeneric link-pose (robot-object name)
   (:documentation "Gets the pose of a link"))
 
