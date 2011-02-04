@@ -37,7 +37,9 @@
         #:cram-roslisp-common
         #:alexandria
         #:cpl-impl)
-  (:export #:point-head-process-module
-           #:to #:see #:follow #:pose
-           #:location #:obj)
+  (:export #:point-head-process-module)
   (:shadowing-import-from #:cpl-impl #:fail))
+
+(desig:register-designator-properties
+ #:to #:see #:follow #:pose
+ #:location #:obj)

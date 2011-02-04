@@ -48,3 +48,8 @@
    ;; Rete facts
    #:object-opened #:object-closed)
   (:shadowing-import-from #:table-costmap #:name))
+
+(desig:register-designator-properties
+ #:to #:open #:obj #:side #:type #:fridge #:close
+ #:drawer #:grasp #:round-plate #:bottle #:put-down
+ #:at #:pose #:parked #:lift #:carry)
