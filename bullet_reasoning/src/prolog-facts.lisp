@@ -35,6 +35,10 @@
   (<- (bullet-world ?world)
     (instance-of bt-reasoning-world ?world))
 
+  (<- (bullet-world ?world ?obj)
+    ;; The world ?obj belongs to
+    (get-slot-value ?obj world ?world))
+
   (<- (assert-object ?world ?object-type ?name ?pose . ?args)
     (lisp-fun apply add-object
               ?world ?object-type
