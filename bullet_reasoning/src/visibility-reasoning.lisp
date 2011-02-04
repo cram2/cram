@@ -54,6 +54,18 @@
 (defun calculate-object-visibility (gl-window reasoning-world camera-pose object)
   "Calculates how much of `object' is visible from `camera-pose' in
   `world'. Returns an instance of OBJECT-VISIBILITY."
+
+  ;; This method works by creating three rendered images. First it
+  ;; renderes the object centered in the camera. Then it renders the
+  ;; object with the correct camera. And finally it renders the
+  ;; complete scene with each object in a different color. Everything
+  ;; is rendered without lighting. To calculate the visibility ratio,
+  ;; the ratio of visible pixels of `object' in the complete scene to
+  ;; pixels that belong to the object (by using the first image) is
+  ;; calculated. To calculate which objects are occluding `object',
+  ;; image 2 is used. All pixels that are set there and don't belong
+  ;; to `object' in image 3 are occluding pixels and hence the
+  ;; corresponding object is occluding `object.
   (with-bullet-window-context gl-window
     (let ((*collision-shape-color-overwrite* '(1.0 1.0 1.0 1.0))
           (*disable-texture-rendering* t))
@@ -105,3 +117,15 @@
                                                                              (member (car (slot-value o 'color))
                                                                                      occluding-object-colors))
                                                                            object-proxies))))))))))
+
+(defun object-visible-p (world camera-pose object &optional (window *debug-window*) (threshold 0.9))
+  "Returns T if at least `threshold' of the object is visible"
+  (let ((visibility (calculate-object-visibility window world camera-pose object)))
+    (>= (object-visibility-percentage visibility)
+        threshold)))
+
+(defun occluding-objects (world camera-pose object &optional (window *debug-window*) (threshold 0.9))
+  "Returns the list of occluding objects if less than `threshold' of `object' is visible"
+  (let ((visibility (calculate-object-visibility window world camera-pose object)))
+    (when (< (object-visibility-percentage visibility) threshold)
+      (object-visibility-occluding-objects visibility))))
