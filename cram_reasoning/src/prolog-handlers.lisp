@@ -99,6 +99,9 @@
   (when (is-ground pattern bdgs)
     (list bdgs)))
 
+(def-prolog-handler true (bdgs)
+  (list bdgs))
+
 (def-prolog-handler fail (bdgs)
   (declare (ignore bdgs))
   nil)
