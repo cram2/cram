@@ -56,6 +56,7 @@
   (<- (object ?world ?name ?obj)
     (not (bound ?name))
     (bound ?obj)
+    (bullet-world ?world ?obj)
     (lisp-fun name ?obj ?name))
 
   (<- (object ?world ?name ?obj)
