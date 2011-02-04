@@ -5,20 +5,20 @@
   "alist of annotations and the corresponding points.")
 
 (defun init-annotated-points ()
-  (unless (roslisp:wait-for-service "/table_annotations/get_annotated_points" 1.0)
-    (error
-     'simple-error :format-control
-     "Could not connect to service '/table_annotations/get_annotated_points'"))
-  (let ((srv-result (roslisp:call-service "/table_annotations/get_annotated_points"
-                                          "map_annotation/GetAnnotatedPoints")))
-    (map 'list (lambda (label point)
-                 (with-fields ((x x) (y y) (z z))
-                     point
-                   (cons (lispify-ros-name label (find-package :map-annotation))
-                         (make-instance 'cl-transforms:3d-vector
-                                        :x x :y y :z z))))
-         (map_annotation-srv:labels-val srv-result)
-         (map_annotation-srv:points-val srv-result))))
+  (if (roslisp:wait-for-service "/table_annotations/get_annotated_points" 1.0)
+      (let ((srv-result (roslisp:call-service "/table_annotations/get_annotated_points"
+                                              "map_annotation/GetAnnotatedPoints")))
+        (map 'list (lambda (label point)
+                     (with-fields ((x x) (y y) (z z))
+                         point
+                       (cons (lispify-ros-name label (find-package :map-annotation))
+                             (make-instance 'cl-transforms:3d-vector
+                                            :x x :y y :z z))))
+             (map_annotation-srv:labels-val srv-result)
+             (map_annotation-srv:points-val srv-result)))
+      (warn
+       'simple-warning :format-control
+       "Could not connect to service '/table_annotations/get_annotated_points'")))
 
 (defun get-closest-annotation (point)
   (labels ((find-closest-point (points closest dist)
@@ -39,9 +39,11 @@
 (defun get-annotated-point (name)
   (unless *annotated-points*
     (setf *annotated-points* (init-annotated-points)))
-  (cdr (assoc (symbol-name name) *annotated-points* :key #'symbol-name :test #'equal)))
+  (when *annotated-points*
+    (cdr (assoc (symbol-name name) *annotated-points* :key #'symbol-name :test #'equal))))
 
 (defun get-annotation-names ()
   (unless *annotated-points*
     (setf *annotated-points* (init-annotated-points)))
-  (mapcar #'car *annotated-points*))
+  (when *annotated-points*
+    (mapcar #'car *annotated-points*)))
