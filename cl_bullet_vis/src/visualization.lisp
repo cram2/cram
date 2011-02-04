@@ -30,16 +30,12 @@
 
 (in-package :bt-vis)
 
-(defvar *current-world* nil
-  "Contains a reference to the world during drawing operations. This
-  is sort of a back-door to allow drawing functions to re-draw the
-  whole scene in order to do fancy opengl effects such as shadows and
-  reflections.")
+(defgeneric draw (gl-context obj)
+  (:documentation "Method that draws an object"))
 
-(defmethod draw :around ((context gl-context) (world bt-world))
-    (let ((*current-world* world))
-      (call-next-method)))
-
-(defmethod draw ((context gl-context) (world bt-world))
-  (dolist (body (bodies world))
-    (draw context body)))
+(defgeneric collision-shape-color (shape)
+  (:documentation "Returns the color of `shape' as a list. To change
+  the color of a collision shape, derive the class and add a custom
+  COLLISION-SHAPE-COLOR method.")
+  (:method ((body t))
+    '(0.8 0.8 0.8 1.0)))

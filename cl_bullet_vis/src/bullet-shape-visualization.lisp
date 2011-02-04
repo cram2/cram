@@ -35,15 +35,9 @@
   is overwritten and the value of *COLLISION-SHAPE-COLOR-OVERWRITE* is
   returned by COLLISION-SHAPE-COLOR")
 
-(defgeneric collision-shape-color (shape)
-  (:documentation "Returns the color of `shape' as a list. To change
-  the color of a collision shape, derive the class and add a custom
-  COLLISION-SHAPE-COLOR method.")
-  (:method ((body t))
-    '(0.8 0.8 0.8 1.0))
-  (:method :around ((body collision-shape))
-    (or *collision-shape-color-overwrite*
-        (call-next-method))))
+(defmethod collision-shape-color :around ((body collision-shape))
+  (or *collision-shape-color-overwrite*
+      (call-next-method)))
 
 (defmethod draw :before ((context gl-context) (shape collision-shape))
   (apply #'gl:color (collision-shape-color shape)))
@@ -107,7 +101,7 @@
     (gl:with-pushed-matrix
       (gl:mult-matrix
        (pose->gl-matrix (child-pose shape child)))
-      (draw child))))
+      (draw context child))))
 
 (defmethod draw ((context gl-context) (hull convex-hull-shape))
   (gl:with-primitive :points
