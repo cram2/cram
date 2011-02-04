@@ -87,12 +87,40 @@
 (def-fact-group poses ()
 
   (<- (pose ?obj ?pose)
+    (bound ?obj)
+    (not (bound ?pose))
     (lisp-fun pose ?obj ?pose))
 
+  (<- (pose ?obj ?pose)
+    (bound ?obj)
+    (bound ?pose)
+    (pose ?obj ?obj-pose)
+    (poses-equal ?pose ?obj-pose 0.01 0.01))
+
+  (<- (assert-object-pose ?obj ?pose)
+    (bound ?obj)
+    (bound ?pose)
+    (lisp-fun set-object-pose ?obj ?pose ?_))
+
   (<- (pose ?obj ?position ?orientation)
+    (bound ?obj)
+    (instance-of object ?obj)
     (pose ?obj ?p)
     (position ?p ?position)
     (orientation ?p ?orientation))
+
+  (<- (pose ?pose ?position ?orientation)
+    (bound ?pose)
+    (position ?pose ?position)
+    (orientation ?pose ?orientation))
+
+  (<- (pose ?pose (?x ?y ?z) (?ax ?ay ?az ?aw))
+    (not (bound ?pose))
+    (ground (?x ?y ?z))
+    (ground (?ax ?ay ?az ?aw))
+    (lisp-fun cl-transforms:make-3d-vector ?x ?y ?z ?o)
+    (lisp-fun cl-transforms:make-quaternion ?ax ?ay ?az ?aw ?q)
+    (lisp-fun cl-transforms:make-pose ?o ?q ?pose))
 
   (<- (position ?pose (?x ?y ?z))
     (lisp-fun cl-transforms:origin ?pose ?p)
