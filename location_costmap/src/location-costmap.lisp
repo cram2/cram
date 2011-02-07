@@ -105,7 +105,8 @@
                   (slot-value map 'resolution))))
 
 (defmethod register-cost-function ((map location-costmap) fun &optional (score 0))
-  (push (cons fun score) (slot-value map 'cost-functions)))
+  (when fun
+    (push (cons fun score) (slot-value map 'cost-functions))))
 
 (defun merge-costmaps (cm-1 &rest costmaps)
   (etypecase cm-1
