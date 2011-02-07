@@ -111,7 +111,7 @@
 
 (defmacro replaceable-function (name lambda-list parameters path-part
                                 &body body)
-  "Besides the repalcement of simple code parts defined with 'with-task-tree-node',
+  "Besides the replacement of simple code parts defined with 'with-task-tree-node',
    it is necessary to also pass parameters to the replaceable code
    parts. For that, replaceable functions can be defined. They are not
    real functions, i.e. they do change any symbol-function or change

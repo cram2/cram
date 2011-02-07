@@ -1,6 +1,4 @@
 
-PACKAGE_DIR=$(shell rospack find synchronization_tools)
-
 all: installed
 
 downloaded: Makefile
@@ -11,7 +9,7 @@ downloaded: Makefile
 
 installed: downloaded
 	mkdir -p asdf
-	ln -s ${PACKAGE_DIR}/synchronization-tools/synchronization-tools.asd ${PACKAGE_DIR}/asdf/
+	ln -s ../synchronization-tools/synchronization-tools.asd asdf/
 	touch installed
 
 clean:

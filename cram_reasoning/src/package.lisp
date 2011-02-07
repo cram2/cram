@@ -46,10 +46,12 @@
            #:warn
            #:error
            #:?_
+           #:true
            #:fail
            #:and
            #:or
            #:not
+           #:->
            #:<
            #:>
            #:<=

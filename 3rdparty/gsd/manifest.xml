@@ -6,6 +6,7 @@
   <author>Liam Healy</author>
   <license>GPL</license>
   <review status="unreviewed" notes=""/>
+  <rosdep name="git"/>
   <depend package="alexandria"/>
   <depend package="split_sequence"/>
 </package>

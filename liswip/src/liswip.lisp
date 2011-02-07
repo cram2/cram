@@ -50,7 +50,7 @@
     liswip-initialized))
 
 (defmacro with-prolog-engine (&body body)
-  "Ensrues that a prolog engine is running and evaluates `body'. When
+  "Ensures that a prolog engine is running and evaluates `body'. When
   a new engine had to be created, destroys it after `body' finished."
   `(let ((engine-created nil))
      (assert (liswip-initialized) () "Not initialized yet. Call SWI-INIT first.")

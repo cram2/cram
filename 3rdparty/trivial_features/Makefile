@@ -1,6 +1,4 @@
 
-PACKAGE_DIR=$(shell rospack find trivial_features)
-
 all: installed
 
 downloaded: Makefile
@@ -11,7 +9,7 @@ downloaded: Makefile
 
 installed: downloaded
 	mkdir -p asdf
-	ln -s ${PACKAGE_DIR}/trivial-features/trivial-features.asd ${PACKAGE_DIR}/asdf
+	ln -s ../trivial-features/trivial-features.asd asdf/
 	touch installed
 
 clean:
