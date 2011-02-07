@@ -107,7 +107,7 @@
            #:plan-failure
            #:with-failure-handling #:retry
            #:*break-on-plan-failures*
-           #:*break-on-errors*
+           #:*debug-on-lisp-errors*
            ;; task.lisp
            #:*current-task*
            #:status #:result
