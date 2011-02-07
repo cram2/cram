@@ -308,6 +308,35 @@
                 (fail "foof"))
               (sleep* 1.0)))))
 
+(define-cram-test with-failure-handling.4
+    "Ensure that a throw (and unhandled) CL error results in a CL error thrown by the top-level form" ()
+  (let ((*debug-on-lisp-errors* nil))
+    (signals error
+      (top-level
+        (pursue (par
+                  (sleep* 1)
+                  (par
+                    (sleep* 1)
+                    (error "foof")))
+                (sleep* 1.0))))))
+
+(define-cram-test with-failure-handling.5
+    "Ensure that CL errors can be thrown accross task boundaries and
+    WITH-FAILURE-HANDLING can catch them." ()
+  (let ((got-it? nil)
+        (*debug-on-lisp-errors* nil))
+    (top-level
+      (pursue (with-failure-handling ((error (e)
+                                        (setq got-it? e)
+                                        (return)))
+                (par
+                  (sleep* 1)
+                  (par
+                    (sleep* 1)
+                    (error "foof"))))
+              (sleep* 1.0)))
+    (is-true (typep got-it? 'error))))
+
 (define-cram-test try-all.1
     "Basic workingness of TRY-ALL. W1 succeeds, W2 must hence get
      evaporated." ()
