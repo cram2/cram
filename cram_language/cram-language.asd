@@ -28,8 +28,8 @@
      (:module "tasks"
       :depends-on ("packages" "task-interface" "fluent-interface" "utils" "logging")
       :components
-      ((:file "task"           :depends-on ())
-       (:file "failures"       :depends-on ("task"))
+      ((:file "failures"       :depends-on ())
+       (:file "task"           :depends-on ("failures"))
        (:file "task-tree"      :depends-on ("task"))))
      ;; FLUENTS, implementation
      (:module "fluents"
