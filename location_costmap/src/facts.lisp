@@ -45,13 +45,13 @@
   
   (<- (occupancy-grid ?msg ?grid (padding ?p))
     (not (bound ?grid))
-    (bound ?msg)    
+    (bound ?msg)
     (lisp-type ?msg nav_msgs-msg:<occupancygrid>)
     (lisp-fun occupancy-grid-msg->occupancy-grid ?msg :padding ?p ?grid))
 
   (<- (inverted-occupancy-grid ?msg ?grid (padding ?p))
     (not (bound ?grid))
-    (bound ?msg)    
+    (bound ?msg)
     (lisp-type ?msg nav_msgs-msg:<occupancygrid>)
     (lisp-fun occupancy-grid-msg->occupancy-grid ?msg :padding ?p :invert t ?grid))
 
