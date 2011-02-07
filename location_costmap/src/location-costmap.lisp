@@ -56,7 +56,9 @@
 
 (defgeneric costmap-generator-name->score (name)
   (:documentation "Returns the score for the costmap generator with
-  name `name'."))
+  name `name'.")
+  (:method ((name number))
+    name))
 
 (defmethod get-cost-map ((map location-costmap))
   (flet ((calculate-map-value (map x y)
