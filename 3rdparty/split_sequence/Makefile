@@ -1,6 +1,5 @@
 
 SPLIT_SEQ_ARCHIVE=split-sequence.tar.gz
-PACKAGE_DIR=$(shell rospack find split_sequence)
 
 all: installed
 
@@ -13,7 +12,7 @@ installed: downloaded
 	tar xvzf $(SPLIT_SEQ_ARCHIVE)
 	mkdir -p asdf
 	touch rospack_nosubdirs
-	ln -s ${PACKAGE_DIR}/split-sequence/split-sequence.asd ${PACKAGE_DIR}/asdf
+	ln -s ../split-sequence/split-sequence.asd asdf
 	touch installed
 
 clean:

@@ -58,20 +58,38 @@
   (unless (prolog form bdgs)
     (list bdgs)))
 
+(def-prolog-handler -> (bdgs cond if &optional (else '(fail)))
+  (let ((new-bdgs (prolog cond bdgs)))
+    (if new-bdgs
+        (lazy-mapcan (lambda (bdg) (prolog if bdg)) new-bdgs)
+        (prolog else bdgs))))
+
 (def-prolog-handler lisp-fun (bdgs function &rest args)
   (let ((arguments (butlast args))
         (result-pat (car (last args))))
-    (let ((result (apply (symbol-function function)
-                         (mapcar (rcurry #'var-value bdgs) arguments))))
-      ;; (format t "result: ~a ~a bdgs: ~a~%" result result-var bdgs)
-      (multiple-value-bind (new-bdgs matched?) (unify result-pat result bdgs)
-        (when matched?
-          (list new-bdgs))))))
+    (handler-case
+        (let ((result (apply (symbol-function function)
+                             (mapcar (rcurry #'var-value bdgs) arguments))))
+          ;; (format t "result: ~a ~a bdgs: ~a~%" result result-var bdgs)
+          (multiple-value-bind (new-bdgs matched?) (unify result-pat result bdgs)
+            (when matched?
+              (list new-bdgs))))
+      (error (e)
+        (warn 'simple-warning
+              :format-control "An error occurred while executing the lisp function `~a': `~a'"
+              :format-arguments (list function e))
+        nil))))
 
 (def-prolog-handler lisp-pred (bdgs pred &rest args)
-  (when (apply (symbol-function pred)
-               (mapcar (rcurry #'var-value bdgs) args))
-    (list bdgs)))
+  (handler-case
+      (when (apply (symbol-function pred)
+                   (mapcar (rcurry #'var-value bdgs) args))
+        (list bdgs))
+    (error (e)
+      (warn 'simple-warning
+            :format-control "An error occurred while executing the lisp predicate `~a': `~a'"
+            :format-arguments (list pred e))
+      nil)))
 
 (def-prolog-handler bound (bdgs pattern)
   (when (is-bound pattern bdgs)
@@ -80,6 +98,9 @@
 (def-prolog-handler ground (bdgs pattern)
   (when (is-ground pattern bdgs)
     (list bdgs)))
+
+(def-prolog-handler true (bdgs)
+  (list bdgs))
 
 (def-prolog-handler fail (bdgs)
   (declare (ignore bdgs))

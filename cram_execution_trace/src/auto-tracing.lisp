@@ -33,11 +33,11 @@
 ;;;
 ;;; Auto tracing is a facility that automatically stores the episode knowledge
 ;;; for each executed plan after execution has finished. You have to set a
-;;; directory where all episode knowldge files will be placed. The files will
+;;; directory where all episode knowledge files will be placed. The files will
 ;;; be named by the name of the top-level-plan and a current timestamp.
 ;;;
 ;;; Note that auto tracing is only about automatically saving episode
-;;; knowledge to a file after an episode has ended. Independet from that
+;;; knowledge to a file after an episode has ended. Independent from that
 ;;; fluent-tracing must be enabled seperately in order for the execution trace
 ;;; to actually contain traces. Use SETUP-AUTO-TRACING which enables both
 ;;; auto-tracing and fluent-tracing.

@@ -1,6 +1,5 @@
 
 CFFI_ARCHIVE=cffi_0.10.5.tar.gz
-PACKAGE_DIR=$(shell rospack find cffi)
 
 all: installed
 
@@ -13,9 +12,9 @@ installed: downloaded
 	tar xvzf $(CFFI_ARCHIVE)
 	mkdir -p asdf
 	touch rospack_nosubdirs
-	ln -s ${PACKAGE_DIR}/cffi_0.10.5/cffi.asd ${PACKAGE_DIR}/asdf
-	ln -s ${PACKAGE_DIR}/cffi_0.10.5/cffi-uffi-compat.asd ${PACKAGE_DIR}/asdf
-	ln -s ${PACKAGE_DIR}/cffi_0.10.5/cffi-grovel.asd ${PACKAGE_DIR}/asdf
+	ln -s ../cffi_0.10.5/cffi.asd asdf/cffi.asd
+	ln -s ../cffi_0.10.5/cffi-uffi-compat.asd asdf/cffi-uffi-compat.asd
+	ln -s ../cffi_0.10.5/cffi-grovel.asd asdf/cffi-grovel.asd
 	touch installed
 
 clean:

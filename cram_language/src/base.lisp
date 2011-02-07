@@ -219,7 +219,7 @@
              (on-top-level-cleanup-hook ',name)))))))
 
 (defmacro top-level (&body body)
-  "Annonnymous top-level, e.g. for interactive use. See NAMED-TOP-LEVEL for
+  "Anonymous top-level, e.g. for interactive use. See NAMED-TOP-LEVEL for
    details."
   `(named-top-level () ,@body))
 
@@ -253,11 +253,11 @@
   (error "(:TAG ~S ..) used outside of WITH-TAGS." name))
 
 ;;; - Don't nest with-tags calls, since code walking will mess up the result.
-;;; - Don't use with-tags within macrole/symbol-macrolet/..., if those macros expand
-;;;   to somethion containig (:tag ...) forms. They won't be picked up by the code
+;;; - Don't use with-tags within macrolet/symbol-macrolet/..., if those macros expand
+;;;   to something containig (:tag ...) forms. They won't be picked up by the code
 ;;;   walker and thus not
 ;;;   handled properly.
-;;; - Don't use with-tags withing flet/labels/let/... if those establish bindings that
+;;; - Don't use with-tags within flet/labels/let/... if those establish bindings that
 ;;;   shadow global macros that expand to something containing (:tag ...) forms, as
 ;;;   the code walker will assume the global macros and falsely pick up those tagged forms.
 (def-plan-macro with-tags (&body body &environment lexenv)
