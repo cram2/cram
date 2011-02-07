@@ -34,6 +34,10 @@
   "Like *BREAK-ON-SIGNALS*, but for plan failures."
   :type (or symbol list))               ; type-specifier
 
+(define-task-variable *debug-on-lisp-errors* t
+  "Indicates if the debugger should be entered at the location where a
+  common lisp error is raised.")
+
 (define-condition plan-failure (serious-condition) ()
   (:documentation
    "Condition which denotes a plan failure."))
@@ -42,6 +46,9 @@
 
 (define-condition composite-failure (plan-failure)
   ((failures :initform nil :initarg :failures :reader composite-failures)))
+
+(define-condition common-lisp-error-envelope (plan-failure)
+  ((error :initarg :error :reader envelop-error)))
 
 (defun coerce-to-condition (datum arguments default-type)
   (etypecase datum
@@ -127,7 +134,13 @@ i.e. `return' can be used."
                                     ,@body)))
                              clauses)
                 (handler-bind
-                    ,(mapcar (lambda (clause)
-                               `(,(car clause) #',(cdr (assoc (car clause) condition-handler-syms))))
-                             clauses)
+                    ((common-lisp-error-envelope
+                       (lambda (condition)
+                         (typecase (envelop-error condition)
+                           ,@(mapcar (lambda (err-def)
+                                       `(,(car err-def) (,(cdr err-def) (envelop-error condition))))
+                                condition-handler-syms))))
+                     ,@(mapcar (lambda (clause)
+                                 `(,(car clause) #',(cdr (assoc (car clause) condition-handler-syms))))
+                               clauses))
                   (return (progn ,@body))))))))))

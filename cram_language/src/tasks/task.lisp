@@ -661,7 +661,22 @@
        #'(lambda ()
            (handler-bind ((plan-failure
                            #'(lambda (c)
-                               (invoke-event-loop (make-event `(:fail ,c))))))
+                               (invoke-event-loop (make-event `(:fail ,c)))))
+                          (error
+                           #'(lambda (c)
+                               (restart-case
+                                   (if *debug-on-lisp-errors*
+                                       (invoke-debugger c)
+                                       (invoke-restart 'rethrow))
+                                 (rethrow ()
+                                   :report (lambda (stream)
+                                             (format stream "Rethrow condition `~s'" c))
+                                   :interactive (lambda () nil)
+                                   (invoke-event-loop
+                                    (make-event
+                                     `(:fail ,(make-condition
+                                               'common-lisp-error-envelope
+                                               :error c)))))))))
              (when constraints
                ;; We resolve constraints here when scheduling is
                ;; enabled, so we'll be able to act on messages.
