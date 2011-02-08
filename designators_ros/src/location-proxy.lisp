@@ -91,9 +91,14 @@
         (cl-transforms:x solution)
         (cl-transforms:y solution)
         (if (is-var ?z) 0.0d0 ?z))
-       (if (is-var ?o)
-           (cl-transforms:rotation (tf:lookup-transform
-                                    *tf*
-                                    :target-frame "/map"
-                                    :source-frame "/base_link"))
-           ?o)))))
+       (cond ((and *tf* (is-var ?o) (tf:can-transform
+                                     *tf*
+                                     :target-frame "/map"
+                                     :source-frame "/base_link"))
+              (cl-transforms:rotation (tf:lookup-transform
+                                       *tf*
+                                       :target-frame "/map"
+                                       :source-frame "/base_link")))
+             ((is-var ?o)
+              (cl-transforms:make-quaternion 0 0 0 1))
+             (t ?o))))))
