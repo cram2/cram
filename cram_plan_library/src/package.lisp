@@ -41,6 +41,7 @@
         #:cram-plan-failures
         #:alexandria)
   (:nicknames :plan-lib)
+  (:shadowing-import-from #:desig #:name)
   (:export #:achieve
            #:loc
            #:object-in-hand
