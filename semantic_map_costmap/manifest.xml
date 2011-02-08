@@ -1,0 +1,18 @@
+<package>
+  <description brief="semantic_map_costmap">
+
+     semantic_map_costmap
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/semantic_map_costmap</url>
+  <depend package="cl_json_pl_client"/>
+  <depend package="cl_transforms"/>
+  <depend package="cram_roslisp_common"/>
+  <depend package="location_costmap"/>
+
+</package>
+
+
