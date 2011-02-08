@@ -71,30 +71,34 @@
          (cond ((is-var exp)
                 (alexandria:plist-hash-table `("variable" ,(subseq (symbol-name exp) 1))))
                (t (if prologify
-
                       (escape-quotes (prologify exp))
                       (escape-quotes (symbol-name exp))))))
       (string (escape-quotes exp))
       (number exp)
       (list
          (cond ((eq (car exp) 'quote)
-                (alexandria:plist-hash-table `("list" ,(mapcar #'jsonify-exp (cadr exp)))))
+                (alexandria:plist-hash-table `("list" ,(mapcar #'jsonify-exp (cadr exp)))
+                                             :test 'equal))
                ((eq (car exp) 'list)
-                (alexandria:plist-hash-table `("list" ,(mapcar #'jsonify-exp (cdr exp)))))
+                (alexandria:plist-hash-table `("list" ,(mapcar #'jsonify-exp (cdr exp)))
+                                             :test 'equal))
                ((eq (car exp) 'and)
                 (alexandria:plist-hash-table
                  `("term" ("," ,(jsonify-exp (cadr exp))
                                ,(jsonify-exp (if (cdddr exp)
                                                  (cons 'and (cddr exp))
-                                                 (caddr exp)))))))
+                                                 (caddr exp)))))
+                 :test 'equal))
                ((eq (car exp) 'or)
                 (alexandria:plist-hash-table
                  `("term" (";" ,(jsonify-exp (cadr exp))
                                ,(jsonify-exp (if (cdddr exp)
                                                  (cons 'or (cddr exp))
-                                                 (caddr exp)))))))
+                                                 (caddr exp)))))
+                 :test 'equal))
                (t
-                (alexandria:plist-hash-table `("term" ,(mapcar #'jsonify-exp exp)))))))))
+                (alexandria:plist-hash-table `("term" ,(mapcar #'jsonify-exp exp))
+                                             :test 'equal)))))))
 
 (defun prolog->json (exp &key (prologify t))
   "Converts a lisp-prolog expression into its json representation."
