@@ -33,7 +33,7 @@
   (object-in-hand ?obj ?side))
 
 (crs:def-production object-in-hand-failure
-  (object-in-hand-failure ?f ?obj ?side))
+  (object-in-hand-failure ?f ?obj ?side ?error))
 
 (crs:def-production object-placed-at
   (object-placed-at ?obj ?loc))

@@ -41,7 +41,7 @@
              (retry)))
          (manipulation-failed (f)
            (assert-occasion
-            `(object-in-hand-failure manipulation-failed ,?obj ,?side))
+            `(object-in-hand-failure manipulation-failed ,?obj ,?side ,f))
            (ros-warn (achieve plan-lib) "Manipulation action failed. ~a" f)
            (setf alternative-poses-cnt 0)
            (achieve `(arms-at ,(make-designator 'action `((type trajectory) (pose open) (side ,?side)))))
@@ -57,9 +57,8 @@
                          (carry-trajectory (action `((type trajectory) (to carry) (obj ,?obj) (side ,?side)))))
         (with-failure-handling
             ((manipulation-pose-unreachable (f)
-               (declare (ignore f))
                (assert-occasion
-                `(object-in-hand-failure manipulation-pose-unreachable ,?obj ,?side))
+                `(object-in-hand-failure manipulation-pose-unreachable ,?obj ,?side ,f))
                (ros-warn (achieve plan-lib) "Got unreachable grasp pose. Trying alternatives")
                (when (< alternative-poses-cnt 3)
                  (incf alternative-poses-cnt)
@@ -112,9 +111,8 @@
                            (unhand-trajectory (action `((type trajectory) (to lift) (side ,side)))))
           (with-failure-handling
               ((manipulation-pose-unreachable (f)
-                 (declare (ignore f))
                  (assert-occasion
-                  `(object-in-hand-failure manipulation-pose-unreachable ,?obj ,side))
+                  `(object-in-hand-failure manipulation-pose-unreachable ,?obj ,side ,f))
                  (ros-warn (achieve plan-lib) "Got unreachable grasp pose. Trying alternatives")
                  (when (< alternative-poses-cnt 3)
                    (incf alternative-poses-cnt)
