@@ -56,7 +56,7 @@
 
 (defgeneric costmap-generator-name->score (name)
   (:documentation "Returns the score for the costmap generator with
-  name `name'.")
+  name `name'. Greater scores result in earlier evaluation.")
   (:method ((name number))
     name))
 
@@ -84,18 +84,20 @@
         (let ((new-cost-map (cma:make-double-matrix (round (/ width resolution)) (round (/ height resolution))))
               (sum 0.0d0)
               (cost-value 0.0d0)              
-              (curr-x origin-x)
-              (curr-y origin-y)
+              (curr-x (float origin-x 0.0d0))
+              (curr-y (float origin-y 0.0d0))
               (resolution (coerce resolution 'double-float)))
           (declare (type double-float sum cost-value curr-x curr-y resolution))
           (dotimes (row (cma:height new-cost-map))
-            (setf curr-x origin-x)
+            (setf curr-x (float origin-x 0.0d0))
             (dotimes (col (cma:width new-cost-map))
               (setf cost-value (calculate-map-value map curr-x curr-y))
               (incf curr-x resolution)
               (setf sum (+ sum cost-value))
               (setf (aref new-cost-map row col) cost-value))
             (incf curr-y resolution))
+          (when (= sum 0)
+            (error 'invalid-probability-distribution))
           (setf (slot-value map 'cost-map) (cma:m./ new-cost-map sum))))
       (slot-value map 'cost-map))))
 
