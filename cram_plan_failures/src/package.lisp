@@ -41,7 +41,8 @@
    #:object-not-found
    #:object-not-found-desig
    ;; manipulation
+   #:manipulation-failure
    #:object-lost
    #:manipulation-failed
    #:manipulation-pose-unreachable
-   #:alternative-poses))
+   #:result))
