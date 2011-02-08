@@ -85,7 +85,6 @@
    )
   
   (:import-from #:cpl
-                #:plan-error
                 #:pulsed
                 #:whenever
                 #:value

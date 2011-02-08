@@ -36,6 +36,7 @@
           #:cram-utilities
           #:cram-execution-trace)
   (:nicknames #:plan-knowledge)
+  (:shadowing-import-from #:desig #:name)
   (:export #:clear-belief
            #:assert-occasion
            #:retract-occasion
@@ -83,8 +84,8 @@
   (:import-from #:cpl-impl
                 #:make-fluent
                 #:value
-                #:plan-error
-                #:rethrown-error
+                #:plan-failure
+                #:common-lisp-error-envelope
                 #:task-tree-node-children
                 #:task-tree-node-status-fluent)
   (:shadowing-import-from #:cram-reasoning

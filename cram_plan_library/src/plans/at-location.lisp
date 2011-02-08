@@ -29,7 +29,7 @@
 
 (in-package :plan-lib)
 
-(define-condition location-lost-failure (plan-error) ())
+(define-condition location-lost-failure (plan-failure) ())
 
 (defmacro at-location (&whole sexp (loc-var) &body body)
   `(with-task-tree-node (:path-part `(goal-context (at-location (?loc)))
