@@ -102,18 +102,32 @@
            #:remove-update-callback
            #:get-update-callback
            #:def-cpl-parameter
+           ;; task interface
+           #:*current-task*
+           #:*task-pprint-verbosity*
+           #:*current-path*
+           #:current-task
+           #:define-task-variable
+           #:task #:toplevel-task
+           #:event
+           #:status #:result
+           #:status-indicator
+           #:+alive+
+           #:+dead+
+           #:+done+
+           #:evaporate #:suspend #:wake-up #:join-task
+           #:task-path
+           #:without-scheduling
+           #:with-scheduling
+           #:retry-after-suspension
+           #:on-suspension
+           #:*break-on-plan-failures*
            ;; failures.lisp
            #:fail #:simple-plan-failure
            #:plan-failure
            #:with-failure-handling #:retry
            #:*break-on-plan-failures*
            #:*debug-on-lisp-errors*
-           ;; task.lisp
-           #:*current-task*
-           #:status #:result
-           #:on-suspension #:unwind-on-suspension
-           #:with-termination-handler #:ignore-termination #:without-termination
-           #:terminate
            ;; task-tree.lisp
            #:code
            #:code-parameters
@@ -177,19 +191,10 @@
            #:log-enable
            #:log-disable
            #:log-set
-           ;;
-           #:+alive+
-           #:+dead+
-           #:+done+
-           #:*break-on-plan-failures*
+           ;; tasks
            #:*save-tasks*
            #:*tasks*
-           #:current-task
-           #:define-task-variable
-           #:list-saved-tasks
-           #:status-indicator
-           #:task #:toplevel-task
-           #:event))
+           #:list-saved-tasks))
         (cl-symbols
          (let (r) (do-external-symbols (s :cl r) (push s r)))))
 
