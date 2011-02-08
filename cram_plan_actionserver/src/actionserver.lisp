@@ -60,7 +60,7 @@
                      (code (task-tree-node-effective-code (cdr (car (task-tree-node-children task-tree))))))
                 (assert code () "Task tree node doesn't contain a CODE. This is a bug.")
                 (assert (code-task code) () "Task tree code doesn't contain a task. This is a bug.")
-                (terminate (code-task code) :evaporated))))))
+                (evaporate (code-task code)))))))
     (error (e)
       (actionlib:abort-current :result (format nil "~a" e)))))
 
@@ -89,7 +89,7 @@
   (unwind-protect
        (progn
          (setf cpl-impl:*break-on-plan-failures* nil)
-         (setf cpl-impl:*break-on-errors* nil)
+         (setf cpl-impl:*debug-on-lisp-errors* nil)
          (startup-ros :name "cram_actionserver" :anonymous nil)
          (register-service-fn "~list_plans" #'plan-list 'cram_plan_actionserver-srv:planlist)
          (maybe-setup-tracing)
