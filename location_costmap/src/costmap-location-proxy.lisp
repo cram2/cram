@@ -54,23 +54,30 @@
 
 (defmethod location-proxy-next-solution ((proxy costmap-location-proxy))
   (flet ((take-closest-point (points)
-           (let ((closest (car points))
-                 (dist (cl-transforms:v-dist (cl-transforms:translation
-                                              (cl-tf:lookup-transform
-                                               *tf*
-                                               :target-frame "/map"
-                                               :source-frame "/base_link"))
-                                             (car points))))
-             (dolist (p (cdr points) closest)
-               (let ((new-dist (cl-transforms:v-dist (cl-transforms:translation
-                                                      (cl-tf:lookup-transform
-                                                       *tf*
-                                                       :target-frame "/map"
-                                                       :source-frame "/base_link"))
-                                                     p)))
-                 (when (< new-dist dist)
-                   (setf dist new-dist)
-                   (setf closest p)))))))
+           ;; If we don't have tf available, just return teh first of
+           ;; the points since we don't have any reference for
+           ;; distance measurement.
+           (cond ((and *tf*
+                       (cl-tf:can-transform
+                        *tf* :target-frame "/map" :source-frame "/base_link"))
+                  (let ((closest (car points))
+                        (dist (cl-transforms:v-dist (cl-transforms:translation
+                                                     (cl-tf:lookup-transform
+                                                      *tf*
+                                                      :target-frame "/map"
+                                                      :source-frame "/base_link"))
+                                                    (car points))))
+                    (dolist (p (cdr points) closest)
+                      (let ((new-dist (cl-transforms:v-dist (cl-transforms:translation
+                                                             (cl-tf:lookup-transform
+                                                              *tf*
+                                                              :target-frame "/map"
+                                                              :source-frame "/base_link"))
+                                                            p)))
+                        (when (< new-dist dist)
+                          (setf dist new-dist)
+                          (setf closest p))))))
+                 (t (car points)))))
     (with-slots (point next-solutions costmap)
         proxy
       (let ((solutions (or next-solutions
