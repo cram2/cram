@@ -30,16 +30,30 @@
 
 (in-package :json-prolog)
 
+(defun rename-prolog-vars (vars)
+  "Renames variables and creates valid names for prolog. Returns an
+alist of the form ((new-var . old-var) ...)"
+  (mapcar (lambda (var)
+            ;; We need to re-intern the symbol to get it in a sane package
+            (cons var (intern (symbol-name (gen-var (substitute #\_ #\- (symbol-name var)))))))
+          vars))
+
 (crs:def-prolog-handler json-prolog (bdgs form &rest key-args &key prologify lispify package)
   (declare (ignore prologify lispify package))
   (when (wait-for-prolog-service 0.5)
     (let* ((form (substitute-vars form bdgs))
            (vars (remove-if #'is-unnamed-var (vars-in form)))
+           (var-mappings (rename-prolog-vars vars))
            ;; force-ll to make sure the json query is finished immediately
-           (result (force-ll (apply #'prolog form key-args))))
-      (lazy-mapcan (lambda (binding)
-                     (crs:prolog `(and ,@(mapcar (lambda (var)
-                                                   `(== ,var ,(var-value var binding)))
-                                                 vars))
-                                 bdgs))
+           (result (force-ll (apply #'prolog (sublis var-mappings form)
+                                    key-args))))
+      (lazy-mapcar (lambda (binding)
+                     (block nil
+                       (reduce (lambda (bdgs var)
+                                 (let ((val (cdr (assoc var var-mappings))))
+                                   (or
+                                    (add-bdg var (var-value val binding)
+                                             bdgs)
+                                    (return nil))))
+                               vars :initial-value bdgs)))
                    result))))
