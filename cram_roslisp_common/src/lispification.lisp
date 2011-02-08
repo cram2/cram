@@ -34,13 +34,21 @@
   "Returns a lispified symbol correstonding to the string
   `str'. Lispification inserts - signs between camel-cased words and
   makes all characters uppercase."
-  (flet ((char-ucase-p (c)
-           (find c "ABCDEFGHIJKLMNOPQRSTUVWXYZ")))
+  (labels ((char-ucase-p (c)
+             (find c "ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
+           (char-lcase-p (c)
+             (find c "abcdefghijklmnopqrstuvwxyz0123456789"))
+           (char-case (c)
+             (cond ((char-ucase-p c) :upper)
+                   ((char-lcase-p c) :lower)
+                   (t nil))))
     (let ((s (make-string-output-stream)))
       (loop for c across str
-            with first = t
-            when (and (not first) (char-ucase-p c)) do (write-char #\- s)
-              do (write-char c s) (setf first nil))
+            with case = (char-case (elt str 0))
+            when (and (eq case :lower)
+                      (eq (char-case c) :upper))
+              do (write-char #\- s)
+            do (write-char c s) (setf case (char-case c)))
       (intern (string-upcase (get-output-stream-string s)) package))))
 
 (defun rosify-lisp-name (sym)
