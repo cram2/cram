@@ -29,7 +29,7 @@
 
 (in-package :plan-lib)
 
-(define-condition ambiguous-perception (simple-plan-error) ())
+(define-condition ambiguous-perception (simple-plan-failure) ())
 
 (declare-goal perceive-all (obj)
   (declare (ignore obj)))

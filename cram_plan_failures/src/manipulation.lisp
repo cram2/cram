@@ -29,10 +29,10 @@
 
 (in-package :cram-plan-failures)
 
-(define-condition object-lost (simple-plan-error) ())
+(define-condition object-lost (simple-plan-failure) ())
 
-(define-condition manipulation-failed (simple-plan-error) ())
+(define-condition manipulation-failed (simple-plan-failure) ())
 
-(define-condition manipulation-pose-unreachable (simple-plan-error)
+(define-condition manipulation-pose-unreachable (simple-plan-failure)
   ((alternative-poses :initform nil :initarg :alternative-poses
                       :reader alternative-poses)))

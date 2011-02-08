@@ -29,5 +29,5 @@
 
 (in-package :cram-plan-failures)
 
-(define-condition object-not-found (plan-error)
+(define-condition object-not-found (plan-failure)
   ((object-desig :initarg :object-desig :initform nil :reader object-not-found-desig)))

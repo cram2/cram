@@ -36,10 +36,10 @@
   (name (task-tree-node-status-fluent task-tree-node)))
 
 (defgeneric extract-task-error (err)
-  (:method ((err plan-error))
+  (:method ((err plan-failure))
     err)
-  (:method ((err rethrown-error))
-    (rethrown-error err)))
+  (:method ((err common-lisp-error-envelope))
+    (envelop-error err)))
 
 (defun task-children (task)
   (mapcar #'cdr (task-tree-node-children task)))

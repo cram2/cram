@@ -29,9 +29,9 @@
 
 (in-package :cram-plan-failures)
 
-(define-condition navigation-failure (plan-error)
+(define-condition navigation-failure (plan-failure)
   ((location :initarg :location :initform nil :reader navigation-failure-location)))
 
 (define-condition location-not-reached-failure (navigation-failure) ())
 
-(define-condition location-reached-but-not-terminated (plan-error) ())
+(define-condition location-reached-but-not-terminated (plan-failure) ())
