@@ -69,6 +69,10 @@
     (typecase exp
       (symbol
          (cond ((is-var exp)
+                (when (find #\- (symbol-name exp))
+                  (error 'simple-error
+                         :format-control "Variable name `~a' invalid. For prolog, it must not contain `-' characters."
+                         :format-arguments (list exp)))
                 (alexandria:plist-hash-table `("variable" ,(subseq (symbol-name exp) 1))))
                (t (if prologify
                       (escape-quotes (prologify exp))
