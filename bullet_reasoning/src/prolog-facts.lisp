@@ -46,7 +46,7 @@
               ?_))
 
   (<- (retract-object ?world ?name)
-    (lisp-fun remove-object ?world ?name))
+    (lisp-fun remove-object ?world ?name ?_))
 
   (<- (object ?world ?name ?obj)
     (bound ?name)
