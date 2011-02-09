@@ -69,16 +69,14 @@
   (new-cone-shape (coerce radius 'double-float) (coerce height 'double-float)))
 
 (defclass compound-shape (collision-shape)
-  ((children :reader children)
-   (child-poses :initform nil)))
+  ((children :initform nil)))
 
 (defmethod foreign-class-alloc ((obj compound-shape) &key &allow-other-keys)
   (new-compound-shape))
 
 (defgeneric add-child-shape (obj pose shape)
   (:method ((obj compound-shape) pose shape)
-    (push shape (slot-value obj 'children))
-    (push `(,shape . pose) (slot-value obj 'child-poses))
+    (push `(,shape . ,pose) (slot-value obj 'children))
     (let ((transform (cl-transforms:reference-transform pose)))
       (cffi-add-child-shape
        (foreign-obj obj)
@@ -86,9 +84,13 @@
        (cl-transforms:rotation transform)
        (foreign-obj shape)))))
 
+(defgeneric children (obj)
+  (:method ((obj compound-shape))
+    (mapcar #'car (slot-value obj 'children))))
+
 (defgeneric child-pose (obj child)
   (:method ((obj compound-shape) (child collision-shape))
-    (cdr (assoc child (slot-value obj 'child-shapes)))))
+    (cdr (assoc child (slot-value obj 'children)))))
 
 (defclass convex-hull-shape (collision-shape)
   ((points :initform nil :initarg :points :reader points)))
