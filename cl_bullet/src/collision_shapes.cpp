@@ -28,6 +28,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <stdio.h>
+
 #include <btBulletCollisionCommon.h>
 
 extern double bulletWorldScalingFactor;
@@ -147,7 +149,7 @@ extern "C"
     return cone->getHeight() / bulletWorldScalingFactor;
   }
 
-  bool newCompoundShape()
+  btCollisionShape *newCompoundShape()
   {
     return new btCompoundShape();
   }
