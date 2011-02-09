@@ -72,7 +72,8 @@
                 "Parameter ?CM must be bound to a costmap")
         (assert fun () "Generator function must be specified.")
         (check-type generator-name symbol)
-        (register-cost-function cm (apply fun (sublis bdgs args)) generator-name)
+        (register-cost-function cm (apply fun (substitute-vars args bdgs))
+                                generator-name)
         (list bdgs)))))
 
 (def-prolog-handler costmap-add-generator (bdgs ?generator ?cm)
