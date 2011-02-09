@@ -51,6 +51,7 @@
            #:looking-at
            #:at-location
            #:perceive #:perceive-all #:perceive-the
+           #:robot
            #:maybe-run-process-modules
            #:run-process-modules
            #:start-process-modules
