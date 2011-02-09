@@ -65,60 +65,6 @@
           (aref result 1) (cl-transforms:y vec))
     result))
 
-(defun 2d-cov (cov)
-  (let ((result (make-array '(2 2) :element-type (array-element-type cov))))
-    (declare (type (simple-array * 2) cov)
-             (type (simple-array * (2 2)) result))
-    (dotimes (y 2)
-      (dotimes (x 2)
-        (setf (aref result y x) (aref cov y x))))
-    result))
-
-(defun points-mean (pts)
-  "Returns the mean vector of all points in `pts'"
-  (let ((x 0.0d0)
-        (y 0.0d0)
-        (z 0.0d0)
-        (n 0))
-    (map 'nil (lambda (pt)
-                (incf n)
-                (incf x (cl-transforms:x pt))
-                (incf y (cl-transforms:y pt))
-                (incf z (cl-transforms:z pt)))
-         pts)
-    (cl-transforms:make-3d-vector (/ x n)
-                                  (/ y n)
-                                  (/ z n))))
-
-(defun points-cov (pts &optional (mean (points-mean pts)))
-  "Returns the covariance of `pts'."
-  (let ((cov (make-array
-              '(3 3)
-              :element-type 'double-float
-              :initial-element 0.0d0))
-        (n 0)
-        (accessors (make-array 3 :initial-contents (list #'cl-transforms:x
-                                                         #'cl-transforms:y
-                                                         #'cl-transforms:z))))
-    (declare (type (simple-array double-float (3 3)) cov)
-             (type (simple-array t (3)) accessors))
-    (map 'nil (lambda (pt)
-                (dotimes (y 3)
-                  (dotimes (x (+ y 1))
-                    (let ((val (* (- (funcall (aref accessors x) pt)
-                                     (funcall (aref accessors x) mean))
-                                  (- (funcall (aref accessors y) pt)
-                                     (funcall (aref accessors y) mean)))))
-                      (incf (aref cov y x) val))))
-                (incf n))
-         pts)
-    (dotimes (y 3)
-      (dotimes (x (+ 1 y))
-        (setf (aref cov y x) (/ (aref cov y x) n))
-        (unless (eql x y)
-          (setf (aref cov x y) (aref cov y x)))))
-    cov))
-
 (defun cluster-tables-iterate (properties msg)
   "Takes a grid cells message and returns the updated list of
   TABLE-CLUSTER. `properties' is the list of TABLE-CLUSTER to be
