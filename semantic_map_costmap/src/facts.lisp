@@ -30,8 +30,11 @@
 
 (in-package :semantic-map-costmap)
 
-(defmethod costmap-generator-name->score ((name (eql 'semantic-map-object)))
+(defmethod costmap-generator-name->score ((name (eql 'semantic-map-objects)))
   10)
+
+(defmethod costmap-generator-name->score ((name (eql 'table-distribution)))
+  9)
 
 (defun ensure-string (identifier)
   (etypecase identifier
@@ -96,6 +99,16 @@
     (semantic-map-desig-objects ?desig ?objects)
     (costmap ?cm)
     (costmap-add-function semantic-map-objects (make-semantic-map-costmap ?objects)
+                          ?cm))
+
+  (<- (desig-costmap ?desig ?cm)
+    (desig-prop ?desig (on ?type))
+    (desig-prop ?desig (name ?name))
+    (costmap ?cm)
+    (semantic-map-object ?type ?name ?pose ?dimensions)
+    (format "dim: ~a~%" ?dimensions)
+    (costmap-add-function table-distribution
+                          (make-table-cost-function ?pose ?dimensions)
                           ?cm))
 
   (<- (desig-z-value ?desig ?point ?z)
