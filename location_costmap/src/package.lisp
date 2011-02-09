@@ -76,4 +76,6 @@
            #:publish-point
            #:publish-pose
            #:costmap-location-proxy
-           #:*z-padding*))
+           #:*z-padding*
+           #:2d-cov #:points-mean
+           #:points-cov))
