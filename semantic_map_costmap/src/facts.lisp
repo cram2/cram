@@ -106,7 +106,6 @@
     (desig-prop ?desig (name ?name))
     (costmap ?cm)
     (semantic-map-object ?type ?name ?pose ?dimensions)
-    (format "dim: ~a~%" ?dimensions)
     (costmap-add-function table-distribution
                           (make-table-cost-function ?pose ?dimensions)
                           ?cm))
