@@ -571,14 +571,15 @@
   (let ((enabledp *scheduling-enabled*))
     (prog1 enabledp
       ;; Just some sanity checks.
-      (if enabledp
-          (assert sb-impl::*deadline*)
-          (assert (null sb-impl::*deadline*))))))
+      ;; (if enabledp
+      ;;     (assert sb-impl::*deadline*)
+      ;;     (assert (null sb-impl::*deadline*)))
+      )))
 
 (defun scheduling-disabled-p ()
   (not (scheduling-enabled-p)))
 
-
+
 ;;;; Event Loop
 
 (defvar *suspension-handlers* nil)
