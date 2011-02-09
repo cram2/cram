@@ -122,3 +122,25 @@ dimensions in x, y and z direction."
       (or
        (some (alexandria:rcurry #'funcall x y) functions)
        0.0))))
+
+(defun make-table-cost-function (pose-matrix dimensions)
+  (destructuring-bind (x-dim y-dim z-dim) dimensions
+    (declare (ignore z-dim))
+    (let* ((transform (cl-transforms:matrix->transform
+                       (make-array
+                        '(4 4) :displaced-to (make-array
+                                              16 :initial-contents pose-matrix))))
+           (cov-x-axis (cl-transforms:rotate
+                        (cl-transforms:rotation transform)
+                        (cl-transforms:make-3d-vector x-dim 0 0)))
+           (cov-y-axis (cl-transforms:rotate
+                        (cl-transforms:rotation transform)
+                        (cl-transforms:make-3d-vector 0 y-dim 0)))
+           (cov (points-cov (list cov-x-axis cov-y-axis)
+                            (cl-transforms:make-3d-vector 0 0 0))))
+      (make-gauss-cost-function
+       (make-array 2 :element-type 'double-float
+                   :initial-contents
+                   (list (float (cl-transforms:x (cl-transforms:translation transform)) 0.0d0)
+                         (float (cl-transforms:y (cl-transforms:translation transform)) 0.0d0)))
+       (2d-cov cov)))))
