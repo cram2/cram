@@ -97,17 +97,22 @@ than threshold * highest-probability."
                                drivable-location-costmap)
 
   (<- (drivable-location-costmap ?cm ?padding)
-    (global-fluent-value *map-fl* ?map)
-    (global-fluent-value *table-grid-cells-fl* ?tables)
-    (inverted-occupancy-grid ?map ?free-space)
-    (occupancy-grid ?map ?static-occupied (padding ?padding))
-    (occupancy-grid ?tables ?tables-occupied (padding ?padding))
     (costmap ?cm)
-    (costmap-add-function free-space (make-occupancy-grid-cost-function ?free-space) ?cm)
-    (costmap-add-function static-occupied (make-occupancy-grid-cost-function ?static-occupied :invert t)
-                          ?cm)
-    (costmap-add-function tables-occupied (make-occupancy-grid-cost-function ?tables-occupied :invert t)
-                          ?cm)
+    (-> (global-fluent-value *map-fl* ?map)
+        (and
+         (inverted-occupancy-grid ?map ?free-space)
+         (occupancy-grid ?map ?static-occupied (padding ?padding))
+         (costmap-add-function free-space (make-occupancy-grid-cost-function ?free-space) ?cm)
+         (costmap-add-function static-occupied
+                               (make-occupancy-grid-cost-function ?static-occupied :invert t)
+                               ?cm))
+        (true))
+    (-> (global-fluent-value *table-grid-cells-fl* ?tables)
+        (and
+         (occupancy-grid ?tables ?tables-occupied (padding ?padding))
+         (costmap-add-function tables-occupied (make-occupancy-grid-cost-function ?tables-occupied :invert t)
+                               ?cm))
+        (true))
     (costmap-add-generator (make-robot-pos-generator 0.1) ?cm))
 
   (<- (in-reach-costmap ?cm ?padding ?reaching-distance)
