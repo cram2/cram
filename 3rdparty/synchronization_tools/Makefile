@@ -1,20 +1,25 @@
+TARBALL=synchronization-tools-20110210.tar.bz2
+TARBALL_URL=http://code.in.tum.de/files/$(TARBALL)
 
 all: installed
 
 downloaded: Makefile
 	make clean
-	darcs get http://common-lisp.net/~trittweiler/darcs/synchronization-tools/
+	`rospack find rosbuild`/bin/download_checkmd5.py $(TARBALL_URL) $(TARBALL)
+	mkdir -p asdf
 	touch rospack_nosubdirs
 	touch downloaded
 
-installed: downloaded
+unpacked: downloaded
+	tar xvjf $(TARBALL)
+	touch unpacked
+
+installed: unpacked
 	mkdir -p asdf
 	ln -s ../synchronization-tools/synchronization-tools.asd asdf/
 	touch installed
 
 clean:
 	rm -rf synchronization-tools asdf
-	rm -f downloaded
-	rm -f rospack_nosubdirs
-	rm -f installed
+	rm -f downloaded rospack_nosubdirs installed unpacked $(TARBALL)
 
