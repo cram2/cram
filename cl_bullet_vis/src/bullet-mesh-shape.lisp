@@ -30,14 +30,11 @@
 
 (in-package :bt-vis)
 
-(defclass mesh-shape (convex-hull-shape colored-shape-mixin)
-  ((faces :initarg :faces :reader faces)
-   (color :initarg :color
-          :reader collision-shape-color
-          :initform '(0.8 0.8 0.8 1.0))))
+(defclass mesh-shape-mixin ()
+  ((faces :initarg :faces :reader faces)))
 
 
-(defmethod draw ((context gl-context) (mesh mesh-shape))
+(defmethod draw ((context gl-context) (mesh mesh-shape-mixin))
   (gl:with-primitive :triangles
     (map 'nil
          (lambda (face)
@@ -49,3 +46,23 @@
                         (cl-transforms:y v)
                         (cl-transforms:z v))))
          (faces mesh))))
+
+(defclass box-mesh-shape (mesh-shape-mixin
+                          colored-shape-mixin
+                          box-shape)
+  ())
+
+(defclass cylinder-mesh-shape (mesh-shape-mixin
+                               colored-shape-mixin
+                               cylinder-shape)
+  ())
+
+(defclass compound-mesh-shape (mesh-shape-mixin
+                               colored-shape-mixin
+                               compound-shape)
+  ())
+
+(defclass convex-hull-mesh-shape (mesh-shape-mixin
+                                  colored-shape-mixin
+                                  convex-hull-shape)
+  ())

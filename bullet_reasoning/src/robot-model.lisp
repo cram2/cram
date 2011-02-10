@@ -51,7 +51,7 @@
                  :color color))
 
 (defmethod urdf-make-collision-shape ((mesh cl-urdf:mesh) &optional (color '(0.8 0.8 0.8 1.0)))
-  (make-instance 'mesh-shape
+  (make-instance 'convex-hull-mesh-shape
                  :color color
                  :faces (physics-utils:3d-model-faces (cl-urdf:3d-model mesh))
                  :points (physics-utils:3d-model-vertices (cl-urdf:3d-model mesh))))
