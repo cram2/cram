@@ -31,7 +31,7 @@
 (in-package :cl-user)
 
 (defpackage cl-urdf
-    (:use #:common-lisp )
+    (:use #:common-lisp)
   (:export
    upper lower effort velocity joint-type
    joint type name axis origin parent child limits
