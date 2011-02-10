@@ -49,6 +49,7 @@
            textured-static-plane-shape textured-box-shape
            textured-sphere-shape textured-cone-shape
            textured-compound-shape textured-convex-hull-shape
+           *force-smooth-shading*
            box-mesh-shape cylinder-mesh-shape
            compound-mesh-shape convex-hull-mesh-shape
            matrix->gl-matrix pose->gl-matrix transform->gl-matrix
