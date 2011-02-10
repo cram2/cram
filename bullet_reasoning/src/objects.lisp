@@ -40,7 +40,9 @@
     (let ((body (find name (bodies world) :key #'name :test #'equal)))
       (if body
           (remove-rigid-body world body)
-          (warn 'simple-warning :format-control "Could not find a body named `~a'" name)))))
+          (warn 'simple-warning
+                :format-control "Could not find a body named `~a'"
+                :format-arguments (list name))))))
 
 (defclass object ()
   ((name :initarg :name :reader name)
