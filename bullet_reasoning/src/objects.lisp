@@ -36,13 +36,15 @@
 
 (defgeneric remove-object (world name)
   (:documentation "Removes the object named `name' from the `world'")
-  (:method ((world bt-world) name)
-    (let ((body (find name (bodies world) :key #'name :test #'equal)))
-      (if body
-          (remove-rigid-body world body)
-          (warn 'simple-warning
-                :format-control "Could not find a body named `~a'"
-                :format-arguments (list name))))))
+  (:method ((world bt-reasoning-world) name)
+    (let ((obj (object world name)))
+      (cond (obj
+             (mapcar (lambda (body) (remove-rigid-body world body))
+                     (rigid-bodies obj))
+             (remhash name (slot-value world 'objects)))
+            (t (warn 'simple-warning
+                     :format-control "Could not find a body named `~a'"
+                     :format-arguments (list name)))))))
 
 (defclass object ()
   ((name :initarg :name :reader name)
