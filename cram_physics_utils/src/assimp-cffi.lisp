@@ -121,3 +121,5 @@
 
 (defcfun ("aiReleaseImport" ai-release-import) :void
   (scene ai-scene))
+
+(defcfun ("aiGetErrorString" ai-get-error-string) :string)

@@ -96,13 +96,13 @@
                                          (string filename)
                                          (pathname (namestring filename)))
                                        '(:join-identical-vertices
-                                         :gen-smooth-normals :optimize-meshes
+                                         :gen-smooth-normals
                                          :fix-infacing-normals
                                          :triangulate)))
            (when (null-pointer-p scene)
              (error '3d-model-import-error
-                    :format-control "Unable to load 3d model from file `~a'"
-                    :format-arguments `(,filename)))
+                    :format-control "Unable to load 3d model from file `~a': ~a"
+                    :format-arguments (list filename (ai-get-error-string))))
            (unless (< mesh-index
                       (foreign-slot-value scene 'ai-scene 'num-meshes))
              (error '3d-model-import-error
