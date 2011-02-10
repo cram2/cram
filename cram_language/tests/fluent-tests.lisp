@@ -63,7 +63,7 @@
         ;; not their status values.
         (is (eq 'nil f2))
         (is (eq 't (value f3)))
-        (evaporate-and-wait P Cs)
+        (evaporate-tasks-and-wait P Cs)
         (is (eq 'nil (value f1)))
         (is (eq 'nil (value f3)))))))
 

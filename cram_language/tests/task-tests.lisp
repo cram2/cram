@@ -56,11 +56,11 @@
                           (B ->  ))      
         ((:task A (wait-for knob))
          (:task B (wait-for knob)))
-      (suspend A) (wait-until (become :suspended) A B)
+      (suspend-tasks A) (wait-until (become :suspended) A B)
       (setf (value knob) t)
       ;; Still suspended?
       (sleep 0.1) (have-status `(,A ,B) :suspended)
-      (wake-up A) (wait-until (become +dead+) A B)
+      (wake-up-tasks A) (wait-until (become +dead+) A B)
       (has-status A :succeeded)
       (has-status B :succeeded :evaporated))))
 
@@ -76,10 +76,10 @@
                         (B ->  ))      
       ((:task A (sleep* 10.0))
        (:task B (sleep* 10.0)))
-    (suspend A) (wait-until (become :suspended) A B)
+    (suspend-tasks A) (wait-until (become :suspended) A B)
     (signals error
-      (wake-up B))
-    (evaporate-and-wait A B)))
+      (wake-up-tasks B))
+    (evaporate-tasks-and-wait A B)))
 
 ;;; Child suspends => parent unaffected
 
@@ -91,7 +91,7 @@
                           (B ->  ))      
         ((:task A (wait-for knob))
          (:task B (wait-for knob)))
-      (suspend B)  (wait-until (become :suspended) B)      
+      (suspend-tasks B)  (wait-until (become :suspended) B)      
       (sleep* 0.1)
       (has-status A :running) (has-status B :suspended)
       (setf (value knob) t)
@@ -106,11 +106,11 @@
                           (B ->  ))      
         ((:task A (wait-for knob))
          (:task B (wait-for knob)))
-      (suspend B) (wait-until (become :suspended) B)      
+      (suspend-tasks B) (wait-until (become :suspended) B)      
       (sleep* 0.1)
       (has-status A :running) (has-status B :suspended)
       (setf (value knob) t)
-      (wake-up B)
+      (wake-up-tasks B)
       (wait-until (become +dead+) A B)
       (has-status A :succeeded)
       (has-status B :succeeded :evaporated))))
@@ -123,7 +123,7 @@
                         (B ->  ))    
       ((:task A (sleep* 10.0))
        (:task B (sleep* 10.0)))
-    (evaporate A)
+    (evaporate-tasks A)
     (wait-until (become :evaporated) A B)
     (pass)))
 
@@ -137,8 +137,8 @@
       ((:task A (sleep* 10.0))
        (:task B (sleep* 10.0)))
     (signals error
-      (evaporate B))
-    (evaporate-and-wait (become :evaporated) A B)))
+      (evaporate-tasks B))
+    (evaporate-tasks-and-wait (become :evaporated) A B)))
 
 ;;; Parent fails => child evaporates
 
