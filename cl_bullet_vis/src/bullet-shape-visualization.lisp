@@ -104,10 +104,12 @@
       (draw context child))))
 
 (defmethod draw ((context gl-context) (hull convex-hull-shape))
-  (gl:with-primitive :points
-    (map 'nil (lambda (point)
-                (gl:vertex
-                 (cl-transforms:x point)
-                 (cl-transforms:y point)
-                 (cl-transforms:z point)))
-         (points hull))))
+  (gl:with-pushed-attrib (:point-bit)
+    (gl:point-size 5)
+    (gl:with-primitive :points
+      (map 'nil (lambda (point)
+                  (gl:vertex
+                   (cl-transforms:x point)
+                   (cl-transforms:y point)
+                   (cl-transforms:z point)))
+           (points hull)))))
