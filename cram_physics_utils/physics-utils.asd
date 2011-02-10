@@ -39,4 +39,5 @@
             ((:file "package")
              (:file "ros-uri-parser" :depends-on ("package"))
              (:file "assimp-cffi" :depends-on ("package"))
-             (:file "assimp-model-loader" :depends-on ("package" "assimp-cffi"))))))
+             (:file "assimp-model-loader" :depends-on ("package" "assimp-cffi"))
+             (:file "mesh-utils" :depends-on ("package"))))))
