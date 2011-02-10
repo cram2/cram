@@ -1,21 +1,25 @@
 
-REV_SHA_ID=7591d6dda666ac3b9353d3d38d0d394ab3a62688
+TARBALL=gsll-20110210.tar.bz2
+TARBALL_URL=http://code.in.tum.de/files/$(TARBALL)
 
 all: installed
 
 downloaded: Makefile
 	make clean
-	git clone git://repo.or.cz/gsll.git
-	cd gsll; git checkout ${REV_SHA_ID} -b ros
+	`rospack find rosbuild`/bin/download_checkmd5.py $(TARBALL_URL) $(TARBALL)
+	mkdir -p asdf
 	touch rospack_nosubdirs
 	touch downloaded
 
-installed: downloaded
+unpacked: downloaded
+	tar xvjf $(TARBALL)
+	touch unpacked
+
+installed: unpacked
 	mkdir -p asdf
 	ln -s ../gsll/gsll.asd asdf
 	touch installed
 
 clean:
 	rm -rf gsll asdf
-	rm -f downloaded rospack_nosubdirs installed patched
-
+	rm -f downloaded rospack_nosubdirs installed unpacked $(TARBALL)
