@@ -38,13 +38,11 @@
   (gl:with-primitive :triangles
     (map 'nil
          (lambda (face)
-           (gl:normal (/ (reduce #'+ (mapcar #'cl-transforms:x (physics-utils:face-points face)))
-                         3)
-                      (/ (reduce #'+ (mapcar #'cl-transforms:y (physics-utils:face-points face)))
-                         3)
-                      (/ (reduce #'+ (mapcar #'cl-transforms:z (physics-utils:face-points face)))
-                         3))
            (dolist (v (physics-utils:face-points face))
+             (let ((norm (cl-transforms:v-norm v)))
+               (gl:normal (/ (cl-transforms:x v) norm)
+                          (/ (cl-transforms:y v) norm)
+                          (/ (cl-transforms:z v) norm)))
              (gl:vertex (cl-transforms:x v)
                         (cl-transforms:y v)
                         (cl-transforms:z v))))
