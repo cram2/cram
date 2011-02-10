@@ -1,11 +1,6 @@
-darcs:
-  debian: darcs
-  ubuntu: darcs
 libgsl:
   debian: libgsl0-dev
   ubuntu: libgsl0-dev
 swi_prolog:
   debian: swi-prolog
   ubuntu: swi-prolog
-git:
-  ubuntu: git-core
