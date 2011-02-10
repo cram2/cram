@@ -336,18 +336,18 @@
   (dolist (task tasks)
     (apply #'has-status task status more)))
 
-(defun suspend (&rest tasks)
+(defun suspend-tasks (&rest tasks)
   (dolist (task (ensure-flattened-list tasks))
     (cpl-impl::suspend task)))
 
-(defun wake-up (&rest tasks)
+(defun wake-up-tasks (&rest tasks)
   (dolist (task (ensure-flattened-list tasks))
     (cpl-impl::wake-up task)))
 
-(defun evaporate (&rest tasks)
+(defun evaporate-tasks (&rest tasks)
   (dolist (task (ensure-flattened-list tasks))
     (cpl-impl::evaporate task)))
 
-(defun evaporate-and-wait (&rest tasks)
-  (apply #'evaporate tasks)
+(defun evaporate-tasks-and-wait (&rest tasks)
+  (apply #'evaporate-tasks tasks)
   (apply #'wait-until (become :evaporated) tasks))
