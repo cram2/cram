@@ -130,8 +130,9 @@
 ;;; Child evaporates, parent running => error
 
 (define-cram-test tasks--terminate.2
-    ""
-    ((:skip "Fails as of 2010-04-11"))
+    "This is not an error. Evaporation of a child task should not
+cause the parent to be evaporated. Ignore this test."
+    ((:skip "Invalid test as of 2011-02-10"))
   (with-task-hierarchy ((A -> B)
                         (B ->  ))      
       ((:task A (sleep* 10.0))
