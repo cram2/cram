@@ -141,3 +141,4 @@
             (setf (aref result-array result-index) pt)
             (incf result-index))))
       (adjust-array result-array result-index))))
+
