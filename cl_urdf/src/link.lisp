@@ -53,7 +53,9 @@
 
 (defclass mesh (geometry)
   ((filename :initarg :filename :reader filename)
-   (3d-model :initarg :3d-model :reader 3d-model)))
+   (3d-model :initarg :3d-model :reader 3d-model)
+   (scale :initarg :scale :initform nil :reader scale)
+   (size :initarg :size :initform nil :reader size)))
 
 (defclass material ()
   ((name :reader name :initarg :name)
@@ -93,5 +95,12 @@
 
 (defmethod 3d-model :before ((mesh mesh))
   (unless (slot-boundp mesh '3d-model)
-    (setf (slot-value mesh '3d-model)
-          (physics-utils:load-3d-model (filename mesh)))))
+    (let ((model (physics-utils:load-3d-model (filename mesh))))
+      (cond ((scale mesh)
+             (setf (slot-value mesh '3d-model)
+                   (physics-utils:scale-3d-model model (scale mesh))))
+            ((size mesh)
+             (setf (slot-value mesh '3d-model)
+                   (physics-utils:resize-3d-model model (size mesh))))
+            (t (setf (slot-value mesh '3d-model)
+                     model))))))
