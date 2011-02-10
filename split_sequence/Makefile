@@ -5,7 +5,7 @@ all: installed
 
 downloaded: Makefile
 	make clean
-	wget http://ftp.linux.org.uk/pub/lisp/experimental/cclan/$(SPLIT_SEQ_ARCHIVE)
+	wget http://code.in.tum.de/files/$(SPLIT_SEQ_ARCHIVE)
 	touch downloaded
 
 installed: downloaded
