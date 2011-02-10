@@ -6,8 +6,6 @@
   <author>Luis Oliveira</author>
   <license>trivial-features</license>
   <review status="unreviewed" notes=""/>
-
-  <rosdep name="darcs"/>
 </package>
 
 

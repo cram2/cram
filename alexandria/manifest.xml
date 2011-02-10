@@ -6,8 +6,6 @@
   <author>Many</author>
   <license>Public domain</license>
   <review status="unreviewed" notes=""/>
-
-  <rosdep name="darcs"/>
 </package>
 
 
