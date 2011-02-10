@@ -37,8 +37,7 @@
     ((:module "src"
               :components
               ((:file "package")
-               (:file "ros-uri-parser" :depends-on ("package"))
-               (:file "link" :depends-on ("package" "ros-uri-parser"))
+               (:file "link" :depends-on ("package"))
                (:file "joint" :depends-on ("package" "link"))
                (:file "robot" :depends-on ("package" "link" "joint"))
                (:file "parser" :depends-on ("package" "robot"))))))

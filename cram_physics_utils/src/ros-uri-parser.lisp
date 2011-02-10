@@ -28,7 +28,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :cl-urdf)
+(in-package :physics-utils)
 
 (defun parse-uri (uri)
   (let ((uri-package-prefix "package://"))
