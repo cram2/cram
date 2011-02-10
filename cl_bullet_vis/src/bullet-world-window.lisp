@@ -58,7 +58,7 @@
   (glu:perspective 50 (/ (glut:width window) (glut:height window)) 0.1 100)
   (gl:matrix-mode :modelview)
   (init-camera)
-  (gl:enable :light0 :lighting :cull-face :depth-test :color-material :blend)
+  (gl:enable :light0 :lighting :cull-face :depth-test :color-material :blend :rescale-normal)
   (gl:clear :color-buffer :depth-buffer)
   (set-camera (camera-transform window))
   (gl:light :light0 :position (vector
@@ -66,9 +66,9 @@
                                (cl-transforms:y (light-position window))
                                (cl-transforms:z (light-position window))
                                0))
-  (gl:light :light0 :ambient #(0 0 0 1))
-  (gl:light :light0 :diffuse #(1 1 1 1))
-  (gl:light :light0 :specular #(1 1 1 1))
+  (gl:light-model :light-model-ambient #(0.2 0.2 0.2 1.0))
+  (gl:light :light0 :diffuse #(0.8 0.8 0.8 1))
+  (gl:light :light0 :specular #(0.8 0.8 0.8 1))
   (gl:with-pushed-matrix
     (with-world-locked (world window)
       (draw window (world window))))
@@ -90,8 +90,8 @@
     (setf (display-callbacks window) nil)
     (map 'nil #'funcall callbacks))
   (setf (redrawing window) nil)
-  (glut:swap-buffers)
-  (gl:flush))
+  (gl:flush)
+  (glut:swap-buffers))
 
 (defmethod glut:reshape ((window bullet-world-window) width height)
   (with-slots (glut:width glut:height) window
