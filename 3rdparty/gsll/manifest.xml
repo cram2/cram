@@ -8,7 +8,6 @@
   <review status="unreviewed" notes=""/>
 
   <rosdep name="libgsl"/>
-  <rosdep name="git"/>
   <depend package="gsd"/>
   <depend package="trivial_garbage"/>
   <depend package="cl_utilities"/>
