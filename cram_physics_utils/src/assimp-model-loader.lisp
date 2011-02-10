@@ -32,7 +32,7 @@
 
 (defstruct face
   points
-  normal)
+  normals)
 
 (defstruct 3d-model
   vertices
@@ -63,7 +63,7 @@
 
 (defun get-normals (mesh)
   (parse-ai-3d-vector-array (foreign-slot-value mesh 'ai-mesh 'normals)
-                            (foreign-slot-value mesh 'ai-mesh 'num-faces)))
+                            (foreign-slot-value mesh 'ai-mesh 'num-vertices)))
 
 (defun get-faces (mesh &key
                   (vertices (get-vertices mesh))
@@ -78,13 +78,15 @@
                     'ai-face i))
              (num-indices (foreign-slot-value face 'ai-face 'num-indices)))
         (setf (aref result i)
-              (make-face
-               :points (loop for pt-index below num-indices
-                             for index = (mem-aref
-                                          (foreign-slot-value face 'ai-face 'indices)
-                                             :unsigned-int pt-index)
-                             collecting (aref vertices index))
-               :normal (aref normals i)))))))
+              (apply
+               #'make-face
+               (loop for pt-index below num-indices
+                     for index = (mem-aref
+                                  (foreign-slot-value face 'ai-face 'indices)
+                                     :unsigned-int pt-index)
+                     collect (aref vertices index) into points
+                     collect (aref normals index) into vertex-normals
+                     finally (return (list :points points :normals vertex-normals)))))))))
 
 (defun load-3d-model (filename &optional (mesh-index 0))
   "Loads the mesh with index `mesh-index' from the file named
