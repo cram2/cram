@@ -194,13 +194,11 @@
 
 (defmethod parse-xml-node ((name (eql :|mesh|)) node &optional robot)
   (declare (ignore robot))
-  (when (s-xml:xml-element-attribute node :|scale|)
-    (warn 'urdf-attribute-not-supported
-          :format-control "The attribute type `scale' is not supported for meshes. Ignoring."))
-  (when (s-xml:xml-element-attribute node :|size|)
-    (warn 'urdf-attribute-not-supported
-          :format-control "The attribute type `size' is not supported for meshes. Ignoring."))
-  (make-instance 'mesh :filename (physics-utils:parse-uri (s-xml:xml-element-attribute node :|filename|))))
+  (make-instance
+   'mesh
+   :filename (physics-utils:parse-uri (s-xml:xml-element-attribute node :|filename|))
+   :scale (s-xml:xml-element-attribute node :|scale|)
+   :size (s-xml:xml-element-attribute node :|size|)))
 
 (defmethod parse-xml-node ((name (eql :|joint|)) node &optional robot)
   (let* ((axis-node (xml-element-child node :|axis|))
