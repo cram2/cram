@@ -68,3 +68,40 @@
               (+ (aref extrema 4) (aref extrema 1))
               (+ (aref extrema 5) (aref extrema 2)))
              0.5))))
+
+(defun scale-3d-model (model scale)
+  "Returns a new model scaled by the scaling-factor `scale'. `scale'
+  can either be a 3d-vector or a number."
+  (declare (type 3d-model model))
+  (declare (type (or real cl-transforms:3d-vector) scale))
+  (flet ((scale-vector (v s)
+           (cl-transforms:make-3d-vector
+            (* (cl-transforms:x v) (cl-transforms:x s))
+            (* (cl-transforms:y v) (cl-transforms:y s))
+            (* (cl-transforms:z v) (cl-transforms:z s)))))
+    (let ((scale (etypecase scale
+                   (cl-transforms:3d-vector scale)
+                   (number (cl-transforms:make-3d-vector
+                            scale scale scale)))))
+      (make-3d-model
+       :vertices (map 'vector
+                      (lambda (v) (scale-vector v scale))
+                      (3d-model-vertices model))
+       :faces (map 'vector
+                   (lambda (f)
+                     (mapcar (lambda (v)
+                               (scale-vector v scale))
+                             (face-points f)))
+                   (3d-model-faces model))))))
+
+(defun resize-3d-model (model size)
+  "Returns a new model that fits into the aabb given by `size'. `size'
+  must be a 3d-vector."
+  (declare (type 3d-model model))
+  (declare (type cl-transforms:3d-vector size))
+  (let* ((aabb (calculate-aabb (3d-model-vertices model)))
+         (scale (cl-transforms:make-3d-vector
+                 (/ (cl-transforms:x size) (cl-transforms:x aabb))
+                 (/ (cl-transforms:y size) (cl-transforms:y aabb))
+                 (/ (cl-transforms:z size) (cl-transforms:z aabb)))))
+    (scale-3d-model model scale)))

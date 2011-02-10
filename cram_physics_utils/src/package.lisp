@@ -37,4 +37,5 @@
    face make-face face-points face-normal
    3d-model make-3d-model
    3d-model-vertices 3d-model-faces
-   parse-uri calculate-aabb))
+   parse-uri calculate-aabb
+   scale-3d-model resize-3d-model))
