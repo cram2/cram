@@ -196,3 +196,9 @@
            (cont (lazy-car l-1) (lazy-cdr l-1) rest))
           (rest
            (cont (lazy-car (car rest)) (lazy-cdr (car rest)) (cdr rest))))))
+
+(defun lazy-take (l n)
+  (lazy-list ((l l)
+              (i n))
+    (when (and l (> i 0))
+      (cont (lazy-car l) (lazy-cdr l) (- i 1)))))

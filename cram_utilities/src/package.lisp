@@ -93,6 +93,7 @@
       #:lazy-car #:lazy-cdr #:lazy-mapcar #:lazy-mapcan
       #:lazy-elt #:force-ll #:copy-lazy-list #:lazy-filter
       #:lazy-fold #:lazy-append #:cont #:finish #:next
+      #:lazy-take
       ;; patmatch
       #:is-var #:is-unnamed-var #:is-segvar #:is-segform #:var-name
       #:substitute-vars #:var-value #:gen-var #:is-genvar #:add-bdg
