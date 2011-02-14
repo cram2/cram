@@ -7,7 +7,7 @@
 (defclass bullet-world-window (glut:window gl-context event-queue)
   ((world :accessor world :initarg :world
           :initform (error 'simple-error :format-control "world argument required"))
-   (frame-rate :initform 50 :initarg :frame-rate :reader frame-rate
+   (frame-rate :initform 25 :initarg :frame-rate :reader frame-rate
                :documentation "The desired frame rate in Hz. The
                system tries to redisplay the window at this rate.")
    (motion-mode :initform nil :reader motion-mode)
