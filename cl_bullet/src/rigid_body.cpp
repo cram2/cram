@@ -151,4 +151,18 @@ extern "C"
   {
     return body->getCollisionShape();
   }
+
+  void getAabb(btRigidBody *body, double *aabbMin, double *aabbMax)
+  {
+    btVector3 min;
+    btVector3 max;
+
+    body->getAabb(min, max);
+    aabbMin[0] = min.x() / bulletWorldScalingFactor;
+    aabbMin[1] = min.y() / bulletWorldScalingFactor;
+    aabbMin[2] = min.z() / bulletWorldScalingFactor;
+    aabbMax[0] = max.x() / bulletWorldScalingFactor;
+    aabbMax[1] = max.y() / bulletWorldScalingFactor;
+    aabbMax[2] = max.z() / bulletWorldScalingFactor;
+  }
 }

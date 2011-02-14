@@ -224,6 +224,16 @@
 (defcfun ("getCollisionShape" get-collision-shape) :pointer
   (body-handle :pointer))
 
+(defun get-aabb (body-handle)
+  (with-foreign-objects ((min :double 3)
+                         (max :double 3))
+    (foreign-funcall "getAabb"
+                     :pointer body-handle
+                     :pointer min :pointer max)
+    (list
+     (translate-from-foreign min (make-instance 'bt-3d-vector))
+     (translate-from-foreign max (make-instance 'bt-3d-vector)))))
+
 ;;; motion_state.cpp
 
 (defcfun ("newMotionState" new-motion-state) :pointer
