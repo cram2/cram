@@ -53,6 +53,8 @@
    contact-point point-in-1 point-in-2
    contact-manifold body-1 body-2 contact-points
    ;; rigid bodies
+   bounding-box make-bounding-box
+   bounding-box-center bounding-box-dimensions
    activation-state
    collision-flags
    get-total-force
@@ -66,6 +68,7 @@
    rigid-body
    mass name
    collision-shape
+   aabb
    ;; motion states
    pose
    ;; collision shapes

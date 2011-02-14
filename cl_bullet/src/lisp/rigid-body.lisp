@@ -30,6 +30,10 @@
 
 (in-package :bt)
 
+(defstruct bounding-box
+  (center (cl-transforms:make-3d-vector 0 0 0))
+  dimensions)
+
 (defgeneric activation-state (body))
 (defgeneric (setf activation-state) (new-value body))
 (defgeneric collision-flags (body))
@@ -44,6 +48,7 @@
 (defgeneric (setf linear-velocity) (new-value body))
 (defgeneric angular-velocity (body))
 (defgeneric (setf angular-velocity) (new-value body))
+(defgeneric aabb (body))
 
 (defclass rigid-body (foreign-class)
   ((name :reader name :initarg :name :initform (gensym "RIGID-BODY-"))
@@ -121,3 +126,10 @@
 
 (defmethod (setf collision-flags) (new-value (body rigid-body))
   (set-collision-flags (foreign-obj body) new-value))
+
+(defmethod aabb ((body rigid-body))
+  (destructuring-bind (min max)
+      (get-aabb (foreign-obj body))
+    (make-bounding-box
+     :center (cl-transforms:v* (cl-transforms:v+ min max) 0.5)
+     :dimensions (cl-transforms:v- max min))))
