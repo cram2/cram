@@ -30,10 +30,22 @@
 
 (in-package :bt-vis)
 
+(defvar *collision-shape-color-overwrite* nil
+  "When this variable is set, the actual color of the collision shape
+  is overwritten and the value of *COLLISION-SHAPE-COLOR-OVERWRITE* is
+  returned by COLLISION-SHAPE-COLOR")
+
 (defclass colored-shape-mixin ()
   ((color :initarg :color
           :initform '(0.8 0.8 0.8 1.0)
-          :reader collision-shape-color)))
+          :reader shape-color)))
+
+(defmethod draw :around ((context t) (shape colored-shape-mixin))
+  (gl:with-pushed-attrib (:current-bit)
+    (apply #'gl:color
+           (or *collision-shape-color-overwrite*
+               (shape-color shape)))
+    (call-next-method)))
 
 (defclass colored-box-shape (box-shape colored-shape-mixin) ())
 (defclass colored-static-plane-shape (static-plane-shape colored-shape-mixin) ())

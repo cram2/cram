@@ -30,18 +30,6 @@
 
 (in-package :bt-vis)
 
-(defvar *collision-shape-color-overwrite* nil
-  "When this variable is set, the actual color of the collision shape
-  is overwritten and the value of *COLLISION-SHAPE-COLOR-OVERWRITE* is
-  returned by COLLISION-SHAPE-COLOR")
-
-(defmethod collision-shape-color :around ((body collision-shape))
-  (or *collision-shape-color-overwrite*
-      (call-next-method)))
-
-(defmethod draw :before ((context gl-context) (shape collision-shape))
-  (apply #'gl:color (collision-shape-color shape)))
-
 (defmethod draw ((context gl-context) (box box-shape))
   (let ((size-x (* 2 (cl-transforms:x (half-extents box))))
         (size-y (* 2 (cl-transforms:y (half-extents box))))

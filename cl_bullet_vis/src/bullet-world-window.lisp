@@ -69,6 +69,7 @@
   (gl:light-model :light-model-ambient #(0.2 0.2 0.2 1.0))
   (gl:light :light0 :diffuse #(0.8 0.8 0.8 1))
   (gl:light :light0 :specular #(0.8 0.8 0.8 1))
+  (gl:color 0.8 0.8 0.8 1.0)
   (gl:with-pushed-matrix
     (with-world-locked (world window)
       (draw window (world window))))
