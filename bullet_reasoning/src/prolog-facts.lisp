@@ -188,6 +188,11 @@
 
   (<- (contact ?world ?obj-1 ?obj-2)
     (not (bound ?obj-1))
+    (bound ?obj-2)
+    (contact ?world ?obj-2 ?obj-1))
+
+  (<- (contact ?world ?obj-1 ?obj-2)
+    (not (bound ?obj-1))
     (not (bound ?obj-2))
     (lisp-fun perform-collision-detection ?world ?_)
     (lisp-fun find-all-contacts ?world ?contacts)
@@ -197,16 +202,17 @@
     (bound ?obj)
     (pose ?obj ?pose-1)
     (with-stored-world ?world
-      (simulate ?world 2.5)
-      ;; checking for active-tag does not always work. Some bodies are
-      ;; just pretty unstable and never get deactivated,
-      ;; e.g. cylinders.
+      (simulate ?world 0.5)
+      ;; checking for active-tag does not always work and requires
+      ;; pretty long simlation times. Additionally some bodies are
+      ;; just very unstable and never get deactivated, e.g. cylinders.
       ;;
       ;; (lisp-pred stable-p ?obj)
       (pose ?obj ?pose-2))
-    (poses-equal ?pose-1 ?pose-2 (0.01 0.01)))
+    (poses-equal ?pose-1 ?pose-2 (0.01 0.03)))
 
   (<- (supported-by ?world ?top ?bottom)
+    (ground (?top ?bottom))
     (above ?top ?bottom)
     (contact ?world ?top ?bottom)
     (stable ?world ?top)))
