@@ -84,11 +84,12 @@
 
 (defmethod add-object ((world bt-world) (type (eql 'mesh)) name pose &key
                        mass mesh (color '(0.5 0.5 0.5 1.0)))
-  (let ((mesh (physics-utils:load-3d-model
-                (physics-utils:parse-uri (etypecase mesh
-                                           (symbol (cdr (assoc mesh *mesh-files*)))
-                                           (string mesh)
-                                           (pathname mesh))))))
+  (let ((mesh (etypecase mesh
+                (symbol (physics-utils:load-3d-model
+                         (physics-utils:parse-uri (cdr (assoc mesh *mesh-files*)))))
+                (string (physics-utils:load-3d-model
+                         (physics-utils:parse-uri mesh)))
+                (physics-utils:3d-model mesh))))
     (make-object world name
                  (list
                   (make-instance
