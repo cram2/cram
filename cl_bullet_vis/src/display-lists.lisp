@@ -30,48 +30,22 @@
 
 (in-package :bt-vis)
 
-(defclass mesh-shape-mixin (display-list-mixin)
-  ((faces :initarg :faces :reader faces)
-   (smooth-shading :initarg :smooth-shading :initform nil)))
+(defclass display-list-mixin ()
+  ((display-list-id :reader display-list-id)))
 
-
-(defmethod draw ((context gl-context) (mesh mesh-shape-mixin))
-  (with-slots (smooth-shading) mesh
-    (gl:with-primitive :triangles
-      (map 'nil
-           (lambda (face)
-             (loop for v in (physics-utils:face-points face)
-                   for n in (physics-utils:face-normals face)
-                   do
-                (if smooth-shading
-                    (let ((norm (cl-transforms:v-norm v)))
-                      (gl:normal (/ (cl-transforms:x v) norm)
-                                 (/ (cl-transforms:y v) norm)
-                                 (/ (cl-transforms:z v) norm)))
-                    (gl:normal (cl-transforms:x n)
-                               (cl-transforms:y n)
-                               (cl-transforms:z n)))
-                (gl:vertex (cl-transforms:x v)
-                           (cl-transforms:y v)
-                           (cl-transforms:z v))))
-           (faces mesh)))))
-
-(defclass box-mesh-shape (mesh-shape-mixin
-                          colored-shape-mixin
-                          box-shape)
-  ())
-
-(defclass cylinder-mesh-shape (mesh-shape-mixin
-                               colored-shape-mixin
-                               cylinder-shape)
-  ())
-
-(defclass compound-mesh-shape (mesh-shape-mixin
-                               colored-shape-mixin
-                               compound-shape)
-  ())
-
-(defclass convex-hull-mesh-shape (mesh-shape-mixin
-                                  colored-shape-mixin
-                                  convex-hull-shape)
-  ())
+(defmethod draw :around ((gl-context t) (obj display-list-mixin))
+  (unless (slot-boundp obj 'display-list-id)
+    (let ((id (gl:gen-lists 1)))
+      (when (eql id 0)
+        (error 'simple-error
+               :format-control "Invalid display-list id ~a"
+               :format-arguments (list id)))
+      (when (typep gl-context 'bullet-world-window)
+        (tg:finalize obj (lambda ()
+                           (unless (closed gl-context)
+                             (with-bullet-window-context gl-context
+                               (gl:delete-lists id 1))))))
+      (setf (slot-value obj 'display-list-id) id)
+      (gl:with-new-list (id :compile)
+        (call-next-method))))
+  (gl:call-lists (list (slot-value obj 'display-list-id))))
