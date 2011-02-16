@@ -85,6 +85,38 @@
      (cl-transforms:axis-angle->quaternion rot-axis angle)
      (cl-transforms:axis-angle->quaternion z-axis (/ pi 2)))))
 
+(defvar *framebuffer-enabled* nil)
+
+(defmacro with-rendering-to-framebuffer ((width height) &body body)
+  (let ((framebuffer (gensym "framebuffer"))
+        (pixelbuffer (gensym "pixelbuffer"))
+        (depthbuffer (gensym "depthbuffer")))
+    `(let ((,framebuffer (car (cl-opengl:gen-framebuffers-ext 1)))
+           (,pixelbuffer (car (cl-opengl:gen-renderbuffers-ext 1)))
+           (,depthbuffer (car (cl-opengl:gen-renderbuffers-ext 1))))
+       ;; Create the framebuffer
+       (gl:bind-framebuffer-ext :framebuffer-ext ,framebuffer)
+       ;; Set up pixel buffer
+       (gl:bind-renderbuffer-ext :renderbuffer-ext ,pixelbuffer)
+       (gl:renderbuffer-storage-ext :renderbuffer-ext :rgb ,width ,height)
+       (gl:framebuffer-renderbuffer-ext :framebuffer-ext :color-attachment0-ext
+                                        :renderbuffer-ext ,pixelbuffer)
+       ;; Set up depth buffer
+       (gl:bind-renderbuffer-ext :renderbuffer-ext ,depthbuffer)
+       (gl:renderbuffer-storage-ext :renderbuffer-ext :depth-component
+                                    ,width ,height)
+       (gl:framebuffer-renderbuffer-ext :framebuffer-ext :depth-attachment-ext
+                                        :renderbuffer-ext ,depthbuffer)
+       (unwind-protect
+            (let ((*framebuffer-enabled* t))
+              (let ((framebuffer-status (gl:check-framebuffer-status-ext :framebuffer-ext)))
+                (unless (gl::enum= framebuffer-status :framebuffer-complete-ext)
+                  (error "Framebuffer not complete: ~A." framebuffer-status)))
+              ,@body)
+         (gl:bind-framebuffer-ext :framebuffer-ext 0)
+         (gl:delete-framebuffers-ext (list ,framebuffer))
+         (gl:delete-renderbuffers-ext (list ,pixelbuffer ,depthbuffer))))))
+
 (defun render-to-framebuffer (drawable camera &key
                               (get-pixelbuffer t)
                               (get-depthbuffer nil))
@@ -92,41 +124,23 @@
   of the form (pix-buffer depth-buffer) with values set to NIL if the
   corresponding flag parameter `get-pixelbuffer' and `get-depthbuffer'
   respectively is set to NIL "
-  (let ((framebuffer (car (cl-opengl:gen-framebuffers-ext 1)))
-        (pixelbuffer (car (cl-opengl:gen-renderbuffers-ext 1)))
-        (depthbuffer (car (cl-opengl:gen-renderbuffers-ext 1)))
-        (gl-context (make-instance
+  (let ((gl-context (make-instance
                      'gl-context
                      :camera-transform (camera-transform camera))))
-    ;; Create the framebuffer
-    (gl:bind-framebuffer-ext :framebuffer-ext framebuffer)
-    ;; Set up pixel buffer
-    (gl:bind-renderbuffer-ext :renderbuffer-ext pixelbuffer)
-    (gl:renderbuffer-storage-ext :renderbuffer-ext :rgb (width camera) (height camera))
-    (gl:framebuffer-renderbuffer-ext :framebuffer-ext :color-attachment0-ext
-                                     :renderbuffer-ext pixelbuffer)
-    ;; Set up depth buffer
-    (gl:bind-renderbuffer-ext :renderbuffer-ext depthbuffer)
-    (gl:renderbuffer-storage-ext :renderbuffer-ext :depth-component
-                                 (width camera) (height camera))
-    (gl:framebuffer-renderbuffer-ext :framebuffer-ext :depth-attachment-ext
-                                     :renderbuffer-ext depthbuffer)
-    (unwind-protect
-         (progn
-           (let ((framebuffer-status (gl:check-framebuffer-status-ext :framebuffer-ext)))
-             (unless (gl::enum= framebuffer-status :framebuffer-complete-ext)
-               (error "Framebuffer not complete: ~A." framebuffer-status)))
-           (let ((viewport (map 'list #'identity (gl:get* :viewport))))
-             (unwind-protect
-                  (progn
-                    (gl-setup-camera camera)
-                    (draw gl-context drawable)
-                    (list (when get-pixelbuffer (read-pixelbuffer camera))
-                          (when get-depthbuffer (read-depthbuffer camera))))
-               (apply #'gl:viewport viewport))))
-      (gl:bind-framebuffer-ext :framebuffer-ext 0)
-      (gl:delete-framebuffers-ext (list framebuffer))
-      (gl:delete-renderbuffers-ext (list pixelbuffer depthbuffer)))))
+    (flet ((do-rendering ()
+             (let ((viewport (map 'list #'identity (gl:get* :viewport))))
+               (unwind-protect
+                    (progn
+                      (gl:clear :color-buffer :depth-buffer)
+                      (gl-setup-camera camera)
+                      (draw gl-context drawable)
+                      (list (when get-pixelbuffer (read-pixelbuffer camera))
+                            (when get-depthbuffer (read-depthbuffer camera))))
+                 (apply #'gl:viewport viewport)))))
+      (if *framebuffer-enabled*
+          (do-rendering)
+          (with-rendering-to-framebuffer ((width camera) (height camera))
+            (do-rendering))))))
 
 (defun read-pixelbuffer (camera)
   (let* ((width (width camera))
