@@ -38,6 +38,7 @@
                  cl-glu
                  cl-glut
                  cl-transforms
+                 trivial-garbage
                  physics-utils)
     :components
     ((:module "src"
@@ -56,7 +57,9 @@
                (:file "bullet-textured-shapes"
                       :depends-on("package" "visualization" "bullet-colored-shapes" "textures"))
                (:file "bullet-mesh-shape"
-                      :depends-on ("package" "gl-context" "bullet-colored-shapes" "visualization"))
+                      :depends-on ("package"
+                                   "gl-context" "bullet-colored-shapes" "visualization"
+                                   "display-lists"))
                (:file "bullet-body-visualization"
                       :depends-on ("package"
                                    "transforms" "gl-context"
@@ -66,4 +69,5 @@
                (:file "bullet-world-window"
                       :depends-on ("package"
                                    "transforms" "gl-context" "event-queue"
-                                   "bullet-world-visualization"))))))
+                                   "visualization"))
+               (:file "display-lists" :depends-on ("package" "bullet-world-window"))))))
