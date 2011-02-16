@@ -8,6 +8,7 @@
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/bullet_reasoning</url>
+  <depend package="alexandria"/>
   <depend package="cram_reasoning"/>
   <depend package="cl_bullet"/>
   <depend package="cl_bullet_vis"/>
