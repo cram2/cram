@@ -33,4 +33,5 @@
 (defpackage bullet-reasoning
     (:nicknames :btr)
   (:use #:common-lisp #:crs #:bt #:bt-vis #:cut)
+  (:import-from #:alexandria compose curry rcurry)
   (:export))

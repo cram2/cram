@@ -32,7 +32,8 @@
     :author "Lorenz Moesenlechner"
     :license "BSD"
     
-    :depends-on (cram-reasoning
+    :depends-on (alexandria
+                 cram-reasoning
                  cl-bullet cl-bullet-vis
                  cl-json-pl-client
                  cl-urdf
