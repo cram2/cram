@@ -122,6 +122,20 @@
     (lisp-fun cl-transforms:make-3d-vector ?x ?y ?z ?o)
     (lisp-fun cl-transforms:make-quaternion ?ax ?ay ?az ?aw ?q)
     (lisp-fun cl-transforms:make-pose ?o ?q ?pose))
+  
+  (<- (pose ?pose ?position (?ax ?ay ?az ?aw))
+    (not (bound ?pose))
+    (lisp-type ?position cl-transforms:3d-vector)
+    (ground (?ax ?ay ?az ?aw))
+    (lisp-fun cl-transforms:make-quaternion ?ax ?ay ?az ?aw ?q)
+    (lisp-fun cl-transforms:make-pose ?position ?q ?pose))
+
+  (<- (pose ?pose (?x ?y ?z) ?orientation)
+    (not (bound ?pose))
+    (ground (?x ?y ?z))
+    (lisp-type ?orientation cl-transforms:quaternion)
+    (lisp-fun cl-transforms:make-3d-vector ?x ?y ?z ?o)
+    (lisp-fun cl-transforms:make-pose ?position ?orientation ?pose))
 
   (<- (position ?pose (?x ?y ?z))
     (lisp-fun cl-transforms:origin ?pose ?p)
