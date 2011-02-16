@@ -142,7 +142,7 @@
           (with-rendering-to-framebuffer ((width camera) (height camera))
             (do-rendering))))))
 
-(defun read-pixelbuffer (camera)
+(defun read-pixelbuffer (camera &optional mirror)
   (let* ((width (width camera))
          (height (height camera))
          (gl-buffer (bt-vis:read-pixels-float 0 0 width height :rgb))
@@ -150,12 +150,13 @@
                              :element-type (array-element-type gl-buffer))))
     (declare (type (simple-array single-float 1) gl-buffer result))
     ;; Note: gl's result is mirrored on the y axis, so let's mirror it back
-    gl-buffer
-    (dotimes (y height result)
-      (dotimes (x width)
-        (dotimes (i 3)
-          (setf (aref result (+ (* 3 (+ (* y width) x)) i))
-                (aref gl-buffer (+ (* 3 (+ (* y width) (- width x 1))) i))))))))
+    (if mirror
+        (dotimes (y height result)
+          (dotimes (x width)
+            (dotimes (i 3)
+              (setf (aref result (+ (* 3 (+ (* y width) x)) i))
+                    (aref gl-buffer (+ (* 3 (+ (* y width) (- width x 1))) i))))))
+        gl-buffer)))
 
 (defun read-depthbuffer (camera)
   (bt-vis:read-pixels-float 0 0 (width camera) (height camera) :depth-component))
