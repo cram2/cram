@@ -30,10 +30,9 @@
 
 (in-package :bt-vis)
 
-(defclass mesh-shape-mixin (display-list-mixin)
+(defclass mesh-shape-mixin ()
   ((faces :initarg :faces :reader faces)
    (smooth-shading :initarg :smooth-shading :initform nil)))
-
 
 (defmethod draw ((context gl-context) (mesh mesh-shape-mixin))
   (with-slots (smooth-shading) mesh
@@ -58,20 +57,24 @@
 
 (defclass box-mesh-shape (mesh-shape-mixin
                           colored-shape-mixin
-                          box-shape)
+                          box-shape
+                          display-list-mixin)
   ())
 
 (defclass cylinder-mesh-shape (mesh-shape-mixin
                                colored-shape-mixin
-                               cylinder-shape)
+                               cylinder-shape
+                               display-list-mixin)
   ())
 
 (defclass compound-mesh-shape (mesh-shape-mixin
                                colored-shape-mixin
-                               compound-shape)
+                               compound-shape
+                               display-list-mixin)
   ())
 
 (defclass convex-hull-mesh-shape (mesh-shape-mixin
                                   colored-shape-mixin
-                                  convex-hull-shape)
+                                  convex-hull-shape
+                                  display-list-mixin)
   ())
