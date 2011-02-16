@@ -59,6 +59,5 @@
                (:file "visibility-reasoning" :depends-on ("package" "gl-scenes"))
                (:file "debug-window" :depends-on ("package"))
                (:file "household-objects" :depends-on ("package" "objects" "utils"))
-               (:file "pose-generators" :depends-on ("package" "utils" "aabb"))
-               (:file "cop-interface" :depends-on ("package"))))))
+               (:file "pose-generators" :depends-on ("package" "utils" "aabb"))))))
 

@@ -32,7 +32,7 @@
   :author "Lorenz Moesenlechner"
   :license "BSD"
   
-  :depends-on (cl-transforms cffi cffi-ros-utils ros-load-manifest)
+  :depends-on (cl-transforms cffi cffi-ros-utils ros-load-manifest roslisp)
   :components
   ((:module "src"
             :components
@@ -40,4 +40,5 @@
              (:file "ros-uri-parser" :depends-on ("package"))
              (:file "assimp-cffi" :depends-on ("package"))
              (:file "assimp-model-loader" :depends-on ("package" "assimp-cffi"))
-             (:file "mesh-utils" :depends-on ("package"))))))
+             (:file "mesh-utils" :depends-on ("package"))
+             (:file "cop-utils" :depends-on ("package"))))))
