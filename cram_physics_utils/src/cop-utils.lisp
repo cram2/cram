@@ -28,7 +28,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :btr)
+(in-package :physics-utils)
 
 (defun point-msg->3d-vector (msg)
   (roslisp:with-fields (x y z) msg
