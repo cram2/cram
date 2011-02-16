@@ -28,36 +28,20 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(defsystem bullet-reasoning
-    :author "Lorenz Moesenlechner"
-    :license "BSD"
-    
-    :depends-on (cram-reasoning
-                 cl-bullet cl-bullet-vis
-                 cl-json-pl-client
-                 cl-urdf
-                 cl-tf)
-    :components
-    ((:module "src"
-              :components
-              ((:file "package")
-               (:file "utils" :depends-on ("package"))
-               (:file "prolog-handlers" :depends-on ("package"))
-               (:file "prolog-facts" :depends-on ("package"))
-               (:file "reasoning-world" :depends-on ("package"))
-               (:file "textures" :depends-on ("package"))
-               (:file "objects" :depends-on ("package" "reasoning-world" "textures" "utils"))
-               (:file "aabb" :depends-on ("package" "objects"))
-               (:file "world-utils" :depends-on ("package"
-                                                 "reasoning-world"
-                                                 "objects"))
-               (:file "semantic-map" :depends-on ("package" "objects" "utils"))
-               (:file "robot-model" :depends-on ("package" "objects" "utils"))
-               (:file "robot-model-utils" :depends-on ("package" "robot-model"))
-               (:file "gl-scenes" :depends-on ("package" "debug-window"))
-               (:file "visibility-reasoning" :depends-on ("package" "gl-scenes"))
-               (:file "debug-window" :depends-on ("package"))
-               (:file "household-objects" :depends-on ("package" "objects" "utils"))
-               (:file "pose-generators" :depends-on ("package" "utils" "aabb"))
-               (:file "cop-interface" :depends-on ("package"))))))
+(in-package :btr)
+
+(defun ensure-vector (vector)
+  (etypecase vector
+    (list (apply #'cl-transforms:make-3d-vector vector))
+    (cl-transforms:3d-vector vector)))
+
+(defun ensure-pose (pose)
+  (etypecase pose
+    (list (destructuring-bind
+                ((x y z) (ax ay az aw))
+              pose
+            (cl-transforms:make-pose
+             (cl-transforms:make-3d-vector x y z)
+             (cl-transforms:make-quaternion ax ay az aw))))
+    (cl-transforms:pose pose)))
 

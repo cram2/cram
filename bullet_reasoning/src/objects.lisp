@@ -133,16 +133,6 @@
   (dolist (body (rigid-bodies object))
     (draw context body)))
 
-(defun ensure-pose (pose)
-  (etypecase pose
-    (list (destructuring-bind
-                ((x y z) (ax ay az aw))
-              pose
-            (cl-transforms:make-pose
-             (cl-transforms:make-3d-vector x y z)
-             (cl-transforms:make-quaternion ax ay az aw))))
-    (cl-transforms:pose pose)))
-
 (defun make-rigid-body-name (obj-name body-name)
   (flet ((ensure-string (name)
            (etypecase name
