@@ -30,7 +30,7 @@
 
 (in-package :btr)
 
-(defun simulate (world secs &optional (dt 0.01) realtime)
+(defun simulate (world secs &optional (dt 0.1) realtime)
   (multiple-value-bind (steps rest) (truncate secs dt)
     (when (> rest 0.0)
       (incf steps))
