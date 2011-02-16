@@ -67,9 +67,7 @@ the x-y plane."
 
 (defun points-in-box (dimensions)
   "Randomly generates points in a box of the size `dimensions'"
-  (let ((dimensions (etypecase dimensions
-                      (list (apply #'cl-transforms:make-3d-vector dimensions))
-                      (cl-transforms:3d-vector dimensions))))
+  (let ((dimensions (ensure-vector dimensions)))
     (lazy-mapcar
      #'cl-transforms:make-3d-vector
      (random-number-sequence (/ (cl-transforms:x dimensions) -2)
@@ -78,6 +76,40 @@ the x-y plane."
                              (/ (cl-transforms:y dimensions) 2))
      (random-number-sequence (/ (cl-transforms:z dimensions) -2)
                              (/ (cl-transforms:z dimensions) 2)))))
+
+(defun points-along-line (start-point step &optional max-distance)
+  "Generates a sequence of points along the line starting at
+`start-point'"
+  (let ((start-point (ensure-vector start-point))
+        (step (ensure-vector step)))
+    (assert (> (cl-transforms:v-norm step) 0))
+    (if max-distance
+        (let ((max-steps (truncate (/ max-distance (cl-transforms:v-norm step)))))
+          (lazy-list ((curr start-point)
+                      (n max-steps))
+            (when (> n 0)
+              (cont curr (cl-transforms:v+ curr step) (- n 1)))))
+        (lazy-list ((curr start-point))
+          (cont curr (cl-transforms:v+ curr step))))))
+
+(defun points-on-line (start-point direction max-distance)
+  "Randomly samples points on the line given by the vectors
+`startp-point' and `direction'. Only points between (START-POINT -
+MAX-DISTANCE * DIRECTION) and (START-POINT + MAX-DISTANCE * DIRECTION)
+are generated"
+  (let ((start-point (ensure-vector start-point))
+        (direction (ensure-vector direction)))
+    (let ((direction-normalized (cl-transforms:v*
+                                 direction
+                                 (/ (cl-transforms:v-norm direction)))))
+      (lazy-mapcar (lambda (n)
+                     (cl-transforms:v+
+                      start-point
+                      (cl-transforms:v* direction-normalized n)))
+                   (random-number-sequence (- max-distance) max-distance)))))
+
+;; (defun pose-on (bottom top)
+;;   (let ((aabb-bottom (physics-utils:calculate-aabb )))))
 
 (def-prolog-handler generate (bdgs ?value ?generator &optional ?n)
   "Lisp-calls the function call form `?generator' and binds every
