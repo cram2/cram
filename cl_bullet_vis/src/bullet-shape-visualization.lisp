@@ -108,6 +108,11 @@
     (gl:point-size 5)
     (gl:with-primitive :points
       (map 'nil (lambda (point)
+                  (let* ((normal (cl-transforms:v* point (/ (cl-transforms:v-norm point)))))
+                    (gl:normal
+                     (cl-transforms:x normal)
+                     (cl-transforms:y normal)
+                     (cl-transforms:z normal)))
                   (gl:vertex
                    (cl-transforms:x point)
                    (cl-transforms:y point)
