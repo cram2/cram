@@ -51,7 +51,8 @@
   (dolist (obj (drawable-list-drawables drawables))
     (draw context obj)))
 
-(defun calculate-object-visibility (gl-window reasoning-world camera-pose object)
+(defun calculate-object-visibility (gl-window reasoning-world camera-pose object
+                                    &optional (width 320) (height 200))
   "Calculates how much of `object' is visible from `camera-pose' in
   `world'. Returns an instance of OBJECT-VISIBILITY."
 
@@ -71,52 +72,57 @@
           (*disable-texture-rendering* t))
       (gl:with-pushed-attrib (:enable-bit)
         (gl:disable :lighting)
-        (let* ((camera-centered (cl-transforms:make-pose
-                                 (cl-transforms:origin camera-pose)
-                                 (look-at-object-rotation camera-pose
-                                                          (pose object))))
-               (object-total-buffer (car (render-to-framebuffer
-                                          object
-                                          (make-instance
-                                           'camera
-                                           :pose camera-centered))))
-               (camera (make-instance 'camera :pose camera-pose))
-               (object-buffer (car (render-to-framebuffer object camera)))
-               (obj-ref-color nil)
-               (object-proxies (loop with objects = (objects reasoning-world)
-                                     with step = (if objects
-                                                     (coerce (/ (length objects)) 'single-float)
-                                                     1)
-                                     for obj in objects
-                                     for i from step by step
-                                     for obj-proxy = (make-instance 'flat-color-object-proxy
-                                                          :object obj :color `(,i ,i ,i 1))
-                                     when (eq object obj) do (setf obj-ref-color i)
-                                     collecting obj-proxy))
-               (scene-buffer (car (render-to-framebuffer (make-drawable-list :drawables object-proxies)
-                                                         camera))))
-          (loop for i below (* (width camera) (height camera) 3) by 3
-                with object-total-pixels = 0
-                with object-visible-pixels = 0
-                with occluding-object-colors = nil
-                when (> (aref object-total-buffer i) 0.0)
-                  do (incf object-total-pixels)
-                if (eql (aref scene-buffer i) obj-ref-color)
-                  do (incf object-visible-pixels)
-                else do (when (and (> (aref scene-buffer i) 0)
-                                   (> (aref object-buffer i) 0))
-                          (pushnew (aref scene-buffer i) occluding-object-colors))
-                finally (return (make-object-visibility
-                                 :percentage (cond ((> object-visible-pixels object-total-pixels) 1.0)
-                                                   ((> object-total-pixels 0) (coerce (/ object-visible-pixels
-                                                                                         object-total-pixels)
-                                                                                      'single-float))
-                                                   (t 0.0))
-                                 :occluding-objects (mapcar #'proxied-object
-                                                            (remove-if-not (lambda (o)
-                                                                             (member (car (slot-value o 'color))
-                                                                                     occluding-object-colors))
-                                                                           object-proxies))))))))))
+        (with-rendering-to-framebuffer (width height)
+          (let* ((camera-centered (cl-transforms:make-pose
+                                   (cl-transforms:origin camera-pose)
+                                   (look-at-object-rotation camera-pose
+                                                            (pose object))))
+                 (object-total-buffer (car (render-to-framebuffer
+                                            object
+                                            (make-instance
+                                             'camera
+                                             :pose camera-centered
+                                             :width width :height height))))
+                 (camera (make-instance 'camera :pose camera-pose :width width :height height))
+                 (object-buffer (car (render-to-framebuffer object camera)))
+                 (obj-ref-color nil)
+                 (object-proxies (loop with objects = (objects reasoning-world)
+                                       with step = (if objects
+                                                       (coerce (/ (length objects)) 'single-float)
+                                                       1)
+                                       for obj in objects
+                                       for i from step by step
+                                       for obj-proxy = (make-instance 'flat-color-object-proxy
+                                                            :object obj :color `(,i ,i ,i 1))
+                                       when (eq object obj) do (setf obj-ref-color i)
+                                         collecting obj-proxy))
+                 (scene-buffer (car (render-to-framebuffer (make-drawable-list :drawables object-proxies)
+                                                           camera))))
+            (declare (type (simple-array single-float *)
+                           object-total-buffer
+                           object-buffer scene-buffer))
+            (loop for i below (* (width camera) (height camera) 3) by 3
+                  with object-total-pixels = 0
+                  with object-visible-pixels = 0
+                  with occluding-object-colors = nil
+                  when (> (aref object-total-buffer i) 0.0)
+                    do (incf object-total-pixels)
+                  if (eql (aref scene-buffer i) obj-ref-color)
+                    do (incf object-visible-pixels)
+                  else do (when (and (> (aref scene-buffer i) 0)
+                                     (> (aref object-buffer i) 0))
+                            (pushnew (aref scene-buffer i) occluding-object-colors))
+                  finally (return (make-object-visibility
+                                   :percentage (cond ((> object-visible-pixels object-total-pixels) 1.0)
+                                                     ((> object-total-pixels 0) (coerce (/ object-visible-pixels
+                                                                                           object-total-pixels)
+                                                                                        'single-float))
+                                                     (t 0.0))
+                                   :occluding-objects (mapcar #'proxied-object
+                                                              (remove-if-not (lambda (o)
+                                                                               (member (car (slot-value o 'color))
+                                                                                       occluding-object-colors))
+                                                                             object-proxies)))))))))))
 
 (defun object-visible-p (world camera-pose object &optional (window *debug-window*) (threshold 0.9))
   "Returns T if at least `threshold' of the object is visible"
