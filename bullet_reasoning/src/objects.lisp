@@ -215,3 +215,11 @@
                  :collision-shape (make-instance 'cone-shape
                                                  :radius radius
                                                  :height height)))))
+
+(defmethod add-object ((world bt-world) (type (eql 'point-cloud)) name pose &key points)
+  (make-object world name
+               (list
+                (make-instance
+                 'rigid-body
+                 :name name :mass 0.0 :pose (ensure-pose pose)
+                 :collision-shape (make-instance 'convex-hull-shape :points points)))))
