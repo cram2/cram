@@ -1,0 +1,16 @@
+<package>
+  <description brief="robot_mask">
+
+     robot_mask
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/robot_mask</url>
+  <depend package="cl_bullet_vis"/>
+  <depend package="bullet_reasoning"/>
+
+</package>
+
+
