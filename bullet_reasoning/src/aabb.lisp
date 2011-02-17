@@ -60,12 +60,6 @@
                                0.5)
      :dimensions (cl-transforms:v- new-max new-min))))
 
-(defun translate-bounding-box (aabb vector)
-  "Translates the bounding box by `vector'"
-  (make-bounding-box
-   :center (cl-transforms:v+ vector (bounding-box-center aabb))
-   :dimensions (bounding-box-dimensions aabb)))
-
 (defmethod aabb ((obj object))
   (reduce #'merge-bounding-boxes
           (mapcar #'aabb (rigid-bodies obj))))
