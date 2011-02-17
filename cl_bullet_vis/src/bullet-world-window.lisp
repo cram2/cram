@@ -212,15 +212,16 @@ upwards. This matches ROS' coordinates best."
         ,window
         `(:display
           :callback ,(lambda ()
-                       (handler-case
-                           (setf ,result (list :ok (progn ,@body)))
-                         (error (e)
-                           (setf ,result (list :error e)))
-                         (warning (w)
-                           (setf ,result (list :warning w))))
-                       (sb-thread:with-mutex (,lock)
-                         (setf ,done t)
-                         (sb-thread:condition-broadcast ,condition)))))
+                       (unwind-protect
+                            (handler-case
+                                (setf ,result (list :ok (progn ,@body)))
+                              (error (e)
+                                (setf ,result (list :error e)))
+                              (warning (w)
+                                (setf ,result (list :warning w))))
+                         (sb-thread:with-mutex (,lock)
+                           (setf ,done t)
+                           (sb-thread:condition-broadcast ,condition))))))
        (sb-thread:with-mutex (,lock)
          (loop until ,done do
            (handler-case
