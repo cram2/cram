@@ -1,0 +1,7 @@
+uint32 width
+uint32 height
+float64 fovy            # Field of view angle in y-direction in degrees
+string camera_frame      # The name of the camera frame used as point-of-view for rendering
+tf/tfMessage tf_state   # The tf state to be used to initialize the robot model
+---
+uint8[] mask            # The mask of the rendered image, containing 1 for pixels that correspond to the robot.
