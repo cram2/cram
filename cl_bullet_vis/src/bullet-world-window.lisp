@@ -92,7 +92,8 @@
     (map 'nil #'funcall callbacks))
   (setf (redrawing window) nil)
   (gl:flush)
-  (glut:swap-buffers))
+  (glut:swap-buffers)
+  (gc-gl-context window))
 
 (defmethod glut:reshape ((window bullet-world-window) width height)
   (with-slots (glut:width glut:height) window
