@@ -59,7 +59,8 @@
                            (lambda (request)
                              (with-fields (width height fovy tf_state camera_frame)
                                  request
-                               (init-robot robot tf_state)
+                               (init-robot robot tf_state
+                                           (get-param "~fixed_frame" "/base_footprint"))
                                (make-instance
                                 'robot_mask-srv:getmask-response
                                 :mask (get-mask
