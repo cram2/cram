@@ -42,7 +42,8 @@
                                                                  (cl-transforms:make-3d-vector 0 1 0)
                                                                  (/ pi 8)))))
          (sb-thread:make-thread
-          (lambda () (glut:display-window *debug-window*))))
+          (lambda () (glut:display-window *debug-window*))
+          :name "Debug window"))
         ((not (eq world (world *debug-window*)))
          (setf (world *debug-window*)
                world))))
