@@ -70,4 +70,4 @@
                       :depends-on ("package"
                                    "transforms" "gl-context" "event-queue"
                                    "visualization"))
-               (:file "display-lists" :depends-on ("package" "bullet-world-window"))))))
+               (:file "display-lists" :depends-on ("package" "gl-context"))))))
