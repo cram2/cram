@@ -37,9 +37,15 @@
 (defgeneric light-position (gl-context)
   (:documentation "Returns the position of the light as a
   CL-TRANSFORMS:3D-VECTOR."))
+(defgeneric register-display-list (gl-context id obj)
+  (:documentation "Registers a display list for garbage collection if
+  obj is garbage collected"))
+(defgeneric gc-gl-context (gl-context)
+  (:documentation "Garbage-collects the gl context."))
 
 (defclass gl-context ()
   ((textures :initform (make-hash-table))
+   (display-lists :initform nil)
    (camera-transform :initform (cl-transforms:make-transform
                                 (cl-transforms:make-3d-vector 0 0 0)
                                 (cl-transforms:make-quaternion 0 0 0 1))
@@ -55,3 +61,19 @@
         (setf (gethash name (slot-value context 'textures))
               (car (gl:gen-textures 1)))
         t)))
+
+(defmethod register-display-list ((gl-context gl-context) id obj)
+  (with-slots (display-lists) gl-context
+    (pushnew (cons id (tg:make-weak-pointer obj)) display-lists)))
+
+(defmethod gc-gl-context ((gl-context gl-context))
+  (flet ((gc-display-list (id)
+           (gl:delete-lists id 1)))
+    (with-slots (display-lists) gl-context
+      (setf display-lists (reduce (lambda (l i)
+                                    (if (tg:weak-pointer-value (cdr i))
+                                        (cons i l)
+                                        (prog1 l
+                                          (gc-display-list (car i)))))
+                                  display-lists
+                                  :initial-value nil)))))

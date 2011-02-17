@@ -40,12 +40,8 @@
         (error 'simple-error
                :format-control "Invalid display-list id ~a"
                :format-arguments (list id)))
-      (when (typep gl-context 'bullet-world-window)
-        (tg:finalize obj (lambda ()
-                           (unless (closed gl-context)
-                             (with-bullet-window-context gl-context
-                               (gl:delete-lists id 1))))))
       (setf (slot-value obj 'display-list-id) id)
+      (register-display-list gl-context id obj)
       (gl:with-new-list (id :compile)
         (call-next-method))))
   (gl:call-lists (list (slot-value obj 'display-list-id))))
