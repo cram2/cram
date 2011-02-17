@@ -40,7 +40,7 @@
           :initform '(0.8 0.8 0.8 1.0)
           :reader shape-color)))
 
-(defmethod draw :around ((context t) (shape colored-shape-mixin))
+(defmethod draw :around ((context gl-context) (shape colored-shape-mixin))
   (gl:with-pushed-attrib (:current-bit)
     (apply #'gl:color
            (or *collision-shape-color-overwrite*

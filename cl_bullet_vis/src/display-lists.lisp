@@ -33,7 +33,7 @@
 (defclass display-list-mixin ()
   ((display-list-id :reader display-list-id)))
 
-(defmethod draw :around ((gl-context t) (obj display-list-mixin))
+(defmethod draw :around ((gl-context gl-context) (obj display-list-mixin))
   (unless (slot-boundp obj 'display-list-id)
     (let ((id (gl:gen-lists 1)))
       (when (eql id 0)
