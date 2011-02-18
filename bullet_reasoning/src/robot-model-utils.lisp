@@ -38,3 +38,32 @@
                                         (tf:lookup-transform tf :source-frame tf-name :target-frame reference-frame)))
         (tf:tf-connectivity-error ()
           nil)))))
+
+(defun make-robot-joint-state-msg (robot &key joint-names (time 0))
+  (let ((joint-names (map 'vector #'identity (or joint-names
+                                                 (joint-names robot)))))
+    (roslisp:make-msg "sensor_msgs/JointState"
+                      (stamp header) time
+                      name joint-names
+                      position (map 'vector (curry #'joint-state robot) joint-names)
+                      velocity (make-array (length joint-names)
+                                           :element-type 'float
+                                           :initial-element 0.0)
+                      effort (make-array (length joint-names)
+                                         :element-type 'float
+                                         :initial-element 0.0))))
+
+(defun set-tf-from-robot-state (tf robot &optional (base-frame "base_footprint"))
+  (let ((reference-transform-inv (cl-transforms:transform-inv
+                                  (cl-transforms:reference-transform
+                                   (link-pose robot base-frame)))))
+    (dolist (link (link-names robot) tf)
+      (unless (equal link base-frame)
+        (let ((transform (cl-transforms:transform*
+                          reference-transform-inv
+                          (cl-transforms:reference-transform
+                           (link-pose robot link)))))
+          (tf:set-transform tf (tf:make-stamped-transform
+                                base-frame link (roslisp:ros-time)
+                                (cl-transforms:translation transform)
+                                (cl-transforms:rotation transform))))))))
