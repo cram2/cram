@@ -46,8 +46,8 @@
            cylinder cone point-cloud
            bt-reasoning-world invalidate-object objects object
            bt-reasoning-world-state
-           robot-object links joint-states urdf joint-state link-names
-           link-pose set-robot-state-from-tf
+           robot-object links joint-states urdf joint-names joint-state
+           link-names link-pose set-robot-state-from-tf
            semantic-map-object semantic-map-geoms semantic-map-geom-names
            semantic-map-geom semantic-map
            ensure-pose ensure-vector
