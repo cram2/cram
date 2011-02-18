@@ -61,6 +61,12 @@
    (joint-states :initform (make-hash-table :test 'equal) :reader joint-states)
    (urdf :initarg :urdf :reader urdf)))
 
+(defgeneric joint-names (robot-object)
+  (:documentation "Returns the list of joints")
+  (:method ((robot-object robot-object))
+    (loop for name being the hash-keys in (joint-states robot-object)
+          collecting name)))
+
 (defgeneric joint-state (robot-object name)
   (:documentation "Returns the value of the joint named `name'"))
 
