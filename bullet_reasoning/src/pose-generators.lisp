@@ -111,7 +111,7 @@ are generated"
 ;; (defun pose-on (bottom top)
 ;;   (let ((aabb-bottom (physics-utils:calculate-aabb )))))
 
-(def-prolog-handler generate (bdgs ?value ?generator &optional ?n)
+(def-prolog-handler generate (bdgs ?values ?generator)
   "Lisp-calls the function call form `?generator' and binds every
 single value to `value. If `?n' is specified, generates at most `?n'
 solutions."
@@ -119,9 +119,7 @@ solutions."
       (substitute-vars ?generator bdgs)
     (assert (fboundp generator-fun) ()
             "Generator function `~a' not valid" generator-fun)
-    (let ((new-bdgs (lazy-mapcar (lambda (point)
-                                   (add-bdg ?value point bdgs))
-                                 (apply generator-fun generator-args))))
-      (if ?n
-          (lazy-take new-bdgs (var-value ?n bdgs))
-          new-bdgs))))
+    (list
+     (unify (var-value ?values bdgs)
+            (apply generator-fun generator-args)
+            bdgs))))
