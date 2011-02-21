@@ -161,9 +161,7 @@
      when (and existing-def (not (member functor extendable-predicates)))
      do (error "Functor ~a is being redefined in fact-group ~a.
                 Other definitions were in fact-groups ~a."
-               functor name (car existing-def))
-     when (get-prolog-handler functor)
-     do (error "Functor ~a is already defined as a handler." functor))
+               functor name (car existing-def)))
   (%add-fact-group name list-of-facts))
 
 (defun %add-fact-group (name list-of-facts)
