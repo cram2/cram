@@ -77,12 +77,13 @@
 
 (defun prove-one (goal binds)
   (let ((handler (get-prolog-handler (car goal))))
-    (if handler
-        (apply handler binds (cdr goal))
-        (lazy-mapcan (lambda (clause-match)
-                       (prove-all (fact-clauses (car clause-match))
-                                  (cdr clause-match)))
-                     (get-matching-clauses goal binds)))))
+    (or
+     (when handler
+       (apply handler binds (cdr goal)))
+     (lazy-mapcan (lambda (clause-match)
+                    (prove-all (fact-clauses (car clause-match))
+                               (cdr clause-match)))
+                  (get-matching-clauses goal binds (not handler))))))
 
 (defun prove-all (goals binds)
   (cond ((null goals)
@@ -92,9 +93,9 @@
                         (prove-all (cdr goals) goal-1-binds))
                       (prove-one (car goals) binds)))))
 
-(defun get-matching-clauses (query binds)
+(defun get-matching-clauses (query binds &optional (warn t))
   (let ((list-of-facts (get-predicate-facts (car query))))
-    (unless list-of-facts
+    (when (and warn (not list-of-facts))
       (warn "Trying to proove goal ~a with undefined functor ~s." query (car query)))
     (loop for fact-def in list-of-facts
        if (unify-p (fact-head fact-def) query binds)
