@@ -192,10 +192,12 @@
   "Appends l-1 and l-2 and returns the resulting lazy list."
   (lazy-list ((l-1 l-1)
               (rest further-lists))
-    (cond (l-1
+    (cond ((consp l-1)
            (cont (lazy-car l-1) (lazy-cdr l-1) rest))
           (rest
-           (cont (lazy-car (car rest)) (lazy-cdr (car rest)) (cdr rest))))))
+           (if (consp (car rest))
+               (cont (lazy-car (car rest)) (lazy-cdr (car rest)) (cdr rest))
+               (next nil (cdr rest)))))))
 
 (defun lazy-take (l n)
   (lazy-list ((l l)
