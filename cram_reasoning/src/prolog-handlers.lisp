@@ -149,6 +149,12 @@
                      (unify ?pat s bdgs))
                    ?ll))))
 
+(def-prolog-handler take (bdgs ?n ?l ?o)
+  (let ((?n (var-value ?n bdgs))
+        (?l (var-value ?l bdgs))
+        (?o (var-value ?o bdgs)))
+    (list (unify ?o (lazy-take ?n ?l)))))
+
 ;;; Pass a form containing vars (in arbitrary nesting) as the first
 ;;; parameter. Then pass an arbitray number of goals (which will be
 ;;; "anded"). FILTER-BINDINGS will return only bindings to the variables
