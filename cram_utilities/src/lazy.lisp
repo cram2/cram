@@ -199,7 +199,7 @@
                (cont (lazy-car (car rest)) (lazy-cdr (car rest)) (cdr rest))
                (next nil (cdr rest)))))))
 
-(defun lazy-take (l n)
+(defun lazy-take (n l)
   (lazy-list ((l l)
               (i n))
     (when (and l (> i 0))
