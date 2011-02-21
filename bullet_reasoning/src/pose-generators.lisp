@@ -108,8 +108,27 @@ are generated"
                       (cl-transforms:v* direction-normalized n)))
                    (random-number-sequence (- max-distance) max-distance)))))
 
-;; (defun pose-on (bottom top)
-;;   (let ((aabb-bottom (physics-utils:calculate-aabb )))))
+(defun pose-on (bottom top)
+  (let* ((aabb-bottom (aabb bottom))
+         (aabb-top (aabb top))
+         (ref (cl-transforms:v+
+               (bounding-box-center aabb-bottom)
+               (cl-transforms:make-3d-vector
+                0 0 (/ (cl-transforms:z (bounding-box-dimensions aabb-bottom)) 2))
+               (cl-transforms:make-3d-vector
+                0 0 (/ (cl-transforms:z (bounding-box-dimensions aabb-top)) 2)))))
+    (lazy-mapcar
+     (compose (lambda (pt)
+                (cl-transforms:make-pose
+                 pt (cl-transforms:make-quaternion 0 0 0 1)))
+              (curry #'cl-transforms:v+ ref))
+     (cons
+      ref
+      (points-in-box
+       (cl-transforms:make-3d-vector
+        (cl-transforms:x (bounding-box-dimensions aabb-bottom))
+        (cl-transforms:y (bounding-box-dimensions aabb-bottom))
+        0))))))
 
 (def-prolog-handler generate (bdgs ?values ?generator)
   "Lisp-calls the function call form `?generator' and binds every
