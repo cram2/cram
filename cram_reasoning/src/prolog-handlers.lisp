@@ -142,6 +142,13 @@
        do (return nil)
        finally (return (list bdgs)))))
 
+(def-prolog-handler member (bdgs ?pat ?ll)
+  (let ((?ll (var-value ?ll bdgs)))
+    (when (lazy-list-p ?ll)
+      (lazy-mapcar (lambda (s)
+                     (unify ?pat s bdgs))
+                   ?ll))))
+
 ;;; Pass a form containing vars (in arbitrary nesting) as the first
 ;;; parameter. Then pass an arbitray number of goals (which will be
 ;;; "anded"). FILTER-BINDINGS will return only bindings to the variables
