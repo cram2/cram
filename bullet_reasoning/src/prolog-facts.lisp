@@ -151,7 +151,18 @@
     (lisp-fun cl-transforms:w ?o ?w))
 
   (<- (poses-equal ?pose-1 ?pose-2 (?dist-sigma ?ang-sigma))
-    (lisp-pred poses-equal-p ?pose-1 ?pose-2 ?dist-sigma ?ang-sigma)))
+    (lisp-pred poses-equal-p ?pose-1 ?pose-2 ?dist-sigma ?ang-sigma))
+
+  (<- (poses-on ?bottom ?top ?poses)
+    (ground (?bottom ?top))
+    (not (bound ?poses))
+    (generate ?poses (pose-on ?bottom ?top)))
+
+  (<- (poses-on ?n ?bottom ?top ?poses)
+    (ground (?bottom ?top))
+    (not (bound ?poses))
+    (generate ?tmp (pose-on ?bottom ?top))
+    (take ?n ?tmp ?poses)))
 
 (def-fact-group robot-model ()
 
