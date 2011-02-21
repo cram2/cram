@@ -40,6 +40,7 @@
            #:bound
            #:ground
            #:member
+           #:take
            #:string-concat
            #:==
            #:format
