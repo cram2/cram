@@ -132,7 +132,7 @@ Kinematics::Kinematics()
   fk_solver.reset(new KDL::ChainFkSolverPos_recursive(chain));
   ik_solver_vel.reset(new KDL::ChainIkSolverVel_wdls(chain));
   ik_solver_pos.reset(new KDL::ChainIkSolverPos_NR_JL(chain, joint_min, joint_max,
-                                         *fk_solver, *ik_solver_vel, maxIterations, epsilon));
+      *fk_solver, *ik_solver_vel, maxIterations, epsilon));
 
   ROS_INFO("Advertising services");
   fk_service = nh_private.advertiseService("get_fk", &Kinematics::getPositionFK,this);
@@ -370,8 +370,7 @@ bool Kinematics::setWeights(kdl_arm_kinematics::SetWeights::Request &request,
     ROS_WARN("Mode for setting weights invalid. Maybe it has not been set?");
     return false;
   }
-  if(request.mode == kdl_arm_kinematics::SetWeights::Request::SET_TS ||
-     request.mode == kdl_arm_kinematics::SetWeights::Request::SET_BOTH)
+  if(request.mode & kdl_arm_kinematics::SetWeights::Request::SET_TS)
   {
     Eigen::MatrixXd ts(6, 6);
     for(int i=0, a=0; i<6; i++)
@@ -381,8 +380,7 @@ bool Kinematics::setWeights(kdl_arm_kinematics::SetWeights::Request &request,
     }
     ik_solver_vel->setWeightTS(ts);
   }
-  if(request.mode == kdl_arm_kinematics::SetWeights::Request::SET_JS ||
-     request.mode == kdl_arm_kinematics::SetWeights::Request::SET_BOTH)
+  if(request.mode & kdl_arm_kinematics::SetWeights::Request::SET_JS)
   {
     int dim = sqrt(request.weight_js.size());
     Eigen::MatrixXd js(dim, dim);
@@ -393,6 +391,8 @@ bool Kinematics::setWeights(kdl_arm_kinematics::SetWeights::Request &request,
     }
     ik_solver_vel->setWeightJS(js);
   }
+  if(request.mode & kdl_arm_kinematics::SetWeights::Request::SET_LAMBDA)
+    ik_solver_vel->setLambda(request.lambda);
   return true;
 }
 
