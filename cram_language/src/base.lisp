@@ -30,6 +30,8 @@
 
 (in-package :cpl-impl)
 
+;;; This file defines some of the macros that make up the plan language, like seq, par, try-in-order, etc.
+
 (defmacro def-plan-macro (name lambda-list &body body)
   "Wrapper around DEFMACRO for defining macros constituting cpl constructs
    used in plans.
