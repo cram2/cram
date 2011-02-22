@@ -31,7 +31,7 @@
 
 ;;; Location designators are resolved a little bit differently than
 ;;; object designators. To resolve, the cram/reasoning prolog
-;;; predicate desig-loc is used. All solutions are provided an can be
+;;; predicate desig-loc is used. All solutions are provided and can be
 ;;; accessed with next-solution. A mechanism is provided to
 ;;; post-process the solutions from reasoning, e.g. to sort according
 ;;; to eucledian distance.
