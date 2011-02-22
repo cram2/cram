@@ -33,7 +33,7 @@
 (defvar *service-namespace* "/json_prolog")
 
 (defun make-query-id ()
-  (symbol-name (gensym (format nil "QUERY-~20,10f-" (ros-time)))))
+  (symbol-name (gensym (format nil "QUERY-~10,20$-" (ros-time)))))
 
 (defun prolog-result->bdgs (query-id result &key (lispify nil) (package *package*))
   (unless (json_prolog-srv:ok-val result)
