@@ -95,11 +95,14 @@
          (block nil
            (let ((,desig-var (current-desig (value (slot-value ,pm-var-name 'input)))))
              ,@body)))
-       (eval-when (:load-toplevel)
+       (eval-when (:load-toplevel :execute)
          (cond ((assoc ',name *process-modules*)
                 #+sbcl (sb-int:style-warn "Redifining process module `~a'" ',name)
-                (setf (cdr (assoc ',name *process-modules*))
-                      (make-instance ',name :name ',name)))
+                (let ((old-pm (cdr (assoc ',name *process-modules*)))
+                      (new-pm (make-instance ',name :name ',name)))
+                  (dolist (pm-def *process-modules*)
+                    (when (eq (cdr pm-def) old-pm)
+                      (setf (cdr pm-def) new-pm)))))
                (t
                 (push (cons ',name (make-instance ',name :name ',name))
                       *process-modules*)))))))
@@ -109,7 +112,7 @@
                        (task *current-task*))
   (let ((pm-known (cdr (assoc pm *process-modules*)) ))
     (unless pm-known
-            (error 'unknown-process-module :format-control "Unknown process module: ~a "  :format-arguments (list pm)))
+      (error 'unknown-process-module :format-control "Unknown process module: ~a "  :format-arguments (list pm)))
     (pm-execute pm-known input
      :async async :priority priority
      :wait-for-free wait-for-free :task task)))
