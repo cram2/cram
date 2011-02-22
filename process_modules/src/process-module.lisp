@@ -113,7 +113,10 @@
       (setf (value status) :offline))))
 
 (defmethod pm-run ((pm symbol))
-  (pm-run (cdr (assoc pm *process-modules*))))
+  (let ((pm-known (cdr (assoc pm *process-modules*)) ))
+    (unless pm-known
+      (error 'unknown-process-module :format-control "Unknown process module: ~a "  :format-arguments (list pm)))
+    (pm-run pm-known)))
 
 (defmethod pm-execute ((pm process-module) input &key
                        (async nil) (priority 0) (wait-for-free t)

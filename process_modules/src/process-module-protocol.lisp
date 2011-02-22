@@ -42,6 +42,8 @@
 ;;;
 ;;; Handling of priorities is not implemented yet.
 
+(define-condition unknown-process-module (simple-error) ())
+
 (defclass process-module ()
   ((name :reader name :documentation "The name of the process-module")
    (input :reader input :documentation "Input fluent.")
@@ -105,9 +107,12 @@
 (defmethod pm-execute ((pm symbol) input &key
                        (async nil) (priority 0) (wait-for-free t)
                        (task *current-task*))
-  (pm-execute (cdr (assoc pm *process-modules*)) input
-              :async async :priority priority
-              :wait-for-free wait-for-free :task task))
+  (let ((pm-known (cdr (assoc pm *process-modules*)) ))
+    (unless pm-known
+            (error 'unknown-process-module :format-control "Unknown process module: ~a "  :format-arguments (list pm)))
+    (pm-execute pm-known input
+     :async async :priority priority
+     :wait-for-free wait-for-free :task task)))
 
 (defun process-module-alias (alias name)
   "Allows for the definition of process module aliases. An alias is
