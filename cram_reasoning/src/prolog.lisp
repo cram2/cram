@@ -96,7 +96,7 @@
 (defun get-matching-clauses (query binds &optional (warn t))
   (let ((list-of-facts (get-predicate-facts (car query))))
     (when (and warn (not list-of-facts))
-      (warn "Trying to proove goal ~a with undefined functor ~s." query (car query)))
+      (warn "Trying to prove goal ~a with undefined functor ~s." query (car query)))
     (loop for fact-def in list-of-facts
        if (unify-p (fact-head fact-def) query binds)
        collect (let* ((renamed-fact (rename-vars fact-def))
