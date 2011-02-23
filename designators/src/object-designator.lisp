@@ -37,7 +37,7 @@
 (defclass object-designator (designator designator-id-mixin)
   ())
 
-(register-designator-type object object-designator)
+(register-designator-class object object-designator)
 
 (defun add-obj-desig-resolver (resolver)
   (let ((prev-resolver (find (object-desig-resolver-name resolver)

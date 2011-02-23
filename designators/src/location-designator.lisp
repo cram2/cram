@@ -39,7 +39,7 @@
 (defclass location-designator (designator designator-id-mixin)
   ((current-solution :reader current-solution :initform nil)))
 
-(register-designator-type location location-designator)
+(register-designator-class location location-designator)
 
 (defmethod reference ((desig location-designator))
   (with-slots (data current-solution) desig
