@@ -2,3 +2,5 @@ bin
 src/kdl_arm_kinematics
 srv/lisp
 srv_gen
+msg/lisp
+msg_gen
