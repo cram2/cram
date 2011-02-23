@@ -119,7 +119,9 @@
 (defmethod reference :after ((desig designator))
   (setf (slot-value desig 'valid) t))
 
-(defmacro register-designator-type (type class-name)
+(defmacro register-designator-class (type class-name)
+  "Registers a class as a designator class so that it can be used
+together with MAKE-DESIGNATOR and WITH-DESIGNATORS"
   `(pushnew (cons ',type ',class-name) (get 'make-designator :desig-types) :key #'car))
 
 (defmethod make-designator ((type symbol) description &optional parent)

@@ -40,7 +40,7 @@
   (:export #:designator #:timestamp #:description #:parent #:successor
            #:designator-error
            #:valid #:data #:equate #:desig-equal #:reference
-           #:next-solution #:register-designator-type
+           #:next-solution #:register-designator-class
            #:make-designator #:first-desig #:current-desig
            #:with-desig-props #:with-designators
            #:desig-prop-value #:*designator-pprint-description*

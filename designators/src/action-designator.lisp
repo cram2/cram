@@ -32,7 +32,7 @@
 (defclass action-designator (designator designator-id-mixin)
   ())
 
-(register-designator-type action action-designator)
+(register-designator-class action action-designator)
 
 (defmethod reference ((desig action-designator))
   (or (slot-value desig 'data)
