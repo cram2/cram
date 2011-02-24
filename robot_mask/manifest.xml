@@ -10,6 +10,7 @@
   <url>http://ros.org/wiki/robot_mask</url>
   <depend package="cl_bullet_vis"/>
   <depend package="bullet_reasoning"/>
+  <depend package="tf"/>
 
 </package>
 
