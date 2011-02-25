@@ -15,6 +15,7 @@
   <depend package="cl_json_pl_client"/>
   <depend package="cl_urdf"/>
   <depend package="cl_tf"/>
+  <depend package="kinematics_msgs"/>
 
 </package>
 
