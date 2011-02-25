@@ -16,6 +16,7 @@
   <depend package="cl_urdf"/>
   <depend package="cl_tf"/>
   <depend package="kinematics_msgs"/>
+  <depend package="kdl_arm_kinematics"/>
 
 </package>
 

@@ -37,7 +37,10 @@
                  cl-bullet cl-bullet-vis
                  cl-json-pl-client
                  cl-urdf
-                 cl-tf)
+                 cl-tf
+                 kinematics_msgs-msg
+                 kinematics_msgs-srv
+                 kdl_arm_kinematics-srv)
     :components
     ((:module "src"
               :components
