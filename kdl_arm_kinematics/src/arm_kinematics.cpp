@@ -2,6 +2,7 @@
 
 #include <string>
 #include <exception>
+#include <math.h>
 
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
@@ -44,7 +45,7 @@ private:
 
   ros::ServiceServer ik_service,ik_solver_info_service;
   ros::ServiceServer fk_service,fk_solver_info_service;
-  ros::ServiceServer set_weights_service;
+  ros::ServiceServer weighted_ik_service;
 
   tf::TransformListener tf_listener;
 
@@ -135,6 +136,7 @@ Kinematics::Kinematics()
   ik_service = nh_private.advertiseService("get_ik", &Kinematics::getPositionIK,this);
   ik_solver_info_service = nh_private.advertiseService("get_ik_solver_info", &Kinematics::getIKSolverInfo,this);
   fk_solver_info_service = nh_private.advertiseService("get_fk_solver_info", &Kinematics::getFKSolverInfo,this);
+  weighted_ik_service = nh_private.advertiseService("get_weighted_ik", &Kinematics::getWeightedIK, this);
 }
 
 bool Kinematics::loadModel(const std::string xml) {
@@ -248,7 +250,7 @@ bool Kinematics::solveCartToJnt(const KDL::JntArray &q_init, const KDL::Frame &q
     Eigen::MatrixXd::Identity(chain.getNrOfJoints(), chain.getNrOfJoints()));
 }
 
-bool Kinematics::solveCartToJnt(const KDL::JntArray &q_init, const KDL::Frame &q_in, KDL::JntArray &q_out,
+bool Kinematics::solveCartToJnt(const KDL::JntArray &q_init, const KDL::Frame &p_in, KDL::JntArray &q_out,
   const KDL::Frame &tool_frame, const Eigen::MatrixXd &weight_ts, const Eigen::MatrixXd &weight_js,
   const double lambda)
 {
@@ -273,9 +275,15 @@ bool Kinematics::solveCartToJnt(const KDL::JntArray &q_init, const KDL::Frame &q
   {
     fk_solver.JntToCart(q_out, f);
 
-    if( calculateEps(f, q_in, weight_ts) < epsilon )
+    double err = calculateEps(f, p_in, weight_ts);
+
+    if(isnan(err))
+      return false;
+
+    if( err < epsilon )
       break;
 
+    delta_twist = diff(f, p_in);
     ik_solver.CartToJnt(q_out, delta_twist, delta_q);
     KDL::Add(q_out, delta_q, q_out);
 
@@ -324,7 +332,6 @@ void Kinematics::initializeWeights(const kdl_arm_kinematics::KDLWeights &msg,
 {
   if(msg.mode == kdl_arm_kinematics::KDLWeights::INVALID_MODE)
   {
-    ROS_WARN("Mode for setting weights invalid. Maybe it has not been set?");
     return;
   }
   if(msg.mode & kdl_arm_kinematics::KDLWeights::SET_TS)
