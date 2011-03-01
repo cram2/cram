@@ -59,7 +59,7 @@ private:
     const KDL::Frame &tool_frame = KDL::Frame::Identity());
   bool solveCartToJnt(const KDL::JntArray &q_init, const KDL::Frame &q_in, KDL::JntArray &q_out,
     const KDL::Frame &tool_frame, const Eigen::MatrixXd &weight_ts,
-    const Eigen::MatrixXd &weight_js, const double lambda=0.0);
+    const Eigen::MatrixXd &weight_js, const double lambda=0.1);
   double calculateEps(const KDL::Frame &f, const KDL::Frame &ref,
     const Eigen::MatrixXd &weight=Eigen::MatrixXd::Identity(6,6));
   void initializeWeights(const kdl_arm_kinematics::KDLWeights &msg,
@@ -527,7 +527,7 @@ bool Kinematics::getWeightedIK(kdl_arm_kinematics::GetWeightedIK::Request &reque
   /// Get the weight matrices
   Eigen::MatrixXd weight_ts(Eigen::MatrixXd::Identity(6, 6));
   Eigen::MatrixXd weight_js(Eigen::MatrixXd::Identity(chain.getNrOfJoints(), chain.getNrOfJoints()));
-  double lambda = 0.0;
+  double lambda = 0.1;
 
   initializeWeights(request.weights, weight_ts, weight_js, lambda);
   
