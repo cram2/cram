@@ -258,6 +258,7 @@ bool Kinematics::solveCartToJnt(const KDL::JntArray &q_init, const KDL::Frame &p
   KDL::JntArray delta_q;
   KDL::Twist delta_twist;  
   int i;
+  double err;
 
   KDL::Chain chain_with_tool(chain);
   chain_with_tool.addSegment(KDL::Segment(KDL::Joint(KDL::Joint::None), tool_frame));
@@ -275,10 +276,13 @@ bool Kinematics::solveCartToJnt(const KDL::JntArray &q_init, const KDL::Frame &p
   {
     fk_solver.JntToCart(q_out, f);
 
-    double err = calculateEps(f, p_in, weight_ts);
+    err = calculateEps(f, p_in, weight_ts);
 
     if(isnan(err))
+    {
+      ROS_WARN("NaN in IK");
       return false;
+    }
 
     if( err < epsilon )
       break;
@@ -300,6 +304,8 @@ bool Kinematics::solveCartToJnt(const KDL::JntArray &q_init, const KDL::Frame &p
     }
   }
 
+  ROS_INFO("IK terminating after %d iterations and error %lf", i, err);
+  
   if(i < max_iterations)
     return true;
   return false;
