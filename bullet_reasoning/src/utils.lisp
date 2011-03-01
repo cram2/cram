@@ -45,3 +45,10 @@
              (cl-transforms:make-quaternion ax ay az aw))))
     (cl-transforms:pose pose)))
 
+(defun lazy-cross-product (&rest sets)
+  (if (car sets)
+      (let ((cp (apply #'lazy-cross-product (cdr sets))))
+        (lazy-mapcan (lambda (e)
+                       (lazy-mapcar (curry #'cons e) cp))
+                     (car sets)))
+      (list nil)))
