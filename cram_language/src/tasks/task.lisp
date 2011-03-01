@@ -60,12 +60,12 @@
    (parent-task
     :initform nil
     :reader parent-task
-    :type (or task null)
+    :type (or abstract-task null)
     :documentation "The parent task.")
    (child-tasks
     :initform (list)
     :accessor child-tasks
-    :type (list-of task) 
+    :type (list-of abstract-task) 
     :documentation "The list of child tasks.")
    (status                              ; initialized below
     :reader status
