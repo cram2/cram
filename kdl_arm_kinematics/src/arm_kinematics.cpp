@@ -41,7 +41,9 @@ private:
   unsigned int num_joints;
   int max_iterations;
   double epsilon;
-  Eigen::MatrixXd weight_ts;
+  Eigen::MatrixXd default_weight_ts;
+  Eigen::MatrixXd default_weight_js;
+  double default_lambda;
 
   ros::ServiceServer ik_service,ik_solver_info_service;
   ros::ServiceServer fk_service,fk_solver_info_service;
@@ -51,6 +53,7 @@ private:
 
   kinematics_msgs::KinematicSolverInfo info;
 
+  void parseWeightParams(ros::NodeHandle &nh);
   bool loadModel(const std::string xml);
   bool readJoints(urdf::Model &robot_model);
   int getJointIndex(const std::string &name);
@@ -59,7 +62,7 @@ private:
     const KDL::Frame &tool_frame = KDL::Frame::Identity());
   bool solveCartToJnt(const KDL::JntArray &q_init, const KDL::Frame &q_in, KDL::JntArray &q_out,
     const KDL::Frame &tool_frame, const Eigen::MatrixXd &weight_ts,
-    const Eigen::MatrixXd &weight_js, const double lambda=0.1);
+    const Eigen::MatrixXd &weight_js, const double lambda);
   double calculateEps(const KDL::Frame &f, const KDL::Frame &ref,
     const Eigen::MatrixXd &weight=Eigen::MatrixXd::Identity(6,6));
   void initializeWeights(const kdl_arm_kinematics::KDLWeights &msg,
@@ -106,7 +109,8 @@ private:
 Kinematics::Kinematics()
   : nh(),
     nh_private ("~"),
-    weight_ts(Eigen::MatrixXd::Identity(6,6))
+    default_weight_ts(Eigen::MatrixXd::Identity(6,6)),
+    default_lambda(0.1)
 {
   // Get URDF XML
   std::string urdf_xml, full_urdf_xml;
@@ -128,6 +132,9 @@ Kinematics::Kinematics()
   if (!loadModel(result))
     throw Kinematics::InitFailed("Could not load models!");
 
+  default_weight_js = Eigen::MatrixXd::Identity(chain.getNrOfJoints(), chain.getNrOfJoints());
+  parseWeightParams(nh_private);
+
   nh_private.param("maxIterations", max_iterations, 100);
   nh_private.param("epsilon", epsilon, 1e-2);
 
@@ -137,6 +144,74 @@ Kinematics::Kinematics()
   ik_solver_info_service = nh_private.advertiseService("get_ik_solver_info", &Kinematics::getIKSolverInfo,this);
   fk_solver_info_service = nh_private.advertiseService("get_fk_solver_info", &Kinematics::getFKSolverInfo,this);
   weighted_ik_service = nh_private.advertiseService("get_weighted_ik", &Kinematics::getWeightedIK, this);
+}
+
+void Kinematics::parseWeightParams(ros::NodeHandle &nh)
+{
+  ros::NodeHandle weights_nh(nh, "weights");
+  
+  if(weights_nh.hasParam("lambda"))
+  {
+    weights_nh.getParam("lambda", default_lambda);
+    ROS_INFO("Setting lambda to %lf", default_lambda);
+  }
+
+  if(weights_nh.hasParam("weight_ts"))
+  {
+    ros::NodeHandle weight_ts_nh(weights_nh, "weight_ts");
+    double value;
+    
+    if(weight_ts_nh.getParam("x", value))
+    {
+      ROS_INFO("Reading weight_ts/x: %lf", value);
+      default_weight_ts(0,0) = value;
+    }
+
+    if(weight_ts_nh.getParam("y", value))
+    {
+      ROS_INFO("Reading weight_ts/y: %lf", value);    
+      default_weight_ts(1,1) = value;
+    }
+
+    if(weight_ts_nh.getParam("z", value))
+    {
+      ROS_INFO("Reading weight_ts/z: %lf", value);    
+      default_weight_ts(2,2) = value;
+    }
+
+    if(weight_ts_nh.getParam("roll", value))
+    {
+      ROS_INFO("Reading weight_ts/roll: %lf", value);
+      default_weight_ts(3,3) = value;
+    }
+
+    if(weight_ts_nh.getParam("pitch", value))
+    {
+      ROS_INFO("Reading weight_ts/pitch: %lf", value);    
+      default_weight_ts(4,4) = value;
+    }
+
+    if(weight_ts_nh.getParam("yaw", value))
+    {
+      ROS_INFO("Reading weight_ts/yaw: %lf", value);
+      default_weight_ts(5,5) = value;
+    }
+  }
+
+  if(weights_nh.hasParam("weight_js"))
+  {
+    ros::NodeHandle weight_js_nh(weights_nh, "weight_js");
+    double value;
+
+    for (unsigned int i=0; i < info.joint_names.size(); i++)
+    {
+      if(weight_js_nh.getParam(info.joint_names[i], value))
+      {
+        ROS_INFO("Setting weight for joint '%s' to %lf", info.joint_names[i].c_str(), value);
+        default_weight_js(i, i) = value;
+      }
+    }
+  }
 }
 
 bool Kinematics::loadModel(const std::string xml) {
@@ -246,8 +321,7 @@ bool Kinematics::solveCartToJnt(const KDL::JntArray &q_init, const KDL::Frame &q
   const KDL::Frame &tool_frame)
 {
   return solveCartToJnt(q_init, q_in, q_out, tool_frame,
-    Eigen::MatrixXd::Identity(6, 6),
-    Eigen::MatrixXd::Identity(chain.getNrOfJoints(), chain.getNrOfJoints()));
+    default_weight_ts, default_weight_js, default_lambda);
 }
 
 bool Kinematics::solveCartToJnt(const KDL::JntArray &q_init, const KDL::Frame &p_in, KDL::JntArray &q_out,
@@ -531,9 +605,9 @@ bool Kinematics::getWeightedIK(kdl_arm_kinematics::GetWeightedIK::Request &reque
   tf::PoseMsgToKDL(request.tool_frame, tool);
 
   /// Get the weight matrices
-  Eigen::MatrixXd weight_ts(Eigen::MatrixXd::Identity(6, 6));
-  Eigen::MatrixXd weight_js(Eigen::MatrixXd::Identity(chain.getNrOfJoints(), chain.getNrOfJoints()));
-  double lambda = 0.1;
+  Eigen::MatrixXd weight_ts(default_weight_ts);
+  Eigen::MatrixXd weight_js(default_weight_js);
+  double lambda = default_lambda;
 
   initializeWeights(request.weights, weight_ts, weight_js, lambda);
   
