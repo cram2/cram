@@ -1,0 +1,9 @@
+<launch>
+  <node name="l_arm_ik" pkg="kdl_arm_kinematics" type="arm_kinematics">
+    <rosparam>
+      robot_description_name: robot_description_lowres
+      root_name: base_footprint
+      tip_name: l_gripper_palm_link
+    </rosparam>
+  </node>
+</launch>
