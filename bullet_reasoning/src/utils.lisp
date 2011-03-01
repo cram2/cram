@@ -52,3 +52,10 @@
                        (lazy-mapcar (curry #'cons e) cp))
                      (car sets)))
       (list nil)))
+
+(defun diagonal->matrix (diagonal)
+  (let* ((diagonal (map 'vector #'identity diagonal))
+         (dim (length diagonal))
+         (result (make-array (list dim dim))))
+    (dotimes (i dim result)
+      (setf (aref result i i) (elt diagonal i)))))
