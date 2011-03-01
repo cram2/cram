@@ -2,7 +2,7 @@
   <node name="r_arm_ik" pkg="kdl_arm_kinematics" type="arm_kinematics">
     <rosparam>
       robot_description_name: robot_description_lowres
-      root_name: torso_lift_link
+      root_name: base_footprint
       tip_name: r_gripper_palm_link
     </rosparam>
   </node>
