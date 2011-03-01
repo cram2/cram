@@ -128,7 +128,7 @@ Kinematics::Kinematics()
   if (!loadModel(result))
     throw Kinematics::InitFailed("Could not load models!");
 
-  nh_private.param("maxIterations", max_iterations, 1000);
+  nh_private.param("maxIterations", max_iterations, 100);
   nh_private.param("epsilon", epsilon, 1e-2);
 
   ROS_INFO("Advertising services");
