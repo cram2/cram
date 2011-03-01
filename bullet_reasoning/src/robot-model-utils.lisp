@@ -184,8 +184,6 @@ joint positions as seeds."
                          'kinematics_msgs-srv:getkinematicsolverinfo))))
          (seed-states (make-seed-states robot joint-names 4)))
     (dolist (seed seed-states)
-      (format t "making request: ~a~%" pose)
-      (format t "seed:~%~a~%" seed)
       (roslisp:with-fields ((solution solution)
                             (error-code (val error_code)))
           (roslisp:call-service
@@ -194,8 +192,6 @@ joint positions as seeds."
            :pose (tf:pose-stamped->msg pose)
            :tool_frame (tf:pose->msg tool-frame)
            :ik_seed seed)
-        (format t "solution:~%~a~%" solution)
-        (format t "error-code: ~a~%" error-code)
         (when (eql error-code (roslisp-msg-protocol:symbol-code
                                'motion_planning_msgs-msg:ArmNavigationErrorCodes
                                :success))
