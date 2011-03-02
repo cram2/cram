@@ -278,6 +278,21 @@
     (occluding-objects ?world ?camera-pose ?obj ?objs)
     (member ?occluding-obj ?objs)))
 
+(def-fact-group reachability ()
+  (<- (reachable ?w ?robot ?obj)
+    (ground (?w ?robot ?obj))
+    (-> (reachable ?w ?robot ?obj :right)
+        (true)
+        (reachable ?w ?robot ?obj :left)))
+
+  (<- (reachable ?w ?robot ?obj :right)
+    (ground (?w ?robot ?obj))
+    (lisp-pred object-reachable-p ?robot ?obj :side :right))
+
+  (<- (reachable ?w ?robot ?obj :left)
+    (ground (?w ?robot ?obj))
+    (lisp-pred object-reachable-p ?robot ?obj :side :left)))
+
 (def-fact-group debug ()
   (<- (debug-window ?world)
     (lisp-fun add-debug-window ?world ?_)))
