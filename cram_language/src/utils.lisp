@@ -72,3 +72,32 @@
         (let ((last-elem (last alist)))
           (setf (cdr last-elem) (list (cons name new-value))))))
   new-value)
+
+;;; FIXME:
+
+(declaim (inline float-/))
+(defun float-/ (a b)
+  (/ (float a 1.0d0) (float b 1.0d0)))
+
+(defun sleep* (seconds)
+  (let ((seconds (coerce seconds 'double-float)))
+    (declare (double-float seconds))
+    #+nil (declare (optimize speed))
+    (prog ((deadline-seconds sb-impl::*deadline-seconds*)
+           (stop-time
+            (+ (sb-impl::seconds-to-internal-time seconds)
+               (get-internal-real-time))))
+     :retry
+     (cond ((not deadline-seconds)
+            (sleep seconds))
+           ((> deadline-seconds seconds)
+            (sleep seconds))
+           (t
+            (sleep deadline-seconds)
+            (sb-sys:signal-deadline)
+            (setq deadline-seconds sb-impl::*deadline-seconds*)
+            (setf seconds (float-/ (- stop-time (get-internal-real-time))
+                                   internal-time-units-per-second))
+            (when (plusp seconds)
+              (go :retry)))))))
+
