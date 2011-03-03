@@ -15,3 +15,7 @@
   (define-flop-wrapper eql fl-eql)
   (define-flop-wrapper not fl-not)
   (define-flop-wrapper pulsed fl-pulsed))
+
+(declaim (inline sleep))
+(defun sleep (seconds)
+  (sleep* seconds))

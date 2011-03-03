@@ -82,7 +82,9 @@
 ;;;   have to write CL:EQL explicitly.
 
 #.(let ((cpl-symbols
-         '(;; walker
+         '(;; utils
+           #:sleep*
+           ;; walker
            #:plan-tree-node #:plan-tree-node-sexp #:plan-tree-node-parent
            #:plan-tree-node-children #:plan-tree-node-path
            #:find-plan-node
@@ -220,6 +222,7 @@
                   ,@cpl-symbols
                   ;; Wrappers are defined in src/language.lisp.
                   #:< #:> #:+ #:- #:* #:/ #:= #:eq #:eql #:not
-                  #:pulsed #:fl-and #:fl-or #:fl-funcall #:fl-value-changed)
+                  #:pulsed #:fl-and #:fl-or #:fl-funcall #:fl-value-changed
+                  #:sleep)
          (:shadow
-          #:< #:> #:+ #:- #:* #:/ #:= #:eq #:eql #:not))))
+          #:< #:> #:+ #:- #:* #:/ #:= #:eq #:eql #:not #:sleep))))
