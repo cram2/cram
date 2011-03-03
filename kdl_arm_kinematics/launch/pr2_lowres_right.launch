@@ -4,6 +4,10 @@
       robot_description_name: robot_description_lowres
       root_name: base_footprint
       tip_name: r_gripper_palm_link
+      weights:
+        lambda: 0.1
+        weight_js:
+          torso_lift_joint: 0.001
     </rosparam>
   </node>
 </launch>
