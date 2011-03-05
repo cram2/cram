@@ -119,7 +119,8 @@
 
 (defun render-to-framebuffer (drawable camera &key
                               (get-pixelbuffer t)
-                              (get-depthbuffer nil))
+                              (get-depthbuffer nil)
+                              (mirror nil))
   "Renders the object `drawable' into a framebuffer. It returns a list
   of the form (pix-buffer depth-buffer) with values set to NIL if the
   corresponding flag parameter `get-pixelbuffer' and `get-depthbuffer'
@@ -134,8 +135,8 @@
                       (gl:clear :color-buffer :depth-buffer)
                       (gl-setup-camera camera)
                       (draw gl-context drawable)
-                      (list (when get-pixelbuffer (read-pixelbuffer camera))
-                            (when get-depthbuffer (read-depthbuffer camera))))
+                      (list (when get-pixelbuffer (read-pixelbuffer camera mirror))
+                            (when get-depthbuffer (read-depthbuffer camera mirror))))
                  (apply #'gl:viewport viewport)))))
       (if *framebuffer-enabled*
           (do-rendering)
@@ -158,7 +159,8 @@
                     (aref gl-buffer (+ (* 3 (+ (* y width) (- width x 1))) i))))))
         gl-buffer)))
 
-(defun read-depthbuffer (camera)
+(defun read-depthbuffer (camera &optional mirror)
+  (declare (ignore mirror))
   (bt-vis:read-pixels-float 0 0 (width camera) (height camera) :depth-component))
 
 (defun to-png-image (width height buffer &optional (color-mode :rgb))
