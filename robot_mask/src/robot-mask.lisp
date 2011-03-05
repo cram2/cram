@@ -37,7 +37,7 @@
       (let* ((robot-proxy (make-instance
                            'flat-color-object-proxy
                            :object robot :color '(1.0 1.0 1.0 1.0)))
-             (scene (car (render-to-framebuffer robot-proxy camera)))
+             (scene (car (render-to-framebuffer robot-proxy camera :mirror t)))
              (result (make-array (* (width camera) (height camera)) :element-type 'fixnum :initial-element 0)))
         (dotimes (i (* (width camera) (height camera)) result)
           (setf (aref result i) (truncate (aref scene (* i 3)))))))))
