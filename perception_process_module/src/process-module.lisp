@@ -174,13 +174,14 @@
 
 (def-process-module perception (input)
   (assert (typep input 'object-designator))
+  (ros-info (perception process-module) "Searching for object ~a" input)
   (let ((productuion-name (gensym "DESIG-PRODUCTION-")))
     (unwind-protect
          (progn
            (crs:register-production productuion-name
                                     (designator->production input '?perceived-object))
-           (cond (;; Designator that has alrady been equated
-                  (parent input)
+           (cond ( ;; Designator that has alrady been equated
+                  (valid input)
                   (find-with-parent-desig (newest-valid-designator input) productuion-name))
                  (t
                   (find-with-new-desig input productuion-name))))
