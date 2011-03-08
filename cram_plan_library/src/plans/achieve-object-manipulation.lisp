@@ -84,6 +84,35 @@
             (achieve `(arms-at ,carry-trajectory)))))))
   ?obj)
 
+(def-plan get-free-location (location-desig &optional (threshold 0.2))
+  (flet ((check-distance (obj pose)
+           (typecase obj
+             (perception-pm:cop-perceived-object
+                (let* ((jlo (jlo:frame-query (jlo:make-jlo :name "/base_link")
+                                            (perception-pm:object-jlo obj)))
+                       (cov-max (max (jlo:cov jlo 0 0)
+                                     (jlo:cov jlo 1 1))))
+                  (> (cl-transforms:v-dist (cl-transforms:origin pose)
+                                           (cl-transforms:origin
+                                            (perception-pm:object-pose obj)))
+                     (+ threshold cov-max))))
+             (t (> (cl-transforms:v-dist (cl-transforms:origin pose)
+                                         (cl-transforms:origin
+                                          (perception-pm:object-pose obj)))
+                   threshold)))))
+    (when location-desig
+      (with-designators ((cluster (object `((type cluster) (at ,location-desig)))))
+        (achieve `(looking-at ,location-desig))
+        (with-failure-handling ((object-not-found (f)
+                                  (declare (ignore f))
+                                  (return location-desig)))
+          (let ((clusters (achieve `(object-detected ,cluster))))
+            (if (some (lambda (obj)
+                        (check-distance (reference obj) (reference location-desig)))
+                      clusters)
+                location-desig
+                (get-free-location (next-solution location-desig) threshold))))))))
+
 (def-goal (achieve (object-placed-at ?obj ?loc))
   (ros-info (achieve plan-lib) "(achieve (object-placed-at))")
   (setf ?obj (current-desig ?obj))
@@ -103,6 +132,9 @@
                (achieve `(arms-at ,open-trajectory)))
              (when (< (incf retry-count) 3)
                (retry))))
+        (ros-info (achieve-object-placed-at plan-lib) "searching for free locations")
+        (setf ?loc (get-free-location ?loc))
+        (ros-info (achieve-object-placed-at plan-lib) "found free location ~a" (reference ?loc))        
         (with-designators ((put-down-loc (location `((to reach) (location ,?loc))))
                            (put-down-trajectory (action `((type trajectory) (to put-down)
                                                           (obj ,obj) (at ,?loc) (side ,side))))
