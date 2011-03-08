@@ -112,7 +112,8 @@
    `desig' yet. This decision must be made by the caller of the
    process module."
   (let ((perceived-objects nil)
-        (previous-perceived-objects nil))
+        ;; (previous-perceived-objects nil)
+        )
     (crs:with-production-handlers
         ((production-name (op &key ?perceived-object)
            (when (eq op :assert)
@@ -121,20 +122,22 @@
       ;; gets triggered and they are in `perceived-objects'. We want
       ;; to try these first because perception is much faster if we
       ;; re-use old perceptions.
-      (when perceived-objects
-        (setf previous-perceived-objects (sort perceived-objects #'>
-                                               :key #'object-timestamp))
-        (setf perceived-objects nil)
-        (loop for perceived-object in previous-perceived-objects
-              until (execute-object-search-function desig perceived-object)))
+      ;; (when perceived-objects
+      ;;   (setf previous-perceived-objects (sort perceived-objects #'>
+      ;;                                          :key #'object-timestamp))
+      ;;   (setf perceived-objects nil)
+      ;;   (loop for perceived-object in previous-perceived-objects
+      ;;         until (execute-object-search-function desig perceived-object)))
       ;; When not found yet, continue with default search
-      (unless perceived-objects
-        (execute-object-search-function desig nil))
+      ;; (unless perceived-objects
+      ;;   (execute-object-search-function desig nil))
+      (setf perceived-objects
+            (execute-object-search-function desig nil))
       (unless perceived-objects
         (fail 'object-not-found :object-desig desig))
       ;; Sort perceived objects according to probability
       (when perceived-objects
-        (let* ((sorted-perceived-objects
+        (let ((sorted-perceived-objects
                 (sort perceived-objects #'> :key #'perceived-object-probability)))
           (mapcar (lambda (perceived-object)
                     ;; We need to remove incompatible objects again
@@ -144,20 +147,21 @@
                     ;; production). That means that some previously
                     ;; perceived objects might be incompatible after
                     ;; perception.
-                    (let ((matching-object (matching-object
-                                            perceived-object
-                                            (remove-if-not (alexandria:compose
-                                                            (curry #'compatible-properties
-                                                                   (object-properties perceived-object))
-                                                            #'object-properties)
-                                                           previous-perceived-objects))))
-                      (cond (matching-object
-                             (setf previous-perceived-objects
-                                   (delete matching-object previous-perceived-objects))
-                             (perceived-object->designator desig perceived-object
-                                                           (object-desig matching-object)))
-                            (t
-                             (perceived-object->designator desig perceived-object)))))
+                    ;; (let ((matching-object (matching-object
+                    ;;                         perceived-object
+                    ;;                         (remove-if-not (alexandria:compose
+                    ;;                                         (curry #'compatible-properties
+                    ;;                                                (object-properties perceived-object))
+                    ;;                                         #'object-properties)
+                    ;;                                        previous-perceived-objects))))
+                    ;;   (cond (matching-object
+                    ;;          (setf previous-perceived-objects
+                    ;;                (delete matching-object previous-perceived-objects))
+                    ;;          (perceived-object->designator desig perceived-object
+                    ;;                                        (object-desig matching-object)))
+                    ;;         (t
+                    ;;          (perceived-object->designator desig perceived-object))))
+                    (perceived-object->designator desig perceived-object))
                   sorted-perceived-objects))))))
 
 (defun newest-valid-designator (desig)
