@@ -42,7 +42,7 @@
   (ros-info (achieve plan-lib) "Driving to location ~a." ?loc)
   (unless (reference ?loc)
     (fail "Location designator invalid."))
-  (when (> (distance-to-drive ?loc) 0.75)
+  (when (> (distance-to-drive ?loc) 1.5)
     (ros-info (achieve plan-lib) "Distance to drive: ~a, parking arms.~%"
               (distance-to-drive ?loc))
     (achieve `(looking-at :forward))
