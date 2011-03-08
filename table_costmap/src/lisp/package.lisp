@@ -30,6 +30,10 @@
 
 (in-package :cl-user)
 
+(desig:register-designator-properties
+ #:on #:name #:to #:see #:reach #:table
+ #:obj #:location #:in #:reach)
+
 (defpackage table-costmap
     (:use :cl :roslisp :cram-roslisp-common
           :crs :location-costmap :map-annotation
@@ -53,6 +57,3 @@
            #:*accept-threshold*)
   (:import-from :cpl #:make-fluent #:value))
 
-(desig:register-designator-properties
- on name to see reach table
- obj location counter in reach)
