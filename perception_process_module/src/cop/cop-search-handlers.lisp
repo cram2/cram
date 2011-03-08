@@ -117,7 +117,7 @@
                         (list (let ((cluster (get-table-cluster
                                               (desig-prop-value loc 'name))))
                                 (gaussian->jlo (name cluster) (mean cluster) (cov cluster)))))))
-                  (list (jlo:make-jlo :name "/sr4"))))))
+                  (list (jlo:make-jlo :name "/openni_rgb_optical_frame"))))))
     (do-cop-search desig query-info)))
 
 (defmethod object-search-function ((type (cl:eql 'object)) desig &optional perceived-object)
