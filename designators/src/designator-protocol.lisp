@@ -116,6 +116,9 @@
   (eq (first-desig desig-1)
       (first-desig desig-2)))
 
+(defmethod desig-equal ((desig-1 t) (desig-2 t))
+  nil)
+
 (defmethod reference :after ((desig designator))
   (setf (slot-value desig 'valid) t))
 
