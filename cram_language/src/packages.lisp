@@ -128,6 +128,8 @@
            #:fail #:simple-plan-failure
            #:plan-failure
            #:with-failure-handling #:retry
+           #:common-lisp-error-envelope
+           #:envelop-error
            #:*break-on-plan-failures*
            #:*debug-on-lisp-errors*
            ;; task-tree.lisp
