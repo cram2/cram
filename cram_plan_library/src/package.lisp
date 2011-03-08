@@ -50,6 +50,7 @@
            #:arms-at
            #:looking-at
            #:at-location
+           #:object-detected
            #:perceive #:perceive-all #:perceive-the
            #:robot
            #:maybe-run-process-modules
@@ -63,4 +64,4 @@
 (desig:register-designator-properties
  #:to #:see #:obj #:of #:reach :type #:trajectory #:pose #:open #:side
  #:grasp #:lift #:carry :reach #:location #:at #:parked #:pose #:close
- #:gripper #:follow)
+ #:gripper #:follow #:pick-up #:put-down)
