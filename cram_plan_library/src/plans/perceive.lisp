@@ -71,7 +71,10 @@
                        (format t "trying at new location: ~a~%" (reference obj-loc-desig))
                        (retry)))))
               (achieve `(looking-at ,obj-loc-desig))
-              (pm-execute :perception ?obj-desig))))))))
+              (achieve `(object-detected ,?obj-desig)))))))))
+
+(def-goal (achieve (object-detected ?obj-desig))
+  (pm-execute :perception ?obj-desig))
 
 ;;; Try to find the object described by ?obj-desig and equate the
 ;;; resulting designator with ?obj-desig. If several objects match,
