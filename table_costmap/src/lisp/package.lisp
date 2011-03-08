@@ -55,5 +55,6 @@
            #:cov #:mean
            #:*initial-stddev*
            #:*accept-threshold*)
-  (:import-from :cpl #:make-fluent #:value))
+  (:import-from :cpl #:make-fluent #:value)
+  (:shadowing-import-from :desig #:name))
 
