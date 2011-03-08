@@ -47,8 +47,8 @@
              (:module "plans"
                       :depends-on ("package")
                       :components
-                        ((:file "process-modules")
-                         (:file "achieve")
+                        ((:file "achieve")
+                         (:file "process-modules" :depends-on ("achieve"))
                          (:file "achieve-loc" :depends-on ("achieve"
                                                            "achieve-object-manipulation"
                                                            "achieve-ptu"))
