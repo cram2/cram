@@ -66,10 +66,11 @@
                    (ros-warn (perceive plan-lib) "Object not found failure.")
                    (when (< obj-loc-retry-cnt 3)
                      (incf obj-loc-retry-cnt)
-                     (when (and obj-loc-desig (next-solution obj-loc-desig))
+                     (when obj-loc-desig
                        (setf obj-loc-desig (next-solution obj-loc-desig))
-                       (format t "trying at new location: ~a~%" (reference obj-loc-desig))
-                       (retry)))))
+                       (when obj-loc-desig
+                         (format t "trying at new location: ~a~%" (reference obj-loc-desig))
+                         (retry))))))
               (achieve `(looking-at ,obj-loc-desig))
               (achieve `(object-detected ,?obj-desig)))))))))
 
