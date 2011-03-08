@@ -81,7 +81,9 @@
             (pushnew (list sym pkg) conflicting)))))))
 
 (defun desig::shadow-conflicting-symbols (syms package)
-  (mapcar (lambda (c) (apply #'shadow c))
+  (mapcar (lambda (c)
+            (unless (find-symbol (symbol-name (car c)) (find-package :cl))
+              (apply #'shadow c)))
           (desig::find-conflicting-symbols syms package)))
 
 (defmacro desig:register-designator-properties (&rest properties)
