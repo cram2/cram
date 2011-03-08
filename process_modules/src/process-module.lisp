@@ -77,40 +77,46 @@
   (setf (value (slot-value pm 'input)) nil
         (value (slot-value pm 'status)) :waiting
         (value (slot-value pm 'cancel)) nil)
-  (with-slots (input cancel status result) pm
-    (unwind-protect
-         (block pm-body
-           (whenever ((not (eq input nil)))
-             (when (value input)
-               (restart-case
-                   (handler-bind ((error #'invoke-debugger))
-                     (setf (value status) :running)
-                     (setf (value cancel) nil)
-                     (unwind-protect
-                          (pursue
-                            (wait-for cancel)
-                            (handler-case
-                                (handler-bind ((error (lambda (e)
-                                                        (setf (value result) e)
-                                                        (setf (value status) :failed))))
-                                  (let ((result-val nil))
-                                    (unwind-protect
-                                         (when (value input)
-                                           (setf result-val (call-next-method)))
-                                      (setf (value input) nil)
-                                      (when result-val
-                                        (setf (value result) result-val)))))
-                              (plan-failure (e)
-                                (declare (ignore e))
-                                nil)))
-                       (unless (eq (value status) :failed)
-                         (setf (value status) :waiting))))
-                 (terminate-pm ()
-                   :report "Terminate process module"
-                   (return-from pm-body))
-                 (continue-pm ()
-                   :report "Ignore error and restart process module main loop.")))))
-      (setf (value status) :offline))))
+  (let ((teardown nil))
+    (with-slots (input cancel status result) pm
+      (unwind-protect
+           (block pm-body
+             (whenever ((not (eq input nil)))
+               (when (value input)
+                 (setf (value status) :running)
+                 (setf (value cancel) nil)
+                 (unwind-protect
+                      (pursue
+                        (wait-for cancel)
+                        (restart-case
+                            (handler-bind ((error (lambda (e)
+                                                    (funcall #'invoke-debugger e))))
+                              (handler-case
+                                  (flet ((handle-failure (e)
+                                           (setf (value result) e)
+                                           (setf (value status) :failed)))
+                                    (handler-bind ((plan-failure #'handle-failure)
+                                                   (error #'handle-failure))
+                                      (let ((result-val nil))
+                                        (unwind-protect
+                                             (when (value input)
+                                               (setf result-val (call-next-method)))
+                                          (setf (value input) nil)
+                                          (when result-val
+                                            (setf (value result) result-val))))))
+                                (plan-failure (e)
+                                  (declare (ignore e))
+                                  nil)))
+                          (terminate-pm ()
+                            :report "Terminate process module"
+                            (setf teardown t))
+                          (continue-pm ()
+                            :report "Ignore error and restart process module main loop.")))
+                   (unless (eq (value status) :failed)
+                     (setf (value status) :waiting)))
+                 (when teardown
+                   (return-from pm-body)))))
+        (setf (value status) :offline)))))
 
 (defmethod pm-run ((pm symbol))
   (let ((pm-known (cdr (assoc pm *process-modules*)) ))
