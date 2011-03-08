@@ -39,5 +39,7 @@
       (let ((action-desig (var-value '?act
                                      (lazy-car (prolog `(action-desig ,desig ?act))))))
         (when (is-var action-desig)
-          (error 'designator-error :format-control "Cannot resolve action designator."))
+          (error 'designator-error
+                 :format-control "Cannot resolve action designator ~a."
+                 :format-arguments (list desig)))
         (setf (slot-value desig 'data) action-desig))))
