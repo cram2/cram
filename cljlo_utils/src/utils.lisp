@@ -30,7 +30,7 @@
 (in-package :cljlo-utils)
 
 (defgeneric pose->jlo (pose))
-(defgeneric jlo->pose (jlo))
+(defgeneric jlo->pose (jlo &optional reference-frame))
 
 (defmethod pose->jlo ((p cl-transforms:pose))
   (let ((p-matrix (cl-transforms:transform->matrix p)))
@@ -66,12 +66,18 @@
                                     :displaced-to p-matrix
                                     :element-type (array-element-type p-matrix)))))
 
-(defmethod jlo->pose (jlo)
-  (cl-transforms:matrix->transform
-   (make-array '(4 4) :displaced-to (vision_msgs-msg:pose-val
-                                     (jlo:partial-lo (jlo:frame-query
-                                                      (jlo:make-jlo :id 1)
-                                                      jlo))))))
+(defmethod jlo->pose (jlo &optional (reference-frame "/map"))
+  (let ((transform
+         (cl-transforms:matrix->transform
+          (make-array '(4 4) :displaced-to (vision_msgs-msg:pose-val
+                                            (jlo:partial-lo (jlo:frame-query
+                                                             (jlo:make-jlo :name reference-frame)
+                                                             jlo)))))))
+    (tf:make-pose-stamped
+     "/map" (roslisp:ros-time)
+     (cl-transforms:translation transform)
+     (cl-transforms:rotation transform))))
+
 (defun gaussian->jlo (name mean cov)
   (declare (type symbol name)
            (type cl-transforms:3d-vector
