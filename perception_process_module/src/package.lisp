@@ -29,6 +29,9 @@
 
 (in-package :cl-user)
 
+(desig:register-designator-properties
+ #:cluster #:type #:object)
+
 (defpackage perception-process-module
     (:documentation "The preception process module")
   (:nicknames :perception-pm)
@@ -50,10 +53,10 @@
    #:newest-valid-designator
    #:look-at #:look-long-at #:register-owl-type
    #:wait-for-shoulder-scan #:knowrob-pre-initialize-desig
-   #:cluster #:plate #:object
    ;; object-belief
    #:perceived-object #:queried-object #:object-properties
    #:object-pose #:perceived-object-probability #:object-desig
+   #:object-jlo
    #:object-timestamp #:*perceived-objects*
    #:clear-object-belief #:update-perceived-object
    #:perceived-objects-equal? #:compatible-properties
