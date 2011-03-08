@@ -71,7 +71,7 @@
             (object-properties po)
             `((at ,obj-loc-desig)))))
 
-(defun do-cop-search (desig query-info &key (command :localize))
+(defun do-cop-search (desig query-info &key (command :locate))
   (let ((cop-reply (cop-query query-info :command command)))
     (when (or (equal (vision_msgs-msg:error-val cop-reply) "")
               (equal (vision_msgs-msg:error-val cop-reply) "No Refinement Found!"))
