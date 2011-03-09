@@ -46,6 +46,7 @@
            (setf alternative-poses-cnt 0)
            (achieve `(arms-at ,(make-designator 'action `((type trajectory) (pose open) (side ,?side)))))
            (when (< (incf retry-count) 3)
+             (retract-occasion `(loc Robot ?_))
              (retry))))
       (ros-info (achieve plan-lib) "Calling perceive")
       (setf ?obj (perceive ?obj))
