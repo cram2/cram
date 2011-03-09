@@ -39,11 +39,11 @@
    executed (and finished) last. This is used for easy interactive access.")
 
 (defclass episode-knowledge ()
-  ((zero-time :accessor zero-time :initarg :zero-time :type (or nil timestamp)
+  ((zero-time :accessor zero-time :initarg :zero-time :type (or null timestamp)
               :documentation "Start time of episode.")
-   (end-time  :accessor end-time  :initarg :end-time :type (or nil timestamp)
+   (end-time  :accessor end-time  :initarg :end-time :type (or null timestamp)
               :documentation "End time of episode.")
-   (task-tree :initarg :task-tree :type task-tree-node)
+   (task-tree :initarg :task-tree :type (or null task-tree-node))
    (execution-trace :initarg :execution-trace :type hash-table
                     :documentation "Hash table with all traced instances
                     indexed by fluet name.")))
