@@ -73,6 +73,8 @@
 
 (defun do-cop-search (desig query-info &key (command :locate))
   (let ((cop-reply (cop-query query-info :command command)))
+    (ros-info (cop perception-process-module) "Cop reply: '~a'"
+              (vision_msgs-msg:error-val cop-reply))
     (when (or (equal (vision_msgs-msg:error-val cop-reply) "")
               (equal (vision_msgs-msg:error-val cop-reply) "No Refinement Found!"))
       (map 'list (lambda (found-pose)
@@ -207,6 +209,7 @@
         (setf (cop-desig-query-info-poses query-info)
               (list (object-jlo previous-object))))
       (let ((perceived-objects (or (when previous-object
+                                     (ros-info (cop perception-process-module) "Using previous object.")
                                      (list previous-object))
                                    (get-clusters desig))))
         (setf (cop-desig-query-info-poses query-info)
