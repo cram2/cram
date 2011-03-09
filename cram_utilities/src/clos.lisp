@@ -9,8 +9,8 @@
    `hook-combination' function gets every method result as a
    parameter."
   `(funcall ,hook-combination
-          ,@(loop for m in methods
-               collecting `(call-method ,m))))
+            ,@(loop for m in methods
+                    collecting `(call-method ,m))))
 
 (defmacro define-hook (fun-name lambda-list &body options)
   "Wrapper around DEFGENERIC. If `options' does not include a
