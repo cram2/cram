@@ -1,6 +1,7 @@
 <package>
   <description brief="yason">
-    A JASON parser for common lisp.
+YASON is a Common Lisp library for encoding and decoding data in the JSON (JavaScript Object Notation) interchange format.
+http://www.cliki.net/YASON
   </description>
   <author>Hans Hübner</author>
   <license>BSD</license>
