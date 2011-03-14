@@ -86,22 +86,22 @@
                                                (car (sort perceived-objects #'>
                                                           :key #'perceived-object-probability))
                                                parent-desig)))))
-      ;; Ok. No object found so far. We need to use our fallback
-      ;; solution.  It is like searching with a new designator, but we
-      ;; need to asure that the result is not bound to any other
-      ;; designator than ours. We first create a new desig with the same
-      ;; properties as ours, check for the result designator not
-      ;; having any other ancestor and then equating `desig' with the
-      ;; new one.
-      (let* ((tmp-desig (make-designator 'object (description parent-desig)))
-             (result (find-with-new-desig tmp-desig production-name))
-             (matching-result-desig (find-if (curry #'desig-equal parent-desig) result)))
-        (unless matching-result-desig
-          (when perceived-object
-            (setf (slot-value parent-desig 'data) nil)
-            (retract-desig-binding parent-desig perceived-object))
-          (fail 'object-not-found :object-desig parent-desig))
-        matching-result-desig))))
+     ;; Ok. No object found so far. We need to use our fallback
+     ;; solution.  It is like searching with a new designator, but we
+     ;; need to asure that the result is not bound to any other
+     ;; designator than ours. We first create a new desig with the same
+     ;; properties as ours, check for the result designator not
+     ;; having any other ancestor and then equating `desig' with the
+     ;; new one.
+     (let* ((tmp-desig (make-designator 'object (description parent-desig)))
+            (result (find-with-new-desig tmp-desig production-name))
+            (matching-result-desig (find-if (curry #'desig-equal parent-desig) result)))
+       (unless matching-result-desig
+         (when perceived-object
+           (setf (slot-value parent-desig 'data) nil)
+           (retract-desig-binding parent-desig perceived-object))
+         (fail 'object-not-found :object-desig parent-desig))
+       matching-result-desig))))
 
 (defun find-with-new-desig (desig production-name)
   "Takes a parent-less designator. A search is performed a new
