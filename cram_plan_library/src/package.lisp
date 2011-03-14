@@ -59,9 +59,10 @@
            #:stop-process-modules
            ;; rete and occasions
            #:object-picked-up
-           #:object-in-hand-failure))
+           #:object-in-hand-failure
+           #:object-not-found-failure))
 
 (desig:register-designator-properties
  #:to #:see #:obj #:of #:reach :type #:trajectory #:pose #:open #:side
  #:grasp #:lift #:carry :reach #:location #:at #:parked #:pose #:close
- #:gripper #:follow #:pick-up #:put-down)
+ #:gripper #:follow #:pick-up #:put-down #:height #:orientation #:in)

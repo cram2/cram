@@ -62,7 +62,7 @@
           (let ((obj-loc-retry-cnt 0))
             (with-failure-handling
                 ((object-not-found (e)
-                   (declare (ignore e))
+                   (assert-occasion `(object-not-found-failure ,e))
                    (ros-warn (perceive plan-lib) "Object not found failure.")
                    (when (< obj-loc-retry-cnt 3)
                      (incf obj-loc-retry-cnt)

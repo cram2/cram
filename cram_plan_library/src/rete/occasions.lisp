@@ -38,6 +38,9 @@
 (crs:def-production object-placed-at
   (object-placed-at ?obj ?loc))
 
+(crs:def-production object-not-found-failure
+  (object-not-found-failure ?f))
+
 (defun on-obj-in-hand-retractions (op &key ?obj ?side)
   (declare (ignore ?side))
   (when (eql op :assert)
