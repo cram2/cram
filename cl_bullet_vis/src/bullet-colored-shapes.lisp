@@ -47,6 +47,9 @@
                (shape-color shape)))
     (call-next-method)))
 
+(defmethod collision-shape-color ((shape colored-shape-mixin))
+  (shape-color shape))
+
 (defclass colored-box-shape (box-shape colored-shape-mixin) ())
 (defclass colored-static-plane-shape (static-plane-shape colored-shape-mixin) ())
 (defclass colored-sphere-shape (sphere-shape colored-shape-mixin) ())
