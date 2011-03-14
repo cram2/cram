@@ -167,7 +167,10 @@
           (:translate
              (setf camera-transform (cl-transforms:transform* camera-transform
                                                               (cl-transforms:make-transform
-                                                               (cl-transforms:make-3d-vector 0 (* dx 10) (* dy 10))
+                                                               (cl-transforms:make-3d-vector
+                                                                0
+                                                                (float (* dx 10))
+                                                                (float (* dy 10)))
                                                                (cl-transforms:make-quaternion 0 0 0 1)))))))))
   (glut:post-redisplay))
 
