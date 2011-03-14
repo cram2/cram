@@ -92,13 +92,16 @@
                                                              `(at ,at))))))
       (execute-object-search-function clusters))))
 
-(defun pre-process-perceived-objects (desig objects)
-  (declare (ignore desig))  
-  ;; The intention for this function is to pre-sort clusters before
-  ;; searching for objects. That means using classification according
-  ;; to desig (the most probable cluster/object matching desig should
-  ;; come first)
-  objects)
+(defun make-search-space (desig perceived-object)
+  (let* ((pose (reference (desig-prop-value desig 'at)))
+         (jlo (object-jlo perceived-object)))
+    (cond (pose
+           (let ((pose-jlo (pose->jlo pose)))
+             (setf (jlo:cov pose-jlo 0 0) 0.02)
+             (setf (jlo:cov pose-jlo 1 1) 0.02)
+             (setf (jlo:cov pose-jlo 2 2) 0.02)
+             (jlo:frame-query jlo pose-jlo)))
+          (t jlo))))
 
 (defmethod object-search-function ((type (cl:eql 'cluster)) desig &optional perceived-object)
   (let ((query-info (cop-desig-info-query (resolve-object-desig desig :cop))))
@@ -106,7 +109,7 @@
            (setf (cop-desig-query-info-object-ids query-info)
                  (list (object-id perceived-object)))
            (setf (cop-desig-query-info-poses query-info)
-                 (list (object-jlo perceived-object)))
+                 (list (make-search-space desig perceived-object)))
            (setf (cop-desig-query-info-object-classes query-info) nil)
            (setf (cop-desig-query-info-matches query-info) 1))
           (t
