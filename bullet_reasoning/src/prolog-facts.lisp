@@ -153,16 +153,21 @@
   (<- (poses-equal ?pose-1 ?pose-2 (?dist-sigma ?ang-sigma))
     (lisp-pred poses-equal-p ?pose-1 ?pose-2 ?dist-sigma ?ang-sigma))
 
-  (<- (poses-on ?bottom ?top ?poses)
+  (<- (random-poses-on ?bottom ?top ?poses)
     (ground (?bottom ?top))
     (not (bound ?poses))
-    (generate ?poses (pose-on ?bottom ?top)))
+    (generate ?poses (random-poses-on ?bottom ?top)))
 
-  (<- (poses-on ?n ?bottom ?top ?poses)
+  (<- (random-poses-on ?n ?bottom ?top ?poses)
     (ground (?bottom ?top))
     (not (bound ?poses))
-    (generate ?tmp (pose-on ?bottom ?top))
-    (take ?n ?tmp ?poses)))
+    (generate ?tmp (random-poses-on ?bottom ?top))
+    (take ?n ?tmp ?poses))
+
+  (<- (n-poses-on ?n ?bottom ?top ?poses)
+    (ground (?bottom ?top ?n))
+    (not (bound ?poses))
+    (generate ?poses (n-poses-on ?bottom ?top ?n))))
 
 (def-fact-group robot-model ()
 
