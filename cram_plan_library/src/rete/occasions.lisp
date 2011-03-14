@@ -48,12 +48,26 @@
 
 (defun on-obj-put-down (op &key ?obj ?loc)
   (when (eql op :assert)
-    (let ((side (var-value '?side (car (holds `(object-in-hand ?obj ?side))))))
+    (let* ((side (var-value '?side (car (holds `(object-in-hand ?obj ?side)))))
+           (loc-in-hand (desig-prop-value ?obj 'at))
+           (height (if loc-in-hand
+                       (desig-prop-value loc-in-hand 'height)
+                       0.0))
+           (loc-value (reference ?loc))
+           (new-loc (make-designator
+                     'location
+                     `((pose ,(tf:make-pose-stamped
+                               (tf:frame-id loc-value) (tf:stamp loc-value)
+                               (cl-transforms:v+
+                                (cl-transforms:origin loc-value)
+                                (cl-transforms:make-3d-vector 0 0 height))
+                               (cl-transforms:orientation loc-value))))
+                     ?loc)))
       (retract-occasion `(object-in-hand ?obj ,side))
       (make-designator
        'object
        (append (remove 'at (description ?obj) :key #'car)
-               `((at ,?loc)))
+               `((at ,new-loc)))
        ?obj))))
 
 (crs:register-production-handler 'object-picked-up #'on-obj-in-hand-retractions)
