@@ -210,7 +210,7 @@
     (member (?obj-1 ?obj-2) ?contacts))
 
   (<- (stable ?world ?obj)
-    (bound ?obj)
+    (object ?world ?_ ?obj)
     (pose ?obj ?pose-1)
     (with-stored-world ?world
       (simulate ?world 0.5)
