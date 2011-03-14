@@ -197,31 +197,23 @@
   ;; The default behavior is the following: If no perceived-object is
   ;; passed, first search for clusters and use the result for finding
   ;; the object. Otherwise, use `perceived-object' for it.
-  (flet ((set-perceived-object-pose (query-info pose)
+  (labels ((set-perceived-object-pose (query-info pose)
            (let ((result (copy-cop-desig-query-info query-info)))
              (setf (cop-desig-query-info-poses result)
                    (list pose))
-             result)))
-    (let ((query-info (cop-desig-info-query (resolve-object-desig desig :cop))))
-      ;; When iterating over clusters, we want to find only one
-      ;; object.
-      (setf (cop-desig-query-info-matches query-info) 1)
-      (when (and previous-object (has-cop-info previous-object))
-        (setf (cop-desig-query-info-object-ids query-info)
-              (list (object-id previous-object)))
-        (setf (cop-desig-query-info-poses query-info)
-              (list (object-jlo previous-object))))
-      (let ((perceived-objects (or (when previous-object
-                                     (ros-info (cop perception-process-module) "Using previous object.")
-                                     (list previous-object))
-                                   (get-clusters desig))))
-        (setf (cop-desig-query-info-poses query-info)
-              (mapcar #'object-jlo
-                      (pre-process-perceived-objects desig perceived-objects)))
-        (mapcan (alexandria:compose (alexandria:curry #'do-cop-search desig)
-                                    (alexandria:curry #'set-perceived-object-pose query-info)
-                                    #'object-jlo)
-                perceived-objects)))))
+             result))
+         (search-object (search-space &optional object-ids)
+           (let ((query-info (cop-desig-info-query (resolve-object-desig desig :cop))))
+             (when object-ids
+               (setf (cop-desig-query-info-object-ids query-info)
+                     object-ids))
+             (mapcan (alexandria:compose (alexandria:curry #'do-cop-search desig)
+                                         (alexandria:curry #'set-perceived-object-pose query-info))
+                     search-space))))
+    (or (when previous-object
+          (search-object (list (make-search-space desig previous-object))
+                         (list (object-id previous-object))))
+        (search-object (mapcar #'object-jlo (get-clusters desig))))))
 
 
 ;;; We get replies of the form:
