@@ -42,7 +42,14 @@
       (lazy-list ()
         (cont (+ lower-bound (random (- upper-bound lower-bound)))))))
 
-(defun points-in-sphere (radius)
+(defun number-sequence (lower-bound upper-bound)
+  "Returns the sequence of integers from `lower-bound' to
+  `upper-bound', excluding `upper-bound'"
+  (lazy-list ((i lower-bound))
+    (when (< i upper-bound)
+      (cont i (+ i 1)))))
+
+(defun random-points-in-sphere (radius)
   (lazy-mapcar
    (lambda (radius angle angle-2)
      (cl-transforms:make-3d-vector
@@ -53,8 +60,8 @@
    (random-number-sequence 0 (* pi 2))
    (random-number-sequence 0 (* pi 2))))
 
-(defun points-on-circle (radius)
-  "Randomly generates points on a circle with `radius' that lies on
+(defun random-points-on-circle (radius)
+  "Randomly generates random points on a circle with `radius' that lies on
 the x-y plane."
   (lazy-mapcar
    (lambda (radius angle)
@@ -65,7 +72,7 @@ the x-y plane."
    (random-number-sequence 0 (float radius))
    (random-number-sequence 0 (* pi 2))))
 
-(defun points-in-box (dimensions)
+(defun random-points-in-box (dimensions)
   "Randomly generates points in a box of the size `dimensions'"
   (let ((dimensions (ensure-vector dimensions)))
     (lazy-mapcar
@@ -77,7 +84,31 @@ the x-y plane."
      (random-number-sequence (/ (cl-transforms:z dimensions) -2)
                              (/ (cl-transforms:z dimensions) 2)))))
 
-(defun points-along-line (start-point step &optional max-distance)
+(defun points-in-box (dimensions n-x n-y n-z)
+  "Generates the sequence of points inside the box described by
+  `dimensions'. The number of points along the x-axis is `n-x', along
+  the y-axis `n-y' and along the z-axis `n-z'."
+  (let* ((dimensions (ensure-vector dimensions))
+         (step-x (/ (cl-transforms:x dimensions) n-x))
+         (step-y (/ (cl-transforms:y dimensions) n-y))
+         (step-z (/ (cl-transforms:z dimensions) n-z)))
+    (lazy-mapcar
+     (curry #'apply #'cl-transforms:make-3d-vector)
+     (lazy-cross-product
+      (lazy-mapcar
+       (curry #'* step-x)
+       (number-sequence (/ n-x -2)
+                        (+ 1.0 (/ n-x 2))))
+      (lazy-mapcar
+       (curry #'* step-y)
+       (number-sequence (/ n-y  -2)
+                        (+ 1.0 (/ n-y 2))))
+      (lazy-mapcar
+       (curry #'* step-z)
+       (number-sequence (/ n-z -2)
+                        (+ 1.0 (/ n-z 2))))))))
+
+(defun random-points-along-line (start-point step &optional max-distance)
   "Generates a sequence of points along the line starting at
 `start-point'"
   (let ((start-point (ensure-vector start-point))
@@ -92,7 +123,7 @@ the x-y plane."
         (lazy-list ((curr start-point))
           (cont curr (cl-transforms:v+ curr step))))))
 
-(defun points-on-line (start-point direction max-distance)
+(defun random-points-on-line (start-point direction max-distance)
   "Randomly samples points on the line given by the vectors
 `startp-point' and `direction'. Only points between (START-POINT -
 MAX-DISTANCE * DIRECTION) and (START-POINT + MAX-DISTANCE * DIRECTION)
@@ -108,7 +139,18 @@ are generated"
                       (cl-transforms:v* direction-normalized n)))
                    (random-number-sequence (- max-distance) max-distance)))))
 
-(defun pose-on (bottom top)
+(defun random-poses-on (bottom top)
+  (poses-on bottom top #'random-points-in-box))
+
+(defun n-poses-on (bottom top n)
+  (let ((n-x (sqrt n))
+        (n-y (sqrt n)))
+    (poses-on bottom top (rcurry #'points-in-box n-x n-y 1))))
+
+(defun poses-on (bottom top &optional (generator #'random-points-in-box))
+  "Returns a sequence of points on the object `bottom'. This function
+only takes into account the bounding box and fixes the z-value such
+that the bounding boxes of `bottom' and `top' are alligned."
   (let* ((aabb-bottom (aabb bottom))
          (aabb-top (aabb top))
          (ref (cl-transforms:v+
@@ -124,7 +166,8 @@ are generated"
               (curry #'cl-transforms:v+ ref))
      (cons
       ref
-      (points-in-box
+      (funcall
+       generator
        (cl-transforms:make-3d-vector
         (cl-transforms:x (bounding-box-dimensions aabb-bottom))
         (cl-transforms:y (bounding-box-dimensions aabb-bottom))
