@@ -52,6 +52,9 @@
   (:documentation "Merges the description of `old-desig' with the
   properties of `perceived-object'"))
 
+(defgeneric object-distance (obj-1 obj-2)
+  (:documentation "Returns the distance between two objects."))
+
 (defclass perceived-object ()
   ((pose :accessor object-pose :initarg :pose)
    (probability :accessor perceived-object-probability :initarg :probability)
@@ -181,3 +184,24 @@
           ;; TODO: Use some customizable constant here
           (when (< dist 0.5)
             (cons obj 1)))))))
+
+(defmethod designator-pose ((desig object-designator))
+  (object-pose (reference desig)))
+
+(defmethod designator-distance ((desig-1 designator) (desig-2 designator))
+  (object-distance (reference desig-1) (reference desig-2)))
+
+(defmethod object-distance ((obj-1 t) (obj-2 t))
+  (cl-transforms:v-dist
+   (cl-transforms:origin (object-pose obj-1))
+   (cl-transforms:origin (object-pose obj-1))))
+
+(defmethod object-distance ((obj-1 t) (obj-2 cl-transforms:pose))
+  (cl-transforms:v-dist
+   (cl-transforms:origin (object-pose obj-1))
+   (cl-transforms:origin obj-2)))
+
+(defmethod object-distance ((obj-1 cl-transforms:pose) (obj-2 t))
+  (cl-transforms:v-dist
+   (cl-transforms:origin obj-1)
+   (cl-transforms:origin (object-pose obj-2))))
