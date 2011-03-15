@@ -102,3 +102,15 @@
              ((is-var ?o)
               (cl-transforms:make-quaternion 0 0 0 1))
              (t ?o))))))
+
+;;; We need to place these methods here because in the designator
+;;; package, we don't have a notion of poses, just more or less
+;;; abstract interfaces
+
+(defmethod designator-pose ((desig location-designator))
+  (reference desig))
+
+(defmethod designator-distance ((desig-1 location-designator) (desig-2 location-designator))
+  (cl-transforms:v-dist
+   (cl-transforms:origin (reference desig-1))
+   (cl-transforms:origin (reference desig-2))))
