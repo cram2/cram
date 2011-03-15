@@ -63,6 +63,8 @@
            #:desig-loc #:loc-desig? #:obj-desig-location
            #:loc-desig-location
            #:register-designator-properties
+           #:designator-pose
+           #:designator-distance
            ;; Properties
            #:obj #:location
            #:pose #:of #:at #:inside
