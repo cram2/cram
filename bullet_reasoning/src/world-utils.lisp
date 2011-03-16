@@ -67,11 +67,8 @@
 (defun find-all-contacts (world)
   (let ((objects (objects world)))
     (remove-duplicates
-     (remove-if
-      ;; remove self-collisions and nils
-      (lambda (c)
-        (or (null c)
-            (eql (first c) (second c))))
+     (remove-if-not
+      #'identity
       (mapcar (lambda (contact)
                 (when (> (array-dimension (contact-points contact) 0)
                          0)
@@ -87,10 +84,8 @@
 (defun find-objects-in-contact (world obj)
   (let ((objects (objects world)))
     (remove-duplicates
-     (remove-if
-      (lambda (c)
-        (or (null c)
-            (eql c obj)))
+     (remove-if-not
+      #'identity
       (mapcar (lambda (contact)
                 (when (> (array-dimension (contact-points contact) 0)
                          0)
