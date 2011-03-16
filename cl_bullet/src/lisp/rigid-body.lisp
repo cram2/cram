@@ -58,7 +58,11 @@
    (collision-shape :reader collision-shape :initarg :collision-shape
                     :initform (error
                                'simple-error
-                               :format-control "collision-shape argument required"))))
+                               :format-control "collision-shape argument required"))
+   (collision-group :initarg :group :initform :default-filter
+                    :reader collision-group)
+   (collision-mask :initarg :mask :initform :all-filter
+                   :reader collision-mask)))
 
 (defmethod pose ((body rigid-body))
   (pose (motion-state body)))
