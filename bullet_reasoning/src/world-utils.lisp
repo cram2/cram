@@ -52,22 +52,26 @@
 
 (defun contact-p (world obj-1 obj-2)
   "Returns T if obj-1 and obj-2 are in contact"
-  (find-if (lambda (contact)
-             (when (and
-                    (> (array-dimension (contact-points contact) 0)
-                       0)
-                    (or (and (rigid-body obj-1 (name (body-1 contact)))
-                             (rigid-body obj-2 (name (body-2 contact))))
-                        (and (rigid-body obj-2 (name (body-1 contact)))
-                             (rigid-body obj-1 (name (body-2 contact))))))
-               t))
-           (contact-manifolds world)))
+  (unless (eql obj-1 obj-2)
+    (find-if (lambda (contact)
+               (when (and
+                      (> (array-dimension (contact-points contact) 0)
+                         0)
+                      (or (and (rigid-body obj-1 (name (body-1 contact)))
+                               (rigid-body obj-2 (name (body-2 contact))))
+                          (and (rigid-body obj-2 (name (body-1 contact)))
+                               (rigid-body obj-1 (name (body-2 contact))))))
+                 t))
+             (contact-manifolds world))))
 
 (defun find-all-contacts (world)
   (let ((objects (objects world)))
     (remove-duplicates
-     (remove-if-not
-      #'identity
+     (remove-if
+      ;; remove self-collisions and nils
+      (lambda (c)
+        (or (null c)
+            (eql (first c) (second c))))
       (mapcar (lambda (contact)
                 (when (> (array-dimension (contact-points contact) 0)
                          0)
@@ -83,8 +87,10 @@
 (defun find-objects-in-contact (world obj)
   (let ((objects (objects world)))
     (remove-duplicates
-     (remove-if-not
-      #'identity
+     (remove-if
+      (lambda (c)
+        (or (null c)
+            (eql c obj)))
       (mapcar (lambda (contact)
                 (when (> (array-dimension (contact-points contact) 0)
                          0)
