@@ -67,6 +67,7 @@
    angular-velocity
    rigid-body
    mass name
+   collision-group collision-mask
    collision-shape
    aabb
    ;; motion states

@@ -33,7 +33,7 @@
 (defgeneric gravity-vector (world))
 (defgeneric (setf gravity-vector) (new-value world))
 (defgeneric step-simulation (world time-step))
-(defgeneric add-rigid-body (world body &optional group mask))
+(defgeneric add-rigid-body (world body))
 (defgeneric remove-rigid-body (world body))
 (defgeneric bodies (world))
 (defgeneric add-constraint (world constraint &optional disable-collision))
@@ -76,15 +76,14 @@
     (setf (slot-value world 'contact-manifolds) nil)
     (cffi-step-simulation (foreign-obj world) (coerce time-step 'double-float))))
 
-(defmethod add-rigid-body ((world bt-world) (body rigid-body) &optional group mask)
+(defmethod add-rigid-body ((world bt-world) (body rigid-body))
   (with-world-locked world
     (with-slots (bodies foreign-obj) world
       (push body bodies)
-      (if mask
-          (cffi-add-rigid-body-with-mask
-           foreign-obj (foreign-obj body) group mask)
-          (cffi-add-rigid-body
-           foreign-obj (foreign-obj body))))))
+      (cffi-add-rigid-body-with-mask
+       foreign-obj (foreign-obj body)
+       (collision-group body)
+       (collision-mask body)))))
 
 (defmethod remove-rigid-body ((world bt-world) body)
   (with-world-locked world

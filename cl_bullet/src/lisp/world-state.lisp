@@ -54,7 +54,9 @@
    (angular-velocity :initarg :angular-velocity :reader angular-velocity)
    (activation-state :initarg :activation-state :reader activation-state)
    (collision-flags :initarg :collision-flags :reader collision-flags)
-   (collision-shape :initarg :collision-shape :reader collision-shape)))
+   (collision-shape :initarg :collision-shape :reader collision-shape)
+   (collision-group :initarg :collision-group :reader collision-group)
+   (collision-mask :initarg :collision-mask :reader collision-mask)))
 
 (defclass constraint-state ()
   ((body-1 :initarg :body-1 :reader body-1)
@@ -95,7 +97,9 @@
                  :angular-velocity (angular-velocity body)
                  :activation-state (activation-state body)
                  :collision-flags (collision-flags body)
-                 :collision-shape (get-state (collision-shape body))))
+                 :collision-shape (get-state (collision-shape body))
+                 :collision-group (collision-group body)
+                 :collision-mask (collision-mask body)))
 
 (defmethod get-state ((constraint point-2-point-constraint))
   (make-instance 'point-2-point-constraint-state
@@ -172,7 +176,9 @@ world."
                force torque
                linear-velocity angular-velocity
                activation-state collision-flags
-               collision-shape)
+               collision-shape
+               collision-group
+               collision-mask)
       body
     (let ((body
            (make-instance 'rigid-body
@@ -181,7 +187,9 @@ world."
                           :mass mass
                           :collision-shape collision-shape
                           :activation-state activation-state
-                          :collision-flags collision-flags)))
+                          :collision-flags collision-flags
+                          :group collision-group
+                          :mask collision-mask)))
       (add-rigid-body world body)
       (clear-forces body)
       (apply-central-force body force)
