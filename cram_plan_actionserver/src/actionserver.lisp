@@ -43,7 +43,8 @@
                                         (handler-case
                                             (setf result
                                                   (apply (symbol-function plan-symbol)
-                                                         (let ((*read-eval* nil))
+                                                         (let ((*read-eval* nil)
+                                                               (*package* (symbol-package plan-symbol)))
                                                            (map 'list #'read-from-string parameters))))
                                           (condition (e)
                                             (setf result e))))))
@@ -94,6 +95,6 @@
          (register-service-fn "~list_plans" #'plan-list 'cram_plan_actionserver-srv:planlist)
          (maybe-setup-tracing)
          (actionlib:start-action-server
-          "~execute_plan" "cram_plan_actionserver/ExecutePlan"
+          "~execute_plan" "cram_plan_actionserver/ExecutePlanAction"
           #'cram-actionserver-execute))
     (shutdown-ros)))
