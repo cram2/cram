@@ -34,6 +34,13 @@
                                         (cl-transforms:make-3d-vector 0 0 0.15)
                                         (cl-transforms:make-quaternion 0 0 0 1)))
                            side)
+  (lazy-car (reach-object-ik robot obj :tool-frame tool-frame :side side)))
+
+(defun reach-object-ik (robot obj &key
+                        (tool-frame (cl-transforms:make-pose
+                                     (cl-transforms:make-3d-vector 0 0 0.15)
+                                     (cl-transforms:make-quaternion 0 0 0 1)))
+                        side)
   (let ((obj-trans-in-robot (cl-transforms:transform*
                              (cl-transforms:transform-inv
                               (cl-transforms:reference-transform
