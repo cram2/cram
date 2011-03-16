@@ -227,7 +227,8 @@
     (poses-equal ?pose-1 ?pose-2 (0.01 0.03)))
 
   (<- (supported-by ?world ?top ?bottom)
-    (ground (?top ?bottom))
+    (object ?world ?tn ?top)
+    (object ?world ?bn ?bottom)
     (above ?top ?bottom)
     (contact ?world ?top ?bottom)
     (stable ?world ?top)))
