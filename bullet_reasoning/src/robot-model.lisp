@@ -124,9 +124,7 @@
                            :world world
                            :pose-reference-body (cl-urdf:name (cl-urdf:root-link urdf-model))
                            :name name
-                           :urdf urdf-model
-                           :group :character-filter
-                           :mask '(:default-filter :static-filter))))
+                           :urdf urdf-model)))
       (loop for (name . body) in bodies do
             (setf (gethash name (slot-value object 'links))
                   body))
