@@ -82,7 +82,7 @@
                           :key #'name
                           :test #'equal))))))))
 
-(defun make-object (world name &optional bodies (add-to-world t) group mask)
+(defun make-object (world name &optional bodies (add-to-world t) (group :default-filter) (mask :all-filter))
   (make-instance 'object
                  :name name
                  :world world
@@ -94,7 +94,9 @@
 (defmethod initialize-instance :after ((object object) &key
                                        world rigid-bodies
                                        pose-reference-body
-                                       (add t) group mask)
+                                       (add t)
+                                       (group :default-filter)
+                                       (mask :all-filter))
   (when rigid-bodies
     (unless pose-reference-body
       (setf (slot-value object 'pose-reference-body) (name (car rigid-bodies))))
