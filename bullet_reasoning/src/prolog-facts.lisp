@@ -54,7 +54,6 @@
     (lisp-fun object ?world ?name ?obj))
 
   (<- (object ?world ?name ?obj)
-    (not (bound ?name))
     (bound ?obj)
     (bullet-world ?world ?obj)
     (lisp-fun name ?obj ?name))
@@ -285,18 +284,12 @@
 
 (def-fact-group reachability ()
   (<- (reachable ?w ?robot ?obj)
-    (ground (?w ?robot ?obj))
-    (-> (reachable ?w ?robot ?obj :right)
-        (true)
-        (reachable ?w ?robot ?obj :left)))
+    (once (reachable ?w ?robot ?obj ?_)))
 
-  (<- (reachable ?w ?robot ?obj :right)
+  (<- (reachable ?w ?robot ?obj ?side)
     (ground (?w ?robot ?obj))
-    (lisp-pred object-reachable-p ?robot ?obj :side :right))
-
-  (<- (reachable ?w ?robot ?obj :left)
-    (ground (?w ?robot ?obj))
-    (lisp-pred object-reachable-p ?robot ?obj :side :left)))
+    (member ?side (:left :right))
+    (lisp-pred object-reachable-p ?robot ?obj :side ?side)))
 
 (def-fact-group debug ()
   (<- (debug-window ?world)
