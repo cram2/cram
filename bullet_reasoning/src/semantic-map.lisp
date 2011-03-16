@@ -101,6 +101,7 @@
                                     'rigid-body
                                     :name (make-rigid-body-name name (name obj))
                                     :pose (pose obj)
+                                    :group :static-filter
                                     :collision-shape (make-instance
                                                       'box-shape
                                                       :half-extents (cl-transforms:v*
