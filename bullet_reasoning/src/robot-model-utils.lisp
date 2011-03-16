@@ -180,7 +180,7 @@ joint positions as seeds."
                         (weights-ts '(1 1 1 1 1 1))
                         (weights-js nil)
                         (lambda 0.1)
-                        (max-seeds 20))
+                        (max-seeds 30))
   "Calls the 'get_weighted_ik' service in `ik-namespace'. It
 transforms `pose-stamped' into `ik-base-link' by using `fixed-frame'
 as reference for building up a TF tree. `weight-ts' specifies the
@@ -210,26 +210,21 @@ the IK service."
                           (roslisp:call-service
                            (concatenate 'string ik-namespace "/get_ik_solver_info")
                            'kinematics_msgs-srv:getkinematicsolverinfo)))))
-      (block nil
-        (force-ll
-         (lazy-take
-          max-seeds
-          (lazy-mapcar (lambda (seed)
-                         (roslisp:with-fields ((solution solution)
-                                               (error-code (val error_code)))
-                             (roslisp:call-service
-                              (concatenate 'string ik-namespace "/get_weighted_ik")
-                              'kdl_arm_kinematics-srv:getweightedik
-                              :pose (tf:pose-stamped->msg pose)
-                              :tool_frame (tf:pose->msg tool-frame)
-                              :ik_seed seed
-                              :weights (make-kdl-weights
-                                        (diagonal->matrix weights-ts)
-                                        (make-js-weights joint-names weights-js)
-                                        lambda))
-                           (when (eql error-code (roslisp-msg-protocol:symbol-code
+      (lazy-mapcan (lambda (seed)
+                     (roslisp:with-fields ((solution solution)
+                                           (error-code (val error_code)))
+                         (roslisp:call-service
+                          (concatenate 'string ik-namespace "/get_weighted_ik")
+                          'kdl_arm_kinematics-srv:getweightedik
+                          :pose (tf:pose-stamped->msg pose)
+                          :tool_frame (tf:pose->msg tool-frame)
+                          :ik_seed seed
+                          :weights (make-kdl-weights
+                                    (diagonal->matrix weights-ts)
+                                    (make-js-weights joint-names weights-js)
+                                    lambda))
+                       (or (when (eql error-code (roslisp-msg-protocol:symbol-code
                                                   'motion_planning_msgs-msg:ArmNavigationErrorCodes
                                                   :success))
-                             (return solution))))
-                       (make-seed-states robot joint-names 4))))
-        nil))))
+                             (list solution)))))
+                   (lazy-take max-seeds (make-seed-states robot joint-names 4))))))
