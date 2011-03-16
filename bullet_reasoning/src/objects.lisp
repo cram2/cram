@@ -163,6 +163,7 @@
                   (make-instance
                    'rigid-body
                    :name name :pose (ensure-pose pose)
+                   :group :static-filter
                    :collision-shape (make-instance
                                      'textured-static-plane-shape
                                      :normal (cl-transforms:make-3d-vector

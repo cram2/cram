@@ -109,7 +109,9 @@
                            :collision-shape (urdf-make-collision-shape
                                              (cl-urdf:geometry collision-elem)
                                              (cl-urdf:color (cl-urdf:material (cl-urdf:visual link))))
-                           :collision-flags '(:cf-default)))
+                           :collision-flags :cf-default
+                           :group :character-filter
+                           :mask '(:default-filter :static-filter)))
                          bodies)
                    bodies))))
     (let* ((urdf-model (etypecase urdf
