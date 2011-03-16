@@ -47,6 +47,7 @@
   (:cf-disable-visualize-object 32))
 
 (defbitfield (collision-filters :ushort)
+  (:no-filter        #x0000)
   (:default-filter   #x0001)
   (:static-filter    #x0002)
   (:kinematic-filter #x0004)
