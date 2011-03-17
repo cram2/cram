@@ -106,8 +106,8 @@
   (declare (ignore bdgs))
   nil)
 
-(def-prolog-handler once (bdgs pattern)
-  (let ((result (prolog pattern bdgs)))
+(def-prolog-handler once (bdgs &rest pattern)
+  (let ((result (prolog `(and ,@pattern) bdgs)))
     (when result
       (list (lazy-car result)))))
 
