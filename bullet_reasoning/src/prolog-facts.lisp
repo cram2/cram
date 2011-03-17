@@ -284,13 +284,21 @@
     (member ?occluding-obj ?objs)))
 
 (def-fact-group reachability ()
+  (<- (grasp :top))
+  (<- (grasp :side))  
+
+  (<- (side :right))
+  (<- (side :left))
+
   (<- (reachable ?w ?robot ?obj)
     (once (reachable ?w ?robot ?obj ?_)))
 
   (<- (reachable ?w ?robot ?obj ?side)
     (ground (?w ?robot ?obj))
-    (member ?side (:left :right))
-    (lisp-pred object-reachable-p ?robot ?obj :side ?side)))
+    (side ?side)
+    (once
+     (grasp ?g)
+     (lisp-pred object-reachable-p ?robot ?obj :side ?side :grasp ?g))))
 
 (def-fact-group debug ()
   (<- (debug-window ?world)
