@@ -71,6 +71,7 @@
            #:findall
            #:forall
            #:bagof
+           #:setof
            #:filter-bindings
            #:query-var
            #:symbol-value
