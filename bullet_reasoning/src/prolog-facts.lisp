@@ -298,7 +298,37 @@
     (side ?side)
     (once
      (grasp ?g)
-     (lisp-pred object-reachable-p ?robot ?obj :side ?side :grasp ?g))))
+     (lisp-pred object-reachable-p ?robot ?obj :side ?side :grasp ?g)))
+
+  (<- (blocking ?w ?robot ?obj ?objs)
+    (blocking ?w ?robot ?obj ?side ?objs))
+
+  (<- (blocking ?w ?robot ?obj ?side ?objs)
+    (ground (?w ?robot))
+    (object ?w ?_ ?obj)
+    (side ?side)
+    (-> (setof
+         ?o
+         (and
+          (grasp ?grasp)
+          ;; We don't want to have the supporting object as a blocking
+          ;; object.
+          (supported-by ?w ?obj ?supporting)
+          ;; Generate all ik solutions
+          (lisp-fun reach-object-ik ?robot ?obj :side ?side :grasp ?grasp ?ik-solutions)
+          (member ?ik-solution ?ik-solutions)
+          (ik-solution-in-collision ?w ?robot ?ik-solution ?colliding-objects)
+          (member ?o ?colliding-objects)
+          (not (== ?o ?obj))
+          (not (== ?o ?supporting)))
+         ?objs)
+        (true)
+        (== ?objs ())))
+  
+  (<- (ik-solution-in-collision ?w ?robot ?ik-solution ?colliding-objects)
+    (with-stored-world ?w
+      (lisp-fun set-robot-state-from-joints ?ik-solution ?robot ?_)
+      (findall ?obj (contact ?w ?robot ?obj) ?colliding-objects))))
 
 (def-fact-group debug ()
   (<- (debug-window ?world)
