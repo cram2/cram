@@ -29,18 +29,27 @@
 
 (in-package :bullet-reasoning)
 
+(defparameter *grasps* `((:top . ,(cl-transforms:euler->quaternion :ay (/ pi -2)))
+                         (:left . ,(cl-transforms:euler->quaternion :az (/ pi 2)))
+                         (:right . ,(cl-transforms:euler->quaternion :az (/ pi -2)))))
+
+(defun get-grasp (grasp side)
+  (ecase grasp
+    (:top (cdr (assoc :top *grasps*)))
+    (:side (cdr (assoc side *grasps*)))))
+
 (defun object-reachable-p (robot obj &key
+                           side (grasp :top)
                            (tool-frame (cl-transforms:make-pose
-                                        (cl-transforms:make-3d-vector 0 0 0.15)
-                                        (cl-transforms:make-quaternion 0 0 0 1)))
-                           side)
-  (lazy-car (reach-object-ik robot obj :tool-frame tool-frame :side side)))
+                                        (cl-transforms:make-3d-vector 0.20 0.0 0.0)
+                                        (get-grasp grasp side))))
+  (lazy-car (reach-object-ik robot obj :tool-frame tool-frame :side side :grasp grasp)))
 
 (defun reach-object-ik (robot obj &key
+                        side (grasp :top)
                         (tool-frame (cl-transforms:make-pose
-                                     (cl-transforms:make-3d-vector 0 0 0.15)
-                                     (cl-transforms:make-quaternion 0 0 0 1)))
-                        side)
+                                     (cl-transforms:make-3d-vector 0.20 0.0 0.0)
+                                     (get-grasp grasp side))))
   (let ((obj-trans-in-robot (cl-transforms:transform*
                              (cl-transforms:transform-inv
                               (cl-transforms:reference-transform
@@ -52,11 +61,11 @@
      robot (tf:make-pose-stamped
             reference-frame 0.0
             (cl-transforms:translation obj-trans-in-robot)
-            (cl-transforms:rotation obj-trans-in-robot))
+            (cl-transforms:make-quaternion 0 0 0 1))
      :ik-namespace (ecase side
                      (:right "r_arm_ik")
                      (:left "l_arm_ik"))
      :tool-frame tool-frame
      :ik-base-link reference-frame
      :fixed-frame reference-frame
-     :weights-ts '(1 1 1 0.01 0.01 0.01))))
+     :weights-ts '(10 10 10 0.1 0.1 0.1))))
