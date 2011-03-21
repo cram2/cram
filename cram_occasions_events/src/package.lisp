@@ -44,7 +44,7 @@
            ;; prolog
            #:fluent
            #:fluent-value
-           #:task-goal
+           #:task-path
            #:task
            #:task-status-fluent
            #:task-goal
