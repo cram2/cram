@@ -36,7 +36,7 @@
           #:cram-utilities
           #:cram-execution-trace)
   (:nicknames #:plan-knowledge)
-  (:shadowing-import-from #:desig #:name)
+  (:shadowing-import-from #:cpl #:name)
   (:export #:clear-belief
            #:assert-occasion
            #:retract-occasion
