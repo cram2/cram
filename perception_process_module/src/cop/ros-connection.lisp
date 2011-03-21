@@ -32,12 +32,8 @@
 (defvar *cop-output-queue* (make-fluent :name '*cop-output-queue* :value nil))
 (defvar *cop-parameters* (make-hash-table :test 'cl:eq))
 
-(defvar *shoulder-scanner-signal* (make-fluent :name 'shoulder-scanner-signal))
-
 (defun cop-ros-init ()
   (subscribe "/kipla/cop_reply" 'vision_msgs-msg:<cop_answer> #'cop-reply-handler)
-  (subscribe "/shoulder_scanner_signal" "pr2_msgs/LaserScannerSignal" #'shoulder-signal-callback)
-  (advertise "/head_controller/lookat_lo" 'std_msgs-msg:<uint64>)
   (setf (gethash :object_threshold *cop-parameters*)
         (get-param "/kipla/object_threshold" 0.4))
   (setf (gethash :max-object-distance *cop-parameters*)
