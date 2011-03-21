@@ -85,6 +85,9 @@
   (<- (goal-task ?task)
     (lisp-fun episode-knowledge-goal-task-list ?tasks)
     (member ?task ?tasks))
+
+  (<- (task-path ?task ?path)
+    (lisp-fun task-tree-node-path ?task ?path))
   
   ;; for dont use this optimization
   ;; (<- (task ?task)
