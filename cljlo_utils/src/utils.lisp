@@ -30,7 +30,7 @@
 (in-package :cljlo-utils)
 
 (defgeneric pose->jlo (pose))
-(defgeneric jlo->pose (jlo &optional reference-frame))
+(defgeneric jlo->pose (jlo &optional reference-frame stamp))
 
 (defmethod pose->jlo ((p cl-transforms:pose))
   (let ((p-matrix (cl-transforms:transform->matrix p)))
@@ -66,7 +66,7 @@
                                     :displaced-to p-matrix
                                     :element-type (array-element-type p-matrix)))))
 
-(defmethod jlo->pose (jlo &optional (reference-frame "/map"))
+(defmethod jlo->pose (jlo &optional (reference-frame "/map") (stamp 0.0))
   (let ((transform
          (cl-transforms:matrix->transform
           (make-array '(4 4) :displaced-to (vision_msgs-msg:pose-val
@@ -74,7 +74,7 @@
                                                              (jlo:make-jlo :name reference-frame)
                                                              jlo)))))))
     (tf:make-pose-stamped
-     "/map" (roslisp:ros-time)
+     "/map" stamp
      (cl-transforms:translation transform)
      (cl-transforms:rotation transform))))
 
