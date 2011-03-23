@@ -34,6 +34,7 @@
     (:nicknames :btr)
   (:use #:common-lisp #:crs #:bt #:bt-vis #:cut)
   (:import-from #:alexandria compose curry rcurry)
+  (:import-from #:desig desig-solutions)
   (:export merge-bounding-boxes aabb
            *debug-window* add-debug-window
            camera width height fov-y z-near z-far camera-axis pose
