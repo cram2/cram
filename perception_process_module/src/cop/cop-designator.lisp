@@ -33,7 +33,7 @@
   object-classes
   object-ids
   poses
-  (matches 10) ;Number of objects to match maximally
+  (matches 20) ;Number of objects to match maximally
   )
 
 (defstruct cop-desig-location-info
