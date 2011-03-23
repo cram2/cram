@@ -40,7 +40,9 @@
                  cl-tf
                  kinematics_msgs-msg
                  kinematics_msgs-srv
-                 kdl_arm_kinematics-srv)
+                 kdl_arm_kinematics-srv
+                 designators
+                 semantic-map-costmap)
     :components
     ((:module "src"
               :components
