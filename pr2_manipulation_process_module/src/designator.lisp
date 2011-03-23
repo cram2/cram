@@ -40,6 +40,13 @@
   (<- (side-id :right 0))
   (<- (side-id :left 1))
 
+  (<- (action-desig ?desig (ik ?pose (?obj ?side)))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to reach))
+    (desig-prop ?desig (obj ?obj))
+    (desig-prop ?desig (side ?side))
+    (desig-location-prop ?desig ?pose))
+  
   (<- (action-desig ?desig (fridge-opened ?action (?obj ?side)))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to open))

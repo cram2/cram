@@ -39,7 +39,11 @@
                cram-reasoning
                cram-plan-failures
                cram-plan-knowledge
-               perception-process-module)
+               perception-process-module
+               pr2_controllers_msgs-msg
+               kinematics_msgs-srv
+               kdl_arm_kinematics-srv
+               move_arm_msgs-msg)
   :components
   ((:module "src"
             :components

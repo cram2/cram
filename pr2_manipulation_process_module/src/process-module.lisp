@@ -42,6 +42,18 @@
 (defvar *serve-plate-to-island-action* nil)
 (defvar *serve-plate-to-table-action* nil)
 
+(defvar *trajectory-action-left* nil)
+(defvar *trajectory-action-right* nil)
+(defvar *trajectory-action-torso* nil)
+(defvar *move-arm-right* nil)
+(defvar *move-arm-left* nil)
+
+(defvar *joint-state* (cpl-impl:make-fluent :name 'joint-state))
+(defvar *joint-state-sub* nil)
+
+(defparameter *ik-left-ns* "/l_arm_ik")
+(defparameter *ik-right-ns* "/r_arm_ik")
+
 (defun init-pr2-manipulation-process-module ()
   ;; (setf *open-handle-action* (actionlib:make-action-client
   ;;                             "/operate_handle_action"
@@ -85,12 +97,35 @@
                               "ias_drawer_executive/GenericAction"))
   (setf *serve-plate-to-table-action* (actionlib:make-action-client
                               "/serve_to_table"
-                              "ias_drawer_executive/GenericAction"))  
-  )
+                              "ias_drawer_executive/GenericAction"))
+  (setf *trajectory-action-left* (actionlib:make-action-client
+                                  "/l_arm_controller/joint_trajectory_generator"
+                                  "pr2_controllers_msgs/JointTrajectoryAction"))
+  (setf *trajectory-action-right* (actionlib:make-action-client
+                                  "/r_arm_controller/joint_trajectory_generator"
+                                  "pr2_controllers_msgs/JointTrajectoryAction"))
+  (setf *trajectory-action-torso* (actionlib:make-action-client
+                                  "/torso_controller/joint_trajectory_action"
+                                  "pr2_controllers_msgs/JointTrajectoryAction"))
+  (setf *move-arm-right* (actionlib:make-action-client
+                          "/move_right_arm"
+                          "move_arm_msgs/MoveArmAction"))
+  (setf *move-arm-left* (actionlib:make-action-client
+                         "/move_left_arm"
+                         "move_arm_msgs/MoveArmAction"))  
+  (setf *joint-state-sub* (roslisp:subscribe
+                           "/joint_states" "sensor_msgs/JointState"
+                           (lambda (msg)
+                             (setf (cpl:value *joint-state*)
+                                   msg)))))
 
 (register-ros-init-function init-pr2-manipulation-process-module)
 
 (defgeneric call-action (action goal params))
+
+;; (defmethod call-action ((action-sym (eql 'ik) pose params))
+;;   (destructuring-bind (obj side) params
+;;     (let ((ik-solution )))))
 
 (defmethod call-action ((action-sym (eql 'fridge-opened)) goal params)
   (let ((result (execute-goal *open-fridge-action* goal)))
@@ -168,6 +203,72 @@
     (unless (eq status :succeeded)
       (cpl-impl:fail 'manipulation-failed :format-control "Manipulation failed"))
     result))
+
+(defun execute-torso-command (trajectory)
+  (actionlib:call-goal
+   *trajectory-action-torso*
+   (actionlib:make-action-goal
+    *trajectory-action-torso*
+    :trajectory (remove-trajectory-joints #("torso_lift_joint") trajectory :invert t))))
+
+(defun execute-arm-trajectory (side trajectory)
+  (let ((action (ecase side
+                  (:left *trajectory-action-left*)
+                  (:right *trajectory-action-right*))))
+    (actionlib:call-goal
+     action
+     (actionlib:make-action-goal
+      action
+      :trajectory (remove-trajectory-joints #("torso_lift_joint") trajectory)))))
+
+(defun execute-move-arm (side pose )
+  (let ((action (ecase side
+                  (:left *move-arm-left*)
+                  (:right *move-arm-right*)))
+        (pose-msg (tf:pose-stamped->msg pose)))
+    (roslisp:with-fields (header
+                          (position (position pose))
+                          (orientation (orientation pose)))
+        pose-msg
+      (actionlib:call-goal
+       action  
+       (actionlib:make-action-goal
+        action
+        planner_service_name "/ompl_planning/plan_kinematic_path"
+        (group_name motion_plan_request) (ecase side
+                                           (:right "right_arm")
+                                           (:left "left_arm"))
+        (num_planning_attempts motion_plan_request) 5
+        (planner_id motion_plan_request) ""
+        (allowed_planning_time motion_plan_request) 10.0
+        (position_constraints goal_constraints motion_plan_request)
+        (vector
+         (roslisp:make-msg
+          "motion_planning_msgs/PositionConstraint"
+          header header
+          link_name (ecase side
+                      (:left "l_wrist_roll_link")
+                      (:right "r_wrist_roll_link"))
+          position position
+          (type constraint_region_shape) (roslisp-msg-protocol:symbol-code
+                                          'geometric_shapes_msgs-msg:shape
+                                          :box)
+          (dimensions constraint_region_shape) #(0.01 0.01 0.01)
+          (w constraint_region_orientation) 1.0
+          weight 1.0))
+        (orientation_constraints goal_constraints motion_plan_request)
+        (vector
+         (roslisp:make-msg
+          "motion_planning_msgs/OrientationConstraint"
+          header header
+          link_name (ecase side
+                      (:left "l_wrist_roll_link")
+                      (:right "r_wrist_roll_link"))
+          orientation orientation
+          absolute_roll_tolerance 0.01
+          absolute_pitch_tolerance 0.01
+          absolute_yaw_tolerance 0.01
+          weight 1.0)))))))
 
 (def-process-module pr2-manipulation-process-module (desig)
   (apply #'call-action (reference desig)))
