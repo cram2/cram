@@ -226,6 +226,10 @@
       (pose ?obj ?pose-2))
     (poses-equal ?pose-1 ?pose-2 (0.01 0.03)))
 
+  (<- (stable ?world)
+    (forall (object ?world ?_ ?o)
+            (stable ?world ?o)))
+
   (<- (supported-by ?world ?top ?bottom)
     (object ?world ?tn ?top)
     (object ?world ?bn ?bottom)
