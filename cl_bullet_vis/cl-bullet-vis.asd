@@ -53,7 +53,7 @@
                (:file "bullet-shape-visualization"
                       :depends-on ("package" "transforms" "gl-context" "visualization"))
                (:file "bullet-colored-shapes"
-                      :depends-on("package" "visualization"))
+                      :depends-on("package" "visualization" "gl-context"))
                (:file "bullet-textured-shapes"
                       :depends-on("package" "visualization" "bullet-colored-shapes" "textures"))
                (:file "bullet-mesh-shape"
