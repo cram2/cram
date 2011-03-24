@@ -1,0 +1,4 @@
+<launch>
+  <include file="$(find kdl_arm_kinematics)/launch/pr2_left.launch"/>
+  <include file="$(find kdl_arm_kinematics)/launch/pr2_right.launch"/>
+</launch>
