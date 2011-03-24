@@ -1,0 +1,21 @@
+<launch>
+  <node name="l_arm_ik" pkg="kdl_arm_kinematics" type="arm_kinematics" output="screen">
+    <rosparam>
+      root_name: base_footprint
+      tip_name: l_gripper_palm_link
+      epsilon: 0.00001
+      maxIterations: 1000
+      weights:
+        lambda: 0.1
+        weight_js:
+          torso_lift_joint: 0.001
+    </rosparam>
+  </node>
+
+  <node pkg="joint_trajectory_generator" type="joint_trajectory_generator" output="screen"
+        name="joint_trajectory_generator" ns="l_arm_controller" >
+    <param name="max_acc" value="2.0" />
+    <param name="max_vel" value="2.5" />
+  </node>
+  
+</launch>
