@@ -91,7 +91,14 @@
     ;; DESIG-VALID
     (def-desig-accessor valid)
     ;; DESIG-VALUE
-    (def-desig-accessor data value)))
+    (def-desig-accessor data value)
+
+    (<- (desig-reference ?desig ?reference)
+      (lisp-fun reference ?desig ?reference))
+
+    (<- (desig-solutions ?desig ?solutions)
+      (ground ?desig)
+      (lisp-fun designator-solutions ?desig ?solutions))))
 
 (defun get-desig-class (desig)
   (car (rassoc (class-of desig) (get 'make-designator :desig-types)
@@ -100,13 +107,6 @@
 (def-fact-group designators (desig-value)
   (<- (desig-prop ?desig (?prop-name ?prop))
     (bound ?desig)
-    (bound ?prop-name)
-    (lisp-fun desig-prop-value ?desig ?prop-name ?prop)
-    (lisp-pred identity ?prop))
-
-  (<- (desig-prop ?desig (?prop-name ?prop))
-    (bound ?desig)
-    (not (bound ?prop-name))
     (lisp-fun description ?desig ?props)
     (member (?prop-name ?prop) ?props))
 
