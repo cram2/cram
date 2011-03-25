@@ -76,7 +76,9 @@
 
 (defmethod reference ((desig object-designator))
   (or (slot-value desig 'data)
-      (error "Designator does not reference an object.")))
+      (error 'designator-error
+             :format-control "Designator `~a' does not reference an object."
+             :format-arguments (list desig))))
 
 ;; (defun desig-compatible-descriptions (desc-1 desc-2)
 ;;   (multiple-value-bind (desc-1 desc-2) (if (< (list-length desc-1)
