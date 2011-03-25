@@ -162,14 +162,14 @@
       (cons (car src) (copy-lazy-list (cdr src)))
       (cons (car src) (cdr src))))
 
-(defun lazy-filter (fun ll)
+(defun lazy-filter (pred ll)
   "Creates a new lazy list containing only elements for which
-   fun returns not nil. When fun has a second return value which
+   pred doesn't return NIL. When pred has a second return value which
    is not nil, the current element is the last one."
   (lazy-list ((cur-ll ll)) 
     (labels ((find-next-elem (ll)
                (multiple-value-bind (keep? last?) 
-                   (funcall fun (lazy-car ll))
+                   (funcall pred (lazy-car ll))
                  (cond ( (and keep? (or last? (not (lazy-cdr ll))))
                         (finish (lazy-car ll)) )
                        ( keep? 
