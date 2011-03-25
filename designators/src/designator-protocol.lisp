@@ -37,7 +37,7 @@
 (in-package :desig)
 
 (define-condition designator-error (simple-error)
-  ())
+  () (:default-initargs :format-control "DESIGNATOR-ERROR"))
 
 (defclass designator ()
   ((timestamp :reader timestamp :initform (current-timestamp)
