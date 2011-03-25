@@ -159,3 +159,18 @@ together with MAKE-DESIGNATOR and WITH-DESIGNATORS"
                       `(,name (make-designator ',type ,props))))
                   defs)
      ,@body))
+
+(defun designator-solutions (desig &optional from-root)
+  "Returns the lazy list of designator references that provide a
+  solution for `desig'. If `from-root' is non-nil, the list of all
+  solutions beginning from with the original designator is returned.
+  Otherwise, the first solution is DESIG's reference."
+  (let ((desig (if from-root
+                   (first-desig desig)
+                   desig)))
+    (lazy-list ((curr desig))
+      (when curr
+        (handler-case
+            (cont (reference curr) (next-solution curr))
+          (designator-error ()
+            (next (next-solution curr))))))))

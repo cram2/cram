@@ -43,6 +43,7 @@
            #:next-solution #:register-designator-class
            #:make-designator #:first-desig #:current-desig
            #:with-desig-props #:with-designators
+           #:designator-solution
            #:desig-prop-value #:*designator-pprint-description*
            #:get-equal-designators
            #:designator-id-mixin #:object-id
@@ -61,6 +62,8 @@
            #:point-location-proxy
            #:pose-location-proxy
            #:desig-loc #:loc-desig? #:obj-desig-location
+           #:desig-reference
+           #:desig-solutions
            #:loc-desig-location
            #:register-designator-properties
            #:designator-pose
