@@ -129,21 +129,6 @@
             (get-free-location (next-solution location-desig)
                                :threshold threshold))))))
 
-(defun make-lift-designator (ratio x-distance y-distance z-distance side)
-  (make-designator 'action `((type trajectory) (to lift) (side ,side)
-                             (transform ,(cl-transforms:make-transform
-                                          (cl-transforms:make-3d-vector
-                                           (* ratio x-distance)
-                                           (cl:* ratio y-distance
-                                                 (ecase side
-                                                   (:right -1)
-                                                   (:left 1)))
-                                           (* ratio z-distance))
-                                          (cl-transforms:euler->quaternion
-                                           :az (* ratio (ecase side
-                                                          (:right (/ pi 2))
-                                                          (:left (/ pi -2))))))))))
-
 (def-goal (achieve (object-placed-at ?obj ?loc))
   (ros-info (achieve plan-lib) "(achieve (object-placed-at))")
   (setf ?obj (current-desig ?obj))
@@ -159,7 +144,8 @@
       (with-designators ((put-down-loc (location `((to reach) (location ,?loc))))
                          (put-down-see-loc (location `((to see) (location ,?loc))))
                          (open-trajectory (action `((type trajectory) (pose open) (side ,side))))
-                         (hand-open-trajectory (action `((type trajectory) (to open) (gripper ,side)))))
+                         (hand-open-trajectory (action `((type trajectory) (to open) (gripper ,side))))
+                         (unhand-trajectory (action `((type trajectory) (to lift) (side ,side)))))
         (at-location (put-down-see-loc)
           (ros-info (achieve-object-placed-at plan-lib) "searching for free locations")
           (setf obstacles (achieve `(obstacles-found ,?loc)))
@@ -193,15 +179,13 @@
               (achieve `(arms-at ,hand-open-trajectory))
               (retract-occasion `(object-in-hand ,obj ?_)))
             (assert-occasion `(object-placed-at ,obj ,?loc))))
-        (let ((retry-count 0))
+        (with-failure-handling
+            ((manipulation-failure (f)
+               (declare (ignore f))
+               (ros-warn (achieve plan-lib) "Manipulation action failed after put-down. Ignoring")
+               (return)))
           (unwind-protect
-               (with-failure-handling
-                   ((manipulation-failure (f)
-                      (declare (ignore f))
-                      (ros-warn (achieve plan-lib) "Manipulation action failed after put-down. Ignoring")
-                      (when (< (incf retry-count) 5)
-                        (retry))))
-                 (achieve `(arms-at ,(make-lift-designator (/ retry-count 3) 0.0 0.4 0.0 side))))
+               (achieve `(arms-at ,unhand-trajectory))
             (achieve `(arms-at ,open-trajectory))))))))
 
 (def-goal (achieve (arm-parked ?side))
