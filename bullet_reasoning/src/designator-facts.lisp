@@ -28,37 +28,23 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :cl-user)
+(in-package :bullet-reasoning-locations)
 
-(defpackage bullet-reasoning
-    (:nicknames :btr)
-  (:use #:common-lisp #:crs #:bt #:bt-vis #:cut)
-  (:import-from #:alexandria compose curry rcurry)
-  (:import-from #:desig desig-solutions)
-  (:export merge-bounding-boxes aabb
-           *debug-window* add-debug-window
-           camera width height fov-y z-near z-far camera-axis pose
-           gl-setup-camera camera-transform look-at-object-rotation
-           with-rendering-to-framebuffer render-to-framebuffer
-           read-pixelbuffer read-depthbuffer to-png-image
-           add-object generic-cup mug plate mondamin mesh
-           remove-object object name rigid-bodies rigid-body-names
-           rigid-body world make-object box static-plane sphere
-           cylinder cone point-cloud
-           bt-reasoning-world invalidate-object objects object
-           bt-reasoning-world-state
-           robot-object links joint-states urdf joint-names joint-state
-           link-names link-pose set-robot-state-from-tf
-           semantic-map-object semantic-map-geoms semantic-map-geom-names
-           semantic-map-geom semantic-map
-           ensure-pose ensure-vector
-           object-visibility object-visibility-percentage
-           object-visibility-occluding-objects flat-color-object-proxy
-           calculate-object-visibility object-visible-p occluding-objects
-           simulate find-objects contact-p find-all-contacts
-           find-objects-in-contact poses-equal-p stable-p above-p
-           find-objects-above below-p find-objects-below))
+(defmethod costmap-generator-name->score ((name (eql 'reachable-from-space)))
+  5)
 
-(defpackage bullet-reasoning-locations
-    (:use #:common-lisp #:crs #:desig #:location-costmap))
+(defmethod costmap-generator-name->score ((name (eql 'reachable-from-weighted)))
+  4)
 
+(def-fact-group bullet-reasoning-location-desig (desig-costmap)
+  (<- (desig-costmap ?desig ?cm)
+    (costmap ?cm)
+    (desig-prop ?desig (reachable-from ?pose))
+    (lisp-fun cl-transforms:origin ?pose ?point)
+    (costmap-in-reach-padding ?distance)
+    (costmap-add-function reachable-from-space
+                          (make-range-cost-function ?point ?distance)
+                          ?cm)
+    (costmap-add-function reachable-from-weighted
+                          (make-location-cost-function ?pose ?distance)
+                          ?cm)))

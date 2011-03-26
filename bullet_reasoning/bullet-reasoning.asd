@@ -50,6 +50,7 @@
                (:file "utils" :depends-on ("package"))
                (:file "prolog-handlers" :depends-on ("package"))
                (:file "prolog-facts" :depends-on ("package"))
+               (:file "designator-facts" :depends-on ("package"))
                (:file "reasoning-world" :depends-on ("package"))
                (:file "textures" :depends-on ("package"))
                (:file "objects" :depends-on ("package" "reasoning-world" "textures" "utils"))
