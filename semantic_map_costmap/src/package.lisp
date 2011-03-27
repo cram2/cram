@@ -30,6 +30,9 @@
 
 (in-package :cl-user)
 
+(desig:register-designator-properties
+ #:on #:name)
+
 (defpackage semantic-map-costmap
     (:use #:common-lisp #:crs #:location-costmap
           #:designators-ros #:cram-roslisp-common
