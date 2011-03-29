@@ -134,6 +134,9 @@
                ((eq (car exp) 'list)
                 (alexandria:plist-hash-table `("list" ,(mapcar #'jsonify-exp (cdr exp)))
                                              :test 'equal))
+               ((listp (car exp))
+                (alexandria:plist-hash-table `("list" ,(mapcar #'jsonify-exp exp))
+                                             :test 'equal))
                ((eq (car exp) 'and)
                 (alexandria:plist-hash-table
                  `("term" ("," ,(jsonify-exp (cadr exp))
