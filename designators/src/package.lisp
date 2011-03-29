@@ -72,7 +72,9 @@
            #:obj #:location
            #:pose #:of #:at #:inside
            #:type #:trajectory
-           #:desig-prop #:desig-class #:desig-value
+           #:desig-prop #:desig-class
+           #:desig-timestamp #:desig-description
+           #:desig-valid #:desig-value
            #:desig-location-prop
            #:desig
            #:trajectory-desig?))
