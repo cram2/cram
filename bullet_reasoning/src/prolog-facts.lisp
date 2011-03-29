@@ -317,7 +317,7 @@
           (grasp ?grasp)
           ;; We don't want to have the supporting object as a blocking
           ;; object.
-          (supported-by ?w ?obj ?supporting)
+          (-> (supported-by ?w ?obj ?supporting) (true) (true))
           ;; Generate all ik solutions
           (lisp-fun reach-object-ik ?robot ?obj :side ?side :grasp ?grasp ?ik-solutions)
           (member ?ik-solution ?ik-solutions)
@@ -332,7 +332,8 @@
   (<- (ik-solution-in-collision ?w ?robot ?ik-solution ?colliding-objects)
     (with-stored-world ?w
       (lisp-fun set-robot-state-from-joints ?ik-solution ?robot ?_)
-      (findall ?obj (contact ?w ?robot ?obj) ?colliding-objects))))
+      (findall ?obj (contact ?w ?robot ?obj) ?colliding-objects)
+      (lisp-fun break ?_))))
 
 (def-fact-group debug ()
   (<- (debug-window ?world)
