@@ -29,6 +29,24 @@
 
 (in-package :json-prolog)
 
+(defvar *complex-type-atoms* :undefined
+  "Contains the list of type atoms that are used in the current
+  query. This is mainly useful if not all data can be jsonified and
+  needs to be replaced by some symbols. Use it in combination with
+  WITH-TYPE-ATOMS")
+
+(defmacro with-type-atoms (&body body)
+  `(let ((*complex-type-atoms* nil))
+     ,@body))
+
+(defun init-type-atoms ()
+  (when (eq *complex-type-atoms* :undefined)
+    (setf *complex-type-atoms* nil)))
+
+(defun clear-type-atoms ()
+  (unless (eq *complex-type-atoms* :undefined)
+    (setf *complex-type-atoms* nil)))
+
 (defun prologify (s)
   (flet ((contains-lower-case-char (symbol)
            (and 
@@ -60,6 +78,36 @@
 
 (defun unescape-string (str)
   (remove "\\" (copy-seq str)))
+
+(defun jsonify-complex-type (exp &key prologify)
+  (jsonify-exp
+   (let ((id (gensym (symbol-name (type-of exp)))))
+     (if (eq *complex-type-atoms* :undefined)
+         id
+         (or (cdr (assoc exp *complex-type-atoms*))
+             (cdar (push (cons exp id) *complex-type-atoms*)))))
+   :prologify prologify))
+
+(defun prologify-complex-type (exp)
+  (let ((atom-name (typecase exp
+                     (string exp)
+                     (symbol (symbol-name exp)))))
+    (if (or (not atom-name) (eq *complex-type-atoms* :undefined))
+        exp
+        (or
+         (car (rassoc exp *complex-type-atoms*
+                      :key #'symbol-name
+                      :test #'equal))
+         exp))))
+
+(defun replace-complex-types (exp)
+  (mapcar (lambda (e)
+            (typecase e
+              (list (replace-complex-types e))
+              (string (prologify-complex-type e))
+              (symbol (prologify-complex-type e))
+              (t e)))
+          exp))
 
 (defun jsonify-exp (exp &key prologify)
   "Recursively walks exp and converts every lisp-expression
@@ -102,7 +150,8 @@
                  :test 'equal))
                (t
                 (alexandria:plist-hash-table `("term" ,(mapcar #'jsonify-exp exp))
-                                             :test 'equal)))))))
+                                             :test 'equal))))
+      (t (jsonify-complex-type exp :prologify prologify)))))
 
 (defun prolog->json (exp &key (prologify t))
   "Converts a lisp-prolog expression into its json representation."

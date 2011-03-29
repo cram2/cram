@@ -38,4 +38,8 @@
            #:prolog-simple-1
            #:finish-query
            #:json-prolog
-           #:wait-for-prolog-service))
+           #:wait-for-prolog-service
+           #:with-type-atoms
+           #:init-type-atoms
+           #:clear-type-atoms
+           #:replace-complex-types))
