@@ -30,16 +30,19 @@
 (in-package :json-prolog)
 
 (defun prolog-bdgs->json (bdgs)
-  (format nil "{~{~{~a: ~a~}~^,~}} "
+  (format nil "{~{~{\"~a\": ~a~}~^,~}} "
           (mapcar (lambda (bdg)
                     (destructuring-bind (var . val)
                         bdg
                       (list (subseq (symbol-name var) 1)
-                            (jsonify-exp val))))
+                            (let ((strm (make-string-output-stream)))
+                              (json:encode (jsonify-exp val) strm)
+                              (get-output-stream-string strm)))))
                   bdgs)))
 
 (defun start-prolog-server (ns &key (package *package*))
   (let ((open-queries (make-hash-table :test 'equal)))
+    (init-type-atoms)
     (flet ((query (request)
              (handler-case
                  (with-fields ((id id)
@@ -68,7 +71,7 @@
                          (cram-reasoning:prolog
                           (let ((*read-eval* nil)
                                 (*package* package))
-                            (read-from-string query))))
+                            (replace-complex-types (read-from-string query)))))
                    (make-response 'json_prolog-srv:PrologQuery
                                   :ok t
                                   :message ""))
