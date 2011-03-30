@@ -120,8 +120,12 @@
 (defun process-module-alias (alias name)
   "Allows for the definition of process module aliases. An alias is
 just a different name for an existing process module."
-  (push (cons alias (cdr (assoc name *process-modules*)))
-        *process-modules*))
+  (let ((module (cdr (assoc name *process-modules*))))
+    (unless module
+      (error 'unknown-process-module
+             :format-control "Could not find process module with name `~s'"
+             :format-arguments (list name)))
+    (push (cons alias module) *process-modules*)))
 
 (defmacro with-process-module-aliases (alias-definitions &body body)
   "Executes body with process module aliases bound in the current
