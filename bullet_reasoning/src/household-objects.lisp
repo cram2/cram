@@ -30,9 +30,9 @@
 
 (in-package :btr)
 
-(defparameter *mesh-files* '((mug . "package://bullet_reasoning/resource/mug.stl")
-                             (plate . "package://bullet_reasoning/resource/plate.stl")
-                             (mondamin . "package://bullet_reasoning/resource/mondamin.stl")))
+(defparameter *mesh-files* '((mug "package://bullet_reasoning/resource/mug.stl" t)
+                             (plate "package://bullet_reasoning/resource/plate.stl" nil)
+                             (mondamin "package://bullet_reasoning/resource/mondamin.stl" nil)))
 
 (defun make-octagon-prism-shape (radius height)
   "Returns a collision shape that is a octagon prism, i.e. that has an
@@ -87,7 +87,8 @@
                        mass mesh (color '(0.5 0.5 0.5 1.0)))
   (let ((mesh (etypecase mesh
                 (symbol (physics-utils:load-3d-model
-                         (physics-utils:parse-uri (cdr (assoc mesh *mesh-files*)))))
+                         (physics-utils:parse-uri (cadr (assoc mesh *mesh-files*)))
+                         :flip-winding-order (caddr (assoc mesh *mesh-files*))))
                 (string (physics-utils:load-3d-model
                          (physics-utils:parse-uri mesh)))
                 (physics-utils:3d-model mesh))))
