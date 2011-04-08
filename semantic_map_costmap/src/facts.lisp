@@ -56,9 +56,6 @@
   (eq (cram-roslisp-common:lispify-ros-name (unquote (ensure-string sym-1)))
       (cram-roslisp-common:lispify-ros-name (unquote (ensure-string sym-2)))))
 
-(defun obj-z-value (pose dimensions)
-  (+ (elt pose 11) (/ (third dimensions) 2)))
-
 (def-fact-group semantic-map-costmap (desig-costmap
                                       desig-orientation
                                       desig-z-value)
@@ -99,7 +96,10 @@
     (semantic-map-desig-objects ?desig ?objects)
     (costmap ?cm)
     (costmap-add-function semantic-map-objects (make-semantic-map-costmap ?objects)
-                          ?cm))
+                          ?cm)
+    (costmap-add-heightmap-generator
+     (make-semantic-map-height-function ?objects)
+     ?cm))
 
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (on ?type))
@@ -108,7 +108,10 @@
     (semantic-map-object ?type ?name ?pose ?dimensions)
     (costmap-add-function table-distribution
                           (make-table-cost-function ?pose ?dimensions)
-                          ?cm))
+                          ?cm)
+    (costmap-add-heightmap-generator
+     (make-semantic-map-height-function ((?pose ?dimensions)))
+     ?cm))
 
   (<- (desig-z-value ?desig ?point ?z)
     (semantic-map-desig-objects ?desig ?objects)
