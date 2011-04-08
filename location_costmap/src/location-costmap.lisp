@@ -54,6 +54,10 @@
   as a probability function and returns it as
   cl-transforms:3d-vector."))
 
+(defgeneric costmap-samples (map)
+  (:documentation "Returns the lazy-list of randomly generated costmap
+  samples"))
+
 (defgeneric costmap-generator-name->score (name)
   (:documentation "Returns the score for the costmap generator with
   name `name'. Greater scores result in earlier evaluation.")
@@ -148,3 +152,7 @@
                (+ (* row resolution) origin-y)
                0.0)))))))
   (error 'invalid-probability-distribution))
+
+(defmethod costmap-samples ((map location-costmap))
+  (lazy-list ()
+    (cont (gen-costmap-sample map))))
