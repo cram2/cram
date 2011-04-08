@@ -46,6 +46,7 @@
            #:costmap-add-generator
            #:costmap-generator-name->score
            #:desig-costmap
+           #:merged-desig-costmap
            #:height-map
            #:height-map-lookup
            #:height-map-set
