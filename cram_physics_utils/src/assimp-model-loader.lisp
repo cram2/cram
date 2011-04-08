@@ -88,7 +88,7 @@
                      collect (aref normals index) into vertex-normals
                      finally (return (list :points points :normals vertex-normals)))))))))
 
-(defun load-3d-model (filename &optional (mesh-index 0))
+(defun load-3d-model (filename &key (mesh-index 0) flip-winding-order)
   "Loads the mesh with index `mesh-index' from the file named
 `filename' and returns an instance of type 3D-MODEL."
   (let ((scene nil))
@@ -97,10 +97,12 @@
            (setf scene (ai-import-file (etypecase filename
                                          (string filename)
                                          (pathname (namestring filename)))
-                                       '(:join-identical-vertices
+                                       `(:join-identical-vertices
                                          :gen-smooth-normals
                                          :fix-infacing-normals
-                                         :triangulate)))
+                                         :triangulate
+                                         ,@(when flip-winding-order
+                                             (list :flip-winding-order)))))
            (when (null-pointer-p scene)
              (error '3d-model-import-error
                     :format-control "Unable to load 3d model from file `~a': ~a"
@@ -113,7 +115,7 @@
            (let* ((mesh (mem-aref (foreign-slot-value scene 'ai-scene 'meshes)
                                   :pointer mesh-index))
                   (vertices (get-vertices mesh))
-                  (faces (get-faces mesh :vertices vertices)))
+                  (faces (fix-normals (get-faces mesh :vertices vertices))))
              (make-3d-model
               :vertices (remove-identical-vertices vertices)
               :faces faces)))
@@ -144,3 +146,19 @@
             (incf result-index))))
       (adjust-array result-array result-index))))
 
+(defun fix-normals (faces)
+  (map 'vector
+       (lambda (face)
+         (let* ((normal (cl-transforms:cross-product
+                         (cl-transforms:v- (second (face-points face))
+                                           (first (face-points face)))
+                         (cl-transforms:v- (third (face-points face))
+                                           (first (face-points face)))))
+                (normal-norm (cl-transforms:v-norm normal)))
+           (make-face
+            :points (face-points face)
+            :normals (loop for n in (face-normals face)
+                           when (< (cl-transforms:v-norm n) 1) collecting
+                             (cl-transforms:v* normal (/ normal-norm))
+                           else collecting n))))
+       faces))
