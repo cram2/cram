@@ -102,4 +102,4 @@
                                      :points (physics-utils:3d-model-vertices mesh)
                                      :faces (physics-utils:3d-model-faces mesh)
                                      :color color
-                                     :smooth-shading t))))))
+                                     :smooth-shading nil))))))
