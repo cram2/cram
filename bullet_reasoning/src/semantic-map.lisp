@@ -86,7 +86,7 @@
        ("objectDimensions" ?o ?w ?d ?h)
        (= '(?d ?w ?h) ?dim))))))
 
-(defmethod add-object ((world bt-world) (type (eql 'semantic-map)) name pose &key)
+(defmethod add-object ((world bt-world) (type (eql 'semantic-map)) name pose &key (color '(0.8 0.8 0.8 1.0)))
   (let* ((pose-transform (cl-transforms:reference-transform
                           (ensure-pose pose)))
          (geoms (query-semantic-map-geoms pose-transform))
@@ -103,10 +103,11 @@
                                     :pose (pose obj)
                                     :group :static-filter
                                     :collision-shape (make-instance
-                                                      'box-shape
+                                                      'colored-box-shape
                                                       :half-extents (cl-transforms:v*
                                                                      (dimensions obj)
-                                                                     0.5))))
+                                                                     0.5)
+                                                      :color color)))
                                  geoms))))
     (dolist (geom geoms)
       (setf (gethash (name geom) (slot-value map 'geoms)) geom))
