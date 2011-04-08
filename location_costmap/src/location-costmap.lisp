@@ -32,7 +32,8 @@
                :documentation "List of generator functions that
                generate points from the costmap. If a generator
                function returns nil, the next generator function in
-               the sequece is called.")))
+               the sequece is called.")
+   (height-map :initform nil :initarg height-map :reader height-map)))
 
 (defgeneric get-cost-map (map)
   (:documentation "Returns the costmap as a two-dimensional array of
@@ -146,11 +147,13 @@
         (dotimes (col (cma:width cost-map))
           (setf cntr (+ cntr (aref cost-map row col)))
           (when (> cntr rand)
-            (return-from gen-costmap-sample
-              (cl-transforms:make-3d-vector
-               (+ (* col resolution) origin-x)
-               (+ (* row resolution) origin-y)
-               0.0)))))))
+            (let* ((x (+ (* col resolution) origin-x))
+                   (y (+ (* row resolution) origin-y))
+                   (z (or (when (height-map map)
+                            (height-map-lookup (height-map map) x y))
+                          0.0d0)))
+              (return-from gen-costmap-sample
+                (cl-transforms:make-3d-vector x y z))))))))
   (error 'invalid-probability-distribution))
 
 (defmethod costmap-samples ((map location-costmap))
