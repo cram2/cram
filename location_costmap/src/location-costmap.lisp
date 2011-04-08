@@ -33,7 +33,7 @@
                generate points from the costmap. If a generator
                function returns nil, the next generator function in
                the sequece is called.")
-   (height-map :initform nil :initarg height-map :reader height-map)))
+   (height-map :initform nil :initarg :height-map :reader height-map)))
 
 (defgeneric get-cost-map (map)
   (:documentation "Returns the costmap as a two-dimensional array of
@@ -131,7 +131,8 @@
                       :cost-functions (reduce #'append (mapcar #'cost-functions costmaps)
                                               :initial-value (cost-functions cm-1))
                       :generators (reduce #'append (mapcar #'generators costmaps)
-                                          :initial-value (generators cm-1))))))
+                                          :initial-value (generators cm-1))
+                      :height-map (height-map cm-1)))))
 
 (defmethod generate-point ((map location-costmap))
   (with-slots (generators) map
