@@ -123,32 +123,31 @@
 
 ;;; FIXME: allow arbitrary arglist, use PARSE-ORDINARY-ARGLIST,
 ;;; and generate call template from that.
-(macrolet ((define-wrapper (name required-args wrapped-fn)
-             `(def-fluent-operator ,name ,required-args
-                (,wrapped-fn ,@(loop for arg in required-args
-                                     collect `(value ,arg))))))
+(defmacro define-fluent-net-wrapper (name wrapped-fn)
+  `(def-fluent-operator ,name (&rest args)
+     (apply #',wrapped-fn (mapcar #'value args))))
 
-  (define-wrapper fl< (x y) <)
+(define-fluent-net-wrapper fl< <)
 
-  (define-wrapper fl> (x y) >)
+(define-fluent-net-wrapper fl> >)
 
-  (define-wrapper fl= (x y) =)
+(define-fluent-net-wrapper fl= =)
 
-  (define-wrapper fl-eq (x y) eq)
+(define-fluent-net-wrapper fl-eq eq)
 
-  (define-wrapper fl-eql (x y) eql)
+(define-fluent-net-wrapper fl-eql eql)
 
-  (define-wrapper fl-member (item list) member)
+(define-fluent-net-wrapper fl-member member)
 
-  (define-wrapper fl+ (x y) +)
+(define-fluent-net-wrapper fl+ +)
 
-  (define-wrapper fl- (x y) -)
+(define-fluent-net-wrapper fl- -)
 
-  (define-wrapper fl* (x y) *)
+(define-fluent-net-wrapper fl* *)
 
-  (define-wrapper fl/ (x y) /)
+(define-fluent-net-wrapper fl/ /)
 
-  (define-wrapper fl-not (arg) not))
+(define-fluent-net-wrapper fl-not not)
 
 ;;; AND and OR cannot be implemented as macros for fluent. All
 ;;; previous operators return whether a fluent or the value, depending
