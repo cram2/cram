@@ -44,6 +44,8 @@
            #:costmap
            #:costmap-add-function
            #:costmap-add-generator
+           #:costmap-add-heightmap
+           #:costmap-add-heightmap-generator
            #:costmap-generator-name->score
            #:desig-costmap
            #:merged-desig-costmap
