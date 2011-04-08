@@ -14,14 +14,15 @@
                          'simple-error
                          :format-control "No generator function specified")
               :reader generator))
-  (:default-initargs :initial-contents -1.0d0))
+  (:default-initargs :initial-element -1.0d0))
 
-(defmethod initialize-instance :after ((map height-map) &key (initial-contents 0.0d0))
+(defmethod initialize-instance :after ((map height-map) &key initial-element)
   (with-slots (width height resolution height-map) map
     (setf height-map (cma:make-double-matrix
                       (round (/ width resolution))
-                      (round (/ height resolution))
-                      initial-contents))))
+                      (round (/ height resolution))))
+    (when initial-element
+      (cma:fill-double-matrix height-map :initial-element initial-element))))
 
 (defmethod height-map-lookup ((map height-map) x y)
   (with-slots (resolution origin-x origin-y height-map width height) map
