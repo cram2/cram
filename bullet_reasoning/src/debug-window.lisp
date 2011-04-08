@@ -40,7 +40,8 @@
                                                                 (cl-transforms:make-3d-vector -5 0 3)
                                                                 (cl-transforms:axis-angle->quaternion
                                                                  (cl-transforms:make-3d-vector 0 1 0)
-                                                                 (/ pi 8)))))
+                                                                 (/ pi 8)))
+                                             :light-position (cl-transforms:make-3d-vector -1.8 -2.0 5.0)))
          (sb-thread:make-thread
           (lambda () (glut:display-window *debug-window*))
           :name "Debug window"))
