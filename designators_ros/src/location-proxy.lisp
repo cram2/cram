@@ -83,25 +83,20 @@
 (defmethod location-proxy-solution->pose (desig (solution cl-transforms:3d-vector))
   (with-vars-bound (?o)
       (lazy-car (prolog `(desig-orientation ,desig ,solution ?o)))
-    (with-vars-bound (?z)
-        (lazy-car (prolog `(desig-z-value ,desig ,solution ?z)))
-      (cl-tf:make-pose-stamped
-       "/map" (roslisp:ros-time)
-       (cl-transforms:make-3d-vector
-        (cl-transforms:x solution)
-        (cl-transforms:y solution)
-        (if (is-var ?z) 0.0d0 ?z))
-       (cond ((and *tf* (is-var ?o) (tf:can-transform
+    (cl-tf:make-pose-stamped
+     "/map" (roslisp:ros-time)
+     solution
+     (cond ((and *tf* (is-var ?o) (tf:can-transform
+                                   *tf*
+                                   :target-frame "/map"
+                                   :source-frame "/base_link"))
+            (cl-transforms:rotation (tf:lookup-transform
                                      *tf*
                                      :target-frame "/map"
-                                     :source-frame "/base_link"))
-              (cl-transforms:rotation (tf:lookup-transform
-                                       *tf*
-                                       :target-frame "/map"
-                                       :source-frame "/base_link")))
-             ((is-var ?o)
-              (cl-transforms:make-quaternion 0 0 0 1))
-             (t ?o))))))
+                                     :source-frame "/base_link")))
+           ((is-var ?o)
+            (cl-transforms:make-quaternion 0 0 0 1))
+           (t ?o)))))
 
 ;;; We need to place these methods here because in the designator
 ;;; package, we don't have a notion of poses, just more or less
