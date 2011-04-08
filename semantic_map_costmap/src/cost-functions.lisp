@@ -30,6 +30,9 @@
 
 (in-package :semantic-map-costmap)
 
+(defun obj-z-value (pose dimensions)
+  (+ (elt pose 11) (/ (third dimensions) 2)))
+
 (defun get-aabb (&rest points)
   (loop for p in points
         for x = (cl-transforms:x p)
@@ -144,3 +147,9 @@ dimensions in x, y and z direction."
                    (list (float (cl-transforms:x (cl-transforms:translation transform)) 0.0d0)
                          (float (cl-transforms:y (cl-transforms:translation transform)) 0.0d0)))
        (2d-cov cov)))))
+
+(defun make-semantic-map-height-function (objects)
+  (lambda (x y)
+    (loop for (pose dimensions) in objects
+          when (point-on-object pose dimensions (cl-transforms:make-3d-vector x y 0))
+            maximizing (float (obj-z-value pose dimensions) 0.0d0))))
