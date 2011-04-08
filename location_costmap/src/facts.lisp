@@ -69,7 +69,10 @@
     (lisp-fun invert-occupancy-grid ?tmp-grid ?grid)))
 
 (def-fact-group location-costmap-desigs (desig-loc)
+  (<- (merged-desig-costmap ?desig ?cm)
+    (bagof ?c (desig-costmap ?desig ?c) ?costmaps)
+    (lisp-fun merge-costmaps ?costmaps ?cm))
+  
   (<- (desig-loc ?desig (costmap ?cm))
     (loc-desig? ?desig)
-    (bagof ?c (desig-costmap ?desig ?c) ?costmaps)
-    (lisp-fun merge-costmaps ?costmaps ?cm)))
+    (merged-desig-costmap ?desig ?cm)))
