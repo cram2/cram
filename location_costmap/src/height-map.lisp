@@ -1,6 +1,10 @@
 
 (in-package :location-costmap)
 
+(defgeneric height-map-lookup (map x y)
+  (:documentation "Returns the z value of a 2D-point in the height
+  map."))
+
 (defclass height-map (occupancy-grid-metadata)
   ((height-map :reader height-map)))
 
@@ -10,7 +14,7 @@
                       (round (/ width resolution))
                       (round (/ height resolution))))))
 
-(defun height-map-lookup (map x y)
+(defmethod height-map-lookup ((map height-map) x y)
   (with-slots (resolution origin-x origin-y height-map width height) map
     (declare (type cma:double-matrix height-map))
     (if (or (< (- x origin-x) 0)
