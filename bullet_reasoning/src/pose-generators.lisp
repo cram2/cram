@@ -173,21 +173,35 @@ that the bounding boxes of `bottom' and `top' are alligned."
         (cl-transforms:y (bounding-box-dimensions aabb-bottom))
         0))))))
 
-(defun pose-on (bottom-pose top)
-  "Returns a new pose for `top' such that the bottom of top's bounding
-  box is in `bottom-pose'"
-  (let ((bottom-pose (ensure-pose bottom-pose)))
-    (let ((aabb-top (aabb top)))
+(defun obj-pose-on (pose obj)
+  "Returns a new pose for `obj' such that the bottom of obj's bounding
+  box is in `pose'"
+  (let ((pose (ensure-pose pose)))
+    (let ((aabb-obj (aabb obj)))
       (cl-transforms:transform->pose
        (cl-transforms:transform*
         (cl-transforms:make-transform
          (cl-transforms:make-3d-vector
           0 0
           (/ (cl-transforms:z
-              (bounding-box-dimensions aabb-top))
+              (bounding-box-dimensions aabb-obj))
              2))
          (cl-transforms:make-quaternion 0 0 0 1))
-        (cl-transforms:reference-transform bottom-pose))))))
+        (cl-transforms:reference-transform pose))))))
+
+(defun obj-poses-on (obj poses)
+  "Returns a new lazy-list of poses for the object `obj' that are on
+  the corresponding poses in `poses`."
+  (lazy-mapcar (lambda (pose)
+                 (obj-pose-on
+                  (etypecase pose
+                    (cl-transforms:3d-vector (cl-transforms:make-pose
+                                              pose
+                                              (cl-transforms:make-quaternion 0 0 0 1)))
+                    (cl-transforms:pose pose)
+                    (list pose))
+                  obj))
+               poses))
 
 (def-prolog-handler generate (bdgs ?values ?generator)
   "Lisp-calls the function call form `?generator' and binds every
