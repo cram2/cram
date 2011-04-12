@@ -33,7 +33,7 @@
 (defpackage bullet-reasoning
     (:nicknames :btr)
   (:use #:common-lisp #:crs #:bt #:bt-vis #:cut)
-  (:import-from #:alexandria compose curry rcurry)
+  (:import-from #:alexandria compose curry rcurry with-gensyms)
   (:import-from #:desig desig-solutions)
   (:export merge-bounding-boxes aabb
            *debug-window* add-debug-window
