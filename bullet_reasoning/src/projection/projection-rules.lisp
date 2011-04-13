@@ -71,4 +71,4 @@
                   ',args
                   ,rule-arguments)
              (apply #'rule ,rule-arguments)
-             (sort ,events #'< :key #'timestamp)))))))
+             (reverse ,events)))))))
