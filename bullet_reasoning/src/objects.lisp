@@ -86,6 +86,18 @@
                             :format-control "Could not find body with name `~a'"
                             :format-arguments (list name))))))))))
 
+(defgeneric copy-object (obj world)
+  (:documentation "Copies the object `obj' and makes it an object of world `world'")
+  (:method ((obj object) (world bt-reasoning-world))
+    (with-slots (name rigid-bodies pose-reference-body) obj
+      (let ((new-instance
+             (make-instance
+              'object :name name
+              :pose-reference-body pose-reference-body
+              :world world)))
+        (prog1 new-instance
+          (setf (slot-value new-instance 'rigid-bodies)
+                (copy-hash-table rigid-bodies)))))))
 
 (defun make-object (world name &optional
                     bodies (add-to-world t))
