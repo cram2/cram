@@ -73,6 +73,12 @@
           (setf last-event new-entry))))
     timeline))
 
+(defgeneric timeline-current-world-state (timeline)
+  (:documentation "Returns the world state object of the last event on the timeline")
+  (:method ((timeline timeline))
+    (with-slots (last-event) timeline
+      (when (car last-event)
+        (event-world-state (car last-event))))))
 
 (defgeneric timeline-lookup (timeline stamp)
   (:documentation "Returns the world state that correspinds to `stamp'
