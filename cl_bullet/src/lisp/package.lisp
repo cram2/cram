@@ -182,4 +182,5 @@
    ;; world-state
    get-state world-state
    restore-world-state
-   restore-state))
+   restore-state
+   copy-world))
