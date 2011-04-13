@@ -63,7 +63,9 @@
                 :timestamp (+ time timestamp)))))
       (with-slots (events last-event) timeline
         (let ((new-entry (cons (copy-and-advance-event
-                                event (timestamp (car last-event)))
+                                event (if (car last-event)
+                                          (timestamp (car last-event))
+                                          0.0))
                                nil)))
           (if last-event
               (setf (cdr last-event) new-entry)
