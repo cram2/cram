@@ -67,4 +67,10 @@
                (:file "debug-window" :depends-on ("package"))
                (:file "household-objects" :depends-on ("package" "objects" "utils"))
                (:file "pose-generators" :depends-on ("package" "utils" "aabb"))
-               (:file "reachability" :depends-on ("package" "robot-model-utils"))))))
+               (:file "reachability" :depends-on ("package" "robot-model-utils"))
+               (:module "projection"
+                        :depends-on ("package" "reasoning-world")
+                        :components
+                        ((:file "events")
+                         (:file "timeline" :depends-on ("events"))
+                         (:file "projection-rules" :depends-on ("events" "timeline"))))))))
