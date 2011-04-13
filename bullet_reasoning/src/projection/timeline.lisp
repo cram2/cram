@@ -70,7 +70,9 @@
           (if last-event
               (setf (cdr last-event) new-entry)
               (setf events new-entry))
-          (setf last-event new-entry))))))
+          (setf last-event new-entry))))
+    timeline))
+
 
 (defgeneric timeline-lookup (timeline stamp)
   (:documentation "Returns the world state that correspinds to `stamp'
@@ -81,4 +83,3 @@
                 (return-from timeline-lookup prev))
               curr)
             (events timeline))))
-
