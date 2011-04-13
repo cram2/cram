@@ -96,26 +96,17 @@ example for a simple projection for the robot base moving is:
    (event (robot-at ?robot ?pose) (calculate-required-time ?robot ?pose)))
 
 "
-  (flet ((parse-body-form (form)
-           (with-vars-bound (?event ?time)
-               (unify form '(event ?event ?time))
-             (assert (and ?event ?time) ()
-                     "Invalid event pattern ~a in projection rule ~a"
-                     form name)
-             (values ?event ?time))))
-    (assert (every #'is-var args) ()
-            "Arguments pattern ~a invalid. Arguments of projection rule ~a must all be variables of the form ?var."
-            args name)
-    (with-gensyms (action)
-      `(eval-when (:load-toplevel :execute)
-         (let ((,action (make-instance 'prolog-action
-                                       :action ,name
-                                       :action-arg-pattern ',args)))
-           ,@(mapcar (lambda (form)
-                       (multiple-value-bind (?event ?time)
-                           (parse-body-form form)
-                         `(prolog-action-add-event ,action ',?event ,?time)))
-                     body)
-           (when (find action *prolog-actions* :key #'action)
-              (style-warn "Redefining projection rule for action ~a" name))
-           (push ,action (remove ,action *prolog-actions* :key #'action)))))))
+  (with-gensyms (action)
+    `(eval-when (:load-toplevel :execute)
+       (let ((,action (make-instance 'prolog-action
+                                     :action ,name
+                                     :action-arg-pattern ',args)))
+         (macrolet ((event ?event-pat ?)))
+         ,@(mapcar (lambda (form)
+                     (multiple-value-bind (?event ?time)
+                         (parse-body-form form)
+                       `(prolog-action-add-event ,action ',?event ,?time)))
+                   body)
+         (when (find action *prolog-actions* :key #'action)
+           (style-warn "Redefining projection rule for action ~a" name))
+         (push ,action (remove ,action *prolog-actions* :key #'action))))))

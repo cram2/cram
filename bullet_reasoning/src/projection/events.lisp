@@ -40,54 +40,36 @@
               :documentation "The time stamp indicating when the event
               occurred")))
 
-(defclass action ()
-  ((action :initarg :action :reader action)))
+(defgeneric execute-event (world event-pattern)
+  (:documentation "Executes the event that matches `event-pattern'
+  `world' and returns the new world instance.")
+  (:method ((world bt-reasoning-world) event-pattern)
+    (let ((new-world (copy-world world)))
+      (unless (prolog `(event ,event-pattern ,new-world))
+        (error 'simple-error :format-control "Failed to execute event `~a'"
+               :format-arguments (list event-pattern)))
+      new-world)))
 
-(defgeneric execute-action (world action &rest action-arguments)
-  (:documentation "Retunrs the sequence of events that are generated
-  by exectuing `action' in `world'"))
+(defun make-event-name-from-pat (event-pattern)
+  "Returns a symbol representing the `event-pattern'. It constructs a
+  symbol by concatenating all symbols in `event-pattern' and
+  separating them by a dash."
+  (etypecase event-pattern
+    (symbol event-pattern)
+    (list
+       (assert (every #'symbolp event-pattern) ()
+               "event-pattern ~a invalid. It must contain only symbols"
+               event-pattern)
+       (intern
+        (reduce (lambda (prev curr)
+                  (concatenate 'string prev "-" (symbol-name curr)))
+                (cdr event-pattern) :initial-value (symbol-name (car event-pattern)))))))
 
-(defclass timeline ()
-  ((events :initform nil :reader events
-           :documentation "The (temporally ordered) sequence of events
-           that belong to this timeline")
-   (last-event :initform nil :reader last-event
-               :documentation "A reference to the last event on the
-               timeline. It represents the current state of the
-               world.")))
-
-(defgeneric timeline-advance (timeline event)
-  (:documentation "Advances the `timeline', i.e. adds the event `event' to its end")
-  (:method ((timeline timeline) (event event))
-    (flet ((copy-and-advance-event (event time)
-             (with-slots (event world-state timestamp) event
-               (make-instance
-                'event
-                :event event
-                :world-state world-state
-                :timestamp (+ time timestamp)))))
-      (with-slots (events last-event) timeline
-        (let ((new-entry (cons (copy-and-advance-event
-                                event (timestamp (car last-event)))
-                               nil)))
-          (if last-event
-              (setf (cdr last-event) new-entry)
-              (setf events new-entry))
-          (setf last-event new-entry))))))
-
-(defgeneric timeline-lookup (timeline stamp)
-  (:documentation "Returns the world state that correspinds to `stamp'
-  in `timeline'")
-  (:method ((timeline timeline) (stamp number))
-    (reduce (lambda (prev curr)
-              (when (< stamp (timestamp curr))
-                (return-from timeline-lookup prev))
-              curr)
-            (events timeline))))
-
-(defgeneric timeline-execute-action (timeline action)
-  (:documentation "Executes an action on `timeline', i.e. advances the
-  timeline with `action'")
-  (:method ((timeline timeline) (action action))
-    (map 'nil (curry #'timeline-advance timeline)
-         (execute-action action))))
+(defmacro def-event (event-pattern world-var &body body)
+  (let ((fact-group-name (intern
+                          (concatenate
+                           'string "EVENT-"
+                           (symbol-name (make-event-name-from-pat event-pattern))))))
+    `(def-fact-group ,fact-group-name (event)
+       (<- (event ,event-pattern ,world-var)
+         ,@body))))
