@@ -38,6 +38,13 @@
   (:documentation "Re-creates the object that is described by state
   and re-adds it to the world."))
 
+(defgeneric copy-world (world &optional destination)
+  (:method ((world bt-world) &optional destination)
+    (restore-world-state (get-state world) (or destination
+                                               (make-instance
+                                                (class-of world)
+                                                :gravity-vector (gravity-vector world))))))
+
 (defclass world-state ()
   ((bodies :initarg :bodies :reader bodies)
    (constraints :initarg :constraints :reader constraints)
