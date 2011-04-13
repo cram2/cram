@@ -57,8 +57,9 @@
                  :points (physics-utils:3d-model-vertices (cl-urdf:3d-model mesh))))
 
 (defclass robot-object (object)
-  ((links :initform (make-hash-table :test 'equal) :reader links)
-   (joint-states :initform (make-hash-table :test 'equal) :reader joint-states)
+  ((links :initarg :links :initform (make-hash-table :test 'equal) :reader links)
+   (joint-states :initarg :joint-states :initform (make-hash-table :test 'equal)
+                 :reader joint-states)
    (urdf :initarg :urdf :reader urdf)))
 
 (defgeneric joint-names (robot-object)
@@ -85,6 +86,14 @@
 
 (defgeneric (setf link-pose) (new-value robot-object name)
   (:documentation "Sets the pose of a link and all its children"))
+
+(defmethod copy-object ((obj robot-object) (world bt-reasoning-world))
+  (with-slots (links joint-states urdf) obj
+    (change-class
+     (call-next-method) 'robot-object
+     :links (copy-hash-table links)
+     :joint-states (copy-hash-table joint-states)
+     :urdf urdf)))
 
 (defmethod add-object ((world bt-world) (type (eql 'urdf)) name pose &key
                        urdf)

@@ -32,7 +32,7 @@
 
 (defclass semantic-map-object (object)
   ((pose :initarg :pose)
-   (geoms :initform (make-hash-table :test #'equal))))
+   (geoms :initarg :geoms :initform (make-hash-table :test #'equal))))
 
 (defgeneric semantic-map-geoms (map)
   (:method ((map semantic-map-object))
@@ -85,6 +85,10 @@
        ("objectPose" ?o ?pose)
        ("objectDimensions" ?o ?w ?d ?h)
        (= '(?d ?w ?h) ?dim))))))
+
+(defmethod copy-object ((obj semantic-map-object) (world bt-reasoning-world))
+  (with-slots (pose geoms) obj
+    (change-class (call-next-method) 'semantic-map-object :pose pose :geoms geoms)))
 
 (defmethod add-object ((world bt-world) (type (eql 'semantic-map)) name pose &key (color '(0.8 0.8 0.8 1.0)))
   (let* ((pose-transform (cl-transforms:reference-transform

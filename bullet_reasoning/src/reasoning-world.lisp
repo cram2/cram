@@ -65,9 +65,13 @@
 
 (defmethod restore-state ((world-state bt-reasoning-world-state)
                           (world bt-reasoning-world))
-  (call-next-method)
-  (with-slots (objects) world
-    (clrhash objects)
-    (loop for (name . obj) in (objects world-state) do
-      (setf (gethash name objects) obj)
-      (invalidate-object obj))))
+  (prog1
+      (call-next-method)
+    (with-world-locked world
+      (with-slots (objects) world
+        (clrhash objects)
+        (loop for (name . obj) in (objects world-state) do
+          (let ((obj (if (eq world (world obj))
+                         obj (copy-object obj world))))
+            (setf (gethash name objects) obj)
+            (invalidate-object obj)))))))
