@@ -78,9 +78,14 @@
         (when valid
           (or value
               (setf (gethash name rigid-bodies)
-                    (find name (bodies world)
-                          :key #'name
-                          :test #'equal))))))))
+                    (or
+                     (find name (bodies world)
+                           :key #'name
+                           :test #'equal)
+                     (error 'simple-error
+                            :format-control "Could not find body with name `~a'"
+                            :format-arguments (list name))))))))))
+
 
 (defun make-object (world name &optional
                     bodies (add-to-world t))
