@@ -48,9 +48,9 @@
     timeline))
 
 (defmacro def-projection-rule (name world-var args &body body)
-  (with-gensyms (name-var events)
+  (with-gensyms (name-var events rule-arguments)
     `(defmethod execute-projection-rule ((,world-var bt-reasoning-world) (,name-var (eql ',name))
-                                         &rest rule-arguments)
+                                         &rest ,rule-arguments)
        (let ((,events nil))
          (macrolet ((event (event-pat time)
                       `(let* ((new-world (execute-event ,',world-var ,event-pat)))
@@ -63,5 +63,12 @@
                          (setf ,',world-var new-world))))
            (flet ((rule ,args
                     ,@body))
-             (apply #'rule rule-arguments)
+             (map 'nil (lambda (var-name var)
+                         (when (typep var 'object)
+                           (warn 'simple-warning
+                                 :format-control "Variable ~a is of type OBJECT. This will probably lead to bugs since the OBJECT is in the wrong world instance"
+                                 :format-arguments (list var-name var))))
+                  ',args
+                  ,rule-arguments)
+             (apply #'rule ,rule-arguments)
              (sort ,events #'< :key #'timestamp)))))))
