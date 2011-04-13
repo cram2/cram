@@ -316,8 +316,7 @@
   (<- (ik-solution-in-collision ?w ?robot ?ik-solution ?colliding-objects)
     (with-stored-world ?w
       (lisp-fun set-robot-state-from-joints ?ik-solution ?robot ?_)
-      (findall ?obj (contact ?w ?robot ?obj) ?colliding-objects)
-      (lisp-fun break ?_))))
+      (findall ?obj (contact ?w ?robot ?obj) ?colliding-objects))))
 
 (def-fact-group debug ()
   (<- (debug-window ?world)
