@@ -43,7 +43,7 @@
            #:next-solution #:register-designator-class
            #:make-designator #:first-desig #:current-desig
            #:with-desig-props #:with-designators
-           #:designator-solution
+           #:designator-solutions
            #:desig-prop-value #:*designator-pprint-description*
            #:get-equal-designators
            #:designator-id-mixin #:object-id
