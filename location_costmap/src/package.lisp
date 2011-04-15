@@ -70,6 +70,7 @@
            #:register-cost-function
            #:generate-point
            #:gen-costmap-sample
+           #:costmap-samples
            #:generators
            #:cost-functions
            #:merge-costmaps
