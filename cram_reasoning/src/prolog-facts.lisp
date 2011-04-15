@@ -130,4 +130,10 @@
 (def-fact-group lisp-types ()
   (<- (lisp-type ?var ?type)
     (bound ?var)
-    (lisp-fun type-of ?var ?type)))
+    (not (bound ?type))
+    (lisp-fun type-of ?var ?type))
+
+  (<- (lisp-type ?var ?type)
+    (bound ?var)
+    (bound ?type)
+    (lisp-pred typep ?var ?type)))
