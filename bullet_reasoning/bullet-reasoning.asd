@@ -73,4 +73,5 @@
                         :components
                         ((:file "events")
                          (:file "timeline" :depends-on ("events"))
-                         (:file "projection-rules" :depends-on ("events" "timeline"))))))))
+                         (:file "projection-rules" :depends-on ("events" "timeline"))
+                         (:file "prolog")))))))
