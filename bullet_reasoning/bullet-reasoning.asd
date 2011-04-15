@@ -69,7 +69,7 @@
                (:file "pose-generators" :depends-on ("package" "utils" "aabb"))
                (:file "reachability" :depends-on ("package" "robot-model-utils"))
                (:module "projection"
-                        :depends-on ("package" "reasoning-world")
+                        :depends-on ("package" "reasoning-world" "prolog-facts")
                         :components
                         ((:file "events")
                          (:file "timeline" :depends-on ("events"))
