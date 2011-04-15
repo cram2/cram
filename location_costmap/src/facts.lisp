@@ -72,6 +72,9 @@
   (<- (merged-desig-costmap ?desig ?cm)
     (bagof ?c (desig-costmap ?desig ?c) ?costmaps)
     (lisp-fun merge-costmaps ?costmaps ?cm))
+
+  (<- (costmap-samples ?cm ?solutions)
+    (lisp-fun costmap-samples ?cm ?solutions))
   
   (<- (desig-loc ?desig (costmap ?cm))
     (loc-desig? ?desig)
