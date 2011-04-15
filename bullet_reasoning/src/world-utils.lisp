@@ -52,6 +52,7 @@
 
 (defun contact-p (world obj-1 obj-2)
   "Returns T if obj-1 and obj-2 are in contact"
+  (perform-collision-detection world)
   (unless (eql obj-1 obj-2)
     (find-if (lambda (contact)
                (when (and
@@ -65,6 +66,7 @@
              (contact-manifolds world))))
 
 (defun find-all-contacts (world)
+  (perform-collision-detection world)  
   (let ((objects (objects world)))
     (remove-duplicates
      (remove-if-not
@@ -82,6 +84,7 @@
      :test #'equal)))
 
 (defun find-objects-in-contact (world obj)
+  (perform-collision-detection world)  
   (let ((objects (objects world)))
     (remove-duplicates
      (remove-if-not
