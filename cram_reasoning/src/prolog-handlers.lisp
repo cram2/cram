@@ -149,6 +149,35 @@
         (when matched?
           (list new-bdgs))))))
 
+(def-prolog-handler every (bdgs generator pattern)
+  ;; proves PATTERN for all possible solutions of GENERATOR. In
+  ;; contrast to FORALL and BAGOF, it only succeeds if all free
+  ;; variables in PATTERN stay constant over all solutions of
+  ;; GENERATOR.
+  (labels ((remove-free-vars (free-vars bdgs)
+             (remove-if (rcurry #'member free-vars)
+                        bdgs :key #'car))
+           (merge-bdgs (bdgs-1 bdgs-2)
+             (reduce (lambda (bdgs curr-bdg)
+                       (destructuring-bind (name . val) curr-bdg
+                         (or (add-bdg name val bdgs)
+                             (return-from merge-bdgs nil))))
+                     bdgs-1 :initial-value bdgs-2))
+           (prove-for-sequence (pat free-vars seq bdgs)
+             (if seq
+                 (let ((merged-bdgs (merge-bdgs (car seq) bdgs)))
+                   (when merged-bdgs
+                     (lazy-mapcan (curry #'prove-for-sequence
+                                         pat free-vars (cdr seq))
+                                  (lazy-mapcar (curry #'remove-free-vars
+                                                      free-vars)
+                                               (prolog pat merged-bdgs)))))
+                 (list bdgs))))
+    (let* ((generator-solutions (force-ll (prolog generator bdgs)))
+           (free-vars (remove-duplicates
+                       (mapcan (curry #'mapcar #'car) generator-solutions))))
+      (prove-for-sequence pattern free-vars generator-solutions bdgs))))
+
 ;; action must succeed for all bindins of cond
 (def-prolog-handler forall (bdgs cond action)
   (let ((result (prolog cond bdgs)))
