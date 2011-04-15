@@ -39,17 +39,17 @@
                timeline. It represents the current state of the
                world.")))
 
-(defgeneric timeline-init (world)
+(defgeneric timeline-init (world &optional time)
   (:documentation "Creates and initializes a new timeline with a
   specific world state")
-  (:method ((world bt-reasoning-world))
+  (:method ((world bt-reasoning-world) &optional (time 0.0))
     (let ((timeline (make-instance 'timeline)))
       (timeline-advance
        timeline
        (make-instance 'event
                       :event 'start
                       :world-state (get-state world)
-                      :timestamp 0.0)))))
+                      :timestamp time)))))
 
 (defgeneric timeline-advance (timeline event)
   (:documentation "Advances the `timeline', i.e. adds the event `event' to its end")
