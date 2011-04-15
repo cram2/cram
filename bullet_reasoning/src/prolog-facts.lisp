@@ -30,10 +30,15 @@
 
 (in-package :btr)
 
+(defvar *current-bullet-world* nil)
+
 (def-fact-group bullet-world-facts ()
   
   (<- (bullet-world ?world)
-    (instance-of bt-reasoning-world ?world))
+    (symbol-value *current-bullet-world* ?current-world)
+    (-> (lisp-pred identity ?current-world)
+        (== ?world ?current-world)
+        (instance-of bt-reasoning-world ?world)))
 
   (<- (bullet-world ?world ?obj)
     ;; The world ?obj belongs to
