@@ -72,6 +72,7 @@
            #:forall
            #:bagof
            #:setof
+           #:every
            #:filter-bindings
            #:query-var
            #:symbol-value
