@@ -114,10 +114,12 @@
 (def-prolog-handler findall (bdgs var-pattern pattern result-pattern)
   (let ((result (prolog pattern bdgs)))
     (multiple-value-bind (new-bdgs matched?)
-        (unify result-pattern (loop for binding in (force-ll result)
-                                 for bound-vars = (substitute-vars var-pattern binding)
-                                 when (is-ground bound-vars nil)
-                                 collect bound-vars)
+        (unify result-pattern
+               (lazy-mapcan (lambda (binding)
+                              (let ((bound-vars (substitute-vars var-pattern binding)))
+                                (when (is-ground bound-vars nil)
+                                  (list bound-vars))))
+                            result)
                bdgs)
       (when matched?
         (list new-bdgs)))))
@@ -126,10 +128,12 @@
   (let ((result (prolog pattern bdgs)))
     (when result
       (multiple-value-bind (new-bdgs matched?)
-          (unify result-pattern (loop for binding in (force-ll result)
-                                      for bound-vars = (substitute-vars var-pattern binding)
-                                      when (is-ground bound-vars nil)
-                                        collect bound-vars)
+          (unify result-pattern
+                 (lazy-mapcan (lambda (binding)
+                                (let ((bound-vars (substitute-vars var-pattern binding)))
+                                  (when (is-ground bound-vars nil)
+                                    (list bound-vars))))
+                              result)
                  bdgs)
         (when matched?
           (list new-bdgs))))))
