@@ -210,7 +210,7 @@
   (let ((?n (var-value ?n bdgs))
         (?l (var-value ?l bdgs))
         (?o (var-value ?o bdgs)))
-    (list (unify ?o (lazy-take ?n ?l)))))
+    (list (unify ?o (lazy-take ?n ?l) bdgs))))
 
 ;;; Pass a form containing vars (in arbitrary nesting) as the first
 ;;; parameter. Then pass an arbitray number of goals (which will be
