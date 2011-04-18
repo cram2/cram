@@ -63,6 +63,7 @@
            #:def-fact-group
            #:<-
            #:def-prolog-handler
+           #:*break-on-lisp-errors*
            #:slot-value
            #:get-slot-value
            #:instance-of
