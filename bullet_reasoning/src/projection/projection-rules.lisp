@@ -61,14 +61,18 @@
                                 :timestamp ,time)
                                ,',events)
                          (setf ,',world-var new-world))))
-           (flet ((rule ,args
-                    ,@body))
-             (map 'nil (lambda (var-name var)
-                         (when (typep var 'object)
-                           (warn 'simple-warning
-                                 :format-control "Variable ~a is of type OBJECT. This will probably lead to bugs since the OBJECT is in the wrong world instance"
-                                 :format-arguments (list var-name var))))
-                  ',args
-                  ,rule-arguments)
-             (apply #'rule ,rule-arguments)
-             (reverse ,events)))))))
+           (flet ((rule (name &rest args)
+                    (setf events
+                          (append (reverse (apply #'execute-projection-rule ,world-var name args))
+                                  events))))
+             (flet ((rule-body ,args
+                      ,@body))
+               (map 'nil (lambda (var-name var)
+                           (when (typep var 'object)
+                             (warn 'simple-warning
+                                   :format-control "Variable ~a is of type OBJECT. This will probably lead to bugs since the OBJECT is in the wrong world instance"
+                                   :format-arguments (list var-name var))))
+                    ',args
+                    ,rule-arguments)
+               (apply #'rule ,rule-arguments)
+               (reverse ,events))))))))
