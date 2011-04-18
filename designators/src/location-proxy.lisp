@@ -41,7 +41,7 @@
   NIL if no more solutions exist."))
 
 (defgeneric location-proxy-precedence-value (proxy)
-  (:documentation "Returns a number that indicates the proxie's
+  (:documentation "Returns a number that indicates the proxy's
   precedence. Lower numbers correspond to lower precedence."))
 
 (defgeneric location-proxy-solution->pose (desig solution)
