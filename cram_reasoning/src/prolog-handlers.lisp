@@ -31,6 +31,8 @@
 
 (defvar *prolog-handlers* (make-hash-table :test 'eq))
 
+(defvar *break-on-lisp-errors* nil)
+
 (defmacro def-prolog-handler (name (bdgs &rest pattern) &body body)
   `(setf (gethash ',name *prolog-handlers*)
          (lambda (,bdgs ,@pattern)
@@ -67,29 +69,33 @@
 (def-prolog-handler lisp-fun (bdgs function &rest args)
   (let ((arguments (butlast args))
         (result-pat (car (last args))))
-    (handler-case
+    (block nil
+      (handler-bind
+          ((error (lambda (e)
+                    (unless *break-on-lisp-errors*
+                      (warn 'simple-warning
+                            :format-control "An error occurred while executing the lisp function `~a': `~a'"
+                            :format-arguments (list function e))
+                      (return nil)))))
         (let ((result (apply (symbol-function function)
                              (mapcar (rcurry #'var-value bdgs) arguments))))
           ;; (format t "result: ~a ~a bdgs: ~a~%" result result-var bdgs)
           (multiple-value-bind (new-bdgs matched?) (unify result-pat result bdgs)
             (when matched?
-              (list new-bdgs))))
-      (error (e)
-        (warn 'simple-warning
-              :format-control "An error occurred while executing the lisp function `~a': `~a'"
-              :format-arguments (list function e))
-        nil))))
+              (list new-bdgs))))))))
 
 (def-prolog-handler lisp-pred (bdgs pred &rest args)
-  (handler-case
+  (block nil
+    (handler-bind
+        ((error (lambda (e)
+                  (unless *break-on-lisp-errors*
+                    (warn 'simple-warning
+                          :format-control "An error occurred while executing the lisp predicate `~a': `~a'"
+                          :format-arguments (list pred e))
+                    (return nil)))))
       (when (apply (symbol-function pred)
                    (mapcar (rcurry #'var-value bdgs) args))
-        (list bdgs))
-    (error (e)
-      (warn 'simple-warning
-            :format-control "An error occurred while executing the lisp predicate `~a': `~a'"
-            :format-arguments (list pred e))
-      nil)))
+        (list bdgs)))))
 
 (def-prolog-handler bound (bdgs pattern)
   (when (is-bound pattern bdgs)
