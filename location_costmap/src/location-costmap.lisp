@@ -119,7 +119,7 @@
 
 (defun merge-costmaps (cm-1 &rest costmaps)
   (etypecase cm-1
-    (list (apply #'merge-costmaps (append cm-1 costmaps)))
+    (list (apply #'merge-costmaps (append (force-ll cm-1) costmaps)))
     (location-costmap
        ;; Todo: assert euqal size of all costmaps
        (make-instance 'location-costmap
