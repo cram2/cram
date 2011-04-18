@@ -120,7 +120,7 @@ pose is a list of length 16 representing the flattened homogenous pose
 matrix and dimensions is a list of length three, containing the
 dimensions in x, y and z direction."
   (let ((functions (mapcar (alexandria:curry #'apply #'make-semantic-map-obj-generator)
-                           objects)))
+                           (cut:force-ll objects))))
     (lambda (x y)
       (or
        (some (alexandria:rcurry #'funcall x y) functions)
@@ -150,6 +150,6 @@ dimensions in x, y and z direction."
 
 (defun make-semantic-map-height-function (objects)
   (lambda (x y)
-    (loop for (pose dimensions) in objects
+    (loop for (pose dimensions) in (cut:force-ll objects)
           when (point-on-object pose dimensions (cl-transforms:make-3d-vector x y 0))
             maximizing (float (obj-z-value pose dimensions) 0.0d0))))
