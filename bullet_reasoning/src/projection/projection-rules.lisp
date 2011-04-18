@@ -48,6 +48,12 @@
     timeline))
 
 (defmacro def-projection-rule (name world-var args &body body)
+  "Defines a new projection rule. Projection rules are just normal
+lisp code with the forms (EVENT PAT TIME) and (RULE NAME &REST ARGS)
+lexically bound in the rule body. The macro EVENT is used to generate
+events with the specified pattern on the timeline, executing the
+corresponding event. The function RULE executes another projection
+rule and adds its events to the timeline."
   (with-gensyms (name-var events rule-arguments)
     `(defmethod execute-projection-rule ((,world-var bt-reasoning-world) (,name-var (eql ',name))
                                          &rest ,rule-arguments)
