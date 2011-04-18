@@ -78,13 +78,6 @@ than threshold * highest-probability."
               (when (> (get-map-value map x y) (* threshold max-value))
                 robot-pos))))))))
 
-(defun nav-angle-to-point (p p-ref)
-  "Calculates the angle from `p-ref' to face at `p'"
-  (cl-transforms:axis-angle->quaternion
-   (cl-transforms:make-3d-vector 0 0 1)
-   (let ((p-rel (cl-transforms:v- p p-ref)))
-     (atan (cl-transforms:y p-rel) (cl-transforms:x p-rel)))))
-
 ;;; Requires the following predicates to be set:
 ;;;
 ;;; (costmap-size ?w ?h)
@@ -92,7 +85,6 @@ than threshold * highest-probability."
 ;;; (costmap-padding ?p)
 ;;; (costmap-in-reach-padding ?p)
 (def-fact-group table-costmap (desig-costmap
-                               desig-orientation
                                desig-z-value
                                drivable-location-costmap)
 
@@ -191,11 +183,4 @@ than threshold * highest-probability."
     (global-fluent-value *table-height-map-fl* ?table-heightmap)
     (lisp-fun cl-transforms:x ?point ?x)
     (lisp-fun cl-transforms:y ?point ?y)    
-    (lisp-fun height-map-lookup ?table-heightmap ?x ?y ?z))
-
-  (<- (desig-orientation ?desig ?point ?orientation)
-    (or (desig-prop ?desig (to reach))
-        (desig-prop ?desig (to see)))
-    (desig-location-prop ?desig ?loc)
-    (lisp-fun cl-transforms:origin ?loc ?loc-p)
-    (lisp-fun nav-angle-to-point ?loc-p ?point ?orientation)))
+    (lisp-fun height-map-lookup ?table-heightmap ?x ?y ?z)))

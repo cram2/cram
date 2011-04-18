@@ -27,6 +27,8 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
+(desig:register-designator-properties #:to #:see #:reach)
+
 (defpackage location-costmap
     (:use :cl :crs :cut :cram-roslisp-common :alexandria
           :roslisp :designators-ros #:cram-designators)

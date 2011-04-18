@@ -29,6 +29,13 @@
 
 (in-package :location-costmap)
 
+(defun nav-angle-to-point (p p-ref)
+  "Calculates the angle from `p-ref' to face at `p'"
+  (cl-transforms:axis-angle->quaternion
+   (cl-transforms:make-3d-vector 0 0 1)
+   (let ((p-rel (cl-transforms:v- p p-ref)))
+     (atan (cl-transforms:y p-rel) (cl-transforms:x p-rel)))))
+
 (def-fact-group location-costmap-utils ()
   (<- (global-fluent-value ?name ?value)
     (symbol-value ?name ?fl)
@@ -68,13 +75,21 @@
     (lisp-fun grid-cells-msg->occupancy-grid ?msg ?p ?tmp-grid)
     (lisp-fun invert-occupancy-grid ?tmp-grid ?grid)))
 
-(def-fact-group location-costmap-desigs (desig-loc)
+(def-fact-group location-costmap-desigs (desig-loc desig-orientation)
+
   (<- (merged-desig-costmap ?desig ?cm)
     (bagof ?c (desig-costmap ?desig ?c) ?costmaps)
     (lisp-fun merge-costmaps ?costmaps ?cm))
 
   (<- (costmap-samples ?cm ?solutions)
     (lisp-fun costmap-samples ?cm ?solutions))
+
+  (<- (desig-orientation ?desig ?point ?orientation)
+    (or (desig-prop ?desig (to reach))
+        (desig-prop ?desig (to see)))
+    (desig-location-prop ?desig ?loc)
+    (lisp-fun cl-transforms:origin ?loc ?loc-p)
+    (lisp-fun nav-angle-to-point ?loc-p ?point ?orientation))
   
   (<- (desig-loc ?desig (costmap ?cm))
     (loc-desig? ?desig)
