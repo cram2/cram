@@ -77,6 +77,7 @@
            #:filter-bindings
            #:query-var
            #:symbol-value
+           #:set-symbol-value
            ;; Rete
            #:clear-alpha-network #:rete-assert #:rete-retract
            #:with-facts-asserted #:object-id
