@@ -111,6 +111,9 @@
     (when result
       (list (lazy-car result)))))
 
+(def-prolog-handler call (bdgs goal)
+  (prolog goal bdgs))
+
 (def-prolog-handler findall (bdgs var-pattern pattern result-pattern)
   (let ((result (prolog pattern bdgs)))
     (multiple-value-bind (new-bdgs matched?)
