@@ -125,7 +125,10 @@
     (lisp-type ?obj ?type))
 
   (<- (symbol-value ?sym ?val)
-    (lisp-fun symbol-value ?sym ?val)))
+    (lisp-fun symbol-value ?sym ?val))
+
+  (<- (set-symbol-value ?sym ?val)
+    (lisp-fun set ?sym ?val ?_)))
 
 (def-fact-group lisp-types ()
   (<- (lisp-type ?var ?type)
