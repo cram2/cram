@@ -31,7 +31,7 @@
             (< (- y origin-y) 0)
             (> (- x origin-x) width)
             (> (- y origin-y) height))
-        0
+        0.0d0
         (aref height-map
               (round (/ (- y origin-y) resolution))
               (round (/ (- x origin-x) resolution))))))
@@ -43,7 +43,7 @@
     (setf (aref height-map
                 (round (/ (- y origin-y) resolution))
                 (round (/ (- x origin-x) resolution)))
-          value)))
+          (float value 0.0d0))))
 
 (defmethod height-map-lookup ((map lazy-height-map) x y)
   (let ((cached-value (call-next-method)))
