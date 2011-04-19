@@ -36,6 +36,9 @@
 (defmethod costmap-generator-name->score ((name (eql 'table-distribution)))
   9)
 
+(defmethod costmap-generator-name->score ((name (eql 'semantic-map-free-space)))
+  11)
+
 (defun ensure-string (identifier)
   (etypecase identifier
     (string identifier)
@@ -65,8 +68,9 @@
                                   ("withoutNamespace" ?owl-type ?owl-type-no-ns)
                                   ("objectPose" ?o ?pose)
                                   ("objectDimensions" ?o ?width ?length ?height)))
-    (or (owl-eq ?type ?owl-type)
-        (owl-eq ?type ?owl-type-no-ns)))
+    (once
+     (or (owl-eq ?type ?owl-type)
+         (owl-eq ?type ?owl-type-no-ns))))
 
   (<- (semantic-map-object ?type ?label ?pose (?length ?width ?height))
     (json-prolog:json-prolog (and ("objectType" ?o ?owl-type)
@@ -74,9 +78,10 @@
                                   ("objectPose" ?o ?pose)
                                   ("objectDimensions" ?o ?width ?length ?height)
                                   ("objectLabel" ?o ?owl-name)))
-    (and (owl-eq ?label ?owl-name)
-         (or (owl-eq ?type ?owl-type)
-             (owl-eq ?type ?owl-type-no-ns))))
+    (owl-eq ?label ?owl-name)
+    (once
+     (or (owl-eq ?type ?owl-type)
+         (owl-eq ?type ?owl-type-no-ns))))
 
   (<- (semantic-map-desig-objects ?desig ?objects)
     (desig-prop ?desig (on ?type))
@@ -90,6 +95,11 @@
     (desig-prop ?desig (name ?name))
     (bagof (?pose ?dimensions)
            (semantic-map-object ?type ?name ?pose ?dimensions)
+           ?objects))
+
+  (<- (semantic-map-objects ?objects)
+    (bagof (?pose ?dimensions)
+           (semantic-map-object ?_ ?_ ?pose ?dimensions)
            ?objects))
   
   (<- (desig-costmap ?desig ?cm)
@@ -113,6 +123,20 @@
      (make-semantic-map-height-function ((?pose ?dimensions)))
      ?cm))
 
+  (<- (desig-costmap ?desig ?cm)
+    (or (desig-prop ?desig (to see))
+        (desig-prop ?desig (to reach)))
+    (costmap ?cm)
+    (semantic-map-objects ?objects)
+    (costmap-padding ?padding)    
+    (costmap-add-function semantic-map-free-space
+                          (make-semantic-map-costmap
+                           ?objects :invert t :padding ?padding)
+                          ?cm)
+    (costmap-add-heightmap-generator
+     (make-constant-height-function 0.0)
+     ?cm))
+
   (<- (desig-z-value ?desig ?point ?z)
     (semantic-map-desig-objects ?desig ?objects)
     (member (?pose ?dimensions) ?objects)
@@ -122,4 +146,6 @@
 (def-fact-group semantic-map-utils ()
   (<- (owl-eq ?id-1 ?id-2)
     (ground (?id-1 ?id-2))
-    (lisp-pred owl-eq ?id-1 ?id-2)))
+    (lisp-pred owl-eq ?id-1 ?id-2))
+
+  (<- (owl-eq ?id ?id)))
