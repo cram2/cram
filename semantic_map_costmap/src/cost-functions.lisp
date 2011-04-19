@@ -91,12 +91,14 @@
               (cl-transforms:transform-inv transform)
               pt))))
 
-(defun make-semantic-map-obj-generator (pose-matrix dimensions)
+(defun make-semantic-map-obj-generator (pose-matrix dimensions &key (padding 0.0))
   (let* ((transform (cl-transforms:matrix->transform
                      (make-array
                       '(4 4) :displaced-to (make-array
                                             16 :initial-contents pose-matrix))))
-         (dimensions (apply #'cl-transforms:make-3d-vector dimensions))
+         (dimensions (cl-transforms:v+
+                      (apply #'cl-transforms:make-3d-vector dimensions)
+                      (cl-transforms:make-3d-vector padding padding padding)))
          (pt->obj-transform (cl-transforms:transform-inv transform))
          ;; Since our map is 2d we need to select a z value for our
          ;; point. We just use the pose's z value since it should be
@@ -106,25 +108,34 @@
                          (local-min local-max))
         (list (2d-object-bb dimensions transform)
               (2d-object-bb dimensions))
+      ;; For performance reasons, we first check if the point is
+      ;; inside the object's bounding box in map and then check if it
+      ;; really is inside the object.
       (lambda (x y)
         (let ((pt (cl-transforms:make-3d-vector x y z-value)))
           (when (and (inside-aabb obj-min obj-max pt)
                      (inside-aabb local-min local-max (cl-transforms:transform-point
                                                        pt->obj-transform pt)))
-              1.0))))))
+            1.0))))))
 
-(defun make-semantic-map-costmap (objects)
+(defun make-semantic-map-costmap (objects &key (invert nil) (padding 0.0))
   "Generates a semantic-map costmap for all `objects'. `objects' is a
 list of the elements of the form (pose dimensions) where
 pose is a list of length 16 representing the flattened homogenous pose
 matrix and dimensions is a list of length three, containing the
 dimensions in x, y and z direction."
-  (let ((functions (mapcar (alexandria:curry #'apply #'make-semantic-map-obj-generator)
+  (let ((functions (mapcar (alexandria:curry
+                            #'apply
+                            (alexandria:rcurry #'make-semantic-map-obj-generator
+                                               :padding padding))
                            (cut:force-ll objects))))
-    (lambda (x y)
-      (or
-       (some (alexandria:rcurry #'funcall x y) functions)
-       0.0))))
+    (if invert
+        (lambda (x y)
+          (if (some (alexandria:rcurry #'funcall x y) functions)
+              0.0 1.0))
+        (lambda (x y)
+          (if (some (alexandria:rcurry #'funcall x y) functions)
+              1.0 0.0)))))
 
 (defun make-table-cost-function (pose-matrix dimensions)
   (destructuring-bind (x-dim y-dim z-dim) dimensions
