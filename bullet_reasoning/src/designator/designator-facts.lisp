@@ -28,7 +28,9 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :bullet-reasoning-locations)
+(in-package :btr-desig)
+
+(defvar *max-location-samples* 50)
 
 (defmethod costmap-generator-name->score ((name (eql 'reachable-from-space)))
   5)
@@ -36,7 +38,9 @@
 (defmethod costmap-generator-name->score ((name (eql 'reachable-from-weighted)))
   4)
 
-(def-fact-group bullet-reasoning-location-desig (desig-costmap)
+(def-fact-group bullet-reasoning-location-desig (desig-costmap
+                                                 desig-loc
+                                                 desig-location-prop)
   (<- (desig-costmap ?desig ?cm)
     (costmap ?cm)
     (desig-prop ?desig (reachable-from ?pose))
@@ -47,4 +51,35 @@
                           ?cm)
     (costmap-add-function reachable-from-weighted
                           (make-location-cost-function ?pose ?distance)
-                          ?cm)))
+                          ?cm))
+
+  (<- (desig-location-prop ?desig ?loc)
+    (desig-prop ?desig (obj ?o))
+    (object ?o)
+    (pose ?o ?loc))
+
+  (<- (location-valid ?desig ?point)
+    (desig-prop ?desig (to reach))
+    (desig-prop ?desig (obj ?obj))
+    (bullet-world ?w)
+    (robot ?robot)
+    (desig-orientation ?desig ?point ?orientation)
+    (lisp-fun cl-transforms:make-pose ?point ?orientation ?robot-pose)
+    (assert-object-pose ?robot ?robot-pose)
+    (not (contact ?robot ?_))
+    (reachable ?robot ?obj))
+
+  (<- (location-valid ?desig ?point))
+
+  (<- (desig-loc ?desig (point-list ?points))
+    (merged-desig-costmap ?desig ?cm)
+    (costmap-samples ?cm ?solutions)
+    (symbol-value *max-location-samples* ?max-samples)
+    (bullet-world ?w)
+    (take ?max-samples ?solutions ?n-solutions)
+    (bagof ?point (and
+                   (member ?point ?n-solutions)
+                   (with-stored-world ?w
+                     (once
+                      (location-valid ?desig ?point))))
+           ?points)))

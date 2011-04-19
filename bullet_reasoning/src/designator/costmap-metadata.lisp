@@ -28,7 +28,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :bullet-reasoning-locations)
+(in-package :btr-desig)
 
 (def-fact-group costmap-metadata ()
   (<- (costmap-size 25 25))
@@ -38,3 +38,6 @@
   (<- (costmap-padding 0.6))
   (<- (costmap-manipulation-padding 0.5))
   (<- (costmap-in-reach-padding 1.0)))
+
+(def-fact-group robot-metadata ()
+  (<- (robot btr::pr2)))
