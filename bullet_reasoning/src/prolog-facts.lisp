@@ -66,11 +66,13 @@
     (bound ?name)
     (lisp-type ?name symbol)
     (not (bound ?obj))
-    (lisp-fun object ?world ?name ?obj))
+    (lisp-fun object ?world ?name ?obj)
+    (lisp-type ?obj object))
 
   (<- (%object ?world ?name ?obj)
     (bound ?obj)
     (bullet-world ?world ?obj)
+    (lisp-type ?obj object)
     (lisp-fun name ?obj ?name))
 
   (<- (%object ?world ?name ?obj)
@@ -102,8 +104,7 @@
 (def-fact-group poses ()
 
   (<- (pose ?obj-name ?pose)
-    (bullet-world ?w)
-    (pose ?w ?obj-name ?pose))
+    (pose ?_ ?obj-name ?pose))
   
   (<- (pose ?w ?obj-name ?pose)
     (lisp-type ?obj-name symbol)
@@ -228,6 +229,7 @@
   (<- (contact ?world ?obj-1-name ?obj-2-name)
     (bound ?obj-1-name)
     (bound ?obj-2-name)
+    (bullet-world ?world)
     (%object ?world ?obj-1-name ?obj-1)
     (%object ?world ?obj-2-name ?obj-2)    
     (lisp-fun perform-collision-detection ?world ?_)
@@ -236,6 +238,7 @@
   (<- (contact ?world ?obj-1-name ?obj-2-name)
     (bound ?obj-1-name)
     (not (bound ?obj-2-name))
+    (bullet-world ?world)
     (%object ?world ?obj-1-name ?obj-1)
     (lisp-fun perform-collision-detection ?world ?_)
     (lisp-fun find-objects-in-contact ?world ?obj-1 ?objs)
@@ -250,6 +253,7 @@
   (<- (contact ?world ?obj-1-name ?obj-2-name)
     (not (bound ?obj-1-name))
     (not (bound ?obj-2-name))
+    (bullet-world ?world)
     (lisp-fun perform-collision-detection ?world ?_)
     (lisp-fun find-all-contacts ?world ?contacts)
     (member (?obj-1 ?obj-2) ?contacts)
