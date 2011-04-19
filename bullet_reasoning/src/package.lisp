@@ -36,6 +36,7 @@
   (:import-from #:alexandria compose curry rcurry with-gensyms copy-hash-table)
   (:import-from #:desig desig-solutions)
   (:export merge-bounding-boxes aabb
+           with-stored-world
            *debug-window* add-debug-window
            camera width height fov-y z-near z-far camera-axis pose
            gl-setup-camera camera-transform look-at-object-rotation
@@ -57,7 +58,11 @@
            calculate-object-visibility object-visible-p occluding-objects
            simulate find-objects contact-p find-all-contacts
            find-objects-in-contact poses-equal-p stable-p above-p
-           find-objects-above below-p find-objects-below))
+           find-objects-above below-p find-objects-below
+           bullet-world assert-object retract-object step simulate-realtime
+           assert-object-pose position orientation poses-equal contact stable
+           supported-by above below visible occluding-objects occluding-object
+           grasp side reachable blocking debug-window))
 
 (defpackage bullet-reasoning-locations
     (:use #:common-lisp #:crs #:desig #:location-costmap))
