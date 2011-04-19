@@ -64,6 +64,11 @@
            supported-by above below visible occluding-objects occluding-object
            grasp side reachable blocking debug-window))
 
-(defpackage bullet-reasoning-locations
-    (:use #:common-lisp #:crs #:desig #:location-costmap))
+(desig:register-designator-properties #:to #:see #:reach)
 
+(defpackage bullet-reasoning-designators
+    (:nicknames :btr-desig)
+  (:use #:common-lisp #:crs #:desig #:location-costmap
+        #:btr #:designators-ros #:cut)
+  (:shadowing-import-from #:desig name)
+  (:shadowing-import-from #:btr object pose))

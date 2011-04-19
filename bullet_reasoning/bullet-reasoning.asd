@@ -50,7 +50,6 @@
                (:file "utils" :depends-on ("package"))
                (:file "prolog-handlers" :depends-on ("package"))
                (:file "prolog-facts" :depends-on ("package"))
-               (:file "designator-facts" :depends-on ("package"))
                (:file "pose-sampling-facts" :depends-on ("package"))
                (:file "reasoning-world" :depends-on ("package"))
                (:file "textures" :depends-on ("package"))
@@ -68,6 +67,11 @@
                (:file "household-objects" :depends-on ("package" "objects" "utils"))
                (:file "pose-generators" :depends-on ("package" "utils" "aabb"))
                (:file "reachability" :depends-on ("package" "robot-model-utils"))
+               (:module "designator"
+                        :depends-on ("package")
+                        :components
+                        ((:file "designator-facts")
+                         (:file "point-list-location-proxy")))
                (:module "projection"
                         :depends-on ("package" "reasoning-world" "prolog-facts")
                         :components
