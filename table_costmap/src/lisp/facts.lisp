@@ -32,9 +32,6 @@
 (defmethod costmap-generator-name->score ((name (eql 'reachable-space)))
   4)
 
-(defmethod costmap-generator-name->score ((name (eql 'location-neighborhood)))
-  5)
-
 (defmethod costmap-generator-name->score ((name (eql 'named-table)))
   5)
 
@@ -151,29 +148,11 @@ than threshold * highest-probability."
     (costmap-add-heightmap ?table-heightmap ?cm))
 
   (<- (desig-costmap ?desig ?cm)
-    (desig-prop ?desig (to see))
-    (costmap ?cm)
-    (desig-location-prop ?desig ?loc)
-    (costmap-add-function location-neighborhood (make-location-cost-function ?loc 0.5) ?cm)
-    (global-fluent-value *table-height-map-fl* ?table-heightmap)
-    (costmap-add-heightmap ?table-heightmap ?cm))
-
-  (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (in reach))
     (costmap ?cm)
     (costmap-manipulation-padding ?padding)
     (costmap-in-reach-padding ?in-reach-padding)
     (in-reach-costmap ?cm ?padding ?in-reach-padding)
-    (global-fluent-value *table-height-map-fl* ?table-heightmap)
-    (costmap-add-heightmap ?table-heightmap ?cm))
-
-  (<- (desig-costmap ?desig ?cm)
-    (desig-prop ?desig (to reach))
-    (desig-location-prop ?desig ?loc)
-    (costmap ?cm)
-    (costmap-manipulation-padding ?padding)
-    (drivable-location-costmap ?cm ?padding)
-    (costmap-add-function location-neighborhood (make-location-cost-function ?loc 0.4) ?cm)
     (global-fluent-value *table-height-map-fl* ?table-heightmap)
     (costmap-add-heightmap ?table-heightmap ?cm))
 

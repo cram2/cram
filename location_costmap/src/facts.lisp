@@ -29,6 +29,9 @@
 
 (in-package :location-costmap)
 
+(defmethod costmap-generator-name->score ((name (eql 'location-neighborhood)))
+  5)
+
 (defun nav-angle-to-point (p p-ref)
   "Calculates the angle from `p-ref' to face at `p'"
   (cl-transforms:axis-angle->quaternion
@@ -75,7 +78,19 @@
     (lisp-fun grid-cells-msg->occupancy-grid ?msg ?p ?tmp-grid)
     (lisp-fun invert-occupancy-grid ?tmp-grid ?grid)))
 
-(def-fact-group location-costmap-desigs (desig-loc desig-orientation)
+(def-fact-group location-costmap-desigs (desig-costmap desig-loc desig-orientation)
+
+  (<- (desig-costmap ?desig ?cm)
+    (desig-prop ?desig (to see))
+    (costmap ?cm)
+    (desig-location-prop ?desig ?loc)
+    (costmap-add-function location-neighborhood (make-location-cost-function ?loc 0.5) ?cm))
+
+  (<- (desig-costmap ?desig ?cm)
+    (desig-prop ?desig (to reach))
+    (desig-location-prop ?desig ?loc)
+    (costmap ?cm)
+    (costmap-add-function location-neighborhood (make-location-cost-function ?loc 0.4) ?cm))
 
   (<- (merged-desig-costmap ?desig ?cm)
     (bagof ?c (desig-costmap ?desig ?c) ?costmaps)
