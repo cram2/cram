@@ -164,3 +164,8 @@ dimensions in x, y and z direction."
     (loop for (pose dimensions) in (cut:force-ll objects)
           when (point-on-object pose dimensions (cl-transforms:make-3d-vector x y 0))
             maximizing (float (obj-z-value pose dimensions) 0.0d0))))
+
+(defun make-constant-height-function (height)
+  (lambda (x y)
+    (declare (ignore x y))
+    height))
