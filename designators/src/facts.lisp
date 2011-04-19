@@ -40,18 +40,20 @@
              loc-desig)
     (reference loc-desig)))
 
-(def-fact-group location-designators (desig-loc)
+(def-fact-group location-designators (desig-loc desig-location-prop)
   (<- (loc-desig? ?desig)
     (lisp-pred typep ?desig location-designator))
 
   (<- (desig-location-prop ?desig ?loc)
     (desig-prop ?desig (obj ?obj))
+    (lisp-type ?obj designator)
     (lisp-fun current-desig ?obj ?curr-obj)
     (lisp-fun obj-desig-location ?curr-obj ?loc)
     (lisp-pred identity ?loc))
 
   (<- (desig-location-prop ?desig ?loc)
     (desig-prop ?desig (location ?loc-desig))
+    (lisp-type ?obj designator)    
     (lisp-fun current-desig ?loc-desig ?curr-loc-desig)
     (lisp-fun loc-desig-location ?loc-desig ?loc))
   
