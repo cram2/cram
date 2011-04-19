@@ -38,7 +38,9 @@
     (symbol-value *current-bullet-world* ?current-world)
     (-> (lisp-pred identity ?current-world)
         (== ?world ?current-world)
-        (instance-of bt-reasoning-world ?world)))
+        (and
+         (instance-of bt-reasoning-world ?world)
+         (set-symbol-value *current-bullet-world* ?world))))
 
   (<- (bullet-world ?world ?obj)
     ;; The world ?obj belongs to
