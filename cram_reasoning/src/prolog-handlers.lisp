@@ -61,9 +61,9 @@
     (list bdgs)))
 
 (def-prolog-handler -> (bdgs cond if &optional (else '(fail)))
-  (let ((new-bdgs (prolog cond bdgs)))
+  (let ((new-bdgs (lazy-car (prolog cond bdgs))))
     (if new-bdgs
-        (lazy-mapcan (lambda (bdg) (prolog if bdg)) new-bdgs)
+        (prolog if new-bdgs)
         (prolog else bdgs))))
 
 (def-prolog-handler lisp-fun (bdgs function &rest args)
