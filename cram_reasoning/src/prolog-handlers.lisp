@@ -66,6 +66,12 @@
         (prolog if new-bdgs)
         (prolog else bdgs))))
 
+(def-prolog-handler *-> (bdgs cond if &optional (else '(fail)))
+  (let ((new-bdgs (prolog cond bdgs)))
+    (if new-bdgs
+        (lazy-mapcan (curry #'prolog if) new-bdgs)
+        (prolog else bdgs))))
+
 (def-prolog-handler lisp-fun (bdgs function &rest args)
   (let ((arguments (butlast args))
         (result-pat (car (last args))))
