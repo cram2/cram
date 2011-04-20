@@ -219,7 +219,21 @@
     (lisp-type ?robot robot-object)
     (lisp-fun link-names ?robot ?names)
     (member ?name ?names)
-    (%link-pose ?robot ?name ?pose)))
+    (%link-pose ?robot ?name ?pose))
+
+  (<- (head-pointing-at ?robot-name ?pose)
+    (head-pointing-at ?_ ?robot-name ?pose))
+  
+  (<- (head-pointing-at ?w ?robot-name ?pose)
+    (robot-pan-tilt-links ?pan-link ?tilt-link)
+    (robot-pan-tilt-joints ?pan-joint ?tilt-joint)    
+    (bullet-world ?w)
+    (%object ?w ?robot-name ?robot)
+    (lisp-fun calculate-pan-tilt
+              ?robot ?pan-link ?tilt-link ?pose
+              (?pan-pos ?tilt-pos))
+    (lisp-fun set-joint-state ?robot ?pan-joint ?pan-pos ?_)
+    (lisp-fun set-joint-state ?robot ?tilt-joint ?tilt-pos ?_)))
 
 (def-fact-group force-dynamic-states ()
 

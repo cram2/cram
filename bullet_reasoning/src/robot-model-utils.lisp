@@ -228,3 +228,37 @@ the IK service."
                                                   :success))
                              (list solution)))))
                    (lazy-take max-seeds (make-seed-states robot joint-names 4))))))
+
+(defun calculate-pan-tilt (robot pan-link tilt-link pose)
+  "Calculates values for the pan and tilt joints so that they pose on
+  `pose'. Returns (LIST PAN-VALUE TILT-VALUE)"
+  (let* ((pan-transform (cl-transforms:reference-transform
+                         (link-pose robot pan-link)))
+         (tilt-transform (cl-transforms:reference-transform
+                          (link-pose robot tilt-link)))
+         (pose-trans (etypecase pose
+                       (cl-transforms:3d-vector
+                          (cl-transforms:make-transform
+                           pose (cl-transforms:make-quaternion 0 0 0 1)))
+                       (cl-transforms:pose (cl-transforms:reference-transform pose))
+                       (cl-transforms:transform pose)))
+         (pose-in-pan (cl-transforms:transform*
+                       (cl-transforms:transform-inv pan-transform)
+                       pose-trans))
+         (pose-in-tilt (cl-transforms:transform*
+                        (cl-transforms:transform-inv tilt-transform)
+                        pose-trans))
+         (pan-joint-name (cl-urdf:name
+                          (cl-urdf:from-joint
+                           (gethash pan-link (cl-urdf:links (urdf robot))))))
+         (tilt-joint-name (cl-urdf:name
+                           (cl-urdf:from-joint
+                            (gethash tilt-link (cl-urdf:links (urdf robot)))))))
+    (list
+     (+ (joint-state robot pan-joint-name)
+        (atan (/ (cl-transforms:y (cl-transforms:translation pose-in-pan))
+                 (cl-transforms:x (cl-transforms:translation pose-in-pan)))))
+     (+ (joint-state robot tilt-joint-name)
+        (atan  (- (cl-transforms:z (cl-transforms:translation pose-in-tilt)))
+               (+ (expt (cl-transforms:y (cl-transforms:translation pose-in-tilt)) 2)
+                  (expt (cl-transforms:x (cl-transforms:translation pose-in-tilt)) 2)))))))

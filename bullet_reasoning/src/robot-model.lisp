@@ -264,6 +264,9 @@ current joint states"
               (cl-urdf:origin (cl-urdf:collision parent))))
             joint-transform)))))))
 
+(defun set-joint-state (robot name new-state)
+  (setf (joint-state robot name) new-state))
+
 (defmethod link-pose ((obj robot-object) name)
   ;; We need to handle two different cases here. One is when we have a
   ;; rigid body for a specific link. Then reading the pose is just
