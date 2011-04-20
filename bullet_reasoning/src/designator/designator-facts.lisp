@@ -58,9 +58,7 @@
     (object ?o)
     (pose ?o ?loc))
 
-  (<- (location-valid ?desig ?point)
-    (desig-prop ?desig (to reach))
-    (desig-prop ?desig (obj ?obj))
+  (<- (desig-check-to-reach ?desig ?point)
     (bullet-world ?w)
     (robot ?robot)
     (desig-orientation ?desig ?point ?orientation)
@@ -68,10 +66,20 @@
     (assert-object-pose ?robot ?robot-pose)
     (not (contact ?robot ?_))
     (reachable ?robot ?obj))
-
-  (<- (location-valid ?desig ?point)
+  
+  (<- (location-valid
+       ?desig ?point
+       (desig-check-to-see ?desig ?point))
     (desig-prop ?desig (to see))
-    (desig-prop ?desig (obj ?obj))
+    (desig-prop ?desig (obj ?obj)))
+
+  (<- (location-valid
+       ?desig ?point
+       (desig-check-to-reach ?desig ?point))
+    (desig-prop ?desig (to reach))
+    (desig-prop ?desig (obj ?obj)))
+
+  (<- (desig-check-to-see ?desig ?point)
     (bullet-world ?w)
     (robot ?robot)
     (camera-frame ?cam-frame)
@@ -82,17 +90,20 @@
     (not (contact ?robot ?_))
     (head-pointing-at ?robot ?obj-pose)
     (link-pose ?robot ?cam-frame ?cam-pose)
+    (desig-prop ?desig (obj ?obj))
     (visible ?cam-pose ?obj))
-
+  
   (<- (desig-loc ?desig (point-list ?points))
     (merged-desig-costmap ?desig ?cm)
     (costmap-samples ?cm ?solutions)
     (symbol-value *max-location-samples* ?max-samples)
     (bullet-world ?w)
+    (bagof ?check (location-valid ?desig ?point ?check)
+           ?checks)
     (take ?max-samples ?solutions ?n-solutions)
     (bagof ?point (and
                    (member ?point ?n-solutions)
                    (with-stored-world ?w
-                     (once
-                      (location-valid ?desig ?point))))
+                     (forall (member ?check ?checks) (call ?check))
+                     (lisp-fun break ?_)))
            ?points)))
