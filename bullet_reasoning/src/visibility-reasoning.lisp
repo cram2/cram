@@ -107,7 +107,8 @@
                   with occluding-object-colors = nil
                   when (> (aref object-total-buffer i) 0.0)
                     do (incf object-total-pixels)
-                  if (eql (aref scene-buffer i) obj-ref-color)
+                  if (< (abs (- (aref scene-buffer i) obj-ref-color))
+                        (/ (* 2 (length (objects reasoning-world)))))
                     do (incf object-visible-pixels)
                   else do (when (and (> (aref scene-buffer i) 0)
                                      (> (aref object-buffer i) 0))
