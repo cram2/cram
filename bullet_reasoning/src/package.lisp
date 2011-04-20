@@ -62,7 +62,10 @@
            bullet-world assert-object retract-object step simulate-realtime
            assert-object-pose position orientation poses-equal contact stable
            supported-by above below visible occluding-objects occluding-object
-           grasp side reachable blocking debug-window))
+           grasp side reachable blocking debug-window
+           head-pointing-at
+
+           robot-pan-tilt-links robot-pan-tilt-joints))
 
 (desig:register-designator-properties #:to #:see #:reach)
 
