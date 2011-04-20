@@ -130,10 +130,8 @@
   (let ((result (prolog pattern bdgs)))
     (multiple-value-bind (new-bdgs matched?)
         (unify result-pattern
-               (lazy-mapcan (lambda (binding)
-                              (let ((bound-vars (substitute-vars var-pattern binding)))
-                                (when (is-ground bound-vars nil)
-                                  (list bound-vars))))
+               (lazy-mapcar (lambda (binding)
+                              (substitute-vars var-pattern binding))
                             result)
                bdgs)
       (when matched?
@@ -144,10 +142,8 @@
     (when result
       (multiple-value-bind (new-bdgs matched?)
           (unify result-pattern
-                 (lazy-mapcan (lambda (binding)
-                                (let ((bound-vars (substitute-vars var-pattern binding)))
-                                  (when (is-ground bound-vars nil)
-                                    (list bound-vars))))
+                 (lazy-mapcar (lambda (binding)
+                                (substitute-vars var-pattern binding))
                               result)
                  bdgs)
         (when matched?
@@ -160,9 +156,7 @@
           (unify result-pattern
                  (remove-duplicates
                   (loop for binding in (force-ll result)
-                        for bound-vars = (substitute-vars var-pattern binding)
-                        when (is-ground bound-vars nil)
-                          collect bound-vars)
+                        collecting (substitute-vars var-pattern binding))
                   :test #'equal)
                  bdgs)
         (when matched?
@@ -200,10 +194,13 @@
 ;; action must succeed for all bindins of cond
 (def-prolog-handler forall (bdgs cond action)
   (let ((result (prolog cond bdgs)))
-    (loop for binding in (force-ll result) ;; could be improved by doing this laszily
-       when (not (prolog action binding))
-       do (return nil)
-       finally (return (list bdgs)))))
+    (block nil
+      (force-ll
+       (lazy-mapcar (lambda (binding)
+                      (unless (prolog action binding)
+                        (return nil)))
+                    result))
+      (list bdgs))))
 
 (def-prolog-handler member (bdgs ?pat ?ll)
   (let ((?ll (var-value ?ll bdgs)))
