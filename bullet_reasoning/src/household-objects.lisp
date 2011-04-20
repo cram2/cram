@@ -32,7 +32,8 @@
 
 (defparameter *mesh-files* '((mug "package://bullet_reasoning/resource/mug.stl" t)
                              (plate "package://bullet_reasoning/resource/plate.stl" nil)
-                             (mondamin "package://bullet_reasoning/resource/mondamin.stl" nil)))
+                             (mondamin "package://bullet_reasoning/resource/mondamin.stl" nil)
+                             (pot "package://bullet_reasoning/resource/pot-ww.off" t)))
 
 (defun make-octagon-prism-shape (radius height)
   "Returns a collision shape that is a octagon prism, i.e. that has an
