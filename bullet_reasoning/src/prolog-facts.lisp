@@ -46,7 +46,13 @@
     ;; The world ?obj belongs to
     (get-slot-value ?obj world ?world))
 
+  (<- (assert-object ?world ?object-type ?name ?pose . ?_)
+    (object ?world ?name)
+    (pose ?p . ?pose)
+    (assert-object-pose ?world ?name ?p))
+  
   (<- (assert-object ?world ?object-type ?name ?pose . ?args)
+    (not (object ?world ?name))
     (lisp-fun apply add-object
               ?world ?object-type
               ?name ?pose ?args
