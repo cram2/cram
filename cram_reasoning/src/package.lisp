@@ -69,6 +69,7 @@
            #:get-slot-value
            #:instance-of
            #:lisp-type
+           #:call
            #:once
            #:findall
            #:forall
