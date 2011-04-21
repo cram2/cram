@@ -46,7 +46,7 @@
            remove-object object name rigid-bodies rigid-body-names
            rigid-body world make-object box static-plane sphere
            cylinder cone point-cloud
-           bt-reasoning-world invalidate-object objects object
+           bt-reasoning-world invalidate-object objects object %object
            bt-reasoning-world-state
            robot-object links joint-states urdf joint-names joint-state
            link-names link-pose set-robot-state-from-tf
@@ -63,9 +63,10 @@
            assert-object-pose position orientation poses-equal contact stable
            supported-by above below visible occluding-objects occluding-object
            grasp side reachable blocking debug-window
-           head-pointing-at
+           head-pointing-at with-current-bullet-world
+           reach-object-ik set-robot-state-from-joints set-robot-state-from-tf
 
-           robot-pan-tilt-links robot-pan-tilt-joints
+           robot-pan-tilt-links robot-pan-tilt-joints robot camera-frame
 
            event execute-event def-event
            timeline timeline-init timeline-advance
@@ -73,11 +74,11 @@
            execute-projection-rule timeline-apply-projection-rule
            def-projection-rule rule holds occurs at during throughout))
 
-(desig:register-designator-properties #:to #:see #:reach)
+(desig:register-designator-properties #:to #:see #:reach #:side)
 
 (defpackage bullet-reasoning-designators
     (:nicknames :btr-desig)
   (:use #:common-lisp #:crs #:desig #:location-costmap
         #:btr #:designators-ros #:cut)
-  (:shadowing-import-from #:desig name at)
+  (:shadowing-import-from #:desig name at side)
   (:shadowing-import-from #:btr object pose))
