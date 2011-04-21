@@ -54,23 +54,15 @@
 (defgeneric timeline-advance (timeline event)
   (:documentation "Advances the `timeline', i.e. adds the event `event' to its end")
   (:method ((timeline timeline) (event event))
-    (flet ((copy-and-advance-event (event time)
-             (with-slots (event world-state timestamp) event
-               (make-instance
-                'event
-                :event event
-                :world-state world-state
-                :timestamp (+ time timestamp)))))
-      (with-slots (events last-event) timeline
-        (let ((new-entry (cons (copy-and-advance-event
-                                event (if (car last-event)
-                                          (timestamp (car last-event))
-                                          0.0))
-                               nil)))
-          (if last-event
-              (setf (cdr last-event) new-entry)
-              (setf events new-entry))
-          (setf last-event new-entry))))
+    (with-slots (events last-event) timeline
+      (when (car last-event)
+        (assert (< (timestamp (car last-event)) (timestamp event)) ()
+                "Cannot advance a timeline with an event before the last event on the timeline"))
+      (let ((new-entry (cons event nil)))
+        (if last-event
+            (setf (cdr last-event) new-entry)
+            (setf events new-entry))
+        (setf last-event new-entry)))
     timeline))
 
 (defgeneric timeline-current-world-state (timeline)
