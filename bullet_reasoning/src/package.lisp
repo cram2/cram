@@ -65,7 +65,13 @@
            grasp side reachable blocking debug-window
            head-pointing-at
 
-           robot-pan-tilt-links robot-pan-tilt-joints))
+           robot-pan-tilt-links robot-pan-tilt-joints
+
+           event execute-event def-event
+           timeline timeline-init timeline-advance
+           timeline-current-world-state timeline-lookup
+           execute-projection-rule timeline-apply-projection-rule
+           def-projection-rule rule holds occurs at during throughout))
 
 (desig:register-designator-properties #:to #:see #:reach)
 
@@ -73,5 +79,5 @@
     (:nicknames :btr-desig)
   (:use #:common-lisp #:crs #:desig #:location-costmap
         #:btr #:designators-ros #:cut)
-  (:shadowing-import-from #:desig name)
+  (:shadowing-import-from #:desig name at)
   (:shadowing-import-from #:btr object pose))
