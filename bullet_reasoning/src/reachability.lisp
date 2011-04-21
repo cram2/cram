@@ -69,4 +69,4 @@
      :ik-base-link reference-frame
      :fixed-frame reference-frame
      :weights-ts '(10 10 10 0.1 0.1 0.1)
-     :max-seeds 10)))
+     :max-seeds 20)))

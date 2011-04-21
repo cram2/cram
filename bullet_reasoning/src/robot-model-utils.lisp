@@ -227,7 +227,7 @@ the IK service."
                                                   'motion_planning_msgs-msg:ArmNavigationErrorCodes
                                                   :success))
                              (list solution)))))
-                   (lazy-take max-seeds (make-seed-states robot joint-names 4))))))
+                   (lazy-take max-seeds (make-seed-states robot joint-names 3))))))
 
 (defun calculate-pan-tilt (robot pan-link tilt-link pose)
   "Calculates values for the pan and tilt joints so that they pose on
