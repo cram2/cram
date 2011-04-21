@@ -32,6 +32,8 @@
 
 (defvar *current-projection-time* nil)
 
+(defvar *enable-debug-window* t)
+
 (defgeneric execute-projection-rule (world rule-name &rest rule-arguments)
   (:documentation "Retunrs the sequence of events that are generated
   by exectuing `rule' in `world'")
@@ -57,7 +59,7 @@ lexically bound in the rule body. The macro EVENT is used to generate
 events with the specified pattern on the timeline, executing the
 corresponding event. The function RULE executes another projection
 rule and adds its events to the timeline."
-  (with-gensyms (name-var events rule-arguments)
+  (with-gensyms (name-var events rule-arguments original-debug-world)
     `(defmethod execute-projection-rule ((,world-var bt-reasoning-world) (,name-var (eql ',name))
                                          &rest ,rule-arguments)
        (let ((,events nil))
@@ -69,6 +71,8 @@ rule and adds its events to the timeline."
                                 :event ,event-pat
                                 :timestamp (incf *current-projection-time* ,time))
                                ,',events)
+                         (when *enable-debug-window*
+                           (add-debug-window new-world))
                          (setf ,',world-var new-world))))
            (flet ((rule (name &rest args)
                     (setf ,events
@@ -78,7 +82,14 @@ rule and adds its events to the timeline."
              (flet ((rule-body ,args
                       (assert (numberp *current-projection-time*) ()
                               "Projection rule must be executed on a timeline.")
-                      ,@body))
+                      (let ((,original-debug-world (and *debug-window* (world *debug-window*))))
+                        (unwind-protect
+                             (with-current-bullet-world ,world-var
+                               (when *enable-debug-window*
+                                 (add-debug-window ,world-var))
+                               ,@body)
+                          (when *enable-debug-window*
+                            (add-debug-window ,original-debug-world))))))
                (map 'nil (lambda (var-name var)
                            (when (typep var 'object)
                              (warn 'simple-warning
