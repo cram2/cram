@@ -32,6 +32,10 @@
 
 (defvar *current-bullet-world* nil)
 
+(defmacro with-current-bullet-world (world &body body)
+  `(let ((*current-bullet-world* ,world))
+     ,@body))
+
 (def-fact-group bullet-world-facts ()
   
   (<- (bullet-world ?world)
