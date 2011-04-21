@@ -35,14 +35,15 @@
     (cl-transforms:make-3d-vector
      x y z)))
 
-(defun cop-shape->points (msg)
+(defun shape-msg->points (msg)
   (roslisp:with-fields (shape) msg
     (roslisp:with-fields (type vertices)
         shape
-      (assert (eql type 4) () "This method requires point type 4")
+      (assert (or (eql type 3) (eql type 4)) ()
+              "This method requires point type 4")
       (map 'vector #'point-msg->3d-vector vertices))))
 
-(defun cop-shape->mesh (msg)
+(defun shape-msg->mesh (msg)
   (roslisp:with-fields (shape) msg
     (roslisp:with-fields (type triangles vertices)
         shape

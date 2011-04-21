@@ -41,4 +41,4 @@
              (:file "assimp-cffi" :depends-on ("package"))
              (:file "assimp-model-loader" :depends-on ("package" "assimp-cffi"))
              (:file "mesh-utils" :depends-on ("package"))
-             (:file "cop-utils" :depends-on ("package"))))))
+             (:file "ros-shape-utils" :depends-on ("package"))))))
