@@ -65,8 +65,10 @@
     (lisp-fun cl-transforms:make-pose ?point ?orientation ?robot-pose)
     (assert-object-pose ?robot ?robot-pose)
     (not (contact ?robot ?_))
-    (reachable ?robot ?obj)
-    (blocking ?robot ?obj ()))
+    (-> (desig-prop ?desig (side ?side)) (true) (true))
+    (desig-prop ?desig (obj ?obj))
+    (reachable ?robot ?obj ?side)
+    (blocking ?robot ?obj ?side ()))
     
   (<- (location-valid
        ?desig ?point
