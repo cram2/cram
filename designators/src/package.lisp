@@ -97,7 +97,7 @@
   "Tries to export every symbol in `properties' from the
 CRAM-DESIGNATORS package. Conflicting symbols are ignored."
   (let ((desig-package (find-package :desig)))
-    `(progn
+    `(eval-when (:compile-toplevel :load-toplevel :execute)
        (desig::shadow-conflicting-symbols ',properties ,desig-package)
        (export (mapcar (lambda (sym-name) (intern sym-name ,desig-package))
                        ',(mapcar (lambda (sym)
