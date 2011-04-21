@@ -65,8 +65,9 @@
     (lisp-fun cl-transforms:make-pose ?point ?orientation ?robot-pose)
     (assert-object-pose ?robot ?robot-pose)
     (not (contact ?robot ?_))
-    (reachable ?robot ?obj))
-  
+    (reachable ?robot ?obj)
+    (blocking ?robot ?obj ()))
+    
   (<- (location-valid
        ?desig ?point
        (desig-check-to-see ?desig ?point))
@@ -104,6 +105,5 @@
     (bagof ?point (and
                    (member ?point ?n-solutions)
                    (with-stored-world ?w
-                     (forall (member ?check ?checks) (call ?check))
-                     (lisp-fun break ?_)))
+                     (forall (member ?check ?checks) (call ?check))))
            ?points)))
