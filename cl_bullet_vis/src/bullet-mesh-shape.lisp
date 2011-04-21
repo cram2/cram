@@ -32,28 +32,32 @@
 
 (defclass mesh-shape-mixin ()
   ((faces :initarg :faces :reader faces)
-   (smooth-shading :initarg :smooth-shading :initform nil)))
+   (smooth-shading :initarg :smooth-shading :initform nil)
+   (disable-face-culling :initarg :disable-face-culling :initform nil)))
 
 (defmethod draw ((context gl-context) (mesh mesh-shape-mixin))
-  (with-slots (smooth-shading) mesh
-    (gl:with-primitive :triangles
-      (map 'nil
-           (lambda (face)
-             (loop for v in (physics-utils:face-points face)
-                   for n in (physics-utils:face-normals face)
-                   do
-                (if smooth-shading
-                    (let ((norm (cl-transforms:v-norm v)))
-                      (gl:normal (/ (cl-transforms:x v) norm)
-                                 (/ (cl-transforms:y v) norm)
-                                 (/ (cl-transforms:z v) norm)))
-                    (gl:normal (cl-transforms:x n)
-                               (cl-transforms:y n)
-                               (cl-transforms:z n)))
-                (gl:vertex (cl-transforms:x v)
-                           (cl-transforms:y v)
-                           (cl-transforms:z v))))
-           (faces mesh)))))
+  (with-slots (smooth-shading disable-face-culling) mesh
+    (gl:with-pushed-attrib (:enable-bit)
+      (when disable-face-culling
+        (gl:disable :cull-face))
+      (gl:with-primitive :triangles
+        (map 'nil
+             (lambda (face)
+               (loop for v in (physics-utils:face-points face)
+                     for n in (physics-utils:face-normals face)
+                     do
+                  (if smooth-shading
+                      (let ((norm (cl-transforms:v-norm v)))
+                        (gl:normal (/ (cl-transforms:x v) norm)
+                                   (/ (cl-transforms:y v) norm)
+                                   (/ (cl-transforms:z v) norm)))
+                      (gl:normal (cl-transforms:x n)
+                                 (cl-transforms:y n)
+                                 (cl-transforms:z n)))
+                  (gl:vertex (cl-transforms:x v)
+                             (cl-transforms:y v)
+                             (cl-transforms:z v))))
+             (faces mesh))))))
 
 (defclass box-mesh-shape (mesh-shape-mixin
                           colored-shape-mixin
