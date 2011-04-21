@@ -35,12 +35,16 @@
 (def-fact-group bullet-world-facts ()
   
   (<- (bullet-world ?world)
+    (not (bound ?world))
     (symbol-value *current-bullet-world* ?current-world)
     (-> (lisp-pred identity ?current-world)
         (== ?world ?current-world)
         (and
          (instance-of bt-reasoning-world ?world)
          (set-symbol-value *current-bullet-world* ?world))))
+
+  (<- (bullet-world ?world)
+    (lisp-type ?world bt-reasoning-world))
 
   (<- (bullet-world ?world ?obj)
     ;; The world ?obj belongs to
