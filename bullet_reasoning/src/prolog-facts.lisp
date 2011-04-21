@@ -453,6 +453,9 @@
 
   (<- (blocking ?robot-name ?obj-name ?blocking-names)
     (blocking ?_ ?robot-name ?obj-name ?blocking-names))
+
+  (<- (blocking ?robot-name ?obj-name ?side ?blocking-names)
+    (blocking ?_ ?robot-name ?obj-name ?side ?blocking-names))  
   
   (<- (blocking ?w ?robot-name ?obj-name ?blocking-names)
     (blocking ?w ?robot-name ?obj-name ?_ ?blocking-names))
