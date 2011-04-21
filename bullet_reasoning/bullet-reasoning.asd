@@ -41,6 +41,7 @@
                  kinematics_msgs-msg
                  kinematics_msgs-srv
                  kdl_arm_kinematics-srv
+                 household_objects_database_msgs-srv
                  designators
                  semantic-map-costmap)
     :components

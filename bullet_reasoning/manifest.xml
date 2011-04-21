@@ -18,7 +18,8 @@
   <depend package="kinematics_msgs"/>
   <depend package="kdl_arm_kinematics"/>
   <depend package="designators"/>
-  <depend package="semantic_map_costmap"/>  
+  <depend package="semantic_map_costmap"/>
+  <depend package="household_objects_database_msgs"/>
 
 </package>
 
