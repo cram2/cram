@@ -32,14 +32,13 @@
 ;; We want to implement our own main loop that supports different
 ;; events, not only OpenGL events.
 (defmethod glut:display-window :around ((w bullet-world-window))
-  (let ((glut:*run-main-loop-after-display* nil))
-    (call-next-method)
-    (loop until (closed w) do
-      (loop for ev = (get-next-event w (/ *bullet-window-loop-rate*))
-            while ev do (apply #'process-event w ev))
-      (glut:main-loop-event))
-    ;; Clean up. Process all pending opengl events
-    (glut:main-loop-event)))
+  (unwind-protect
+       (call-next-method)
+    (setf (slot-value w 'closed) t)))
+
+(defmethod glut:idle ((w bullet-world-window))
+  (loop for ev = (get-next-event w (/ *bullet-window-loop-rate*))
+        while ev do (apply #'process-event w ev)))
 
 (defmethod glut:display-window :before ((w bullet-world-window))
   (gl:cull-face :back)
@@ -49,7 +48,7 @@
   (gl:hint :perspective-correction-hint :nicest))
 
 (defmethod glut:display-window :after ((w bullet-world-window))
-  (glut:disable-event w :idle)
+  ;; (glut:disable-event w :idle)
   (when (frame-rate w)
     (glut:enable-tick w (truncate (* (/ (frame-rate w)) 1000)))))
 
