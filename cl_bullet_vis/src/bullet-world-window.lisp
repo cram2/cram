@@ -40,7 +40,7 @@
     (glut:main-loop-event)))
 
 (defmethod glut:display-window :before ((w bullet-world-window))
-  (gl:clear-color 0 0 0 0)
+  (gl:clear-color (/ 206 255) (/ 210 255) (/ 237 255) 0)
   (gl:cull-face :back)
   (gl:depth-func :lequal)
   (gl:shade-model :smooth)
