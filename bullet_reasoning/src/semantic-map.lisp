@@ -119,3 +119,7 @@
 
 (defmethod pose ((obj semantic-map-object))
   (slot-value obj 'pose))
+
+(defmethod (setf pose) (new-value (obj semantic-map-object))
+  (declare (ignore new-value obj))
+  (warn "setting pose for semantic map not supported"))
