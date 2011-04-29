@@ -509,4 +509,5 @@
 
 (def-fact-group debug ()
   (<- (debug-window ?world)
+    (bullet-world ?world)
     (lisp-fun add-debug-window ?world ?_)))
