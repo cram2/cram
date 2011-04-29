@@ -39,6 +39,7 @@
            with-bullet-window-context
            get-texture-handle camera-transform light-position
            gl-context
+           *background-color*
            event-queue post-event get-next-event
            collision-shape-color *collision-shape-color-overwrite*
            colored-shape-mixin colored-static-plane-shape
