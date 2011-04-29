@@ -70,8 +70,9 @@
   (with-bullet-window-context gl-window
     (let ((*collision-shape-color-overwrite* '(1.0 1.0 1.0 1.0))
           (*disable-texture-rendering* t))
-      (gl:with-pushed-attrib (:enable-bit)
+      (gl:with-pushed-attrib (:enable-bit :color-buffer-bit)
         (gl:disable :lighting)
+        (%gl:clear-color 0 0 0 0)
         (with-rendering-to-framebuffer (width height)
           (let* ((camera-centered (cl-transforms:make-pose
                                    (cl-transforms:origin camera-pose)
@@ -108,7 +109,7 @@
                   when (> (aref object-total-buffer i) 0.0)
                     do (incf object-total-pixels)
                   if (< (abs (- (aref scene-buffer i) obj-ref-color))
-                        (/ (* 2 (length (objects reasoning-world)))))
+                             (/ (* 2 (length (objects reasoning-world)))))
                     do (incf object-visible-pixels)
                   else do (when (and (> (aref scene-buffer i) 0)
                                      (> (aref object-buffer i) 0))
