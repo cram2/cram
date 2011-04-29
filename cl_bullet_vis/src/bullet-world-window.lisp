@@ -191,7 +191,7 @@
 
 (defmethod process-event ((w bullet-world-window) (type (eql :display)) &key callback)
   (push callback (display-callbacks w))
-  (glut:post-redisplay))
+  (glut:display w))
 
 (defun init-camera ()
   "Sets the camera such that x points forward, y to the left and z
