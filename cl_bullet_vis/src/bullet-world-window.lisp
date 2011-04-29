@@ -4,6 +4,8 @@
 (defvar *bullet-window-loop-rate* 100
   "The update rate in Hz of the event loop.")
 
+(defvar *background-color* (list (/ 206 255) (/ 210 255) (/ 237 255) 0))
+
 (defclass bullet-world-window (glut:window gl-context event-queue)
   ((world :accessor world :initarg :world
           :initform (error 'simple-error :format-control "world argument required"))
@@ -40,7 +42,6 @@
     (glut:main-loop-event)))
 
 (defmethod glut:display-window :before ((w bullet-world-window))
-  (gl:clear-color (/ 206 255) (/ 210 255) (/ 237 255) 0)
   (gl:cull-face :back)
   (gl:depth-func :lequal)
   (gl:shade-model :smooth)
@@ -59,6 +60,7 @@
   (gl:matrix-mode :modelview)
   (init-camera)
   (gl:enable :light0 :lighting :cull-face :depth-test :color-material :blend :rescale-normal)
+  (apply #'gl:clear-color *background-color*)
   (gl:clear :color-buffer :depth-buffer)
   (set-camera (camera-transform window))
   (gl:light :light0 :position (vector
