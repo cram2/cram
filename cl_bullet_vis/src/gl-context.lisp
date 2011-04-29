@@ -40,6 +40,10 @@
 (defgeneric register-display-list (gl-context id obj)
   (:documentation "Registers a display list for garbage collection if
   obj is garbage collected"))
+(defgeneric display-list-valid (gl-context id)
+  (:documentation "Returns if a display list is still valid, i.e. if
+  it is known to the gl-context and has not been garbage collected
+  yet"))
 (defgeneric gc-gl-context (gl-context)
   (:documentation "Garbage-collects the gl context."))
 
@@ -65,6 +69,11 @@
 (defmethod register-display-list ((gl-context gl-context) id obj)
   (with-slots (display-lists) gl-context
     (pushnew (cons id (tg:make-weak-pointer obj)) display-lists)))
+
+(defmethod display-list-valid ((gl-context gl-context) id)
+  (with-slots (display-lists) gl-context
+    (let ((list-ptr (cdr (assoc id display-lists))))
+      (and list-ptr (tg:weak-pointer-value list-ptr) t))))
 
 (defmethod gc-gl-context ((gl-context gl-context))
   (flet ((gc-display-list (id)
