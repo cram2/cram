@@ -37,6 +37,12 @@
      ,@body))
 
 (def-fact-group bullet-world-facts ()
+
+  (<- (clear-bullet-world)
+    (lisp-fun set *current-bullet-world* nil ?_))
+  
+  (<- (clear-bullet-world ?world)
+    (instance-of bt-reasoning-world ?world))
   
   (<- (bullet-world ?world)
     (not (bound ?world))
