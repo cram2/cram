@@ -102,6 +102,9 @@
             (declare (type (simple-array single-float *)
                            object-total-buffer
                            object-buffer scene-buffer))
+            ;; (png::encode-file (to-png-image width height object-total-buffer) "/tmp/obj-total.png")
+            ;; (png::encode-file (to-png-image width height object-buffer) "/tmp/obj-only.png")
+            ;; (png::encode-file (to-png-image width height scene-buffer) "/tmp/scene.png")
             (loop for i below (* (width camera) (height camera) 3) by 3
                   with object-total-pixels = 0
                   with object-visible-pixels = 0
