@@ -187,7 +187,7 @@
                                               normal-x normal-y normal-z)
                                      :constant constant
                                      :width 16 :height 16
-                                     :texture (texture-str->bitmap *static-plane-texture* #\x)))))))
+                                     :texture (texture-str->bitmap *static-plane-texture* #\Space)))))))
 
 (defmethod add-object ((world bt-world) (type (eql 'sphere)) name pose &key mass radius)
   (make-object world name
