@@ -72,14 +72,86 @@
   (:triangle #x04)
   (:polygon #x08))
 
+(defcenum ai-texture-op
+  (:multiplay #x00)
+  (:add #x01)
+  (:substract #x02)
+  (:divide #x03)
+  (:smooth-add #x04)
+  (:signed-add #x05))
+
+(defcenum ai-texture-map-mode
+  (:wrap #x00)
+  (:clamp #x01)
+  (:decal #x03)
+  (:mirror #x02))
+
+(defcenum ai-texture-mapping
+  (:uv #x00)
+  (:sphere #x01)
+  (:cyliner #x02)
+  (:box #x03)
+  (:plane #x04)
+  (:other #x05))
+
+(defcenum ai-texture-type
+  (:none #x00)
+  (:diffuse #x01)
+  (:specular #x02)
+  (:ambient #x03)
+  (:emissive #x04)
+  (:height #x05)
+  (:normals #x06)
+  (:shininess #x07)
+  (:opacity #x08)
+  (:displacement #x09)
+  (:lightmap #x0a)
+  (:reflection #x0b)
+  (:unknown #x0c))
+
+(defcenum ai-property-type-info
+  (:float #x01)
+  (:string #x03)
+  (:integer #x04)
+  (:buffer #x05))
+
 (defcstruct ai-vector-3d
   (x :float)
   (y :float)
   (z :float))
 
+(defcstruct ai-string
+  (length :unsigned-int)
+  (data :char :count 1024))
+
 (defcstruct ai-face
   (num-indices :unsigned-int)
   (indices :pointer))
+
+(defcstruct ai-material-property
+  (key ai-string)
+  (semantic ai-texture-type)
+  (index :unsigned-int)
+  (data-length :unsigned-int)
+  (type ai-property-type-info)
+  (data :pointer))
+
+(defcstruct ai-material
+  (properties :pointer)
+  (num-properties :unsigned-int)
+  (num-allocated :unsigned-int))
+
+(defcstruct ai-texel
+  (b :unsigned-char)
+  (g :unsigned-char)
+  (r :unsigned-char)
+  (a :unsigned-char))
+
+(defcstruct ai-texture
+  (width :unsigned-int)
+  (height :unsigned-int)
+  (ach-format-hint :char :count 4)
+  (data :pointer))
 
 (defcstruct ai-mesh
   (primitive-types ai-primitive-type)
