@@ -88,7 +88,7 @@
                      collect (aref normals index) into vertex-normals
                      finally (return (list :points points :normals vertex-normals)))))))))
 
-(defun load-3d-model (filename &key (mesh-index 0) flip-winding-order)
+(defun load-3d-model (filename &key (mesh-index 0) flip-winding-order (fix-normals t))
   "Loads the mesh with index `mesh-index' from the file named
 `filename' and returns an instance of type 3D-MODEL."
   (let ((scene nil))
@@ -115,7 +115,9 @@
            (let* ((mesh (mem-aref (foreign-slot-value scene 'ai-scene 'meshes)
                                   :pointer mesh-index))
                   (vertices (get-vertices mesh))
-                  (faces (fix-normals (get-faces mesh :vertices vertices))))
+                  (faces (if fix-normals
+                             (fix-normals (get-faces mesh :vertices vertices))
+                             (get-faces mesh :vertices vertices))))
              (make-3d-model
               :vertices (remove-identical-vertices vertices)
               :faces faces)))
