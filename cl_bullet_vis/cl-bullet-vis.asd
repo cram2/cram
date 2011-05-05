@@ -50,6 +50,7 @@
                (:file "gl-utils" :depends-on ("package"))
                (:file "event-queue" :depends-on ("package"))
                (:file "visualization" :depends-on ("package"))
+               (:file "math-function-visualization" :depends-on ("package" "gl-context" "display-lists"))
                (:file "bullet-shape-visualization"
                       :depends-on ("package" "transforms" "gl-context" "visualization"))
                (:file "bullet-colored-shapes"
