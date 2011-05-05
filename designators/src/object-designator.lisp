@@ -39,56 +39,13 @@
 
 (register-designator-class object object-designator)
 
-(defun add-obj-desig-resolver (resolver)
-  (let ((prev-resolver (find (object-desig-resolver-name resolver)
-                             *object-designator-resolvers*
-                             :key #'object-desig-resolver-name)))
-    (if prev-resolver
-        (setf (object-desig-resolver-namespace prev-resolver)
-              (object-desig-resolver-namespace resolver)
-              (object-desig-resolver-function prev-resolver)
-              (object-desig-resolver-function resolver))
-        (push resolver *object-designator-resolvers*))))
-
-(defmacro register-object-desig-resolver (name namespace (prev-param desig-param) &body body)
-  "Registers a designator resolver. When converting the designator into something useful,
-   i.e. into a format the perception routines can work with. It does
-   this by reducing the designator to be resolved over the list of
-   *object-designator-resolvers* the match the current designator
-   namespace."
-  `(add-obj-desig-resolver (make-object-desig-resolver
-                            :name ',name :namespace ,namespace
-                            :function (lambda (,prev-param ,desig-param)
-                                        ,@body))))
-
-(defun resolve-object-desig (desig namespace)
-  (let ((info (reduce (lambda (prev resolver)
-                        (when (eq (object-desig-resolver-namespace resolver)
-                                  namespace)
-                          (funcall (object-desig-resolver-function resolver)
-                                   prev desig)))
-                      *object-designator-resolvers*
-                      :initial-value nil)))
-    ;; (when (valid desig)
-    ;;   (push (object-pose (reference desig))
-    ;;         (cop-desig-location-info-poses (cop-desig-info-location info))))
-    info))
-
-(defmethod reference ((desig object-designator))
+(defmethod reference ((desig object-designator) &optional role)
+  (declare (ignore role))
   (or (slot-value desig 'data)
+      ;; Object designators are somehow special because the REFERENCE
+      ;; method cannot generate a new reference. The reason is that
+      ;; the robot needs to interact with the environment to reference
+      ;; objects. Therefore, the data slot has to be set by externally.
       (error 'designator-error
              :format-control "Designator `~a' does not reference an object."
              :format-arguments (list desig))))
-
-;; (defun desig-compatible-descriptions (desc-1 desc-2)
-;;   (multiple-value-bind (desc-1 desc-2) (if (< (list-length desc-1)
-;;                                               (list-length desc-2))
-;;                                            (values desc-1 desc-2)
-;;                                            (values desc-2 desc-1))
-;;     (loop for (prop-1-name prop-1-val) in desc-1
-;;        when (let ((prop-2-val (find prop-1-name desc-2 :key #'car)))
-;;               (when prop-2-val
-;;                 (not (eql prop-1-val prop-2-val))))
-;;        do (return nil)
-;;        finally (return t))))
-

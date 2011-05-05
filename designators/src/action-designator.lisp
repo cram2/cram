@@ -34,12 +34,14 @@
 
 (register-designator-class action action-designator)
 
-(defmethod reference ((desig action-designator))
+(defmethod reference ((desig action-designator) &optional (role *default-role*))
   (or (slot-value desig 'data)
-      (let ((action-desig (var-value '?act
-                                     (lazy-car (prolog `(action-desig ,desig ?act))))))
-        (when (is-var action-desig)
-          (error 'designator-error
-                 :format-control "Cannot resolve action designator ~a."
-                 :format-arguments (list desig)))
-        (setf (slot-value desig 'data) action-desig))))
+      (setf (slot-value desig 'data) (resolve-designator desig role))
+      (error 'designator-error
+             :format-control "Cannot resolve action designator ~a."
+             :format-arguments (list desig))))
+
+(defmethod resolve-designator ((desig action-designator) (role (eql 'default-role)))
+  (let ((action-desig (var-value '?act (lazy-car (prolog `(action-desig ,desig ?act))))))
+    (unless (is-var action-desig)
+      action-desig)))
