@@ -33,7 +33,14 @@
 (defclass display-list-mixin ()
   ((display-list-id :reader display-list-id)))
 
+(defgeneric force-redraw (obj)
+  (:documentation "When T, forces a regeneration of the display list")
+  (:method ((obj display-list-mixin))
+    nil))
+
 (defmethod draw :around ((gl-context gl-context) (obj display-list-mixin))
+  (when (force-redraw obj)
+    (remove-display-list gl-context (display-list-id obj)))
   (unless (and (slot-boundp obj 'display-list-id)
                (display-list-valid gl-context (display-list-id obj)))
     (let ((id (gl:gen-lists 1)))

@@ -43,6 +43,10 @@
 (defgeneric register-display-list (gl-context id obj)
   (:documentation "Registers a display list for garbage collection if
   obj is garbage collected"))
+
+(defgeneric remove-display-list (gl-context id)
+  (:documentation "Frees a display list with a specific ID"))
+
 (defgeneric display-list-valid (gl-context id)
   (:documentation "Returns if a display list is still valid, i.e. if
   it is known to the gl-context and has not been garbage collected
@@ -79,6 +83,14 @@
 (defmethod register-display-list ((gl-context gl-context) id obj)
   (with-slots (display-lists) gl-context
     (pushnew (cons id (tg:make-weak-pointer obj)) display-lists)))
+
+(defmethod remove-display-list ((gl-context gl-context) id)
+  (when (display-list-valid gl-context id)
+    (gl:delete-lists id 1)
+    (with-slots (display-lists) gl-context
+      (setf display-lists
+            (remove id display-lists
+                    :key #'car)))))
 
 (defmethod display-list-valid ((gl-context gl-context) id)
   (with-slots (display-lists) gl-context
