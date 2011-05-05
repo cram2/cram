@@ -85,8 +85,14 @@
   (gl:light :light0 :specular #(0.8 0.8 0.8 1))
   (gl:color 0.8 0.8 0.8 1.0)
   (gl:with-pushed-matrix
-    (dolist (obj (gl-objects window))
-      (draw window obj))
+    (let ((transparent-objects (remove-if-not #'gl-object-transparent (gl-objects window)))
+          (opaque-objects (remove-if #'gl-object-transparent (gl-objects window))))
+      (dolist (obj opaque-objects)
+        (draw window obj))
+      (%gl:depth-mask nil)
+      (dolist (obj transparent-objects)
+        (draw window obj))
+      (%gl:depth-mask t)))
   ;; When we are moving around, draw a little yellow disk similar to
   ;; that one RVIZ draws.
   (when (or (eq (motion-mode window) :rotate)
