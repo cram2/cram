@@ -98,11 +98,12 @@
   
   (<- (desig-loc ?desig (point-list ?points))
     (merged-desig-costmap ?desig ?cm)
+    (debug-costmap ?cm 0.0)
     (costmap-samples ?cm ?solutions)
     (symbol-value *max-location-samples* ?max-samples)
     (bullet-world ?w)
-    (bagof ?check (location-valid ?desig ?point ?check)
-           ?checks)
+    (findall ?check (location-valid ?desig ?point ?check)
+             ?checks)
     (take ?max-samples ?solutions ?n-solutions)
     (bagof ?point (and
                    (member ?point ?n-solutions)
