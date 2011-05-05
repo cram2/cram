@@ -41,13 +41,10 @@
 
 (register-designator-class location location-designator)
 
-(defmethod reference ((desig location-designator))
+(defmethod reference ((desig location-designator) &optional (role *default-role*))
   (with-slots (data current-solution) desig
     (unless current-solution
-      (setf data (mapcar (curry #'apply #'make-location-proxy)
-                         (sort (mapcar (curry #'var-value '?value)
-                                       (force-ll (prolog `(desig-loc ,desig ?value))))
-                               #'> :key (compose #'location-proxy-precedence-value #'car))))
+      (setf data (resolve-designator desig role))
       (unless data
         (error 'designator-error
                :format-control "Unable to resolve designator `~a'"
@@ -60,6 +57,12 @@
                :format-arguments (list desig)))
       (assert-desig-binding desig current-solution))
     current-solution))
+
+(defmethod resolve-designator ((desig location-designator) (role (eql'default-role)))
+  (mapcar (curry #'apply #'make-location-proxy)
+          (sort (mapcar (curry #'var-value '?value)
+                        (force-ll (prolog `(desig-loc ,desig ?value))))
+                #'> :key (compose #'location-proxy-precedence-value #'car))))
 
 (defmethod next-solution ((desig location-designator))
   ;; Make sure that we initialized the designator properly

@@ -36,6 +36,9 @@
 
 (in-package :desig)
 
+(defvar *default-role* 'default-role
+  "Defines the default role to be used to resolve designators")
+
 (define-condition designator-error (simple-error)
   () (:default-initargs :format-control "DESIGNATOR-ERROR"))
 
@@ -78,7 +81,7 @@
   (:documentation "Returns the current, i.e. the youngest designator
                    that has been equated to `desig'."))
 
-(defgeneric reference (desig)
+(defgeneric reference (desig &optional role)
   (:documentation "Computes and/or returns the lisp object this
                    designator references. Note: this method _MUST_ be
                    deterministic, i.e. it must always return the same
@@ -90,6 +93,15 @@
                    no other solutions can be found.. This method is
                    ment for dealing with ambiguities in designator
                    descriptions."))
+
+(defgeneric resolve-designator (desig role)
+  (:documentation "Resolves the designator and generates an instance
+  that is to be bound to the designator's reference slot. This is a
+  lower-level method and should not be called directly. The method is
+  used in REFERENCE. Through the `role' parameter, it provides an
+  interface that allows to select the actual mechanism to resolve the
+  designator. A default implementation is provided for the
+  role 'DEFAULT-ROLE."))
 
 (defvar *designator-pprint-description* t
   "If set to T, DESIGNATOR objects will be pretty printed with their description.")
@@ -119,7 +131,8 @@
 (defmethod desig-equal ((desig-1 t) (desig-2 t))
   nil)
 
-(defmethod reference :after ((desig designator))
+(defmethod reference :after ((desig designator) &optional role)
+  (declare (ignore role))
   (setf (slot-value desig 'valid) t))
 
 (defmacro register-designator-class (type class-name)

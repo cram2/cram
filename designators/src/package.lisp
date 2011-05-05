@@ -39,6 +39,7 @@
                 #:timestamp)
   (:export #:designator #:timestamp #:description #:parent #:successor
            #:designator-error
+           #:*default-role*
            #:valid #:data #:equate #:desig-equal #:reference
            #:next-solution #:register-designator-class
            #:make-designator #:first-desig #:current-desig
@@ -68,6 +69,7 @@
            #:register-designator-properties
            #:designator-pose
            #:designator-distance
+           #:resolve-designator
            ;; Properties
            #:obj #:location
            #:pose #:of #:at #:inside
