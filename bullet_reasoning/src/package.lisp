@@ -37,7 +37,7 @@
   (:import-from #:desig desig-solutions)
   (:export merge-bounding-boxes aabb
            with-stored-world
-           *debug-window* add-debug-window
+           *debug-window* add-debug-window add-costmap-function-object
            camera width height fov-y z-near z-far camera-axis pose
            gl-setup-camera camera-transform look-at-object-rotation
            with-rendering-to-framebuffer render-to-framebuffer
@@ -62,7 +62,7 @@
            bullet-world assert-object retract-object step simulate-realtime
            assert-object-pose position orientation poses-equal contact stable
            supported-by above below visible occluding-objects occluding-object
-           grasp side reachable blocking debug-window
+           grasp side reachable blocking debug-window debug-costmap
            head-pointing-at with-current-bullet-world
            reach-object-ik set-robot-state-from-joints set-robot-state-from-tf
 
