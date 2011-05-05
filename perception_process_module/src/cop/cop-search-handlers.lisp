@@ -104,7 +104,7 @@
           (t jlo))))
 
 (defmethod object-search-function ((type (cl:eql 'cluster)) desig &optional perceived-object)
-  (let ((query-info (cop-desig-info-query (resolve-object-desig desig :cop))))
+  (let ((query-info (cop-desig-info-query (resolve-designator desig 'cop))))
     (cond ((and perceived-object (has-cop-info perceived-object))
            (setf (cop-desig-query-info-object-ids query-info)
                  (list (object-id perceived-object)))
@@ -151,7 +151,7 @@
 ;;   ;; The default behavior is the following: If no perceived-object is
 ;;   ;; passed, first search for clusters and use the result for finding
 ;;   ;; the object. Otherwise, use `perceived-object' for it.
-;;   (let ((query-info (cop-desig-info-query (resolve-object-desig desig :cop))))
+;;   (let ((query-info (cop-desig-info-query (resolve-designator desig 'cop))))
 ;;     ;; When iterating over clusters, we want to find only one
 ;;     ;; object.
 ;;     (setf (cop-desig-query-info-matches query-info) 1)
@@ -174,7 +174,7 @@
 ;;   ;; The default behavior is the following: If no perceived-object is
 ;;   ;; passed, first search for clusters and use the result for finding
 ;;   ;; the object. Otherwise, use `perceived-object' for it.
-;;   (let ((query-info (cop-desig-info-query (resolve-object-desig desig :cop))))
+;;   (let ((query-info (cop-desig-info-query (resolve-designator desig 'cop))))
 ;;     ;; When iterating over clusters, we want to find only one
 ;;     ;; object.
 ;;     (setf (cop-desig-query-info-matches query-info) 1)
@@ -203,7 +203,7 @@
                    (list pose))
              result))
          (search-object (search-space &optional object-ids)
-           (let ((query-info (cop-desig-info-query (resolve-object-desig desig :cop))))
+           (let ((query-info (cop-desig-info-query (resolve-designator desig 'cop))))
              (when object-ids
                (setf (cop-desig-query-info-object-ids query-info)
                      object-ids))
