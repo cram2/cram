@@ -31,12 +31,15 @@
 (in-package :bt-vis)
 
 (defgeneric get-texture-handle (gl-context name))
+
 (defgeneric camera-transform (gl-context)
   (:documentation "Returns the transform of the current camera as a
   CL-TRANSFORMS:TRANSFORM."))
+
 (defgeneric light-position (gl-context)
   (:documentation "Returns the position of the light as a
   CL-TRANSFORMS:3D-VECTOR."))
+
 (defgeneric register-display-list (gl-context id obj)
   (:documentation "Registers a display list for garbage collection if
   obj is garbage collected"))
@@ -44,8 +47,14 @@
   (:documentation "Returns if a display list is still valid, i.e. if
   it is known to the gl-context and has not been garbage collected
   yet"))
+
 (defgeneric gc-gl-context (gl-context)
   (:documentation "Garbage-collects the gl context."))
+
+(defgeneric gl-object-transparent (obj)
+  (:documentation "Returns T if an object is to be drawn transparent")
+  (:method ((obj t))
+    nil))
 
 (defclass gl-context ()
   ((textures :initform (make-hash-table))
