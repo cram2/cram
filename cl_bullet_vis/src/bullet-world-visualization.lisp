@@ -37,8 +37,9 @@
   reflections.")
 
 (defmethod draw :around ((context gl-context) (world bt-world))
-    (let ((*current-world* world))
-      (call-next-method)))
+  (let ((*current-world* world))
+    (with-world-locked world
+      (call-next-method))))
 
 (defmethod draw ((context gl-context) (world bt-world))
   (dolist (body (bodies world))
