@@ -7,9 +7,7 @@
 (defvar *background-color* (list (/ 206 255) (/ 210 255) (/ 237 255) 0))
 
 (defclass bullet-world-window (glut:window gl-context event-queue)
-  ((world :accessor world :initarg :world
-          :initform (error 'simple-error :format-control "world argument required"))
-   (frame-rate :initform 25 :initarg :frame-rate :reader frame-rate
+  ((frame-rate :initform 25 :initarg :frame-rate :reader frame-rate
                :documentation "The desired frame rate in Hz. The
                system tries to redisplay the window at this rate.")
    (motion-mode :initform nil :reader motion-mode)
@@ -28,6 +26,21 @@
     (post-event w '(:close))))
 
 (defgeneric process-event (window type &key))
+
+(defgeneric world (window)
+  (:method ((w bullet-world-window))
+    (find-if (lambda (o) (typep o 'bt-world)) (gl-objects w))))
+
+(defgeneric (setf world) (new-value window)
+  (:method (new-value (w bullet-world-window))
+    (setf (gl-objects w)
+          (cons new-value
+                (remove-if (lambda (o) (typep o 'bt-world)) (gl-objects w))))))
+
+(defmethod initialize-instance :after ((w bullet-world-window) &key world)
+  (unless world
+    (error 'simple-error :format-control "world argument required"))
+  (push world (gl-objects w)))
 
 ;; We want to implement our own main loop that supports different
 ;; events, not only OpenGL events.
@@ -72,8 +85,8 @@
   (gl:light :light0 :specular #(0.8 0.8 0.8 1))
   (gl:color 0.8 0.8 0.8 1.0)
   (gl:with-pushed-matrix
-    (with-world-locked (world window)
-      (draw window (world window))))
+    (dolist (obj (gl-objects window))
+      (draw window obj))
   ;; When we are moving around, draw a little yellow disk similar to
   ;; that one RVIZ draws.
   (when (or (eq (motion-mode window) :rotate)
