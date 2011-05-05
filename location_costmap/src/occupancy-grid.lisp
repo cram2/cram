@@ -4,8 +4,10 @@
 (deftype occupancy-grid-data () '(simple-array fixnum 2))
 
 (defclass occupancy-grid-metadata ()
-  ((width :reader width :initarg :width :type double-float)
-   (height :reader height :initarg :height :type double-float)
+  ((width :reader width :initarg :width :type double-float
+          :reader grid-width)
+   (height :reader height :initarg :height :type double-float
+           :reader grid-height)
    (origin-x :reader origin-x :initarg :origin-x :type double-float)
    (origin-y :reader origin-y :initarg :origin-y :type double-float)
    (resolution :reader resolution :initarg :resolution :type double-float)))
