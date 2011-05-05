@@ -60,7 +60,7 @@
               :location (make-cop-desig-location-info)
               :designator desig)))
 
-(register-object-desig-resolver * :cop (result desig)
+(defmethod resolve-designator ((desig object-designator) (role (eql 'cop)))
   (let ((desig-info (ensure-desig-info result desig)))
     (setf (cop-desig-query-info-object-classes (cop-desig-info-query desig-info))
           (nconc (mapcar (compose #'rosify-lisp-name #'cadr)
