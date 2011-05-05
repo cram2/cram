@@ -57,7 +57,8 @@
                      :reader camera-transform)
    (light-position :initform (cl-transforms:make-3d-vector 0 0 5)
                    :initarg :light-position
-                   :reader light-position)))
+                   :reader light-position)
+   (gl-objects :initform nil :initarg :objects :accessor gl-objects)))
 
 (defmethod get-texture-handle ((context gl-context) (name symbol))
   (or (gethash name (slot-value context 'textures))
