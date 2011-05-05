@@ -510,4 +510,10 @@
 (def-fact-group debug ()
   (<- (debug-window ?world)
     (bullet-world ?world)
-    (lisp-fun add-debug-window ?world ?_)))
+    (lisp-fun add-debug-window ?world ?_))
+
+  (<- (debug-costmap ?costmap)
+    (lisp-fun add-costmap-function-object ?costmap ?_))
+
+  (<- (debug-costmap ?costmap ?z)
+    (lisp-fun add-costmap-function-object ?costmap ?z ?_)))
