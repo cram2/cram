@@ -54,4 +54,7 @@
            box-mesh-shape cylinder-mesh-shape
            compound-mesh-shape convex-hull-mesh-shape
            matrix->gl-matrix pose->gl-matrix transform->gl-matrix
-           read-pixels-float))
+           force-redraw
+           read-pixels-float
+           math-function-object
+           gl-objects))
