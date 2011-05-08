@@ -76,6 +76,8 @@
   (nth-value 1 (unify lhs rhs bdgs)))
 
 (defun prove-one (goal binds)
+  "Proves the `goal' under `binds' and returns the new bindings or NIL
+if none could be found."
   (let ((handler (get-prolog-handler (car goal))))
     (or
      (when handler
@@ -85,15 +87,28 @@
                                (cdr clause-match)))
                   (get-matching-clauses goal binds (not handler))))))
 
+(define-condition cut-signal (condition) ())
+
 (defun prove-all (goals binds)
-  (cond ((null goals)
-         (list binds))
-        (t
-         (lazy-mapcan (lambda (goal-1-binds)
-                        (prove-all (cdr goals) goal-1-binds))
-                      (prove-one (car goals) binds)))))
+  (labels ((do-prove-all (goals binds)
+             (cond ((null goals)
+                    (list binds))
+                   (t
+                    (handler-case
+                        (lazy-mapcan (lambda (goal-1-binds)
+                                       (do-prove-all (cdr goals) goal-1-binds))
+                                     (prove-one (car goals) binds))
+                      (cut-signal ()
+                        (invoke-restart 'perform-cut (cdr goals) binds)))))))
+    (restart-case
+        (do-prove-all goals binds)
+      (perform-cut (cut-goals cut-binds)
+        (prove-all cut-goals cut-binds)))))
 
 (defun get-matching-clauses (query binds &optional (warn t))
+  "Finds all matching fact definitions, renames the variables inside
+the fact accordingly and returns a list with elements of the
+form (renamed-fact new-binds)"
   (let ((list-of-facts (get-predicate-facts (car query))))
     (when (and warn (not list-of-facts))
       (warn "Trying to prove goal ~a with undefined functor ~s." query (car query)))

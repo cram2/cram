@@ -72,6 +72,10 @@
         (lazy-mapcan (curry #'prolog if) new-bdgs)
         (prolog else bdgs))))
 
+(def-prolog-handler cut (bdgs)
+  (signal 'cut-signal)
+  (list bdgs))
+
 (def-prolog-handler lisp-fun (bdgs function &rest args)
   (let ((arguments (butlast args))
         (result-pat (car (last args))))
