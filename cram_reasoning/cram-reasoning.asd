@@ -23,7 +23,8 @@
              (:file "fact-groups" :depends-on ("package" "prolog-handlers"))
              (:file "prolog-facts" :depends-on ("package" "fact-groups"))
              (:file "prolog" :depends-on ("package" "fact-groups" "prolog-handlers"))
-             (:file "rete-prolog-handlers" :depends-on ("package" "rete"))
+             (:file "built-in-predicates" :depends-on ("package" "prolog-handlers" "prolog"))
+             (:file "rete-prolog-handlers" :depends-on ("package" "prolog-handlers" "rete"))
              (:file "utils" :depends-on ("package"))
              (:module "rete"
                       :depends-on ("package")
