@@ -87,9 +87,12 @@ if none could be found."
                                (cdr clause-match)))
                   (get-matching-clauses goal binds (not handler))))))
 
-(define-condition cut-signal (condition) ())
+(define-condition cut-signal (condition)
+  ((bindings :initarg :bindings :reader bindings)))
 
 (defun prove-all (goals binds)
+  "Proves all `goals' under binds and returns (VALUES solutions
+cut-siganled) where cut-signaled indicates if a cut was signaled."
   (labels ((do-prove-all (goals binds)
              (cond ((null goals)
                     (list binds))
@@ -98,12 +101,16 @@ if none could be found."
                         (lazy-mapcan (lambda (goal-1-binds)
                                        (do-prove-all (cdr goals) goal-1-binds))
                                      (prove-one (car goals) binds))
-                      (cut-signal ()
-                        (invoke-restart 'perform-cut (cdr goals) binds)))))))
+                      (cut-signal (cut)
+                        (invoke-restart 'perform-cut (cdr goals) (bindings cut))))))))
     (restart-case
         (do-prove-all goals binds)
       (perform-cut (cut-goals cut-binds)
-        (prove-all cut-goals cut-binds)))))
+        (values
+          (lazy-mapcan (lambda (binds)
+                         (prove-all cut-goals binds))
+                       cut-binds)
+          t)))))
 
 (defun get-matching-clauses (query binds &optional (warn t))
   "Finds all matching fact definitions, renames the variables inside
