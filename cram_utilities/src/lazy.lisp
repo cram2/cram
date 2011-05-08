@@ -204,3 +204,22 @@
               (i n))
     (when (and l (> i 0))
       (cont (lazy-car l) (lazy-cdr l) (- i 1)))))
+
+(defun lazy-flatten (list)
+  (lazy-mapcan (lambda (elem)
+                 (if (listp elem)
+                     (lazy-flatten elem)
+                     (list elem)))
+               list))
+
+(defmacro lazy-dolist ((var list &optional result) &body body)
+  (with-gensyms (list-var)
+    `(let* ((,list-var ,list)
+            (,var nil))
+       (tagbody next-loop
+          (setq ,var (lazy-car ,list-var))
+          ,@body
+          (setq ,list-var (lazy-cdr ,list-var))
+          (when ,list-var
+            (go next-loop)))
+       ,result)))
