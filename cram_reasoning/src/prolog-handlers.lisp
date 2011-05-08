@@ -42,13 +42,7 @@
   (gethash name *prolog-handlers*))
 
 (def-prolog-handler and (bdgs &rest pats)
-  (labels ((do-and (clauses bdgs)
-             (if clauses
-                 (lazy-mapcan (lambda (goal-1-bdgs)
-                                (do-and (cdr clauses) goal-1-bdgs))
-                              (prolog (car clauses) bdgs))
-                 (list bdgs))))
-    (do-and pats bdgs)))
+  (prove-all pats bdgs))
 
 (def-prolog-handler or (bdgs &rest pats)
   (lazy-mapcan (lambda (pat)
