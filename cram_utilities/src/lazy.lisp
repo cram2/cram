@@ -88,15 +88,22 @@
                                  var)) params)))
     `(labels ((,generator ,(mapcar #'car var-decls)
                 (macrolet ((cont (value &rest params)
-                             `(return-from ,',generator
-                                (cons ,value (make-lazy-cons-elem 
-                                              :generator (lambda () (,',generator ,@params))))))
+                             `(invoke-restart :cont ,value ,@params))
                            (next (&rest params)
-                             `(return-from ,',next-hook (,',next-hook ,@params)))
+                             `(invoke-restart :next ,@params))
                            (finish (value)
-                             `(return-from ,',generator (cons ,value nil))))
+                             `(invoke-restart :finish ,value)))
                   (labels ((,next-hook ,(mapcar #'car var-decls)
-                             ,@body))
+                             (restart-case
+                                 (progn ,@body)
+                               (:cont (value &rest params)
+                                 (return-from ,generator
+                                   (cons value (make-lazy-cons-elem
+                                                :generator (lambda () (apply #',generator params))))))
+                               (:next (&rest params)
+                                 (return-from ,next-hook (apply #',next-hook params)))
+                               (:finish (value)
+                                 (return-from ,generator (cons value nil))))))
                     (,next-hook ,@(mapcar #'car var-decls))))))
        (,generator ,@(mapcar #'cadr var-decls))
        ;; (list (make-lazy-cons-elem
@@ -136,8 +143,7 @@
                  (if next-values
                      (cont (lazy-car next-values) (lazy-cdr next-values) lists)
                      (next (lazy-cdr next-values) lists))))
-          (cond (values
-                 (proceed values lists))
+          (cond (values (proceed values lists))
                 (t
                  (let* ((cdrs (mapcar #'lazy-cdr lists))
                         (cars (mapcar #'lazy-car cdrs)))
