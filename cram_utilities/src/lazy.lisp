@@ -218,6 +218,12 @@
                      (list elem)))
                list))
 
+(defun lazy-rests (list)
+  "Returns the list of all cdrs of `list'"
+  (lazy-list ((list list))
+    (when list
+      (cont list (cdr list)))))
+
 (defmacro lazy-dolist ((var list &optional result) &body body)
   (with-gensyms (list-var)
     `(let* ((,list-var ,list)
@@ -229,3 +235,4 @@
           (when ,list-var
             (go next-loop)))
        ,result)))
+
