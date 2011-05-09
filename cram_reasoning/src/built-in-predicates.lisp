@@ -33,11 +33,7 @@
 (defvar *break-on-lisp-errors* nil)
 
 (def-prolog-handler and (bdgs &rest pats)
-  (multiple-value-bind (new-bdgs cut-signaled)
-      (prove-all pats bdgs)
-    (when cut-signaled
-      (signal 'cut-signal :bindings new-bdgs))
-    new-bdgs))
+  (prove-all pats bdgs t))
 
 (def-prolog-handler or (bdgs &rest pats)
   (lazy-mapcan (lambda (pat)
