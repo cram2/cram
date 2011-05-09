@@ -41,11 +41,11 @@
 ;;; When the list is fully expanded, it transforms into a normal
 ;;; list.
 
+(defconstant +lazy-value-uninitialized+ 'foo)
+
 ;; Lazy container
-(let ((delay-value-unknown (gensym)))
-  
-  (defstruct delay
-    (value delay-value-unknown)
+(defstruct delay
+    (value +lazy-value-uninitialized+)
     generator)
 
   (defmacro delay (&body expr)
@@ -53,10 +53,10 @@
 
   (defun force (obj)
     (typecase obj
-      (delay (when (eq (delay-value obj) delay-value-unknown)
+      (delay (when (eq (delay-value obj) +lazy-value-uninitialized+)
                (setf (delay-value obj) (funcall (delay-generator obj))))
              (delay-value obj))
-      (t obj))))
+      (t obj)))
 
 ;; Lazy list
 (defstruct lazy-cons-elem
@@ -141,8 +141,10 @@
 (defun lazy-mapcan (fun list-1 &rest more-lists)
   (let ((initial-values (mapcar #'lazy-car (cons list-1 more-lists))))
     (unless (position nil (cons list-1 more-lists))
-      (lazy-list ((values (apply fun initial-values))
+      (lazy-list ((values +lazy-value-uninitialized+)
                   (lists (cons list-1 more-lists)))
+        (when (eq values +lazy-value-uninitialized+)
+          (setf values (apply fun initial-values)))
         (flet ((proceed (next-values lists)
                  (if next-values
                      (cont (lazy-car next-values) (lazy-cdr next-values) lists)
