@@ -44,10 +44,8 @@
         #:perception-pm)
   (:export
    #:pr2-manipulation-process-module
-   #:to #:open #:close #:obj #:side
    ;; Rete facts
-   #:object-opened #:object-closed)
-  (:shadowing-import-from #:table-costmap #:name))
+   #:object-opened #:object-closed))
 
 (desig:register-designator-properties
  #:to #:open #:obj #:side #:type #:fridge #:close
