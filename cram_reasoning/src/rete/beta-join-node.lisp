@@ -34,10 +34,10 @@
   ((connections :reader connections :initform nil
                 :documentation "The connections tokens are propagated
                                to (via the method 'propagate').")
-   (right :reader beta-node-left :initarg :right
+   (right :reader beta-node-right :initarg :right
          :documentation "An alpha-memory this node receives input
                          from.")
-   (left :reader beta-node-right :initarg :left
+   (left :reader beta-node-left :initarg :left
           :documentation "A beta node this node receives input
                           from.")
    (right-tokens :reader beta-node-right-tokens :initform nil :initarg :right-tokens
