@@ -79,12 +79,11 @@
    #:cop-desig-info-location #:cop-ignore-property-p
    #:object-id
    ;; semantic map stuff (currently hacked for pr2 fridge demo
-   #:fridge #:left-of-sink #:drawer
-   #:low #:middle #:top #:height
+   ;; FIXME: which should be designator properties?
+   #:left-of-sink
+   #:low #:middle #:top
    #:semantic-map-object
    #:position-idx #:height-idx
-   ;; Fake perception
-   #:round-plate #:bottle #:silverware
    )
   
   (:import-from #:cpl
@@ -100,3 +99,8 @@
                 #:curry #:rcurry #:compose)
   (:import-from #:cram-process-modules
                 #:def-process-module))
+
+(desig:register-designator-properties
+ ;; FIXME: which should be exported symbols?
+ #:round-plate #:bottle #:silverware #:fridge
+ #:drawer #:height)
