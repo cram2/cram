@@ -102,8 +102,12 @@
                                                 :generator (lambda () (apply #',generator params))))))
                                (:next (&rest params)
                                  (return-from ,next-hook (apply #',next-hook params)))
-                               (:finish (value)
-                                 (return-from ,generator (cons value nil))))))
+                               (:finish (&optional (value nil value-p))
+                                 (if value-p
+                                     (return-from ,generator (cons value nil))
+                                     (return-from ,generator nil)))
+                               (:rest (rest)
+                                 (return-from ,generator rest)))))
                     (,next-hook ,@(mapcar #'car var-decls))))))
        (,generator ,@(mapcar #'cadr var-decls))
        ;; (list (make-lazy-cons-elem
