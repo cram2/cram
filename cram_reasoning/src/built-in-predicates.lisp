@@ -32,14 +32,16 @@
 
 (defvar *break-on-lisp-errors* nil)
 
-(def-prolog-handler and (bdgs &rest pats)
-  (prove-all pats bdgs t))
+(def-prolog-handler and (bdgs &rest goals)
+  (prove-all goals bdgs t))
 
-(def-prolog-handler or (bdgs &rest pats)
-  (lazy-mapcan (lambda (pat)
-                 (let ((result (prolog pat bdgs)))
-                   result))
-               pats))
+(def-prolog-handler or (bdgs &rest goals)
+  (flet ((prove-one-goal (goals)
+           (handler-case
+               (prove-one (lazy-car goals) bdgs)
+             (cut-signal (cut)
+               (invoke-restart :rest (bindings cut))))))
+    (lazy-mapcan #'prove-one-goal (lazy-rests goals))))
 
 (def-prolog-handler not (bdgs form)
   (unless (prolog form bdgs)
