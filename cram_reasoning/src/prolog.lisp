@@ -75,7 +75,7 @@
   "Returns T if `lhs' and `rhs' unify."
   (nth-value 1 (unify lhs rhs bdgs)))
 
-(defun prove-one (goal binds)
+(defun prove-one (goal binds &optional rethrow-cut)
   "Proves the `goal' under `binds' and returns the new bindings or NIL
 if none could be found."
   (let ((handler (get-prolog-handler (car goal))))
@@ -84,15 +84,17 @@ if none could be found."
        (apply handler binds (cdr goal)))
      (lazy-mapcan (lambda (clause-match)
                     (prove-all (fact-clauses (car clause-match))
-                               (cdr clause-match)))
+                               (cdr clause-match)
+                               rethrow-cut))
                   (get-matching-clauses goal binds (not handler))))))
 
 (define-condition cut-signal (condition)
   ((bindings :initarg :bindings :reader bindings)))
 
-(defun prove-all (goals binds)
-  "Proves all `goals' under binds and returns (VALUES solutions
-cut-siganled) where cut-signaled indicates if a cut was signaled."
+(defun prove-all (goals binds &optional rethrow-cut)
+  "Proves all `goals' under binds and returns the resulting
+bindings. When `rethrow-cut' is T and cut-signal is received, it
+rethrows the cut-signal after proving the goals."
   (labels ((do-prove-all (goals binds)
              (cond ((null goals)
                     (list binds))
@@ -106,11 +108,12 @@ cut-siganled) where cut-signaled indicates if a cut was signaled."
     (restart-case
         (do-prove-all goals binds)
       (perform-cut (cut-goals cut-binds)
-        (values
-          (lazy-mapcan (lambda (binds)
-                         (prove-all cut-goals binds))
-                       cut-binds)
-          t)))))
+        (let ((result-bdgs (lazy-mapcan (lambda (binds)
+                                          (prove-all cut-goals binds rethrow-cut))
+                                        cut-binds)))
+          (when rethrow-cut
+            (signal 'cut-signal :bindings result-bdgs))
+          result-bdgs)))))
 
 (defun get-matching-clauses (query binds &optional (warn t))
   "Finds all matching fact definitions, renames the variables inside
