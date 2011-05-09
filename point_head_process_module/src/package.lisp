@@ -38,7 +38,8 @@
         #:alexandria
         #:cpl-impl)
   (:export #:point-head-process-module)
-  (:shadowing-import-from #:cpl-impl #:fail))
+  (:shadowing-import-from #:cpl-impl #:fail)
+  (:shadowing-import-from #:cram-designators #:name))
 
 (desig:register-designator-properties
  #:to #:see #:follow #:pose
