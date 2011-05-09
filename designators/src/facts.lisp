@@ -53,7 +53,7 @@
 
   (<- (desig-location-prop ?desig ?loc)
     (desig-prop ?desig (location ?loc-desig))
-    (lisp-type ?obj designator)    
+    (lisp-type ?loc-desig designator)    
     (lisp-fun current-desig ?loc-desig ?curr-loc-desig)
     (lisp-fun loc-desig-location ?loc-desig ?loc))
   
