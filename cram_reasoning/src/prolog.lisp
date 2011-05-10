@@ -64,9 +64,9 @@
            (match-segvar rhs lhs bdgs #'unify))
           ((and (consp lhs) (consp rhs))
            (multiple-value-bind (new-bdgs matched?)
-               (unify (car lhs) (car rhs) bdgs)
+               (unify (lazy-car lhs) (lazy-car rhs) bdgs)
              (if matched?
-                 (unify (cdr lhs) (cdr rhs) new-bdgs)
+                 (unify (lazy-cdr lhs) (lazy-cdr rhs) new-bdgs)
                  (values nil nil))))
           (t (values nil nil)))))
 
