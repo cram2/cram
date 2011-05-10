@@ -36,28 +36,34 @@
   (prove-all goals bdgs t))
 
 (def-prolog-handler or (bdgs &rest goals)
-  (flet ((prove-one-goal (goals)
+  ;; Cut is not handled correctly here. Normally, it should propagate
+  ;; up the prove tree until a goal is reached. In this
+  ;; implementation, CUTs don't propagate but occur only in the
+  ;; current OR clause.
+  (flet ((prove-one-goal (goal)
            (handler-case
-               (prove-one (lazy-car goals) bdgs)
+               (prove-one goal bdgs t)
              (cut-signal (cut)
                (invoke-restart :rest (bindings cut))))))
-    (lazy-mapcan #'prove-one-goal (lazy-rests goals))))
+    (lazy-mapcan #'prove-one-goal goals)))
 
 (def-prolog-handler not (bdgs form)
   (unless (prolog form bdgs)
     (list bdgs)))
 
 (def-prolog-handler -> (bdgs cond if &optional (else '(fail)))
-  (let ((new-bdgs (lazy-car (prolog cond bdgs))))
+  (let ((new-bdgs (lazy-car (prove-all (list cond) bdgs))))
     (if new-bdgs
-        (prolog if new-bdgs)
-        (prolog else bdgs))))
+        (prove-one if new-bdgs t)
+        (prove-one else bdgs t))))
 
 (def-prolog-handler *-> (bdgs cond if &optional (else '(fail)))
-  (let ((new-bdgs (prolog cond bdgs)))
+  (let ((new-bdgs (prove-all (list cond) bdgs)))
     (if new-bdgs
-        (lazy-mapcan (curry #'prolog if) new-bdgs)
-        (prolog else bdgs))))
+        (lazy-mapcan (lambda (bdg)
+                       (prove-one if bdg t))
+                     new-bdgs)
+        (prove-one else bdgs t))))
 
 (def-prolog-handler cut (bdgs)
   (signal 'cut-signal :bindings (list bdgs))
