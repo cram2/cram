@@ -75,19 +75,6 @@
   "Returns T if `lhs' and `rhs' unify."
   (nth-value 1 (unify lhs rhs bdgs)))
 
-(defun prove-one (goal binds &optional rethrow-cut)
-  "Proves the `goal' under `binds' and returns the new bindings or NIL
-if none could be found."
-  (let ((handler (get-prolog-handler (car goal))))
-    (or
-     (when handler
-       (apply handler binds (cdr goal)))
-     (lazy-mapcan (lambda (clause-match)
-                    (prove-all (fact-clauses (car clause-match))
-                               (cdr clause-match)
-                               rethrow-cut))
-                  (get-matching-clauses goal binds (not handler))))))
-
 (define-condition cut-signal (condition)
   ((bindings :initarg :bindings :reader bindings)))
 
@@ -100,6 +87,27 @@ if none could be found."
         (apply #'invoke-restart restart params)
         (error 'simple-error :format-control "No matching restart found"))))
 
+(defmacro with-cut-exit (nesting-level ((cut-signal) &body cut-continuation) &body body)
+  (with-gensyms (cut-continuation-name)
+    `(flet ((,cut-continuation-name (,cut-signal) ,@cut-continuation))
+       (handler-case (progn ,@body)
+         (cut-signal (cut)
+           (invoke-nth-restart ,nesting-level :rest (,cut-continuation-name cut)))))))
+
+(defun prove-one (goal binds &optional rethrow-cut)
+  "Proves the `goal' under `binds' and returns the new bindings or NIL
+if none could be found."
+  (let ((handler (get-prolog-handler (car goal))))
+    (or
+     (when handler
+       (apply handler binds (cdr goal)))
+     (lazy-mapcan (lambda (clause-match)
+                    (with-cut-exit 0 ((cut) (bindings cut))
+                      (prove-all (fact-clauses (car clause-match))
+                                 (cdr clause-match)
+                                 rethrow-cut)))
+                  (get-matching-clauses goal binds (not handler))))))
+
 (defun prove-all (goals binds &optional rethrow-cut)
   "Proves all `goals' under binds and returns the resulting
 bindings. When `rethrow-cut' is T and cut-signal is received, it
@@ -110,19 +118,16 @@ rethrows the cut-signal after proving the goals."
                    (t
                     (lazy-mapcan (lambda (goal-1-binds)
                                    (do-prove-all (cdr goals) goal-1-binds (1+ nesting-level)))
-                                 (handler-case
-                                     (prove-one (car goals) binds rethrow-cut)
-                                   (cut-signal (cut)
-                                     (invoke-nth-restart
-                                      nesting-level
-                                      :rest (lazy-mapcan (lambda (bdgs)
-                                                           (do-prove-all (cdr goals) bdgs (1+ nesting-level)))
-                                                         (bindings cut))))))))))
+                                 (with-cut-exit nesting-level
+                                     ((cut)
+                                      (lazy-mapcan (lambda (bdgs)
+                                                     (do-prove-all (cdr goals) bdgs (1+ nesting-level)))
+                                                   (bindings cut)))
+                                   (prove-one (car goals) binds rethrow-cut)))))))
     (restart-case
         (do-prove-all goals binds 0)
       (:rest (rest)
-        (when rethrow-cut
-          (signal 'cut-signal :bindings rest))
+        (signal 'cut-signal :bindings rest)
         rest))))
 
 (defun get-matching-clauses (query binds &optional (warn t))
