@@ -91,29 +91,39 @@ if none could be found."
 (define-condition cut-signal (condition)
   ((bindings :initarg :bindings :reader bindings)))
 
+(defun invoke-nth-restart (n restart-name &rest params)
+  (let ((restart (nth n (remove-if-not
+                         (lambda (name)
+                           (eq name restart-name))
+                         (compute-restarts) :key #'restart-name))))
+    (if restart
+        (apply #'invoke-restart restart params)
+        (error 'simple-error :format-control "No matching restart found"))))
+
 (defun prove-all (goals binds &optional rethrow-cut)
   "Proves all `goals' under binds and returns the resulting
 bindings. When `rethrow-cut' is T and cut-signal is received, it
 rethrows the cut-signal after proving the goals."
-  (labels ((do-prove-all (goals binds)
+  (labels ((do-prove-all (goals binds nesting-level)
              (cond ((null goals)
                     (list binds))
                    (t
-                    (handler-case
-                        (lazy-mapcan (lambda (goal-1-binds)
-                                       (do-prove-all (cdr goals) goal-1-binds))
-                                     (prove-one (car goals) binds))
-                      (cut-signal (cut)
-                        (invoke-restart 'perform-cut (cdr goals) (bindings cut))))))))
+                    (lazy-mapcan (lambda (goal-1-binds)
+                                   (do-prove-all (cdr goals) goal-1-binds (1+ nesting-level)))
+                                 (handler-case
+                                     (prove-one (car goals) binds rethrow-cut)
+                                   (cut-signal (cut)
+                                     (invoke-nth-restart
+                                      nesting-level
+                                      :rest (lazy-mapcan (lambda (bdgs)
+                                                           (do-prove-all (cdr goals) bdgs (1+ nesting-level)))
+                                                         (bindings cut))))))))))
     (restart-case
-        (do-prove-all goals binds)
-      (perform-cut (cut-goals cut-binds)
-        (let ((result-bdgs (lazy-mapcan (lambda (binds)
-                                          (prove-all cut-goals binds rethrow-cut))
-                                        cut-binds)))
-          (when rethrow-cut
-            (signal 'cut-signal :bindings result-bdgs))
-          result-bdgs)))))
+        (do-prove-all goals binds 0)
+      (:rest (rest)
+        (when rethrow-cut
+          (signal 'cut-signal :bindings rest))
+        rest))))
 
 (defun get-matching-clauses (query binds &optional (warn t))
   "Finds all matching fact definitions, renames the variables inside
@@ -172,4 +182,4 @@ form (renamed-fact new-binds)"
 
 (defun prolog (query &optional (binds nil))
   (lazy-mapcar (rcurry (curry #'filter-bindings query) binds)
-               (prove-one query binds)))
+               (prove-all (list query) binds)))
