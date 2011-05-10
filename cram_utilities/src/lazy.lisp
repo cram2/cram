@@ -182,11 +182,11 @@
     (labels ((find-next-elem (ll)
                (multiple-value-bind (keep? last?) 
                    (funcall pred (lazy-car ll))
-                 (cond ( (and keep? (or last? (not (lazy-cdr ll))))
+                 (cond ((and keep? (or last? (not (lazy-cdr ll))))
                         (finish (lazy-car ll)) )
-                       ( keep? 
+                       (keep? 
                         (cont (lazy-car ll) (lazy-cdr ll)) )
-                       ( (lazy-cdr ll)
+                       ((lazy-cdr ll)
                         (find-next-elem (lazy-cdr ll)) )))))
       (find-next-elem cur-ll))))
 
