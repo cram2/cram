@@ -40,10 +40,19 @@
              loc-desig)
     (reference loc-desig)))
 
+;; This fact group contains general rules for location designators
+;;
+;; Process modules and other reasoning modules can extend location
+;; designator resolution, as an example cram_highlevel/location_costmap
+;; provides extentions, when loaded
+;; Here, we only define trivial resolutions
 (def-fact-group location-designators (desig-loc desig-location-prop)
+
+  ;; checks designator starts with (location ...)
   (<- (loc-desig? ?desig)
     (lisp-pred typep ?desig location-designator))
 
+  ;; (location ... (obj ?obj)...), e.g. location to see obj
   (<- (desig-location-prop ?desig ?loc)
     (desig-prop ?desig (obj ?obj))
     (lisp-type ?obj designator)
@@ -51,22 +60,26 @@
     (lisp-fun obj-desig-location ?curr-obj ?loc)
     (lisp-pred identity ?loc))
 
+    ;; (location ... (location ?loc)...), e.g. location to see location
   (<- (desig-location-prop ?desig ?loc)
     (desig-prop ?desig (location ?loc-desig))
-    (lisp-type ?loc-desig designator)    
+    (lisp-type ?loc-desig designator)
     (lisp-fun current-desig ?loc-desig ?curr-loc-desig)
     (lisp-fun loc-desig-location ?loc-desig ?loc))
-  
+
+  ;; (location (pose ?pose)...)
   (<- (desig-loc ?desig (pose ?p))
     (loc-desig? ?desig)
     (desig-prop ?desig (pose ?p)))
 
+  ;; (location (of ?obj) ...)
   (<- (desig-loc ?desig (loc-desig ?loc))
     (loc-desig? ?desig)
     (desig-prop ?desig (of ?obj))
     (lisp-fun current-desig ?obj ?curr-obj)
     (desig-prop ?curr-obj (at ?loc)))
 
+  ;; (location (inside ?obj))
   (<- (desig-loc ?desig (loc-desig ?loc))
     (loc-desig? ?desig)
     (desig-prop ?desig (inside ?obj))
