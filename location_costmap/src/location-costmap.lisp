@@ -118,6 +118,7 @@
     (push (cons fun score) (slot-value map 'cost-functions))))
 
 (defun merge-costmaps (cm-1 &rest costmaps)
+  "merges cost functions and generators of cost maps, returns one costmap"
   (etypecase cm-1
     (list (apply #'merge-costmaps (append (force-ll cm-1) costmaps)))
     (location-costmap
