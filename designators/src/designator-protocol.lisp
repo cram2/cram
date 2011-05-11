@@ -90,8 +90,8 @@
 (defgeneric next-solution (desig)
   (:documentation "Returns a new designator that points to a different
                    object but matches the same description or nil if
-                   no other solutions can be found.. This method is
-                   ment for dealing with ambiguities in designator
+                   no other solutions can be found. This method is
+                   meant for dealing with ambiguities in designator
                    descriptions."))
 
 (defgeneric resolve-designator (desig role)
