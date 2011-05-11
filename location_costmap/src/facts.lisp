@@ -29,6 +29,16 @@
 
 (in-package :location-costmap)
 
+;;; This file defines the PROLOG rules that help resolution of designators based on costmaps.
+;;; By itself, the file will do nothing, as it does not define any costmaps, so to use it you have to
+;;; also load a file describing costmaps and providing them with prolog rules such as
+;;;   (<- (desig-costmap ?desig ?cm)
+;;;     (costmap ?cm)
+;;;     (desig-prop ?desig (to see))
+;;;     ...)
+;;; examples are in table_costmap and semantic_map_costmap
+
+
 (defmethod costmap-generator-name->score ((name (eql 'location-neighborhood)))
   5)
 
@@ -39,20 +49,25 @@
    (let ((p-rel (cl-transforms:v- p p-ref)))
      (atan (cl-transforms:y p-rel) (cl-transforms:x p-rel)))))
 
+;; TODO: This fact belongs into a package for CRAM_PL based desig utils
 (def-fact-group location-costmap-utils ()
+
+  ;; looks up a value in a CRAM fluent
   (<- (global-fluent-value ?name ?value)
     (symbol-value ?name ?fl)
     (lisp-fun cpl:value ?fl ?value)
     (lisp-pred identity ?value)))
 
+;; this fact group transforms messages of ROS type nav_msgs-msg:occupancygrid
+;; into LISP occupancy-grid objects
 (def-fact-group location-costmap ()
-  
+
   (<- (occupancy-grid ?msg ?grid)
     (occupancy-grid ?msg ?grid (padding nil)))
 
   (<- (inverted-occupancy-grid ?msg ?grid)
     (inverted-occupancy-grid ?msg ?grid (padding nil)))
-  
+
   (<- (occupancy-grid ?msg ?grid (padding ?p))
     (not (bound ?grid))
     (bound ?msg)
@@ -78,6 +93,7 @@
     (lisp-fun grid-cells-msg->occupancy-grid ?msg ?p ?tmp-grid)
     (lisp-fun invert-occupancy-grid ?tmp-grid ?grid)))
 
+;; this fact group extends location designator resolution with costmaps
 (def-fact-group location-costmap-desigs (desig-costmap desig-loc desig-orientation)
 
   (<- (desig-costmap ?desig ?cm)
@@ -93,6 +109,7 @@
     (costmap-add-function location-neighborhood (make-location-cost-function ?loc 0.4) ?cm))
 
   (<- (merged-desig-costmap ?desig ?cm)
+    ;; bagof collects all true solutions for c into costmaps
     (bagof ?c (desig-costmap ?desig ?c) ?costmaps)
     (lisp-fun merge-costmaps ?costmaps ?cm))
 
@@ -105,7 +122,8 @@
     (desig-location-prop ?desig ?loc)
     (lisp-fun cl-transforms:origin ?loc ?loc-p)
     (lisp-fun nav-angle-to-point ?loc-p ?point ?orientation))
-  
+
+  ;; tries to find a costmap for desig
   (<- (desig-loc ?desig (costmap ?cm))
     (loc-desig? ?desig)
     (merged-desig-costmap ?desig ?cm)))

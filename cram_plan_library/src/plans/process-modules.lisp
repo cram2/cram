@@ -35,6 +35,8 @@
 (defvar *ever* (make-fluent :name '*ever* :value nil))
 
 (def-plan maybe-run-process-modules ()
+  "starts registered process modules unless they are already started.
+   Useful inside top-level-plans within pursue."
   (pursue
     (if (value *process-modules-running*)
         (wait-for *ever*)
