@@ -63,10 +63,10 @@
                                 (x extents) resolution
                                 (y extents) resolution
                                 (z extents) resolution
-                                (x axis) 1
-                                (y axis) 0
-                                (z axis) 0
-                                angle 0)
+                                (x axis) 1.0
+                                (y axis) 0.0
+                                (z axis) 0.0
+                                angle 0.0)
                   boxes))))
       (make-message "mapping_msgs/CollisionMap"
                     (frame_id header) frame-id
@@ -113,14 +113,14 @@
                              (x position pose) (cl-transforms:x point)
                              (y position pose) (cl-transforms:y point)
                              (z position pose) (cl-transforms:z point)
-                             (w orientation pose) 1
+                             (w orientation pose) 1.0
                              (x scale) 0.15
                              (y scale) 0.15
                              (z scale) 0.15
                              (r color) (random 1.0)
                              (g color) (random 1.0)
                              (b color) (random 1.0)
-                             (a color) 1))))
+                             (a color) 1.0))))
 
   (defun publish-pose (pose &key id)
     (let ((point (cl-transforms:origin pose))
@@ -141,15 +141,15 @@
                                (z position pose) (cl-transforms:z point)
                                (x orientation pose) (cl-transforms:x rot)
                                (y orientation pose) (cl-transforms:y rot)
-                               (z orientation pose) (cl-transforms:z rot)                             
+                               (z orientation pose) (cl-transforms:z rot)
                                (w orientation pose) (cl-transforms:w rot)
                                (x scale) 0.15
                                (y scale) 0.15
                                (z scale) 0.15
-                               (r color) 1
-                               (g color) 0
-                               (b color) 0
-                               (a color) 1))))))
+                               (r color) 1.0
+                               (g color) 0.0
+                               (b color) 0.0
+                               (a color) 1.0))))))
 
 ;; (defun publish-location-desig-cost-function (desig)
 ;;   (reference desig)
