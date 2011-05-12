@@ -22,7 +22,7 @@
 ;; A location costmap is a 2d grid map that defines for each x,y point
 ;; a cost value and also a z value giving the height of the location in 3D
 (defclass location-costmap (occupancy-grid-metadata)
-  ((cost-map)
+  ((cost-map :documentation "private slot that gets filled with data by the cost-functions")
    (cost-functions :reader cost-functions :initarg :cost-functions
                    :initform nil
                    :documentation "Sequence of closures that take an a
@@ -38,7 +38,11 @@
                generate points from the costmap. If a generator
                function returns nil, the next generator function in
                the sequence is called.")
-   (height-map :initform nil :initarg :height-map :reader height-map)))
+   (height-map :initform nil
+               :initarg :height-map
+               :reader height-map
+               :documentation "An object for which method
+               height-map-lookup is defined, e.g. height-map")))
 
 (defgeneric get-cost-map (map)
   (:documentation "Returns the costmap as a two-dimensional array of
@@ -71,6 +75,7 @@
     name))
 
 (defmethod get-cost-map ((map location-costmap))
+  "returns the cost of the location map by reading the slot, fills it if not filled yet."
   (flet ((calculate-map-value (map x y)
            (declare (type location-costmap map)
                     (type double-float x y))

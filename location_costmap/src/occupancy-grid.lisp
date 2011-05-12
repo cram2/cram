@@ -15,7 +15,7 @@
 (defclass occupancy-grid (occupancy-grid-metadata)
   ((grid :reader grid :type (simple-array fixnum 2)))
   (:documentation "Defines an occupancy grid. Please note that in
-  contras to ros' OccupancyGrid message, this grid only contains
+  contrast to ros' OccupancyGrid message, this grid only contains
   values of 0 or 1."))
 
 (defmethod initialize-instance :after ((grid occupancy-grid) &key)
