@@ -54,7 +54,7 @@
                                            maximizing (aref map-array y x)))))
       (declare (type cma:double-matrix map-array))
       (dotimes (row (array-dimension map-array 0))
-        (dotimes (col (array-dimension map-array 0))
+        (dotimes (col (array-dimension map-array 1))
           (when (> (aref map-array row col) threshold)
             (push (make-message "mapping_msgs/OrientedBoundingBox"
                                 (x center) (+ (* col resolution) origin-x)
