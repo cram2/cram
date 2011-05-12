@@ -49,7 +49,7 @@
   (with-slots (origin-x origin-y resolution) map
     (let* ((map-array (get-cost-map map))
            (boxes nil)
-           (max-val (loop for y from 0 below (array-dimension map-array 1)
+           (max-val (loop for y from 0 below (array-dimension map-array 0)
                           maximizing (loop for x from 0 below (array-dimension map-array 1)
                                            maximizing (aref map-array y x)))))
       (declare (type cma:double-matrix map-array))
