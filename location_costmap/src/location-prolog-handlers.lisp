@@ -103,25 +103,21 @@
             "Variable `~a' must be bound to a costmap" ?cm)
     (assert (and new-height-map (typep new-height-map 'height-map)) ()
             "Variable `~a' must be bound to a heightmap" ?height-map)
-    (with-slots (height-map) cm
-      (when height-map
-        (warn 'simple-warning :format-control "Costmap already contains a height-map. Replacing it."))
-      (setf height-map new-height-map)))
+    (register-height-map cm new-height-map))
   (list bdgs))
 
 (def-prolog-handler costmap-add-heightmap-generator (bdgs ?generator-pat ?cm)
   (let ((cm (var-value-strict ?cm bdgs)))
     (assert (and cm (typep cm 'location-costmap)) ()
             "Variable `~a' must be bound to a costmap" ?cm)
-    (with-slots (height-map) cm
-      (when height-map
-        (warn 'simple-warning :format-control "Costmap already contains a height-map. Replacing it."))
-      (setf height-map (make-instance
-                        'lazy-height-map
-                        :width (width cm)
-                        :height (height cm)
-                        :origin-x (origin-x cm)
-                        :origin-y (origin-y cm)
-                        :resolution (resolution cm)
-                        :generator-fun (eval-generator ?generator-pat bdgs)))))
+    (register-height-map
+     cm
+     (make-instance
+      'lazy-height-map
+      :width (width cm)
+      :height (height cm)
+      :origin-x (origin-x cm)
+      :origin-y (origin-y cm)
+      :resolution (resolution cm)
+      :generator-fun (eval-generator ?generator-pat bdgs))))
   (list bdgs))
