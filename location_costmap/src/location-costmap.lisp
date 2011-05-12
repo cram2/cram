@@ -56,6 +56,10 @@
   argument `score' allows to define an order in which to apply each
   cost function. Higher scores are evaluated first."))
 
+(defgeneric register-height-map (costmap height-map)
+  (:documentation "Registers a height-map in the costmap. Throws a
+  warning if the costmap already has a heightmap."))
+
 (defgeneric generate-point (map)
   (:documentation "Generates a point and returns it."))
 
@@ -124,6 +128,12 @@
 (defmethod register-cost-function ((map location-costmap) fun &optional (score 0))
   (when fun
     (push (cons fun score) (slot-value map 'cost-functions))))
+
+(defmethod register-height-map ((map location-costmap) new-height-map)
+  (with-slots (height-map) map
+    (when height-map
+      (warn 'simple-warning :format-control "Costmap already contains a height-map. Replacing it."))
+    (setf height-map new-height-map)))
 
 (defun merge-costmaps (cm-1 &rest costmaps)
   "merges cost functions and generators of cost maps, returns one costmap"
