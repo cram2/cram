@@ -19,7 +19,8 @@
 
 (define-condition invalid-probability-distribution (error) ())
 
-;; 2d grid map with 3D height information for each x,y cell
+;; A location costmap is a 2d grid map that defines for each x,y point
+;; a cost value and also a z value giving the height of the location in 3D
 (defclass location-costmap (occupancy-grid-metadata)
   ((cost-map)
    (cost-functions :reader cost-functions :initarg :cost-functions
@@ -36,7 +37,7 @@
                :documentation "List of generator functions that
                generate points from the costmap. If a generator
                function returns nil, the next generator function in
-               the sequece is called.")
+               the sequence is called.")
    (height-map :initform nil :initarg :height-map :reader height-map)))
 
 (defgeneric get-cost-map (map)
