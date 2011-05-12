@@ -89,8 +89,6 @@
     (declare (ftype (function (location-costmap double-float double-float) double-float)
                     calculate-map-value))
     (with-slots (width height origin-x origin-y resolution) map
-      (check-type width integer)
-      (check-type height integer)
       (unless (slot-boundp map 'cost-map)
         (setf (slot-value map 'cost-functions)
               (sort (remove-duplicates (slot-value map 'cost-functions)
