@@ -54,7 +54,7 @@
 
 (defmethod location-proxy-next-solution ((proxy costmap-location-proxy))
   (flet ((take-closest-point (points)
-           ;; If we don't have tf available, just return teh first of
+           ;; If we don't have tf available, just return the first of
            ;; the points since we don't have any reference for
            ;; distance measurement.
            (cond ((and *tf*
