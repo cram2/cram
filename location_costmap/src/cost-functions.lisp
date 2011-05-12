@@ -23,11 +23,12 @@
 (defun make-range-cost-function (point distance)
   "Returns a costfunction that returns 1 for every point that is not
   further than distance away from point."
-  (lambda (x y)
-    (if (> (cl-transforms:v-dist point (cl-transforms:make-3d-vector x y 0))
-           distance)
-        0.0d0
-        1.0d0)))
+  (let ((z (cl-transforms:z point)))
+    (lambda (x y)
+      (if (> (cl-transforms:v-dist point (cl-transforms:make-3d-vector x y z))
+             distance)
+          0.0d0
+          1.0d0))))
 
 (defun make-axis-boundary-cost-function (axis boundary side)
   "Returns a cost function that has the value 1 if the pose is on the
