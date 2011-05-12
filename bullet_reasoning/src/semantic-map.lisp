@@ -30,6 +30,8 @@
 
 (in-package :btr)
 
+(defparameter *board-thickness* 0.01)
+
 (defclass semantic-map-object (object)
   ((pose :initarg :pose)
    (geoms :initarg :geoms :initform (make-hash-table :test #'equal))))
@@ -61,6 +63,26 @@
                    :name name
                    :pose pose
                    :dimensions dimensions)))
+
+(defgeneric make-semantic-map-collision-shape (type dimensions &key color)
+  (:documentation "Creates a rigid body from the a SEMANTIC-MAP-GEOM")
+  (:method ((type t) dimensions &key (color '(0.8 0.8 0.8 1.0)))
+    (declare (ignore type))
+    (make-instance
+     'colored-box-shape
+     :half-extents (cl-transforms:v*
+                    dimensions
+                    0.5)
+     :color color)))
+
+(defun semantic-map-geom->rigid-body (map-name geom &key (color '(0.8 0.8 0.8 1.0)))
+  (with-slots (type name pose dimensions) geom
+    (make-instance
+     'rigid-body
+     :name (make-rigid-body-name map-name name)
+     :pose pose
+     :group :static-filter
+     :collision-shape (make-semantic-map-collision-shape type dimensions :color color))))
 
 (defun query-semantic-map-geoms (pose-transform)
   (force-ll
@@ -101,17 +123,7 @@
            :name name
            :pose (ensure-pose pose)
            :rigid-bodies (mapcar (lambda (obj)
-                                   (make-instance
-                                    'rigid-body
-                                    :name (make-rigid-body-name name (name obj))
-                                    :pose (pose obj)
-                                    :group :static-filter
-                                    :collision-shape (make-instance
-                                                      'colored-box-shape
-                                                      :half-extents (cl-transforms:v*
-                                                                     (dimensions obj)
-                                                                     0.5)
-                                                      :color color)))
+                                   (semantic-map-geom->rigid-body name obj :color color))
                                  geoms))))
     (dolist (geom geoms)
       (setf (gethash (name geom) (slot-value map 'geoms)) geom))
