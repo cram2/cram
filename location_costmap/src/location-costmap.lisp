@@ -25,10 +25,11 @@
   ((cost-map :documentation "private slot that gets filled with data by the cost-functions")
    (cost-functions :reader cost-functions :initarg :cost-functions
                    :initform nil
-                   :documentation "Sequence of closures that take an a
-                                   x and a y coordinate and return the
+                   :documentation "Sequence of cons (closure . score)
+                                   where the closures take an a x
+                                   and a y coordinate and return the
                                    corresponding cost in the interval
-                                   [0;1]")
+                                   [0;1]. Use register-cost-function preferably.")
    ;; use multiple generators, e.g. first one returns a deterministic value or nil
    ;; second one a random value. Especially if we look for positions and want to
    ;; first try the current position of object or robot as solution
@@ -42,7 +43,8 @@
                :initarg :height-map
                :reader height-map
                :documentation "An object for which method
-               height-map-lookup is defined, e.g. height-map")))
+               height-map-lookup is defined, e.g. height-map.  Use
+               register-height-map to set.")))
 
 (defgeneric get-cost-map (map)
   (:documentation "Returns the costmap as a two-dimensional array of
