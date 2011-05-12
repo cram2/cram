@@ -19,6 +19,7 @@
 
 (define-condition invalid-probability-distribution (error) ())
 
+;; 2d grid map with 3D height information for each x,y cell
 (defclass location-costmap (occupancy-grid-metadata)
   ((cost-map)
    (cost-functions :reader cost-functions :initarg :cost-functions
@@ -27,6 +28,9 @@
                                    x and a y coordinate and return the
                                    corresponding cost in the interval
                                    [0;1]")
+   ;; use multiple generators, e.g. first one returns a deterministic value or nil
+   ;; second one a random value. Especially if we look for positions and want to
+   ;; first try the current position of object or robot as solution
    (generators :accessor generators :initarg :generators
                :initform (list #'gen-costmap-sample)
                :documentation "List of generator functions that
@@ -122,7 +126,7 @@
   (etypecase cm-1
     (list (apply #'merge-costmaps (append (force-ll cm-1) costmaps)))
     (location-costmap
-       ;; Todo: assert euqal size of all costmaps
+       ;; Todo: assert equal size of all costmaps
        (make-instance 'location-costmap
                       :width (width cm-1)
                       :height (height cm-1)

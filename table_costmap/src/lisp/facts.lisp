@@ -104,6 +104,7 @@ than threshold * highest-probability."
         (true))
     (costmap-add-generator (make-robot-pos-generator 0.1) ?cm))
 
+    ;; binds a costmap where the robot can stand
   (<- (in-reach-costmap ?cm ?padding ?reaching-distance)
     (bagof ?one-drivable-cm (drivable-location-costmap ?one-drivable-cm ?padding)
            ?drivable-costmaps)
@@ -112,7 +113,8 @@ than threshold * highest-probability."
     (costmap-add-function reachable-space (make-padded-costmap-cost-function
                                            ?drivable-costmap ?reaching-distance)
                           ?cm))
-  
+
+    ;; binds a costmap for (location '((in reach) ...)) with a given name
   (<- (desig-costmap ?desig ?cm)
     (or
      (desig-prop ?desig (on table))
@@ -127,6 +129,7 @@ than threshold * highest-probability."
     (global-fluent-value *table-height-map-fl* ?table-heightmap)
     (costmap-add-heightmap ?table-heightmap ?cm))
 
+    ;; binds a costmap for (location '((on table) ...)) or with (on counter) without name
   (<- (desig-costmap ?desig ?cm)
     (or
      (desig-prop ?desig (on table))
@@ -138,7 +141,8 @@ than threshold * highest-probability."
     (costmap-add-function all-tables (make-occupancy-grid-cost-function ?table-costmap) ?cm)
     (global-fluent-value *table-height-map-fl* ?table-heightmap)
     (costmap-add-heightmap ?table-heightmap ?cm))
-  
+
+    ;; binds a costmap for (location '((to see) ...))
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (to see))
     (costmap ?cm)
@@ -147,6 +151,7 @@ than threshold * highest-probability."
     (global-fluent-value *table-height-map-fl* ?table-heightmap)
     (costmap-add-heightmap ?table-heightmap ?cm))
 
+  ;; binds a costmap for (location '((in reach) ...))
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (in reach))
     (costmap ?cm)
