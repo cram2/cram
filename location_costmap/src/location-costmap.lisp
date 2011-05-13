@@ -53,10 +53,13 @@
 (defgeneric get-map-value (map x y)
   (:documentation "Returns the cost of a specific pose."))
 
-(defgeneric register-cost-function (map fun &optional score)
-  (:documentation "Registers a new cost function. The optional
-  argument `score' allows to define an order in which to apply each
-  cost function. Higher scores are evaluated first."))
+(defgeneric register-cost-function (map fun name)
+  (:documentation "Registers a new cost function. `fun' is a function
+  object that accepts two parameters, X and Y and that returns a
+  number within the interval [0;1].  `name' is a unique identifier for
+  which the method COSTMAP-GENERATOR-NAME->SCORE is defined and is
+  used to order the different cost functions before the costmap is
+  calculated."))
 
 (defgeneric register-height-map (costmap height-map)
   (:documentation "Registers a height-map in the costmap. Throws a
@@ -127,9 +130,9 @@
         (truncate (- x (slot-value map 'origin-x))
                   (slot-value map 'resolution))))
 
-(defmethod register-cost-function ((map location-costmap) fun &optional (score 0))
+(defmethod register-cost-function ((map location-costmap) fun name)
   (when fun
-    (push (cons fun score) (slot-value map 'cost-functions))))
+    (push (cons fun name) (slot-value map 'cost-functions))))
 
 (defmethod register-height-map ((map location-costmap) new-height-map)
   (with-slots (height-map) map
