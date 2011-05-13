@@ -23,6 +23,13 @@
   (eql val 0))
 
 (defun occupancy-grid-msg->occupancy-grid (msg &key padding invert)
+  "takes a ros message, and creates an occupancy grid, where 1 means
+occupied, and zero means free, or vice versa if invert is set.
+Padding pads in the generated grid, not in the original grid, which
+has implications for invert, meaning that free space in the original
+grid becomes a larger obstacle in the generated grid. So with padding,
+a grid generated without invert and one with are not inverts of each
+other."
   (roslisp:with-fields ((resolution (resolution info))
                         (height (height info))
                         (width (width info))

@@ -17,6 +17,15 @@
 
 (in-package :location-costmap)
 
+;;; The class location-costmap is central to this code, and the
+;;; cost-functions it contains. The cost functions are used for
+;;; sampling. The cost functions are combined by multiplying
+;;; corresponding values for equal X- and Y-coordinates and finally
+;;; normalizing the resulting map to be a valid probability
+;;; distribution, i.e. to have a sum of 1. Therefore the values
+;;; returned should never be negative, and at least some must be
+;;; non-zero
+
 (define-condition invalid-probability-distribution (error) ())
 
 ;; A location costmap is a 2d grid map that defines for each x,y point
@@ -25,11 +34,18 @@
   ((cost-map :documentation "private slot that gets filled with data by the cost-functions")
    (cost-functions :reader cost-functions :initarg :cost-functions
                    :initform nil
-                   :documentation "Sequence of cons (closure . score)
-                                   where the closures take an a x
-                                   and a y coordinate and return the
+                   :documentation "Sequence of cons (closure . name)
+                                   where the closures take an x and a
+                                   y coordinate and return the
                                    corresponding cost in the interval
-                                   [0;1]. Use register-cost-function preferably.")
+                                   [0;1]. name must be something for
+                                   which costmap-generator-name->score
+                                   is defined, and it must be unique
+                                   for this costmap, as functions with
+                                   the same name count as
+                                   duplicates. To set this slot, use
+                                   register-cost-function
+                                   preferably.")
    ;; use multiple generators, e.g. first one returns a deterministic value or nil
    ;; second one a random value. Especially if we look for positions and want to
    ;; first try the current position of object or robot as solution
