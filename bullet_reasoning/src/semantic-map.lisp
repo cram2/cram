@@ -30,11 +30,8 @@
 
 (in-package :btr)
 
-(defparameter *board-thickness* 0.01)
-
-(defclass semantic-map-object (object)
-  ((pose :initarg :pose)
-   (geoms :initarg :geoms :initform (make-hash-table :test #'equal))))
+(defclass semantic-map-object (robot-object)
+  ((geoms :initarg :geoms :initform (make-hash-table :test #'equal))))
 
 (defgeneric semantic-map-geoms (map)
   (:method ((map semantic-map-object))
@@ -50,88 +47,85 @@
   (:method ((map semantic-map-object) name)
     (gethash name (slot-value map 'geoms))))
 
-(defclass semantic-map-geom ()
+(defclass semantic-map-part ()
   ((type :initarg :type :reader obj-type)
    (name :initarg :name :reader name)
-   (pose :initarg :pose :reader pose)
+   (urdf-name :initarg :urdf-link-name :reader urdf-name)
+   (sub-parts :reader sub-parts)))
+
+(defclass semantic-map-geom (semantic-map-part)
+  ((pose :initarg :pose :reader pose)
    (dimensions :initarg :dimensions :reader dimensions)))
 
-(defgeneric make-semantic-map-geom (type name pose dimensions)
-  (:method ((type t) name pose dimensions)
-    (make-instance 'semantic-map-geom
-                   :type type
-                   :name name
-                   :pose pose
-                   :dimensions dimensions)))
+(defgeneric make-semantic-map-part (type name)
+  (:method ((type t) name)
+    (with-vars-bound (?pose ?dim)
+        (lazy-car
+         (json-prolog:prolog
+          `(and ("objectPose" ,name ?pose)
+                ("objectDimensions" ,name ?w ?d ?h)
+                (= '(?d ?w ?h) ?dim))))
+      (break)
+      (if (or (is-var ?pose) (is-var ?dim))
+          (make-instance 'semantic-map-part :type type :name name)
+          (make-instance 'semantic-map-geom
+                         :type type
+                         :name name
+                         :pose (cl-transforms:transform->pose
+                                (cl-transforms:matrix->transform
+                                 (make-array
+                                  '(4 4) :displaced-to (make-array
+                                                        16 :initial-contents ?pose))))
+                         :dimensions (apply #'cl-transforms:make-3d-vector ?dim))))))
 
-(defgeneric make-semantic-map-collision-shape (type dimensions &key color)
-  (:documentation "Creates a rigid body from the a SEMANTIC-MAP-GEOM")
-  (:method ((type t) dimensions &key (color '(0.8 0.8 0.8 1.0)))
-    (declare (ignore type))
-    (make-instance
-     'colored-box-shape
-     :half-extents (cl-transforms:v*
-                    dimensions
-                    0.5)
-     :color color)))
+(defmethod sub-parts :before ((part semantic-map-part))
+  (unless (slot-boundp part 'sub-parts)
+    (setf (slot-value part 'sub-parts)
+          (force-ll
+           (lazy-mapcar
+            (lambda (bdgs)
+              (with-vars-bound (?type ?sub) bdgs
+                (make-semantic-map-part
+                 ?type
+                 (remove #\' (symbol-name ?sub)))))
+            (json-prolog:prolog
+             `(and
+               ("rdf_has" ,(name part) "http://ias.cs.tum.edu/kb/knowrob.owl#properPhysicalParts" ?sub)
+               ("objectType" ?sub ?tp)
+               ("rdf_atom_no_ns" ?tp ?type))))))))
 
-(defun semantic-map-geom->rigid-body (map-name geom &key (color '(0.8 0.8 0.8 1.0)))
-  (with-slots (type name pose dimensions) geom
-    (make-instance
-     'rigid-body
-     :name (make-rigid-body-name map-name name)
-     :pose pose
-     :group :static-filter
-     :collision-shape (make-semantic-map-collision-shape type dimensions :color color))))
+(defmethod urdf-name :before ((geom semantic-map-part))
+  (unless (slot-boundp geom 'urdf-name)
+    (with-slots (name urdf-name) geom
+      (let ((label (var-value
+                    '?link
+                    (lazy-car (json-prolog:prolog
+                               `("rdf_has"
+                                 ,name "http://ias.cs.tum.edu/kb/srdl2-comp.owl#urdfName"
+                                 ("literal" ?link)))))))
+        (unless (is-var label)
+          (setf urdf-name (remove #\' (symbol-name label))))))))
 
-(defun query-semantic-map-geoms (pose-transform)
+(defun query-semantic-map ()
   (force-ll
    (lazy-mapcar
     (lambda (bdgs)
-      (make-semantic-map-geom
-       (var-value '?type bdgs)
-       (var-value '?o bdgs)
-       (cl-transforms:transform->pose
-        (cl-transforms:transform*
-         pose-transform
-         (cl-transforms:matrix->transform
-          (make-array
-           '(4 4) :displaced-to (make-array
-                                 16 :initial-contents (var-value '?pose bdgs))))))
-       (apply #'cl-transforms:make-3d-vector (var-value '?dim bdgs))))
+      (with-vars-bound (?type ?o) bdgs
+        (make-semantic-map-part ?type (remove #\' (symbol-name ?o)))))
     (json-prolog:prolog
      '(and ("rootObjects" ?objs)
        ("member" ?o ?objs)
        ("objectType" ?o ?tp)
-       ("rdf_atom_no_ns" ?tp ?type)
-       ("objectPose" ?o ?pose)
-       ("objectDimensions" ?o ?w ?d ?h)
-       (= '(?d ?w ?h) ?dim))))))
+       ("rdf_atom_no_ns" ?tp ?type))))))
 
 (defmethod copy-object ((obj semantic-map-object) (world bt-reasoning-world))
   (with-slots (pose geoms) obj
-    (change-class (call-next-method) 'semantic-map-object :pose pose :geoms geoms)))
+    (change-class (call-next-method) 'semantic-map-object :geoms geoms)))
 
-(defmethod add-object ((world bt-world) (type (eql 'semantic-map)) name pose &key (color '(0.8 0.8 0.8 1.0)))
-  (let* ((pose-transform (cl-transforms:reference-transform
-                          (ensure-pose pose)))
-         (geoms (query-semantic-map-geoms pose-transform))
-         (map
-          (make-instance
-           'semantic-map-object
-           :world world
-           :name name
-           :pose (ensure-pose pose)
-           :rigid-bodies (mapcar (lambda (obj)
-                                   (semantic-map-geom->rigid-body name obj :color color))
-                                 geoms))))
+(defmethod add-object ((world bt-world) (type (eql 'semantic-map)) name pose &key urdf)
+  (let* ((geoms (query-semantic-map))
+         (map (change-class (add-object world 'urdf name pose :urdf urdf) 'semantic-map-object)))
     (dolist (geom geoms)
       (setf (gethash (name geom) (slot-value map 'geoms)) geom))
     map))
 
-(defmethod pose ((obj semantic-map-object))
-  (slot-value obj 'pose))
-
-(defmethod (setf pose) (new-value (obj semantic-map-object))
-  (declare (ignore new-value obj))
-  (warn "setting pose for semantic map not supported"))
