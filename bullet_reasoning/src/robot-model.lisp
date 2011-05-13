@@ -96,7 +96,7 @@
      :urdf urdf)))
 
 (defmethod add-object ((world bt-world) (type (eql 'urdf)) name pose &key
-                       urdf)
+                       urdf (color '(0.8 0.8 0.8 1.0)))
   (labels ((make-link-bodies (pose link)
              "Returns the list of rigid bodies of `link' and all its sub-links"
              (let* ((pose-transform (cl-transforms:reference-transform pose))
@@ -117,7 +117,10 @@
                                   pose-transform (cl-urdf:origin collision-elem))
                            :collision-shape (urdf-make-collision-shape
                                              (cl-urdf:geometry collision-elem)
-                                             (cl-urdf:color (cl-urdf:material (cl-urdf:visual link))))
+                                             (or (when (and (cl-urdf:visual link)
+                                                            (cl-urdf:material (cl-urdf:visual link)))
+                                                   (cl-urdf:color (cl-urdf:material (cl-urdf:visual link))))
+                                                 color))
                            :collision-flags :cf-default
                            :group :character-filter
                            :mask '(:default-filter :static-filter)))
