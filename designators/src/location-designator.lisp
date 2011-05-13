@@ -58,7 +58,7 @@
       (assert-desig-binding desig current-solution))
     current-solution))
 
-(defmethod resolve-designator ((desig location-designator) (role (eql'default-role)))
+(defmethod resolve-designator ((desig location-designator) (role (eql 'default-role)))
   (mapcar (curry #'apply #'make-location-proxy)
           (sort (mapcar (curry #'var-value '?value)
                         (force-ll (prolog `(desig-loc ,desig ?value))))

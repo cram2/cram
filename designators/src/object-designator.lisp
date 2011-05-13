@@ -29,23 +29,20 @@
 
 (in-package :desig)
 
-(defvar *object-designator-resolvers* nil)
-
-(defstruct object-desig-resolver
-  name namespace function)
-
 (defclass object-designator (designator designator-id-mixin)
   ())
 
 (register-designator-class object object-designator)
 
-(defmethod reference ((desig object-designator) &optional role)
-  (declare (ignore role))
-  (or (slot-value desig 'data)
-      ;; Object designators are somehow special because the REFERENCE
-      ;; method cannot generate a new reference. The reason is that
-      ;; the robot needs to interact with the environment to reference
-      ;; objects. Therefore, the data slot has to be set by externally.
-      (error 'designator-error
-             :format-control "Designator `~a' does not reference an object."
-             :format-arguments (list desig))))
+(defmethod reference ((desig object-designator) &optional (role *default-role*))
+  (with-slots (data) desig
+    (or data (setf data (resolve-designator desig role)))))
+
+(defmethod resolve-designator ((desig object-designator) (role (eql 'default-role)))
+  ;; Object designators are somehow special because the REFERENCE
+  ;; method cannot generate a new reference. The reason is that
+  ;; the robot needs to interact with the environment to reference
+  ;; objects. Therefore, the data slot has to be set by externally.
+  (error 'designator-error
+         :format-control "Designator `~a' does not reference an object."
+         :format-arguments (list desig)))
