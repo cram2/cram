@@ -26,3 +26,27 @@
             (defmethod no-applicable-method ((generic-function (EQL #',fun-name)) &rest args)
               (declare (ignore args generic-function))
               nil))))
+
+
+
+(defgeneric copy-object (obj))
+
+; copy-object
+(defmethod copy-object (var)
+  (cond ( (typep var 'structure-object)
+          (copy-structure var) )
+        ( T
+          var )))
+
+(defmethod copy-object ((obj standard-object))
+  (let ( (new (allocate-instance (class-of obj))) )
+    (mapcar #'(lambda (slot)
+                (let ( (slot-name (sb-mop:slot-definition-name slot)) )
+                  (when (slot-boundp obj slot-name)
+                    (setf (slot-value new slot-name )
+                          (copy-object (slot-value obj slot-name))))))
+              (sb-mop:class-slots (class-of obj)))
+    new))
+
+
+
