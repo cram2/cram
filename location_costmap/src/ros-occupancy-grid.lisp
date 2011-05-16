@@ -20,7 +20,7 @@
   (and (> val 0) (<= val 127)))
 
 (defun grid-value-not-occupied-p (val)
-  (eql val 0))
+  (= val 0))
 
 (defun occupancy-grid-msg->occupancy-grid (msg &key padding invert)
   "takes a ros message, and creates an occupancy grid, where 1 means
