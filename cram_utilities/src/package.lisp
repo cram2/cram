@@ -88,6 +88,7 @@
       ;; clos
       #:hooks
       #:define-hook
+      #:copy-object
       ;; lazy
       #:delay #:force #:lazy-list #:lazy-list-p
       #:lazy-car #:lazy-cdr #:lazy-mapcar #:lazy-mapcan
@@ -110,6 +111,7 @@
       #:ensure-unused-string
       #:sanitize-filename
       #:style-warn
+      #:compare
       ;; time
       #:current-timestamp
       #:set-default-timestamp-function
@@ -149,7 +151,7 @@
       #:make-synchronized-hash-table
       #:with-hash-table-locked
       ;; utils
-      #:minimum #:maximum #:extremum
+      #:minimum #:maximum #:extremum #:compare
       ;; semaphores, reexported from sb-thread
       ,@+semaphore-symbols+
       ;; mailboxes, reexported from sb-concurrency
@@ -158,4 +160,19 @@
       ,@+queue-symbols+
       ;; barriers, reexported from synchronization-tools
       ,@+barrier-symbols+
+      ;; string
+      #:->string #:string->symbol
+      #:string-concat #:string-prefix-p
+      #:split-one #:split
+      ;; number.lisp
+      #:bool->float
+      #:random-number
+      ;; list.lisp
+      #:make-random-list
+      #:rec-remove #:find-and-remove #:find-atom-rec-if
+      #:filter-if #:filter
+      #:make-number-list
+      ;; global-structures.lisp
+      #:create-global-structure #:remove-global-structure #:clear-global-structure
+      #:addgv #:isgv #:getgv #:setgv #:remgv #:putgv
       ))
