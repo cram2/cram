@@ -65,7 +65,6 @@
           `(and ("objectPose" ,name ?pose)
                 ("objectDimensions" ,name ?w ?d ?h)
                 (= '(?d ?w ?h) ?dim))))
-      (break)
       (if (or (is-var ?pose) (is-var ?dim))
           (make-instance 'semantic-map-part :type type :name name)
           (make-instance 'semantic-map-geom
