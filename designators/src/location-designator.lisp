@@ -29,12 +29,91 @@
 
 (in-package :desig)
 
-;;; Location designators are resolved a little bit differently than
-;;; object designators. To resolve, the cram/reasoning prolog
-;;; predicate desig-loc is used. All solutions are provided and can be
-;;; accessed with next-solution. A mechanism is provided to
-;;; post-process the solutions from reasoning, e.g. to sort according
-;;; to eucledian distance.
+;;; Location designator resolution is based on two concepts:
+;;; 
+;;;  - Generation of solutions: Generator functions are functions that
+;;;    take one parameter, the designator to be resolved and return a
+;;;    possibly infinite (lazy) list of possible
+;;;    solutions. Generators are ordered wrt. a priority value and
+;;;    their solutions are appended to form the lazy list of
+;;;    solutions. Lower priority means that the corresponding
+;;;    generator is evaluated before generators with higher
+;;;    priority. Generators are defined with the macro
+;;;    DEF-LOCATION-GENERATOR.
+;;;  
+;;;  - Validation of solutions: After generation, a solution is
+;;;    verified by a sequence of validation functions. Validation
+;;;    functions are functions that get two parameters, the designator
+;;;    and the generated solution and returns a generalized boolean to
+;;;    indicate if the solution is valid or not. If the solution is
+;;;    valid, it is used as the designator reference. Otherwise, a new
+;;;    solution is taken from the generated sequence of solutions and
+;;;    the validation functions are executed again. The variable
+;;;    *LOCATION-GENERATOR-MAX-RETRIES* indicates how often this
+;;;    process can be repeated without finding a solution before an
+;;;    error is signaled. Validation functions are declared with the
+;;;    macro DEF-LOCATION-VALIDATION-FUNCTION
+;;; 
+
+(defstruct location-resolution-function
+  function
+  priority
+  documentation)
+
+(defvar *location-generators* nil
+  "The list of instances of type LOCATION-RESOLUTION-FUNCTION that are
+  used to generate solutions.")
+
+(defvar *location-validation-functions* nil
+  "The list of instances of type LOCATION-RESOLUTION-FUNCTION that are
+  used to verify solutions.")
+
+(defparameter *LOCATION-GENERATOR-MAX-RETRIES* 50)
+
+(defun register-location-resolution-function (place priority function &optional documentation)
+  `(eval-when (:compile-toplevel :load-toplevel :execute)
+     (setf ,place
+           (cons (make-location-resolution-function
+                  :function ',function
+                  :priority ,priority
+                  :documentation ,documentation)
+                 (remove ',function ,place :key #'location-resolution-function-function)))))
+
+(defmacro register-location-generator (priority function &optional documentation)
+  "Registers a location generator function. `priority' is a fixnum
+used to order all location generators. Solutions generated with
+functions with smaller priorities are used first. `function' is a
+symbol naming the function that generates a solution and that takes
+exaclty one argument, the designator. `documantion' is an optional
+doc string."
+  (declare (type fixnum priority)
+           (type symbol function)
+           (type (or null string) documentation))
+  (register-location-resolution-function
+   '*location-generators* priority function documentation))
+
+(defmacro register-location-validation-function (priority function &optional documentation)
+  "Registers a location validation function. `priority' is a fixnum
+that indicates the evaluation order of all validation
+functions. `function' is a symbol naming a function that takes exactly
+two arguments, the designator and a solution and returns a generalized
+boolean indicating if the solution is valid or not."
+  (declare (type fixnum priority)
+           (type symbol function)
+           (type (or null string) documentation))
+  (register-location-resolution-function
+   '*location-validation-functions* priority function documentation))
+
+(defun location-resolution-function-list (functions)
+  (mapcar (compose #'symbol-function #'location-resolution-function-function)
+          (sort (map 'list #'identity functions) #'<
+                :key #'location-resolution-function-priority)))
+
+(defun list-location-generators ()
+  (location-resolution-function-list *location-generators*))
+
+(defun list-location-validation-functions ()
+  (location-resolution-function-list *location-validation-functions*))
 
 (defclass location-designator (designator designator-id-mixin)
   ((current-solution :reader current-solution :initform nil)))
@@ -49,20 +128,13 @@
         (error 'designator-error
                :format-control "Unable to resolve designator `~a'"
                :format-arguments (list desig)))
-      (setf current-solution (location-proxy-solution->pose desig
-                              (location-proxy-current-solution (car data))))
+      (setf current-solution (lazy-car data))
       (unless current-solution
         (error 'designator-error
                :format-control "Unable to resolve designator `~a'"
                :format-arguments (list desig)))
       (assert-desig-binding desig current-solution))
     current-solution))
-
-(defmethod resolve-designator ((desig location-designator) (role (eql 'default-role)))
-  (mapcar (curry #'apply #'make-location-proxy)
-          (sort (mapcar (curry #'var-value '?value)
-                        (force-ll (prolog `(desig-loc ,desig ?value))))
-                #'> :key (compose #'location-proxy-precedence-value #'car))))
 
 (defmethod next-solution ((desig location-designator))
   ;; Make sure that we initialized the designator properly
@@ -71,20 +143,28 @@
   (with-slots (data) desig
     (or (successor desig)
         (let ((new-desig (make-designator 'location (description desig))))
-          (or
-           (let ((next (location-proxy-next-solution (car data))))
-             (when next
-               (setf (slot-value new-desig 'data) data)
-               (setf (slot-value new-desig 'current-solution)
-                     (location-proxy-solution->pose new-desig next))
-               (prog1 (equate desig new-desig)
-                 (assert-desig-binding new-desig (slot-value new-desig 'current-solution)))))
-           (when (cdr data)
-             (let ((next (location-proxy-current-solution (cadr data))))
-               (when next
-                 (setf (slot-value new-desig 'data) (cdr data))
-                 (setf (slot-value new-desig 'current-solution)
-                       (location-proxy-solution->pose new-desig next))
-                 (prog1
-                     (equate desig new-desig)
-                   (assert-desig-binding new-desig (slot-value new-desig 'current-solution)))))))))))
+          (when (lazy-cdr data)
+            (setf (slot-value new-desig 'data) (lazy-cdr data))
+            (setf (slot-value new-desig 'current-solution) (lazy-car (lazy-cdr data)))
+            (prog1 (equate desig new-desig)
+              (assert-desig-binding new-desig (slot-value new-desig 'current-solution))))))))
+
+(defmethod resolve-designator ((desig location-designator) (role (eql 'default-role)))
+  (let* ((generators (location-resolution-function-list *location-generators*))
+         (validation-functions (cons (constantly t)
+                                     (location-resolution-function-list *location-validation-functions*)))
+         (solutions (lazy-mapcan (lambda (fun)
+                                   (funcall fun desig))
+                                 generators)))
+    (lazy-mapcan (let ((retries *location-generator-max-retries*))
+                   (lambda (solution)
+                     (cond ((every (rcurry #'funcall desig solution) validation-functions)
+                            (setf retries *location-generator-max-retries*)
+                            (list solution))
+                           ((= retries 0)
+                            ;; We are inside a lazy-list and if we
+                            ;; reached the maximal retry count, let's
+                            ;; stop iterating over possible solutions.
+                            (invoke-restart :finish))
+                           (t (decf retries) nil))))
+                 solutions)))
