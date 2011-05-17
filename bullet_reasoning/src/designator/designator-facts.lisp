@@ -58,11 +58,9 @@
     (object ?o)
     (pose ?o ?loc))
 
-  (<- (desig-check-to-reach ?desig ?point)
+  (<- (desig-check-to-reach ?desig ?robot-pose)
     (bullet-world ?w)
     (robot ?robot)
-    (desig-orientation ?desig ?point ?orientation)
-    (lisp-fun cl-transforms:make-pose ?point ?orientation ?robot-pose)
     (assert-object-pose ?robot ?robot-pose)
     (not (contact ?robot ?_))
     (-> (desig-prop ?desig (side ?side)) (true) (true))
@@ -71,42 +69,43 @@
     (blocking ?robot ?obj ?side ()))
     
   (<- (location-valid
-       ?desig ?point
-       (desig-check-to-see ?desig ?point))
+       ?desig ?pose
+       (desig-check-to-see ?desig ?pose))
     (desig-prop ?desig (to see))
     (desig-prop ?desig (obj ?obj)))
 
   (<- (location-valid
-       ?desig ?point
-       (desig-check-to-reach ?desig ?point))
+       ?desig ?pose
+       (desig-check-to-reach ?desig ?pose))
     (desig-prop ?desig (to reach))
     (desig-prop ?desig (obj ?obj)))
 
-  (<- (desig-check-to-see ?desig ?point)
+  (<- (desig-check-to-see ?desig ?robot-pose)
     (bullet-world ?w)
     (robot ?robot)
     (camera-frame ?cam-frame)
     (desig-location-prop ?desig ?obj-pose)
-    (desig-orientation ?desig ?point ?orientation)
-    (lisp-fun cl-transforms:make-pose ?point ?orientation ?robot-pose)
     (assert-object-pose ?robot ?robot-pose)
     (not (contact ?robot ?_))
     (head-pointing-at ?robot ?obj-pose)
     (link-pose ?robot ?cam-frame ?cam-pose)
     (desig-prop ?desig (obj ?obj))
     (visible ?cam-pose ?obj))
+
+  (<- (btr-desig-solution-valid ?desig ?solution)
+    (bullet-world ?w)
+    (findall ?check (location-valid ?desig ?solution ?check)
+             ?checks)
+    (with-stored-world ?w
+      (forall (member ?check ?checks) (call ?check))))
   
-  (<- (desig-loc ?desig (point-list ?points))
+  (<- (btr-desig-solutions ?desig ?points)
     (merged-desig-costmap ?desig ?cm)
     (debug-costmap ?cm 0.0)
     (costmap-samples ?cm ?solutions)
     (symbol-value *max-location-samples* ?max-samples)
-    (bullet-world ?w)
-    (findall ?check (location-valid ?desig ?point ?check)
-             ?checks)
     (take ?max-samples ?solutions ?n-solutions)
     (bagof ?point (and
                    (member ?point ?n-solutions)
-                   (with-stored-world ?w
-                     (forall (member ?check ?checks) (call ?check))))
+                   (btr-desig-solution-valid ?desig ?point))
            ?points)))

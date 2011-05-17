@@ -72,7 +72,7 @@
                         :depends-on ("package")
                         :components
                         ((:file "designator-facts")
-                         (:file "point-list-location-proxy")))
+                         (:file "designator-integration")))
                (:module "projection"
                         :depends-on ("package" "reasoning-world" "prolog-facts")
                         :components
