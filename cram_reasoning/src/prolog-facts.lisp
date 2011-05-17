@@ -55,12 +55,14 @@
   ;; for now only handle bound parameters
   (<- (sort ?list ?pred ?result)
     (sort ?list ?pred identity ?result))
+  
   (<- (sort ?list ?pred ?key ?result)
     (bound ?list)
     (bound ?pred)
     (bound ?key)
     (lisp-fun copy-list ?list ?copy)
-    (lisp-fun sort ?copy ?pred :key ?key ?result)))
+    (lisp-fun force-ll ?copy ?expanded-list)
+    (lisp-fun sort ?expanded-list ?pred :key ?key ?result)))
 
 (def-fact-group string-utils ()
   (<- (string-concat ?s1 ?s2 ?s3)
