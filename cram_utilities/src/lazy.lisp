@@ -217,6 +217,11 @@
     (when (and l (> i 0))
       (cont (lazy-car l) (lazy-cdr l) (- i 1)))))
 
+(defun lazy-skip (n l)
+  (let ((result l))
+    (dotimes (i n result)
+      (setf result (lazy-cdr l)))))
+
 (defun lazy-flatten (list)
   (lazy-mapcan (lambda (elem)
                  (if (listp elem)

@@ -94,7 +94,7 @@
       #:lazy-car #:lazy-cdr #:lazy-mapcar #:lazy-mapcan
       #:lazy-elt #:force-ll #:copy-lazy-list #:lazy-filter
       #:lazy-fold #:lazy-append #:cont #:finish #:next
-      #:lazy-take #:lazy-flatten #:lazy-dolist
+      #:lazy-take #:lazy-skip #:lazy-flatten #:lazy-dolist
       #:lazy-rests
       ;; patmatch
       #:is-var #:is-unnamed-var #:is-segvar #:is-segform #:var-name
