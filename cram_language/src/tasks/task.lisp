@@ -74,7 +74,7 @@
                     Cf. STATUS-INDICATOR.")
    (result
     :initform nil
-    :type (or list (member nil) condition)
+    :type (or list (member null) condition)
     :documentation "The result of the task. When it terminates
 		    normally, the slot contains the list of return
 		    values. For evaporated tasks, it contains nil and
@@ -720,7 +720,7 @@
                      (format stream "Tear down ~S" current-task))
            :interactive (lambda ()
                           (let ((reason "Manual teardown."))
-                            (list :evaporated reason reason nil)))
+                            (list :evaporated nil reason nil)))
            (%teardown current-task status result reason sync))))
       ((:suspend)
        (unwind-and-continue *suspension-handlers*
@@ -741,7 +741,7 @@
        (change-status current-task :running)
        (continue-with-adjusted-time-quantum))
       ((:evaporate)
-       (unwind-and-teardown :evaporated reason reason sync))
+       (unwind-and-teardown :evaporated nil reason sync))
       ((:fail condition)
        ;; NB: As we handle failures via messages, we automatically
        ;; process pending messages before performing the failure.
