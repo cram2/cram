@@ -50,6 +50,7 @@
            #:costmap-add-heightmap-generator
            #:costmap-generator-name->score
            #:desig-costmap
+           #:desig-orientation
            #:merged-desig-costmap
            #:height-map
            #:height-map-lookup
@@ -80,7 +81,6 @@
            #:publish-location-costmap
            #:publish-point
            #:publish-pose
-           #:costmap-location-proxy
            #:*z-padding*
            #:2d-cov #:points-mean
            #:points-cov))
