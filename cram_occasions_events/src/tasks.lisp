@@ -195,12 +195,14 @@
     (holds (task-status ?task :created) (at ?time)))
 
   (<- (task-started-at ?task ?time)
+    (task ?task)
     (bagof ?t (holds (task-status ?task :running) (at ?t))
            ?times)
     (sort ?times < (?time . ?_)))
 
   ;; TASK-ENDED-AT
   (<- (task-ended-at ?task ?time)
+    (task ?task)
     (member ?status (:succeeded :failed :evaporated))
     (holds (task-status ?task ?status) (at ?time)))
 
