@@ -19,6 +19,7 @@
   <depend package="nav_msgs"/>
   <depend package="mapping_msgs"/>
   <depend package="visualization_msgs"/>
+  <depend package="trivial_garbage"/>
 
 </package>
 

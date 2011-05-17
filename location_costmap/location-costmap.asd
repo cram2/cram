@@ -36,6 +36,7 @@
                "nav_msgs-msg"
                "mapping_msgs-msg"
                "visualization_msgs-msg"
+               "trivial-garbage"
                "designators-ros")
   :components
   ((:module "src"
@@ -50,7 +51,7 @@
              (:file "padding-mask" :depends-on ("package"))
              (:file "ros-grid-cells" :depends-on ("package"))
              (:file "ros-occupancy-grid" :depends-on ("package"))
-             (:file "costmap-location-proxy" :depends-on ("package" "location-costmap"))
              (:file "visualization" :depends-on ("package" "occupancy-grid" "location-costmap"))
              (:file "facts" :depends-on ("package"))
-             (:file "cost-function-utils" :depends-on ("package"))))))
+             (:file "cost-function-utils" :depends-on ("package"))
+             (:file "designator-integration" :depends-on ("package" "location-costmap"))))))

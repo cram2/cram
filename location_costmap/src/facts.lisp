@@ -1,10 +1,10 @@
 ;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
@@ -13,7 +13,7 @@
 ;;;     * Neither the name of Willow Garage, Inc. nor the names of its
 ;;;       contributors may be used to endorse or promote products derived from
 ;;;       this software without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -94,7 +94,7 @@
     (lisp-fun invert-occupancy-grid ?tmp-grid ?grid)))
 
 ;; this fact group extends location designator resolution with costmaps
-(def-fact-group location-costmap-desigs (desig-costmap desig-loc desig-orientation)
+(def-fact-group location-costmap-desigs (desig-costmap desig-orientation)
 
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (to see))
@@ -121,9 +121,4 @@
         (desig-prop ?desig (to see)))
     (desig-location-prop ?desig ?loc)
     (lisp-fun cl-transforms:origin ?loc ?loc-p)
-    (lisp-fun nav-angle-to-point ?loc-p ?point ?orientation))
-
-  ;; tries to find a costmap for desig
-  (<- (desig-loc ?desig (costmap ?cm))
-    (loc-desig? ?desig)
-    (merged-desig-costmap ?desig ?cm)))
+    (lisp-fun nav-angle-to-point ?loc-p ?point ?orientation)))
