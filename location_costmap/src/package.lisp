@@ -46,7 +46,6 @@
            #:costmap-size #:costmap-origin #:costmap-resolution
            #:costmap
            #:costmap-add-function
-           #:costmap-add-generator
            #:costmap-add-heightmap
            #:costmap-add-heightmap-generator
            #:costmap-generator-name->score
@@ -71,7 +70,6 @@
            #:get-map-value
            #:invalid-probability-distribution
            #:register-cost-function
-           #:generate-point
            #:gen-costmap-sample
            #:costmap-samples
            #:generators

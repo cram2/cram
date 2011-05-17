@@ -46,15 +46,6 @@
                                    duplicates. To set this slot, use
                                    register-cost-function
                                    preferably.")
-   ;; use multiple generators, e.g. first one returns a deterministic value or nil
-   ;; second one a random value. Especially if we look for positions and want to
-   ;; first try the current position of object or robot as solution
-   (generators :accessor generators :initarg :generators
-               :initform (list #'gen-costmap-sample)
-               :documentation "List of generator functions that
-               generate points from the costmap. If a generator
-               function returns nil, the next generator function in
-               the sequence is called.")
    (height-map :initform nil
                :initarg :height-map
                :reader height-map
@@ -80,9 +71,6 @@
 (defgeneric register-height-map (costmap height-map)
   (:documentation "Registers a height-map in the costmap. Throws a
   warning if the costmap already has a heightmap."))
-
-(defgeneric generate-point (map)
-  (:documentation "Generates a point and returns it."))
 
 (defgeneric gen-costmap-sample (map)
   (:documentation "Draws a sample from the costmap `map' interpreted
@@ -157,7 +145,7 @@
     (setf height-map new-height-map)))
 
 (defun merge-costmaps (cm-1 &rest costmaps)
-  "merges cost functions and generators of cost maps, returns one costmap"
+  "merges cost functions and copies one height-map, returns one costmap"
   (etypecase cm-1
     (list (apply #'merge-costmaps (append (force-ll cm-1) costmaps)))
     (location-costmap
@@ -170,13 +158,7 @@
                       :resolution (resolution cm-1)
                       :cost-functions (reduce #'append (mapcar #'cost-functions costmaps)
                                               :initial-value (cost-functions cm-1))
-                      :generators (reduce #'append (mapcar #'generators costmaps)
-                                          :initial-value (generators cm-1))
                       :height-map (height-map cm-1)))))
-
-(defmethod generate-point ((map location-costmap))
-  (with-slots (generators) map
-    (some (rcurry #'funcall map) generators)))
 
 (defmethod gen-costmap-sample ((map location-costmap))
   (let ((rand (random 1.0))
