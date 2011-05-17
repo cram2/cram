@@ -47,34 +47,6 @@
 (defmethod costmap-generator-name->score ((name (eql 'free-space)))
   10)
 
-(defun make-robot-pos-generator (threshold &key (n-solutions 1))
-  "Returns a function that returns the position of the robot in the
-map if its probability value in the corresponding costmap is greater
-than threshold * highest-probability."
-  (flet ((max-map-value (map-arr)
-           (declare (type cma:double-matrix map-arr))
-           (let ((max-value 0.0d0))
-             (dotimes (row (array-dimension map-arr 0))
-               (dotimes (col (array-dimension map-arr 1))
-                 (when (> (aref map-arr row col) max-value)
-                   (setq max-value (aref map-arr row col)))))
-             max-value)))
-    (let ((solution-cnt 0))
-      (lambda (map)
-        (unless (and (>= solution-cnt n-solutions) *tf*)
-          (incf solution-cnt)
-          (when (cl-tf:can-transform *tf* :target-frame "/map" :source-frame "/base_link")
-            (let* ((robot-pos (cl-transforms:translation
-                               (cl-tf:lookup-transform
-                                *tf* :target-frame "/map" :source-frame "/base_link")))
-                   (x (cl-transforms:x robot-pos))
-                   (y (cl-transforms:y robot-pos))
-                   (map-arr (get-cost-map map))
-                   (max-value (max-map-value map-arr)))
-              (declare (type cma:double-matrix map-arr))
-              (when (> (get-map-value map x y) (* threshold max-value))
-                robot-pos))))))))
-
 ;;; Requires the following predicates to be set:
 ;;;
 ;;; (costmap-size ?w ?h)
@@ -101,8 +73,7 @@ than threshold * highest-probability."
          (occupancy-grid ?tables ?tables-occupied (padding ?padding))
          (costmap-add-function tables-occupied (make-occupancy-grid-cost-function ?tables-occupied :invert t)
                                ?cm))
-        (true))
-    (costmap-add-generator (make-robot-pos-generator 0.1) ?cm))
+        (true)))
 
     ;; binds a costmap where the robot can stand
   (<- (in-reach-costmap ?cm ?padding ?reaching-distance)
