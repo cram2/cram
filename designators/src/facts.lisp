@@ -65,26 +65,7 @@
     (desig-prop ?desig (location ?loc-desig))
     (lisp-type ?loc-desig designator)
     (lisp-fun current-desig ?loc-desig ?curr-loc-desig)
-    (lisp-fun loc-desig-location ?loc-desig ?loc))
-
-  ;; (location (pose ?pose)...)
-  (<- (desig-loc ?desig (pose ?p))
-    (loc-desig? ?desig)
-    (desig-prop ?desig (pose ?p)))
-
-  ;; (location (of ?obj) ...)
-  (<- (desig-loc ?desig (loc-desig ?loc))
-    (loc-desig? ?desig)
-    (desig-prop ?desig (of ?obj))
-    (lisp-fun current-desig ?obj ?curr-obj)
-    (desig-prop ?curr-obj (at ?loc)))
-
-  ;; (location (inside ?obj))
-  (<- (desig-loc ?desig (loc-desig ?loc))
-    (loc-desig? ?desig)
-    (desig-prop ?desig (inside ?obj))
-    (lisp-fun current-desig ?obj ?curr-obj)
-    (desig-prop ?curr-obj (at ?loc))))
+    (lisp-fun loc-desig-location ?loc-desig ?loc)))
 
 (def-fact-group manipulation-designator (action-desig)
   (<- (trajectory-desig? ?desig)

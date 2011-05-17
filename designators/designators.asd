@@ -33,11 +33,8 @@
                                                      "facts"))
              (:file "location-designator" :depends-on ("package"
                                                        "designator-id-mixin"
-                                                       "designator-protocol"
-                                                       "location-proxy"
-                                                       "facts"))
-             (:file "location-proxy" :depends-on ("package"))
-             (:file "designator-location-proxy" :depends-on ("package"
-                                                             "location-proxy"))
+                                                       "designator-protocol"))
+             (:file "default-location-generators"
+                    :depends-on ("package" "location-designator"))
              (:file "facts" :depends-on ("package"))
              (:file "utils" :depends-on ("package"))))))

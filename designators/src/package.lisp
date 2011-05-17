@@ -55,14 +55,9 @@
            #:resolve-object-desig
            #:action-designator #:action-desig #:action
            #:location-designator
-           #:make-location-proxy
-           #:location-proxy-current-solution
-           #:location-proxy-next-solution
-           #:location-proxy-precedence-value
-           #:location-proxy-solution->pose
-           #:point-location-proxy
-           #:pose-location-proxy
-           #:desig-loc #:loc-desig? #:obj-desig-location
+           #:register-location-generator
+           #:register-location-validation-function
+           #:desig-solution #:loc-desig? #:obj-desig-location
            #:desig-reference
            #:desig-solutions
            #:loc-desig-location
@@ -70,7 +65,8 @@
            #:designator-pose
            #:designator-distance
            #:resolve-designator
-           ;; Properties
+           ;; Properties & prolog related stuff
+           #:desig-solution
            #:obj #:location
            #:pose #:of #:at #:inside
            #:type #:trajectory
