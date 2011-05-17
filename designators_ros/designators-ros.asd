@@ -17,4 +17,4 @@
   ((:module "src"
             :components
             ((:file "package")
-             (:file "location-proxy" :depends-on ("package"))))))
+             (:file "designator-extensions" :depends-on ("package"))))))
