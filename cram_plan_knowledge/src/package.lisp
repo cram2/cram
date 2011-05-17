@@ -46,7 +46,7 @@
            #:fluent-value
            #:task-path
            #:top-level
-           #:task
+           #:task #:goal-task
            #:task-status-fluent
            #:task-goal
            #:task-outcome
