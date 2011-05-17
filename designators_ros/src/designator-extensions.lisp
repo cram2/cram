@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2009, Lorenz Moesenlechner <moesenle@cs.tum.edu>
+;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,16 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :cl-user)
+(in-package :designators-ros)
 
-(defpackage :designators-ros
-    (:use #:cl #:desig #:cut #:crs
-          #:cram-roslisp-common)
-  (:export))
+;;; We need to place these methods here because in the designator
+;;; package, we don't have a notion of poses, just more or less
+;;; abstract interfaces
+
+(defmethod designator-pose ((desig location-designator))
+  (reference desig))
+
+(defmethod designator-distance ((desig-1 location-designator) (desig-2 location-designator))
+  (cl-transforms:v-dist
+   (cl-transforms:origin (reference desig-1))
+   (cl-transforms:origin (reference desig-2))))
