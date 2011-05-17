@@ -74,7 +74,7 @@
                     Cf. STATUS-INDICATOR.")
    (result
     :initform nil
-    :type (or list (member null) condition)
+    :type (or list null condition)
     :documentation "The result of the task. When it terminates
 		    normally, the slot contains the list of return
 		    values. For evaporated tasks, it contains nil and
