@@ -42,18 +42,6 @@
         ( T
           (remove-duplicates (mapcan #'(lambda (tt) (find-atom-rec-if predicate tt)) tree)) )))
 
-; filter-if
-(defun filter-if (fn ll &key (key #'identity))
-  "filters from the list ll the elements that satisfy the filter predicate and returns them in a list"
-  (nreverse
-    (reduce #'(lambda (res arg) (if (funcall fn (funcall key arg)) (cons arg res) res))
-            ll
-            :initial-value ())))
-
-; filter
-(defun filter (elem ll &key (key #'identity) (test #'equal))
-  (filter-if #'(lambda (x) (funcall test x elem)) ll :key key))
-
 ; make number list
 (defun make-number-list (start end &optional (delta 1) (acc ()))
   "returns list of numbers between start and end"
