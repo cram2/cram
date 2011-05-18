@@ -43,7 +43,8 @@
                  kdl_arm_kinematics-srv
                  household_objects_database_msgs-srv
                  designators
-                 semantic-map-costmap)
+                 semantic-map-costmap
+                 perception-process-module)
     :components
     ((:module "src"
               :components
@@ -71,8 +72,8 @@
                (:module "designator"
                         :depends-on ("package")
                         :components
-                        ((:file "designator-facts")
-                         (:file "designator-integration")))
+                        ((:file "location-designator-facts")
+                         (:file "location-designator-integration")))
                (:module "projection"
                         :depends-on ("package" "reasoning-world" "prolog-facts")
                         :components
