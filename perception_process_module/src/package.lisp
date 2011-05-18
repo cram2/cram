@@ -49,11 +49,11 @@
   (:export
    #:perception #:object-not-found
    #:object-search-function
+   #:def-object-search-function
    #:execute-object-search-function
    #:newest-valid-designator
-   #:look-at #:look-long-at #:register-owl-type
-   #:wait-for-shoulder-scan #:knowrob-pre-initialize-desig
    ;; object-belief
+   #:object-perceived
    #:perceived-object #:queried-object #:object-properties
    #:object-pose #:perceived-object-probability #:object-desig
    #:object-jlo
@@ -78,13 +78,8 @@
    #:cop-desig-info #:cop-desig-info-designator #:cop-desig-info-query
    #:cop-desig-info-location #:cop-ignore-property-p
    #:object-id
-   ;; semantic map stuff (currently hacked for pr2 fridge demo
-   ;; FIXME: which should be designator properties?
-   #:left-of-sink
-   #:low #:middle #:top
-   #:semantic-map-object
-   #:position-idx #:height-idx
-   )
+   ;; Semantic map
+   #:semantic-map)
   
   (:import-from #:cpl
                 #:pulsed
@@ -101,6 +96,4 @@
                 #:def-process-module))
 
 (desig:register-designator-properties
- ;; FIXME: which should be exported symbols?
- #:round-plate #:bottle #:silverware #:fridge
- #:drawer #:height)
+ #:name #:cluster #:object)
