@@ -50,14 +50,7 @@
 (defmethod has-cop-info ((obj cop-perceived-object))
   t)
 
-(defmethod has-cop-info ((obj queried-object))
-  t)
-
 (defmethod object-classes ((obj cop-perceived-object))
-  (mapcar (alexandria:compose #'rosify-lisp-name #'cadr)
-          (object-properties obj)))
-
-(defmethod object-classes ((obj queried-object))
   (mapcar (alexandria:compose #'rosify-lisp-name #'cadr)
           (object-properties obj)))
 
@@ -78,11 +71,12 @@
     (when (or (equal (vision_msgs-msg:error-val cop-reply) "")
               (equal (vision_msgs-msg:error-val cop-reply) "No Refinement Found!"))
       (map 'list (lambda (found-pose)
-                   (let ((perceived-object (cop-reply->perceived-object
-                                            found-pose
-                                            (vision_msgs-msg:perception_primitive-val
-                                             cop-reply))))
-                     (assert-perceived-object perceived-object (description desig))
+                   (let ((perceived-object
+                          (cop-reply->perceived-object
+                           found-pose
+                           (vision_msgs-msg:perception_primitive-val
+                            cop-reply))))
+                     (rete-assert `(object-perceived ,desig ,perceived-object))
                      perceived-object))
            (vision_msgs-msg:found_poses-val cop-reply)))))
 
@@ -90,7 +84,7 @@
   (with-desig-props (at) desig
     (with-designators ((clusters (object `((type cluster) ,(when at
                                                              `(at ,at))))))
-      (execute-object-search-function clusters))))
+      (execute-object-search-functions clusters))))
 
 (defun make-search-space (desig perceived-object)
   (let* ((pose (reference (desig-prop-value desig 'at)))
@@ -103,7 +97,7 @@
              (jlo:frame-query jlo pose-jlo)))
           (t jlo))))
 
-(defmethod object-search-function ((type (cl:eql 'cluster)) desig &optional perceived-object)
+(def-object-search-function cop-clusters cop (((?_ cluster)) desig perceived-object)
   (let ((query-info (cop-desig-info-query (resolve-designator desig 'cop))))
     (cond ((and perceived-object (has-cop-info perceived-object))
            (setf (cop-desig-query-info-object-ids query-info)
@@ -125,11 +119,8 @@
                   (list (jlo:make-jlo :name "/openni_rgb_optical_frame"))))))
     (do-cop-search desig query-info)))
 
-(defmethod object-search-function ((type (cl:eql 'object)) desig &optional perceived-object)
-  (flet ((find-flat-objects ()
-           ;; Not implemented yet.
-           nil)
-         (refine-clusters (clusters)
+(def-object-search-function cop-object-with-refine cop (((?_ object)) desig perceived-object)
+  (flet ((refine-clusters (clusters)
            (let ((query-info (make-cop-desig-query-info
                               :matches 1)))
              (mapcan (lambda (cluster)
@@ -141,59 +132,11 @@
                        (do-cop-search desig query-info :command :refine))
                      clusters))))
     (cond ((and perceived-object (has-cop-info perceived-object))
-           ;; (call-next-method)
+           (ros-warn (cop perception-process-module) "Trying to find object again. This shouldn't happen. Calling next method.")
            nil)
-          (t
-           (append (find-flat-objects)
-                   (refine-clusters (get-clusters desig)))))))
+          (t (refine-clusters (get-clusters desig))))))
 
-;; (defmethod object-search-function ((type (eql 'round-plate)) desig &optional previous-object)
-;;   ;; The default behavior is the following: If no perceived-object is
-;;   ;; passed, first search for clusters and use the result for finding
-;;   ;; the object. Otherwise, use `perceived-object' for it.
-;;   (let ((query-info (cop-desig-info-query (resolve-designator desig 'cop))))
-;;     ;; When iterating over clusters, we want to find only one
-;;     ;; object.
-;;     (setf (cop-desig-query-info-matches query-info) 1)
-;;     (when (and previous-object (has-cop-info previous-object))
-;;       (setf (cop-desig-query-info-object-ids query-info)
-;;             (list (object-id previous-object)))
-;;       (setf (cop-desig-query-info-poses query-info)
-;;             (list (object-jlo previous-object))))
-;;     (setf (cop-desig-query-info-poses query-info)
-;;           (when (desig-prop-value desig 'at)
-;;             (let ((loc (desig-prop-value desig 'at)))
-;;               (when (and (eql (desig-prop-value loc 'on) 'table)
-;;                          (desig-prop-value loc 'name))
-;;                 (list (let ((cluster (get-table-cluster
-;;                                       (desig-prop-value loc 'name))))
-;;                         (gaussian->jlo (name cluster) (mean cluster) (cov cluster))))))))
-;;     (do-cop-search desig query-info)))
-
-;; (defmethod object-search-function ((type (eql 'plate)) desig &optional previous-object)
-;;   ;; The default behavior is the following: If no perceived-object is
-;;   ;; passed, first search for clusters and use the result for finding
-;;   ;; the object. Otherwise, use `perceived-object' for it.
-;;   (let ((query-info (cop-desig-info-query (resolve-designator desig 'cop))))
-;;     ;; When iterating over clusters, we want to find only one
-;;     ;; object.
-;;     (setf (cop-desig-query-info-matches query-info) 1)
-;;     (when (and previous-object (has-cop-info previous-object))
-;;       (setf (cop-desig-query-info-object-ids query-info)
-;;             (list (object-id previous-object)))
-;;       (setf (cop-desig-query-info-poses query-info)
-;;             (list (object-jlo previous-object))))
-;;     (setf (cop-desig-query-info-poses query-info)
-;;           (when (desig-prop-value desig 'at)
-;;             (let ((loc (desig-prop-value desig 'at)))
-;;               (when (and (eql (desig-prop-value loc 'on) 'table)
-;;                          (desig-prop-value loc 'name))
-;;                 (list (let ((cluster (get-table-cluster
-;;                                       (desig-prop-value loc 'name))))
-;;                         (gaussian->jlo (name cluster) (mean cluster) (cov cluster))))))))
-;;     (do-cop-search desig query-info)))
-
-(defmethod object-search-function ((type t) desig &optional previous-object)
+(def-object-search-function cop-default-search-function cop (() desig previous-object)
   ;; The default behavior is the following: If no perceived-object is
   ;; passed, first search for clusters and use the result for finding
   ;; the object. Otherwise, use `perceived-object' for it.
@@ -214,32 +157,6 @@
           (search-object (list (make-search-space desig previous-object))
                          (list (object-id previous-object))))
         (search-object (mapcar #'object-jlo (get-clusters desig))))))
-
-
-;;; We get replies of the form:
-;; perception_primitive: 3
-;; error: ''
-;; found_poses: 
-;;   - 
-;;     objectId: 1076
-;;     probability: 0.964961116605
-;;     position: 1982
-;;     models: 
-;;       - 
-;;         object_id: 1077
-;;         sem_class: Cluster
-;;         type: SegmentPrototype
-;;         quality: -1.0
-;;       - 
-;;         object_id: 1080
-;;         sem_class: Texture_1073
-;;         type: DeformShapeModel
-;;         quality: 0.953121
-;;       - 
-;;         object_id: 1083
-;;         sem_class: white
-;;         type: ColorClass
-;;         quality: 0.957078
 
 (defun cop-model->property (m)
   (list (lispify-ros-name (vision_msgs-msg:type-val m) (find-package :perception-pm))

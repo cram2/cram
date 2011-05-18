@@ -48,13 +48,6 @@
   (:documentation "Returns the timestamp this object has been
   detected."))
 
-(defgeneric make-new-desig-description (old-desig perceived-object)
-  (:documentation "Merges the description of `old-desig' with the
-  properties of `perceived-object'"))
-
-(defgeneric object-distance (obj-1 obj-2)
-  (:documentation "Returns the distance between two objects."))
-
 (defclass perceived-object ()
   ((pose :accessor object-pose :initarg :pose)
    (probability :accessor perceived-object-probability :initarg :probability)
@@ -62,51 +55,16 @@
    (timestamp :accessor object-timestamp :initarg :timestamp
               :initform (current-timestamp))))
 
-(defclass queried-object ()
-  ((pose :accessor object-pose :initarg :pose)
-   (cop-id :accessor object-id :initarg :cop-id)
-   (desig :accessor object-desig :initarg :desig :initform nil)
-   (timestamp :accessor object-timestamp :initarg :timestamp
-              :initform (current-timestamp))
-   (object-properties :accessor object-properties :initarg :object-properties)))
+(defgeneric make-new-desig-description (old-desig perceived-object)
+  (:documentation "Merges the description of `old-desig' with the
+  properties of `perceived-object'")
+  (:method ((old-desig object-designator) (po perceived-object))
+    (let ((obj-loc-desig (make-designator 'location `((pose ,(object-pose po))))))
+      (cons `(at ,obj-loc-desig)
+            (remove 'at (description old-desig) :key #'car)))))
 
-(defgeneric matching-object (object candidates)
-  (:documentation "This generic function is a hook. Every hook
-  function gets an `object' and a list of `candidates' and returns a
-  list of the form `(object . score) with object being an object out
-  of `canditates' that matches `object' best and score indicating the
-  value of the match. Higher scores indicate a better match. The
-  result of executing MATCHING-OBJECT is then the object with the
-  highest score.")
-  (:method-combination hooks
-                       :hook-combination (lambda (&rest results)
-                                           (loop for r in results
-                                              with max = (car results)
-                                              when (and (cdr r)
-                                                        (cdr max)
-                                                        (> (cdr r) (cdr max)))
-                                              do (setq max r)
-                                              finally (return (car max))))))
-
-(defun designator->production (desig var-name)
-  (loop for prop in (description desig)
-        unless (eq (car prop) 'at)
-          collecting `(,(car prop) ,var-name ,@(cdr prop))))
-
-(defun assert-perceived-object (perceived-object properties)
-  ;; For now, properties is a desig description. Not sure if this
-  ;; makes sense, but we will see.  TODO: read perceived-object
-  ;; properties and do additional assertions.
-  (loop for prop in properties
-     do (rete-assert `(,(car prop) ,perceived-object ,@(cdr prop)))))
-
-(defun retract-perceived-object (perceived-object)
-  "Retracts all facts the were asserted for `perceived-object'"
-  (let ((bdgs (rete-holds `(?lhs ,perceived-object . ?rhs))))
-    (loop for bdg in bdgs do
-         (with-vars-bound (?lhs ?rhs)
-             bdg
-           (rete-retract `(,?lhs ,perceived-object ,?rhs))))))
+(defgeneric object-distance (obj-1 obj-2)
+  (:documentation "Returns the distance between two objects."))
 
 (defun compatible-properties (props-1 props-2)
   (or (null props-1)
@@ -138,52 +96,6 @@
                    ((parent d)
                     (doit (parent d))))))
     (doit (current-desig desig))))
-
-(defmethod make-new-desig-description ((old-desig object-designator) (qo queried-object))
-  (merge-desig-descriptions (description old-desig) (object-properties qo)))
-
-(defmethod matching-object :euclidean-distance (object candidates)
-  (labels ((as-pose-stamped (obj)
-             (typecase obj
-               (jlo:jlo (jlo->pose obj))
-               (tf:stamped-transform
-                  (tf:make-pose-stamped
-                   (tf:frame-id obj)
-                   (tf:stamp obj)
-                   (cl-transforms:translation obj)
-                   (cl-transforms:rotation obj)))
-               (cl-transforms:transform
-                  (tf:make-pose-stamped
-                   "/map" (ros-time)
-                   (cl-transforms:translation obj)
-                   (cl-transforms:rotation obj)))
-               (cl-transforms::pose
-                  (tf:make-pose-stamped
-                   "/map" (ros-time)
-                   (cl-transforms:origin obj)
-                   (cl-transforms:orientation obj)))
-               (t obj)))
-           (distance (obj-1 obj-2)
-             (let ((pose-1 (as-pose-stamped obj-1))
-                   (pose-2 (as-pose-stamped obj-2)))
-               (cl-transforms:v-dist (cl-transforms:origin pose-1)
-                                     (cl-transforms:origin pose-2)))))
-    (labels ((closest-object (o seq &optional curr)
-               (cond ((null seq)
-                      (values (car curr) (cdr curr)))
-                     (t
-                      (closest-object
-                       o (cdr seq)
-                       (let ((dist (distance (object-pose o) (object-pose (car seq))) ))
-                         (if (or (not curr) (< dist (cdr curr)))
-                             (cons (car seq) dist)
-                             curr)))))))
-      (when candidates
-        (multiple-value-bind (obj dist)
-            (closest-object object candidates)
-          ;; TODO: Use some customizable constant here
-          (when (< dist 0.5)
-            (cons obj 1)))))))
 
 (defmethod designator-pose ((desig object-designator))
   (object-pose (reference desig)))

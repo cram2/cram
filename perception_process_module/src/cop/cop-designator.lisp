@@ -61,51 +61,9 @@
               :designator desig)))
 
 (defmethod resolve-designator ((desig object-designator) (role (eql 'cop)))
-  (let ((desig-info (ensure-desig-info result desig)))
+  (let ((desig-info (ensure-desig-info nil desig)))
     (setf (cop-desig-query-info-object-classes (cop-desig-info-query desig-info))
           (nconc (mapcar (compose #'rosify-lisp-name #'cadr)
                          (remove-if #'cop-ignore-property-p (description desig)))
                   (cop-desig-query-info-object-classes (cop-desig-info-query desig-info))))
     desig-info))
-
-;; object_classes: Cluster, IceTea, Mug, red, black, Jug
-;; (register-object-desig-resolver type :cop (result desig)
-;;   (with-desig-props (type) desig
-;;     (let ((desig-info (ensure-desig-info result desig)))
-;;       (when type
-;;         (push (ccase type
-;;                 (mug "Mug")
-;;                 (icetea "IceTea")
-;;                 (cluster "Cluster")
-;;                 (jug "Jug")
-;;                 (placemat "PlaceMat")
-;;                 (coke "Coke"))
-;;               (cop-desig-query-info-object-classes (cop-desig-info-query desig-info))))
-;;       desig-info)))
-
-;; (register-object-desig-resolver color :cop (result desig)
-;;   (with-desig-props (color) desig
-;;     (let ((desig-info (ensure-desig-info result desig)))
-;;       (when color
-;;         (push (ccase color
-;;                 (black "black")
-;;                 (red "red")
-;;                 (white "white")
-;;                 (blue "blue")
-;;                 (green "green"))
-;;               (cop-desig-query-info-object-classes (cop-desig-info-query desig-info))))
-;;       desig-info)))
-
-;; (register-object-desig-resolver at :cop (result desig)
-;;   ;; (at <loc-desig>). loc-desig must be a resolved location
-;;   ;; designator, i.e. it must return a valid pose (as lo id)
-;;   (with-desig-props (at) desig
-;;     (let ((desig-info (ensure-desig-info result desig)))
-;;       (when at
-;;         (setf (cop-desig-location-info-poses (cop-desig-info-location desig-info))
-;;               (loop with loc = at
-;;                  while loc                   
-;;                  collecting (reference loc)
-;;                  do (setf loc (next-solution loc)))))
-;;       desig-info)))
-

@@ -29,18 +29,51 @@
 
 (in-package :perception-pm)
 
-(defgeneric object-search-function (type desig &optional perceived-object)
-  (:documentation "A function that performs a search of an object of a
-                   specific type. `desig' is the designator describing
-                   the object and `perceived-object' contains a
-                   previously found object of the same properties."))
+(defmacro def-object-search-function (function-name role (props desig perceived-object)
+                                      &body body)
+  (check-type function-name symbol)
+  (check-type role symbol)
+  (check-type props list)
+  (check-type desig symbol)
+  (check-type perceived-object symbol)
+  (assert (every #'listp props) ()
+          "The parameter `props' is not a valid designator property list")
+  `(progn
+     (defun ,function-name (,desig ,perceived-object)
+       ,@body)
 
-(defun execute-object-search-function (desig &optional perceived-object)
-  "Executes the matching search function that fits the type property
-   of `desig'. `perceived-object' is an optional instance that
-   previously matched the object."
-  (with-desig-props (type) desig
-    (object-search-function (or type t) desig perceived-object)))
+     (def-fact-group ,(intern (concatenate 'string (symbol-name function-name) "-FACTS"))
+         (object-search-function object-search-function-order)
+       
+       (<- (object-search-function ?desig ,role ?fun)
+         ,@(mapcar (lambda (prop)
+                     `(desig-prop ?desig ,prop))
+                   props)
+         (lisp-fun symbol-function ,function-name ?fun))
+
+       (<- (object-search-function-order ?fun ,(length props))
+         (lisp-fun symbol-function ,function-name ?fun)))))
+
+(defun execute-object-search-functions (desig &optional perceived-object (role *default-role*))
+  "Executes the matching search functions that fit the properties of
+   `desig' until one succeeds. `role' specifies the role under which
+   the search function should be found. If `role' is set to NIL, all
+   matching search functins are used. The order in which the search
+   functions are executed is determined by the number of designator
+   properties that are matched. Functions that are more specific,
+   i.e. match more pros are executed first. `perceived-object' is an
+   optional instance that previously matched the object."
+  (let ((obj-search-functions (force-ll
+                               (lazy-mapcar
+                                (lambda (bdg)
+                                  (with-vars-bound (?role ?fun ?order) bdg
+                                    (list ?fun ?role ?order)))
+                                (prolog `(and (object-search-function ,desig ?role ?fun)
+                                              (object-search-function-order ?fun ?order))
+                                        (when role
+                                          (add-bdg '?role role nil)))))))
+    (some (lambda (fun) (funcall fun desig perceived-object))
+          (sort  obj-search-functions #'> :key #'third))))
 
 (defun perceived-object->designator (desig obj &optional parent-desig)
   (let ((new-desig (make-designator 'object
@@ -59,33 +92,21 @@
     (assert-desig-binding new-desig obj)
     new-desig))
 
-(defun find-with-parent-desig (desig production-name)
+(defun find-with-parent-desig (desig)
   "Takes the perceived-object of the parent designator as a bias for
    perception and equates with the designator if possible. Fails
    otherwise."
   (let* ((parent-desig (current-desig desig))
          (perceived-object (or (desig-current-perceived-object parent-desig)
                                (desig-current-perceived-object parent-desig 'queried-object)
-                               (desig-current-perceived-object parent-desig 'semantic-map-object)))
-         (perceived-objects nil))
+                               (desig-current-perceived-object parent-desig 'semantic-map-object))))
     (or
      (when perceived-object
-       (crs:with-production-handlers
-           ((production-name (op &key ?perceived-object)
-              (when (eq op :assert)
-                (pushnew ?perceived-object perceived-objects))))
-         ;; We ignore objects that have already been perceived
-         ;; since we got the info we are interested in already
-         ;; (by the desig's reference) Note: Later, when falling
-         ;; back to the default search, this information _is_
-         ;; used, but in FIND-WITH-NEW-DESIG
-         (setf perceived-objects nil)
-         (execute-object-search-function parent-desig perceived-object)
-         (when perceived-objects
-           (list (perceived-object->designator parent-desig
-                                               (car (sort perceived-objects #'>
-                                                          :key #'perceived-object-probability))
-                                               parent-desig)))))
+       (let ((perceived-objects (execute-object-search-functions parent-desig perceived-object)))
+         (list (perceived-object->designator parent-desig
+                                             (car (sort perceived-objects #'>
+                                                        :key #'perceived-object-probability))
+                                             parent-desig))))
      ;; Ok. No object found so far. We need to use our fallback
      ;; solution.  It is like searching with a new designator, but we
      ;; need to asure that the result is not bound to any other
@@ -94,7 +115,7 @@
      ;; having any other ancestor and then equating `desig' with the
      ;; new one.
      (let* ((tmp-desig (make-designator 'object (description parent-desig)))
-            (result (find-with-new-desig tmp-desig production-name))
+            (result (find-with-new-desig tmp-desig))
             (matching-result-desig (find-if (curry #'desig-equal parent-desig) result)))
        (unless matching-result-desig
          (when perceived-object
@@ -103,7 +124,7 @@
          (fail 'object-not-found :object-desig parent-desig))
        matching-result-desig))))
 
-(defun find-with-new-desig (desig production-name)
+(defun find-with-new-desig (desig)
   "Takes a parent-less designator. A search is performed a new
    designator is generated for every object that has been found. If a
    found object matches a previously found object, the new desingator
@@ -111,58 +132,13 @@
    designator might be equated to old ones, it is not equated to
    `desig' yet. This decision must be made by the caller of the
    process module."
-  (let ((perceived-objects nil)
-        ;; (previous-perceived-objects nil)
-        )
-    (crs:with-production-handlers
-        ((production-name (op &key ?perceived-object)
-           (when (eq op :assert)
-             (pushnew ?perceived-object perceived-objects))))
-      ;; If there are matching PERCEIVED-OBJECTS already, registration
-      ;; gets triggered and they are in `perceived-objects'. We want
-      ;; to try these first because perception is much faster if we
-      ;; re-use old perceptions.
-      ;; (when perceived-objects
-      ;;   (setf previous-perceived-objects (sort perceived-objects #'>
-      ;;                                          :key #'object-timestamp))
-      ;;   (setf perceived-objects nil)
-      ;;   (loop for perceived-object in previous-perceived-objects
-      ;;         until (execute-object-search-function desig perceived-object)))
-      ;; When not found yet, continue with default search
-      ;; (unless perceived-objects
-      ;;   (execute-object-search-function desig nil))
-      (setf perceived-objects
-            (execute-object-search-function desig nil))
-      (unless perceived-objects
-        (fail 'object-not-found :object-desig desig))
-      ;; Sort perceived objects according to probability
-      (when perceived-objects
-        (let ((sorted-perceived-objects
-                (sort perceived-objects #'> :key #'perceived-object-probability)))
-          (mapcar (lambda (perceived-object)
-                    ;; We need to remove incompatible objects again
-                    ;; here since perceived objects can be more
-                    ;; detailed than the desig description that we had
-                    ;; initially (and that is used in the rete
-                    ;; production). That means that some previously
-                    ;; perceived objects might be incompatible after
-                    ;; perception.
-                    ;; (let ((matching-object (matching-object
-                    ;;                         perceived-object
-                    ;;                         (remove-if-not (alexandria:compose
-                    ;;                                         (curry #'compatible-properties
-                    ;;                                                (object-properties perceived-object))
-                    ;;                                         #'object-properties)
-                    ;;                                        previous-perceived-objects))))
-                    ;;   (cond (matching-object
-                    ;;          (setf previous-perceived-objects
-                    ;;                (delete matching-object previous-perceived-objects))
-                    ;;          (perceived-object->designator desig perceived-object
-                    ;;                                        (object-desig matching-object)))
-                    ;;         (t
-                    ;;          (perceived-object->designator desig perceived-object))))
-                    (perceived-object->designator desig perceived-object))
-                  sorted-perceived-objects))))))
+  (let ((perceived-objects (execute-object-search-functions desig nil)))
+    (unless perceived-objects
+      (fail 'object-not-found :object-desig desig))
+    ;; Sort perceived objects according to probability
+    (mapcar (lambda (perceived-object)
+              (perceived-object->designator desig perceived-object))
+            (sort perceived-objects #'> :key #'perceived-object-probability))))
 
 (defun newest-valid-designator (desig)
   (labels ((find-valid-desig (desig)
@@ -172,21 +148,22 @@
                    (t (find-valid-desig (parent desig))))))
     (find-valid-desig (current-desig desig))))
 
+(defparameter *known-roles* '(semantic-map cop)
+  "Ordered list of known roles for designator resolution. They are
+  processed in the order specified in this list")
+
 (def-process-module perception (input)
   (assert (typep input 'object-designator))
   (ros-info (perception process-module) "Searching for object ~a" input)
-  (let ((productuion-name (gensym "DESIG-PRODUCTION-"))
-        (newest-valid (newest-valid-designator input)))
-    (unwind-protect
-         (progn
-           (crs:register-production productuion-name
-                                    (designator->production input '?perceived-object))
-           (let ((result
-                  (cond ( ;; Designator that has alrady been equated
-                         newest-valid
-                         (find-with-parent-desig newest-valid productuion-name))
-                        (t
-                         (find-with-new-desig input productuion-name)))))
-             (ros-info (perception process-module) "Found objects: ~a" result)
-             result))
-      (crs:remove-production productuion-name))))
+  (let* ((newest-valid (newest-valid-designator input))
+         (result
+          (some (lambda (role)
+                  (let ((*default-role* role))
+                    (if newest-valid
+                        ;; Designator that has alrady been equated to
+                        ;; one with bound to a perceived-object
+                        (find-with-parent-desig newest-valid)
+                        (find-with-new-desig input))))
+                *known-roles*)))
+    (ros-info (perception process-module) "Found objects: ~a" result)
+    result))
