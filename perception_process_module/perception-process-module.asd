@@ -58,22 +58,13 @@
                     :depends-on ("package" "facts"))
              (:file "facts" :depends-on ("package"))
              (:file "process-module"
-                    :depends-on ("object-belief" "passive" "package"))
-             (:module "fake-perception"
-                      :depends-on ("package" "object-belief" "process-module")
-                      :components
-                      ((:file "fake-search-handlers")))
+                    :depends-on ("object-belief" "package"))
              (:module "cop"
                       :depends-on ("object-belief" "process-module" "package")
                       :components
                       ((:file "cop-designator")
-                       ;; (:file "occasion-handlers")
                        (:file "ros-connection" :depends-on ("cop-designator"))
                        (:file "cop-search-handlers" :depends-on ("cop-designator"))))
-             (:module "passive"
-                      :depends-on ("object-belief" "package")
-                      :components
-                      ((:file "knowrob-objects")))
              (:module "semantic-map"
                       :depends-on ("object-belief" "process-module" "package")
                       :components
