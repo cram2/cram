@@ -31,21 +31,7 @@
 (in-package :btr)
 
 (defclass semantic-map-object (robot-object)
-  ((geoms :initarg :geoms :initform (make-hash-table :test #'equal))))
-
-(defgeneric semantic-map-geoms (map)
-  (:method ((map semantic-map-object))
-    (loop for geom being the hash-values of (slot-value map 'geoms)
-          collecting geom)))
-
-(defgeneric semantic-map-geom-names (map)
-  (:method ((map semantic-map-object))
-    (loop for name being the hash-keys of (slot-value map 'geoms)
-          collecting name)))
-
-(defgeneric semantic-map-geom (map name)
-  (:method ((map semantic-map-object) name)
-    (gethash name (slot-value map 'geoms))))
+  ((parts :initarg :parts :initform (make-hash-table :test #'equal))))
 
 (defclass semantic-map-part ()
   ((type :initarg :type :reader obj-type)
@@ -57,6 +43,43 @@
   ((pose :initarg :pose :reader pose)
    (dimensions :initarg :dimensions :reader dimensions)))
 
+(defgeneric semantic-map-parts (map)
+  (:method ((map semantic-map-object))
+    (loop for part being the hash-values of (slot-value map 'parts)
+          collecting part))
+
+  (:method ((map semantic-map-part))
+    (sub-parts map)))
+
+(defgeneric semantic-map-part-names (map)
+  (:method ((map semantic-map-object))
+    (loop for name being the hash-keys of (slot-value map 'parts)
+          collecting name))
+
+  (:method ((map semantic-map-part))
+    (mapcar #'name (sub-parts map))))
+
+(defgeneric semantic-map-part (map name)
+  (:method ((map semantic-map-object) name)
+    (or (gethash name (slot-value map 'parts))
+        (loop for p-name being the hash-keys in (slot-value map 'parts)
+              using (hash-value part)
+              when (equal (cram-roslisp-common:rosify-lisp-name name)
+                          (subseq p-name (1+ (position #\# p-name))))
+                do (return part))))
+
+  (:method ((part semantic-map-part) name)
+    (let ((name (cram-roslisp-common:rosify-lisp-name name)))
+      (find name (sub-parts part)
+            :key #'name
+            :test (lambda (lhs rhs)
+                    (equal (if (find #\# lhs)
+                               (subseq lhs (1+ (position #\# lhs)))
+                               lhs)
+                           (if (find #\# rhs)
+                               (subseq rhs (1+ (position #\# rhs)))
+                               rhs)))))))
+
 (defgeneric make-semantic-map-part (type name)
   (:method ((type t) name)
     (with-vars-bound (?pose ?dim)
@@ -64,7 +87,8 @@
          (json-prolog:prolog
           `(and ("objectPose" ,name ?pose)
                 ("objectDimensions" ,name ?w ?d ?h)
-                (= '(?d ?w ?h) ?dim))))
+                (= '(?d ?w ?h) ?dim))
+          :package :btr))
       (if (or (is-var ?pose) (is-var ?dim))
           (make-instance 'semantic-map-part :type type :name name)
           (make-instance 'semantic-map-geom
@@ -81,50 +105,77 @@
   (unless (slot-boundp part 'sub-parts)
     (setf (slot-value part 'sub-parts)
           (force-ll
-           (lazy-mapcar
+           (lazy-mapcan
             (lambda (bdgs)
               (with-vars-bound (?type ?sub) bdgs
-                (make-semantic-map-part
-                 ?type
-                 (remove #\' (symbol-name ?sub)))))
+                (unless (or (is-var ?type) (is-var ?sub))
+                  (list
+                   (make-semantic-map-part
+                    ?type
+                    (remove #\' (symbol-name ?sub)))))))
             (json-prolog:prolog
              `(and
                ("rdf_has" ,(name part) "http://ias.cs.tum.edu/kb/knowrob.owl#properPhysicalParts" ?sub)
                ("objectType" ?sub ?tp)
-               ("rdf_atom_no_ns" ?tp ?type))))))))
+               ("rdf_atom_no_ns" ?tp ?type))
+             :package :btr))))))
 
-(defmethod urdf-name :before ((geom semantic-map-part))
-  (unless (slot-boundp geom 'urdf-name)
-    (with-slots (name urdf-name) geom
+(defmethod urdf-name :before ((part semantic-map-part))
+  (unless (slot-boundp part 'urdf-name)
+    (with-slots (name urdf-name) part
       (let ((label (var-value
                     '?link
                     (lazy-car (json-prolog:prolog
                                `("rdf_has"
                                  ,name "http://ias.cs.tum.edu/kb/srdl2-comp.owl#urdfName"
-                                 ("literal" ?link)))))))
+                                 ("literal" ?link))
+                               :package :btr)))))
         (unless (is-var label)
           (setf urdf-name (remove #\' (symbol-name label))))))))
 
 (defun query-semantic-map ()
   (force-ll
-   (lazy-mapcar
+   (lazy-mapcan
     (lambda (bdgs)
       (with-vars-bound (?type ?o) bdgs
-        (make-semantic-map-part ?type (remove #\' (symbol-name ?o)))))
+        (unless (or (is-var ?type) (is-var ?o))
+          (list (make-semantic-map-part ?type (remove #\' (symbol-name ?o)))))))
     (json-prolog:prolog
      '(and ("rootObjects" ?objs)
        ("member" ?o ?objs)
        ("objectType" ?o ?tp)
-       ("rdf_atom_no_ns" ?tp ?type))))))
+       ("rdf_atom_no_ns" ?tp ?type))
+     :package :btr))))
+
+(defun owl-types-equal (lhs rhs)
+  (let ((lhs (etypecase lhs
+               (symbol (remove #\' (symbol-name lhs)))
+               (string lhs)))
+        (rhs (etypecase rhs
+               (symbol (remove #\' (symbol-name rhs)))
+               (string rhs))))
+    (equal lhs rhs)))
+
+(defun sub-parts-with-type (map type &key (recursive t))
+  "Returns a lazy list of all objects of type `type' that are children
+of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns not only direct children."
+  (lazy-mapcan (lambda (part)
+                 (lazy-append
+                  (when (owl-types-equal
+                         (obj-type part)
+                         (cram-roslisp-common:rosify-lisp-name type))
+                    (list part))
+                  (when recursive
+                    (sub-parts-with-type part type))))
+               (semantic-map-parts map)))
 
 (defmethod copy-object ((obj semantic-map-object) (world bt-reasoning-world))
-  (with-slots (pose geoms) obj
-    (change-class (call-next-method) 'semantic-map-object :geoms geoms)))
+  (with-slots (pose parts) obj
+    (change-class (call-next-method) 'semantic-map-object :parts parts)))
 
 (defmethod add-object ((world bt-world) (type (eql 'semantic-map)) name pose &key urdf)
-  (let* ((geoms (query-semantic-map))
+  (let* ((parts (query-semantic-map))
          (map (change-class (add-object world 'urdf name pose :urdf urdf) 'semantic-map-object)))
-    (dolist (geom geoms)
-      (setf (gethash (name geom) (slot-value map 'geoms)) geom))
+    (dolist (part parts)
+      (setf (gethash (name part) (slot-value map 'parts)) part))
     map))
-
