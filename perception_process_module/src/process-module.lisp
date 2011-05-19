@@ -72,7 +72,7 @@
                                               (object-search-function-order ?fun ?order))
                                         (when role
                                           (add-bdg '?role role nil)))))))
-    (some (lambda (fun) (funcall fun desig perceived-object))
+    (some (lambda (fun) (funcall (first fun) desig perceived-object))
           (sort  obj-search-functions #'> :key #'third))))
 
 (defun perceived-object->designator (desig obj &optional parent-desig)
