@@ -75,7 +75,8 @@
            execute-projection-rule timeline-apply-projection-rule
            def-projection-rule rule holds occurs at during throughout))
 
-(desig:register-designator-properties #:to #:see #:reach #:side)
+(desig:register-designator-properties
+ :to #:see #:reach #:side #:name #:part-of #:type)
 
 (defpackage bullet-reasoning-designators
     (:nicknames :btr-desig)
