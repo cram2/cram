@@ -44,7 +44,8 @@
                  household_objects_database_msgs-srv
                  designators
                  semantic-map-costmap
-                 perception-process-module)
+                 perception-process-module
+                 cram-roslisp-common)
     :components
     ((:module "src"
               :components
@@ -73,7 +74,9 @@
                         :depends-on ("package")
                         :components
                         ((:file "location-designator-facts")
-                         (:file "location-designator-integration")))
+                         (:file "location-designator-integration")
+                         (:file "object-designator-integration")
+                         (:file "object-designator-facts")))
                (:module "projection"
                         :depends-on ("package" "reasoning-world" "prolog-facts")
                         :components
