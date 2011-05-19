@@ -44,3 +44,6 @@
   (<- (camera-frame "narrow_stereo_optical_frame"))
   (<- (robot-pan-tilt-links "head_pan_link" "head_tilt_link"))
   (<- (robot-pan-tilt-joints "head_pan_joint" "head_tilt_joint")))
+
+(def-fact-group semantic-map-metadata ()
+  (<- (semantic-map-obj btr::sem-map)))
