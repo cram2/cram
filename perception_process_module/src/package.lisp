@@ -57,7 +57,7 @@
    #:perceived-object #:queried-object #:object-properties
    #:object-pose #:perceived-object-probability #:object-desig
    #:object-jlo
-   #:object-timestamp #:*perceived-objects*
+   #:object-timestamp
    #:clear-object-belief #:update-perceived-object
    #:perceived-objects-equal? #:compatible-properties
    #:designator->production #:assert-perceived-object
