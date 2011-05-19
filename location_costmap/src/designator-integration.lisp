@@ -91,9 +91,11 @@ candidate solutions.")
 (defun get-cached-costmap (desig)
   (or (gethash desig *costmap-cache*)
       (setf (gethash desig *costmap-cache*)
-            (var-value
-             '?cm (lazy-car
-                   (prolog `(merged-desig-costmap ,desig ?cm)))))))
+            (with-vars-bound (?cm)
+                (lazy-car
+                 (prolog `(merged-desig-costmap ,desig ?cm)))
+              (unless (is-var ?cm)
+                ?cm)))))
 
 (defun get-cached-costmap-maxvalue (costmap)
   (or (gethash costmap *costmap-max-values)
@@ -166,10 +168,12 @@ candidate solutions.")
 (defun location-costmap-pose-validator (desig pose)
   (when (typep pose 'cl-transforms:pose)
     (let* ((cm (get-cached-costmap desig))
-           (p (cl-transforms:origin pose))
-           (costmap-value (/ (get-map-value
-                              cm
-                              (cl-transforms:x p)
-                              (cl-transforms:y p))
-                             (get-cached-costmap-maxvalue cm))))
-      (> costmap-value *costmap-valid-solution-threshold*))))
+           (p (cl-transforms:origin pose)))
+      (if cm
+          (let ((costmap-value (/ (get-map-value
+                                   cm
+                                   (cl-transforms:x p)
+                                   (cl-transforms:y p))
+                                  (get-cached-costmap-maxvalue cm))))
+            (> costmap-value *costmap-valid-solution-threshold*))
+          t))))
