@@ -39,14 +39,21 @@
   (declare (ignore perceived-object))
   (with-desig-props (name) desig
     (with-vars-bound (?pose)
-        (json-prolog:prolog
-         `(and ("rootObjects" ?objs)
-               ("member" ?o ?objs)
-               ("rdf_atom_no_ns" ?o ,(format nil "'~a'" (prologify-obj-name name)))
-               ("objectPose" ?o ?pose)))
+        (lazy-car
+         (lazy-filter
+          (lambda (bdg)
+            (with-vars-bound (?objname) bdg
+              (equal (remove #\' (symbol-name ?objname))
+                     (prologify-obj-name name))))
+          (json-prolog:prolog
+           `(and ("rootObjects" ?objs)
+                 ("member" ?o ?objs)
+                 ("rdf_atom_no_ns" ?o ?objname)
+                 ("objectPose" ?o ?pose))
+           :package :perception-pm)))
       (unless (is-var ?pose)
-        (make-instance
-         'perceived-object
-         :pose ?pose
-         :probability 1.0
-         :desig desig)))))
+        (list
+         (make-instance
+          'perceived-object
+          :pose ?pose
+          :probability 1.0))))))
