@@ -95,7 +95,7 @@
     (if (or (not atom-name) (eq *complex-type-atoms* :undefined))
         exp
         (or
-         (car (rassoc exp *complex-type-atoms*
+         (car (rassoc atom-name *complex-type-atoms*
                       :key #'symbol-name
                       :test #'equal))
          exp))))
