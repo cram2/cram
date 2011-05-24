@@ -60,7 +60,9 @@
   ((links :initarg :links :initform (make-hash-table :test 'equal) :reader links)
    (joint-states :initarg :joint-states :initform (make-hash-table :test 'equal)
                  :reader joint-states)
-   (urdf :initarg :urdf :reader urdf)))
+   (urdf :initarg :urdf :reader urdf)
+   (attached-objects :initarg :attached-objects :initform nil
+                     :reader attached-objects)))
 
 (defgeneric joint-names (robot-object)
   (:documentation "Returns the list of joints")
@@ -86,6 +88,38 @@
 
 (defgeneric (setf link-pose) (new-value robot-object name)
   (:documentation "Sets the pose of a link and all its children"))
+
+(defgeneric attach-object (robot-object obj link)
+  (:documentation "Adds `obj' to the set of attached objects. When the
+  link the object is attached to is moved, the object moves
+  accordingly.")
+  (:method ((robot-object robot-object) (obj object) link)
+    (unless (gethash link (links robot-object))
+      (error 'simple-error :format-control "Link ~a unknown"
+             :format-arguments (list link)))
+    (with-slots (attached-objects) robot-object
+      (let ((obj-attachment (car (member obj attached-objects
+                                         :key #'car))))
+        (if obj-attachment
+            (pushnew link (cdr obj-attachment) :test #'equal)
+            (push (cons obj (list link)) attached-objects))))))
+
+(defgeneric detach-object (robot-object obj &optional link)
+  (:documentation "Detaches `obj' from the set of attached objects. If
+  `link' is specified, detaches the object only from
+  `link'. Otherwise, detaches `obj' from all links.")
+  (:method ((robot-object robot-object) (obj object) &optional link)
+    (with-slots (attached-objects) robot-object
+      (cond (link
+             (let ((attachment (member obj attached-objects
+                                       :key #'name :test #'equal)))
+               (setf (cdr attachment) (remove link (cdr attachment)
+                                              :test #'equal))
+               (unless (cdr attachment)
+                 (setf attached-objects (remove obj attached-objects
+                                                :key #'car)))))
+            (t (setf attached-objects (remove obj attached-objects
+                                              :key #'car)))))))
 
 (defmethod copy-object ((obj robot-object) (world bt-reasoning-world))
   (with-slots (links joint-states urdf) obj
@@ -146,6 +180,29 @@
         (setf (gethash name (joint-states object)) 0.0d0))
       object)))
 
+(defun update-attached-object-poses (robot-object link pose)
+  "Updates the poses of all objects that are attached to
+`link'. `pose' is the new pose of `link'"
+  (with-slots (attached-objects links) robot-object
+    (let ((body (gethash (cl-urdf:name link) links)))
+      (when body
+        (let* ((attachments (mapcar
+                             #'car
+                             (remove-if-not (lambda (attachment)
+                                              (member (cl-urdf:name link) (cdr attachment)
+                                                      :test #'equal))
+                                            attached-objects)))
+               (body-transform (cl-transforms:reference-transform (pose body)))
+               (pose-transform (cl-transforms:reference-transform pose))
+               (pose-delta (cl-transforms:transform*
+                            (cl-transforms:transform*
+                             pose-transform
+                             (cl-urdf:origin (cl-urdf:collision link)))
+                            (cl-transforms:transform-inv body-transform))))
+          (dolist (attachment attachments)
+            (setf (pose attachment)
+                  (cl-transforms:transform-pose pose-delta (pose attachment)))))))))
+
 (defun update-link-poses (robot-object link pose)
   "Updates the pose of `link' and all its children according to
 current joint states"
@@ -154,6 +211,7 @@ current joint states"
     (let ((body (gethash (cl-urdf:name link) links))
           (pose-transform (cl-transforms:reference-transform pose)))
       (when body
+        (update-attached-object-poses robot-object link pose)
         (setf (pose body) (cl-transforms:transform-pose
                            pose-transform
                            (cl-urdf:origin (cl-urdf:collision link)))))
