@@ -29,31 +29,137 @@
 
 (in-package :perception-pm)
 
+(defclass semantic-map-perceived-object (perceived-object)
+  ((name :reader name :initarg :name)
+   (owl-name :reader owl-name :initarg :owl-name)))
+
+(defmethod make-new-desig-description ((old-desig object-designator)
+                                       (po semantic-map-perceived-object))
+  (let ((description (call-next-method)))
+    (if (member 'name description :key #'car)
+        description
+        (cons `(name ,(name po)) description))))
+
 (defun prologify-obj-name (name)
   (etypecase name
     (symbol (rosify-lisp-name name))
     (string name)))
 
-(def-object-search-function query-semantic-map-object semantic-map
+(def-object-search-function query-semantic-map-object-name semantic-map
     (((name ?name)) desig perceived-object)
   (declare (ignore perceived-object))
   (with-desig-props (name) desig
-    (with-vars-bound (?pose)
-        (lazy-car
-         (lazy-filter
-          (lambda (bdg)
-            (with-vars-bound (?objname) bdg
-              (equal (remove #\' (symbol-name ?objname))
-                     (prologify-obj-name name))))
-          (json-prolog:prolog
-           `(and ("rootObjects" ?objs)
-                 ("member" ?o ?objs)
-                 ("rdf_atom_no_ns" ?o ?objname)
-                 ("objectPose" ?o ?pose))
-           :package :perception-pm)))
-      (unless (is-var ?pose)
-        (list
-         (make-instance
-          'perceived-object
-          :pose ?pose
-          :probability 1.0))))))
+    (force-ll
+     (lazy-mapcan
+      (lambda (solution)
+        (with-vars-bound (?pose ?o) solution
+          (unless (is-var ?pose)
+            (list
+             (make-instance
+              'semantic-map-perceived-object
+              :name name
+              :owl-name (remove #\' (symbol-name ?o))
+              :pose (cl-transforms:matrix->transform
+                     (make-array
+                      '(4 4) :displaced-to (make-array
+                                            16 :initial-contents ?pose)))
+              :probability 1.0)))))
+      (lazy-filter
+       (lambda (bdg)
+         (with-vars-bound (?objname) bdg
+           (equal (remove #\' (symbol-name ?objname))
+                  (prologify-obj-name name))))
+       (json-prolog:prolog
+        `(and ("rootObjects" ?objs)
+              ("member" ?o ?objs)
+              ("rdf_atom_no_ns" ?o ?objname)
+              ("objectPose" ?o ?pose))
+        :package :perception-pm))))))
+
+(def-object-search-function query-semantic-map-object-type semantic-map
+    (((type ?type)) desig perceived-object)
+  (declare (ignore perceived-object))
+  (with-desig-props (type) desig
+    (force-ll
+     (lazy-mapcan
+      (lambda (solution)
+        (with-vars-bound (?objname ?o ?pose) solution
+          (unless (or (is-var ?objname) (is-var ?pose))
+            (list
+             (make-instance
+              'semantic-map-perceived-object
+              :name (remove #\' (symbol-name ?objname))
+              :owl-name (remove #\' (symbol-name ?o))
+              :pose (cl-transforms:matrix->transform
+                     (make-array
+                      '(4 4) :displaced-to (make-array
+                                            16 :initial-contents ?pose)))
+              :probability 1.0)))))
+      (lazy-filter
+       (lambda (bdg)
+         (with-vars-bound (?type) bdg
+           (equal (remove #\' (symbol-name ?type))
+                  (prologify-obj-name type))))
+       (json-prolog:prolog
+        `(and ("rootObjects" ?objs)
+              ("member" ?o ?objs)
+              ("objectType" ?o ?tp)
+              ("rdf_atom_no_ns" ?o ?objname)
+              ("rdf_atom_no_ns" ?tp ?type)
+              ("objectPose" ?o ?pose))
+        :package :perception-pm))))))
+
+(def-object-search-function query-semantic-map-object-part semantic-map
+    (((part-of ?parent)) desig perceived-object)
+  (declare (ignore perceived-object))
+  (labels ((find-obj-parts (obj-name)
+             (lazy-mapcan
+              (lambda (solution)
+                (cons
+                 solution
+                 (with-vars-bound (?sub) solution
+                   (unless (is-var ?sub)
+                     (let ((child-name (remove #\' (symbol-name ?sub))))
+                       (find-obj-parts child-name))))))
+              (json-prolog:prolog
+               `(and
+                 ("rdf_has" ,obj-name
+                            "http://ias.cs.tum.edu/kb/knowrob.owl#properPhysicalParts"
+                            ?sub)
+                 ("rdf_atom_no_ns" ?sub ?objname)
+                 ("objectType" ?sub ?tp)
+                 ("rdf_atom_no_ns" ?tp ?type)
+                 ("objectPose" ?sub ?pose))
+               :package :perception-pm))))
+    (with-desig-props (part-of type name) desig
+      (check-type part-of object-designator)
+      (let ((parent-ref (reference part-of)))
+        (when (typep parent-ref 'semantic-map-perceived-object)
+          (force-ll
+           (lazy-mapcan
+            (lambda (solution)
+              (with-vars-bound (?o ?objname ?pose) solution
+                (unless (is-var ?pose)
+                  (list
+                   (make-instance
+                    'semantic-map-perceived-object
+                    :name (remove #\' (symbol-name ?objname))
+                    :owl-name (remove #\' (symbol-name ?o))
+                    :pose (cl-transforms:matrix->transform
+                           (make-array
+                            '(4 4) :displaced-to (make-array
+                                                  16 :initial-contents ?pose)))
+                    :probability 1.0)))))
+            (lazy-filter
+             (lambda (bdg)
+               (with-vars-bound (?objname ?type) bdg
+                 (and
+                  (if type
+                      (equal (remove #\' (symbol-name ?type))
+                             (prologify-obj-name type))
+                      t)
+                  (if name
+                      (equal (remove #\' (symbol-name ?objname))
+                             (prologify-obj-name name))
+                      t))))
+             (find-obj-parts (owl-name parent-ref))))))))))
