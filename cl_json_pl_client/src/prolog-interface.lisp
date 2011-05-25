@@ -51,15 +51,15 @@
                   (call-service (concatenate 'string *service-namespace* "/next_solution")
                                 'json_prolog-srv:PrologNextSolution
                                 :id query-id)))
-             (ecase (car (rassoc (json_prolog-srv:status-val next-value)
+             (ecase (car (rassoc (json_prolog-srv:status next-value)
                                  (symbol-codes 'json_prolog-srv:<prolognextsolution-response>)))
                (:no_solution nil)
                (:wrong_id (error 'simple-error
                                  :format-control "We seem to have lost our query. ID invalid."))
                (:query_failed (error 'simple-error
                                      :format-control "Prolog query failed: ~a"
-                                     :format-arguments (list (json_prolog-srv:solution-val next-value))))
-               (:ok (cont (json-bdgs->prolog-bdgs (json_prolog-srv:solution-val next-value)
+                                     :format-arguments (list (json_prolog-srv:solution next-value))))
+               (:ok (cont (json-bdgs->prolog-bdgs (json_prolog-srv:solution next-value)
                                                   :lispify lispify
                                                   :package package)))))))))
 
