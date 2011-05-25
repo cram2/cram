@@ -74,9 +74,7 @@
                         :depends-on ("package")
                         :components
                         ((:file "location-designator-facts")
-                         (:file "location-designator-integration")
-                         (:file "object-designator-integration")
-                         (:file "object-designator-facts")))
+                         (:file "location-designator-integration")))
                (:module "projection"
                         :depends-on ("package" "reasoning-world" "prolog-facts")
                         :components
