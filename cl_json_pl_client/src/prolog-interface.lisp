@@ -36,10 +36,10 @@
   (symbol-name (gensym (format nil "QUERY-~10,20$-" (ros-time)))))
 
 (defun prolog-result->bdgs (query-id result &key (lispify nil) (package *package*))
-  (unless (json_prolog-srv:ok-val result)
+  (unless (json_prolog-srv:ok result)
     (error 'simple-error
            :format-control "Prolog query failed: ~a."
-           :format-arguments (list (json_prolog-srv:message-val result))))
+           :format-arguments (list (json_prolog-srv:message result))))
   (lazy-list ()
     (cond (*finish-marker*
            (call-service (concatenate 'string *service-namespace* "/finish")
