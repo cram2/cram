@@ -75,12 +75,10 @@
            execute-projection-rule timeline-apply-projection-rule
            def-projection-rule rule holds occurs at during throughout))
 
-(desig:register-designator-properties
- :to #:see #:reach #:side #:name #:part-of #:type)
-
-(defpackage bullet-reasoning-designators
+(desig:def-desig-package bullet-reasoning-designators
     (:nicknames :btr-desig)
   (:use #:common-lisp #:crs #:desig #:location-costmap
         #:btr #:designators-ros #:cut)
-  (:shadowing-import-from #:desig name at side)
-  (:shadowing-import-from #:btr object pose))
+  (:shadowing-import-from #:desig-props at)
+  (:shadowing-import-from #:btr object pose)
+  (:desig-properties #:side :to #:see #:reach #:side #:name #:part-of #:type))
