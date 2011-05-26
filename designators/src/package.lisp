@@ -61,15 +61,13 @@
            #:desig-reference
            #:desig-solutions
            #:loc-desig-location
-           #:register-designator-properties
+           ;; #:register-designator-properties
+           #:def-desig-package
            #:designator-pose
            #:designator-distance
            #:resolve-designator
            ;; Properties & prolog related stuff
            #:desig-solution
-           #:obj #:location
-           #:pose #:of #:at #:inside
-           #:type #:trajectory
            #:desig-prop #:desig-class
            #:desig-timestamp #:desig-description
            #:desig-valid #:desig-value
@@ -77,29 +75,39 @@
            #:desig
            #:trajectory-desig?))
 
-(defun desig::find-conflicting-symbols (syms package)
-  (let ((conflicting nil))
-    (dolist (pkg (package-used-by-list package) conflicting)
-      (do-symbols (sym pkg)
-        (let ((c-sym (car (member (symbol-name sym) syms :key #'symbol-name :test #'equal)))
-              (pkg-sym (find-symbol (symbol-name sym) package)))
-          (when (and c-sym (not (eq (symbol-package sym) (symbol-package pkg-sym))))
-            (pushnew (list sym pkg) conflicting :test #'equal)))))))
+(defpackage cram-designator-properties
+  (:use #:common-lisp)
+  (:nicknames desig-props)
+  (:export #:obj #:location #:pose #:of #:at))
 
-(defun desig::shadow-conflicting-symbols (syms package)
-  (mapcar (lambda (c)
-            (apply #'shadow c))
-          (desig::find-conflicting-symbols syms package)))
+(defmacro desig:def-desig-package (name &body options)
+  "Defines a package that uses some symbols in designator
+properties. This macro is just a thin wrapper around DEFPACKAGE and
+supports the same `options'. In addition, the
+option (:DESIG-PROPERTIES [sym]*) can be specified to indicate that a
+symbol `sym' should be used as a designator property. 
 
-(defmacro desig:register-designator-properties (&rest properties)
-  "Tries to export every symbol in `properties' from the
-CRAM-DESIGNATORS package. Conflicting symbols are ignored."
-  (let ((desig-package (find-package :desig)))
-    `(eval-when (:compile-toplevel :load-toplevel :execute)
-       (desig::shadow-conflicting-symbols ',properties ,desig-package)
-       (export (mapcar (lambda (sym-name) (intern sym-name ,desig-package))
-                       ',(mapcar (lambda (sym)
-                                   (etypecase sym
-                                     (symbol (symbol-name sym))
-                                     (string sym)))
-                                 properties)) ,desig-package))))
+Example:
+
+\(desig:def-desig-package foo
+   (:use :cl)
+   (:export bar)
+   (:desig-properties baz xy)\)"
+  (flet ((get-package-options (opts)
+           (let ((package-options '(:nicknames :documentation :use :shadow :shadowing-import-from
+                                    :import-from :export :intern :size)))
+             (remove-if-not
+              (lambda (opt) (member (car opt) package-options))
+              opts))))
+    (let ((prop-package (find-package :cram-designator-properties))
+          (prop-syms (cdar (member :desig-properties options :key #'car))))
+      `(eval-when (:compile-toplevel :load-toplevel :execute)
+         ,(when prop-syms
+            `(export ',(mapcar (lambda (sym) (intern (symbol-name sym) prop-package))
+                               prop-syms)
+                     ,prop-package))
+         (defpackage ,name
+           ,@(get-package-options options)
+           ,(when prop-syms
+              `(:shadowing-import-from cram-designator-properties
+                                       ,@prop-syms)))))))
