@@ -127,6 +127,16 @@
   (:method ((robot-object robot-object))
     (setf (slot-value robot-object 'attached-objects) nil)))
 
+(defgeneric gc-attached-objects (robot-object)
+  (:documentation "Removes all attached objects with an invalid world
+  instance")
+  (:method ((robot-object robot-object))
+    (with-slots (attached-objects) robot-object
+      (setf attached-objects
+            (remove-if-not (lambda (obj)
+                             (slot-value (car obj) 'world))
+                           attached-objects)))))
+
 (defgeneric attach-contacting-objects (robot-object &key blacklist test)
   (:documentation "Attaches all objects of `world' that are in contact
   to `robot-object' and not a member of the list `blacklist' or `test'
@@ -135,6 +145,7 @@
   generalized boolean indicating if the object should be attached.")
   (:method ((robot-object robot-object)
             &key blacklist (test (constantly t)))
+    (gc-attached-objects robot-object)
     (flet ((find-link-name (body)
              (loop for name being the hash-keys in (links robot-object)
                    using (hash-value rb) do
@@ -142,6 +153,7 @@
                        (return name)))))
       (with-slots (world) robot-object
         (let ((objects (objects world)))
+          (perform-collision-detection world)
           (dolist (manifold (contact-manifolds world) nil)
             (let ((obj (loop for obj in objects
                              when (and (rigid-body obj (name (body-1 manifold)))
