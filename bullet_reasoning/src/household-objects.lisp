@@ -36,6 +36,15 @@
                              (pot "package://bullet_reasoning/resource/pot-ww.off" t)
                              (weisswurst "package://bullet_reasoning/resource/ww.stl" nil)))
 
+(defclass household-object (object) ())
+
+(defun make-household-object (world name &optional bodies (add-to-world t))
+  (make-instance 'household-object
+    :name name
+    :world world
+    :rigid-bodies bodies
+    :add add-to-world))
+
 (defun make-octagon-prism-shape (radius height)
   "Returns a collision shape that is a octagon prism, i.e. that has an
   octagon at its base."
@@ -74,12 +83,12 @@
                        mass radius height
                        (handle-size (cl-transforms:make-3d-vector
                                      0.03 0.01 (* height 0.8))))
-  (make-object world name
-               (list
-                (make-instance
-                 'rigid-body
-                 :name name :mass mass :pose (ensure-pose pose)
-                 :collision-shape (make-cup-shape radius height handle-size)))))
+  (make-household-object world name
+                         (list
+                          (make-instance
+                              'rigid-body
+                            :name name :mass mass :pose (ensure-pose pose)
+                            :collision-shape (make-cup-shape radius height handle-size)))))
 
 (defmethod add-object ((world bt-world) (type (eql 'mug)) name pose &key
                        mass)
@@ -94,14 +103,14 @@
                 (string (physics-utils:load-3d-model
                          (physics-utils:parse-uri mesh)))
                 (physics-utils:3d-model mesh))))
-    (make-object world name
-                 (list
-                  (make-instance
-                   'rigid-body
-                   :name name :mass mass :pose (ensure-pose pose)
-                   :collision-shape (make-instance
-                                     'convex-hull-mesh-shape
-                                     :points (physics-utils:3d-model-vertices mesh)
-                                     :faces (physics-utils:3d-model-faces mesh)
-                                     :color color
-                                     :smooth-shading nil))))))
+    (make-household-object world name
+                           (list
+                            (make-instance
+                                'rigid-body
+                              :name name :mass mass :pose (ensure-pose pose)
+                              :collision-shape (make-instance
+                                                   'convex-hull-mesh-shape
+                                                 :points (physics-utils:3d-model-vertices mesh)
+                                                 :faces (physics-utils:3d-model-faces mesh)
+                                                 :color color
+                                                 :smooth-shading nil))))))
