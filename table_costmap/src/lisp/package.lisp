@@ -30,11 +30,7 @@
 
 (in-package :cl-user)
 
-(desig:register-designator-properties
- #:on #:name #:to #:see #:reach #:table
- #:obj #:location #:in #:reach)
-
-(defpackage table-costmap
+(desig:def-desig-package table-costmap
     (:use :cl :roslisp :cram-roslisp-common
           :crs :location-costmap :map-annotation
           :cram-designators #:designators-ros)
@@ -56,5 +52,7 @@
            #:*initial-stddev*
            #:*accept-threshold*)
   (:import-from :cpl #:make-fluent #:value)
-  (:shadowing-import-from :desig #:name))
+  (:shadowing-import-from :desig #:name)
+  (:desig-properties #:on #:name #:to #:see #:reach #:table
+                     #:obj #:location #:in #:reach))
 

@@ -29,10 +29,7 @@
 
 (in-package :cl-user)
 
-(desig:register-designator-properties
- #:cluster #:type #:object)
-
-(defpackage perception-process-module
+(desig:def-desig-package perception-process-module
     (:documentation "The preception process module")
   (:nicknames :perception-pm)
   (:use #:common-lisp
@@ -93,7 +90,7 @@
   (:import-from #:alexandria
                 #:curry #:rcurry #:compose)
   (:import-from #:cram-process-modules
-                #:def-process-module))
+                #:def-process-module)
+  (:desig-properties #:cluster #:type #:object))
 
-(desig:register-designator-properties
- #:name #:cluster #:object)
+

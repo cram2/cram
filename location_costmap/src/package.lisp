@@ -27,9 +27,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(desig:register-designator-properties #:to #:see #:reach)
-
-(defpackage location-costmap
+(desig:def-desig-package location-costmap
     (:use :cl :crs :cut :cram-roslisp-common :alexandria
           :roslisp :designators-ros #:cram-designators)
   (:export #:make-gauss-cost-function
@@ -83,4 +81,6 @@
            #:publish-pose
            #:*z-padding*
            #:2d-cov #:points-mean
-           #:points-cov))
+           #:points-cov)
+  (:desig-properties #:to #:see #:reach))
+

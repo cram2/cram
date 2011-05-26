@@ -29,7 +29,7 @@
 
 (in-package :cl-user)
 
-(defpackage cram-plan-library
+(desig:def-desig-package cram-plan-library
     (:documentation "Library of plans for pick-and-place tasks.")
   (:use #:cpl
         #:cram-designators
@@ -60,10 +60,9 @@
            ;; rete and occasions
            #:object-picked-up
            #:object-in-hand-failure
-           #:object-not-found-failure))
+           #:object-not-found-failure)
+  (:desig-properties #:to #:see #:obj #:of #:reach :type #:trajectory #:pose #:open #:side
+                     #:grasp #:lift #:carry :reach #:location #:at #:parked #:pose #:close
+                     #:gripper #:follow #:pick-up #:put-down #:height #:orientation #:in
+                     #:obstacle))
 
-(desig:register-designator-properties
- #:to #:see #:obj #:of #:reach :type #:trajectory #:pose #:open #:side
- #:grasp #:lift #:carry :reach #:location #:at #:parked #:pose #:close
- #:gripper #:follow #:pick-up #:put-down #:height #:orientation #:in
- #:obstacle)
