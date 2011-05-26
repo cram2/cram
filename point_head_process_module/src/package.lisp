@@ -29,7 +29,7 @@
 
 (in-package :cl-user)
 
-(defpackage point-head-process-module
+(desig:def-desig-package point-head-process-module
   (:use #:common-lisp
         #:cram-reasoning
         #:cram-designators
@@ -39,8 +39,5 @@
         #:cpl-impl)
   (:export #:point-head-process-module)
   (:shadowing-import-from #:cpl-impl #:fail)
-  (:shadowing-import-from #:cram-designators #:name))
-
-(desig:register-designator-properties
- #:to #:see #:follow #:pose
- #:location #:obj)
+  (:shadowing-import-from #:cram-designators #:name)
+  (:desig-properties #:to #:see #:follow #:pose #:location #:obj))
