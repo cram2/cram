@@ -100,19 +100,28 @@
   (car (rassoc (class-of desig) (get 'make-designator :desig-types)
                :key #'find-class)))
 
+(defun check-prop-package (prop)
+  (unless (eq (symbol-package prop) (find-package :desig-props))
+    (warn 'simple-warning
+          :format-control "Designator property ~s has not been declared correctly. This may cause problems. To fix it, use the macro DEF-DESIG-PACKAGE and declare the symbol as a designator property."
+          :format-arguments (list prop))))
+
 (def-fact-group designators (desig-value)
   (<- (desig-prop ?desig (?prop-name ?prop))
     (bound ?desig)
+    (lisp-fun check-prop-package ?prop-name ?_)
     (lisp-fun description ?desig ?props)
     (member (?prop-name ?prop) ?props))
 
   (<- (desig-prop ?desig (?prop-name ?prop) ?t)
     (bound ?desig)
+    (lisp-fun check-prop-package ?prop-name ?_)
     (desig-timestamp ?desig ?t)
     (desig-prop ?desig (?prop-name ?prop)))
 
   (<- (desig-prop ?desig (?prop-name ?prop) ?t)
     (bound ?desig)
+    (lisp-fun check-prop-package ?prop-name ?_)
     (desig-equal ?desig ?d-2)
     (desig-timestamp ?d-2 ?t)
     (desig-prop ?d-2 (?prop-name ?prop)))
