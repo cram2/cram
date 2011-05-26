@@ -61,7 +61,9 @@
                (:file "world-utils" :depends-on ("package"
                                                  "reasoning-world"
                                                  "objects"))
-               (:file "semantic-map" :depends-on ("package" "objects" "utils" "robot-model"))
+               (:file "semantic-map" :depends-on ("package"
+                                                  "objects" "utils" "robot-model"
+                                                  "household-objects"))
                (:file "robot-model" :depends-on ("package" "objects" "utils" "reasoning-world"))
                (:file "robot-model-utils" :depends-on ("package" "robot-model"))
                (:file "gl-scenes" :depends-on ("package" "debug-window"))

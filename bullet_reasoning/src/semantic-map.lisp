@@ -169,6 +169,16 @@ of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns
                     (sub-parts-with-type part type))))
                (semantic-map-parts map)))
 
+(defmethod (setf joint-state) :before (new-value (sem-map semantic-map-object) name)
+  (attach-contacting-objects sem-map :test (lambda (obj manifold)
+                                             (declare (ignore manifold))
+                                             (typep obj 'household-object))))
+
+(defmethod (setf link-pose) :before (new-value (sem-map semantic-map-object) name)
+  (attach-contacting-objects sem-map :test (lambda (obj manifold)
+                                             (declare (ignore manifold))
+                                             (typep obj 'household-object))))
+
 (defmethod copy-object ((obj semantic-map-object) (world bt-reasoning-world))
   (with-slots (pose parts) obj
     (change-class (call-next-method) 'semantic-map-object :parts parts)))
