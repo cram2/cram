@@ -29,7 +29,7 @@
 
 (in-package :cl-user)
 
-(defpackage pr2-manipulation-process-module
+(desig:def-desig-package pr2-manipulation-process-module
     (:nicknames :pr2-manip-pm)
   (:use #:common-lisp
         #:crs
@@ -45,9 +45,8 @@
   (:export
    #:pr2-manipulation-process-module
    ;; Rete facts
-   #:object-opened #:object-closed))
+   #:object-opened #:object-closed)
+  (:desig-properties #:to #:open #:obj #:side #:type #:fridge #:close
+                     #:drawer #:grasp #:round-plate #:bottle #:put-down
+                     #:at #:pose #:parked #:lift #:carry))
 
-(desig:register-designator-properties
- #:to #:open #:obj #:side #:type #:fridge #:close
- #:drawer #:grasp #:round-plate #:bottle #:put-down
- #:at #:pose #:parked #:lift #:carry)
