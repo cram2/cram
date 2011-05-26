@@ -41,7 +41,8 @@
       (cond (obj
              (mapcar (lambda (body) (remove-rigid-body world body))
                      (rigid-bodies obj))
-             (remhash name (slot-value world 'objects)))
+             (remhash name (slot-value world 'objects))
+             (setf (slot-value obj 'world) nil))
             (t (warn 'simple-warning
                      :format-control "Could not find a body named `~a'"
                      :format-arguments (list name)))))))
