@@ -2,10 +2,10 @@
 ;;; Copyright (c) 2009, Lorenz Moesenlechner <moesenle@cs.tum.edu>,
 ;;;                     Nikolaus Demmel <demmeln@cs.tum.edu>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
@@ -14,7 +14,7 @@
 ;;;     * Neither the name of Willow Garage, Inc. nor the names of its
 ;;;       contributors may be used to endorse or promote products derived from
 ;;;       this software without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -107,25 +107,29 @@
           :format-arguments (list prop))))
 
 (def-fact-group designators (desig-value)
+
+  ;; parses description for pairs matching (?prop-name ?prop)
   (<- (desig-prop ?desig (?prop-name ?prop))
     (bound ?desig)
     (lisp-fun check-prop-package ?prop-name ?_)
     (lisp-fun description ?desig ?props)
     (member (?prop-name ?prop) ?props))
 
+  ;; parses description and timestamp
   (<- (desig-prop ?desig (?prop-name ?prop) ?t)
     (bound ?desig)
     (lisp-fun check-prop-package ?prop-name ?_)
     (desig-timestamp ?desig ?t)
     (desig-prop ?desig (?prop-name ?prop)))
 
+  ;; parses timstamp of all equated designators
   (<- (desig-prop ?desig (?prop-name ?prop) ?t)
     (bound ?desig)
     (lisp-fun check-prop-package ?prop-name ?_)
     (desig-equal ?desig ?d-2)
     (desig-timestamp ?d-2 ?t)
     (desig-prop ?d-2 (?prop-name ?prop)))
-  
+
   (<- (desig-equal ?d1 ?d2)
     (desig ?d1)
     (desig ?d2)
