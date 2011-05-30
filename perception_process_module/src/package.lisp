@@ -91,6 +91,7 @@
                 #:curry #:rcurry #:compose)
   (:import-from #:cram-process-modules
                 #:def-process-module)
-  (:desig-properties #:cluster #:type #:object))
+  (:desig-properties #:cluster #:type #:object
+                     #:part-of))
 
 
