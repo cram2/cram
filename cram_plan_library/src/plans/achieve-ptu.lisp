@@ -42,10 +42,10 @@
                                                 (:forward
                                                    `((to see)
                                                      (pose ,(tf:make-pose-stamped
-                                                             "/base_link" 0
+                                                             "/base_link" 0.0
                                                              (cl-transforms:make-3d-vector
                                                               3.0 0.0 1.5)
                                                              (cl-transforms:make-quaternion
-                                                              0 0 0 1)))))))
+                                                              0.0 0.0 0.0 1.0)))))))
                                            (t `((to follow) (pose ,?pose))))))))
            (pm-execute :ptu look-at-desig)))))
