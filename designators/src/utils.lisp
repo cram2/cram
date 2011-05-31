@@ -34,22 +34,15 @@
   "Creates a new lexical environment with props bound as
   variables. The value of the variables corresponds to the value in
   the designator's properties or nil if the property is unbound."
-  (let ((desig-prop-pkg (find-package :desig-props)))
-    `(let ,(mapcar (lambda (prop)
-                     (unless (eq (symbol-package prop) desig-prop-pkg)
-                       (warn 'simple-warning
-                             :format-control "Designator property ~s has not been declared properly. This may cause problems. To fix it, use the macro DEF-DESIG-PACKAGE and declare the symbol as a designator property."
-                             :format-arguments (list prop)))
-                     `(,prop (cadr (find ',prop (description ,desig) :key #'car))))
-                   props)
-       ,@body)))
+  `(let ,(mapcar (lambda (prop)
+                   (check-desig-prop-package prop)
+                   `(,prop (cadr (find ',prop (description ,desig) :key #'car))))
+          props)
+     ,@body))
 
 (defun desig-prop-value (desig prop-name)
   (when desig
-    (unless (eq (symbol-package prop-name) (find-package :desig-props))
-      (warn 'simple-warning
-            :format-control "Designator property ~s has not been declared properly. This may cause problems. To fix it, use the macro DEF-DESIG-PACKAGE and declare the symbol as a designator property."
-            :format-arguments (list prop-name)))
+    (check-desig-prop-package prop-name)
     (cadr (find prop-name (description desig) :key #'car))))
 
 (defun get-equal-designators (d)

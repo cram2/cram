@@ -187,3 +187,11 @@ together with MAKE-DESIGNATOR and WITH-DESIGNATORS"
             (cont (reference curr) (next-solution curr))
           (designator-error ()
             (next (next-solution curr))))))))
+
+(defun check-desig-prop-package (prop)
+  "Checks if `prop' is in the correct package and can be used as a designator property"
+  (unless (eq (symbol-package prop)
+              (symbol-package (intern (symbol-name prop) (find-package :desig-props))))
+    (warn 'simple-warning
+          :format-control "Designator property ~s has not been declared correctly. This may cause problems. To fix it, use the macro DEF-DESIG-PACKAGE and declare the symbol as a designator property."
+          :format-arguments (list prop))))
