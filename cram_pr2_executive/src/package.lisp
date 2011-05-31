@@ -44,7 +44,7 @@
         #:location-costmap
         #:perception-pm))
 
-(defpackage cram-pr2-executive
+(desig-props:def-desig-package cram-pr2-executive
     (:nicknames :pr2-ex)
   (:use #:cpl
         #:cram-designators
