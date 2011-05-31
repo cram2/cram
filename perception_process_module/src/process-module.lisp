@@ -117,11 +117,9 @@
      (let* ((tmp-desig (make-designator 'object (description parent-desig)))
             (result (find-with-new-desig tmp-desig))
             (matching-result-desig (find-if (curry #'desig-equal parent-desig) result)))
-       (unless matching-result-desig
-         (when perceived-object
-           (setf (slot-value parent-desig 'data) nil)
-           (retract-desig-binding parent-desig perceived-object))
-         (fail 'object-not-found :object-desig parent-desig))
+       (when (and (not matching-result-desig) perceived-object)
+         (setf (slot-value parent-desig 'data) nil)
+         (retract-desig-binding parent-desig perceived-object))
        matching-result-desig))))
 
 (defun find-with-new-desig (desig)
@@ -133,8 +131,6 @@
    `desig' yet. This decision must be made by the caller of the
    process module."
   (let ((perceived-objects (execute-object-search-functions desig nil)))
-    (unless perceived-objects
-      (fail 'object-not-found :object-desig desig))
     ;; Sort perceived objects according to probability
     (mapcar (lambda (perceived-object)
               (perceived-object->designator desig perceived-object))
@@ -165,5 +161,7 @@
                         (find-with-parent-desig newest-valid)
                         (find-with-new-desig input))))
                 *known-roles*)))
+    (unless result
+      (fail 'object-not-found :object-desig input))
     (ros-info (perception process-module) "Found objects: ~a" result)
     result))
