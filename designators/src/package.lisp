@@ -29,7 +29,7 @@
 
 (in-package :cl-user)
 
-(defpackage :cram-designators
+(desig-props:def-desig-package :cram-designators
   (:use #:common-lisp #:cram-reasoning #:cut)
   (:nicknames :desig)
   (:import-from #:alexandria
@@ -50,7 +50,7 @@
            #:designator-id-mixin #:object-id
            #:assert-desig-binding
            #:retract-desig-binding
-           #:object #:object-designator
+           #:object-designator
            #:register-object-desig-resolver
            #:resolve-object-desig
            #:action-designator #:action-desig #:action
@@ -73,41 +73,6 @@
            #:desig-valid #:desig-value
            #:desig-location-prop
            #:desig
-           #:trajectory-desig?))
+           #:trajectory-desig?)
+  (:desig-properties #:obj #:location #:object #:pose #:of #:at))
 
-(defpackage cram-designator-properties
-  (:use #:common-lisp)
-  (:nicknames desig-props)
-  (:export #:obj #:location #:pose #:of #:at))
-
-(defmacro desig:def-desig-package (name &body options)
-  "Defines a package that uses some symbols in designator
-properties. This macro is just a thin wrapper around DEFPACKAGE and
-supports the same `options'. In addition, the
-option (:DESIG-PROPERTIES [sym]*) can be specified to indicate that a
-symbol `sym' should be used as a designator property. 
-
-Example:
-
-\(desig:def-desig-package foo
-   (:use :cl)
-   (:export bar)
-   (:desig-properties baz xy)\)"
-  (flet ((get-package-options (opts)
-           (let ((package-options '(:nicknames :documentation :use :shadow :shadowing-import-from
-                                    :import-from :export :intern :size)))
-             (remove-if-not
-              (lambda (opt) (member (car opt) package-options))
-              opts))))
-    (let ((prop-package (find-package :cram-designator-properties))
-          (prop-syms (cdar (member :desig-properties options :key #'car))))
-      `(eval-when (:compile-toplevel :load-toplevel :execute)
-         ,(when prop-syms
-            `(export ',(mapcar (lambda (sym) (intern (symbol-name sym) prop-package))
-                               prop-syms)
-                     ,prop-package))
-         (defpackage ,name
-           ,@(get-package-options options)
-           ,(when prop-syms
-              `(:shadowing-import-from cram-designator-properties
-                                       ,@prop-syms)))))))

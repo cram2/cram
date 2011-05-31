@@ -17,7 +17,8 @@
   :components
   ((:module "src"
             :components
-            ((:file "package")
+            ((:file "properties")
+             (:file "package" :depends-on ("properties"))
              (:file "designator-protocol" :depends-on ("package"))
              (:file "designator-id-mixin" :depends-on ("package" "designator-protocol"))
              (:file "designator-pose" :depends-on ("package" "designator-protocol"))
