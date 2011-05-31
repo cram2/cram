@@ -92,6 +92,4 @@
   (:import-from #:cram-process-modules
                 #:def-process-module)
   (:desig-properties #:cluster #:type #:object
-                     #:part-of))
-
-
+                     #:part-of #:at #:name #:pose))
