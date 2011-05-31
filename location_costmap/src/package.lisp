@@ -27,7 +27,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(desig:def-desig-package location-costmap
+(desig-props:def-desig-package location-costmap
     (:use :cl :crs :cut :cram-roslisp-common :alexandria
           :roslisp :designators-ros #:cram-designators)
   (:export #:make-gauss-cost-function

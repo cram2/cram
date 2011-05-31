@@ -30,7 +30,7 @@
 
 (in-package :cl-user)
 
-(desig:def-desig-package semantic-map-costmap
+(desig-props:def-desig-package semantic-map-costmap
     (:use #:common-lisp #:crs #:location-costmap
           #:designators-ros #:cram-roslisp-common
           #:desig)

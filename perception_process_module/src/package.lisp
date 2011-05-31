@@ -29,7 +29,7 @@
 
 (in-package :cl-user)
 
-(desig:def-desig-package perception-process-module
+(desig-props:def-desig-package perception-process-module
     (:documentation "The preception process module")
   (:nicknames :perception-pm)
   (:use #:common-lisp
