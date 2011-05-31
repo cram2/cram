@@ -61,6 +61,7 @@
            #:desig-reference
            #:desig-solutions
            #:loc-desig-location
+           #:object #:location
            ;; #:register-designator-properties
            #:def-desig-package
            #:designator-pose
@@ -75,4 +76,3 @@
            #:desig
            #:trajectory-desig?)
   (:desig-properties #:obj #:location #:object #:pose #:of #:at))
-
