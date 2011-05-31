@@ -29,7 +29,7 @@
 
 (in-package :cl-user)
 
-(desig:def-desig-package point-head-process-module
+(desig-props:def-desig-package point-head-process-module
   (:use #:common-lisp
         #:cram-reasoning
         #:cram-designators

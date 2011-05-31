@@ -29,7 +29,7 @@
 
 (in-package :cl-user)
 
-(desig:def-desig-package pr2-manipulation-process-module
+(desig-props:def-desig-package pr2-manipulation-process-module
     (:nicknames :pr2-manip-pm)
   (:use #:common-lisp
         #:crs
