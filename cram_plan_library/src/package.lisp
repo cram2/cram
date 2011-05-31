@@ -29,7 +29,7 @@
 
 (in-package :cl-user)
 
-(desig:def-desig-package cram-plan-library
+(desig-props:def-desig-package cram-plan-library
     (:documentation "Library of plans for pick-and-place tasks.")
   (:use #:cpl
         #:cram-designators
