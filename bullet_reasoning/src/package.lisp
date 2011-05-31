@@ -75,7 +75,7 @@
            execute-projection-rule timeline-apply-projection-rule
            def-projection-rule rule holds occurs at during throughout))
 
-(desig:def-desig-package bullet-reasoning-designators
+(desig-props:def-desig-package bullet-reasoning-designators
     (:nicknames :btr-desig)
   (:use #:common-lisp #:crs #:desig #:location-costmap
         #:btr #:designators-ros #:cut)
