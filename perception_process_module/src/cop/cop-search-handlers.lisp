@@ -87,7 +87,7 @@
       (execute-object-search-functions clusters))))
 
 (defun make-search-space (desig perceived-object)
-  (let* ((pose (reference (desig-prop-value desig 'at)))
+  (let* ((pose (reference (desig-prop-value desig 'at) 'desig:default-role))
          (jlo (object-jlo perceived-object)))
     (cond (pose
            (let ((pose-jlo (pose->jlo pose)))
