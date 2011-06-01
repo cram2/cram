@@ -54,7 +54,7 @@
        (<- (object-search-function-order ?fun ,(length props))
          (lisp-fun symbol-function ,function-name ?fun)))))
 
-(defun execute-object-search-functions (desig &optional perceived-object (role *default-role*))
+(defun execute-object-search-functions (desig &key perceived-object (role *default-role*))
   "Executes the matching search functions that fit the properties of
    `desig' until one succeeds. `role' specifies the role under which
    the search function should be found. If `role' is set to NIL, all
@@ -75,7 +75,7 @@
     (some (lambda (fun) (funcall (first fun) desig perceived-object))
           (sort  obj-search-functions #'> :key #'third))))
 
-(defun perceived-object->designator (desig obj &optional parent-desig)
+(defun perceived-object->designator (desig obj)
   (let ((new-desig (make-designator 'object
                                     (make-new-desig-description
                                      desig obj))))
@@ -87,40 +87,22 @@
     (setf (slot-value new-desig 'timestamp)
           (funcall cut::*timestamp-function*))
     (setf (slot-value new-desig 'valid) t)
-    (when parent-desig
-      (equate parent-desig new-desig))
     (assert-desig-binding new-desig obj)
     new-desig))
 
 (defun find-with-parent-desig (desig)
   "Takes the perceived-object of the parent designator as a bias for
-   perception and equates with the designator if possible. Fails
-   otherwise."
+   perception."
   (let* ((parent-desig (current-desig desig))
-         (perceived-object (or (desig-current-perceived-object parent-desig)
-                               (desig-current-perceived-object parent-desig 'queried-object)
-                               (desig-current-perceived-object parent-desig 'semantic-map-object))))
+         (perceived-object (desig-current-perceived-object parent-desig)))
     (or
      (when perceived-object
-       (let ((perceived-objects (execute-object-search-functions parent-desig perceived-object)))
-         (list (perceived-object->designator parent-desig
-                                             (car (sort perceived-objects #'>
-                                                        :key #'perceived-object-probability))
-                                             parent-desig))))
-     ;; Ok. No object found so far. We need to use our fallback
-     ;; solution.  It is like searching with a new designator, but we
-     ;; need to asure that the result is not bound to any other
-     ;; designator than ours. We first create a new desig with the same
-     ;; properties as ours, check for the result designator not
-     ;; having any other ancestor and then equating `desig' with the
-     ;; new one.
-     (let* ((tmp-desig (make-designator 'object (description parent-desig)))
-            (result (find-with-new-desig tmp-desig))
-            (matching-result-desig (find-if (curry #'desig-equal parent-desig) result)))
-       (when (and (not matching-result-desig) perceived-object)
-         (setf (slot-value parent-desig 'data) nil)
-         (retract-desig-binding parent-desig perceived-object))
-       matching-result-desig))))
+       (let ((perceived-objects (execute-object-search-functions parent-desig :perceived-object perceived-object)))
+         (when perceived-objects
+           (list (perceived-object->designator parent-desig
+                                               (car (sort perceived-objects #'>
+                                                          :key #'perceived-object-probability)))))))
+     (find-with-new-desig desig))))
 
 (defun find-with-new-desig (desig)
   "Takes a parent-less designator. A search is performed a new
@@ -130,7 +112,7 @@
    designator might be equated to old ones, it is not equated to
    `desig' yet. This decision must be made by the caller of the
    process module."
-  (let ((perceived-objects (execute-object-search-functions desig nil)))
+  (let ((perceived-objects (execute-object-search-functions desig)))
     ;; Sort perceived objects according to probability
     (mapcar (lambda (perceived-object)
               (perceived-object->designator desig perceived-object))
