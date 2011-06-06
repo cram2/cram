@@ -22,5 +22,8 @@
   <depend package="kinematics_msgs"/>
   <depend package="kdl_arm_kinematics"/>
   <depend package="move_arm_msgs"/>
+  <depend package="sgp_srvs"/>
+  <depend package="vision_srvs"/>
+  <depend package="trivial_garbage"/>
 
 </package>

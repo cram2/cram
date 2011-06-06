@@ -48,11 +48,8 @@
 (defvar *move-arm-right* nil)
 (defvar *move-arm-left* nil)
 
-(defvar *joint-state* (cpl-impl:make-fluent :name 'joint-state))
 (defvar *joint-state-sub* nil)
 
-(defparameter *ik-left-ns* "/l_arm_ik")
-(defparameter *ik-right-ns* "/r_arm_ik")
 
 (defun init-pr2-manipulation-process-module ()
   ;; (setf *open-handle-action* (actionlib:make-action-client
@@ -221,7 +218,7 @@
       action
       :trajectory (remove-trajectory-joints #("torso_lift_joint") trajectory)))))
 
-(defun execute-move-arm (side pose )
+(defun execute-move-arm (side pose)
   (let ((action (ecase side
                   (:left *move-arm-left*)
                   (:right *move-arm-right*)))
@@ -238,9 +235,10 @@
         (group_name motion_plan_request) (ecase side
                                            (:right "right_arm")
                                            (:left "left_arm"))
-        (num_planning_attempts motion_plan_request) 5
+        (num_planning_attempts motion_plan_request) 10
         (planner_id motion_plan_request) ""
         (allowed_planning_time motion_plan_request) 10.0
+        
         (position_constraints goal_constraints motion_plan_request)
         (vector
          (roslisp:make-msg
@@ -256,6 +254,7 @@
           (dimensions constraint_region_shape) #(0.01 0.01 0.01)
           (w constraint_region_orientation) 1.0
           weight 1.0))
+        
         (orientation_constraints goal_constraints motion_plan_request)
         (vector
          (roslisp:make-msg
