@@ -42,11 +42,16 @@
                perception-process-module
                pr2_controllers_msgs-msg
                kinematics_msgs-srv
+               sgp_srvs-srv
                kdl_arm_kinematics-srv
-               move_arm_msgs-msg)
+               move_arm_msgs-msg
+               vision_srvs-srv
+               trivial-garbage)
   :components
   ((:module "src"
             :components
             ((:file "package")
-             (:file "process-module" :depends-on ("package"))
+             (:file "kinematics" :depends-on ("package"))
+             (:file "collision-environment" :depends-on ("package"))
+             (:file "process-module" :depends-on ("package" "kinematics" "collision-environment"))
              (:file "designator" :depends-on ("package"))))))

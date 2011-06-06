@@ -30,6 +30,11 @@
 
 (in-package :pr2-manip-pm)
 
+(defparameter *ik-left-ns* "/pr2_left_arm_kinematics")
+(defparameter *ik-right-ns* "/pr2_right_arm_kinematics")
+
+(defvar *joint-state* (cpl-impl:make-fluent :name 'joint-state))
+
 (defun seq-member (item sequence)
   (some (lambda (s)
           (equal item s))
@@ -78,16 +83,15 @@
                      (:left *ik-left-ns*))
                    "/get_ik_solver_info")
                   "kinematics_msgs/GetKinematicSolverInfo")
-               (map nil (lambda (limit)
-                          (roslisp:with-fields ((joint-name joint_name)
-                                                (min min_position)
+               (map nil (lambda (limit joint-name)
+                          (roslisp:with-fields ((min min_position)
                                                 (max max_position))
                               limit
                             (setf (gethash joint-name lower) min)
                             (setf (gethash joint-name upper) max)
                             (setf (gethash joint-name current)
                                   (get-joint-position joint-state joint-name))))
-                    limits)
+                    limits joint-names)
                (values joint-names current lower upper)))))
     (multiple-value-bind (names current lower-limits upper-limits)
         (init)
@@ -118,8 +122,8 @@
                                  (list (gethash name current))))))))))
 
 (defun ik->trajectory (ik-result &key (duration 5.0))
-  (roslisp:with-fields ((solution-names (name solution))
-                        (solution-positions (position solution))
+  (roslisp:with-fields ((solution-names (name joint_state solution))
+                        (solution-positions (position joint_state solution))
                         (error-code (val error_code)))
       ik-result
     (when (eql error-code 1)
@@ -247,11 +251,20 @@
                         (ecase side
                           (:right *ik-right-ns*)
                           (:left *ik-left-ns*))
-                        "/get_weighted_ik")
-                       'kdl_arm_kinematics-srv:getweightedik
-                       :pose (tf:pose-stamped->msg pose)
-                       :tool_frame (tf:pose->msg tool)
-                       :ik_seed (lazy-car seeds))))
+                        "/get_ik")
+                       'kinematics_msgs-srv:getpositionik
+                       :ik_request
+                       (roslisp:make-msg
+                        "kinematics_msgs/PositionIKRequest"
+                        :ik_link_name (ecase side
+                                        (:right "r_wrist_roll_link")
+                                        (:left "l_wrist_roll_link"))
+                        :pose_stamped (tf:pose-stamped->msg
+                                       (calculate-grasp-pose pose :tool tool))
+                        :ik_seed_state (roslisp:make-msg
+                                        "motion_planning_msgs/RobotState"
+                                        joint_state (lazy-car seeds)))
+                       :timeout 1.0)))
           (roslisp:with-fields ((error-code (val error_code)))
               result
             (if (eql error-code 1)
@@ -273,62 +286,47 @@
              #'<
              :key #'cdr)))))
 
-(defun get-grasp-object-trajectory-points (side obj)
-  (flet ((calculate-tool-pose (grasp tool-length)
-           (cl-transforms:transform->pose
-            (cl-transforms:transform*
-             (cl-transforms:make-transform
-              (cl-transforms:make-3d-vector tool-length 0 0)
-              (cl-transforms:make-quaternion 0 0 0 1))             
-             (cl-transforms:transform-inv
-              (cl-transforms:reference-transform grasp))))))
-    (let ((grasps (get-sgp-grasps side obj))
-          (pose (designator-pose obj)))
-      (lazy-car
-       (lazy-mapcan (lambda (grasp)
-                      (format t "grasp: ~a~%" grasp)
-                      (format t "tool: ~a~%" (calculate-tool-pose grasp 0.0))
-                      (format t "tool: ~a~%" (calculate-tool-pose grasp 0.1))
-                      (list (merge-trajectories
-                             1.0
-                             (ik->trajectory
-                              (lazy-car (get-ik
-                                         side pose
-                                         :tool (calculate-tool-pose grasp 0.30)
-                                         :max-tries 30)))
-                             (ik->trajectory
-                              (lazy-car (get-ik
-                                         side pose
-                                         :tool (calculate-tool-pose grasp 0.15)
-                                         :max-tries 30))))))
-                    grasps)))))
+(defun calculate-tool-pose (grasp tool-length)
+  (cl-transforms:transform->pose
+   (cl-transforms:transform*
+    (cl-transforms:make-transform
+     (cl-transforms:make-3d-vector tool-length 0 0)
+     (cl-transforms:make-quaternion 0 0 0 1))             
+    (cl-transforms:transform-inv
+     (cl-transforms:reference-transform grasp)))))
 
-(defun get-grasp-object-trajectory (side obj)
-  (flet ((calculate-tool-pose (grasp tool-length)
-           (cl-transforms:transform->pose
-            (cl-transforms:transform*
-             (cl-transforms:make-transform
-              (cl-transforms:make-3d-vector tool-length 0 0)
-              (cl-transforms:make-quaternion 0 0 0 1))             
-             (cl-transforms:transform-inv
-              (cl-transforms:reference-transform grasp))))))
-    (let ((grasps (get-sgp-grasps side obj))
-          (pose (designator-pose obj)))
-      (lazy-car
-       (lazy-mapcan (lambda (grasp)
-                      (format t "grasp: ~a~%" grasp)
-                      (format t "tool: ~a~%" (calculate-tool-pose grasp 0.0))
-                      (format t "tool: ~a~%" (calculate-tool-pose grasp 0.1))
-                      (list (merge-trajectories
-                             1.0
-                             (ik->trajectory
-                              (lazy-car (get-ik
-                                         side pose
-                                         :tool (calculate-tool-pose grasp 0.30)
-                                         :max-tries 30)))
-                             (ik->trajectory
-                              (lazy-car (get-ik
-                                         side pose
-                                         :tool (calculate-tool-pose grasp 0.15)
-                                         :max-tries 30))))))
-                    grasps)))))
+(defun calculate-grasp-pose (obj &key
+                             (tool (cl-transforms:make-pose
+                                    (cl-transforms:make-3d-vector 0 0 0)
+                                    (cl-transforms:make-quaternion 0 0 0 1))))
+  (let* ((pose (etypecase obj
+                 (designator (desig:designator-pose obj))
+                 (tf:pose-stamped obj)))
+         (goal-trans (cl-transforms:transform*
+                      (cl-transforms:reference-transform pose)
+                      (cl-transforms:transform-inv
+                       (cl-transforms:reference-transform tool)))))
+    (tf:make-pose-stamped
+     (tf:frame-id pose) (tf:stamp pose)
+     (cl-transforms:translation goal-trans)
+     (cl-transforms:rotation goal-trans))))
+
+(defun get-grasp-object-trajectory-points (side obj)
+  (let ((grasps (get-sgp-grasps side obj))
+        (pose (designator-pose obj)))
+    (lazy-car
+     (lazy-mapcan (lambda (grasp)
+                    (list (merge-trajectories
+                           1.0
+                           (ik->trajectory
+                            (lazy-car (get-ik
+                                       side pose
+                                       :tool (calculate-tool-pose grasp 0.30)
+                                       :max-tries 30)))
+                           (ik->trajectory
+                            (lazy-car (get-ik
+                                       side pose
+                                       :tool (calculate-tool-pose grasp 0.15)
+                                       :max-tries 30))))))
+                  grasps))))
+
