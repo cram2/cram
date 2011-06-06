@@ -40,13 +40,7 @@
   (pursue
     (if (value *process-modules-running*)
         (wait-for *ever*)
-        (unwind-protect
-             (pursue
-               (pm-run :perception)
-               (pm-run :navigation)
-               (pm-run :manipulation)
-               (pm-run :ptu))
-          (setf (value *process-modules-running*) nil)))
+        (run-process-modules))
     (seq
       (wait-for *process-modules-running*)
       (wait-for (not *process-modules-running*)))))
