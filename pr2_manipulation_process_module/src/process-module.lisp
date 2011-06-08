@@ -32,6 +32,9 @@
 (defvar *open-container-action* nil)
 (defvar *close-container-action* nil)
 
+(defvar *gripper-action-left* nil)
+(defvar *gripper-action-right* nil)
+
 (defvar *trajectory-action-left* nil)
 (defvar *trajectory-action-right* nil)
 (defvar *trajectory-action-torso* nil)
@@ -47,6 +50,12 @@
   (setf *close-container-action* (actionlib:make-action-client
                                "/close_container_action"
                                "ias_drawer_executive/CloseContainerAction"))
+  (setf *gripper-action-left* (actionlib:make-action-client
+                               "/l_gripper_controller/gripper_action"
+                               "pr2_controllers_msgs/Pr2GripperCommandAction"))
+  (setf *gripper-action-right* (actionlib:make-action-client
+                                "/r_gripper_controller/gripper_action"
+                                "pr2_controllers_msgs/Pr2GripperCommandAction"))  
   (setf *trajectory-action-left* (actionlib:make-action-client
                                   "/l_arm_controller/joint_trajectory_generator"
                                   "pr2_controllers_msgs/JointTrajectoryAction"))
@@ -158,6 +167,31 @@
           absolute_pitch_tolerance 0.01
           absolute_yaw_tolerance 0.01
           weight 1.0)))))))
+
+(defun compliant-close-girpper (side)
+  (roslisp:call-service
+   (ecase side
+    (:right "/r_reactive_grasp/compliant_close")
+    (:left "/l_reactive_grasp/compliant_close"))
+   'std_srvs-srv:Empty))
+
+(defun close-gripper (side &optional (max-effort 10.0))
+  (let ((client (ecase side
+                  (:right *gripper-action-right*)
+                  (:left *gripper-action-left*))))
+    (actionlib:send-goal-and-wait
+     client (actionlib:make-action-goal client
+              (position command) 0.0
+              (max_effort command) max-effort))))
+
+(defun open-gripper (side &optional (max-effort 10.0))
+  (let ((client (ecase side
+                  (:right *gripper-action-right*)
+                  (:left *gripper-action-left*))))
+    (actionlib:send-goal-and-wait
+     client (actionlib:make-action-goal client
+              (position command) 0.085
+              (max_effort command) max-effort))))
 
 (def-process-module pr2-manipulation-process-module (desig)
   (apply #'call-action (reference desig)))
