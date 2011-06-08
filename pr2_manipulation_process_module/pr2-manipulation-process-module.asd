@@ -46,7 +46,8 @@
                kdl_arm_kinematics-srv
                move_arm_msgs-msg
                vision_srvs-srv
-               trivial-garbage)
+               trivial-garbage
+               std_srvs-srv)
   :components
   ((:module "src"
             :components

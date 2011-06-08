@@ -25,5 +25,6 @@
   <depend package="sgp_srvs"/>
   <depend package="vision_srvs"/>
   <depend package="trivial_garbage"/>
+  <depend package="std_srvs"/>
 
 </package>
