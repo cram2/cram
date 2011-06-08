@@ -1,0 +1,22 @@
+<package>
+  <description brief="semantic_map_collision_environment">
+
+     semantic_map_collision_environment
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/semantic_map_collision_environment</url>
+  <depend package="mapping_msgs"/>
+  <depend package="roslisp_runtime"/>
+  <depend package="cl_json_pl_client"/>
+  <depend package="cl_tf"/>
+  <depend package="cram_reasoning"/>
+  <depend package="visualization_msgs"/>
+  <depend package="cram_utilities"/>
+  <depend package="cram_roslisp_common"/>
+
+</package>
+
+
