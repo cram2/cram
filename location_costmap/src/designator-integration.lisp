@@ -34,7 +34,7 @@
 (defconstant +costmap-n-samples+ 5)
 
 (defgeneric desig-ensure-pose (desig p)
-  "returns a pose-stamped"
+  (:documentation "returns a pose-stamped")
   (:method ((desig location-designator) (p cl-transforms:3d-vector))
     (with-vars-bound (?o)
         (lazy-car (prolog `(desig-orientation ,desig ,p ?o)))
