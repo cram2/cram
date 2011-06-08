@@ -29,18 +29,8 @@
 
 (in-package :pr2-manip-pm)
 
-(defvar *open-handle-action* nil)
-(defvar *close-handle-action* nil)
-;; (defvar *pick-bottle-action* nil)
-;; (defvar *pick-plate-action* nil)
-(defvar *open-fridge-action* nil)
-(defvar *close-fridge-action* nil)
-(defvar *take-bottle-action* nil)
-(defvar *serve-bottle-action* nil)
-(defvar *take-plate-action* nil)
-(defvar *take-plate-from-island-action* nil)
-(defvar *serve-plate-to-island-action* nil)
-(defvar *serve-plate-to-table-action* nil)
+(defvar *open-container-action* nil)
+(defvar *close-container-action* nil)
 
 (defvar *trajectory-action-left* nil)
 (defvar *trajectory-action-right* nil)
@@ -50,51 +40,13 @@
 
 (defvar *joint-state-sub* nil)
 
-
 (defun init-pr2-manipulation-process-module ()
-  ;; (setf *open-handle-action* (actionlib:make-action-client
-  ;;                             "/operate_handle_action"
-  ;;                             "ias_drawer_executive/OperateHandleAction"))
-  ;; (setf *close-handle-action* (actionlib:make-action-client
-  ;;                              "/close_handle_action"
-  ;;                              "ias_drawer_executive/CloseHandleAction"))
-  ;; (setf *pick-bottle-action* (actionlib:make-action-client
-  ;;                             "/pick_bottle_action"
-  ;;                             "ias_drawer_executive/PickBottleAction"))
-  ;; (setf *pick-plate-action* (actionlib:make-action-client
-  ;;                            "/pick_plate_action"
-  ;;                            "ias_drawer_executive/PickPlateAction"))
-  ;;; Demo actions
-  (setf *open-fridge-action* (actionlib:make-action-client
-                              "/open_fridge"
-                              "ias_drawer_executive/GenericAction"))
-  (setf *close-fridge-action* (actionlib:make-action-client
-                               "/close_fridge"
-                               "ias_drawer_executive/GenericAction"))
-  (setf *open-handle-action* (actionlib:make-action-client
-                              "/open_drawer"
-                              "ias_drawer_executive/GenericAction"))
-  (setf *close-handle-action* (actionlib:make-action-client
-                               "/close_drawer"
-                               "ias_drawer_executive/GenericAction"))
-  (setf *take-bottle-action* (actionlib:make-action-client
-                               "/take_bottle"
-                               "ias_drawer_executive/GenericAction"))
-  (setf *serve-bottle-action* (actionlib:make-action-client
-                              "/serve_bottle"
-                              "ias_drawer_executive/GenericAction"))
-  (setf *take-plate-action* (actionlib:make-action-client
-                               "/take_drawer"
-                               "ias_drawer_executive/GenericAction"))
-  (setf *take-plate-from-island-action* (actionlib:make-action-client
-                               "/take_plate_from_island"
-                               "ias_drawer_executive/GenericAction"))  
-  (setf *serve-plate-to-island-action* (actionlib:make-action-client
-                              "/serve_plate_to_island"
-                              "ias_drawer_executive/GenericAction"))
-  (setf *serve-plate-to-table-action* (actionlib:make-action-client
-                              "/serve_to_table"
-                              "ias_drawer_executive/GenericAction"))
+  (setf *open-container-action* (actionlib:make-action-client
+                              "/open_container_action"
+                              "ias_drawer_executive/OpenContainerAction"))
+  (setf *close-container-action* (actionlib:make-action-client
+                               "/close_container_action"
+                               "ias_drawer_executive/CloseContainerAction"))
   (setf *trajectory-action-left* (actionlib:make-action-client
                                   "/l_arm_controller/joint_trajectory_generator"
                                   "pr2_controllers_msgs/JointTrajectoryAction"))
@@ -119,68 +71,6 @@
 (register-ros-init-function init-pr2-manipulation-process-module)
 
 (defgeneric call-action (action goal params))
-
-;; (defmethod call-action ((action-sym (eql 'ik) pose params))
-;;   (destructuring-bind (obj side) params
-;;     (let ((ik-solution )))))
-
-(defmethod call-action ((action-sym (eql 'fridge-opened)) goal params)
-  (let ((result (execute-goal *open-fridge-action* goal)))
-    (destructuring-bind (obj side) params
-      (roslisp:with-fields (handle) result
-        (retract-occasion `(object-closed ?obj))
-        (assert-occasion `(object-opened ,obj ,side))
-        (assert-occasion `(fridge-open-handle ,obj ,handle))))))
-
-(defmethod call-action ((action-sym (eql 'fridge-closed)) goal params)
-  (execute-goal *close-fridge-action* goal)
-  (destructuring-bind (obj side) params
-    (retract-occasion `(object-opened ,obj ,side))
-    (retract-occasion `(fridge-open-handle ,obj ?_))
-    (assert-occasion `(object-closed ,obj))))
-
-(defmethod call-action ((action-sym (eql 'drawer-opened)) goal params)
-  (let ((result (execute-goal *open-handle-action* goal)))
-    (destructuring-bind (obj side) params
-      (roslisp:with-fields (handle) result
-        (retract-occasion `(object-closed ?obj))
-        (assert-occasion `(object-opened ,obj ,side))
-        (assert-occasion `(drawer-open-handle ,obj ,handle))))))
-
-(defmethod call-action ((action-sym (eql 'drawer-closed)) goal params)
-  (execute-goal *close-handle-action* goal)
-  (destructuring-bind (obj side) params
-    (retract-occasion `(object-opened ,obj ,side))
-    (retract-occasion `(drawer-open-handle ,obj ?_))
-    (assert-occasion `(object-closed ,obj))))
-
-(defmethod call-action ((action-sym (eql 'plate-grasped-drawer)) goal params)
-  (let ((result (execute-goal *take-plate-action* goal)))
-    (destructuring-bind (obj) params
-      (roslisp:with-fields (handle) result
-        (assert-occasion `(plate-grasped-handle ,obj ,handle))))))
-
-(defmethod call-action ((action-sym (eql 'bottle-grasped)) goal params)
-  (let ((result (execute-goal *take-bottle-action* goal)))
-    (destructuring-bind (obj) params
-      (roslisp:with-fields (handle) result
-        (assert-occasion `(bottle-grasped-handle ,obj ,handle))))))
-
-(defmethod call-action ((action-sym (eql 'plate-put-down-island)) goal params)
-  (execute-goal *serve-plate-to-island-action* goal)
-  (destructuring-bind (obj) params
-    (retract-occasion `(plate-grasped-handle ,obj ?_))))
-
-(defmethod call-action ((action-sym (eql 'bottle-put-down-island)) goal params)
-  (execute-goal *serve-bottle-action* goal)
-  (destructuring-bind (obj) params
-    (retract-occasion `(bottle-grasped-handle ,obj ?_))))
-
-(defmethod call-action ((action-sym (eql 'plate-grasped-island)) goal params)
-  (execute-goal *serve-plate-to-island-action* goal))
-
-(defmethod call-action ((action-sym (eql 'plate-put-down-table)) goal params)
-  (execute-goal *serve-plate-to-table-action* goal))
 
 (defmethod call-action ((action-sym t) goal params)
   (declare (ignore goal params))
