@@ -42,11 +42,10 @@
         #:cram-plan-knowledge
         #:table-costmap
         #:perception-pm)
+  (:import-from alexandria ignore-some-conditions)
   (:export
-   #:pr2-manipulation-process-module
-   ;; Rete facts
-   #:object-opened #:object-closed)
-  (:desig-properties #:to #:open #:obj #:side #:type #:fridge #:close
-                     #:drawer #:grasp #:round-plate #:bottle #:put-down
-                     #:at #:pose #:parked #:lift #:carry))
+   pr2-manipulation-process-module)
+  (:desig-properties #:trajectory #:type #:to #:open #:obj #:side #:close
+                     #:grasp #:put-down #:pose #:parked #:lift
+                     #:carry))
 

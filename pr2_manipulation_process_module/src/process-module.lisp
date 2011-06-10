@@ -29,6 +29,16 @@
 
 (in-package :pr2-manip-pm)
 
+(define-condition move-arm-no-ik-solution (manipulation-failure) ())
+(define-condition move-arm-ik-link-in-collision (manipulation-failure) ())
+
+(defparameter *grasp-approach-distance* 0.2
+  "Distance to approach the object. This parameter is used to
+  calculate the pose to approach with move_arm.")
+(defparameter *grasp-distance* 0.15
+  "Tool length to calculate the pre-grasp pose, i.e. the pose at which
+  the gripper is closed.")
+
 (defvar *open-container-action* nil)
 (defvar *close-container-action* nil)
 
@@ -42,6 +52,8 @@
 (defvar *move-arm-left* nil)
 
 (defvar *joint-state-sub* nil)
+
+(defvar *open-trajectories* (tg:make-weak-hash-table :weakness :key))
 
 (defun init-pr2-manipulation-process-module ()
   (setf *open-container-action* (actionlib:make-action-client
@@ -79,19 +91,91 @@
 
 (register-ros-init-function init-pr2-manipulation-process-module)
 
-(defgeneric call-action (action goal params))
+(defgeneric call-action (action &rest params))
 
-(defmethod call-action ((action-sym t) goal params)
-  (declare (ignore goal params))
+(defmethod call-action ((action-sym t) &rest params)
+  (declare (ignore params))
   (roslisp:ros-info (pr2-manip process-module)
                     "Unimplemented operation `~a'. Doing nothing."
                     action-sym)
   (sleep 0.5))
 
-(defmethod call-action :around (action-sym goal params)
-  (roslisp:ros-info (pr2-manip process-module) "Executing manipulation action ~a ~a." action-sym goal)
+(defmethod call-action :around (action-sym &rest params)
+  (roslisp:ros-info (pr2-manip process-module) "Executing manipulation action ~a ~a."
+                    action-sym params)
   (call-next-method)
   (roslisp:ros-info (pr2-manip process-module) "Manipulation action done."))
+
+(defmethod call-action ((action-sym (eql 'container-opened)) &rest params)
+  (destructuring-bind (action obj) params
+    (store-open-trajectory
+     obj (execute-goal *open-container-action* action))))
+
+(defmethod call-action ((action-sym (eql 'container-closed)) &rest params)
+  (destructuring-bind (action) params
+    (execute-goal *close-container-action* action)))
+
+(defmethod call-action ((action-sym (eql 'park)) &rest params)
+  (destructuring-bind (obj side) params
+    (roslisp:ros-info (pr2-manip process-module) "Park arms ~a ~a"
+                      obj side)))
+
+(defmethod call-action ((action-sym (eql 'lift)) &rest params)
+  (destructuring-bind (obj side distance) params
+    (declare (ignore obj))
+    (let* ((wrist-transform (tf:lookup-transform
+                             *tf*
+                             :time 0
+                             :source-frame (ecase side
+                                             (:right "r_wrist_roll_link")
+                                             (:left "l_wrist_roll_link"))
+                             :target-frame "/base_footprint"))
+           (lift-pose (tf:make-pose-stamped
+                       (tf:frame-id wrist-transform) (tf:stamp wrist-transform)
+                       (cl-transforms:v+ (cl-transforms:translation wrist-transform)
+                                         (cl-transforms:make-3d-vector 0 0 distance))
+                       (cl-transforms:rotation wrist-transform))))
+      (execute-arm-trajectory side (ik->trajectory (get-ik side lift-pose))))))
+
+(defmethod call-action ((action-sym (eql 'grasp)) &rest params)
+  (destructuring-bind (obj side) params
+    (let ((grasp-poses (lazy-mapcan (lambda (grasp)
+                                      (let ((pre-grasp-pose
+                                             (calculate-grasp-pose
+                                              obj
+                                              :tool (calculate-tool-pose
+                                                     grasp
+                                                     *grasp-approach-distance*)))
+                                            (grasp-pose
+                                             (calculate-grasp-pose
+                                              obj
+                                              :tool (calculate-tool-pose
+                                                     grasp
+                                                     *grasp-distance*))))
+                                        ;; If we find IK solutions
+                                        ;; for both poses, yield them
+                                        ;; to the lazy list
+                                        (when (and (lazy-car
+                                                    (get-ik
+                                                     side pre-grasp-pose))
+                                                   (lazy-car
+                                                    (get-ik
+                                                     side grasp-pose)))
+                                          (list pre-grasp-pose grasp-pose))))
+                                    (get-sgp-grasps side obj))))
+      (open-gripper side)
+      (or
+       (lazy-car (lazy-mapcan
+                  (lambda (grasp-pose)
+                    (destructuring-bind (pre-grasp grasp) grasp-pose
+                      (ignore-some-conditions (move-arm-no-ik-solution move-arm-ik-link-in-collision)
+                        (execute-move-arm side pre-grasp))
+                      (execute-arm-trajectory side (ik->trajectory (get-ik side grasp)))))
+                  grasp-poses))
+       (cpl-impl:fail 'manipulation-pose-unreachable))
+      (compliant-close-girpper side)
+      ;; TODO: Check if gripper is not completely closed to make sure that we are holding the object
+      )))
 
 (defun execute-goal (server goal)
   (multiple-value-bind (result status)
@@ -126,47 +210,53 @@
                           (position (position pose))
                           (orientation (orientation pose)))
         pose-msg
-      (actionlib:call-goal
-       action  
-       (actionlib:make-action-goal
-        action
-        planner_service_name "/ompl_planning/plan_kinematic_path"
-        (group_name motion_plan_request) (ecase side
-                                           (:right "right_arm")
-                                           (:left "left_arm"))
-        (num_planning_attempts motion_plan_request) 10
-        (planner_id motion_plan_request) ""
-        (allowed_planning_time motion_plan_request) 10.0
+      (roslisp:with-fields ((val (val error_code)))
+          (actionlib:call-goal
+           action  
+           (actionlib:make-action-goal
+               action
+             planner_service_name "/ompl_planning/plan_kinematic_path"
+             (group_name motion_plan_request) (ecase side
+                                                (:right "right_arm")
+                                                (:left "left_arm"))
+             (num_planning_attempts motion_plan_request) 10
+             (planner_id motion_plan_request) ""
+             (allowed_planning_time motion_plan_request) 10.0
         
-        (position_constraints goal_constraints motion_plan_request)
-        (vector
-         (roslisp:make-msg
-          "motion_planning_msgs/PositionConstraint"
-          header header
-          link_name (ecase side
-                      (:left "l_wrist_roll_link")
-                      (:right "r_wrist_roll_link"))
-          position position
-          (type constraint_region_shape) (roslisp-msg-protocol:symbol-code
-                                          'geometric_shapes_msgs-msg:shape
-                                          :box)
-          (dimensions constraint_region_shape) #(0.01 0.01 0.01)
-          (w constraint_region_orientation) 1.0
-          weight 1.0))
+             (position_constraints goal_constraints motion_plan_request)
+             (vector
+              (roslisp:make-msg
+               "motion_planning_msgs/PositionConstraint"
+               header header
+               link_name (ecase side
+                           (:left "l_wrist_roll_link")
+                           (:right "r_wrist_roll_link"))
+               position position
+               (type constraint_region_shape) (roslisp-msg-protocol:symbol-code
+                                               'geometric_shapes_msgs-msg:shape
+                                               :box)
+               (dimensions constraint_region_shape) #(0.01 0.01 0.01)
+               (w constraint_region_orientation) 1.0
+               weight 1.0))
         
-        (orientation_constraints goal_constraints motion_plan_request)
-        (vector
-         (roslisp:make-msg
-          "motion_planning_msgs/OrientationConstraint"
-          header header
-          link_name (ecase side
-                      (:left "l_wrist_roll_link")
-                      (:right "r_wrist_roll_link"))
-          orientation orientation
-          absolute_roll_tolerance 0.01
-          absolute_pitch_tolerance 0.01
-          absolute_yaw_tolerance 0.01
-          weight 1.0)))))))
+             (orientation_constraints goal_constraints motion_plan_request)
+             (vector
+              (roslisp:make-msg
+               "motion_planning_msgs/OrientationConstraint"
+               header header
+               link_name (ecase side
+                           (:left "l_wrist_roll_link")
+                           (:right "r_wrist_roll_link"))
+               orientation orientation
+               absolute_roll_tolerance 0.01
+               absolute_pitch_tolerance 0.01
+               absolute_yaw_tolerance 0.01
+               weight 1.0))))
+        (case val
+          (1 t)
+          (-31 (error 'move-arm-no-ik-solution))
+          (-33 (error 'move-arm-ik-link-in-collision))
+          (t (error 'manipulation-failed)))))))
 
 (defun compliant-close-girpper (side)
   (roslisp:call-service
@@ -192,6 +282,16 @@
      client (actionlib:make-action-goal client
               (position command) 0.085
               (max_effort command) max-effort))))
+
+(defun store-open-trajectory (obj open-result)
+  (declare (type object-designator obj)
+           (type ias_drawer_executive-msg:opencontainergoal open-result))
+  (roslisp:with-fields (trajectory) open-result
+    (setf (gethash obj *open-trajectories*) trajectory)))
+
+(defun get-open-trajectory (obj)
+  (declare (type object-designator obj))
+  (gethash obj *open-trajectories*))
 
 (def-process-module pr2-manipulation-process-module (desig)
   (apply #'call-action (reference desig)))

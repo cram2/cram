@@ -47,7 +47,8 @@
                move_arm_msgs-msg
                vision_srvs-srv
                trivial-garbage
-               std_srvs-srv)
+               std_srvs-srv
+               alexandria)
   :components
   ((:module "src"
             :components
@@ -55,4 +56,4 @@
              (:file "kinematics" :depends-on ("package"))
              (:file "collision-environment" :depends-on ("package"))
              (:file "process-module" :depends-on ("package" "kinematics" "collision-environment"))
-             (:file "designator" :depends-on ("package"))))))
+             (:file "designator" :depends-on ("package" "process-module"))))))
