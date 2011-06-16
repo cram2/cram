@@ -63,6 +63,6 @@ Example:
                      ,prop-package))
          (defpackage ,name
            ,@(get-package-options options)
-           ,(when prop-syms
-              `(:shadowing-import-from cram-designator-properties
-                                       ,@prop-syms)))))))
+           ,@(when prop-syms
+               `((:shadowing-import-from cram-designator-properties
+                                         ,@prop-syms))))))))
