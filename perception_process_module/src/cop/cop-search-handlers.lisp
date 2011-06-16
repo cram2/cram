@@ -82,8 +82,8 @@
 
 (defun get-clusters (desig)
   (with-desig-props (at) desig
-    (with-designators ((clusters (object `((type cluster) ,(when at
-                                                             `(at ,at))))))
+    (with-designators ((clusters (object `((type cluster) ,@(when at
+                                                              `((at ,at)))))))
       (execute-object-search-functions clusters))))
 
 (defun make-search-space (desig perceived-object)
