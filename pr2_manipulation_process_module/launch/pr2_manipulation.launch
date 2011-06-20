@@ -1,0 +1,42 @@
+<launch>
+  <!-- load perception -->
+  <include file="$(find pr2_arm_navigation_perception)/launch/laser-perception.launch"/>
+  <!-- load planning -->
+  <include file="$(find pr2_arm_navigation_planning)/launch/ompl_planning.launch"/>
+
+  <!-- load planning_environment -->
+  <include file="$(find pr2_arm_navigation_actions)/launch/environment_server.launch"/>
+
+  <!-- load controllers -->
+  <include file="$(find pr2_arm_navigation_filtering)/launch/trajectory_filter.launch"/>
+
+  <!-- load ik -->
+  <include file="$(find pr2_arm_navigation_kinematics)/launch/right_arm_collision_free_ik.launch"/>
+  <include file="$(find pr2_arm_navigation_kinematics)/launch/left_arm_collision_free_ik.launch"/>
+
+  <!-- load move_arm -->
+  <include file="$(find pr2_arm_navigation_actions)/launch/move_right_arm.launch"/>
+  <include file="$(find pr2_arm_navigation_actions)/launch/move_left_arm.launch"/>
+
+  <include file="$(find pr2_gripper_grasp_controller)/launch/both_grippers_finger_sensor_grasp_posture_action.launch"/>
+
+  <include file="$(find pc_grasp_position)/sgp_pr2.launch"/>
+  
+  <node name="pr2_gripper_grasp_planner_cluster" pkg="pr2_gripper_grasp_planner_cluster" 
+    type="pr2_gripper_grasp_planner_cluster_server.py" respawn="false" output="screen">
+	  <param name="z_up_frame" value="/base_link"/>
+  </node>
+  
+  <node name="reactive_grasp_node_right" pkg="pr2_gripper_reactive_approach" 
+    type="reactive_grasp_server.py" args="r" respawn="false" output="screen">
+    <param name="use_slip_controller" value="true"/>
+    <param name="use_slip_detection" value="true"/>
+  </node>
+  
+  <node name="reactive_grasp_node_left" pkg="pr2_gripper_reactive_approach" 
+    type="reactive_grasp_server.py" args="l" respawn="false" output="screen">
+    <param name="use_slip_controller" value="true"/>
+    <param name="use_slip_detection" value="true"/>
+  </node>
+
+</launch>
