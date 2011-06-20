@@ -61,7 +61,8 @@
                (json-prolog:prolog
                 `(and ("objectPose" ,name ?pose)
                       ("objectDimensions" ,name ?w ?d ?h)
-                      (= '(?d ?w ?h) ?dim)))))
+                      (= '(?d ?w ?h) ?dim))
+                :package :sem-map-coll-env)))
 
 (defmethod get-sem-map-objs ((type (eql '|'Drawer'|)) name)
   (lazy-mapcan (lambda (bdg)
@@ -75,7 +76,8 @@
                (json-prolog:prolog
                 `(and ("objectPose" ,name ?pose)
                       ("objectDimensions" ,name ?w ?d ?h)
-                      (= '(?d ?w ?h) ?dim)))))
+                      (= '(?d ?w ?h) ?dim))
+                :package :sem-map-coll-env)))
 
 (defmethod get-sem-map-objs ((type (eql '|'Refrigerator'|)) name)
   (lazy-mapcan (lambda (bdg)
@@ -91,7 +93,8 @@
                (json-prolog:prolog
                 `(and ("objectPose" ,name ?pose)
                       ("objectDimensions" ,name ?w ?d ?h)
-                      (= '(?d ?w ?h) ?dim)))))
+                      (= '(?d ?w ?h) ?dim))
+                :package :sem-map-coll-env)))
 
 (defmethod get-sem-map-objs ((type (eql '|'Dishwasher'|)) name)
   (lazy-mapcan (lambda (bdg)
@@ -107,7 +110,8 @@
                (json-prolog:prolog
                 `(and ("objectPose" ,name ?pose)
                       ("objectDimensions" ,name ?w ?d ?h)
-                      (= '(?d ?w ?h) ?dim)))))
+                      (= '(?d ?w ?h) ?dim))
+                :package :sem-map-coll-env)))
 
 (defmethod get-sem-map-objs ((type (eql '|'Oven'|)) name)
   (lazy-mapcan (lambda (bdg)
@@ -123,7 +127,8 @@
                (json-prolog:prolog
                 `(and ("objectPose" ,name ?pose)
                       ("objectDimensions" ,name ?w ?d ?h)
-                      (= '(?d ?w ?h) ?dim)))))
+                      (= '(?d ?w ?h) ?dim))
+                :package :sem-map-coll-env)))
 
 (defmethod get-sem-map-objs ((type (eql '|'Door'|)) name)
   (lazy-mapcar (lambda (bdg)
@@ -138,7 +143,8 @@
                (json-prolog:prolog
                 `(and ("objectPose" ,name ?pose)
                       ("objectDimensions" ,name ?w ?d ?h)
-                      (= '(?d ?w ?h) ?dim)))))
+                      (= '(?d ?w ?h) ?dim))
+                :package :sem-map-coll-env)))
 
 
 (defun make-box (name type pose dimensions

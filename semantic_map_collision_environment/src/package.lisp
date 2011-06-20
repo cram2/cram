@@ -35,4 +35,5 @@
   (:export init-semantic-map-obj-cache invalidate-semantic-map-obj-cache
            publish-semantic-map-collision-objects
            publish-semantic-map-markers
+           remove-semantic-map-collision-objects
            update-sem-map-obj-pose))
