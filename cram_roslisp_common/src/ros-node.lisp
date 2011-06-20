@@ -48,14 +48,12 @@
   (if master-uri?
       (start-ros-node name :anonymous anonymous :master-uri master-uri)
       (start-ros-node name :anonymous anonymous))
-  (loop for f being the hash-values of *ros-init-functions*
-        do (progn
-             (ros-info (rosnode) "ROS init ~a." f)
-             (funcall f))))
+  (loop for f being the hash-values of *ros-init-functions* do
+    (ros-info (rosnode) "ROS init ~a." f)
+    (funcall f)))
 
 (defun shutdown-ros ()
-  (loop for f being the hash-values of *ros-cleanup-functions*
-        do (progn
-             (ros-info (rosnode) "ROS cleanup ~a." f)
-             (funcall f)))
+  (loop for f being the hash-values of *ros-cleanup-functions* do
+    (ros-info (rosnode) "ROS cleanup ~a." f)
+    (funcall f))
   (shutdown-ros-node))
