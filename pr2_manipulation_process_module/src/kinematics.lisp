@@ -283,8 +283,41 @@
        (lambda (g)
          (tf:msg->pose (car g)))
        (sort (map 'list #'cons poses quals)
-             #'<
-             :key #'cdr)))))
+             #'> :key #'cdr)))))
+
+(defun get-point-cluster-grasps (side obj)
+  "Returns the (lazy) list of grasps calculated by the
+  /plan_point_cluster_grasps service."
+  (let ((obj-tf-inv (cl-transforms:transform-inv
+                     (cl-transforms:reference-transform
+                      (tf:transform-pose
+                       *tf* :pose (designator-pose obj)
+                       :target-frame "/base_footprint")))))
+    (roslisp:with-fields ((error-code (value error_code))
+                          (grasps grasps))
+        (roslisp:call-service
+         "/plan_point_cluster_grasp" 'object_manipulation_msgs-srv:graspplanning
+         :arm_name (ecase side
+                     (:left "left_arm")
+                     (:right "right_arm"))
+         :target (cop-obj->graspable-obj obj "/base_footprint"))
+      (unless (= error-code 0)
+        (error 'manipulation-failed
+               :format-control "Couldn't find valid grasps"))
+      (lazy-mapcar
+       (lambda (g)
+         (format t "prob: ~a~%" (cdr g))
+         (cl-transforms:transform->pose
+          (cl-transforms:transform*
+           obj-tf-inv
+           (cl-transforms:reference-transform (tf:msg->pose (car g))))))
+       (sort (map 'list
+                  (lambda (grasp)
+                    (roslisp:with-fields (grasp_pose success_probability)
+                        grasp
+                      (cons grasp_pose success_probability)))
+                  grasps)
+             #'> :key #'cdr)))))
 
 (defun calculate-tool-pose (grasp tool-length)
   (cl-transforms:transform->pose

@@ -48,7 +48,10 @@
                vision_srvs-srv
                trivial-garbage
                std_srvs-srv
-               alexandria)
+               alexandria
+               semantic-map-collision-environment
+               object_manipulation_msgs-msg
+               object_manipulation_msgs-srv)
   :components
   ((:module "src"
             :components

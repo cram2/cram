@@ -32,10 +32,10 @@
 (define-condition move-arm-no-ik-solution (manipulation-failure) ())
 (define-condition move-arm-ik-link-in-collision (manipulation-failure) ())
 
-(defparameter *grasp-approach-distance* 0.2
+(defparameter *grasp-approach-distance* 0.10
   "Distance to approach the object. This parameter is used to
   calculate the pose to approach with move_arm.")
-(defparameter *grasp-distance* 0.15
+(defparameter *grasp-distance* 0.00
   "Tool length to calculate the pre-grasp pose, i.e. the pose at which
   the gripper is closed.")
 
@@ -135,10 +135,11 @@
                        (cl-transforms:v+ (cl-transforms:translation wrist-transform)
                                          (cl-transforms:make-3d-vector 0 0 distance))
                        (cl-transforms:rotation wrist-transform))))
-      (execute-arm-trajectory side (ik->trajectory (get-ik side lift-pose))))))
+      (execute-arm-trajectory side (ik->trajectory (lazy-car (get-ik side lift-pose)))))))
 
 (defmethod call-action ((action-sym (eql 'grasp)) &rest params)
   (destructuring-bind (obj side) params
+    (roslisp:ros-info (pr2-manip process-module) "Calling grasp planner")
     (let ((grasp-poses (lazy-mapcan (lambda (grasp)
                                       (let ((pre-grasp-pose
                                              (calculate-grasp-pose
@@ -161,21 +162,36 @@
                                                    (lazy-car
                                                     (get-ik
                                                      side grasp-pose)))
-                                          (list pre-grasp-pose grasp-pose))))
-                                    (get-sgp-grasps side obj))))
+                                          (roslisp:ros-info (pr2-manip process-module) "Found valid grasp ~a ~a~%"
+                                                            pre-grasp-pose grasp-pose)
+                                          `((,pre-grasp-pose ,grasp-pose)))))
+                                    (get-point-cluster-grasps side obj))))
+      (unless grasp-poses
+        (error 'manipulation-pose-unreachable
+               :format-control "No valid grasp pose found"))
+      (roslisp:ros-info (pr2-manip process-module) "Opening gripper")
       (open-gripper side)
+      (roslisp:ros-info (pr2-manip process-module) "Removing semantic map objects")
+      (sem-map-coll-env:remove-semantic-map-collision-objects)
+      (roslisp:ros-info (pr2-manip process-module) "Adding object as collision object")
+      (register-collision-object obj)
+      (roslisp:ros-info (pr2-manip process-module) "Registering semantic map objects")
+      (sem-map-coll-env:publish-semantic-map-collision-objects)
+      (roslisp:ros-info (pr2-manip process-module) "Executing move-arm")
       (or
-       (lazy-car (lazy-mapcan
+       (lazy-car (lazy-mapcar
                   (lambda (grasp-pose)
                     (destructuring-bind (pre-grasp grasp) grasp-pose
                       (ignore-some-conditions (move-arm-no-ik-solution move-arm-ik-link-in-collision)
-                        (execute-move-arm side pre-grasp))
-                      (execute-arm-trajectory side (ik->trajectory (get-ik side grasp)))))
+                        (execute-move-arm side pre-grasp)
+                        (execute-arm-trajectory side (ik->trajectory (lazy-car (get-ik side grasp)))))))
                   grasp-poses))
        (cpl-impl:fail 'manipulation-pose-unreachable))
+      (roslisp:ros-info (pr2-manip process-module) "Closing gripper")
       (compliant-close-girpper side)
       ;; TODO: Check if gripper is not completely closed to make sure that we are holding the object
-      )))
+      (roslisp:ros-info (pr2-manip process-module) "Attaching object to gripper")
+      (attach-collision-object side obj))))
 
 (defun execute-goal (server goal)
   (multiple-value-bind (result status)
