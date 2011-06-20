@@ -113,3 +113,51 @@
                                                 "l_gripper_r_finger_link"
                                                 "l_gripper_l_finger_link")))
                           object detach-object))))))
+
+(defun point->msg (point &optional (msg-type "geometry_msgs/Point"))
+  (declare (type cl-transforms:3d-vector point))
+  (roslisp:make-msg
+   msg-type
+   x (cl-transforms:x point)
+   y (cl-transforms:y point)
+   z (cl-transforms:z point)))
+
+(defun points->point-cloud (pose points)
+  (let ((pose-tf (cl-transforms:reference-transform pose)))
+    (roslisp:make-msg
+     "sensor_msgs/PointCloud"
+     (stamp header) (tf:stamp pose)
+     (frame_id header) (tf:frame-id pose)
+     points (map 'vector
+                 (lambda (p)
+                   (roslisp:with-fields (x y z) p
+                     (point->msg
+                      (cl-transforms:transform-point
+                       pose-tf (cl-transforms:make-3d-vector x y z))
+                      "geometry_msgs/Point32")))
+                 points))))
+
+(defun cop-obj->point-cloud (desig)
+  (let ((po (reference desig))
+        (pose (designator-pose desig)))
+    (declare (type perception-pm:cop-perceived-object po))
+    (roslisp:with-fields ((type (type shape))
+                          (vertices (vertices shape)))
+        (roslisp:call-service "/cop_geometric_shape" 'vision_srvs-srv:cop_get_object_shape
+                              :object_id (perception-pm:object-id po))
+      (when (or (eql type 3) (eql type 4))
+        (points->point-cloud pose vertices)))))
+
+(defun cop-obj->graspable-obj (desig &optional (reference-frame "/base_footprint"))
+  (let ((po (reference desig))
+        (pose (designator-pose desig)))
+    (declare (type perception-pm:cop-perceived-object po))
+    (roslisp:with-fields ((type (type shape))
+                          (vertices (vertices shape)))
+        (roslisp:call-service "/cop_geometric_shape" 'vision_srvs-srv:cop_get_object_shape
+                              :object_id (perception-pm:object-id po))
+      (when (or (eql type 3) (eql type 4))
+        (roslisp:make-msg
+         "object_manipulation_msgs/GraspableObject"
+         reference_frame_id reference-frame
+         cluster (points->point-cloud pose vertices))))))

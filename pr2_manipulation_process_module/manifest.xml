@@ -27,5 +27,7 @@
   <depend package="trivial_garbage"/>
   <depend package="std_srvs"/>
   <depend package="alexandria"/>
+  <depend package="semantic_map_collision_environment"/>
+  <depend package="object_manipulation_msgs"/>
 
 </package>
