@@ -60,5 +60,6 @@
         #:perception-pm)
   (:shadowing-import-from #:table-costmap
                           #:name)
-  (:export #:object-opened #:object-closed))
+  (:export #:object-opened #:object-closed)
+  (:desig-properties #:cluster))
 
