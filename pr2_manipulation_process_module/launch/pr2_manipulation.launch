@@ -1,4 +1,6 @@
 <launch>
+  <rosparam command="load" file="$(find pr2_object_manipulation_launch)/config/pr2_hand_descriptions.yaml"/>
+
   <!-- load perception -->
   <include file="$(find pr2_arm_navigation_perception)/launch/laser-perception.launch"/>
   <!-- load planning -->
