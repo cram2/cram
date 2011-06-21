@@ -76,7 +76,7 @@
                            found-pose
                            (vision_msgs-msg:perception_primitive-val
                             cop-reply))))
-                     (rete-assert `(object-perceived ,desig ,perceived-object))
+                     (rete-assert-object-perception desig perceived-object)
                      perceived-object))
            (vision_msgs-msg:found_poses-val cop-reply)))))
 
