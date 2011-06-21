@@ -267,7 +267,8 @@
                absolute_roll_tolerance 0.01
                absolute_pitch_tolerance 0.01
                absolute_yaw_tolerance 0.01
-               weight 1.0))))
+               weight 1.0)))
+           :result-timeout 1.0)
         (case val
           (1 t)
           (-31 (error 'move-arm-no-ik-solution))
@@ -281,23 +282,25 @@
     (:left "/l_reactive_grasp/compliant_close"))
    'std_srvs-srv:Empty))
 
-(defun close-gripper (side &optional (max-effort 10.0))
+(defun close-gripper (side &optional (max-effort 100.0))
   (let ((client (ecase side
                   (:right *gripper-action-right*)
                   (:left *gripper-action-left*))))
     (actionlib:send-goal-and-wait
      client (actionlib:make-action-goal client
               (position command) 0.0
-              (max_effort command) max-effort))))
+              (max_effort command) max-effort)
+     :result-timeout 1.0)))
 
-(defun open-gripper (side &optional (max-effort 10.0))
+(defun open-gripper (side &optional (max-effort 100.0))
   (let ((client (ecase side
                   (:right *gripper-action-right*)
                   (:left *gripper-action-left*))))
     (actionlib:send-goal-and-wait
      client (actionlib:make-action-goal client
               (position command) 0.085
-              (max_effort command) max-effort))))
+              (max_effort command) max-effort)
+     :result-timeout 1.0)))
 
 (defun store-open-trajectory (obj open-result)
   (declare (type object-designator obj)
