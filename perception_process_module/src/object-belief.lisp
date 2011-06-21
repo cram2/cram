@@ -117,3 +117,6 @@
   (cl-transforms:v-dist
    (cl-transforms:origin obj-1)
    (cl-transforms:origin (object-pose obj-2))))
+
+(defun rete-assert-object-perception (desig perceived-object)
+  (rete-assert `(object-perceived ,desig ,perceived-object)))
