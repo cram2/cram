@@ -84,4 +84,8 @@
                         ((:file "events")
                          (:file "timeline" :depends-on ("events"))
                          (:file "projection-rules" :depends-on ("events" "timeline"))
-                         (:file "prolog")))))))
+                         (:file "prolog")))
+               (:module "executive-integration"
+                        :depends-on ("package")
+                        :components
+                        ((:file "perception")))))))
