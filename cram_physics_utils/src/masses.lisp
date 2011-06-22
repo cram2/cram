@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2011, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -28,18 +28,22 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(defsystem physics-utils
-  :author "Lorenz Moesenlechner"
-  :license "BSD"
-  
-  :depends-on (cl-transforms cffi cffi-ros-utils ros-load-manifest roslisp)
-  :components
-  ((:module "src"
-            :components
-            ((:file "package")
-             (:file "ros-uri-parser" :depends-on ("package"))
-             (:file "assimp-cffi" :depends-on ("package"))
-             (:file "assimp-model-loader" :depends-on ("package" "assimp-cffi"))
-             (:file "mesh-utils" :depends-on ("package"))
-             (:file "ros-shape-utils" :depends-on ("package"))
-             (:file "masses" :depends-on ("package"))))))
+(in-package :physics-utils)
+
+(defgeneric calculate-mass (shape &key density &allow-other-keys)
+  (:documentation "Returns the mass of the shape by using `density' to
+  calculate it")
+  (:method ((shape (eql :sphere)) &key (density 1000) radius)
+    (* density (/ 4 3) pi (* radius radius radius)))
+  (:method ((shape (eql :box)) &key (density 1000)
+                               size-x size-y size-z)
+    (* density size-x size-y size-z))
+  (:method ((shape (eql :cylinder)) &key (density 1000)
+                                      radius height)
+    (* density radius radius pi height))
+  (:method ((shape (eql :mesh)) &key (density 1000) points)
+    (let ((aabb (calculate-aabb points)))
+      (calculate-mass 'box :density density
+                           :size-x (cl-transforms:x aabb)
+                           :size-y (cl-transforms:y aabb)
+                           :size-z (cl-transforms:z aabb)))))
