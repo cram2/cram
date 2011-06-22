@@ -81,4 +81,5 @@
         #:btr #:designators-ros #:cut)
   (:shadowing-import-from #:desig-props at)
   (:shadowing-import-from #:btr object pose)
-  (:desig-properties #:side :to #:see #:reach #:side #:name #:part-of #:type))
+  (:desig-properties #:side :to #:see #:reach #:side #:name #:type
+                     #:obj #:reachable-from))
