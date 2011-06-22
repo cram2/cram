@@ -39,4 +39,5 @@
    3d-model-vertices 3d-model-faces
    parse-uri calculate-aabb
    scale-3d-model resize-3d-model
-   shape-msg->points shape-msg->mesh))
+   shape-msg->points shape-msg->mesh
+   calculate-mass))
