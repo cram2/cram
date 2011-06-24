@@ -39,21 +39,25 @@
       (setf (gethash perceived-object *perceived-object-mappings*)
             (gentemp "OBJ-" (find-package :btr)))))
 
-(defun get-prolog-object-description (desig perceived-object)
+(defun get-prolog-object-description (name desig perceived-object)
   (declare (ignore desig))
   (etypecase perceived-object
     (perception-pm:cop-perceived-object
-       `(cop-object ,(get-obj-name perceived-object)
-                    ,(perception-pm:object-pose perceived-object)
-                    :object-id (perception-pm:object-id perceived-object)))))
+       `(cop-object ,name ,(perception-pm:object-pose perceived-object)
+                    :object-id ,(perception-pm:object-id perceived-object)))))
 
 (defun add-perceived-object (op &key ?desig ?perceived-object)
   (when (eq op :assert)
-    (let ((object-descr (get-prolog-object-description ?desig ?perceived-object)))
-      (prolog `(and (bullet-world ?w)
-                    (assert-object ?w ,@object-descr))))))
+    (let* ((object-name (get-obj-name ?perceived-object))
+           (object-descr (get-prolog-object-description
+                          object-name ?desig ?perceived-object)))
+      (force-ll
+       (prolog `(and (bullet-world ?w)
+                     (assert-object ?w ,@object-descr)
+                     (contact ?w ,object-name ?c)
+                     (retract-object ?w ?c)))))))
 
 (def-production on-object-perceived
   (perception-pm:object-perceived ?desig ?perceived-object))
 
-(register-production-handler 'on-object-perceived #'add-perceived-object)
+(register-production-handler 'on-object-perceived 'add-perceived-object)
