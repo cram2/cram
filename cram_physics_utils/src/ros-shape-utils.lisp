@@ -68,6 +68,4 @@
                                :normals (list normal-normalized normal-normalized normal-normalized)
                                :points (list point-1 point-2 point-3))))
                     maximizing (aref triangles i) into max-tri-index
-                    finally (progn
-                              (format t "processed ~a vertices, max index: ~a" (length vertices) max-tri-index)
-                              (return result)))))))
+                    finally (return result))))))
