@@ -43,7 +43,7 @@
     (* density radius radius pi height))
   (:method ((shape (eql :mesh)) &key (density 1000) points)
     (let ((aabb (calculate-aabb points)))
-      (calculate-mass 'box :density density
-                           :size-x (cl-transforms:x aabb)
-                           :size-y (cl-transforms:y aabb)
-                           :size-z (cl-transforms:z aabb)))))
+      (calculate-mass :box :density density
+                      :size-x (cl-transforms:x aabb)
+                      :size-y (cl-transforms:y aabb)
+                      :size-z (cl-transforms:z aabb)))))
