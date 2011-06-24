@@ -78,15 +78,18 @@
                           link_name (ecase side
                                       (:right "r_gripper_r_finger_tip_link")
                                       (:left "r_gripper_r_finger_tip_link"))
-                          touch_links (ecase side
-                                        (:right (vector
-                                                 "r_gripper_palm_link"
-                                                 "r_gripper_r_finger_link"
-                                                 "r_gripper_l_finger_link"))
-                                        (:left (vector
-                                                "l_gripper_palm_link"
-                                                "l_gripper_r_finger_link"
-                                                "l_gripper_l_finger_link")))
+                          touch_links (map 'vector #'identity
+                                           (ecase side
+                                             (:right (roslisp:get-param
+                                                      "/hand_description/right_arm/hand_touch_links"
+                                                      '("r_gripper_palm_link"
+                                                        "r_gripper_r_finger_link"
+                                                        "r_gripper_l_finger_link")))
+                                             (:left (roslisp:get-param
+                                                     "/hand_description/left_arm/hand_touch_links"
+                                                     '("l_gripper_palm_link"
+                                                       "l_gripper_r_finger_link"
+                                                       "l_gripper_l_finger_link")))))
                           object attach-object))))))
 
 (defun detach-collision-object (side desig)
