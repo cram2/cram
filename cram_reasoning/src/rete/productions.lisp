@@ -236,7 +236,9 @@
             (create-production-network (production-definition-body production)
                                        (lambda (&rest args)
                                          (loop for callback in (production-definition-callbacks production)
-                                            do (apply callback args))))))
+                                            do (etypecase callback
+                                                 (function (apply callback args))
+                                                 (symbol (apply (symbol-function callback) args))))))))
     (production-definition-node production)))
 
 (defun remove-production-handler (production-name callback)
