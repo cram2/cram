@@ -275,7 +275,16 @@
                absolute_roll_tolerance 0.01
                absolute_pitch_tolerance 0.01
                absolute_yaw_tolerance 0.01
-               weight 1.0)))
+               weight 1.0))
+             
+             (collision_operations ordered_collision_operations motion_plan_request)
+             (vector
+              (roslisp:make-msg
+               "motion_planning_msgs/CollisionOperation"
+               object1 "gripper"
+               object2 "attached"
+               penetration_distance 0.1
+               operation 0)))
            :result-timeout 1.0)
         (case val
           (1 t)
