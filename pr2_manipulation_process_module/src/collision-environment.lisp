@@ -64,6 +64,15 @@
                           id id
                           (operation operation) 1))))))
 
+(defun clear-collision-objects ()
+  (roslisp:publish *collision-object-pub*
+                   (roslisp:make-msg
+                    "mapping_msgs/CollisionObject"
+                    (frame_id header) "/base_footprint"
+                    (stamp header) (roslisp:ros-time)
+                    id "all"
+                    (operation operation) 1)))
+
 (defun attach-collision-object (side desig)
   (let ((collision-object (gethash desig *known-collision-objects*)))
     (when collision-object
