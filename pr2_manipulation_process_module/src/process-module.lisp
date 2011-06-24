@@ -148,6 +148,14 @@
 (defmethod call-action ((action-sym (eql 'grasp)) &rest params)
   (destructuring-bind (obj side) params
     (roslisp:ros-info (pr2-manip process-module) "Calling grasp planner")
+    (roslisp:ros-info (pr2-manip process-module) "Opening gripper")
+    (open-gripper side)
+    (roslisp:ros-info (pr2-manip process-module) "Clearing collision map")
+    (clear-collision-objects)
+    (roslisp:ros-info (pr2-manip process-module) "Adding object as collision object")
+    (register-collision-object obj)
+    (roslisp:ros-info (pr2-manip process-module) "Registering semantic map objects")
+    (sem-map-coll-env:publish-semantic-map-collision-objects)
     (let ((grasp-poses (lazy-mapcan (lambda (grasp)
                                       (let ((pre-grasp-pose
                                              (calculate-grasp-pose
@@ -177,14 +185,6 @@
       (unless grasp-poses
         (error 'manipulation-pose-unreachable
                :format-control "No valid grasp pose found"))
-      (roslisp:ros-info (pr2-manip process-module) "Opening gripper")
-      (open-gripper side)
-      (roslisp:ros-info (pr2-manip process-module) "Removing semantic map objects")
-      (sem-map-coll-env:remove-semantic-map-collision-objects)
-      (roslisp:ros-info (pr2-manip process-module) "Adding object as collision object")
-      (register-collision-object obj)
-      (roslisp:ros-info (pr2-manip process-module) "Registering semantic map objects")
-      (sem-map-coll-env:publish-semantic-map-collision-objects)
       (roslisp:ros-info (pr2-manip process-module) "Executing move-arm")
       (or
        (lazy-car (lazy-mapcar
