@@ -51,7 +51,8 @@
                alexandria
                semantic-map-collision-environment
                object_manipulation_msgs-msg
-               object_manipulation_msgs-srv)
+               object_manipulation_msgs-srv
+               pr2_gripper_sensor_msgs-msg)
   :components
   ((:module "src"
             :components

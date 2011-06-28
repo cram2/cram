@@ -44,6 +44,8 @@
 
 (defvar *gripper-action-left* nil)
 (defvar *gripper-action-right* nil)
+(defvar *gripper-grab-action-left* nil)
+(defvar *gripper-grab-action-right* nil)
 
 (defvar *trajectory-action-left* nil)
 (defvar *trajectory-action-right* nil)
@@ -75,7 +77,13 @@
                                "pr2_controllers_msgs/Pr2GripperCommandAction"))
   (setf *gripper-action-right* (actionlib:make-action-client
                                 "/r_gripper_sensor_controller/gripper_action"
-                                "pr2_controllers_msgs/Pr2GripperCommandAction"))  
+                                "pr2_controllers_msgs/Pr2GripperCommandAction"))
+  (setf *gripper-grab-action-left* (actionlib:make-action-client
+                                    "/l_gripper_sensor_controller/grab"
+                                    "pr2_gripper_sensor_msgs/PR2GripperGrabAction"))
+  (setf *gripper-grab-action-right* (actionlib:make-action-client
+                                     "/r_gripper_sensor_controller/grab"
+                                     "pr2_gripper_sensor_msgs/PR2GripperGrabAction"))
   (setf *trajectory-action-left* (actionlib:make-action-client
                                   "/l_arm_controller/joint_trajectory_generator"
                                   "pr2_controllers_msgs/JointTrajectoryAction"))
@@ -297,7 +305,14 @@
    (ecase side
     (:right "/r_reactive_grasp/compliant_close")
     (:left "/l_reactive_grasp/compliant_close"))
-   'std_srvs-srv:Empty))
+   'std_srvs-srv:Empty)
+  (let ((action (ecase side
+                  (:right *gripper-grab-action-right*)
+                  (:left *gripper-grab-action-left*))))
+    (execute-goal
+     action
+     (actionlib:make-action-goal action
+       (hardness_gain command) 0.03))))
 
 (defun close-gripper (side &optional (max-effort 100.0))
   (let ((client (ecase side

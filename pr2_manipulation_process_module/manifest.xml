@@ -29,5 +29,6 @@
   <depend package="alexandria"/>
   <depend package="semantic_map_collision_environment"/>
   <depend package="object_manipulation_msgs"/>
+  <depend package="pr2_gripper_sensor_msgs"/>
 
 </package>
