@@ -30,6 +30,8 @@
 
 (in-package :btr)
 
+(defvar *disable-rete-integration* nil)
+
 (defvar *perceived-object-mappings* (tg:make-weak-hash-table :weakness :key)
   "A weak hash-table that is used to map perceived-object instances to
   a corresponding object name used in the reasoning system.")
@@ -47,15 +49,16 @@
                     :object-id ,(perception-pm:object-id perceived-object)))))
 
 (defun add-perceived-object (op &key ?desig ?perceived-object)
-  (when (eq op :assert)
-    (let* ((object-name (get-obj-name ?perceived-object))
-           (object-descr (get-prolog-object-description
-                          object-name ?desig ?perceived-object)))
-      (force-ll
-       (prolog `(and (bullet-world ?w)
-                     (assert-object ?w ,@object-descr)
-                     (contact ?w ,object-name ?c)
-                     (retract-object ?w ?c)))))))
+  (unless *disable-rete-integration*
+    (when (eq op :assert)
+      (let* ((object-name (get-obj-name ?perceived-object))
+             (object-descr (get-prolog-object-description
+                            object-name ?desig ?perceived-object)))
+        (force-ll
+         (prolog `(and (bullet-world ?w)
+                       (assert-object ?w ,@object-descr)
+                       (contact ?w ,object-name ?c)
+                       (retract-object ?w ?c))))))))
 
 (def-production on-object-perceived
   (perception-pm:object-perceived ?desig ?perceived-object))
