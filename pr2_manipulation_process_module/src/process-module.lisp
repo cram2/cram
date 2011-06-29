@@ -60,10 +60,13 @@
 (defparameter *carry-pose-right* (tf:make-pose-stamped
                                   "/base_footprint" 0.0
                                   (cl-transforms:make-3d-vector
-                                   0.09855628758792889d0 -0.4290194687879314d0 0.8283385079087044d0)
-                                  (cl-transforms:make-quaternion
-                                   -0.006916799826869714d0 -0.0791595072020859d0
-                                   0.14503515687699475d0 0.9862305681580468d0)))
+                                   0.09855628758792889d0 -0.48 0.8283385079087044d0)
+                                  (cl-transforms:make-identity-rotation)))
+(defparameter *carry-pose-left* (tf:make-pose-stamped
+                                 "/base_footprint" 0.0
+                                 (cl-transforms:make-3d-vector
+                                  0.09855628758792889d0 0.48 0.8283385079087044d0)
+                                 (cl-transforms:make-identity-rotation)))
 
 (defparameter *top-grasp* (cl-transforms:euler->quaternion :ay (/ pi 2)))
 (defparameter *front-grasp* (cl-transforms:make-identity-rotation))
