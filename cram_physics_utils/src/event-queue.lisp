@@ -44,6 +44,10 @@
   (:documentation "Returns the next event from the queue. If `timeout'
   is set, waits at most `timeout' seconds."))
 
+(defgeneric wait-for-queue-empty (queue &optional timeout)
+  (:documentation "Waits until `queue' is empty. Blocks for at most
+  `timeout' seconds."))
+
 (defmacro with-timeout-handler (expires handler &body body)
   "Like sbcl's timeout macro but save. Instead of signaling a timeout
 condition, handler is executed."
@@ -89,3 +93,17 @@ condition, handler is executed."
           (dequeue-event))
         (dequeue-event))))
 
+(defmethod wait-for-queue-empty ((queue event-queue) &optional timeout)
+  (flet ((wait-for-empty ()
+           (sb-thread:with-mutex ((events-lock queue))
+             (loop while (car (event-queue queue)) do
+               (sb-thread:condition-wait
+                (events-condition queue)
+                (events-lock queue)))))
+         (handle-timeout ()
+           (return-from wait-for-queue-empty nil)))
+    (if timeout
+        (with-timeout-handler timeout
+            #'handle-timeout
+          (wait-for-empty))
+        (wait-for-empty))))

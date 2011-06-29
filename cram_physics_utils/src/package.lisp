@@ -42,4 +42,5 @@
    shape-msg->points shape-msg->mesh
    points->point-cloud
    calculate-mass
-   event-queue post-event get-next-event))
+   event-queue post-event get-next-event
+   wait-for-queue-empty))
