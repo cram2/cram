@@ -74,12 +74,24 @@
                               :mesh :points (physics-utils:3d-model-vertices mesh))
                        :mesh mesh)))
         (4 ;; Point cloud (inofficial)
-         (make-object
-          world name
-          (list
-           (make-instance 'rigid-body
-             :name name
-             :mass 0.0 ;; We cannot simulate dynamics for point clouds,
-             ;; so we make them static objects
-             :collision-shape (make-instance 'convex-hull-shape
-                                :points (physics-utils:shape-msg->points shape))))))))))
+           (roslisp:with-fields (mesh)
+               (roslisp:call-service
+                "/triangulate_point_cloud/triangulate"
+                "triangulate_point_cloud/TriangulatePCL"
+                :points (physics-utils:points->point-cloud
+                         (cl-transforms:make-identity-pose)
+                         (physics-utils:shape-msg->points shape)))
+             (add-object world 'mesh name (cl-transforms:make-identity-pose)
+                         :mass 0.0
+                         :mesh (physics-utils:shape-msg->mesh mesh)
+                         :disable-face-culling t))
+         ;; (make-object
+         ;;  world name
+         ;;  (list
+         ;;   (make-instance 'rigid-body
+         ;;     :name name
+         ;;     :mass 0.0 ;; We cannot simulate dynamics for point clouds,
+         ;;     ;; so we make them static objects
+         ;;     :collision-shape (make-instance 'convex-hull-shape
+         ;;                        :points (physics-utils:shape-msg->points shape)))))
+           )))))
