@@ -44,6 +44,17 @@
   (:documentation "Returns the next event from the queue. If `timeout'
   is set, waits at most `timeout' seconds."))
 
+(defmacro with-timeout-handler (expires handler &body body)
+  "Like sbcl's timeout macro but save. Instead of signaling a timeout
+condition, handler is executed."
+  (let ((timer (gensym "TIMER"))
+        (body-fun (gensym "BODY-FUN")))
+    `(flet ((,body-fun () ,@body))
+       (let ((,timer (sb-ext:make-timer ,handler)))
+         (sb-ext:schedule-timer ,timer ,expires)
+         (unwind-protect (,body-fun)
+           (sb-ext:unschedule-timer ,timer))))))
+
 (defmethod post-event ((queue event-queue) event)
   (sb-thread:with-mutex ((events-lock queue))
     (let ((new-cons (cons event nil)))
@@ -67,11 +78,14 @@
                (setf (car (event-queue queue))
                      (cdar (event-queue queue)))
                (unless (car (event-queue queue))
-                 (setf (cdr (event-queue queue)) nil))))))
+                 (setf (cdr (event-queue queue)) nil))
+               (sb-thread:condition-broadcast
+                (events-condition queue)))))
+         (handle-timeout ()
+           (return-from get-next-event nil)))
     (if timeout
-        (handler-case
-            (sb-ext:with-timeout timeout
-              (dequeue-event))
-          (sb-ext:timeout ()
-            nil))
+        (with-timeout-handler timeout
+            #'handle-timeout
+          (dequeue-event))
         (dequeue-event))))
+
