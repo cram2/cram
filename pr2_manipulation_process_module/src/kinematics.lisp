@@ -306,7 +306,6 @@
                :format-control "Couldn't find valid grasps"))
       (lazy-mapcar
        (lambda (g)
-         (format t "prob: ~a~%" (cdr g))
          (cl-transforms:transform->pose
           (cl-transforms:transform*
            obj-tf-inv
@@ -363,3 +362,23 @@
                                        :max-tries 30))))))
                   grasps))))
 
+(defun grasp-orientation-valid (pose good bad)
+  "Returns T if `pose' has an orientation that is closer to an
+  orientation in `good' than to an orientation in `bad'. Returns NIL
+  otherwise."
+  (labels ((find-closest-angle (rot rotations &optional closest)
+             (let ((angle (and rotations
+                               (cl-transforms:angle-between-quaternions
+                                rot (car rotations)))))
+               (cond ((not rotations)
+                      closest)
+                     ((or (not closest) (< angle closest))
+                      (find-closest-angle rot (cdr rotations) angle))
+                     (t (find-closest-angle rot (cdr rotations) closest))))))
+    (let ((pose-in-base (tf:transform-pose
+                         *tf* :pose pose
+                         :target-frame "/base_footprint")))
+      (< (find-closest-angle (cl-transforms:orientation pose-in-base)
+                             good)
+         (find-closest-angle (cl-transforms:orientation pose-in-base)
+                             bad)))))
