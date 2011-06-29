@@ -65,6 +65,11 @@
                                    -0.006916799826869714d0 -0.0791595072020859d0
                                    0.14503515687699475d0 0.9862305681580468d0)))
 
+(defparameter *top-grasp* (cl-transforms:euler->quaternion :ay (/ pi 2)))
+(defparameter *front-grasp* (cl-transforms:make-identity-rotation))
+(defparameter *left-grasp* (cl-transforms:euler->quaternion :az (/ pi -2)))
+(defparameter *right-grasp* (cl-transforms:euler->quaternion :az (/ pi 2)))
+
 (defun init-pr2-manipulation-process-module ()
   (setf *open-container-action* (actionlib:make-action-client
                               "/open_container_action"
@@ -164,32 +169,47 @@
     (register-collision-object obj)
     (roslisp:ros-info (pr2-manip process-module) "Registering semantic map objects")
     (sem-map-coll-env:publish-semantic-map-collision-objects)
-    (let ((grasp-poses (lazy-mapcan (lambda (grasp)
-                                      (let ((pre-grasp-pose
-                                             (calculate-grasp-pose
-                                              obj
-                                              :tool (calculate-tool-pose
-                                                     grasp
-                                                     *grasp-approach-distance*)))
-                                            (grasp-pose
-                                             (calculate-grasp-pose
-                                              obj
-                                              :tool (calculate-tool-pose
-                                                     grasp
-                                                     *grasp-distance*))))
-                                        ;; If we find IK solutions
-                                        ;; for both poses, yield them
-                                        ;; to the lazy list
-                                        (when (and (lazy-car
-                                                    (get-ik
-                                                     side pre-grasp-pose))
-                                                   (lazy-car
-                                                    (get-ik
-                                                     side grasp-pose)))
-                                          (roslisp:ros-info (pr2-manip process-module) "Found valid grasp ~a ~a~%"
-                                                            pre-grasp-pose grasp-pose)
-                                          `((,pre-grasp-pose ,grasp-pose)))))
-                                    (get-point-cluster-grasps side obj))))
+    (let ((grasp-poses
+           (lazy-mapcan (lambda (grasp)
+                          (let ((pre-grasp-pose
+                                 (calculate-grasp-pose
+                                  obj
+                                  :tool (calculate-tool-pose
+                                         grasp
+                                         *grasp-approach-distance*)))
+                                (grasp-pose
+                                 (calculate-grasp-pose
+                                  obj
+                                  :tool (calculate-tool-pose
+                                         grasp
+                                         *grasp-distance*))))
+                            ;; If we find IK solutions
+                            ;; for both poses, yield them
+                            ;; to the lazy list
+                            (when (and (ecase side
+                                         (:left
+                                            (grasp-orientation-valid
+                                             pre-grasp-pose
+                                             (list *top-grasp* *left-grasp*)
+                                             (list *right-grasp*)))
+                                         (:right
+                                            (grasp-orientation-valid
+                                             pre-grasp-pose
+                                             (list *top-grasp* *right-grasp*)
+                                             (list *left-grasp*))))
+                                       (lazy-car
+                                        (get-ik
+                                         side pre-grasp-pose))
+                                       (lazy-car
+                                        (get-ik
+                                         side grasp-pose)))
+                              (roslisp:ros-info (pr2-manip process-module) "Found valid grasp ~a ~a"
+                                                pre-grasp-pose grasp-pose)
+                              `((,pre-grasp-pose ,grasp-pose)))))
+                        (prog2
+                          (roslisp:ros-info (pr2-manip process-module) "Planning grasp")
+                          (get-point-cluster-grasps side obj)
+                          (roslisp:ros-info (pr2-manip process-module) "Grasp planning finished")))))
       (unless grasp-poses
         (error 'manipulation-pose-unreachable
                :format-control "No valid grasp pose found"))
