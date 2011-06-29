@@ -22,5 +22,6 @@
   <depend package="household_objects_database_msgs"/>
   <depend package="perception_process_module"/>
   <depend package="cram_roslisp_common"/>
+  <depend package="triangulate_point_cloud"/>
 
 </package>
