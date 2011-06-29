@@ -1,0 +1,18 @@
+<package>
+  <description brief="triangulate_point_cloud">
+
+     triangulate_point_cloud
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/triangulate_point_cloud</url>
+  <depend package="roscpp"/>
+  <depend package="pcl"/>
+  <depend package="geometric_shapes_msgs"/>
+  <depend package="sensor_msgs"/>
+
+</package>
+
+
