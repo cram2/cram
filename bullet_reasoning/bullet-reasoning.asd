@@ -45,7 +45,8 @@
                  designators
                  semantic-map-costmap
                  perception-process-module
-                 cram-roslisp-common)
+                 cram-roslisp-common
+                 triangulate_point_cloud-srv)
     :components
     ((:module "src"
               :components
