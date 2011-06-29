@@ -40,4 +40,5 @@
    parse-uri calculate-aabb
    scale-3d-model resize-3d-model
    shape-msg->points shape-msg->mesh
+   points->point-cloud
    calculate-mass))
