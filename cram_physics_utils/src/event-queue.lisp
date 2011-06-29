@@ -28,7 +28,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :bt-vis)
+(in-package :physics-utils)
 
 (defclass event-queue ()
   ((event-queue :initform (cons nil nil) :reader event-queue)

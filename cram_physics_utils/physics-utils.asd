@@ -42,4 +42,5 @@
              (:file "assimp-model-loader" :depends-on ("package" "assimp-cffi"))
              (:file "mesh-utils" :depends-on ("package"))
              (:file "ros-shape-utils" :depends-on ("package"))
-             (:file "masses" :depends-on ("package"))))))
+             (:file "masses" :depends-on ("package"))
+             (:file "event-queue" :depends-on ("package"))))))

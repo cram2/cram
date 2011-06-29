@@ -33,6 +33,8 @@
 (defpackage cl-bullet-vis
     (:nicknames :bt-vis)
   (:use #:common-lisp #:bt)
+  (:import-from #:physics-utils
+                event-queue post-event get-next-event)
   (:export bullet-world-window world camera-transform
            closed draw *current-world*
            init-camera set-camera
@@ -40,7 +42,6 @@
            get-texture-handle camera-transform light-position
            gl-context
            *background-color*
-           event-queue post-event get-next-event
            collision-shape-color *collision-shape-color-overwrite*
            colored-shape-mixin colored-static-plane-shape
            colored-box-shape colored-sphere-shape colored-cone-shape

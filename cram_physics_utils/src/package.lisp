@@ -41,4 +41,5 @@
    scale-3d-model resize-3d-model
    shape-msg->points shape-msg->mesh
    points->point-cloud
-   calculate-mass))
+   calculate-mass
+   event-queue post-event get-next-event))
