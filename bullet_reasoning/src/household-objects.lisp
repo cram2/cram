@@ -95,7 +95,8 @@
   (add-object world 'mesh name pose :mass mass :mesh 'mug))
 
 (defmethod add-object ((world bt-world) (type (eql 'mesh)) name pose &key
-                       mass mesh (color '(0.5 0.5 0.5 1.0)))
+                       mass mesh (color '(0.5 0.5 0.5 1.0))
+                       disable-face-culling)
   (let ((mesh (etypecase mesh
                 (symbol (physics-utils:load-3d-model
                          (physics-utils:parse-uri (cadr (assoc mesh *mesh-files*)))
@@ -113,4 +114,4 @@
                                                  :points (physics-utils:3d-model-vertices mesh)
                                                  :faces (physics-utils:3d-model-faces mesh)
                                                  :color color
-                                                 :smooth-shading nil))))))
+                                                 :disable-face-culling disable-face-culling))))))
