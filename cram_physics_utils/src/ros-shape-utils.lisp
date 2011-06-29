@@ -43,6 +43,28 @@
               "This method requires point type 4"))
     (map 'vector #'point-msg->3d-vector vertices)))
 
+(defun point->msg (point &optional (msg-type "geometry_msgs/Point"))
+  (declare (type cl-transforms:3d-vector point))
+  (roslisp:make-msg
+   msg-type
+   x (cl-transforms:x point)
+   y (cl-transforms:y point)
+   z (cl-transforms:z point)))
+
+(defun points->point-cloud (pose points &key (frame-id "/map") (stamp 0.0))
+  (let ((pose-tf (cl-transforms:reference-transform pose)))
+    (roslisp:make-msg
+     "sensor_msgs/PointCloud"
+     (stamp header) stamp
+     (frame_id header) frame-id
+     points (map 'vector
+                 (lambda (p)
+                   (point->msg
+                    (cl-transforms:transform-point
+                     pose-tf p)
+                    "geometry_msgs/Point32"))
+                 points))))
+
 (defun shape-msg->mesh (shape &key (disable-type-check nil))
   (roslisp:with-fields (type triangles vertices)
       shape
