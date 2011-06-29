@@ -256,7 +256,7 @@
       action
       :trajectory (remove-trajectory-joints #("torso_lift_joint") trajectory)))))
 
-(defun execute-move-arm (side pose)
+(defun execute-move-arm (side pose &optional (planner :ompl))
   (let ((action (ecase side
                   (:left *move-arm-left*)
                   (:right *move-arm-right*)))
@@ -270,7 +270,9 @@
            action  
            (actionlib:make-action-goal
                action
-             planner_service_name "/ompl_planning/plan_kinematic_path"
+             planner_service_name (ecase planner
+                                    (:chomp "/chomp_planner_longrange/plan_path")
+                                    (:ompl "/ompl_planning/plan_kinematic_path"))
              (group_name motion_plan_request) (ecase side
                                                 (:right "right_arm")
                                                 (:left "left_arm"))
