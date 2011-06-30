@@ -39,40 +39,40 @@
                               :object_id object-id)
       (ecase type
         (0 ;; Sphere
-         (roslisp:with-fields (dimensions) shape
-           (add-object world 'sphere name pose
-                       :mass (physics-utils:calculate-mass
-                              :sphere :radius (/ (elt dimensions 0) 2))
-                       :radius (/ (elt dimensions 0) 2))))
+           (roslisp:with-fields (dimensions) shape
+             (add-object world 'sphere name pose
+                         :mass (physics-utils:calculate-mass
+                                :sphere :radius (/ (elt dimensions 0) 2))
+                         :radius (/ (elt dimensions 0) 2))))
         (1 ;; Box
-         (roslisp:with-fields (dimensions) shape
-           (add-object world 'box name pose
-                       :mass (physics-utils:calculate-mass
-                              :box
-                              :size-x (elt dimensions 0)
-                              :size-y (elt dimensions 1)
-                              :size-z (elt dimensions 2))
-                       :size (cl-transforms:make-3d-vector
-                              (elt dimensions 0)
-                              (elt dimensions 1)
-                              (elt dimensions 2)))))
+           (roslisp:with-fields (dimensions) shape
+             (add-object world 'box name pose
+                         :mass (physics-utils:calculate-mass
+                                :box
+                                :size-x (elt dimensions 0)
+                                :size-y (elt dimensions 1)
+                                :size-z (elt dimensions 2))
+                         :size (cl-transforms:make-3d-vector
+                                (elt dimensions 0)
+                                (elt dimensions 1)
+                                (elt dimensions 2)))))
         (2 ;; Cylinder
-         (roslisp:with-fields (dimensions) shape
-           (add-object world 'cylinder name pose
-                       :mass (physics-utils:calculate-mass
-                              :cylinder
-                              :radius (/ (elt dimensions 0) 2)
-                              :height (elt dimensions 2))
-                       :size (cl-transforms:make-3d-vector
-                              (elt dimensions 0)
-                              (elt dimensions 1)
-                              (elt dimensions 2)))))
+           (roslisp:with-fields (dimensions) shape
+             (add-object world 'cylinder name pose
+                         :mass (physics-utils:calculate-mass
+                                :cylinder
+                                :radius (/ (elt dimensions 0) 2)
+                                :height (elt dimensions 2))
+                         :size (cl-transforms:make-3d-vector
+                                (elt dimensions 0)
+                                (elt dimensions 1)
+                                (elt dimensions 2)))))
         (3 ;; Mesh
-         (let ((mesh (physics-utils:shape-msg->mesh shape)))
-           (add-object world 'mesh name pose
-                       :mass (physics-utils:calculate-mass
-                              :mesh :points (physics-utils:3d-model-vertices mesh))
-                       :mesh mesh)))
+           (let ((mesh (physics-utils:shape-msg->mesh shape)))
+             (add-object world 'mesh name pose
+                         :mass (physics-utils:calculate-mass
+                                :mesh :points (physics-utils:3d-model-vertices mesh))
+                         :mesh mesh)))
         (4 ;; Point cloud (inofficial)
            (roslisp:with-fields (mesh)
                (roslisp:call-service
@@ -84,14 +84,4 @@
              (add-object world 'mesh name pose
                          :mass 0.0
                          :mesh (physics-utils:shape-msg->mesh mesh)
-                         :disable-face-culling t))
-         ;; (make-object
-         ;;  world name
-         ;;  (list
-         ;;   (make-instance 'rigid-body
-         ;;     :name name
-         ;;     :mass 0.0 ;; We cannot simulate dynamics for point clouds,
-         ;;     ;; so we make them static objects
-         ;;     :collision-shape (make-instance 'convex-hull-shape
-         ;;                        :points (physics-utils:shape-msg->points shape)))))
-           )))))
+                         :disable-face-culling t)))))))
