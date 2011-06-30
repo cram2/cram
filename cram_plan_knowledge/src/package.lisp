@@ -81,7 +81,9 @@
            #:looking-at
            #:?lo
            #:arm-parked
-           #:?loc)
+           #:?loc
+           #:pm-executing #:?module #:?input
+           #:on-pm-execute)
   (:import-from #:cpl-impl
                 #:make-fluent
                 #:value
