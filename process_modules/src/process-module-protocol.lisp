@@ -110,17 +110,27 @@
 (defmethod pm-execute ((pm symbol) input &key
                        (async nil) (priority 0) (wait-for-free t)
                        (task *current-task*))
-  (let ((pm-known (cdr (assoc pm *process-modules*)) ))
+  (let ((pm-known (get-process-module pm)))
     (unless pm-known
       (error 'unknown-process-module :format-control "Unknown process module: ~a "  :format-arguments (list pm)))
     (pm-execute pm-known input
      :async async :priority priority
      :wait-for-free wait-for-free :task task)))
 
+(defun get-process-module (name)
+  "Returns the process module that corresponds is named `name'. `name'
+  can also be an alias. Returns NIL if the module could not be found"
+  (cdr (assoc name *process-modules*)))
+
+(defun get-process-module-name (module)
+  "Returns the name of the process module indicated by `module' or NIL
+  if the module is not registered"
+  (car (rassoc module (reverse *process-modules*))))
+
 (defun process-module-alias (alias name)
   "Allows for the definition of process module aliases. An alias is
 just a different name for an existing process module."
-  (let ((module (cdr (assoc name *process-modules*))))
+  (let ((module (get-process-module name)))
     (unless module
       (error 'unknown-process-module
              :format-control "Could not find process module with name `~s'"
