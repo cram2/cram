@@ -39,5 +39,6 @@
            #:status #:cancel #:priority #:caller #:pm-run #:pm-execute
            #:pm-cancel #:pm-status #:def-process-module
            #:process-module-alias #:with-process-module-aliases
-           #:get-process-module #:get-process-module-name)
+           #:get-process-module #:get-process-module-name
+           #:get-process-module-names)
   (:shadowing-import-from :cram-designators #:name))

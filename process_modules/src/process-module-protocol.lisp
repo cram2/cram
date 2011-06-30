@@ -127,6 +127,12 @@
   if the module is not registered"
   (car (rassoc module (reverse *process-modules*))))
 
+(defun get-process-module-names (module)
+  "Returns the list of all aliases for `module'"
+  (mapcar #'car (remove-if-not
+                 (lambda (i) (eql i module))
+                 *process-modules* :key #'cdr)))
+
 (defun process-module-alias (alias name)
   "Allows for the definition of process module aliases. An alias is
 just a different name for an existing process module."
