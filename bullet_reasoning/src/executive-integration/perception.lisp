@@ -32,18 +32,37 @@
 
 (defvar *disable-rete-integration* nil)
 
-(defvar *perceived-object-mappings* (tg:make-weak-hash-table :weakness :key-or-value)
-  "A weak hash-table that is used to map perceived-object instances to
-  a corresponding object name used in the reasoning system.")
+(defvar *perceived-object-mappings* (cons
+                                     (tg:make-weak-hash-table :weakness :key-or-value)
+                                     (tg:make-weak-hash-table :weakness :key-or-value))
+  "Two weak hash-tables that map PERCEIVED-OBJECT instances to OBJECTS
+  and the other way around.")
 
 (defvar *perception-worker-thread* nil)
 (defvar *perception-worker-input-queue* (make-instance 'physics-utils:event-queue))
 
+(defvar *perception-visible-objects* (tg:make-weak-hash-table :weakness :key)
+  "List of objects that are visible for a specific run of the
+  perception process module. The table maps input designators to a
+  list of visible object names.")
+
 (defun get-obj-name (perceived-object)
-  (let ((obj (gethash perceived-object *perceived-object-mappings*)))
+  (let ((obj (gethash perceived-object (car *perceived-object-mappings*))))
     (if obj
         (name obj)
         (gentemp "OBJ-" (find-package :btr)))))
+
+(defun get-perceived-object (obj)
+  (declare (type object obj))
+  (gethash obj (cdr *perceived-object-mappings*)))
+
+(defun cache-object (obj perceived-obj)
+  (declare (type object obj)
+           (type perception-pm:perceived-object perceived-obj))
+  (setf (gethash perceived-obj (car *perceived-object-mappings*))
+        obj)
+  (setf (gethash obj (cdr *perceived-object-mappings*))
+        perceived-obj))
 
 (defun get-prolog-object-description (name desig perceived-object)
   (declare (ignore desig))
@@ -79,8 +98,7 @@
                   (prolog `(and (bullet-world ?w)
                                 (assert-object ?w ,@object-descr)
                                 (%object ?w ,object-name ?obj))))
-               (setf (gethash ?perceived-object *perceived-object-mappings*)
-                     ?obj)))))
+               (cache-object ?obj ?perceived-object)))))
     (unless *disable-rete-integration*
       (when (eq op :assert)
         (maybe-create-perception-worker)
@@ -89,9 +107,7 @@
          #'add)))))
 
 (defun on-perception-started (input)
-  (declare (ignore input))
   (maybe-create-perception-worker)
-  ;; TODO: Don't be PR2 specific here
   (flet ((place-robot ()
            (with-vars-bound (?robot)
                (lazy-car
@@ -99,8 +115,59 @@
                               (robot ?robot-name)
                               (%object ?w ?robot-name ?robot))))
              (when ?robot
-               (set-robot-state-from-tf cram-roslisp-common:*tf* ?robot)))))
-    (physics-utils:post-event *perception-worker-input-queue* #'place-robot)))
+               (set-robot-state-from-tf cram-roslisp-common:*tf* ?robot))))
+         (init-visible-objects ()
+           (with-vars-bound (?visible-objects)
+               (lazy-car (prolog `(and (bullet-world ?w)
+                                       (robot ?robot)
+                                       (camera-frame ?camera)
+                                       (link-pose ?w ?robot ?camera ?camera-pose)
+                                       (setof ?obj (and (object-type ?obj household-object)
+                                                        (visible ?w ?camera-pose ?obj))
+                                              ?visible-objects))))
+             (setf (gethash input *perception-visible-objects*)
+                   (unless (is-var ?visible-objects)
+                     ?visible-objects)))))
+    (physics-utils:post-event
+     *perception-worker-input-queue*
+     (lambda ()
+       (place-robot)
+       (init-visible-objects)))))
+
+(defun on-perception-finished (input)
+  (maybe-create-perception-worker)
+  (let ((potentially-visible (gethash input *perception-visible-objects*)))
+    (flet ((remove-objects ()
+             (force-ll (prolog `(and
+                                 (bullet-world ?w)
+                                 (or (and
+                                      (member ?o ,potentially-visible)
+                                      (findall ?other (and (contact ?w ?o ?other)
+                                                           (object-type ?w ?other household-object))
+                                               nil)
+                                      (format "removing ~a~%" ?o)
+                                      (retract-object ?o))
+                                     (and
+                                      (object ?o-2)
+                                      (not (member ?o-2 ,potentially-visible))
+                                      (contact ?w ?o-1 ?o-2)
+                                      (object-type ?w ?o-1 household-object)
+                                      (object-type ?w ?o-2 household-object)
+                                      ;; ?o is the old object and ?o-2
+                                      ;; the new one. If we can
+                                      ;; replace ?o by ?o-2 (e.g. when
+                                      ;; ?o is a cluster, we replace
+                                      ;; it. If the two descriptions
+                                      ;; are equal, i.e. if we have
+                                      ;; the same object twice, we
+                                      ;; also replace
+                                      ;; objects. Otherwise we get rid
+                                      ;; of the new perception.
+                                      (-> (object-replacable ?w ?o-1 ?o-2)
+                                          (retract-object ?w ?o-1)
+                                          (retract-object ?w ?o-2)))))))))
+      (remhash input *perception-visible-objects*)
+      (physics-utils:post-event *perception-worker-input-queue* #'remove-objects))))
 
 (defun on-pm-execute (op &key ?module ?input)
   (when (eql ?module :perception)
@@ -110,6 +177,7 @@
          (on-perception-started ?input))
       (:retract
          (roslisp:ros-info (perception reasoning) "Perception process module finished. Synchronizing.")
+         (on-perception-finished ?input)
          (physics-utils:wait-for-queue-empty *perception-worker-input-queue*)))))
 
 (def-production on-object-perceived
