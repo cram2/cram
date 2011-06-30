@@ -30,11 +30,11 @@
 
 (in-package :cram-plan-knowledge)
 
-(defmethod cram-process-modules:pm-execute :before (module input &key &allow-other-keys)
-  (rete-assert `(pm-executing ,module ,input)))
-
-(defmethod cram-process-modules:pm-execute :after (module input &key &allow-other-keys)
-  (rete-retract `(pm-executing ,module ,input)))
+(defmethod cram-process-modules:pm-execute :around ((module symbol) input &key &allow-other-keys)
+  (rete-assert `(pm-executing ,module ,input))
+  (unwind-protect
+       (call-next-method)
+    (rete-retract `(pm-executing ,module ,input))))
 
 (def-production on-pm-execute
   (pm-executing ?module ?input))
