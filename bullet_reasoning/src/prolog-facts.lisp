@@ -73,10 +73,10 @@
               ?_))
 
   (<- (retract-object ?name)
-    (bullet-world ?w)
-    (retract-object ?w))
+    (retract-object ?_ ?name))
   
   (<- (retract-object ?world ?name)
+    (bullet-world ?world)
     (lisp-fun remove-object ?world ?name ?_))
 
   (<- (object ?name)
