@@ -32,6 +32,6 @@
 
 (def-fact-group robot-metadata ()
   (<- (robot pr2))
-  (<- (camera-frame "narrow_stereo_optical_frame"))
+  (<- (camera-frame "openni_rgb_optical_frame"))
   (<- (robot-pan-tilt-links "head_pan_link" "head_tilt_link"))
   (<- (robot-pan-tilt-joints "head_pan_joint" "head_tilt_joint")))
