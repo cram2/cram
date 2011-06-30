@@ -81,7 +81,7 @@
                 :points (physics-utils:points->point-cloud
                          (cl-transforms:make-identity-pose)
                          (physics-utils:shape-msg->points shape)))
-             (add-object world 'mesh name (cl-transforms:make-identity-pose)
+             (add-object world 'mesh name pose
                          :mass 0.0
                          :mesh (physics-utils:shape-msg->mesh mesh)
                          :disable-face-culling t))
