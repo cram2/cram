@@ -79,12 +79,16 @@
                       (let* ((point-1 (point-msg->3d-vector (aref vertices (aref triangles i))))
                              (point-2 (point-msg->3d-vector (aref vertices (aref triangles (+ i 2)))))
                              (point-3 (point-msg->3d-vector (aref vertices (aref triangles (+ i 1)))))
+                             (pose-vec (cl-transforms:v* (cl-transforms:v+ point-1 point-2 point-3) (/ 3)))
                              (normal (cl-transforms:cross-product (cl-transforms:v-
                                                                    point-2 point-1)
                                                                   (cl-transforms:v-
                                                                    point-3 point-1)))
                              (normal-normalized (cl-transforms:v*
-                                                 normal (/ (cl-transforms:v-norm normal)))))
+                                                 normal
+                                                 (if (> (cl-transforms:dot-product pose-vec normal) 0)
+                                                     (/ (cl-transforms:v-norm normal))
+                                                     (/ (- (cl-transforms:v-norm normal)))))))
                         (setf (aref result j)
                               (physics-utils:make-face
                                :normals (list normal-normalized normal-normalized normal-normalized)
