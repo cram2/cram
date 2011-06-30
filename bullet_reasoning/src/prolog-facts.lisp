@@ -85,6 +85,14 @@
   
   (<- (object ?world ?name)
     (%object ?world ?name ?_))
+
+  (<- (object-type ?name ?type)
+    (object-type ?_ ?name ?type))
+  
+  (<- (object-type ?world ?name ?type)
+    (bullet-world ?w)
+    (%object ?w ?name ?obj)
+    (lisp-type ?obj ?type))
   
   (<- (%object ?world ?name ?obj)
     (bound ?name)
