@@ -32,7 +32,7 @@
 
 (defvar *disable-rete-integration* nil)
 
-(defvar *perceived-object-mappings* (tg:make-weak-hash-table :weakness :key)
+(defvar *perceived-object-mappings* (tg:make-weak-hash-table :weakness :key-or-value)
   "A weak hash-table that is used to map perceived-object instances to
   a corresponding object name used in the reasoning system.")
 
@@ -40,9 +40,10 @@
 (defvar *perception-worker-input-queue* (make-instance 'physics-utils:event-queue))
 
 (defun get-obj-name (perceived-object)
-  (or (gethash perceived-object *perceived-object-mappings*)
-      (setf (gethash perceived-object *perceived-object-mappings*)
-            (gentemp "OBJ-" (find-package :btr)))))
+  (let ((obj (gethash perceived-object *perceived-object-mappings*)))
+    (if obj
+        (name obj)
+        (gentemp "OBJ-" (find-package :btr)))))
 
 (defun get-prolog-object-description (name desig perceived-object)
   (declare (ignore desig))
@@ -73,9 +74,13 @@
            (let* ((object-name (get-obj-name ?perceived-object))
                   (object-descr (get-prolog-object-description
                                  object-name ?desig ?perceived-object)))
-             (force-ll
-              (prolog `(and (bullet-world ?w)
-                            (assert-object ?w ,@object-descr)))))))
+             (with-vars-bound (?obj)
+                 (lazy-car
+                  (prolog `(and (bullet-world ?w)
+                                (assert-object ?w ,@object-descr)
+                                (%object ?w ,object-name ?obj))))
+               (setf (gethash ?perceived-object *perceived-object-mappings*)
+                     ?obj)))))
     (unless *disable-rete-integration*
       (when (eq op :assert)
         (maybe-create-perception-worker)
