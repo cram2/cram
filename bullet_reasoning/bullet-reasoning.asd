@@ -91,4 +91,5 @@
                (:module "executive-integration"
                         :depends-on ("package")
                         :components
-                        ((:file "perception")))))))
+                        ((:file "perception")
+                         (:file "perception-facts")))))))
