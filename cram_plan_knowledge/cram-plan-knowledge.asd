@@ -36,6 +36,7 @@
                cram-language
                cram-utilities
                cram-execution-trace
+               process-modules
                alexandria
                designators)
   :components
