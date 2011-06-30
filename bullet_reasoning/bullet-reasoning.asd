@@ -46,11 +46,13 @@
                  semantic-map-costmap
                  perception-process-module
                  cram-roslisp-common
+                 cram-plan-knowledge
                  triangulate_point_cloud-srv)
     :components
     ((:module "src"
               :components
               ((:file "package")
+               (:file "pr2-metadata" :depends-on ("package"))
                (:file "utils" :depends-on ("package"))
                (:file "prolog-handlers" :depends-on ("package"))
                (:file "prolog-facts" :depends-on ("package"))

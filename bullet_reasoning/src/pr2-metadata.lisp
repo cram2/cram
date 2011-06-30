@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2011, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -28,16 +28,10 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :btr-desig)
+(in-package :btr)
 
-(def-fact-group costmap-metadata ()
-  (<- (costmap-size 25 25))
-  (<- (costmap-origin -12.5 -12.5))
-  (<- (costmap-resolution 0.05))
-
-  (<- (costmap-padding 0.6))
-  (<- (costmap-manipulation-padding 0.5))
-  (<- (costmap-in-reach-padding 1.0)))
-
-(def-fact-group semantic-map-metadata ()
-  (<- (semantic-map-obj btr::sem-map)))
+(def-fact-group robot-metadata ()
+  (<- (robot pr2))
+  (<- (camera-frame "narrow_stereo_optical_frame"))
+  (<- (robot-pan-tilt-links "head_pan_link" "head_tilt_link"))
+  (<- (robot-pan-tilt-joints "head_pan_joint" "head_tilt_joint")))
