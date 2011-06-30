@@ -38,7 +38,7 @@
 #include <pcl/point_types.h>
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/surface/mls.h>
-#include <pcl/surface/grid_projection.h>
+#include <pcl/surface/convex_hull.h>
 
 #include <sensor_msgs/point_cloud_conversion.h>
 #include <triangulate_point_cloud/TriangulatePCL.h>
@@ -50,9 +50,8 @@ using namespace pcl;
 using namespace triangulate_point_cloud;
 
 void reconstructMesh(const PointCloud<PointXYZ>::ConstPtr &cloud,
-  PointCloud<PointXYZ> &output_cloud, PolygonMesh &triangles)
+  PointCloud<PointXYZ> &output_cloud, std::vector<Vertices> &triangles)
 {
-  ROS_INFO("Started");
   boost::shared_ptr<std::vector<int> > indices(new std::vector<int>);
   indices->resize(cloud->points.size ());
   for (size_t i = 0; i < indices->size (); ++i) { (*indices)[i] = i; }
@@ -60,8 +59,8 @@ void reconstructMesh(const PointCloud<PointXYZ>::ConstPtr &cloud,
   KdTree<PointXYZ>::Ptr tree(new KdTreeFLANN<PointXYZ>);
   tree->setInputCloud(cloud);
 
-  PointCloud<PointXYZ> mls_points;
-  PointCloud<Normal>::Ptr mls_normals(new PointCloud<Normal> ());
+  PointCloud<PointXYZ>::Ptr mls_points(new PointCloud<PointXYZ>);
+  PointCloud<Normal>::Ptr mls_normals(new PointCloud<Normal>);
   MovingLeastSquares<PointXYZ, Normal> mls;
 
   mls.setInputCloud(cloud);
@@ -71,25 +70,12 @@ void reconstructMesh(const PointCloud<PointXYZ>::ConstPtr &cloud,
   mls.setSearchRadius(0.03);
 
   mls.setOutputNormals (mls_normals);
-  mls.reconstruct (mls_points);
+  mls.reconstruct (*mls_points);
 
-  PointCloud<PointNormal>::Ptr mls_cloud (new PointCloud<PointNormal> ());
-  pcl::concatenateFields (mls_points, *mls_normals, *mls_cloud);
+  ConvexHull<PointXYZ> ch;
 
-  KdTree<PointNormal>::Ptr tree2 (new KdTreeFLANN<PointNormal>);
-  tree2->setInputCloud (mls_cloud);
-
-  GridProjection<PointNormal> gp;
-  gp.setResolution(0.005);
-  gp.setPaddingSize(2);
-  gp.setMaxBinarySearchLevel(2);
-
-  gp.setInputCloud(mls_cloud);
-  gp.setSearchMethod(tree2);
-
-  gp.reconstruct (triangles);
-
-  fromROSMsg(triangles.cloud, output_cloud);
+  ch.setInputCloud(mls_points);
+  ch.reconstruct(output_cloud, triangles);
 }
 
 template<typename T>
@@ -102,7 +88,7 @@ void toPoint(const T &in, geometry_msgs::Point &out)
 
 template<typename T>
 void polygonMeshToShapeMsg(const PointCloud<T> &points,
-  const PolygonMesh &triangles,
+  const std::vector<Vertices> &triangles,
   geometric_shapes_msgs::Shape &shape)
 {
   shape.type = geometric_shapes_msgs::Shape::MESH;
@@ -110,17 +96,18 @@ void polygonMeshToShapeMsg(const PointCloud<T> &points,
   for(size_t i=0; i<points.points.size(); i++)
     toPoint(points.points[i], shape.vertices[i]);
 
-  ROS_INFO("Found %ld polygons", triangles.polygons.size());
-  BOOST_FOREACH(const pcl::Vertices polygon, triangles.polygons)
+  ROS_INFO("Found %ld polygons", triangles.size());
+  BOOST_FOREACH(const pcl::Vertices polygon, triangles)
   {
-    ROS_ASSERT(polygon.vertices.size() >= 4);
+    if(polygon.vertices.size() < 3)
+    {
+      ROS_WARN("Not enough points in polygon. Ignoring it.");
+      continue;
+    }
+      
     shape.triangles.push_back(polygon.vertices[0]);
     shape.triangles.push_back(polygon.vertices[1]);
     shape.triangles.push_back(polygon.vertices[2]);
-
-    shape.triangles.push_back(polygon.vertices[0]);
-    shape.triangles.push_back(polygon.vertices[2]);
-    shape.triangles.push_back(polygon.vertices[3]);
   }
 }
 
@@ -134,7 +121,7 @@ bool onTriangulatePcl(TriangulatePCL::Request &req, TriangulatePCL::Response &re
   PointCloud<PointXYZ> out_cloud;
   fromROSMsg(cloud_raw, *cloud);
 
-  PolygonMesh triangles;
+  std::vector<Vertices> triangles;
 
   ROS_INFO("Triangulating");
   reconstructMesh(cloud, out_cloud, triangles);
