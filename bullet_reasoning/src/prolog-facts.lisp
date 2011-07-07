@@ -42,6 +42,7 @@
     (lisp-fun set *current-bullet-world* nil ?_))
   
   (<- (clear-bullet-world ?world)
+    (not (bound ?world))
     (instance-of bt-reasoning-world ?world))
   
   (<- (bullet-world ?world)
