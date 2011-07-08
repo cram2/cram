@@ -484,17 +484,14 @@
 
   (<- (blocking ?w ?robot-name ?obj-name ?side ?blocking-names)
     (bullet-world ?w)
-    (%object ?w ?robot-name ?robot)
-    (lisp-type ?robot robot-object)
-    (%object ?w ?obj-name ?obj)
-    (%blocking ?w ?robot ?obj ?side ?blocking)
-    (findall ?b-name (and (member ?b ?blocking)
-                          (%object ?w ?b-name ?b))
+    (%blocking ?w ?robot-name ?obj-name ?side ?blocking)
+    (findall ?b (and (member ?b ?blocking))
              ?blocking-names))
   
-  (<- (%blocking ?w ?robot ?obj ?side ?objs)
-    (ground (?w ?robot))
-    (%object ?w ?_ ?obj)
+  (<- (%blocking ?w ?robot-name ?obj-name ?side ?objs)
+    (ground (?w ?robot-name))
+    (%object ?w ?robot-name ?robot)
+    (%object ?w ?obj-name ?obj)
     (side ?side)
     (-> (setof
          ?o
@@ -502,14 +499,14 @@
           (grasp ?grasp)
           ;; We don't want to have the supporting object as a blocking
           ;; object.
-          (-> (supported-by ?w ?obj ?supporting) (true) (true))
+          (-> (supported-by ?w ?obj-name ?supporting) (true) (true))
           ;; Generate all ik solutions
           (lisp-fun reach-object-ik ?robot ?obj :side ?side :grasp ?grasp ?ik-solutions)
           (member ?ik-solution ?ik-solutions)
           (ik-solution-in-collision ?w ?robot ?ik-solution ?colliding-objects)
           (member ?o ?colliding-objects)
-          (not (== ?o ?obj))
-          (not (== ?o ?supporting)))
+          (not (== ?o ?obj-name))
+          (-> (bound ?supporting) (not (== ?o ?supporting)) (true)))
          ?objs)
         (true)
         (== ?objs ())))
@@ -517,7 +514,9 @@
   (<- (ik-solution-in-collision ?w ?robot ?ik-solution ?colliding-objects)
     (with-stored-world ?w
       (lisp-fun set-robot-state-from-joints ?ik-solution ?robot ?_)
-      (findall ?obj (contact ?w ?robot ?obj) ?colliding-objects))))
+      (lisp-fun break ?_)
+      (%object ?w ?robot-name ?robot)
+      (findall ?obj (contact ?w ?robot-name ?obj) ?colliding-objects))))
 
 (def-fact-group debug ()
   (<- (debug-window ?world)
