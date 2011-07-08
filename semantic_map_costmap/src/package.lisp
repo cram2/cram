@@ -35,4 +35,4 @@
           #:designators-ros #:cram-roslisp-common
           #:desig)
   (:export)
-  (:desig-properties #:on #:name #:to #:see #:reach))
+  (:desig-properties #:on #:name #:to #:see #:reach #:type))
