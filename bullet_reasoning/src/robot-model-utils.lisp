@@ -36,7 +36,7 @@
       (handler-case
           (setf (link-pose robot name) (cl-transforms:transform->pose
                                         (tf:lookup-transform tf :source-frame tf-name :target-frame reference-frame)))
-        (tf:tf-connectivity-error ()
+        (tf:tf-lookup-error ()
           nil)))))
 
 (defun set-robot-state-from-joints (joint-states robot)
