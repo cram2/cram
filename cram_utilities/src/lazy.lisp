@@ -146,8 +146,6 @@
         (when (eq values +lazy-value-uninitialized+)
           (setf values (apply fun initial-values)))
         (flet ((proceed (next-values lists)
-                 (assert (or (consp next-values) nil) ()
-                         "`fun' needs to return a (lazy-) list")
                  (if next-values
                      (cont (lazy-car next-values) (lazy-cdr next-values) lists)
                      (next (lazy-cdr next-values) lists))))
@@ -156,7 +154,9 @@
                  (let* ((cdrs (mapcar #'lazy-cdr lists))
                         (cars (mapcar #'lazy-car cdrs)))
                    (unless (position nil cdrs)
-                     (proceed (apply fun cars) cdrs))))))))))
+                     (let ((fun-res (apply fun cars)))                       
+                       (assert (listp fun-res) () "Applied fun ~a to ~a but result ~a is not a list~%" fun cars fun-res)
+                       (proceed fun-res cdrs)))))))))))
 
 (defun lazy-elt (ll index)
   (if (eql index 0)
