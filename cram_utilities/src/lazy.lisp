@@ -41,7 +41,7 @@
 ;;; When the list is fully expanded, it transforms into a normal
 ;;; list.
 
-(defconstant +lazy-value-uninitialized+ 'foo)
+(defconstant +lazy-value-uninitialized+ '+lazy-value-uninitialized+)
 
 ;; Lazy container
 (defstruct delay
