@@ -146,6 +146,8 @@
         (when (eq values +lazy-value-uninitialized+)
           (setf values (apply fun initial-values)))
         (flet ((proceed (next-values lists)
+                 (assert (or (consp next-values) nil) ()
+                         "`fun' needs to return a (lazy-) list")
                  (if next-values
                      (cont (lazy-car next-values) (lazy-cdr next-values) lists)
                      (next (lazy-cdr next-values) lists))))
