@@ -83,9 +83,9 @@
   "Registers a location generator function. `priority' is a fixnum
 used to order all location generators. Solutions generated with
 functions with smaller priorities are used first. `function' is a
-symbol naming the function that generates a solution and that takes
-exaclty one argument, the designator. `documantion' is an optional
-doc string."
+symbol naming the function that generates a list of solutions and that
+takes exactly one argument, the designator. `documentation' is an
+optional doc string."
   (declare (type fixnum priority)
            (type symbol function)
            (type (or null string) documentation))
