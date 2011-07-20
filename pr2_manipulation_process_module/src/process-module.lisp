@@ -142,7 +142,14 @@
 (defmethod call-action ((action-sym (eql 'park)) &rest params)
   (destructuring-bind (obj side) params
     (roslisp:ros-info (pr2-manip process-module) "Park arms ~a ~a"
-                      obj side)))
+                      obj side)
+    (let ((orientation (calculate-carry-orientation obj))
+          (carry-pose (ecase side
+                        (:right *carry-pose-right*)
+                        (:left *carry-pose-left*))))
+      (if orientation
+          (execute-move-arm side (tf:copy-pose-stamped carry-pose :orientation orientation))
+          (execute-move-arm side carry-pose)))))
 
 (defmethod call-action ((action-sym (eql 'lift)) &rest params)
   (destructuring-bind (obj side distance) params
@@ -368,6 +375,11 @@
 (defun get-open-trajectory (obj)
   (declare (type object-designator obj))
   (gethash obj *open-trajectories*))
+
+(defun calculate-carry-orientation (obj)
+  (when obj
+    (let ((location-desig (desig-prop-value (current-desig obj) 'at)))
+      (desig-prop-value location-desig 'orientation))))
 
 (def-process-module pr2-manipulation-process-module (desig)
   (apply #'call-action (reference desig)))
