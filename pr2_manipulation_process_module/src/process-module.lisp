@@ -383,7 +383,13 @@
                   (position command) 0.085
                   (max_effort command) max-effort)
          :result-timeout 1.0)
-      (retract-occasion `(object-in-hand ?_ ,side)))))
+      (let ((obj (var-value
+                  '?obj
+                  (lazy-car
+                   (rete-holds `(object-in-hand ?obj ,side))))))
+        (unless (is-var obj)
+          (detach-collision-object side obj)
+          (retract-occasion `(object-in-hand obj ,side)))))))
 
 (defun store-open-trajectory (obj open-result)
   (declare (type object-designator obj)
