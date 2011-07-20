@@ -240,6 +240,21 @@
     (attach-collision-object side obj)
     (assert-occasion `(object-in-hand ,obj ,side))))
 
+(def-action-handler put-down (obj location side)
+  (roslisp:ros-info (pr2-manip process-module) "Putting down object")
+  (assert (and (rete-holds `(object-in-hand ,obj ,side))) ()
+          "Object ~a needs to be in the gripper" obj)
+  (let* ((put-down-pose (calculate-put-down-pose obj location))
+         (pre-put-down-pose (tf:copy-pose-stamped
+                             put-down-pose
+                             :origin (cl-transforms:v+
+                                      (cl-transforms:origin put-down-pose)
+                                      (cl-transforms:make-3d-vector 0 0 0.1)))))
+    (execute-move-arm side pre-put-down-pose :ompl)
+    (execute-arm-trajectory side (ik->trajectory (lazy-car (get-ik side put-down-pose))))
+    (open-gripper side)
+    (execute-arm-trajectory side (ik->trajectory (lazy-car (get-ik side pre-put-down-pose))))))
+
 (defun execute-goal (server goal)
   (multiple-value-bind (result status)
       (actionlib:call-goal server goal)
