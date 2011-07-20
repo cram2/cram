@@ -229,7 +229,7 @@
                   (lambda (grasp-pose)
                     (destructuring-bind (pre-grasp grasp) grasp-pose
                       (ignore-some-conditions (move-arm-no-ik-solution move-arm-ik-link-in-collision)
-                        (execute-move-arm side pre-grasp)
+                        (execute-move-arm side pre-grasp :ompl)
                         (execute-arm-trajectory side (ik->trajectory (lazy-car (get-ik side grasp)))))))
                   grasp-poses))
        (cpl-impl:fail 'manipulation-pose-unreachable))
@@ -237,7 +237,8 @@
       (compliant-close-girpper side)
       ;; TODO: Check if gripper is not completely closed to make sure that we are holding the object
       (roslisp:ros-info (pr2-manip process-module) "Attaching object to gripper")
-      (attach-collision-object side obj))))
+      (attach-collision-object side obj)
+      (assert-occasion `(object-in-hand ,obj ,side)))))
 
 (defun execute-goal (server goal)
   (multiple-value-bind (result status)
@@ -360,11 +361,13 @@
   (let ((client (ecase side
                   (:right *gripper-action-right*)
                   (:left *gripper-action-left*))))
-    (actionlib:send-goal-and-wait
-     client (actionlib:make-action-goal client
-              (position command) 0.085
-              (max_effort command) max-effort)
-     :result-timeout 1.0)))
+    (prog1
+        (actionlib:send-goal-and-wait
+         client (actionlib:make-action-goal client
+                  (position command) 0.085
+                  (max_effort command) max-effort)
+         :result-timeout 1.0)
+      (retract-occasion `(object-in-hand ?_ ,side)))))
 
 (defun store-open-trajectory (obj open-result)
   (declare (type object-designator obj)
