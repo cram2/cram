@@ -61,5 +61,6 @@
   (:shadowing-import-from #:table-costmap
                           #:name)
   (:export #:object-opened #:object-closed)
-  (:desig-properties #:cluster))
+  (:desig-properties #:cluster #:in #:gripper #:side #:pose
+                     #:height #:orientation #:at))
 
