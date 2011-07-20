@@ -43,7 +43,7 @@
                geometry_msgs-msg
                alexandria
                cl-utils
-               table-costmap
+               semantic-map-costmap
                cram-plan-actionserver
                perception-process-module
                point-head-process-module
