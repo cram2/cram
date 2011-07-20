@@ -47,5 +47,6 @@
    pr2-manipulation-process-module)
   (:desig-properties #:trajectory #:type #:to #:open #:obj #:side #:close
                      #:grasp #:put-down #:pose #:parked #:lift
-                     #:carry #:at #:orientation))
+                     #:carry #:at #:orientation #:in #:gripper
+                     #:height))
 
