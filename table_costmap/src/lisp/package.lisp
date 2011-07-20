@@ -50,7 +50,8 @@
            #:table-cluster
            #:cov #:mean
            #:*initial-stddev*
-           #:*accept-threshold*)
+           #:*accept-threshold*
+           #:desig-z-value)
   (:import-from :cpl #:make-fluent #:value)
   (:desig-properties #:on #:name #:to #:see #:reach #:table
                      #:obj #:location #:in #:reach))

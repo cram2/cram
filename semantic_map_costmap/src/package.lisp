@@ -34,5 +34,5 @@
     (:use #:common-lisp #:crs #:location-costmap
           #:designators-ros #:cram-roslisp-common
           #:desig)
-  (:export)
+  (:export #:desig-z-value)
   (:desig-properties #:on #:name #:to #:see #:reach #:type))
