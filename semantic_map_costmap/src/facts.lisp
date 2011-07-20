@@ -138,7 +138,14 @@
      ?cm))
 
   (<- (desig-z-value ?desig ?point ?z)
+    (loc-desig? ?desig)
     (semantic-map-desig-objects ?desig ?objects)
+    (member (?pose ?dimensions) ?objects)
+    (lisp-pred point-on-object ?pose ?dimensions ?point)
+    (lisp-fun obj-z-value ?pose ?dimensions ?z))
+
+  (<- (supporting-z-value ?point ?z)
+    (semantic-map-objects ?objects)
     (member (?pose ?dimensions) ?objects)
     (lisp-pred point-on-object ?pose ?dimensions ?point)
     (lisp-fun obj-z-value ?pose ?dimensions ?z)))
