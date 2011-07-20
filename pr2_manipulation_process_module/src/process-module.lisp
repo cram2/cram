@@ -280,7 +280,8 @@
                action
              planner_service_name (ecase planner
                                     (:chomp "/chomp_planner_longrange/plan_path")
-                                    (:ompl "/ompl_planning/plan_kinematic_path"))
+                                    (:ompl "/ompl_planning/plan_kinematic_path")
+                                    (:stomp "/stomp_motion_planner/plan_path"))
              (group_name motion_plan_request) (ecase side
                                                 (:right "right_arm")
                                                 (:left "left_arm"))
