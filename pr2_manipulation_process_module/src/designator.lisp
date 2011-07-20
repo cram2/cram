@@ -95,10 +95,11 @@
     (desig-prop ?desig (obj ?obj))
     (desig-prop ?desig (side ?side)))
 
-  (<- (action-desig ?desig (put-down ?obj ?side))
+  (<- (action-desig ?desig (put-down ?obj ?loc ?side))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to put-down))
     (desig-prop ?desig (side ?side))
-    (desig-prop ?desig (obj ?obj))))
+    (desig-prop ?desig (obj ?obj))
+    (desig-prop ?desig (at ?loc))))
 
 
