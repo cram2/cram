@@ -310,13 +310,15 @@
           (cl-transforms:transform*
            obj-tf-inv
            (cl-transforms:reference-transform (tf:msg->pose (car g))))))
-       (sort (map 'list
-                  (lambda (grasp)
-                    (roslisp:with-fields (grasp_pose success_probability)
-                        grasp
-                      (cons grasp_pose success_probability)))
-                  grasps)
-             #'> :key #'cdr)))))
+       (let ((result (sort (map 'list
+                                (lambda (grasp)
+                                  (roslisp:with-fields (grasp_pose success_probability)
+                                      grasp
+                                    (cons grasp_pose success_probability)))
+                                grasps)
+                           #'> :key #'cdr)))
+         (prog1 result
+           (roslisp:ros-info (pr2-manip process-module) "found ~a grasps~%" (length result))))))))
 
 (defun calculate-tool-pose (grasp tool-length)
   (cl-transforms:transform->pose
