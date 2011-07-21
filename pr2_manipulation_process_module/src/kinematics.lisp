@@ -199,43 +199,49 @@
                             (points-1 points))
           trajectory
         (roslisp:with-fields ((points-2 points)) (car trajectories)
-          (apply
-           #'merge-trajectories
-           velocity
-           (roslisp:make-message
-            "trajectory_msgs/JointTrajectory"
-            (stamp header) stamp
-            joint_names joint-names
-            points (let ((time 0))
-                     (map
-                      'vector
-                      (lambda (pt)
-                        (roslisp:with-fields (positions time_from_start) pt
-                          (prog1
-                              (if (not (eq pt (elt points-2 (1- (length points-2)))))
-                                  (roslisp:make-message
-                                   "trajectory_msgs/JointTrajectoryPoint"
-                                   positions positions
-                                   velocities (map 'vector #'identity
-                                                   (make-list (length joint-names)
-                                                              :initial-element velocity))
-                                   accelerations (map 'vector #'identity
-                                                      (make-list (length joint-names)
-                                                                 :initial-element 1.0))
-                                   time_from_start (+ time time_from_start))
-                                  (roslisp:make-message
-                                   "trajectory_msgs/JointTrajectoryPoint"
-                                   positions positions
-                                   velocities (map 'vector #'identity
-                                                   (make-list (length joint-names)
-                                                              :initial-element 0.0))
-                                   accelerations (map 'vector #'identity
-                                                      (make-list (length joint-names)
-                                                                 :initial-element 0.0))
-                                   time_from_start (+ time time_from_start)))
-                            (incf time time_from_start))))
-                      (concatenate 'vector points-1 points-2))))
-           (cdr trajectories))))
+          (let ((last (unless (cdr trajectories)
+                        (elt points-2 (1- (length points-2))))))
+            (apply
+             #'merge-trajectories
+             velocity
+             (roslisp:make-message
+              "trajectory_msgs/JointTrajectory"
+              (stamp header) stamp
+              joint_names joint-names
+              points (let ((time 0)
+                           (current-time))
+                       (map
+                        'vector
+                        (lambda (pt)
+                          (roslisp:with-fields (positions time_from_start) pt
+                            (when (eq pt (elt points-2 0))
+                              (incf time current-time))
+                            (setf current-time (+ time time_from_start))
+                            (prog1
+                                (if (not (eq pt last))
+                                    (roslisp:make-message
+                                     "trajectory_msgs/JointTrajectoryPoint"
+                                     positions positions
+                                     velocities (map 'vector #'identity
+                                                     (make-list (length joint-names)
+                                                                :initial-element velocity))
+                                     accelerations (map 'vector #'identity
+                                                        (make-list (length joint-names)
+                                                                   :initial-element 0.0))
+                                     time_from_start current-time)
+                                    (roslisp:make-message
+                                     "trajectory_msgs/JointTrajectoryPoint"
+                                     positions positions
+                                     velocities (map 'vector #'identity
+                                                     (make-list (length joint-names)
+                                                                :initial-element 0.0))
+                                     accelerations (map 'vector #'identity
+                                                        (make-list (length joint-names)
+                                                                   :initial-element 0.0))
+                                     time_from_start current-time))
+                              )))
+                        (concatenate 'vector points-1 points-2))))
+             (cdr trajectories)))))
       trajectory))
 
 (defun get-ik (side pose &key
