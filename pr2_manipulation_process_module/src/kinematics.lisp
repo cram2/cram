@@ -135,6 +135,12 @@
                (roslisp:make-message
                 "trajectory_msgs/JointTrajectoryPoint"
                 positions solution-positions
+                velocities (map 'vector #'identity
+                                (make-list (length solution-positions)
+                                           :initial-element 0.0))
+                accelerations (map 'vector #'identity
+                                   (make-list (length solution-positions)
+                                              :initial-element 0.0))
                 time_from_start duration))))))
 
 (defun remove-trajectory-joints (joints trajectory &key invert)
