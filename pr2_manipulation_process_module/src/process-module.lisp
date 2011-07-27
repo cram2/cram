@@ -226,7 +226,7 @@
      (lazy-car (lazy-mapcar
                 (lambda (grasp-pose)
                   (destructuring-bind (pre-grasp grasp) grasp-pose
-                    (execute-move-arm side pre-grasp :ompl)
+                    (execute-move-arm side pre-grasp)
                     (execute-arm-trajectory side (ik->trajectory (lazy-car (get-ik side grasp))))))
                 grasp-poses))
      (cpl-impl:fail 'manipulation-pose-unreachable))
@@ -247,7 +247,7 @@
                              :origin (cl-transforms:v+
                                       (cl-transforms:origin put-down-pose)
                                       (cl-transforms:make-3d-vector 0 0 0.05)))))
-    (execute-move-arm side pre-put-down-pose :ompl)
+    (execute-move-arm side pre-put-down-pose)
     (execute-arm-trajectory side (ik->trajectory (lazy-car (get-ik side put-down-pose))))
     (open-gripper side)
     (execute-arm-trajectory side (ik->trajectory (lazy-car (get-ik side pre-put-down-pose))))))
@@ -276,75 +276,85 @@
       action
       :trajectory (remove-trajectory-joints #("torso_lift_joint") trajectory)))))
 
-(defun execute-move-arm (side pose &optional (planner :ompl))
-  (let ((action (ecase side
-                  (:left *move-arm-left*)
-                  (:right *move-arm-right*)))
-        (pose-msg (tf:pose-stamped->msg pose)))
-    (roslisp:with-fields (header
-                          (position (position pose))
-                          (orientation (orientation pose)))
-        pose-msg
-      (roslisp:with-fields ((val (val error_code)))
-          (actionlib:call-goal
-           action  
-           (actionlib:make-action-goal
-               action
-             planner_service_name (ecase planner
-                                    (:chomp "/chomp_planner_longrange/plan_path")
-                                    (:ompl "/ompl_planning/plan_kinematic_path")
-                                    (:stomp "/stomp_motion_planner/plan_path"))
-             (group_name motion_plan_request) (ecase side
-                                                (:right "right_arm")
-                                                (:left "left_arm"))
-             (num_planning_attempts motion_plan_request) 10
-             (planner_id motion_plan_request) ""
-             (allowed_planning_time motion_plan_request) 10.0
-        
-             (position_constraints goal_constraints motion_plan_request)
-             (vector
-              (roslisp:make-msg
-               "motion_planning_msgs/PositionConstraint"
-               header header
-               link_name (ecase side
-                           (:left "l_wrist_roll_link")
-                           (:right "r_wrist_roll_link"))
-               position position
-               (type constraint_region_shape) (roslisp-msg-protocol:symbol-code
-                                               'geometric_shapes_msgs-msg:shape
-                                               :box)
-               (dimensions constraint_region_shape) #(0.01 0.01 0.01)
-               (w constraint_region_orientation) 1.0
-               weight 1.0))
-        
-             (orientation_constraints goal_constraints motion_plan_request)
-             (vector
-              (roslisp:make-msg
-               "motion_planning_msgs/OrientationConstraint"
-               header header
-               link_name (ecase side
-                           (:left "l_wrist_roll_link")
-                           (:right "r_wrist_roll_link"))
-               orientation orientation
-               absolute_roll_tolerance 0.01
-               absolute_pitch_tolerance 0.01
-               absolute_yaw_tolerance 0.01
-               weight 1.0))
-             
-             (collision_operations ordered_collision_operations motion_plan_request)
-             (vector
-              (roslisp:make-msg
-               "motion_planning_msgs/CollisionOperation"
-               object1 "gripper"
-               object2 "attached"
-               penetration_distance 0.1
-               operation 0)))
-           :result-timeout 1.0)
-        (case val
-          (1 t)
-          (-31 (error 'move-arm-no-ik-solution))
-          (-33 (error 'move-arm-ik-link-in-collision))
-          (t (error 'manipulation-failed)))))))
+(defun execute-move-arm (side pose &optional (planners '(:chomp :ompl)))
+  "Executes move arm. It goes through the list of planners specified
+by `planners' until one succeeds."
+  (flet ((execute-action (planner)
+           (let ((action (ecase side
+                           (:left *move-arm-left*)
+                           (:right *move-arm-right*)))
+                 (pose-msg (tf:pose-stamped->msg pose)))
+             (roslisp:with-fields (header
+                                   (position (position pose))
+                                   (orientation (orientation pose)))
+                 pose-msg
+               (roslisp:with-fields ((val (val error_code)))
+                   (actionlib:call-goal
+                    action  
+                    (actionlib:make-action-goal
+                        action
+                      planner_service_name (ecase planner
+                                             (:chomp "/chomp_planner_longrange/plan_path")
+                                             (:ompl "/ompl_planning/plan_kinematic_path")
+                                             (:stomp "/stomp_motion_planner/plan_path"))
+                      (group_name motion_plan_request) (ecase side
+                                                         (:right "right_arm")
+                                                         (:left "left_arm"))
+                      (num_planning_attempts motion_plan_request) 1
+                      (planner_id motion_plan_request) ""
+                      (allowed_planning_time motion_plan_request) 5.0
+                      (expected_path_duration motion_plan_request) 5.0
+                      
+                      (position_constraints goal_constraints motion_plan_request)
+                      (vector
+                       (roslisp:make-msg
+                        "motion_planning_msgs/PositionConstraint"
+                        header header
+                        link_name (ecase side
+                                    (:left "l_wrist_roll_link")
+                                    (:right "r_wrist_roll_link"))
+                        position position
+                        (type constraint_region_shape) (roslisp-msg-protocol:symbol-code
+                                                        'geometric_shapes_msgs-msg:shape
+                                                        :box)
+                        (dimensions constraint_region_shape) #(0.01 0.01 0.01)
+                        (w constraint_region_orientation) 1.0
+                        weight 1.0))
+                      
+                      (orientation_constraints goal_constraints motion_plan_request)
+                      (vector
+                       (roslisp:make-msg
+                        "motion_planning_msgs/OrientationConstraint"
+                        header header
+                        link_name (ecase side
+                                    (:left "l_wrist_roll_link")
+                                    (:right "r_wrist_roll_link"))
+                        orientation orientation
+                        absolute_roll_tolerance 0.01
+                        absolute_pitch_tolerance 0.01
+                        absolute_yaw_tolerance 0.01
+                        weight 1.0))
+                      
+                      (collision_operations ordered_collision_operations motion_plan_request)
+                      (vector
+                       (roslisp:make-msg
+                        "motion_planning_msgs/CollisionOperation"
+                        object1 "gripper"
+                        object2 "attached"
+                        penetration_distance 0.1
+                        operation 0)))
+                    :result-timeout 1.0)
+                 val)))))
+    
+    (case (reduce (lambda (result planner)
+                    (declare (ignore result))
+                    (let ((val (execute-action planner)))
+                      (when (eql val 1)
+                        (return-from execute-move-arm t))))
+                  planners :initial-value nil)
+      (-31 (error 'move-arm-no-ik-solution))
+      (-33 (error 'move-arm-ik-link-in-collision))
+      (t (error 'manipulation-failed)))))
 
 (defun compliant-close-girpper (side)
   (roslisp:call-service
