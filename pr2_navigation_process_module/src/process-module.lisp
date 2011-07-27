@@ -116,7 +116,10 @@
   (let ((goal (make-action-goal (reference desig))))
     (multiple-value-bind (result status)
         (let ((actionlib:*action-server-timeout* 10.0))
-          (actionlib:call-goal client goal))
+          (actionlib:send-goal-and-wait
+           client goal
+           :result-timeout 1.0
+           :exec-timeout 3.0))
       (declare (ignore result status))
       (roslisp:ros-info (pr2-nav process-module) "Nav action finished.")
       ;; (unless (and ;; (eq status :succeeded)

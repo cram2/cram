@@ -44,9 +44,15 @@
         (maybe-shutdown-thread)
         (ecase cmd
           (point
-             (actionlib:call-goal *action-client* action-goal))
+             (actionlib:send-goal-and-wait
+              *action-client* action-goal
+              :result-timeout 1.0
+              :exec-timeout 3.0))
           (follow
-             (actionlib:call-goal *action-client* action-goal)
+             (actionlib:send-goal-and-wait
+              *action-client* action-goal
+              :result-timeout 1.0
+              :exec-timeout 3.0)
              ;; (setf *point-head-thread*
              ;;       (sb-thread:make-thread
              ;;        (curry #'follow-pose-thread-fun action-goal)))
