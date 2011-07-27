@@ -57,5 +57,13 @@
              (:file "top-level-plans" :depends-on ("package" "goals"))
              (:file "location-facts" :depends-on ("package"))
              (:file "process-modules" :depends-on ("package"))
-             (:file "occasions" :depends-on ("package"))))))
-
+             (:file "occasions" :depends-on ("package"))
+             (:module "experiments"
+                      :depends-on ("package")
+                      :components
+                      ((:module "pick-and-place-data"
+                                :components
+                                ((:file "table-locations-designator")
+                                 (:file "perception")
+                                 (:file "plans" :depends-on ("table-locations-designator"
+                                                             "perception"))))))))))
