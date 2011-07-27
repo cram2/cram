@@ -98,18 +98,15 @@
           (lazy-car (prolog `(desig-orientation
                               ,desig ,(cl-transforms:translation robot)
                               ?o)))
-        (if (is-var ?o)
-            ;; If we couldn't find a valid solution, just return the
-            ;; robot pose as it is
-            (list
-             (cl-transforms:transform->pose robot))
-            ;; otherwise return the robot's x, y and z but with a
-            ;; rotation heading towards the object of interest.
-            (list
-             (tf:make-pose-stamped
-              "/map" (roslisp:ros-time)
-              (cl-transforms:translation robot)
-              ?o)))))))
+        (unless (is-var ?o)
+          ;; return the robot's x, y and z but with a
+          ;; rotation heading towards the object of interest if we find a rotation.
+          ;; Otherwise, don't return anything
+          (list
+           (tf:make-pose-stamped
+            "/map" (roslisp:ros-time)
+            (cl-transforms:translation robot)
+            ?o)))))))
 
 (defun location-costmap-generator (desig)
   (flet ((take-closest-point (points)
