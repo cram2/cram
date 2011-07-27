@@ -134,8 +134,10 @@
                           (setf dist new-dist)
                           (setf closest p))))))
                  (t (car points)))))
-    (let* ((cm (get-cached-costmap desig))
-           (solutions (costmap-samples cm)))
+    (let ((cm (get-cached-costmap desig)))
+      (unless cm
+        (return-from location-costmap-generator nil))
+      (let ((solutions (costmap-samples cm)))
         (publish-location-costmap cm)
         (lazy-list ((solutions solutions)
                     (generated-points nil))
@@ -144,7 +146,7 @@
                    (cont (desig-ensure-pose desig point) solutions (remove point generated-points))))
                 (t
                  (next (lazy-skip +costmap-n-samples+ solutions)
-                       (force-ll (lazy-take +costmap-n-samples+ solutions)))))))))
+                       (force-ll (lazy-take +costmap-n-samples+ solutions))))))))))
 
 (defun location-costmap-pose-validator (desig pose)
   (when (typep pose 'cl-transforms:pose)
