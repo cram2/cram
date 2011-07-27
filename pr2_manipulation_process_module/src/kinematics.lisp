@@ -248,7 +248,7 @@
                (tool (cl-transforms:make-pose
                       (cl-transforms:make-3d-vector 0 0 0)
                       (cl-transforms:make-quaternion 0 0 0 1)))
-               (max-tries 30))
+               (max-tries 1))
   (let ((seeds (make-seed-states
                 side (remove "torso_lift_joint"
                              (get-joint-names side)
