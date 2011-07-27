@@ -62,7 +62,8 @@
     (designator-error (e)
       (declare (ignore e))
       (roslisp:ros-warn (point-head process-module) "Cannot resolve designator ~a. Ignoring."
-                        goal))))
+                        goal)))
+  (sleep* 1.0))
 
 (defun maybe-shutdown-thread ()
   (when (and *point-head-thread*
