@@ -118,10 +118,9 @@
 (defgeneric call-action (action &rest params))
 
 (defmethod call-action ((action-sym t) &rest params)
-  (declare (ignore params))
   (roslisp:ros-info (pr2-manip process-module)
-                    "Unimplemented operation `~a'. Doing nothing."
-                    action-sym)
+                    "Unimplemented operation `~a' with parameters ~a. Doing nothing."
+                    action-sym params)
   (sleep 0.5))
 
 (defmacro def-action-handler (name args &body body)
