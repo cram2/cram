@@ -65,7 +65,7 @@
                  ?action))
   
   ;; On the PR2 we don't need an open pose
-  (<- (action-desig ?desig (noop))
+  (<- (action-desig ?desig (noop ?desig))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (pose open)))
 
