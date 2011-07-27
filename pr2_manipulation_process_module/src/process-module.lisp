@@ -227,9 +227,8 @@
      (lazy-car (lazy-mapcar
                 (lambda (grasp-pose)
                   (destructuring-bind (pre-grasp grasp) grasp-pose
-                    (ignore-some-conditions (move-arm-no-ik-solution move-arm-ik-link-in-collision)
-                      (execute-move-arm side pre-grasp :ompl)
-                      (execute-arm-trajectory side (ik->trajectory (lazy-car (get-ik side grasp)))))))
+                    (execute-move-arm side pre-grasp :ompl)
+                    (execute-arm-trajectory side (ik->trajectory (lazy-car (get-ik side grasp))))))
                 grasp-poses))
      (cpl-impl:fail 'manipulation-pose-unreachable))
     (roslisp:ros-info (pr2-manip process-module) "Closing gripper")
