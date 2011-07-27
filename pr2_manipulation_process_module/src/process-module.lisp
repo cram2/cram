@@ -152,8 +152,7 @@
         (execute-move-arm side (tf:copy-pose-stamped carry-pose :orientation orientation))
         (execute-move-arm side carry-pose))))
 
-(def-action-handler lift (obj side distance)
-  (declare (ignore obj))
+(def-action-handler lift (side distance)
   (let* ((wrist-transform (tf:lookup-transform
                            *tf*
                            :time 0
