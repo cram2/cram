@@ -122,6 +122,8 @@
                                  (list (gethash name current))))))))))
 
 (defun ik->trajectory (ik-result &key (duration 5.0))
+  (unless ik-result
+    (error 'move-arm-no-ik-solution))
   (roslisp:with-fields ((solution-names (name joint_state solution))
                         (solution-positions (position joint_state solution))
                         (error-code (val error_code)))
