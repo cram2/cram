@@ -48,4 +48,5 @@
                                                              (cl-transforms:make-quaternion
                                                               0.0 0.0 0.0 1.0)))))))
                                            (t `((to follow) (pose ,?pose))))))))
-           (pm-execute :ptu look-at-desig)))))
+           (prog1 (pm-execute :ptu look-at-desig)
+             (ros-info (achieve plan-lib) "Look at done~%"))))))
