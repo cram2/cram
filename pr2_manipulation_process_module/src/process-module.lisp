@@ -247,7 +247,7 @@
                              put-down-pose
                              :origin (cl-transforms:v+
                                       (cl-transforms:origin put-down-pose)
-                                      (cl-transforms:make-3d-vector 0 0 0.1)))))
+                                      (cl-transforms:make-3d-vector 0 0 0.05)))))
     (execute-move-arm side pre-put-down-pose :ompl)
     (execute-arm-trajectory side (ik->trajectory (lazy-car (get-ik side put-down-pose))))
     (open-gripper side)
