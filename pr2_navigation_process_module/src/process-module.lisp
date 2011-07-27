@@ -29,6 +29,8 @@
 
 (in-package :pr2-navigation-process-module)
 
+(defparameter *navigation-endabled* t)
+
 (defvar *move-base-client* nil)
 (defvar *navp-client* nil)
 
@@ -129,29 +131,30 @@
       )))
 
 (def-process-module pr2-navigation-process-module (goal)
-  (unwind-protect
-       (cpl-impl:pursue
-         (progn
-           (roslisp:ros-info (pr2-nav process-module)
-                             "Using nav-pcontroller.")
-           (call-nav-action *navp-client* goal))
-         (sleep 20))
-       ;; (cond ((use-navp? (reference goal))
-       ;;        (roslisp:ros-info (pr2-nav process-module)
-       ;;                          "Using nav-pcontroller.")
-       ;;        (call-nav-action *navp-client* goal))
-       ;;       (t
-       ;;        (block nil
-       ;;          (handler-bind ((location-not-reached-failure
-       ;;                          (lambda (e)
-       ;;                            (declare (ignore e))
-       ;;                            (roslisp:ros-info (pr2-nav process-module)
-       ;;                                              "Could not reach goal.")
-       ;;                            (when (use-navp? (reference goal))
-       ;;                              (roslisp:ros-info (pr2-nav process-module)
-       ;;                                                "Falling back to nav-pcontroller.")                               
-       ;;                              (return (call-nav-action *navp-client* goal))))))
-       ;;            (roslisp:ros-info (pr2-nav process-module)
-       ;;                              "Using move_base.")
-       ;;            (call-nav-action *move-base-client* goal)))))
-    (roslisp:ros-info (pr2-nav process-module) "Navigation finished.")))
+  (when *navigation-endabled*
+    (unwind-protect
+         (cpl-impl:pursue
+           (progn
+             (roslisp:ros-info (pr2-nav process-module)
+                               "Using nav-pcontroller.")
+             (call-nav-action *navp-client* goal))
+           (sleep 20))
+      ;; (cond ((use-navp? (reference goal))
+      ;;        (roslisp:ros-info (pr2-nav process-module)
+      ;;                          "Using nav-pcontroller.")
+      ;;        (call-nav-action *navp-client* goal))
+      ;;       (t
+      ;;        (block nil
+      ;;          (handler-bind ((location-not-reached-failure
+      ;;                          (lambda (e)
+      ;;                            (declare (ignore e))
+      ;;                            (roslisp:ros-info (pr2-nav process-module)
+      ;;                                              "Could not reach goal.")
+      ;;                            (when (use-navp? (reference goal))
+      ;;                              (roslisp:ros-info (pr2-nav process-module)
+      ;;                                                "Falling back to nav-pcontroller.")                               
+      ;;                              (return (call-nav-action *navp-client* goal))))))
+      ;;            (roslisp:ros-info (pr2-nav process-module)
+      ;;                              "Using move_base.")
+      ;;            (call-nav-action *move-base-client* goal)))))
+      (roslisp:ros-info (pr2-nav process-module) "Navigation finished."))))

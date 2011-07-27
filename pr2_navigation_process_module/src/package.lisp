@@ -36,4 +36,4 @@
         #:cram-process-modules
         #:cram-roslisp-common
         #:cram-plan-failures)
-  (:export #:pr2-navigation-process-module))
+  (:export #:pr2-navigation-process-module #:*navigation-endabled*))
