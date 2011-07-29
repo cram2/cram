@@ -34,6 +34,8 @@
   "Returns a random element from the sequence"
   (elt seq (random (length seq))))
 
+(defvar *pose-pub* nil)
+
 (def-top-level-plan pick-and-place-on-table ()
   (let ((navigation-enabled pr2-navigation-process-module:*navigation-endabled*)
         (cntr 0))
@@ -54,5 +56,7 @@
                     (incf cntr)
                     (setf put-down-location (next-solution put-down-location))
                     (retry))))
+             (when *pose-pub*
+               (roslisp:publish *pose-pub* (tf:pose-stamped->msg (reference put-down-location))))
              (achieve `(loc ,obj ,put-down-location))))
       (setf pr2-navigation-process-module:*navigation-endabled* navigation-enabled))))
