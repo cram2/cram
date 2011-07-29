@@ -162,7 +162,10 @@
                                 joint-names)
          points (map 'vector
                      (lambda (point)
-                       (roslisp:with-fields (positions time_from_start)
+                       (roslisp:with-fields (positions
+                                             velocities
+                                             accelerations
+                                             time_from_start)
                            point
                          (roslisp:make-message
                           "trajectory_msgs/JointTrajectoryPoint"
@@ -171,6 +174,16 @@
                                                for p across positions
                                                unless (seq-member n joints)
                                                  collecting p))
+                          velocities (map 'vector #'identity
+                                          (loop for n across joint-names
+                                                for p across velocities
+                                                unless (seq-member n joints)
+                                                  collecting p))
+                          accelerations (map 'vector #'identity
+                                             (loop for n across joint-names
+                                                   for p across accelerations
+                                                   unless (seq-member n joints)
+                                                     collecting p))
                           time_from_start time_from_start)))
                      points))
         (roslisp:make-message
