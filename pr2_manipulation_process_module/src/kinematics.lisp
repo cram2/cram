@@ -373,7 +373,7 @@
      (cl-transforms:rotation goal-trans))))
 
 (defun calculate-put-down-pose (obj location)
-  (let ((obj-loc (desig-prop-value (current-desig obj) 'at)))
+  (let ((obj-loc (current-desig (desig-prop-value (current-desig obj) 'at))))
     (assert obj-loc () "Object ~a needs to have an `at' property"
             obj)
     (assert (and (eq (desig-prop-value obj-loc 'in) 'gripper)) ()
@@ -382,10 +382,18 @@
             "Object ~a needs to have a `pose' property" obj)
     (assert (desig-prop-value obj-loc 'height) ()
             "Object ~a needs to have a `height' property" obj)
-    (let ((obj-in-gripper (desig-prop-value obj-loc 'pose)))
+    (let ((obj-in-gripper (desig-prop-value obj-loc 'pose))
+          (obj-pose-height (desig-prop-value obj-loc 'height))
+          (location-in-map (tf:transform-pose
+                            *tf* :pose (reference location)
+                            :target-frame "/map")))
       (tf:transform-pose
        *tf* :pose (calculate-grasp-pose
-                   (reference location)
+                   (tf:copy-pose-stamped
+                    location-in-map
+                    :origin (cl-transforms:v+
+                             (cl-transforms:origin location-in-map)
+                             (cl-transforms:make-3d-vector 0 0 obj-pose-height)))
                    :tool obj-in-gripper)
        :target-frame "/base_footprint"))))
 
