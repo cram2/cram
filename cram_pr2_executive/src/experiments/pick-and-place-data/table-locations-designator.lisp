@@ -96,14 +96,16 @@
         (alexandria:shuffle (mapcar #'cdr *table-locations*)))))
 
 (defun named-pose-validator (desig generated-pose)
-  (let* ((name (desig-prop-value desig 'name))
-         (pose (cdr (assoc name *table-locations*))))
-    (or (when (and name pose)
-          (< (cl-transforms:v-dist
-              (cl-transforms:origin pose)
-              (cl-transforms:origin generated-pose))
-             0.01))
+  (let* ((name (desig-prop-value desig 'name)))
+    (if name
+        (when (find-if (lambda (pose)
+                         (< (cl-transforms:v-dist
+                             (cl-transforms:origin pose)
+                             (cl-transforms:origin generated-pose))
+                            0.01))
+                       (mapcar #'cdr *table-locations*))
+          t)
         t)))
 
-(register-location-generator 10 named-pose-generator)
-(register-location-validation-function 10 named-pose-validator)
+(register-location-generator 11 named-pose-generator)
+(register-location-validation-function 11 named-pose-validator)
