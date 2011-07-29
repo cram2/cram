@@ -20,17 +20,18 @@ The list of patterns is searched for a HEAD `eq' to the car of
 VALUE. If one is found, the BODY is executed with ARGS bound to the
 corresponding values in the CDR of VALUE."
   (let ((operator (gensym "op-"))
-	(operands (gensym "rand-"))
-	(tmp (gensym "tmp-")))
+        (operands (gensym "rand-"))
+        (tmp (gensym "tmp-")))
     `(let* ((,tmp ,value)
-	    (,operator (car ,tmp))
-	    (,operands (cdr ,tmp)))
+            (,operator (car ,tmp))
+            (,operands (cdr ,tmp)))
        (case ,operator
          ,@(loop for (pattern . body) in patterns collect 
                  (if (eq pattern t)
                      `(t ,@body)
                      (destructuring-bind (op &rest rands) pattern
-                       `(,op (destructuring-bind ,rands ,operands 
+                       `(,op (destructuring-bind ,(ensure-list rands)
+                                 ,operands 
                                ,@body)))))
          ,@(if (eq (caar (last patterns)) t)
                '()
