@@ -47,7 +47,10 @@
            (let ((objs (filter-objects-on-table
                         (perceive-all obj)
                         (cl-transforms:origin (cdr (assoc 'front-1 *table-locations*)))
-                        (cl-transforms:origin (cdr (assoc 'back-3 *table-locations*))))))
+                        (cl-transforms:origin (cdr (assoc 'back-3 *table-locations*)))
+                        0.05)))
+             (unless objs
+               (fail 'simple-plan-failure :format-control "No objects found"))
              (equate obj (random-element objs)))
            (with-failure-handling
                ((cram-plan-failures:manipulation-failure (e)
