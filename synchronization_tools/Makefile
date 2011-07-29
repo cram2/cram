@@ -14,7 +14,11 @@ unpacked: downloaded
 	tar xvjf $(TARBALL)
 	touch unpacked
 
-installed: unpacked
+patched: unpacked
+	patch -p0 < synchronization-tools.patch
+	touch patched
+
+installed: patched
 	mkdir -p asdf
 	ln -s ../synchronization-tools/synchronization-tools.asd asdf/
 	touch installed
