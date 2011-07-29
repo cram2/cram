@@ -250,7 +250,8 @@
     (execute-move-arm side pre-put-down-pose)
     (execute-arm-trajectory side (ik->trajectory (lazy-car (get-ik side put-down-pose))))
     (open-gripper side)
-    (execute-arm-trajectory side (ik->trajectory (lazy-car (get-ik side pre-put-down-pose))))))
+    (execute-arm-trajectory side (ik->trajectory (lazy-car (get-ik side pre-put-down-pose))))
+    (clear-collision-objects)))
 
 (defun execute-goal (server goal)
   (multiple-value-bind (result status)
