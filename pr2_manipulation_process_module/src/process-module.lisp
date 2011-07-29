@@ -93,10 +93,10 @@
                                      "/r_gripper_sensor_controller/grab"
                                      "pr2_gripper_sensor_msgs/PR2GripperGrabAction"))
   (setf *trajectory-action-left* (actionlib:make-action-client
-                                  "/l_arm_controller/joint_trajectory_action"
+                                  "/l_arm_controller/joint_trajectory_generator"
                                   "pr2_controllers_msgs/JointTrajectoryAction"))
   (setf *trajectory-action-right* (actionlib:make-action-client
-                                  "/r_arm_controller/joint_trajectory_action"
+                                  "/r_arm_controller/joint_trajectory_generator"
                                   "pr2_controllers_msgs/JointTrajectoryAction"))
   (setf *trajectory-action-torso* (actionlib:make-action-client
                                   "/torso_controller/joint_trajectory_action"
