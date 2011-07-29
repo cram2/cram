@@ -358,11 +358,11 @@ by `planners' until one succeeds."
       (t (error 'manipulation-failed)))))
 
 (defun compliant-close-girpper (side)
-  (roslisp:call-service
-   (ecase side
-    (:right "/r_reactive_grasp/compliant_close")
-    (:left "/l_reactive_grasp/compliant_close"))
-   'std_srvs-srv:Empty)
+  ;; (roslisp:call-service
+  ;;  (ecase side
+  ;;   (:right "/r_reactive_grasp/compliant_close")
+  ;;   (:left "/l_reactive_grasp/compliant_close"))
+  ;;  'std_srvs-srv:Empty)
   (let ((action (ecase side
                   (:right *gripper-grab-action-right*)
                   (:left *gripper-grab-action-left*))))
