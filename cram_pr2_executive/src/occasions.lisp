@@ -64,14 +64,8 @@
 (defun on-object-picked-up (op &key ?obj ?side)
   (when (eq op :assert)
     (let* ((obj-pose (cl-tf:transform-pose
-                      *tf* :pose (obj-desig-location ?obj)
+                      *tf* :pose (obj-desig-location (current-desig ?obj))
                       :target-frame "/map"))
-           (hand-in-base (cl-tf:lookup-transform
-                          *tf*
-                          :target-frame "/base_link"
-                          :source-frame (ecase ?side
-                                          (:right "/r_wrist_roll_link")
-                                          (:left "/r_wrist_roll_link"))))
            (height-value (or (find-desig-z-value ?obj)
                              (supporting-obj-z-value ?obj)
                              (prog1
@@ -83,24 +77,15 @@
                      'location
                      `((in gripper)
                        (side ,?side)
-                       (pose ,(cl-tf:transform-pose
-                               *tf* :pose (cl-tf:make-pose-stamped
-                                           (cl-tf:frame-id obj-pose) (roslisp:ros-time)
-                                           (cl-transforms:make-3d-vector
-                                            (cl-transforms:x (cl-transforms:origin obj-pose))
-                                            (cl-transforms:y (cl-transforms:origin obj-pose))
-                                            height-value)
-                                           (cl-transforms:orientation obj-pose))
-                               :target-frame (ecase ?side
-                                               (:right "/r_wrist_roll_link")
-                                               (:left "/r_wrist_roll_link"))))
-                       (height ,(-  (cl-transforms:z (cl-transforms:origin obj-pose))
-                                    height-value))
-                       ;;; UGLY HACK: since we cannot reach all
-                       ;;; put-down locations, we currently use the
-                       ;;; hand orientation we used while picking up
-                       ;;; the object
-                       (orientation ,(cl-transforms:rotation hand-in-base))))))
+                       (pose ,(tf:copy-pose-stamped
+                               (cl-tf:transform-pose
+                                *tf* :pose obj-pose
+                                :target-frame (ecase ?side
+                                                (:right "/r_wrist_roll_link")
+                                                (:left "/l_wrist_roll_link")))
+                               :stamp 0.0))
+                       (height ,(- (cl-transforms:z (cl-transforms:origin obj-pose))
+                                   height-value))))))
       (make-designator 'object
                        `((at ,new-loc) . ,(remove 'at (description ?obj) :key #'car))
                        ?obj))))
