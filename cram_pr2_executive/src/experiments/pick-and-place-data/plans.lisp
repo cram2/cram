@@ -40,18 +40,36 @@
   (let ((navigation-enabled pr2-navigation-process-module:*navigation-endabled*)
         (cntr 0))
     (unwind-protect
-         (with-designators ((put-down-location (location `((on counter-top) (name kitchen-island))))
-                            (table (location `((on counter-top) (name kitchen-island))))
-                            (obj (object `((type cluster) (at ,table)))))
+         (with-designators ((table (location `((on counter-top) (name kitchen-island))))
+                            (obj (object `((type cluster) (at ,table))))
+                            (put-down-location (location `((on counter-top) (name kitchen-island)
+                                                           (for ,obj)))))
            (setf pr2-navigation-process-module:*navigation-endabled* nil)
-           (let ((objs (filter-objects-on-table
-                        (perceive-all obj)
-                        (cl-transforms:origin (cdr (assoc 'front-1 *table-locations*)))
-                        (cl-transforms:origin (cdr (assoc 'back-3 *table-locations*)))
-                        0.05)))
-             (unless objs
-               (fail 'simple-plan-failure :format-control "No objects found"))
-             (equate obj (random-element objs)))
+           (par
+             (achieve `(arm-parked :left))
+             (achieve `(arm-parked :right)))
+           (with-failure-handling
+               ((object-not-found (e)
+                  (declare (ignore e))
+                  (roslisp:ros-info
+                   (pick-and-place-on-table plan) "No object found. Retrying...")
+                  (setf table (next-solution table))
+                  (when table
+                    (retry)))
+                (cram-plan-failures:manipulation-failure (e)
+                  (declare (ignore e))
+                  (when (< cntr 3)
+                    (incf cntr)
+                    (retry))))
+             (let ((objs (filter-objects-on-table
+                          (perceive-all obj)
+                          (cl-transforms:origin (cdr (assoc 'front-1 *table-locations*)))
+                          (cl-transforms:origin (cdr (assoc 'back-3 *table-locations*)))
+                          0.15)))
+               (unless objs
+                 (fail 'object-not-found :object-desig obj))
+               (equate obj (random-element objs)))
+             (achieve `(object-in-hand ,obj :right)))
            (with-failure-handling
                ((cram-plan-failures:manipulation-failure (e)
                   (declare (ignore e))
@@ -61,5 +79,5 @@
                     (retry))))
              (when *pose-pub*
                (roslisp:publish *pose-pub* (tf:pose-stamped->msg (reference put-down-location))))
-             (achieve `(loc ,obj ,put-down-location))))
+             (achieve `(object-placed-at ,obj ,put-down-location))))
       (setf pr2-navigation-process-module:*navigation-endabled* navigation-enabled))))
