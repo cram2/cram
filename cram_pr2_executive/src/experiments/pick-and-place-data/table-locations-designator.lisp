@@ -35,28 +35,28 @@
    ;; Front row
    (cons 'front-1 (tf:make-pose-stamped
                    "/map" 0.0
-                   (cl-transforms:make-3d-vector -1.7 2.0 0.87)
+                   (cl-transforms:make-3d-vector -1.7 1.7 0.87)
                    (cl-transforms:make-identity-rotation)))
    (cons 'front-2 (tf:make-pose-stamped
                    "/map" 0.0
-                   (cl-transforms:make-3d-vector -1.75 2.2 0.87)
+                   (cl-transforms:make-3d-vector -1.75 1.9 0.87)
                    (cl-transforms:make-identity-rotation)))
    (cons 'front-3 (tf:make-pose-stamped
                    "/map" 0.0
-                   (cl-transforms:make-3d-vector -1.75 2.4 0.87)
+                   (cl-transforms:make-3d-vector -1.75 2.1 0.87)
                    (cl-transforms:make-identity-rotation)))
    ;; Back row
    (cons 'back-1 (tf:make-pose-stamped
                   "/map" 0.0
-                  (cl-transforms:make-3d-vector -1.9 2.0 0.87)
+                  (cl-transforms:make-3d-vector -1.9 1.7 0.87)
                   (cl-transforms:make-identity-rotation)))
    (cons 'back-2 (tf:make-pose-stamped
                   "/map" 0.0
-                  (cl-transforms:make-3d-vector -1.95 2.2 0.87)
+                  (cl-transforms:make-3d-vector -1.95 1.9 0.87)
                   (cl-transforms:make-identity-rotation)))
    (cons 'back-3 (tf:make-pose-stamped
                   "/map" 0.0
-                  (cl-transforms:make-3d-vector -1.95 2.4 0.87)
+                  (cl-transforms:make-3d-vector -1.95 2.1 0.87)
                   (cl-transforms:make-identity-rotation)))))
 
 ;; (defparameter *table-locations*
