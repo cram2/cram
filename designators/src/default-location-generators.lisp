@@ -49,5 +49,5 @@
     (desig-prop ?desig (of ?obj))
     (lisp-fun current-desig ?obj ?curr-obj)
     (desig-prop ?curr-obj (at ?loc))
-    (desig-solutions ?loc ?solutions)
-    (member ?solution ?solutions)))
+    (lisp-fun current-desig ?loc ?curr-loc)
+    (lisp-fun reference ?curr-loc ?solution)))
