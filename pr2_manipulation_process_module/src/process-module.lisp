@@ -60,12 +60,12 @@
 (defparameter *carry-pose-right* (tf:make-pose-stamped
                                   "/base_footprint" 0.0
                                   (cl-transforms:make-3d-vector
-                                   0.2 -0.55 1.2)
+                                   0.2 -0.55 1.25)
                                   (cl-transforms:euler->quaternion :ay (/ pi 2))))
 (defparameter *carry-pose-left* (tf:make-pose-stamped
                                  "/base_footprint" 0.0
                                  (cl-transforms:make-3d-vector
-                                  0.2 0.55 1.2)
+                                  0.2 0.55 1.25)
                                  (cl-transforms:euler->quaternion :ay (/ pi 2))))
 
 (defparameter *top-grasp* (cl-transforms:euler->quaternion :ay (/ pi 2)))
