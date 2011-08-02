@@ -436,3 +436,22 @@
                              good)
          (find-closest-angle (cl-transforms:orientation pose-in-base)
                              bad)))))
+
+(defun get-robot-state ()
+  "Returns the current joint state of the robot"
+  (roslisp:with-fields ((joint-state (joint_state robot_state)))
+      (roslisp:call-service
+       "/environment_server/get_robot_state"
+       "planning_environment_msgs/GetRobotState")
+    joint-state))
+
+(defun get-gripper-state (side)
+  (roslisp:with-fields (name position)
+      (get-robot-state)
+    (let ((idx (position (ecase side
+                           (:right "r_gripper_joint")
+                           (:left "l_gripper_joint"))
+                         name :test #'equal)))
+      (unless idx
+        (error 'simple-error :format-control "Invalid robot state. Couldn't find gripper joint"))
+      (elt position idx))))

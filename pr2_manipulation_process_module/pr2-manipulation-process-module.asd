@@ -52,7 +52,8 @@
                semantic-map-collision-environment
                object_manipulation_msgs-msg
                object_manipulation_msgs-srv
-               pr2_gripper_sensor_msgs-msg)
+               pr2_gripper_sensor_msgs-msg
+               planning_environment_msgs-srv)
   :components
   ((:module "src"
             :components
