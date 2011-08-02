@@ -88,12 +88,24 @@
 ;;                   (cl-transforms:make-3d-vector -1.95 2.4 1.1)
 ;;                   (cl-transforms:make-identity-rotation)))))
 
+(defun calculate-obj-desig-orientation (desig &optional
+                                        (default (cl-transforms:make-identity-rotation)))
+  (let* ((loc (and desig (desig-prop-value (current-desig desig) 'at)))
+         (orientation (and loc (desig-prop-value loc 'orientation))))
+    (or orientation default)))
+
 (defun named-pose-generator (desig)
   (let* ((name (desig-prop-value desig 'name))
-         (pose (cdr (assoc name *table-locations*))))
-    (if pose
-        (list pose)
-        (alexandria:shuffle (mapcar #'cdr *table-locations*)))))
+         (pose (cdr (assoc name *table-locations*)))
+         (obj (desig-prop-value desig 'for)))
+    (mapcar (lambda (pose)
+              (tf:copy-pose-stamped
+               pose :orientation (calculate-obj-desig-orientation
+                                  obj (cl-transforms:orientation pose))))
+            (if pose
+                (list pose)
+                (alexandria:shuffle
+                 (mapcar #'cdr *table-locations*))))))
 
 (defun named-pose-validator (desig generated-pose)
   (let* ((name (desig-prop-value desig 'name)))
