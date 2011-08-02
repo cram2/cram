@@ -30,6 +30,42 @@
 
 (in-package :pr2-ex)
 
+(defvar *area-marker* nil)
+
+(defun publish-area-marker (bounding-pt-1 bounding-pt-2 &optional (area-padding 0.2))
+  (let ((min-x (- (min (cl-transforms:x bounding-pt-1) (cl-transforms:x bounding-pt-2))
+                  area-padding))
+        (min-y (- (min (cl-transforms:y bounding-pt-1) (cl-transforms:y bounding-pt-2))
+                  area-padding))
+        (max-x (+ (max (cl-transforms:x bounding-pt-1) (cl-transforms:x bounding-pt-2))
+                  area-padding))
+        (max-y (+ (max (cl-transforms:y bounding-pt-1) (cl-transforms:y bounding-pt-2))
+                  area-padding)))
+    (when *area-marker*
+      (roslisp:publish
+       *area-marker*
+       (roslisp:make-message
+        "visualization_msgs/Marker"
+        (stamp header) (roslisp:ros-time)
+        (frame_id header) "/map"
+        ns "area"
+        type 1
+        pose (tf:pose->msg
+              (cl-transforms:make-pose
+               (cl-transforms:v+
+                bounding-pt-1
+                (cl-transforms:v*
+                 (cl-transforms:v- bounding-pt-2 bounding-pt-1)
+                 0.5))
+               (cl-transforms:make-identity-rotation)))
+        (x scale) (- max-x min-x)
+        (y scale) (- max-y min-y)
+        (z scale) 0.1
+        (r color) 1.0
+        (g color) 0.0
+        (b color) 0.0
+        (a color) 0.25)))))
+
 (defun filter-objects-on-table (desigs bounding-pt-1 bounding-pt-2
                                 &optional (area-padding 0.2))
   "Removes all objects that are not inside our area of valid
@@ -50,5 +86,6 @@
                   (> (cl-transforms:y point) min-y)
                   (< (cl-transforms:x point) max-x)
                   (< (cl-transforms:y point) max-y)))))
+    (publish-area-marker bounding-pt-1 bounding-pt-2 area-padding)
     (remove-if-not (alexandria:compose #'area-check #'cl-transforms:origin #'designator-pose)
                    desigs)))
