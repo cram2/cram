@@ -35,8 +35,11 @@
         (alternative-poses-cnt 0))
     (with-failure-handling
         ((object-lost (f)
-           (declare (ignore f))
            (ros-warn (achieve plan-lib) "Object lost.")
+           (assert-occasion
+            `(object-in-hand-failure object-lost ,?obj ,?side ,f))
+           (achieve `(arms-at ,(make-designator
+                                'action `((type trajectory) (pose parked) (side ,?side)))))
            (when (< (incf retry-count) 3)
              (retry)))
          (manipulation-failure (f)
