@@ -382,20 +382,24 @@
             "Object ~a needs to have a `pose' property" obj)
     (assert (desig-prop-value obj-loc 'height) ()
             "Object ~a needs to have a `height' property" obj)
-    (let ((obj-in-gripper (desig-prop-value obj-loc 'pose))
-          (obj-pose-height (desig-prop-value obj-loc 'height))
-          (location-in-map (tf:transform-pose
-                            *tf* :pose (reference location)
-                            :target-frame "/map")))
-      (tf:transform-pose
-       *tf* :pose (calculate-grasp-pose
-                   (tf:copy-pose-stamped
-                    location-in-map
-                    :origin (cl-transforms:v+
-                             (cl-transforms:origin location-in-map)
-                             (cl-transforms:make-3d-vector 0 0 obj-pose-height)))
-                   :tool obj-in-gripper)
-       :target-frame "/base_footprint"))))
+    (let* ((obj-in-gripper (desig-prop-value obj-loc 'pose))
+           (obj-pose-height (desig-prop-value obj-loc 'height))
+           (location-in-robot (tf:transform-pose
+                               *tf* :pose (reference (current-desig location))
+                               :target-frame "/base_footprint"))
+           (goal-trans (cl-transforms:transform*
+                        (cl-transforms:reference-transform
+                         (tf:copy-pose-stamped
+                          location-in-robot
+                          :origin (cl-transforms:v+
+                                   (cl-transforms:origin location-in-robot)
+                                   (cl-transforms:make-3d-vector 0 0 obj-pose-height))))
+                        (cl-transforms:transform-inv
+                         (cl-transforms:reference-transform obj-in-gripper)))))
+      (tf:make-pose-stamped
+       "/base_footprint" (tf:stamp location-in-robot)
+       (cl-transforms:translation goal-trans)
+       (cl-transforms:rotation goal-trans)))))
 
 (defun get-grasp-object-trajectory-points (side obj)
   (let ((grasps (get-sgp-grasps side obj))
