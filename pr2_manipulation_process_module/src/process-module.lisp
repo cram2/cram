@@ -38,6 +38,8 @@
 (defparameter *grasp-distance* 0.00
   "Tool length to calculate the pre-grasp pose, i.e. the pose at which
   the gripper is closed.")
+(defparameter *pre-put-down-distance* 0.05
+  "Distance above the goal before putting down the object")
 
 (defvar *open-container-action* nil)
 (defvar *close-container-action* nil)
@@ -251,7 +253,7 @@
                              put-down-pose
                              :origin (cl-transforms:v+
                                       (cl-transforms:origin put-down-pose)
-                                      (cl-transforms:make-3d-vector 0 0 0.05)))))
+                                      (cl-transforms:make-3d-vector 0 0 *pre-put-down-distance*)))))
     (execute-move-arm side pre-put-down-pose)
     (execute-arm-trajectory side (ik->trajectory (lazy-car (get-ik side put-down-pose))))
     (open-gripper side)
