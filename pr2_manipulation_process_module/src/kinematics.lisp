@@ -441,6 +441,17 @@
          (find-closest-angle (cl-transforms:orientation pose-in-base)
                              bad)))))
 
+(defun calculate-carry-orientation (obj side orientations)
+  (when obj
+    (let* ((hand-orientation (cl-transforms:rotation
+                              (tf:lookup-transform
+                               *tf*  
+                               :source-frame (ecase side
+                                               (:right "r_wrist_roll_link")
+                                               (:left "l_wrist_roll_link"))
+                               :target-frame "/base_footprint"))))
+      hand-orientation)))
+
 (defun get-robot-state ()
   "Returns the current joint state of the robot"
   (roslisp:with-fields ((joint-state (joint_state robot_state)))

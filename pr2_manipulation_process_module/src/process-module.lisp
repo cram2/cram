@@ -144,7 +144,9 @@
 (def-action-handler park (obj side)
   (roslisp:ros-info (pr2-manip process-module) "Park arms ~a ~a"
                     obj side)
-  (let ((orientation (calculate-carry-orientation obj))
+  (let ((orientation (calculate-carry-orientation
+                      obj side
+                      (list *top-grasp* (cl-transforms:make-identity-rotation))))
         (carry-pose (ecase side
                       (:right *carry-pose-right*)
                       (:left *carry-pose-left*))))
@@ -411,11 +413,6 @@ by `planners' until one succeeds."
 (defun get-open-trajectory (obj)
   (declare (type object-designator obj))
   (gethash obj *open-trajectories*))
-
-(defun calculate-carry-orientation (obj)
-  (when obj
-    (let ((location-desig (desig-prop-value (current-desig obj) 'at)))
-      (desig-prop-value location-desig 'orientation))))
 
 (def-process-module pr2-manipulation-process-module (desig)
   (apply #'call-action (reference desig)))
