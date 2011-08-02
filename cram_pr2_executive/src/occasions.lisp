@@ -43,7 +43,6 @@
                         (crs:prolog
                          `(semantic-map-costmap:desig-z-value
                            ,loc-desig ,(cl-transforms:origin pose) ?z)))))
-    (format t "~a~%" loc-desig)
     (cond (z-value-bdgs
            (cut:var-value '?z z-value-bdgs))
           ((parent obj-desig)
@@ -85,7 +84,8 @@
                                                 (:left "/l_wrist_roll_link")))
                                :stamp 0.0))
                        (height ,(- (cl-transforms:z (cl-transforms:origin obj-pose))
-                                   height-value))))))
+                                   height-value))
+                       (orientation ,(cl-transforms:orientation obj-pose))))))
       (make-designator 'object
                        `((at ,new-loc) . ,(remove 'at (description ?obj) :key #'car))
                        ?obj))))
