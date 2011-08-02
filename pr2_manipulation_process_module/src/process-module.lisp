@@ -357,6 +357,9 @@ by `planners' until one succeeds."
     (case (reduce (lambda (result planner)
                     (declare (ignore result))
                     (let ((val (execute-action planner)))
+                      (roslisp:ros-info (pr2-manip process-module)
+                                        "Move arm returned with ~a"
+                                        val)
                       (when (eql val 1)
                         (return-from execute-move-arm t))))
                   planners :initial-value nil)
