@@ -232,6 +232,9 @@
      (cpl-impl:fail 'manipulation-pose-unreachable))
     (roslisp:ros-info (pr2-manip process-module) "Closing gripper")
     (compliant-close-girpper side)
+    (when (< (get-gripper-state side) 0.01)
+      (clear-collision-objects)
+      (error 'object-lost))
     ;; TODO: Check if gripper is not completely closed to make sure that we are holding the object
     (roslisp:ros-info (pr2-manip process-module) "Attaching object to gripper")
     (attach-collision-object side obj)
