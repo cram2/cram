@@ -57,6 +57,10 @@
       (assert fun () "Generator function must be specified.")
       (apply fun (substitute-vars args bdgs)))))
 
+(defun make-2d-value-map-generator (map)
+  (lambda (x y)
+    (2d-value-map-lookup map x y)))
+
 (def-prolog-handler costmap (bdgs ?cm)
   (list
    (if (or (not bdgs) (is-var (var-value ?cm bdgs)))
@@ -86,20 +90,53 @@
             "Variable `~a' must be bound to a costmap" ?cm)
     (assert (and new-height-map (typep new-height-map '2d-value-map)) ()
             "Variable `~a' must be bound to a heightmap" ?height-map)
-    (register-height-map cm new-height-map))
+    (register-height-generator cm (make-2d-value-map-generator new-height-map)))
   (list bdgs))
 
-(def-prolog-handler costmap-add-heightmap-generator (bdgs ?generator-pat ?cm)
+(def-prolog-handler costmap-add-height-generator (bdgs ?generator-pat ?cm)
   (let ((cm (var-value-strict ?cm bdgs)))
     (assert (and cm (typep cm 'location-costmap)) ()
             "Variable `~a' must be bound to a costmap" ?cm)
-    (register-height-map
+    (register-height-generator
+     cm (eval-generator ?generator-pat bdgs))
+    (list bdgs)))
+
+(def-prolog-handler costmap-add-cached-height-generator (bdgs ?generator-pat ?cm)
+  (let ((cm (var-value-strict ?cm bdgs)))
+    (assert (and cm (typep cm 'location-costmap)) ()
+            "Variable `~a' must be bound to a costmap" ?cm)
+    (register-height-generator
      cm
-     (make-instance 'lazy-2d-value-map
-       :width (width cm)
-       :height (height cm)
-       :origin-x (origin-x cm)
-       :origin-y (origin-y cm)
-       :resolution (resolution cm)
-       :generator-fun (eval-generator ?generator-pat bdgs)))))
+     (make-2d-value-map-generator
+      (make-instance 'lazy-2d-value-map
+        :width (width cm)
+        :height (height cm)
+        :origin-x (origin-x cm)
+        :origin-y (origin-y cm)
+        :resolution (resolution cm)
+        :generator-fun (eval-generator ?generator-pat bdgs)))))
+  (list bdgs))
+
+(def-prolog-handler costmap-add-orientation-generator (bdgs ?generator-pat ?cm)
+  (let ((cm (var-value-strict ?cm bdgs)))
+    (assert (and cm (typep cm 'location-costmap)) ()
+            "Variable `~a' must be bound to a costmap" ?cm)
+    (register-orientation-generator
+     cm (eval-generator ?generator-pat bdgs))
+    (list bdgs)))
+
+(def-prolog-handler costmap-add-cached-orientation-generator (bdgs ?generator-pat ?cm)
+  (let ((cm (var-value-strict ?cm bdgs)))
+    (assert (and cm (typep cm 'location-costmap)) ()
+            "Variable `~a' must be bound to a costmap" ?cm)
+    (register-orientation-generator
+     cm
+     (make-2d-value-map-generator
+      (make-instance 'lazy-2d-value-map
+        :width (width cm)
+        :height (height cm)
+        :origin-x (origin-x cm)
+        :origin-y (origin-y cm)
+        :resolution (resolution cm)
+        :generator-fun (eval-generator ?generator-pat bdgs)))))
   (list bdgs))

@@ -45,10 +45,12 @@
            #:costmap
            #:costmap-add-function
            #:costmap-add-heightmap
-           #:costmap-add-heightmap-generator
+           #:costmap-add-height-generator
+           #:costmap-add-cached-height-generator
+           #:costmap-add-orientation-generator
+           #:costmap-add-cached-orientation-generator           
            #:costmap-generator-name->score
            #:desig-costmap
-           #:desig-orientation
            #:merged-desig-costmap
            #:2d-value-map
            #:2d-value-map-lookup

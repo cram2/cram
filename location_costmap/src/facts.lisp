@@ -42,12 +42,16 @@
 (defmethod costmap-generator-name->score ((name (eql 'location-neighborhood)))
   5)
 
-(defun nav-angle-to-point (p p-ref)
-  "Calculates the angle from `p-ref' to face at `p'"
-  (cl-transforms:axis-angle->quaternion
-   (cl-transforms:make-3d-vector 0 0 1)
-   (let ((p-rel (cl-transforms:v- p p-ref)))
-     (atan (cl-transforms:y p-rel) (cl-transforms:x p-rel)))))
+(defun make-angle-to-point-generator (pose)
+  "Returns a function that takes an X and Y coordinate and returns a
+quaternion to face towards `pose'"
+  (lambda (x y)
+    (cl-transforms:axis-angle->quaternion
+     (cl-transforms:make-3d-vector 0 0 1)
+     (let ((p-rel (cl-transforms:v-
+                   (cl-transforms:origin pose)
+                   (cl-transforms:make-3d-vector x y 0))))
+       (atan (cl-transforms:y p-rel) (cl-transforms:x p-rel))))))
 
 ;; TODO: This fact belongs into a package for CRAM_PL based desig utils
 (def-fact-group location-costmap-utils ()
@@ -94,19 +98,25 @@
     (lisp-fun invert-occupancy-grid ?tmp-grid ?grid)))
 
 ;; this fact group extends location designator resolution with costmaps
-(def-fact-group location-costmap-desigs (desig-costmap desig-orientation)
+(def-fact-group location-costmap-desigs (desig-costmap)
 
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (to see))
     (costmap ?cm)
     (desig-location-prop ?desig ?loc)
-    (costmap-add-function location-neighborhood (make-location-cost-function ?loc 0.5) ?cm))
+    (costmap-add-function location-neighborhood (make-location-cost-function ?loc 0.5) ?cm)
+    (-> (desig-location-prop ?desig ?loc)
+        (costmap-add-orientation-generator (make-angle-to-point-generator ?loc) ?cm)
+        (true)))
 
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (to reach))
     (desig-location-prop ?desig ?loc)
     (costmap ?cm)
-    (costmap-add-function location-neighborhood (make-location-cost-function ?loc 0.4) ?cm))
+    (costmap-add-function location-neighborhood (make-location-cost-function ?loc 0.4) ?cm)
+    (-> (desig-location-prop ?desig ?loc)
+        (costmap-add-cached-orientation-generator (make-angle-to-point-generator ?loc) ?cm)
+        (true)))
 
   (<- (merged-desig-costmap ?desig ?cm)
     ;; bagof collects all true solutions for c into costmaps
@@ -114,11 +124,4 @@
     (lisp-fun merge-costmaps ?costmaps ?cm))
 
   (<- (costmap-samples ?cm ?solutions)
-    (lisp-fun costmap-samples ?cm ?solutions))
-
-  (<- (desig-orientation ?desig ?point ?orientation)
-    (or (desig-prop ?desig (to reach))
-        (desig-prop ?desig (to see)))
-    (desig-location-prop ?desig ?loc)
-    (lisp-fun cl-transforms:origin ?loc ?loc-p)
-    (lisp-fun nav-angle-to-point ?loc-p ?point ?orientation)))
+    (lisp-fun costmap-samples ?cm ?solutions)))

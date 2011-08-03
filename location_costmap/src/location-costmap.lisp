@@ -29,7 +29,9 @@
 (define-condition invalid-probability-distribution (error) ())
 
 ;; A location costmap is a 2d grid map that defines for each x,y point
-;; a cost value and also a z value giving the height of the location in 3D
+;; a cost value. It provides an API to sample random poses by
+;; generating random x and y points and using further generators to
+;; set the z value and the orientation of the pose.
 (defclass location-costmap (occupancy-grid-metadata)
   ((cost-map :documentation "private slot that gets filled with data by the cost-functions")
    (cost-functions :reader cost-functions :initarg :cost-functions
@@ -46,12 +48,22 @@
                                    duplicates. To set this slot, use
                                    register-cost-function
                                    preferably.")
-   (height-map :initform nil
-               :initarg :height-map
-               :reader height-map
-               :documentation "An object for which method
-               height-map-lookup is defined, e.g. height-map.  Use
-               register-height-map to set.")))
+   (height-generator
+    :initform nil :initarg :height-generator :reader height-generator
+    :documentation "A callable object that takes two parameters, X and
+                    Y and returns the corresponding height
+                    value (i.e. Z coordinate of the generated
+                    pose). The function doesn't necessarily need to be
+                    deterministic and is used whenever a costmap
+                    sample is generated. If not set, a constant value
+                    of 0.0d0 is returned.")
+   (orientation-generator
+    :initform nil :initarg :orientation-generator :reader orientation-generator
+    :documentation "A callable object that takes two parameters, X and
+                    Y and returns the corresponding rotation
+                    value. The function is not required to be
+                    deterministic and called whenever a new sample is
+                    generated.")))
 
 (defgeneric get-cost-map (map)
   (:documentation "Returns the costmap as a two-dimensional array of
@@ -68,18 +80,20 @@
   used to order the different cost functions before the costmap is
   calculated."))
 
-(defgeneric register-height-map (costmap height-map)
-  (:documentation "Registers a height-map in the costmap. Throws a
-  warning if the costmap already has a heightmap."))
+(defgeneric register-height-generator (costmap generator)
+  (:documentation "Registers a height generator in the costmap"))
+
+(defgeneric register-orientation-generator (costmap generator)
+  (:documentation "Registers an orientation generator in the
+  costmap"))
 
 (defgeneric gen-costmap-sample (map)
   (:documentation "Draws a sample from the costmap `map' interpreted
-  as a probability function and returns it as
-  cl-transforms:3d-vector."))
+  as a probability function and returns it as CL-TRANSFORMS:POSE"))
 
 (defgeneric costmap-samples (map)
   (:documentation "Returns the lazy-list of randomly generated costmap
-  samples"))
+  samples, i.e. a lazy-list of instances of type CL-TRANSFORMS:POSE"))
 
 (defgeneric costmap-generator-name->score (name)
   (:documentation "Returns the score for the costmap generator with
@@ -138,11 +152,13 @@
   (when fun
     (push (cons fun name) (slot-value map 'cost-functions))))
 
-(defmethod register-height-map ((map location-costmap) new-height-map)
-  (with-slots (height-map) map
-    (when height-map
-      (warn 'simple-warning :format-control "Costmap already contains a height-map. Replacing it."))
-    (setf height-map new-height-map)))
+(defmethod register-height-generator ((map location-costmap) generator)
+  (with-slots (height-generator) map
+    (setf height-generator generator)))
+
+(defmethod register-orientation-generator ((map location-costmap) generator)
+  (with-slots (orientation-generator) map
+    (setf orientation-generator generator)))
 
 (defun merge-costmaps (cm-1 &rest costmaps)
   "merges cost functions and copies one height-map, returns one costmap"
@@ -150,15 +166,26 @@
     (list (apply #'merge-costmaps (append (force-ll cm-1) costmaps)))
     (location-costmap
        ;; Todo: assert equal size of all costmaps
-       (make-instance 'location-costmap
-                      :width (width cm-1)
-                      :height (height cm-1)
-                      :origin-x (origin-x cm-1)
-                      :origin-y (origin-y cm-1)
-                      :resolution (resolution cm-1)
-                      :cost-functions (reduce #'append (mapcar #'cost-functions costmaps)
-                                              :initial-value (cost-functions cm-1))
-                      :height-map (height-map cm-1)))))
+     (make-instance 'location-costmap
+       :width (width cm-1)
+       :height (height cm-1)
+       :origin-x (origin-x cm-1)
+       :origin-y (origin-y cm-1)
+       :resolution (resolution cm-1)
+       :cost-functions (reduce #'append (mapcar #'cost-functions costmaps)
+                               :initial-value (cost-functions cm-1))
+       :height-generator (some #'height-generator (cons cm-1 costmaps))
+       :orientation-generator (some #'orientation-generator (cons cm-1 costmaps))))))
+
+(defun generate-height (map x y &optional (default 0.0d0))
+  (if (height-generator map)
+      (funcall (height-generator map) x y)
+      default))
+
+(defun generate-orientation (map x y &optional (default (cl-transforms:make-identity-rotation)))
+  (if (orientation-generator map)
+      (funcall (orientation-generator map) x y)
+      default))
 
 (defmethod gen-costmap-sample ((map location-costmap))
   (let ((rand (random 1.0))
@@ -172,11 +199,12 @@
           (when (> cntr rand)
             (let* ((x (+ (* col resolution) origin-x))
                    (y (+ (* row resolution) origin-y))
-                   (z (or (when (height-map map)
-                            (2d-value-map-lookup (height-map map) x y))
-                          0.0d0)))
+                   (z (generate-height map x y))
+                   (rot (generate-orientation map x y)))
               (return-from gen-costmap-sample
-                (cl-transforms:make-3d-vector x y z))))))))
+                (cl-transforms:make-pose
+                 (cl-transforms:make-3d-vector x y z)
+                 rot))))))))
   (error 'invalid-probability-distribution))
 
 (defmethod costmap-samples ((map location-costmap))
