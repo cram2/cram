@@ -76,16 +76,16 @@
             "Grid cells can only be converted to an occupancy grid
               if cell width equals cell height.")
     (let* ((cells-metadata (grid-cells-msg-metadata cells cell-width cell-height))
-           (height-map  (make-instance 'height-map
-                                       :width (grid-cells-metadata-width cells-metadata)
-                                       :height (grid-cells-metadata-height cells-metadata)
-                                       :origin-x (grid-cells-metadata-origin-x cells-metadata)
-                                       :origin-y (grid-cells-metadata-origin-y cells-metadata)
-                                       :resolution cell-width)))
+           (height-map (make-instance '2d-value-map
+                         :width (grid-cells-metadata-width cells-metadata)
+                         :height (grid-cells-metadata-height cells-metadata)
+                         :origin-x (grid-cells-metadata-origin-x cells-metadata)
+                         :origin-y (grid-cells-metadata-origin-y cells-metadata)
+                         :resolution cell-width)))
       (loop for cell across cells
             with resolution/2 = (/ cell-width 2)
-            do (height-map-set height-map
-                               (- (geometry_msgs-msg:x-val cell) resolution/2)
-                               (- (geometry_msgs-msg:y-val cell) resolution/2)
-                               (geometry_msgs-msg:z-val cell)))
+            do (2d-value-map-set height-map
+                                 (- (geometry_msgs-msg:x-val cell) resolution/2)
+                                 (- (geometry_msgs-msg:y-val cell) resolution/2)
+                                 (geometry_msgs-msg:z-val cell)))
       height-map)))

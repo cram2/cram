@@ -173,7 +173,7 @@
             (let* ((x (+ (* col resolution) origin-x))
                    (y (+ (* row resolution) origin-y))
                    (z (or (when (height-map map)
-                            (height-map-lookup (height-map map) x y))
+                            (2d-value-map-lookup (height-map map) x y))
                           0.0d0)))
               (return-from gen-costmap-sample
                 (cl-transforms:make-3d-vector x y z))))))))

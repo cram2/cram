@@ -50,9 +50,9 @@
            #:desig-costmap
            #:desig-orientation
            #:merged-desig-costmap
-           #:height-map
-           #:height-map-lookup
-           #:height-map-set
+           #:2d-value-map
+           #:2d-value-map-lookup
+           #:2d-value-map-set
            #:make-padding-mask
            #:point-in-padding-mask-p
            #:costmap-padding
