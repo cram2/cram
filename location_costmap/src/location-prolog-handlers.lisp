@@ -84,7 +84,7 @@
         (new-height-map (var-value-strict ?height-map bdgs)))
     (assert (and cm (typep cm 'location-costmap)) ()
             "Variable `~a' must be bound to a costmap" ?cm)
-    (assert (and new-height-map (typep new-height-map 'height-map)) ()
+    (assert (and new-height-map (typep new-height-map '2d-value-map)) ()
             "Variable `~a' must be bound to a heightmap" ?height-map)
     (register-height-map cm new-height-map))
   (list bdgs))
@@ -95,12 +95,11 @@
             "Variable `~a' must be bound to a costmap" ?cm)
     (register-height-map
      cm
-     (make-instance
-      'lazy-height-map
-      :width (width cm)
-      :height (height cm)
-      :origin-x (origin-x cm)
-      :origin-y (origin-y cm)
-      :resolution (resolution cm)
-      :generator-fun (eval-generator ?generator-pat bdgs))))
+     (make-instance 'lazy-2d-value-map
+       :width (width cm)
+       :height (height cm)
+       :origin-x (origin-x cm)
+       :origin-y (origin-y cm)
+       :resolution (resolution cm)
+       :generator-fun (eval-generator ?generator-pat bdgs)))))
   (list bdgs))
