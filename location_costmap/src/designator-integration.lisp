@@ -33,40 +33,6 @@
 (defparameter *costmap-valid-solution-threshold* 0.20)
 (defconstant +costmap-n-samples+ 5)
 
-(defgeneric desig-ensure-pose (desig p)
-  (:documentation "returns a pose-stamped")
-  (:method ((desig location-designator) (p cl-transforms:3d-vector))
-    (with-vars-bound (?o)
-        (lazy-car (prolog `(desig-orientation ,desig ,p ?o)))
-      (cl-tf:make-pose-stamped
-       "/map" (roslisp:ros-time) p
-       (cond ((and *tf* (is-var ?o) (tf:can-transform
-                                     *tf*
-                                     :target-frame "/map"
-                                     :source-frame "/base_link"))
-              (cl-transforms:rotation (tf:lookup-transform
-                                       *tf*
-                                       :target-frame "/map"
-                                       :source-frame "/base_link")))
-             ((is-var ?o)
-              (cl-transforms:make-quaternion 0 0 0 1))
-             (t ?o)))))
-
-  (:method ((desig location-designator) (p cl-tf:stamped-transform))
-    (tf:make-pose-stamped
-     (tf:frame-id p) (tf:stamp p)
-     (cl-transforms:translation p)
-     (cl-transforms:rotation p)))
-
-  (:method ((desig location-designator) (p cl-transforms:pose))
-    (tf:make-pose-stamped
-     "/map" (roslisp:ros-time)
-     (cl-transforms:origin p)
-     (cl-transforms:orientation p)))
-
-  (:method ((desig location-designator) (p cl-transforms:transform))
-    (desig-ensure-pose desig (cl-transforms:transform->pose p))))
-
 (defvar *costmap-cache* (tg:make-weak-hash-table :test 'eq :weakness :key))
 (defvar *costmap-max-values (tg:make-weak-hash-table :test 'eq :weakness :key))
 
@@ -91,59 +57,52 @@
                     (setf max (aref cm row col)))))))))
 
 (defun robot-current-pose-generator (desig)
+  (declare (ignore desig))
   (when (and *tf* (cl-tf:can-transform *tf* :target-frame "/map" :source-frame "/base_link"))
     (let* ((robot (cl-tf:lookup-transform
                    *tf* :target-frame "/map" :source-frame "/base_link")))
-      (with-vars-bound (?o)
-          (lazy-car (prolog `(desig-orientation
-                              ,desig ,(cl-transforms:translation robot)
-                              ?o)))
-        (unless (is-var ?o)
-          ;; return the robot's x, y and z but with a
-          ;; rotation heading towards the object of interest if we find a rotation.
-          ;; Otherwise, don't return anything
-          (list
-           (tf:make-pose-stamped
-            "/map" (roslisp:ros-time)
-            (cl-transforms:translation robot)
-            ?o)))))))
+      (list
+       (tf:make-pose-stamped
+        "/map" (roslisp:ros-time)
+        (cl-transforms:translation robot)
+        (cl-transforms:rotation robot))))))
 
 (defun location-costmap-generator (desig)
-  (flet ((take-closest-point (points)
+  (flet ((take-closest-pose (poses)
            ;; If we don't have tf available, just return the first of
            ;; the points since we don't have any reference for
            ;; distance measurement.
            (cond ((and *tf*
                        (cl-tf:can-transform
                         *tf* :target-frame "/map" :source-frame "/base_link"))
-                  (let ((closest (car points))
+                  (let ((closest (car poses))
                         (dist (cl-transforms:v-dist (cl-transforms:translation
                                                      (cl-tf:lookup-transform
                                                       *tf*
                                                       :target-frame "/map"
                                                       :source-frame "/base_link"))
-                                                    (car points))))
-                    (dolist (p (cdr points) closest)
+                                                    (cl-transforms:origin (car poses)))))
+                    (dolist (p (cdr poses) closest)
                       (let ((new-dist (cl-transforms:v-dist (cl-transforms:translation
                                                              (cl-tf:lookup-transform
                                                               *tf*
                                                               :target-frame "/map"
                                                               :source-frame "/base_link"))
-                                                            p)))
+                                                            (cl-transforms:origin p))))
                         (when (< new-dist dist)
                           (setf dist new-dist)
                           (setf closest p))))))
-                 (t (car points)))))
+                 (t (car poses)))))
     (let ((cm (get-cached-costmap desig)))
       (unless cm
         (return-from location-costmap-generator nil))
       (let ((solutions (costmap-samples cm)))
         (publish-location-costmap cm)
         (lazy-list ((solutions solutions)
-                    (generated-points nil))
-          (cond (generated-points
-                 (let ((point (take-closest-point generated-points)))
-                   (cont (desig-ensure-pose desig point) solutions (remove point generated-points))))
+                    (generated-poses nil))
+          (cond (generated-poses
+                 (let ((pose (take-closest-pose generated-poses)))
+                   (cont pose solutions (remove pose generated-poses))))
                 (t
                  (next (lazy-skip +costmap-n-samples+ solutions)
                        (force-ll (lazy-take +costmap-n-samples+ solutions))))))))))
