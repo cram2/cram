@@ -9,6 +9,7 @@ installed: checkedout
 	mkdir -p asdf
 	touch rospack_nosubdirs
 	ln -s ../yason/yason.asd asdf/
+	cd yason && patch -p0 < ../yason.patch
 	touch installed
 
 clean:
