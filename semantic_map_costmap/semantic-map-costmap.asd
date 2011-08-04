@@ -36,7 +36,8 @@
                cram-roslisp-common
                cl-transforms
                cl-json-pl-client
-               location-costmap)
+               location-costmap
+               alexandria)
   :components
   ((:module "src"
             :components

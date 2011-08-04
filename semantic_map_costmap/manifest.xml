@@ -12,6 +12,7 @@
   <depend package="cl_transforms"/>
   <depend package="cram_roslisp_common"/>
   <depend package="location_costmap"/>
+  <depend package="alexandria"/>
 
 </package>
 
