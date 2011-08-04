@@ -102,6 +102,7 @@
                     (generated-poses nil))
           (cond (generated-poses
                  (let ((pose (take-closest-pose generated-poses)))
+                   (publish-pose pose)
                    (cont pose solutions (remove pose generated-poses))))
                 (t
                  (next (lazy-skip +costmap-n-samples+ solutions)
