@@ -60,7 +60,6 @@
       (cram-roslisp-common:lispify-ros-name (unquote (ensure-string sym-2)))))
 
 (def-fact-group semantic-map-costmap (desig-costmap
-                                      desig-orientation
                                       desig-z-value)
 
   (<- (semantic-map-object ?type ?pose (?length ?width ?height))
@@ -83,15 +82,16 @@
      (or (owl-eq ?type ?owl-type)
          (owl-eq ?type ?owl-type-no-ns))))
 
-  (<- (semantic-map-desig-objects ?desig ?objects)
-    (desig-prop ?desig (on ?type))
+  ;; relation-tag is either IN or ON at the moment
+  (<- (semantic-map-desig-objects ?relation-tag ?desig ?objects)
+    (desig-prop ?desig (?relation-tag ?type))
     (not (desig-prop ?desig (name ?_)))
     (bagof (?pose ?dimensions)
            (semantic-map-object ?type ?pose ?dimensions)
            ?objects))
 
-  (<- (semantic-map-desig-objects ?desig ?objects)
-    (desig-prop ?desig (on ?type))
+  (<- (semantic-map-desig-objects ?relation-tag ?desig ?objects)
+    (desig-prop ?desig (?relation-tag ?type))
     (desig-prop ?desig (name ?name))
     (bagof (?pose ?dimensions)
            (semantic-map-object ?type ?name ?pose ?dimensions)
@@ -103,13 +103,23 @@
            ?objects))
   
   (<- (desig-costmap ?desig ?cm)
-    (semantic-map-desig-objects ?desig ?objects)
+    (semantic-map-desig-objects on ?desig ?objects)
     (costmap ?cm)
     (costmap-add-function semantic-map-objects (make-semantic-map-costmap ?objects)
                           ?cm)
-    (costmap-add-heightmap-generator
-     (make-semantic-map-height-function ?objects)
+    (format "asfd~%")
+    (costmap-add-cached-height-generator
+     (make-semantic-map-height-function ?objects :on)
      ?cm))
+
+  (<- (desig-costmap ?desig ?cm)
+    (semantic-map-desig-objects in ?desig ?objects)
+    (costmap ?cm)
+    (costmap-add-function semantic-map-objects (make-semantic-map-costmap ?objects)
+                          ?cm)
+    (costmap-add-cached-height-generator
+     (make-semantic-map-height-function ?objects :in)
+     ?cm))  
 
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (on ?type))
@@ -118,10 +128,7 @@
     (semantic-map-object ?type ?name ?pose ?dimensions)
     (costmap-add-function table-distribution
                           (make-table-cost-function ?pose ?dimensions)
-                          ?cm)
-    (costmap-add-heightmap-generator
-     (make-semantic-map-height-function ((?pose ?dimensions)))
-     ?cm))
+                          ?cm))
 
   (<- (desig-costmap ?desig ?cm)
     (or (desig-prop ?desig (to see))
@@ -133,13 +140,21 @@
                           (make-semantic-map-costmap
                            ?objects :invert t :padding ?padding)
                           ?cm)
-    (costmap-add-heightmap-generator
+    ;; Locations to see and to reach are on the floor, so we can use a
+    ;; constant height of 0
+    (costmap-add-cached-height-generator
      (make-constant-height-function 0.0)
      ?cm))
 
+  ;; The desig-z-value and supporting-z-value predicates are sort of
+  ;; an evil hack. At the moment they are used by grasping to infer
+  ;; the height of the gripper above the supporting object which is
+  ;; necessary to put down the object again. In the future, this
+  ;; should be replaced by a more general approach
   (<- (desig-z-value ?desig ?point ?z)
     (loc-desig? ?desig)
-    (semantic-map-desig-objects ?desig ?objects)
+    (desig-prop ?desig (on ?_))
+    (semantic-map-desig-objects on ?desig ?objects)
     (member (?pose ?dimensions) ?objects)
     (lisp-pred point-on-object ?pose ?dimensions ?point)
     (lisp-fun obj-z-value ?pose ?dimensions ?z))

@@ -30,8 +30,13 @@
 
 (in-package :semantic-map-costmap)
 
-(defun obj-z-value (pose dimensions)
-  (+ (elt pose 11) (/ (third dimensions) 2)))
+(defparameter *board-thickness* 0.01)
+
+(defun obj-z-value (pose dimensions &optional (tag :on))
+  (ecase tag
+    (:on (+ (elt pose 11) (/ (third dimensions) 2)))
+    ;; We assume objects are box-like and `in' means on the bottom
+    (:in (- (elt pose 11) (+ (/ (third dimensions) 2) *board-thickness*)))))
 
 (defun get-aabb (&rest points)
   (loop for p in points
@@ -159,11 +164,12 @@ dimensions in x, y and z direction."
                          (float (cl-transforms:y (cl-transforms:translation transform)) 0.0d0)))
        (2d-cov cov)))))
 
-(defun make-semantic-map-height-function (objects)
+(defun make-semantic-map-height-function (objects &optional (type-tag :on))
   (lambda (x y)
-    (loop for (pose dimensions) in (cut:force-ll objects)
-          when (point-on-object pose dimensions (cl-transforms:make-3d-vector x y 0))
-            maximizing (float (obj-z-value pose dimensions) 0.0d0))))
+    (let ((heights (loop for (pose dimensions) in (cut:force-ll objects)
+                         when (point-on-object pose dimensions (cl-transforms:make-3d-vector x y 0))
+                           collecting (float (obj-z-value pose dimensions type-tag) 0.0d0))))
+      (alexandria:random-elt heights))))
 
 (defun make-constant-height-function (height)
   (lambda (x y)
