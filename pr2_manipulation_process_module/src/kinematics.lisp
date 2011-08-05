@@ -263,11 +263,14 @@
                (tool (cl-transforms:make-pose
                       (cl-transforms:make-3d-vector 0 0 0)
                       (cl-transforms:make-quaternion 0 0 0 1)))
-               (max-tries 1))
-  (let ((seeds (make-seed-states
-                side (remove "torso_lift_joint"
-                             (get-joint-names side)
-                             :test #'equal))))
+               (max-tries 1)
+               seed-state)
+  (let ((seeds (append
+                (when seed-state (list seed-state))
+                (make-seed-states
+                 side (remove "torso_lift_joint"
+                              (get-joint-names side)
+                              :test #'equal)))))
     (lazy-list ((seeds (if max-tries
                            (lazy-take max-tries seeds)
                            seeds)))
@@ -280,6 +283,7 @@
                           (:left *ik-left-ns*))
                         "/get_ik")
                        'kinematics_msgs-srv:getpositionik
+                       
                        :ik_request
                        (roslisp:make-msg
                         "kinematics_msgs/PositionIKRequest"
