@@ -302,6 +302,54 @@
                 (cont result (lazy-cdr seeds))
                 (next (lazy-cdr seeds)))))))))
 
+(defun get-constraint-aware-ik (side pose &key
+                                (tool (cl-transforms:make-pose
+                                       (cl-transforms:make-3d-vector 0 0 0)
+                                       (cl-transforms:make-quaternion 0 0 0 1)))
+                                allowed-collision-objects
+                                (max-tries 1)
+                                seed-state)
+  (let ((seeds (append
+                (when seed-state (list seed-state))
+                (make-seed-states
+                 side (remove "torso_lift_joint"
+                              (get-joint-names side)
+                              :test #'equal)))))
+    (lazy-list ((seeds (if max-tries
+                           (lazy-take max-tries seeds)
+                           seeds)))
+      (when seeds
+        (let ((result (roslisp:call-service
+                       (concatenate
+                        'string
+                        (ecase side
+                          (:right *ik-right-ns*)
+                          (:left *ik-left-ns*))
+                        "/get_constraint_aware_ik")
+                       'kinematics_msgs-srv:getconstraintawarepositionik
+                       
+                       :ik_request
+                       (roslisp:make-msg
+                        "kinematics_msgs/PositionIKRequest"
+                        :ik_link_name (ecase side
+                                        (:right "r_wrist_roll_link")
+                                        (:left "l_wrist_roll_link"))
+                        :pose_stamped (tf:pose-stamped->msg
+                                       (calculate-grasp-pose pose :tool tool))
+                        :ik_seed_state (roslisp:make-msg
+                                        "motion_planning_msgs/RobotState"
+                                        joint_state (lazy-car seeds)))
+                       :ordered_collision_operations (make-collision-operations
+                                                      side
+                                                      (cons "\"attached\"" allowed-collision-objects))
+                       
+                       :timeout 3.0)))
+          (roslisp:with-fields ((error-code (val error_code)))
+              result
+            (if (eql error-code 1)
+                (cont result (lazy-cdr seeds))
+                (next (lazy-cdr seeds)))))))))
+
 (defun get-sgp-grasps (side obj)
   (ecase side
     (:right (roslisp:set-param "/grasp_pcd/sgp_config_param_start_side" 0.0))
@@ -446,6 +494,7 @@
                              bad)))))
 
 (defun calculate-carry-orientation (obj side orientations)
+  (declare (ignore orientations))
   (when obj
     (let* ((hand-orientation (cl-transforms:rotation
                               (tf:lookup-transform
@@ -474,3 +523,32 @@
       (unless idx
         (error 'simple-error :format-control "Invalid robot state. Couldn't find gripper joint"))
       (elt position idx))))
+
+(defun get-gripper-links (side)
+  (roslisp:get-param (ecase side
+                       (:right "/hand_description/right_arm/hand_touch_links")
+                       (:left "/hand_description/left_arm/hand_touch_links"))))
+
+(defun make-collision-operations (side &optional allowed-collision-objects)
+  "Returns an instance of type
+`motion_planning_msgs/OrderedCollisionOperations' and allows
+collisions beteen the gripper and
+`collision-objects'. `collision-objects' is a list of either strings
+or designators."
+  (roslisp:make-msg
+   "motion_planning_msgs/OrderedCollisionOperations"
+   collision_operations
+   (map 'vector #'identity
+        (mapcan
+         (lambda (obj)
+           (mapcar (lambda (gripper-link)
+                     (roslisp:make-msg
+                      "motion_planning_msgs/CollisionOperation"
+                      object1 gripper-link
+                      object2 (etypecase obj
+                                (string obj)
+                                (object-designator (get-collision-object-name obj)))
+                      operation 0
+                      penetration_distance 0.1))
+                   (get-gripper-links side)))
+         allowed-collision-objects))))
