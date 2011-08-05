@@ -43,6 +43,36 @@
 
 (register-ros-init-function init-collision-environment)
 
+(defun get-collision-object-name (desig)
+  "returns the name of a known collision object or NIL"
+  (let ((obj (gethash desig *known-collision-objects*)))
+    (when obj
+      (roslisp:with-fields (id) obj
+        id))))
+
+(defun desig-allowed-contacts (desig links &optional (penetration-depth 0.1))
+  "returns allowed contact specifications for `desig' if desig has
+  been added as a collision object. Returns NIL otherwise"
+  (let ((obj (gethash desig *known-collision-objects*))
+        (i 0))
+    (when obj
+      (roslisp:with-fields ((id id)
+                            (frame-id (frame_id header))
+                            (shapes shapes)
+                            (poses poses))
+          obj
+        (map 'vector (lambda (shape pose)
+                       (incf i)
+                       (roslisp:make-msg
+                        "motion_planning_msgs/AllowedContactSpecification"
+                        name (format nil "~a-~a" id i)
+                        shape shape
+                        (frame_id header pose_stamped) frame-id
+                        (pose pose_stamped) pose
+                        link_names (map 'vector #'identity links)
+                        penetration_depth (float penetration-depth 0.0d0)))
+             shapes poses)))))
+
 (defun register-collision-object (desig)
   (declare (type object-designator desig))
   (roslisp:with-fields (added_object)
