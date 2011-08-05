@@ -91,9 +91,9 @@
          (jlo (object-jlo perceived-object)))
     (cond (pose
            (let ((pose-jlo (pose->jlo pose)))
-             (setf (jlo:cov pose-jlo 0 0) 0.02)
-             (setf (jlo:cov pose-jlo 1 1) 0.02)
-             (setf (jlo:cov pose-jlo 2 2) 0.02)
+             (setf (jlo:cov pose-jlo 0 0) 0.01)
+             (setf (jlo:cov pose-jlo 1 1) 0.01)
+             (setf (jlo:cov pose-jlo 2 2) 0.01)
              (jlo:frame-query jlo pose-jlo)))
           (t jlo))))
 
