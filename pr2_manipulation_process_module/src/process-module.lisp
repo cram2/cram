@@ -153,8 +153,10 @@
                       (:right *carry-pose-right*)
                       (:left *carry-pose-left*))))
     (if orientation
-        (execute-move-arm side (tf:copy-pose-stamped carry-pose :orientation orientation))
-        (execute-move-arm side carry-pose))))
+        (execute-move-arm side (tf:copy-pose-stamped carry-pose :orientation orientation)
+                          :allowed-collision-objects (list "\"all\""))
+        (execute-move-arm side carry-pose
+                          :allowed-collision-objects (list "\"all\"")))))
 
 (def-action-handler lift (side distance)
   (let* ((wrist-transform (tf:lookup-transform
@@ -208,16 +210,19 @@
                                           (grasp-orientation-valid
                                            pre-grasp-pose
                                            (list *top-grasp* *right-grasp*)
-                                           (list *left-grasp*))))
-                                     (lazy-car
-                                      (get-ik
-                                       side pre-grasp-pose))
-                                     (lazy-car
-                                      (get-ik
-                                       side grasp-pose)))
-                            (roslisp:ros-info (pr2-manip process-module) "Found valid grasp ~a ~a"
-                                              pre-grasp-pose grasp-pose)
-                            `((,pre-grasp-pose ,grasp-pose)))))
+                                           (list *left-grasp*)))))
+                            (let* ((pre-grasp-solution (lazy-car
+                                                        (get-ik
+                                                         side pre-grasp-pose)))
+                                   (grasp-solution (lazy-car
+                                                    (get-constraint-aware-ik
+                                                     side grasp-pose
+                                                     :allowed-collision-objects (list "\"all\"")))))
+                              (when (and pre-grasp-solution grasp-solution)
+                                (roslisp:ros-info (pr2-manip process-module) "Found valid grasp ~a ~a"
+                                                  pre-grasp-pose grasp-pose)
+                                `(((,pre-grasp-pose ,pre-grasp-solution)
+                                   (,grasp-pose ,grasp-solution))))))))
                       (prog2
                           (roslisp:ros-info (pr2-manip process-module) "Planning grasp")
                           (get-point-cluster-grasps side obj)
@@ -229,15 +234,17 @@
     (or
      (lazy-car (lazy-mapcar
                 (lambda (grasp-pose)
-                  (destructuring-bind (pre-grasp grasp) grasp-pose
+                  (destructuring-bind ((pre-grasp pre-solution) (grasp grasp-solution)) grasp-pose
+                    (declare (ignore pre-solution grasp))
                     (execute-move-arm side pre-grasp)
-                    (execute-arm-trajectory side (ik->trajectory (lazy-car (get-ik side grasp))))))
+                    (execute-arm-trajectory side (ik->trajectory grasp-solution))))
                 grasp-poses))
      (cpl-impl:fail 'manipulation-pose-unreachable))
     (roslisp:ros-info (pr2-manip process-module) "Closing gripper")
     (compliant-close-girpper side)
     (when (< (get-gripper-state side) 0.01)
       (clear-collision-objects)
+      (open-gripper side)
       (error 'object-lost))
     ;; TODO: Check if gripper is not completely closed to make sure that we are holding the object
     (roslisp:ros-info (pr2-manip process-module) "Attaching object to gripper")
@@ -253,12 +260,25 @@
                              put-down-pose
                              :origin (cl-transforms:v+
                                       (cl-transforms:origin put-down-pose)
-                                      (cl-transforms:make-3d-vector 0 0 *pre-put-down-distance*)))))
+                                      (cl-transforms:make-3d-vector 0 0 *pre-put-down-distance*))))
+         (unhand-pose (cl-transforms:transform-pose
+                       (cl-transforms:reference-transform put-down-pose)
+                       (cl-transforms:make-pose
+                        (cl-transforms:make-3d-vector (- *pre-put-down-distance*) 0 0)
+                        (cl-transforms:make-identity-rotation))))
+         (unhand-pose-stamped (tf:make-pose-stamped
+                               (tf:frame-id put-down-pose) (tf:stamp put-down-pose)
+                               (cl-transforms:origin unhand-pose)
+                               (cl-transforms:orientation unhand-pose)))
+         (put-down-solution (get-constraint-aware-ik side put-down-pose))
+         (unhand-solution (get-constraint-aware-ik side unhand-pose-stamped)))
+    (unless (or put-down-solution unhand-solution)
+      (error 'manipulation-pose-unreachable))
     (execute-move-arm side pre-put-down-pose)
-    (execute-arm-trajectory side (ik->trajectory (lazy-car (get-ik side put-down-pose))))
+    (execute-arm-trajectory side (ik->trajectory (lazy-car put-down-solution)))
     (open-gripper side)
-    (execute-arm-trajectory side (ik->trajectory (lazy-car (get-ik side pre-put-down-pose))))
-    (clear-collision-objects)))
+    (execute-arm-trajectory
+     side (ik->trajectory (lazy-car unhand-solution)))))
 
 (defun execute-goal (server goal)
   (multiple-value-bind (result status)
