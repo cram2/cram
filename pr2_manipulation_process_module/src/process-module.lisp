@@ -304,7 +304,9 @@
       action
       :trajectory (remove-trajectory-joints #("torso_lift_joint") trajectory)))))
 
-(defun execute-move-arm (side pose &optional (planners '(:chomp :ompl)))
+(defun execute-move-arm (side pose &key
+                         (planners '(:chomp :ompl))
+                         allowed-collision-objects)
   "Executes move arm. It goes through the list of planners specified
 by `planners' until one succeeds."
   (flet ((execute-action (planner)
@@ -363,14 +365,8 @@ by `planners' until one succeeds."
                         absolute_yaw_tolerance 0.01
                         weight 1.0))
                       
-                      (collision_operations ordered_collision_operations motion_plan_request)
-                      (vector
-                       (roslisp:make-msg
-                        "motion_planning_msgs/CollisionOperation"
-                        object1 "gripper"
-                        object2 "attached"
-                        penetration_distance 0.1
-                        operation 0)))
+                      (ordered_collision_operations motion_plan_request)
+                      (make-collision-operations side (cons "\"attached\"" allowed-collision-objects)))
                     :result-timeout 1.0)
                  val)))))
     
