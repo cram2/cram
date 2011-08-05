@@ -73,9 +73,10 @@
            (with-failure-handling
                ((cram-plan-failures:manipulation-failure (e)
                   (declare (ignore e))
-                  (when (< cntr 3)
+                  (when (< cntr 7)
                     (incf cntr)
                     (setf put-down-location (next-solution put-down-location))
+                    (achieve `(arm-parked :right))
                     (retry))))
              (when *pose-pub*
                (roslisp:publish *pose-pub* (tf:pose-stamped->msg (reference put-down-location))))
