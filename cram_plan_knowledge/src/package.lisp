@@ -27,7 +27,9 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(defpackage cram-plan-knowledge
+(in-package :cl-user)
+
+(desig-props:def-desig-package cram-plan-knowledge
     (:use #:common-lisp
           #:cram-reasoning
           #:cpl-impl
@@ -58,6 +60,7 @@
            #:duration-includes
            #:throughout
            #:during
+           #:at
            #:task-started-at
            #:task-created-at
            #:task-ended-at
@@ -92,4 +95,7 @@
                 #:task-tree-node-children
                 #:task-tree-node-status-fluent)
   (:shadowing-import-from #:cram-reasoning
-                          #:fail))
+                          #:fail)
+  ;; We need AT from the desig properties to make sure the symbol AT we use
+  ;; and export is compatible with other packages from the cram universe
+  (:desig-properties #:at))
