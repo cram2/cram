@@ -1,0 +1,7 @@
+<launch>
+  <include file="$(find ias_pr2_2dnav)/pr2_2dnav.launch"/>
+  <include file="$(find pr2_manipulation_process_module)/launch/pr2_manipulation.launch"/>
+  <include file="$(find ias_pr2_kinect)/openni_node.launch"/>
+  <include file="$(find cop)/pr2cop.launch"/>
+  <include file="$(find bullet_reasoning)/launch/bullet_reasoning.launch"/>
+</launch>
