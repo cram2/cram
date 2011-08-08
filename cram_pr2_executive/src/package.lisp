@@ -63,4 +63,5 @@
   (:export #:object-opened #:object-closed)
   (:desig-properties
    #:type #:cluster #:object #:in #:gripper #:side #:pose
-   #:height #:orientation #:at #:name #:on #:for))
+   #:height #:orientation #:at #:name #:on #:for
+   #:trajectory #:to #:carry #:obj))
