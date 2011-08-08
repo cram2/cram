@@ -394,7 +394,7 @@ by `planners' until one succeeds."
                       
                       (ordered_collision_operations motion_plan_request)
                       (make-collision-operations side (cons "\"attached\"" allowed-collision-objects)))
-                    :result-timeout 1.0)
+                    :result-timeout 4.0)
                  val)))))
     
     (case (reduce (lambda (result planner)
@@ -404,11 +404,23 @@ by `planners' until one succeeds."
                                         "Move arm returned with ~a"
                                         val)
                       (when (eql val 1)
+                        (let ((goal-in-arm (tf:transform-pose
+                                            *tf* :pose pose
+                                            :target-frame (ecase side
+                                                            (:left "l_wrist_roll_link")
+                                                            (:right "r_wrist_roll_link")))))
+                          (when (or (> (cl-transforms:v-norm (cl-transforms:origin goal-in-arm))
+                                       0.015)
+                                    (> (cl-transforms:normalize-angle
+                                        (nth-value 1 (cl-transforms:quaternion->axis-angle
+                                                      (cl-transforms:orientation goal-in-arm))))
+                                       0.03))
+                            (error 'manipulation-failed)))
                         (return-from execute-move-arm t))))
                   planners :initial-value nil)
-      (-31 (error 'move-arm-no-ik-solution))
-      (-33 (error 'move-arm-ik-link-in-collision))
-      (t (error 'manipulation-failed)))))
+      (-31 (error 'manipulation-pose-unreachable :result (list side pose)))
+      (-33 (error 'manipulation-pose-occupied :result (list side pose)))
+      (t (error 'manipulation-failed :result (list side pose))))))
 
 (defun compliant-close-girpper (side)
   ;; (roslisp:call-service
