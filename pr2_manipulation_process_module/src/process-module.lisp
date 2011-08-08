@@ -256,21 +256,17 @@
       (error 'manipulation-pose-unreachable
              :format-control "No valid grasp pose found"))
     (roslisp:ros-info (pr2-manip process-module) "Executing move-arm")
-    (or
-     (lazy-car (lazy-mapcar
-                (lambda (grasp-pose)
-                  (destructuring-bind ((pre-grasp pre-solution) (grasp grasp-solution)) grasp-pose
-                    (declare (ignore pre-solution grasp))
-                    (execute-move-arm side pre-grasp)
-                    (execute-arm-trajectory side (ik->trajectory grasp-solution))))
-                grasp-poses))
-     (cpl-impl:fail 'manipulation-pose-unreachable))
-    (roslisp:ros-info (pr2-manip process-module) "Closing gripper")
-    (compliant-close-girpper side)
-    (when (< (get-gripper-state side) 0.01)
-      (clear-collision-objects)
-      (open-gripper side)
-      (error 'object-lost))
+    (destructuring-bind ((pre-grasp pre-solution) (grasp grasp-solution)) (lazy-car grasp-poses)
+      (declare (ignore pre-solution grasp))
+      (execute-move-arm side pre-grasp)
+      (execute-arm-trajectory side (ik->trajectory grasp-solution))
+      (roslisp:ros-info (pr2-manip process-module) "Closing gripper")
+      (compliant-close-girpper side)
+      (when (< (get-gripper-state side) 0.01)
+        (clear-collision-objects)
+        (open-gripper side)
+        (execute-arm-trajectory side (ik->trajectory pre-grasp))
+        (error 'object-lost)))
     ;; TODO: Check if gripper is not completely closed to make sure that we are holding the object
     (roslisp:ros-info (pr2-manip process-module) "Attaching object to gripper")
     (attach-collision-object side obj)
