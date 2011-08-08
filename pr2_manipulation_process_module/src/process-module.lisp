@@ -296,8 +296,10 @@
                                (cl-transforms:origin unhand-pose)
                                (cl-transforms:orientation unhand-pose)))
          (put-down-solution (get-constraint-aware-ik side put-down-pose))
-         (unhand-solution (get-constraint-aware-ik side unhand-pose-stamped)))
-    (unless (or put-down-solution unhand-solution)
+         (unhand-solution (get-constraint-aware-ik
+                           side unhand-pose-stamped
+                           :allowed-collision-objects (list "\"all\""))))
+    (when (or (not put-down-solution) (not unhand-solution))
       (error 'manipulation-pose-unreachable))
     (execute-move-arm side pre-put-down-pose)
     (execute-arm-trajectory side (ik->trajectory (lazy-car put-down-solution)))
