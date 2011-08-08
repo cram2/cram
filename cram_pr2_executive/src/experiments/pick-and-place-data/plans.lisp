@@ -76,7 +76,9 @@
                   (when (< cntr 7)
                     (incf cntr)
                     (setf put-down-location (next-solution put-down-location))
-                    (achieve `(arm-parked :right))
+                    (achieve `(arms-at ,(make-designator
+                                         'action
+                                         `((type trajectory) (to carry) (obj ,obj) (side :right)))))
                     (retry))))
              (when *pose-pub*
                (roslisp:publish *pose-pub* (tf:pose-stamped->msg (reference put-down-location))))
