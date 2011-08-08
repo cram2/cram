@@ -43,16 +43,17 @@
                                 'action `((type trajectory) (pose parked) (side ,?side)))))
            (when (< (incf retry-count) 3)
              (retry)))
-         (manipulation-failure (f)
-           (assert-occasion
-            `(object-in-hand-failure manipulation-failed ,?obj ,?side ,f))
-           (ros-warn (achieve plan-lib) "Manipulation action failed. ~a" f)
-           (setf alternative-poses-cnt 0)
-           (when (< (incf retry-count) 3)
-             (achieve `(arms-at ,(make-designator
-                                  'action `((type trajectory) (pose parked) (side ,?side)))))
-             (retract-occasion `(loc Robot ?_))
-             (retry))))
+         ;; (manipulation-failure (f)
+         ;;   (assert-occasion
+         ;;    `(object-in-hand-failure manipulation-failed ,?obj ,?side ,f))
+         ;;   (ros-warn (achieve plan-lib) "Manipulation action failed. ~a" f)
+         ;;   (setf alternative-poses-cnt 0)
+         ;;   (when (< (incf retry-count) 3)
+         ;;     (achieve `(arms-at ,(make-designator
+         ;;                          'action `((type trajectory) (pose parked) (side ,?side)))))
+         ;;     (retract-occasion `(loc Robot ?_))
+         ;;     (retry)))
+         )
       (ros-info (achieve plan-lib) "Calling perceive")
       (setf ?obj (perceive ?obj))
       (ros-info (achieve plan-lib) "Perceive done")
@@ -89,7 +90,7 @@
                (assert-occasion
                 `(object-in-hand-failure manipulation-pose-unreachable ,?obj ,?side ,f))
                (ros-warn (achieve plan-lib) "Got unreachable grasp pose. Trying alternatives")
-               (when (< alternative-poses-cnt 3)
+               (when (< alternative-poses-cnt 1)
                  (incf alternative-poses-cnt)
                  (setf pick-up-loc (next-solution pick-up-loc))
                  (retract-occasion `(loc Robot ?_))
@@ -153,7 +154,7 @@
                (assert-occasion
                 `(object-in-hand-failure manipulation-pose-unreachable ,?obj ,side ,f))
                (ros-warn (achieve plan-lib) "Got unreachable grasp pose. Trying alternatives")
-               (when (< alternative-poses-cnt 3)
+               (when (< alternative-poses-cnt 1)
                  (incf alternative-poses-cnt)
                  (setf put-down-loc (next-solution put-down-loc))
                  (retract-occasion `(loc Robot ?_))
