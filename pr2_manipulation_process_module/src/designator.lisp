@@ -40,6 +40,10 @@
   (<- (side-id :right 0))
   (<- (side-id :left 1))
 
+  (<- (obstacles ?desig ?obstacles)
+    (findall ?o (desig-prop ?desig (obstacle ?o))
+             ?obstacles))
+
   (<- (action-desig ?desig (container-opened ?action ?obj))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to open))
@@ -82,23 +86,26 @@
         (true)
         (== ?distance 0.10)))
 
-  (<- (action-desig ?desig (park ?obj ?side))
+  (<- (action-desig ?desig (park ?obj ?side ?obstacles))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to carry))
     (desig-prop ?desig (side ?side))
-    (desig-prop ?desig (obj ?obj)))
+    (desig-prop ?desig (obj ?obj))
+    (obstacles ?desig ?obstacles))
 
-  (<- (action-desig ?desig (grasp ?obj ?side))
+  (<- (action-desig ?desig (grasp ?obj ?side ?obstacles))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to grasp))
     (desig-prop ?desig (obj ?obj))
-    (desig-prop ?desig (side ?side)))
+    (desig-prop ?desig (side ?side))
+    (obstacles ?desig ?obstacles))
 
-  (<- (action-desig ?desig (put-down ?obj ?loc ?side))
+  (<- (action-desig ?desig (put-down ?obj ?loc ?side ?obstacles))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to put-down))
     (desig-prop ?desig (side ?side))
     (desig-prop ?desig (obj ?obj))
-    (desig-prop ?desig (at ?loc))))
+    (desig-prop ?desig (at ?loc))
+    (obstacles ?desig ?obstacles)))
 
 
