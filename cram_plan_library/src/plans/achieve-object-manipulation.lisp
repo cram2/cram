@@ -32,7 +32,8 @@
 (def-goal (achieve (object-in-hand ?obj ?side))
   (ros-info (achieve plan-lib) "(achieve (object-in-hand))")
   (let ((retry-count 0)
-        (alternative-poses-cnt 0))
+        (alternative-poses-cnt 0)
+        (obstacles nil))
     (with-failure-handling
         ((object-lost (f)
            (ros-warn (achieve plan-lib) "Object lost.")
@@ -55,10 +56,34 @@
       (ros-info (achieve plan-lib) "Calling perceive")
       (setf ?obj (perceive ?obj))
       (ros-info (achieve plan-lib) "Perceive done")
+      (ros-info (achieve plan-lib) "Searching for obstacles")
+      (with-designators ((pick-up-see-loc (location `((to see) (obj ,?obj))))
+                         (obj-loc (location `((of ,?obj)))))
+        (at-location (pick-up-see-loc)
+          (setf obstacles (remove-if
+                           (lambda (o)
+                             (or
+                              (< (cl-transforms:v-dist
+                                  (cl-transforms:origin (designator-pose o))
+                                  (cl-transforms:origin (designator-pose ?obj)))
+                                 0.1)
+                              (< (cl-transforms:x
+                                  (cl-transforms:origin
+                                   (tf:transform-pose
+                                    *tf* :target-frame "/base_footprint"
+                                    :pose (designator-pose o))))
+                                 0.35)))
+                           (achieve `(obstacles-found ,obj-loc))))))
       (with-designators ((pick-up-loc (location `((to reach) (obj ,?obj))))
-                         (grasp-trajectory (action `((type trajectory) (to grasp) (obj ,?obj) (side ,?side))))
-                         (lift-trajectory (action `((type trajectory) (to lift) (obj ,?obj) (side ,?side))))
-                         (carry-trajectory (action `((type trajectory) (to carry) (obj ,?obj) (side ,?side)))))
+                         (grasp-trajectory (action `((type trajectory) (to grasp) (obj ,?obj) (side ,?side)
+                                                     ,@(mapcar (lambda (o) `(obstacle ,o))
+                                                               obstacles))))
+                         (lift-trajectory (action `((type trajectory) (to lift) (obj ,?obj) (side ,?side)
+                                                    ,@(mapcar (lambda (o) `(obstacle ,o))
+                                                              obstacles))))
+                         (carry-trajectory (action `((type trajectory) (to carry) (obj ,?obj) (side ,?side)
+                                                     ,@(mapcar (lambda (o) `(obstacle ,o))
+                                                               obstacles)))))
         (with-failure-handling
             ((manipulation-pose-unreachable (f)
                (assert-occasion
@@ -88,16 +113,40 @@
   (ros-info (achieve plan-lib) "(achieve (object-placed-at))")
   (setf ?obj (current-desig ?obj))
   (let ((object-in-hand-bdgs (holds `(object-in-hand ,?obj ?side)))
-        (alternative-poses-cnt 0))
+        (alternative-poses-cnt 0)
+        (obstacles nil))
     (assert object-in-hand-bdgs ()
             "The object `~a ~a' needs to be in the hand before being able to place it."
             ?obj (description ?obj))
     (let ((side (var-value '?side (car object-in-hand-bdgs)))
           (obj (current-desig ?obj)))
+      (with-designators ((pick-up-see-loc (location `((to see) (location ,?loc)))))
+        (at-location (pick-up-see-loc)
+          (setf obstacles (remove-if
+                           (lambda (o)
+                             (or
+                              (< (cl-transforms:v-dist
+                                  (cl-transforms:origin (designator-pose o))
+                                  (cl-transforms:origin (obj-desig-location ?obj)))
+                                 0.1)
+                              (< (cl-transforms:x
+                                  (cl-transforms:origin
+                                   (tf:transform-pose
+                                    *tf* :target-frame "/base_footprint"
+                                    :pose (designator-pose o))))
+                                 ;; Evil magic constant! This
+                                 ;; filtering should better be done in
+                                 ;; the process module
+                                 0.35)))
+                           (achieve `(obstacles-found ,?loc))))))
       (with-designators ((put-down-loc (location `((to reach) (location ,?loc))))
                          (put-down-trajectory (action `((type trajectory) (to put-down)
-                                                        (obj ,obj) (at ,?loc) (side ,side))))
-                         (park-trajectory (action `((type trajectory) (pose parked) (side ,side)))))
+                                                        (obj ,obj) (at ,?loc) (side ,side)
+                                                        ,@(mapcar (lambda (o) `(obstacle ,o))
+                                                                  obstacles))))
+                         (park-trajectory (action `((type trajectory) (pose parked) (side ,side)
+                                                    ,@(mapcar (lambda (o) `(obstacle ,o))
+                                                              obstacles)))))
         (at-location (put-down-loc)
           (with-failure-handling
             ((manipulation-failure (f)
