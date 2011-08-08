@@ -145,9 +145,13 @@
 (def-action-handler container-closed (action)
   (execute-goal *close-container-action* action))
 
-(def-action-handler park (obj side)
+(def-action-handler park (obj side &optional obstacles)
   (roslisp:ros-info (pr2-manip process-module) "Park arms ~a ~a"
                     obj side)
+  (clear-collision-objects)
+  (sem-map-coll-env:publish-semantic-map-collision-objects)
+  (dolist (obstacle (cut:force-ll obstacles))
+    (register-collision-object obstacle))
   (let ((orientation (calculate-carry-orientation
                       obj side
                       (list *top-grasp* (cl-transforms:make-identity-rotation))))
@@ -175,7 +179,7 @@
                      (cl-transforms:rotation wrist-transform))))
     (execute-arm-trajectory side (ik->trajectory (lazy-car (get-ik side lift-pose))))))
 
-(def-action-handler grasp (obj side)
+(def-action-handler grasp (obj side obstacles)
   (roslisp:ros-info (pr2-manip process-module) "Opening gripper")
   (open-gripper side)
   (roslisp:ros-info (pr2-manip process-module) "Clearing collision map")
@@ -202,6 +206,8 @@
              :format-control "No valid grasp pose found")))
     (roslisp:ros-info (pr2-manip process-module) "Registering semantic map objects")
   (sem-map-coll-env:publish-semantic-map-collision-objects)
+  (dolist (obstacle (cut:force-ll obstacles))
+    (register-collision-object obstacle))
   (let ((grasp-poses
          (lazy-mapcan (lambda (grasp)
                         (let ((pre-grasp-pose
@@ -270,10 +276,14 @@
     (attach-collision-object side obj)
     (assert-occasion `(object-in-hand ,obj ,side))))
 
-(def-action-handler put-down (obj location side)
+(def-action-handler put-down (obj location side obstacles)
   (roslisp:ros-info (pr2-manip process-module) "Putting down object")
   (assert (and (rete-holds `(object-in-hand ,obj ,side))) ()
           "Object ~a needs to be in the gripper" obj)
+  (clear-collision-objects)
+  (sem-map-coll-env:publish-semantic-map-collision-objects)
+  (dolist (obstacle (cut:force-ll obstacles))
+    (register-collision-object obstacle))
   (let* ((put-down-pose (calculate-put-down-pose obj location))
          (pre-put-down-pose (tf:copy-pose-stamped
                              put-down-pose
