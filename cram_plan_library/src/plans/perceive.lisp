@@ -100,3 +100,11 @@
     (equate ?obj-desig (car new-desigs))
     (assert-occasion `(perceived ,(car new-desigs)))
     (car new-desigs)))
+
+(def-goal (achieve (obstacles-found ?location))
+  (with-designators ((cluster (object `((type cluster) (at ,?location)))))
+    (achieve `(looking-at ,?location))
+    (with-failure-handling ((object-not-found (f)
+                              (declare (ignore f))
+                              (return nil)))
+      (achieve `(object-detected ,cluster)))))
