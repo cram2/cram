@@ -73,6 +73,24 @@
                         penetration_depth (float penetration-depth 0.0d0)))
              shapes poses)))))
 
+(defun desig-bounding-box (desig)
+  "Returns the bounding box of the object that is bound to `desig' if
+  the object is a point cloud. Otherwise, returns NIL. The result is
+  of type CL-TRANSFORMS:3D-VECTOR"
+  (let ((obj (gethash desig *known-collision-objects*)))
+    (when obj
+      (roslisp:with-fields (shapes)
+          obj
+        ;; This operation only makes sense if we have only one shape
+        ;; in the collision object. Otherwise we return NIL
+        (unless (> (length shapes) 1)
+          (roslisp:with-fields (type dimensions)
+              (elt shapes 0)
+            ;; We need a BOX
+            (when (eql type 1)
+              (apply #'cl-transforms:make-3d-vector
+                     (map 'list #'identity dimensions)))))))))
+
 (defun register-collision-object (desig)
   (declare (type object-designator desig))
   (roslisp:with-fields (added_object)
