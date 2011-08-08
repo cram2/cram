@@ -41,6 +41,8 @@
 (defparameter *pre-put-down-distance* 0.05
   "Distance above the goal before putting down the object")
 
+(defparameter *max-graspable-size* (cl-transforms:make-3d-vector 0.15 0.15 0.30))
+
 (defvar *open-container-action* nil)
 (defvar *close-container-action* nil)
 
@@ -180,8 +182,25 @@
   (clear-collision-objects)
   (roslisp:ros-info (pr2-manip process-module) "Adding object as collision object")
   (register-collision-object obj)
-  (roslisp:ros-info (pr2-manip process-module) "Registering semantic map objects")
-  (roslisp:ros-info (pr2-manip process-module) "Calling grasp planner")
+  ;; Check if the object we want to grasp is not too big
+  (let ((bb (desig-bounding-box obj)))
+    (when bb
+      (roslisp:ros-info
+       (pr2-manip process-module) "Bounding box: ~a ~a ~a"
+       (cl-transforms:x bb) (cl-transforms:y bb) (cl-transforms:z bb)))
+    (when (and
+           bb
+           (or
+            (> (cl-transforms:x bb)
+               (cl-transforms:x *max-graspable-size*))
+            (> (cl-transforms:y bb)
+               (cl-transforms:y *max-graspable-size*))
+            (> (cl-transforms:z bb)
+               (cl-transforms:z *max-graspable-size*))))
+       ;; TODO: Use a more descriptive condition here
+      (error 'manipulation-pose-unreachable
+             :format-control "No valid grasp pose found")))
+    (roslisp:ros-info (pr2-manip process-module) "Registering semantic map objects")
   (sem-map-coll-env:publish-semantic-map-collision-objects)
   (let ((grasp-poses
          (lazy-mapcan (lambda (grasp)
