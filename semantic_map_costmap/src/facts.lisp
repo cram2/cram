@@ -107,7 +107,6 @@
     (costmap ?cm)
     (costmap-add-function semantic-map-objects (make-semantic-map-costmap ?objects)
                           ?cm)
-    (format "asfd~%")
     (costmap-add-cached-height-generator
      (make-semantic-map-height-function ?objects :on)
      ?cm))
