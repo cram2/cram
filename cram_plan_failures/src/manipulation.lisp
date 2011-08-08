@@ -38,3 +38,5 @@
 (define-condition manipulation-failed (manipulation-failure) ())
 
 (define-condition manipulation-pose-unreachable (manipulation-failure) ())
+
+(define-condition manipulation-pose-occupied (manipulation-failure) ())

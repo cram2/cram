@@ -45,4 +45,5 @@
    #:object-lost
    #:manipulation-failed
    #:manipulation-pose-unreachable
+   #:manipulation-pose-occupied
    #:result))
