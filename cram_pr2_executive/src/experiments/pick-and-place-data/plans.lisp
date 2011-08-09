@@ -30,15 +30,15 @@
 
 (in-package :pr2-ex)
 
-(defun random-element (seq)
-  "Returns a random element from the sequence"
-  (elt seq (random (length seq))))
+(defun chose-side ()
+  (alexandria:random-elt '(:right :left)))
 
 (defvar *pose-pub* nil)
 
 (def-top-level-plan pick-and-place-on-table ()
   (let ((navigation-enabled pr2-navigation-process-module:*navigation-endabled*)
-        (cntr 0))
+        (cntr 0)
+        (side (chose-side)))
     (unwind-protect
          (with-designators ((table (location `((on counter-top) (name kitchen-island))))
                             (obj (object `((type cluster) (at ,table))))
@@ -59,6 +59,7 @@
                 (cram-plan-failures:manipulation-failure (e)
                   (declare (ignore e))
                   (when (< cntr 3)
+                    (setf side (chose-side))
                     (incf cntr)
                     (retry))))
              (let ((objs (filter-objects-on-table
@@ -68,8 +69,8 @@
                           0.15)))
                (unless objs
                  (fail 'object-not-found :object-desig obj))
-               (equate obj (random-element objs)))
-             (achieve `(object-in-hand ,obj :right)))
+               (equate obj (alexandria:random-elt objs)))
+             (achieve `(object-in-hand ,obj ,side)))
            (with-failure-handling
                ((cram-plan-failures:manipulation-failure (e)
                   (declare (ignore e))
@@ -78,7 +79,7 @@
                     (setf put-down-location (next-solution put-down-location))
                     (achieve `(arms-at ,(make-designator
                                          'action
-                                         `((type trajectory) (to carry) (obj ,obj) (side :right)))))
+                                         `((type trajectory) (to carry) (obj ,obj) (side ,side)))))
                     (retry))))
              (when *pose-pub*
                (roslisp:publish *pose-pub* (tf:pose-stamped->msg (reference put-down-location))))
