@@ -58,9 +58,9 @@
 
 (defun robot-current-pose-generator (desig)
   (declare (ignore desig))
-  (when (and *tf* (cl-tf:can-transform *tf* :target-frame "/map" :source-frame "/base_link"))
+  (when (and *tf* (cl-tf:can-transform *tf* :target-frame "/map" :source-frame "/base_footprint"))
     (let* ((robot (cl-tf:lookup-transform
-                   *tf* :target-frame "/map" :source-frame "/base_link")))
+                   *tf* :target-frame "/map" :source-frame "/base_footprint")))
       (list
        (tf:make-pose-stamped
         "/map" (roslisp:ros-time)
@@ -74,20 +74,20 @@
            ;; distance measurement.
            (cond ((and *tf*
                        (cl-tf:can-transform
-                        *tf* :target-frame "/map" :source-frame "/base_link"))
+                        *tf* :target-frame "/map" :source-frame "/base_footprint"))
                   (let ((closest (car poses))
                         (dist (cl-transforms:v-dist (cl-transforms:translation
                                                      (cl-tf:lookup-transform
                                                       *tf*
                                                       :target-frame "/map"
-                                                      :source-frame "/base_link"))
+                                                      :source-frame "/base_footprint"))
                                                     (cl-transforms:origin (car poses)))))
                     (dolist (p (cdr poses) closest)
                       (let ((new-dist (cl-transforms:v-dist (cl-transforms:translation
                                                              (cl-tf:lookup-transform
                                                               *tf*
                                                               :target-frame "/map"
-                                                              :source-frame "/base_link"))
+                                                              :source-frame "/base_footprint"))
                                                             (cl-transforms:origin p))))
                         (when (< new-dist dist)
                           (setf dist new-dist)
