@@ -34,7 +34,7 @@
   vertices
   triangles)
 
-(define-foreign-ros-library assimp "libassimp.so")
+(define-foreign-ros-library assimp "libassimp.so.1")
 
 (use-foreign-library assimp)
 
