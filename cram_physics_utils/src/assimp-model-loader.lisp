@@ -72,6 +72,8 @@
                  (foreign-slot-value mesh 'ai-mesh 'num-faces)
                  :element-type 'list
                  :initial-element nil)))
+    (assert (not (null-pointer-p (foreign-slot-value mesh 'ai-mesh 'faces))) ()
+            "Faces unbound")
     (dotimes (i (array-dimension result 0) result)
       (let* ((face (mem-aref
                     (foreign-slot-value mesh 'ai-mesh 'faces)
