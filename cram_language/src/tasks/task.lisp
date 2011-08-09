@@ -553,9 +553,10 @@
   ;; prevent using ADJUST-TIME-QUANTUM during the execution of
   ;; THUNK. (We do not currently need this, but I guess it's better to
   ;; do it right from the beginning.)
-  (let ((*scheduling-enabled* nil))
-    (funcall thunk))
-  (check-time-quantum))
+  (prog1
+      (let ((*scheduling-enabled* nil))
+        (funcall thunk))
+    (check-time-quantum)))
 
 (defun check-time-quantum ()
   "Check whether we already exceeded our current time quantum."
