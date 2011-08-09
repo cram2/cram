@@ -81,41 +81,45 @@
     (with-slots (input cancel status result) pm
       (unwind-protect
            (block pm-body
-             (whenever ((not (eq input nil)))
-               (when (value input)
-                 (setf (value status) :running)
-                 (setf (value cancel) nil)
-                 (unwind-protect
-                      (pursue
-                        (wait-for cancel)
-                        (restart-case
-                            (handler-bind ((error (lambda (e)
-                                                    (funcall #'invoke-debugger e))))
-                              (handler-case
-                                  (flet ((handle-failure (e)
-                                           (setf (value result) e)
-                                           (setf (value status) :failed)))
-                                    (handler-bind ((plan-failure #'handle-failure)
-                                                   (error #'handle-failure))
-                                      (let ((result-val nil))
-                                        (unwind-protect
-                                             (when (value input)
-                                               (setf result-val (call-next-method)))
-                                          (setf (value input) nil)
-                                          (when result-val
-                                            (setf (value result) result-val))))))
-                                (plan-failure (e)
-                                  (declare (ignore e))
-                                  nil)))
-                          (terminate-pm ()
-                            :report "Terminate process module"
-                            (setf teardown t))
-                          (continue-pm ()
-                            :report "Ignore error and restart process module main loop.")))
-                   (unless (eq (value status) :failed)
-                     (setf (value status) :waiting)))
-                 (when teardown
-                   (return-from pm-body)))))
+             (loop do
+               (wait-for (not (eq input nil)))
+               (setf (value status) :running)
+               (setf (value cancel) nil)
+               (unwind-protect
+                    (pursue
+                      (wait-for cancel)
+                      (restart-case
+                          (handler-bind ((error (lambda (e)
+                                                  (funcall #'invoke-debugger e))))
+                            (handler-case
+                                (flet ((handle-failure (e)
+                                         (setf (value result) e)
+                                         (setf (value status) :failed)))
+                                  (handler-bind ((plan-failure #'handle-failure)
+                                                 (error #'handle-failure))
+                                    (let ((result-val nil))
+                                      (unwind-protect
+                                           (setf result-val (call-next-method))
+                                        (setf (value input) nil)
+                                        (when result-val
+                                          (setf (value result) result-val))))))
+                              (plan-failure (e)
+                                (declare (ignore e))
+                                nil)))
+                        (terminate-pm ()
+                          :report "Terminate process module"
+                          ;; We need to use a flag here because we
+                          ;; cannot perform a non-local exit to the
+                          ;; block pm-body here. The reason is that we
+                          ;; are inside a pursue, i.e. we are actually
+                          ;; running in a different thread
+                          (setf teardown t))
+                        (continue-pm ()
+                          :report "Ignore error and restart process module main loop.")))
+                 (unless (eq (value status) :failed)
+                   (setf (value status) :waiting)))
+               (when teardown
+                 (return-from pm-body))))
         (setf (value status) :offline)))))
 
 (defmethod pm-run ((pm symbol))
@@ -139,7 +143,7 @@
     (setf (value caller) task)
     (setf (slot-value pm 'priority) priority)
     ;; Set the status to running here. Otherwise we might get a race
-    ;; condition becaus status is not set to running yet and the next
+    ;; condition because status is not set to running yet and the next
     ;; wait-for returns immediately.
     (setf (value (slot-value pm 'input)) input)
     (wait-for (eq status :running))
