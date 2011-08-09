@@ -99,7 +99,11 @@
                                                  (error #'handle-failure))
                                     (let ((result-val nil))
                                       (unwind-protect
-                                           (setf result-val (call-next-method))
+                                           (progn
+                                             (assert
+                                              (value input) ()
+                                              "Input value is NIL when calling process module. This should never happen.")
+                                             (setf result-val (call-next-method)))
                                         (setf (value input) nil)
                                         (when result-val
                                           (setf (value result) result-val))))))
