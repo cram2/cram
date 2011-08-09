@@ -216,7 +216,7 @@
                       ;; the task and all its children will get evaporated
                       ;; in case the thread is killed.
                       (evaporate ,task
-                                 :sync nil
+                                 :sync t
                                  :reason ,(format nil "~A aborted." name))))))
              (on-top-level-cleanup-hook ',name)))))))
 
