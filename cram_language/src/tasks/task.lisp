@@ -278,7 +278,7 @@
                     (when abortedp
                       (%teardown new-task :failed
                                  "Aborted." "Parent aborted."
-                                 nil))
+                                 t))
                     (log-event
                       (:context "- ~:[FINISH~;ABORTED~] -" abortedp)
                       (:display "~S, ~_~S"
@@ -715,7 +715,7 @@
                       (multiple-value-list
                        (call-with-event-loop thunk constraints))
                       "Parent succeeded."
-                      nil)
+                      t)
          (teardown (status result reason sync)
            :report (lambda (stream)
                      (format stream "Tear down ~S" current-task))
