@@ -160,9 +160,9 @@
                  (retract-occasion `(loc Robot ?_))
                  (retry))))
             (achieve `(looking-at ,(reference ?loc)))
-            (achieve `(arms-at ,put-down-trajectory)))
-          (achieve `(arms-at ,park-trajectory)))
-        (assert-occasion `(object-placed-at ,obj ,?loc))))))
+            (achieve `(arms-at ,put-down-trajectory))
+            (assert-occasion `(object-placed-at ,obj ,?loc)))
+          (achieve `(arms-at ,park-trajectory)))))))
 
 (def-goal (achieve (arm-parked ?side))
   (flet ((park-both-arms ()
