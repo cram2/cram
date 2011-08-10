@@ -41,6 +41,8 @@
                cram-plan-knowledge
                perception-process-module
                pr2_controllers_msgs-msg
+               pr2_msgs-msg
+               pr2_msgs-srv
                kinematics_msgs-srv
                sgp_srvs-srv
                kdl_arm_kinematics-srv

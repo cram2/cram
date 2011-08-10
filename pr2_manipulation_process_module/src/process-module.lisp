@@ -475,4 +475,5 @@ by `planners' until one succeeds."
   (gethash obj *open-trajectories*))
 
 (def-process-module pr2-manipulation-process-module (desig)
+  (collision-environment-set-laser-period)
   (apply #'call-action (reference desig)))
