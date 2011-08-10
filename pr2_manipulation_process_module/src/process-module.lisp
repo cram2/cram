@@ -395,7 +395,8 @@ by `planners' until one succeeds."
                         weight 1.0))
                       
                       (ordered_collision_operations motion_plan_request)
-                      (make-collision-operations side (cons "\"attached\"" allowed-collision-objects)))
+                      (make-collision-operations side (cons "\"attached\"" allowed-collision-objects))
+                      disable_collision_monitoring t)
                     :result-timeout 4.0)
                  val)))))
     
