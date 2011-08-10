@@ -232,3 +232,16 @@
                         :origin (cl-transforms:make-identity-vector)
                         :orientation (cl-transforms:make-identity-rotation))))
                   vertices))))))
+
+(defun collision-environment-set-laser-period ()
+  "Sets the tilting laser period to work best with collision
+  environment"
+  (roslisp:call-service
+   "/laser_tilt_controller/set_periodic_cmd" "pr2_msgs/SetPeriodicCmd"
+   :command (roslisp:make-msg
+             "pr2_msgs/PeriodicCmd"
+             (stamp header) (roslisp:ros-time)
+             profile "linear"
+             period 3
+             amplitude 0.75
+             offset 0.25)))
