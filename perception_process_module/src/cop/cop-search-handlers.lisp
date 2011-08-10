@@ -163,11 +163,12 @@
         (lispify-ros-name (vision_msgs-msg:sem_class-val m) (find-package :perception-pm))))
 
 (defun cop-reply->perceived-object (reply perception-primitive)
-  (let ((jlo (jlo:make-jlo :id (vision_msgs-msg:position-val reply))))
-    (make-instance 'cop-perceived-object
-                   :pose (jlo->pose jlo)
-                   :jlo jlo
-                   :object-id (vision_msgs-msg:objectid-val reply)
-                   :properties (map 'list #'cop-model->property (vision_msgs-msg:models-val reply))
-                   :probability (vision_msgs-msg:probability-val reply)
-                   :perception-primitive perception-primitive)))
+  (cpl-impl:without-scheduling
+    (let ((jlo (jlo:make-jlo :id (vision_msgs-msg:position-val reply))))
+      (make-instance 'cop-perceived-object
+                     :pose (jlo->pose jlo)
+                     :jlo jlo
+                     :object-id (vision_msgs-msg:objectid-val reply)
+                     :properties (map 'list #'cop-model->property (vision_msgs-msg:models-val reply))
+                     :probability (vision_msgs-msg:probability-val reply)
+                     :perception-primitive perception-primitive))))
