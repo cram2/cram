@@ -57,14 +57,15 @@
 
 (defun get-joint-names (side)
   (roslisp:with-fields ((joint-names (joint_names kinematic_solver_info)))
-      (roslisp:call-service
-       (concatenate
-        'string
-        (ecase side
-          (:right *ik-right-ns*)
-          (:left *ik-left-ns*))
-        "/get_ik_solver_info")
-       "kinematics_msgs/GetKinematicSolverInfo")
+      (cpl-impl:without-scheduling
+        (roslisp:call-service
+         (concatenate
+          'string
+          (ecase side
+            (:right *ik-right-ns*)
+            (:left *ik-left-ns*))
+          "/get_ik_solver_info")
+         "kinematics_msgs/GetKinematicSolverInfo"))
     joint-names))
 
 (defun make-seed-states (side joint-names &optional (steps 3))
@@ -75,14 +76,15 @@
                  (joint-state (cpl:value *joint-state*)))
              (roslisp:with-fields ((joint-names (joint_names kinematic_solver_info))
                                    (limits (limits kinematic_solver_info)))
-                 (roslisp:call-service
-                  (concatenate
-                   'string
-                   (ecase side
-                     (:right *ik-right-ns*)
-                     (:left *ik-left-ns*))
-                   "/get_ik_solver_info")
-                  "kinematics_msgs/GetKinematicSolverInfo")
+                 (cpl-impl:without-scheduling
+                   (roslisp:call-service
+                    (concatenate
+                     'string
+                     (ecase side
+                       (:right *ik-right-ns*)
+                       (:left *ik-left-ns*))
+                     "/get_ik_solver_info")
+                    "kinematics_msgs/GetKinematicSolverInfo"))
                (map nil (lambda (limit joint-name)
                           (roslisp:with-fields ((min min_position)
                                                 (max max_position))
@@ -275,27 +277,28 @@
                            (lazy-take max-tries seeds)
                            seeds)))
       (when seeds
-        (let ((result (roslisp:call-service
-                       (concatenate
-                        'string
-                        (ecase side
-                          (:right *ik-right-ns*)
-                          (:left *ik-left-ns*))
-                        "/get_ik")
-                       'kinematics_msgs-srv:getpositionik
+        (let ((result (cpl-impl:without-scheduling
+                        (roslisp:call-service
+                         (concatenate
+                          'string
+                          (ecase side
+                            (:right *ik-right-ns*)
+                            (:left *ik-left-ns*))
+                          "/get_ik")
+                         'kinematics_msgs-srv:getpositionik
                        
-                       :ik_request
-                       (roslisp:make-msg
-                        "kinematics_msgs/PositionIKRequest"
-                        :ik_link_name (ecase side
-                                        (:right "r_wrist_roll_link")
-                                        (:left "l_wrist_roll_link"))
-                        :pose_stamped (tf:pose-stamped->msg
-                                       (calculate-grasp-pose pose :tool tool))
-                        :ik_seed_state (roslisp:make-msg
-                                        "motion_planning_msgs/RobotState"
-                                        joint_state (lazy-car seeds)))
-                       :timeout 1.0)))
+                         :ik_request
+                         (roslisp:make-msg
+                          "kinematics_msgs/PositionIKRequest"
+                          :ik_link_name (ecase side
+                                          (:right "r_wrist_roll_link")
+                                          (:left "l_wrist_roll_link"))
+                          :pose_stamped (tf:pose-stamped->msg
+                                         (calculate-grasp-pose pose :tool tool))
+                          :ik_seed_state (roslisp:make-msg
+                                          "motion_planning_msgs/RobotState"
+                                          joint_state (lazy-car seeds)))
+                         :timeout 1.0))))
           (roslisp:with-fields ((error-code (val error_code)))
               result
             (if (eql error-code 1)
@@ -319,31 +322,32 @@
                            (lazy-take max-tries seeds)
                            seeds)))
       (when seeds
-        (let ((result (roslisp:call-service
-                       (concatenate
-                        'string
-                        (ecase side
-                          (:right *ik-right-ns*)
-                          (:left *ik-left-ns*))
-                        "/get_constraint_aware_ik")
-                       'kinematics_msgs-srv:getconstraintawarepositionik
+        (let ((result (cpl-impl:without-scheduling
+                        (roslisp:call-service
+                         (concatenate
+                          'string
+                          (ecase side
+                            (:right *ik-right-ns*)
+                            (:left *ik-left-ns*))
+                          "/get_constraint_aware_ik")
+                         'kinematics_msgs-srv:getconstraintawarepositionik
                        
-                       :ik_request
-                       (roslisp:make-msg
-                        "kinematics_msgs/PositionIKRequest"
-                        :ik_link_name (ecase side
-                                        (:right "r_wrist_roll_link")
-                                        (:left "l_wrist_roll_link"))
-                        :pose_stamped (tf:pose-stamped->msg
-                                       (calculate-grasp-pose pose :tool tool))
-                        :ik_seed_state (roslisp:make-msg
-                                        "motion_planning_msgs/RobotState"
-                                        joint_state (lazy-car seeds)))
-                       :ordered_collision_operations (make-collision-operations
-                                                      side
-                                                      (cons "\"attached\"" allowed-collision-objects))
+                         :ik_request
+                         (roslisp:make-msg
+                          "kinematics_msgs/PositionIKRequest"
+                          :ik_link_name (ecase side
+                                          (:right "r_wrist_roll_link")
+                                          (:left "l_wrist_roll_link"))
+                          :pose_stamped (tf:pose-stamped->msg
+                                         (calculate-grasp-pose pose :tool tool))
+                          :ik_seed_state (roslisp:make-msg
+                                          "motion_planning_msgs/RobotState"
+                                          joint_state (lazy-car seeds)))
+                         :ordered_collision_operations (make-collision-operations
+                                                        side
+                                                        (cons "\"attached\"" allowed-collision-objects))
                        
-                       :timeout 3.0)))
+                         :timeout 3.0))))
           (roslisp:with-fields ((error-code (val error_code)))
               result
             (if (eql error-code 1)
@@ -354,9 +358,10 @@
   (ecase side
     (:right (roslisp:set-param "/grasp_pcd/sgp_config_param_start_side" 0.0))
     (:left (roslisp:set-param "/grasp_pcd/sgp_config_param_start_side" pi)))
-  (let ((grasps (roslisp:call-service
-                 "/grasp_pcd/simple_grasp_planner" "sgp_srvs/sgp"
-                 :query (jlo:partial-lo (perception-pm:object-jlo (reference obj))))))
+  (let ((grasps (cpl-impl:without-scheduling
+                  (roslisp:call-service
+                   "/grasp_pcd/simple_grasp_planner" "sgp_srvs/sgp"
+                   :query (jlo:partial-lo (perception-pm:object-jlo (reference obj)))))))
     (roslisp:with-fields (poses quals) grasps
       (lazy-mapcar
        (lambda (g)
@@ -374,12 +379,13 @@
                        :target-frame "/base_footprint")))))
     (roslisp:with-fields ((error-code (value error_code))
                           (grasps grasps))
-        (roslisp:call-service
-         "/plan_point_cluster_grasp" 'object_manipulation_msgs-srv:graspplanning
-         :arm_name (ecase side
-                     (:left "left_arm")
-                     (:right "right_arm"))
-         :target (cop-obj->graspable-obj obj "/base_footprint"))
+        (cpl-impl:without-scheduling
+          (roslisp:call-service
+           "/plan_point_cluster_grasp" 'object_manipulation_msgs-srv:graspplanning
+           :arm_name (ecase side
+                       (:left "left_arm")
+                       (:right "right_arm"))
+           :target (cop-obj->graspable-obj obj "/base_footprint")))
       (unless (= error-code 0)
         (error 'manipulation-failed
                :format-control "Couldn't find valid grasps"))
@@ -508,9 +514,10 @@
 (defun get-robot-state ()
   "Returns the current joint state of the robot"
   (roslisp:with-fields ((joint-state (joint_state robot_state)))
-      (roslisp:call-service
-       "/environment_server/get_robot_state"
-       "planning_environment_msgs/GetRobotState")
+      (cpl-impl:without-scheduling
+        (roslisp:call-service
+         "/environment_server/get_robot_state"
+         "planning_environment_msgs/GetRobotState"))
     joint-state))
 
 (defun get-gripper-state (side)
