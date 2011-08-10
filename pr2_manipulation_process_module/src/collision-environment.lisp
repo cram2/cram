@@ -169,7 +169,7 @@
                           "mapping_msgs/AttachedCollisionObject"
                           link_name (ecase side
                                       (:right "r_gripper_r_finger_tip_link")
-                                      (:left "r_gripper_r_finger_tip_link"))
+                                      (:left "l_gripper_r_finger_tip_link"))
                           touch_links (ecase side
                                         (:right (vector
                                                  "r_gripper_palm_link"
