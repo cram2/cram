@@ -45,15 +45,22 @@
 
 (defun get-collision-object-name (desig)
   "returns the name of a known collision object or NIL"
-  (let ((obj (gethash desig *known-collision-objects*)))
+  (let ((obj (find-desig-collision-object desig)))
     (when obj
       (roslisp:with-fields (id) obj
         id))))
 
+(defun find-desig-collision-object (desig)
+  (labels ((find-collision-object (curr)
+             (when curr
+               (or (gethash curr *known-collision-objects*)
+                   (find-collision-object (parent curr))))))
+    (find-collision-object (current-desig desig))))
+
 (defun desig-allowed-contacts (desig links &optional (penetration-depth 0.1))
   "returns allowed contact specifications for `desig' if desig has
   been added as a collision object. Returns NIL otherwise"
-  (let ((obj (gethash desig *known-collision-objects*))
+  (let ((obj (find-desig-collision-object desig))
         (i 0))
     (when obj
       (roslisp:with-fields ((id id)
@@ -77,7 +84,7 @@
   "Returns the bounding box of the object that is bound to `desig' if
   the object is a point cloud. Otherwise, returns NIL. The result is
   of type CL-TRANSFORMS:3D-VECTOR"
-  (let ((obj (gethash desig *known-collision-objects*)))
+  (let ((obj (find-desig-collision-object desig)))
     (when obj
       (roslisp:with-fields (shapes)
           obj
@@ -101,7 +108,7 @@
           added_object)))
 
 (defun remove-collision-object (desig)
-  (let ((collision-object (gethash desig *known-collision-objects*)))
+  (let ((collision-object (find-desig-collision-object desig)))
     (when collision-object
       (roslisp:with-fields (id) collision-object
         (roslisp:publish *collision-object-pub*
@@ -122,7 +129,7 @@
                     (operation operation) 1)))
 
 (defun attach-collision-object (side desig)
-  (let ((collision-object (gethash desig *known-collision-objects*)))
+  (let ((collision-object (find-desig-collision-object desig)))
     (when collision-object
       (let ((attach-object (roslisp:modify-message-copy
                             collision-object
@@ -150,7 +157,7 @@
                           object attach-object))))))
 
 (defun detach-collision-object (side desig)
-  (let ((collision-object (gethash desig *known-collision-objects*)))
+  (let ((collision-object (find-desig-collision-object desig)))
     (when collision-object
       (let ((detach-object (roslisp:modify-message-copy
                             collision-object
