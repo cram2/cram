@@ -33,6 +33,11 @@
 (defun chose-side ()
   (alexandria:random-elt '(:right :left)))
 
+(defun switch-side (side)
+  (ecase side
+    (:right :left)
+    (:left :right)))
+
 (defvar *pose-pub* nil)
 
 (def-top-level-plan pick-and-place-on-table ()
@@ -59,7 +64,7 @@
                 (cram-plan-failures:manipulation-failure (e)
                   (declare (ignore e))
                   (when (< cntr 3)
-                    (setf side (chose-side))
+                    (setf side (switch-side side))
                     (incf cntr)
                     (retry))))
              (let ((objs (filter-objects-on-table
