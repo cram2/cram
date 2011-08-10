@@ -271,7 +271,6 @@
         (error 'object-lost)))
     ;; TODO: Check if gripper is not completely closed to make sure that we are holding the object
     (roslisp:ros-info (pr2-manip process-module) "Attaching object to gripper")
-    (attach-collision-object side obj)
     (assert-occasion `(object-in-hand ,obj ,side))))
 
 (def-action-handler put-down (obj location side obstacles)
@@ -464,8 +463,7 @@ by `planners' until one succeeds."
                   (lazy-car
                    (rete-holds `(object-in-hand ?obj ,side))))))
         (unless (is-var obj)
-          (detach-collision-object side obj)
-          (retract-occasion `(object-in-hand obj ,side)))))))
+          (retract-occasion `(object-in-hand ,obj ,side)))))))
 
 (defun store-open-trajectory (obj open-result)
   (declare (type object-designator obj)

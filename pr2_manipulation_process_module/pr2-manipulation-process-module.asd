@@ -63,4 +63,5 @@
              (:file "kinematics" :depends-on ("package"))
              (:file "collision-environment" :depends-on ("package"))
              (:file "process-module" :depends-on ("package" "kinematics" "collision-environment"))
+             (:file "rete" :depends-on ("package" "collision-environment"))
              (:file "designator" :depends-on ("package" "process-module"))))))
