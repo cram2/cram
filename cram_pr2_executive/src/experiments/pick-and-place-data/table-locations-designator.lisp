@@ -98,14 +98,28 @@
   (let* ((name (desig-prop-value desig 'name))
          (pose (cdr (assoc name *table-locations*)))
          (obj (desig-prop-value desig 'for)))
-    (mapcar (lambda (pose)
-              (tf:copy-pose-stamped
-               pose :orientation (calculate-obj-desig-orientation
-                                  obj (cl-transforms:orientation pose))))
-            (if pose
-                (list pose)
-                (alexandria:shuffle
-                 (mapcar #'cdr *table-locations*))))))
+    (when (or name (desig-prop-value desig 'on) obj)
+      (mapcar (lambda (pose)
+                (tf:copy-pose-stamped
+                 pose :orientation (calculate-obj-desig-orientation
+                                    obj (cl-transforms:orientation pose))))
+              (if pose
+                  (list pose)
+                  (alexandria:shuffle
+                   (mapcar #'cdr *table-locations*)))))))
+
+(defun robot-current-pose-generator (desig)
+  (when (or (eql (desig-prop-value desig 'to) 'see)
+            (eql (desig-prop-value desig 'to) 'reach))
+    (cut:lazy-take
+     10
+     (cut:lazy-list ()
+       (cut:cont (tf:transform-pose
+                  *tf* :pose (tf:make-pose-stamped
+                              "/base_footprint" (roslisp:ros-time)
+                              (cl-transforms:make-identity-vector)
+                              (cl-transforms:make-identity-rotation))
+                  :target-frame "/map"))))))
 
 (defun named-pose-validator (desig generated-pose)
   (let* ((name (desig-prop-value desig 'name)))
@@ -119,5 +133,23 @@
           t)
         t)))
 
+(defun robot-current-pose-validator (desig generated-pose)
+  (if (or (eql (desig-prop-value desig 'to) 'see)
+          (eql (desig-prop-value desig 'to) 'reach))
+      (< (cl-transforms:v-dist
+          (cl-transforms:origin
+           (tf:transform-pose
+            *tf* :pose generated-pose
+            :target-frame "/map"))
+          (cl-transforms:translation
+           (tf:lookup-transform
+            *tf* :source-frame "/base_footprint"
+            :target-frame "/map")))
+         0.1)
+      t))
+
 (register-location-generator 11 named-pose-generator)
 (register-location-validation-function 11 named-pose-validator)
+
+(register-location-generator 11 robot-current-pose-generator)
+(register-location-validation-function 11 robot-current-pose-validator)
