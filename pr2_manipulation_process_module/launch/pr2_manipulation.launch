@@ -36,7 +36,8 @@
   <include file="$(find pr2_arm_navigation_actions)/launch/environment_server.launch"/>
 
   <!-- load controllers -->
-  <include file="$(find pr2_arm_navigation_filtering)/launch/trajectory_filter.launch"/>
+  <include file="$(find pr2_arm_navigation_filtering)/launch/both_arms_filters.launch"/>
+  <param name="trajectory_filter/object_padd" value="0.04"/>
 
   <!-- load ik -->
   <include file="$(find pr2_arm_navigation_kinematics)/launch/right_arm_collision_free_ik.launch"/>
