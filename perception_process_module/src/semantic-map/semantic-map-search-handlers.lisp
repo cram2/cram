@@ -69,12 +69,13 @@
          (with-vars-bound (?objname) bdg
            (equal (remove #\' (symbol-name ?objname))
                   (prologify-obj-name name))))
-       (json-prolog:prolog
-        `(and ("rootObjects" ?objs)
-              ("member" ?o ?objs)
-              ("rdf_atom_no_ns" ?o ?objname)
-              ("objectPose" ?o ?pose))
-        :package :perception-pm))))))
+       (cpl-impl:without-scheduling
+         (json-prolog:prolog
+          `(and ("rootObjects" ?objs)
+                ("member" ?o ?objs)
+                ("rdf_atom_no_ns" ?o ?objname)
+                ("objectPose" ?o ?pose))
+          :package :perception-pm)))))))
 
 (def-object-search-function query-semantic-map-object-type semantic-map
     (((type ?type)) desig perceived-object)
@@ -100,14 +101,15 @@
          (with-vars-bound (?type) bdg
            (equal (remove #\' (symbol-name ?type))
                   (prologify-obj-name type))))
-       (json-prolog:prolog
-        `(and ("rootObjects" ?objs)
-              ("member" ?o ?objs)
-              ("objectType" ?o ?tp)
-              ("rdf_atom_no_ns" ?o ?objname)
-              ("rdf_atom_no_ns" ?tp ?type)
-              ("objectPose" ?o ?pose))
-        :package :perception-pm))))))
+       (cpl-impl:without-scheduling
+         (json-prolog:prolog
+          `(and ("rootObjects" ?objs)
+                ("member" ?o ?objs)
+                ("objectType" ?o ?tp)
+                ("rdf_atom_no_ns" ?o ?objname)
+                ("rdf_atom_no_ns" ?tp ?type)
+                ("objectPose" ?o ?pose))
+          :package :perception-pm)))))))
 
 (def-object-search-function query-semantic-map-object-part semantic-map
     (((part-of ?parent)) desig perceived-object)
@@ -121,16 +123,17 @@
                    (unless (is-var ?sub)
                      (let ((child-name (remove #\' (symbol-name ?sub))))
                        (find-obj-parts child-name))))))
-              (json-prolog:prolog
-               `(and
-                 ("rdf_has" ,obj-name
-                            "http://ias.cs.tum.edu/kb/knowrob.owl#properPhysicalParts"
-                            ?sub)
-                 ("rdf_atom_no_ns" ?sub ?objname)
-                 ("objectType" ?sub ?tp)
-                 ("rdf_atom_no_ns" ?tp ?type)
-                 ("objectPose" ?sub ?pose))
-               :package :perception-pm))))
+              (cpl-impl:without-scheduling
+                (json-prolog:prolog
+                 `(and
+                   ("rdf_has" ,obj-name
+                              "http://ias.cs.tum.edu/kb/knowrob.owl#properPhysicalParts"
+                              ?sub)
+                   ("rdf_atom_no_ns" ?sub ?objname)
+                   ("objectType" ?sub ?tp)
+                   ("rdf_atom_no_ns" ?tp ?type)
+                   ("objectPose" ?sub ?pose))
+                 :package :perception-pm)))))
     (with-desig-props (part-of type name) desig
       (check-type part-of object-designator)
       (let ((parent-ref (reference part-of)))

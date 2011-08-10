@@ -49,20 +49,21 @@
    :prove, :stop-track, :start-attend or :stop-attend."
   (wait-for-service "/cop/in")
   (let ((service-result
-         (call-service "/cop/in" 'vision_srvs-srv:cop_call
-                       :outputtopic "/kipla/cop_reply"
-                       :object_classes (make-array (list-length (cop-desig-query-info-object-classes query-info))
-                                                   :initial-contents (cop-desig-query-info-object-classes query-info))
-                       :object_ids (make-array (list-length (cop-desig-query-info-object-ids query-info))
-                                               :initial-contents (cop-desig-query-info-object-ids query-info))
-                       :action_type (symbol-code 'vision_srvs-srv:cop_call-request command)
-                       :number_of_objects (cop-desig-query-info-matches query-info)
-                       :list_of_poses (make-array (list-length (cop-desig-query-info-poses query-info))
-                                                  :initial-contents (mapcar (lambda (id)
-                                                                              (make-instance 'vision_msgs-msg:<apriori_position>
-                                                                                             :probability 0.9
-                                                                                             :positionid (jlo:id id)))
-                                                                            (cop-desig-query-info-poses query-info))))))
+         (cpl-impl:without-scheduling
+           (call-service "/cop/in" 'vision_srvs-srv:cop_call
+                         :outputtopic "/kipla/cop_reply"
+                         :object_classes (make-array (list-length (cop-desig-query-info-object-classes query-info))
+                                                     :initial-contents (cop-desig-query-info-object-classes query-info))
+                         :object_ids (make-array (list-length (cop-desig-query-info-object-ids query-info))
+                                                 :initial-contents (cop-desig-query-info-object-ids query-info))
+                         :action_type (symbol-code 'vision_srvs-srv:cop_call-request command)
+                         :number_of_objects (cop-desig-query-info-matches query-info)
+                         :list_of_poses (make-array (list-length (cop-desig-query-info-poses query-info))
+                                                    :initial-contents (mapcar (lambda (id)
+                                                                                (make-instance 'vision_msgs-msg:<apriori_position>
+                                                                                               :probability 0.9
+                                                                                               :positionid (jlo:id id)))
+                                                                              (cop-desig-query-info-poses query-info)))))))
     (whenever ((pulsed *cop-output-queue* :handle-missed-pulses :once))
       (let ((result (find (vision_srvs-srv:perception_primitive-val service-result)
                           (value *cop-output-queue*)
