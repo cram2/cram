@@ -101,13 +101,16 @@
           (at-location (pick-up-loc)
             (achieve `(looking-at ,(reference (make-designator 'location `((of ,?obj))))))
             (achieve `(arms-at ,grasp-trajectory))))
-        (with-failure-handling
-            ((manipulation-pose-unreachable (f)
-               (declare (ignore f))
-               (ros-warn (achieve plan-lib) "Carry pose failed")
-               (return)))
-          (achieve `(arms-at ,lift-trajectory))
-          (achieve `(arms-at ,carry-trajectory))))))
+        (let ((carry-retry-count 0))
+          (with-failure-handling
+              ((manipulation-pose-unreachable (f)
+                 (declare (ignore f))
+                 (ros-warn (achieve plan-lib) "Carry pose failed")
+                 (when (< carry-retry-count 3)
+                   (retry))
+                 (return)))
+            (achieve `(arms-at ,lift-trajectory))
+            (achieve `(arms-at ,carry-trajectory)))))))
   ?obj)
 
 (def-goal (achieve (object-placed-at ?obj ?loc))
