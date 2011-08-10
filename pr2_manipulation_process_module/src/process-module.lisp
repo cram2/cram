@@ -38,7 +38,7 @@
 (defparameter *grasp-distance* 0.00
   "Tool length to calculate the pre-grasp pose, i.e. the pose at which
   the gripper is closed.")
-(defparameter *pre-put-down-distance* 0.05
+(defparameter *pre-put-down-distance* 0.07
   "Distance above the goal before putting down the object")
 
 (defparameter *max-graspable-size* (cl-transforms:make-3d-vector 0.15 0.15 0.30))
