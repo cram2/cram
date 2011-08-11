@@ -30,12 +30,15 @@
                                                      "designator-protocol"))
              (:file "action-designator" :depends-on ("package"
                                                      "designator-id-mixin"
-                                                     "designator-protocol"
-                                                     "facts"))
+                                                     "designator-protocol"))
              (:file "location-designator" :depends-on ("package"
                                                        "designator-id-mixin"
                                                        "designator-protocol"))
              (:file "default-location-generators"
                     :depends-on ("package" "location-designator"))
-             (:file "facts" :depends-on ("package"))
+             (:file "facts" :depends-on ("package"
+                                         "designator-protocol"
+                                         "object-designator"
+                                         "location-designator"
+                                         "action-designator"))
              (:file "utils" :depends-on ("package"))))))
