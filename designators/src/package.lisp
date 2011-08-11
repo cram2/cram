@@ -57,12 +57,13 @@
            #:location-designator
            #:register-location-generator
            #:register-location-validation-function
+           #:accept-solution
+           #:reject-solution
            #:desig-solution #:loc-desig? #:obj-desig-location
            #:desig-reference
            #:desig-solutions
            #:loc-desig-location
            #:object #:location
-           ;; #:register-designator-properties
            #:def-desig-package
            #:designator-pose
            #:designator-distance

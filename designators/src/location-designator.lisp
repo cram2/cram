@@ -158,7 +158,15 @@ boolean indicating if the solution is valid or not."
                                  generators)))
     (lazy-mapcan (let ((retries *location-generator-max-retries*))
                    (lambda (solution)
-                     (cond ((every (rcurry #'funcall desig solution) validation-functions)
+                     (cond ((block nil
+                              (restart-case
+                                  (every (rcurry #'funcall desig solution) validation-functions)
+                                (accept-solution ()
+                                  :report "Accept this designator solution"
+                                  (return t))
+                                (reject-solution ()
+                                  :report "Refuse this designator solution"
+                                  (return nil))))
                             (setf retries *location-generator-max-retries*)
                             (list solution))
                            ((= retries 0)
