@@ -148,10 +148,11 @@
 (def-action-handler park (obj side &optional obstacles)
   (roslisp:ros-info (pr2-manip process-module) "Park arms ~a ~a"
                     obj side)
-  (clear-collision-objects)
-  (sem-map-coll-env:publish-semantic-map-collision-objects)
-  (dolist (obstacle (cut:force-ll obstacles))
-    (register-collision-object obstacle))
+  (when obstacles
+    (clear-collision-objects)
+    (sem-map-coll-env:publish-semantic-map-collision-objects)
+    (dolist (obstacle (cut:force-ll obstacles))
+      (register-collision-object obstacle)))
   (let ((orientation (calculate-carry-orientation
                       obj side
                       (list *top-grasp* (cl-transforms:make-identity-rotation))))
