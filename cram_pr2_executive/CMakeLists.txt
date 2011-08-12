@@ -22,3 +22,4 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #rosbuild_gensrv()
 
 rospack_add_lisp_executable(bin/pr2_executive_action cram-pr2-executive cram-actionserver:server)
+rospack_add_lisp_executable(bin/pr2_pick_and_place pick-and-place-data cram-actionserver:server)
