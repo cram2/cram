@@ -30,14 +30,9 @@
 (in-package :perception-pm)
 
 (defvar *cop-output-queue* (make-fluent :name '*cop-output-queue* :value nil))
-(defvar *cop-parameters* (make-hash-table :test 'cl:eq))
 
 (defun cop-ros-init ()
-  (subscribe "/kipla/cop_reply" 'vision_msgs-msg:<cop_answer> #'cop-reply-handler)
-  (setf (gethash :object_threshold *cop-parameters*)
-        (get-param "/kipla/object_threshold" 0.4))
-  (setf (gethash :max-object-distance *cop-parameters*)
-        (get-param "/kipla/object_max_distance" 1.8)))
+  (subscribe "/kipla/cop_reply" 'vision_msgs-msg:<cop_answer> #'cop-reply-handler))
 
 (register-ros-init-function cop-ros-init)
 
