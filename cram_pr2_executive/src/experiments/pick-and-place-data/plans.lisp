@@ -38,8 +38,6 @@
     (:right :left)
     (:left :right)))
 
-(defvar *pose-pub* nil)
-
 (def-top-level-plan pick-and-place-on-table ()
   (let ((navigation-enabled pr2-navigation-process-module:*navigation-endabled*)
         (cntr 0)

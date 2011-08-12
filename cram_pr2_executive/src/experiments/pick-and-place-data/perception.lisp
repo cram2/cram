@@ -30,8 +30,6 @@
 
 (in-package :pr2-ex)
 
-(defvar *area-marker* nil)
-
 (defun publish-area-marker (bounding-pt-1 bounding-pt-2 &optional (area-padding 0.2))
   (let ((min-x (- (min (cl-transforms:x bounding-pt-1) (cl-transforms:x bounding-pt-2))
                   area-padding))
