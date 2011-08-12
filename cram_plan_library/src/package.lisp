@@ -52,6 +52,7 @@
            #:at-location
            #:object-detected
            #:perceive #:perceive-all #:perceive-the
+           #:obstacles-found
            #:robot
            #:maybe-run-process-modules
            #:run-process-modules
