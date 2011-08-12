@@ -153,10 +153,13 @@
              (mapcan (alexandria:compose (alexandria:curry #'do-cop-search desig)
                                          (alexandria:curry #'set-perceived-object-pose query-info))
                      search-space))))
-    (or (when previous-object
-          (search-object (list (make-search-space desig previous-object))
-                         (list (object-id previous-object))))
-        (search-object (mapcar #'object-jlo (get-clusters desig))))))
+    ;; We return NIL here if searching for a cluster. Clusters are
+    ;; handled elsewhere
+    (unless (prolog `(desig-prop ,desig (?_ cluster)))
+      (or (when previous-object
+            (search-object (list (make-search-space desig previous-object))
+                           (list (object-id previous-object))))
+          (search-object (mapcar #'object-jlo (get-clusters desig)))))))
 
 (defun cop-model->property (m)
   (list (lispify-ros-name (vision_msgs-msg:type-val m) (find-package :perception-pm))
