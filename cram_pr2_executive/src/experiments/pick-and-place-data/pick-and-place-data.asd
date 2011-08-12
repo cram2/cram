@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2011, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -10,9 +10,10 @@
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
-;;;     * Neither the name of Willow Garage, Inc. nor the names of its
-;;;       contributors may be used to endorse or promote products derived from
-;;;       this software without specific prior written permission.
+;;;     * Neither the name of the Intelligent Autonomous Systems Group/
+;;;       Technische Universitaet Muenchen nor the names of its contributors 
+;;;       may be used to endorse or promote products derived from this software 
+;;;       without specific prior written permission.
 ;;; 
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,34 +28,13 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(defsystem cram-pr2-executive
+(defsystem pick-and-place-data
   :author "Lorenz Moesenlechner"
   :license "BSD"
 
-  :depends-on (cram-utilities
-               cram-language
-               cram-reasoning
-               cram-execution-trace
-               cram-math
-               designators-ros
-               cram-roslisp-common
-               cram-plan-library
-               cram-plan-knowledge
-               geometry_msgs-msg
-               alexandria
-               cl-utils
-               semantic-map-costmap
-               cram-plan-actionserver
-               perception-process-module
-               point-head-process-module
-               pr2-navigation-process-module
-               pr2-manipulation-process-module)
+  :depends-on (cram-pr2-executive)
   :components
-  ((:module "src"
-            :components
-            ((:file "package")
-             (:file "goals" :depends-on ("package"))
-             (:file "top-level-plans" :depends-on ("package" "goals"))
-             (:file "location-facts" :depends-on ("package"))
-             (:file "process-modules" :depends-on ("package"))
-             (:file "occasions" :depends-on ("package"))))))
+  ((:file "table-locations-designator")
+   (:file "perception")
+   (:file "plans" :depends-on ("table-locations-designator"
+                               "perception"))))
