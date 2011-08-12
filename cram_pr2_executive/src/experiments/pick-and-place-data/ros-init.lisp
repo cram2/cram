@@ -28,15 +28,14 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(defsystem pick-and-place-data
-  :author "Lorenz Moesenlechner"
-  :license "BSD"
+(in-package :pr2-ex)
 
-  :depends-on (cram-pr2-executive)
-  :components
-  ((:file "ros-init")
-   (:file "table-locations-designator")
-   (:file "perception" :depends-on ("ros-init"))
-   (:file "plans" :depends-on ("table-locations-designator"
-                               "perception"
-                               "ros-init"))))
+(defvar *pose-pub* nil)
+(defvar *area-marker* nil)
+
+(defun ros-init-pick-and-place ()
+  (setf *pose-pub* (roslisp:advertise "/kipla/pose" "geometry_msgs/PoseStamped" :latch t))
+  (setf *area-marker* (roslisp:advertise "/kipla/area_marker" "visualization_msgs/Marker"))
+  (start-process-modules))
+
+(register-ros-init-function ros-init-pick-and-place)
