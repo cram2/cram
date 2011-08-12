@@ -67,9 +67,9 @@
 (defun do-cop-search (desig query-info &key (command :locate))
   (let ((cop-reply (cop-query query-info :command command)))
     (ros-info (cop perception-process-module) "Cop reply: '~a'"
-              (vision_msgs-msg:error-val cop-reply))
-    (when (or (equal (vision_msgs-msg:error-val cop-reply) "")
-              (equal (vision_msgs-msg:error-val cop-reply) "No Refinement Found!"))
+              (vision_msgs-msg:error cop-reply))
+    (when (or (equal (vision_msgs-msg:error cop-reply) "")
+              (equal (vision_msgs-msg:error cop-reply) "No Refinement Found!"))
       (map 'list (lambda (found-pose)
                    (let ((perceived-object
                           (cop-reply->perceived-object
@@ -78,7 +78,7 @@
                             cop-reply))))
                      (rete-assert-object-perception desig perceived-object)
                      perceived-object))
-           (vision_msgs-msg:found_poses-val cop-reply)))))
+           (vision_msgs-msg:found_poses cop-reply)))))
 
 (defun get-clusters (desig)
   (with-desig-props (at) desig
@@ -162,16 +162,16 @@
           (search-object (mapcar #'object-jlo (get-clusters desig)))))))
 
 (defun cop-model->property (m)
-  (list (lispify-ros-name (vision_msgs-msg:type-val m) (find-package :perception-pm))
-        (lispify-ros-name (vision_msgs-msg:sem_class-val m) (find-package :perception-pm))))
+  (list (lispify-ros-name (vision_msgs-msg:type m) (find-package :perception-pm))
+        (lispify-ros-name (vision_msgs-msg:sem_class m) (find-package :perception-pm))))
 
 (defun cop-reply->perceived-object (reply perception-primitive)
   (cpl-impl:without-scheduling
-    (let ((jlo (jlo:make-jlo :id (vision_msgs-msg:position-val reply))))
+    (let ((jlo (jlo:make-jlo :id (vision_msgs-msg:position reply))))
       (make-instance 'cop-perceived-object
                      :pose (jlo->pose jlo)
                      :jlo jlo
-                     :object-id (vision_msgs-msg:objectid-val reply)
-                     :properties (map 'list #'cop-model->property (vision_msgs-msg:models-val reply))
-                     :probability (vision_msgs-msg:probability-val reply)
+                     :object-id (vision_msgs-msg:objectid reply)
+                     :properties (map 'list #'cop-model->property (vision_msgs-msg:models reply))
+                     :probability (vision_msgs-msg:probability reply)
                      :perception-primitive perception-primitive))))
