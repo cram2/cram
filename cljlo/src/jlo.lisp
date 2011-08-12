@@ -91,13 +91,13 @@
   (when (eql (slot-value jlo 'id) 0)
     (with-updates
       (setf (slot-value jlo 'id)
-            (vision_msgs-msg:id-val (partial-lo jlo))))))
+            (vision_msgs-msg:id (partial-lo jlo))))))
 
 (defmethod name :before ((jlo jlo))
   (unless (slot-value jlo 'name)
     (with-updates
       (setf (slot-value jlo 'name)
-            (vision_msgs-msg:name-val (partial-lo jlo))))))
+            (vision_msgs-msg:name (partial-lo jlo))))))
 
 (defmethod (setf name) (new-value (jlo jlo))
   (setf (slot-value (partial-lo jlo) 'vision_msgs-msg::name-val)
@@ -110,17 +110,17 @@
       (with-updates
         (cond ((not (eql id 0))
                (setf partial-lo (query-jlo :id id))
-               (assert (eql id (vision_msgs-msg:id-val partial-lo)) ()
+               (assert (eql id (vision_msgs-msg:id partial-lo)) ()
                        "Id became invalid on partial-lo query.")
-               (setf parent-id (vision_msgs-msg:parent_id-val partial-lo))
-               (setf name (vision_msgs-msg:name-val partial-lo)))
+               (setf parent-id (vision_msgs-msg:parent_id partial-lo))
+               (setf name (vision_msgs-msg:name partial-lo)))
               (name
                (handler-case
                    (progn
                      (setf partial-lo (query-jlo :name name))
-                     (setf id (vision_msgs-msg:id-val partial-lo))
-                     (setf parent-id (vision_msgs-msg:parent_id-val partial-lo))
-                     (assert (equal name (vision_msgs-msg:name-val partial-lo)) ()
+                     (setf id (vision_msgs-msg:id partial-lo))
+                     (setf parent-id (vision_msgs-msg:parent_id partial-lo))
+                     (assert (equal name (vision_msgs-msg:name partial-lo)) ()
                              "Name became invalid on partial-lo query."))
                  (jlo-query-error (e)
                    (declare (ignore e))
@@ -133,23 +133,23 @@
       (jlo-register-gc jlo))))
 
 (defmethod pose ((jlo jlo) y x)
-  (aref (vision_msgs-msg:pose-val (partial-lo jlo))
+  (aref (vision_msgs-msg:pose (partial-lo jlo))
         (+ (* 4 y) x)))
 
 (defmethod (setf pose) (new-value (jlo jlo) y x)
   (prog1
-      (setf (aref (vision_msgs-msg:pose-val (partial-lo jlo))
+      (setf (aref (vision_msgs-msg:pose (partial-lo jlo))
                   (+ (* 4 y) x))
             new-value)
     (update jlo)))
 
 (defmethod cov ((jlo jlo) y x)
-  (aref (vision_msgs-msg:cov-val (partial-lo jlo))
+  (aref (vision_msgs-msg:cov (partial-lo jlo))
         (+ (* 6 y) x)))
 
 (defmethod (setf cov) (new-value (jlo jlo) y x)
   (prog1
-      (setf (aref (vision_msgs-msg:cov-val (partial-lo jlo))
+      (setf (aref (vision_msgs-msg:cov (partial-lo jlo))
                   (+ (* 6 y) x))
             new-value)
     (update jlo)))
@@ -157,9 +157,9 @@
 (defmethod update ((jlo jlo))
   (with-slots (id parent-id name partial-lo) jlo
     (when partial-lo
-      (assert (eql id (vision_msgs-msg:id-val partial-lo)) ()
+      (assert (eql id (vision_msgs-msg:id partial-lo)) ()
               "Id of internal PARTIAL-LO and JLO do not match.")
-      (assert (equal name (vision_msgs-msg:name-val partial-lo)) ()
+      (assert (equal name (vision_msgs-msg:name partial-lo)) ()
               "Name of internal PARTIAL-LO and JLO do not match."))
     (cond (*updates-enabled*
            (setf partial-lo (cond (partial-lo
@@ -167,8 +167,8 @@
                                   (t
                                    (update-jlo :id id :name (or name "") :parent-id parent-id))))
            (let ((old-id id))
-             (setf id (vision_msgs-msg:id-val partial-lo))
-             (setf name (vision_msgs-msg:name-val partial-lo))
+             (setf id (vision_msgs-msg:id partial-lo))
+             (setf name (vision_msgs-msg:name partial-lo))
              (if (eql old-id 0)
                  (jlo-register-gc jlo)
                  (assert (eql old-id id) ()
@@ -183,13 +183,13 @@
     (with-slots (id name parent-id partial-lo) result
       (cond ((not in-frame)
              (identity-jlo :parent reference))
-            ((assoc (vision_msgs-msg:id-val in-frame) *requested-jlo-objects*)
+            ((assoc (vision_msgs-msg:id in-frame) *requested-jlo-objects*)
              (make-jlo :id id))
             (t
              (setf partial-lo in-frame
-                   id (vision_msgs-msg:id-val in-frame)
-                   name (vision_msgs-msg:name-val in-frame)
-                   parent-id (vision_msgs-msg:parent_id-val in-frame))
+                   id (vision_msgs-msg:id in-frame)
+                   name (vision_msgs-msg:name in-frame)
+                   parent-id (vision_msgs-msg:parent_id in-frame))
              (assert (eql (id reference) parent-id) ()
                      "Frame-query failed: invalid parent id.")
              (jlo-register-gc result))))))
@@ -202,7 +202,7 @@
       (format strm " NAME `~a'" (slot-value jlo 'name)))))
 
 ;; (defun print-pose (lo)
-;;   (loop for x across (vision_msgs-msg:pose-val lo)
+;;   (loop for x across (vision_msgs-msg:pose lo)
 ;;        for i from 1
 ;;      do (format t "~6,3F " x)
 ;;      when (eql (mod i 4) 0) do (format t "~%")))

@@ -10,11 +10,11 @@
                                             :query (make-instance 'vision_msgs-msg:<partial_lo> :id id)))
                           (name (call-service "/located_object" 'vision_srvs-srv:srvjlo :command "namequery"
                                               :query (make-instance 'vision_msgs-msg:<partial_lo> :name name))))))
-        (unless (equal (vision_srvs-srv:error-val result) "")
+        (unless (equal (vision_srvs-srv:error result) "")
           (error 'jlo-query-error
                  :format-control "jlo call for `~a' failed. ~a"
-                 :format-arguments (list id (vision_srvs-srv:error-val result))))
-        (vision_srvs-srv:answer-val result))
+                 :format-arguments (list id (vision_srvs-srv:error result))))
+        (vision_srvs-srv:answer result))
     (jlo-gc)))
 
 (defun frame-query-ids (parent-id id)
@@ -25,11 +25,11 @@
              (let* ((result (call-service "/located_object" 'vision_srvs-srv:srvjlo :command "framequery"
                                           :query (make-instance 'vision_msgs-msg:<partial_lo>
                                                    :id id :parent_id parent-id))))
-                     (unless (equal (vision_srvs-srv:error-val result) "")
+                     (unless (equal (vision_srvs-srv:error result) "")
                  (error 'jlo-query-error
                         :format-control "jlo call for `~a' in `~a' failed. ~a"
-                        :format-arguments (list id parent-id (vision_srvs-srv:error-val result))))
-               (vision_srvs-srv:answer-val result))))
+                        :format-arguments (list id parent-id (vision_srvs-srv:error result))))
+               (vision_srvs-srv:answer result))))
     (jlo-gc)))
 
 (defun update-jlo (&key id (name "") (parent-id 1) partial-lo)
@@ -44,11 +44,11 @@
                                                                                     0 1 0 0
                                                                                     0 0 1 0
                                                                                     0 0 0 1)))))))
-    (unless (equal (vision_srvs-srv:error-val result) "")
+    (unless (equal (vision_srvs-srv:error result) "")
       (error 'jlo-query-error
              :format-control "jlo call failed. ~a"
-             :format-arguments (list (vision_srvs-srv:error-val result))))
-    (prog1 (vision_srvs-srv:answer-val result)
+             :format-arguments (list (vision_srvs-srv:error result))))
+    (prog1 (vision_srvs-srv:answer result)
       (jlo-gc))))
 
 (defun delete-id (id)
@@ -56,8 +56,8 @@
   (let ((result (call-service "/located_object" 'vision_srvs-srv:srvjlo :command "del"
                               :query (make-instance 'vision_msgs-msg:<partial_lo>
                                        :id id))))
-    (unless (equal (vision_srvs-srv:error-val result) "")
+    (unless (equal (vision_srvs-srv:error result) "")
       (error 'jlo-query-error
              :format-control "jlo call failed. ~a"
-             :format-arguments (list (vision_srvs-srv:error-val result)))))
+             :format-arguments (list (vision_srvs-srv:error result)))))
   nil)
