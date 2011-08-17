@@ -28,6 +28,13 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
+(cl:eval-when (:load-toplevel :execute)
+  (asdf:operate 'asdf:load-op 'cffi-ros-utils))
+
+;; We need to use g++ instead of cc here because assimp doesn't
+;; typedef its structs which causes compilation to fail.
+(setf cffi-grovel::*cc* "g++")
+
 (defsystem physics-utils
   :author "Lorenz Moesenlechner"
   :license "BSD"
@@ -38,9 +45,12 @@
             :components
             ((:file "package")
              (:file "ros-uri-parser" :depends-on ("package"))
-             (:file "assimp-cffi" :depends-on ("package"))
+             (:file "assimp-cffi" :depends-on ("package" "assimp-grovel"))
              (:file "assimp-model-loader" :depends-on ("package" "assimp-cffi"))
              (:file "mesh-utils" :depends-on ("package"))
              (:file "ros-shape-utils" :depends-on ("package"))
              (:file "masses" :depends-on ("package"))
-             (:file "event-queue" :depends-on ("package"))))))
+             (:file "event-queue" :depends-on ("package"))
+             (cffi-ros-utils:ros-grovel-file "assimp-grovel"
+                                             :ros-package "cram_physics_utils"
+                                             :depends-on ("package"))))))
