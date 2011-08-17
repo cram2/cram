@@ -44,13 +44,36 @@
             (car (ros-load:rospack "export" "--lang=cpp" "--attrib=lflags" pkg-name))
             :remove-empty-subseqs t))))
 
-(defmacro define-foreign-ros-library (alias lib-file &optional (ros-package ros-load:*current-ros-package*))
-  `(progn
-     (define-foreign-library ,alias
-       (:unix ,lib-file))
+(defun ros-include-paths (pkg-name)
+  "Returns the list of include paths as exported by the ROS package
+  `pkg-name'"
+  (split-sequence:split-sequence
+   #\Space
+   (car (ros-load:rospack "cflags-only-I" pkg-name))
+   :remove-empty-subseqs t))
 
-     (eval-when (:compile-toplevel :load-toplevel :execute)
-       (dolist (path (ros-library-paths ,ros-package))
-         (pushnew (concatenate 'string path "/")
-                  *foreign-library-directories*
-                  :test #'equal)))))
+(defclass ros-grovel-file (cffi-grovel:grovel-file) ())
+
+(defmethod reinitialize-instance :after ((c ros-grovel-file)
+                                         &key (ros-package ros-load:*current-ros-package*))
+  (setf (cffi-grovel::cc-flags-of c)
+        (append (mapcar (lambda (path)
+                          (concatenate 'string "-I" path))
+                        (ros-include-paths ros-package))
+                (cffi-grovel::cc-flags-of c))))
+
+(defmacro define-foreign-ros-library (alias lib-file &optional (ros-package ros-load:*current-ros-package*))
+  (flet ((find-ros-library (file ros-package)
+           (let ((file-path (pathname file)))
+             (dolist (lib-path (ros-library-paths ros-package) nil)
+               (let ((complete-file-path (merge-pathnames
+                                          file-path
+                                          (make-pathname :directory lib-path))))
+                 (format t "~a~%" complete-file-path)
+                 (when (probe-file complete-file-path)
+                   (return-from find-ros-library complete-file-path)))))))
+    `(define-foreign-library ,alias
+       (:unix ,(or (namestring (find-ros-library lib-file ros-package))
+                   (error 'simple-error
+                          :format-control "Unable to find ros library `~a' in dependencies of package ~a"
+                          :format-arguments (list lib-file ros-package)))))))

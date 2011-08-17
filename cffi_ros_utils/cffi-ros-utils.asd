@@ -32,7 +32,7 @@
   :author "Lorenz Moesenlechner <moesenle@in.tum.de>"
   :license "BSD"
 
-  :depends-on (cffi ros-load-manifest split-sequence)
+  :depends-on (cffi cffi-grovel ros-load-manifest split-sequence)
   :components
   ((:module "src"
             :components
