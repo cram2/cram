@@ -34,4 +34,6 @@
   (:use #:common-lisp #:cffi)
   (:export
    :ros-library-paths
+   :ros-include-paths
+   :ros-grovel-file
    :define-foreign-ros-library))
