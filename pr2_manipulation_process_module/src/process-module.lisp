@@ -114,8 +114,7 @@
   (setf *joint-state-sub* (roslisp:subscribe
                            "/joint_states" "sensor_msgs/JointState"
                            (lambda (msg)
-                             (setf (cpl:value *joint-state*)
-                                   msg)))))
+                             (setf *joint-state* msg)))))
 
 (register-ros-init-function init-pr2-manipulation-process-module)
 

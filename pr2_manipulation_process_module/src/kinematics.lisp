@@ -33,7 +33,7 @@
 (defparameter *ik-left-ns* "/pr2_left_arm_kinematics")
 (defparameter *ik-right-ns* "/pr2_right_arm_kinematics")
 
-(defvar *joint-state* (cpl-impl:make-fluent :name 'joint-state))
+(defvar *joint-state* nil)
 
 (defun seq-member (item sequence)
   (some (lambda (s)
@@ -73,7 +73,7 @@
            (let ((current (make-hash-table :test 'equal))
                  (lower (make-hash-table :test 'equal))
                  (upper (make-hash-table :test 'equal))
-                 (joint-state (cpl:value *joint-state*)))
+                 (joint-state *joint-state*))
              (roslisp:with-fields ((joint-names (joint_names kinematic_solver_info))
                                    (limits (limits kinematic_solver_info)))
                  (cpl-impl:without-scheduling
