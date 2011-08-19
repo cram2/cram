@@ -69,11 +69,14 @@
            #:designator-distance
            #:resolve-designator
            ;; Properties & prolog related stuff
+           #:loc-desig?
+           #:obj-desig?
            #:desig-solution
            #:desig-prop #:desig-class
            #:desig-timestamp #:desig-description
            #:desig-valid #:desig-value
            #:desig-location-prop
+           #:equated-desigs
            #:desig
            #:trajectory-desig?)
   (:desig-properties #:obj #:location #:object #:pose #:of #:at #:type #:trajectory))
