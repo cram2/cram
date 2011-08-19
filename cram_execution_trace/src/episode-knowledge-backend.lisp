@@ -48,8 +48,11 @@
   (output-type-code +cons-code+ stream)
   (store-object (car obj) stream)
   (if (cut::lazy-cons-elem-p (cdr obj))
-      (store-object (funcall (cut::lazy-cons-elem-generator (cdr obj)))
-                    stream)
+      ;;; FIXME / KLUDGE: For now cut off lazy lists, since we have infinite
+      ;;; lazy lists and saving the et does not terminate.
+      ;; (store-object (funcall (cut::lazy-cons-elem-generator (cdr obj)))
+      ;;              stream)
+      (store-object nil stream)
       (store-object (cdr obj) stream)))
 
 ;;; NOTE: No two restored cons cells will be eq (at the moment). This also
