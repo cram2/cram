@@ -28,6 +28,8 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
+(in-package :designators-ros)
+
 (def-fact-group poses ()
   (<- (pose ?pose (?x ?y ?z) (?ax ?ay ?az ?aw))
     (lisp-type ?pose cl-transforms:pose)
