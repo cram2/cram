@@ -31,9 +31,12 @@
 
 ;;; Note: #demmeln: not handling code replacements in any way atm.
 
-(defun task-status-fluent-name (task-tree-node)
+(defun task-status-fluent (task-tree-node)
   "Assume node is not stale."
-  (name (task-tree-node-status-fluent task-tree-node)))
+  (task-tree-node-status-fluent task-tree-node))
+
+(defun goal-task-p (task-tree-node)
+  (goal-task-tree-node-p task-tree-node))
 
 (defgeneric extract-task-error (err)
   (:method ((err plan-failure))
@@ -52,13 +55,12 @@
   ;; FLUENT
   (<- (fluent ?fluent)
     (not (bound ?fluent))
-    (lisp-fun episode-knowledge-traced-fluent-names ?fluents)
+    (lisp-fun episode-knowledge-fluent-list ?fluents)
     (member ?fluent ?fluents))
 
   (<- (fluent ?fluent)
-    ;; bit of a hack to increase performance
     (bound ?fluent)
-    (lisp-pred symbolp ?fluent))
+    (lisp-pred episode-knowledge-fluent-p ?fluent))
 
   ;; HOLDS FLUENT-VALUE
   (<- (holds (fluent-value ?fluent ?value) ?t)
@@ -69,6 +71,7 @@
 
   ;; For execution-time fluent access
   (<- (fluent-value ?fluent ?value)
+    (fluent ?fluent)
     (lisp-fun value ?fluent ?value)))
 
 (def-fact-group tasks (holds)
@@ -79,14 +82,26 @@
   
   ;; TASK
   (<- (task ?task)
+    (not (bound ?task))
     (lisp-fun episode-knowledge-task-list ?tasks)
     (member ?task ?tasks))
 
+  (<- (task ?task)
+    (bound ?task)
+    (lisp-pred episode-knowledge-task-p ?task))
+
   (<- (goal-task ?task)
+    (not (bound ?task))
     (lisp-fun episode-knowledge-goal-task-list ?tasks)
     (member ?task ?tasks))
 
+  (<- (goal-task ?task)
+    (bound ?task)
+    (task ?task)
+    (lisp-pred goal-task-p ?task))
+
   (<- (task-path ?task ?path)
+    (task ?task)
     (lisp-fun task-tree-node-path ?task ?path))
   
   ;; for dont use this optimization
@@ -152,12 +167,11 @@
   ;; TASK-STATUS-FLUENT
   (<- (task-status-fluent ?task ?fluent)
     (task ?task)
-    (lisp-fun task-status-fluent-name ?task ?fluent))
+    (lisp-fun task-status-fluent ?task ?fluent))
 
   ;; TASK-GOAL
   (<- (task-goal ?task ?goal)
     (goal-task ?task)
-    (lisp-pred goal-task-tree-node-p ?task)
     (lisp-fun goal-task-tree-node-goal ?task ?goal))
 
   ;; TASK-OUTCOME
