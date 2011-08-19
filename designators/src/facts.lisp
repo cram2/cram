@@ -52,18 +52,25 @@
   (<- (loc-desig? ?desig)
     (lisp-pred typep ?desig location-designator))
 
+  (<- (obj-desig? ?desig)
+    (lisp-pred typep ?desig object-designator))
+
+  (<- (desig-location-prop ?desig ?loc)
+    (obj-desig? ?desig)
+    (lisp-fun obj-desig-location ?desig ?loc))
+  
   ;; (location ... (obj ?obj)...), e.g. location to see obj
   (<- (desig-location-prop ?desig ?loc)
+    (loc-desig? ?desig)
     (desig-prop ?desig (obj ?obj))
-    (lisp-type ?obj designator)
     (lisp-fun current-desig ?obj ?curr-obj)
     (lisp-fun obj-desig-location ?curr-obj ?loc)
     (lisp-pred identity ?loc))
 
     ;; (location ... (location ?loc)...), e.g. location to see location
   (<- (desig-location-prop ?desig ?loc)
+    (loc-desig? ?desig)
     (desig-prop ?desig (location ?loc-desig))
-    (lisp-type ?loc-desig designator)
     (lisp-fun current-desig ?loc-desig ?curr-loc-desig)
     (lisp-fun loc-desig-location ?loc-desig ?loc)))
 
