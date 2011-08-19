@@ -97,11 +97,16 @@
     (def-desig-accessor data value)
 
     (<- (desig-reference ?desig ?reference)
+      (desig-valid ?desig ?valid)
+      (lisp-pred identity ?valid)
       (lisp-fun reference ?desig ?reference))
 
     (<- (desig-solutions ?desig ?solutions)
       (ground ?desig)
-      (lisp-fun designator-solutions ?desig ?solutions))))
+      (lisp-fun designator-solutions ?desig ?solutions))
+
+    (<- (equated-desigs ?desig ?equated)
+      (lisp-fun get-equal-designators ?desig ?equated))))
 
 (defun get-desig-class (desig)
   (car (rassoc (class-of desig) (get 'make-designator :desig-types)
