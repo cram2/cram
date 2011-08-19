@@ -39,6 +39,7 @@
           #:cram-execution-trace)
   (:nicknames #:plan-knowledge)
   (:shadowing-import-from #:cpl #:name)
+  (:import-from #:designators-ros pose pose-stamped)
   (:export #:clear-belief
            #:assert-occasion
            #:retract-occasion

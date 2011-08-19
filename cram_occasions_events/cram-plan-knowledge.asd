@@ -38,7 +38,8 @@
                cram-execution-trace
                process-modules
                alexandria
-               designators)
+               designators
+               designators-ros)
   :components
   ((:module "src"
             :components
