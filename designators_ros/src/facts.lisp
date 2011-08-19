@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2009, Lorenz Moesenlechner <moesenle@cs.tum.edu>
+;;; Copyright (c) 2011, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -10,9 +10,10 @@
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
-;;;     * Neither the name of Willow Garage, Inc. nor the names of its
-;;;       contributors may be used to endorse or promote products derived from
-;;;       this software without specific prior written permission.
+;;;     * Neither the name of the Intelligent Autonomous Systems Group/
+;;;       Technische Universitaet Muenchen nor the names of its contributors 
+;;;       may be used to endorse or promote products derived from this software 
+;;;       without specific prior written permission.
 ;;; 
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,10 +28,21 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :cl-user)
+(def-fact-group poses ()
+  (<- (pose ?pose (?x ?y ?z) (?ax ?ay ?az ?aw))
+    (lisp-type ?pose cl-transforms:pose)
+    (lisp-fun cl-transforms:origin ?pose ?origin)
+    (lisp-fun cl-transforms:orientation ?pose ?orientation)
+    (lisp-fun cl-transforms:x ?origin ?x)
+    (lisp-fun cl-transforms:y ?origin ?y)
+    (lisp-fun cl-transforms:z ?origin ?z)
+    (lisp-fun cl-transforms:x ?orientation ?ax)
+    (lisp-fun cl-transforms:y ?orientation ?ay)
+    (lisp-fun cl-transforms:z ?orientation ?az)
+    (lisp-fun cl-transforms:w ?orientation ?aw))
 
-(defpackage :designators-ros
-    (:use #:cl #:desig #:cut #:crs
-          #:cram-roslisp-common)
-  (:import-from #:tf pose pose-stamped)
-  (:export pose pose-stamped))
+  (<- (pose-stamped ?pose ?frame-id ?stamp ?origin ?orientation)
+    (lisp-type ?pose tf:pose-stamped)
+    (lisp-fun tf:frame-id ?pose ?frame-id)
+    (lisp-fun tf:stamp ?pose ?stamp)
+    (pose ?pose ?origin ?orientation)))
