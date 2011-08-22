@@ -109,13 +109,13 @@
           (t
            (setf (cop-desig-query-info-poses query-info)
                  (or
-                  (when (desig-prop-value desig 'at)
-                    (let ((loc (desig-prop-value desig 'at)))
-                      (when (and (eql (desig-prop-value loc 'on) 'table)
-                                 (desig-prop-value loc 'name))
-                        (list (let ((cluster (get-table-cluster
-                                              (desig-prop-value loc 'name))))
-                                (gaussian->jlo (name cluster) (mean cluster) (cov cluster)))))))
+                  ;; (when (desig-prop-value desig 'at)
+                  ;;   (let ((loc (desig-prop-value desig 'at)))
+                  ;;     (when (and (eql (desig-prop-value loc 'on) 'table)
+                  ;;                (desig-prop-value loc 'name))
+                  ;;       (list (let ((cluster (get-table-cluster
+                  ;;                             (desig-prop-value loc 'name))))
+                  ;;               (gaussian->jlo (name cluster) (mean cluster) (cov cluster)))))))
                   (list (jlo:make-jlo :name "/openni_rgb_optical_frame"))))))
     (do-cop-search desig query-info)))
 
