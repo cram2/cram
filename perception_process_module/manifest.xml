@@ -24,7 +24,6 @@
   <depend package="std_msgs"/>
   <depend package="actionlib_lisp"/>
   <depend package="alexandria"/>
-  <depend package="table_costmap"/>
   <depend package="cram_plan_failures"/>
   <depend package="pr2_msgs"/>
 

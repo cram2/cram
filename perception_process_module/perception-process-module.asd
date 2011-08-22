@@ -48,7 +48,6 @@
                std_msgs-msg
                pr2_msgs-msg
                alexandria
-               table-costmap
                cram-plan-failures)
   :components
   ((:module "src"

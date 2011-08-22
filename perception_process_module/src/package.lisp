@@ -40,7 +40,6 @@
         #:desig
         #:designators-ros
         #:cljlo-utils
-        #:table-costmap
         #:roslisp
         #:cram-plan-failures)
   (:export
