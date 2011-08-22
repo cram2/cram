@@ -515,7 +515,6 @@
   (<- (ik-solution-in-collision ?w ?robot ?ik-solution ?colliding-objects)
     (with-stored-world ?w
       (lisp-fun set-robot-state-from-joints ?ik-solution ?robot ?_)
-      (lisp-fun break ?_)
       (%object ?w ?robot-name ?robot)
       (findall ?obj (contact ?w ?robot-name ?obj) ?colliding-objects))))
 
