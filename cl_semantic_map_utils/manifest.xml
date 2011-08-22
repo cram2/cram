@@ -1,0 +1,16 @@
+<package>
+  <description brief="cl_semantic_map_utils">
+
+     cl_semantic_map_utils
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cl_semantic_map_utils</url>
+  <depend package="ias_semantic_map"/>
+  <depend package="cl_json_pl_client"/>
+  <depend package="cram_roslisp_common"/>
+  <depend package="cl_transforms"/>
+
+</package>
