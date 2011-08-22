@@ -30,8 +30,23 @@
 (in-package :perception-pm)
 
 (defclass semantic-map-perceived-object (perceived-object)
-  ((name :reader name :initarg :name)
-   (owl-name :reader owl-name :initarg :owl-name)))
+  ((semantic-map-object :initarg :semantic-map-object
+                        :reader semantic-map-object))
+  (:default-initargs :probability 1.0))
+
+(defgeneric name (sem-map-po)
+  (:method ((obj semantic-map-perceived-object))
+    (with-slots (semantic-map-object) obj
+      (sem-map-utils:name semantic-map-object))))
+
+(defgeneric owl-name (sem-map-po)
+  (:method ((obj semantic-map-perceived-object))
+    (with-slots (semantic-map-object) obj
+      (sem-map-utils:owl-name semantic-map-object))))
+
+(defmethod initialize-instance :after ((obj semantic-map-perceived-object) &key)
+  (with-slots (semantic-map-object pose) obj
+    (setf pose (sem-map-utils:pose semantic-map-object))))
 
 (defmethod make-new-desig-description ((old-desig object-designator)
                                        (po semantic-map-perceived-object))
@@ -49,120 +64,92 @@
     (((name ?name)) desig perceived-object)
   (declare (ignore perceived-object))
   (with-desig-props (name) desig
-    (force-ll
-     (lazy-mapcan
-      (lambda (solution)
-        (with-vars-bound (?pose ?o) solution
-          (unless (is-var ?pose)
-            (list
-             (make-instance
-              'semantic-map-perceived-object
-              :name name
-              :owl-name (remove #\' (symbol-name ?o))
-              :pose (cl-transforms:matrix->transform
-                     (make-array
-                      '(4 4) :displaced-to (make-array
-                                            16 :initial-contents ?pose)))
-              :probability 1.0)))))
-      (lazy-filter
-       (lambda (bdg)
-         (with-vars-bound (?objname) bdg
-           (equal (remove #\' (symbol-name ?objname))
-                  (prologify-obj-name name))))
-       (cpl-impl:without-scheduling
-         (json-prolog:prolog
-          `(and ("rootObjects" ?objs)
-                ("member" ?o ?objs)
-                ("rdf_atom_no_ns" ?o ?objname)
-                ("objectPose" ?o ?pose))
-          :package :perception-pm)))))))
+    (let* ((sem-map-objs (sem-map-utils:sub-parts-with-name
+                         (sem-map-utils:get-semantic-map)
+                         name)))
+      (force-ll
+       (lazy-mapcar
+        (lambda (sem-map-obj)
+          (make-instance 'semantic-map-perceived-object
+            :semantic-map-object sem-map-obj))
+        sem-map-objs)))))
 
 (def-object-search-function query-semantic-map-object-type semantic-map
     (((type ?type)) desig perceived-object)
   (declare (ignore perceived-object))
   (with-desig-props (type) desig
-    (force-ll
-     (lazy-mapcan
-      (lambda (solution)
-        (with-vars-bound (?objname ?o ?pose) solution
-          (unless (or (is-var ?objname) (is-var ?pose))
-            (list
-             (make-instance
-              'semantic-map-perceived-object
-              :name (remove #\' (symbol-name ?objname))
-              :owl-name (remove #\' (symbol-name ?o))
-              :pose (cl-transforms:matrix->transform
-                     (make-array
-                      '(4 4) :displaced-to (make-array
-                                            16 :initial-contents ?pose)))
-              :probability 1.0)))))
-      (lazy-filter
-       (lambda (bdg)
-         (with-vars-bound (?type) bdg
-           (equal (remove #\' (symbol-name ?type))
-                  (prologify-obj-name type))))
-       (cpl-impl:without-scheduling
-         (json-prolog:prolog
-          `(and ("rootObjects" ?objs)
-                ("member" ?o ?objs)
-                ("objectType" ?o ?tp)
-                ("rdf_atom_no_ns" ?o ?objname)
-                ("rdf_atom_no_ns" ?tp ?type)
-                ("objectPose" ?o ?pose))
-          :package :perception-pm)))))))
+    (let* ((objs (sem-map-utils:sub-parts-with-type
+                  (sem-map-utils:get-semantic-map) type)))
+      (force-ll
+       (lazy-mapcar
+        (lambda (obj)
+          (make-instance 'semantic-map-perceived-object
+            :semantic-map-object obj))
+        objs)))))
 
 (def-object-search-function query-semantic-map-object-part semantic-map
     (((part-of ?parent)) desig perceived-object)
   (declare (ignore perceived-object))
-  (labels ((find-obj-parts (obj-name)
-             (lazy-mapcan
-              (lambda (solution)
-                (cons
-                 solution
-                 (with-vars-bound (?sub) solution
-                   (unless (is-var ?sub)
-                     (let ((child-name (remove #\' (symbol-name ?sub))))
-                       (find-obj-parts child-name))))))
-              (cpl-impl:without-scheduling
-                (json-prolog:prolog
-                 `(and
-                   ("rdf_has" ,obj-name
-                              "http://ias.cs.tum.edu/kb/knowrob.owl#properPhysicalParts"
-                              ?sub)
-                   ("rdf_atom_no_ns" ?sub ?objname)
-                   ("objectType" ?sub ?tp)
-                   ("rdf_atom_no_ns" ?tp ?type)
-                   ("objectPose" ?sub ?pose))
-                 :package :perception-pm)))))
-    (with-desig-props (part-of type name) desig
-      (check-type part-of object-designator)
-      (let ((parent-ref (reference part-of)))
-        (when (typep parent-ref 'semantic-map-perceived-object)
+  (with-desig-props (part-of) desig
+    (let ((parent-objs (typecase part-of
+                         (object-designator (list
+                                             (semantic-map-object
+                                              (reference part-of))))
+                         ;; TODO: maybe add location designator here
+                         (t (sem-map-utils:sub-parts-with-name
+                             (sem-map-utils:get-semantic-map) part-of
+                             :recursive t)))))
+      (when parent-objs
+        (let ((objs (lazy-mapcan #'sem-map-utils:sub-parts parent-objs)))
           (force-ll
-           (lazy-mapcan
-            (lambda (solution)
-              (with-vars-bound (?o ?objname ?pose) solution
-                (unless (is-var ?pose)
-                  (list
-                   (make-instance
-                    'semantic-map-perceived-object
-                    :name (remove #\' (symbol-name ?objname))
-                    :owl-name (remove #\' (symbol-name ?o))
-                    :pose (cl-transforms:matrix->transform
-                           (make-array
-                            '(4 4) :displaced-to (make-array
-                                                  16 :initial-contents ?pose)))
-                    :probability 1.0)))))
-            (lazy-filter
-             (lambda (bdg)
-               (with-vars-bound (?objname ?type) bdg
-                 (and
-                  (if type
-                      (equal (remove #\' (symbol-name ?type))
-                             (prologify-obj-name type))
-                      t)
-                  (if name
-                      (equal (remove #\' (symbol-name ?objname))
-                             (prologify-obj-name name))
-                      t))))
-             (find-obj-parts (owl-name parent-ref))))))))))
+           (lazy-mapcar
+            (lambda (obj)
+              (make-instance 'semantic-map-perceived-object
+                :semantic-map-object obj))
+            objs)))))))
+
+(def-object-search-function query-semantic-map-object-part-with-type semantic-map
+    (((part-of ?parent) (type ?type)) desig perceived-object)
+  (declare (ignore perceived-object))
+  (with-desig-props (part-of type) desig
+    (let ((parent-objs (typecase part-of
+                         (object-designator (list
+                                             (semantic-map-object
+                                              (reference part-of))))
+                         ;; TODO: maybe add location designator here
+                         (t (sem-map-utils:sub-parts-with-name
+                             (sem-map-utils:get-semantic-map) part-of
+                             :recursive t)))))
+      (when parent-objs
+        (let ((objs (lazy-mapcan (lambda (parent-obj)
+                                   (sem-map-utils:sub-parts-with-type parent-obj type))
+                                 parent-objs)))
+          (force-ll
+           (lazy-mapcar
+            (lambda (obj)
+              (make-instance 'semantic-map-perceived-object
+                :semantic-map-object obj))
+            objs)))))))
+
+(def-object-search-function query-semantic-map-object-part-with-name semantic-map
+    (((part-of ?parent) (name ?name)) desig perceived-object)
+  (declare (ignore perceived-object))
+  (with-desig-props (part-of name) desig
+    (let ((parent-objs (typecase part-of
+                         (object-designator (list
+                                             (semantic-map-object
+                                              (reference part-of))))
+                         ;; TODO: maybe add location designator here
+                         (t (sem-map-utils:sub-parts-with-name
+                             (sem-map-utils:get-semantic-map) part-of
+                             :recursive t)))))
+      (when parent-objs
+        (let ((objs (lazy-mapcan (lambda (parent-obj)
+                                   (sem-map-utils:sub-parts-with-name parent-obj name))
+                                 parent-objs)))
+          (force-ll
+           (lazy-mapcar
+            (lambda (obj)
+              (make-instance 'semantic-map-perceived-object
+                :semantic-map-object obj))
+            objs)))))))

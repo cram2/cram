@@ -36,7 +36,6 @@
                cram-language
                cram-reasoning
                process-modules
-               cl-json-pl-client
                cram-utilities
                designators
                designators-ros
@@ -48,7 +47,8 @@
                std_msgs-msg
                pr2_msgs-msg
                alexandria
-               cram-plan-failures)
+               cram-plan-failures
+               cl-semantic-map-utils)
   :components
   ((:module "src"
             :components
