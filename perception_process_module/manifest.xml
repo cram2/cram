@@ -18,7 +18,6 @@
   <depend package="designators_ros"/>
   <depend package="cljlo"/>
   <depend package="cljlo_utils"/>
-  <depend package="cl_json_pl_client"/>
   <depend package="cram_utilities"/>
   <depend package="cram_language"/>
   <depend package="std_msgs"/>
@@ -26,5 +25,6 @@
   <depend package="alexandria"/>
   <depend package="cram_plan_failures"/>
   <depend package="pr2_msgs"/>
+  <depend package="cl_semantic_map_utils"/>
 
 </package>
