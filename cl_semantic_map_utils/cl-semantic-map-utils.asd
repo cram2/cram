@@ -35,9 +35,11 @@
   
   :depends-on (cl-json-pl-client
                cram-roslisp-common
-               cl-transforms)
+               cl-transforms
+               designators)
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "semantic-map" :depends-on ("package"))))))
+     (:file "semantic-map" :depends-on ("package"))
+     (:file "designator-utils" :depends-on ("package" "semantic-map"))))))
