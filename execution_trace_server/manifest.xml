@@ -1,0 +1,21 @@
+<package>
+  <description brief="execution_trace_service">
+
+     execution_trace_service
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/execution_trace_service</url>
+  <depend package="cram_reasoning"/>
+  <depend package="cram_plan_knowledge"/>
+  <depend package="cram_execution_trace"/>
+  <depend package="cram_plan_library"/>
+  <depend package="cram_roslisp_common"/>
+  <depend package="cram_utilities"/>
+  <depend package="cl_json_pl_server"/>
+
+</package>
+
+
