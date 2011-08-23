@@ -40,7 +40,6 @@
         #:cram-process-modules
         #:cram-plan-failures
         #:cram-plan-knowledge
-        #:table-costmap
         #:perception-pm)
   (:import-from alexandria ignore-some-conditions)
   (:export
