@@ -28,7 +28,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(defpackage semantic-map-utils
+(desig-props:def-desig-package semantic-map-utils
   (:nicknames #:sem-map-utils #:cl-semantic-map-utils)
   (:use #:common-lisp #:json-prolog #:cut)
   (:export semantic-map semantic-map-part semantic-map-geom
@@ -36,4 +36,6 @@
            get-semantic-map clear-semantic-map with-clear-semantic-map
            sub-parts-with-type sub-parts-with-name
            name owl-name obj-type urdf-name sub-parts
-           pose dimensions aliases))
+           pose dimensions aliases
+           designator->semantic-map-objects)
+  (:desig-properties name type part-of on in))

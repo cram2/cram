@@ -12,5 +12,6 @@
   <depend package="cl_json_pl_client"/>
   <depend package="cram_roslisp_common"/>
   <depend package="cl_transforms"/>
+  <depend package="designators"/>
 
 </package>
