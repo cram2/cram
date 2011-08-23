@@ -47,13 +47,23 @@
   ((pose :initarg :pose :reader pose)
    (dimensions :initarg :dimensions :reader dimensions)))
 
-(defgeneric semantic-map-parts (map)
-  (:method ((map semantic-map))
-    (loop for part being the hash-values of (slot-value map 'parts)
-          collecting part))
+(defgeneric semantic-map-parts (map &key recursive)
+  (:method ((map semantic-map) &key recursive)
+    (let ((direct-children (loop for part being the hash-values of (slot-value map 'parts)
+                                 collecting part)))
+      (append direct-children
+              (when recursive
+                (mapcan (lambda (child)
+                          (semantic-map-parts child :recursive recursive))
+                        direct-children)))))
 
-  (:method ((map semantic-map-part))
-    (sub-parts map)))
+  (:method ((map semantic-map-part) &key recursive)
+    (let ((direct-children (sub-parts map)))
+      (append direct-children
+              (when recursive
+                (mapcan (lambda (child)
+                          (semantic-map-parts child :recursive recursive))
+                        direct-children))))))
 
 (defgeneric semantic-map-part-names (map)
   (:method ((map semantic-map))
