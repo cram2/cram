@@ -55,101 +55,23 @@
         description
         (cons `(name ,(name po)) description))))
 
-(defun prologify-obj-name (name)
-  (etypecase name
-    (symbol (rosify-lisp-name name))
-    (string name)))
+(defun resolve-sem-map-obj-desig (desig)
+  (mapcar (lambda (sem-map-obj)
+            (make-instance 'semantic-map-perceived-object
+              :semantic-map-object sem-map-obj))
+          (sem-map-utils:designator->semantic-map-objects desig)))
 
 (def-object-search-function query-semantic-map-object-name semantic-map
     (((name ?name)) desig perceived-object)
   (declare (ignore perceived-object))
-  (with-desig-props (name) desig
-    (let* ((sem-map-objs (sem-map-utils:sub-parts-with-name
-                         (sem-map-utils:get-semantic-map)
-                         name)))
-      (force-ll
-       (lazy-mapcar
-        (lambda (sem-map-obj)
-          (make-instance 'semantic-map-perceived-object
-            :semantic-map-object sem-map-obj))
-        sem-map-objs)))))
+  (resolve-sem-map-obj-desig desig))
 
 (def-object-search-function query-semantic-map-object-type semantic-map
     (((type ?type)) desig perceived-object)
   (declare (ignore perceived-object))
-  (with-desig-props (type) desig
-    (let* ((objs (sem-map-utils:sub-parts-with-type
-                  (sem-map-utils:get-semantic-map) type)))
-      (force-ll
-       (lazy-mapcar
-        (lambda (obj)
-          (make-instance 'semantic-map-perceived-object
-            :semantic-map-object obj))
-        objs)))))
+  (resolve-sem-map-obj-desig desig))
 
 (def-object-search-function query-semantic-map-object-part semantic-map
     (((part-of ?parent)) desig perceived-object)
   (declare (ignore perceived-object))
-  (with-desig-props (part-of) desig
-    (let ((parent-objs (typecase part-of
-                         (object-designator (list
-                                             (semantic-map-object
-                                              (reference part-of))))
-                         ;; TODO: maybe add location designator here
-                         (t (sem-map-utils:sub-parts-with-name
-                             (sem-map-utils:get-semantic-map) part-of
-                             :recursive t)))))
-      (when parent-objs
-        (let ((objs (lazy-mapcan #'sem-map-utils:sub-parts parent-objs)))
-          (force-ll
-           (lazy-mapcar
-            (lambda (obj)
-              (make-instance 'semantic-map-perceived-object
-                :semantic-map-object obj))
-            objs)))))))
-
-(def-object-search-function query-semantic-map-object-part-with-type semantic-map
-    (((part-of ?parent) (type ?type)) desig perceived-object)
-  (declare (ignore perceived-object))
-  (with-desig-props (part-of type) desig
-    (let ((parent-objs (typecase part-of
-                         (object-designator (list
-                                             (semantic-map-object
-                                              (reference part-of))))
-                         ;; TODO: maybe add location designator here
-                         (t (sem-map-utils:sub-parts-with-name
-                             (sem-map-utils:get-semantic-map) part-of
-                             :recursive t)))))
-      (when parent-objs
-        (let ((objs (lazy-mapcan (lambda (parent-obj)
-                                   (sem-map-utils:sub-parts-with-type parent-obj type))
-                                 parent-objs)))
-          (force-ll
-           (lazy-mapcar
-            (lambda (obj)
-              (make-instance 'semantic-map-perceived-object
-                :semantic-map-object obj))
-            objs)))))))
-
-(def-object-search-function query-semantic-map-object-part-with-name semantic-map
-    (((part-of ?parent) (name ?name)) desig perceived-object)
-  (declare (ignore perceived-object))
-  (with-desig-props (part-of name) desig
-    (let ((parent-objs (typecase part-of
-                         (object-designator (list
-                                             (semantic-map-object
-                                              (reference part-of))))
-                         ;; TODO: maybe add location designator here
-                         (t (sem-map-utils:sub-parts-with-name
-                             (sem-map-utils:get-semantic-map) part-of
-                             :recursive t)))))
-      (when parent-objs
-        (let ((objs (lazy-mapcan (lambda (parent-obj)
-                                   (sem-map-utils:sub-parts-with-name parent-obj name))
-                                 parent-objs)))
-          (force-ll
-           (lazy-mapcar
-            (lambda (obj)
-              (make-instance 'semantic-map-perceived-object
-                :semantic-map-object obj))
-            objs)))))))
+  (resolve-sem-map-obj-desig desig))
