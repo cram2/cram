@@ -30,7 +30,7 @@
 
 (in-package :semantic-map-costmap)
 
-(defparameter *board-thickness* 0.01)
+(defparameter *board-thickness* 0.035)
 
 (defun obj-z-value (object &optional (tag :on))
   (let ((origin (cl-transforms:origin (sem-map-utils:pose object)))
@@ -38,7 +38,8 @@
     (ecase tag
       (:on (+ (cl-transforms:z origin) (/ (cl-transforms:z dimensions) 2)))
       ;; We assume objects are box-like and `in' means on the bottom
-      (:in (- (cl-transforms:z origin) (+ (/ (cl-transforms:z dimensions) 2) *board-thickness*))))))
+      (:in (+ (- (cl-transforms:z origin) (/ (cl-transforms:z dimensions) 2))
+              *board-thickness*)))))
 
 (defun get-aabb (&rest points)
   (loop for p in points
