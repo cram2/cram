@@ -30,31 +30,33 @@
 
 (in-package :btr)
 
+(defvar *robot-model-alpha* nil)
+
 (defgeneric urdf-make-collision-shape (geometry &optional color))
 
 (defmethod urdf-make-collision-shape ((box cl-urdf:box) &optional (color '(0.8 0.8 0.8 1.0)))
   (make-instance 'colored-box-shape
-                 :half-extents (cl-transforms:v*
-                                (cl-urdf:size box) 0.5)
-                 :color color))
+    :half-extents (cl-transforms:v*
+                   (cl-urdf:size box) 0.5)
+    :color (apply-aplha-value color)))
 
 (defmethod urdf-make-collision-shape ((cylinder cl-urdf:cylinder) &optional (color '(0.8 0.8 0.8 1.0)))
   (make-instance 'cylinder-shape
-                 :half-extents (cl-transforms:make-3d-vector
-                                (cl-urdf:radius cylinder)
-                                (cl-urdf:radius cylinder)
-                                (* 0.5 (cl-urdf:cylinder-length cylinder)))
-                 :color color))
+    :half-extents (cl-transforms:make-3d-vector
+                   (cl-urdf:radius cylinder)
+                   (cl-urdf:radius cylinder)
+                   (* 0.5 (cl-urdf:cylinder-length cylinder)))
+    :color (apply-aplha-value color)))
 
 (defmethod urdf-make-collision-shape ((sphere cl-urdf:sphere) &optional (color '(0.8 0.8 0.8 1.0)))
   (make-instance 'sphere-shape :radius (cl-urdf:radius sphere)
-                 :color color))
+    :color (apply-aplha-value color)))
 
 (defmethod urdf-make-collision-shape ((mesh cl-urdf:mesh) &optional (color '(0.8 0.8 0.8 1.0)))
   (make-instance 'convex-hull-mesh-shape
-                 :color color
-                 :faces (physics-utils:3d-model-faces (cl-urdf:3d-model mesh))
-                 :points (physics-utils:3d-model-vertices (cl-urdf:3d-model mesh))))
+    :color (apply-aplha-value color)
+    :faces (physics-utils:3d-model-faces (cl-urdf:3d-model mesh))
+    :points (physics-utils:3d-model-vertices (cl-urdf:3d-model mesh))))
 
 (defclass robot-object (object)
   ((links :initarg :links :initform (make-hash-table :test 'equal) :reader links)
@@ -196,10 +198,11 @@
                                   pose-transform (cl-urdf:origin collision-elem))
                            :collision-shape (urdf-make-collision-shape
                                              (cl-urdf:geometry collision-elem)
-                                             (or (when (and (cl-urdf:visual link)
-                                                            (cl-urdf:material (cl-urdf:visual link)))
-                                                   (cl-urdf:color (cl-urdf:material (cl-urdf:visual link))))
-                                                 color))
+                                             (apply-aplha-value
+                                              (or (when (and (cl-urdf:visual link)
+                                                             (cl-urdf:material (cl-urdf:visual link)))
+                                                    (cl-urdf:color (cl-urdf:material (cl-urdf:visual link))))
+                                                  color)))
                            :collision-flags :cf-default
                            :group :character-filter
                            :mask '(:default-filter :static-filter)))
@@ -421,3 +424,11 @@ current joint states"
 
 (defmethod (setf pose) (new-value (obj robot-object))
   (setf (link-pose obj (slot-value obj 'pose-reference-body)) new-value))
+
+(defmacro with-alpha (alpha &body body)
+  `(let ((*robot-model-alpha* ,alpha))
+     ,@body))
+
+(defun apply-aplha-value (color)
+  (destructuring-bind (r g b a) color
+    (list r g b (or *robot-model-alpha* a))))
