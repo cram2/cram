@@ -53,6 +53,7 @@
   
   (<- (desig-costmap ?desig ?cm)
     (semantic-map-desig-objects ?desig ?objects)
+    (desig-prop ?desig (on ?_))
     (costmap ?cm)
     (costmap-add-function semantic-map-objects (make-semantic-map-costmap ?objects)
                           ?cm)
@@ -62,6 +63,7 @@
 
   (<- (desig-costmap ?desig ?cm)
     (semantic-map-desig-objects ?desig ?objects)
+    (desig-prop ?desig (in ?_))
     (costmap ?cm)
     (costmap-add-function semantic-map-objects (make-semantic-map-costmap ?objects)
                           ?cm)
