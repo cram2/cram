@@ -32,11 +32,13 @@
 
 (defparameter *board-thickness* 0.01)
 
-(defun obj-z-value (pose dimensions &optional (tag :on))
-  (ecase tag
-    (:on (+ (elt pose 11) (/ (third dimensions) 2)))
-    ;; We assume objects are box-like and `in' means on the bottom
-    (:in (- (elt pose 11) (+ (/ (third dimensions) 2) *board-thickness*)))))
+(defun obj-z-value (object &optional (tag :on))
+  (let ((origin (cl-transforms:origin (sem-map-utils:pose object)))
+        (dimensions (sem-map-utils:dimensions object)))
+    (ecase tag
+      (:on (+ (cl-transforms:z origin) (/ (cl-transforms:z dimensions) 2)))
+      ;; We assume objects are box-like and `in' means on the bottom
+      (:in (- (cl-transforms:z origin) (+ (/ (cl-transforms:z dimensions) 2) *board-thickness*))))))
 
 (defun get-aabb (&rest points)
   (loop for p in points
@@ -80,12 +82,9 @@
                  bb-pts)
          bb-pts))))
 
-(defun point-on-object (pose-matrix dimensions point)
-  (let* ((bb (2d-object-bb (apply #'cl-transforms:make-3d-vector dimensions)))
-         (transform (cl-transforms:matrix->transform
-                     (make-array
-                      '(4 4) :displaced-to (make-array
-                                            16 :initial-contents pose-matrix))))
+(defun point-on-object (object point)
+  (let* ((bb (2d-object-bb (sem-map-utils:dimensions object)))
+         (transform (cl-transforms:pose->transform (sem-map-utils:pose object)))
          (pt (cl-transforms:make-3d-vector
               (cl-transforms:x point)
               (cl-transforms:y point)
@@ -96,13 +95,10 @@
               (cl-transforms:transform-inv transform)
               pt))))
 
-(defun make-semantic-map-obj-generator (pose-matrix dimensions &key (padding 0.0))
-  (let* ((transform (cl-transforms:matrix->transform
-                     (make-array
-                      '(4 4) :displaced-to (make-array
-                                            16 :initial-contents pose-matrix))))
+(defun make-semantic-map-obj-generator (object &key (padding 0.0))
+  (let* ((transform (cl-transforms:pose->transform (sem-map-utils:pose object)))
          (dimensions (cl-transforms:v+
-                      (apply #'cl-transforms:make-3d-vector dimensions)
+                      (sem-map-utils:dimensions object)
                       (cl-transforms:make-3d-vector padding padding padding)))
          (pt->obj-transform (cl-transforms:transform-inv transform))
          ;; Since our map is 2d we need to select a z value for our
@@ -125,14 +121,9 @@
 
 (defun make-semantic-map-costmap (objects &key (invert nil) (padding 0.0))
   "Generates a semantic-map costmap for all `objects'. `objects' is a
-list of the elements of the form (pose dimensions) where
-pose is a list of length 16 representing the flattened homogenous pose
-matrix and dimensions is a list of length three, containing the
-dimensions in x, y and z direction."
-  (let ((functions (mapcar (alexandria:curry
-                            #'apply
-                            (alexandria:rcurry #'make-semantic-map-obj-generator
-                                               :padding padding))
+list of SEM-MAP-UTILS:SEMANTIC-MAP-GEOMs"
+  (let ((functions (mapcar (alexandria:rcurry #'make-semantic-map-obj-generator
+                                              :padding padding)
                            (cut:force-ll objects))))
     (if invert
         (lambda (x y)
@@ -142,33 +133,29 @@ dimensions in x, y and z direction."
           (if (some (alexandria:rcurry #'funcall x y) functions)
               1.0 0.0)))))
 
-(defun make-table-cost-function (pose-matrix dimensions)
-  (destructuring-bind (x-dim y-dim z-dim) dimensions
-    (declare (ignore z-dim))
-    (let* ((transform (cl-transforms:matrix->transform
-                       (make-array
-                        '(4 4) :displaced-to (make-array
-                                              16 :initial-contents pose-matrix))))
-           (cov-x-axis (cl-transforms:rotate
+(defun make-on-cost-function (object)
+  (let ((transform (cl-transforms:pose->transform (sem-map-utils:pose object)))
+        (dimensions (sem-map-utils:dimensions object)))
+    (let* ((cov-x-axis (cl-transforms:rotate
                         (cl-transforms:rotation transform)
-                        (cl-transforms:make-3d-vector x-dim 0 0)))
+                        (cl-transforms:make-3d-vector (cl-transforms:x dimensions) 0 0)))
            (cov-y-axis (cl-transforms:rotate
                         (cl-transforms:rotation transform)
-                        (cl-transforms:make-3d-vector 0 y-dim 0)))
+                        (cl-transforms:make-3d-vector 0 (cl-transforms:y dimensions) 0)))
            (cov (points-cov (list cov-x-axis cov-y-axis)
                             (cl-transforms:make-3d-vector 0 0 0))))
       (make-gauss-cost-function
        (make-array 2 :element-type 'double-float
-                   :initial-contents
-                   (list (float (cl-transforms:x (cl-transforms:translation transform)) 0.0d0)
-                         (float (cl-transforms:y (cl-transforms:translation transform)) 0.0d0)))
+                     :initial-contents
+                     (list (float (cl-transforms:x (cl-transforms:translation transform)) 0.0d0)
+                           (float (cl-transforms:y (cl-transforms:translation transform)) 0.0d0)))
        (2d-cov cov)))))
 
 (defun make-semantic-map-height-function (objects &optional (type-tag :on))
   (lambda (x y)
-    (let ((heights (loop for (pose dimensions) in (cut:force-ll objects)
-                         when (point-on-object pose dimensions (cl-transforms:make-3d-vector x y 0))
-                           collecting (float (obj-z-value pose dimensions type-tag) 0.0d0))))
+    (let ((heights (loop for obj in (cut:force-ll objects)
+                         when (point-on-object obj (cl-transforms:make-3d-vector x y 0))
+                           collecting (float (obj-z-value obj type-tag) 0.0d0))))
       (alexandria:random-elt heights))))
 
 (defun make-constant-height-function (height)
