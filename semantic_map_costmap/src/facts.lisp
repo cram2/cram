@@ -39,71 +39,20 @@
 (defmethod costmap-generator-name->score ((name (eql 'semantic-map-free-space)))
   11)
 
-(defun ensure-string (identifier)
-  (etypecase identifier
-    (string identifier)
-    (symbol (symbol-name identifier))))
-
-(defun unquote (str)
-  "Removes ' and \" characters from the whole string"
-  (remove-if (lambda (c)
-               (or (eql c #\')
-                   (eql c #\")))
-             str))
-
-(defun owl-eq (sym-1 sym-2)
-  "Returns T if `sym-1' and `sym-2' are equal. In contrast to normal
-  string or symbol comparison, the two identifiers are first lispified and
-  then compared. Lispification means that camel case results in -
-  separation and comparison ignores case."
-  (eq (cram-roslisp-common:lispify-ros-name (unquote (ensure-string sym-1)))
-      (cram-roslisp-common:lispify-ros-name (unquote (ensure-string sym-2)))))
-
 (def-fact-group semantic-map-costmap (desig-costmap
                                       desig-z-value)
 
-  (<- (semantic-map-object ?type ?pose (?length ?width ?height))
-    (json-prolog:json-prolog (and ("objectType" ?o ?owl-type)
-                                  ("withoutNamespace" ?owl-type ?owl-type-no-ns)
-                                  ("objectPose" ?o ?pose)
-                                  ("objectDimensions" ?o ?width ?length ?height)))
-    (once
-     (or (owl-eq ?type ?owl-type)
-         (owl-eq ?type ?owl-type-no-ns))))
-
-  (<- (semantic-map-object ?type ?label ?pose (?length ?width ?height))
-    (json-prolog:json-prolog (and ("objectType" ?o ?owl-type)
-                                  ("withoutNamespace" ?owl-type ?owl-type-no-ns)
-                                  ("objectPose" ?o ?pose)
-                                  ("objectDimensions" ?o ?width ?length ?height)
-                                  ("objectLabel" ?o ?owl-name)))
-    (owl-eq ?label ?owl-name)
-    (once
-     (or (owl-eq ?type ?owl-type)
-         (owl-eq ?type ?owl-type-no-ns))))
-
   ;; relation-tag is either IN or ON at the moment
-  (<- (semantic-map-desig-objects ?relation-tag ?desig ?objects)
-    (desig-prop ?desig (?relation-tag ?type))
-    (not (desig-prop ?desig (name ?_)))
-    (bagof (?pose ?dimensions)
-           (semantic-map-object ?type ?pose ?dimensions)
-           ?objects))
-
-  (<- (semantic-map-desig-objects ?relation-tag ?desig ?objects)
-    (desig-prop ?desig (?relation-tag ?type))
-    (desig-prop ?desig (name ?name))
-    (bagof (?pose ?dimensions)
-           (semantic-map-object ?type ?name ?pose ?dimensions)
-           ?objects))
+  (<- (semantic-map-desig-objects ?desig ?objects)
+    (lisp-fun sem-map-utils:designator->semantic-map-objects ?desig ?objects)
+    (lisp-pred identity ?objects))
 
   (<- (semantic-map-objects ?objects)
-    (bagof (?pose ?dimensions)
-           (semantic-map-object ?_ ?_ ?pose ?dimensions)
-           ?objects))
+    (lisp-fun sem-map-utils:get-semantic-map ?sem-map)
+    (lisp-fun sem-map-utils:semantic-map-parts ?sem-map :recursive t ?objects))
   
   (<- (desig-costmap ?desig ?cm)
-    (semantic-map-desig-objects on ?desig ?objects)
+    (semantic-map-desig-objects ?desig ?objects)
     (costmap ?cm)
     (costmap-add-function semantic-map-objects (make-semantic-map-costmap ?objects)
                           ?cm)
@@ -112,7 +61,7 @@
      ?cm))
 
   (<- (desig-costmap ?desig ?cm)
-    (semantic-map-desig-objects in ?desig ?objects)
+    (semantic-map-desig-objects ?desig ?objects)
     (costmap ?cm)
     (costmap-add-function semantic-map-objects (make-semantic-map-costmap ?objects)
                           ?cm)
@@ -121,13 +70,12 @@
      ?cm))  
 
   (<- (desig-costmap ?desig ?cm)
+    (semantic-map-desig-objects ?desig ?objects)
     (desig-prop ?desig (on ?type))
     (desig-prop ?desig (name ?name))
     (costmap ?cm)
-    (semantic-map-object ?type ?name ?pose ?dimensions)
-    (costmap-add-function table-distribution
-                          (make-table-cost-function ?pose ?dimensions)
-                          ?cm))
+    (member ?obj ?objects)
+    (costmap-add-function table-distribution (make-on-cost-function ?obj) ?cm))
 
   (<- (desig-costmap ?desig ?cm)
     (or (desig-prop ?desig (to see))
@@ -153,20 +101,14 @@
   (<- (desig-z-value ?desig ?point ?z)
     (loc-desig? ?desig)
     (desig-prop ?desig (on ?_))
-    (semantic-map-desig-objects on ?desig ?objects)
-    (member (?pose ?dimensions) ?objects)
-    (lisp-pred point-on-object ?pose ?dimensions ?point)
-    (lisp-fun obj-z-value ?pose ?dimensions ?z))
+    (semantic-map-desig-objects ?desig ?objects)
+    (member ?obj ?objects)
+    (lisp-pred point-on-object ?obj ?point)
+    (lisp-fun obj-z-value ?obj :on ?z))
 
   (<- (supporting-z-value ?point ?z)
     (semantic-map-objects ?objects)
-    (member (?pose ?dimensions) ?objects)
-    (lisp-pred point-on-object ?pose ?dimensions ?point)
-    (lisp-fun obj-z-value ?pose ?dimensions ?z)))
+    (member ?obj ?objects)
+    (lisp-pred point-on-object ?obj ?point)
+    (lisp-fun obj-z-value ?obj :on ?z)))
 
-(def-fact-group semantic-map-utils ()
-  (<- (owl-eq ?id-1 ?id-2)
-    (ground (?id-1 ?id-2))
-    (lisp-pred owl-eq ?id-1 ?id-2))
-
-  (<- (owl-eq ?id ?id)))
