@@ -189,19 +189,20 @@ that the bounding boxes of `bottom' and `top' are alligned."
          (cl-transforms:make-quaternion 0 0 0 1))
         (cl-transforms:reference-transform pose))))))
 
-(defun obj-poses-on (obj poses)
+(defun obj-poses-on (obj-name poses &optional (world *current-bullet-world*))
   "Returns a new lazy-list of poses for the object `obj' that are on
   the corresponding poses in `poses`."
-  (lazy-mapcar (lambda (pose)
-                 (obj-pose-on
-                  (etypecase pose
-                    (cl-transforms:3d-vector (cl-transforms:make-pose
-                                              pose
-                                              (cl-transforms:make-quaternion 0 0 0 1)))
-                    (cl-transforms:pose pose)
-                    (list pose))
-                  obj))
-               poses))
+  (let ((obj (object world obj-name)))
+    (lazy-mapcar (lambda (pose)
+                   (obj-pose-on
+                    (etypecase pose
+                      (cl-transforms:3d-vector (cl-transforms:make-pose
+                                                pose
+                                                (cl-transforms:make-quaternion 0 0 0 1)))
+                      (cl-transforms:pose pose)
+                      (list pose))
+                    obj))
+                 poses)))
 
 (def-prolog-handler generate (bdgs ?values ?generator)
   "Lisp-calls the function call form `?generator' and binds every
