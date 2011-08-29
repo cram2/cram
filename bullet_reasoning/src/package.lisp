@@ -36,36 +36,36 @@
   (:import-from #:alexandria compose curry rcurry with-gensyms copy-hash-table)
   (:import-from #:desig desig-solutions)
   (:shadow copy-object)
-  (:export merge-bounding-boxes aabb
-           with-stored-world
-           *debug-window* add-debug-window add-costmap-function-object
-           camera width height fov-y z-near z-far camera-axis pose
-           gl-setup-camera camera-transform look-at-object-rotation
+  (:export merge-bounding-boxes aabb with-stored-world *debug-window*
+           add-debug-window add-costmap-function-object camera width
+           height fov-y z-near z-far camera-axis pose gl-setup-camera
+           camera-transform look-at-object-rotation
            with-rendering-to-framebuffer render-to-framebuffer
-           read-pixelbuffer read-depthbuffer to-png-image
-           add-object generic-cup mug plate mondamin mesh
-           remove-object object name rigid-bodies rigid-body-names
-           rigid-body world make-object box static-plane sphere
-           cylinder cone point-cloud
-           bt-reasoning-world invalidate-object objects object %object
-           bt-reasoning-world-state
-           robot-object links joint-states urdf joint-names joint-state
-           link-names link-pose set-robot-state-from-tf
-           semantic-map-object semantic-map-parts semantic-map-partr-names
-           semantic-map-geom semantic-map-part sub-parts-with-type semantic-map
-           ensure-pose ensure-vector
-           object-visibility object-visibility-percentage
+           read-pixelbuffer read-depthbuffer to-png-image add-object
+           generic-cup mug plate mondamin mesh remove-object object
+           name rigid-bodies rigid-body-names rigid-body world
+           make-object box static-plane sphere cylinder cone
+           point-cloud bt-reasoning-world invalidate-object objects
+           object %object bt-reasoning-world-state robot-object links
+           joint-states urdf joint-names joint-state link-names
+           link-pose set-robot-state-from-tf semantic-map-object
+           semantic-map-parts semantic-map-partr-names
+           semantic-map-geom semantic-map-part sub-parts-with-type
+           semantic-map ensure-pose ensure-vector object-visibility
+           object-visibility-percentage
            object-visibility-occluding-objects flat-color-object-proxy
-           calculate-object-visibility object-visible-p occluding-objects
-           simulate find-objects contact-p find-all-contacts
-           find-objects-in-contact poses-equal-p stable-p above-p
-           find-objects-above below-p find-objects-below
-           bullet-world assert-object retract-object step simulate-realtime
-           assert-object-pose position orientation poses-equal contact stable
-           supported-by above below visible occluding-objects occluding-object
-           grasp side reachable blocking debug-window debug-costmap
-           head-pointing-at with-current-bullet-world
-           reach-object-ik set-robot-state-from-joints set-robot-state-from-tf
+           calculate-object-visibility object-visible-p
+           occluding-objects simulate find-objects contact-p
+           find-all-contacts find-objects-in-contact poses-equal-p
+           stable-p above-p find-objects-above below-p
+           find-objects-below bullet-world assert-object
+           retract-object step simulate-realtime assert-object-pose
+           position orientation poses-equal contact stable
+           link-contacts supported-by above below visible
+           occluding-objects occluding-object grasp side reachable
+           blocking debug-window debug-costmap head-pointing-at
+           with-current-bullet-world reach-object-ik
+           set-robot-state-from-joints set-robot-state-from-tf
 
            robot-pan-tilt-links robot-pan-tilt-joints robot camera-frame
 
