@@ -1,7 +1,7 @@
 
 all: installed
 
-checkedout: Makefile
+checkedout: Makefile yason.patch
 	make clean
 	svn co svn://bknr.net/svn/trunk/libraries/yason/
 	touch checkedout
