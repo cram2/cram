@@ -360,6 +360,8 @@ current joint states"
 
 (defmethod (setf joint-state) (new-value (obj robot-object) name)
   (with-slots (urdf) obj
+    (assert (gethash name (cl-urdf:joints urdf)) ()
+            "Joint ~a unknown" name)
     (let* ((links (links obj))
            (joint-states (joint-states obj))
            (joint (gethash name (cl-urdf:joints urdf)))
