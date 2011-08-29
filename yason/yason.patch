@@ -10,3 +10,21 @@ Index: yason.asd
  ;; All rights reserved.
  ;;
  ;; Please see the file LICENSE in the distribution.
+Index: encode.lisp
+===================================================================
+--- encode.lisp	(revision 4668)
++++ encode.lisp	(working copy)
+@@ -52,11 +52,11 @@
+   object)
+ 
+ (defmethod encode ((object double-float) &optional (stream *standard-output*))
+-  (encode (coerce object 'single-float) stream)
++  (format stream "~f" object)
+   object)
+ 
+ (defmethod encode ((object float) &optional (stream *standard-output*))
+-  (princ object stream)
++  (format stream "~f" object)
+   object)
+ 
+ (defmethod encode ((object integer) &optional (stream *standard-output*))
