@@ -143,20 +143,28 @@
   (:documentation "Attaches all objects of `world' that are in contact
   to `robot-object' and not a member of the list `blacklist' or `test'
   fails. `test' must be a function with exactly two parameters, the
-  object to be attached and the contact manifold, and returns a
-  generalized boolean indicating if the object should be attached.")
+  object to be attached and the link name it is contacting, and
+  returns a generalized boolean indicating if the object should be
+  attached.")
   (:method ((robot-object robot-object)
             &key blacklist (test (constantly t)))
     (gc-attached-objects robot-object)
+    (loop for (obj . link-name) in (link-contacts robot-object)
+          when (and (funcall test obj link-name) (not (member obj blacklist)))
+            do (attach-object robot-object obj link-name))))
+
+(defgeneric link-contacts (robot-object)
+  (:method ((robot-object robot-object))
     (flet ((find-link-name (body)
              (loop for name being the hash-keys in (links robot-object)
                    using (hash-value rb) do
                      (when (eq body rb)
                        (return name)))))
       (with-slots (world) robot-object
-        (let ((objects (objects world)))
+        (let ((objects (objects world))
+              (contacts nil))
           (perform-collision-detection world)
-          (dolist (manifold (contact-manifolds world) nil)
+          (dolist (manifold (contact-manifolds world) contacts)
             (let ((obj (loop for obj in objects
                              when (and (rigid-body obj (name (body-1 manifold)))
                                        (rigid-body robot-object (name (body-2 manifold))))
@@ -165,8 +173,9 @@
                                        (rigid-body robot-object (name (body-1 manifold))))
                                do (return (cons obj (body-1 manifold)))
                              finally (return nil))))
-              (when (and obj (funcall test (car obj) manifold) (not (member (car obj) blacklist)))
-                (attach-object robot-object (car obj) (find-link-name (cdr obj)))))))))))
+              (when obj
+                (push (cons (car obj) (find-link-name (cdr obj)))
+                      contacts)))))))))
 
 (defmethod copy-object ((obj robot-object) (world bt-reasoning-world))
   (with-slots (links joint-states urdf) obj
