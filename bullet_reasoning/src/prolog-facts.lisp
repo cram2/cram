@@ -305,6 +305,21 @@
     (%object ?world ?obj-1-name ?obj-1)
     (%object ?world ?obj-2-name ?obj-2))
 
+  (<- (contact ?world ?obj-1-name ?obj-2-name ?link)
+    ;; Like CONTACT but also yields the name of a link that is in
+    ;; contact with an object. This works only for multi-link objects
+    ;; such as semantic maps or robots
+    (contact ?world ?obj-1-name ?obj-2-name)
+    (%object ?world ?obj-1-name ?obj-1)
+    (%object ?world ?obj-2-name ?obj-2)
+    (or (%link-contact ?obj-1 ?obj-2 ?link)
+        (%link-contact ?obj-2 ?obj-1 ?link)))
+
+  (<- (%link-contact ?robot-model ?obj ?link)
+    (lisp-type ?robot-model robot-object)
+    (lisp-fun link-contacts ?robot-model ?link-contacts)
+    (member (?obj . ?link) ?link-contacts))
+
   (<- (stable ?obj-name)
     (lisp-type ?obj-name symbol)
     (stable ?_ ?obj-name))
