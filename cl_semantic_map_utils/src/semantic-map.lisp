@@ -158,12 +158,12 @@
 
 (defmethod urdf-name :before ((part semantic-map-part))
   (unless (slot-boundp part 'urdf-name)
-    (with-slots (name urdf-name) part
+    (with-slots (owl-name urdf-name) part
       (let ((label (var-value
                     '?link
                     (lazy-car (json-prolog:prolog
                                `("rdf_has"
-                                 ,name "http://ias.cs.tum.edu/kb/srdl2-comp.owl#urdfName"
+                                 ,owl-name "http://ias.cs.tum.edu/kb/srdl2-comp.owl#urdfName"
                                  ("literal" ?link))
                                :package :sem-map-utils)))))
         (unless (is-var label)
