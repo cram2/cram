@@ -24,5 +24,6 @@
   <depend package="cram_roslisp_common"/>
   <depend package="cram_plan_knowledge"/>
   <depend package="triangulate_point_cloud"/>
+  <depend package="cl_semantic_map_utils"/>
 
 </package>

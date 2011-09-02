@@ -47,7 +47,8 @@
                  perception-process-module
                  cram-roslisp-common
                  cram-plan-knowledge
-                 triangulate_point_cloud-srv)
+                 triangulate_point_cloud-srv
+                 cl-semantic-map-utils)
     :components
     ((:module "src"
               :components
