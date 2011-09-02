@@ -77,8 +77,15 @@
                       (remove-key-arg arg-name (cddr args)))
                      (t
                       (list* (car args) (cadr args)
-                             (remove-key-arg arg-name (cddr args))))))))
-    (let ((fluent (apply #'make-instance class (remove-key-arg :class args))))
+                             (remove-key-arg arg-name (cddr args)))))))
+           (remove-key-args (keys args)
+             (reduce (lambda (args key)
+                       (remove-key-arg key args))
+                     keys
+                     :initial-value args)))
+    (let ((fluent (apply #'make-instance class (remove-key-args '(:class :allow-tracing
+                                                                  :max-tracing-freq)
+                                                                args))))
       (on-make-fluent-hook fluent allow-tracing max-tracing-freq)
       fluent)))
 
