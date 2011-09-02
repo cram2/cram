@@ -49,9 +49,7 @@
            object %object bt-reasoning-world-state robot-object links
            joint-states urdf joint-names joint-state link-names
            link-pose set-robot-state-from-tf semantic-map-object
-           semantic-map-parts semantic-map-partr-names
-           semantic-map-geom semantic-map-part sub-parts-with-type
-           semantic-map ensure-pose ensure-vector object-visibility
+           ensure-pose ensure-vector object-visibility
            object-visibility-percentage
            object-visibility-occluding-objects flat-color-object-proxy
            calculate-object-visibility object-visible-p
