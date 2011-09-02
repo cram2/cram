@@ -37,5 +37,6 @@
            sub-parts-with-type sub-parts-with-name
            name owl-name obj-type urdf-name sub-parts
            pose dimensions aliases
+           urdf-obj-name
            designator->semantic-map-objects)
   (:desig-properties name type part-of on in))
