@@ -31,6 +31,7 @@
 (in-package :sem-map-utils)
 
 (defvar *cached-semantic-map* nil)
+(defvar *cached-owl-types* (make-hash-table :test 'equal))
 
 (defclass semantic-map ()
   ((parts :initform (make-hash-table :test 'equal) :initarg :parts)))
@@ -223,6 +224,35 @@
                (string rhs))))
     (equal lhs rhs)))
 
+(defun is-owl-type (type ref-type)
+  "Checks if `type' is equal to `ref-type', i.e. if it's a sub-type of
+  `ref-type'"
+  (flet ((cached-sub-types (ref-type)
+           (declare (type string ref-type))
+           (or (gethash ref-type *cached-owl-types*)
+               (let* ((type-namespace-str "http://ias.cs.tum.edu/kb/knowrob.owl#")
+                      (ref-type-w/ns-str (concatenate
+                                          'string
+                                          type-namespace-str
+                                          ref-type)))
+                 (setf (gethash ref-type *cached-owl-types*)
+                       (force-ll
+                        (lazy-mapcar (lambda (bdg)
+                                       (with-vars-bound (?type) bdg
+                                         (let ((type-str (remove #\' (symbol-name ?type))))
+                                           (subseq type-str (1+ (position #\# type-str))))))
+                                     (json-prolog:prolog
+                                      `("owl_subclass_of" ?type ,ref-type-w/ns-str)
+                                      :package :sem-map-utils))))))))
+    (let ((ref-type-str (etypecase ref-type
+                          (symbol (remove #\' (symbol-name ref-type)))
+                          (string ref-type)))
+          (type-str (etypecase type
+                      (symbol (remove #\' (symbol-name type)))
+                      (string type))))
+      (find type-str (cached-sub-types ref-type-str)
+            :test #'equal))))
+
 (defun sub-parts-with-type (map type &key (recursive t))
   "Returns a lazy list of all objects of type `type' that are children
 of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns not only direct children."
@@ -231,7 +261,7 @@ of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns
                 (string type))))
     (lazy-mapcan (lambda (part)
                    (lazy-append
-                    (when (owl-names-equal (obj-type part) type)
+                    (when (is-owl-type (obj-type part) type)
                       (list part))
                     (when recursive
                       (sub-parts-with-type part type))))
