@@ -198,7 +198,8 @@
                                    ("objectType" ?o ?tp)
                                    ("rdf_atom_no_ns" ?tp ?type)
                                    ("rdf_atom_no_ns" ?o ?n))
-                                 :package :sem-map-utils)))))))))
+                                 :package :sem-map-utils))))
+                      :test 'equal)))))
 
 (defun owl-names-equal (lhs rhs)
   (let ((lhs (etypecase lhs
