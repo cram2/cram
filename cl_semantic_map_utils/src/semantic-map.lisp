@@ -145,7 +145,7 @@
                 (unless (or (is-var ?type) (is-var ?sub))
                   (list
                    (make-semantic-map-part
-                    ?type
+                    (remove #\' (symbol-name ?type))
                     (remove #\' (symbol-name ?name))
                     (remove #\' (symbol-name ?sub)))))))
             (json-prolog:prolog
@@ -202,7 +202,7 @@
                                   (with-vars-bound (?type ?n ?o) bdgs
                                     (unless (or (is-var ?type) (is-var ?o))
                                       (list (make-semantic-map-part
-                                             ?type
+                                             (remove #\' (symbol-name ?type))
                                              (remove #\' (symbol-name ?n))
                                              (remove #\' (symbol-name ?o)))))))
                                 (json-prolog:prolog
