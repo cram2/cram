@@ -169,6 +169,19 @@
         (unless (is-var label)
           (setf urdf-name (remove #\' (symbol-name label))))))))
 
+(defun urdf-obj-name (urdf-name)
+  (with-vars-bound (?name)
+      (lazy-car
+       (json-prolog:prolog
+        `(and
+          ("rdf_has"
+           ?owlname "http://ias.cs.tum.edu/kb/srdl2-comp.owl#urdfName"
+           ("literal" ,urdf-name))
+          ("rdf_atom_no_ns" ?owlname ?name))
+        :package :sem-map-utils))
+    (unless (is-var ?name)
+      (remove #\' (symbol-name ?name)))))
+
 (defun clear-semantic-map ()
   (setf *cached-semantic-map* nil))
 
