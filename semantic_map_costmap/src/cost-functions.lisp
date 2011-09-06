@@ -97,6 +97,7 @@
               pt))))
 
 (defun make-semantic-map-obj-generator (object &key (padding 0.0))
+  (declare (type sem-map-utils:semantic-map-geom object))
   (let* ((transform (cl-transforms:pose->transform (sem-map-utils:pose object)))
          (dimensions (cl-transforms:v+
                       (sem-map-utils:dimensions object)
