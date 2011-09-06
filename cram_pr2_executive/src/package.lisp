@@ -64,4 +64,4 @@
   (:desig-properties
    #:type #:cluster #:object #:in #:gripper #:side #:pose
    #:height #:orientation #:at #:name #:on #:for
-   #:trajectory #:to #:carry #:obj))
+   #:trajectory #:to #:open #:close #:carry #:obj))
