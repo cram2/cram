@@ -49,7 +49,7 @@
 
   (<- (semantic-map-objects ?objects)
     (lisp-fun sem-map-utils:get-semantic-map ?sem-map)
-    (lisp-fun sem-map-utils:semantic-map-parts ?sem-map :recursive t ?objects))
+    (lisp-fun sem-map-utils:semantic-map-parts ?sem-map :recursive nil ?objects))
   
   (<- (desig-costmap ?desig ?cm)
     (semantic-map-desig-objects ?desig ?objects)
