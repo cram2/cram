@@ -63,6 +63,7 @@
            #:task-ended-at
            #:subtask
            #:subtask+
+           #:at
            ;; Symbols used in plans and thus the execution trace.
            #:achieve
            #:object-in-hand
