@@ -224,12 +224,12 @@
            (pose (ensure-pose pose))
            (bodies (make-link-bodies pose (cl-urdf:root-link urdf-model)))
            (object
-            (make-instance 'robot-object
-                           :rigid-bodies (mapcar #'cdr bodies)
-                           :world world
-                           :pose-reference-body (cl-urdf:name (cl-urdf:root-link urdf-model))
-                           :name name
-                           :urdf urdf-model)))
+             (make-instance 'robot-object
+               :rigid-bodies (mapcar #'cdr bodies)
+               :world world
+               :pose-reference-body (cl-urdf:name (cl-urdf:root-link urdf-model))
+               :name name
+               :urdf urdf-model)))
       (loop for (name . body) in bodies do
             (setf (gethash name (slot-value object 'links))
                   body))
@@ -429,9 +429,6 @@ current joint states"
           (when joint
             (setf (gethash (cl-urdf:name joint) (joint-states obj))
                   (calculate-joint-state obj (cl-urdf:name joint)))))))))
-
-(defmethod pose ((obj robot-object))
-  (link-pose obj (slot-value obj 'pose-reference-body)))
 
 (defmethod (setf pose) (new-value (obj robot-object))
   (setf (link-pose obj (slot-value obj 'pose-reference-body)) new-value))
