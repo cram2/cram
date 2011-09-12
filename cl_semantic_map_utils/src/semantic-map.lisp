@@ -170,6 +170,11 @@
         (unless (is-var label)
           (setf urdf-name (remove #\' (symbol-name label))))))))
 
+(defmethod (setf pose) (new-value (geom semantic-map-geom))
+  (with-slots (pose) geom
+    ;; TODO: update joint-state in knowrob's knowledge base
+    (setf pose new-value)))
+
 (defun urdf-obj-name (urdf-name)
   (with-vars-bound (?name)
       (lazy-car
