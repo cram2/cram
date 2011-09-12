@@ -73,7 +73,8 @@
 
   (<- (desig-costmap ?desig ?cm)
     (semantic-map-desig-objects ?desig ?objects)
-    (desig-prop ?desig (on ?type))
+    (or (desig-prop ?desig (on ?type))
+        (desig-prop ?desig (in ?type)))
     (desig-prop ?desig (name ?name))
     (costmap ?cm)
     (member ?obj ?objects)
