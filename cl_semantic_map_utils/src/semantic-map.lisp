@@ -261,6 +261,8 @@
 (defun sub-parts-with-type (map type &key (recursive t))
   "Returns a lazy list of all objects of type `type' that are children
 of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns not only direct children."
+  ;; Update the cache if not updated yet
+  (get-semantic-map)
   (let ((type (etypecase type
                 (symbol (cram-roslisp-common:rosify-lisp-name type))
                 (string type))))
@@ -275,6 +277,8 @@ of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns
 (defun sub-parts-with-name (map name &key (recursive t))
   "Returns a lazy list of all objects of type `type' that are children
 of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns not only direct children."
+  ;; Update the cache if not updated yet
+  (get-semantic-map)
   (let ((name (etypecase name
                 (symbol (cram-roslisp-common:rosify-lisp-name name))
                 (string name))))
