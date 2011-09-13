@@ -37,10 +37,52 @@
                                              (declare (ignore link-name))
                                              (typep obj 'household-object))))
 
+(defmethod (setf joint-state) :around (new-value (sem-map semantic-map-object) name)
+  (with-slots (urdf links) sem-map
+    ;; We shouldn't use parent here but child. The problem is that in
+    ;; the current semantic map, the drawer is connected to the door
+    ;; by the joint. We will keep this code until the semantic map is
+    ;; fixed.
+    (let* ((child-link-name (cl-urdf:name (cl-urdf:child (gethash name (cl-urdf:joints urdf)))))
+           (parent-link-name (cl-urdf:name (cl-urdf:parent (gethash name (cl-urdf:joints urdf)))))
+           (child-link (gethash child-link-name links))
+           (sem-map-obj (lazy-car
+                         (sem-map-utils:sub-parts-with-name
+                          sem-map (find-urdf-obj sem-map parent-link-name))))
+           (original-link-pose (pose child-link)))
+      (call-next-method)
+      (let* ((new-link-pose (pose child-link))
+             (diff (cl-transforms:transform*
+                    (cl-transforms:reference-transform new-link-pose)
+                    (cl-transforms:transform-inv
+                     (cl-transforms:reference-transform original-link-pose)))))
+        (setf (sem-map-utils:pose sem-map-obj)
+              (cl-transforms:transform-pose
+               diff
+               (sem-map-utils:pose sem-map-obj)))))))
+
 (defmethod (setf link-pose) :before (new-value (sem-map semantic-map-object) name)
   (attach-contacting-objects sem-map :test (lambda (obj link-name)
                                              (declare (ignore link-name))
                                              (typep obj 'household-object))))
+
+(defmethod (setf link-pose) :around (new-value (sem-map semantic-map-object) name)
+  (with-slots (urdf links) sem-map
+    (let* ((link (gethash name links))
+           (sem-map-obj (lazy-car
+                         (sem-map-utils:sub-parts-with-name
+                          sem-map (find-urdf-obj sem-map name))))
+           (original-link-pose (pose link)))
+      (call-next-method)
+      (let* ((new-link-pose (pose link))
+             (diff (cl-transforms:transform*
+                    (cl-transforms:reference-transform new-link-pose)
+                    (cl-transforms:transform-inv
+                     (cl-transforms:reference-transform original-link-pose)))))
+        (setf (sem-map-utils:pose sem-map-obj)
+              (cl-transforms:transform-pose
+               diff
+               (sem-map-utils:pose sem-map-obj)))))))
 
 (defmethod copy-object ((obj semantic-map-object) (world bt-reasoning-world))
   (with-slots (pose parts) obj
@@ -50,3 +92,4 @@
   (let ((sem-map (sem-map-utils:get-semantic-map)))
     (change-class (add-object world 'urdf name pose :urdf urdf) 'semantic-map-object
                   :parts (slot-value sem-map 'sem-map-utils::parts))))
+
