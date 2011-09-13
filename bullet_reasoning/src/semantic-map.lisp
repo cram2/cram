@@ -56,10 +56,7 @@
                     (cl-transforms:reference-transform new-link-pose)
                     (cl-transforms:transform-inv
                      (cl-transforms:reference-transform original-link-pose)))))
-        (setf (sem-map-utils:pose sem-map-obj)
-              (cl-transforms:transform-pose
-               diff
-               (sem-map-utils:pose sem-map-obj)))))))
+        (sem-map-utils:update-pose sem-map-obj diff :relative t :recursive t)))))
 
 (defmethod (setf link-pose) :before (new-value (sem-map semantic-map-object) name)
   (attach-contacting-objects sem-map :test (lambda (obj link-name)
@@ -79,10 +76,7 @@
                     (cl-transforms:reference-transform new-link-pose)
                     (cl-transforms:transform-inv
                      (cl-transforms:reference-transform original-link-pose)))))
-        (setf (sem-map-utils:pose sem-map-obj)
-              (cl-transforms:transform-pose
-               diff
-               (sem-map-utils:pose sem-map-obj)))))))
+        (sem-map-utils:update-pose sem-map-obj diff :relative t :recursive t)))))
 
 (defmethod copy-object ((obj semantic-map-object) (world bt-reasoning-world))
   (with-slots (pose parts) obj
