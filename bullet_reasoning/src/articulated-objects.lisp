@@ -47,7 +47,8 @@
   (let ((urdf (urdf obj)))
     (or (sem-map-utils:urdf-obj-name link)
         (let ((link (gethash link (cl-urdf:links urdf))))
-          (when (and link (cl-urdf:parent (cl-urdf:from-joint link)))
+          (when (and link (cl-urdf:from-joint link)
+                     (cl-urdf:parent (cl-urdf:from-joint link)))
             (find-urdf-obj obj (cl-urdf:name (cl-urdf:parent
                                               (cl-urdf:from-joint link)))))))))
 
