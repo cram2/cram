@@ -36,7 +36,7 @@
            get-semantic-map clear-semantic-map with-clear-semantic-map
            sub-parts-with-type sub-parts-with-name
            name owl-name obj-type urdf-name sub-parts
-           pose dimensions aliases
+           update-pose pose dimensions aliases
            urdf-obj-name
            designator->semantic-map-objects)
   (:desig-properties name type part-of on in))
