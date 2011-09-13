@@ -156,7 +156,18 @@
     (desig ?other-d)
     (desig-equal ?d ?other-d)
     (desig-timestamp ?other-d ?t)
-    (desig-value ?other-d ?val)))
+    (desig-value ?other-d ?val))
+
+  ;; Constructor for designators
+  (<- (designator ?class ?description ?desig)
+    (ground (?class ?description))
+    (not (bound ?desig))
+    (lisp-fun make-designator ?class ?description ?desig))
+
+  (<- (designator ?class ?description ?desig)
+    (bound ?desig)
+    (desig-class ?desig ?class)
+    (desig-description ?desig ?description)))
 
 (def-prolog-handler desig (bdgs ?desig)
   (let* ((?tmp-desig (gen-var)))
