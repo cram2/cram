@@ -136,6 +136,34 @@
                                  (remove #\' (symbol-name label)))
                                aliases)))))))
 
+(defgeneric update-pose (obj new-pose &key relative recursive)
+  (:documentation "Updates the pose of `obj' using `new-pose'. When
+  `relative' is T, `new-pose' is interpreted as relative offset to the
+  curren pose of`obj', otherwise `new-pose' indicates the new
+  pose. When `recursive' is T (default), the pose of all sub-objects
+  of `obj' is updated, too.")
+  (:method ((obj semantic-map-geom) new-pose &key (relative nil) (recursive t))
+    (cond (relative
+           (setf (pose obj) (cl-transforms:transform-pose
+                             (cl-transforms:reference-transform new-pose)
+                             (pose obj)))
+           (when recursive
+             (dolist (sub (sub-parts obj))
+               (update-pose sub new-pose :recursive t :relative t))))
+          (recursive
+           (let ((relative-offset (cl-transforms:transform*
+                                   (cl-transforms:reference-transform new-pose)
+                                   (cl-transforms:transform-inv
+                                    (cl-transforms:reference-transform (pose obj))))))
+             (setf (pose obj) new-pose)
+             (dolist (sub (sub-parts obj))
+               (update-pose sub relative-offset :recursive t :relative t))))
+          (t (setf (pose obj) new-pose))))
+  (:method ((obj semantic-map-part) new-pose &key relative (recursive t))
+    (when recursive
+      (dolist (sub (sub-parts obj))
+        (update-pose sub new-pose :relative relative :recursive t)))))
+
 (defmethod sub-parts :before ((part semantic-map-part))
   (unless (slot-boundp part 'sub-parts)
     (setf (slot-value part 'sub-parts)
