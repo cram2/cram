@@ -39,16 +39,22 @@
 
 (defmethod (setf joint-state) :around (new-value (sem-map semantic-map-object) name)
   (with-slots (urdf links) sem-map
-    ;; We shouldn't use parent here but child. The problem is that in
-    ;; the current semantic map, the drawer is connected to the door
-    ;; by the joint. We will keep this code until the semantic map is
-    ;; fixed.
+    ;; We shouldn't use parent here but child for drawers. The problem
+    ;; is that in the current semantic map, the drawer is connected to
+    ;; the door by the joint. We will keep this code until the
+    ;; semantic map is fixed.
     (let* ((child-link-name (cl-urdf:name (cl-urdf:child (gethash name (cl-urdf:joints urdf)))))
            (parent-link-name (cl-urdf:name (cl-urdf:parent (gethash name (cl-urdf:joints urdf)))))
            (child-link (gethash child-link-name links))
-           (sem-map-obj (lazy-car
-                         (sem-map-utils:sub-parts-with-name
-                          sem-map (owl-name-from-urdf-name sem-map parent-link-name))))
+           (parent-sem-map-obj (lazy-car
+                                (sem-map-utils:sub-parts-with-name
+                                 sem-map (owl-name-from-urdf-name sem-map parent-link-name))))
+           (child-sem-map-obj (lazy-car
+                                (sem-map-utils:sub-parts-with-name
+                                 sem-map  (owl-name-from-urdf-name sem-map child-link-name))))
+           (sem-map-obj (string-case (sem-map-utils:obj-type parent-sem-map-obj)
+                          ("Drawer" parent-sem-map-obj)
+                          (t child-sem-map-obj)))
            (original-link-pose (pose child-link)))
       (call-next-method)
       (let* ((new-link-pose (pose child-link))
