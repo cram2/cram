@@ -41,22 +41,22 @@
   :documentation "Hard-coded ugly constant for maximal joint values
   when door is open. This will be replaced by an articulation model")
 
-(defun find-urdf-obj (obj link)
+(defun owl-name-from-urdf-name (obj link)
   (declare (type semantic-map-object obj)
            (type string link))
   (let ((urdf (urdf obj)))
-    (or (sem-map-utils:urdf-obj-name link)
+    (or (sem-map-utils:urdf-name->obj-name link)
         (let ((link (gethash link (cl-urdf:links urdf))))
           (when (and link (cl-urdf:from-joint link)
                      (cl-urdf:parent (cl-urdf:from-joint link)))
-            (find-urdf-obj obj (cl-urdf:name (cl-urdf:parent
-                                              (cl-urdf:from-joint link)))))))))
+            (owl-name-from-urdf-name obj (cl-urdf:name (cl-urdf:parent
+                                                        (cl-urdf:from-joint link)))))))))
 
 (defun articulation-joint-objs (obj link)
   "Returns the name of the joint that can be used to move `link' which
   has to be part of `obj'"
   (declare (type semantic-map-object obj))
-  (let* ((part-name (find-urdf-obj obj link))
+  (let* ((part-name (owl-name-from-urdf-name obj link))
          (part (when part-name
                  (lazy-car (sem-map-utils:sub-parts-with-name obj part-name)))))
     (assert part-name () "Link `~a' could not be mapped to a semantic map instance"
