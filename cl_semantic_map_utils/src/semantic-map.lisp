@@ -203,7 +203,7 @@
     ;; TODO: update joint-state in knowrob's knowledge base
     (setf pose new-value)))
 
-(defun urdf-obj-name (urdf-name)
+(defun urdf-name->obj-name (urdf-name)
   (with-vars-bound (?name)
       (lazy-car
        (json-prolog:prolog
@@ -257,7 +257,7 @@
                (string rhs))))
     (equal lhs rhs)))
 
-(defun is-owl-type (type ref-type)
+(defun owl-type-p (type ref-type)
   "Checks if `type' is equal to `ref-type', i.e. if it's a sub-type of
   `ref-type'"
   (flet ((cached-sub-types (ref-type)
@@ -269,14 +269,17 @@
                                           type-namespace-str
                                           ref-type)))
                  (setf (gethash ref-type *cached-owl-types*)
-                       (force-ll
-                        (lazy-mapcar (lambda (bdg)
-                                       (with-vars-bound (?type) bdg
-                                         (let ((type-str (remove #\' (symbol-name ?type))))
-                                           (subseq type-str (1+ (position #\# type-str))))))
-                                     (json-prolog:prolog
-                                      `("owl_subclass_of" ?type ,ref-type-w/ns-str)
-                                      :package :sem-map-utils))))))))
+                       (remove-duplicates
+                        (force-ll
+                         (lazy-mapcar (lambda (bdg)
+                                        (with-vars-bound (?type) bdg
+                                          (let ((type-str (remove #\' (symbol-name ?type))))
+                                            (subseq type-str (1+ (position #\# type-str))))))
+                                      (json-prolog:prolog
+                                       `(or ("owl_subclass_of" ,ref-type-w/ns-str ?type)
+                                            ("owl_subclass_of" ?type ,ref-type-w/ns-str))
+                                       :package :sem-map-utils)))
+                        :test #'equal))))))
     (let ((ref-type-str (etypecase ref-type
                           (symbol (remove #\' (symbol-name ref-type)))
                           (string ref-type)))
@@ -296,7 +299,7 @@ of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns
                 (string type))))
     (lazy-mapcan (lambda (part)
                    (lazy-append
-                    (when (is-owl-type (obj-type part) type)
+                    (when (owl-type-p (obj-type part) type)
                       (list part))
                     (when recursive
                       (sub-parts-with-type part type))))
