@@ -120,8 +120,12 @@
 
 (defun above-p (obj-1 obj-2)
   "Returns T if `obj-1' is above `obj-2'"
-  (> (cl-transforms:z (cl-transforms:origin (pose obj-1)))
-     (cl-transforms:z (cl-transforms:origin (pose obj-2)))))
+  (let ((aabb-1 (aabb obj-1))
+        (aabb-2 (aabb obj-2)))
+    (> (- (cl-transforms:z (bounding-box-center aabb-1))
+          (cl-transforms:z (bounding-box-dimensions aabb-1)))
+       (+ (cl-transforms:z (bounding-box-center aabb-2))
+          (cl-transforms:z (bounding-box-dimensions aabb-2))))))
 
 (defun find-objects-above (world obj)
   "Returns a list of all objects thate are above `obj'"
@@ -129,9 +133,13 @@
 
 (defun below-p (obj-1 obj-2)
   "Returns T if `obj-1' is below `obj-2'"
-  (< (cl-transforms:z (cl-transforms:origin (pose obj-1)))
-     (cl-transforms:z (cl-transforms:origin (pose obj-2)))))
+  (let ((aabb-1 (aabb obj-1))
+        (aabb-2 (aabb obj-2)))
+    (< (+ (cl-transforms:z (bounding-box-center aabb-1))
+          (cl-transforms:z (bounding-box-dimensions aabb-1)))
+       (- (cl-transforms:z (bounding-box-center aabb-2))
+          (cl-transforms:z (bounding-box-dimensions aabb-2))))))
 
 (defun find-objects-below (world obj)
-  "Returns a list of all objects thate are below `obj'"
+  "Returns a list of all objects that are below `obj'"
   (find-objects world (lambda (o) (below-p o obj))))
