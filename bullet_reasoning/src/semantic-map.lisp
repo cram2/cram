@@ -48,7 +48,7 @@
            (child-link (gethash child-link-name links))
            (sem-map-obj (lazy-car
                          (sem-map-utils:sub-parts-with-name
-                          sem-map (find-urdf-obj sem-map parent-link-name))))
+                          sem-map (owl-name-from-urdf-name sem-map parent-link-name))))
            (original-link-pose (pose child-link)))
       (call-next-method)
       (let* ((new-link-pose (pose child-link))
@@ -68,7 +68,7 @@
     (let* ((link (gethash name links))
            (sem-map-obj (lazy-car
                          (sem-map-utils:sub-parts-with-name
-                          sem-map (find-urdf-obj sem-map name))))
+                          sem-map (owl-name-from-urdf-name sem-map name))))
            (original-link-pose (pose link)))
       (call-next-method)
       (let* ((new-link-pose (pose link))
