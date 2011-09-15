@@ -42,6 +42,7 @@
   when door is open. This will be replaced by an articulation model")
 
 (defun owl-name-from-urdf-name (obj link)
+  "Returns the name of the owl instance that corresponds to `link'"
   (declare (type semantic-map-object obj)
            (type string link))
   (let ((urdf (urdf obj)))
