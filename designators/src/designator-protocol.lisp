@@ -182,11 +182,14 @@ together with MAKE-DESIGNATOR and WITH-DESIGNATORS"
                    (first-desig desig)
                    desig)))
     (lazy-list ((curr desig))
-      (when curr
-        (handler-case
-            (cont (reference curr) (next-solution curr))
-          (designator-error ()
-            (next (next-solution curr))))))))
+      (handler-case
+          (when curr
+            (handler-case
+                (cont (reference curr) (next-solution curr))
+              (designator-error ()
+                (next (next-solution curr)))))
+        (designator-error ()
+          nil)))))
 
 (defun check-desig-prop-package (prop)
   "Checks if `prop' is in the correct package and can be used as a designator property"
