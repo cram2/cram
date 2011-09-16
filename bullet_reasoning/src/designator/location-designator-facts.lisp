@@ -54,9 +54,15 @@
                           ?cm))
 
   (<- (desig-location-prop ?desig ?loc)
+    (or (loc-desig? ?desig)
+        (obj-desig? ?desig))
     (desig-prop ?desig (obj ?o))
     (object ?o)
     (pose ?o ?loc))
+
+  (<- (desig-location-prop ?o ?loc)
+    (object ?o)
+    (pose ?o ?loc))  
 
   (<- (desig-check-to-reach ?desig ?robot-pose)
     (bullet-world ?w)
