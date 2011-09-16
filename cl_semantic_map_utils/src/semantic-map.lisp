@@ -48,6 +48,38 @@
   ((pose :initarg :pose :reader pose)
    (dimensions :initarg :dimensions :reader dimensions)))
 
+(defgeneric copy-semantic-map-object (obj)
+  (:method ((map semantic-map))
+    (make-instance 'semantic-map
+      :parts (alexandria:alist-hash-table
+              (mapcar (lambda (elem)
+                        (destructuring-bind (key . val) elem
+                          (cons key (copy-semantic-map-object val))))
+                      (alexandria:hash-table-alist (slot-value map 'parts))))))
+
+  (:method ((part semantic-map-part))
+    (let* ((slots '(type name owl-name urdf-name aliases))
+           (initargs '(:type :name :owl-name :urdf-link-name :aliases))
+           (copy (apply #'make-instance 'semantic-map-part
+                        (mapcan (lambda (initarg slot)
+                                  (when (slot-boundp part slot)
+                                    (list initarg (slot-value part slot))))
+                                initargs slots))))
+      (setf (slot-value copy 'sub-parts)
+            ;; This is pretty ugly. It basically means that we always
+            ;; query the complete semantic map the first time we
+            ;; create it because SUB-PARTS expands everything
+            (mapcar #'copy-semantic-map-object (sub-parts part)))
+      copy))
+  
+  (:method ((geom semantic-map-geom))
+    (with-slots (pose dimensions) geom
+      (let ((copy (call-next-method)))
+        (change-class
+         copy 'semantic-map-geom
+         :pose (cl-transforms:copy-pose pose)
+         :dimensions (cl-transforms:copy-3d-vector dimensions))))))
+
 (defgeneric semantic-map-parts (map &key recursive)
   (:method ((map semantic-map) &key recursive)
     (let ((direct-children (loop for part being the hash-values of (slot-value map 'parts)
