@@ -254,6 +254,10 @@
   `(let ((*cached-semantic-map* nil))
      ,@body))
 
+(defmacro with-semantic-map-cache (cache &body body)
+  `(let ((*cached-semantic-map* ,cache))
+     ,@body))
+
 (defun get-semantic-map ()
   (or *cached-semantic-map*
       (setf *cached-semantic-map*
