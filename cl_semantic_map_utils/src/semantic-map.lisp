@@ -259,29 +259,30 @@
      ,@body))
 
 (defun get-semantic-map ()
-  (or *cached-semantic-map*
-      (setf *cached-semantic-map*
-            (make-instance 'semantic-map
-              :parts (alexandria:alist-hash-table
-                      (mapcar (lambda (elem)
-                                (cons (name elem) elem))
-                              (force-ll
-                               (lazy-mapcan
-                                (lambda (bdgs)
-                                  (with-vars-bound (?type ?n ?o) bdgs
-                                    (unless (or (is-var ?type) (is-var ?o))
-                                      (list (make-semantic-map-part
-                                             (remove #\' (symbol-name ?type))
-                                             (remove #\' (symbol-name ?n))
-                                             (remove #\' (symbol-name ?o)))))))
-                                (json-prolog:prolog
-                                 '(and ("rootObjects" ?objs)
-                                   ("member" ?o ?objs)
-                                   ("objectType" ?o ?tp)
-                                   ("rdf_atom_no_ns" ?tp ?type)
-                                   ("rdf_atom_no_ns" ?o ?n))
-                                 :package :sem-map-utils))))
-                      :test 'equal)))))
+  (unless *cached-semantic-map*
+    (setf *cached-semantic-map*
+          (make-instance 'semantic-map
+            :parts (alexandria:alist-hash-table
+                    (mapcar (lambda (elem)
+                              (cons (name elem) elem))
+                            (force-ll
+                             (lazy-mapcan
+                              (lambda (bdgs)
+                                (with-vars-bound (?type ?n ?o) bdgs
+                                  (unless (or (is-var ?type) (is-var ?o))
+                                    (list (make-semantic-map-part
+                                           (remove #\' (symbol-name ?type))
+                                           (remove #\' (symbol-name ?n))
+                                           (remove #\' (symbol-name ?o)))))))
+                              (json-prolog:prolog
+                               '(and ("rootObjects" ?objs)
+                                 ("member" ?o ?objs)
+                                 ("objectType" ?o ?tp)
+                                 ("rdf_atom_no_ns" ?tp ?type)
+                                 ("rdf_atom_no_ns" ?o ?n))
+                               :package :sem-map-utils))))
+                    :test 'equal))))
+  (copy-semantic-map-object *cached-semantic-map*))
 
 (defun owl-names-equal (lhs rhs)
   (let ((lhs (etypecase lhs
@@ -357,3 +358,4 @@ of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns
                     (when recursive
                       (sub-parts-with-name part name))))
                  (semantic-map-parts map))))
+
