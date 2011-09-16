@@ -59,6 +59,7 @@
                (:file "prolog-facts" :depends-on ("package"))
                (:file "pose-sampling-facts" :depends-on ("package"))
                (:file "semantic-map-facts" :depends-on ("package"))
+               (:file "action-facts" :depends-on ("package"))
                (:file "reasoning-world" :depends-on ("package"))
                (:file "textures" :depends-on ("package"))
                (:file "objects" :depends-on ("package" "reasoning-world" "textures" "utils"))
