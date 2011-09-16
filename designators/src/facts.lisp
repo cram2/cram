@@ -32,7 +32,8 @@
 
 (defun obj-desig-location (obj-desig)
   (when (and (typep obj-desig 'object-designator)
-             (desig-prop-value obj-desig 'at))
+             (desig-prop-value obj-desig 'at)
+             (typep (desig-prop-value obj-desig 'at) 'designator))
     (reference (current-desig (desig-prop-value obj-desig 'at)))))
 
 (defun loc-desig-location (loc-desig)
@@ -63,6 +64,7 @@
   (<- (desig-location-prop ?desig ?loc)
     (loc-desig? ?desig)
     (desig-prop ?desig (obj ?obj))
+    (lisp-type ?obj designator)
     (lisp-fun current-desig ?obj ?curr-obj)
     (lisp-fun obj-desig-location ?curr-obj ?loc)
     (lisp-pred identity ?loc))
