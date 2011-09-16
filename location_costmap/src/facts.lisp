@@ -105,9 +105,7 @@ quaternion to face towards `pose'"
     (costmap ?cm)
     (desig-location-prop ?desig ?loc)
     (costmap-add-function location-neighborhood (make-location-cost-function ?loc 0.5) ?cm)
-    (-> (desig-location-prop ?desig ?loc)
-        (costmap-add-orientation-generator (make-angle-to-point-generator ?loc) ?cm)
-        (true)))
+    (costmap-add-orientation-generator (make-angle-to-point-generator ?loc) ?cm))
 
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (to reach))
