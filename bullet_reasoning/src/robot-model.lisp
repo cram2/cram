@@ -405,17 +405,14 @@ current joint states"
                (cl-transforms:transform-inv
                 (cl-transforms:reference-transform
                  (cl-urdf:origin (cl-urdf:collision link)))))))
-            ((and (cl-urdf:from-joint link)
+            ((and link (cl-urdf:from-joint link)
                   (cl-urdf:parent (cl-urdf:from-joint link)))
              (cl-transforms:transform-pose
               (cl-transforms:reference-transform
                (link-pose obj (cl-urdf:name (cl-urdf:parent
                                              (cl-urdf:from-joint link)))))
               (cl-urdf:origin (cl-urdf:from-joint link))))
-            (t
-             (cl-transforms:make-pose
-              (cl-transforms:make-3d-vector 0 0 0)
-              (cl-transforms:make-quaternion 0 0 0 1)))))))
+            (t nil)))))
 
 (defmethod (setf link-pose) (new-value (obj robot-object) name)
   (with-slots (urdf) obj

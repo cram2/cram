@@ -244,7 +244,9 @@
         (and
          (lisp-fun link-pose ?robot ?name ?l-p)
          (poses-equal ?pose ?l-p 0.01 0.01))
-        (lisp-fun link-pose ?robot ?name ?pose)))
+        (and
+         (lisp-fun link-pose ?robot ?name ?pose)
+         (lisp-pred identity ?pose))))
 
   (<- (%link-pose ?robot ?name ?pose)
     (bound ?robot)
