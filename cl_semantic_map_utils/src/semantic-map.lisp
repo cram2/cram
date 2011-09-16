@@ -79,8 +79,10 @@
     (or (gethash name (slot-value map 'parts))
         (loop for p-name being the hash-keys in (slot-value map 'parts)
               using (hash-value part)
-              when (equal (cram-roslisp-common:rosify-lisp-name name)
-                          (subseq p-name (1+ (position #\# p-name))))
+              when (equal (typecase name
+                            (string name)
+                            (symbol (cram-roslisp-common:rosify-lisp-name name)))
+                          p-name)
                 do (return part))
         (when recursive
           (some (lambda (part)
@@ -88,17 +90,13 @@
                 (semantic-map-parts map)))))
 
   (:method ((part semantic-map-part) name &key recursive)
-    (let ((name (cram-roslisp-common:rosify-lisp-name name)))
+    (let ((name (typecase name
+                  (string name)
+                  (symbol (cram-roslisp-common:rosify-lisp-name name)))))
       (or
        (find name (sub-parts part)
              :key #'name
-             :test (lambda (lhs rhs)
-                     (equal (if (find #\# lhs)
-                                (subseq lhs (1+ (position #\# lhs)))
-                                lhs)
-                            (if (find #\# rhs)
-                                (subseq rhs (1+ (position #\# rhs)))
-                                rhs))))
+             :test #'equal)
        (when recursive
          (some (lambda (part)
                  (semantic-map-part part name :recursive recursive))
