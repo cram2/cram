@@ -194,6 +194,12 @@
       (dolist (sub (sub-parts obj))
         (update-pose sub new-pose :relative relative :recursive t)))))
 
+(defgeneric (setf pose) (new-value geom)
+  (:method (new-value (geom semantic-map-geom))
+    (with-slots (pose) geom
+      ;; TODO: update joint-state in knowrob's knowledge base
+      (setf pose new-value))))
+
 (defmethod sub-parts :before ((part semantic-map-part))
   (unless (slot-boundp part 'sub-parts)
     (setf (slot-value part 'sub-parts)
@@ -227,11 +233,6 @@
                                :package :sem-map-utils)))))
         (unless (is-var label)
           (setf urdf-name (remove #\' (symbol-name label))))))))
-
-(defmethod (setf pose) (new-value (geom semantic-map-geom))
-  (with-slots (pose) geom
-    ;; TODO: update joint-state in knowrob's knowledge base
-    (setf pose new-value)))
 
 (defun urdf-name->obj-name (urdf-name)
   (with-vars-bound (?name)
