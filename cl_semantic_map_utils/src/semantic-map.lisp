@@ -247,10 +247,10 @@
     (unless (is-var ?name)
       (remove #\' (symbol-name ?name)))))
 
-(defun clear-semantic-map ()
+(defun clear-semantic-map-cache ()
   (setf *cached-semantic-map* nil))
 
-(defmacro with-clear-semantic-map (&body body)
+(defmacro with-clear-semantic-map-cache (&body body)
   `(let ((*cached-semantic-map* nil))
      ,@body))
 
