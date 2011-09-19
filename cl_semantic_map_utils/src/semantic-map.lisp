@@ -258,7 +258,7 @@
   `(let ((*cached-semantic-map* ,cache))
      ,@body))
 
-(defun get-semantic-map ()
+(defun init-semantic-map-cache ()
   (unless *cached-semantic-map*
     (setf *cached-semantic-map*
           (make-instance 'semantic-map
@@ -281,7 +281,10 @@
                                  ("rdf_atom_no_ns" ?tp ?type)
                                  ("rdf_atom_no_ns" ?o ?n))
                                :package :sem-map-utils))))
-                    :test 'equal))))
+                    :test 'equal)))))
+
+(defun get-semantic-map ()
+  (init-semantic-map-cache)
   (copy-semantic-map-object *cached-semantic-map*))
 
 (defun owl-names-equal (lhs rhs)
@@ -329,7 +332,6 @@
   "Returns a lazy list of all objects of type `type' that are children
 of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns not only direct children."
   ;; Update the cache if not updated yet
-  (get-semantic-map)
   (let ((type (etypecase type
                 (symbol (cram-roslisp-common:rosify-lisp-name type))
                 (string type))))
@@ -345,7 +347,6 @@ of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns
   "Returns a lazy list of all objects of type `type' that are children
 of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns not only direct children."
   ;; Update the cache if not updated yet
-  (get-semantic-map)
   (let ((name (etypecase name
                 (symbol (cram-roslisp-common:rosify-lisp-name name))
                 (string name))))
