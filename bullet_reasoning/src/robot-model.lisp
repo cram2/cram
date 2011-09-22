@@ -465,6 +465,8 @@ current joint states"
                (link-pose obj (cl-urdf:name (cl-urdf:parent
                                              (cl-urdf:from-joint link)))))
               (cl-urdf:origin (cl-urdf:from-joint link))))
+            (;; We are at the root of the tree
+             link (slot-value obj 'initial-pose))
             (t nil)))))
 
 (defmethod (setf link-pose) (new-value (obj robot-object) name)
