@@ -10,7 +10,7 @@
       <param name="fixed_frame" value="/map"/>
     </node>
 
-    <node pkg="pr2_laser_snapshotter" type="pr2_laser_snapshotter" name="tilt_snapshotter"
+    <node pkg="pr2_arm_navigation_perception" type="pr2_laser_snapshotter" name="tilt_snapshotter"
           machine="c2">
       <remap from="laser_scanner_signal" to="/laser_tilt_controller/laser_scanner_signal"/>
       <remap from="full_cloud" to="assembled_cloud"/>
