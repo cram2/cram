@@ -239,7 +239,7 @@
              (make-instance 'robot-object
                :rigid-bodies (mapcar #'cdr bodies)
                :world world
-               :pose-reference-body (cl-urdf:name (cl-urdf:root-link urdf-model))
+               :pose-reference-body (make-rigid-body-name name (cl-urdf:name (cl-urdf:root-link urdf-model)))
                :pose pose
                :name name
                :urdf urdf-model)))
@@ -483,6 +483,11 @@ current joint states"
 (defmethod pose ((obj robot-object))
   (or (call-next-method)
       (slot-value obj 'initial-pose)))
+
+(defmethod (setf pose) (new-value (obj robot-object))
+  (with-slots (urdf) obj
+    (setf (link-pose obj (cl-urdf:name (cl-urdf:root-link urdf)))
+          new-value)))
 
 (defmacro with-alpha (alpha &body body)
   `(let ((*robot-model-alpha* ,alpha))
