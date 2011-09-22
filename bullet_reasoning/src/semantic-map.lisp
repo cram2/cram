@@ -33,9 +33,11 @@
 (defclass semantic-map-object (robot-object sem-map-utils:semantic-map) ())
 
 (defmethod (setf joint-state) :before (new-value (sem-map semantic-map-object) name)
-  (attach-contacting-objects sem-map :test (lambda (obj link-name)
-                                             (declare (ignore link-name))
-                                             (typep obj 'household-object))))
+  (attach-contacting-objects
+   sem-map :detach-invalid t
+   :test (lambda (obj link-name)
+           (declare (ignore link-name))
+           (typep obj 'household-object))))
 
 (defmethod (setf joint-state) :around (new-value (sem-map semantic-map-object) name)
   (with-slots (urdf links) sem-map
@@ -65,9 +67,11 @@
         (sem-map-utils:update-pose sem-map-obj diff :relative t :recursive t)))))
 
 (defmethod (setf link-pose) :before (new-value (sem-map semantic-map-object) name)
-  (attach-contacting-objects sem-map :test (lambda (obj link-name)
-                                             (declare (ignore link-name))
-                                             (typep obj 'household-object))))
+  (attach-contacting-objects
+   sem-map :detach-invalid t
+   :test (lambda (obj link-name)
+           (declare (ignore link-name))
+           (typep obj 'household-object))))
 
 (defmethod (setf link-pose) :around (new-value (sem-map semantic-map-object) name)
   (with-slots (urdf links) sem-map
