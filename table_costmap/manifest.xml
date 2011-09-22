@@ -19,7 +19,7 @@
   <depend package="map_annotation"/>
   <depend package="cram_language"/>
   <depend package="location_costmap"/>
-  <depend package="pr2_laser_snapshotter"/>
+  <depend package="pr2_arm_navigation_perception"/>
   <depend package="laser_assembler"/>
 
 </package>
