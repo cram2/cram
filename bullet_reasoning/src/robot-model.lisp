@@ -143,19 +143,27 @@
                              (slot-value (car obj) 'world))
                            attached-objects)))))
 
-(defgeneric attach-contacting-objects (robot-object &key blacklist test)
+(defgeneric attach-contacting-objects (robot-object
+                                       &key blacklist test
+                                         detach-invalid)
   (:documentation "Attaches all objects of `world' that are in contact
   to `robot-object' and not a member of the list `blacklist' or `test'
   fails. `test' must be a function with exactly two parameters, the
   object to be attached and the link name it is contacting, and
   returns a generalized boolean indicating if the object should be
-  attached.")
+  attached. If `detach-invalid' is non-NIL, it is asured that a
+  contacting object is only attached to its contacting links.")
   (:method ((robot-object robot-object)
-            &key blacklist (test (constantly t)))
-    (gc-attached-objects robot-object)
-    (loop for (obj . link-name) in (link-contacts robot-object)
-          when (and (funcall test obj link-name) (not (member obj blacklist)))
-            do (attach-object robot-object obj link-name))))
+            &key blacklist (test (constantly t))
+              detach-invalid)
+    (let ((detached-cache (make-hash-table)))
+      (gc-attached-objects robot-object)
+      (loop for (obj . link-name) in (link-contacts robot-object)
+            when (and (not (member obj blacklist)) (funcall test obj link-name)) do
+              (when (and detach-invalid (not (gethash obj detached-cache)))
+                (setf (gethash obj detached-cache) t)
+                (detach-object robot-object obj))
+              (attach-object robot-object obj link-name)))))
 
 (defgeneric link-contacts (robot-object)
   (:method ((robot-object robot-object))
