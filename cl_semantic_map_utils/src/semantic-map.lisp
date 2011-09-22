@@ -231,8 +231,9 @@
                                  ,owl-name "http://ias.cs.tum.edu/kb/srdl2-comp.owl#urdfName"
                                  ("literal" ?link))
                                :package :sem-map-utils)))))
-        (unless (is-var label)
-          (setf urdf-name (remove #\' (symbol-name label))))))))
+        (if (is-var label)
+            (setf urdf-name nil)
+            (setf urdf-name (remove #\' (symbol-name label))))))))
 
 (defun urdf-name->obj-name (urdf-name)
   (with-vars-bound (?name)
