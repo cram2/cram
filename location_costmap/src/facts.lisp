@@ -112,9 +112,7 @@ quaternion to face towards `pose'"
     (desig-location-prop ?desig ?loc)
     (costmap ?cm)
     (costmap-add-function location-neighborhood (make-location-cost-function ?loc 0.4) ?cm)
-    (-> (desig-location-prop ?desig ?loc)
-        (costmap-add-orientation-generator (make-angle-to-point-generator ?loc) ?cm)
-        (true)))
+    (costmap-add-orientation-generator (make-angle-to-point-generator ?loc) ?cm))
 
   (<- (merged-desig-costmap ?desig ?cm)
     ;; bagof collects all true solutions for c into costmaps
