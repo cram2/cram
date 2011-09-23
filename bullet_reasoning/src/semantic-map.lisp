@@ -149,15 +149,13 @@
                           ("Drawer" parent-sem-map-obj)
                           (t child-sem-map-obj))))
       (when sem-map-obj
-        (format t "updating ~a ~a~%" (sem-map-utils:name sem-map-obj) (sem-map-utils:pose sem-map-obj))
         (sem-map-utils:update-pose
          sem-map-obj (cl-transforms:transform->pose
                       (cl-transforms:transform*
                        (cl-transforms:reference-transform (pose child-link))
                        (gethash (sem-map-utils:urdf-name sem-map-obj)
                                 link-offsets)))
-         :relative nil :recursive t)
-        (format t "~a~%" (sem-map-utils:pose sem-map-obj))))))
+         :relative nil :recursive t)))))
 
 (defun update-semantic-map-poses (sem-map &optional (joint-names nil joint-names-p))
   ;; Instead of iterating over all links, just iterate over all
