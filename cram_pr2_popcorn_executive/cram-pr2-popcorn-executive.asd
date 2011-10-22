@@ -35,6 +35,7 @@
                cram-roslisp-common
                cram-plan-knowledge
                cram-execution-trace
+               cram-plan-actionserver
                pr2-navigation-process-module
                designators-ros
                actionlib
