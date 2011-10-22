@@ -30,6 +30,11 @@
 
 (in-package :pex)
 
+(defun init-process-modules ()
+  (start-process-modules))
+
+(cram-roslisp-common:register-ros-init-function init-process-modules)
+
 (def-top-level-plan make-popcorn ()
   ;; TODO: fix drawer names to match semantic map
   (with-designators ((pot-drawer (object `((type drawer) (name drawer-1))))
