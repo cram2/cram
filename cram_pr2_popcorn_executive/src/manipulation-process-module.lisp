@@ -30,6 +30,47 @@
 
 (in-package :pex)
 
+(defvar *open-pot-drawer-action* nil)
+(defvar *put-pot-on-oven-action* nil)
+(defvar *turn-knob-action* nil)
+(defvar *open-corn-drawer-action* nil)
+(defvar *close-corn-drawer-action* nil)
+(defvar *pick-lid-from-drawer-action* nil)
+(defvar *pick-bowl-from-drawer-action* nil)
+(defvar *pour-corn-action* nil)
+(defvar *put-lid-on-pot-action* nil)
+(defvar *put-lid-on-island-action* nil)
+(defvar *pick-up-pot-action* nil)
+(defvar *pour-pot-action* nil)
+
+(defun init-manipulation-actions ()
+  (setf *open-pot-drawer-action*
+        (actionlib:make-action-client "get_pot_out_open_drawer" "ias_drawer_executive/GenericAction"))
+  (setf *put-pot-on-oven-action*
+        (actionlib:make-action-client "get_pot_out_pick_place_pot" "ias_drawer_executive/GenericAction"))
+  (setf *turn-knob-action*
+        (actionlib:make-action-client "manipulate_knob" "ias_drawer_executive/GenericAction"))
+  (setf *open-corn-drawer-action*
+        (actionlib:make-action-client "open_drawer_under_oven" "ias_drawer_executive/GenericAction"))
+  (setf *close-corn-drawer-action*
+        (actionlib:make-action-client "close_drawer_under_oven" "ias_drawer_executive/GenericAction"))
+  (setf *pick-lid-from-drawer-action*
+        (actionlib:make-action-client "get_lid_out" "ias_drawer_executive/GenericAction"))
+  (setf *pick-bowl-from-drawer-action*
+        (actionlib:make-action-client "get_bowl_out" "ias_drawer_executive/GenericAction"))
+  (setf *pour-corn-action*
+        (actionlib:make-action-client "pour_popcorn" "ias_drawer_executive/GenericAction"))
+  (setf *put-lid-on-pot-action*
+        (actionlib:make-action-client "put_lid_on" "ias_drawer_executive/GenericAction"))
+  (setf *put-lid-on-island-action*
+        (actionlib:make-action-client "remove_lid" "ias_drawer_executive/GenericAction"))
+  (setf *pick-up-pot-action*
+        (actionlib:make-action-client "take_pot_from_island" "ias_drawer_executive/GenericAction"))
+  (setf *pour-pot-action*
+        (actionlib:make-action-client "pour_ready_popcorn" "ias_drawer_executive/GenericAction")))
+
+(cram-roslisp-common:register-ros-init-function init-manipulation-actions)
+
 (def-fact-group popcorn-actions (action-desig)
 
   (<- (current-desig-location ?desig ?curr-loc)
@@ -151,6 +192,9 @@
          (remove 'at (description obj) :key #'car))
    obj))
 
+(defun make-generic-goal (&optional (param 0))
+  (roslisp:make-msg "ias_drawer_executive/GenericGoal" :arm param))
+
 (defgeneric execute-action (name &rest params)
   (:method ((act (cl:eql 'noop)) &rest params)
     (declare (ignore params))
@@ -158,47 +202,58 @@
 
   (:method ((act (cl:eql 'open-pot-drawer)) &rest params)
     (declare (ignore params))
-    (roslisp:ros-info (manipulation popcorn-executive) "open-pot-drawer"))
+    (roslisp:ros-info (manipulation popcorn-executive) "open-pot-drawer")
+    (actionlib:send-goal-and-wait *open-pot-drawer-action* (make-generic-goal)))
 
   (:method ((act (cl:eql 'put-pot-on-oven)) &rest params)
     (roslisp:ros-info (manipulation popcorn-executive) "put-pot-on-oven ~a" params)
+    (actionlib:send-goal-and-wait *put-pot-on-oven-action* (make-generic-goal))
     (apply #'relocate-obj params))
 
   (:method ((act (cl:eql 'open-corn-drawer)) &rest params)
     (declare (ignore params))
-    (roslisp:ros-info (manipulation popcorn-executive) "open-corn-drawer"))
+    (roslisp:ros-info (manipulation popcorn-executive) "open-corn-drawer")
+    (actionlib:send-goal-and-wait *open-corn-drawer-action* (make-generic-goal)))
 
   (:method ((act (cl:eql 'close-corn-drawer)) &rest params)
     (declare (ignore params))
-    (roslisp:ros-info (manipulation popcorn-executive) "close-corn-drawer"))
+    (roslisp:ros-info (manipulation popcorn-executive) "close-corn-drawer")
+    (actionlib:send-goal-and-wait *close-corn-drawer-action* (make-generic-goal)))
 
   (:method ((act (cl:eql 'pick-lid-from-drawer)) &rest params)
     (declare (ignore params))
-    (roslisp:ros-info (manipulation popcorn-executive) "pick-lid-from-drawer"))
+    (roslisp:ros-info (manipulation popcorn-executive) "pick-lid-from-drawer")
+    (actionlib:send-goal-and-wait *pick-lid-from-drawer-action* (make-generic-goal)))
 
   (:method ((act (cl:eql 'pick-bowl-from-drawer)) &rest params)
     (declare (ignore params))
-    (roslisp:ros-info (manipulation popcorn-executive) "pick-bowl-from-drawer"))
+    (roslisp:ros-info (manipulation popcorn-executive) "pick-bowl-from-drawer")
+    (actionlib:send-goal-and-wait *pick-bowl-from-drawer-action* (make-generic-goal)))
 
   (:method ((act (cl:eql 'pour-corn)) &rest params)
     (declare (ignore params))
-    (roslisp:ros-info (manipulation popcorn-executive) "pour-corn"))
+    (roslisp:ros-info (manipulation popcorn-executive) "pour-corn")
+    (actionlib:send-goal-and-wait *pour-corn-action* (make-generic-goal)))
 
   (:method ((act (cl:eql 'put-lid-on-pot)) &rest params)
     (roslisp:ros-info (manipulation popcorn-executive) "put-lid-on-pot ~a" params)
+    (actionlib:send-goal-and-wait *put-lid-on-pot-action* (make-generic-goal))
     (apply #'relocate-obj params))
 
   (:method ((act (cl:eql 'put-lid-on-island)) &rest params)
     (roslisp:ros-info (manipulation popcorn-executive) "put-lid-on-island ~a" params)
+    (actionlib:send-goal-and-wait *put-lid-on-island-action* (make-generic-goal))
     (apply #'relocate-obj params))
 
   (:method ((act (cl:eql 'pick-up-pot)) &rest params)
     (declare (ignore params))
-    (roslisp:ros-info (manipulation popcorn-executive) "pick-up-pot"))
+    (roslisp:ros-info (manipulation popcorn-executive) "pick-up-pot")
+    (actionlib:send-goal-and-wait *pick-up-pot-action* (make-generic-goal)))
 
   (:method ((act (cl:eql 'pour-pot)) &rest params)
     (declare (ignore params))
-    (roslisp:ros-info (manipulation popcorn-executive) "pour-pot")))
+    (roslisp:ros-info (manipulation popcorn-executive) "pour-pot")
+    (actionlib:send-goal-and-wait *pour-pot-action* (make-generic-goal))))
 
 (def-process-module popcorn-manipulation-pm (action)
   (apply #'execute-action (reference action)))
