@@ -1,0 +1,22 @@
+<package>
+  <description brief="cram_pr2_popcorn_executive">
+
+     cram_pr2_popcorn_executive
+
+  </description>
+  <author>Lorenz Mösenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cram_pr2_popcorn_executive</url>
+  <depend package="cram_language"/>
+  <depend package="actionlib_lisp"/>
+  <depend package="cram_roslisp_common"/>
+  <depend package="cram_plan_knowledge"/>
+  <depend package="cram_execution_trace"/>
+  <depend package="pr2_navigation_process_module"/>
+  <depend package="designators_ros"/>
+  <depend package="ias_drawer_executive"/>
+
+</package>
+
+
