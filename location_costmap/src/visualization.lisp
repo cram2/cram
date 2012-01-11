@@ -37,7 +37,7 @@
 
 (defun location-costmap-vis-init ()
   (setf *location-costmap-publisher*
-        (advertise "/kipla/location_costmap" "mapping_msgs/CollisionMap"))
+        (advertise "/kipla/location_costmap" "arm_navigation_msgs/CollisionMap"))
   (setf *occupancy-grid-publisher*
         (advertise "/kipla/location_occupancy_grid" "nav_msgs/OccupancyGrid"))  
   (setf *marker-publisher*
@@ -56,7 +56,7 @@
       (dotimes (row (array-dimension map-array 0))
         (dotimes (col (array-dimension map-array 1))
           (when (> (aref map-array row col) threshold)
-            (push (make-message "mapping_msgs/OrientedBoundingBox"
+            (push (make-message "arm_navigation_msgs/OrientedBoundingBox"
                                 (x center) (+ (* col resolution) origin-x)
                                 (y center) (+ (* row resolution) origin-y)
                                 (z center) (+ z (/ (aref map-array row col) max-val))
@@ -68,7 +68,7 @@
                                 (z axis) 0.0
                                 angle 0.0)
                   boxes))))
-      (make-message "mapping_msgs/CollisionMap"
+      (make-message "arm_navigation_msgs/CollisionMap"
                     (frame_id header) frame-id
                     (stamp header) (ros-time)
                     boxes (map 'vector #'identity boxes)))))
