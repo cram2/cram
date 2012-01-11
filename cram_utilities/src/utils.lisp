@@ -119,3 +119,29 @@
 
 (defun compare (x y &key (test #'eql) (key #'identity))
   (funcall test (funcall key x) (funcall key y)))
+
+(defun execute-string (string &key filename (cleanup t))
+  "Compiles and executes the lisp code given by `string'. If
+`filename' is set, uses it for compilation. If cleanup is non-NIL,
+removes deletes the file and the compiled file after loading it."
+  (declare (type string string)
+           (type (or string pathname null) filename)
+           (type (or null t) cleanup))
+  (let ((filename (pathname
+                   (concatenate
+                    'string
+                    (or filename
+                        (sb-posix:mktemp "/tmp/execute-from-string-XXXXXX"))
+                    ".lisp")))
+        (compiled-file nil))
+    (unwind-protect
+         (progn
+           (with-open-file (stream filename :direction :output)
+             (write-string string stream))
+           (setf compiled-file (compile-file filename))
+           (load compiled-file))
+      (when cleanup
+        (delete-file filename)
+        (when compiled-file
+          (delete-file compiled-file))))))
+

@@ -152,6 +152,7 @@
       #:with-hash-table-locked
       ;; utils
       #:minimum #:maximum #:extremum #:compare
+      #:execute-string
       ;; semaphores, reexported from sb-thread
       ,@+semaphore-symbols+
       ;; mailboxes, reexported from sb-concurrency
