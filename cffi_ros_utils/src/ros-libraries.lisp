@@ -73,7 +73,9 @@
                  (when (probe-file complete-file-path)
                    (return-from find-ros-library complete-file-path)))))))
     `(define-foreign-library ,alias
-       (:unix ,(or (namestring (find-ros-library lib-file ros-package))
-                   (error 'simple-error
-                          :format-control "Unable to find ros library `~a' in dependencies of package ~a"
-                          :format-arguments (list lib-file ros-package)))))))
+       (:unix ,(namestring
+                (or (find-ros-library lib-file ros-package)
+                    (error
+                     'simple-error
+                     :format-control "Unable to find ros library `~a' in dependencies of package ~a"
+                     :format-arguments (list lib-file ros-package))))))))
