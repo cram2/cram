@@ -12,13 +12,14 @@
   </description>
   <author>David Lu!!, Lorenz Moesenlechner</author>
   <license>BSD</license>
-  <review status="unreviewed" notes=""/>
+  <review status="unreviewed" notes="" />
   <url>http://ros.org/wiki/kdl_arm_kinematics</url>
-  <depend package="roscpp"/>
-  <depend package="tf"/>
-  <depend package="tf_conversions"/>
-  <depend package="kdl_parser"/>
-  <depend package="kinematics_msgs"/>
+  <depend package="roscpp" />
+  <depend package="tf" />
+  <depend package="tf_conversions" />
+  <depend package="kdl_parser" />
+  <depend package="kinematics_msgs" />
+  <depend package="arm_navigation_msgs" />
 
 </package>
 

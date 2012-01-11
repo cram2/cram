@@ -8,22 +8,23 @@
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/bullet_reasoning</url>
-  <depend package="alexandria"/>
-  <depend package="cram_reasoning"/>
-  <depend package="cl_bullet"/>
-  <depend package="cl_bullet_vis"/>
-  <depend package="cl_json_pl_client"/>
-  <depend package="cl_urdf"/>
-  <depend package="cl_tf"/>
-  <depend package="kinematics_msgs"/>
-  <depend package="kdl_arm_kinematics"/>
-  <depend package="designators"/>
-  <depend package="semantic_map_costmap"/>
-  <depend package="household_objects_database_msgs"/>
-  <depend package="perception_process_module"/>
-  <depend package="cram_roslisp_common"/>
-  <depend package="cram_plan_knowledge"/>
-  <depend package="triangulate_point_cloud"/>
-  <depend package="cl_semantic_map_utils"/>
+  <depend package="alexandria" />
+  <depend package="cram_reasoning" />
+  <depend package="cl_bullet" />
+  <depend package="cl_bullet_vis" />
+  <depend package="cl_json_pl_client" />
+  <depend package="cl_urdf" />
+  <depend package="cl_tf" />
+  <depend package="kinematics_msgs" />
+  <depend package="kdl_arm_kinematics" />
+  <depend package="designators" />
+  <depend package="semantic_map_costmap" />
+  <depend package="household_objects_database_msgs" />
+  <depend package="perception_process_module" />
+  <depend package="cram_roslisp_common" />
+  <depend package="cram_plan_knowledge" />
+  <depend package="triangulate_point_cloud" />
+  <depend package="cl_semantic_map_utils" />
+  <depend package="arm_navigation_msgs" />
 
 </package>
