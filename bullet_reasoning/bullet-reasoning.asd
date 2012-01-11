@@ -42,6 +42,7 @@
                  kinematics_msgs-srv
                  kdl_arm_kinematics-srv
                  household_objects_database_msgs-srv
+                 arm_navigation_msgs-msg
                  designators
                  semantic-map-costmap
                  perception-process-module
@@ -57,7 +58,7 @@
                (:file "utils" :depends-on ("package"))
                (:file "prolog-handlers" :depends-on ("package"))
                (:file "prolog-facts" :depends-on ("package"))
-               (:file "pose-sampling-facts" :depends-on ("package"))
+               (:file "pose-sampling-facts" :depends-on ("package" "prolog-facts"))
                (:file "semantic-map-facts" :depends-on ("package"))
                (:file "action-facts" :depends-on ("package"))
                (:file "reasoning-world" :depends-on ("package"))

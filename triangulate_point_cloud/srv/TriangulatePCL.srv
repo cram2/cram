@@ -1,3 +1,3 @@
 sensor_msgs/PointCloud points
 ---
-geometric_shapes_msgs/Shape mesh
+arm_navigation_msgs/Shape mesh

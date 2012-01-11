@@ -42,7 +42,7 @@
 
 #include <sensor_msgs/point_cloud_conversion.h>
 #include <triangulate_point_cloud/TriangulatePCL.h>
-#include <geometric_shapes_msgs/Shape.h>
+#include <arm_navigation_msgs/Shape.h>
 #include <geometry_msgs/Point.h>
 
 
@@ -89,9 +89,9 @@ void toPoint(const T &in, geometry_msgs::Point &out)
 template<typename T>
 void polygonMeshToShapeMsg(const PointCloud<T> &points,
   const std::vector<Vertices> &triangles,
-  geometric_shapes_msgs::Shape &shape)
+  arm_navigation_msgs::Shape &shape)
 {
-  shape.type = geometric_shapes_msgs::Shape::MESH;
+  shape.type = arm_navigation_msgs::Shape::MESH;
   shape.vertices.resize(points.points.size());
   for(size_t i=0; i<points.points.size(); i++)
     toPoint(points.points[i], shape.vertices[i]);

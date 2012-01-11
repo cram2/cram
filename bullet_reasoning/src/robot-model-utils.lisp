@@ -224,7 +224,7 @@ the IK service."
                                     (make-js-weights joint-names weights-js)
                                     lambda))
                        (or (when (eql error-code (roslisp-msg-protocol:symbol-code
-                                                  'motion_planning_msgs-msg:ArmNavigationErrorCodes
+                                                  'arm_navigation_msgs-msg:ArmNavigationErrorCodes
                                                   :success))
                              (list solution)))))
                    (lazy-take max-seeds (make-seed-states robot joint-names 3))))))
