@@ -399,8 +399,7 @@ by `planners' until one succeeds."
                         absolute_yaw_tolerance 0.01
                         weight 1.0))
                       
-                      (ordered_collision_operations motion_plan_request)
-                      (make-collision-operations side (cons "\"attached\"" allowed-collision-objects))
+                      operations (make-collision-operations side (cons "\"attached\"" allowed-collision-objects))
                       disable_collision_monitoring t)
                     :result-timeout 4.0)
                  val)))))
