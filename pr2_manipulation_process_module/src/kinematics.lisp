@@ -124,8 +124,7 @@
                                  (list (gethash name current))))))))))
 
 (defun ik->trajectory (ik-result &key (duration 5.0))
-  (unless ik-result
-    (error 'move-arm-no-ik-solution))
+  (declare (type kinematics_msgs-srv:getpositionik-response ik-result))
   (roslisp:with-fields ((solution-names (name joint_state solution))
                         (solution-positions (position joint_state solution))
                         (error-code (val error_code)))
@@ -296,7 +295,7 @@
                           :pose_stamped (tf:pose-stamped->msg
                                          (calculate-grasp-pose pose :tool tool))
                           :ik_seed_state (roslisp:make-msg
-                                          "motion_planning_msgs/RobotState"
+                                          "arm_navigation_msgs/RobotState"
                                           joint_state (lazy-car seeds)))
                          :timeout 1.0))))
           (roslisp:with-fields ((error-code (val error_code)))
@@ -341,7 +340,7 @@
                           :pose_stamped (tf:pose-stamped->msg
                                          (calculate-grasp-pose pose :tool tool))
                           :ik_seed_state (roslisp:make-msg
-                                          "motion_planning_msgs/RobotState"
+                                          "arm_navigation_msgs/RobotState"
                                           joint_state (lazy-car seeds)))
                          :ordered_collision_operations (make-collision-operations
                                                         side
@@ -517,7 +516,7 @@
       (cpl-impl:without-scheduling
         (roslisp:call-service
          "/environment_server/get_robot_state"
-         "planning_environment_msgs/GetRobotState"))
+         "arm_navigation_msgs/GetRobotState"))
     joint-state))
 
 (defun get-gripper-state (side)
@@ -538,19 +537,19 @@
 
 (defun make-collision-operations (side &optional allowed-collision-objects)
   "Returns an instance of type
-`motion_planning_msgs/OrderedCollisionOperations' and allows
+`arm_navigation_msgs/OrderedCollisionOperations' and allows
 collisions beteen the gripper and
 `collision-objects'. `collision-objects' is a list of either strings
 or designators."
   (roslisp:make-msg
-   "motion_planning_msgs/OrderedCollisionOperations"
+   "arm_navigation_msgs/OrderedCollisionOperations"
    collision_operations
    (map 'vector #'identity
         (mapcan
          (lambda (obj)
            (mapcar (lambda (gripper-link)
                      (roslisp:make-msg
-                      "motion_planning_msgs/CollisionOperation"
+                      "arm_navigation_msgs/CollisionOperation"
                       object1 gripper-link
                       object2 (etypecase obj
                                 (string obj)

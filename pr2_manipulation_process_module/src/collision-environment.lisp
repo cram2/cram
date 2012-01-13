@@ -37,9 +37,9 @@
 
 (defun init-collision-environment ()
   (setf *collision-object-pub*
-        (roslisp:advertise "/collision_object" "mapping_msgs/CollisionObject" :latch t))
+        (roslisp:advertise "/collision_object" "arm_navigation_msgs/CollisionObject" :latch t))
   (setf *attached-object-pub*
-        (roslisp:advertise "/attached_collision_object" "mapping_msgs/AttachedCollisionObject" :latch t)))
+        (roslisp:advertise "/attached_collision_object" "arm_navigation_msgs/AttachedCollisionObject" :latch t)))
 
 (register-ros-init-function init-collision-environment)
 
@@ -113,7 +113,7 @@
       (roslisp:with-fields (id) collision-object
         (roslisp:publish *collision-object-pub*
                          (roslisp:make-msg
-                          "mapping_msgs/CollisionObject"
+                          "arm_navigation_msgs/CollisionObject"
                           (frame_id header) "/base_footprint"
                           (stamp header) (roslisp:ros-time)
                           id id
@@ -122,7 +122,7 @@
 (defun clear-collision-objects ()
   (roslisp:publish *collision-object-pub*
                    (roslisp:make-msg
-                    "mapping_msgs/CollisionObject"
+                    "arm_navigation_msgs/CollisionObject"
                     (frame_id header) "/base_footprint"
                     (stamp header) (roslisp:ros-time)
                     id "all"
@@ -134,11 +134,11 @@
       (let ((attach-object (roslisp:modify-message-copy
                             collision-object
                             (operation operation) (roslisp:symbol-code
-                                                   'mapping_msgs-msg:CollisionObjectOperation
+                                                   'arm_navigation_msgs-msg:CollisionObjectOperation
                                                    :attach_and_remove_as_object))))
         (roslisp:publish *attached-object-pub*
                          (roslisp:make-msg
-                          "mapping_msgs/AttachedCollisionObject"
+                          "arm_navigation_msgs/AttachedCollisionObject"
                           link_name (ecase side
                                       (:right "r_gripper_r_finger_tip_link")
                                       (:left "l_gripper_r_finger_tip_link"))
@@ -162,11 +162,11 @@
       (let ((detach-object (roslisp:modify-message-copy
                             collision-object
                             (operation operation) (roslisp:symbol-code
-                                                   'mapping_msgs-msg:CollisionObjectOperation
+                                                   'arm_navigation_msgs-msg:CollisionObjectOperation
                                                    :detach_and_add_as_object))))
         (roslisp:publish *attached-object-pub*
                          (roslisp:make-msg
-                          "mapping_msgs/AttachedCollisionObject"
+                          "arm_navigation_msgs/AttachedCollisionObject"
                           link_name (ecase side
                                       (:right "r_gripper_r_finger_tip_link")
                                       (:left "l_gripper_r_finger_tip_link"))

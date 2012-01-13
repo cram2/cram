@@ -46,7 +46,7 @@
                kinematics_msgs-srv
                sgp_srvs-srv
                kdl_arm_kinematics-srv
-               move_arm_msgs-msg
+               arm_navigation_msgs-msg
                vision_srvs-srv
                trivial-garbage
                std_srvs-srv
@@ -55,7 +55,7 @@
                object_manipulation_msgs-msg
                object_manipulation_msgs-srv
                pr2_gripper_sensor_msgs-msg
-               planning_environment_msgs-srv)
+               arm_navigation_msgs-srv)
   :components
   ((:module "src"
             :components
