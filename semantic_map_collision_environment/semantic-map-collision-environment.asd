@@ -34,7 +34,7 @@
   :description "Use semantic map to set static collision objects in collision environment"
   
   :depends-on (roslisp
-               mapping_msgs-msg
+               arm_navigation_msgs-msg
                cl-json-pl-client
                cl-tf
                cram-reasoning

@@ -39,7 +39,7 @@
   (setf *marker-publisher*
         (roslisp:advertise "~semantic_map_markers" "visualization_msgs/Marker"))
   (setf *collision-object-publisher*
-        (roslisp:advertise "/collision_object" "mapping_msgs/CollisionObject")))
+        (roslisp:advertise "/collision_object" "arm_navigation_msgs/CollisionObject")))
 
 (register-ros-init-function init-semantic-map-collision-environment)
 
@@ -68,7 +68,7 @@
       (roslisp:publish
        *collision-object-publisher*
        (roslisp:make-msg
-        "mapping_msgs/CollisionObject"
+        "arm_navigation_msgs/CollisionObject"
         (stamp header) (roslisp:ros-time)
         (frame_id header) "odom_combined"
         id (make-collision-obj-name obj)
@@ -119,7 +119,7 @@
   (declare (type sem-map-obj obj))
   (with-slots (pose dimensions) obj
     (roslisp:make-msg
-     "mapping_msgs/CollisionObject"
+     "arm_navigation_msgs/CollisionObject"
      (frame_id header) frame-id
      (stamp header) (roslisp:ros-time)
      id (make-collision-obj-name obj)
