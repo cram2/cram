@@ -1,122 +1,53 @@
 <launch>
   <rosparam command="load" file="$(find pr2_object_manipulation_launch)/config/pr2_hand_descriptions.yaml"/>
 
-  <!-- load perception -->
   <include file="$(find pr2_arm_navigation_perception)/launch/laser-perception.launch"/>
 
-  <!-- load planning -->
   <include file="$(find pr2_arm_navigation_planning)/launch/ompl_planning.launch"/>
-  <include file="$(find stomp_motion_planner)/launch/stomp_motion_planner.launch"/>
-	<rosparam ns="/robot_description_planning" command="load"
-            file="$(find pr2_arm_navigation_config)/config/planning_groups.yaml" />
-	<node machine="c2" pkg="chomp_motion_planner" name="chomp_motion_planner"
-        type="chomp_planner_node" args="collision_map:=collision_map_occ"
-        respawn="true" output="screen" clear_params="true">
-    <rosparam command="load" file="$(find chomp_motion_planner)/config/chomp_pr2_right_arm.yaml" />
-	
-		<param name="animate_path" value="false"/>
-		
-		<param name="trajectory_duration" value="3.0"/>
-		<param name="trajectory_discretization" value="0.02"/>
-		<param name="learning_rate" value="100000.0" />
-		<param name="max_iterations" value="500" />
-		<param name="max_iterations_after_collision_free" value="100" />
-		<param name="smoothness_cost_weight" value="0.0005"/>
-		<param name="obstacle_cost_weight" value="1.0" />
-		<param name="joint_update_limit" value="0.01" />
+  <include file="$(find pr2_arm_navigation_planning)/launch/chomp_planning.launch"/>
 
-		<param name="smoothness_cost_velocity" value="0.01" />
-		<param name="smoothness_cost_acceleration" value="1.0" />
-		<param name="smoothness_cost_jerk" value="0.000001" />
+  <include file="$(find planning_environment)/launch/environment_server.launch"/>
 
-		<param name="add_randomness" value="true" />
-	</node>
+  <include file="$(find pr2_arm_navigation_filtering)/launch/trajectory_filter.launch"/>
 
-  <!-- load planning_environment -->
-  <include file="$(find pr2_arm_navigation_actions)/launch/environment_server.launch"/>
-
-  <!-- load controllers -->
-  <include file="$(find pr2_arm_navigation_filtering)/launch/both_arms_filters.launch"/>
-  <param name="trajectory_filter/object_padd" value="0.04"/>
-
-  <!-- load ik -->
   <include file="$(find pr2_arm_navigation_kinematics)/launch/right_arm_collision_free_ik.launch"/>
   <include file="$(find pr2_arm_navigation_kinematics)/launch/left_arm_collision_free_ik.launch"/>
 
-  <!-- load move_arm -->
-  <node pkg="move_arm" type="move_arm_simple_action" output="screen" name="move_right_arm">    
+  <include file="$(find pr2_arm_navigation_actions)/launch/move_right_arm.launch"/>
+  <include file="$(find pr2_arm_navigation_actions)/launch/move_left_arm.launch"/>
 
-    <remap from="robot_description" to="robot_description" />
-    <remap from="joint_state" to="joint_states" />
-    <remap from="arm_ik" to="pr2_right_arm_kinematics/get_constraint_aware_ik" />	
-    <remap from="arm_fk" to="pr2_right_arm_kinematics/get_fk" />	
-    <remap from="filter_trajectory" to="trajectory_filter/filter_trajectory_with_constraints" />
-    <!-- <remap from="filter_trajectory" to="chomp_planner_longrange/filter_trajectory_with_constraints" /> -->
-    
-    <remap from="get_trajectory_validity" to="environment_server/get_trajectory_validity" />	
-    <remap from="get_environment_safety" to="environment_server/get_environment_safety" />	
-    <remap from="get_execution_safety" to="environment_server/get_execution_safety" />	
-    <remap from="get_group_info" to="environment_server/get_group_info" />	
-    <remap from="get_robot_state" to="environment_server/get_robot_state" />	
-    <remap from="get_state_validity" to="environment_server/get_state_validity" />	
-
-    <remap from="head_monitor_action" to="head_monitor_right_arm/monitor_action" />
-    <remap from="head_look_action" to="head_monitor_right_arm/look_action" />
-
-    <param name="group" type="string" value="right_arm" />
-    <param name="ik_allowed_time" type="double" value="2.0" />
-    <param name="trajectory_filter_allowed_time" type="double" value="2.0" />
-    <param name="group" type="string" value="right_arm" />
-    <param name="controller_action_name" type="string" value="/r_arm_controller/joint_trajectory_action" />
-
+  <node pkg="joint_trajectory_generator" type="joint_trajectory_generator" output="screen"
+        name="joint_trajectory_generator" ns="r_arm_controller" >
+    <param name="max_acc" value="2.0" />
+    <param name="max_vel" value="2.5" />
   </node>
 
-  <node pkg="move_arm" type="move_arm_simple_action" output="screen" name="move_left_arm">    
-
-    <remap from="robot_description" to="robot_description" />
-    <remap from="joint_state" to="joint_states" />
-    <remap from="arm_ik" to="pr2_left_arm_kinematics/get_constraint_aware_ik" />	
-    <remap from="arm_fk" to="pr2_left_arm_kinematics/get_fk" />	
-    <remap from="filter_trajectory" to="trajectory_filter/filter_trajectory_with_constraints" />
-    <!-- <remap from="filter_trajectory" to="chomp_planner_longrange/filter_trajectory_with_constraints" /> -->
-    
-    <remap from="get_trajectory_validity" to="environment_server/get_trajectory_validity" />	
-    <remap from="get_environment_safety" to="environment_server/get_environment_safety" />	
-    <remap from="get_execution_safety" to="environment_server/get_execution_safety" />	
-    <remap from="get_group_info" to="environment_server/get_group_info" />	
-    <remap from="get_robot_state" to="environment_server/get_robot_state" />	
-    <remap from="get_state_validity" to="environment_server/get_state_validity" />	
-
-    <remap from="head_monitor_action" to="head_monitor_left_arm/monitor_action" />
-    <remap from="head_look_action" to="head_monitor_left_arm/look_action" />
-
-    <param name="group" type="string" value="left_arm" />
-    <param name="ik_allowed_time" type="double" value="2.0" />
-    <param name="trajectory_filter_allowed_time" type="double" value="2.0" />
-    <param name="group" type="string" value="left_arm" />
-    <param name="controller_action_name" type="string" value="/l_arm_controller/joint_trajectory_action" />
-
-  </node>
-
-  <include file="$(find pr2_gripper_grasp_controller)/launch/both_grippers_finger_sensor_grasp_posture_action.launch"/>
-
-  <include file="$(find pc_grasp_position)/sgp_pr2.launch"/>
-
-  <node name="pr2_gripper_grasp_planner_cluster" pkg="pr2_gripper_grasp_planner_cluster" 
-    type="pr2_gripper_grasp_planner_cluster_server.py" respawn="false" output="screen">
-	  <param name="z_up_frame" value="/base_link"/>
+  <node pkg="joint_trajectory_generator" type="joint_trajectory_generator" output="screen"
+        name="joint_trajectory_generator" ns="l_arm_controller" >
+    <param name="max_acc" value="2.0" />
+    <param name="max_vel" value="2.5" />
   </node>
   
-  <node name="reactive_grasp_node_right" pkg="pr2_gripper_reactive_approach" 
-    type="reactive_grasp_server.py" args="r" respawn="false" output="screen">
-    <param name="use_slip_controller" value="true"/>
-    <param name="use_slip_detection" value="true"/>
+  <node name="pr2_gripper_grasp_planner_cluster" pkg="pr2_gripper_grasp_planner_cluster"
+        type="point_cluster_grasp_planner_server.py" output="screen">
+    <rosparam>
+      z_up_frame: base_footprint
+      backoff_depth_steps: 8
+    </rosparam>
   </node>
+
+  <!-- <include file="$(find pr2_gripper_grasp_controller)/launch/both_grippers_finger_sensor_grasp_posture_action.launch"/> -->
+
+  <!-- <node name="reactive_grasp_node_right" pkg="pr2_gripper_reactive_approach" -->
+  <!--   type="reactive_grasp_server.py" args="r" respawn="false" output="screen"> -->
+  <!--   <param name="use_slip_controller" value="true"/> -->
+  <!--   <param name="use_slip_detection" value="true"/> -->
+  <!-- </node> -->
   
-  <node name="reactive_grasp_node_left" pkg="pr2_gripper_reactive_approach" 
-    type="reactive_grasp_server.py" args="l" respawn="false" output="screen">
-    <param name="use_slip_controller" value="true"/>
-    <param name="use_slip_detection" value="true"/>
-  </node>
+  <!-- <node name="reactive_grasp_node_left" pkg="pr2_gripper_reactive_approach" -->
+  <!--   type="reactive_grasp_server.py" args="l" respawn="false" output="screen"> -->
+  <!--   <param name="use_slip_controller" value="true"/> -->
+  <!--   <param name="use_slip_detection" value="true"/> -->
+  <!-- </node> -->
 
 </launch>
