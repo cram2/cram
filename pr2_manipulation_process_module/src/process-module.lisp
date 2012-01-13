@@ -79,11 +79,11 @@
 
 (defun init-pr2-manipulation-process-module ()
   (setf *open-container-action* (actionlib:make-action-client
-                              "/open_container_action"
-                              "ias_drawer_executive/OpenContainerAction"))
+                                 "/open_container_action"
+                                 "ias_drawer_executive/OpenContainerAction"))
   (setf *close-container-action* (actionlib:make-action-client
-                               "/close_container_action"
-                               "ias_drawer_executive/CloseContainerAction"))
+                                  "/close_container_action"
+                                  "ias_drawer_executive/CloseContainerAction"))
   (setf *gripper-action-left* (actionlib:make-action-client
                                "/l_gripper_sensor_controller/gripper_action"
                                "pr2_controllers_msgs/Pr2GripperCommandAction"))
@@ -100,17 +100,17 @@
                                   "/l_arm_controller/joint_trajectory_generator"
                                   "pr2_controllers_msgs/JointTrajectoryAction"))
   (setf *trajectory-action-right* (actionlib:make-action-client
-                                  "/r_arm_controller/joint_trajectory_generator"
-                                  "pr2_controllers_msgs/JointTrajectoryAction"))
+                                   "/r_arm_controller/joint_trajectory_generator"
+                                   "pr2_controllers_msgs/JointTrajectoryAction"))
   (setf *trajectory-action-torso* (actionlib:make-action-client
-                                  "/torso_controller/joint_trajectory_action"
-                                  "pr2_controllers_msgs/JointTrajectoryAction"))
+                                   "/torso_controller/joint_trajectory_action"
+                                   "pr2_controllers_msgs/JointTrajectoryAction"))
   (setf *move-arm-right* (actionlib:make-action-client
                           "/move_right_arm"
-                          "move_arm_msgs/MoveArmAction"))
+                          "arm_navigation_msgs/MoveArmAction"))
   (setf *move-arm-left* (actionlib:make-action-client
                          "/move_left_arm"
-                         "move_arm_msgs/MoveArmAction"))  
+                         "arm_navigation_msgs/MoveArmAction"))  
   (setf *joint-state-sub* (roslisp:subscribe
                            "/joint_states" "sensor_msgs/JointState"
                            (lambda (msg)
@@ -159,10 +159,10 @@
                       (:right *carry-pose-right*)
                       (:left *carry-pose-left*))))
     (if orientation
-        (execute-move-arm side (tf:copy-pose-stamped carry-pose :orientation orientation)
-                          :allowed-collision-objects (list "\"all\""))
-        (execute-move-arm side carry-pose
-                          :allowed-collision-objects (list "\"all\"")))))
+        (execute-move-arm-pose side (tf:copy-pose-stamped carry-pose :orientation orientation)
+                               :allowed-collision-objects (list "\"all\""))
+        (execute-move-arm-pose side carry-pose
+                               :allowed-collision-objects (list "\"all\"")))))
 
 (def-action-handler lift (side distance)
   (let* ((wrist-transform (tf:lookup-transform
@@ -201,66 +201,66 @@
                (cl-transforms:y *max-graspable-size*))
             (> (cl-transforms:z bb)
                (cl-transforms:z *max-graspable-size*))))
-       ;; TODO: Use a more descriptive condition here
+      ;; TODO: Use a more descriptive condition here
       (error 'manipulation-pose-unreachable
              :format-control "No valid grasp pose found")))
-    (roslisp:ros-info (pr2-manip process-module) "Registering semantic map objects")
+  (roslisp:ros-info (pr2-manip process-module) "Registering semantic map objects")
   (sem-map-coll-env:publish-semantic-map-collision-objects)
   (dolist (obstacle (cut:force-ll obstacles))
     (register-collision-object obstacle))
   (let ((grasp-poses
-         (lazy-take
-          50
-          (lazy-mapcan (lambda (grasp)
-                         (let ((pre-grasp-pose
-                                (calculate-grasp-pose
-                                 obj
-                                 :tool (calculate-tool-pose
-                                        grasp
-                                        *grasp-approach-distance*)))
-                               (grasp-pose
-                                (calculate-grasp-pose
-                                 obj
-                                 :tool (calculate-tool-pose
-                                        grasp
-                                        *grasp-distance*))))
-                           ;; If we find IK solutions
-                           ;; for both poses, yield them
-                           ;; to the lazy list
-                           (when (and (ecase side
-                                        (:left
-                                           (grasp-orientation-valid
-                                            pre-grasp-pose
-                                            (list *top-grasp* *left-grasp*)
-                                            (list *right-grasp*)))
-                                        (:right
-                                           (grasp-orientation-valid
-                                            pre-grasp-pose
-                                            (list *top-grasp* *right-grasp*)
-                                            (list *left-grasp*)))))
-                             (let* ((pre-grasp-solution (lazy-car
-                                                         (get-ik
-                                                          side pre-grasp-pose)))
-                                    (grasp-solution (lazy-car
-                                                     (get-constraint-aware-ik
-                                                      side grasp-pose
-                                                      :allowed-collision-objects (list "\"all\"")))))
-                               (when (and pre-grasp-solution grasp-solution)
-                                 (roslisp:ros-info (pr2-manip process-module) "Found valid grasp ~a ~a"
-                                                   pre-grasp-pose grasp-pose)
-                                 `(((,pre-grasp-pose ,pre-grasp-solution)
-                                    (,grasp-pose ,grasp-solution))))))))
-                       (prog2
-                           (roslisp:ros-info (pr2-manip process-module) "Planning grasp")
-                           (get-point-cluster-grasps side obj)
-                         (roslisp:ros-info (pr2-manip process-module) "Grasp planning finished"))))))
+          (lazy-take
+           50
+           (lazy-mapcan (lambda (grasp)
+                          (let ((pre-grasp-pose
+                                  (calculate-grasp-pose
+                                   obj
+                                   :tool (calculate-tool-pose
+                                          grasp
+                                          *grasp-approach-distance*)))
+                                (grasp-pose
+                                  (calculate-grasp-pose
+                                   obj
+                                   :tool (calculate-tool-pose
+                                          grasp
+                                          *grasp-distance*))))
+                            ;; If we find IK solutions
+                            ;; for both poses, yield them
+                            ;; to the lazy list
+                            (when (and (ecase side
+                                         (:left
+                                          (grasp-orientation-valid
+                                           pre-grasp-pose
+                                           (list *top-grasp* *left-grasp*)
+                                           (list *right-grasp*)))
+                                         (:right
+                                          (grasp-orientation-valid
+                                           pre-grasp-pose
+                                           (list *top-grasp* *right-grasp*)
+                                           (list *left-grasp*)))))
+                              (let* ((pre-grasp-solution (lazy-car
+                                                          (get-ik
+                                                           side pre-grasp-pose)))
+                                     (grasp-solution (lazy-car
+                                                      (get-constraint-aware-ik
+                                                       side grasp-pose
+                                                       :allowed-collision-objects (list "\"all\"")))))
+                                (when (and pre-grasp-solution grasp-solution)
+                                  (roslisp:ros-info (pr2-manip process-module) "Found valid grasp ~a ~a"
+                                                    pre-grasp-pose grasp-pose)
+                                  `(((,pre-grasp-pose ,pre-grasp-solution)
+                                     (,grasp-pose ,grasp-solution))))))))
+                        (prog2
+                            (roslisp:ros-info (pr2-manip process-module) "Planning grasp")
+                            (get-point-cluster-grasps side obj)
+                          (roslisp:ros-info (pr2-manip process-module) "Grasp planning finished"))))))
     (unless grasp-poses
       (error 'manipulation-pose-unreachable
              :format-control "No valid grasp pose found"))
     (roslisp:ros-info (pr2-manip process-module) "Executing move-arm")
     (destructuring-bind ((pre-grasp pre-solution) (grasp grasp-solution)) (lazy-car grasp-poses)
       (declare (ignore grasp))
-      (execute-move-arm side pre-grasp)
+      (execute-move-arm-pose side pre-grasp)
       (execute-arm-trajectory side (ik->trajectory grasp-solution))
       (roslisp:ros-info (pr2-manip process-module) "Closing gripper")
       ;; (compliant-close-girpper side)
@@ -303,7 +303,7 @@
                            :allowed-collision-objects (list "\"all\""))))
     (when (or (not put-down-solution) (not unhand-solution))
       (error 'manipulation-pose-unreachable))
-    (execute-move-arm side pre-put-down-pose)
+    (execute-move-arm-pose side pre-put-down-pose)
     (execute-arm-trajectory side (ik->trajectory (lazy-car put-down-solution)))
     (open-gripper side)
     (execute-arm-trajectory
@@ -320,8 +320,8 @@
   (actionlib:call-goal
    *trajectory-action-torso*
    (actionlib:make-action-goal
-    *trajectory-action-torso*
-    :trajectory (remove-trajectory-joints #("torso_lift_joint") trajectory :invert t))))
+       *trajectory-action-torso*
+     :trajectory (remove-trajectory-joints #("torso_lift_joint") trajectory :invert t))))
 
 (defun execute-arm-trajectory (side trajectory)
   (let ((action (ecase side
@@ -330,12 +330,12 @@
     (actionlib:call-goal
      action
      (actionlib:make-action-goal
-      action
-      :trajectory (remove-trajectory-joints #("torso_lift_joint") trajectory)))))
+         action
+       :trajectory (remove-trajectory-joints #("torso_lift_joint") trajectory)))))
 
-(defun execute-move-arm (side pose &key
-                         (planners '(:chomp :ompl))
-                         allowed-collision-objects)
+(defun execute-move-arm-pose (side pose &key
+                                          (planners '(:chomp :ompl))
+                                          allowed-collision-objects)
   "Executes move arm. It goes through the list of planners specified
 by `planners' until one succeeds."
   (flet ((execute-action (planner)
@@ -367,14 +367,14 @@ by `planners' until one succeeds."
                       (position_constraints goal_constraints motion_plan_request)
                       (vector
                        (roslisp:make-msg
-                        "motion_planning_msgs/PositionConstraint"
+                        "arm_navigation_msgs/PositionConstraint"
                         header header
                         link_name (ecase side
                                     (:left "l_wrist_roll_link")
                                     (:right "r_wrist_roll_link"))
                         position position
                         (type constraint_region_shape) (roslisp-msg-protocol:symbol-code
-                                                        'geometric_shapes_msgs-msg:shape
+                                                        'arm_navigation_msgs-msg:shape
                                                         :box)
                         (dimensions constraint_region_shape) #(0.01 0.01 0.01)
                         (w constraint_region_orientation) 1.0
@@ -383,7 +383,7 @@ by `planners' until one succeeds."
                       (orientation_constraints goal_constraints motion_plan_request)
                       (vector
                        (roslisp:make-msg
-                        "motion_planning_msgs/OrientationConstraint"
+                        "arm_navigation_msgs/OrientationConstraint"
                         header header
                         link_name (ecase side
                                     (:left "l_wrist_roll_link")
@@ -409,9 +409,9 @@ by `planners' until one succeeds."
                       (when (eql val 1)
                         (let ((goal-in-arm (tf:transform-pose
                                             *tf* :pose pose
-                                            :target-frame (ecase side
-                                                            (:left "l_wrist_roll_link")
-                                                            (:right "r_wrist_roll_link")))))
+                                                 :target-frame (ecase side
+                                                                 (:left "l_wrist_roll_link")
+                                                                 (:right "r_wrist_roll_link")))))
                           (when (or (> (cl-transforms:v-norm (cl-transforms:origin goal-in-arm))
                                        0.015)
                                     (> (cl-transforms:normalize-angle
@@ -419,7 +419,7 @@ by `planners' until one succeeds."
                                                       (cl-transforms:orientation goal-in-arm))))
                                        0.03))
                             (error 'manipulation-failed)))
-                        (return-from execute-move-arm t))))
+                        (return-from execute-move-arm-pose t))))
                   planners :initial-value nil)
       (-31 (error 'manipulation-pose-unreachable :result (list side pose)))
       (-33 (error 'manipulation-pose-occupied :result (list side pose)))
