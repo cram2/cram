@@ -424,16 +424,13 @@ current joint states"
                 obj parent-joint-name
                 (cl-transforms:transform->pose
                  (cl-transforms:transform*
-                  (cl-transforms:transform-inv
-                   (cl-transforms:reference-transform
-                    (cl-urdf:origin parent-joint)))
-                  (cl-transforms:transform-inv
-                   (joint-transform
-                    parent-joint
-                    (or (joint-state obj parent-joint-name)
-                        0.0)))
-                  (cl-transforms:transform-inv
-                   (cl-transforms:reference-transform current-pose)))))))
+                  (cl-transforms:reference-transform
+                   (cl-urdf:origin parent-joint))
+                  (joint-transform
+                   parent-joint
+                   (or (joint-state obj parent-joint-name)
+                       0.0))
+                  (cl-transforms:reference-transform current-pose))))))
             (t ;; We are at the root. Return the object's inverse pose
                ;; multiplied with current-pose
              (cl-transforms:transform*
