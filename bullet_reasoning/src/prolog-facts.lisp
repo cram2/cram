@@ -352,6 +352,7 @@
     (supported-by ?_ ?top ?bottom))
   
   (<- (supported-by ?world ?top ?bottom)
+    (bullet-world ?world)
     (above ?world ?top ?bottom)
     (contact ?world ?top ?bottom)
     (stable ?world ?top)))
