@@ -44,14 +44,16 @@
 
 (defun make-angle-to-point-generator (pose)
   "Returns a function that takes an X and Y coordinate and returns a
-quaternion to face towards `pose'"
-  (lambda (x y)
-    (cl-transforms:axis-angle->quaternion
-     (cl-transforms:make-3d-vector 0 0 1)
-     (let ((p-rel (cl-transforms:v-
-                   (cl-transforms:origin pose)
-                   (cl-transforms:make-3d-vector x y 0))))
-       (atan (cl-transforms:y p-rel) (cl-transforms:x p-rel))))))
+quaternion to face towards `pose' if PREVIOUS-ORIENTATION is not NIL,
+otherwise PREVIOUS-ORIENTATION."
+  (lambda (x y previous-orientation)
+    (or previous-orientation
+        (cl-transforms:axis-angle->quaternion
+         (cl-transforms:make-3d-vector 0 0 1)
+         (let ((p-rel (cl-transforms:v-
+                       (cl-transforms:origin pose)
+                       (cl-transforms:make-3d-vector x y 0))))
+           (atan (cl-transforms:y p-rel) (cl-transforms:x p-rel)))))))
 
 ;; TODO: This fact belongs into a package for CRAM_PL based desig utils
 (def-fact-group location-costmap-utils ()
