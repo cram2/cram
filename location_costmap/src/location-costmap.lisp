@@ -57,13 +57,14 @@
                     deterministic and is used whenever a costmap
                     sample is generated. If not set, a constant value
                     of 0.0d0 is returned.")
-   (orientation-generator
-    :initform nil :initarg :orientation-generator :reader orientation-generator
-    :documentation "A callable object that takes two parameters, X and
-                    Y and returns the corresponding rotation
-                    value. The function is not required to be
-                    deterministic and called whenever a new sample is
-                    generated.")))
+   (orientation-generators
+    :initform nil :initarg :orientation-generators :reader orientation-generators
+    :documentation "A sequence of callable objects that take three
+                    parameters, X, Y and the rotation value calulated
+                    by previous orientation generators. The functions
+                    return the corresponding rotation value. The
+                    function is not required to be deterministic and
+                    called whenever a new sample is generated.")))
 
 (defgeneric get-cost-map (map)
   (:documentation "Returns the costmap as a two-dimensional array of
@@ -157,8 +158,8 @@
     (setf height-generator generator)))
 
 (defmethod register-orientation-generator ((map location-costmap) generator)
-  (with-slots (orientation-generator) map
-    (setf orientation-generator generator)))
+  (with-slots (orientation-generators) map
+    (pushnew generator orientation-generators)))
 
 (defun merge-costmaps (cm-1 &rest costmaps)
   "merges cost functions and copies one height-map, returns one costmap"
@@ -175,7 +176,7 @@
        :cost-functions (reduce #'append (mapcar #'cost-functions costmaps)
                                :initial-value (cost-functions cm-1))
        :height-generator (some #'height-generator (cons cm-1 costmaps))
-       :orientation-generator (some #'orientation-generator (cons cm-1 costmaps))))))
+       :orientation-generators (mapcan #'orientation-generators (cons cm-1 costmaps))))))
 
 (defun generate-height (map x y &optional (default 0.0d0))
   (if (height-generator map)
@@ -183,8 +184,10 @@
       default))
 
 (defun generate-orientation (map x y &optional (default (cl-transforms:make-identity-rotation)))
-  (if (orientation-generator map)
-      (funcall (orientation-generator map) x y)
+  (or (when (orientation-generators map)
+        (reduce (lambda (solution function)
+                  (funcall function x y solution))
+                (orientation-generators map) :initial-value nil))
       default))
 
 (defmethod gen-costmap-sample ((map location-costmap))
