@@ -97,7 +97,7 @@
              ,@body)))
        (eval-when (:load-toplevel :execute)
          (cond ((assoc ',name *process-modules*)
-                #+sbcl (sb-int:style-warn "Redifining process module `~a'" ',name)
+                #+sbcl (sb-int:style-warn "Redefining process module `~a'" ',name)
                 (let ((old-pm (cdr (assoc ',name *process-modules*)))
                       (new-pm (make-instance ',name :name ',name)))
                   (dolist (pm-def *process-modules*)
