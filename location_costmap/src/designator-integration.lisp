@@ -53,7 +53,7 @@
               (declare (type cma:double-matrix cm))
               (dotimes (row (cma:height cm) max)
                 (dotimes (col (cma:width cm))
-                  (when (> (aref cm row col))
+                  (when (> (aref cm row col) max)
                     (setf max (aref cm row col)))))))))
 
 (defun robot-current-pose-generator (desig)
