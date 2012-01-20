@@ -52,7 +52,7 @@
 
 (defun register-goal (name pattern goal-fun)
   (when (assoc pattern (get name :goals) :test #'equal)
-    #+sbcl (sb-int:style-warn "Redifining goal `~a'" `(,name ,@pattern)))
+    #+sbcl (sb-int:style-warn "Redefining goal `~a'" `(,name ,@pattern)))
   (cond ((not (get name :goals))
          (setf (get name :goals)
                (list (cons pattern goal-fun))))
