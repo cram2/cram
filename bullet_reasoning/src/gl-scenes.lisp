@@ -174,3 +174,29 @@
       (dotimes (i (array-total-size buffer) result)
         (setf (row-major-aref result i)
               (truncate (* (row-major-aref buffer i) #xff)))))))
+
+(defun ensure-world-window (world &optional window)
+  (cond (window window)
+        (t
+         (unless (and *debug-window* (not (closed *debug-window*)))
+           (let ((window (make-instance 'bullet-world-window
+                           :world world
+                           :camera-transform (cl-transforms:make-identity-transform)
+                           :light-position (cl-transforms:make-3d-vector -1.8 -2.0 5.0)
+                           :hidden t
+                           :frame-rate 1.0)))
+             (setf *debug-window* window)
+             (sb-thread:make-thread
+              (lambda ()
+                (glut:display-window window)))))
+         *debug-window*)))
+
+(defmacro with-temporary-window ((var-name &optional existing-window) world &body body)
+  "Executes body with a window bound to VAR-NAME. If EXISTING-WINDOW
+  is specified and the window is valid, i.e. not NIL and not closed,
+  it is used. Otherwise a new window is created, an event loop is
+  started and the window is closed at the end of the dynamic scope of
+  VAR-NAME."
+  (alexandria:once-only (existing-window)
+    `(let ((,var-name (ensure-world-window ,world ,existing-window)))
+       ,@body)))

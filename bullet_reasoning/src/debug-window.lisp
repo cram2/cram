@@ -48,7 +48,9 @@
           :name "Debug window"))
         ((not (eq world (world *debug-window*)))
          (setf (world *debug-window*)
-               world))))
+               world)))
+  (when (hidden *debug-window*)
+    (show-window *debug-window*)))
 
 (defun costmap-color-fun (vec)
   (let ((val (cl-transforms:z vec)))
@@ -64,7 +66,7 @@
             (t (list 1.0 0.0 0.0))))))
 
 (defun add-costmap-function-object (costmap &optional (z 0.0))
-  (when *current-costmap-function*
+  (when (and *current-costmap-function* *debug-window*)
     (setf (gl-objects *debug-window*)
           (remove *current-costmap-function* (gl-objects *debug-window*))))
   (when costmap
@@ -92,4 +94,5 @@
                                     (cl-transforms:make-quaternion 0 0 0 1))
                              :function #'costmap-function
                              :step-size 0.05))))
-    (push *current-costmap-function* (gl-objects *debug-window*))))
+    (when *debug-window*
+      (push *current-costmap-function* (gl-objects *debug-window*)))))
