@@ -37,6 +37,8 @@
                 event-queue post-event get-next-event)
   (:export bullet-world-window world camera-transform
            closed draw *current-world*
+           close-window
+           hidden show-window hide-window
            init-camera set-camera
            with-bullet-window-context
            get-texture-handle camera-transform light-position
