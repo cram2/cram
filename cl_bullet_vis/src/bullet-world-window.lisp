@@ -17,6 +17,7 @@
    (pointer-pos :initform nil :reader pointer-pos)
    (closed :initform nil :reader closed)
    (redrawing :initform nil :accessor redrawing)
+   (hidden :initform nil :reader hidden :initarg :hidden)
    (display-callbacks :initform nil :accessor display-callbacks))
   (:default-initargs :width 640 :height 480 :title "bullet visualization"
     :mode '(:double :rgba :depth)))
@@ -24,6 +25,22 @@
 (defgeneric close-window (window)
   (:method ((w bullet-world-window))
     (post-event w '(:close))))
+
+(defgeneric show-window (window)
+  (:method ((window bullet-world-window))
+    (post-event
+     window
+     `(:display :callback ,(lambda ()
+                             (glut:show-window)
+                             (setf (slot-value window 'hidden) nil))))))
+
+(defgeneric hide-window (window)
+  (:method ((window bullet-world-window))
+    (post-event
+     window
+     `(:display :callback ,(lambda ()
+                             (glut:hide-window)
+                             (setf (slot-value window 'hidden) t))))))
 
 (defgeneric process-event (window type &key))
 
@@ -42,8 +59,6 @@
     (error 'simple-error :format-control "world argument required"))
   (push world (gl-objects w)))
 
-;; We want to implement our own main loop that supports different
-;; events, not only OpenGL events.
 (defmethod glut:display-window :around ((w bullet-world-window))
   (unwind-protect
        (call-next-method)
@@ -54,6 +69,8 @@
         while ev do (apply #'process-event w ev)))
 
 (defmethod glut:display-window :before ((w bullet-world-window))
+  (when (hidden w)
+    (glut:hide-window))
   (gl:cull-face :back)
   (gl:depth-func :lequal)
   (gl:shade-model :smooth)
@@ -61,7 +78,6 @@
   (gl:hint :perspective-correction-hint :nicest))
 
 (defmethod glut:display-window :after ((w bullet-world-window))
-  ;; (glut:disable-event w :idle)
   (when (frame-rate w)
     (glut:enable-tick w (truncate (* (/ (frame-rate w)) 1000)))))
 
@@ -247,12 +263,12 @@ upwards. This matches ROS' coordinates best."
                            (setf ,done t)
                            (sb-thread:condition-broadcast ,condition))))))
        (sb-thread:with-mutex (,lock)
-         (loop until ,done do
-           (handler-case
-               (sb-ext:with-timeout 0.01
-                 (sb-thread:condition-wait ,condition ,lock))
-             (sb-ext:timeout ()
-               nil))
+         (loop until ,done
+               do (handler-case
+                      (sb-ext:with-timeout 0.01
+                        (sb-thread:condition-wait ,condition ,lock))
+                    (sb-ext:timeout ()
+                      nil))
                finally (destructuring-bind (status value)
                            ,result
                          (return
