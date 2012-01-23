@@ -81,9 +81,9 @@
                  (object-total-buffer (car (render-to-framebuffer
                                             object
                                             (make-instance
-                                             'camera
-                                             :pose camera-centered
-                                             :width width :height height))))
+                                                'camera
+                                              :pose camera-centered
+                                              :width width :height height))))
                  (camera (make-instance 'camera :pose camera-pose :width width :height height))
                  (object-buffer (car (render-to-framebuffer object camera)))
                  (obj-ref-color nil)
@@ -94,7 +94,7 @@
                                        for obj in objects
                                        for i from step by step
                                        for obj-proxy = (make-instance 'flat-color-object-proxy
-                                                            :object obj :color `(,i ,i ,i 1))
+                                                         :object obj :color `(,i ,i ,i 1))
                                        when (eq object obj) do (setf obj-ref-color i)
                                          collecting obj-proxy))
                  (scene-buffer (car (render-to-framebuffer (make-drawable-list :drawables object-proxies)
@@ -112,7 +112,7 @@
                   when (> (aref object-total-buffer i) 0.0)
                     do (incf object-total-pixels)
                   if (< (abs (- (aref scene-buffer i) obj-ref-color))
-                             (/ (* 2 (length (objects reasoning-world)))))
+                        (/ (* 2 (length (objects reasoning-world)))))
                     do (incf object-visible-pixels)
                   else do (when (and (> (aref scene-buffer i) 0)
                                      (> (aref object-buffer i) 0))
@@ -131,12 +131,14 @@
 
 (defun object-visible-p (world camera-pose object &optional (window *debug-window*) (threshold 0.9))
   "Returns T if at least `threshold' of the object is visible"
-  (let ((visibility (calculate-object-visibility window world camera-pose object)))
-    (>= (object-visibility-percentage visibility)
-        threshold)))
+  (with-temporary-window (window window) world
+    (let ((visibility (calculate-object-visibility window world camera-pose object)))
+      (>= (object-visibility-percentage visibility)
+          threshold))))
 
 (defun occluding-objects (world camera-pose object &optional (window *debug-window*) (threshold 0.9))
   "Returns the list of occluding objects if less than `threshold' of `object' is visible"
-  (let ((visibility (calculate-object-visibility window world camera-pose object)))
-    (when (< (object-visibility-percentage visibility) threshold)
-      (object-visibility-occluding-objects visibility))))
+  (with-temporary-window (window window) world
+    (let ((visibility (calculate-object-visibility window world camera-pose object)))
+      (when (< (object-visibility-percentage visibility) threshold)
+        (object-visibility-occluding-objects visibility)))))
