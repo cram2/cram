@@ -30,39 +30,40 @@
 
 (in-package :cpm)
 
-(defmethod initialize-instance :after ((pm process-module) &key
-                                       (name (error "Process modules need a name."))
-                                       (input (make-fluent
-                                               :name (intern
-                                                      (concatenate 'string
-                                                                   (symbol-name name)
-                                                                   "-INPUT"))))
-                                       (feedback (make-fluent
-                                                  :name (intern
-                                                         (concatenate 'string
-                                                                      (symbol-name name)
-                                                                      "-FEEDBACK"))))
-                                       (result (make-fluent
-                                                :name (intern
-                                                       (concatenate 'string
-                                                                    (symbol-name name)
-                                                                    "-RESULT"))))
-                                       (cancel (make-fluent
-                                                :name (intern
-                                                       (concatenate 'string
-                                                                    (symbol-name name)
-                                                                    "-CANCEL"))))
-                                       (status (make-fluent
-                                                :name (intern
-                                                       (concatenate 'string
-                                                                    (symbol-name name)
-                                                                    "-STATUS"))
-                                                :value :offline))
-                                       (caller (make-fluent
-                                                :name (intern
-                                                       (concatenate 'string
-                                                                    (symbol-name name)
-                                                                    "-CALLER")))))
+(defmethod initialize-instance :after
+    ((pm process-module)
+     &key (name (error "Process modules need a name."))
+       (input (make-fluent
+               :name (intern
+                      (concatenate 'string
+                       (symbol-name name)
+                       "-INPUT"))))
+       (feedback (make-fluent
+                  :name (intern
+                         (concatenate 'string
+                          (symbol-name name)
+                          "-FEEDBACK"))))
+       (result (make-fluent
+                :name (intern
+                       (concatenate 'string
+                        (symbol-name name)
+                        "-RESULT"))))
+       (cancel (make-fluent
+                :name (intern
+                       (concatenate 'string
+                        (symbol-name name)
+                        "-CANCEL"))))
+       (status (make-fluent
+                :name (intern
+                       (concatenate 'string
+                        (symbol-name name)
+                        "-STATUS"))
+                :value :offline))
+       (caller (make-fluent
+                :name (intern
+                       (concatenate 'string
+                        (symbol-name name)
+                        "-CALLER")))))
   (setf (slot-value pm 'name) name
         (slot-value pm 'input) input
         (slot-value pm 'feedback) feedback
@@ -97,16 +98,19 @@
                                          (setf (value status) :failed)))
                                   (handler-bind ((plan-failure #'handle-failure)
                                                  (error #'handle-failure))
-                                    (let ((result-val nil))
+                                    (let ((input-value (value input))
+                                          (result-value nil))
                                       (unwind-protect
                                            (progn
                                              (assert
-                                              (value input) ()
+                                              input-value ()
                                               "Input value is NIL when calling process module. This should never happen.")
-                                             (setf result-val (call-next-method)))
+                                             (on-process-module-started pm input-value)
+                                             (setf result-value (call-next-method)))
                                         (setf (value input) nil)
-                                        (when result-val
-                                          (setf (value result) result-val))))))
+                                        (when result-value
+                                          (setf (value result) result-value))
+                                        (on-process-module-finished pm input-value (value result))))))
                               (plan-failure (e)
                                 (declare (ignore e))
                                 nil)))

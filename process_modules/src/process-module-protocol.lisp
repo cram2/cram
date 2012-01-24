@@ -117,6 +117,14 @@
      :async async :priority priority
      :wait-for-free wait-for-free :task task)))
 
+(cut:define-hook on-process-module-started (module input)
+  (:documentation "Hook that is called whenever the process module
+  `module' receives `input' and starts executing."))
+
+(cut:define-hook on-process-module-finished (module input result)
+  (:documentation "Hook that is called whenever the process module
+  `module' finishes."))
+
 (defun get-process-module (name)
   "Returns the process module that corresponds is named `name'. `name'
   can also be an alias. Returns NIL if the module could not be found"
