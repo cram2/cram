@@ -245,7 +245,8 @@
   `(with-parallel-childs "PAR" (running-tasks finished-tasks failed-tasks)
        ,forms
      (cond (failed-tasks
-            (fail (result (car failed-tasks))))
+            (assert-no-returning
+              (signal (result (car failed-tasks)))))
            ((not running-tasks)
             (return (result (car (last finished-tasks))))))))
 
@@ -313,7 +314,8 @@
        ,forms
      (declare (ignore running-tasks))
      (cond (failed-tasks
-            (fail (result (car failed-tasks))))
+            (assert-no-returning
+              (signal (result (car failed-tasks)))))
            (finished-tasks
             (assert (eq (value (status (car finished-tasks))) :succeeded))
             (return (result (car finished-tasks)))))))
@@ -325,8 +327,9 @@
   `(with-parallel-childs "TRY-ALL" (running-tasks finished-tasks failed-tasks)
        ,forms
      (cond ((and (not running-tasks) (not finished-tasks) failed-tasks)
-            (fail  (make-condition 'composite-failure
-                                   :failures (mapcar #'result failed-tasks))))
+            (assert-no-returning
+              (signal  (make-condition 'composite-failure
+                                       :failures (mapcar #'result failed-tasks)))))
            (finished-tasks
             (return (result (car (last finished-tasks))))))))
 
@@ -342,8 +345,10 @@
                         (plan-failure (err)
                           (push err ,failures))))
                    forms)
-         (fail (make-condition 'composite-failure
-                               :failures ,failures))))))
+         (assert-no-returning
+           (signal
+            (make-condition 'composite-failure
+                            :failures ,failures)))))))
 
 ;;; FIXME: circular ordering could be detected at compile-time.
 
