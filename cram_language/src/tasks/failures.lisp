@@ -58,6 +58,10 @@
                                :format-control datum
                                :format-arguments arguments))))
 
+(define-hook on-fail (condition)
+  (:documentation "Hook that is executed whenever a condition is
+  signaled using FAIL."))
+
 (defun %fail (datum args)
   (let ((current-task *current-task*)
         (condition (coerce-to-condition datum args 'simple-plan-failure)))
@@ -65,6 +69,7 @@
       (:context "FAIL")
       (:display "~S: ~_\"~A\"" condition condition)
       (:tags :fail))
+    (on-fail condition)
     (cond
       ;; The main thread will perform JOIN-TASK on the TOPLEVEL-TASK,
       ;; signal the condition for that case.

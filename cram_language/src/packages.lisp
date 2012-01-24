@@ -125,7 +125,8 @@
            #:on-suspension
            #:*break-on-plan-failures*
            ;; failures.lisp
-           #:fail #:simple-plan-failure
+           #:fail #:on-fail
+           #:simple-plan-failure
            #:plan-failure
            #:with-failure-handling #:retry
            #:common-lisp-error-envelope
