@@ -29,7 +29,8 @@
              (:file "string" :depends-on ("package"))
              (:file "number" :depends-on ("package"))
              (:file "list" :depends-on ("package" "number"))
-             (:file "global-structures" :depends-on ("package"))))))
+             (:file "global-structures" :depends-on ("package"))
+             (:file "deprecation" :depends-on ("package"))))))
 
 (defmethod asdf:perform ((o asdf:test-op)
                          (c (eql (asdf:find-system 'cram-utilities))))

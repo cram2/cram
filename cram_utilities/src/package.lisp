@@ -89,6 +89,9 @@
       #:hooks
       #:define-hook
       #:copy-object
+      ;; conditions
+      #:deprecation-warning
+      #:deprecate
       ;; lazy
       #:delay #:force #:lazy-list #:lazy-list-p
       #:lazy-car #:lazy-cdr #:lazy-mapcar #:lazy-mapcan
