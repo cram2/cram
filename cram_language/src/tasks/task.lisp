@@ -182,7 +182,8 @@
     (:tags :join-task))
   (wait-for (task-dead task))
   (if (task-failed-p task)
-      (fail (result task))
+      (assert-no-returning
+        (signal (result task)))
       (result task)))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
