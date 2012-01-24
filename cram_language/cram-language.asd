@@ -20,25 +20,25 @@
     :components
     (;; Roots of the dependency graph
      (:file "packages")
-     (:file "utils"            :depends-on ("packages"))
-     (:file "task-interface"   :depends-on ("packages" "utils"))
+     (:file "utils" :depends-on ("packages"))
+     (:file "task-interface" :depends-on ("packages" "utils"))
      (:file "fluent-interface" :depends-on ("packages"))
-     (:file "logging"          :depends-on ("packages" "task-interface"))
+     (:file "logging" :depends-on ("packages" "task-interface"))
      ;; TASKS, implementation
      (:module "tasks"
       :depends-on ("packages" "task-interface" "fluent-interface" "utils" "logging")
       :components
-      ((:file "failures"       :depends-on ())
-       (:file "task"           :depends-on ("failures"))
-       (:file "task-tree"      :depends-on ("task"))))
+      ((:file "failures" :depends-on ())
+       (:file "task" :depends-on ("failures"))
+       (:file "task-tree" :depends-on ("task"))))
      ;; FLUENTS, implementation
      (:module "fluents"
       :depends-on ("packages" "fluent-interface" "task-interface" "logging")
       :components
       ((:file "fluent")
-       (:file "value-fluent"   :depends-on ("fluent"))
-       (:file "fluent-net"     :depends-on ("fluent"))
-       (:file "pulse-fluent"   :depends-on ("fluent"))))
+       (:file "value-fluent" :depends-on ("fluent"))
+       (:file "fluent-net" :depends-on ("fluent"))
+       (:file "pulse-fluent" :depends-on ("fluent"))))
      ;; WALKER
      (:module "walker"
       :depends-on ("packages")
@@ -50,9 +50,9 @@
        (:file "interface"))
       :serial t)
      ;; CRAM, The Language
-     (:file "language"         :depends-on ("packages" "walker" "tasks" "fluents" "logging"))
-     (:file "plans"            :depends-on ("packages" "tasks"))
-     (:file "goals"            :depends-on ("packages" "tasks"))
+     (:file "language" :depends-on ("packages" "walker" "tasks" "fluents" "logging"))
+     (:file "plans" :depends-on ("packages" "tasks"))
+     (:file "goals" :depends-on ("packages" "tasks"))
      (:file "fluent-operators" :depends-on ("packages" "fluents"))
      (:file "swank-indentation")))))
 
