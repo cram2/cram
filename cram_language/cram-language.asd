@@ -50,10 +50,10 @@
        (:file "interface"))
       :serial t)
      ;; CRAM, The Language
-     (:file "base"             :depends-on ("packages" "walker" "tasks" "fluents" "logging"))
+     (:file "language"         :depends-on ("packages" "walker" "tasks" "fluents" "logging"))
      (:file "plans"            :depends-on ("packages" "tasks"))
      (:file "goals"            :depends-on ("packages" "tasks"))
-     (:file "language"         :depends-on ("packages" "fluents"))
+     (:file "fluent-operators" :depends-on ("packages" "fluents"))
      (:file "swank-indentation")))))
 
 (defmethod asdf:perform ((o asdf:test-op)
