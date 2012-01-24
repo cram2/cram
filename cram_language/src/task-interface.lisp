@@ -27,7 +27,6 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-
 (in-package :cpl-impl)
 
 (defvar *current-task* nil

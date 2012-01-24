@@ -28,7 +28,6 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-
 (in-package :cpl-impl)
 
 ;;; NOTE: DOC: Paths in CRAM are read from right to left, such that when
