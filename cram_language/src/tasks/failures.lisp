@@ -27,7 +27,6 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-
 (in-package :cpl-impl)
 
 (define-task-variable *break-on-plan-failures* nil

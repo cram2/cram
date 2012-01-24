@@ -27,7 +27,6 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-
 (in-package :cpl-impl)
 
 ;;; FIXME: these should be moved to task-tree.lisp.

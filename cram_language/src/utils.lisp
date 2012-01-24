@@ -27,7 +27,6 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-
 (in-package :cpl-impl)
 
 ;;; FIXME: Put these into CRAM-UTILITIES
