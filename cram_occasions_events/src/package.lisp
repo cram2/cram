@@ -44,7 +44,7 @@
   (:export #:clear-belief
            #:assert-occasion
            #:retract-occasion
-           #:holds
+           #:holds-occasion
            ;; prolog
            #:fluent
            #:fluent-value
