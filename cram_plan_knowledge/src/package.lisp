@@ -88,7 +88,13 @@
            #:arm-parked
            #:?loc
            #:pm-executing #:?module #:?input
-           #:on-pm-execute)
+           #:on-pm-execute
+           #:event #:on-event
+           #:object-perceived-event
+           #:robot-state-changed
+           #:object-connection-event
+           #:object-attached #:object-detached
+           #:holds)
   (:import-from #:cpl-impl
                 #:make-fluent
                 #:value
