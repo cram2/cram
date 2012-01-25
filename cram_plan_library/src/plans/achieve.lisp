@@ -30,6 +30,6 @@
 (in-package :plan-lib)
 
 (declare-goal achieve (occasion)
-  (when (holds occasion)
+  (when (holds-occasion occasion)
     (ros-info (achieve plan-lib) "Occasion `~a' already achieved." occasion)
     (return nil)))

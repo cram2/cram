@@ -48,7 +48,7 @@
 
 (defun on-obj-put-down (op &key ?obj ?loc)
   (when (eql op :assert)
-    (let* ((side (var-value '?side (car (holds `(object-in-hand ?obj ?side)))))
+    (let* ((side (var-value '?side (car (holds-occasion `(object-in-hand ?obj ?side)))))
            (loc-in-hand (desig-prop-value ?obj 'at))
            (height (if loc-in-hand
                        (desig-prop-value loc-in-hand 'height)
