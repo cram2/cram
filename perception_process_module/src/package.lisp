@@ -60,7 +60,6 @@
    #:retract-perceived-object #:assert-desig-binding
    #:retract-desig-binding #:desig-current-perceived-object
    #:matching-object #:merge-desig-descriptions
-   #:desig-bound
    #:make-new-desig-description
    ;; cop stuff
    #:cop-perceived-object
