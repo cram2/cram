@@ -42,11 +42,13 @@
   (clear-alpha-network))
 
 (defun assert-occasion (occ)
+  (deprecate "ASSERT-OCCASION is deprecated.")  
   (pushnew occ (value *believed-occasions*)
            :test (rcurry #'pat-match-p :test #'occasion-equal-test))
   (rete-assert occ))
 
 (defun retract-occasion (occ)
+  (deprecate "RETRACT-OCCASION is deprecated.")
   (setf (value *believed-occasions*)
         (remove-if (lambda (current)
                      (when (pat-match-p occ current :test #'occasion-equal-test)
@@ -55,4 +57,5 @@
                    (value *believed-occasions*))))
 
 (defun holds (occ)
+  (deprecate "HOLDS is deprecated.")
   (force-ll (rete-holds occ #'occasion-equal-test)))
