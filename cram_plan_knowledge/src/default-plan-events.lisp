@@ -31,8 +31,8 @@
 ;;; Note that we do not provide an event for object change. The reason
 ;;; is that object changes are essentially object perception events.
 (defclass object-perceived-event (event)
-  ((object
-    :initarg :object :reader event-object
+  ((object-designator
+    :initarg :object-designator :reader event-object-designator
     :initform (error
                'simple-error
                :format-control "OBJECT-PERCEIVED-EVENT requires an object."))
@@ -42,9 +42,10 @@
                'simple-error
                :format-control "OBJECT-PERCEIVED-EVENT requires a perception source.")))
   (:documentation "Event that is generated whenever an object is
-  perceived. The slot `object' contains a reference to the perceived
-  object and the slot `source' contains a symbol indicating the sensor
-  that produces the perception."))
+  perceived. The slot `object-designator' contains a reference to the
+  designator describing the perceived object and the slot `source'
+  contains a symbol indicating the sensor that produces the
+  perception."))
 
 (defclass robot-state-changed (event)
   ()
