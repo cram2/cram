@@ -84,11 +84,16 @@
             "Cannot bind a perceived-object when it's already bound.")
     (setf (object-desig obj) new-desig)
     (setf (slot-value new-desig 'data) obj)
-    (setf (slot-value new-desig 'timestamp)
-          (funcall cut::*timestamp-function*))
+    (setf (slot-value new-desig 'timestamp) (cut:current-timestamp))
     (setf (slot-value new-desig 'valid) t)
     (assert-desig-binding new-desig obj)
     new-desig))
+
+(defun emit-perception-event (designator)
+  (cram-plan-knowledge:on-event (make-instance 'cram-plan-knowledge:object-perceived-event
+                                  :perception-source :perception-process-module
+                                  :object-designator designator))
+  designator)
 
 (defun find-with-parent-desig (desig)
   "Takes the perceived-object of the parent designator as a bias for
@@ -97,11 +102,15 @@
          (perceived-object (desig-current-perceived-object parent-desig)))
     (or
      (when perceived-object
-       (let ((perceived-objects (execute-object-search-functions parent-desig :perceived-object perceived-object)))
+       
+       (let ((perceived-objects
+               (sort (execute-object-search-functions parent-desig :perceived-object perceived-object)
+                     #'> :key #'perceived-object-probability)))
          (when perceived-objects
-           (list (perceived-object->designator parent-desig
-                                               (car (sort perceived-objects #'>
-                                                          :key #'perceived-object-probability)))))))
+           (car (mapcar (lambda (perceived-object)
+                          (emit-perception-event
+                           (perceived-object->designator parent-desig perceived-object)))
+                        perceived-objects)))))
      (find-with-new-desig desig))))
 
 (defun find-with-new-desig (desig)
@@ -115,7 +124,8 @@
   (let ((perceived-objects (execute-object-search-functions desig)))
     ;; Sort perceived objects according to probability
     (mapcar (lambda (perceived-object)
-              (perceived-object->designator desig perceived-object))
+              (emit-perception-event
+               (perceived-object->designator desig perceived-object)))
             (sort perceived-objects #'> :key #'perceived-object-probability))))
 
 (defun newest-valid-designator (desig)
