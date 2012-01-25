@@ -30,11 +30,13 @@
 
 (in-package :cram-plan-knowledge)
 
-(defmethod cram-process-modules:pm-execute :around ((module symbol) input &key &allow-other-keys)
-  (rete-assert `(pm-executing ,module ,input))
-  (unwind-protect
-       (call-next-method)
-    (rete-retract `(pm-executing ,module ,input))))
+(defmethod cram-process-modules:on-process-module-started (module input)
+  (rete-assert
+   `(pm-executing ,(cram-process-modules:get-process-module-name module) ,input)))
+
+(defmethod cram-process-modules:on-process-module-finished (module input result)
+  (rete-retract
+   `(pm-executing ,(cram-process-modules:get-process-module-name module) ,input)))
 
 (def-production on-pm-execute
   (pm-executing ?module ?input))
