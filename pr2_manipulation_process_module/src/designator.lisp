@@ -51,7 +51,7 @@
     (desig-prop ?desig (side ?side))
     (obj-desig-location ?obj ?obj-pose)
     (side-id ?side ?s-id)
-    (ros-message "ias_drawer_executive/OpenContainerGoal"
+    (ros-message "ias_drawer_actions/OpenContainerGoal"
                  (:arm ?s-id :pose ?obj-pose)
                  ?action))
 
@@ -63,7 +63,7 @@
     (obj-desig-location ?obj ?obj-pose)
     (side-id ?side ?s-id)
     (lisp-fun get-open-trajectory ?obj ?trajectory)
-    (ros-message "ias_drawer_executive/CloseContainerGoal"
+    (ros-message "ias_drawer_actions/CloseContainerGoal"
                  ;; TODO: The closed_position is wrong here!
                  (:arm ?s-id :opening_trajectory ?trajectory :closed_position ?obj-pose)
                  ?action))

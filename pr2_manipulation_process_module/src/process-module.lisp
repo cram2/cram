@@ -80,10 +80,10 @@
 (defun init-pr2-manipulation-process-module ()
   (setf *open-container-action* (actionlib:make-action-client
                                  "/open_container_action"
-                                 "ias_drawer_executive/OpenContainerAction"))
+                                 "ias_drawer_actions/OpenContainerAction"))
   (setf *close-container-action* (actionlib:make-action-client
                                   "/close_container_action"
-                                  "ias_drawer_executive/CloseContainerAction"))
+                                  "ias_drawer_actions/CloseContainerAction"))
   (setf *gripper-action-left* (actionlib:make-action-client
                                "/l_gripper_sensor_controller/gripper_action"
                                "pr2_controllers_msgs/Pr2GripperCommandAction"))
@@ -472,7 +472,7 @@ by `planners' until one succeeds."
 
 (defun store-open-trajectory (obj open-result)
   (declare (type object-designator obj)
-           (type ias_drawer_executive-msg:opencontainergoal open-result))
+           (type ias_drawer_actions-msg:opencontainergoal open-result))
   (roslisp:with-fields (trajectory) open-result
     (setf (gethash obj *open-trajectories*) trajectory)))
 
