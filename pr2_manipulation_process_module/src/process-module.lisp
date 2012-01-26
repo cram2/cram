@@ -144,10 +144,13 @@
 
 (def-action-handler container-opened (action obj)
   (store-open-trajectory
-   obj (execute-goal *open-container-action* action)))
+   obj (execute-goal *open-container-action* action))
+  (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
+  (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))
 
 (def-action-handler container-closed (action)
-  (execute-goal *close-container-action* action))
+  (execute-goal *close-container-action* action)
+  (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))
 
 (def-action-handler park (obj side &optional obstacles)
   (roslisp:ros-info (pr2-manip process-module) "Park arms ~a ~a"
@@ -167,7 +170,8 @@
         (execute-move-arm-pose side (tf:copy-pose-stamped carry-pose :orientation orientation)
                                :allowed-collision-objects (list "\"all\""))
         (execute-move-arm-pose side carry-pose
-                               :allowed-collision-objects (list "\"all\"")))))
+                               :allowed-collision-objects (list "\"all\"")))
+    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))))
 
 (def-action-handler lift (side distance)
   (let* ((wrist-transform (tf:lookup-transform
@@ -182,7 +186,8 @@
                      (cl-transforms:v+ (cl-transforms:translation wrist-transform)
                                        (cl-transforms:make-3d-vector 0 0 distance))
                      (cl-transforms:rotation wrist-transform))))
-    (execute-arm-trajectory side (ik->trajectory (lazy-car (get-ik side lift-pose))))))
+    (execute-arm-trajectory side (ik->trajectory (lazy-car (get-ik side lift-pose))))
+    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))))
 
 (def-action-handler grasp (obj side obstacles)
   (roslisp:ros-info (pr2-manip process-module) "Opening gripper")
@@ -260,23 +265,33 @@
                             (get-point-cluster-grasps side obj)
                           (roslisp:ros-info (pr2-manip process-module) "Grasp planning finished"))))))
     (unless grasp-poses
-      (error 'manipulation-pose-unreachable
-             :format-control "No valid grasp pose found"))
+      (cpl:fail 'manipulation-pose-unreachable
+                :format-control "No valid grasp pose found"))
     (roslisp:ros-info (pr2-manip process-module) "Executing move-arm")
     (destructuring-bind ((pre-grasp pre-solution) (grasp grasp-solution)) (lazy-car grasp-poses)
       (declare (ignore grasp))
       (execute-move-arm-pose side pre-grasp)
+      (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
       (execute-arm-trajectory side (ik->trajectory grasp-solution))
+      (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
       (roslisp:ros-info (pr2-manip process-module) "Closing gripper")
       ;; (compliant-close-girpper side)
       (close-gripper side 50.0)
+      (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
       (when (< (get-gripper-state side) 0.01)
         (clear-collision-objects)
         (open-gripper side)
+        (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
         (execute-arm-trajectory side (ik->trajectory pre-solution))
-        (error 'object-lost)))
+        (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
+        (cpl:fail 'object-lost)))
     ;; TODO: Check if gripper is not completely closed to make sure that we are holding the object
     (roslisp:ros-info (pr2-manip process-module) "Attaching object to gripper")
+    (plan-knowledge:on-event (make-instance 'plan-knowledge:object-attached
+                               :object obj
+                               :link (ecase side
+                                      (:right "r_gripper_r_finger_tip_link")
+                                      (:left "l_gripper_r_finger_tip_link"))))
     (assert-occasion `(object-in-hand ,obj ,side))))
 
 (def-action-handler put-down (obj location side obstacles)
@@ -307,12 +322,21 @@
                            side unhand-pose-stamped
                            :allowed-collision-objects (list "\"all\""))))
     (when (or (not put-down-solution) (not unhand-solution))
-      (error 'manipulation-pose-unreachable))
+      (cpl:fail 'manipulation-pose-unreachable))
     (execute-move-arm-pose side pre-put-down-pose)
+    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
     (execute-arm-trajectory side (ik->trajectory (lazy-car put-down-solution)))
+    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))    
     (open-gripper side)
+    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))    
+    (plan-knowledge:on-event (make-instance 'plan-knowledge:object-detached
+                               :object obj
+                               :link (ecase side
+                                       (:right "r_gripper_r_finger_tip_link")
+                                       (:left "l_gripper_r_finger_tip_link"))))
     (execute-arm-trajectory
-     side (ik->trajectory (lazy-car unhand-solution)))))
+     side (ik->trajectory (lazy-car unhand-solution)))
+    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))))
 
 (defun execute-goal (server goal)
   (multiple-value-bind (result status)
