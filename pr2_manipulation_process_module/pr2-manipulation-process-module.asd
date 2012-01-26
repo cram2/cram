@@ -31,7 +31,7 @@
   :author "Lorenz Moesenlechner"
   :license "BSD"
 
-  :depends-on (ias_drawer_executive-msg
+  :depends-on (ias_drawer_actions-msg
                designators-ros
                process-modules
                actionlib
