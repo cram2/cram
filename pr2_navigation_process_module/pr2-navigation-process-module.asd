@@ -36,7 +36,8 @@
                designators
                cram-reasoning
                cram-roslisp-common
-               cram-plan-failures               
+               cram-plan-failures
+               cram-plan-knowledge
                move_base_msgs-msg)
   :components
   ((:module "src"

@@ -6,16 +6,16 @@
   </description>
   <author>Lorenz Moesenlechner</author>
   <license>BSD</license>
-  <review status="unreviewed" notes=""/>
+  <review status="unreviewed" notes="" />
   <url>http://ros.org/wiki/pr2_navigation_process_module</url>
-  <depend package="move_base_msgs"/>
-  <depend package="actionlib_lisp"/>
-  <depend package="process_modules"/>
-  <depend package="designators"/>
-  <depend package="cram_reasoning"/>
-  <depend package="cram_roslisp_common"/>
-  <depend package="cram_plan_failures"/>
-
+  <depend package="move_base_msgs" />
+  <depend package="actionlib_lisp" />
+  <depend package="process_modules" />
+  <depend package="designators" />
+  <depend package="cram_reasoning" />
+  <depend package="cram_roslisp_common" />
+  <depend package="cram_plan_failures" />
+  <depend package="cram_plan_knowledge" />
 </package>
 
 
