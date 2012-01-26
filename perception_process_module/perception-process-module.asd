@@ -37,6 +37,7 @@
                cram-reasoning
                process-modules
                cram-utilities
+               cram-plan-knowledge
                designators
                designators-ros
                cljlo
