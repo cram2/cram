@@ -157,4 +157,5 @@
       ;;            (roslisp:ros-info (pr2-nav process-module)
       ;;                              "Using move_base.")
       ;;            (call-nav-action *move-base-client* goal)))))
-      (roslisp:ros-info (pr2-nav process-module) "Navigation finished."))))
+      (roslisp:ros-info (pr2-nav process-module) "Navigation finished.")
+      (cram-plan-knowledge:on-event (make-instance 'cram-plan-knowledge:robot-state-changed)))))
