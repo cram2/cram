@@ -54,8 +54,8 @@
                                                            "achieve-ptu"))
                          (:file "achieve-ptu" :depends-on ("goal-declarations"))
                          (:file "at-location")
-                         (:file "perceive" :depends-on ("goal-declarations"
-                                                        "at-location"))
+                         (:file "perceive-object" :depends-on ("goal-declarations"
+                                                               "at-location"))
                          (:file "achieve-object-manipulation"
                                 :depends-on ("goal-declarations"
                                              "at-location"))))
