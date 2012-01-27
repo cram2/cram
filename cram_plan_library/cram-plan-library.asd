@@ -47,22 +47,19 @@
              (:module "plans"
                       :depends-on ("package")
                       :components
-                        ((:file "achieve")
-                         (:file "process-modules" :depends-on ("achieve"))
-                         (:file "achieve-loc" :depends-on ("achieve"
+                        ((:file "goal-declarations")
+                         (:file "process-modules" :depends-on ("goal-declarations"))
+                         (:file "achieve-loc" :depends-on ("goal-declarations"
                                                            "achieve-object-manipulation"
                                                            "achieve-ptu"))
-                         (:file "achieve-ptu" :depends-on ("achieve"))
+                         (:file "achieve-ptu" :depends-on ("goal-declarations"))
                          (:file "at-location")
-                         (:file "perceive" :depends-on ("achieve-ptu"
+                         (:file "perceive" :depends-on ("goal-declarations"
                                                         "at-location"))
                          (:file "achieve-object-manipulation"
-                                :depends-on ("achieve"
-                                             "perceive"
-                                             "achieve-ptu"))))
+                                :depends-on ("goal-declarations"
+                                             "at-location"))))
              (:module "rete"
                       :depends-on ("package" "plans")
                       :components
-                      ((:file "occasions")
-                       ;; (:file "cop-occasion-handlers" :depends-on ("occasions"))
-                       ))))))
+                      ((:file "occasions")))))))
