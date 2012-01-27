@@ -111,7 +111,6 @@
            #:current-task
            #:define-task-variable
            #:task #:toplevel-task
-           #:event
            #:status #:result
            #:status-indicator
            #:+alive+
