@@ -222,3 +222,17 @@
                                           (make-symbol (symbol-name x)))))
                   (remove '?_ (vars-in pat)))
           pat))
+
+(defun patterns-eq (pattern-1 pattern-2)
+  "Returns T if two patterns are equal. Equality means that all
+non-variables are EQ and the variables occur at the same locations."
+  (cond ((and (not pattern-1) (not pattern-2))
+         t)
+        ((eq (car pattern-1) (car pattern-2))
+         (patterns-eq (cdr pattern-1) (cdr pattern-2)))
+        ((and (is-var (car pattern-1)) (is-var (car pattern-2)))
+         (patterns-eq (cdr pattern-1) (cdr pattern-2)))
+        ((and (listp (car pattern-1)) (listp (car pattern-2)))
+         (and (patterns-eq (car pattern-1) (car pattern-2))
+              (patterns-eq (cdr pattern-1) (cdr pattern-2))))
+        (t nil)))
