@@ -173,7 +173,8 @@
            #:on-def-top-level-plan-hook
            #:def-top-level-plan #:get-top-level-task-tree #:def-plan
            ;; goals.lisp
-           #:declare-goal #:def-goal #:goal #:register-goal #:goal-context))
+           #:declare-goal #:def-goal #:goal #:register-goal #:goal-context
+           #:describe-goal))
         (fluent-ops
          '(;; fluent-net.lisp
            #:fl< #:fl> #:fl=  #:fl+ #:fl- #:fl* #:fl/

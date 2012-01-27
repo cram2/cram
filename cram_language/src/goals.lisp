@@ -50,30 +50,48 @@
                           ,body))))
       goal-fun)))
 
-(defun register-goal (name pattern goal-fun)
+(defun register-goal (name pattern goal-fun &optional doc-string)
   (when (assoc pattern (get name :goals) :test #'equal)
     #+sbcl (sb-int:style-warn "Redefining goal `~a'" `(,name ,@pattern)))
   (cond ((not (get name :goals))
          (setf (get name :goals)
-               (list (cons pattern goal-fun))))
+               (list (list pattern goal-fun doc-string))))
         (t
          (setf (get-alist pattern (get name :goals) :test #'equal)
-               goal-fun))))
+               (list goal-fun doc-string)))))
+
+(defun describe-goal (goal)
+  (destructuring-bind (name &rest pattern) goal
+    (third
+     (find pattern (get name :goals)
+           :key #'car :test #'patterns-eq))))
 
 (defun call-goal (name args)
   (multiple-value-bind (def bdgs) (matching-goal-fun name args)
     (unless def
       (error "No goal found that matches arguments."))
-    (funcall (cdr def) bdgs)))
+    (funcall (second def) bdgs)))
 
 (defmacro declare-goal (name lambda-list &body body)
-  (with-gensyms (pattern)
-    `(progn
-       (setf (get ',name :goals) nil)
-       (defun ,name (&rest ,pattern)
-         (block nil
-           (apply (lambda ,lambda-list ,@body) ,pattern)
-           (call-goal ',name ,pattern))))))
+  "Declares the goal `name'. Before matching goals defined with
+`def-goal' are executed, `body' is executed with `pattern' lexically
+bound to the parameter specified when the goal was called. `body' is
+executed in an unnamed block that allows for suppressing the execution
+of any goal. The idea behind that is that `body' can verify if the
+goal already holds and suppress execution of any code."
+  (multiple-value-bind (forms declarations doc-string)
+      (parse-body body :documentation t)
+    (with-gensyms (pattern)
+      `(progn
+         (setf (get ',name :goals) nil)
+         (defun ,name (&rest ,pattern)
+           ,doc-string
+           (block nil
+             (flet ((before ,lambda-list
+                      ,@declarations
+                      ,@forms))
+               (apply #'before ,pattern))
+             (call-goal ',name ,pattern)))))))
 
 (defmacro def-goal ((name &rest pattern) &body body)
   "
@@ -88,6 +106,8 @@ similar expressions (e.g. (loc Robot ?l) and (loc ?a ?b)) the most
 specific expression must be defined first. Otherwise, the previously
 defined expression will be overwritten.
 "
-  `(let ((goal-fun ,(make-goal-fun name pattern body)))
-     (register-goal ',name ',pattern goal-fun)))
-
+  (multiple-value-bind (forms declarations doc-string)
+      (parse-body body :documentation t)
+    (assert (null declarations) () "Declarations not supported by DEF-GOAL.")
+    `(let ((goal-fun ,(make-goal-fun name pattern forms)))
+       (register-goal ',name ',pattern goal-fun ,doc-string))))
