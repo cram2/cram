@@ -31,17 +31,7 @@
 
 (define-condition ambiguous-perception (simple-plan-failure) ())
 
-(declare-goal perceive-all (obj)
-  (declare (ignore obj)))
-
-(declare-goal perceive (obj)
-  (declare (ignore obj)))
-
-(declare-goal perceive-the (obj)
-  (declare (ignore obj)))
-
-(def-goal (perceive-all ?obj-desig)
-  (ros-info (perceive plan-lib) "Perceiving `~a'" (description ?obj-desig))
+(def-goal (perceive-object all ?obj-desig)
   (with-designators ((loc (location `((to see) (obj ,?obj-desig))))
                      (obj-loc-desig (location `((of ,?obj-desig)))))
     (let ((loc-retry-cnt 0))
@@ -62,7 +52,7 @@
           (let ((obj-loc-retry-cnt 0))
             (with-failure-handling
                 ((object-not-found (e)
-                   (assert-occasion `(object-not-found-failure ,e))
+                   (declare (ignore e))
                    (ros-warn (perceive plan-lib) "Object not found failure.")
                    (when (< obj-loc-retry-cnt 3)
                      (incf obj-loc-retry-cnt)
@@ -72,27 +62,23 @@
                          (format t "trying at new location: ~a~%" (reference obj-loc-desig))
                          (retry))))))
               (achieve `(looking-at ,obj-loc-desig))
-              (achieve `(object-detected ,?obj-desig)))))))))
+              (pm-execute :perception ?obj-desig))))))))
 
-(def-goal (achieve (object-detected ?obj-desig))
-  (pm-execute :perception ?obj-desig))
-
-;;; Try to find the object described by ?obj-desig and equate the
-;;; resulting designator with ?obj-desig. If several objects match,
-;;; the first one is bound.
-(def-goal (perceive ?obj-desig)
-  (ros-info (perceive plan-lib) "Perceiving ~a" ?obj-desig)
-  (let ((new-desig (car (perceive-all ?obj-desig))))
+(def-goal (perceive-object a ?obj-desig)
+  "Tries to find the object described by ?obj-desig and equates the
+resulting designator with `?obj-desig'. If several objects match, the
+first one is bound."
+  (let ((new-desig (car (perceive-object 'all ?obj-desig))))
     (unless (desig-equal ?obj-desig new-desig)
       (equate ?obj-desig new-desig))
     (assert-occasion `(perceived ,new-desig))
     new-desig))
 
-;;; Try to find _the_ object described by ?obj-desig and equate
-;;; ?obj-desig with the result. Fail if more than one matching object
-;;; are found.
-(def-goal (perceive-the ?obj-desig)
-  (let ((new-desigs (perceive-all ?obj-desig)))
+(def-goal (perceive-object the ?obj-desig)
+  "Tries to find _the_ object described by ?obj-desig and equates
+?obj-desig with the result. Fail if more than one matching object are
+found."
+  (let ((new-desigs (perceive-object 'all ?obj-desig)))
     (unless (eql (length new-desigs) 1)
       (error 'ambiguous-perception
              :format-control "Found ~a objects that match ~a."
@@ -101,10 +87,8 @@
     (assert-occasion `(perceived ,(car new-desigs)))
     (car new-desigs)))
 
-(def-goal (achieve (obstacles-found ?location))
-  (with-designators ((cluster (object `((type cluster) (at ,?location)))))
-    (achieve `(looking-at ,?location))
-    (with-failure-handling ((object-not-found (f)
+(def-goal (perceive-object currently-visible ?obj-desig)
+  (with-failure-handling ((object-not-found (f)
                               (declare (ignore f))
                               (return nil)))
-      (achieve `(object-detected ,cluster)))))
+      (pm-execute :perception ?obj-desig)))

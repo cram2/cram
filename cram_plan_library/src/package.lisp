@@ -51,7 +51,10 @@
            #:looking-at
            #:at-location
            #:object-detected
-           #:perceive #:perceive-all #:perceive-the
+           #:perceive-object
+           #:the #:all #:a #:currently-visible
+           #:perceive-state
+           #:examine
            #:obstacles-found
            #:robot
            #:maybe-run-process-modules

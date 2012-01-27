@@ -55,11 +55,10 @@
          ;;     (retry)))
          )
       (ros-info (achieve plan-lib) "Calling perceive")
-      (setf ?obj (perceive ?obj))
+      (setf ?obj (perceive-object 'a ?obj))
       (ros-info (achieve plan-lib) "Perceive done")
       (ros-info (achieve plan-lib) "Searching for obstacles")
-      (with-designators ((pick-up-see-loc (location `((to see) (obj ,?obj))))
-                         (obj-loc (location `((of ,?obj)))))
+      (with-designators ((pick-up-see-loc (location `((to see) (obj ,?obj)))))
         (at-location (pick-up-see-loc)
           (setf obstacles (remove-if
                            (lambda (o)
@@ -74,7 +73,7 @@
                                     *tf* :target-frame "/base_footprint"
                                     :pose (designator-pose o))))
                                  0.35)))
-                           (achieve `(obstacles-found ,obj-loc))))))
+                           (perceive-object 'currently-visible (make-designator 'object `((type cluster))))))))
       (with-designators ((pick-up-loc (location `((to reach) (obj ,?obj))))
                          (grasp-trajectory (action `((type trajectory) (to grasp) (obj ,?obj) (side ,?side)
                                                      ,@(mapcar (lambda (o) `(obstacle ,o))
@@ -142,7 +141,8 @@
                                  ;; filtering should better be done in
                                  ;; the process module
                                  0.35)))
-                           (achieve `(obstacles-found ,?loc))))))
+                           (perceive-object 'currently-visible
+                                            (make-designator 'object `((type cluster))))))))
       (with-designators ((put-down-loc (location `((to reach) (location ,?loc))))
                          (put-down-trajectory (action `((type trajectory) (to put-down)
                                                         (obj ,obj) (at ,?loc) (side ,side)
