@@ -174,7 +174,7 @@
            #:def-top-level-plan #:get-top-level-task-tree #:def-plan
            ;; goals.lisp
            #:declare-goal #:def-goal #:goal #:register-goal #:goal-context
-           #:describe-goal))
+           #:succeed #:describe-goal))
         (fluent-ops
          '(;; fluent-net.lisp
            #:fl< #:fl> #:fl=  #:fl+ #:fl- #:fl* #:fl/
