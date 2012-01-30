@@ -57,16 +57,13 @@
                              (cl-transforms:reference-transform
                               (pose obj))))
         (reference-frame (cl-urdf:name (cl-urdf:root-link (slot-value robot 'urdf)))))
-    (get-weighted-ik
+    (get-pr2-ik
      robot (tf:make-pose-stamped
             reference-frame 0.0
             (cl-transforms:translation obj-trans-in-robot)
             (cl-transforms:make-quaternion 0 0 0 1))
      :ik-namespace (ecase side
-                     (:right "r_arm_ik")
-                     (:left "l_arm_ik"))
+                     (:right "reasoning/pr2_right_arm_kinematics")
+                     (:left "reasoning/pr2_left_arm_kinematics"))
      :tool-frame tool-frame
-     :ik-base-link reference-frame
-     :fixed-frame reference-frame
-     :weights-ts '(10 10 10 0.1 0.1 0.1)
-     :max-seeds 20)))
+     :fixed-frame reference-frame)))
