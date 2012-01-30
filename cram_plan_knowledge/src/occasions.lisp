@@ -57,5 +57,5 @@
                    (value *believed-occasions*))))
 
 (defun holds-occasion (occ)
-  (deprecate "HOLDS is deprecated.")
+  (deprecate "HOLDS-OCCASION is deprecated.")
   (force-ll (rete-holds occ #'occasion-equal-test)))
