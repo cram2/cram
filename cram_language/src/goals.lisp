@@ -38,7 +38,7 @@
           (matching-goal-fun name args (cdr goal-funs))))))
 
 (defun make-goal-fun (name pattern body)
-  (with-gensyms (bdgs-var)
+  (with-gensyms (bdgs-var block-name)
     (let* ((body `(with-tags ,@body))
            (goal-fun `(lambda (,bdgs-var)
                         (with-task-tree-node (:path-part `(goal (,',name ,@',pattern))
@@ -47,7 +47,11 @@
                                               :lambda-list ,(cut:vars-in pattern)
                                               :parameters (mapcar (alexandria:rcurry #'cut:var-value ,bdgs-var)
                                                                   ',(cut:vars-in pattern)))
-                          ,body))))
+                          (block ,block-name
+                            (flet ((succeed (&rest result)
+                                     (return-from ,block-name
+                                       (apply #'values result))))
+                              ,body))))))
       goal-fun)))
 
 (defun register-goal (name pattern goal-fun &optional doc-string)
@@ -105,6 +109,10 @@ Example: (achieve (loc ?obj ?location)) When defining goals with
 similar expressions (e.g. (loc Robot ?l) and (loc ?a ?b)) the most
 specific expression must be defined first. Otherwise, the previously
 defined expression will be overwritten.
+
+In the lexical environment of `body', the function (SUCCEED [values])
+is defined which performs a non-local exit, returning `values' as
+return values.
 "
   (multiple-value-bind (forms declarations doc-string)
       (parse-body body :documentation t)
