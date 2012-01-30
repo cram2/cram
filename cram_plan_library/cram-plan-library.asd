@@ -56,6 +56,7 @@
                          (:file "at-location")
                          (:file "perceive-object" :depends-on ("goal-declarations"
                                                                "at-location"))
+                         (:file "perceive-state" :depends-on ("goal-declarations"))
                          (:file "achieve-object-manipulation"
                                 :depends-on ("goal-declarations"
                                              "at-location"))))
