@@ -30,6 +30,9 @@
 
 (in-package :btr)
 
+(defvar *ik-solver-info-cache* nil
+  "An alist of namespace names to GetKinematicSolverInfo messages.")
+
 (defun set-robot-state-from-tf (tf robot &optional (reference-frame "/map"))
   (loop for name being the hash-keys in  (slot-value robot 'links) do
     (let ((tf-name (if (eql (elt name 0) #\/) name (concatenate 'string "/" name))))
@@ -41,7 +44,7 @@
 
 (defun set-robot-state-from-joints (joint-states robot)
   (roslisp:with-fields ((names name)
-                (positions position))
+                        (positions position))
       joint-states
     (map nil (lambda (name state)
                (setf (joint-state robot name) state))
@@ -170,6 +173,65 @@ joint positions as seeds."
                                                   (gethash name lower-limits))
                                                (- steps 1)))))))))))))
 
+(defun calculate-tool-pose (pose &key (tool (cl-transforms:make-pose
+                                             (cl-transforms:make-3d-vector 0 0 0)
+                                             (cl-transforms:make-quaternion 0 0 0 1))))
+  (let ((goal-trans (cl-transforms:transform*
+                     (cl-transforms:reference-transform pose)
+                     (cl-transforms:transform-inv
+                      (cl-transforms:reference-transform tool)))))
+    (tf:make-pose-stamped
+     (tf:frame-id pose) (tf:stamp pose)
+     (cl-transforms:translation goal-trans)
+     (cl-transforms:rotation goal-trans))))
+
+(defun get-ik-solver-info (ik-namespace)
+  (or (cdr (assoc ik-namespace *ik-solver-info-cache* :test #'equal))
+      (let ((solver-info (roslisp:call-service
+                          (concatenate 'string ik-namespace "/get_ik_solver_info")
+                          'kinematics_msgs-srv:getkinematicsolverinfo)))
+        (push (cons ik-namespace solver-info) *ik-solver-info-cache*)
+        solver-info)))
+
+(defun get-pr2-ik (robot pose-stamped
+                   &key 
+                     (tool-frame (cl-transforms:make-pose
+                                  (cl-transforms:make-3d-vector 0 0 0)
+                                  (cl-transforms:make-quaternion 0 0 0 1)))
+                     (ik-namespace (error "Namespace of IK service has to be specified"))
+                     (fixed-frame "base_footprint"))
+  (let* ((tf (set-tf-from-robot-state (make-instance 'tf:transformer)
+                                      robot fixed-frame))
+         (pose (tf:transform-pose tf :pose (tf:copy-pose-stamped pose-stamped :stamp 0)
+                                        :target-frame "torso_lift_link")))
+    (roslisp:with-fields ((joint-names (joint_names kinematic_solver_info))
+                          (link-names (link_names kinematic_solver_info)))
+        (get-ik-solver-info ik-namespace)
+      (roslisp:with-fields ((solution (joint_state solution))
+                            (error-code (val error_code)))
+          (roslisp:call-service
+           (concatenate
+            'string
+            ik-namespace
+            "/get_ik")
+           'kinematics_msgs-srv:getpositionik
+           :ik_request
+           (roslisp:make-msg
+            "kinematics_msgs/PositionIKRequest"
+            ;; we assume that the last joint in JOINT-NAMES is the end
+            ;; of the chain which is what we want for ik_link_name.
+            :ik_link_name (elt link-names 0)
+            :pose_stamped (tf:pose-stamped->msg
+                           (calculate-tool-pose pose :tool tool-frame))
+            :ik_seed_state (roslisp:make-msg
+                            "arm_navigation_msgs/RobotState"
+                            joint_state (make-robot-joint-state-msg robot :joint-names joint-names)))
+           :timeout 1.0)
+        (when (eql error-code (roslisp-msg-protocol:symbol-code
+                               'arm_navigation_msgs-msg:ArmNavigationErrorCodes
+                               :success))
+          (list solution))))))
+
 (defun get-weighted-ik (robot pose-stamped &key
                         (tool-frame (cl-transforms:make-pose
                                      (cl-transforms:make-3d-vector 0 0 0)
@@ -223,10 +285,10 @@ the IK service."
                                     (diagonal->matrix weights-ts)
                                     (make-js-weights joint-names weights-js)
                                     lambda))
-                       (or (when (eql error-code (roslisp-msg-protocol:symbol-code
-                                                  'arm_navigation_msgs-msg:ArmNavigationErrorCodes
-                                                  :success))
-                             (list solution)))))
+                       (when (eql error-code (roslisp-msg-protocol:symbol-code
+                                              'arm_navigation_msgs-msg:ArmNavigationErrorCodes
+                                              :success))
+                         (list solution))))
                    (lazy-take max-seeds (make-seed-states robot joint-names 3))))))
 
 (defun calculate-pan-tilt (robot pan-link tilt-link pose)
