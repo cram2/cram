@@ -37,7 +37,7 @@
           (values (car goal-funs) bdgs)
           (matching-goal-fun name args (cdr goal-funs))))))
 
-(defun make-goal-fun (name pattern body)
+(defun make-goal-fun (name pattern declarations body)
   (with-gensyms (bdgs-var block-name)
     (let* ((body `(with-tags ,@body))
            (goal-fun `(lambda (,bdgs-var)
@@ -47,6 +47,7 @@
                                               :lambda-list ,(cut:vars-in pattern)
                                               :parameters (mapcar (alexandria:rcurry #'cut:var-value ,bdgs-var)
                                                                   ',(cut:vars-in pattern)))
+                          ,@declarations
                           (block ,block-name
                             (flet ((succeed (&rest result)
                                      (return-from ,block-name
@@ -116,6 +117,5 @@ return values.
 "
   (multiple-value-bind (forms declarations doc-string)
       (parse-body body :documentation t)
-    (assert (null declarations) () "Declarations not supported by DEF-GOAL.")
-    `(let ((goal-fun ,(make-goal-fun name pattern forms)))
+    `(let ((goal-fun ,(make-goal-fun name pattern declarations forms)))
        (register-goal ',name ',pattern goal-fun ,doc-string))))
