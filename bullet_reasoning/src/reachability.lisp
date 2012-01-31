@@ -57,7 +57,7 @@
                              (cl-transforms:reference-transform
                               (pose obj))))
         (reference-frame (cl-urdf:name (cl-urdf:root-link (slot-value robot 'urdf)))))
-    (get-pr2-ik
+    (get-ik
      robot (tf:make-pose-stamped
             reference-frame 0.0
             (cl-transforms:translation obj-trans-in-robot)

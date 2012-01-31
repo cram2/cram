@@ -193,17 +193,17 @@ joint positions as seeds."
         (push (cons ik-namespace solver-info) *ik-solver-info-cache*)
         solver-info)))
 
-(defun get-pr2-ik (robot pose-stamped
-                   &key 
-                     (tool-frame (cl-transforms:make-pose
-                                  (cl-transforms:make-3d-vector 0 0 0)
-                                  (cl-transforms:make-quaternion 0 0 0 1)))
-                     (ik-namespace (error "Namespace of IK service has to be specified"))
-                     (fixed-frame "base_footprint"))
+(defun get-ik (robot pose-stamped
+               &key 
+                 (tool-frame (cl-transforms:make-pose
+                              (cl-transforms:make-3d-vector 0 0 0)
+                              (cl-transforms:make-quaternion 0 0 0 1)))
+                 (ik-namespace (error "Namespace of IK service has to be specified"))
+                 (fixed-frame "base_footprint"))
   (let* ((tf (set-tf-from-robot-state (make-instance 'tf:transformer)
                                       robot fixed-frame))
          (pose (tf:transform-pose tf :pose (tf:copy-pose-stamped pose-stamped :stamp 0)
-                                        :target-frame "torso_lift_link")))
+                                     :target-frame "torso_lift_link")))
     (roslisp:with-fields ((joint-names (joint_names kinematic_solver_info))
                           (link-names (link_names kinematic_solver_info)))
         (get-ik-solver-info ik-namespace)
