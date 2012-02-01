@@ -480,8 +480,8 @@ current joint states"
                   (calculate-joint-state obj (cl-urdf:name joint)))))))))
 
 (defmethod pose ((obj robot-object))
-  (or (call-next-method)
-      (slot-value obj 'initial-pose)))
+  (with-slots (urdf) obj
+    (link-pose obj (cl-urdf:name (cl-urdf:root-link urdf)))))
 
 (defmethod (setf pose) (new-value (obj robot-object))
   (with-slots (urdf) obj
