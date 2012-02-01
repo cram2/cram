@@ -35,4 +35,10 @@
   (<- (camera-frame "openni_rgb_optical_frame"))
   (<- (camera-frame "narrow_stereo_optical_frame"))
   (<- (robot-pan-tilt-links "head_pan_link" "head_tilt_link"))
-  (<- (robot-pan-tilt-joints "head_pan_joint" "head_tilt_joint")))
+  (<- (robot-pan-tilt-joints "head_pan_joint" "head_tilt_joint"))
+  
+  (<- (robot-pre-grasp ?robot)
+    (bound ?robot)
+    (or (lisp-fun set-joint-state ?robot "torso_lift_joint" 0.33 ?_)
+        (lisp-fun set-joint-state ?robot "torso_lift_joint" 0.165 ?_)
+        (lisp-fun set-joint-state ?robot "torso_lift_joint" 0.0 ?_))))

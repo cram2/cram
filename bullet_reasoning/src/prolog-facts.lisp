@@ -486,9 +486,11 @@
     (%object ?w ?robot-name ?robot)
     (lisp-type ?robot robot-object)
     (%object ?w ?obj-name ?obj)
-    (once
-     (grasp ?g)
-     (lisp-pred object-reachable-p ?robot ?obj :side ?side :grasp ?g)))
+    (with-stored-world ?w
+      (once
+       (robot-pre-grasp ?robot)
+       (grasp ?g)
+       (lisp-pred object-reachable-p ?robot ?obj :side ?side :grasp ?g))))
 
   (<- (blocking ?robot-name ?obj-name ?blocking-names)
     (blocking ?_ ?robot-name ?obj-name ?blocking-names))
