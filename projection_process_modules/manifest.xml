@@ -1,0 +1,18 @@
+<package>
+  <description brief="projection_process_modules">
+
+     projection_process_modules
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes="" />
+  <url>http://ros.org/wiki/projection_process_modules</url>
+  <depend package="process_modules" />
+  <depend package="cram_roslisp_common" />
+  <depend package="bullet_reasoning" />
+  <depend package="designators" />
+  <depend package="cram_plan_knowledge" />
+  <depend package="cl_transforms" />
+
+</package>
