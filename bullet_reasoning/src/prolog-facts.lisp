@@ -91,9 +91,25 @@
     (object-type ?_ ?name ?type))
   
   (<- (object-type ?world ?name ?type)
-    (bullet-world ?w)
-    (%object ?w ?name ?obj)
+    (bullet-world ?world)
+    (%object ?world ?name ?obj)
     (lisp-type ?obj ?type))
+
+  (<- (object-type ?world ?name ?type)
+    (bullet-world ?world)
+    (%object ?world ?name ?obj)
+    (lisp-type ?obj household-object)
+    (get-slot-value ?obj type ?type))
+
+  (<- (household-object-type ?name ?type)
+    (household-object-type ?_ ?name ?type))
+
+  (<- (household-object-type ?world ?name ?type)
+    (bullet-world ?world)
+    (object ?world ?name)    
+    (object-type ?world ?name household-object)
+    (%object ?world ?name ?object-instance)
+    (get-slot-value ?object-instance type ?type))
   
   (<- (%object ?world ?name ?obj)
     (bound ?name)
