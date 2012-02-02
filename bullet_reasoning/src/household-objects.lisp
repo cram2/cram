@@ -36,14 +36,16 @@
                              (pot "package://bullet_reasoning/resource/pot-ww.off" t)
                              (weisswurst "package://bullet_reasoning/resource/ww.stl" nil)))
 
-(defclass household-object (object) ())
+(defclass household-object (object)
+  ((type :reader household-object-type :initarg :type)))
 
-(defun make-household-object (world name &optional bodies (add-to-world t))
+(defun make-household-object (world name type &optional bodies (add-to-world t))
   (make-instance 'household-object
     :name name
     :world world
     :rigid-bodies bodies
-    :add add-to-world))
+    :add add-to-world
+    :type type))
 
 (defun make-octagon-prism-shape (radius height)
   "Returns a collision shape that is a octagon prism, i.e. that has an
@@ -83,7 +85,7 @@
                        mass radius height
                        (handle-size (cl-transforms:make-3d-vector
                                      0.03 0.01 (* height 0.8))))
-  (make-household-object world name
+  (make-household-object world name 'generic-cup
                          (list
                           (make-instance
                               'rigid-body
@@ -97,21 +99,19 @@
 (defmethod add-object ((world bt-world) (type (eql 'mesh)) name pose &key
                        mass mesh (color '(0.5 0.5 0.5 1.0))
                        disable-face-culling)
-  (let ((mesh (etypecase mesh
-                (symbol (physics-utils:load-3d-model
-                         (physics-utils:parse-uri (cadr (assoc mesh *mesh-files*)))
-                         :flip-winding-order (caddr (assoc mesh *mesh-files*))))
-                (string (physics-utils:load-3d-model
-                         (physics-utils:parse-uri mesh)))
-                (physics-utils:3d-model mesh))))
-    (make-household-object world name
+  (let ((mesh-model (etypecase mesh
+                      (symbol (physics-utils:load-3d-model
+                               (physics-utils:parse-uri (cadr (assoc mesh *mesh-files*)))
+                               :flip-winding-order (caddr (assoc mesh *mesh-files*))))
+                      (string (physics-utils:load-3d-model
+                               (physics-utils:parse-uri mesh)))
+                      (physics-utils:3d-model mesh))))
+    (make-household-object world name mesh
                            (list
-                            (make-instance
-                                'rigid-body
+                            (make-instance 'rigid-body
                               :name name :mass mass :pose (ensure-pose pose)
-                              :collision-shape (make-instance
-                                                   'convex-hull-mesh-shape
-                                                 :points (physics-utils:3d-model-vertices mesh)
-                                                 :faces (physics-utils:3d-model-faces mesh)
+                              :collision-shape (make-instance 'convex-hull-mesh-shape
+                                                 :points (physics-utils:3d-model-vertices mesh-model)
+                                                 :faces (physics-utils:3d-model-faces mesh-model)
                                                  :color color
                                                  :disable-face-culling disable-face-culling))))))
