@@ -139,6 +139,5 @@
     (lisp-fun type-of ?var ?type))
 
   (<- (lisp-type ?var ?type)
-    (bound ?var)
-    (bound ?type)
-    (lisp-pred typep ?var ?type)))
+    (ground (?var ?type))
+    (lisp-pred prolog-type-p ?var ?type)))
