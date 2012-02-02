@@ -47,6 +47,7 @@
               :documentation "Timestamp of creation of reference or nil
                              if still not referencing an object.")
    (description :reader description :initarg :description
+                :reader properties
                 :documentation "List of properties describing the designator.")
    (parent :reader parent :initarg :parent :initform nil
            :documentation "The parent designator, i.e. the designator
@@ -164,6 +165,14 @@ together with MAKE-DESIGNATOR and WITH-DESIGNATORS"
       desig
       (current-desig (successor desig))))
 
+(defun newest-valid-designator (desig)
+  (labels ((find-valid-desig (desig)
+             (cond ((not desig) nil)
+                   ((valid desig)
+                    desig)
+                   (t (find-valid-desig (parent desig))))))
+    (find-valid-desig (current-desig desig))))
+
 ;;; TODO: Make with-designators use language features. We need a
 ;;; transparent with-designator macro.
 (defmacro with-designators (defs &body body)
@@ -199,3 +208,14 @@ together with MAKE-DESIGNATOR and WITH-DESIGNATORS"
     (warn 'simple-warning
           :format-control "Designator property ~s has not been declared properly. This may cause problems. To fix it, use the macro DEF-DESIG-PACKAGE and declare the symbol as a designator property."
           :format-arguments (list prop))))
+
+(defun update-designator-properties (new-properties old-properties)
+  "Adds (or replaces) all properties in `new-properties' to
+  `old-properties' and returns the new sequence. All properties are of
+  the form ([(key value)]*)."
+  (reduce (lambda (properties new-property)
+            (cons new-property
+                  (remove (car new-property) properties
+                          :key #'car)))
+          new-properties :initial-value old-properties))
+
