@@ -128,14 +128,6 @@
                (perceived-object->designator desig perceived-object)))
             (sort perceived-objects #'> :key #'perceived-object-probability))))
 
-(defun newest-valid-designator (desig)
-  (labels ((find-valid-desig (desig)
-             (cond ((not desig) nil)
-                   ((valid desig)
-                    desig)
-                   (t (find-valid-desig (parent desig))))))
-    (find-valid-desig (current-desig desig))))
-
 (defparameter *known-roles* '(semantic-map cop)
   "Ordered list of known roles for designator resolution. They are
   processed in the order specified in this list")
