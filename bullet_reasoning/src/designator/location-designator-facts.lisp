@@ -134,9 +134,8 @@
     (assert-object-pose ?robot ?robot-pose)
     (not (contact ?robot ?_))
     (head-pointing-at ?robot ?obj-pose)
-    (link-pose ?robot ?cam-frame ?cam-pose)
     (desig-prop ?desig (obj ?obj))
-    (visible ?cam-pose ?obj))
+    (visible ?obj))
 
   (<- (btr-desig-solution-valid ?desig ?solution)
     (bullet-world ?w)

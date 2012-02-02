@@ -439,10 +439,19 @@
     (member ?obj-2 ?objs)))
 
 (def-fact-group visibility ()
-  (<- (visible ?camera-pose ?obj)
-    (visible ?_ ?camera-pose ?obj))
+  (<- (visible ?object)
+    (visible ?_ ?object))
+
+  (<- (visible ?world ?object)
+    (robot ?robot)
+    (camera-frame ?camera-frame)
+    (link-pose ?robot ?camera-frame ?camera-pose)
+    (visible-from ?world ?camera-pose ?object))
   
-  (<- (visible ?world ?camera-pose ?obj-name)
+  (<- (visible-from ?camera-pose ?obj)
+    (visible-from ?_ ?camera-pose ?obj))
+  
+  (<- (visible-from ?world ?camera-pose ?obj-name)
     (bound ?camera-pose)
     (bullet-world ?world)
     (%object ?world ?obj-name ?obj)
