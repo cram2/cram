@@ -43,13 +43,14 @@
            with-rendering-to-framebuffer render-to-framebuffer
            read-pixelbuffer read-depthbuffer to-png-image add-object
            generic-cup mug plate mondamin mesh remove-object object
-           name rigid-bodies rigid-body-names rigid-body world
-           make-object box static-plane sphere cylinder cone
-           point-cloud bt-reasoning-world invalidate-object objects
-           object %object bt-reasoning-world-state robot-object links
-           joint-states urdf joint-names joint-state link-names
-           link-pose set-robot-state-from-tf semantic-map-object
-           ensure-pose ensure-vector object-visibility
+           object-type household-object-type name rigid-bodies
+           rigid-body-names rigid-body world make-object box
+           static-plane sphere cylinder cone point-cloud
+           bt-reasoning-world invalidate-object objects object %object
+           bt-reasoning-world-state robot-object links joint-states
+           urdf joint-names joint-state link-names link-pose
+           set-robot-state-from-tf semantic-map-object ensure-pose
+           ensure-vector object-visibility
            object-visibility-percentage
            object-visibility-occluding-objects flat-color-object-proxy
            calculate-object-visibility object-visible-p
