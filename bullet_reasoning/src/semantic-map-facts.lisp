@@ -49,6 +49,7 @@
     (lisp-type ?obj-instance semantic-map-object))
   
   (<- (container ?w ?sem-map ?link)
+    (bound ?link)
     (lisp-pred identity ?link)
     (semantic-map ?w ?sem-map)
     (%object ?w ?sem-map ?sem-map-inst)    
@@ -67,4 +68,9 @@
        (lisp-pred sem-map-utils:owl-type-p ?owl-type "Container"))
       (and
        (lisp-fun parent-link-name ?sem-map-inst ?link ?parent)
-       (container ?w ?sem-map ?parent))))))
+       (container ?w ?sem-map ?parent)))))
+
+  (<- (container ?w ?sem-map ?link)
+    (not (bound ?link))
+    (link ?w ?sem-map ?link)
+    (container ?w ?sem-map ?link)))
