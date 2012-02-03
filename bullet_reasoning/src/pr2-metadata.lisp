@@ -58,8 +58,14 @@
     (symbol-value *left-parking-joint-states* ?left-joint-states)
     (append ?right-joint-states ?left-joint-states ?joint-states))
   
-  (<- (robot-pre-grasp ?robot)
-    (bound ?robot)
-    (or (lisp-fun set-joint-state ?robot "torso_lift_joint" 0.33 ?_)
-        (lisp-fun set-joint-state ?robot "torso_lift_joint" 0.165 ?_)
-        (lisp-fun set-joint-state ?robot "torso_lift_joint" 0.0 ?_))))
+  (<- (robot-pre-grasp-joint-states
+       (("torso_lift_joint" 0.33) . ?parking-joint-states))
+    (robot-arms-parking-joint-states ?parking-joint-states))
+
+  (<- (robot-pre-grasp-joint-states
+       (("torso_lift_joint" 0.165) . ?parking-joint-states))
+    (robot-arms-parking-joint-states ?parking-joint-states))
+
+  (<- (robot-pre-grasp-joint-states
+       (("torso_lift_joint" 0.00) . ?parking-joint-states))
+    (robot-arms-parking-joint-states ?parking-joint-states)))

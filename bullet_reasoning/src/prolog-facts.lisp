@@ -513,7 +513,8 @@
     (%object ?w ?obj-name ?obj)
     (with-stored-world ?w
       (once
-       (robot-pre-grasp ?robot)
+       (robot-pre-grasp-joint-states ?pre-grasp-joint-states)
+       (lisp-fun set-robot-state-from-joints ?pre-grasp-joint-states ?robot ?_)
        (grasp ?g)
        (lisp-pred object-reachable-p ?robot ?obj :side ?side :grasp ?g))))
 
