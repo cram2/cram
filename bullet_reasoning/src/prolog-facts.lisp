@@ -284,7 +284,23 @@
               ?robot ?pan-link ?tilt-link ?pose
               (?pan-pos ?tilt-pos))
     (lisp-fun set-joint-state ?robot ?pan-joint ?pan-pos ?_)
-    (lisp-fun set-joint-state ?robot ?tilt-joint ?tilt-pos ?_)))
+    (lisp-fun set-joint-state ?robot ?tilt-joint ?tilt-pos ?_))
+
+  (<- (joint-state ?robot-name ?state)
+    (joint-state ?_ ?robot-name ?state))
+
+  (<- (joint-state ?world ?robot-name ?state)
+    (bullet-world ?world)
+    (%object ?world ?robot-name ?robot)
+    (lisp-fun joint-state ?robot ?state))
+
+  (<- (assert-joint-states ?robot-name ?joint-states)
+    (assert-joint-states ?_ ?robot-name ?joint-states))
+
+  (<- (assert-joint-states ?world ?robot-name ?joint-states)
+    (bullet-world ?world)
+    (%object ?world ?robot-name ?robot)
+    (lisp-fun set-robot-state-from-joints ?joint-states ?robot ?_)))
 
 (def-fact-group force-dynamic-states ()
 
@@ -514,7 +530,7 @@
     (with-stored-world ?w
       (once
        (robot-pre-grasp-joint-states ?pre-grasp-joint-states)
-       (lisp-fun set-robot-state-from-joints ?pre-grasp-joint-states ?robot ?_)
+       (assert-joint-states ?w ?robot-name ?pre-grasp-joint-states)
        (grasp ?g)
        (lisp-pred object-reachable-p ?robot ?obj :side ?side :grasp ?g))))
 
