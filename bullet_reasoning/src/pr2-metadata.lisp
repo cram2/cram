@@ -30,12 +30,33 @@
 
 (in-package :btr)
 
+(defvar *right-parking-joint-states* '(("r_shoulder_pan_joint" -1.3810115229719555d0)
+                                       ("r_shoulder_lift_joint" 1.1282870348994702d0)
+                                       ("r_upper_arm_roll_joint" -1.7100000000000002d0)
+                                       ("r_elbow_flex_joint" -2.105735087282934d0)
+                                       ("r_forearm_roll_joint" -2.658135473603226d0)
+                                       ("r_wrist_flex_joint" -1.9927790883777252d0)
+                                       ("r_wrist_roll_joint" -2.5861844605475843d0)))
+
+(defvar *left-parking-joint-states* '(("l_shoulder_pan_joint" 1.3810115229719555d0)
+                                      ("l_shoulder_lift_joint" 1.1282870348994702d0)
+                                      ("l_upper_arm_roll_joint" 1.71d0)
+                                      ("l_elbow_flex_joint" -2.105735087282934d0)
+                                      ("l_forearm_roll_joint" 2.6581354736032257d0)
+                                      ("l_wrist_flex_joint" -1.9927790883777252d0)
+                                      ("l_wrist_roll_joint" 2.586184460547585d0)))
+
 (def-fact-group robot-metadata ()
   (<- (robot pr2))
   (<- (camera-frame "openni_rgb_optical_frame"))
   (<- (camera-frame "narrow_stereo_optical_frame"))
   (<- (robot-pan-tilt-links "head_pan_link" "head_tilt_link"))
   (<- (robot-pan-tilt-joints "head_pan_joint" "head_tilt_joint"))
+
+  (<- (robot-arms-parking-joint-states ?joint-states)
+    (symbol-value *right-parking-joint-states* ?right-joint-states)
+    (symbol-value *left-parking-joint-states* ?left-joint-states)
+    (append ?right-joint-states ?left-joint-states ?joint-states))
   
   (<- (robot-pre-grasp ?robot)
     (bound ?robot)
