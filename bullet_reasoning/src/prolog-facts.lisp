@@ -244,6 +244,15 @@
 
 (def-fact-group robot-model ()
 
+  (<- (link ?robot-name ?link)
+    (link ?_ ?robot-name ?link))
+
+  (<- (link ?world ?robot-name ?link)
+    (bullet-world ?world)
+    (%object ?world ?robot-name ?robot)
+    (lisp-fun link-names ?robot ?links)
+    (member ?link ?links))
+  
   (<- (link-pose ?robot-name ?name ?pose)
     (link-pose ?_ ?robot-name ?name ?pose))
   
