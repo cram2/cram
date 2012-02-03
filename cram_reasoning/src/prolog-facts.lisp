@@ -51,6 +51,17 @@
   (<- (length ?list ?length)
     (bound ?list)
     (lisp-fun length ?list ?length))
+
+  (<- (append ?list-1 ?list-2 ?result)
+    (bound ?list-1)
+    (bound ?list-2)
+    (lisp-fun append ?list-1 ?list-2 ?result)
+    (cut))
+
+  (<- (append nil ?list ?list))
+  
+  (<- (append (?elem . ?rest) ?list-2 (?elem . ?result))
+    (append ?rest ?list-2 ?result))
   
   ;; for now only handle bound parameters
   (<- (sort ?list ?pred ?result)
