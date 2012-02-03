@@ -134,9 +134,13 @@
 
 (defun lazy-mapcar (fun list-1 &rest more-lists)
   (when list-1
-    (lazy-list ((lists (cons list-1 more-lists)))
-      (unless (position nil lists)
-        (cont (apply fun (mapcar #'lazy-car lists)) (mapcar #'lazy-cdr lists))))))
+    (lazy-list ((lists (lambda ()
+                         (cons list-1 more-lists))))
+      (let ((expanded-lists (funcall lists)))
+        (unless (position nil expanded-lists)
+          (cont (apply fun (mapcar #'lazy-car expanded-lists))
+                (lambda ()
+                  (mapcar #'lazy-cdr expanded-lists))))))))
 
 (defun lazy-mapcan (fun list-1 &rest more-lists)
   (let ((initial-values (mapcar #'lazy-car (cons list-1 more-lists))))
