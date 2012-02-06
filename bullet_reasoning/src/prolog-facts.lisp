@@ -480,10 +480,10 @@
     (member ?obj-2 ?objs)))
 
 (def-fact-group visibility ()
-  (<- (visible ?object)
+  (<- (visible ?robot ?object)
     (visible ?_ ?object))
 
-  (<- (visible ?world ?object)
+  (<- (visible ?world ?robot ?object)
     (robot ?robot)
     (camera-frame ?camera-frame)
     (link-pose ?robot ?camera-frame ?camera-pose)

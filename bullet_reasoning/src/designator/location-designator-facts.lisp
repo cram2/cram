@@ -135,7 +135,7 @@
     (not (contact ?robot ?_))
     (head-pointing-at ?robot ?obj-pose)
     (desig-prop ?desig (obj ?obj))
-    (visible ?obj))
+    (visible ?robot ?obj))
 
   (<- (btr-desig-solution-valid ?desig ?solution)
     (bullet-world ?w)
