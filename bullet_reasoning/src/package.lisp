@@ -48,9 +48,9 @@
            static-plane sphere cylinder cone point-cloud
            bt-reasoning-world invalidate-object objects object %object
            bt-reasoning-world-state robot-object links joint-states
-           urdf joint-names joint-state link-names link-pose
-           set-robot-state-from-tf semantic-map-object ensure-pose
-           ensure-vector object-visibility
+           assert-joint-states urdf joint-names joint-state link-names
+           link-pose set-robot-state-from-tf semantic-map-object
+           ensure-pose ensure-vector object-visibility
            object-visibility-percentage
            object-visibility-occluding-objects flat-color-object-proxy
            calculate-object-visibility object-visible-p
@@ -66,7 +66,8 @@
            with-current-bullet-world reach-object-ik
            set-robot-state-from-joints set-robot-state-from-tf
 
-           robot-pan-tilt-links robot-pan-tilt-joints robot camera-frame
+           robot-pan-tilt-links robot-pan-tilt-joints robot
+           camera-frame robot-arms-parking-joint-states
 
            event execute-event def-event
            timeline timeline-init timeline-advance
