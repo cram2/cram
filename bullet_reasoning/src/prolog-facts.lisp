@@ -285,8 +285,9 @@
     (head-pointing-at ?_ ?robot-name ?pose))
   
   (<- (head-pointing-at ?w ?robot-name ?pose)
+    (robot ?robot-name)
     (robot-pan-tilt-links ?pan-link ?tilt-link)
-    (robot-pan-tilt-joints ?pan-joint ?tilt-joint)    
+    (robot-pan-tilt-joints ?pan-joint ?tilt-joint)
     (bullet-world ?w)
     (%object ?w ?robot-name ?robot)
     (lisp-fun calculate-pan-tilt
