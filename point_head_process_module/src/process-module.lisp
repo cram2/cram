@@ -63,6 +63,7 @@
       (declare (ignore e))
       (roslisp:ros-warn (point-head process-module) "Cannot resolve designator ~a. Ignoring."
                         goal)))
+  (cram-plan-knowledge:on-event (make-instance 'cram-plan-knowledge:robot-state-changed))
   (sleep* 1.0))
 
 (defun maybe-shutdown-thread ()

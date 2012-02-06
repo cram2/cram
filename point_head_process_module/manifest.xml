@@ -8,13 +8,14 @@
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/point_head_process_module</url>
-  <depend package="pr2_controllers_msgs"/>
-  <depend package="actionlib_lisp"/>
-  <depend package="process_modules"/>
-  <depend package="designators"/>
-  <depend package="cram_reasoning"/>
-  <depend package="cram_roslisp_common"/>
-  <depend package="alexandria"/>
+  <depend package="pr2_controllers_msgs" />
+  <depend package="actionlib_lisp" />
+  <depend package="process_modules" />
+  <depend package="designators" />
+  <depend package="cram_reasoning" />
+  <depend package="cram_roslisp_common" />
+  <depend package="cram_plan_knowledge" />
+  <depend package="alexandria" />
 
 </package>
 

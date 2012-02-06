@@ -37,6 +37,7 @@
                designators
                cram-reasoning
                cram-roslisp-common
+               cram-plan-knowledge
                alexandria
                pr2_controllers_msgs-msg)
   :components
