@@ -26,21 +26,25 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem projection-process-modules
-  :author "Lorenz Moesenlechner"
-  :license "BSD"
-  
-  :depends-on (process-modules
-               designators
-               bullet-reasoning
-               cram-plan-knowledge
-               cl-transforms)
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "perception" :depends-on ("package"))
-     (:file "manipulation" :depends-on ("package"))
-     (:file "ptu" :depends-on ("package"))
-     (:file "ptu-designator" :depends-on ("package"))
-     (:file "navigation" :depends-on ("package"))))))
+(in-package :projection-designators)
+
+(defmethod resolve-designator ((designator action-designator) (role (eql 'projection-role)))
+  (cut:lazy-mapcan (lambda (bindings)
+                     (cut:with-vars-bound (?solution) bindings
+                       (unless (cut:is-var ?solution)
+                     (list ?solution))))
+                   (crs:prolog `(action-desig-projection ,designator ?solution))))
+
+(def-fact-group ptu-designator (action-desig)
+
+  (<- (action-desig-projection ?desig ?pose)
+    (or 
+     (desig-prop ?desig (to see))
+     (desig-prop ?desig (to follow)))
+    (desig-prop ?desig (pose ?pose)))
+
+  (<- (action-desig-projection ?desig ?pose)
+    (or
+     (desig-prop ?desig (to see))
+     (desig-prop ?desig (to follow)))
+    (desig-location-prop ?desig ?pose)))

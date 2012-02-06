@@ -27,3 +27,16 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
 (in-package :projection-process-modules)
+
+(def-process-module projection-navigation (location-designator)
+  (let ((pose (desig:reference location-designator)))
+    (crs:prolog `(and
+                  (robot ?robot)
+                  (robot-arms-parking-joint-states ?joint-states)
+                  (assert-joint-states ?robot ?joint-states)))
+    (cram-plan-knowledge:on-event
+     (make-instance 'cram-plan-knowledge:robot-state-changed))
+    (crs:prolog `(and (robot ?robot)
+                      (assert-object-pose ?robot ,pose)))
+    (cram-plan-knowledge:on-event
+     (make-instance 'cram-plan-knowledge:robot-state-changed))))

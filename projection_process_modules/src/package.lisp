@@ -34,5 +34,6 @@
   (:export))
 
 (desig-props:def-desig-package projection-designators
-  (:use #:common-lisp #:cram-designators)
-  (:desig-properties at type))
+  (:use #:common-lisp #:cram-designators #:cram-reasoning)
+  (:export projection-role)
+  (:desig-properties at type to see follow pose location obj))

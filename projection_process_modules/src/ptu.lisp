@@ -27,3 +27,9 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
 (in-package :projection-process-modules)
+
+(def-process-module projection-ptu (input)
+  (let ((pose (desig:reference input 'projection-designators:projection-role)))
+    (crs:prolog `(head-pointing-at ?_ ,pose))
+    (cram-plan-knowledge:on-event
+     (make-instance 'cram-plan-knowledge:robot-state-changed))))
