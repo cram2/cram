@@ -66,7 +66,7 @@
                              :pose ?pose)
                            :parent designator)))
                       (crs:prolog `(and (object ,object)
-                                        (visible ,object)
+                                        (visible ?_ ,object)
                                         (object-pose ,object ?pose)))))))
 
 (defun find-with-new-designator (designator)
