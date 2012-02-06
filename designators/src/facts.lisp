@@ -37,8 +37,7 @@
     (reference (current-desig (desig-prop-value obj-desig 'at)))))
 
 (defun loc-desig-location (loc-desig)
-  (when (and (typep loc-desig 'location-designator)
-             loc-desig)
+  (when (and loc-desig (typep loc-desig 'location-designator))
     (reference loc-desig)))
 
 ;; This fact group contains general rules for location designators
@@ -63,7 +62,6 @@
   
   ;; (location ... (obj ?obj)...), e.g. location to see obj
   (<- (desig-location-prop ?desig ?loc)
-    (loc-desig? ?desig)
     (desig-prop ?desig (obj ?obj))
     (lisp-type ?obj designator)
     (lisp-fun current-desig ?obj ?curr-obj)
@@ -72,7 +70,6 @@
 
     ;; (location ... (location ?loc)...), e.g. location to see location
   (<- (desig-location-prop ?desig ?loc)
-    (loc-desig? ?desig)
     (desig-prop ?desig (location ?loc-desig))
     (lisp-fun current-desig ?loc-desig ?curr-loc-desig)
     (lisp-fun loc-desig-location ?loc-desig ?loc)))
