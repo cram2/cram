@@ -69,6 +69,10 @@
     joint-names))
 
 (defun make-seed-states (side joint-names &optional (steps 3))
+  "Creates a lazy list of seed states. `steps' indicates how many
+steps should be used for going from joint angle minimum to
+maximum. E.g 3 means that minimum, (mimimum + maximum) / 2 and maximum
+are used for each joint."
   (flet ((init ()
            (let ((current (make-hash-table :test 'equal))
                  (lower (make-hash-table :test 'equal))
@@ -125,6 +129,9 @@
 
 (defun ik->trajectory (ik-result &key (duration 5.0))
   (declare (type kinematics_msgs-srv:getpositionik-response ik-result))
+  "Converts the result of an IK call (type
+arm_navigation_msgs/RobotState) to a joint trajectory message that can
+be used in the corresponding actions."
   (roslisp:with-fields ((solution-names (name joint_state solution))
                         (solution-positions (position joint_state solution))
                         (error-code (val error_code)))
@@ -209,6 +216,9 @@
                      points)))))
 
 (defun merge-trajectories (velocity trajectory &rest trajectories)
+  "Merges `trajectory' with `trajectories'. All trajectory point
+velocities between the first point in `trajectory' and the last point
+in the last trajectory in `trajectories' are set to `velocity'."
   (if trajectories
       (roslisp:with-fields ((stamp (stamp header))
                             (joint-names joint_names)
@@ -266,6 +276,10 @@
                       (cl-transforms:make-quaternion 0 0 0 1)))
                (max-tries 1)
                seed-state)
+  "Calls the IK service. `tool' specifies an offset from the
+wrist_roll_link to the actual pose we want to calculate a solution
+for. `max-retries' indicates how many seed states should be tried for
+finding a solution."
   (let ((seeds (append
                 (when seed-state (list seed-state))
                 (make-seed-states
@@ -311,6 +325,9 @@
                                 allowed-collision-objects
                                 (max-tries 1)
                                 seed-state)
+  "Similar to GET-IK but uses the constraint-aware IK
+service. `allowed-collision-objects' is a sequence of collision-object
+names for which collisions are allowed."
   (let ((seeds (append
                 (when seed-state (list seed-state))
                 (make-seed-states
@@ -353,24 +370,10 @@
                 (cont result (lazy-cdr seeds))
                 (next (lazy-cdr seeds)))))))))
 
-(defun get-sgp-grasps (side obj)
-  (ecase side
-    (:right (roslisp:set-param "/grasp_pcd/sgp_config_param_start_side" 0.0))
-    (:left (roslisp:set-param "/grasp_pcd/sgp_config_param_start_side" pi)))
-  (let ((grasps (cpl-impl:without-scheduling
-                  (roslisp:call-service
-                   "/grasp_pcd/simple_grasp_planner" "sgp_srvs/sgp"
-                   :query (jlo:partial-lo (perception-pm:object-jlo (reference obj)))))))
-    (roslisp:with-fields (poses quals) grasps
-      (lazy-mapcar
-       (lambda (g)
-         (tf:msg->pose (car g)))
-       (sort (map 'list #'cons poses quals)
-             #'> :key #'cdr)))))
-
 (defun get-point-cluster-grasps (side obj)
   "Returns the (lazy) list of grasps calculated by the
-  /plan_point_cluster_grasps service."
+  /plan_point_cluster_grasps service. Poses are relative to
+  base_footprint."
   (let ((obj-tf-inv (cl-transforms:transform-inv
                      (cl-transforms:reference-transform
                       (tf:transform-pose
@@ -458,25 +461,6 @@
        (cl-transforms:translation goal-trans)
        (cl-transforms:rotation goal-trans)))))
 
-(defun get-grasp-object-trajectory-points (side obj)
-  (let ((grasps (get-sgp-grasps side obj))
-        (pose (designator-pose obj)))
-    (lazy-car
-     (lazy-mapcan (lambda (grasp)
-                    (list (merge-trajectories
-                           1.0
-                           (ik->trajectory
-                            (lazy-car (get-ik
-                                       side pose
-                                       :tool (calculate-tool-pose grasp 0.30)
-                                       :max-tries 30)))
-                           (ik->trajectory
-                            (lazy-car (get-ik
-                                       side pose
-                                       :tool (calculate-tool-pose grasp 0.15)
-                                       :max-tries 30))))))
-                  grasps))))
-
 (defun grasp-orientation-valid (pose good bad)
   "Returns T if `pose' has an orientation that is closer to an
   orientation in `good' than to an orientation in `bad'. Returns NIL
@@ -499,6 +483,8 @@
                              bad)))))
 
 (defun calculate-carry-orientation (obj side orientations)
+  "Returns a top orientation when object has been grasped from the top
+and a side orientation otherwise."
   (declare (ignore orientations))
   (when obj
     (let* ((hand-orientation (cl-transforms:rotation
@@ -520,6 +506,8 @@
     joint-state))
 
 (defun get-gripper-state (side)
+  "Returns the position of the gripper. 0 indicates a completely
+closed gripper."
   (roslisp:with-fields (name position)
       (get-robot-state)
     (let ((idx (position (ecase side
@@ -531,6 +519,7 @@
       (elt position idx))))
 
 (defun get-gripper-links (side)
+  "Returns the names of the gripper's links."
   (roslisp:get-param (ecase side
                        (:right "/hand_description/right_arm/hand_touch_links")
                        (:left "/hand_description/left_arm/hand_touch_links"))))
