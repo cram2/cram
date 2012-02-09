@@ -94,9 +94,25 @@
     (glx-choose-visual display (x-default-screen display) foreign-attributes)))
 
 (defmacro with-rendering-context (rendering-context &body body)
-  (alexandria:once-only (rendering-context)
-    `(sb-thread:with-mutex ((rendering-context-lock ,rendering-context))
-       (glx-make-current
-        (display ,rendering-context) (glx-pixmap ,rendering-context)
-        (context ,rendering-context))
-       ,@body)))
+  (alexandria:with-gensyms (current-display current-drawable current-context)
+    (alexandria:once-only (rendering-context)
+      `(let ((,current-display (glx-get-current-display))
+             (,current-drawable (glx-get-current-drawable))
+             (,current-context (glx-get-current-context)))
+         (sb-thread:with-mutex ((rendering-context-lock ,rendering-context))
+           (unwind-protect
+                (progn
+                  (assert (eql (glx-make-current
+                                (display ,rendering-context) (glx-pixmap ,rendering-context)
+                                (context ,rendering-context))
+                               1)
+                          () "Unable to activate rendering context.")
+                  ,@body)
+             (if (or (null-pointer-p ,current-display)
+                     (eql ,current-drawable 0)
+                     (null-pointer-p ,current-context))
+                 (glx-make-current (if (null-pointer-p ,current-display)
+                                       (display ,rendering-context)
+                                       ,current-display)
+                                   none (null-pointer))
+                 (glx-make-current ,current-display ,current-drawable ,current-context))))))))
