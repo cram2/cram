@@ -34,4 +34,6 @@
 
 (defmethod run-in-gl-context ((context bullet-world-gl-context) function)
   (cl-glx:with-rendering-context context
-    (funcall function)))
+    (prog1
+        (funcall function)
+      (gc-gl-context context))))
