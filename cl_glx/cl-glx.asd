@@ -41,4 +41,4 @@
     ((:file "package")
      (:file "cffi" :depends-on ("package"))
      (cffi-grovel:grovel-file "glx-grovel" :depends-on ("package"))
-     (:file "pixmap-rendering-context" :depends-on ("package"))))))
+     (:file "pixmap-rendering-context" :depends-on ("package" "glx-grovel"))))))
