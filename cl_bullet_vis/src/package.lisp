@@ -38,8 +38,7 @@
   (:export bullet-world-window world camera-transform
            closed draw close-window
            hidden show-window hide-window
-           init-camera set-camera
-           with-bullet-window-context
+           init-camera set-camera with-gl-context
            get-texture-handle camera-transform light-position
            gl-context bullet-world-gl-context
            *background-color*

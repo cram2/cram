@@ -60,6 +60,10 @@
   (:method ((obj t))
     nil))
 
+(defgeneric run-in-gl-context (gl-context function)
+  (:documentation "Runs `function' in the rendering context of
+  `gl-context', i.e. all GL calls in `function' are executed in `gl-context'"))
+
 (defclass gl-context ()
   ((textures :initform (make-hash-table))
    (display-lists :initform nil)
@@ -108,3 +112,7 @@
                                           (gc-display-list (car i)))))
                                   display-lists
                                   :initial-value nil)))))
+
+(defmacro with-gl-context (context &body body)
+  "Executes `body' in the OpenGL rendering context of `context'."
+  `(run-in-gl-context ,context (lambda () ,@body)))

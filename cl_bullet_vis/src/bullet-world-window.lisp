@@ -212,6 +212,39 @@
   (push callback (display-callbacks w))
   (glut:display w))
 
+(defmethod run-in-gl-context ((window bullet-world-window) function)
+  (let ((lock (sb-thread:make-mutex))
+        (condition (sb-thread:make-waitqueue))
+        (result nil)
+        (done nil))
+    (post-event
+     window
+     `(:display
+       :callback ,(lambda ()
+                    (unwind-protect
+                         (handler-case
+                             (setf result (list :ok (funcall function)))
+                           (error (e)
+                             (setf result (list :error e)))
+                           (warning (w)
+                             (setf result (list :warning w))))
+                      (sb-thread:with-mutex (lock)
+                        (setf done t)
+                        (sb-thread:condition-broadcast condition))))))
+    (sb-thread:with-mutex (lock)
+      (loop until done
+            do (handler-case
+                   (sb-ext:with-timeout 0.01
+                     (sb-thread:condition-wait condition lock))
+                 (sb-ext:timeout ()
+                   nil))
+            finally (destructuring-bind (status value) result
+                      (return
+                        (ecase status
+                          (:ok value)
+                          (:error (error value))
+                          (:warning (warn value)))))))))
+
 (defun init-camera ()
   "Sets the camera such that x points forward, y to the left and z
 upwards. This matches ROS' coordinates best."
@@ -224,40 +257,3 @@ upwards. This matches ROS' coordinates best."
   (gl:mult-matrix (transform->gl-matrix
                    (cl-transforms:transform-inv camera-transform))))
 
-(defmacro with-bullet-window-context (window &body body)
-  (let ((lock (gensym "LOCK-"))
-        (condition (gensym "CONDITION-"))
-        (result (gensym "RESULT-"))
-        (done (gensym "DONE-")))
-    `(let ((,lock (sb-thread:make-mutex))
-           (,condition (sb-thread:make-waitqueue))
-           (,result nil)
-           (,done nil))
-       (post-event
-        ,window
-        `(:display
-          :callback ,(lambda ()
-                       (unwind-protect
-                            (handler-case
-                                (setf ,result (list :ok (progn ,@body)))
-                              (error (e)
-                                (setf ,result (list :error e)))
-                              (warning (w)
-                                (setf ,result (list :warning w))))
-                         (sb-thread:with-mutex (,lock)
-                           (setf ,done t)
-                           (sb-thread:condition-broadcast ,condition))))))
-       (sb-thread:with-mutex (,lock)
-         (loop until ,done
-               do (handler-case
-                      (sb-ext:with-timeout 0.01
-                        (sb-thread:condition-wait ,condition ,lock))
-                    (sb-ext:timeout ()
-                      nil))
-               finally (destructuring-bind (status value)
-                           ,result
-                         (return
-                           (ecase status
-                             (:ok value)
-                             (:error (error value))
-                             (:warning (warn value))))))))))
