@@ -38,6 +38,7 @@
                  cl-glu
                  cl-glut
                  cl-transforms
+                 cl-glx
                  trivial-garbage
                  physics-utils)
     :components
@@ -70,4 +71,6 @@
                (:file "bullet-world-gl-context" :depends-on ("package" "gl-context"))
                (:file "bullet-world-window"
                       :depends-on ("package" "transforms" "bullet-world-gl-context" "visualization"))
+               (:file "bullet-world-pixmap-renderer"
+                      :depends-on ("package" "bullet-world-gl-context"))
                (:file "display-lists" :depends-on ("package" "gl-context" "visualization"))))))
