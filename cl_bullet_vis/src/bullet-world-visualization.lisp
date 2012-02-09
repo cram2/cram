@@ -30,17 +30,6 @@
 
 (in-package :bt-vis)
 
-(defvar *current-world* nil
-  "Contains a reference to the world during drawing operations. This
-  is sort of a back-door to allow drawing functions to re-draw the
-  whole scene in order to do fancy opengl effects such as shadows and
-  reflections.")
-
-(defmethod draw :around ((context gl-context) (world bt-world))
-  (let ((*current-world* world))
-    (with-world-locked world
-      (call-next-method))))
-
 (defmethod draw ((context gl-context) (world bt-world))
   (dolist (body (bodies world))
     (draw context body)))

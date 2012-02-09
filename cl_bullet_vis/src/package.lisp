@@ -36,8 +36,7 @@
   (:import-from #:physics-utils
                 event-queue post-event get-next-event)
   (:export bullet-world-window world camera-transform
-           closed draw *current-world*
-           close-window
+           closed draw close-window
            hidden show-window hide-window
            init-camera set-camera
            with-bullet-window-context
