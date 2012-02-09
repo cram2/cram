@@ -28,7 +28,7 @@
 
 (in-package :cl-glx)
 
-(defclass pixbuf-rendering-context ()
+(defclass pixmap-rendering-context ()
   ((display :reader display)
    (visual :reader visual)
    (context :reader context)
@@ -38,7 +38,7 @@
    (height :reader height :initarg :height)
    (depth :reader depth :initarg :depth)))
 
-(defmethod initialize-instance :after ((rendering-context pixbuf-rendering-context)
+(defmethod initialize-instance :after ((rendering-context pixmap-rendering-context)
                                        &key (attributes `(,glx-rgba
                                                           (,glx-red-size . 1)
                                                           (,glx-green-size . 1)
@@ -90,3 +90,11 @@
   (with-foreign-object (foreign-attributes :int (length attributes))
     (set-foreign-array foreign-attributes attributes :int)
     (glx-choose-visual display (x-default-screen display) foreign-attributes)))
+
+(defmacro with-rendering-context (rendering-context &body body)
+  (alexandria:once-only (rendering-context)
+    `(progn
+       (glx-make-current
+        (display ,rendering-context) (glx-pixmap ,rendering-context)
+        (context ,rendering-context))
+       ,@body)))
