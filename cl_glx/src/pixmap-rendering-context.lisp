@@ -29,7 +29,9 @@
 (in-package :cl-glx)
 
 (defclass pixmap-rendering-context ()
-  ((display :reader display)
+  ((lock :reader rendering-context-lock
+         :initform (sb-thread:make-mutex))
+   (display :reader display)
    (visual :reader visual)
    (context :reader context)
    (pixmap :reader pixmap)
@@ -93,7 +95,7 @@
 
 (defmacro with-rendering-context (rendering-context &body body)
   (alexandria:once-only (rendering-context)
-    `(progn
+    `(sb-thread:with-mutex ((rendering-context-lock ,rendering-context))
        (glx-make-current
         (display ,rendering-context) (glx-pixmap ,rendering-context)
         (context ,rendering-context))
