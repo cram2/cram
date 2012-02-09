@@ -30,6 +30,10 @@
 
 (in-package :bt-vis)
 
+(defvar *global-rendering-lock* (sb-thread:make-mutex)
+  "A global mutex that needs to be acquired when a thread wants to
+  perform OpenGL operations.")
+
 (defgeneric get-texture-handle (gl-context name))
 
 (defgeneric camera-transform (gl-context)
@@ -113,6 +117,11 @@
                                   display-lists
                                   :initial-value nil)))))
 
+(defmacro with-rendering-lock (&body body)
+  `(sb-thread:with-recursive-lock (*global-rendering-lock*)
+     ,@body))
+
 (defmacro with-gl-context (context &body body)
   "Executes `body' in the OpenGL rendering context of `context'."
-  `(run-in-gl-context ,context (lambda () ,@body)))
+  `(with-rendering-lock
+     (run-in-gl-context ,context (lambda () ,@body))))

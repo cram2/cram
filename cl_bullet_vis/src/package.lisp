@@ -39,6 +39,7 @@
            closed draw close-window
            hidden show-window hide-window
            init-camera set-camera with-gl-context
+           with-rendering-lock
            get-texture-handle camera-transform light-position
            gl-context bullet-world-gl-context
            bullet-world-pixmap-renderer *background-color*
