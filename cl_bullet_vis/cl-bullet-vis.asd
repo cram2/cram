@@ -67,7 +67,7 @@
                                    "visualization"))
                (:file "bullet-world-visualization"
                       :depends-on ("package" "gl-context" "visualization"))
+               (:file "bullet-world-gl-context" :depends-on ("package" "gl-context"))
                (:file "bullet-world-window"
-                      :depends-on ("package"
-                                   "transforms" "gl-context" "visualization"))
+                      :depends-on ("package" "transforms" "bullet-world-gl-context" "visualization"))
                (:file "display-lists" :depends-on ("package" "gl-context" "visualization"))))))

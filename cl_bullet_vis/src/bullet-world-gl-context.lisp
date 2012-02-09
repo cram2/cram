@@ -1,5 +1,4 @@
-;;;
-;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2011, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -26,37 +25,22 @@
 ;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
-;;;
 
-(in-package :cl-user)
+(in-package :bt-vis)
 
-(defpackage cl-bullet-vis
-    (:nicknames :bt-vis)
-  (:use #:common-lisp #:bt)
-  (:import-from #:physics-utils
-                event-queue post-event get-next-event)
-  (:export bullet-world-window world camera-transform
-           closed draw close-window
-           hidden show-window hide-window
-           init-camera set-camera
-           with-bullet-window-context
-           get-texture-handle camera-transform light-position
-           gl-context bullet-world-gl-context
-           *background-color*
-           collision-shape-color *collision-shape-color-overwrite*
-           colored-shape-mixin colored-static-plane-shape
-           colored-box-shape colored-sphere-shape colored-cone-shape
-           colored-compound-shape colored-convex-hull-shape
-           *disable-texture-rendering*
-           texture-str->bitmap textured-shape-mixin
-           textured-static-plane-shape textured-box-shape
-           textured-sphere-shape textured-cone-shape
-           textured-compound-shape textured-convex-hull-shape
-           *force-smooth-shading*
-           box-mesh-shape cylinder-mesh-shape
-           compound-mesh-shape convex-hull-mesh-shape
-           matrix->gl-matrix pose->gl-matrix transform->gl-matrix
-           force-redraw
-           read-pixels-float
-           math-function-object
-           gl-objects))
+(defclass bullet-world-gl-context (gl-context)
+  ((world :reader world :initarg :world
+          :initform (error
+                     'simple-error
+                     "BULLET-WORLD-GL-CONTEXT requires a bullet world object."))))
+
+(defmethod initialize-instance :after ((world-context bullet-world-gl-context) &key world)
+  (push world (gl-objects world-context)))
+
+(defgeneric (setf world) (new-value world-context)
+  (:method (new-value (world-context bullet-world-gl-context))
+    (with-slots (world) world-context
+      (setf world new-value)
+      (setf (gl-objects world-context)
+            (cons new-value
+                  (remove world (gl-objects world-context)))))))
