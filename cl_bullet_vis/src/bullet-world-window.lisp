@@ -276,4 +276,3 @@ upwards. This matches ROS' coordinates best."
                              (:ok value)
                              (:error (error value))
                              (:warning (warn value))))))))))
-
