@@ -31,25 +31,36 @@
 (in-package :bt-vis)
 
 (defclass display-list-mixin ()
-  ((display-list-id :reader display-list-id)))
+  ((display-list-id-mappings :initform (tg:make-weak-hash-table :weakness :key))))
 
 (defgeneric force-redraw (obj)
   (:documentation "When T, forces a regeneration of the display list")
   (:method ((obj display-list-mixin))
     nil))
 
+(defgeneric display-list-id (gl-context object)
+  (:method ((gl-context gl-context) (object display-list-mixin))
+    (with-slots (display-list-id-mappings) object
+      (gethash gl-context display-list-id-mappings))))
+
+(defgeneric (setf display-list-id) (new-value gl-context object)
+  (:method (new-value (gl-context gl-context) (object display-list-mixin))
+    (with-slots (display-list-id-mappings) object
+      (setf (gethash gl-context display-list-id-mappings)
+            new-value))))
+
 (defmethod draw :around ((gl-context gl-context) (obj display-list-mixin))
-  (when (force-redraw obj)
-    (remove-display-list gl-context (display-list-id obj)))
-  (unless (and (slot-boundp obj 'display-list-id)
-               (display-list-valid gl-context (display-list-id obj)))
-    (let ((id (gl:gen-lists 1)))
-      (when (eql id 0)
+  (let ((display-list-id (display-list-id gl-context obj)))
+    (when (and (force-redraw obj) display-list-id)
+      (remove-display-list gl-context display-list-id))
+    (unless (and display-list-id (display-list-valid gl-context display-list-id))
+      (setf display-list-id (gl:gen-lists 1))
+      (when (eql display-list-id 0)
+        (setf display-list-id nil)
         (error 'simple-error
-               :format-control "Invalid display-list id ~a"
-               :format-arguments (list id)))
-      (setf (slot-value obj 'display-list-id) id)
-      (register-display-list gl-context id obj)
-      (gl:with-new-list (id :compile)
-        (call-next-method))))
-  (gl:call-lists (list (slot-value obj 'display-list-id))))
+               :format-control "Invalid display-list."))
+      (setf (display-list-id gl-context obj) display-list-id)
+      (register-display-list gl-context display-list-id obj)
+      (gl:with-new-list (display-list-id :compile)
+        (call-next-method)))
+    (gl:call-lists (list display-list-id))))
