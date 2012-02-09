@@ -28,5 +28,5 @@
 
 (defpackage cl-glx
   (:use #:common-lisp #:cffi)
-  (:export pixbuf-rendering-context with-rendering-context
+  (:export pixmap-rendering-context with-rendering-context
            width height))
