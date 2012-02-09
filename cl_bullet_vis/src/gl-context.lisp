@@ -71,7 +71,7 @@
                                 (cl-transforms:make-3d-vector 0 0 0)
                                 (cl-transforms:make-quaternion 0 0 0 1))
                      :initarg :camera-transform
-                     :reader camera-transform)
+                     :accessor camera-transform)
    (light-position :initform (cl-transforms:make-3d-vector 0 0 5)
                    :initarg :light-position
                    :reader light-position)
