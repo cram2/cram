@@ -126,7 +126,7 @@
  (visual-id "visualid" :type :unsigned-long)
  (screen "screen" :type :int)
  (depth "depth" :type :int)
- (class "class" :type :int)
+ ;; (class "class" :type :int)
  (red-mask "red_mask" :type :unsigned-long)
  (green-mask "green_mask" :type :unsigned-long)
  (blue-mask "blue_mask" :type :unsigned-long)
