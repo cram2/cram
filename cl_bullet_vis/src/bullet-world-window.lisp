@@ -6,7 +6,7 @@
 
 (defvar *background-color* (list (/ 206 255) (/ 210 255) (/ 237 255) 0))
 
-(defclass bullet-world-window (glut:window gl-context event-queue)
+(defclass bullet-world-window (glut:window bullet-world-gl-context event-queue)
   ((frame-rate :initform 25 :initarg :frame-rate :reader frame-rate
                :documentation "The desired frame rate in Hz. The
                system tries to redisplay the window at this rate.")
@@ -43,21 +43,6 @@
                              (setf (slot-value window 'hidden) t))))))
 
 (defgeneric process-event (window type &key))
-
-(defgeneric world (window)
-  (:method ((w bullet-world-window))
-    (find-if (lambda (o) (typep o 'bt-world)) (gl-objects w))))
-
-(defgeneric (setf world) (new-value window)
-  (:method (new-value (w bullet-world-window))
-    (setf (gl-objects w)
-          (cons new-value
-                (remove-if (lambda (o) (typep o 'bt-world)) (gl-objects w))))))
-
-(defmethod initialize-instance :after ((w bullet-world-window) &key world)
-  (unless world
-    (error 'simple-error :format-control "world argument required"))
-  (push world (gl-objects w)))
 
 (defmethod glut:display-window :around ((w bullet-world-window))
   (unwind-protect
