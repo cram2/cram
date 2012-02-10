@@ -117,31 +117,30 @@
          (gl:delete-framebuffers-ext (list ,framebuffer))
          (gl:delete-renderbuffers-ext (list ,pixelbuffer ,depthbuffer))))))
 
-(defun render-to-framebuffer (drawable camera &key
-                              (get-pixelbuffer t)
-                              (get-depthbuffer nil)
-                              (mirror nil))
+(defun render-to-framebuffer (gl-context drawable camera
+                              &key (get-pixelbuffer t)
+                                (get-depthbuffer nil)
+                                (mirror nil))
   "Renders the object `drawable' into a framebuffer. It returns a list
   of the form (pix-buffer depth-buffer) with values set to NIL if the
   corresponding flag parameter `get-pixelbuffer' and `get-depthbuffer'
   respectively is set to NIL "
-  (let ((gl-context (make-instance
-                     'gl-context
-                     :camera-transform (camera-transform camera))))
-    (flet ((do-rendering ()
-             (let ((viewport (map 'list #'identity (gl:get* :viewport))))
-               (unwind-protect
-                    (progn
-                      (gl:clear :color-buffer :depth-buffer)
-                      (gl-setup-camera camera)
-                      (draw gl-context drawable)
-                      (list (when get-pixelbuffer (read-pixelbuffer camera mirror))
-                            (when get-depthbuffer (read-depthbuffer camera mirror))))
-                 (apply #'gl:viewport viewport)))))
-      (if *framebuffer-enabled*
-          (do-rendering)
-          (with-rendering-to-framebuffer ((width camera) (height camera))
-            (do-rendering))))))
+  (setf (camera-transform gl-context) (camera-transform camera))
+  (flet ((do-rendering ()
+           (let ((viewport (map 'list #'identity (gl:get* :viewport))))
+             (unwind-protect
+                  (progn
+                    (gl:clear :color-buffer :depth-buffer)
+                    (gl-setup-camera camera)
+                    (draw gl-context drawable)
+                    (gl:flush)
+                    (list (when get-pixelbuffer (read-pixelbuffer camera mirror))
+                          (when get-depthbuffer (read-depthbuffer camera mirror))))
+               (apply #'gl:viewport viewport)))))
+    (if *framebuffer-enabled*
+        (do-rendering)
+        (with-rendering-to-framebuffer ((width camera) (height camera))
+          (do-rendering)))))
 
 (defun read-pixelbuffer (camera &optional mirror)
   (let* ((width (width camera))
