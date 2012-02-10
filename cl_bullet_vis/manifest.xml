@@ -14,6 +14,7 @@
   <depend package="cl_transforms"/>
   <depend package="cl_glx"/>
   <depend package="trivial_garbage"/>
+  <depend package="alexandria"/>
 
 </package>
 

@@ -40,6 +40,7 @@
                  cl-transforms
                  cl-glx
                  trivial-garbage
+                 alexandria
                  physics-utils)
     :components
     ((:module "src"

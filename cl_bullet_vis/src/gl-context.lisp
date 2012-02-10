@@ -51,6 +51,10 @@
 (defgeneric remove-display-list (gl-context id)
   (:documentation "Frees a display list with a specific ID"))
 
+(defgeneric get-display-list-id (gl-context instance)
+  (:documentation "Gets the display list the instance has
+  registered."))
+
 (defgeneric display-list-valid (gl-context id)
   (:documentation "Returns if a display list is still valid, i.e. if
   it is known to the gl-context and has not been garbage collected
@@ -99,6 +103,11 @@
       (setf display-lists
             (remove id display-lists
                     :key #'car)))))
+
+(defmethod get-display-list-id ((gl-context gl-context) instance)
+  (with-slots (display-lists) gl-context
+    (car (find instance display-lists :key
+               (alexandria:compose #'tg:weak-pointer-value #'cdr)))))
 
 (defmethod display-list-valid ((gl-context gl-context) id)
   (with-slots (display-lists) gl-context
