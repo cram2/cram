@@ -87,7 +87,7 @@
     (costmap ?cm)
     (bullet-world ?world)
     (object ?world ?obj)
-    (contact ?world ?obj ?sem-map ?contacting-link)
+    (once (contact ?world ?obj ?sem-map ?contacting-link))
     (link-pose ?sem-map ?contacting-link ?reference-pose)
     (costmap-add-orientation-generator
      (make-aligned-orientation-generator ?reference-pose ?pose)
