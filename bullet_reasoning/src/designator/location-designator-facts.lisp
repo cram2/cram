@@ -139,8 +139,7 @@
     (not (contact ?robot ?_))
     (-> (desig-prop ?desig (side ?side)) (true) (true))
     (desig-prop ?desig (obj ?obj))
-    (reachable ?robot ?obj ?side)
-    (blocking ?robot ?obj ?side ()))
+    (reachable ?robot ?obj ?side))
     
   (<- (location-valid
        ?desig ?pose
