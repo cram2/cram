@@ -176,7 +176,7 @@
        :cost-functions (reduce #'append (mapcar #'cost-functions costmaps)
                                :initial-value (cost-functions cm-1))
        :height-generator (some #'height-generator (cons cm-1 costmaps))
-       :orientation-generators (mapcan #'orientation-generators (cons cm-1 costmaps))))))
+       :orientation-generators (mapcan (compose #'copy-list #'orientation-generators) (cons cm-1 costmaps))))))
 
 (defun generate-height (map x y &optional (default 0.0d0))
   (if (height-generator map)
