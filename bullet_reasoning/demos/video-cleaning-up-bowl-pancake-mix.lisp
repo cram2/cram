@@ -48,31 +48,35 @@
 (setf sem-map (var-value '?sem-map (lazy-car (prolog `(%object ?w sem-map ?sem-map) bdgs))))
 
 (force-ll (prolog `(and
-                    (assert-object ?w mesh pot ((0 0 2.0) (0 0 0 1)) :mesh pot :mass 0.2))
+                    (assert-object ?w mesh pot ((-1.85 2.64 0.95) (0 0 0 1)) :mesh pot :mass 0.2))
                   bdgs))
-(setf desig (desig:make-designator 'desig-props:location '((desig-props:on cooking-plate))))
-(force-ll
-      (prolog `(and (once
-                     (desig-solutions ,desig ?solutions)
-                     (generate ?poses-on (obj-poses-on pot ?solutions ?w))
-                     (member ?solution ?poses-on)
-                     (assert-object-pose ?w pot ?solution)))
-              bdgs))
-
 (setf to-reach-desig (desig:make-designator 'desig-props:location '((desig-props:to desig-props:reach) (desig-props:obj pot))))
-(setf desig (desig:make-designator 'desig-props:location '((desig-props:on counter-top) (desig-props:name kitchen-island))))
+
+;; (setf desig (desig:make-designator 'desig-props:location '((desig-props:on cooking-plate))))
+;; (force-ll
+;;       (prolog `(and (once
+;;                      (desig-solutions ,desig ?solutions)
+;;                      (generate ?poses-on (obj-poses-on pot ?solutions ?w))
+;;                      (member ?solution ?poses-on)
+;;                      (assert-object-pose ?w pot ?solution)))
+;;               bdgs))
+
 (force-ll (prolog `(and
                     (assert-object ?w mesh bowl ((0 0 2.0) (0 0 0 1)) :mesh bowl :mass 0.2))
                   bdgs))
 (force-ll
-      (prolog `(and (once
-                     (desig-solutions ,desig ?solutions)
-                     (desig-solutions ,to-reach-desig ?to-reach-solutions)
-                     (take 50 ?solutions ?50-solutions)
-                     (member ?to-reach-location ?to-reach-solutions)
-                     (assert-object-pose ?w pr2 ?to-reach-location)
-                     (generate ?poses-on (obj-poses-on bowl ?solutions ?w))
-                     (member ?solution ?poses-on)
-                     (assert-object-pose ?w bowl ?solution)
-                     (reachable ?w pr2 bowl)))
-              bdgs))
+ (prolog `(once
+           (desig-solutions ,to-reach-desig ?to-reach-solutions)
+           (member ?to-reach-location ?to-reach-solutions)
+           (assert-object-pose ?w pr2 ?to-reach-location)
+           (desig:designator desig:location ((btr-desig::reachable-from ?to-reach-location)
+                                             (desig-props:on counter-top) (desig-props:name kitchen-island))
+                             ?desig)
+           (desig-solutions ?desig ?solutions)
+           (take 50 ?solutions ?50-solutions)
+           (generate ?poses-on (obj-poses-on bowl ?solutions ?w))
+           (member ?solution ?poses-on)
+           (assert-object-pose ?w bowl ?solution)
+           (not (contact ?w bowl pot))
+           (reachable ?w pr2 bowl :left))
+         bdgs))
