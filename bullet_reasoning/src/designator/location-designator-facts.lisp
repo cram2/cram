@@ -39,58 +39,33 @@
   4)
 
 (defun make-aligned-orientation-generator (reference-pose pose)
-  (flet ((normalize-angle (angle)
-           (loop while (< angle (- pi)) do
-             (setf angle (+ angle pi)))
-           (loop while (> angle pi) do
-             (setf angle (- angle pi)))
-           angle)
-         (yaw-between-points (point-1 point-2)
+  (flet ((yaw-between-points (point-1 point-2)
            (let ((offset (cl-transforms:v- point-2 point-1)))
-             (format t "yaw: ~a ~a~%" offset (atan (/  (cl-transforms:y offset)
-                                                       (cl-transforms:x offset))))
-             (atan (/ (cl-transforms:y offset)
-                      (cl-transforms:x offset))))))
-    (labels ((find-closest-orienation (reference-orientation orientations
-                                       &optional current-best-orientation)
-               (format t "orientation ~a ~a ~a~%"
-                       (cl-transforms:get-yaw reference-orientation)
-                       (when (car orientations) (cl-transforms:get-yaw (car orientations)))
-                       (when current-best-orientation (cl-transforms:get-yaw current-best-orientation)))
-               (format t "orientation difference angles ~a ~a~%"
-                       (when (car orientations) (normalize-angle
-                                                 (cl-transforms:angle-between-quaternions
-                                                  reference-orientation (car orientations))))
-                       (when current-best-orientation (normalize-angle
-                                                       (cl-transforms:angle-between-quaternions
-                                                        reference-orientation
-                                                        current-best-orientation))))
-               (cond ((and orientations (not current-best-orientation))
-                      (find-closest-orienation
-                       reference-orientation (cdr orientations) (car orientations)))
-                     (orientations
-                      (find-closest-orienation
-                       reference-orientation (cdr orientations)
-                       (if (< (abs (normalize-angle (cl-transforms:angle-between-quaternions
-                                                     reference-orientation (car orientations))))
-                              (abs (normalize-angle (cl-transforms:angle-between-quaternions
-                                                     reference-orientation current-best-orientation))))
-                           (car orientations)
-                           current-best-orientation)))
-                     (t current-best-orientation))))
+             (atan (cl-transforms:y offset) (cl-transforms:x offset)))))
+    (labels ((find-closest-angle (reference-angle angles &optional current-best-angle)
+               (cond ((and angles (not current-best-angle))
+                      (find-closest-angle
+                       reference-angle (cdr angles) (car angles)))
+                     (angles
+                      (find-closest-angle
+                       reference-angle (cdr angles)
+                       (if (< (abs (cl-transforms:normalize-angle
+                                    (- reference-angle (car angles))))
+                              (abs (cl-transforms:normalize-angle
+                                    (- reference-angle current-best-angle))))
+                           (car angles)
+                           current-best-angle)))
+                     (t (cl-transforms:euler->quaternion :az current-best-angle)))))
       (lambda (x y orientation)
         (declare (ignore orientation))
-        (format t "pose ~a~% (~a ~a)~%" pose x y)
-        (find-closest-orienation
-         (cl-transforms:euler->quaternion
-          :az (yaw-between-points
-               (cl-transforms:make-3d-vector x y 0)
-               (cl-transforms:origin pose)))
-         (reduce (lambda (orientations 90-degrees)
-                   (cons (cl-transforms:q* (car orientations) 90-degrees)
-                         orientations))
-                 (make-list 3 :initial-element (cl-transforms:euler->quaternion :az (/ pi 2)))
-                 :initial-value (list (cl-transforms:orientation reference-pose))))))))
+        (find-closest-angle
+         (yaw-between-points
+          (cl-transforms:make-3d-vector x y 0)
+          (cl-transforms:origin pose))
+         (loop with pi/2 = (/ pi 2)
+               with reference-angle = (cl-transforms:get-yaw (cl-transforms:orientation reference-pose))
+               for i from 0 below 4 collecting (cl-transforms:normalize-angle
+                                                (+ reference-angle (* i pi/2)))))))))
 
 (def-fact-group bullet-reasoning-location-desig (desig-costmap
                                                  desig-loc
