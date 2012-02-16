@@ -33,7 +33,7 @@
 (defparameter *mesh-files* '((mug "package://bullet_reasoning/resource/mug.stl" t)
                              (plate "package://bullet_reasoning/resource/plate.stl" nil)
                              (mondamin "package://bullet_reasoning/resource/mondamin.stl" nil)
-                             (pot "package://bullet_reasoning/resource/pot-ww.off" t)
+                             (pot "package://bullet_reasoning/resource/pot-ww.stl" nil)
                              (weisswurst "package://bullet_reasoning/resource/ww.stl" nil)
                              (bowl "package://bullet_reasoning/resource/bowl.stl" nil)))
 
