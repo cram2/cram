@@ -36,7 +36,7 @@
   `(let ((*current-bullet-world* ,world))
      ,@body))
 
-(def-fact-group bullet-world-facts ()
+(def-fact-group bullet-world-facts (assert retract)
 
   (<- (clear-bullet-world)
     (lisp-fun set *current-bullet-world* nil ?_))
@@ -61,22 +61,22 @@
     ;; The world ?obj belongs to
     (get-slot-value ?obj world ?world))
 
-  (<- (assert-object ?world ?object-type ?name ?pose . ?_)
+  (<- (assert (object ?world ?object-type ?name ?pose . ?_))
     (object ?world ?name)
     (pose ?world ?p . ?pose)
-    (assert-object-pose ?world ?name ?p))
+    (assert (object-pose ?world ?name ?p)))
   
-  (<- (assert-object ?world ?object-type ?name ?pose . ?args)
+  (<- (assert (object ?world ?object-type ?name ?pose . ?args))
     (not (object ?world ?name))
     (lisp-fun apply add-object
               ?world ?object-type
               ?name ?pose ?args
               ?_))
 
-  (<- (retract-object ?name)
-    (retract-object ?_ ?name))
+  (<- (retract (object ?name))
+    (retract (object ?_ ?name)))
   
-  (<- (retract-object ?world ?name)
+  (<- (retract (object ?world ?name))
     (bullet-world ?world)
     (lisp-fun remove-object ?world ?name ?_))
 
@@ -150,7 +150,7 @@
   (<- (simulate-realtime ?world ?t)
     (lisp-fun simulate ?world ?t 0.01 :realtime ?_)))
 
-(def-fact-group poses ()
+(def-fact-group poses (assert)
 
   (<- (pose ?obj-name ?pose)
     (pose ?_ ?obj-name ?pose))
@@ -173,10 +173,10 @@
     (%pose ?obj ?obj-pose)
     (poses-equal ?pose ?obj-pose 0.01 0.01))
 
-  (<- (assert-object-pose ?obj-name ?pose)
-    (assert-object-pose ?_ ?obj-name ?pose))
+  (<- (assert (object-pose ?obj-name ?pose))
+    (assert (object-pose ?_ ?obj-name ?pose)))
   
-  (<- (assert-object-pose ?world ?obj-name ?pose)
+  (<- (assert (object-pose ?world ?obj-name ?pose))
     (bound ?obj-name)
     (bound ?pose)
     (bullet-world ?world)
@@ -242,7 +242,7 @@
   (<- (poses-equal ?pose-1 ?pose-2 (?dist-sigma ?ang-sigma))
     (lisp-pred poses-equal-p ?pose-1 ?pose-2 ?dist-sigma ?ang-sigma)))
 
-(def-fact-group robot-model ()
+(def-fact-group robot-model (assert retract)
 
   (<- (link ?robot-name ?link)
     (link ?_ ?robot-name ?link))
@@ -304,10 +304,10 @@
     (%object ?world ?robot-name ?robot)
     (lisp-fun joint-state ?robot ?state))
 
-  (<- (assert-joint-states ?robot-name ?joint-states)
-    (assert-joint-states ?_ ?robot-name ?joint-states))
+  (<- (assert (joint-state ?robot-name ?joint-states))
+    (assert (joint-state ?_ ?robot-name ?joint-states)))
 
-  (<- (assert-joint-states ?world ?robot-name ?joint-states)
+  (<- (assert (joint-state ?world ?robot-name ?joint-states))
     (bullet-world ?world)
     (%object ?world ?robot-name ?robot)
     (lisp-fun set-robot-state-from-joints ?joint-states ?robot ?_)))
@@ -540,7 +540,7 @@
     (with-stored-world ?w
       (once
        (robot-pre-grasp-joint-states ?pre-grasp-joint-states)
-       (assert-joint-states ?w ?robot-name ?pre-grasp-joint-states)
+       (assert (joint-state ?w ?robot-name ?pre-grasp-joint-states))
        (grasp ?g)
        (lisp-pred object-reachable-p ?robot ?obj :side ?side :grasp ?g))))
 

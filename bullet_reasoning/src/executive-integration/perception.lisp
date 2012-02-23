@@ -96,7 +96,7 @@
              (with-vars-bound (?obj)
                  (lazy-car
                   (prolog `(and (bullet-world ?w)
-                                (assert-object ?w ,@object-descr)
+                                (assert (object ?w ,@object-descr))
                                 (%object ?w ,object-name ?obj))))
                (cache-object ?obj ?perceived-object)))))
     (unless *disable-rete-integration*
@@ -146,7 +146,7 @@
                                                            (object-type ?w ?other household-object))
                                                nil)
                                       (format "removing ~a~%" ?o)
-                                      (retract-object ?o))
+                                      (retract (object ?o)))
                                      (and
                                       (object ?o-2)
                                       (not (member ?o-2 ,potentially-visible))
@@ -164,8 +164,8 @@
                                       ;; objects. Otherwise we get rid
                                       ;; of the new perception.
                                       (-> (object-replacable ?w ?o-1 ?o-2)
-                                          (retract-object ?w ?o-1)
-                                          (retract-object ?w ?o-2)))))))))
+                                          (retract (object ?w ?o-1))
+                                          (retract (object ?w ?o-2))))))))))
       (remhash input *perception-visible-objects*)
       (physics-utils:post-event *perception-worker-input-queue* #'remove-objects))))
 
