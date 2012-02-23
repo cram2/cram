@@ -42,15 +42,11 @@
                            (assert-object ?w semantic-map sem-map ((1.4 2.8 0) (0 0 0.9994 -0.0342)) :urdf ,kitchen-urdf)
                            (assert-object ?w urdf pr2 ((0 0 0) (0 0 0 1)) :urdf ,urdf)
                            (robot-arms-parking-joint-states ?joint-states)
-                           (assert-joint-states pr2 ?joint-states))))))
+                           (assert-joint-states pr2 ?joint-states)
+                           (assert-joint-states pr2 (("torso_lift_joint" 0.33))))))))
 
 (setf pr2 (var-value '?pr2 (lazy-car (prolog `(%object ?w pr2 ?pr2) bdgs))))
 (setf sem-map (var-value '?sem-map (lazy-car (prolog `(%object ?w sem-map ?sem-map) bdgs))))
-
-(force-ll (prolog `(and
-                    (assert-object ?w mesh pot ((-1.85 2.64 0.95) (0 0 0 1)) :mesh pot :mass 0.2))
-                  bdgs))
-(setf to-reach-desig (desig:make-designator 'desig-props:location '((desig-props:to desig-props:reach) (desig-props:obj pot))))
 
 ;; (setf desig (desig:make-designator 'desig-props:location '((desig-props:on cooking-plate))))
 ;; (force-ll
@@ -62,8 +58,17 @@
 ;;               bdgs))
 
 (force-ll (prolog `(and
+                    (assert-object ?w mesh pot ((-1.85 2.64 0.95) (0 0 0 1)) :mesh pot :mass 0.2))
+                  bdgs))
+(force-ll (prolog `(and
                     (assert-object ?w mesh bowl ((0 0 2.0) (0 0 0 1)) :mesh bowl :mass 0.2))
                   bdgs))
+(force-ll (prolog `(and
+                    (assert-object ?w mesh mondamin ((0 0 2.0) (0 0 0 1)) :mesh mondamin :mass 0.2
+                                   :color (1 1 0)))
+                  bdgs))
+(setf to-reach-desig (desig:make-designator 'desig-props:location '((desig-props:to desig-props:reach) (desig-props:obj pot))))
+
 (force-ll
  (prolog `(once
            (desig-solutions ,to-reach-desig ?to-reach-solutions)
@@ -72,11 +77,49 @@
            (desig:designator desig:location ((btr-desig::reachable-from ?to-reach-location)
                                              (desig-props:on counter-top) (desig-props:name kitchen-island))
                              ?desig)
-           (desig-solutions ?desig ?solutions)
-           (take 50 ?solutions ?50-solutions)
-           (generate ?poses-on (obj-poses-on bowl ?solutions ?w))
-           (member ?solution ?poses-on)
-           (assert-object-pose ?w bowl ?solution)
+           (desig-solutions ?desig ?reachable-solutions)
+           (take 50 ?reachable-solutions ?50-reachable-solutions)
+           (generate ?bowl-poses-on (obj-poses-on bowl ?50-reachable-solutions ?w))
+           (member ?bowl-solution ?bowl-poses-on)
+           (assert-object-pose ?w bowl ?bowl-solution)
            (not (contact ?w bowl pot))
-           (reachable ?w pr2 bowl :left))
+           (reachable ?w pr2 bowl :left)
+           (generate ?mondamin-poses-on (obj-poses-on mondamin ?50-reachable-solutions ?w))
+           (member ?mondamin-solution ?mondamin-poses-on)
+           (assert-object-pose ?w mondamin ?mondamin-solution)
+           (reachable ?w pr2 mondamin)
+           (not (contact ?w mondamin pot))
+           (not (contact ?w mondamin bowl))
+           (head-pointing-at ?w pr2 ?mondamin-solution)
+           (head-pointing-at ?w pr2 ?bowl-solution))
          bdgs))
+
+(prolog `(execute ?w (open  sem-map "fridge_link"))
+        bdgs)
+
+(setf (pose pr2) (cl-transforms:make-pose
+                       (cl-transforms:make-3d-vector 0.4 -0.7 0)
+                       (cl-transforms:euler->quaternion :az (/ pi 16))))
+
+(force-ll
+ (prolog `(once
+           (pose ?w pr2 ?pr2-pose)
+           (desig:designator desig:location ((btr-desig::reachable-from ?pr2-pose)
+                                             (desig-props:in refrigerator))
+                             ?desig)
+           (desig-solutions ?desig ?reachable-solutions)
+           (take 50 ?reachable-solutions ?50-reachable-solutions)
+           (generate ?mondamin-poses-on (obj-poses-on mondamin ?50-reachable-solutions ?w))
+           (member ?mondamin-solution ?mondamin-poses-on)
+           (assert-object-pose ?w mondamin ?mondamin-solution)
+           (reachable ?w pr2 mondamin)
+           (visible ?w pr2 mondamin)
+           (generate ?bowl-poses-on (obj-poses-on bowl ?50-reachable-solutions ?w))
+           (member ?bowl-solution ?bowl-poses-on)
+           (assert-object-pose ?w bowl ?bowl-solution)
+           (reachable ?w pr2 bowl)
+           (not (contact mondamin bowl))
+           (head-pointing-at ?w pr2 ?mondamin-solution)
+           (visible ?w pr2 mondamin)
+           (head-pointing-at ?w pr2 ?bowl-solution)
+           (visible ?w pr2 bowl))))
