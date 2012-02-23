@@ -77,12 +77,10 @@
     (retract (object ?_ ?name)))
   
   (<- (retract (object ?world ?name))
-    (bullet-world ?world)
-    (lisp-fun remove-object ?world ?name ?_))
+    (lisp-fun remove-object ?_ ?name ?_))
 
   (<- (object ?name)
-    (bullet-world ?w)
-    (object ?w ?name))
+    (object ?_ ?name))
   
   (<- (object ?world ?name)
     (%object ?world ?name ?_))
@@ -115,6 +113,7 @@
     (bound ?name)
     (lisp-type ?name symbol)
     (not (bound ?obj))
+    (bullet-world ?world)
     (lisp-fun object ?world ?name ?obj)
     (lisp-type ?obj object))
 
@@ -127,6 +126,7 @@
   (<- (%object ?world ?name ?obj)
     (not (bound ?name))
     (not (bound ?obj))
+    (bullet-world ?world)
     (lisp-fun find-objects ?world ?objs)
     (member ?obj ?objs)
     (lisp-fun name ?obj ?name))
