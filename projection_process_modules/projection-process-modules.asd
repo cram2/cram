@@ -42,5 +42,5 @@
      (:file "perception" :depends-on ("package"))
      (:file "manipulation" :depends-on ("package"))
      (:file "ptu" :depends-on ("package"))
-     (:file "ptu-designator" :depends-on ("package"))
+     (:file "action-designators" :depends-on ("package"))
      (:file "navigation" :depends-on ("package"))))))

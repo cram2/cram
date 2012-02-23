@@ -35,7 +35,7 @@
                      (list ?solution))))
                    (crs:prolog `(action-desig-projection ,designator ?solution))))
 
-(def-fact-group ptu-designator (action-desig)
+(def-fact-group ptu-designators (action-desig-projection)
 
   (<- (action-desig-projection ?desig ?pose)
     (or 
