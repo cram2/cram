@@ -32,7 +32,7 @@
   (cut:lazy-mapcan (lambda (bindings)
                      (cut:with-vars-bound (?solution) bindings
                        (unless (cut:is-var ?solution)
-                     (list ?solution))))
+                         (list ?solution))))
                    (crs:prolog `(action-desig-projection ,designator ?solution))))
 
 (def-fact-group ptu-designators (action-desig-projection)
@@ -48,3 +48,50 @@
      (desig-prop ?desig (to see))
      (desig-prop ?desig (to follow)))
     (desig-location-prop ?desig ?pose)))
+
+(def-fact-group action-designators (action-desig-projection)
+  
+  (<- (action-desig-projection ?desig (execute-container-opened ?obj ?side))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to open))
+    (desig-prop ?desig (obj ?obj))
+    (desig-prop ?desig (side ?side)))
+
+  (<- (action-desig-projection ?desig (execute-container-closed ?obj ?side))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to close))
+    (desig-prop ?desig (obj ?obj))
+    (desig-prop ?desig (side ?side)))
+
+  (<- (action-desig-projection ?desig (execute-park ?side))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (pose parked))
+    (desig-prop ?desig (side ?side)))
+
+  (<- (action-desig-projection ?desig (execute-lift ?side ?obj ?distance))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to lift))
+    (desig-prop ?desig (obj ?obj))
+    (desig-prop ?desig (side ?side))
+    (-> (desig-prop ?desig (distance ?distance))
+        (true)
+        (== ?distance 0.10)))
+
+  (<- (action-desig-projection ?desig (execute-park ?side ?obj))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to carry))
+    (desig-prop ?desig (side ?side))
+    (desig-prop ?desig (obj ?obj)))
+
+  (<- (action-desig-projection ?desig (execute-grasp ?obj ?side))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to grasp))
+    (desig-prop ?desig (obj ?obj))
+    (desig-prop ?desig (side ?side)))
+
+  (<- (action-desig-projection ?desig (execute-put-down ?obj ?loc ?side))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to put-down))
+    (desig-prop ?desig (side ?side))
+    (desig-prop ?desig (obj ?obj))
+    (desig-prop ?desig (at ?loc))))
