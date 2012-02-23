@@ -52,12 +52,20 @@
   (<- (camera-frame "narrow_stereo_optical_frame"))
   (<- (robot-pan-tilt-links "head_pan_link" "head_tilt_link"))
   (<- (robot-pan-tilt-joints "head_pan_joint" "head_tilt_joint"))
+  (<- (end-effector-link :left "l_wrist_roll_joint"))
+  (<- (end-effector-link :right "r_wrist_roll_joint"))
 
   (<- (robot-arms-parking-joint-states ?joint-states)
     (symbol-value *right-parking-joint-states* ?right-joint-states)
     (symbol-value *left-parking-joint-states* ?left-joint-states)
     (append ?right-joint-states ?left-joint-states ?joint-states))
-  
+
+  (<- (robot-arms-parking-joint-states ?joint-states :left)
+    (symbol-value *left-parking-joint-states* ?joint-states))
+
+  (<- (robot-arms-parking-joint-states ?joint-states :right)
+    (symbol-value *left-parking-joint-states* ?joint-states))
+
   (<- (robot-pre-grasp-joint-states
        (("torso_lift_joint" 0.33) . ?parking-joint-states))
     (robot-arms-parking-joint-states ?parking-joint-states))
