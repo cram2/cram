@@ -43,25 +43,41 @@
                            (tool-frame (cl-transforms:make-pose
                                         (cl-transforms:make-3d-vector 0.20 0.0 0.0)
                                         (get-grasp grasp side))))
-  (lazy-car (reach-object-ik robot obj :tool-frame tool-frame :side side :grasp grasp)))
+  (lazy-car (reach-object-ik
+             robot obj
+             :tool-frame tool-frame :side side :grasp grasp
+             :orientation-in-robot (cl-transforms:make-identity-rotation))))
 
-(defun reach-object-ik (robot obj &key
-                        side (grasp :top)
+(defun reach-object-ik (robot obj
+                        &key side (grasp :top) orientation-in-robot
+                          (tool-frame (cl-transforms:make-pose
+                                       (cl-transforms:make-3d-vector 0.20 0.0 0.0)
+                                       (get-grasp grasp side))))
+  (reach-pose-ik
+   robot (if orientation-in-robot
+             (cl-transforms:make-pose
+              (cl-transforms:origin (pose obj))
+              (cl-transforms:q* (cl-transforms:orientation (pose robot))
+                                orientation-in-robot))
+             (pose obj))
+   :side side :grasp grasp :tool-frame tool-frame))
+
+(defun reach-pose-ik (robot pose
+                      &key side (grasp :top)
                         (tool-frame (cl-transforms:make-pose
                                      (cl-transforms:make-3d-vector 0.20 0.0 0.0)
                                      (get-grasp grasp side))))
-  (let ((obj-trans-in-robot (cl-transforms:transform*
-                             (cl-transforms:transform-inv
-                              (cl-transforms:reference-transform
-                               (pose robot)))
-                             (cl-transforms:reference-transform
-                              (pose obj))))
+  (let ((pose-transform-in-robot (cl-transforms:transform*
+                                  (cl-transforms:transform-inv
+                                   (cl-transforms:reference-transform
+                                    (pose robot)))
+                                  (cl-transforms:reference-transform pose)))
         (reference-frame (cl-urdf:name (cl-urdf:root-link (slot-value robot 'urdf)))))
     (get-ik
      robot (tf:make-pose-stamped
             reference-frame 0.0
-            (cl-transforms:translation obj-trans-in-robot)
-            (cl-transforms:make-quaternion 0 0 0 1))
+            (cl-transforms:translation pose-transform-in-robot)
+            (cl-transforms:rotation pose-transform-in-robot))
      :ik-namespace (ecase side
                      (:right "reasoning/pr2_right_arm_kinematics")
                      (:left "reasoning/pr2_left_arm_kinematics"))
