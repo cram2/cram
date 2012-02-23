@@ -31,9 +31,14 @@
         #:bullet-reasoning
         #:cram-process-modules)
   (:shadowing-import-from #:bullet-reasoning name)
-  (:export))
+  (:export execute-container-opened execute-container-closed
+           execute-park execute-lift execute-grasp execute-put-down))
 
 (desig-props:def-desig-package projection-designators
-  (:use #:common-lisp #:cram-designators #:cram-reasoning)
+  (:use #:common-lisp #:cram-designators #:cram-reasoning
+        #:projection-process-modules)
   (:export projection-role)
-  (:desig-properties at type to see follow pose location obj))
+  (:desig-properties at type to see follow pose location obj
+                     grasp carry lift park put-down open close
+                     side height distance))
+
