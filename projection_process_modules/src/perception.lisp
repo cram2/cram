@@ -87,10 +87,11 @@
                                :pose ?pose)
                              :type desig-props:type)))
                         (crs:prolog `(and
-                                      (object ?object)
-                                      (object-type ?object ,desig-props:type)
-                                      (visible ?object)
-                                      (pose ?object ?pose))))))))
+                                      (robot ?robot)
+                                      (object ?_ ?object)
+                                      (object-type ?_ ?object ,desig-props:type)
+                                      (visible ?_ ?robot ?object)
+                                      (pose ?_ ?object ?pose))))))))
 
 (def-process-module projection-perception (input)
   (let ((newest-valid-designator (desig:newest-valid-designator input)))
