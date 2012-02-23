@@ -52,6 +52,7 @@
                       parent)))
     (setf (slot-value perceived-object 'designator) designator)
     (setf (slot-value designator 'desig:data) perceived-object)
+    (setf (slot-value designator 'desig:valid) t)
     designator))
 
 (defun find-with-bound-designator (designator)
