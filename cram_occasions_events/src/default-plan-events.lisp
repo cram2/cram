@@ -59,7 +59,7 @@
                'simple-error
                :format-control "OBJECT-CONNECTION-EVENT requires an object."))
    (link
-    :initarg link :reader event-link
+    :initarg :link :reader event-link
     :initform (error
                'simple-error
                :format-control "OBJECT-CONNECTION-EVENT requires a link.")))
