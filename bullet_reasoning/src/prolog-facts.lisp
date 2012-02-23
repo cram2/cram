@@ -310,7 +310,29 @@
   (<- (assert (joint-state ?world ?robot-name ?joint-states))
     (bullet-world ?world)
     (%object ?world ?robot-name ?robot)
-    (lisp-fun set-robot-state-from-joints ?joint-states ?robot ?_)))
+    (lisp-fun set-robot-state-from-joints ?joint-states ?robot ?_))
+
+  (<- (attached ?world ?robot ?link-name ?object)
+    (bullet-world ?world)
+    (%object ?world ?robot ?robot-instance)
+    (lisp-fun attached-objects ?robot-instance ?attached-objects)
+    (member (?object . ?links) ?attached-objects)
+    (member ?link ?links))
+
+  (<- (assert (attached ?world ?robot ?link-name ?object))
+    (bullet-world ?world)
+    (%object ?world ?robot ?robot-instance)
+    (lisp-fun attach-object ?robot-instance ?object ?link-name ?_))
+
+  (<- (retract (attached ?world ?robot ?object))
+    (bullet-world ?world)
+    (%object ?world ?robot ?robot-instance)
+    (lisp-fun detach-object ?robot-instance ?object ?_))
+
+  (<- (retract (attached ?world ?robot ?link-name ?object))
+    (bullet-world ?world)
+    (%object ?world ?robot ?robot-instance)
+    (lisp-fun detach-object ?robot-instance ?object ?link-name ?_)))
 
 (def-fact-group force-dynamic-states ()
 
