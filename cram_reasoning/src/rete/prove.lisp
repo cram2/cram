@@ -1,7 +1,7 @@
 
 (in-package :crs)
 
-(defun rete-proof (expr &optional bdgs)
+(defun rete-prove (expr &optional bdgs)
   "Returns a list of bindings that satisfy the conjunction of tokens
   in the sense of the rete algorithm. This function is a one-shot
   request to the alpha-network and should be used where productions
@@ -19,7 +19,7 @@
                     (list result)))))
     (if (car expr)
         (lazy-mapcan (lambda (bdg)
-                       (rete-proof (cdr expr) bdg))
+                       (rete-prove (cdr expr) bdg))
                      (lazy-mapcan (rcurry #'add-bdgs bdgs)
                                   (rete-holds (substitute-vars (car expr) bdgs))))
         (list bdgs))))

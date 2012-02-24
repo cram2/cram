@@ -36,7 +36,8 @@
                        (:file "token")
                        (:file "beta-join-node")
                        (:file "prolog-node")
-                       (:file "productions"))
+                       (:file "productions")
+                       (:file "prove" :depends-on ("alpha-network")))
                       :serial t)
              (:file "swank-indentation" :depends-on ("package"))))))
 
