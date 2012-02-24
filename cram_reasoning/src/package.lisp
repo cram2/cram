@@ -89,5 +89,5 @@
            #:with-productions #:remove-production-handler
            #:register-production-handler
            #:with-production-handlers
-           #:rete-proof))
+           #:rete-prove))
 
