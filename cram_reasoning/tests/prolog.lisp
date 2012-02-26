@@ -290,3 +290,17 @@
   (assert-equality #'solutions-equal
                    '(((?x . 10)) ((?x . 20)))
                    (force-ll (prolog '(bug-2-test ?x)))))
+
+(define-test correct-number-of-or-expansions
+  ;; Tests if only one form is expanded if we request only one
+  ;; solution.
+  (let ((expansions nil))
+    (declare (special expansions))
+    (let ((solutions
+            (prolog '(or
+                      (lisp-fun set expansions first ?_)
+                      (lisp-fun set expansions second ?_)))))
+      (lazy-car solutions)
+      (assert-eq 'first expansions)
+      (lazy-cdr solutions)
+      (assert-eq 'second expansions))))
