@@ -29,217 +29,176 @@
 
 (in-package :crs-tests)
 
-(def-suite prolog :in reasoning)
+(define-test and-handler
+  (assert-equality #'solutions-equal
+                   '(((?x . a) (?y . a)))
+                   (force-ll
+                    (prolog '(and (== ?x a) (== ?x a) (== ?x ?y)))))
+  (assert-equal '(nil) (force-ll (prolog '(and (and) (and)))))
+  (assert-false (prolog '(and (fail))))
+  (assert-false (prolog '(and (and) (and) (fail))))
+  (assert-equal '(nil) (force-ll (prolog '(and)))))
 
-(defmacro test-prolog (name &body tests)
-  (let ((count 0)
-        (name (format-symbol t "PROLOG-~a" name)))
-    (flet ((next-name ()
-             (format-symbol t "~a-~a" name (incf count))))
-      `(progn
-         ,@(mapcar (lambda (test)
-                     (destructuring-bind (test query result) test
-                       (case test
-                         (:prolog
-                          `(test ,(next-name)
-                             (is (equal ',result
-                                        (force-ll (prolog ',query))))))
-                         (:prolog-probe
-                          `(test ,(next-name)
-                             (let ((answers (force-ll (prolog ',query))))
-                               (is-true (not (null answers)))
-                               (dolist (bdg answers)
-                                 (dolist (x ',result)
-                                   (is (equal (cdr x) (var-value (car x) bdg))))))))
-                         (t (error "Invalid test form.")))))
-                   tests)))))
+(define-test or-handler
+  (assert-false (prolog '(or)))
+  (assert-equal '(nil) (force-ll
+                        (prolog '(or (== a a) (== b a) (== a b)))))
+  (assert-equal '(nil) (force-ll
+                        (prolog '(or (fail) (and)))))
+  (assert-false (prolog '(or (fail) (fail))))
+  (assert-equality #'solutions-equal
+                   '(((?x . a))
+                     ((?x . b)))
+                   (force-ll (prolog `(or (== ?x a) (== ?x b))))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Prolog handlers
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define-test not-handler
+  (assert-equal '(nil) (force-ll (prolog '(not (fail)))))
+  (assert-false (prolog '(not (and)))))
 
-(def-suite prolog-handlers :in prolog)
+(define-test lisp-fun
+  (assert-equality #'solutions-equal
+                   '(((?x . (a b c))))
+                   (force-ll
+                    (prolog '(and
+                              (== (a b c) ?x)
+                              (lisp-fun append (a b) (c) ?x)))))
+  (assert-equality #'solutions-equal
+                   '(((?x . 3)))
+                   (force-ll (prolog '(lisp-fun + 1 2 ?x)))))
 
-(in-suite prolog-handlers)
+(define-test lisp-pred
+  (assert-equal '(nil) (force-ll (prolog '(lisp-pred symbolp a))))
+  (assert-false (prolog '(lisp-pred atom (a b))))
+  (assert-equality #'solutions-equal
+                   '(((?x . (foo bar))))
+                   (force-ll
+                    (prolog '(and
+                              (== ?x (foo bar))
+                              (lisp-pred equal (foo bar) ?x))))))
 
-(test-prolog and-handler
-  (:prolog (and (== ?x a) (== ?x a) (== ?x ?y))
-           (((?x . a) (?y . a))))
-  (:prolog (and (and) (and))
-           (nil))
-  (:prolog (and (fail))
-           nil)
-  (:prolog (and (and) (and) (fail))
-           nil)
-  (:prolog (and)
-           (nil)))
+(define-test bound-handler
+  (assert-false (prolog '(bound ?x)))
+  (assert-equal '(nil) (force-ll (prolog '(bound a))))
+  (assert-equality #'solutions-equal
+                   '(((?x . a)))
+                   (force-ll
+                    (prolog '(and
+                              (== ?x a)
+                              (bound ?x)))))
+  (assert-false (prolog '(and (== ?x ?y) (bound ?x))))
+  (assert-equality #'solutions-equal
+                   '(((?x . (?y))))
+                   (force-ll (prolog '(and (== ?x (?y)) (bound ?x))))))
 
-(test-prolog or-handler
-  (:prolog (or)
-           nil)
-  (:prolog (or (== a a) (== b a) (== a b))
-           (nil))
-  (:prolog (or (fail) (and))
-           (nil))
-  (:prolog (or (fail) (fail))
-           nil))
+(define-test ground-handler
+  (assert-false (prolog '(ground ?x)))
+  (assert-equal '(nil) (force-ll (prolog '(ground a))))
+  (assert-equality #'solutions-equal
+                   '(((?x . a))) (force-ll (prolog '(and (== ?x a) (ground ?x)))))
+  (assert-false (prolog '(and (== ?x ?y) (ground ?x))))
+  (assert-false (prolog '(and (== ?x (?y)) (ground ?x)))))
 
-(test-prolog not-handler
-  (:prolog (not (fail))
-           (nil))
-  (:prolog (not (and))
-           nil))
+(define-test findall-handler
+  (assert-equality (rcurry #'solutions-equal :test #'lazy-lists-equal)
+                   '(((?y . (1 2 3))))
+                   (force-ll (prolog '(findall ?x (member ?x (1 2 3)) ?y))))
+  (assert-equality (rcurry #'solutions-equal :test #'lazy-lists-equal)
+                   '(((?first . ((1 2 3) (1 11)))))
+                   (force-ll (prolog '(and (== ?x (1 2 3))
+                                       (findall (?x (?y ?z)) (and (member ?y ?x )
+                                                              (lisp-fun + ?y 10 ?z))
+                                        ?result)
+                                       (== (?first . ?_) ?result)))))
+  (assert-equality (rcurry #'solutions-equal :test #'lazy-lists-equal)
+                   '(((?result . ())))
+                   (force-ll (prolog '(findall () (fail) ?result)))))
 
-(test-prolog lisp-fun
-  (:prolog (and (== (a b c) ?x)
-                (lisp-fun append (a b) (c) ?x))
-           (((?x . (a b c)))))
-  (:prolog (lisp-fun + 1 2 ?x)
-           (((?x . 3)))))
+(define-test forall-handler
+  (assert-equal
+   '(nil) (force-ll (prolog '(forall (member ?x (1 2 3)) (> ?x 0)))))
+  (assert-equal
+   '(nil) (force-ll (prolog '(forall (and (member ?x (1 2 3)) (> ?x 3)) (fail)))))
+  (assert-equality #'solutions-equal
+                   '(((?t . integer)))
+                   (force-ll
+                    (prolog '(and
+                              (== ?t integer)
+                              (forall (or (== ?x 42) (== ?x 23)) (lisp-pred typep ?x ?t)))))))
 
-(test-prolog lisp-pred
-  (:prolog (lisp-pred symbolp a)
-           (nil))
-  (:prolog (lisp-pred atom (a b))
-           nil)
-  (:prolog (and (== ?x (foo bar))
-                (lisp-pred equal (foo bar) ?x))
-           (((?x . (foo bar))))))
+(define-test filter-bindings
+  (assert-equality #'solutions-equal
+                   '(((?a . 1) (?b . 2)))
+                   (force-ll
+                    (prolog '(filter-bindings (?a ?b)
+                              (== (?a ?b ?c ?d) (1 2 3 4))))))
+  (assert-equality #'solutions-equal
+                   '(((?b . :new)))
+                   (force-ll
+                    (prolog '(and
+                              (== ?b 42)
+                              (filter-bindings ()
+                               (> ?b 23))
+                              (== ?b :new)))))
+  (assert-false (prolog '(filter-bindings () (fail)))))
 
-(test-prolog bound-handler
-  (:prolog (bound ?x)
-           nil)
-  (:prolog (bound a)
-           (nil))
-  (:prolog (and (== ?x a)
-                (bound ?x))
-           (((?x . a))))
-  (:prolog (and (== ?x ?y)
-                (bound ?x))
-           nil)
-  (:prolog (and (== ?x (?y))
-                (bound ?x))
-           (((?x . (?y))))))
+(define-test prolog-unification
+  (assert-equality #'solutions-equal
+                   '(((?x . a)))
+                   (force-ll (prolog '(== ?x a))))
+  (assert-equality #'solutions-equal
+                   '(((?x . a) (?y . b)))
+                   (force-ll (prolog '(== (?x b) (a ?y)))))
+  (assert-false (prolog '(== (?x b) (a a)))))
 
-(test-prolog ground-handler
-  (:prolog (ground ?x)
-           nil)
-  (:prolog (ground a)
-           (nil))
-  (:prolog (and (== ?x a)
-                (ground ?x))
-           (((?x . a))))
-  (:prolog (and (== ?x ?y)
-                (bound ?x))
-           nil)
-  (:prolog (and (== ?x (?y))
-                (ground ?x))
-           nil))
+(define-test prolog-binary-predicates
+  (assert-equal '(nil) (force-ll (prolog '(< 1 2))))
+  (assert-equal '(nil) (force-ll (prolog '(> 1 0))))
+  (assert-equal '(nil) (force-ll (prolog '(>= 0 0))))
+  (assert-equal '(nil) (force-ll (prolog '(<= 0 0))))
+  (assert-false (prolog '(< 3 2)))
+  (assert-false (prolog '(> 0 1)))
+  (assert-false (prolog '(>= 0 1)))
+  (assert-false (prolog '(<= 1 0))))
 
-(test-prolog findall-handler
-  (:prolog-probe (findall ?x (member ?x (1 2 3)) ?y)
-                 ((?y . (1 2 3))))
-  (:prolog-probe (and (== ?x (1 2 3))
-                      (findall (?x (?y ?z)) (and (member ?y ?x )
-                                                      (lisp-fun + ?y 10 ?z))
-                                    ?result)
-                      (== (?first . ?_) ?result))
-                 ((?first . ((1 2 3) (1 11)))))
-  (:prolog-probe (findall () (fail) ?result)
-                 ((?result . ()))))
-
-(test-prolog forall-handler
-  (:prolog (forall (member ?x (1 2 3)) (> ?x 0))
-           (nil))
-  (:prolog (forall (and (member ?x (1 2 3)) (> ?x 3)) (fail))
-           (nil))
-  (:prolog-probe (and (== ?t integer)
-                      (forall (or (== ?x 42) (== ?x 23)) (lisp-pred typep ?x ?t)))
-                 ((?t . integer))))
-
-(test-prolog filter-bindings
-  (:prolog (filter-bindings (?a ?b)
-                            (== (?a ?b ?c ?d) (1 2 3 4)))
-           (((?a . 1) (?b . 2))))
-  (:prolog (and (== ?b 42)
-                (filter-bindings ()
-                                 (> ?b 23))
-                (== ?b :new))           ; ?b is still bound to 42 here.
-                                        ; filter-bindings cannot remove
-                                        ; bindings like suggested here.
-           nil)
-  (:prolog (filter-bindings ()
-                            (fail))
-           nil))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Predefined prolog facts
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(def-suite prolog-facts :in prolog)
-
-(in-suite prolog-facts)
-
-(test-prolog unification
-  (:prolog (== ?x a)
-           (((?x . a)))))
-
-(test-prolog bin-preds
-  (:prolog (< 1 2) (nil))
-  (:prolog (< 3 2) nil)
-  (:prolog (> 1 0) (nil))
-  (:prolog (> 0 1) nil)
-  (:prolog (>= 0 0) (nil))
-  (:prolog (>= 0 1) nil)
-  (:prolog (<= 0 0) (nil))
-  (:prolog (<= 1 0) nil))
-
-(test-prolog member
-  (:prolog (member ?x (a b c))
-           (((?x . a)) ((?x . b)) ((?x . c))))
-  (:prolog (member ?x ())
-           nil))
+(define-test prolog-member
+  (assert-equality #'solutions-equal
+                   '(((?x . a)) ((?x . b)) ((?x . c)))
+                   (force-ll (prolog '(member ?x (a b c)))))
+  (assert-false (prolog '(member ?x nil))))
 
 (defclass dummy ()
   ((a :initform :a)))
 
-(test-prolog clos-utils
-  (:prolog (instance-of ?t ?o)
-           ())
-  (:prolog-probe (and (instance-of dummy ?obj)
-                      (get-slot-value ?obj a ?a)) 
-                 ((?a . :a)))
-  (:prolog-probe (and (instance-of dummy ?obj)
-                      (instance-of dummy ?obj)
-                      (== ?a :a)) ;; test with ?obj bound
-                 ((?a . :a)))
-  (:prolog-probe (and (instance-of dummy ?obj)
-                      (instance-of ?type ?obj)) 
-                 ((?type . dummy)))
-  (:prolog-probe (and (instance-of dummy ?obj)
-                      (get-slot-value ?obj a :a)
-                      (== ?a :a))
-                 ((?a . :a)))
-  (:prolog (and (instance-of dummy ?obj)
-                (get-slot-value ?obj a :b))
-           ())
-  (:prolog-probe (and (instance-of dummy ?obj)
-                      (slot-value ?obj a ?a))
-                 ((?a . :a)))
-  (:prolog-probe (and (instance-of dummy ?obj)
-                      (slot-value ?obj a :a)
-                      (== ?a :a))
-                 ((?a . :a)))
-  (:prolog-probe (and (instance-of dummy ?obj)
-                      (slot-value ?obj a :b)
-                      (slot-value ?obj a ?b))
-                 ((?b . :b))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; General tests
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(in-suite prolog)
+(define-test prolog-clos-utils
+  (assert-false (prolog '(instance-of ?t ?o)))
+  (assert-equality #'solutions-equal
+                   '(((?a . :a)))
+                   (force-ll
+                    (prolog '(and
+                              (instance-of dummy ?obj)
+                              (get-slot-value ?obj a ?a)))))
+  (assert-equality #'solutions-equal
+                   '(((?a . :a)))
+                   (force-ll
+                    (prolog '(and
+                              (instance-of dummy ?obj)
+                              (instance-of dummy ?obj)
+                              (== ?a :a)))))
+  (assert-equality #'solutions-equal
+                   '(((?type . dummy)))
+                   (force-ll
+                    (prolog '(and
+                              (instance-of dummy ?obj)
+                              (instance-of ?type ?obj)))))
+  (assert-false (prolog '(and (instance-of dummy ?obj)
+                          (get-slot-value ?obj a :b))))
+  (assert-equality #'solutions-equal
+                   '(((?b . :b)))
+                   (force-ll
+                    (prolog '(and
+                              (instance-of dummy ?obj)
+                              (slot-value ?obj a :b)
+                              (slot-value ?obj a ?b))))))
 
 ;; Defining facts like this actually modifies the state of the software, since
 ;; it adds a fact group and fact. A test suite should not do that. However for
@@ -248,7 +207,7 @@
 
 (def-fact-group prolog-tests (fact-extenable)
   
-  (<- (fact1 ?x ?y)
+  (<- (fact-1 ?x ?y)
     (== ?y (1 2))
     (member ?x ?y))
 
@@ -260,23 +219,17 @@
   (<- (fact-extendable ?y)
     (== ?y 2)))
 
-(test-prolog 1
-  (:prolog (fact1 ?a ?b)
-           (((?A . 1) (?B 1 2))
-            ((?A . 2) (?B 1 2)))))
+(define-test prolog-fact-1
+  (assert-equality #'solutions-equal
+                   '(((?a . 1) (?b 1 2))
+                     ((?a . 2) (?b 1 2)))
+                   (force-ll (prolog '(fact-1 ?a ?b)))))
 
-(test-prolog extendable
-  (:prolog (fact-extendable ?foo)
-           (((?foo . 1)) ;; this tests for correct order of answers as well
-            ((?foo . 2)))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Tests introduced for specific bugs that were found
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(def-suite prolog-bugs :in prolog)
-
-(in-suite prolog-bugs)
+(define-test prolog-fact-extendable
+  (assert-equality #'solutions-equal
+                   '(((?foo . 1)) ;; this tests for correct order of answers as well
+                     ((?foo . 2)))
+                   (force-ll (prolog '(fact-extendable ?foo)))))
 
 (def-fact-group prolog-bug ()
 
@@ -294,19 +247,24 @@
   (<- (bug-2-test ?foo)
     (or (== ?foo 10) (== ?foo 20))))
 
-(test-prolog rename-variables-bug
-  (:prolog (fact-rename ?x) (((?x . 1)))) ;; used to fail while next one passed
-  (:prolog (fact-rename ?y) (((?y . 1)))))
+(define-test rename-variables-bug
+  (assert-equality #'solutions-equal
+                   '(((?x . 1)))
+                   (force-ll (prolog '(fact-rename ?x))))
+  (assert-equality #'solutions-equal
+                   '(((?y . 1)))
+                   (force-ll (prolog '(fact-rename ?y)))))
 
 ;; The following tests for an annoying bug which was in the interaction of
 ;; AND, NOT, PROLOG, FILTER-BINDINGS, and ADD-BDG. The behaviour was, that in
 ;; the BUG-1 fact in the last goal (<= ?foo 42) an error would be raised,
 ;; because ?foo would be unbound.  This bug has been fixed 12.07.2010.
-(test-prolog bug-1
-  (:prolog-probe (bug-1-test ?foo)
-                 ((?foo . 23))))
+(define-test prolog-bug-1
+  (assert-equality #'solutions-equal
+                   '(((?foo . 23)))
+                   (force-ll (prolog '(bug-1-test ?foo)))))
 
-(test-prolog bug-2
-  (:prolog (bug-2-test ?x)
-           (((?x . 10))
-            ((?x . 20)))))
+(define-test prolog-bug-2
+  (assert-equality #'solutions-equal
+                   '(((?x . 10)) ((?x . 20)))
+                   (force-ll (prolog '(bug-2-test ?x)))))

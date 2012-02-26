@@ -8,26 +8,20 @@
   :licence "BSD"
   :description "Tests for cram-reasoning"
   :depends-on (alexandria
-               fiveam
-               cram-test-utilities
+               lisp-unit
                cram-utilities
-               cram-reasoning
-               #+sbcl sb-rt
-               #-sbcl rtest)
-
+               cram-reasoning)
   :components
   ((:module "tests"
             :components
             ((:file "package")
-             (:file "rete")
-             (:file "suite")
+             (:file "utilities" :depends-on ("package"))
+             (:file "rete" :depends-on ("package" "utilities"))
              (:file "unify")
-             (:file "prolog"))
-            :serial t)))
+             (:file "prolog")))))
 
 (defmethod asdf:perform ((o asdf:test-op)
                          (c (eql (asdf:find-system 'cram-reasoning-tests))))
   (flet ((symbol (pkg name)
            (intern (string name) (find-package pkg))))
-    (funcall (symbol :sb-rt :do-tests))
-    (funcall (symbol :5am :run!) (symbol :crs-tests :reasoning))))
+    (funcall (symbol :cram-reasoning-tests :run-cram-reasoning-tests))))
