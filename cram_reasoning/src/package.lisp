@@ -48,6 +48,7 @@
            #:error
            #:?_
            #:true
+           #:cut
            #:fail
            #:and
            #:or
