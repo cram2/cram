@@ -33,12 +33,8 @@
 (defpackage :cram-reasoning-tests
   (:documentation "Package for the cram-reasoning test-suite")
   (:nicknames :crs-tests)
-  (:use :cl
-        :cram-test-utilities
-        :cut
-        :alexandria
-        :crs
-        #+sbcl :sb-rt #-sbcl :rtest)
-  (:import-from #:fiveam #:test #:is #:is-true #:is-false
-                #:def-suite #:in-suite #:run #:run! #:signals)
-  (:import-from #:cut #:force-ll))
+  (:use :cl :cut :alexandria
+        :crs :lisp-unit)
+  (:export run-cram-reasoning-tests)
+  (:import-from #:cut #:force-ll)
+  (:shadowing-import-from #:alexandria set-equal))

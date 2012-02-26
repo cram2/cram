@@ -36,50 +36,45 @@
 (def-production on
   (on ?a ?b))
 
-(deftest default-handler
-    (let ((triggered nil))
+(define-test default-handler
+  (let ((triggered nil))
+    (with-productions
+        ((is-identity (?op ?a ?a)))
       (with-production-handlers
-          ((on (op &key &allow-other-keys)
-             (push op triggered)))
-        (with-facts-asserted ('(on 1 2) '(x))))
-      triggered)
-  (:retract :assert))
-
-(deftest with-productions
-    (let ((triggered nil))
-      (with-productions
-          ((is-identity (?op ?a ?a)))
-        (with-production-handlers
             ((is-identity (op &key ?a &allow-other-keys)
+               (declare (ignore ?a))
                (push op triggered)))
           (with-facts-asserted
               ('(x 1 1) '(x 1 2)))))
-      triggered)
-  (:retract :assert))
+    (assert-equality #'member :assert triggered)
+    (assert-equality #'member :retract triggered)))
 
-(defun check-bindings (bdg bdgs)
-  (cond ((and bdgs (every (lambda (var-def)
-                            (destructuring-bind (var . val)
-                                var-def
-                              (equal val (cdr (assoc var (car bdgs))))))
-                          bdg))
-         t)
-        (bdgs (check-bindings bdg (cdr bdgs)))))
+(define-test with-productions
+  (let ((triggered nil))
+    (with-productions
+        ((is-identity (?op ?a ?a)))
+      (with-production-handlers
+            ((is-identity (op &key ?a &allow-other-keys)
+               (declare (ignore ?a))
+               (push op triggered)))
+          (with-facts-asserted
+              ('(x 1 1) '(x 1 2)))))
+    (assert-equality #'member :assert triggered)
+    (assert-equality #'member :retract triggered)))
 
-(deftest rete-proof
-    (let ((crs::*alpha-network* (make-instance 'crs::alpha-node :parent nil :key nil)))
-      (rete-assert '(on a b))
-      (rete-assert '(on b c))
-      (rete-assert '(on b d))
-      (values (force-ll (rete-proof '((on a ?x) (on ?x c))))
-              (force-ll (rete-proof '((on a ?x) (on ?x d))))
-              (force-ll (rete-proof '((on a ?x) (on ?x e))))
-              (when
-                  (every (alexandria:rcurry #'check-bindings '(((?y . c) (?x . b))
-                                                               ((?y . d) (?x . b))))
-                         (force-ll (rete-proof '((on a ?x) (on ?x ?y)))))
-                t)))
-  (((?x . b)))
-  (((?x . b)))
-  nil
-  t)
+(define-test rete-prove
+  (let ((crs::*alpha-network* (make-instance 'crs::alpha-node :parent nil :key nil)))
+    (rete-assert '(on a b))
+    (rete-assert '(on b c))
+    (rete-assert '(on b d))
+    (assert-equality #'solutions-equal
+                     '(((?x . b)))
+                     (force-ll (rete-prove '((on a ?x) (on ?x c)))))
+    (assert-equality #'solutions-equal
+                     '(((?x . b)))
+                     (force-ll (rete-prove '((on a ?x) (on ?x d)))))
+    (assert-false (rete-prove '((on a ?x) (on ?x e))))
+    (assert-equality #'solutions-equal
+                     '(((?x . b) (?y . c))
+                       ((?x . b) (?y . d)))
+                     (force-ll (rete-prove '((on a ?x) (on ?x ?y)))))))

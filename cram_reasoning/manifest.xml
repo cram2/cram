@@ -10,5 +10,5 @@
   <depend package="sbcl"/>
   <depend package="alexandria"/>
   <depend package="cram_utilities"/>
-  <depend package="cram_test_utilities"/>
+  <depend package="lisp_unit"/>
 </package>
