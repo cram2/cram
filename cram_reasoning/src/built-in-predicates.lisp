@@ -36,19 +36,12 @@
   (prove-all goals bdgs t))
 
 (def-prolog-handler or (bdgs &rest goals)
-  (let ((or-results nil))
-    (handler-case
-        (progn
-          (setf or-results (lazy-mapcar (lambda (goal)
-                                          (prove-one goal bdgs t))
-                                        goals))
-          (force-ll or-results))
-      (cut-signal (cut)
-        (if (last or-results)
-            (setf (cdr (last or-results)) (list (bindings cut)))
-            (setf or-results (list (bindings cut))))
-        (signal 'cut-signal :bindings (lazy-mapcan #'identity or-results))))
-    (lazy-mapcan #'identity or-results)))
+  (lazy-mapcan (lambda (goal)
+                 (handler-case
+                     (prove-one goal bdgs t)
+                   (cut-signal (cut)
+                     (invoke-restart :finish (bindings cut)))))
+               goals))
 
 (def-prolog-handler not (bdgs form)
   (unless (prolog form bdgs)
