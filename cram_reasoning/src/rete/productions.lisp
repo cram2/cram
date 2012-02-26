@@ -266,10 +266,10 @@
        (unwind-protect
             (progn
               ,@(loop for (name . fun) in handler-syms
-                   collecting `(register-production-handler ,name #',fun))
+                   collecting `(register-production-handler ',name #',fun))
               ,@body)
          ,@(loop for (name . fun) in handler-syms
-              collecting `(remove-production-handler ,name #',fun))))))
+              collecting `(remove-production-handler ',name #',fun))))))
 
 ;;; Productions are specifications of the form
 ;;; (<fact 1>
