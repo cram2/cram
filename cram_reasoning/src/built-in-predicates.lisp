@@ -40,7 +40,7 @@
                  (handler-case
                      (prove-one goal bdgs t)
                    (cut-signal (cut)
-                     (invoke-restart :finish (bindings cut)))))
+                     (invoke-restart :rest (bindings cut)))))
                goals))
 
 (def-prolog-handler not (bdgs form)
