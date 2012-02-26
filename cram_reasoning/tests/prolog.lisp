@@ -231,6 +231,28 @@
                      ((?foo . 2)))
                    (force-ll (prolog '(fact-extendable ?foo)))))
 
+(define-test prolog-cut
+  (assert-equality #'solutions-equal
+                   '(((?x . 1)))
+                   (force-ll (prolog '(and (member ?x (1 2 3)) (cut)))))
+  (assert-equality #'solutions-equal
+                   '(((?x . 1)) nil)
+                   (force-ll (prolog '(or (== ?x 1) (cut)))))
+  (assert-equality #'solutions-equal
+                   '(((?x . 1)) ((?x . 1)))
+                   (force-ll (prolog '(and (== ?x 1)
+                                       (or (== ?x 1)
+                                        (== ?x 2)
+                                        (cut)
+                                        (== ?y 1))))))  
+  (assert-equality #'solutions-equal
+                   '(((?x . 1))
+                     ((?x . 2)))
+                   (force-ll (prolog '(and (member ?x (1 2 3))
+                                       (-> (== ?x 2)
+                                        (cut)
+                                        (true)))))))
+
 (def-fact-group prolog-bug ()
 
   (<- (fact-rename ?f)
