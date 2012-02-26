@@ -251,7 +251,21 @@
                    (force-ll (prolog '(and (member ?x (1 2 3))
                                        (-> (== ?x 2)
                                         (cut)
-                                        (true)))))))
+                                        (true))))))
+  (assert-equality #'solutions-equal
+                   '(((?x . 2)))
+                   (force-ll (prolog '(or
+                                       (and (member ?x (1 2 3))
+                                        (-> (== ?x 2)
+                                         (cut)
+                                         (true)))
+                                       (== ?z 1)))))
+  (assert-equality #'solutions-equal
+                   '(((?x . 1)) ((?x . 2)) ((?x . 3)) ((?y . 1)))
+                   (force-ll (prolog '(or
+                                       (member ?x (1 2 3))
+                                       (and (member ?y (1 2 3)) (cut))
+                                       (member ?x (1 2 3)))))))
 
 (def-fact-group prolog-bug ()
 
