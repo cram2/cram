@@ -17,8 +17,8 @@
             ((:file "package")
              (:file "utilities" :depends-on ("package"))
              (:file "rete" :depends-on ("package" "utilities"))
-             (:file "unify")
-             (:file "prolog")))))
+             (:file "unify" :depends-on ("package"))
+             (:file "prolog" :depends-on ("package"))))))
 
 (defmethod asdf:perform ((o asdf:test-op)
                          (c (eql (asdf:find-system 'cram-reasoning-tests))))
