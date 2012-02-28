@@ -87,10 +87,16 @@
         do (setf (mem-aref array type i) value)
         finally (return array)))
 
+(defun ensure-valid-attributes-list (attributes)
+  "Returns a new list that is a flattened copy of `attributes' and
+  that is terminated by None."
+  (append (alexandria:flatten attributes) (list none)))
+
 (defun choose-visual (display attributes)
-  (with-foreign-object (foreign-attributes :int (length attributes))
-    (set-foreign-array foreign-attributes attributes :int)
-    (glx-choose-visual display (x-default-screen display) foreign-attributes)))
+  (let ((attributes (ensure-valid-attributes-list attributes)))
+    (with-foreign-object (foreign-attributes :int (length attributes))
+      (set-foreign-array foreign-attributes attributes :int)
+      (glx-choose-visual display (x-default-screen display) foreign-attributes))))
 
 (defmacro with-rendering-context (rendering-context &body body)
   (alexandria:with-gensyms (current-display current-drawable current-context)
