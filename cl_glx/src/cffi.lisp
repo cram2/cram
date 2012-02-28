@@ -32,7 +32,7 @@
   (:unix "libX11.so"))
 
 (define-foreign-library libGL
-  (:unix "libGL.so"))
+  (:unix (:or "libGL.so.4" "libGL.so.3" "libGL.so.2" "libGL.so.1" "libGL.so")))
 
 (use-foreign-library libX11)
 (use-foreign-library libGL)
