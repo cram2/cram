@@ -20,7 +20,7 @@
    (hidden :initform nil :reader hidden :initarg :hidden)
    (display-callbacks :initform nil :accessor display-callbacks))
   (:default-initargs :width 640 :height 480 :title "bullet visualization"
-    :mode '(:double :rgba :depth)))
+                     :mode '(:double :rgba :depth :alpha)))
 
 (defgeneric close-window (window)
   (:method ((w bullet-world-window))
