@@ -31,56 +31,55 @@
 (defclass pixmap-rendering-context ()
   ((lock :reader rendering-context-lock
          :initform (sb-thread:make-mutex))
-   (display :reader display)
-   (visual :reader visual)
-   (context :reader context)
-   (pixmap :reader pixmap)
-   (glx-pixmap :reader glx-pixmap)
+   (display :reader display :initform nil)
+   (visual :reader visual :initform nil)
+   (context :reader context :initform nil)
+   (pixmap :reader pixmap :initform nil)
+   (glx-pixmap :reader glx-pixmap :initform nil)
    (width :reader width :initarg :width)
    (height :reader height :initarg :height)
    (depth :reader depth :initarg :depth)))
 
+(defgeneric rendering-context-destroy-function (rendering-context)
+  (:method ((rendering-context pixmap-rendering-context))
+    (let ((display (slot-value rendering-context 'display))
+          (visual (slot-value rendering-context 'visual))
+          (context (slot-value rendering-context 'context))
+          (pixmap (slot-value rendering-context 'pixmap))
+          (glx-pixmap (slot-value rendering-context 'glx-pixmap)))
+      (lambda ()
+        (when (and display glx-pixmap)
+          (glx-destroy-glx-pixmap display glx-pixmap))
+        (when (and display pixmap)
+          (x-free-pixmap display pixmap))
+        (when (and display context)
+          (glx-destroy-context display context))
+        (when visual
+          (x-free visual))
+        (when display
+          (x-close-display display))))))
+
 (defmethod initialize-instance :after ((rendering-context pixmap-rendering-context)
                                        &key (attributes `(,glx-rgba
-                                                          (,glx-red-size . 1)
-                                                          (,glx-green-size . 1)
-                                                          (,glx-blue-size . 1))))
-  (with-slots (visual width height depth) rendering-context
-    (let ((display nil)
-          (context nil)
-          (pixmap nil)
-          (glx-pixmap nil))
-      (tg:finalize rendering-context
-                   (lambda ()
-                     (when (and display glx-pixmap)
-                       (glx-destroy-glx-pixmap display glx-pixmap))
-                     (when (and display pixmap)
-                       (x-free-pixmap display pixmap))
-                     (when (and display context)
-                       (glx-destroy-context display context))
-                     (when display
-                       (x-close-display display))))
-      (setf display (x-open-display ""))
-      (assert (not (null-pointer-p display)) () "Unable to open display.")
-      (setf visual (choose-visual display (alexandria:flatten attributes)))
-      (assert (not (null-pointer-p visual)) () "Unable to get visual.")
-      (setf context (glx-create-context display visual (null-pointer) 1))
-      (assert (not (null-pointer-p visual)) () "Unable to create rendering context.")
-      (setf pixmap (x-create-pixmap display (x-default-root-window display)
-                                    width height depth))
-      (setf glx-pixmap (glx-create-glx-pixmap display visual pixmap))
-      (set-context-slots
-       rendering-context
-       :display display
-       :context context
-       :pixmap  pixmap
-       :glx-pixmap glx-pixmap))))
-
-(defun set-context-slots (rendering-context &key display context pixmap glx-pixmap)
-  (setf (slot-value rendering-context 'display) display)
-  (setf (slot-value rendering-context 'context) context)
-  (setf (slot-value rendering-context 'pixmap) pixmap)
-  (setf (slot-value rendering-context 'glx-pixmap) glx-pixmap))
+                                                          (,glx-depth-size . 24)
+                                                          (,glx-red-size . 8)
+                                                          (,glx-green-size . 8)
+                                                          (,glx-blue-size . 8))))
+  (with-slots (display context pixmap glx-pixmap visual width height depth)
+      rendering-context
+    (unwind-protect
+         (progn
+           (setf display (x-open-display ""))
+           (assert (not (null-pointer-p display)) () "Unable to open display.")
+           (setf visual (choose-visual display attributes))
+           (assert (not (null-pointer-p visual)) () "Unable to get visual.")
+           (setf context (glx-create-context display visual (null-pointer) 1))
+           (assert (not (null-pointer-p visual)) () "Unable to create rendering context.")
+           (setf pixmap (x-create-pixmap display (x-default-root-window display)
+                                         width height depth))
+           (setf glx-pixmap (glx-create-glx-pixmap display visual pixmap)))
+      (tg:finalize
+       rendering-context (rendering-context-destroy-function rendering-context)))))
 
 (defun set-foreign-array (array values type)
   (loop for i from 0
