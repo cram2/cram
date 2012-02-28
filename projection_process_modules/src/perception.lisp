@@ -28,12 +28,15 @@
 
 (in-package :projection-process-modules)
 
+(defclass projection-object-designator (desig:object-designator)
+  ())
+
 (defclass perceived-object ()
   ((name :reader object-name :initarg :name)
    (pose :reader object-pose :initarg :pose)
    (designator :reader object-designator :initarg :designator)))
 
-(defmethod desig:designator-pose ((designator desig:object-designator))
+(defmethod desig:designator-pose ((designator projection-object-designator))
   (object-pose (desig:reference designator)))
 
 (defmethod desig:designator-distance ((designator-1 desig:object-designator)
@@ -43,13 +46,15 @@
 
 (defun make-object-designator (perceived-object &key parent type)
   (let* ((pose (object-pose perceived-object))
-         (designator (desig:make-designator
-                      'desig-props:object
-                      (desig:update-designator-properties
-                       `(,(when type `((desig-props:type ,type)))
-                         (at ,pose))
-                       (when parent (desig:properties parent)))
-                      parent)))
+         (designator (change-class
+                      (desig:make-designator
+                       'desig-props:object
+                       (desig:update-designator-properties
+                        `(,(when type `((desig-props:type ,type)))
+                           (at ,pose))
+                        (when parent (desig:properties parent)))
+                       parent)
+                      'projection-object-designator)))
     (setf (slot-value perceived-object 'designator) designator)
     (setf (slot-value designator 'desig:data) perceived-object)
     (setf (slot-value designator 'desig:valid) t)
