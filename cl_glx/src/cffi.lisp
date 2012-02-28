@@ -60,9 +60,25 @@
   (height :unsigned-int)
   (depth :unsigned-int))
 
+(defcfun (x-free "XFree") :int
+  (data :pointer))
+
 (defcfun (x-free-pixmap "XFreePixmap") :int
   (display :pointer)
   (pixmap :unsigned-long))
+
+(defcfun (x-get-visual-info "XGetVisualInfo") :pointer
+  (display :pointer)
+  (vinfo-mask :long)
+  (vinfo-template :pointer)
+  (n-items-return :pointer))
+
+(defcfun (x-match-visual-info "XMatchVisualInfo") :int
+  (display :pointer)
+  (screen :int)
+  (depth :int)
+  (class :int)
+  (visual-info :pointer))
 
 (defcfun (glx-choose-visual "glXChooseVisual") :pointer
   (display :pointer)
