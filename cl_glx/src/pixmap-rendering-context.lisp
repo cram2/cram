@@ -69,7 +69,7 @@
       rendering-context
     (unwind-protect
          (progn
-           (setf display (x-open-display ""))
+           (setf display (x-open-display (null-pointer)))
            (assert (not (null-pointer-p display)) () "Unable to open display.")
            (setf visual (choose-visual display attributes))
            (assert (not (null-pointer-p visual)) () "Unable to get visual.")
