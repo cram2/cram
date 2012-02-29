@@ -15,6 +15,7 @@
   <depend package="cl_glx"/>
   <depend package="trivial_garbage"/>
   <depend package="alexandria"/>
+  <depend package="lisp_unit"/>
 
 </package>
 
