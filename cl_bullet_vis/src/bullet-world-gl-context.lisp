@@ -40,7 +40,7 @@
 (defgeneric (setf world) (new-value world-context)
   (:method (new-value (world-context bullet-world-gl-context))
     (with-slots (world) world-context
-      (setf world new-value)
       (setf (gl-objects world-context)
             (cons new-value
-                  (remove world (gl-objects world-context)))))))
+                  (remove world (gl-objects world-context))))
+      (setf world new-value))))
