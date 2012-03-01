@@ -45,18 +45,18 @@
 
 ;; Lazy container
 (defstruct delay
-    (value +lazy-value-uninitialized+)
-    generator)
+  (value +lazy-value-uninitialized+)
+  generator)
 
-  (defmacro delay (&body expr)
-    `(make-delay :generator #'(lambda () ,@expr)))
+(defmacro delay (&body expr)
+  `(make-delay :generator #'(lambda () ,@expr)))
 
-  (defun force (obj)
-    (typecase obj
-      (delay (when (eq (delay-value obj) +lazy-value-uninitialized+)
-               (setf (delay-value obj) (funcall (delay-generator obj))))
-             (delay-value obj))
-      (t obj)))
+(defun force (obj)
+  (typecase obj
+    (delay (when (eq (delay-value obj) +lazy-value-uninitialized+)
+             (setf (delay-value obj) (funcall (delay-generator obj))))
+      (delay-value obj))
+    (t obj)))
 
 ;; Lazy list
 (defstruct lazy-cons-elem
