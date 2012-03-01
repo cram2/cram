@@ -28,13 +28,6 @@
 
 (in-package :crs-tests)
 
-(defun bindings-equal (lhs rhs &key (test #'equal))
-  (loop for (variable . value) in lhs
-        for rhs-value = (cdr (assoc variable rhs))
-        unless (funcall test value rhs-value) do
-          (return nil)
-        finally (return t)))
-
 (defun solutions-equal (expected solution &key (test #'equal))
   (when (eql (length expected) (length solution))
     (every (lambda (binding)
