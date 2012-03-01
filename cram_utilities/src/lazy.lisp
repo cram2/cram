@@ -143,16 +143,14 @@
                   (mapcar #'lazy-cdr expanded-lists))))))))
 
 (defun lazy-mapcan (fun list-1 &rest more-lists)
-  (let ((initial-values (mapcar #'lazy-car (cons list-1 more-lists))))
-    (unless (position nil (cons list-1 more-lists))
-      (lazy-list ((values +lazy-value-uninitialized+)
-                  (lists (cons list-1 more-lists)))
-        (when (eq values +lazy-value-uninitialized+)
-          (setf values (apply fun initial-values)))
+  (unless (position nil (cons list-1 more-lists))
+    (lazy-list ((values-generator (lambda () (apply fun (mapcar #'lazy-car (cons list-1 more-lists)))))
+                (lists (cons list-1 more-lists)))
+      (let ((values (when values-generator (funcall values-generator))))
         (flet ((proceed (next-values lists)
                  (if next-values
-                     (cont (lazy-car next-values) (lazy-cdr next-values) lists)
-                     (next (lazy-cdr next-values) lists))))
+                     (cont (lazy-car next-values) (lambda () (lazy-cdr next-values)) lists)
+                     (next nil lists))))
           (cond (values (proceed values lists))
                 (t
                  (let* ((cdrs (mapcar #'lazy-cdr lists))
