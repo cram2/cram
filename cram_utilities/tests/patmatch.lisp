@@ -33,113 +33,96 @@
 ;;; Auxiliary
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def-suite auxiliary :in utilities)
+(define-test valid-vars
+  (assert-true (is-var '?x))
+  (assert-true (is-var '?foo))
+  (assert-true (is-var '?))
+  (assert-true (is-var '??))
+  (assert-true (is-var '|? |))
+  (assert-true (is-var :?bar))
+  (assert-true (is-var (gensym "?"))))
 
-(in-suite auxiliary)
+(define-test invalid-vars
+  (assert-false (is-var '()))
+  (assert-false (is-var '!))
+  (assert-false (is-var '!?foo))
+  (assert-false (is-var 'x))
+  (assert-false (is-var 'b?))
+  (assert-false (is-var '(a b c)))
+  (assert-false (is-var '(?x))))
 
-(test valid-vars
-  (is-true (is-var '?x))
-  (is-true (is-var '?foo))
-  (is-true (is-var '?))
-  (is-true (is-var '??))
-  (is-true (is-var '|? |))
-  (is-true (is-var :?bar))
-  (is-true (is-var (gensym "?"))))
+(define-test unnamed-var
+  (assert-true (is-unnamed-var '?_))
+  (assert-true (is-unnamed-var 'cut:?_))
+  (assert-true (is-unnamed-var (var-name '!?_))))
 
-(test invalid-vars
-  (is-false (is-var '()))
-  (is-false (is-var '!))
-  (is-false (is-var '!?foo))
-  (is-false (is-var 'x))
-  (is-false (is-var 'b?))
-  (is-false (is-var '(a b c)))
-  (is-false (is-var '(?x))))
+(define-test not-unnamed-var
+  (assert-false (is-unnamed-var '?x))
+  (assert-false (is-unnamed-var '!?_)))
 
-(test unnamed-var
-  (is-true (is-unnamed-var '?_))
-  (is-true (is-unnamed-var 'cut:?_))
-  (is-true (is-unnamed-var (var-name '!?_))))
+(define-test valid-segvars
+  (assert-true (is-segvar '!?foo))
+  (assert-true (is-segvar '!?)))
 
-(test not-unnamed-var
-  (is-false (is-unnamed-var 'cram-test-utilities::?_))
-  (is-false (is-unnamed-var '?x))
-  (is-false (is-unnamed-var '!?_)))
+(define-test invalid-segvars
+  (assert-false (is-segvar '?foo))
+  (assert-false (is-segvar '!))
+  (assert-false (is-segvar 'x?))
+  (assert-false (is-segvar '(a b c))))
 
-(test valid-segvars
-  (is-true (is-segvar '!?foo))
-  (is-true (is-segvar '!?)))
+(define-test valid-segforms
+  (assert-true (is-segform '(!?a b c)))
+  (assert-true (is-segform '(!?foo))))
 
-(test invalid-segvars
-  (is-false (is-segvar '?foo))
-  (is-false (is-segvar '!))
-  (is-false (is-segvar 'x?))
-  (is-false (is-segvar '(a b c))))
+(define-test invalid-segforms
+  (assert-false (is-segform '(?a b c)))
+  (assert-false (is-segform '(a b c)))
+  (assert-false (is-segform '()))
+  (assert-false (is-segform '?x))
+  (assert-false (is-segform '!?x)))
 
-(test valid-segforms
-  (is-true (is-segform '(!?a b c)))
-  (is-true (is-segform '(!?foo))))
+(define-test var-name-works
+  (assert-eq '?foo (var-name '?foo))
+  (assert-eq '?bar (var-name '!?bar))
+  (assert-true (is-unnamed-var (var-name '!?_))))
 
-(test invalid-segforms
-  (is-false (is-segform '(?a b c)))
-  (is-false (is-segform '(a b c)))
-  (is-false (is-segform '()))
-  (is-false (is-segform '?x))
-  (is-false (is-segform '!?x)))
+(define-test var-name-signals-error
+  (assert-error 'simple-error (var-name 'foo))
+  (assert-error 'simple-error (var-name '(?foo))))
 
-(test var-name-works
-  (is (eq '?foo (var-name '?foo)))
-  (is (eq '?bar (var-name '!?bar)))
-  (is (eq 'cram-test-utilities::?baz
-          (var-name 'cram-test-utilities::!?baz)))
-  (is-true (is-unnamed-var (var-name '!?_))))
+(define-test gen-var-is-var
+  (assert-true (is-var (gen-var)))
+  (assert-true (is-var (gen-var "?")))
+  (assert-true (is-var (gen-var "?FOO"))))
 
-(test var-name-signals-error
-  (signals simple-error (var-name 'foo))
-  (signals simple-error (var-name '(?foo))))
+(define-test gen-var-signals-error
+  (assert-error 'simple-error (gen-var "FOO"))
+  (assert-error 'simple-error (gen-var :?foo)))
 
-(test gen-var-is-var
-  (is-true (is-var (gen-var)))
-  (is-true (is-var (gen-var "?")))
-  (is-true (is-var (gen-var "?FOO"))))
+(define-test gen-vars-unique
+  (let ((vars (loop repeat 20 collecting (gen-var))))
+    (dolist (var vars)
+      (assert-eql 1 (count var vars)))))
 
-(test gen-var-signals-error
-  (signals simple-error (gen-var "FOO"))
-  (signals simple-error (gen-var :?foo)))
+(define-test is-genvar
+  (assert-true (is-genvar (gen-var)))
+  (assert-false (is-genvar '?foo))
+  (assert-error 'simple-error (is-genvar 23)))
 
-(test gen-vars-unique
-  (flet ((every-unique (l)
-           (every #'(lambda (x)
-                      (= 1 (count x l :test #'eq)))
-                  l)))
-    (is-true (every-unique (loop repeat 20 collecting (gen-var))))))
+(define-test add-bdgs
+  (assert-equal :foo (var-value '?x (add-bdg '?x :foo nil)))
+  (assert-equal '(nil t) (multiple-value-list (add-bdg '?_ :foo nil)))
+  (assert-equal '(nil nil) (multiple-value-list
+                            (add-bdg '?x :foo
+                                     (add-bdg '?x :bar nil))))
+  (assert-true (nth-value 1 (add-bdg '?x '(foo bar) (add-bdg '?x '(foo bar) nil)))))
 
-(test is-genvar
-  (is-true (is-genvar (gen-var)))
-  (is-false (is-genvar '?foo))
-  (signals simple-error (is-genvar 23)))
-
-(test add-bdgs
-  (is (equal :foo (cdr (assoc '?x (add-bdg '?x :foo nil)))))
-  (is (equal '(nil t)
-             (multiple-value-list
-              (add-bdg '?_ :foo nil))))
-  (is (equal '(nil nil)
-             (multiple-value-list
-              (add-bdg '?x :foo
-                       (add-bdg '?x :bar nil)))))
-  (is-true (cadr (multiple-value-list
-                  (add-bdg '?x '(foo bar)
-                           (add-bdg '?x '(foo bar) nil))))))
-
-(test substitute-vars
+(define-test substitute-vars
   (let ((bdgs (add-bdg '?x '(a b ?y)
                        (add-bdg '?y 'foo nil))))
-    (is (equal '(a b foo)
-               (substitute-vars '?x bdgs)))
-    (is (equal '((a b foo) foo ?z)
-               (substitute-vars '(?x ?y ?z) bdgs)))
-    (is (equal 'foo
-               (substitute-vars 'foo bdgs)))))
+    (assert-equal '(a b foo) (substitute-vars '?x bdgs))
+    (assert-equal '((a b foo) foo ?z) (substitute-vars '(?x ?y ?z) bdgs))
+    (assert-equal 'foo (substitute-vars 'foo bdgs))))
 
 #+nil
 (test substitute-segvars
@@ -151,158 +134,143 @@
                (substitute-vars '(a !?y b))))))
 
 ;;; TODO:  handle (var-value '!?x bdg) when ?x is bound to non-list
-(test var-value
+(define-test var-value
   (let ((bdgs (add-bdg '?x '(a b ?y)
-                       (add-bdg '?y 'foo nil)))
-        (pat '(a b c)))
-    (is (equal pat (var-value pat bdgs)))
-    (is (equal 'foo (var-value '?y bdgs)))
-    (is (equal '?z (var-value '?z bdgs)))
-    (is (equal '(?x ?y) (var-value '(?x ?y) bdgs)))))
+                       (add-bdg '?y 'foo nil))))
+    (assert-equal '(a b c) (var-value '(a b c) bdgs))
+    (assert-equal 'foo (var-value '?y bdgs))
+    (assert-equal '?z (var-value '?z bdgs))
+    (assert-equal '(?x ?y) (var-value '(?x ?y) bdgs))))
 
-(test rename-vars
+(define-test rename-vars
   (let* ((pat '(foo ?bar (baz . ?quux) ?_ :quax))
          (renamed (rename-vars pat))
          (sub (substitute-vars pat '((?bar . 1) (?quux . 2) (?_ . 3))))
          (binds (pat-match renamed sub)))
-    (is (= 2 (length binds)))
-    (is-true (every #'null (mapcar #'symbol-package (vars-in binds))))))
+    (assert-eql 2 (length binds))
+    (assert-true (every #'null (mapcar #'symbol-package (vars-in binds))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Patmatch
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def-suite patmatch :in utilities)
+(define-test pat-match-constant
+  (assert-equal '(nil t) (multiple-value-list (pat-match 'x 'x)))
+  (assert-equal '(nil t) (multiple-value-list (pat-match '(a b c) '(a b c)))))
 
-(in-suite patmatch)
+(define-test pat-match-constant-fail
+  (assert-equal '(nil nil) (multiple-value-list (pat-match 'x 'y)))
+  (assert-equal '(nil nil) (multiple-value-list (pat-match '(a b c) '(a b foo))))
+  (assert-equal '(nil nil) (multiple-value-list (pat-match '(a b) '(a b c))))
+  (assert-equal '(nil nil) (multiple-value-list (pat-match '(a b) '(a)))))
 
-(defmacro pat-match-test (match? pat seq &optional (test-binds nil))
-  `(progn
-     (,(if match? 'is-true 'is-false)
-       (pat-match-p ',pat ',seq))
-     (let ((result (multiple-value-list (pat-match ',pat ',seq))))
-       (is (= 2 (length result)))
-       ,(if match?
-            `(progn
-               (is-true (cadr result))
-               ,@(mapcar (lambda (test)
-                           `(progn
-                              (is (equal
-                                   ',(cdr test)
-                                   (var-value ',(var-name (car test))
-                                              (car result))))
-                              (is-true
-                               (or (not (is-segvar ',(car test)))
-                                   (proper-list-p
-                                    (var-value ',(var-name (car test))
-                                               (car result)))))))
-                         test-binds))
-            `(is (equal '(nil nil) result))))))
+(define-test pat-match-simple
+  (assert-equality #'bindings-equal
+                   '((?x . a))
+                   (pat-match '(?x b) '(a b)))
+  (assert-equality #'bindings-equal
+                   '((?x . (a b)))
+                   (pat-match '(?x c) '((a b) c)))
+  (assert-equality #'bindings-equal
+                   '((?x . a))
+                   (pat-match '(?x ?x) '(a a)))
+  (assert-eq 'foo (var-value '?x (pat-match '(a b ?x) '(a b foo)))))
 
-(test pat-match-constant
-  (pat-match-test t x x)
-  (pat-match-test t (a b c) (a b c)))
+(define-test pat-match-simple-fail
+  (assert-equal '(nil nil) (multiple-value-list (pat-match '(?x) 'a)))
+  (assert-equal '(nil nil) (multiple-value-list (pat-match '(?x ?x) '(a b))))
+  (assert-equal '(nil nil) (multiple-value-list (pat-match '(?x ?x) '(nil foo)))))
 
-(test pat-match-constant-fail
-  (pat-match-test nil x y)
-  (pat-match-test nil (a b c) (a b foo))
-  (pat-match-test nil (a b) (a b c))
-  (pat-match-test nil (a b) (a)))
+(define-test pat-match-no-vars-on-left-side
+  (assert-error 'simple-error (pat-match '(a ?x c) '(a b ?y)))
+  (assert-error 'simple-error (pat-match '(a b c) '(!?y))))
 
-(test pat-match-simple
-  (pat-match-test t (?x b) (a b) ((?x . a)))
-  (pat-match-test t (?x c) ((a b) c) ((?x . (a b))))
-  (pat-match-test t (?x ?x) (a a) ((?x . a)))
-  (is (eq 'foo (var-value '?x (pat-match '(a b ?x) '(a b foo))))))
+(define-test pat-match-add-value-bug
+  (assert-equal '(nil nil) (multiple-value-list (pat-match '(?x ?x) '(nil foo)))))
 
-(test pat-match-simple-fail
-  (pat-match-test nil (?x) a)
-  (pat-match-test nil (?x ?x) (a b))
-  (pat-match-test nil (?x ?x) (nil foo)))
+(define-test pat-match-seg-form-invalid-place
+  (assert-error 'simple-error (pat-match '!?foo 'bar))
+  (assert-error 'simple-error (pat-match '(a . !?x) '(a . b))))
 
-(test pat-match-no-vars-on-left-side
-  (signals simple-error (pat-match '(a ?x c) '(a b ?y)))
-  (signals simple-error (pat-match '(a b c) '(!?y))))
+(define-test pat-match-seg-form
+  (assert-equality #'bindings-equal
+                   '((?x . (b c)))
+                   (pat-match '(a !?x d) '(a b c d)))
+  (assert-equality #'bindings-equal
+                   '((?x . nil)
+                     (?y . nil)
+                     (?z . (bar bar foo)))
+                   (pat-match '(foo !?x foo !?y !?z bar) '(foo foo bar bar foo bar)))
+  (assert-equality #'bindings-equal
+                   '((?x . (a b)) (?y . c))
+                   (pat-match '(!?x ?y) '(a b c)))
+  (assert-equality #'bindings-equal
+                   '((?x . (a b)))
+                   (pat-match '(!?x ?x) '(a b (a b)))))
 
-(test pat-match-add-value-bug
-  ;; Used to fail. Now fixed.
-  (pat-match-test nil (?x ?x) (nil foo)))
+(define-test pat-match-seg-form-fail
+  (assert-false (pat-match '(!?x d) '(a b c)))
+  (assert-false (pat-match '(a (b !?x ?y) c) '(a (b) c)))
+  (assert-false (pat-match '(!?x) 'a))
+  (assert-false (pat-match '(?x !?x) '(a a))))
 
-(test pat-match-seg-form-invalid-place
-  (signals simple-error (pat-match '!?foo 'bar))
-  (signals simple-error (pat-match '(a . !?x) '(a . b))))
+(define-test pat-match-seg-var-proper-list
+  (assert-false (pat-match '(a !?x) '(a b . c))))
 
-(test pat-match-seg-form
-  (pat-match-test t (a !?x d) (a b c d)
-                  ((?x . (b c))))
-  (pat-match-test t (foo !?x foo !?y !?z bar) (foo foo bar bar foo bar)
-                  ((?x . nil)
-                   (?y . nil)
-                   (?z . (bar bar foo))))
-  (pat-match-test t (!?x ?y) (a b c)
-                  ((?x . (a b)) (?y . c)))
-  (pat-match-test t (!?x ?x) (a b (a b))
-                  ((?x . (a b)))))
+(define-test vars-in
+  (assert-equality #'set-equal '(?x) (vars-in '?x))
+  (assert-equality #'set-equal '(?x) (vars-in '(a ?x b)))
+  (assert-equality #'set-equal '(?x ?y) (vars-in '(?x (a ?y) b)))
+  (assert-equality #'set-equal '(?x ?y) (vars-in '(?y (a ?x) b))))
 
-(test pat-match-seg-form-fail
-  (pat-match-test nil (!?x d) (a b c))
-  (pat-match-test nil (a (b !?x ?y) c) (a (b) c))
-  (pat-match-test nil (!?x) a)
-  (pat-match-test nil (?x !?x) (a a)))
+(define-test vars-in-empty
+  (assert-eq '() (vars-in 'a))
+  (assert-eq '() (vars-in '(a b c))))
 
-(test pat-match-seg-var-proper-list
-  (pat-match-test nil (a !?x) (a b . c)))
+(define-test vars-in-duplicates-removed
+  (assert-eql 1 (count '?x (vars-in '(?x ?x))))
+  (let ((vars (vars-in '(a (b . ?y) . (?y ?x foo)))))
+    (assert-eql 1 (count '?x vars))
+    (assert-eql 1 (count '?y vars))))
 
-(test vars-in
-  (is (symbol-set-equal '(?x) (vars-in '?x)))
-  (is (symbol-set-equal '(?x) (vars-in '(a ?x b))))
-  (is (symbol-set-equal '(?x ?y) (vars-in '(?x (a ?y) b))))
-  (is (symbol-set-equal '(?x ?y) (vars-in '(?y (a ?x) b)))))
-
-(test vars-in-empty
-  (is (symbol-set-equal '() (vars-in 'a)))
-  (is (symbol-set-equal '() (vars-in '(a b c)))))
-
-(test vars-in-duplicates-removed
-  (is (symbol-set-equal '(?x) (vars-in '(?x ?x))))
-  (is (symbol-set-equal '(?x ?y) (vars-in '(a (b . ?y) . (?y ?x foo))))))
-
-(test with-vars-bound
+(define-test with-vars-bound
   (with-vars-bound (?x ?y) (pat-match '(?x ?y) '(foo bar))
-    (is (equal '(foo bar) (list ?x ?y)))))
+    (assert-eq 'foo ?x)
+    (assert-eq 'bar ?y)))
 
-(test with-pat-vars-bound
+(define-test with-pat-vars-bound
   (with-pat-vars-bound (?x b ?y) '(a b c)
-    (is (equal '(a c) (list ?x ?y))))
-  (signals simple-error (with-pat-vars-bound (?x b ?y) '(foo bar baz)
-                          (declare (ignore ?x ?y))))
-  (signals simple-warning (with-pat-vars-bound (a b) '(a b))))
+    (assert-eq 'a ?x)
+    (assert-eq 'c ?y))
+  (assert-error 'simple-error (with-pat-vars-bound (?x b ?y) '(foo bar baz)
+                                (declare (ignore ?x ?y))))
+  (assert-error 'simple-warning (with-pat-vars-bound (a b) '(a b))))
 
-(test is-bound-ground
+(define-test is-bound-ground
   (let* ((bdgs1 (pat-match '(?x ?y ?z) '(a (b c) nil)))
          (bdgs2 (add-bdg '?bar '(?free)
                          (add-bdg '?foo '(?x ?y) bdgs1))))
     ;; bdgs1
-    (is-true (is-bound '?x bdgs1))
-    (is-true (is-ground '?x bdgs1))
-    (is-true (is-bound '?y bdgs1))
-    (is-true (is-ground '?y bdgs1))
-    (is-true (is-bound '?z bdgs1))
-    (is-true (is-ground '?z bdgs1))
-    (is-false (is-bound '?foo bdgs1))
-    (is-false (is-ground '?foo bdgs1))
-    (is-true (is-bound 'nil bdgs1))
-    (is-true (is-ground 'nil bdgs1))
-    (is-true (is-bound '(a b) bdgs1))
-    (is-true (is-ground '(a b) bdgs1))
-    (is-true (is-bound '(?x) bdgs1))
-    (is-true (is-ground '(?x) bdgs1))
-    (is-true (is-bound '(?foo) bdgs1))
-    (is-false (is-ground '(?foo) bdgs1))
+    (assert-true (is-bound '?x bdgs1))
+    (assert-true (is-ground '?x bdgs1))
+    (assert-true (is-bound '?y bdgs1))
+    (assert-true (is-ground '?y bdgs1))
+    (assert-true (is-bound '?z bdgs1))
+    (assert-true (is-ground '?z bdgs1))
+    (assert-false (is-bound '?foo bdgs1))
+    (assert-false (is-ground '?foo bdgs1))
+    (assert-true (is-bound 'nil bdgs1))
+    (assert-true (is-ground 'nil bdgs1))
+    (assert-true (is-bound '(a b) bdgs1))
+    (assert-true (is-ground '(a b) bdgs1))
+    (assert-true (is-bound '(?x) bdgs1))
+    (assert-true (is-ground '(?x) bdgs1))
+    (assert-true (is-bound '(?foo) bdgs1))
+    (assert-false (is-ground '(?foo) bdgs1))
     ;; bdgs2
-    (is-true (is-bound '(?foo) bdgs2))
-    (is-true (is-ground '(?foo) bdgs2))
-    (is-true (is-bound '(?bar) bdgs2))
-    (is-false (is-ground '(?bar) bdgs2))
-    (is-true (is-bound '(?foo ?bar) bdgs2))
-    (is-false (is-ground '(?foo ?bar) bdgs2))))
+    (assert-true (is-bound '(?foo) bdgs2))
+    (assert-true (is-ground '(?foo) bdgs2))
+    (assert-true (is-bound '(?bar) bdgs2))
+    (assert-false (is-ground '(?bar) bdgs2))
+    (assert-true (is-bound '(?foo ?bar) bdgs2))
+    (assert-false (is-ground '(?foo ?bar) bdgs2))))
