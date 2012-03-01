@@ -93,7 +93,7 @@
       #:deprecation-warning
       #:deprecate
       ;; lazy
-      #:delay #:force #:lazy-list #:lazy-list-p
+      #:delay #:delay-p #:force #:lazy-list #:lazy-list-p
       #:lazy-car #:lazy-cdr #:lazy-mapcar #:lazy-mapcan
       #:lazy-elt #:force-ll #:copy-lazy-list #:lazy-filter
       #:lazy-fold #:lazy-append #:cont #:finish #:next
