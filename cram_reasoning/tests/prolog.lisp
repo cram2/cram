@@ -318,3 +318,43 @@
       (assert-eq 'first expansions)
       (lazy-cdr solutions)
       (assert-eq 'second expansions))))
+
+(define-test correct-expansion-of-multiple-choicepoints
+  (let ((expansions-1 nil)
+        (expansions-2 nil))
+    (declare (special expansions-1 expansions-2))
+    (let ((solutions
+            (prolog '(and
+                      (member ?x (1 2))
+                      (lisp-fun set expansions-1 ?x ?_)
+                      (member ?y (3 4))
+                      (lisp-fun set expansions-2 ?y ?_)))))
+      (lazy-car solutions)
+      (assert-eq 1 expansions-1)
+      (assert-eq 3 expansions-2))))
+
+(define-test forall-handler
+  (assert-equality #'solutions-equal
+                   '(nil)
+                   (force-ll (prolog '(forall (member ?x (1 2 3)) (member ?x (1 2 3))))))
+  (assert-false (force-ll (prolog '(forall (member ?x (1 2 3 4)) (member ?x (1 2 3))))))
+  (assert-false (force-ll (prolog '(forall (member ?x (1 2 3)) (fail))))))
+
+(define-test forall-handler-correct-expansions
+  (let ((cond-expansions nil)
+        (action-expansions nil))
+    (declare (special cond-expansions action-expansions))
+    ;; We need to expand all bindings of `cond' but we need only one
+    ;; solution of `action'
+    (let ((solutions
+            (prolog '(forall
+                      (and
+                       (member ?x (1 2))
+                       (lisp-fun set cond-expansions ?x ?_))
+                      (and
+                       (member ?y (a b))
+                       (lisp-fun set action-expansions ?y ?_)
+                       (true))))))
+      (lazy-car solutions)
+      (assert-eq 2 cond-expansions)
+      (assert-eq 'a action-expansions))))
