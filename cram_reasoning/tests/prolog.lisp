@@ -253,7 +253,8 @@
                                         (cut)
                                         (true))))))
   (assert-equality #'solutions-equal
-                   '(((?x . 2)))
+                   '(((?x . 1))
+                     ((?x . 2)))
                    (force-ll (prolog '(or
                                        (and (member ?x (1 2 3))
                                         (-> (== ?x 2)
