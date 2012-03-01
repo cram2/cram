@@ -104,8 +104,7 @@
       #:substitute-vars #:var-value #:gen-var #:is-genvar #:add-bdg
       #:pat-match #:pat-match-p #:vars-in #:with-pat-vars-bound
       #:with-vars-bound #:?_ #:!?_ #:is-bound #:is-ground
-      #:match-segvar #:patterns-eq
-      #:rename-vars
+      #:match-segvar #:patterns-eq #:rename-vars #:bindings-equal
       ;; data-pool
       #:make-data-pool #:new-pool-value #:pool-value
       #:delete-pool-value
