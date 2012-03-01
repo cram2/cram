@@ -34,7 +34,7 @@
   (:documentation "Package for the cram-utilities test-suite")
   (:nicknames :cut-tests)
   (:use #:common-lisp 
-        #:cram-test-utilities
         #:cram-utilities
-        #:fiveam
-        #:alexandria))
+        #:lisp-unit
+        #:alexandria)
+  (:shadowing-import-from #:lisp-unit set-equal))
