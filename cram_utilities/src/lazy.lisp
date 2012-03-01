@@ -216,10 +216,13 @@
                (next nil (cdr rest)))))))
 
 (defun lazy-take (n l)
-  (lazy-list ((l l)
+  (lazy-list ((list-generator (lambda () l))
               (i n))
-    (when (and l (> i 0))
-      (cont (lazy-car l) (lazy-cdr l) (- i 1)))))
+    (when (> i 0)
+      (let ((list (funcall list-generator)))
+        (when list
+          (cont (lazy-car list)
+                (lambda () (lazy-cdr list)) (- i 1)))))))
 
 (defun lazy-skip (n l)
   (let ((result l))

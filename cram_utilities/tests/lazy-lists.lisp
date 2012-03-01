@@ -104,7 +104,7 @@
     (force-ll filtered-list)
     (assert-equal '(2 4 6) filtered-list)))
 
-(define-test lazy-filter-expansions
+(define-test lazy-filter-evaluations
   (let* ((evaluations 0)
          (filtered-list (lazy-filter (lambda (value)
                                        (declare (ignore value))
@@ -119,3 +119,16 @@
     (force-ll filtered-list)
     (assert-eql 3 evaluations)))
 
+(define-test lazy-take
+  (let* ((evaluations 0)
+         (list (lazy-take 3 (lazy-list ()
+                              (incf evaluations)
+                              (cont :elem)))))
+    (assert-true (< evaluations 2))
+    (lazy-car list)
+    (assert-eq 1 evaluations)
+    (lazy-cdr list)
+    (assert-eq 2 evaluations)
+    (force-ll list)
+    (assert-eq 3 evaluations)
+    (assert-equal '(:elem :elem :elem) list)))
