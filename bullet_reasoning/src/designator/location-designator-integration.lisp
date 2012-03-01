@@ -43,3 +43,4 @@
 
 (defun validate-designator-solution (desig pose)
   (prolog `(btr-desig-solution-valid ,desig ,pose)))
+
