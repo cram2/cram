@@ -68,7 +68,7 @@
   "The list of instances of type LOCATION-RESOLUTION-FUNCTION that are
   used to verify solutions.")
 
-(defparameter *LOCATION-GENERATOR-MAX-RETRIES* 50)
+(defparameter *location-generator-max-retries* 50)
 
 (defun register-location-resolution-function (place priority function &optional documentation)
   `(eval-when (:compile-toplevel :load-toplevel :execute)

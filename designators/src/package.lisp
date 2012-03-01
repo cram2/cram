@@ -56,8 +56,11 @@
            #:resolve-object-desig
            #:action-designator #:action-desig #:action
            #:location-designator
+           #:*location-generator-max-retries*
            #:register-location-generator
            #:register-location-validation-function
+           #:list-location-generators
+           #:list-location-validation-functions
            #:accept-solution
            #:reject-solution
            #:desig-solution #:loc-desig? #:obj-desig-location
