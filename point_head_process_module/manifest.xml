@@ -10,7 +10,7 @@
   <url>http://ros.org/wiki/point_head_process_module</url>
   <depend package="pr2_controllers_msgs" />
   <depend package="actionlib_lisp" />
-  <depend package="process_modules" />
+  <depend package="cram_process_modules" />
   <depend package="designators" />
   <depend package="cram_reasoning" />
   <depend package="cram_roslisp_common" />
