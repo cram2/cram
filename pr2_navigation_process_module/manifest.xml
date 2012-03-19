@@ -11,7 +11,7 @@
   <depend package="move_base_msgs" />
   <depend package="actionlib_lisp" />
   <depend package="cram_process_modules" />
-  <depend package="designators" />
+  <depend package="cram_designators" />
   <depend package="cram_reasoning" />
   <depend package="cram_roslisp_common" />
   <depend package="cram_plan_failures" />
