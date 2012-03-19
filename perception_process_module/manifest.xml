@@ -10,7 +10,7 @@
   <url>http://ros.org/wiki/perception_process_module</url>
 
   <depend package="cram_roslisp_common" />
-  <depend package="process_modules" />
+  <depend package="cram_process_modules" />
   <depend package="vision_msgs" />
   <depend package="vision_srvs" />
   <depend package="cram_reasoning" />
