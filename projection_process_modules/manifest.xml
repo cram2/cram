@@ -1,14 +1,14 @@
 <package>
-  <description brief="projection_process_modules">
+  <description brief="projection_cram_process_modules">
 
-     projection_process_modules
+     projection_cram_process_modules
 
   </description>
   <author>Lorenz Moesenlechner</author>
   <license>BSD</license>
   <review status="unreviewed" notes="" />
-  <url>http://ros.org/wiki/projection_process_modules</url>
-  <depend package="process_modules" />
+  <url>http://ros.org/wiki/projection_cram_process_modules</url>
+  <depend package="cram_process_modules" />
   <depend package="cram_roslisp_common" />
   <depend package="bullet_reasoning" />
   <depend package="designators" />
