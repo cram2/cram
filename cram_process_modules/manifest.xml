@@ -3,7 +3,7 @@
   </description>
   <author>Lorenz Moesenlechner</author>
   <license>BSD</license>
-  <url>http://ros.org/wiki/process_modules</url>
+  <url>http://ros.org/wiki/cram_process_modules</url>
   <review status="unreviewed" notes=""/>
   <depend package="sbcl"/>
   <depend package="alexandria"/>
