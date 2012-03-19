@@ -17,7 +17,7 @@
   <depend package="cl_tf" />
   <depend package="kinematics_msgs" />
   <depend package="kdl_arm_kinematics" />
-  <depend package="designators" />
+  <depend package="cram_designators" />
   <depend package="semantic_map_costmap" />
   <depend package="household_objects_database_msgs" />
   <depend package="perception_process_module" />
