@@ -13,7 +13,7 @@
   <depend package="cram_utilities"/>
   <depend package="cram_execution_trace"/>
   <depend package="alexandria"/>
-  <depend package="designators"/>
+  <depend package="cram_designators"/>
   <depend package="designators_ros"/>  
   <depend package="cram_process_modules"/>
 

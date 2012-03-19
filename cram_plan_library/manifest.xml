@@ -12,7 +12,7 @@
   <depend package="cram_utilities"/>
   <depend package="cram_process_modules"/>
   <depend package="cram_reasoning"/>
-  <depend package="designators"/>
+  <depend package="cram_designators"/>
   <depend package="cram_roslisp_common"/>
   <depend package="cram_plan_knowledge"/>
   <depend package="cram_plan_failures"/>

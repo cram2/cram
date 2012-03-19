@@ -8,7 +8,7 @@
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/designators_ros</url>
-  <depend package="designators"/>
+  <depend package="cram_designators"/>
   <depend package="cl_tf"/>
   <depend package="cram_utilities"/>
   <depend package="cram_reasoning"/>

@@ -9,7 +9,7 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/fake_process_modules</url>
   <depend package="cram_process_modules"/>
-  <depend package="designators"/>
+  <depend package="cram_designators"/>
 
 </package>
 

@@ -15,7 +15,7 @@
   <depend package="vision_srvs" />
   <depend package="cram_reasoning" />
   <depend package="cram_plan_knowledge" />
-  <depend package="designators" />
+  <depend package="cram_designators" />
   <depend package="designators_ros" />
   <depend package="cljlo" />
   <depend package="cljlo_utils" />
