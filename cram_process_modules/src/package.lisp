@@ -41,5 +41,6 @@
            #:process-module-alias #:with-process-module-aliases
            #:get-process-module #:get-process-module-name
            #:get-process-module-names
-           #:on-process-module-started #:on-process-module-finished)
+           #:on-process-module-started #:on-process-module-finished
+           #:terminate-pm #:continue-pm)
   (:shadowing-import-from :cram-designators #:name))
