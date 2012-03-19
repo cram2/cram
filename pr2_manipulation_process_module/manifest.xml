@@ -9,7 +9,7 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/pr2_manipulation_process_module</url>
   <depend package="ias_drawer_actions"/>
-  <depend package="process_modules"/>
+  <depend package="cram_process_modules"/>
   <depend package="designators_ros"/>
   <depend package="actionlib_lisp"/>
   <depend package="cram_roslisp_common"/>
