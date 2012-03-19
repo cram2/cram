@@ -34,11 +34,6 @@
                         :reader semantic-map-object))
   (:default-initargs :probability 1.0))
 
-(defgeneric name (sem-map-po)
-  (:method ((obj semantic-map-perceived-object))
-    (with-slots (semantic-map-object) obj
-      (sem-map-utils:name semantic-map-object))))
-
 (defgeneric owl-name (sem-map-po)
   (:method ((obj semantic-map-perceived-object))
     (with-slots (semantic-map-object) obj
@@ -54,6 +49,12 @@
     (if (member 'name description :key #'car)
         description
         (cons `(name ,(name po)) description))))
+
+;; The generic function of this symbol is defined in
+;; semantic_map_utils already.
+(defmethod name ((obj semantic-map-perceived-object))
+  (with-slots (semantic-map-object) obj
+    (sem-map-utils:name semantic-map-object)))
 
 (defun resolve-sem-map-obj-desig (desig)
   (mapcar (lambda (sem-map-obj)
