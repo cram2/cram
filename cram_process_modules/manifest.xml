@@ -7,6 +7,6 @@
   <review status="unreviewed" notes=""/>
   <depend package="sbcl"/>
   <depend package="alexandria"/>
-  <depend package="designators"/>
+  <depend package="cram_designators"/>
   <depend package="cram_language"/>
 </package>
