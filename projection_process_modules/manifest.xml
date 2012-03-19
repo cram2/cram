@@ -11,7 +11,7 @@
   <depend package="cram_process_modules" />
   <depend package="cram_roslisp_common" />
   <depend package="bullet_reasoning" />
-  <depend package="designators" />
+  <depend package="cram_designators" />
   <depend package="cram_plan_knowledge" />
   <depend package="cl_transforms" />
 
