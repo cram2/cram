@@ -1,11 +1,11 @@
 <package>
-  <description brief="The designators class and protocol.">
-    This package contains the designators class and defines the
-    protocol to work with designators.
+  <description brief="Implementation of location, object and action designators.">
+      cram_designators defines the protocol for designators and provides an
+      implementation for location, object and action designators.
   </description>
   <author>Lorenz Moesenlechner</author>
   <license>BSD</license>
-  <url>http://ros.org/wiki/designators</url>
+  <url>http://ros.org/wiki/cram_designators</url>
   <review status="unreviewed" notes=""/>
   <depend package="sbcl"/>
   <depend package="alexandria"/>
