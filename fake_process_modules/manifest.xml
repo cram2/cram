@@ -8,7 +8,7 @@
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/fake_process_modules</url>
-  <depend package="process_modules"/>
+  <depend package="cram_process_modules"/>
   <depend package="designators"/>
 
 </package>
