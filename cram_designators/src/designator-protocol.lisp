@@ -138,8 +138,12 @@
 
 (defmacro register-designator-class (type class-name)
   "Registers a class as a designator class so that it can be used
-together with MAKE-DESIGNATOR and WITH-DESIGNATORS"
-  `(pushnew (cons ',type ',class-name) (get 'make-designator :desig-types) :key #'car))
+together with MAKE-DESIGNATOR and WITH-DESIGNATORS. `type' is the
+designator type, e.g. OBJECT and `class-name' is the name of the CLOS
+class (derived from class DESIGNATOR), e.g. OBJECT-DESIGNATOR."
+  `(setf (get 'make-designator :desig-types)
+         (cons (cons ',type ',class-name)
+               (remove ',type (get 'make-designator :desig-types) :key #'car))))
 
 (defmethod make-designator ((type symbol) description &optional parent)
   (let ((desig-class-name (cdr (assoc type (get 'make-designator :desig-types)))))
