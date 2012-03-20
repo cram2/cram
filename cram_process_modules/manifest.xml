@@ -4,9 +4,10 @@
   <author>Lorenz Moesenlechner</author>
   <license>BSD</license>
   <url>http://ros.org/wiki/cram_process_modules</url>
-  <review status="unreviewed" notes=""/>
-  <depend package="sbcl"/>
-  <depend package="alexandria"/>
-  <depend package="cram_designators"/>
-  <depend package="cram_language"/>
+  <review status="unreviewed" notes="" />
+  <depend package="sbcl" />
+  <depend package="alexandria" />
+  <depend package="cram_designators" />
+  <depend package="cram_language" />
+  <depend package="lisp_unit" />
 </package>
