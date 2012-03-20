@@ -82,3 +82,19 @@
              (loop until caught-condition
                    do (sb-thread:condition-wait waitqueue lock)))))))
     (assert-eq condition caught-condition)))
+
+(define-test cancel-on-evaporation
+  (let* ((started nil)
+         (done nil)
+         (designator (desig:make-designator
+                      'test (lambda ()
+                              (setf started t)
+                              (cpl:sleep 10)
+                              (setf done t)))))
+    (cpl:top-level
+      (with-process-modules-running (test-process-module)
+        (cpl:pursue
+          (pm-execute 'test-process-module designator)
+          (cpl:sleep 0.2))))
+    (assert-true started)
+    (assert-false done)))
