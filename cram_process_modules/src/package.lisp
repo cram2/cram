@@ -35,12 +35,13 @@
         #:cram-designators
         #:alexandria)
   (:nicknames :cpm)
-  (:export #:process-module #:name #:input #:feedback #:result
-           #:status #:cancel #:priority #:caller #:pm-run #:pm-execute
-           #:pm-cancel #:pm-status #:def-process-module
-           #:process-module-alias #:with-process-module-aliases
-           #:get-process-module #:get-process-module-name
-           #:get-process-module-names
-           #:on-process-module-started #:on-process-module-finished
-           #:terminate-pm #:continue-pm)
-  (:shadowing-import-from :cram-designators #:name))
+  (:export process-module name input feedback result
+           status cancel priority caller pm-run pm-execute
+           pm-cancel pm-status def-process-module
+           process-module-alias with-process-module-aliases
+           get-running-process-module get-running-process-module-name
+           get-process-module-names get-running-process-module-names
+           on-process-module-started on-process-module-finished
+           terminate-pm continue-pm with-process-modules-running
+           wait-for-process-module-running *process-module-debugger-hook*)
+  (:shadowing-import-from #:cram-designators name))

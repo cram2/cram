@@ -42,7 +42,13 @@
 ;;;
 ;;; Handling of priorities is not implemented yet.
 
+(define-task-variable *process-module-debugger-hook* nil
+  "Hook that is called when an error is thrown in the process
+  module. If NIL, *DEBUGGER-HOOK* is used.")
+
 (define-condition unknown-process-module (simple-error) ())
+(define-condition process-module-running (simple-error) ())
+(define-condition process-module-not-running (simple-error) ())
 
 (defclass process-module ()
   ((name :reader name :documentation "The name of the process-module")
@@ -62,15 +68,23 @@
            :documentation "Fluent containing the task that sent the
                            current input.")))
 
-(defgeneric pm-run (process-module)
+(defgeneric pm-run (process-module &optional name)
   (:documentation "Represents the main event loop of the process
-                   Module. Note: pm-run will never return (due to an
-                   around method). Otherwise, the process module would
-                   be dead. When a cancel is triggered, the pm-run method
-                   is evaporated and restarted. status and result are
-                   set implicitly. pm-run must not set these
-                   values. Feedback can be used to provide feedback
-                   information."))
+  Module. Note: pm-run will never return (due to an around
+  method). Otherwise, the process module would be dead. When a cancel
+  is triggered, the pm-run method is evaporated and restarted. status
+  and result are set implicitly. pm-run must not set these
+  values. Feedback can be used to provide feedback information.
+
+  Parameters:
+
+  `process-module' The process module to run, either an CLOS instance
+  or a symbol naming the CLOS class. If an instance is passed and the
+  `name' parameter is unbound, the class name is used for naming the
+  process module.
+
+  `name' is an optional name of the process-module if the name should
+  not be the name of the CLOS class."))
 
 (defgeneric pm-execute (process-module input &key async priority wait-for-free task)
   (:documentation "Executes a process module.  
@@ -85,32 +99,33 @@
 
 (defgeneric pm-status (process-module))
 
-(cpl-impl:define-task-variable *process-modules* nil)
+(defclass process-module-collection ()
+  ((process-modules :initform nil :accessor process-modules)
+   (lock :initform (sb-thread:make-mutex))
+   (condition :initform (sb-thread:make-waitqueue))))
+
+(defvar *process-modules* nil
+  "The sequence of all registered process modules.")
+
+(cpl-impl:define-task-variable *running-process-modules*
+    (make-instance 'process-module-collection)
+    "The list of currently running process modules.")
 
 (defmacro def-process-module (name (desig-var) &body body)
-  (with-gensyms (pm-var-name)
+  (with-gensyms (pm-var-name name-variable)
     `(progn
        (defclass ,name (process-module) ())
-       (defmethod pm-run ((,pm-var-name ,name))
+       (defmethod pm-run ((,pm-var-name ,name) &optional ,name-variable)
+         (declare (ignore ,name-variable))
          (block nil
            (let ((,desig-var (current-desig (value (slot-value ,pm-var-name 'input)))))
              ,@body)))
-       (eval-when (:load-toplevel :execute)
-         (cond ((assoc ',name *process-modules*)
-                #+sbcl (sb-int:style-warn "Redefining process module `~a'" ',name)
-                (let ((old-pm (cdr (assoc ',name *process-modules*)))
-                      (new-pm (make-instance ',name :name ',name)))
-                  (dolist (pm-def *process-modules*)
-                    (when (eq (cdr pm-def) old-pm)
-                      (setf (cdr pm-def) new-pm)))))
-               (t
-                (push (cons ',name (make-instance ',name :name ',name))
-                      *process-modules*)))))))
+       (pushnew ',name *process-modules*))))
 
 (defmethod pm-execute ((pm symbol) input &key
                        (async nil) (priority 0) (wait-for-free t)
                        (task *current-task*))
-  (let ((pm-known (get-process-module pm)))
+  (let ((pm-known (get-running-process-module pm)))
     (unless pm-known
       (error 'unknown-process-module :format-control "Unknown process module: ~a "  :format-arguments (list pm)))
     (pm-execute pm-known input
@@ -125,31 +140,87 @@
   (:documentation "Hook that is called whenever the process module
   `module' finishes."))
 
-(defun get-process-module (name)
+(defun get-process-module-names ()
+  *process-modules*)
+
+(defun get-running-process-module (name)
   "Returns the process module that corresponds is named `name'. `name'
   can also be an alias. Returns NIL if the module could not be found"
-  (cdr (assoc name *process-modules*)))
+  (cdr (assoc name (process-modules *running-process-modules*))))
 
-(defun get-process-module-name (module)
+(defun get-running-process-module-name (module)
   "Returns the name of the process module indicated by `module' or NIL
   if the module is not registered"
-  (car (rassoc module (reverse *process-modules*))))
+  (declare (type process-module module))
+  (car (rassoc module (reverse (process-modules *running-process-modules*)))))
 
-(defun get-process-module-names (module)
+(defun get-running-process-module-names (module)
   "Returns the list of all aliases for `module'"
+  (declare (type process-module module))
   (mapcar #'car (remove-if-not
                  (lambda (i) (eql i module))
-                 *process-modules* :key #'cdr)))
+                 (process-modules *running-process-modules*) :key #'cdr)))
 
 (defun process-module-alias (alias name)
   "Allows for the definition of process module aliases. An alias is
 just a different name for an existing process module."
-  (let ((module (get-process-module name)))
+  (let ((module (get-running-process-module name)))
     (unless module
       (error 'unknown-process-module
              :format-control "Could not find process module with name `~s'"
              :format-arguments (list name)))
-    (push (cons alias module) *process-modules*)))
+    (push (cons alias module) (process-modules *running-process-modules*))))
+
+(defun check-process-module-running (process-module &key (throw-error t))
+  (declare (type (or symbol process-module) process-module))
+  (or
+   (find process-module (process-modules *running-process-modules*)
+         :key (etypecase process-module
+                (symbol #'car)
+                (process-module #'cdr)))
+   (when throw-error
+     (error 'process-module-not-running
+            :format-control "Process module `~a' not running."
+            :format-arguments (list process-module)))))
+
+(defun set-process-module-running (name instance)
+  (declare (type symbol name)
+           (type process-module instance))
+  (when (or (not (eql (value (status instance)) :offline))
+            (check-process-module-running name :throw-error nil))
+    (error 'process-module-running
+           :format-control "Process module `~a' already running"
+           :format-arguments (list name)))
+  (with-slots (lock condition process-modules) *running-process-modules*
+    (sb-thread:with-mutex (lock)
+      (push (cons name instance) process-modules)
+      (sb-thread:condition-broadcast condition))))
+
+(defun remove-process-module-running (process-module)
+  (declare (type (or symbol process-module) process-module))
+  (with-slots (lock condition process-modules) *running-process-modules*
+    (sb-thread:with-mutex (lock)
+      (setf process-modules
+            (remove process-module process-modules
+                    :key (etypecase process-module
+                           (symbol #'car)
+                           (process-module #'cdr))))
+      (sb-thread:condition-broadcast condition))))
+
+(defun wait-for-process-module-running (process-module &key timeout)
+  (block nil
+    (let ((timer (sb-ext:make-timer (lambda () (return nil)))))
+      (when timeout
+        (sb-ext:schedule-timer timer timeout)
+        (unwind-protect
+             (with-slots (lock condition process-modules)
+                 *running-process-modules*
+               (loop until (check-process-module-running
+                            process-module :throw-error nil)
+                     do (sb-thread:with-mutex (lock)
+                          (sb-thread:condition-wait condition lock))
+                     finally (return t)))
+          (sb-ext:unschedule-timer timer))))))
 
 (defmacro with-process-module-aliases (alias-definitions &body body)
   "Executes body with process module aliases bound in the current
@@ -158,8 +229,58 @@ just a different name for an existing process module."
   (WITH-PROCESS-MODULE-ALIASES ((<alias> <name>)*) <body-form>*)"
 
   `(let ((*process-modules*
-          (list* ,@(mapcar (lambda (def)
-                             `(cons ',(car def) (cdr (assoc ',(cadr def) *process-modules*))))
-                           alias-definitions)
-                *process-modules*)))
+           (list* ,@(mapcar
+                     (lambda (def)
+                       `(cons ',(car def)
+                              (cdr
+                               (assoc
+                                ',(cadr def)
+                                (process-modules *running-process-modules*)))))
+                     alias-definitions)
+                  (process-modules *running-process-modules*))))
      ,@body))
+
+(defmacro with-process-module-registered-running ((name instance) &body body)
+  "Makes sure that the process module is running. If not, registers
+  the process module under `name' as running."
+  `(unwind-protect
+        (progn
+          (unless (check-process-module-running ,name :throw-error nil)
+            (set-process-module-running ,name ,instance))
+          ,@body)
+     (remove-process-module-running ,name)))
+
+(defmacro with-process-modules-running (process-modules &body body)
+  "Runs all process modules specified in `process-modules' in a
+  separate thread and executes `body'. Terminates all process modules
+  after `body' finished. 
+
+  `process-modules' is a list with elements with the following format:
+
+  PROCESS-MODULE | (NAME PROCESS-MODULE)
+
+  Example:
+  (with-process-modules-running 
+      (foo
+       (:bar baz))
+    (code))
+  
+  In the example, the two process modules foo and baz are started
+  up. baz is run with name :bar.
+
+  Note: This macro uses PURSUE defined in cram_language and therefore
+  needs to be run in a TOP-LEVEL form."
+  (let ((process-module-definitions (mapcar
+                                     (lambda (definition)
+                                       (etypecase definition
+                                         (symbol (list definition definition))
+                                         (list definition)))
+                                     process-modules)))
+    `(flet ((body-function () ,@body))
+       (pursue
+         (par ,@(loop for (alias name) in process-module-definitions
+                      collecting `(pm-run ',name ',alias)))
+         (seq
+           (par ,@(loop for (alias name) in process-module-definitions
+                        collecting `(wait-for-process-module-running ',alias)))
+           (body-function))))))

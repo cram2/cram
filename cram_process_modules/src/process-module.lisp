@@ -72,69 +72,80 @@
         (slot-value pm 'cancel) cancel
         (slot-value pm 'caller) caller))
 
-(defmethod pm-run :around ((pm process-module))
+(defmethod pm-run :around ((pm process-module) &optional name)
   (assert (eq (value (slot-value pm 'status)) :offline) ()
           "Process module `~a' already running." pm)
-  (setf (value (slot-value pm 'input)) nil
-        (value (slot-value pm 'status)) :waiting
-        (value (slot-value pm 'cancel)) nil)
-  (let ((teardown nil))
-    (with-slots (input cancel status result) pm
-      (unwind-protect
-           (block pm-body
-             (loop do
-               (wait-for (not (eq input nil)))
-               (setf (value status) :running)
-               (setf (value cancel) nil)
-               (unwind-protect
-                    (pursue
-                      (wait-for cancel)
-                      (restart-case
-                          (handler-bind ((error (lambda (e)
-                                                  (funcall #'invoke-debugger e))))
-                            (handler-case
-                                (flet ((handle-failure (e)
-                                         (setf (value result) e)
-                                         (setf (value status) :failed)))
-                                  (handler-bind ((plan-failure #'handle-failure)
-                                                 (error #'handle-failure))
-                                    (let ((input-value (value input))
-                                          (result-value nil))
-                                      (unwind-protect
-                                           (progn
-                                             (assert
-                                              input-value ()
-                                              "Input value is NIL when calling process module. This should never happen.")
-                                             (on-process-module-started pm input-value)
-                                             (setf result-value (call-next-method)))
-                                        (setf (value input) nil)
-                                        (when result-value
-                                          (setf (value result) result-value))
-                                        (on-process-module-finished pm input-value (value result))))))
-                              (plan-failure (e)
-                                (declare (ignore e))
-                                nil)))
-                        (terminate-pm ()
-                          :report "Terminate process module"
-                          ;; We need to use a flag here because we
-                          ;; cannot perform a non-local exit to the
-                          ;; block pm-body here. The reason is that we
-                          ;; are inside a pursue, i.e. we are actually
-                          ;; running in a different thread
-                          (setf teardown t))
-                        (continue-pm ()
-                          :report "Ignore error and restart process module main loop.")))
-                 (unless (eq (value status) :failed)
-                   (setf (value status) :waiting)))
-               (when teardown
-                 (return-from pm-body))))
-        (setf (value status) :offline)))))
+  (let ((name (or name (class-name (class-of pm)))))
+    (with-process-module-registered-running (name pm)
+      (setf (value (slot-value pm 'input)) nil
+            (value (slot-value pm 'status)) :waiting
+            (value (slot-value pm 'cancel)) nil)
+      (let ((teardown nil))
+        (with-slots (input cancel status result) pm
+          (unwind-protect
+               (block pm-body
+                 (loop do
+                   (wait-for (not (eq input nil)))
+                   (setf (value status) :running)
+                   (setf (value cancel) nil)
+                   (unwind-protect
+                        (pursue
+                          (wait-for cancel)
+                          (restart-case
+                              (handler-bind ((error
+                                               (lambda (e)
+                                                 (let ((*debugger-hook*
+                                                         (or *process-module-debugger-hook*
+                                                             *debugger-hook*)))
+                                                   (funcall #'invoke-debugger e)))))
+                                (handler-case
+                                    (flet ((handle-failure (e)
+                                             (setf (value result) e)
+                                             (setf (value status) :failed)))
+                                      (handler-bind ((plan-failure #'handle-failure)
+                                                     (error #'handle-failure))
+                                        (let ((input-value (value input))
+                                              (result-value nil))
+                                          (unwind-protect
+                                               (progn
+                                                 (assert
+                                                  input-value ()
+                                                  "Input value is NIL when calling process module. This should never happen.")
+                                                 (on-process-module-started pm input-value)
+                                                 (setf result-value (call-next-method)))
+                                            (setf (value input) nil)
+                                            (when result-value
+                                              (setf (value result) result-value))
+                                            (on-process-module-finished pm input-value (value result))))))
+                                  (plan-failure (e)
+                                    (declare (ignore e))
+                                    nil)))
+                            (terminate-pm ()
+                              :report "Terminate process module"
+                              ;; We need to use a flag here because we
+                              ;; cannot perform a non-local exit to the
+                              ;; block pm-body here. The reason is that we
+                              ;; are inside a pursue, i.e. we are actually
+                              ;; running in a different thread
+                              (setf teardown t))
+                            (continue-pm ()
+                              :report "Ignore error and restart process module main loop.")))
+                     (unless (eq (value status) :failed)
+                       (setf (value status) :waiting)))
+                   (when teardown
+                     (return-from pm-body))))
+            (setf (value status) :offline)))))))
 
-(defmethod pm-run ((pm symbol))
-  (let ((pm-known (cdr (assoc pm *process-modules*)) ))
-    (unless pm-known
-      (error 'unknown-process-module :format-control "Unknown process module: ~a "  :format-arguments (list pm)))
-    (pm-run pm-known)))
+(defmethod pm-run ((process-module symbol) &optional name)
+  (unless (find process-module *process-modules*)
+    (error 'unknown-process-module
+           :format-control "Unknown process module: ~a "
+           :format-arguments (list process-module)))
+  (when (check-process-module-running process-module :throw-error nil)
+    (error 'process-module-running
+           :format-control "Process module `~a' already running."
+           :format-arguments (list process-module)))
+  (pm-run (make-instance process-module :name name) name))
 
 (defmethod pm-execute ((pm process-module) input &key
                        (async nil) (priority 0) (wait-for-free t)
@@ -170,10 +181,10 @@
   )
 
 (defmethod pm-cancel ((pm symbol))
-  (pm-cancel (cdr (assoc pm *process-modules*))))
+  (pm-cancel (get-running-process-module pm)))
 
 (defmethod pm-status ((pm process-module))
   (slot-value pm 'status))
 
 (defmethod pm-status ((pm symbol))
-  (pm-status (cdr (assoc pm *process-modules*))))
+  (pm-status (get-running-process-module pm)))
