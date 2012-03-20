@@ -98,3 +98,46 @@
           (cpl:sleep 0.2))))
     (assert-true started)
     (assert-false done)))
+
+(define-test restart-on-suspension
+  (let* ((runs 0)
+         (done nil)
+         (designator (desig:make-designator
+                      'test (lambda ()
+                              (incf runs)
+                              (cpl:sleep 0.2)
+                              (setf done t)))))
+    (cpl:top-level
+      (cpl:with-tags
+        (with-process-modules-running (test-process-module)
+          (cpl:par
+            (:tag execute
+              (pm-execute 'test-process-module designator))
+            (cpl-impl:with-task-suspended (execute)
+              (cpl:sleep 0.2))))))
+    (assert-eql 2 runs)
+    (assert-true done)))
+
+(define-test execution-during-suspension
+  (let* ((counter 0)
+         (a-run nil)
+         (b-run nil)
+         (designator-1 (desig:make-designator
+                        'test (lambda ()
+                                (cpl:sleep 0.2)
+                                (setf a-run (incf counter)))))
+         (designator-2 (desig:make-designator
+                        'test (lambda ()
+                                (cpl:sleep 0.2)
+                                (setf b-run (incf counter))))))
+    (cpl:top-level
+      (cpl:with-tags
+        (with-process-modules-running (test-process-module)
+          (cpl:par
+            (:tag execute
+              (pm-execute 'test-process-module designator-1))
+            (cpl-impl:with-task-suspended (execute)
+              (pm-execute 'test-process-module designator-2)
+              (cpl:sleep 0.2))))))
+    (assert-eql 2 a-run)
+    (assert-eql 1 b-run)))

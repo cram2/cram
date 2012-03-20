@@ -159,21 +159,22 @@
       (unless  wait-for-free
         (fail "Process module already processing an input."))
       (wait-for (not (eq status :running))))
-    (setf (value caller) task)
-    (setf (slot-value pm 'priority) priority)
-    ;; Set the status to running here. Otherwise we might get a race
-    ;; condition because status is not set to running yet and the next
-    ;; wait-for returns immediately.
-    (setf (value (slot-value pm 'input)) input)
-    (wait-for (eq status :running))
-    (unless async
-      (unwind-protect
-           (progn
-             (wait-for (not (eq status :running)))
-             (when (eq (value status) :failed)
-               (error (value result))))
-        (pm-cancel pm))
-      (value result))))
+    (retry-after-suspension
+      (setf (value caller) task)
+      (setf (slot-value pm 'priority) priority)
+      ;; Set the status to running here. Otherwise we might get a race
+      ;; condition because status is not set to running yet and the next
+      ;; wait-for returns immediately.
+      (setf (value (slot-value pm 'input)) input)
+      (wait-for (eq status :running))
+      (unless async
+        (unwind-protect
+             (progn
+               (wait-for (not (eq status :running)))
+               (when (eq (value status) :failed)
+                 (error (value result))))
+          (pm-cancel pm))
+        (value result)))))
 
 (defmethod pm-cancel ((pm process-module))
   (setf (value (slot-value pm 'cancel)) t)
