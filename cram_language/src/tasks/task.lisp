@@ -35,10 +35,10 @@
 ;;;        I think /both/ of them could possibly be moved there.
 
 (define-task-variable *task-tree* nil
-  "FIXME")
+  "The task tree of the current top-level plan.")
 
 (define-task-variable *current-task-tree-node* nil
-  "FIXME")
+  "The current task tree node.")
 
 (defvar *synchronous-events* t "Indicates if we want to use synchronized events")
 
