@@ -31,7 +31,7 @@
 
 (define-task-variable *break-on-plan-failures* nil
   "Like *BREAK-ON-SIGNALS*, but for plan failures."
-  :type (or symbol list))               ; type-specifier
+  :type (or symbol list))
 
 (define-task-variable *debug-on-lisp-errors* t
   "Indicates if the debugger should be entered at the location where a
