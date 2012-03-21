@@ -32,11 +32,15 @@
 
 (defmethod cram-process-modules:on-process-module-started (module input)
   (rete-assert
-   `(pm-executing ,(cram-process-modules:get-process-module-name module) ,input)))
+   `(pm-executing
+     ,(cram-process-modules:get-running-process-module-name module)
+     ,input)))
 
 (defmethod cram-process-modules:on-process-module-finished (module input result)
   (rete-retract
-   `(pm-executing ,(cram-process-modules:get-process-module-name module) ,input)))
+   `(pm-executing
+     ,(cram-process-modules:get-running-process-module-name module)
+     ,input)))
 
 (def-production on-pm-execute
   (pm-executing ?module ?input))
