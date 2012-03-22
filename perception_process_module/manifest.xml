@@ -27,5 +27,6 @@
   <depend package="cram_plan_failures" />
   <depend package="pr2_msgs" />
   <depend package="cl_semantic_map_utils" />
+  <depend package="handle_detection" />
 
 </package>

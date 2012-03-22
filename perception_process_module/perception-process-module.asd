@@ -49,7 +49,8 @@
                pr2_msgs-msg
                alexandria
                cram-plan-failures
-               cl-semantic-map-utils)
+               cl-semantic-map-utils
+               handle_detection-msg)
   :components
   ((:module "src"
             :components
@@ -65,6 +66,10 @@
                       ((:file "cop-designator")
                        (:file "ros-connection" :depends-on ("cop-designator"))
                        (:file "cop-search-handlers" :depends-on ("cop-designator"))))
+             (:module "handle-detector"
+                      :depends-on ("object-belief" "process-module" "package")
+                      :components
+                      ((:file "handle-search-handler")))
              (:module "semantic-map"
                       :depends-on ("object-belief" "process-module" "package")
                       :components
