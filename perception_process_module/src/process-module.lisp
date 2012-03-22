@@ -115,12 +115,7 @@
 
 (defun find-with-new-desig (desig)
   "Takes a parent-less designator. A search is performed a new
-   designator is generated for every object that has been found. If a
-   found object matches a previously found object, the new desingator
-   and the previous one are equated. Please note that although the new
-   designator might be equated to old ones, it is not equated to
-   `desig' yet. This decision must be made by the caller of the
-   process module."
+   designator is generated for every object that has been found."
   (let ((perceived-objects (execute-object-search-functions desig)))
     ;; Sort perceived objects according to probability
     (mapcar (lambda (perceived-object)
@@ -128,7 +123,7 @@
                (perceived-object->designator desig perceived-object)))
             (sort perceived-objects #'> :key #'perceived-object-probability))))
 
-(defparameter *known-roles* '(semantic-map cop)
+(defparameter *known-roles* '(semantic-map handle-detector cop)
   "Ordered list of known roles for designator resolution. They are
   processed in the order specified in this list")
 
