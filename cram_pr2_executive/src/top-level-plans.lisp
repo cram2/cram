@@ -53,14 +53,14 @@
   (with-designators ((drawer (object '((type drawer) (position left-of-sink) (height top))))
                      (plate-loc (location `((inside ,drawer))))
                      (plate (object `((type round-plate) (at ,plate-loc)))))
-    (setf drawer (perceive drawer))
+    (setf drawer (perceive-object drawer))
     (achieve `(object-in-hand ,plate :right))))
 
 (def-top-level-plan grasp-bottle ()
   (with-designators ((fridge (object '((type fridge))))
                      (bottle-loc (location `((inside ,fridge))))
                      (bottle (object `((type bottle) (at ,bottle-loc)))))
-    (setf fridge (perceive fridge))
+    (setf fridge (perceive-object fridge))
     (achieve `(object-in-hand ,bottle :right))))
 
 (def-plan do-place-bottle ()
@@ -86,13 +86,10 @@
     (achieve `(object-placed-at ,plate ,table))))
 
 (def-top-level-plan place-plate ()
-  (pursue
-    (run-process-modules)
+  (with-process-modules
     (do-place-plate)))
 
 (def-top-level-plan pancake-demo ()
-  (pursue
-    (run-process-modules)
-    (seq
-      (do-place-bottle)
-      (do-place-plate))))
+  (with-process-modules
+    (do-place-bottle)
+    (do-place-plate)))
