@@ -48,7 +48,6 @@
                       :depends-on ("package")
                       :components
                         ((:file "goal-declarations")
-                         (:file "process-modules" :depends-on ("goal-declarations"))
                          (:file "achieve-loc" :depends-on ("goal-declarations"
                                                            "achieve-object-manipulation"
                                                            "achieve-ptu"))
