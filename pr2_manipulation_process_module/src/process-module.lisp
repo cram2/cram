@@ -85,10 +85,10 @@
                                   "/close_container_action"
                                   "ias_drawer_actions/CloseContainerAction"))
   (setf *gripper-action-left* (actionlib:make-action-client
-                               "/l_gripper_sensor_controller/gripper_action"
+                               "/l_gripper_controller/gripper_action"
                                "pr2_controllers_msgs/Pr2GripperCommandAction"))
   (setf *gripper-action-right* (actionlib:make-action-client
-                                "/r_gripper_sensor_controller/gripper_action"
+                                "/r_gripper_controller/gripper_action"
                                 "pr2_controllers_msgs/Pr2GripperCommandAction"))
   (setf *gripper-grab-action-left* (actionlib:make-action-client
                                     "/l_gripper_sensor_controller/grab"
