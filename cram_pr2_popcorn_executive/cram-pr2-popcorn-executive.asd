@@ -39,7 +39,7 @@
                pr2-navigation-process-module
                designators-ros
                actionlib
-               ias_drawer_executive-msg)
+               ias_drawer_actions-msg)
   :components
   ((:module "src"
             :components

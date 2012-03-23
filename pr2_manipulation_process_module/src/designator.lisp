@@ -44,16 +44,11 @@
     (findall ?o (desig-prop ?desig (obstacle ?o))
              ?obstacles))
 
-  (<- (action-desig ?desig (container-opened ?action ?obj))
+  (<- (action-desig ?desig (container-opened ?handle ?side))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to open))
-    (desig-prop ?desig (obj ?obj))
-    (desig-prop ?desig (side ?side))
-    (obj-desig-location ?obj ?obj-pose)
-    (side-id ?side ?s-id)
-    (ros-message "ias_drawer_actions/OpenContainerGoal"
-                 (:arm ?s-id :pose ?obj-pose)
-                 ?action))
+    (desig-prop ?desig (handle ?handle))
+    (desig-prop ?desig (side ?side)))
 
   (<- (action-desig ?desig (container-closed ?action ?obj))
     (trajectory-desig? ?desig)
