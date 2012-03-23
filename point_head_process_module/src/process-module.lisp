@@ -79,7 +79,8 @@
         (actionlib:call-goal *action-client* goal)
         (sleep 1)))))
 
-(defmethod pm-run :around ((pm point-head-process-module))
+(defmethod pm-run :around ((pm point-head-process-module) &optional name)
+  (declare (ignore name))
   (unwind-protect
        (call-next-method)
     (when (and *point-head-thread*
