@@ -55,7 +55,8 @@
             :components
             ((:file "package")
              (:file "goals" :depends-on ("package"))
-             (:file "top-level-plans" :depends-on ("package" "goals"))
+             (:file "top-level-plans"
+              :depends-on ("package" "goals" "process-modules"))
              (:file "location-facts" :depends-on ("package"))
              (:file "process-modules" :depends-on ("package"))
              (:file "occasions" :depends-on ("package"))))))
