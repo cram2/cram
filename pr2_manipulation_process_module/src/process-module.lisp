@@ -142,10 +142,9 @@
   (call-next-method)
   (roslisp:ros-info (pr2-manip process-module) "Manipulation action done."))
 
-(def-action-handler container-opened (action obj)
-  (store-open-trajectory
-   obj (execute-goal *open-container-action* action))
-  (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
+(def-action-handler container-opened (handle side)
+  (let ((handle-pose (designator-pose handle)))
+    (open-drawer handle-pose side))
   (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))
 
 (def-action-handler container-closed (action)
@@ -507,3 +506,48 @@ by `planners' until one succeeds."
 (def-process-module pr2-manipulation-process-module (desig)
   (collision-environment-set-laser-period)
   (apply #'call-action (reference desig)))
+
+(defun open-drawer (pose side)
+  (let* ((pre-grasp-pose (tf:pose->pose-stamped
+                          (tf:frame-id pose) (tf:stamp pose)
+                          (cl-transforms:transform-pose
+                           (cl-transforms:make-transform
+                            (cl-transforms:make-3d-vector
+                             -0.25 0.0 0.0)
+                            (cl-transforms:make-identity-rotation))
+                           pose)))
+         (grasp-pose (tf:pose->pose-stamped
+                      (tf:frame-id pose) (tf:stamp pose)
+                      (cl-transforms:transform-pose
+                       (cl-transforms:make-transform
+                        (cl-transforms:make-3d-vector
+                         -0.20 0.0 0.0)
+                        (cl-transforms:make-identity-rotation))
+                       pose)))
+         (open-pose (tf:pose->pose-stamped
+                     (tf:frame-id pose) (tf:stamp pose)
+                     (cl-transforms:transform-pose
+                      (cl-transforms:make-transform
+                       (cl-transforms:make-3d-vector
+                        -0.35 0.0 0.0)
+                       (cl-transforms:make-identity-rotation))
+                      pose)))
+         (pre-grasp-ik (lazy-car (get-ik side pre-grasp-pose)))
+         (grasp-ik (lazy-car (get-ik side grasp-pose)))
+         (open-ik (lazy-car (get-ik side open-pose))))
+    (unless pre-grasp-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "Pre-grasp pose for handle not reachable."))
+    (unless grasp-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "Pre-grasp pose for handle not reachable."))
+    (unless open-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "Pre-grasp pose for handle not reachable."))
+    (open-gripper side)
+    (execute-arm-trajectory side (ik->trajectory pre-grasp-ik))
+    (execute-arm-trajectory side (ik->trajectory grasp-ik))
+    (close-gripper side)
+    (execute-arm-trajectory side (ik->trajectory open-ik))
+    (open-gripper side)))
+
