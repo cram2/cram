@@ -165,6 +165,49 @@
                 (detach-object robot-object obj))
               (attach-object robot-object obj link-name)))))
 
+(defmethod initialize-instance :after ((robot-object robot-object)
+                                       &key color name pose
+                                         (collision-group :character-filter)
+                                         (collision-mask '(:default-filter :static-filter)))
+  (with-slots (rigid-bodies links urdf pose-reference-body) robot-object
+    (labels ((make-link-bodies (pose link)
+               "Returns the list of rigid bodies of `link' and all its sub-links"
+               (let* ((pose-transform (cl-transforms:reference-transform pose))
+                      (collision-elem (cl-urdf:collision link))
+                      (bodies (mapcan (lambda (joint)
+                                        (make-link-bodies (cl-transforms:transform-pose
+                                                           pose-transform (cl-urdf:origin joint))
+                                                          (cl-urdf:child joint)))
+                                      (cl-urdf:to-joints link))))
+                 (if collision-elem
+                     (cons (cons
+                            (cl-urdf:name link)
+                            (make-instance
+                                'rigid-body
+                              :name (make-rigid-body-name name (cl-urdf:name link))
+                              :mass 0
+                              :pose (cl-transforms:transform-pose
+                                     pose-transform (cl-urdf:origin collision-elem))
+                              :collision-shape (urdf-make-collision-shape
+                                                (cl-urdf:geometry collision-elem)
+                                                (apply-aplha-value
+                                                 (or (when (and (cl-urdf:visual link)
+                                                                (cl-urdf:material (cl-urdf:visual link)))
+                                                       (cl-urdf:color (cl-urdf:material (cl-urdf:visual link))))
+                                                     color)))
+                              :collision-flags :cf-default
+                              :group collision-group
+                              :mask collision-mask))
+                           bodies)
+                     bodies))))
+      (let ((bodies (make-link-bodies pose (cl-urdf:root-link urdf))))
+        (initialize-rigid-bodies robot-object (mapcar #'cdr bodies))
+        (setf pose-reference-body (make-rigid-body-name name (cl-urdf:name (cl-urdf:root-link urdf))))
+        (loop for (name . body) in bodies do
+          (setf (gethash name links) body))
+        (loop for name being the hash-keys in (cl-urdf:joints urdf) do
+          (setf (gethash name (joint-states robot-object)) 0.0d0))))))
+
 (defgeneric link-contacts (robot-object)
   (:method ((robot-object robot-object))
     (flet ((find-link-name (body)
@@ -197,58 +240,17 @@
      :joint-states (copy-hash-table joint-states)
      :urdf urdf)))
 
-(defmethod add-object ((world bt-world) (type (eql 'urdf)) name pose &key
-                       urdf (color '(0.8 0.8 0.8 1.0)))
-  (labels ((make-link-bodies (pose link)
-             "Returns the list of rigid bodies of `link' and all its sub-links"
-             (let* ((pose-transform (cl-transforms:reference-transform pose))
-                    (collision-elem (cl-urdf:collision link))
-                    (bodies (mapcan (lambda (joint)
-                                      (make-link-bodies (cl-transforms:transform-pose
-                                                         pose-transform (cl-urdf:origin joint))
-                                                        (cl-urdf:child joint)))
-                                    (cl-urdf:to-joints link))))
-               (if collision-elem
-                   (cons (cons
-                          (cl-urdf:name link)
-                          (make-instance
-                           'rigid-body
-                           :name (make-rigid-body-name name (cl-urdf:name link))
-                           :mass 0
-                           :pose (cl-transforms:transform-pose
-                                  pose-transform (cl-urdf:origin collision-elem))
-                           :collision-shape (urdf-make-collision-shape
-                                             (cl-urdf:geometry collision-elem)
-                                             (apply-aplha-value
-                                              (or (when (and (cl-urdf:visual link)
-                                                             (cl-urdf:material (cl-urdf:visual link)))
-                                                    (cl-urdf:color (cl-urdf:material (cl-urdf:visual link))))
-                                                  color)))
-                           :collision-flags :cf-default
-                           :group :character-filter
-                           :mask '(:default-filter :static-filter)))
-                         bodies)
-                   bodies))))
-    (let* ((urdf-model (etypecase urdf
-                         (cl-urdf:robot urdf)
-                         (string (handler-bind ((cl-urdf:urdf-type-not-supported #'muffle-warning))
-                                   (cl-urdf:parse-urdf urdf)))))
-           (pose (ensure-pose pose))
-           (bodies (make-link-bodies pose (cl-urdf:root-link urdf-model)))
-           (object
-             (make-instance 'robot-object
-               :rigid-bodies (mapcar #'cdr bodies)
-               :world world
-               :pose-reference-body (make-rigid-body-name name (cl-urdf:name (cl-urdf:root-link urdf-model)))
-               :pose pose
-               :name name
-               :urdf urdf-model)))
-      (loop for (name . body) in bodies do
-            (setf (gethash name (slot-value object 'links))
-                  body))
-      (loop for name being the hash-keys in (cl-urdf:joints urdf-model) do
-        (setf (gethash name (joint-states object)) 0.0d0))
-      object)))
+(defmethod add-object ((world bt-world) (type (eql 'urdf)) name pose
+                       &key urdf (color '(0.8 0.8 0.8 1.0)))
+  (make-instance 'robot-object
+    :name name
+    :world world
+    :pose (ensure-pose pose)
+    :urdf (etypecase urdf
+            (cl-urdf:robot urdf)
+            (string (handler-bind ((cl-urdf:urdf-type-not-supported #'muffle-warning))
+                      (cl-urdf:parse-urdf urdf))))
+    :color color))
 
 (defun update-attached-object-poses (robot-object link pose)
   "Updates the poses of all objects that are attached to
