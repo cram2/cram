@@ -100,6 +100,21 @@
           (setf (slot-value new-instance 'rigid-bodies)
                 (copy-hash-table rigid-bodies)))))))
 
+(defgeneric initialize-rigid-bodies (object rigid-bodies &key add)
+  (:method ((object object) rigid-bodies &key (add t))
+    (with-slots (world) object
+      (declare (type list rigid-bodies))
+      (assert (eql (hash-table-count (slot-value object 'rigid-bodies)) 0))
+      (assert rigid-bodies)
+      (dolist (body rigid-bodies)
+        (when (and add world)
+          (when (typep world 'bt-reasoning-world)
+            (setf (gethash (name object) (slot-value world 'objects))
+                  object))
+          (add-rigid-body world body))
+        (setf (gethash (name body) (slot-value object 'rigid-bodies))
+              body)))))
+  
 (defun make-object (world name &optional
                     bodies (add-to-world t))
   (make-instance 'object
@@ -108,21 +123,13 @@
                  :rigid-bodies bodies
                  :add add-to-world))
 
-(defmethod initialize-instance :after ((object object) &key
-                                       world rigid-bodies
-                                       pose-reference-body
-                                       (add t))
+(defmethod initialize-instance :after ((object object)
+                                       &key rigid-bodies pose-reference-body
+                                         (add t))
   (when rigid-bodies
+    (initialize-rigid-bodies object rigid-bodies :add add)
     (unless pose-reference-body
-      (setf (slot-value object 'pose-reference-body) (name (car rigid-bodies))))
-    (dolist (body rigid-bodies)
-      (when (and add world)
-        (when (typep world 'bt-reasoning-world)
-          (setf (gethash (name object) (slot-value world 'objects))
-                object))
-        (add-rigid-body world body))
-      (setf (gethash (name body) (slot-value object 'rigid-bodies))
-            body))))
+      (setf (slot-value object 'pose-reference-body) (name (car rigid-bodies))))))
 
 (defmethod invalidate-object :after ((obj object))
   (with-slots (rigid-bodies) obj

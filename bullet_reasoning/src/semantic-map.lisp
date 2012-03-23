@@ -37,6 +37,20 @@
                  between the body that corresponds to the link and the
                  corresponding object in the semantic map.")))
 
+(defmethod initialize-instance :after ((semantic-map semantic-map-object)
+                                       &key)
+  (with-slots (link-offsets) semantic-map
+    (dolist (part (sem-map-utils:semantic-map-parts semantic-map :recursive t))
+      (when (and (sem-map-utils:urdf-name part)
+                 (typep part 'sem-map-utils:semantic-map-geom))
+        (let ((link-pose (link-pose semantic-map (sem-map-utils:urdf-name part))))
+          (assert link-pose)
+          (setf (gethash (sem-map-utils:urdf-name part) link-offsets)
+                (cl-transforms:transform*
+                 (cl-transforms:transform-inv
+                  (cl-transforms:reference-transform link-pose))                   
+                 (cl-transforms:reference-transform (sem-map-utils:pose part)))))))))
+
 (defmethod invalidate-object :around ((obj semantic-map-object))
   (with-slots (joint-states) obj
     (let ((old-joint-states (alexandria:copy-hash-table joint-states)))
@@ -111,20 +125,17 @@
     (change-class (call-next-method) 'semantic-map-object :parts parts)))
 
 (defmethod add-object ((world bt-world) (type (eql 'semantic-map)) name pose &key urdf)
-  (let* ((sem-map (sem-map-utils:get-semantic-map))
-         (self (change-class (add-object world 'urdf name pose :urdf urdf) 'semantic-map-object
-                             :parts (slot-value sem-map 'sem-map-utils::parts))))
-    (with-slots (link-offsets) self
-      (dolist (part (sem-map-utils:semantic-map-parts self :recursive t))
-        (when (and (sem-map-utils:urdf-name part)
-                   (typep part 'sem-map-utils:semantic-map-geom))
-          (let ((link-pose (link-pose self (sem-map-utils:urdf-name part))))
-            (assert link-pose)
-            (setf (gethash (sem-map-utils:urdf-name part) link-offsets)
-                  (cl-transforms:transform*
-                   (cl-transforms:transform-inv
-                    (cl-transforms:reference-transform link-pose))                   
-                   (cl-transforms:reference-transform (sem-map-utils:pose part))))))))))
+  (make-instance 'semantic-map-object
+    :name name
+    :world world
+    :pose (ensure-pose pose)
+    :urdf (etypecase urdf
+            (cl-urdf:robot urdf)
+            (string (handler-bind ((cl-urdf:urdf-type-not-supported #'muffle-warning))
+                      (cl-urdf:parse-urdf urdf))))
+    :parts (slot-value (sem-map-utils:get-semantic-map) 'sem-map-utils::parts)
+    :collision-group :static-filter
+    :collision-mask '(:default-filter :character-filter)))
 
 (defun update-semantic-map-joint (sem-map joint-name)
   (with-slots (urdf links link-offsets) sem-map
