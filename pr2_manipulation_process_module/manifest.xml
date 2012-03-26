@@ -16,7 +16,6 @@
   <depend package="cram_reasoning"/>
   <depend package="cram_plan_failures"/>
   <depend package="cram_plan_knowledge"/>
-  <depend package="table_costmap"/>
   <depend package="perception_process_module"/>
   <depend package="pr2_controllers_msgs"/>
   <depend package="kinematics_msgs"/>
