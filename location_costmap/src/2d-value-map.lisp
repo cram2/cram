@@ -44,6 +44,5 @@
 
 (defmethod 2d-value-map-lookup ((map lazy-2d-value-map) x y)
   (let ((cached-value (call-next-method)))
-    (if (not cached-value)
-        (2d-value-map-set map x y (funcall (generator map) x y))
-        cached-value)))
+    (or cached-value
+        (2d-value-map-set map x y (funcall (generator map) x y)))))
