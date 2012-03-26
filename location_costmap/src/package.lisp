@@ -59,7 +59,8 @@
            #:make-padding-mask
            #:point-in-padding-mask-p
            #:costmap-padding
-           #:padding
+           #:padding #:costmap-manipulation-padding
+           #:costmap-in-reach-padding
            #:occupancy-grid-put-mask
            #:grid-cells-msg->occupancy-grid
            #:grid-cells-msg->height-map
