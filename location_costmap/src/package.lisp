@@ -55,6 +55,7 @@
            #:2d-value-map
            #:2d-value-map-lookup
            #:2d-value-map-set
+           #:lazy-2d-value-map
            #:make-padding-mask
            #:point-in-padding-mask-p
            #:costmap-padding
