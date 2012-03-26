@@ -229,3 +229,8 @@
                   #:sleep)
          (:shadow
           #:< #:> #:+ #:- #:* #:/ #:= #:eq #:eql #:not #:sleep))))
+
+(defpackage cram-user
+  (:use #:cpl)
+  (:nicknames #:cpl-user)
+  (:export))
