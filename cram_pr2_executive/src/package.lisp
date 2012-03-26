@@ -36,8 +36,6 @@
         #:cram-designators
         #:designators-ros
         #:cram-plan-knowledge
-        #:table-costmap
-        #:location-costmap
         #:desig
         #:pr2-manip-pm
         #:point-head-process-module
@@ -52,14 +50,11 @@
         #:designators-ros
         #:cram-roslisp-common
         #:cram-plan-knowledge
-        #:table-costmap
         #:desig
         #:pr2-manip-pm
         #:point-head-process-module
         #:location-costmap
         #:perception-pm)
-  (:shadowing-import-from #:table-costmap
-                          #:name)
   (:export #:object-opened #:object-closed)
   (:desig-properties
    #:type #:cluster #:object #:in #:gripper #:side #:pose
