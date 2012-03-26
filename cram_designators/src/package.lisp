@@ -68,7 +68,6 @@
            #:desig-solutions
            #:loc-desig-location
            #:object #:location
-           #:def-desig-package
            #:designator-pose
            #:designator-distance
            #:resolve-designator
