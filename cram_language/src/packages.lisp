@@ -97,7 +97,6 @@
            #:wait-for
            #:pulse
            #:whenever
-           #:name
            #:make-fluent
            #:on-make-fluent-hook
            #:register-update-callback
@@ -197,6 +196,7 @@
            #:log-disable
            #:log-set
            ;; tasks
+           #:name
            #:*save-tasks*
            #:*tasks*
            #:list-saved-tasks))
