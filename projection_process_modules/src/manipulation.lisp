@@ -77,11 +77,16 @@
 
 (defun execute-park (side &optional object)
   (declare (ignore object))
-  ;; TODO(moesenle): if parking with object, make sure to use the
-  ;; correct end-effector orientation and use IK.
-  (crs:prolog `(and
-                (robot-arms-parking-joint-states ?joint-states ,side)
-                (assert (joint-states pr2 ?joint-states)))))
+  (let ((sides (ecase side
+                 (:left '(:left))
+                 (:right '(:right))
+                 (:both '(:left :right)))))
+    ;; TODO(moesenle): if parking with object, make sure to use the
+    ;; correct end-effector orientation and use IK.
+    (dolist (side sides)
+      (crs:prolog `(and
+                    (robot-arms-parking-joint-states ?joint-states ,side)
+                    (assert (joint-states pr2 ?joint-states)))))))
 
 (defun execute-lift (side object distance)
   (cut:with-vars-bound (?end-effector-pose)
