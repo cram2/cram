@@ -36,14 +36,12 @@
 
 (def-fact-group costmap-metadata (desig-loc)
   (<- (costmap-size ?width ?height)
-    (symbol-value table-costmap:*map-fl* ?map-fl)
-    (fluent-value ?map-fl ?map)
+    (symbol-value occupancy-grid-costmap::*current-map* ?map)
     (lisp-fun occupancy-grid-msg-metadata ?map :key :width ?width)
     (lisp-fun occupancy-grid-msg-metadata ?map :key :height ?height))
 
   (<- (costmap-resolution 0.05))
 
   (<- (costmap-origin ?x ?y)
-    (symbol-value table-costmap:*map-fl* ?map-fl)
-    (fluent-value ?map-fl ?map)
+    (symbol-value occupancy-grid-costmap::*current-map* ?map)
     (lisp-fun occupancy-grid-msg-metadata ?map :key :origin (?x ?y))))
