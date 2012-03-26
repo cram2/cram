@@ -1,0 +1,19 @@
+<package>
+  <description brief="occupancy_grid_costmap">
+
+     occupancy_grid_costmap
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/occupancy_grid_costmap</url>
+  <depend package="cram_designators" />
+  <depend package="location_costmap"/>
+  <depend package="nav_msgs"/>
+  <depend package="cram_roslisp_common"/>
+  <depend package="roslisp_runtime"/>
+
+</package>
+
+
