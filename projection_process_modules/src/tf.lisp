@@ -1,4 +1,4 @@
-;;; Copyright (c) 2011, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -26,22 +26,31 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem projection-process-modules
-  :author "Lorenz Moesenlechner"
-  :license "BSD"
-  
-  :depends-on (process-modules
-               designators
-               bullet-reasoning
-               cram-plan-knowledge
-               cl-transforms)
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "tf" :depends-on ("package"))
-     (:file "perception" :depends-on ("package"))
-     (:file "manipulation" :depends-on ("package"))
-     (:file "ptu" :depends-on ("package" "tf"))
-     (:file "action-designators" :depends-on ("package"))
-     (:file "navigation" :depends-on ("package"))))))
+(in-package :projection-process-modules)
+
+(defvar *tf* (make-instance 'tf:transformer))
+
+(defun update-tf (&key (base-frame "base_footprint")
+                    (odom-frame "odom_combined") (map-frame "map"))
+  (cut:with-vars-bound (?robot-instance ?robot-pose)
+      (cut:lazy-car
+       (crs:prolog `(and (robot ?robot)
+                         (bullet-world ?world)
+                         (%object ?world ?robot ?robot-instance)
+                         (pose ?robot ?robot-pose))))
+    (assert (not (cut:is-var ?robot-instance)))
+    (bullet-reasoning:set-tf-from-robot-state *tf* ?robot-instance)
+    (tf:set-transform
+     *tf* (tf:make-stamped-transform
+           odom-frame base-frame (roslisp:ros-time)
+           (cl-transforms:origin ?robot-pose)
+           (cl-transforms:orientation ?robot-pose)))
+    (tf:set-transform
+     *tf* (tf:make-stamped-transform
+           map-frame odom-frame (roslisp:ros-time)
+           (cl-transforms:make-identity-vector)
+           (cl-transforms:make-identity-rotation)))))
+
+(defun get-tf ()
+  (update-tf)
+  *tf*)
