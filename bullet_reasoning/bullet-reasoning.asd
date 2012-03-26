@@ -78,7 +78,7 @@
                (:file "debug-window" :depends-on ("package"))
                (:file "household-objects" :depends-on ("package" "objects" "utils"))
                (:file "cop-objects" :depends-on ("package" "objects" "utils"))
-               (:file "pose-generators" :depends-on ("package" "utils" "aabb"))
+               (:file "pose-generators" :depends-on ("package" "utils" "aabb" "prolog-facts"))
                (:file "reachability" :depends-on ("package" "robot-model-utils"))
                (:file "articulated-objects" :depends-on ("package" "semantic-map"))
                (:module "designator"
