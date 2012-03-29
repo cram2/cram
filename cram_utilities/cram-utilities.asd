@@ -27,6 +27,7 @@
              (:file "time" :depends-on ("package"))
              (:file "quad-tree" :depends-on ("package"))
              (:file "string" :depends-on ("package"))
+             (:file "geometry" :depends-on ("package"))
              (:file "number" :depends-on ("package"))
              (:file "list" :depends-on ("package" "number"))
              (:file "global-structures" :depends-on ("package"))
