@@ -60,27 +60,20 @@
          (caught-condition nil)
          (designator (desig:make-designator
                       'test (lambda ()
-                              (error condition))))
-         (lock (sb-thread:make-mutex))
-         (waitqueue (sb-thread:make-waitqueue)))
+                              (error condition)))))
     (assert-error
      'process-module-test-error
      (let ((*process-module-debugger-hook*
              (lambda (condition hook)
-               (declare (ignore hook))
-               (sb-thread:with-mutex (lock)
-                 (setf caught-condition condition)
-                 (sb-thread:condition-broadcast waitqueue)
-                 (invoke-restart 'continue-pm))))
+               (declare (ignore condition hook))
+               (invoke-restart 'continue-pm)))
            (cpl-impl:*debug-on-lisp-errors* nil))
        (cpl:top-level
          (with-process-modules-running (test-process-module)
-           (pm-execute 'test-process-module designator)
-           ;; Wait for the debugger hook to run to get the caught
-           ;; condition.
-           (sb-thread:with-mutex (lock)
-             (loop until caught-condition
-                   do (sb-thread:condition-wait waitqueue lock)))))))
+           (handler-case
+               (pm-execute 'test-process-module designator)
+             (process-module-test-error (thrown-condition)
+               (setf caught-condition thrown-condition)))))))
     (assert-eq condition caught-condition)))
 
 (define-test cancel-on-evaporation
