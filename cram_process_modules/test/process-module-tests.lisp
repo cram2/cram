@@ -44,14 +44,31 @@
 
 (define-test process-module-execution
   (let* ((process-module-executed nil)
-             (designator (desig:make-designator
-                          'test (lambda ()
-                                  (setf process-module-executed t)))))
-        (assert-false process-module-executed)
+         (designator (desig:make-designator
+                      'test (lambda ()
+                              (setf process-module-executed t)))))
+    (assert-false process-module-executed)
     (cpl:top-level
       (with-process-modules-running (test-process-module)
         (pm-execute 'test-process-module designator)))
     (assert-true process-module-executed)))
+
+(define-test 2-process-modules-execution
+  (let* ((process-module-1-executed nil)
+         (process-module-2-executed nil)
+         (designator-1 (desig:make-designator
+                        'test (lambda ()
+                                (setf process-module-1-executed t))))
+         (designator-2 (desig:make-designator
+                        'test (lambda ()
+                                (setf process-module-2-executed t)))))
+    (cpl:top-level
+      (with-process-modules-running ((:module-1 test-process-module)
+                                     (:module-2 test-process-module))
+        (pm-execute :module-1 designator-1)
+        (pm-execute :module-2 designator-2)))
+    (assert-true process-module-1-executed)
+    (assert-true process-module-2-executed)))
 
 (define-condition process-module-test-error (error) ())
 
