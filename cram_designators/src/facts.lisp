@@ -62,7 +62,8 @@
   
   ;; (location ... (obj ?obj)...), e.g. location to see obj
   (<- (desig-location-prop ?desig ?loc)
-    (desig-prop ?desig (obj ?obj))
+    (or (desig-prop ?desig (obj ?obj))
+        (desig-prop ?desig (object ?obj)))
     (lisp-type ?obj designator)
     (lisp-fun current-desig ?obj ?curr-obj)
     (lisp-fun obj-desig-location ?curr-obj ?loc)
