@@ -34,3 +34,16 @@
 ;;; trunk.
 
 (in-package :roslisp)
+
+(locally (declare (sb-ext:muffle-conditions sb-kernel:redefinition-warning))
+  (handler-bind ((sb-kernel:redefinition-warning #'muffle-warning))
+    
+    (defun roslisp-utils:encode-single-float-bits (float)
+      (let ((float (float float 0.0)))
+        (roslisp-utils::encode-float-bits
+         float (byte 1 31) (byte 8 23) (byte 23 0) 127)))
+
+    (defun roslisp-utils:encode-double-float-bits (float)
+      (let ((float (float float 0.0d0)))
+        (roslisp-utils::encode-float-bits
+         float (byte 1 63) (byte 11 52) (byte 52 0) 1023)))))
