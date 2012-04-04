@@ -33,7 +33,7 @@
 (defvar *ros-object-database-models* (make-hash-table :test 'equal))
 (defvar *ros-object-database-model-meshes* (make-hash-table))
 
-(defun init-ros-object-database (&optional (set-name "REDUCED_MODEL_SET"))
+(defun init-ros-object-database (&optional (set-name ""))
   (roslisp:with-fields ((code (code return_code))
                         (model-ids model_ids))
       (roslisp:call-service
@@ -42,17 +42,23 @@
        :model_set set-name)
     (when (eql code -1)
       (clrhash *ros-object-database-models*)
-      (map 'nil
-           (lambda (id)
-             (map
-              'nil
-              (lambda (name)
-                (setf (gethash name *ros-object-database-models*)
-                      id))
-              (get-ros-model-names id)))
+      (map 'nil (lambda (id)
+                  (setf (gethash
+                         (get-ros-model-name id) *ros-object-database-models*)
+                        id))
            model-ids))))
 
-(defun get-ros-model-names (id)
+(defun get-ros-model-name (id)
+  (roslisp:with-fields ((code (code return_code))
+                        (name name))
+      (roslisp:call-service
+       "/objects_database_node/get_model_description"
+       'household_objects_database_msgs-srv:getmodeldescription
+       :model_id id)
+    (when (eql code -1)
+      name)))
+
+(defun get-ros-model-tags (id)
   (roslisp:with-fields ((code (code return_code))
                         (tags tags))
       (roslisp:call-service
