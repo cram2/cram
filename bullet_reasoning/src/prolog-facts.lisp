@@ -77,7 +77,7 @@
     (retract (object ?_ ?name)))
   
   (<- (retract (object ?world ?name))
-    (lisp-fun remove-object ?_ ?name ?_))
+    (lisp-fun remove-object ?world ?name ?_))
 
   (<- (object ?name)
     (object ?_ ?name))
