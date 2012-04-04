@@ -43,12 +43,12 @@
                  kdl_arm_kinematics-srv
                  household_objects_database_msgs-srv
                  arm_navigation_msgs-msg
+                 location-costmap
                  designators
-                 semantic-map-costmap
-                 perception-process-module
                  cram-roslisp-common
                  cram-plan-knowledge
                  triangulate_point_cloud-srv
+                 vision_srvs-srv
                  cl-semantic-map-utils)
     :components
     ((:module "src"
@@ -92,9 +92,4 @@
                         ((:file "events")
                          (:file "timeline" :depends-on ("events"))
                          (:file "projection-rules" :depends-on ("events" "timeline"))
-                         (:file "prolog")))
-               (:module "executive-integration"
-                        :depends-on ("package")
-                        :components
-                        ((:file "perception")
-                         (:file "perception-facts")))))))
+                         (:file "prolog")))))))
