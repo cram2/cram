@@ -113,8 +113,8 @@
     (assert (object-pose ?robot ?robot-pose))
     (not (contact ?robot ?_))
     (-> (desig-prop ?desig (side ?side)) (true) (true))
-    (desig-prop ?desig (obj ?obj))
-    (reachable ?robot ?obj ?side))
+    (forall (desig-prop ?desig (obj ?obj))
+            (reachable ?robot ?obj ?side)))
     
   (<- (location-valid
        ?desig ?pose
