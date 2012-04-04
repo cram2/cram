@@ -539,7 +539,8 @@
 
 (def-fact-group reachability ()
   (<- (grasp :top))
-  (<- (grasp :side))  
+  (<- (grasp :side))
+  (<- (grasp :front))
 
   (<- (side :right))
   (<- (side :left))
