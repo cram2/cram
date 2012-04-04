@@ -81,6 +81,7 @@
                (:file "pose-generators" :depends-on ("package" "utils" "aabb" "prolog-facts"))
                (:file "reachability" :depends-on ("package" "robot-model-utils"))
                (:file "articulated-objects" :depends-on ("package" "semantic-map"))
+               (:file "ros-household-object-database" :depends-on ("package" "objects"))
                (:module "designator"
                         :depends-on ("package")
                         :components
