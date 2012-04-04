@@ -587,29 +587,29 @@
     (%object ?w ?robot-name ?robot)
     (%object ?w ?obj-name ?obj)
     (side ?side)
-    (-> (setof
-         ?o
-         (and
-          (grasp ?grasp)
-          ;; We don't want to have the supporting object as a blocking
-          ;; object.
-          (-> (supported-by ?w ?obj-name ?supporting) (true) (true))
-          ;; Generate all ik solutions
-          (lisp-fun reach-object-ik ?robot ?obj :side ?side :grasp ?grasp ?ik-solutions)
-          (member ?ik-solution ?ik-solutions)
-          (ik-solution-in-collision ?w ?robot ?ik-solution ?colliding-objects)
-          (member ?o ?colliding-objects)
-          (not (== ?o ?obj-name))
-          (-> (bound ?supporting) (not (== ?o ?supporting)) (true)))
-         ?objs)
-        (true)
-        (== ?objs ())))
-  
-  (<- (ik-solution-in-collision ?w ?robot ?ik-solution ?colliding-objects)
     (with-stored-world ?w
-      (lisp-fun set-robot-state-from-joints ?ik-solution ?robot ?_)
-      (%object ?w ?robot-name ?robot)
-      (findall ?obj (contact ?w ?robot-name ?obj) ?colliding-objects))))
+      (-> (setof
+           ?o
+           (and
+            (grasp ?grasp)
+            ;; We don't want to have the supporting object as a blocking
+            ;; object.
+            (-> (supported-by ?w ?obj-name ?supporting) (true) (true))
+            ;; Generate all ik solutions
+            (lisp-fun reach-object-ik ?robot ?obj :side ?side :grasp ?grasp ?ik-solutions)
+            (member ?ik-solution ?ik-solutions)
+            (%ik-solution-in-collision ?w ?robot ?ik-solution ?colliding-objects)
+            (member ?o ?colliding-objects)
+            (not (== ?o ?obj-name))
+            (-> (bound ?supporting) (not (== ?o ?supporting)) (true)))
+           ?objs)
+          (true)
+          (== ?objs ()))))
+  
+  (<- (%ik-solution-in-collision ?w ?robot ?ik-solution ?colliding-objects)
+    (lisp-fun set-robot-state-from-joints ?ik-solution ?robot ?_)
+    (%object ?w ?robot-name ?robot)
+    (findall ?obj (contact ?w ?robot-name ?obj) ?colliding-objects)))
 
 (def-fact-group debug ()
   (<- (debug-window ?world)
