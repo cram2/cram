@@ -1,0 +1,10 @@
+<launch>
+  <param name="kitchen_description" 
+         command="$(find xacro)/xacro.py '$(find ias_kitchen_defs)/kitchen/ias_kitchen.urdf.xml'" />
+
+  <node name="map_server" type="map_server" pkg="map_server"
+        args="$(find ias_maps)/ias_karlstrasse_20111116.yaml" />
+  <node name="json_prolog" pkg="json_prolog" type="json_prolog">
+    <param name="initial_package" value="ias_semantic_map" />
+  </node>
+</launch>

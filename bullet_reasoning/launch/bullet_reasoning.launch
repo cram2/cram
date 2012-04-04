@@ -6,13 +6,6 @@
     <include file="$(find pr2_arm_kinematics)/launch/pr2_ik_rarm_node.launch" />
   </group>
 
-  <param name="kitchen_description" 
-         command="$(find xacro)/xacro.py '$(find ias_kitchen_defs)/kitchen/ias_kitchen.urdf.xml'" />
-  
-  <node name="json_prolog" pkg="json_prolog" type="json_prolog">
-    <param name="initial_package" value="ias_semantic_map" />
-  </node>
-
   <node name="triangulate_point_cloud" pkg="triangulate_point_cloud"
         type="triangulate_pcl" />
 </launch>
