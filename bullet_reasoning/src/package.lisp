@@ -66,6 +66,8 @@
            blocking debug-window debug-costmap head-pointing-at
            with-current-bullet-world reach-pose-ik reach-object-ik
            set-robot-state-from-joints set-robot-state-from-tf
+           init-ros-object-database clear-bullet-world
+           ros-household-object
 
            robot-pan-tilt-links robot-pan-tilt-joints robot
            camera-frame robot-arms-parking-joint-states
