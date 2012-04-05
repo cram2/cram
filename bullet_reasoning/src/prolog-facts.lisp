@@ -537,10 +537,14 @@
     (occluding-objects ?world ?camera-pose ?obj ?objs)
     (member ?occluding-obj ?objs)))
 
-(def-fact-group reachability ()
+(def-fact-group reachability (object-grasp)
   (<- (grasp :top))
   (<- (grasp :side))
   (<- (grasp :front))
+
+  ;; This needs to be implemented for different object types.
+  (<- (object-grasp ?object ?grasp)
+    (fail))
 
   (<- (side :right))
   (<- (side :left))
@@ -564,8 +568,9 @@
       (once
        (robot-pre-grasp-joint-states ?pre-grasp-joint-states)
        (assert (joint-state ?w ?robot-name ?pre-grasp-joint-states))
-       (grasp ?g)
-       (lisp-pred object-reachable-p ?robot ?obj :side ?side :grasp ?g))))
+       (object-grasp ?obj-name ?grasp)
+       (lisp-pred object-reachable-p ?robot ?obj :side ?side :grasp ?grasp)
+       (format "reachable~%"))))
 
   (<- (blocking ?robot-name ?obj-name ?blocking-names)
     (blocking ?_ ?robot-name ?obj-name ?blocking-names))
@@ -591,14 +596,23 @@
       (-> (setof
            ?o
            (and
-            (grasp ?grasp)
+            (object-grasp ?obj-name ?grasp)
             ;; We don't want to have the supporting object as a blocking
             ;; object.
             (-> (supported-by ?w ?obj-name ?supporting) (true) (true))
             ;; Generate all ik solutions
-            (lisp-fun reach-object-ik ?robot ?obj :side ?side :grasp ?grasp ?ik-solutions)
+            (once
+             (robot-pre-grasp-joint-states ?pre-grasp-joint-states)
+             (assert (joint-state ?w ?robot-name ?pre-grasp-joint-states))
+             (object-grasp ?obj-name ?grasp)
+             (lisp-fun cl-transforms:make-identity-rotation ?identity-rotation)
+             (lisp-fun reach-object-ik ?robot ?obj
+                       :side ?side :grasp ?grasp :orientation-in-robot ?identity-rotation
+                       ?ik-solutions)
+             (lisp-pred identity ?ik-solutions))
             (member ?ik-solution ?ik-solutions)
             (%ik-solution-in-collision ?w ?robot ?ik-solution ?colliding-objects)
+            (lisp-fun break ?_)
             (member ?o ?colliding-objects)
             (not (== ?o ?obj-name))
             (-> (bound ?supporting) (not (== ?o ?supporting)) (true)))
