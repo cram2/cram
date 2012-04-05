@@ -30,10 +30,9 @@
 (in-package :bullet-reasoning)
 
 (defparameter *grasps* `((:top . ,(cl-transforms:euler->quaternion :ay (/ pi -2)))
-                         ;; TODO(moesenle): fix this angle:
-                         (:left . ,(cl-transforms:euler->quaternion :az (- 0.04)))
-                         (:right . ,(cl-transforms:euler->quaternion :az pi))
-                         (:front . ,(cl-transforms:euler->quaternion :az (/ pi -2)))))
+                         (:left . ,(cl-transforms:euler->quaternion :az (/ pi 2)))
+                         (:right . ,(cl-transforms:euler->quaternion :az (/ pi -2)))
+                         (:front . ,(cl-transforms:make-identity-rotation))))
 
 (defun get-grasp (grasp side)
   (ecase grasp
@@ -42,10 +41,10 @@
     (:side (cdr (assoc side *grasps*)))))
 
 (defun object-reachable-p (robot obj &key
-                           side (grasp :top)
-                           (tool-frame (cl-transforms:make-pose
-                                        (cl-transforms:make-3d-vector 0.20 0.0 0.0)
-                                        (get-grasp grasp side))))
+                                       side (grasp :top)
+                                       (tool-frame (cl-transforms:make-pose
+                                                    (cl-transforms:make-3d-vector 0.20 0.0 0.0)
+                                                    (get-grasp grasp side))))
   (lazy-car (reach-object-ik
              robot obj
              :tool-frame tool-frame :side side :grasp grasp
