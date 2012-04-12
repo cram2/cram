@@ -569,8 +569,7 @@
        (robot-pre-grasp-joint-states ?pre-grasp-joint-states)
        (assert (joint-state ?w ?robot-name ?pre-grasp-joint-states))
        (object-grasp ?obj-name ?grasp)
-       (lisp-pred object-reachable-p ?robot ?obj :side ?side :grasp ?grasp)
-       (format "reachable~%"))))
+       (lisp-pred object-reachable-p ?robot ?obj :side ?side :grasp ?grasp))))
 
   (<- (blocking ?robot-name ?obj-name ?blocking-names)
     (blocking ?_ ?robot-name ?obj-name ?blocking-names))
