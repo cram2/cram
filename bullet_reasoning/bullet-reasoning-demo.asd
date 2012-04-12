@@ -42,8 +42,11 @@
     ((:module "src"
               :components
               ((:file "package")
+               (:module "designator" :depends-on ("package")
+                :components
+                ((:file "designator-config")))
                (:module "executive-integration"
-                        :depends-on ("package")
-                        :components
-                        ((:file "perception")
-                         (:file "perception-facts")))))))
+                :depends-on ("package")
+                :components
+                ((:file "perception")
+                 (:file "perception-facts")))))))
