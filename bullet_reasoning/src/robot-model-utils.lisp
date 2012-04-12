@@ -33,6 +33,10 @@
 (defvar *ik-solver-info-cache* nil
   "An alist of namespace names to GetKinematicSolverInfo messages.")
 
+(defvar *persistent-ik-services* nil
+  "An alist that maps from ROS namespaces to persistent service
+  handles.")
+
 (defun set-robot-state-from-tf (tf robot &optional (reference-frame "/map"))
   (loop for name being the hash-keys in  (slot-value robot 'links) do
     (let ((tf-name (if (eql (elt name 0) #\/) name (concatenate 'string "/" name))))
@@ -203,6 +207,20 @@ joint positions as seeds."
         (push (cons ik-namespace solver-info) *ik-solver-info-cache*)
         solver-info)))
 
+(defun get-persistent-ik-service (ik-namespace)
+  (let ((service (cdr (assoc ik-namespace *persistent-ik-services*
+                             :test #'equal))))
+    (unless (and service (roslisp:persistent-service-ok service))
+      (setf service (make-instance 'roslisp:persistent-service
+                      :service-name (concatenate
+                                     'string ik-namespace "/get_ik")
+                      :service-type "kinematics_msgs/GetPositionIK"))
+      (setf *persistent-ik-services*
+            (cons (cons ik-namespace service)
+                  (remove ik-namespace *persistent-ik-services*
+                          :key #'car :test #'equal))))
+    service))
+
 (defun get-ik (robot pose-stamped
                &key 
                  (tool-frame (cl-transforms:make-pose
@@ -219,12 +237,8 @@ joint positions as seeds."
         (get-ik-solver-info ik-namespace)
       (roslisp:with-fields ((solution (joint_state solution))
                             (error-code (val error_code)))
-          (roslisp:call-service
-           (concatenate
-            'string
-            ik-namespace
-            "/get_ik")
-           'kinematics_msgs-srv:getpositionik
+          (roslisp:call-persistent-service
+           (get-persistent-ik-service ik-namespace)
            :ik_request
            (roslisp:make-msg
             "kinematics_msgs/PositionIKRequest"
