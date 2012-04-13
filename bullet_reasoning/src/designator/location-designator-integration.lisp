@@ -31,6 +31,11 @@
 (in-package :btr-desig)
 
 (register-location-validation-function
+ 1 robot-location-on-floor
+ "Verifies that the z coordinate of the robot is actually on the floor
+ if searching for poses where the robot should stand")
+
+(register-location-validation-function
  10 validate-designator-solution
  "Uses the bullet base reasoning system to validate a designator.")
 
@@ -44,3 +49,8 @@
 (defun validate-designator-solution (desig pose)
   (prolog `(btr-desig-solution-valid ,desig ,pose)))
 
+(defun robot-location-on-floor (designator pose)
+  (if (member (desig-prop-value designator 'to) '(reach see))
+      (< (cl-transforms:z (cl-transforms:origin pose))
+         0.05)
+      t))
