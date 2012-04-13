@@ -70,7 +70,7 @@
                for i from 0 below 4 collecting (cl-transforms:normalize-angle
                                                 (+ reference-angle (* i pi/2)))))))))
 
-(defun 2d-pose-covariance (poses &optional (scale-factor 1.0))
+(defun 2d-pose-covariance (poses)
   (let* ((poses (force-ll poses))
          (poses-length (length poses))
          (mean-x (/ (reduce (lambda (previous pose)
@@ -100,7 +100,7 @@
                                      (cl-transforms:origin pose)) mean-y))))
     (dotimes (y 2)
       (dotimes (x 2)
-        (setf (aref result y x) (* (/ (aref result y x) poses-length) scale-factor))))
+        (setf (aref result y x) (/ (aref result y x) poses-length))))
     (list (cl-transforms:make-pose
            (cl-transforms:make-3d-vector mean-x mean-y 0.0d0)
            (cl-transforms:make-identity-rotation))
@@ -129,7 +129,7 @@
                   (desig-prop ?desig (pose ?pose)))
            ?poses)
     (costmap ?cm)
-    (lisp-fun 2d-pose-covariance ?poses 0.5 (?mean ?covariance))
+    (lisp-fun 2d-pose-covariance ?poses (?mean ?covariance))
     (costmap-add-function pose-distribution (make-location-cost-function ?mean ?covariance) ?cm))
 
   (<- (desig-costmap ?desig ?cm)
