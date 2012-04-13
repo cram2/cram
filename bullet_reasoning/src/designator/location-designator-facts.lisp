@@ -41,6 +41,18 @@
 (defmethod costmap-generator-name->score ((name (eql 'pose-distribution)))
   5)
 
+(defclass pose-distribution-range-include-generator () ())
+
+(defclass pose-distribution-range-exclude-generator () ())
+
+(defmethod costmap-generator-name->score
+    ((name pose-distribution-range-include-generator))
+  7)
+
+(defmethod costmap-generator-name->score
+    ((name pose-distribution-range-exclude-generator))
+  6)
+
 (defun make-aligned-orientation-generator (reference-pose pose)
   (flet ((yaw-between-points (point-1 point-2)
            (let ((offset (cl-transforms:v- point-2 point-1)))
@@ -117,7 +129,7 @@
     (costmap ?cm)
     (desig-prop ?desig (reachable-from ?pose))
     (lisp-fun cl-transforms:origin ?pose ?point)
-    (costmap-in-reach-padding ?distance)
+    (costmap-in-reach-distance ?distance)
     (costmap-add-function reachable-from-space
                           (make-range-cost-function ?point ?distance)
                           ?cm)
@@ -134,6 +146,23 @@
            ?poses)
     (costmap ?cm)
     (lisp-fun 2d-pose-covariance ?poses 0.5 (?mean ?covariance))
+    (costmap-in-reach-distance ?distance)
+    (costmap-reach-minimal-distance ?minimal-distance)
+    (forall
+     (member ?pose ?poses)
+     (and
+      (lisp-fun cl-transforms:origin ?pose ?point)
+      (instance-of pose-distribution-range-include-generator
+                   ?include-generator-id)
+      (costmap-add-function
+       ?include-generator-id
+       (make-range-cost-function ?point ?distance) ?cm)
+      (instance-of pose-distribution-range-exclude-generator
+                   ?exclude-generator-id)
+      (costmap-add-function
+       ?exclude-generator-id
+       (make-range-cost-function ?point ?minimal-distance :invert t)
+       ?cm)))
     (costmap-add-function pose-distribution (make-location-cost-function ?mean ?covariance) ?cm))
 
   (<- (desig-costmap ?desig ?cm)

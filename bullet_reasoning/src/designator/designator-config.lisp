@@ -37,7 +37,8 @@
 
   (<- (costmap-padding 0.6))
   (<- (costmap-manipulation-padding 0.5))
-  (<- (costmap-in-reach-padding 1.0)))
+  (<- (costmap-in-reach-distance 1.5))
+  (<- (costmap-reach-minimal-distance 0.2)))
 
 (def-fact-group semantic-map-metadata ()
   (<- (semantic-map-obj btr::sem-map)))
