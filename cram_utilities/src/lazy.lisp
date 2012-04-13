@@ -116,7 +116,8 @@
 
 
 (defun lazy-list-p (lc)
-  (lazy-cons-elem-p (cdr (last lc))))
+  (when (consp lc)
+    (lazy-cons-elem-p (cdr (last lc)))))
 
 (defun lazy-car (ll)
   (when (and ll (lazy-cons-elem-p (car ll)))
