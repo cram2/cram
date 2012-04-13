@@ -238,7 +238,8 @@
      (call-next-method) 'robot-object
      :links (copy-hash-table links)
      :joint-states (copy-hash-table joint-states)
-     :urdf urdf)))
+     :urdf urdf
+     :pose (slot-value obj 'initial-pose))))
 
 (defmethod add-object ((world bt-world) (type (eql 'urdf)) name pose
                        &key urdf (color '(0.8 0.8 0.8 1.0)))
