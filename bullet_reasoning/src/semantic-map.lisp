@@ -121,8 +121,10 @@
        :relative nil :recursive t))))
 
 (defmethod copy-object ((obj semantic-map-object) (world bt-reasoning-world))
-  (with-slots (pose parts) obj
-    (change-class (call-next-method) 'semantic-map-object :parts parts)))
+  (with-slots (pose sem-map-utils:parts) obj
+    (change-class
+     (call-next-method) 'semantic-map-object
+     :parts sem-map-utils:parts)))
 
 (defmethod add-object ((world bt-world) (type (eql 'semantic-map)) name pose &key urdf)
   (make-instance 'semantic-map-object

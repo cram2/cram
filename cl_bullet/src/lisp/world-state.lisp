@@ -154,7 +154,7 @@ world."
    world-state
    (or world
        (make-instance 'bt-world
-                      :gravity-vector (gravity-vector world-state)))))
+         :gravity-vector (gravity-vector world-state)))))
 
 (defmethod restore-state ((world-state world-state) (world bt-world))
   (with-world-locked world
