@@ -40,13 +40,23 @@
     (:front (cdr (assoc :front *grasps*)))
     (:side (cdr (assoc side *grasps*)))))
 
-(defun object-reachable-p (robot obj &key
-                                       side (grasp :top)
-                                       (tool-frame (cl-transforms:make-pose
-                                                    (cl-transforms:make-3d-vector 0.20 0.0 0.0)
-                                                    (get-grasp grasp side))))
+(defun object-reachable-p (robot obj
+                           &key side (grasp :top)
+                             (tool-frame (cl-transforms:make-pose
+                                          (cl-transforms:make-3d-vector 0.20 0.0 0.0)
+                                          (get-grasp grasp side))))
   (lazy-car (reach-object-ik
              robot obj
+             :tool-frame tool-frame :side side :grasp grasp
+             :orientation-in-robot (cl-transforms:make-identity-rotation))))
+
+(defun pose-reachable-p (robot pose
+                           &key side (grasp :top)
+                             (tool-frame (cl-transforms:make-pose
+                                          (cl-transforms:make-3d-vector 0.20 0.0 0.0)
+                                          (get-grasp grasp side))))
+  (lazy-car (reach-pose-ik
+             robot pose
              :tool-frame tool-frame :side side :grasp grasp
              :orientation-in-robot (cl-transforms:make-identity-rotation))))
 
@@ -56,20 +66,21 @@
                                        (cl-transforms:make-3d-vector 0.20 0.0 0.0)
                                        (get-grasp grasp side))))
   (reach-pose-ik
-   robot (if orientation-in-robot
-             (cl-transforms:make-pose
-              (cl-transforms:origin (pose obj))
-              (cl-transforms:q* (cl-transforms:orientation (pose robot))
-                                orientation-in-robot))
-             (pose obj))
+   robot (pose obj) :orientation-in-robot orientation-in-robot
    :side side :grasp grasp :tool-frame tool-frame))
 
 (defun reach-pose-ik (robot pose
-                      &key side (grasp :top)
+                      &key side (grasp :top) orientation-in-robot
                         (tool-frame (cl-transforms:make-pose
                                      (cl-transforms:make-3d-vector 0.20 0.0 0.0)
                                      (get-grasp grasp side))))
-  (let ((pose-transform-in-robot (cl-transforms:transform*
+  (let* ((pose (if orientation-in-robot
+                   (cl-transforms:make-pose
+                    (cl-transforms:origin pose)
+                    (cl-transforms:q* (cl-transforms:orientation (pose robot))
+                                      orientation-in-robot))
+                   pose))
+        (pose-transform-in-robot (cl-transforms:transform*
                                   (cl-transforms:transform-inv
                                    (cl-transforms:reference-transform
                                     (pose robot)))

@@ -63,7 +63,7 @@
            position orientation poses-equal contact stable
            link-contacts supported-by above below visible
            occluding-objects occluding-object grasp side reachable
-           blocking debug-window debug-costmap head-pointing-at
+           pose-reachable blocking debug-window debug-costmap head-pointing-at
            with-current-bullet-world reach-pose-ik reach-object-ik
            set-robot-state-from-joints set-robot-state-from-tf
            init-ros-object-database clear-bullet-world
@@ -86,4 +86,4 @@
   (:shadowing-import-from #:desig-props at)
   (:shadowing-import-from #:btr object pose)
   (:desig-properties #:side :to #:see #:reach #:side #:name #:type
-                     #:obj #:reachable-from #:pose))
+                     #:obj #:reachable-from #:pose #:object))

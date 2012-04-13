@@ -143,7 +143,7 @@
     (desig-location-prop ?desig ?pose)
     (costmap ?cm)
     (bullet-world ?world)
-    (object ?world ?obj)
+    (btr:object ?world ?obj)
     (once (contact ?world ?obj ?sem-map ?contacting-link))
     (link-pose ?sem-map ?contacting-link ?reference-pose)
     (costmap-add-orientation-generator
@@ -154,11 +154,11 @@
     (or (loc-desig? ?desig)
         (obj-desig? ?desig))
     (desig-prop ?desig (obj ?o))
-    (object ?o)
+    (btr:object ?o)
     (pose ?o ?loc))
 
   (<- (desig-location-prop ?o ?loc)
-    (object ?o)
+    (btr:object ?o)
     (pose ?o ?loc))  
 
   (<- (desig-check-to-reach ?desig ?robot-pose)
@@ -167,8 +167,16 @@
     (assert (object-pose ?robot ?robot-pose))
     (not (contact ?robot ?_))
     (-> (desig-prop ?desig (side ?side)) (true) (true))
-    (forall (desig-prop ?desig (obj ?obj))
-            (reachable ?robot ?obj ?side)))
+    (forall (or (desig-prop ?desig (obj ?obj))
+                (desig-prop ?desig (object ?obj)))
+            (reachable ?robot ?obj ?side))
+    (forall (or (desig-prop ?desig (pose ?pose))
+                (and
+                 (desig-prop ?desig (location ?location))
+                 (lisp-fun current-desig ?location ?current-location)
+                 (desig-reference ?current-location ?pose)))
+            (and
+             (pose-reachable ?w ?robot ?pose ?side))))
     
   (<- (location-valid
        ?desig ?pose
@@ -180,7 +188,10 @@
        ?desig ?pose
        (desig-check-to-reach ?desig ?pose))
     (desig-prop ?desig (to reach))
-    (desig-prop ?desig (obj ?obj)))
+    (or (desig-prop ?desig (obj ?_))
+        (desig-prop ?desig (object ?_))
+        (desig-prop ?desig (location ?_))
+        (desig-prop ?desig (pose ?_))))
 
   (<- (desig-check-to-see ?desig ?robot-pose)
     (bullet-world ?w)
