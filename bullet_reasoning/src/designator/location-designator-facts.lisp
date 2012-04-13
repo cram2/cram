@@ -38,6 +38,9 @@
 (defmethod costmap-generator-name->score ((name (eql 'reachable-from-weighted)))
   4)
 
+(defmethod costmap-generator-name->score ((name (eql 'pose-distribution)))
+  5)
+
 (defun make-aligned-orientation-generator (reference-pose pose)
   (flet ((yaw-between-points (point-1 point-2)
            (let ((offset (cl-transforms:v- point-2 point-1)))
@@ -67,6 +70,42 @@
                for i from 0 below 4 collecting (cl-transforms:normalize-angle
                                                 (+ reference-angle (* i pi/2)))))))))
 
+(defun 2d-pose-covariance (poses &optional (scale-factor 1.0))
+  (let* ((poses (force-ll poses))
+         (poses-length (length poses))
+         (mean-x (/ (reduce (lambda (previous pose)
+                              (+ previous (cl-transforms:x
+                                           (cl-transforms:origin pose))))
+                            poses :initial-value 0.0d0)
+                    poses-length))
+         (mean-y (/ (reduce (lambda (previous pose)
+                              (+ previous (cl-transforms:y
+                                           (cl-transforms:origin pose))))
+                            poses :initial-value 0.0d0)
+                    poses-length))
+         (result (make-array '(2 2) :element-type 'double-float :initial-element 0.0d0)))
+    (dolist (pose poses)
+      (incf (aref result 0 0) (* (- (cl-transforms:x
+                                     (cl-transforms:origin pose)) mean-x)
+                                 (- (cl-transforms:x
+                                     (cl-transforms:origin pose)) mean-x)))
+      (incf (aref result 0 1) (* (- (cl-transforms:x
+                                     (cl-transforms:origin pose)) mean-x)
+                                 (- (cl-transforms:y
+                                     (cl-transforms:origin pose)) mean-y)))
+      (incf (aref result 1 0) (aref result 0 1))
+      (incf (aref result 1 1) (* (- (cl-transforms:y
+                                     (cl-transforms:origin pose)) mean-y)
+                                 (- (cl-transforms:y
+                                     (cl-transforms:origin pose)) mean-y))))
+    (dotimes (y 2)
+      (dotimes (x 2)
+        (setf (aref result y x) (* (/ (aref result y x) poses-length) scale-factor))))
+    (list (cl-transforms:make-pose
+           (cl-transforms:make-3d-vector mean-x mean-y 0.0d0)
+           (cl-transforms:make-identity-rotation))
+          result)))
+
 (def-fact-group bullet-reasoning-location-desig (desig-costmap
                                                  desig-loc
                                                  desig-location-prop)
@@ -81,6 +120,17 @@
     (costmap-add-function reachable-from-weighted
                           (make-location-cost-function ?pose ?distance)
                           ?cm))
+
+  (<- (desig-costmap ?desig ?cm)
+    (or (desig-prop ?desig (to see))
+        (desig-prop ?desig (to reach)))
+    (bagof ?pose (or
+                  (desig-location-prop ?desig ?pose)
+                  (desig-prop ?desig (pose ?pose)))
+           ?poses)
+    (costmap ?cm)
+    (lisp-fun 2d-pose-covariance ?poses 0.5 (?mean ?covariance))
+    (costmap-add-function pose-distribution (make-location-cost-function ?mean ?covariance) ?cm))
 
   (<- (desig-costmap ?desig ?cm)
     (or (desig-prop ?desig (to see))

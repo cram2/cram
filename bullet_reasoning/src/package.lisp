@@ -86,4 +86,4 @@
   (:shadowing-import-from #:desig-props at)
   (:shadowing-import-from #:btr object pose)
   (:desig-properties #:side :to #:see #:reach #:side #:name #:type
-                     #:obj #:reachable-from))
+                     #:obj #:reachable-from #:pose))
