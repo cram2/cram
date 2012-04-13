@@ -70,7 +70,7 @@
                for i from 0 below 4 collecting (cl-transforms:normalize-angle
                                                 (+ reference-angle (* i pi/2)))))))))
 
-(defun 2d-pose-covariance (poses)
+(defun 2d-pose-covariance (poses &optional (minimal-variance 0.1))
   (let* ((poses (force-ll poses))
          (poses-length (length poses))
          (mean-x (/ (reduce (lambda (previous pose)
@@ -85,19 +85,23 @@
                     poses-length))
          (result (make-array '(2 2) :element-type 'double-float :initial-element 0.0d0)))
     (dolist (pose poses)
-      (incf (aref result 0 0) (* (- (cl-transforms:x
-                                     (cl-transforms:origin pose)) mean-x)
-                                 (- (cl-transforms:x
-                                     (cl-transforms:origin pose)) mean-x)))
+      (incf (aref result 0 0) (max
+                               (* (- (cl-transforms:x
+                                      (cl-transforms:origin pose)) mean-x)
+                                  (- (cl-transforms:x
+                                      (cl-transforms:origin pose)) mean-x))
+                               minimal-variance))
       (incf (aref result 0 1) (* (- (cl-transforms:x
                                      (cl-transforms:origin pose)) mean-x)
                                  (- (cl-transforms:y
                                      (cl-transforms:origin pose)) mean-y)))
       (incf (aref result 1 0) (aref result 0 1))
-      (incf (aref result 1 1) (* (- (cl-transforms:y
-                                     (cl-transforms:origin pose)) mean-y)
-                                 (- (cl-transforms:y
-                                     (cl-transforms:origin pose)) mean-y))))
+      (incf (aref result 1 1) (max
+                               (* (- (cl-transforms:y
+                                      (cl-transforms:origin pose)) mean-y)
+                                  (- (cl-transforms:y
+                                      (cl-transforms:origin pose)) mean-y))
+                               minimal-variance)))
     (dotimes (y 2)
       (dotimes (x 2)
         (setf (aref result y x) (/ (aref result y x) poses-length))))
@@ -129,7 +133,7 @@
                   (desig-prop ?desig (pose ?pose)))
            ?poses)
     (costmap ?cm)
-    (lisp-fun 2d-pose-covariance ?poses (?mean ?covariance))
+    (lisp-fun 2d-pose-covariance ?poses 0.5 (?mean ?covariance))
     (costmap-add-function pose-distribution (make-location-cost-function ?mean ?covariance) ?cm))
 
   (<- (desig-costmap ?desig ?cm)
