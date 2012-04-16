@@ -38,22 +38,89 @@
 ;;;     ...)
 ;;; examples are in table_costmap and semantic_map_costmap
 
+(defparameter *orientation-samples* 5)
+(defparameter *orientation-sample-step* (/ pi 10))
 
-(defmethod costmap-generator-name->score ((name (eql 'location-neighborhood)))
+(defmethod costmap-generator-name->score ((name (eql 'pose-distribution)))
   5)
 
-(defun make-angle-to-point-generator (pose)
+(defclass pose-distribution-range-include-generator () ())
+
+(defclass pose-distribution-range-exclude-generator () ())
+
+(defmethod costmap-generator-name->score
+    ((name pose-distribution-range-include-generator))
+  7)
+
+(defmethod costmap-generator-name->score
+    ((name pose-distribution-range-exclude-generator))
+  6)
+
+(defun make-angle-to-point-generator (position &key (samples 1) sample-step)
   "Returns a function that takes an X and Y coordinate and returns a
 quaternion to face towards `pose' if PREVIOUS-ORIENTATION is not NIL,
-otherwise PREVIOUS-ORIENTATION."
-  (lambda (x y previous-orientation)
-    (or previous-orientation
-        (cl-transforms:axis-angle->quaternion
-         (cl-transforms:make-3d-vector 0 0 1)
-         (let ((p-rel (cl-transforms:v-
-                       (cl-transforms:origin pose)
-                       (cl-transforms:make-3d-vector x y 0))))
-           (atan (cl-transforms:y p-rel) (cl-transforms:x p-rel)))))))
+otherwise PREVIOUS-ORIENTATION. `samples' indicates how many rotations
+should be returned. If the value is greater than 1, the samples's
+orientations differ by `sample-step'."
+  (flet ((make-angles (samples sample-step)
+           (loop for angle from (* sample-step (- (floor (/ samples 2))))
+                   below (* sample-step (ceiling (/ samples 2)))
+                     by sample-step
+                 collecting (cl-transforms:euler->quaternion :az angle))))
+    (let ((point (etypecase position
+                   (cl-transforms:pose (cl-transforms:origin position))
+                   (cl-transforms:3d-vector position)))
+          (angle-differences (if (and sample-step (> samples 1))
+                                 (make-angles samples sample-step)
+                                 (list (cl-transforms:make-identity-rotation)))))
+      (lambda (x y previous-orientations)
+        (or previous-orientations
+            (let* ((p-rel (cl-transforms:v-
+                           point (cl-transforms:make-3d-vector x y 0)))
+                   (angle (atan (cl-transforms:y p-rel) (cl-transforms:x p-rel))))
+              (lazy-mapcar (lambda (angle-difference)
+                             (cl-transforms:q*
+                              (cl-transforms:euler->quaternion :az angle)
+                              angle-difference))
+                           angle-differences)))))))
+
+(defun 2d-pose-covariance (poses &optional (minimal-variance 0.1))
+  (let* ((poses (force-ll poses))
+         (poses-length (length poses))
+         (mean-x (/ (reduce (lambda (previous pose)
+                              (+ previous (cl-transforms:x
+                                           (cl-transforms:origin pose))))
+                            poses :initial-value 0.0d0)
+                    poses-length))
+         (mean-y (/ (reduce (lambda (previous pose)
+                              (+ previous (cl-transforms:y
+                                           (cl-transforms:origin pose))))
+                            poses :initial-value 0.0d0)
+                    poses-length))
+         (result (make-array '(2 2) :element-type 'double-float :initial-element 0.0d0)))
+    (dolist (pose poses)
+      (incf (aref result 0 0) (max
+                               (* (- (cl-transforms:x
+                                      (cl-transforms:origin pose)) mean-x)
+                                  (- (cl-transforms:x
+                                      (cl-transforms:origin pose)) mean-x))
+                               minimal-variance))
+      (incf (aref result 0 1) (* (- (cl-transforms:x
+                                     (cl-transforms:origin pose)) mean-x)
+                                 (- (cl-transforms:y
+                                     (cl-transforms:origin pose)) mean-y)))
+      (incf (aref result 1 0) (aref result 0 1))
+      (incf (aref result 1 1) (max
+                               (* (- (cl-transforms:y
+                                      (cl-transforms:origin pose)) mean-y)
+                                  (- (cl-transforms:y
+                                      (cl-transforms:origin pose)) mean-y))
+                               minimal-variance)))
+    (dotimes (y 2)
+      (dotimes (x 2)
+        (setf (aref result y x) (/ (aref result y x) poses-length))))
+    (list (cl-transforms:make-3d-vector mean-x mean-y 0.0d0)
+          result)))
 
 ;; TODO: This fact belongs into a package for CRAM_PL based desig utils
 (def-fact-group location-costmap-utils ()
@@ -103,18 +170,34 @@ otherwise PREVIOUS-ORIENTATION."
 (def-fact-group location-costmap-desigs (desig-costmap)
 
   (<- (desig-costmap ?desig ?cm)
-    (desig-prop ?desig (to see))
+    (or (desig-prop ?desig (to see))
+        (desig-prop ?desig (to reach)))
+    (bagof ?pose (desig-location-prop ?desig ?pose) ?poses)
     (costmap ?cm)
-    (desig-location-prop ?desig ?loc)
-    (costmap-add-function location-neighborhood (make-location-cost-function ?loc 0.5) ?cm)
-    (costmap-add-orientation-generator (make-angle-to-point-generator ?loc) ?cm))
-
-  (<- (desig-costmap ?desig ?cm)
-    (desig-prop ?desig (to reach))
-    (desig-location-prop ?desig ?loc)
-    (costmap ?cm)
-    (costmap-add-function location-neighborhood (make-location-cost-function ?loc 0.4) ?cm)
-    (costmap-add-orientation-generator (make-angle-to-point-generator ?loc) ?cm))
+    (lisp-fun 2d-pose-covariance ?poses 0.5 (?mean ?covariance))
+    (costmap-in-reach-distance ?distance)
+    (costmap-reach-minimal-distance ?minimal-distance)
+    (forall
+     (member ?pose ?poses)
+     (and
+      (lisp-fun cl-transforms:origin ?pose ?point)
+      (instance-of pose-distribution-range-include-generator
+                   ?include-generator-id)
+      (costmap-add-function
+       ?include-generator-id
+       (make-range-cost-function ?point ?distance) ?cm)
+      (instance-of pose-distribution-range-exclude-generator
+                   ?exclude-generator-id)
+      (costmap-add-function
+       ?exclude-generator-id
+       (make-range-cost-function ?point ?minimal-distance :invert t)
+       ?cm)))
+    (costmap-add-function pose-distribution (make-gauss-cost-function ?mean ?covariance) ?cm)
+    (symbol-value *orientation-samples* ?samples)
+    (symbol-value *orientation-sample-step* ?sample-step)
+    (costmap-add-orientation-generator
+     (make-angle-to-point-generator ?mean :samples ?samples :sample-step ?sample-step)
+     ?cm))
 
   (<- (merged-desig-costmap ?desig ?cm)
     ;; bagof collects all true solutions for c into costmaps
