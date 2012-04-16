@@ -34,7 +34,7 @@
   (:export semantic-map semantic-map-part semantic-map-geom
            semantic-map-parts semantic-map-part-names get-semantic-map
            clear-semantic-map-cache with-clear-semantic-map-cache
-           with-semantic-map-cache sub-parts-with-type
+           with-semantic-map-cache sub-parts-with-type parts
            copy-semantic-map-object sub-parts-with-name name owl-name
            obj-type urdf-name sub-parts update-pose pose dimensions
            aliases urdf-name->obj-name owl-type-p
