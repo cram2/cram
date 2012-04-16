@@ -71,6 +71,7 @@
 (defparameter *location-generator-max-retries* 50)
 
 (defun register-location-resolution-function (place priority function &optional documentation)
+  "Internal function used by the macro REGISTER-LOCATION-GENERATOR."
   `(eval-when (:compile-toplevel :load-toplevel :execute)
      (setf ,place
            (cons (make-location-resolution-function
