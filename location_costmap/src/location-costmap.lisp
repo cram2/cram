@@ -88,9 +88,9 @@
   (:documentation "Registers an orientation generator in the
   costmap"))
 
-(defgeneric gen-costmap-sample (map)
+(defgeneric gen-costmap-sample-point (map)
   (:documentation "Draws a sample from the costmap `map' interpreted
-  as a probability function and returns it as CL-TRANSFORMS:POSE"))
+  as a probability function and returns it as CL-TRANSFORMS:3D-VECTOR"))
 
 (defgeneric costmap-samples (map)
   (:documentation "Returns the lazy-list of randomly generated costmap
@@ -183,14 +183,15 @@
       (funcall (height-generator map) x y)
       default))
 
-(defun generate-orientation (map x y &optional (default (cl-transforms:make-identity-rotation)))
+(defun generate-orientations (map x y
+                              &optional (default (list (cl-transforms:make-identity-rotation))))
   (or (when (orientation-generators map)
         (reduce (lambda (solution function)
                   (funcall function x y solution))
                 (orientation-generators map) :initial-value nil))
       default))
 
-(defmethod gen-costmap-sample ((map location-costmap))
+(defmethod gen-costmap-sample-point ((map location-costmap))
   (let ((rand (random 1.0))
         (cntr 0.0)
         (cost-map (get-cost-map map)))
@@ -202,14 +203,18 @@
           (when (> cntr rand)
             (let* ((x (+ (* col resolution) origin-x))
                    (y (+ (* row resolution) origin-y))
-                   (z (generate-height map x y))
-                   (rot (generate-orientation map x y)))
-              (return-from gen-costmap-sample
-                (cl-transforms:make-pose
-                 (cl-transforms:make-3d-vector x y z)
-                 rot))))))))
+                   (z (generate-height map x y)))
+              (return-from gen-costmap-sample-point
+                (cl-transforms:make-3d-vector x y z))))))))
   (error 'invalid-probability-distribution))
 
 (defmethod costmap-samples ((map location-costmap))
-  (lazy-list ()
-    (cont (gen-costmap-sample map))))
+  (lazy-mapcan (lambda (sample-point)
+                 (lazy-mapcar (lambda (orientation)
+                                (tf:make-pose sample-point orientation))
+                              (generate-orientations
+                               map
+                               (cl-transforms:x sample-point)
+                               (cl-transforms:y sample-point))))
+               (lazy-list ()
+                 (cont (gen-costmap-sample-point map)))))
