@@ -24,7 +24,7 @@
 (defun make-location-cost-function (loc std-dev)
   (let ((loc (cl-transforms:origin loc)))
     (make-gauss-cost-function loc `((,(float (* std-dev std-dev) 0.0d0) 0.0d0)
-                                    0.0d0 (,(float (* std-dev std-dev) 0.0d0) 0.0d0)))))
+                                    (0.0d0 ,(float (* std-dev std-dev)))))))
 
 (defun make-range-cost-function (point distance &key invert)
   "Returns a costfunction that returns 1 for every point that is not
