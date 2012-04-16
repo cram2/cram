@@ -69,11 +69,15 @@
     (lisp-fun obj-desig-location ?curr-obj ?loc)
     (lisp-pred identity ?loc))
 
-    ;; (location ... (location ?loc)...), e.g. location to see location
+  ;; (location ... (location ?loc)...), e.g. location to see location
   (<- (desig-location-prop ?desig ?loc)
     (desig-prop ?desig (location ?loc-desig))
     (lisp-fun current-desig ?loc-desig ?curr-loc-desig)
-    (lisp-fun loc-desig-location ?loc-desig ?loc)))
+    (lisp-fun loc-desig-location ?loc-desig ?loc))
+
+  ;; (location ... (pose ?loc)...), e.g. location to see pose
+  (<- (desig-location-prop ?desig ?pose)
+    (desig-prop ?desig (pose ?pose))))
 
 (def-fact-group manipulation-designator (action-desig)
   (<- (trajectory-desig? ?desig)
