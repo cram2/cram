@@ -44,8 +44,8 @@
            #:next-solution #:register-designator-class
            #:make-designator #:first-desig #:current-desig
            #:newest-valid-designator #:with-desig-props #:with-designators
-           #:designator-solutions
-           #:desig-prop-value #:*designator-pprint-description*
+           #:designator-solutions #:desig-prop-value
+           #:desig-prop-values #:*designator-pprint-description*
            #:get-equal-designators
            #:update-designator-properties
            #:designator-id-mixin #:object-id

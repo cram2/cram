@@ -41,9 +41,18 @@
      ,@body))
 
 (defun desig-prop-value (desig prop-name)
+  "Returns the first value matching the key `prop-name'."
   (when desig
     (check-desig-prop-package prop-name)
     (cadr (find prop-name (description desig) :key #'car))))
+
+(defun desig-prop-values (designator property-name)
+  "Returns the list of all values matching `property-name'."
+  (when designator
+    (check-desig-prop-package property-name)
+    (mapcar #'cadr (remove-if-not (lambda (current-property-name)
+                                    (eq current-property-name property-name))
+                                  (description designator) :key #'car))))
 
 (defun get-equal-designators (d)
   "Returns the set of all designators that have been equated to `d',
