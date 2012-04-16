@@ -73,7 +73,7 @@
            #:get-map-value
            #:invalid-probability-distribution
            #:register-cost-function
-           #:gen-costmap-sample
+           #:gen-costmap-sample-point
            #:costmap-samples
            #:generators
            #:cost-functions
