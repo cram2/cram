@@ -41,7 +41,6 @@
            #:grid-width #:grid-height #:origin-x #:origin-y
            #:inverted-occupancy-grid
            #:costmap-metadata
-           #:costmap-size #:costmap-origin #:costmap-resolution
            #:costmap
            #:costmap-add-function
            #:costmap-add-heightmap
@@ -85,6 +84,10 @@
            #:publish-pose
            #:*z-padding*
            #:2d-cov #:points-mean
-           #:points-cov)
+           #:points-cov
+           ;; Costmap configuration symbols
+           #:costmap-size #:costmap-origin #:costmap-resolution
+           #:costmap-padding #:costmap-manipulation-padding
+           #:costmap-in-reach-distance #:costmap-reach-minimal-distance)
   (:desig-properties #:to #:see #:reach))
 
