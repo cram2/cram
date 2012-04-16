@@ -79,7 +79,6 @@
                             ?generator-name)))
     (assert (and cm (typep cm 'location-costmap)) ()
             "Parameter ?CM must be bound to a costmap")
-    (check-type generator-name symbol)
     (register-cost-function cm (eval-generator ?generator-pat bdgs) generator-name)
     (list bdgs)))
 
