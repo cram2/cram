@@ -164,8 +164,10 @@
          sem-map-obj (cl-transforms:transform->pose
                       (cl-transforms:transform*
                        (cl-transforms:reference-transform (pose child-link))
-                       (gethash (sem-map-utils:urdf-name sem-map-obj)
-                                link-offsets)))
+                       (or
+                        (gethash (sem-map-utils:urdf-name sem-map-obj)
+                                 link-offsets)
+                        (cl-transforms:make-identity-transform))))
          :relative nil :recursive t)))))
 
 (defun update-semantic-map-poses (sem-map &optional (joint-names nil joint-names-p))
