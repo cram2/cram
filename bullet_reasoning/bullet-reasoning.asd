@@ -83,7 +83,7 @@
                (:file "articulated-objects" :depends-on ("package" "semantic-map"))
                (:file "ros-household-object-database" :depends-on ("package" "objects"))
                (:module "designator"
-                        :depends-on ("package")
+                        :depends-on ("package" "prolog-facts")
                         :components
                         ((:file "location-designator-facts")
                          (:file "location-designator-integration")))
