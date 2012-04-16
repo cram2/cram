@@ -1,24 +1,30 @@
 
 (in-package :location-costmap)
 
-(defun make-gauss-cost-function (mean cov)
-  (let ((gauss-fun (cma:gauss (cma:double-matrix-from-array cov)
-                              (cma:double-matrix-from-array mean)))
-        (pos (cma:make-double-vector 2)))
-    (lambda (x y)
-      (setf (aref pos 0 0) x)
-      (setf (aref pos 1 0) y)
-      (funcall gauss-fun pos))))
+(defun make-gauss-cost-function (mean covariance)
+  (let ((mean (etypecase mean
+                (list (make-array 2 :initial-contents mean))
+                (array mean)
+                (cl-transforms:3d-vector
+                 (make-array
+                  2 :initial-contents (list
+                                       (float (cl-transforms:x mean) 0.0d0)
+                                       (float (cl-transforms:y mean) 0.0d0))))))
+        (covariance (etypecase covariance
+                      (list (make-array '(2 2) :initial-contents covariance))
+                      (array covariance))))
+    (let ((gauss-fun (cma:gauss (cma:double-matrix-from-array covariance)
+                                (cma:double-matrix-from-array mean)))
+          (pos (cma:make-double-vector 2)))
+      (lambda (x y)
+        (setf (aref pos 0 0) x)
+        (setf (aref pos 1 0) y)
+        (funcall gauss-fun pos)))))
 
 (defun make-location-cost-function (loc std-dev)
   (let ((loc (cl-transforms:origin loc)))
-    (make-gauss-cost-function (make-array 2 :initial-contents (list (cl-transforms:x loc)
-                                                                    (cl-transforms:y loc)))
-                              (make-array '(2 2)
-                                          :initial-contents `((,(coerce (* std-dev std-dev)
-                                                                        'double-float) 0)
-                                                              (0 ,(coerce (* std-dev std-dev)
-                                                                          'double-float)))))))
+    (make-gauss-cost-function loc `((,(float (* std-dev std-dev) 0.0d0) 0.0d0)
+                                    0.0d0 (,(float (* std-dev std-dev) 0.0d0) 0.0d0)))))
 
 (defun make-range-cost-function (point distance)
   "Returns a costfunction that returns 1 for every point that is not
