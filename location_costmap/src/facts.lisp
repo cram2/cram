@@ -80,8 +80,8 @@ orientations differ by `sample-step'."
                    (angle (atan (cl-transforms:y p-rel) (cl-transforms:x p-rel))))
               (lazy-mapcar (lambda (angle-difference)
                              (cl-transforms:q*
-                              (cl-transforms:euler->quaternion :az angle)
-                              angle-difference))
+                              angle-difference
+                              (cl-transforms:euler->quaternion :az angle)))
                            angle-differences)))))))
 
 (defun 2d-pose-covariance (poses &optional (minimal-variance 0.1))
