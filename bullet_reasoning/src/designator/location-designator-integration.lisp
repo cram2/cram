@@ -30,10 +30,17 @@
 
 (in-package :btr-desig)
 
-(defvar *designator-reasoning-world-cache*
+(defvar *designator-ik-check-cache*
   (tg:make-weak-hash-table :weakness :key)
-  "Cache of reasoning worlds used for ik calculation during designator
-  validation.")
+  "Cache of closures to check IK for a specific designator.")
+
+(defparameter *robot-name* 'btr::pr2
+  "The name of the robot in the bullet world to calculate IK for.")
+
+(defparameter *check-ik-joint-states*
+  '(("torso_lift_joint" 0.33)
+    ("torso_lift_joint" 0.0))
+  "Joint states to set before calling the IK solver.")
 
 (register-location-validation-function
  1 robot-location-on-floor
@@ -62,8 +69,22 @@
          0.05)
       t))
 
-(defun check-ik-solution (designator pose)
-  (flet ((make-ik-check-function (robot &optional side)
+(defun pose-properties (world designator)
+  (append (desig-prop-values designator 'pose)
+          (mapcar (lambda (object)
+                    (typecase object
+                      (object-designator (designator-pose
+                                          (current-desig object)))
+                      (t (btr:pose (btr:object world object)))))
+                  (append (desig-prop-values designator 'obj)
+                          (desig-prop-values designator 'object)))
+          (mapcar (lambda (location)
+                    (designator-pose
+                     (current-desig location)))
+                  (desig-prop-values designator 'location))))
+
+(defun make-ik-check-function (robot poses &optional side)
+  (flet ((make-reachability-function ()
            (case side
              ((:left :right)
               (lambda (reach-pose)
@@ -88,22 +109,34 @@
                  (pose-reachable-p
                   robot reach-pose
                   :side :left :grasp :front)))))))
-    (if (eq (desig-prop-value designator 'to) 'reach)
-        ;; TODO(moesenle): add support for obj, object and location.
-        (let* ((poses (append (desig-prop-values designator 'pose)))
-               (side (desig-prop-value designator 'side))
-               (world (or (gethash designator *designator-reasoning-world-cache*)
-                          (setf (gethash designator *designator-reasoning-world-cache*)
-                                (let ((state (bt:get-state *current-bullet-world*)))
-                                  (bullet:restore-world-state
-                                   state
-                                   (make-instance 'btr:bt-reasoning-world
-                                     :gravity-vector (bt:gravity-vector state)))))))
-               ;; TODO(moesenle): don't hard-code robot name.
-               (robot (btr:object world 'btr::pr2)))
-          (setf (btr:pose robot) pose)
-          (every (make-ik-check-function robot side) poses))
-        t)))
+    (let ((reachability-function (make-reachability-function)))
+      (lambda (pose)
+        (setf (btr:pose robot) pose)
+        (every (lambda (pose-to-check)
+                 (if *check-ik-joint-states*
+                     (some (lambda (joint-state)
+                             (setf (btr:joint-state robot (car joint-state))
+                                   (cadr joint-state))
+                             (funcall reachability-function pose-to-check))
+                           *check-ik-joint-states*)
+                     (funcall reachability-function pose-to-check)))
+               poses)))))
+
+(defun check-ik-solution (designator pose)
+  (if (not (eq (desig-prop-value designator 'to) 'reach))
+      t
+      (let ((cached-function
+              (or (gethash designator *designator-ik-check-cache*)
+                  (setf (gethash designator *designator-ik-check-cache*)
+                        (let* ((state (bt:get-state *current-bullet-world*))
+                               (world (bullet:restore-world-state
+                                       state (make-instance 'btr:bt-reasoning-world
+                                               :gravity-vector (bt:gravity-vector state))))
+                               (robot (btr:object world *robot-name*)))
+                          (make-ik-check-function
+                           robot (pose-properties world designator)
+                           (desig-prop-value designator 'side)))))))
+        (funcall cached-function pose))))
 
 (defun validate-designator-solution (desig pose)
   (prolog `(btr-desig-solution-valid ,desig ,pose)))
