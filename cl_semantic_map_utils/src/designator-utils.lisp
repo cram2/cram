@@ -49,36 +49,38 @@
 
   (TYPE <type>) type is either a string or symbol"
   (desig:with-desig-props (part-of name type on in) desig
-    (let ((parents (if part-of
+    (let ((semantic-map (get-semantic-map))
+          (parents (if part-of
                        (resolve-part-of part-of)
                        (list (get-semantic-map))))
           (type (or type on in)))
-      (when (and part-of (not parents))
-        (error 'simple-error
-               :format-control "No matching objects found for (part-of ~a)"
-               :format-arguments (list part-of)))
-      (cond ((and name type)
-             (intersection (force-ll
-                            (lazy-mapcan (lambda (parent)
-                                           (sub-parts-with-name parent name))
-                                         parents))
-                           (force-ll
-                            (lazy-mapcan (lambda (parent)
-                                           (sub-parts-with-type parent type))
-                                         parents))))
-            (name
-             (force-ll
-              (lazy-mapcan (lambda (parent)
-                             (sub-parts-with-name parent name))
-                           parents)))
-            (type
-             (force-ll
-              (lazy-mapcan (lambda (parent)
-                             (sub-parts-with-type parent type))
-                           parents)))
-            (part-of
-             (force-ll
-              (lazy-mapcan (lambda (parent)
-                             (semantic-map-parts parent :recursive t))
-                           parents)))
-            (t nil)))))
+      (unless semantic-map
+        (when (and part-of (not parents))
+          (error 'simple-error
+                 :format-control "No matching objects found for (part-of ~a)"
+                 :format-arguments (list part-of)))
+        (cond ((and name type)
+               (intersection (force-ll
+                              (lazy-mapcan (lambda (parent)
+                                             (sub-parts-with-name parent name))
+                                           parents))
+                             (force-ll
+                              (lazy-mapcan (lambda (parent)
+                                             (sub-parts-with-type parent type))
+                                           parents))))
+              (name
+               (force-ll
+                (lazy-mapcan (lambda (parent)
+                               (sub-parts-with-name parent name))
+                             parents)))
+              (type
+               (force-ll
+                (lazy-mapcan (lambda (parent)
+                               (sub-parts-with-type parent type))
+                             parents)))
+              (part-of
+               (force-ll
+                (lazy-mapcan (lambda (parent)
+                               (semantic-map-parts parent :recursive t))
+                             parents)))
+              (t nil))))))

@@ -260,7 +260,7 @@
      ,@body))
 
 (defun init-semantic-map-cache ()
-  (unless *cached-semantic-map*
+  (unless (or (not (json-prolog:check-connection)) *cached-semantic-map*)
     (setf *cached-semantic-map*
           (make-instance 'semantic-map
             :parts (alexandria:alist-hash-table
@@ -286,7 +286,8 @@
 
 (defun get-semantic-map ()
   (init-semantic-map-cache)
-  (copy-semantic-map-object *cached-semantic-map*))
+  (when *cached-semantic-map*
+    (copy-semantic-map-object *cached-semantic-map*)))
 
 (defun owl-names-equal (lhs rhs)
   (let ((lhs (etypecase lhs
