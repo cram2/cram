@@ -54,7 +54,7 @@
                        (resolve-part-of part-of)
                        (list (get-semantic-map))))
           (type (or type on in)))
-      (unless semantic-map
+      (when semantic-map
         (when (and part-of (not parents))
           (error 'simple-error
                  :format-control "No matching objects found for (part-of ~a)"
