@@ -8,27 +8,28 @@
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/pr2_manipulation_process_module</url>
-  <depend package="ias_drawer_actions"/>
-  <depend package="cram_process_modules"/>
-  <depend package="designators_ros"/>
-  <depend package="actionlib_lisp"/>
-  <depend package="cram_roslisp_common"/>
-  <depend package="cram_reasoning"/>
-  <depend package="cram_plan_failures"/>
-  <depend package="cram_plan_knowledge"/>
-  <depend package="perception_process_module"/>
-  <depend package="pr2_controllers_msgs"/>
-  <depend package="kinematics_msgs"/>
-  <depend package="kdl_arm_kinematics"/>
-  <depend package="arm_navigation_msgs"/>
-  <depend package="sgp_srvs"/>
-  <depend package="vision_srvs"/>
-  <depend package="trivial_garbage"/>
-  <depend package="std_srvs"/>
-  <depend package="alexandria"/>
-  <depend package="semantic_map_collision_environment"/>
-  <depend package="object_manipulation_msgs"/>
-  <depend package="pr2_gripper_sensor_msgs"/>
-  <depend package="arm_navigation_msgs"/>
+  <depend package="ias_drawer_actions" />
+  <depend package="cram_process_modules" />
+  <depend package="designators_ros" />
+  <depend package="actionlib_lisp" />
+  <depend package="cram_roslisp_common" />
+  <depend package="cram_reasoning" />
+  <depend package="cram_plan_failures" />
+  <depend package="cram_plan_knowledge" />
+  <depend package="perception_process_module" />
+  <depend package="pr2_controllers_msgs" />
+  <depend package="kinematics_msgs" />
+  <depend package="kdl_arm_kinematics" />
+  <depend package="arm_navigation_msgs" />
+  <depend package="sgp_srvs" />
+  <depend package="vision_srvs" />
+  <depend package="trivial_garbage" />
+  <depend package="std_srvs" />
+  <depend package="alexandria" />
+  <depend package="semantic_map_collision_environment" />
+  <depend package="object_manipulation_msgs" />
+  <depend package="pr2_gripper_sensor_msgs" />
+  <depend package="arm_navigation_msgs" />
+  <depend package="pr2_mechanism_msgs" />
 
 </package>

@@ -55,13 +55,16 @@
                object_manipulation_msgs-msg
                object_manipulation_msgs-srv
                pr2_gripper_sensor_msgs-msg
-               arm_navigation_msgs-srv)
+               arm_navigation_msgs-srv
+               pr2_mechanism_msgs-srv)
   :components
   ((:module "src"
             :components
             ((:file "package")
+             (:file "controller-manager" :depends-on ("package"))
              (:file "kinematics" :depends-on ("package"))
              (:file "collision-environment" :depends-on ("package"))
-             (:file "process-module" :depends-on ("package" "kinematics" "collision-environment"))
+             (:file "process-module"
+              :depends-on ("package" "kinematics" "collision-environment" "controller-manager"))
              (:file "rete" :depends-on ("package" "collision-environment"))
              (:file "designator" :depends-on ("package" "process-module"))))))
