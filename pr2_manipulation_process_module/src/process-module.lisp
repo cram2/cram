@@ -53,6 +53,7 @@
 
 (defvar *trajectory-action-left* nil)
 (defvar *trajectory-action-right* nil)
+(defvar *trajectory-action-both* nil)
 (defvar *trajectory-action-torso* nil)
 (defvar *move-arm-right* nil)
 (defvar *move-arm-left* nil)
@@ -101,6 +102,9 @@
                                   "pr2_controllers_msgs/JointTrajectoryAction"))
   (setf *trajectory-action-right* (actionlib:make-action-client
                                    "/r_arm_controller/joint_trajectory_generator"
+                                   "pr2_controllers_msgs/JointTrajectoryAction"))
+  (setf *trajectory-action-both* (actionlib:make-action-client
+                                   "/both_arms_controller/joint_trajectory_generator"
                                    "pr2_controllers_msgs/JointTrajectoryAction"))
   (setf *trajectory-action-torso* (actionlib:make-action-client
                                    "/torso_controller/joint_trajectory_action"
@@ -353,8 +357,16 @@
 
 (defun execute-arm-trajectory (side trajectory)
   (let ((action (ecase side
-                  (:left *trajectory-action-left*)
-                  (:right *trajectory-action-right*))))
+                  (:left
+                   (switch-controller #("l_arm_controller") #("both_arms_controller"))
+                   *trajectory-action-left*)
+                  (:right
+                   (switch-controller #("r_arm_controller") #("both_arms_controller"))
+                   *trajectory-action-right*)
+                  (:both
+                   (switch-controller
+                    #("both_arms_controller") #("l_arm_controller" "r_arm_controller"))
+                   *trajectory-action-both*))))
     (actionlib:call-goal
      action
      (actionlib:make-action-goal
