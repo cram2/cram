@@ -507,7 +507,21 @@ by `planners' until one succeeds."
   (collision-environment-set-laser-period)
   (apply #'call-action (reference desig)))
 
+(defun park-both-arms-test ()
+  (let* ((ik (get-ik :right (tf:copy-pose-stamped 
+                             *carry-pose-right*
+                             :origin (cl-transforms:make-3d-vector 0.0  -0.45 0.6))))
+         (tr (ik->trajectory (car ik))))
+    (execute-arm-trajectory :right tr))   
+  (let* ((ik (get-ik :left (tf:copy-pose-stamped 
+                            *carry-pose-left*
+                            :origin (cl-transforms:make-3d-vector 0.0   0.45 0.6))))
+         (tr (ik->trajectory (car ik))))
+    (execute-arm-trajectory :left tr)))
+
 (defun open-drawer (pose side)
+  "Generates and executes a pull trajectory for the `side' arm in order
+   to open the drawer whose handle is at `pose'."
   (let* ((pre-grasp-pose (tf:pose->pose-stamped
                           (tf:frame-id pose) (tf:stamp pose)
                           (cl-transforms:transform-pose
@@ -540,10 +554,10 @@ by `planners' until one succeeds."
              :format-control "Pre-grasp pose for handle not reachable."))
     (unless grasp-ik
       (error 'manipulation-pose-unreachable
-             :format-control "Pre-grasp pose for handle not reachable."))
+             :format-control "Grasp pose for handle not reachable."))
     (unless open-ik
       (error 'manipulation-pose-unreachable
-             :format-control "Pre-grasp pose for handle not reachable."))
+             :format-control "Open pose for handle not reachable."))
     (open-gripper side)
     (execute-arm-trajectory side (ik->trajectory pre-grasp-ik))
     (execute-arm-trajectory side (ik->trajectory grasp-ik))
@@ -551,3 +565,129 @@ by `planners' until one succeeds."
     (execute-arm-trajectory side (ik->trajectory open-ik))
     (open-gripper side)))
 
+(defun close-drawer (pose side)
+  "Generates and executes a push trajectory for the `side' arm in order
+   to close the drawer whose handle is at `pose'."
+  (let* ((pre-grasp-pose (tf:pose->pose-stamped
+                          (tf:frame-id pose) (tf:stamp pose)
+                          (cl-transforms:transform-pose
+                           (cl-transforms:make-transform
+                            (cl-transforms:make-3d-vector -0.25 0.0 0.0)
+                            (cl-transforms:make-identity-rotation))
+                           pose)))
+         (grasp-pose (tf:pose->pose-stamped
+                      (tf:frame-id pose) (tf:stamp pose)
+                      (cl-transforms:transform-pose
+                       (cl-transforms:make-transform
+                        (cl-transforms:make-3d-vector -0.20 0.0 0.0)
+                        (cl-transforms:make-identity-rotation))
+                       pose)))
+         (close-pose (tf:pose->pose-stamped
+                      (tf:frame-id pose) (tf:stamp pose)
+                      (cl-transforms:transform-pose
+                       (cl-transforms:make-transform
+                        (cl-transforms:make-3d-vector
+                         -0.05 0.0 0.0)
+                        (cl-transforms:make-identity-rotation))
+                       pose)))         
+         (pre-grasp-ik (lazy-car (get-ik side pre-grasp-pose)))
+         (grasp-ik (lazy-car (get-ik side grasp-pose)))
+         (close-ik (lazy-car (get-ik side close-pose))))
+    (unless pre-grasp-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "Pre-grasp pose for handle not reachable."))
+    (unless grasp-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "Grasp pose for handle not reachable."))
+    (unless close-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "Close pose for handle not reachable."))
+    (open-gripper side)
+    (execute-arm-trajectory side (ik->trajectory pre-grasp-ik))
+    (execute-arm-trajectory side (ik->trajectory grasp-ik))
+    (close-gripper side)
+    (execute-arm-trajectory side (ik->trajectory close-ik))
+    (open-gripper side)))
+
+;; (defun pick-lid-right ()  
+;;   (open-gripper :right 20)  
+;;   (let* ((ik-0 (get-ik :right
+;;                        (tf:transform-pose
+;;                         *tf*
+;;                       :pose  :pose (tf:make-pose-stamped
+;;                                "/map" 0.0
+;;                                (cl-transforms:make-3d-vector 0.5 1.5 1.2)
+;;                                (cl-transforms:make-quaternion -0.50 0.49 0.51 0.48))
+;;                         :target-frame "/base_footprint")
+;;                        ))
+;;          (ik-1 (get-ik :right
+;;                        (tf:transform-pose
+;;                         *tf*
+;;                         :pose (tf:make-pose-stamped
+;;                                "/map" 0.0
+;;                                (cl-transforms:make-3d-vector 0.62 2.33 1.02)
+;;                                (cl-transforms:make-quaternion -0.52 0.47 0.5 0.5))
+;;                         :target-frame "/base_footprint")
+;;                        ))
+;;          (tr-0 (ik->trajectory (car ik-0)))
+;;          (tr-1 (ik->trajectory (car ik-1)))
+;;          ;; Assemble the composed trajectory
+;;          (tr (merge-trajectories 0.5 tr-0 tr-1))    
+;;          )
+;;     ;; Execute the composed trajectory
+;;     (execute-arm-trajectory :right tr)    
+;;     )
+;;   ;; Pick the lid
+;;   (close-gripper :right 100)
+;;   ;; Take out the lid
+;;   (let* (
+;;          ;; Setup intermediate poses for the lid-taking-out trajectory
+;;          (ik-0 (get-ik :right
+;;                        (tf:transform-pose
+;;                         *tf*
+;;                         :pose (tf:make-pose-stamped
+;;                                "/map" 0.0
+;;                                (cl-transforms:make-3d-vector 0.62 2.29 1.2)
+;;                                (cl-transforms:make-quaternion -0.52 0.47 0.5 0.5))
+;;                         :target-frame "/base_footprint")
+;;                        ))
+;;          (ik-1 (get-ik :right
+;;                        (tf:transform-pose
+;;                         *tf*
+;;                         :pose (tf:make-pose-stamped
+;;                                "/map" 0.0
+;;                                (cl-transforms:make-3d-vector 0.5 1.5 1.3)
+;;                                (cl-transforms:make-quaternion -0.50 0.49 0.51 0.48))
+;;                         :target-frame "/base_footprint")
+;;                        ))
+;;          (tr-0 (ik->trajectory (car ik-0)))
+;;          (tr-1 (ik->trajectory (car ik-1)))
+;;          ;; Assemble the final trajectory
+;;          (tr (merge-trajectories 0.5 tr-0 tr-1))
+;;          )
+;;     ;; Execute the composed final trajectory
+;;     (execute-arm-trajectory :right tr)    
+;;     )
+;;   )
+
+;; (defun close-drawer-right ()
+
+;;   ;; Setup the trajectory
+;;   (let*
+;;       ((ik-0 (get-ik :left
+;;                      (tf:transform-pose
+;;                       *tf*
+;;                       :pose (tf:make-pose-stamped
+;;                              "/map" 0.0
+;;                              (cl-transforms:make-3d-vector 0.6 2.3 0.845)
+;;                              (cl-transforms:make-quaternion -0.71 0.0 0.0 0.7))
+;;                       :target-frame "/base_footprint")))
+
+;;        (tr-0 (ik->trajectory (car ik-0)))
+;;        )
+;;     (execute-arm-trajectory :left tr-0)
+;;     )
+
+;;   (open-gripper :left)
+  
+;;   )
