@@ -63,6 +63,13 @@
                                                   :lispify lispify
                                                   :package package)))))))))
 
+(defun check-connection ()
+  "Returns T if the json_prolog could be found, otherwise NIL."
+  (when (eql roslisp::*node-status* :running)
+    (roslisp:wait-for-service
+     (concatenate 'string *service-namespace* "/query")
+     0.2)))
+
 (defun prolog (exp &key (prologify t) (lispify nil) (package *package*))
   (let ((query-id (make-query-id)))
     (prolog-result->bdgs
