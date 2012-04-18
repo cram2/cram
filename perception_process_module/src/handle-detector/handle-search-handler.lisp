@@ -52,6 +52,7 @@
          number_of_handles 3))
     (when (> (length handles) 0)
       (assert (eql (length handles) 3))
-      (make-instance 'handle-perceived-object
-        :pose (tf:msg->pose-stamped (elt handles 0))
-        :probability 1.0))))
+      (list
+       (make-instance 'handle-perceived-object
+         :pose (tf:msg->pose-stamped (elt handles 0))
+         :probability 1.0)))))
