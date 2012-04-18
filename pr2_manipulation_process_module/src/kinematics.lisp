@@ -218,7 +218,8 @@ be used in the corresponding actions."
 (defun merge-trajectories (velocity trajectory &rest trajectories)
   "Merges `trajectory' with `trajectories'. All trajectory point
 velocities between the first point in `trajectory' and the last point
-in the last trajectory in `trajectories' are set to `velocity'."
+in the last trajectory in `trajectories' are set to `velocity'. This
+method merges a number of trajectories, all for the same joints."
   (if trajectories
       (roslisp:with-fields ((stamp (stamp header))
                             (joint-names joint_names)
@@ -269,6 +270,81 @@ in the last trajectory in `trajectories' are set to `velocity'."
                         (concatenate 'vector points-1 points-2))))
              (cdr trajectories)))))
       trajectory))
+
+(defun combine-trajectories (trajectory-1 trajectory-2
+                             &key timestamp times-from-start)
+  "Concatenates two trajectories over different joints, i.e. the
+result is a joint trajectory that is the concatenation of the two
+different (disjoint) joint sets.
+
+The trajectories can only be combined if they have equal length, equal
+headers and equal time_from_start slots. If `header' is set, the two
+headers are not checked for equality and `header' is used instead. If
+`times-from-start' is used, it must be a sequence of times that
+replaces the time_from_start slots in the different trajectory
+points."
+  (declare (type trajectory_msgs-msg:jointtrajectory
+                 trajectory-1 trajectory-2)
+           (type (or null number) timestamp)
+           (type (or null sequence) times-from-start))
+  (roslisp:with-fields ((stamp-1 (stamp header))
+                        (joint-names-1 joint_names)
+                        (points-1 points))
+      trajectory-1
+    (roslisp:with-fields ((stamp-2 (stamp header))
+                          (joint-names-2 joint_names)
+                          (points-2 points))
+        trajectory-2
+      (let ((concatenated-joint-names (concatenate
+                                       'vector joint-names-1 joint-names-2)))
+        (unless (eql (length concatenated-joint-names)
+                     (length (remove-duplicates concatenated-joint-names)))
+          (error
+           'simple-error
+           :format-control "The joint name lists are not disjoint. ~a vs ~a."
+           :format-arguments (list joint-names-1 joint-names-2)))
+        (unless (eql (length points-1) (length points-2))
+          (error
+           'simple-error
+           :format-control "The number of trajectory points differs."))
+        (roslisp:make-msg
+         "trajectory_msgs/JointTrajectory"
+         (stamp header) (or
+                         timestamp
+                         (when (eql stamp-1 stamp-2)
+                           stamp-1)
+                         (error
+                          'simple-error
+                          :format-control
+                          "Cannot combine trajectories. Timestamps not equal. ~a != ~a"
+                          :format-arguments (list stamp-1 stamp-2)))
+         joint_names (concatenate 'vector joint-names-1 joint-names-2)
+         points (map 'vector (lambda (point-1 point-2 time-from-start)
+                               (roslisp:with-fields ((positions-1 positions)
+                                                     (velocities-1 velocities)
+                                                     (accelerations-1 accelerations)
+                                                     (time-from-start-1 time_from_start))
+                                   point-1
+                                 (roslisp:with-fields ((positions-2 positions)
+                                                       (velocities-2 velocities)
+                                                       (accelerations-2 accelerations)
+                                                       (time-from-start-2 time_from_start))
+                                     point-2
+                                   (roslisp:make-message
+                                    "trajectory_msgs/JointTrajectoryPoint"
+                                    positions (concatenate 'vector positions-1 positions-2)
+                                    velocities (concatenate 'vector velocities-1 velocities-2)
+                                    accelerations (concatenate 'vector accelerations-1 accelerations-2)
+                                    time_from_start
+                                    (or time-from-start
+                                        (when (eql time-from-start-1 time-from-start-2)
+                                          time-from-start-1)
+                                        (error
+                                         'simple-error
+                                         :format-control "time_from_start slots don't match for points ~a and ~a."
+                                         :format-arguments (list point-1 point-2)))))))
+                     points-1 points-2 (or times-from-start
+                                           (make-list (length points-1) :initial-element nil))))))))
 
 (defun get-ik (side pose &key
                (tool (cl-transforms:make-pose
