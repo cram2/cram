@@ -48,6 +48,10 @@
                         id))
            model-ids))))
 
+(defun ros-database-objects-list ()
+  (loop for name being the hash-keys in *ros-object-database-models*
+        collecting name))
+
 (defun get-ros-model-name (id)
   (roslisp:with-fields ((code (code return_code))
                         (name name))
@@ -58,20 +62,25 @@
     (when (eql code -1)
       name)))
 
-(defun get-ros-model-tags (id)
-  (roslisp:with-fields ((code (code return_code))
-                        (tags tags))
-      (roslisp:call-service
-       "/objects_database_node/get_model_description"
-       'household_objects_database_msgs-srv:getmodeldescription
-       :model_id id)
-    (when (eql code -1)
-      tags)))
+(defun get-ros-model-tags (model)
+  (let ((id (get-model-id model)))
+    (when id
+      (roslisp:with-fields ((code (code return_code))
+                            (tags tags))
+          (roslisp:call-service
+           "/objects_database_node/get_model_description"
+           'household_objects_database_msgs-srv:getmodeldescription
+           :model_id id)
+        (when (eql code -1)
+          (map 'list #'identity tags))))))
 
-(defun get-ros-model-mesh (model-id)
-  (let ((id (etypecase model-id
-              (number model-id)
-              (string (gethash model-id *ros-object-database-models*)))))
+(defun get-model-id (model)
+  (etypecase model
+    (number model)
+    (string (gethash model *ros-object-database-models*))))
+
+(defun get-ros-model-mesh (model)
+  (let ((id (get-model-id model)))
     (or (gethash id *ros-object-database-model-meshes*)
         (roslisp:with-fields ((code (code return_code))
                               (mesh mesh))
@@ -83,18 +92,21 @@
             (setf (gethash id *ros-object-database-model-meshes*)
                   (physics-utils:shape-msg->mesh mesh :disable-type-check t)))))))
 
-(defmethod add-object ((world bt-world) (type (eql 'ros-household-object)) name pose &key
-                       mass mesh-id (color '(0.8 0.8 0.8 1.0)))
-  (let ((mesh (get-ros-model-mesh mesh-id)))
+(defmethod add-object ((world bt-world) (type (eql 'ros-household-object)) name pose
+                       &key mass model (color '(0.8 0.8 0.8 1.0)))
+  (let* ((mesh (get-ros-model-mesh model)))
     (assert mesh)
-    (make-object world name
-                 (list
-                  (make-instance
-                   'rigid-body
-                   :name name :mass mass :pose (ensure-pose pose)
-                   :collision-shape (make-instance
-                                     'convex-hull-mesh-shape
-                                     :points (physics-utils:3d-model-vertices mesh)
-                                     :faces (physics-utils:3d-model-faces mesh)
-                                     :color color
-                                     :disable-face-culling t))))))
+    (make-household-object
+     world name
+     ;; For now, we use the first tag as object type.
+     (mapcar #'cram-roslisp-common:lispify-ros-name (get-ros-model-tags model))
+     (list
+      (make-instance
+          'rigid-body
+        :name name :mass mass :pose (ensure-pose pose)
+        :collision-shape (make-instance
+                             'convex-hull-mesh-shape
+                           :points (physics-utils:3d-model-vertices mesh)
+                           :faces (physics-utils:3d-model-faces mesh)
+                           :color color
+                           :disable-face-culling t))))))
