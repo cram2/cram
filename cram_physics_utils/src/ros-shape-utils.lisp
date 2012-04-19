@@ -66,12 +66,15 @@
                  points))))
 
 (defun shape-msg->mesh (shape &key (disable-type-check nil))
+  "Converts a shape message to a 3D-MODEL. If
+`type-check' is non-NIL, asserts that the type must be a valid mesh
+type."
   (roslisp:with-fields (type triangles vertices)
       shape
     (unless disable-type-check
       (assert (eql type 3) () "We require a mesh in the message."))
-    (physics-utils:make-3d-model
-     :vertices (physics-utils::remove-identical-vertices
+    (make-3d-model
+     :vertices (remove-identical-vertices
                 (map 'vector #'point-msg->3d-vector vertices))
      :faces (let ((result (make-array (truncate (length triangles) 3))))
               (loop for i from 0 below (length triangles) by 3
@@ -90,7 +93,7 @@
                                                      (/ (cl-transforms:v-norm normal))
                                                      (/ (- (cl-transforms:v-norm normal)))))))
                         (setf (aref result j)
-                              (physics-utils:make-face
+                              (make-face
                                :normals (list normal-normalized normal-normalized normal-normalized)
                                :points (list point-1 point-2 point-3))))
                     maximizing (aref triangles i) into max-tri-index
