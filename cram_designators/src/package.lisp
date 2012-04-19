@@ -71,6 +71,8 @@
            #:designator-pose
            #:designator-distance
            #:resolve-designator
+           #:delete-location-generator-function
+           #:delete-location-validation-function
            ;; Properties & prolog related stuff
            #:loc-desig?
            #:obj-desig?
