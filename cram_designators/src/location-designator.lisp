@@ -177,3 +177,13 @@ boolean indicating if the solution is valid or not."
                             (invoke-restart :finish))
                            (t (decf retries) nil))))
                  solutions)))
+
+(defun delete-location-generator-function (function-name)
+  ;; Delete a generator-function from the list of registered generator functions.
+  ;; 'function-name' needs to be a symbol representing the function to delete.
+  (setf *location-generators* (remove function-name *location-generators* :key #'location-resolution-function-function)))
+
+(defun delete-location-validation-function (function-name)
+  ;; Delete a validation-function from the list of registered validation functions.
+  ;; 'function-name' needs to be a symbol representing the function to delete.
+  (setf *location-validation-functions* (remove function-name *location-validation-functions* :key #'location-resolution-function-function)))
