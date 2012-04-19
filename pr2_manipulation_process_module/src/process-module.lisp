@@ -148,8 +148,10 @@
     (update-object-designator-pose handle new-object-pose))
   (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))
 
-(def-action-handler container-closed (action)
-  (execute-goal *close-container-action* action)
+(def-action-handler container-closed (handle side)
+  (let* ((handle-pose (designator-pose (newest-valid-designator handle)))
+         (new-object-pose (close-drawer handle-pose side)))
+    (update-object-designator-pose handle new-object-pose))
   (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))
 
 (def-action-handler park (obj side &optional obstacles)
@@ -605,28 +607,43 @@ by `planners' until one succeeds."
 (defun close-drawer (pose side)
   "Generates and executes a push trajectory for the `side' arm in order
    to close the drawer whose handle is at `pose'."
-  (let* ((pre-grasp-pose (tf:pose->pose-stamped
-                          (tf:frame-id pose) (tf:stamp pose)
-                          (cl-transforms:transform-pose
-                           (cl-transforms:make-transform
-                            (cl-transforms:make-3d-vector -0.25 0.0 0.0)
-                            (cl-transforms:make-identity-rotation))
-                           pose)))
-         (grasp-pose (tf:pose->pose-stamped
-                      (tf:frame-id pose) (tf:stamp pose)
-                      (cl-transforms:transform-pose
-                       (cl-transforms:make-transform
-                        (cl-transforms:make-3d-vector -0.20 0.0 0.0)
-                        (cl-transforms:make-identity-rotation))
-                       pose)))
-         (close-pose (tf:pose->pose-stamped
-                      (tf:frame-id pose) (tf:stamp pose)
-                      (cl-transforms:transform-pose
-                       (cl-transforms:make-transform
-                        (cl-transforms:make-3d-vector
-                         -0.05 0.0 0.0)
-                        (cl-transforms:make-identity-rotation))
-                       pose)))         
+  (cl-tf:wait-for-transform *tf*
+                            :timeout 1.0
+                            :time (tf:stamp pose)                            
+                            :source-frame (tf:frame-id pose)
+                            :target-frame "base_footprint")
+  (let* ((pose-transform (cl-transforms:pose->transform pose))
+         (pre-grasp-pose
+           (cl-tf:transform-pose *tf*
+                                 :pose (tf:pose->pose-stamped
+                                        (tf:frame-id pose) (tf:stamp pose)
+                                        (cl-transforms:transform-pose
+                                         (cl-transforms:make-transform
+                                          (cl-transforms:make-3d-vector -0.25 0.0 0.0)
+                                          (cl-transforms:make-identity-rotation))
+                                         pose-transform))
+                                 :target-frame "base_footprint"))
+         (grasp-pose
+           (cl-tf:transform-pose *tf*
+                                 :pose (tf:pose->pose-stamped
+                                        (tf:frame-id pose) (tf:stamp pose)
+                                        (cl-transforms:transform-pose
+                                         (cl-transforms:make-transform
+                                          (cl-transforms:make-3d-vector -0.20 0.0 0.0)
+                                          (cl-transforms:make-identity-rotation))
+                                         pose))
+                                 :target-frame "base_footprint"))
+         (close-pose
+           (cl-tf:transform-pose *tf*
+                                 :pose (tf:pose->pose-stamped
+                                        (tf:frame-id pose) (tf:stamp pose)
+                                        (cl-transforms:transform-pose
+                                         (cl-transforms:make-transform
+                                          (cl-transforms:make-3d-vector
+                                           -0.05 0.0 0.0)
+                                          (cl-transforms:make-identity-rotation))
+                                         pose))
+                                 :target-frame "base_footprint"))         
          (pre-grasp-ik (lazy-car (get-ik side pre-grasp-pose)))
          (grasp-ik (lazy-car (get-ik side grasp-pose)))
          (close-ik (lazy-car (get-ik side close-pose))))
