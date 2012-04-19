@@ -50,18 +50,11 @@
     (desig-prop ?desig (handle ?handle))
     (desig-prop ?desig (side ?side)))
 
-  (<- (action-desig ?desig (container-closed ?action ?obj))
+  (<- (action-desig ?desig (container-closed ?handle ?side))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to close))
-    (desig-prop ?desig (obj ?obj))
-    (desig-prop ?desig (side ?side))
-    (obj-desig-location ?obj ?obj-pose)
-    (side-id ?side ?s-id)
-    (lisp-fun get-open-trajectory ?obj ?trajectory)
-    (ros-message "ias_drawer_actions/CloseContainerGoal"
-                 ;; TODO: The closed_position is wrong here!
-                 (:arm ?s-id :opening_trajectory ?trajectory :closed_position ?obj-pose)
-                 ?action))
+    (desig-prop ?desig (handle ?handle))
+    (desig-prop ?desig (side ?side)))
   
   ;; On the PR2 we don't need an open pose
   (<- (action-desig ?desig (noop ?desig))
