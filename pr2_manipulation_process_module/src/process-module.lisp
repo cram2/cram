@@ -143,8 +143,9 @@
   (roslisp:ros-info (pr2-manip process-module) "Manipulation action done."))
 
 (def-action-handler container-opened (handle side)
-  (let ((handle-pose (designator-pose handle)))
-    (open-drawer handle-pose side))
+  (let* ((handle-pose (designator-pose (newest-valid-designator handle)))
+         (new-object-pose (open-drawer handle-pose side)))
+    (update-object-designator-pose handle new-object-pose))
   (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))
 
 (def-action-handler container-closed (action)
@@ -498,6 +499,16 @@ by `planners' until one succeeds."
            (type ias_drawer_actions-msg:opencontainergoal open-result))
   (roslisp:with-fields (trajectory) open-result
     (setf (gethash obj *open-trajectories*) trajectory)))
+
+(defclass manipulated-perceived-object (perceived-object) ())
+
+(defun update-object-designator-pose (object-designator new-object-pose)
+  (equate object-designator
+          (perceived-object->designator
+           object-designator
+           (make-instance 'manipulated-perceived-object
+             :pose new-object-pose
+             :probability 1.0))))
 
 (defun get-open-trajectory (obj)
   (declare (type object-designator obj))
