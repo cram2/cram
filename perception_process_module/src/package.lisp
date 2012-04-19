@@ -48,6 +48,7 @@
    #:def-object-search-function
    #:execute-object-search-functions
    #:newest-valid-designator
+   #:perceived-object->designator
    ;; object-belief
    #:object-perceived
    #:perceived-object #:queried-object #:object-properties
