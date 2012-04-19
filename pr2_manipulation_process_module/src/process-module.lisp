@@ -533,6 +533,11 @@ by `planners' until one succeeds."
 (defun open-drawer (pose side &optional (distance 0.15))
   "Generates and executes a pull trajectory for the `side' arm in order
    to open the drawer whose handle is at `pose'."
+  (cl-tf:wait-for-transform *tf*
+                            :timeout 1.0
+                            :time (tf:stamp pose)                            
+                            :source-frame (tf:frame-id pose)
+                            :target-frame "base_footprint")
   (let* ((pose-transform (cl-transforms:pose->transform pose))
          (pre-grasp-pose
            (cl-tf:transform-pose cram-roslisp-common:*tf*
