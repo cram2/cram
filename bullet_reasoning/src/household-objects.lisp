@@ -38,15 +38,15 @@
                              (bowl "package://bullet_reasoning/resource/bowl.stl" nil)))
 
 (defclass household-object (object)
-  ((type :reader household-object-type :initarg :type)))
+  ((types :reader household-object-type :initarg :types)))
 
-(defun make-household-object (world name type &optional bodies (add-to-world t))
+(defun make-household-object (world name types &optional bodies (add-to-world t))
   (make-instance 'household-object
     :name name
     :world world
     :rigid-bodies bodies
     :add add-to-world
-    :type type))
+    :types types))
 
 (defun make-octagon-prism-shape (radius height)
   "Returns a collision shape that is a octagon prism, i.e. that has an
@@ -86,7 +86,7 @@
                        mass radius height
                        (handle-size (cl-transforms:make-3d-vector
                                      0.03 0.01 (* height 0.8))))
-  (make-household-object world name 'generic-cup
+  (make-household-object world name '(generic-cup)
                          (list
                           (make-instance
                               'rigid-body
@@ -107,7 +107,7 @@
                       (string (physics-utils:load-3d-model
                                (physics-utils:parse-uri mesh)))
                       (physics-utils:3d-model mesh))))
-    (make-household-object world name mesh
+    (make-household-object world name (list mesh)
                            (list
                             (make-instance 'rigid-body
                               :name name :mass mass :pose (ensure-pose pose)
