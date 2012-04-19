@@ -604,7 +604,7 @@ by `planners' until one succeeds."
         (- distance) 0.0 0.0)
        (cl-transforms:make-identity-rotation))))))
 
-(defun close-drawer (pose side)
+(defun close-drawer (pose side &optional (distance 0.15))
   "Generates and executes a push trajectory for the `side' arm in order
    to close the drawer whose handle is at `pose'."
   (cl-tf:wait-for-transform *tf*
@@ -661,7 +661,15 @@ by `planners' until one succeeds."
     (execute-arm-trajectory side (ik->trajectory grasp-ik))
     (close-gripper side)
     (execute-arm-trajectory side (ik->trajectory close-ik))
-    (open-gripper side)))
+    (open-gripper side)
+    (tf:pose->pose-stamped
+     (tf:frame-id pose) (tf:stamp pose)
+     (cl-transforms:transform-pose
+      pose-transform
+      (cl-transforms:make-pose
+       (cl-transforms:make-3d-vector
+        (+ distance) 0.0 0.0)
+       (cl-transforms:make-identity-rotation))))))
 
 ;; (defun pick-lid-right ()  
 ;;   (open-gripper :right 20)  
