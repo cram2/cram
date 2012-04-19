@@ -530,42 +530,55 @@ by `planners' until one succeeds."
          (tr (ik->trajectory (car ik))))
     (execute-arm-trajectory :left tr)))
 
-(defun open-drawer (pose side)
+(defun open-drawer (pose side &optional (distance 0.15))
   "Generates and executes a pull trajectory for the `side' arm in order
    to open the drawer whose handle is at `pose'."
-  (let* ((pre-grasp-pose (tf:pose->pose-stamped
-                          (tf:frame-id pose) (tf:stamp pose)
-                          (cl-transforms:transform-pose
-                           (cl-transforms:make-transform
-                            (cl-transforms:make-3d-vector
-                             -0.25 0.0 0.0)
-                            (cl-transforms:make-identity-rotation))
-                           pose)))
-         (grasp-pose (tf:pose->pose-stamped
-                      (tf:frame-id pose) (tf:stamp pose)
-                      (cl-transforms:transform-pose
-                       (cl-transforms:make-transform
-                        (cl-transforms:make-3d-vector
-                         -0.20 0.0 0.0)
-                        (cl-transforms:make-identity-rotation))
-                       pose)))
-         (open-pose (tf:pose->pose-stamped
-                     (tf:frame-id pose) (tf:stamp pose)
-                     (cl-transforms:transform-pose
-                      (cl-transforms:make-transform
-                       (cl-transforms:make-3d-vector
-                        -0.35 0.0 0.0)
-                       (cl-transforms:make-identity-rotation))
-                      pose)))
+  (let* ((pose-transform (cl-transforms:pose->transform pose))
+         (pre-grasp-pose
+           (cl-tf:transform-pose cram-roslisp-common:*tf*
+                                 :pose (tf:pose->pose-stamped
+                                        (tf:frame-id pose) (tf:stamp pose)
+                                        (cl-transforms:transform-pose
+                                         pose-transform
+                                         (cl-transforms:make-pose
+                                          (cl-transforms:make-3d-vector
+                                           -0.25 0.0 0.0)
+                                          (cl-transforms:make-identity-rotation))))
+                                 :target-frame "base_footprint"))
+
+         (grasp-pose
+           (cl-tf:transform-pose cram-roslisp-common:*tf*
+                                 :pose (tf:pose->pose-stamped
+                                        (tf:frame-id pose) (tf:stamp pose)
+                                        (cl-transforms:transform-pose
+                                         pose-transform
+                                         (cl-transforms:make-pose
+                                          (cl-transforms:make-3d-vector
+                                           -0.20 0.0 0.0)
+                                          (cl-transforms:make-identity-rotation))))
+                                 :target-frame "base_footprint"))
+         (open-pose
+           (cl-tf:transform-pose cram-roslisp-common:*tf*
+                                 :pose (tf:pose->pose-stamped
+                                        (tf:frame-id pose) (tf:stamp pose)
+                                        (cl-transforms:transform-pose
+                                         pose-transform
+                                         (cl-transforms:make-pose
+                                          (cl-transforms:make-3d-vector
+                                           (- -0.20 distance) 0.0 0.0)
+                                          (cl-transforms:make-identity-rotation))))
+                                 :target-frame "base_footprint"))
          (pre-grasp-ik (lazy-car (get-ik side pre-grasp-pose)))
          (grasp-ik (lazy-car (get-ik side grasp-pose)))
          (open-ik (lazy-car (get-ik side open-pose))))
     (unless pre-grasp-ik
       (error 'manipulation-pose-unreachable
-             :format-control "Pre-grasp pose for handle not reachable."))
+             :format-control "Pre-grasp pose for handle not reachable: ~a"
+             :format-arguments (list pre-grasp-pose)))
     (unless grasp-ik
       (error 'manipulation-pose-unreachable
-             :format-control "Grasp pose for handle not reachable."))
+             :format-control "Grasp pose for handle not reachable: ~a"
+             :format-arguments (list grasp-pose)))
     (unless open-ik
       (error 'manipulation-pose-unreachable
              :format-control "Open pose for handle not reachable."))
@@ -574,7 +587,15 @@ by `planners' until one succeeds."
     (execute-arm-trajectory side (ik->trajectory grasp-ik))
     (close-gripper side)
     (execute-arm-trajectory side (ik->trajectory open-ik))
-    (open-gripper side)))
+    (open-gripper side)
+    (tf:pose->pose-stamped
+     (tf:frame-id pose) (tf:stamp pose)
+     (cl-transforms:transform-pose
+      pose-transform
+      (cl-transforms:make-pose
+       (cl-transforms:make-3d-vector
+        (- distance) 0.0 0.0)
+       (cl-transforms:make-identity-rotation))))))
 
 (defun close-drawer (pose side)
   "Generates and executes a push trajectory for the `side' arm in order
