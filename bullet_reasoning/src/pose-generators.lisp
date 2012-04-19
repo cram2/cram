@@ -177,17 +177,15 @@ that the bounding boxes of `bottom' and `top' are alligned."
   "Returns a new pose for `obj' such that the bottom of obj's bounding
   box is in `pose'"
   (let ((pose (ensure-pose pose)))
-    (let ((aabb-obj (aabb obj)))
-      (cl-transforms:transform->pose
-       (cl-transforms:transform*
-        (cl-transforms:make-transform
-         (cl-transforms:make-3d-vector
-          0 0
-          (/ (cl-transforms:z
-              (bounding-box-dimensions aabb-obj))
-             2))
-         (cl-transforms:make-quaternion 0 0 0 1))
-        (cl-transforms:reference-transform pose))))))
+    (let* ((aabb-obj (aabb obj))
+           (bounding-box-relative-offset (cl-transforms:v-
+                                          (cl-transforms:origin (pose obj))
+                                          (bounding-box-center aabb-obj)
+                                          (cl-transforms:v* (bounding-box-dimensions aabb-obj) -0.5))))
+      (cl-transforms:copy-pose
+       pose :new-origin (cl-transforms:v+
+                         (cl-transforms:origin pose)
+                         bounding-box-relative-offset)))))
 
 (defun obj-poses-on (obj-name poses &optional (world *current-bullet-world*))
   "Returns a new lazy-list of poses for the object `obj' that are on
