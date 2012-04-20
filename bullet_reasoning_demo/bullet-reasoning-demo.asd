@@ -37,16 +37,13 @@
                  perception-process-module
                  cram-roslisp-common
                  cram-plan-knowledge
-                 bullet-reasoning)
+                 bullet-reasoning
+                 bullet-reasoning-designators)
     :components
     ((:module "src"
               :components
-              ((:file "package")
-               (:module "designator" :depends-on ("package")
-                :components
-                ((:file "designator-config")))
+              ((:file "designator-config")
                (:module "executive-integration"
-                :depends-on ("package")
                 :components
                 ((:file "perception")
                  (:file "perception-facts")))))))
