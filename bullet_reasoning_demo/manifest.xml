@@ -1,0 +1,19 @@
+<package>
+  <description brief="bullet_reasoning_demo">
+
+     bullet_reasoning_demo
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/bullet_reasoning_demo</url>
+  <depend package="bullet_reasoning" />
+  <depend package="bullet_reasoning_designators" />
+  <depend package="semantic_map_costmap" />
+  <depend package="occupancy_grid_costmap" />
+  <depend package="perception_process_module" />
+  <depend package="cram_roslisp_common" />
+  <depend package="cram_plan_knowledge" />
+
+</package>
