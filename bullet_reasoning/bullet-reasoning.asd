@@ -82,11 +82,6 @@
                (:file "reachability" :depends-on ("package" "robot-model-utils"))
                (:file "articulated-objects" :depends-on ("package" "semantic-map"))
                (:file "ros-household-object-database" :depends-on ("package" "objects" "household-objects"))
-               (:module "designator"
-                        :depends-on ("package" "prolog-facts")
-                        :components
-                        ((:file "location-designator-facts")
-                         (:file "location-designator-integration")))
                (:module "projection"
                         :depends-on ("package" "reasoning-world" "prolog-facts")
                         :components
