@@ -47,30 +47,32 @@ relative to the robot in world coordinates."
    (cl-transforms:orientation (pose robot))
    orientation-in-robot))
 
+(defun calculate-object-tool-length (object &key (minimal-tool-length 0.20))
+  "Calculates the tool length for the object `object' by taking the
+  maximum of `minimal-tool-length', the bounding box width minus the
+  minimal tool length and the bounding box height minus the minimal
+  tool length."
+  (declare (type object object)
+           (type number minimal-tool-length))
+  (let ((bounding-box-dimensions (bounding-box-dimensions (aabb object))))
+    (max minimal-tool-length
+         (- (cl-transforms:x bounding-box-dimensions) minimal-tool-length)
+         (- (cl-transforms:y bounding-box-dimensions) minimal-tool-length))))
+
 (defun object-reachable-p (robot obj
                            &key side (grasp :top)
-                             (tool-frame
-                              (cl-transforms:make-pose
-                               (cl-transforms:make-3d-vector 0.20 0.0 0.0)
-                               (get-grasp grasp side))))
+                             (tool-length (calculate-object-tool-length obj)))
   (declare (type robot-object robot)
-           (type object obj)
-           (type cl-transforms:pose tool-frame))
+           (type object obj))
   (point-reachable-p
-   robot (pose obj)
-   :tool-frame tool-frame :side side))
+   robot (pose obj) :grasp grasp :side side :tool-length tool-length))
 
 (defun point-reachable-p (robot point
-                          &key side (grasp :top)
-                            (tool-frame
-                             (cl-transforms:make-pose
-                              (cl-transforms:make-3d-vector 0.20 0.0 0.0)
-                              (get-grasp grasp side))))
+                          &key side (grasp :top) (tool-length 0.20))
   (declare (type robot-object robot)
            (type (or cl-transforms:3d-vector
                      cl-transforms:pose)
-                 point)
-           (type cl-transforms:pose tool-frame))
+                 point))
   (lazy-car
    (reach-pose-ik
     robot (cl-transforms:make-pose
@@ -79,7 +81,11 @@ relative to the robot in world coordinates."
              (cl-transforms:pose (cl-transforms:origin point)))
            (calculate-orientation-in-robot
             robot (cl-transforms:make-identity-rotation)))
-    :side side :tool-frame tool-frame)))
+   :tool-frame (cl-transforms:make-pose
+                (cl-transforms:make-3d-vector
+                 tool-length 0.0 0.0)
+                (get-grasp grasp side))
+    :side side)))
 
 (defun pose-reachable-p (robot pose
                            &key
@@ -96,17 +102,18 @@ relative to the robot in world coordinates."
 
 (defun reach-object-ik (robot obj
                         &key side (grasp :top)
-                          (tool-frame (cl-transforms:make-pose
-                                       (cl-transforms:make-3d-vector 0.20 0.0 0.0)
-                                       (get-grasp grasp side))))
+                          (tool-length (calculate-object-tool-length obj)))
   (declare (type robot-object robot)
-           (type object obj)
-           (type cl-transforms:pose tool-frame))  
+           (type object obj))  
   (reach-pose-ik
    robot (cl-transforms:copy-pose
           (pose obj) :new-orientation (calculate-orientation-in-robot
                                        robot (cl-transforms:make-identity-rotation)))
-   :side side :tool-frame tool-frame))
+   :tool-frame (cl-transforms:make-pose
+                (cl-transforms:make-3d-vector
+                 tool-length 0.0 0.0)
+                (get-grasp grasp side))
+   :side side))
 
 (defun reach-pose-ik (robot pose
                       &key
