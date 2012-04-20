@@ -543,10 +543,30 @@
   (<- (grasp :side))
   (<- (grasp :front))
 
-  ;; This needs to be implemented for different object types.
-  (<- (object-grasp ?object ?grasp)
-    (fail))
+  ;; The OBJECT-GRASP predicate can be used to control which grasps
+  ;; and which sides are valid for a specific object. The third
+  ;; parameter, ?SIDES, indicates the arms that must be used for
+  ;; grasping the object. ?SIDES is a list of arms to be used. A
+  ;; solution for _all_ sides in that sequence must be found to let
+  ;; reachability succeed.
+  (<- (object-grasp ?object ?grasp (?side))
+    (household-object-type ?object mug)
+    (grasp ?grasp)
+    (side ?side))
 
+  (<- (object-grasp ?object :side (:left :right))
+    (household-object-type ?object plate))
+
+  (<- (object-grasp ?object :side (?side))
+    (household-object-type ?object mondamin)
+    (side ?side))
+
+  (<- (object-grasp ?object :side (:left :right))
+    (household-object-type ?object pot))
+
+  (<- (object-grasp ?object :top (?side))
+    (side ?side))
+  
   (<- (side :right))
   (<- (side :left))
 
@@ -569,8 +589,9 @@
       (once
        (robot-pre-grasp-joint-states ?pre-grasp-joint-states)
        (assert (joint-state ?w ?robot-name ?pre-grasp-joint-states))
-       (object-grasp ?obj-name ?grasp)
-       (lisp-pred object-reachable-p ?robot ?obj :side ?side :grasp ?grasp))))
+       (object-grasp ?obj-name ?grasp ?sides)
+       (forall (member ?side ?sides)
+               (lisp-pred object-reachable-p ?robot ?obj :side ?side :grasp ?grasp)))))
 
   (<- (pose-reachable ?world ?robot-name ?pose ?side)
     (bullet-world ?world)
@@ -608,7 +629,8 @@
       (-> (setof
            ?o
            (and
-            (object-grasp ?obj-name ?grasp)
+            (object-grasp ?obj-name ?grasp ?sides)
+            (member ?side ?sides)
             ;; We don't want to have the supporting object as a blocking
             ;; object.
             (-> (supported-by ?w ?obj-name ?supporting) (true) (true))
@@ -616,7 +638,6 @@
             (once
              (robot-pre-grasp-joint-states ?pre-grasp-joint-states)
              (assert (joint-state ?w ?robot-name ?pre-grasp-joint-states))
-             (object-grasp ?obj-name ?grasp)
              (lisp-fun cl-transforms:make-identity-rotation ?identity-rotation)
              (lisp-fun reach-object-ik ?robot ?obj
                        :side ?side :grasp ?grasp :orientation-in-robot ?identity-rotation
@@ -624,7 +645,6 @@
              (lisp-pred identity ?ik-solutions))
             (member ?ik-solution ?ik-solutions)
             (%ik-solution-in-collision ?w ?robot ?ik-solution ?colliding-objects)
-            (lisp-fun break ?_)
             (member ?o ?colliding-objects)
             (not (== ?o ?obj-name))
             (-> (bound ?supporting) (not (== ?o ?supporting)) (true)))
