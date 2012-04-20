@@ -43,9 +43,6 @@
 
 (defparameter *max-graspable-size* (cl-transforms:make-3d-vector 0.15 0.15 0.30))
 
-(defvar *open-container-action* nil)
-(defvar *close-container-action* nil)
-
 (defvar *gripper-action-left* nil)
 (defvar *gripper-action-right* nil)
 (defvar *gripper-grab-action-left* nil)
@@ -59,8 +56,6 @@
 (defvar *move-arm-left* nil)
 
 (defvar *joint-state-sub* nil)
-
-(defvar *open-trajectories* (tg:make-weak-hash-table :weakness :key))
 
 (defparameter *carry-pose-right* (tf:make-pose-stamped
                                   "/base_footprint" 0.0
@@ -79,12 +74,6 @@
 (defparameter *right-grasp* (cl-transforms:euler->quaternion :az (/ pi 2)))
 
 (defun init-pr2-manipulation-process-module ()
-  (setf *open-container-action* (actionlib:make-action-client
-                                 "/open_container_action"
-                                 "ias_drawer_actions/OpenContainerAction"))
-  (setf *close-container-action* (actionlib:make-action-client
-                                  "/close_container_action"
-                                  "ias_drawer_actions/CloseContainerAction"))
   (setf *gripper-action-left* (actionlib:make-action-client
                                "/l_gripper_controller/gripper_action"
                                "pr2_controllers_msgs/Pr2GripperCommandAction"))
@@ -508,12 +497,6 @@ by `planners' until one succeeds."
         (unless (is-var obj)
           (retract-occasion `(object-in-hand ,obj ,side)))))))
 
-(defun store-open-trajectory (obj open-result)
-  (declare (type object-designator obj)
-           (type ias_drawer_actions-msg:opencontainergoal open-result))
-  (roslisp:with-fields (trajectory) open-result
-    (setf (gethash obj *open-trajectories*) trajectory)))
-
 (defclass manipulated-perceived-object (perceived-object) ())
 
 (defun update-object-designator-pose (object-designator new-object-pose)
@@ -524,25 +507,9 @@ by `planners' until one succeeds."
              :pose new-object-pose
              :probability 1.0))))
 
-(defun get-open-trajectory (obj)
-  (declare (type object-designator obj))
-  (gethash obj *open-trajectories*))
-
 (def-process-module pr2-manipulation-process-module (desig)
   (collision-environment-set-laser-period)
   (apply #'call-action (reference desig)))
-
-(defun park-both-arms-test ()
-  (let* ((ik (get-ik :right (tf:copy-pose-stamped
-                             *carry-pose-right*
-                             :origin (cl-transforms:make-3d-vector 0.0  -0.45 0.6))))
-         (tr (ik->trajectory (car ik))))
-    (execute-arm-trajectory :right tr))
-  (let* ((ik (get-ik :left (tf:copy-pose-stamped
-                            *carry-pose-left*
-                            :origin (cl-transforms:make-3d-vector 0.0   0.45 0.6))))
-         (tr (ik->trajectory (car ik))))
-    (execute-arm-trajectory :left tr)))
 
 (defun open-drawer (pose side &optional (distance 0.15))
   "Generates and executes a pull trajectory for the `side' arm in order

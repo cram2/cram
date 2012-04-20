@@ -31,8 +31,7 @@
   :author "Lorenz Moesenlechner"
   :license "BSD"
 
-  :depends-on (ias_drawer_actions-msg
-               designators-ros
+  :depends-on (designators-ros
                process-modules
                actionlib
                cram-roslisp-common
@@ -44,8 +43,6 @@
                pr2_msgs-msg
                pr2_msgs-srv
                kinematics_msgs-srv
-               sgp_srvs-srv
-               kdl_arm_kinematics-srv
                arm_navigation_msgs-msg
                vision_srvs-srv
                trivial-garbage
