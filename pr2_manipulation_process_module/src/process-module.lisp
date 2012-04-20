@@ -512,8 +512,10 @@ by `planners' until one succeeds."
   (apply #'call-action (reference desig)))
 
 (defun open-drawer (pose side &optional (distance 0.15))
-  "Generates and executes a pull trajectory for the `side' arm in order
-   to open the drawer whose handle is at `pose'."
+  "Generates and executes a pull trajectory for the `side' arm in order to open the
+   drawer whose handle is at `pose'. The generated poses of the pull trajectory are
+   relative to the drawer handle `pose' and additionally transformed into base_footprint
+   frame. Finally the new pose of the drawer handle is returned."
   (cl-tf:wait-for-transform *tf*
                             :timeout 1.0
                             :time (tf:stamp pose)
@@ -599,8 +601,10 @@ by `planners' until one succeeds."
        (cl-transforms:make-identity-rotation))))))
 
 (defun close-drawer (pose side &optional (distance 0.15))
-  "Generates and executes a push trajectory for the `side' arm in order
-   to close the drawer whose handle is at `pose'."
+  "Generates and executes a push trajectory for the `side' arm in order to close
+   the drawer whose handle is at `pose'. The generated poses of the push trajectory
+   are relative to the drawer handle `pose' and additionally transformed into
+   base_footprint frame. Finally the new pose of the drawer handle is returned."
   (cl-tf:wait-for-transform *tf*
                             :timeout 1.0
                             :time (tf:stamp pose)
