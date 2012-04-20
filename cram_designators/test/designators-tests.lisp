@@ -41,6 +41,9 @@
 (defun generator-2 (designator)
   (list :bar))
 
+(defun generator-3 (designator)
+  (loop for i from 1 to 51 collecting :foo))
+
 (defun validation-1 (designator solution)
   (OR (eq solution :bar) (eq solution :foo)))
 
@@ -55,6 +58,7 @@
 (defun cleanup-generators-and-validators ()
   (delete-location-generator-function 'generator-1)
   (delete-location-generator-function 'generator-2)
+  (delete-location-generator-function 'generator-3)
   (delete-location-validation-function 'validation-1)
   (delete-location-validation-function 'validation-2)
   (delete-location-validation-function 'validation-3))
@@ -64,7 +68,6 @@
 (defmacro with-location-designators ((&rest names) &body body)
   `(let ,(loop for n in names collect `(,n (make-designator 'location nil)))
      ,@body))
-
 
 ;;; actual test cases
 
@@ -114,3 +117,11 @@
     (register-location-validation-function 2 validation-2)
     (register-location-validation-function 3 validation-3)
     (assert-error 'designator-error (reference desig4))))
+
+(define-test location-generator-max-retries
+  (with-location-designators (desig)
+    (cleanup-generators-and-validators)
+    ;; check if error comes after too many trials
+    (register-location-generator 3 generator-3)
+    (register-location-validation-function 3 validation-3)
+    (assert-error 'designator-error (reference desig))))
