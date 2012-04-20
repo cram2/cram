@@ -1,10 +1,10 @@
 ;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
@@ -13,7 +13,7 @@
 ;;;     * Neither the name of Willow Garage, Inc. nor the names of its
 ;;;       contributors may be used to endorse or promote products derived from
 ;;;       this software without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -114,7 +114,7 @@
                           "arm_navigation_msgs/MoveArmAction"))
   (setf *move-arm-left* (actionlib:make-action-client
                          "/move_left_arm"
-                         "arm_navigation_msgs/MoveArmAction"))  
+                         "arm_navigation_msgs/MoveArmAction"))
   (setf *joint-state-sub* (roslisp:subscribe
                            "/joint_states" "sensor_msgs/JointState"
                            (lambda (msg)
@@ -147,12 +147,15 @@
   (roslisp:ros-info (pr2-manip process-module) "Manipulation action done."))
 
 (def-action-handler container-opened (handle side)
-  (let ((handle-pose (designator-pose handle)))
-    (open-drawer handle-pose side))
+  (let* ((handle-pose (designator-pose (newest-valid-designator handle)))
+         (new-object-pose (open-drawer handle-pose side)))
+    (update-object-designator-pose handle new-object-pose))
   (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))
 
-(def-action-handler container-closed (action)
-  (execute-goal *close-container-action* action)
+(def-action-handler container-closed (handle side)
+  (let* ((handle-pose (designator-pose (newest-valid-designator handle)))
+         (new-object-pose (close-drawer handle-pose side)))
+    (update-object-designator-pose handle new-object-pose))
   (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))
 
 (def-action-handler park (obj side &optional obstacles)
@@ -329,9 +332,9 @@
     (execute-move-arm-pose side pre-put-down-pose)
     (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
     (execute-arm-trajectory side (ik->trajectory (lazy-car put-down-solution)))
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))    
+    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
     (open-gripper side)
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))    
+    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
     (plan-knowledge:on-event (make-instance 'plan-knowledge:object-detached
                                :object obj
                                :link (ecase side
@@ -389,7 +392,7 @@ by `planners' until one succeeds."
                  pose-msg
                (roslisp:with-fields ((val (val error_code)))
                    (actionlib:call-goal
-                    action  
+                    action
                     (actionlib:make-action-goal
                         action
                       planner_service_name (ecase planner
@@ -403,7 +406,7 @@ by `planners' until one succeeds."
                       (planner_id motion_plan_request) ""
                       (allowed_planning_time motion_plan_request) 5.0
                       (expected_path_duration motion_plan_request) 5.0
-                      
+
                       (position_constraints goal_constraints motion_plan_request)
                       (vector
                        (roslisp:make-msg
@@ -419,7 +422,7 @@ by `planners' until one succeeds."
                         (dimensions constraint_region_shape) #(0.01 0.01 0.01)
                         (w constraint_region_orientation) 1.0
                         weight 1.0))
-                      
+
                       (orientation_constraints goal_constraints motion_plan_request)
                       (vector
                        (roslisp:make-msg
@@ -433,12 +436,12 @@ by `planners' until one succeeds."
                         absolute_pitch_tolerance 0.01
                         absolute_yaw_tolerance 0.01
                         weight 1.0))
-                      
+
                       operations (make-collision-operations side (cons "\"attached\"" allowed-collision-objects))
                       disable_collision_monitoring t)
                     :result-timeout 4.0)
                  val)))))
-    
+
     (case (reduce (lambda (result planner)
                     (declare (ignore result))
                     (let ((val (execute-action planner)))
@@ -511,6 +514,16 @@ by `planners' until one succeeds."
   (roslisp:with-fields (trajectory) open-result
     (setf (gethash obj *open-trajectories*) trajectory)))
 
+(defclass manipulated-perceived-object (perceived-object) ())
+
+(defun update-object-designator-pose (object-designator new-object-pose)
+  (equate object-designator
+          (perceived-object->designator
+           object-designator
+           (make-instance 'manipulated-perceived-object
+             :pose new-object-pose
+             :probability 1.0))))
+
 (defun get-open-trajectory (obj)
   (declare (type object-designator obj))
   (gethash obj *open-trajectories*))
@@ -519,47 +532,187 @@ by `planners' until one succeeds."
   (collision-environment-set-laser-period)
   (apply #'call-action (reference desig)))
 
-(defun open-drawer (pose side)
-  (let* ((pre-grasp-pose (tf:pose->pose-stamped
-                          (tf:frame-id pose) (tf:stamp pose)
-                          (cl-transforms:transform-pose
-                           (cl-transforms:make-transform
-                            (cl-transforms:make-3d-vector
-                             -0.25 0.0 0.0)
-                            (cl-transforms:make-identity-rotation))
-                           pose)))
-         (grasp-pose (tf:pose->pose-stamped
-                      (tf:frame-id pose) (tf:stamp pose)
-                      (cl-transforms:transform-pose
-                       (cl-transforms:make-transform
-                        (cl-transforms:make-3d-vector
-                         -0.20 0.0 0.0)
-                        (cl-transforms:make-identity-rotation))
-                       pose)))
-         (open-pose (tf:pose->pose-stamped
-                     (tf:frame-id pose) (tf:stamp pose)
-                     (cl-transforms:transform-pose
-                      (cl-transforms:make-transform
-                       (cl-transforms:make-3d-vector
-                        -0.35 0.0 0.0)
-                       (cl-transforms:make-identity-rotation))
-                      pose)))
+(defun park-both-arms-test ()
+  (let* ((ik (get-ik :right (tf:copy-pose-stamped
+                             *carry-pose-right*
+                             :origin (cl-transforms:make-3d-vector 0.0  -0.45 0.6))))
+         (tr (ik->trajectory (car ik))))
+    (execute-arm-trajectory :right tr))
+  (let* ((ik (get-ik :left (tf:copy-pose-stamped
+                            *carry-pose-left*
+                            :origin (cl-transforms:make-3d-vector 0.0   0.45 0.6))))
+         (tr (ik->trajectory (car ik))))
+    (execute-arm-trajectory :left tr)))
+
+(defun open-drawer (pose side &optional (distance 0.15))
+  "Generates and executes a pull trajectory for the `side' arm in order
+   to open the drawer whose handle is at `pose'."
+  (cl-tf:wait-for-transform *tf*
+                            :timeout 1.0
+                            :time (tf:stamp pose)
+                            :source-frame (tf:frame-id pose)
+                            :target-frame "base_footprint")
+  (let* ((pose-transform (cl-transforms:pose->transform pose))
+         (pre-grasp-pose
+           (cl-tf:transform-pose cram-roslisp-common:*tf*
+                                 :pose (tf:pose->pose-stamped
+                                        (tf:frame-id pose) (tf:stamp pose)
+                                        (cl-transforms:transform-pose
+                                         pose-transform
+                                         (cl-transforms:make-pose
+                                          (cl-transforms:make-3d-vector
+                                           -0.25 0.0 0.0)
+                                          (cl-transforms:make-identity-rotation))))
+                                 :target-frame "base_footprint"))
+         (grasp-pose
+           (cl-tf:transform-pose cram-roslisp-common:*tf*
+                                 :pose (tf:pose->pose-stamped
+                                        (tf:frame-id pose) (tf:stamp pose)
+                                        (cl-transforms:transform-pose
+                                         pose-transform
+                                         (cl-transforms:make-pose
+                                          (cl-transforms:make-3d-vector
+                                           -0.20 0.0 0.0)
+                                          (cl-transforms:make-identity-rotation))))
+                                 :target-frame "base_footprint"))
+         (open-pose
+           (cl-tf:transform-pose cram-roslisp-common:*tf*
+                                 :pose (tf:pose->pose-stamped
+                                        (tf:frame-id pose) (tf:stamp pose)
+                                        (cl-transforms:transform-pose
+                                         pose-transform
+                                         (cl-transforms:make-pose
+                                          (cl-transforms:make-3d-vector
+                                           (- -0.20 distance) 0.0 0.0)
+                                          (cl-transforms:make-identity-rotation))))
+                                 :target-frame "base_footprint"))
+         (arm-away-pose
+           (cl-tf:transform-pose cram-roslisp-common:*tf*
+                                 :pose (tf:pose->pose-stamped
+                                        (tf:frame-id pose) (tf:stamp pose)
+                                        (cl-transforms:transform-pose
+                                         pose-transform
+                                         (cl-transforms:make-pose
+                                          (cl-transforms:make-3d-vector
+                                           (+ -0.10 (- -0.20 distance)) 0.0 0.0)
+                                          (cl-transforms:make-identity-rotation))))
+                                 :target-frame "base_footprint"))
          (pre-grasp-ik (lazy-car (get-ik side pre-grasp-pose)))
          (grasp-ik (lazy-car (get-ik side grasp-pose)))
-         (open-ik (lazy-car (get-ik side open-pose))))
+         (open-ik (lazy-car (get-ik side open-pose)))
+         (arm-away-ik (lazy-car (get-ik side arm-away-pose))))
     (unless pre-grasp-ik
       (error 'manipulation-pose-unreachable
-             :format-control "Pre-grasp pose for handle not reachable."))
+             :format-control "Pre-grasp pose for handle not reachable: ~a"
+             :format-arguments (list pre-grasp-pose)))
     (unless grasp-ik
       (error 'manipulation-pose-unreachable
-             :format-control "Pre-grasp pose for handle not reachable."))
+             :format-control "Grasp pose for handle not reachable: ~a"
+             :format-arguments (list grasp-pose)))
     (unless open-ik
       (error 'manipulation-pose-unreachable
-             :format-control "Pre-grasp pose for handle not reachable."))
+             :format-control "Open pose for handle not reachable."))
+    (unless arm-away-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "Arm-away pose after opening drawer is not reachable."))
     (open-gripper side)
     (execute-arm-trajectory side (ik->trajectory pre-grasp-ik))
     (execute-arm-trajectory side (ik->trajectory grasp-ik))
     (close-gripper side)
     (execute-arm-trajectory side (ik->trajectory open-ik))
-    (open-gripper side)))
+    (open-gripper side)
+    (execute-arm-trajectory side (ik->trajectory arm-away-ik))
+    (tf:pose->pose-stamped
+     (tf:frame-id pose) (tf:stamp pose)
+     (cl-transforms:transform-pose
+      pose-transform
+      (cl-transforms:make-pose
+       (cl-transforms:make-3d-vector
+        (- distance) 0.0 0.0)
+       (cl-transforms:make-identity-rotation))))))
+
+(defun close-drawer (pose side &optional (distance 0.15))
+  "Generates and executes a push trajectory for the `side' arm in order
+   to close the drawer whose handle is at `pose'."
+  (cl-tf:wait-for-transform *tf*
+                            :timeout 1.0
+                            :time (tf:stamp pose)
+                            :source-frame (tf:frame-id pose)
+                            :target-frame "base_footprint")
+  (let* ((pose-transform (cl-transforms:pose->transform pose))
+         (pre-grasp-pose
+           (cl-tf:transform-pose *tf*
+                                 :pose (tf:pose->pose-stamped
+                                        (tf:frame-id pose) (tf:stamp pose)
+                                        (cl-transforms:transform-pose
+                                         pose-transform
+                                         (cl-transforms:make-transform
+                                          (cl-transforms:make-3d-vector
+                                           -0.25 0.0 0.0)
+                                          (cl-transforms:make-identity-rotation))))
+                                 :target-frame "base_footprint"))
+         (grasp-pose
+           (cl-tf:transform-pose *tf*
+                                 :pose (tf:pose->pose-stamped
+                                        (tf:frame-id pose) (tf:stamp pose)
+                                        (cl-transforms:transform-pose
+                                         pose-transform
+                                         (cl-transforms:make-transform
+                                          (cl-transforms:make-3d-vector
+                                           -0.20 0.0 0.0)
+                                          (cl-transforms:make-identity-rotation))))
+                                 :target-frame "base_footprint"))
+         (close-pose
+           (cl-tf:transform-pose *tf*
+                                 :pose (tf:pose->pose-stamped
+                                        (tf:frame-id pose) (tf:stamp pose)
+                                        (cl-transforms:transform-pose
+                                         pose-transform
+                                         (cl-transforms:make-transform
+                                          (cl-transforms:make-3d-vector
+                                           (+ -0.20 distance) 0.0 0.0)
+                                          (cl-transforms:make-identity-rotation))))
+                                 :target-frame "base_footprint"))
+         (arm-away-pose
+           (cl-tf:transform-pose *tf*
+                                 :pose (tf:pose->pose-stamped
+                                        (tf:frame-id pose) (tf:stamp pose)
+                                        (cl-transforms:transform-pose
+                                         pose-transform
+                                         (cl-transforms:make-transform
+                                          (cl-transforms:make-3d-vector
+                                           -0.15 0.0 0.0)
+                                          (cl-transforms:make-identity-rotation))))
+                                 :target-frame "base_footprint"))
+         (pre-grasp-ik (lazy-car (get-ik side pre-grasp-pose)))
+         (grasp-ik (lazy-car (get-ik side grasp-pose)))
+         (close-ik (lazy-car (get-ik side close-pose)))
+         (arm-away-ik (lazy-car (get-ik side arm-away-pose))))
+    (unless pre-grasp-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "Pre-grasp pose for handle not reachable."))
+    (unless grasp-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "Grasp pose for handle not reachable."))
+    (unless close-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "Close pose for handle not reachable."))
+    (unless arm-away-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "Arm-away pose after closing the drawer is not reachable."))
+    (open-gripper side)
+    (execute-arm-trajectory side (ik->trajectory pre-grasp-ik))
+    (execute-arm-trajectory side (ik->trajectory grasp-ik))
+    (close-gripper side)
+    (execute-arm-trajectory side (ik->trajectory close-ik))
+    (open-gripper side)
+    (execute-arm-trajectory side (ik->trajectory arm-away-ik))
+    (tf:pose->pose-stamped
+     (tf:frame-id pose) (tf:stamp pose)
+     (cl-transforms:transform-pose
+      pose-transform
+      (cl-transforms:make-pose
+       (cl-transforms:make-3d-vector
+        (+ distance) 0.0 0.0)
+       (cl-transforms:make-identity-rotation))))))
 
