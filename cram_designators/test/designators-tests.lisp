@@ -28,3 +28,78 @@
 
 (in-package :cram-designators-tests)
 
+;; main function to call to run tests
+
+(defun run-designators-tests ()
+  (run-tests))
+
+;; auxiliary generator and validation functions for testing
+
+(defun generator-1 (designator)
+  (list :foo))
+
+(defun generator-2 (designator)
+  (list :bar))
+
+(defun validation-1 (designator solution)
+  (OR (eq solution :bar) (eq solution :foo)))
+
+(defun validation-2 (designator solution)
+  (eq solution :foo))
+
+(defun validation-3 (designator solution)
+  (eq solution :bar))
+
+;; auxiliary functions
+
+(defun cleanup-generators-and-validators ()
+  (delete-location-generator-function 'generator-1)
+  (delete-location-generator-function 'generator-2)
+  (delete-location-validation-function 'validation-1)
+  (delete-location-validation-function 'validation-2)
+  (delete-location-validation-function 'validation-3))
+
+;; auxiliary macros
+
+(defmacro with-location-designators ((&rest names) &body body)
+  `(let ,(loop for n in names collect `(,n (make-designator 'location nil)))
+     ,@body))
+
+
+;; actual test cases
+
+(define-test register-location-generator-1
+  (with-location-designators (desig)
+    (cleanup-generators-and-validators)
+    (register-location-generator 1 generator-1)
+    (assert-eql :foo (reference desig))
+    (assert-false (next-solution desig))))
+
+(define-test register-location-generator-2
+  (with-location-designators (desig)
+    (cleanup-generators-and-validators)
+    (register-location-generator 1 generator-1)
+    (register-location-generator 2 generator-2)
+    (assert-eql :foo (reference desig))
+    (assert-true (next-solution desig))
+    (assert-eql :bar (reference (next-solution desig)))
+    (assert-false (next-solution (next-solution desig)))))
+
+(define-test register-location-validation-function-1
+  (with-location-designators (desig)
+    (cleanup-generators-and-validators)
+    (register-location-generator 1 generator-1)
+    (register-location-generator 2 generator-2)
+    (register-location-validation-function 2 validation-2)
+    (assert-eql :foo (reference desig))
+    (assert-false (next-solution desig))))
+
+(define-test register-location-validation-function-2
+  (with-location-designators (desig)
+    (cleanup-generators-and-validators)
+    (register-location-generator 1 generator-1)
+    (register-location-generator 2 generator-2)
+    (register-location-validation-function 2 validation-2)
+    (register-location-validation-function 1 validation-1)
+    (assert-eql :foo (reference desig))
+    (assert-false (next-solution desig))))
