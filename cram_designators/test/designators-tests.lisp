@@ -68,9 +68,11 @@
 
 ;;; actual test cases
 
-(define-test register-location-generator-1
-  (with-location-designators (desig1 desig2)
+(define-test register-location-generator
+  (with-location-designators (desig0 desig1 desig2)
+    ;; test if call for reference in empty setting yields error
     (cleanup-generators-and-validators)
+    (assert-error 'designator-error (reference desig0))
     ;; test basic registration functionality with one generator
     (register-location-generator 1 generator-1)
     (assert-eql :foo (reference desig1))
@@ -85,21 +87,30 @@
     (assert-eql :bar (reference (next-solution desig2)))
     (assert-false (next-solution (next-solution desig2)))))
 
-(define-test register-location-validation-function-1
-  (with-location-designators (desig)
+(define-test register-location-validation-function
+  (with-location-designators (desig1 desig2 desig3 desig4)
     (cleanup-generators-and-validators)
+    ;; check basic functionality with one validation function
     (register-location-generator 1 generator-1)
     (register-location-generator 2 generator-2)
     (register-location-validation-function 2 validation-2)
-    (assert-eql :foo (reference desig))
-    (assert-false (next-solution desig))))
-
-(define-test register-location-validation-function-2
-  (with-location-designators (desig)
-    (cleanup-generators-and-validators)
-    (register-location-generator 1 generator-1)
-    (register-location-generator 2 generator-2)
-    (register-location-validation-function 2 validation-2)
+    (assert-eql :foo (reference desig1))
+    (assert-false (next-solution desig1))
+    ;; check basic functionality with two validation functions
     (register-location-validation-function 1 validation-1)
-    (assert-eql :foo (reference desig))
-    (assert-false (next-solution desig))))
+    (assert-eql :foo (reference desig2))
+    (assert-false (next-solution desig2))
+    ;; check for multiple results
+    (delete-location-validation-function 'validation-2)
+    (assert-eql :foo (reference desig3))
+    (assert-true (next-solution desig3))
+    (assert-eql :bar (reference (next-solution desig3)))
+    (assert-false (next-solution (next-solution desig3)))
+    ;; check if caching after first reference works
+    (assert-eql :foo (reference desig1))
+    (assert-false (next-solution desig1))
+    ;; check if excluding validation functions lead to error
+    (delete-location-validation-function 'validation-1)
+    (register-location-validation-function 2 validation-2)
+    (register-location-validation-function 3 validation-3)
+    (assert-error 'designator-error (reference desig4))))
