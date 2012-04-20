@@ -593,7 +593,7 @@
        (forall (member ?side ?sides)
                (lisp-pred object-reachable-p ?robot ?obj :side ?side :grasp ?grasp)))))
 
-  (<- (pose-reachable ?world ?robot-name ?pose ?side)
+  (<- (point-reachable ?world ?robot-name ?point ?side)
     (bullet-world ?world)
     (side ?side)
     (%object ?world ?robot-name ?robot)
@@ -603,7 +603,18 @@
        (robot-pre-grasp-joint-states ?pre-grasp-joint-states)
        (assert (joint-state ?w ?robot-name ?pre-grasp-joint-states))
        (grasp ?grasp)
-       (lisp-pred pose-reachable-p ?robot ?pose :side ?side :grasp ?grasp))))
+       (lisp-pred point-reachable-p ?robot ?point :side ?side :grasp ?grasp))))
+
+  (<- (pose-reachable ?world ?robot-name ?pose ?side)
+    (bullet-world ?world)
+    (side ?side)
+    (%object ?world ?robot-name ?robot)
+    (lisp-type ?robot robot-object)
+    (with-stored-world ?world
+      (once
+       (robot-pre-grasp-joint-states ?pre-grasp-joint-states)
+       (assert (joint-state ?w ?robot-name ?pre-grasp-joint-states))
+       (lisp-pred pose-reachable-p ?robot ?pose :side ?side))))
 
   (<- (blocking ?robot-name ?obj-name ?blocking-names)
     (blocking ?_ ?robot-name ?obj-name ?blocking-names))
@@ -638,10 +649,7 @@
             (once
              (robot-pre-grasp-joint-states ?pre-grasp-joint-states)
              (assert (joint-state ?w ?robot-name ?pre-grasp-joint-states))
-             (lisp-fun cl-transforms:make-identity-rotation ?identity-rotation)
-             (lisp-fun reach-object-ik ?robot ?obj
-                       :side ?side :grasp ?grasp :orientation-in-robot ?identity-rotation
-                       ?ik-solutions)
+             (lisp-fun reach-object-ik ?robot ?obj :side ?side :grasp ?grasp ?ik-solutions)
              (lisp-pred identity ?ik-solutions))
             (member ?ik-solution ?ik-solutions)
             (%ik-solution-in-collision ?w ?robot ?ik-solution ?colliding-objects)
