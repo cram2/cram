@@ -73,9 +73,11 @@
   (append (desig-prop-values designator 'pose)
           (mapcar (lambda (object)
                     (typecase object
-                      (object-designator (designator-pose
-                                          (current-desig object)))
-                      (t (btr:pose (btr:object world object)))))
+                      (object-designator
+                       (cl-transforms:origin
+                        (designator-pose (current-desig object))))
+                      (t (cl-transforms:origin
+                          (btr:pose (btr:object world object))))))
                   (append (desig-prop-values designator 'obj)
                           (desig-prop-values designator 'object)))
           (mapcar (lambda (location)
