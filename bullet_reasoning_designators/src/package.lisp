@@ -34,5 +34,5 @@
         #:btr #:designators-ros #:cut)
   (:shadowing-import-from #:desig-props at)
   (:shadowing-import-from #:btr object pose)
-  (:desig-properties #:side :to #:see #:reach #:side #:name #:type
-                     #:obj #:reachable-from #:pose #:object))
+  (:desig-properties side to see reach name type obj
+                     reachable-from pose object))
