@@ -564,9 +564,14 @@
   (<- (object-grasp ?world ?object :side (:left :right))
     (household-object-type ?object pot))
 
-  (<- (object-grasp ?object :top (?side))
-    (side ?side))
-  
+  (<- (valid-grasp ?world ?object ?grasp ?sides)
+    (-> (object-grasp ?w ?obj-name ?grasp ?sides)
+        (true)
+        (and
+         (grasp ?grasp)
+         (side ?side)
+         (== ?sides (?side)))))
+
   (<- (side :right))
   (<- (side :left))
 
@@ -581,7 +586,6 @@
 
   (<- (reachable ?w ?robot-name ?obj-name ?side)
     (bullet-world ?w)
-    (side ?side)
     (%object ?w ?robot-name ?robot)
     (lisp-type ?robot robot-object)
     (%object ?w ?obj-name ?obj)
@@ -589,7 +593,7 @@
       (once
        (robot-pre-grasp-joint-states ?pre-grasp-joint-states)
        (assert (joint-state ?w ?robot-name ?pre-grasp-joint-states))
-       (object-grasp ?obj-name ?grasp ?sides)
+       (valid-grasp ?w ?obj ?grasp ?sides)
        (forall (member ?side ?sides)
                (lisp-pred object-reachable-p ?robot ?obj :side ?side :grasp ?grasp)))))
 
@@ -635,12 +639,11 @@
     (ground (?w ?robot-name))
     (%object ?w ?robot-name ?robot)
     (%object ?w ?obj-name ?obj)
-    (side ?side)
     (with-stored-world ?w
       (-> (setof
            ?o
            (and
-            (object-grasp ?obj-name ?grasp ?sides)
+            (valid-grasp ?w ?obj-name ?grasp ?sides)
             (member ?side ?sides)
             ;; We don't want to have the supporting object as a blocking
             ;; object.
