@@ -39,7 +39,7 @@
 ;;; examples are in table_costmap and semantic_map_costmap
 
 (defparameter *orientation-samples* 5)
-(defparameter *orientation-sample-step* (/ pi 10))
+(defparameter *orientation-sample-step* (/ pi 18))
 
 (defmethod costmap-generator-name->score ((name (eql 'pose-distribution)))
   5)
@@ -63,10 +63,12 @@ otherwise PREVIOUS-ORIENTATION. `samples' indicates how many rotations
 should be returned. If the value is greater than 1, the samples's
 orientations differ by `sample-step'."
   (flet ((make-angles (samples sample-step)
-           (loop for angle from (* sample-step (- (floor (/ samples 2))))
-                   below (* sample-step (ceiling (/ samples 2)))
-                     by sample-step
-                 collecting (cl-transforms:euler->quaternion :az angle))))
+           (cons (cl-transforms:euler->quaternion :az 0.0d0)
+                 (loop for angle from sample-step
+                         below (* sample-step (ceiling (/ samples 2)))
+                           by sample-step
+                       appending (list (cl-transforms:euler->quaternion :az angle)
+                                       (cl-transforms:euler->quaternion :az (- angle)))))))
     (let ((point (etypecase position
                    (cl-transforms:pose (cl-transforms:origin position))
                    (cl-transforms:3d-vector position)))
