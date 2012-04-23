@@ -38,36 +38,6 @@
 (defmethod costmap-generator-name->score ((name (eql 'reachable-from-weighted)))
   4)
 
-(defun make-aligned-orientation-generator (reference-pose pose)
-  (flet ((yaw-between-points (point-1 point-2)
-           (let ((offset (cl-transforms:v- point-2 point-1)))
-             (atan (cl-transforms:y offset) (cl-transforms:x offset)))))
-    (labels ((find-closest-angle (reference-angle angles &optional current-best-angle)
-               (cond ((and angles (not current-best-angle))
-                      (find-closest-angle
-                       reference-angle (cdr angles) (car angles)))
-                     (angles
-                      (find-closest-angle
-                       reference-angle (cdr angles)
-                       (if (< (abs (cl-transforms:normalize-angle
-                                    (- reference-angle (car angles))))
-                              (abs (cl-transforms:normalize-angle
-                                    (- reference-angle current-best-angle))))
-                           (car angles)
-                           current-best-angle)))
-                     (t (cl-transforms:euler->quaternion :az current-best-angle)))))
-      (lambda (x y orientation)
-        (declare (ignore orientation))
-        (list
-         (find-closest-angle
-          (yaw-between-points
-           (cl-transforms:make-3d-vector x y 0)
-           (cl-transforms:origin pose))
-          (loop with pi/2 = (/ pi 2)
-                with reference-angle = (cl-transforms:get-yaw (cl-transforms:orientation reference-pose))
-                for i from 0 below 4 collecting (cl-transforms:normalize-angle
-                                                 (+ reference-angle (* i pi/2))))))))))
-
 (def-fact-group bullet-reasoning-location-desig (desig-costmap
                                                  desig-loc
                                                  desig-location-prop)
@@ -82,20 +52,6 @@
     (costmap-add-function reachable-from-weighted
                           (make-location-cost-function ?pose ?distance)
                           ?cm))
-
-  (<- (desig-costmap ?desig ?cm)
-    (or (desig-prop ?desig (to see))
-        (desig-prop ?desig (to reach)))
-    (desig-prop ?desig (obj ?obj))
-    (desig-location-prop ?desig ?pose)
-    (costmap ?cm)
-    (bullet-world ?world)
-    (btr:object ?world ?obj)
-    (once (contact ?world ?obj ?sem-map ?contacting-link))
-    (link-pose ?sem-map ?contacting-link ?reference-pose)
-    (costmap-add-orientation-generator
-     (make-aligned-orientation-generator ?reference-pose ?pose)
-     ?cm))
 
   (<- (desig-location-prop ?desig ?loc)
     (or (loc-desig? ?desig)
