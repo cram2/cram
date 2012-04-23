@@ -58,11 +58,11 @@
         (obj-desig? ?desig))
     (desig-prop ?desig (obj ?o))
     (btr:object ?o)
-    (pose ?o ?loc))
+    (btr:pose ?o ?loc))
 
   (<- (desig-location-prop ?o ?loc)
     (btr:object ?o)
-    (pose ?o ?loc))  
+    (btr:pose ?o ?loc))
 
   (<- (desig-check-to-reach ?desig ?robot-pose)
     (bullet-world ?w)
