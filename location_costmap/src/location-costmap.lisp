@@ -114,7 +114,8 @@
     name))
 
 (defmethod get-cost-map ((map location-costmap))
-  "returns the cost of the location map by reading the slot, fills it if not filled yet."
+  "Returns the costmap matrix of `map', i.e. if not generated yet,
+calls the generator functions and runs normalization."
   (flet ((calculate-map-value (map x y)
            (declare (type location-costmap map)
                     (type double-float x y))
