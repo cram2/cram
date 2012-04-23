@@ -39,6 +39,8 @@
 
 (define-condition invalid-probability-distribution (error) ())
 
+(define-condition no-cost-functions-registered (error) ())
+
 ;; A location costmap is a 2d grid map that defines for each x,y point
 ;; a cost value. It provides an API to sample random poses by
 ;; generating random x and y points and using further generators to
@@ -126,15 +128,20 @@ calls the generator functions and runs normalization."
                (setq value (* value (or (funcall (car cost-function) x y)
                                         1.0d0))))
              value)))
-    (declare (ftype (function (location-costmap double-float double-float) double-float)
+    (declare (ftype (function (location-costmap double-float double-float)
+                              double-float)
                     calculate-map-value))
+    (unless (cost-functions map)
+      (error 'no-cost-functions-registered))
     (with-slots (width height origin-x origin-y resolution) map
       (unless (slot-boundp map 'cost-map)
         (setf (slot-value map 'cost-functions)
               (sort (remove-duplicates (slot-value map 'cost-functions)
                                        :key #'cdr)
                     #'> :key (compose #'costmap-generator-name->score #'cdr)))
-        (let ((new-cost-map (cma:make-double-matrix (round (/ width resolution)) (round (/ height resolution))))
+        (let ((new-cost-map (cma:make-double-matrix
+                             (round (/ width resolution))
+                             (round (/ height resolution))))
               (sum 0.0d0)
               (cost-value 0.0d0)              
               (curr-x (float origin-x 0.0d0))
