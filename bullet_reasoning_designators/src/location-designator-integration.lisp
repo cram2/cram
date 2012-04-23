@@ -83,32 +83,32 @@
                      (current-desig location)))
                   (desig-prop-values designator 'location))))
 
+(defun check-reachability (robot reach-pose &key side)
+  (etypecase reach-pose
+    (cl-transforms:3d-vector (point-reachable-p robot reach-pose :side side))
+    (cl-transforms:pose (pose-reachable-p robot reach-pose :side side))))
+
 (defun make-ik-check-function (robot poses &optional side)
   (flet ((make-reachability-function ()
            (case side
              ((:left :right)
               (lambda (reach-pose)
-                (pose-reachable-p
-                 robot reach-pose
-                 :side side :grasp :front)))
+                (check-reachability
+                 robot reach-pose :side side)))
              (:both
               (lambda (reach-pose)
                 (and
-                 (pose-reachable-p
-                  robot reach-pose
-                  :side :right :grasp :front)
-                 (pose-reachable-p
-                  robot reach-pose
-                  :side :left :grasp :front))))
+                 (check-reachability
+                  robot reach-pose :side :right)
+                 (check-reachability
+                  robot reach-pose :side :left))))
              ((nil :either)
               (lambda (reach-pose)
                 (or
-                 (pose-reachable-p
-                  robot reach-pose
-                  :side :right :grasp :front)
-                 (pose-reachable-p
-                  robot reach-pose
-                  :side :left :grasp :front)))))))
+                 (check-reachability
+                  robot reach-pose :side :right)
+                 (check-reachability
+                  robot reach-pose :side :left)))))))
     (let ((reachability-function (make-reachability-function)))
       (lambda (pose)
         (setf (btr:pose robot) pose)
