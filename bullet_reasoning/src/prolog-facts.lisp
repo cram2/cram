@@ -549,19 +549,19 @@
   ;; grasping the object. ?SIDES is a list of arms to be used. A
   ;; solution for _all_ sides in that sequence must be found to let
   ;; reachability succeed.
-  (<- (object-grasp ?object ?grasp (?side))
-    (household-object-type ?object mug)
+  (<- (object-grasp ?world ?object ?grasp (?side))
+    (household-object-type ?world ?object mug)
     (grasp ?grasp)
     (side ?side))
 
-  (<- (object-grasp ?object :side (:left :right))
+  (<- (object-grasp ?world ?object :side (:left :right))
     (household-object-type ?object plate))
 
-  (<- (object-grasp ?object :side (?side))
+  (<- (object-grasp ?world ?object :side (?side))
     (household-object-type ?object mondamin)
     (side ?side))
 
-  (<- (object-grasp ?object :side (:left :right))
+  (<- (object-grasp ?world ?object :side (:left :right))
     (household-object-type ?object pot))
 
   (<- (object-grasp ?object :top (?side))
