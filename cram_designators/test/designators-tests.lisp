@@ -45,7 +45,7 @@
   (loop for i from 1 to 51 collecting :foo))
 
 (defun validation-1 (designator solution)
-  (OR (eq solution :bar) (eq solution :foo)))
+  (or (eq solution :bar) (eq solution :foo)))
 
 (defun validation-2 (designator solution)
   (eq solution :foo))
