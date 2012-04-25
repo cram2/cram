@@ -20,6 +20,7 @@
   <depend package="arm_navigation_msgs"/>
   <depend package="visualization_msgs"/>
   <depend package="trivial_garbage"/>
+  <depend package="lisp_unit"/>
 
 </package>
 
