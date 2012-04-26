@@ -9,6 +9,5 @@
   </rosparam>
 
   <node pkg="household_objects_database" name="objects_database_node" type="objects_database_node" 
-        respawn="true" output="screen" >
-  </node>
+        respawn="true" output="screen" />
 </launch>
