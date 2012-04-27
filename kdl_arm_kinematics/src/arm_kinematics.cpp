@@ -261,12 +261,14 @@ bool Kinematics::readJoints(urdf::Model &robot_model) {
   joint_min.resize(num_joints);
   joint_max.resize(num_joints);
   info.joint_names.resize(num_joints);
+  info.link_names.clear();
   info.limits.resize(num_joints);
 
   link = robot_model.getLink(tip_name);
   unsigned int i = 0;
   while (link && i < num_joints) {
     joint = robot_model.getJoint(link->parent_joint->name);
+    info.link_names.push_back(link->name);
     if (joint->type != urdf::Joint::UNKNOWN && joint->type != urdf::Joint::FIXED) {
       ROS_INFO( "getting bounds for joint: [%s]", joint->name.c_str() );
 
@@ -526,7 +528,6 @@ bool Kinematics::getPositionFK(kinematics_msgs::GetPositionFK::Request &request,
   response.pose_stamped.resize(request.fk_link_names.size());
   response.fk_link_names.resize(request.fk_link_names.size());
 
-  bool valid = true;
   for (unsigned int i=0; i < request.fk_link_names.size(); i++) {
     int segmentIndex = getKDLSegmentIndex(request.fk_link_names[i]);
     ROS_DEBUG("End effector index: %d",segmentIndex);
@@ -549,7 +550,6 @@ bool Kinematics::getPositionFK(kinematics_msgs::GetPositionFK::Request &request,
     } else {
       ROS_ERROR("Could not compute FK for %s",request.fk_link_names[i].c_str());
       response.error_code.val = response.error_code.NO_FK_SOLUTION;
-      valid = false;
     }
   }
   return true;
