@@ -77,3 +77,8 @@
   (<- (robot-pre-grasp-joint-states
        (("torso_lift_joint" 0.00) . ?parking-joint-states))
     (robot-arms-parking-joint-states ?parking-joint-states)))
+
+(defmethod side->ik-namespace ((side symbol))
+  (ecase side
+    (:right "reasoning/pr2_right_arm_kinematics")
+    (:left "reasoning/pr2_left_arm_kinematics")))
