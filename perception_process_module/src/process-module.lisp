@@ -1,4 +1,4 @@
-;;;
+3;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
@@ -123,7 +123,7 @@
                (perceived-object->designator desig perceived-object)))
             (sort perceived-objects #'> :key #'perceived-object-probability))))
 
-(defparameter *known-roles* '(semantic-map handle-detector cop)
+(defparameter *known-roles* '(semantic-map handle-detector popcorn-detector cop)
   "Ordered list of known roles for designator resolution. They are
   processed in the order specified in this list")
 
