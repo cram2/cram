@@ -94,4 +94,4 @@
                 #:def-process-module)
   (:desig-properties #:cluster #:type #:object #:on
                      #:part-of #:at #:name #:pose
-                     #:handle))
+                     #:handle #:lid))
