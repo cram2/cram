@@ -230,8 +230,7 @@ joint positions as seeds."
                  (fixed-frame "map")
                  (robot-base-frame "base_footprint"))
   (let ((tf (make-instance 'tf:transformer)))
-    (set-tf-from-robot-state (make-instance 'tf:transformer)
-                             robot robot-base-frame)
+    (set-tf-from-robot-state tf robot robot-base-frame)
     (tf:set-transform tf (tf:transform->stamped-transform
                           fixed-frame robot-base-frame (roslisp:ros-time)
                           (cl-transforms:pose->transform (pose robot))))
