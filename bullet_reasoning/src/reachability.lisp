@@ -87,17 +87,18 @@ relative to the robot in world coordinates."
                      cl-transforms:pose)
                  point))
   (lazy-car
-   (reach-pose-ik
-    robot (cl-transforms:make-pose
-           (etypecase point
-             (cl-transforms:3d-vector point)
-             (cl-transforms:pose (cl-transforms:origin point)))
-           (calculate-orientation-in-robot
-            robot (cl-transforms:make-identity-rotation)))
-   :tool-frame (cl-transforms:make-pose
-                (cl-transforms:make-3d-vector
-                 tool-length 0.0 0.0)
-                (get-grasp grasp side))
+   (pose-reachable-p
+    robot
+    (cl-transforms:make-pose
+     (etypecase point
+       (cl-transforms:3d-vector point)
+       (cl-transforms:pose (cl-transforms:origin point)))
+     (calculate-orientation-in-robot
+      robot (cl-transforms:make-identity-rotation)))
+    :tool-frame (cl-transforms:make-pose
+                 (cl-transforms:make-3d-vector
+                  tool-length 0.0 0.0)
+                 (get-grasp grasp side))
     :side side)))
 
 (defmethod pose-reachable-p ((robot robot-object) (pose cl-transforms:pose)
