@@ -38,6 +38,15 @@
   (:documentation "Returns the ROS namespace of the IK service that
   corresponds to side indicator `side'."))
 
+(defgeneric pose-reachable-p (robot pose &key side tool-frame)
+  (:documentation "Checks if a pose is reachable for the robot
+  `robot'. `side' is used to get the namespace of the IK service and
+  `tool-frame' is the tool transformation to use."))
+
+(defgeneric reach-pose-ik (robot pose &key side tool-frame)
+  (:documentation "Returns the IK solution for `robot' to reach
+  `pose'. Returns NUL if the pose is unreachable."))
+
 (defun get-grasp (grasp side)
   (ecase grasp
     (:top (cdr (assoc :top *grasps*)))
@@ -91,12 +100,11 @@ relative to the robot in world coordinates."
                 (get-grasp grasp side))
     :side side)))
 
-(defun pose-reachable-p (robot pose
-                           &key
-                             side (tool-frame
-                                   (cl-transforms:make-pose
-                                    (cl-transforms:make-3d-vector 0.20 0.0 0.0)
-                                    (cl-transforms:make-identity-rotation))))
+(defmethod pose-reachable-p ((robot robot-object) (pose cl-transforms:pose)
+                             &key side (tool-frame
+                                        (cl-transforms:make-pose
+                                         (cl-transforms:make-3d-vector 0.20 0.0 0.0)
+                                         (cl-transforms:make-identity-rotation))))
   (declare (type robot-object robot)
            (type cl-transforms:pose pose)
            (type cl-transforms:pose tool-frame))
@@ -119,11 +127,10 @@ relative to the robot in world coordinates."
                 (get-grasp grasp side))
    :side side))
 
-(defun reach-pose-ik (robot pose
-                      &key
-                        side (tool-frame (cl-transforms:make-pose
-                                          (cl-transforms:make-3d-vector 0.20 0.0 0.0)
-                                          (cl-transforms:make-identity-rotation))))
+(defmethod reach-pose-ik ((robot robot-object) (pose cl-transforms:pose)
+                          &key side (tool-frame (cl-transforms:make-pose
+                                                 (cl-transforms:make-3d-vector 0.20 0.0 0.0)
+                                                 (cl-transforms:make-identity-rotation))))
   (declare (type robot-object robot)
            (type cl-transforms:pose pose)
            (type cl-transforms:pose tool-frame))
