@@ -80,3 +80,45 @@
                       :target-frame "/map")
                      :stamp 0.0)
               :probability 1.0)))))))
+
+(defclass small-bowl-perceived-object (perceived-object)
+  ())
+
+(def-object-search-function small-bowl-search-function popcorn-detector
+    ;; Calls the perception routine behind the `ias_perception_actions' actiolib server
+    ;; and receives a common header containing the time stamp and the list of poses
+    ;; corresponding to the small bowls detected.    
+    ;; Takes the first pose, transforms it relative to a fix reference `/map' and then
+    ;; uses it to instantiate the `small-bowl-perceived-object' which is returned.
+    (((type small-bowl)) desig perceived-object)
+  (declare (ignore desig perceived-object))
+  (with-fields (objects)      
+      (actionlib:send-goal-and-wait
+       *popcorn-detectors-action*
+       (actionlib:make-action-goal *popcorn-detectors-action*
+         className "SmallBowl"
+         numHits 1
+         (keywords_v keywords) (vector (make-msg "ias_perception_actions/Keyword_v"
+                                                 key "min"
+                                                 (x v_value) 0.600
+                                                 (y v_value) 1.900
+                                                 (z v_value) 0.785)
+                                       (make-msg "ias_perception_actions/Keyword_v"
+                                                 key "max"
+                                                 (x v_value) 0.900
+                                                 (y v_value) 2.100
+                                                 (z v_value) 0.900))))
+    (with-fields (header poses) objects
+      (with-fields (stamp frame_id) header
+        (when (> (length poses) 0)
+          (let ((pose (tf:msg->pose (elt poses 0))))
+            (make-instance 'small-bowl-perceived-object
+              :pose (tf:copy-pose-stamped
+                     (tf:transform-pose
+                      ;; hack(moesenle): remove the time stamp because
+                      ;; tf fails to transform for some weird reason
+                      *tf*
+                      :pose (tf:pose->pose-stamped frame_id stamp pose)
+                      :target-frame "/map")
+                     :stamp 0.0)
+              :probability 1.0)))))))
