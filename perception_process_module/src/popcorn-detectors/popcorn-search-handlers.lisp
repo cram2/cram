@@ -43,10 +43,11 @@
   ())
 
 (def-object-search-function lid-search-function popcorn-detector
-    ;; Calls the perception routine behind an actiolib server and
-    ;; receives the list of poses corresponding to the detected lids.
-    ;; TODO(lisca):The received list is used to create an object designator
-    ;; for each pose received corresponding to each detected lid.
+    ;; Calls the perception routine behind the `ias_perception_actions' actiolib server
+    ;; and receives a common header containing the time stamp and the list of poses
+    ;; corresponding to the detected lids.    
+    ;; Takes the first pose, transforms it relative to a fix reference `/map' and then
+    ;; uses it to instantiate the `lid-perceived-object' which is returned.
     (((type lid)) desig perceived-object)
   (declare (ignore desig perceived-object))
   (with-fields (objects)      
@@ -65,19 +66,17 @@
                                                  (x v_value) 0.610
                                                  (y v_value) 2.350
                                                  (z v_value) 0.800))))
-    ;; (with-fields (poses) objects
-    ;;   (when (> (length poses) 0)
-    ;;     (let ((pose (tf:msg->pose-stamped (elt poses 0))))
-    ;;       (list
-    ;;        (make-instance 'lid-perceived-object
-    ;;          :pose (tf:copy-pose-stamped
-    ;;                 (tf:transform-pose
-    ;;                  ;; hack(moesenle): remove the time stamp because
-    ;;                  ;; tf fails to transform for some weird reason
-    ;;                  *tf*
-    ;;                  :pose (tf:copy-pose-stamped pose :stamp 0.0)
-    ;;                  :target-frame "map")
-    ;;                 :stamp 0.0)
-    ;;          :probability 1.0))
-    ;;       )))
-    (format t "~a~%" objects)))
+    (with-fields (header poses) objects
+      (with-fields (stamp frame_id) header
+        (when (> (length poses) 0)
+          (let ((pose (tf:msg->pose (elt poses 0))))
+            (make-instance 'lid-perceived-object
+              :pose (tf:copy-pose-stamped
+                     (tf:transform-pose
+                      ;; hack(moesenle): remove the time stamp because
+                      ;; tf fails to transform for some weird reason
+                      *tf*
+                      :pose (tf:pose->pose-stamped frame_id stamp pose)
+                      :target-frame "/map")
+                     :stamp 0.0)
+              :probability 1.0)))))))
