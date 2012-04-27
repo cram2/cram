@@ -30,6 +30,7 @@
 
 (in-package :btr)
 
+
 (defparameter *mesh-files* '((mug "package://bullet_reasoning/resource/mug.stl" t)
                              (plate "package://bullet_reasoning/resource/plate.stl" nil)
                              (mondamin "package://bullet_reasoning/resource/mondamin.stl" nil)

@@ -227,34 +227,43 @@ joint positions as seeds."
                               (cl-transforms:make-3d-vector 0 0 0)
                               (cl-transforms:make-quaternion 0 0 0 1)))
                  (ik-namespace (error "Namespace of IK service has to be specified"))
-                 (fixed-frame "base_footprint"))
-  (let* ((tf (set-tf-from-robot-state (make-instance 'tf:transformer)
-                                      robot fixed-frame))
-         (pose (tf:transform-pose tf :pose (tf:copy-pose-stamped pose-stamped :stamp 0)
-                                     :target-frame "torso_lift_link")))
+                 (fixed-frame "map")
+                 (robot-base-frame "base_footprint"))
+  (let ((tf (make-instance 'tf:transformer)))
+    (set-tf-from-robot-state (make-instance 'tf:transformer)
+                             robot robot-base-frame)
+    (tf:set-transform tf (tf:transform->stamped-transform
+                          fixed-frame robot-base-frame (roslisp:ros-time)
+                          (cl-transforms:pose->transform (pose robot))))
     (roslisp:with-fields ((joint-names (joint_names kinematic_solver_info))
                           (link-names (link_names kinematic_solver_info)))
         (get-ik-solver-info ik-namespace)
-      (roslisp:with-fields ((solution (joint_state solution))
-                            (error-code (val error_code)))
-          (roslisp:call-persistent-service
-           (get-persistent-ik-service ik-namespace)
-           :ik_request
-           (roslisp:make-msg
-            "kinematics_msgs/PositionIKRequest"
-            ;; we assume that the last joint in JOINT-NAMES is the end
-            ;; of the chain which is what we want for ik_link_name.
-            :ik_link_name (elt link-names 0)
-            :pose_stamped (tf:pose-stamped->msg
-                           (calculate-tool-pose pose :tool tool-frame))
-            :ik_seed_state (roslisp:make-msg
-                            "arm_navigation_msgs/RobotState"
-                            joint_state (make-robot-joint-state-msg robot :joint-names joint-names)))
-           :timeout 1.0)
-        (when (eql error-code (roslisp-msg-protocol:symbol-code
-                               'arm_navigation_msgs-msg:ArmNavigationErrorCodes
-                               :success))
-          (list solution))))))
+      (let* ((ik-base-frame (cl-urdf:name
+                             (cl-urdf:parent
+                              (gethash (elt joint-names 0)
+                                       (cl-urdf:joints (urdf robot))))))
+             (pose (tf:transform-pose tf :pose (tf:copy-pose-stamped pose-stamped :stamp 0)
+                                         :target-frame ik-base-frame)))
+        (roslisp:with-fields ((solution (joint_state solution))
+                              (error-code (val error_code)))
+            (roslisp:call-persistent-service
+             (get-persistent-ik-service ik-namespace)
+             :ik_request
+             (roslisp:make-msg
+              "kinematics_msgs/PositionIKRequest"
+              ;; we assume that the last joint in JOINT-NAMES is the end
+              ;; of the chain which is what we want for ik_link_name.
+              :ik_link_name (elt link-names 0)
+              :pose_stamped (tf:pose-stamped->msg
+                             (calculate-tool-pose pose :tool tool-frame))
+              :ik_seed_state (roslisp:make-msg
+                              "arm_navigation_msgs/RobotState"
+                              joint_state (make-robot-joint-state-msg robot :joint-names joint-names)))
+             :timeout 1.0)
+          (when (eql error-code (roslisp-msg-protocol:symbol-code
+                                 'arm_navigation_msgs-msg:ArmNavigationErrorCodes
+                                 :success))
+            (list solution)))))))
 
 (defun get-weighted-ik (robot pose-stamped &key
                         (tool-frame (cl-transforms:make-pose
