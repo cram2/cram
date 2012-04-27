@@ -34,6 +34,10 @@
                          (:right . ,(cl-transforms:euler->quaternion :az (/ pi -2)))
                          (:front . ,(cl-transforms:make-identity-rotation))))
 
+(defgeneric side->ik-namespace (side)
+  (:documentation "Returns the ROS namespace of the IK service that
+  corresponds to side indicator `side'."))
+
 (defun get-grasp (grasp side)
   (ecase grasp
     (:top (cdr (assoc :top *grasps*)))
@@ -123,19 +127,11 @@ relative to the robot in world coordinates."
   (declare (type robot-object robot)
            (type cl-transforms:pose pose)
            (type cl-transforms:pose tool-frame))
-  (let ((pose-transform-in-robot (cl-transforms:transform*
-                                  (cl-transforms:transform-inv
-                                   (cl-transforms:reference-transform
-                                    (pose robot)))
-                                  (cl-transforms:reference-transform pose)))
-        (reference-frame (cl-urdf:name (cl-urdf:root-link (slot-value robot 'urdf)))))
+  (let ((reference-frame (cl-urdf:name (cl-urdf:root-link (slot-value robot 'urdf)))))
     (get-ik
-     robot (tf:make-pose-stamped
-            reference-frame 0.0
-            (cl-transforms:translation pose-transform-in-robot)
-            (cl-transforms:rotation pose-transform-in-robot))
-     :ik-namespace (ecase side
-                     (:right "reasoning/pr2_right_arm_kinematics")
-                     (:left "reasoning/pr2_left_arm_kinematics"))
+     robot (tf:pose->pose-stamped
+            "world" 0.0 pose)
+     :ik-namespace (side->ik-namespace side)
      :tool-frame tool-frame
-     :fixed-frame reference-frame)))
+     :robot-base-frame reference-frame
+     :fixed-frame "world")))
