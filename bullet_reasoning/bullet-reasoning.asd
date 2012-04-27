@@ -54,7 +54,6 @@
     ((:module "src"
               :components
               ((:file "package")
-               (:file "pr2-metadata" :depends-on ("package"))
                (:file "utils" :depends-on ("package"))
                (:file "prolog-handlers" :depends-on ("package"))
                (:file "prolog-facts" :depends-on ("package"))
