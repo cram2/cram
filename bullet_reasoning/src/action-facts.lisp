@@ -32,11 +32,9 @@
 
 (def-fact-group actions (execute)
   ;; Call without world
-  (<- (execute ?action)
-    (execute ?_ ?action))
-  
   (<- (execute ?w (open ?obj ?link))
     (ground (?obj ?link))
+    (bullet-world ?w)
     (%object ?w ?obj ?obj-inst)
     (lisp-fun open-object ?obj-inst ?link ?_))
 

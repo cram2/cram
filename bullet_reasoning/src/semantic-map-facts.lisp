@@ -40,9 +40,6 @@
 
 (def-fact-group semantic-map ()
 
-  (<- (semantic-map ?obj)
-    (semantic-map ?_ ?obj))
-  
   (<- (semantic-map ?w ?obj)
     (bullet-world ?w)
     (%object ?w ?obj ?obj-instance)

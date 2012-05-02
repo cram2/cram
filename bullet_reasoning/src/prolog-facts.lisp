@@ -73,21 +73,14 @@
               ?name ?pose ?args
               ?_))
 
-  (<- (retract (object ?name))
-    (retract (object ?_ ?name)))
-  
   (<- (retract (object ?world ?name))
+    (bullet-world ?world)
     (lisp-fun remove-object ?world ?name ?_))
 
-  (<- (object ?name)
-    (object ?_ ?name))
-  
   (<- (object ?world ?name)
+    (bullet-world ?world)
     (%object ?world ?name ?_))
 
-  (<- (object-type ?name ?type)
-    (object-type ?_ ?name ?type))
-  
   (<- (object-type ?world ?name ?type)
     (bullet-world ?world)
     (%object ?world ?name ?obj)
@@ -98,9 +91,6 @@
     (%object ?world ?name ?obj)
     (lisp-type ?obj household-object)
     (household-object-type ?world ?name ?type))
-
-  (<- (household-object-type ?name ?type)
-    (household-object-type ?_ ?name ?type))
 
   (<- (household-object-type ?world ?name ?type)
     (bullet-world ?world)
@@ -153,9 +143,6 @@
 
 (def-fact-group poses (assert)
 
-  (<- (pose ?obj-name ?pose)
-    (pose ?_ ?obj-name ?pose))
-  
   (<- (pose ?w ?obj-name ?pose)
     (lisp-type ?obj-name symbol)
     (bullet-world ?w)
@@ -174,9 +161,6 @@
     (%pose ?obj ?obj-pose)
     (poses-equal ?pose ?obj-pose 0.01 0.01))
 
-  (<- (assert (object-pose ?obj-name ?pose))
-    (assert (object-pose ?_ ?obj-name ?pose)))
-  
   (<- (assert (object-pose ?world ?obj-name ?pose))
     (bound ?obj-name)
     (bound ?pose)
@@ -245,9 +229,6 @@
 
 (def-fact-group robot-model (assert retract)
 
-  (<- (link ?robot-name ?link)
-    (link ?_ ?robot-name ?link))
-
   (<- (link ?world ?robot-name ?link)
     (bullet-world ?world)
     (%object ?world ?robot-name ?robot)
@@ -282,9 +263,6 @@
     (member ?name ?names)
     (%link-pose ?robot ?name ?pose))
 
-  (<- (head-pointing-at ?robot-name ?pose)
-    (head-pointing-at ?_ ?robot-name ?pose))
-  
   (<- (head-pointing-at ?w ?robot-name ?pose)
     (robot ?robot-name)
     (robot-pan-tilt-links ?pan-link ?tilt-link)
@@ -297,16 +275,10 @@
     (lisp-fun set-joint-state ?robot ?pan-joint ?pan-pos ?_)
     (lisp-fun set-joint-state ?robot ?tilt-joint ?tilt-pos ?_))
 
-  (<- (joint-state ?robot-name ?state)
-    (joint-state ?_ ?robot-name ?state))
-
   (<- (joint-state ?world ?robot-name ?state)
     (bullet-world ?world)
     (%object ?world ?robot-name ?robot)
     (lisp-fun joint-state ?robot ?state))
-
-  (<- (assert (joint-state ?robot-name ?joint-states))
-    (assert (joint-state ?_ ?robot-name ?joint-states)))
 
   (<- (assert (joint-state ?world ?robot-name ?joint-states))
     (bullet-world ?world)
@@ -337,9 +309,6 @@
 
 (def-fact-group force-dynamic-states ()
 
-  (<- (contact ?obj-1-name ?obj-2-name)
-    (contact ?_ ?obj-1-name ?obj-2-name))
-  
   (<- (contact ?world ?obj-1-name ?obj-2-name)
     (bound ?obj-1-name)
     (bound ?obj-2-name)
@@ -387,10 +356,6 @@
     (lisp-fun link-contacts ?robot-model ?link-contacts)
     (member (?obj . ?link) ?link-contacts))
 
-  (<- (stable ?obj-name)
-    (lisp-type ?obj-name symbol)
-    (stable ?_ ?obj-name))
-  
   (<- (stable ?world ?obj-name)
     (bullet-world ?world)
     (%object ?world ?obj-name ?obj)
@@ -405,9 +370,6 @@
       (%pose ?obj ?pose-2))
     (poses-equal ?pose-1 ?pose-2 (0.01 0.03)))
 
-  (<- (stable)
-    (stable ?_))
-  
   (<- (stable ?world)
     (bullet-world ?world)
     (forall (object ?world ?_ ?o)
@@ -424,9 +386,6 @@
 
 (def-fact-group spatial-relations ()
 
-  (<- (above ?obj-1-name ?obj-2-name)
-    (above ?_ ?obj-1-name ?obj-2-name))
-  
   (<- (above ?w ?obj-1-name ?obj-2-name)
     (bullet-world ?w)
     (-> (lisp-type ?obj-1-name symbol)
@@ -467,9 +426,6 @@
     (lisp-fun find-objects-below ?w ?obj-1 ?objs)
     (member ?obj-2 ?objs))  
 
-  (<- (below ?obj-1-name ?obj-2-name)
-    (below ?_ ?obj-1-name ?obj-2-name))
-  
   (<- (below ?w ?obj-1-name ?obj-2-name)
     (bullet-world ?w)
     (-> (lisp-type ?obj-1-name symbol)
@@ -504,17 +460,13 @@
     (member ?obj-2 ?objs)))
 
 (def-fact-group visibility ()
-  (<- (visible ?robot ?object)
-    (visible ?_ ?object))
 
   (<- (visible ?world ?robot ?object)
+    (bullet-world ?world)
     (robot ?robot)
     (camera-frame ?camera-frame)
     (link-pose ?robot ?camera-frame ?camera-pose)
     (visible-from ?world ?camera-pose ?object))
-  
-  (<- (visible-from ?camera-pose ?obj)
-    (visible-from ?_ ?camera-pose ?obj))
   
   (<- (visible-from ?world ?camera-pose ?obj-name)
     (bound ?camera-pose)
@@ -531,9 +483,6 @@
                             (%object ?world ?occ-name ?occ))
              ?occluding-names))
 
-  (<- (occluding-object ?camera-pose ?obj ?occluding-obj)
-    (occluding-object ?_ ?camera-pose ?obj ?occluding-obj))
-  
   (<- (occluding-object ?world ?camera-pose ?obj ?occluding-obj)
     (occluding-objects ?world ?camera-pose ?obj ?objs)
     (member ?occluding-obj ?objs)))
@@ -575,12 +524,6 @@
   (<- (side :right))
   (<- (side :left))
 
-  (<- (reachable ?robot-name ?obj-name)
-    (reachable ?_ ?robot-name ?obj-name))
-
-  (<- (reachable ?robot-name ?obj-name ?side)
-    (reachable ?_ ?robot-name ?obj-name ?side))
-  
   (<- (reachable ?w ?robot-name ?obj-name)
     (once (reachable ?w ?robot-name ?obj-name ?_)))
 
@@ -620,12 +563,6 @@
        (assert (joint-state ?w ?robot-name ?pre-grasp-joint-states))
        (lisp-pred pose-reachable-p ?robot ?pose :side ?side))))
 
-  (<- (blocking ?robot-name ?obj-name ?blocking-names)
-    (blocking ?_ ?robot-name ?obj-name ?blocking-names))
-
-  (<- (blocking ?robot-name ?obj-name ?side ?blocking-names)
-    (blocking ?_ ?robot-name ?obj-name ?side ?blocking-names))  
-  
   (<- (blocking ?w ?robot-name ?obj-name ?blocking-names)
     (blocking ?w ?robot-name ?obj-name ?_ ?blocking-names))
 
