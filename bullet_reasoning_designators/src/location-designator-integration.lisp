@@ -34,10 +34,12 @@
   (tg:make-weak-hash-table :weakness :key)
   "Cache of closures to check IK for a specific designator.")
 
-(defparameter *robot-name* 'btr::pr2
+(defvar *robot-name* 'btr::pr2
   "The name of the robot in the bullet world to calculate IK for.")
 
-(defparameter *check-ik-joint-states*
+(defvar *robot-valid-sides* '(:left :right))
+
+(defvar *check-ik-joint-states*
   '(("torso_lift_joint" 0.33)
     ("torso_lift_joint" 0.0))
   "Joint states to set before calling the IK solver.")
@@ -93,24 +95,21 @@
 (defun make-ik-check-function (robot poses &optional side)
   (flet ((make-reachability-function ()
            (case side
-             ((:left :right)
+             ((:both :all)
               (lambda (reach-pose)
-                (check-reachability
-                 robot reach-pose :side side)))
-             (:both
-              (lambda (reach-pose)
-                (and
-                 (check-reachability
-                  robot reach-pose :side :right)
-                 (check-reachability
-                  robot reach-pose :side :left))))
+                (every (lambda (side)
+                         (check-reachability
+                          robot reach-pose :side side))
+                       *robot-valid-sides*)))
              ((nil :either)
               (lambda (reach-pose)
-                (or
-                 (check-reachability
-                  robot reach-pose :side :right)
-                 (check-reachability
-                  robot reach-pose :side :left)))))))
+                (some (lambda (side)
+                        (check-reachability
+                         robot reach-pose :side side))
+                      *robot-valid-sides*)))
+             (t (lambda (reach-pose)
+                  (check-reachability
+                   robot reach-pose :side side))))))
     (let ((reachability-function (make-reachability-function)))
       (lambda (pose)
         (setf (btr:pose robot) pose)
