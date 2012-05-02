@@ -26,14 +26,30 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
+(in-package :btr-desig)
 
-(desig-props:def-desig-package bullet-reasoning-designators
-    (:nicknames :btr-desig)
-  (:use #:common-lisp #:crs #:desig #:location-costmap
-        #:btr #:designators-ros #:cut)
-  (:shadowing-import-from #:desig-props at)
-  (:shadowing-import-from #:btr object pose)
-  (:export *robot-name* *check-ik-joint-states* *robot-valid-sides*)
-  (:desig-properties side to see reach name type obj
-                     reachable-from pose object on))
+(defun make-object-bounding-box-costmap-generator (object)
+  (let* ((bounding-box (aabb object))
+         (dimensions-x/2 (/ (cl-transforms:x (bt:bounding-box-dimensions bounding-box))
+                            2))
+         (dimensions-y/2 (/ (cl-transforms:y (bt:bounding-box-dimensions bounding-box))
+                            2)))
+    (lambda (x y)
+      (if (and
+           (< x (+ (cl-transforms:x (cl-bullet:bounding-box-center bounding-box))
+                   dimensions-x/2))
+           (> x (- (cl-transforms:x (cl-bullet:bounding-box-center bounding-box))
+                   dimensions-x/2))
+           (< y (+ (cl-transforms:y (cl-bullet:bounding-box-center bounding-box))
+                   dimensions-y/2))
+           (> y (- (cl-transforms:y (cl-bullet:bounding-box-center bounding-box))
+                   dimensions-y/2)))
+          1.0 0.0))))
+
+(defun make-object-bounding-box-height-generator (object)
+  (let ((bounding-box (aabb object)))
+    (constantly (+ (cl-transforms:z
+                    (cl-bullet:bounding-box-center bounding-box))
+                   (/ (cl-transforms:z
+                       (cl-bullet:bounding-box-dimensions bounding-box))
+                      2)))))

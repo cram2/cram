@@ -38,6 +38,9 @@
 (defmethod costmap-generator-name->score ((name (eql 'reachable-from-weighted)))
   4)
 
+(defmethod costmap-generator-name->score ((name (eql 'on-bounding-box)))
+  5)
+
 (def-fact-group bullet-reasoning-location-desig (desig-costmap
                                                  desig-loc
                                                  desig-location-prop)
@@ -52,6 +55,18 @@
     (costmap-add-function reachable-from-weighted
                           (make-location-cost-function ?pose ?distance)
                           ?cm))
+
+  (<- (desig-costmap ?designator ?costmap)
+    (desig-prop ?designator (on ?object))
+    (bullet-world ?world)
+    (%object ?world ?object ?object-instance)
+    (costmap ?costmap)
+    (costmap-add-function
+     on-bounding-box (make-object-bounding-box-costmap-generator ?object-instance)
+     ?costmap)
+    (costmap-add-cached-height-generator
+     (make-object-bounding-box-height-generator ?object-instance)
+     ?costmap))
 
   (<- (desig-location-prop ?desig ?loc)
     (or (loc-desig? ?desig)

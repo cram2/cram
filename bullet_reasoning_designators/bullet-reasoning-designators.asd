@@ -41,4 +41,5 @@
     :components
     ((:file "package")
      (:file "location-designator-facts" :depends-on ("package"))
-     (:file "location-designator-integration" :depends-on ("package"))))))
+     (:file "location-designator-integration" :depends-on ("package"))
+     (:file "costmap-generators" :depends-on ("package"))))))
