@@ -78,6 +78,35 @@
        (("torso_lift_joint" 0.00) . ?parking-joint-states))
     (robot-arms-parking-joint-states ?parking-joint-states)))
 
+(def-fact-group manipulation-knowledge ()
+  (<- (grasp :top))
+  (<- (grasp :side))
+  (<- (grasp :front))
+
+  ;; The OBJECT-GRASP predicate can be used to control which grasps
+  ;; and which sides are valid for a specific object. The third
+  ;; parameter, ?SIDES, indicates the arms that must be used for
+  ;; grasping the object. ?SIDES is a list of arms to be used. A
+  ;; solution for _all_ sides in that sequence must be found to let
+  ;; reachability succeed.
+  (<- (object-grasp ?world ?object ?grasp (?side))
+    (household-object-type ?world ?object mug)
+    (grasp ?grasp)
+    (side ?side))
+
+  (<- (object-grasp ?world ?object :side (:left :right))
+    (household-object-type ?object plate))
+
+  (<- (object-grasp ?world ?object :side (?side))
+    (household-object-type ?object mondamin)
+    (side ?side))
+
+  (<- (object-grasp ?world ?object :side (:left :right))
+    (household-object-type ?object pot))
+
+  (<- (side :right))
+  (<- (side :left)))
+
 (defmethod side->ik-namespace ((side symbol))
   (ecase side
     (:right "reasoning/pr2_right_arm_kinematics")
