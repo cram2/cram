@@ -118,7 +118,9 @@ sensor_msgs/JointStates message."
       (assert end-link nil "Link `~a' unknown" end)
       (walk-tree end-link start-link))))
 
-(defun set-tf-from-robot-state (tf robot &optional (base-frame "base_footprint"))
+(defun set-tf-from-robot-state (tf robot
+                                &key (base-frame "base_footprint")
+                                  (time (roslisp:ros-time)))
   (let ((reference-transform-inv (cl-transforms:transform-inv
                                   (cl-transforms:reference-transform
                                    (link-pose robot base-frame)))))
@@ -129,7 +131,7 @@ sensor_msgs/JointStates message."
                           (cl-transforms:reference-transform
                            (link-pose robot link)))))
           (tf:set-transform tf (tf:make-stamped-transform
-                                base-frame link (roslisp:ros-time)
+                                base-frame link time
                                 (cl-transforms:translation transform)
                                 (cl-transforms:rotation transform))))))))
 
@@ -229,10 +231,13 @@ joint positions as seeds."
                  (ik-namespace (error "Namespace of IK service has to be specified"))
                  (fixed-frame "map")
                  (robot-base-frame "base_footprint"))
-  (let ((tf (make-instance 'tf:transformer)))
-    (set-tf-from-robot-state tf robot robot-base-frame)
+  (let ((tf (make-instance 'tf:transformer))
+        (time (roslisp:ros-time)))
+    (set-tf-from-robot-state tf robot
+                             :base-frame robot-base-frame
+                             :time time)
     (tf:set-transform tf (tf:transform->stamped-transform
-                          fixed-frame robot-base-frame (roslisp:ros-time)
+                          fixed-frame robot-base-frame time
                           (cl-transforms:pose->transform (pose robot))))
     (roslisp:with-fields ((joint-names (joint_names kinematic_solver_info))
                           (link-names (link_names kinematic_solver_info)))
@@ -297,7 +302,7 @@ the IK service."
                        1.0))
                  joint-names))))
     (let* ((tf (set-tf-from-robot-state (make-instance 'tf:transformer)
-                                        robot fixed-frame))
+                                        robot :base-frame fixed-frame))
            (pose (tf:transform-pose tf :pose pose-stamped :target-frame ik-base-link))
            (joint-names (kinematics_msgs-msg:joint_names 
                          (kinematics_msgs-srv:kinematic_solver_info
