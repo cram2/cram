@@ -46,6 +46,13 @@
                                       ("l_wrist_flex_joint" -1.9927790883777252d0)
                                       ("l_wrist_roll_joint" 2.586184460547585d0)))
 
+(def-grasp :top (cl-transforms:euler->quaternion :ay (/ pi -2)))
+(def-grasp :left (cl-transforms:euler->quaternion :az (/ pi 2)))
+(def-grasp :right (cl-transforms:euler->quaternion :az (/ pi -2)))
+(def-grasp :front (cl-transforms:make-identity-rotation))
+
+(def-tool (cl-transforms:make-3d-vector 1 0 0) 0.20)
+
 (def-fact-group robot-metadata ()
   (<- (robot pr2))
   (<- (camera-frame "openni_rgb_optical_frame"))
