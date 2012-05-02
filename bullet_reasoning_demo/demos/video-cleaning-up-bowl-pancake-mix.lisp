@@ -42,8 +42,8 @@
                            (assert (object ?w semantic-map sem-map ((1.4 2.8 0) (0 0 0.9994 -0.0342)) :urdf ,kitchen-urdf))
                            (assert (object ?w urdf pr2 ((0 0 0) (0 0 0 1)) :urdf ,urdf))
                            (robot-arms-parking-joint-states ?joint-states)
-                           (assert (joint-state pr2 ?joint-states))
-                           (assert (joint-state pr2 (("torso_lift_joint" 0.33)))))))))
+                           (assert (joint-state ?w pr2 ?joint-states))
+                           (assert (joint-state ?w pr2 (("torso_lift_joint" 0.33)))))))))
 
 (setf pr2 (var-value '?pr2 (lazy-car (prolog `(%object ?w pr2 ?pr2) bdgs))))
 (setf sem-map (var-value '?sem-map (lazy-car (prolog `(%object ?w sem-map ?sem-map) bdgs))))
