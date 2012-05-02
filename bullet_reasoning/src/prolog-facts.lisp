@@ -537,6 +537,9 @@
        (robot-pre-grasp-joint-states ?pre-grasp-joint-states)
        (assert (joint-state ?w ?robot-name ?pre-grasp-joint-states))
        (valid-grasp ?w ?obj ?grasp ?sides)
+       ;; Since forall doesn't fail if its cond fails, we verify its
+       ;; validity first.
+       (once (member ?side ?sides))
        (forall (member ?side ?sides)
                (lisp-pred object-reachable-p ?robot ?obj :side ?side :grasp ?grasp)))))
 
@@ -591,7 +594,6 @@
          (assert (joint-state ?w ?robot-name ?pre-grasp-joint-states))
          (lisp-fun reach-object-ik ?robot ?obj :side ?side :grasp ?grasp ?ik-solutions)
          (lisp-pred identity ?ik-solutions))
-        (format "ping ~a~%" ?side)
         (member ?ik-solution ?ik-solutions)
         (%ik-solution-in-collision ?w ?robot ?ik-solution ?colliding-objects)
         (member ?o ?colliding-objects)
