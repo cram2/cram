@@ -577,28 +577,27 @@
     (%object ?w ?robot-name ?robot)
     (%object ?w ?obj-name ?obj)
     (with-stored-world ?w
-      (-> (setof
-           ?o
-           (and
-            (valid-grasp ?w ?obj-name ?grasp ?sides)
-            (member ?side ?sides)
-            ;; We don't want to have the supporting object as a blocking
-            ;; object.
-            (-> (supported-by ?w ?obj-name ?supporting) (true) (true))
-            ;; Generate all ik solutions
-            (once
-             (robot-pre-grasp-joint-states ?pre-grasp-joint-states)
-             (assert (joint-state ?w ?robot-name ?pre-grasp-joint-states))
-             (lisp-fun reach-object-ik ?robot ?obj :side ?side :grasp ?grasp ?ik-solutions)
-             (lisp-pred identity ?ik-solutions))
-            (member ?ik-solution ?ik-solutions)
-            (%ik-solution-in-collision ?w ?robot ?ik-solution ?colliding-objects)
-            (member ?o ?colliding-objects)
-            (not (== ?o ?obj-name))
-            (-> (bound ?supporting) (not (== ?o ?supporting)) (true)))
-           ?objs)
-          (true)
-          (== ?objs ()))))
+      (setof
+       ?o
+       (and
+        (valid-grasp ?w ?obj-name ?grasp ?sides)
+        (member ?side ?sides)
+        ;; We don't want to have the supporting object as a blocking
+        ;; object.
+        (-> (supported-by ?w ?obj-name ?supporting) (true) (true))
+        ;; Generate all ik solutions
+        (once
+         (robot-pre-grasp-joint-states ?pre-grasp-joint-states)
+         (assert (joint-state ?w ?robot-name ?pre-grasp-joint-states))
+         (lisp-fun reach-object-ik ?robot ?obj :side ?side :grasp ?grasp ?ik-solutions)
+         (lisp-pred identity ?ik-solutions))
+        (format "ping ~a~%" ?side)
+        (member ?ik-solution ?ik-solutions)
+        (%ik-solution-in-collision ?w ?robot ?ik-solution ?colliding-objects)
+        (member ?o ?colliding-objects)
+        (not (== ?o ?obj-name))
+        (-> (bound ?supporting) (not (== ?o ?supporting)) (true)))
+       ?objs)))
   
   (<- (%ik-solution-in-collision ?w ?robot ?ik-solution ?colliding-objects)
     (lisp-fun set-robot-state-from-joints ?ik-solution ?robot ?_)
