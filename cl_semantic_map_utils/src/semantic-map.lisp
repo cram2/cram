@@ -51,7 +51,6 @@
 (defclass semantic-map-joint (semantic-map-part)
   ((minimal-value :initarg :minimal-value :reader joint-minimal-value)
    (maximal-value :initarg :maximal-value :reader joint-maximal-value)
-   (direction :initarg :direction :reader joint-direction)
    (connected-objects :initarg :connected-objects :reader joint-connected-objects)))
 
 (defgeneric copy-semantic-map-object (obj)
@@ -87,14 +86,13 @@
          :dimensions (cl-transforms:copy-3d-vector dimensions)))))
 
   (:method ((joint semantic-map-joint))
-    (with-slots (minimal-value maximal-value direction connected-objects)
+    (with-slots (minimal-value maximal-value connected-objects)
         joint
       (let ((copy (call-next-method)))
         (change-class
          copy 'semantic-map-joint
          :minimal-value minimal-value
          :maximal-value maximal-value
-         :direction direction
          :connected-objects connected-objects)))))
 
 (defgeneric semantic-map-parts (map &key recursive)
@@ -383,22 +381,11 @@ of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns
                       (sub-parts-with-name part name))))
                  (semantic-map-parts map))))
 
-(def-owl-type-initializer ("PrismaticJoint" name owl-name)
-  (with-vars-bound (?min ?max ?dirx ?diry ?dirz ?connected ?labels)
+(defun joint-initializer (joint-type name owl-name)
+  (with-vars-bound (?min ?max ?connected ?labels)
       (car
        (json-prolog:prolog-1
         `(and 
-          ("rdf_has" 
-           ,owl-name "http://ias.cs.tum.edu/kb/knowrob.owl#direction" ?direction)
-          ("rdf_has" ?direction
-                     "http://ias.cs.tum.edu/kb/knowrob.owl#vectorX"
-                     ("literal" ("type" ?_ ?dirx_)))
-          ("rdf_has" ?direction
-                     "http://ias.cs.tum.edu/kb/knowrob.owl#vectorY"
-                     ("literal" ("type" ?_ ?diry_)))
-          ("rdf_has" ?direction
-                     "http://ias.cs.tum.edu/kb/knowrob.owl#vectorZ"
-                     ("literal" ("type" ?_ ?dirz_)))
           ("rdf_has" ,owl-name "http://ias.cs.tum.edu/kb/knowrob.owl#minJointValue"
                      ("literal" ("type" ?_ ?min_)))
           ("rdf_has" ,owl-name "http://ias.cs.tum.edu/kb/knowrob.owl#maxJointValue"
@@ -410,22 +397,24 @@ of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns
                           ?c_)
                          ("rdf_atom_no_ns" ?c_ ?c))
                      ?connected)
-          ("atom_number" ?dirx_ ?dirx) ("atom_number" ?diry_ ?diry)
-          ("atom_number" ?dirz_ ?dirz)
           ("atom_number" ?min_ ?min) ("atom_number" ?max_ ?max)
           ("findall" ?l ("objectLabel" ,owl-name ?l) ?labels))
         :package :sem-map-utils))
     (make-instance 'semantic-map-joint
-      :type "PrismaticJoint"
+      :type joint-type
       :name name
       :owl-name owl-name
       :minimal-value (unless (is-var ?min) ?min)
       :maximal-value (unless (is-var ?max) ?max)
-      :direction (unless (or (is-var ?dirx) (is-var ?diry) (is-var ?dirz))
-                   (cl-transforms:make-3d-vector ?dirx ?diry ?dirz))
       :connected-objects (mapcar (lambda (name-symbol)
                                    (remove #\' (symbol-name name-symbol)))
                                  (unless (is-var ?connected) ?connected))
       :aliases (mapcar (lambda (label)
                          (remove #\' (symbol-name label)))
                        (unless (is-var ?labels) ?labels)))))
+
+(def-owl-type-initializer ("PrismaticJoint" name owl-name)
+  (joint-initializer "PrismaticJoint" name owl-name))
+
+(def-owl-type-initializer ("HingedJoint" name owl-name)
+  (joint-initializer "HingedJoint" name owl-name))
