@@ -48,6 +48,12 @@
   ((pose :initarg :pose :reader pose)
    (dimensions :initarg :dimensions :reader dimensions)))
 
+(defclass semantic-map-joint (semantic-map-part)
+  ((minimal-value :initarg :minimal-value :reader joint-minimal-value)
+   (maximal-value :initarg :maximal-value :reader joint-maximal-value)
+   (direction :initarg :direction :reader joint-direction)
+   (connected-objects :initarg :connected-objects :reader joint-connected-objects)))
+
 (defgeneric copy-semantic-map-object (obj)
   (:method ((map semantic-map))
     (make-instance 'semantic-map
@@ -78,7 +84,18 @@
         (change-class
          copy 'semantic-map-geom
          :pose (cl-transforms:copy-pose pose)
-         :dimensions (cl-transforms:copy-3d-vector dimensions))))))
+         :dimensions (cl-transforms:copy-3d-vector dimensions)))))
+
+  (:method ((joint semantic-map-joint))
+    (with-slots (minimal-value maximal-value direction connected-objects)
+        joint
+      (let ((copy (call-next-method)))
+        (change-class
+         copy 'semantic-map-joint
+         :minimal-value minimal-value
+         :maximal-value maximal-value
+         :direction direction
+         :connected-objects connected-objects)))))
 
 (defgeneric semantic-map-parts (map &key recursive)
   (:method ((map semantic-map) &key recursive)
@@ -136,35 +153,39 @@
 
 (defgeneric make-semantic-map-part (type name owl-name)
   (:method ((type t) name owlname)
-    (with-vars-bound (?pose ?dim ?labels)
-        (lazy-car
-         (json-prolog:prolog
-          `(and ("objectPose" ,owlname ?pose)
-                ("objectDimensions" ,owlname ?w ?d ?h)
-                ("findall" ?l ("objectLabel" ,owlname ?l) ?labels)
-                (= '(?d ?w ?h) ?dim))
-          :package :sem-map-utils))
-      (let ((aliases (unless (is-var ?labels)
-                       ?labels)))
-        (if (or (is-var ?pose) (is-var ?dim))
-            (make-instance 'semantic-map-part
-              :type type :name name :owl-name owlname
-              :aliases (mapcar (lambda (label)
-                                 (remove #\' (symbol-name label)))
-                               aliases))
-            (make-instance 'semantic-map-geom
-              :type type
-              :name name
-              :owl-name owlname
-              :pose (cl-transforms:transform->pose
-                     (cl-transforms:matrix->transform
-                      (make-array
-                       '(4 4) :displaced-to (make-array
-                                             16 :initial-contents ?pose))))
-              :dimensions (apply #'cl-transforms:make-3d-vector ?dim)
-              :aliases (mapcar (lambda (label)
-                                 (remove #\' (symbol-name label)))
-                               aliases)))))))
+    ;; TODO(moesenle): The default handling feels pretty wrong
+    ;; here. We need to find a better way to encode default handling
+    ;; somehow inside an owl type initializer.
+    (or (run-owl-type-initializer type name owlname)
+        (with-vars-bound (?pose ?dim ?labels)
+            (lazy-car
+             (json-prolog:prolog
+              `(and ("objectPose" ,owlname ?pose)
+                    ("objectDimensions" ,owlname ?w ?d ?h)
+                    ("findall" ?l ("objectLabel" ,owlname ?l) ?labels)
+                    (= '(?d ?w ?h) ?dim))
+              :package :sem-map-utils))
+          (let ((aliases (unless (is-var ?labels)
+                           ?labels)))
+            (if (or (is-var ?pose) (is-var ?dim))
+                (make-instance 'semantic-map-part
+                  :type type :name name :owl-name owlname
+                  :aliases (mapcar (lambda (label)
+                                     (remove #\' (symbol-name label)))
+                                   aliases))
+                (make-instance 'semantic-map-geom
+                  :type type
+                  :name name
+                  :owl-name owlname
+                  :pose (cl-transforms:transform->pose
+                         (cl-transforms:matrix->transform
+                          (make-array
+                           '(4 4) :displaced-to (make-array
+                                                 16 :initial-contents ?pose))))
+                  :dimensions (apply #'cl-transforms:make-3d-vector ?dim)
+                  :aliases (mapcar (lambda (label)
+                                     (remove #\' (symbol-name label)))
+                                   aliases))))))))
 
 (defgeneric update-pose (obj new-pose &key relative recursive)
   (:documentation "Updates the pose of `obj' using `new-pose'. When
@@ -362,3 +383,49 @@ of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns
                       (sub-parts-with-name part name))))
                  (semantic-map-parts map))))
 
+(def-owl-type-initializer ("PrismaticJoint" name owl-name)
+  (with-vars-bound (?min ?max ?dirx ?diry ?dirz ?connected ?labels)
+      (car
+       (json-prolog:prolog-1
+        `(and 
+          ("rdf_has" 
+           ,owl-name "http://ias.cs.tum.edu/kb/knowrob.owl#direction" ?direction)
+          ("rdf_has" ?direction
+                     "http://ias.cs.tum.edu/kb/knowrob.owl#vectorX"
+                     ("literal" ("type" ?_ ?dirx_)))
+          ("rdf_has" ?direction
+                     "http://ias.cs.tum.edu/kb/knowrob.owl#vectorY"
+                     ("literal" ("type" ?_ ?diry_)))
+          ("rdf_has" ?direction
+                     "http://ias.cs.tum.edu/kb/knowrob.owl#vectorZ"
+                     ("literal" ("type" ?_ ?dirz_)))
+          ("rdf_has" ,owl-name "http://ias.cs.tum.edu/kb/knowrob.owl#minJointValue"
+                     ("literal" ("type" ?_ ?min_)))
+          ("rdf_has" ,owl-name "http://ias.cs.tum.edu/kb/knowrob.owl#maxJointValue"
+                     ("literal" ("type" ?_ ?max_)))
+          ("findall" ?c (and
+                         ("rdf_has"
+                          ,owl-name
+                          "http://ias.cs.tum.edu/kb/knowrob.owl#connectedTo-Rigidly"
+                          ?c_)
+                         ("rdf_atom_no_ns" ?c_ ?c))
+                     ?connected)
+          ("atom_number" ?dirx_ ?dirx) ("atom_number" ?diry_ ?diry)
+          ("atom_number" ?dirz_ ?dirz)
+          ("atom_number" ?min_ ?min) ("atom_number" ?max_ ?max)
+          ("findall" ?l ("objectLabel" ,owl-name ?l) ?labels))
+        :package :sem-map-utils))
+    (make-instance 'semantic-map-joint
+      :type "PrismaticJoint"
+      :name name
+      :owl-name owl-name
+      :minimal-value (unless (is-var ?min) ?min)
+      :maximal-value (unless (is-var ?max) ?max)
+      :direction (unless (or (is-var ?dirx) (is-var ?diry) (is-var ?dirz))
+                   (cl-transforms:make-3d-vector ?dirx ?diry ?dirz))
+      :connected-objects (mapcar (lambda (name-symbol)
+                                   (remove #\' (symbol-name name-symbol)))
+                                 (unless (is-var ?connected) ?connected))
+      :aliases (mapcar (lambda (label)
+                         (remove #\' (symbol-name label)))
+                       (unless (is-var ?labels) ?labels)))))
