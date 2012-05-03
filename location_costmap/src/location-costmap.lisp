@@ -73,11 +73,12 @@
    (orientation-generators
     :initform nil :initarg :orientation-generators :reader orientation-generators
     :documentation "A sequence of callable objects that take three
-                    parameters, X, Y and the rotation value calulated
-                    by previous orientation generators. The functions
-                    return the corresponding rotation value. The
-                    function is not required to be deterministic and
-                    called whenever a new sample is generated.")))
+                    parameters, X, Y and the return value of the
+                    previous orientation generators. Each of the
+                    functions returns a (lazy-) list of
+                    quaternions. The function is not required to be
+                    deterministic and called whenever a new sample is
+                    generated.")))
 
 (defgeneric get-cost-map (map)
   (:documentation "Returns the costmap as a two-dimensional array of
