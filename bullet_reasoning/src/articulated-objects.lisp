@@ -53,15 +53,19 @@
             (owl-name-from-urdf-name obj (cl-urdf:name (cl-urdf:parent
                                                         (cl-urdf:from-joint link)))))))))
 
-(defun articulation-joint-objs (obj link)
+(defun articulation-joint-objs (obj name)
   "Returns the name of the joint that can be used to move `link' which
   has to be part of `obj'"
   (declare (type semantic-map-object obj))
-  (let* ((part-name (owl-name-from-urdf-name obj link))
+  (let* ((part-name ;; If `name' is a link name, find the
+                    ;; corresponding semantic map entry.
+           (if (gethash name (links obj))
+                        (owl-name-from-urdf-name obj name)
+                        name))
          (part (when part-name
                  (lazy-car (sem-map-utils:sub-parts-with-name obj part-name)))))
     (assert part-name () "Link `~a' could not be mapped to a semantic map instance"
-            link)
+            name)
     (assert part () "Could not find semantic map object named `~a'" part-name)
     (force-ll (sem-map-utils:sub-parts-with-type part "Joint-Physical"))))
 
