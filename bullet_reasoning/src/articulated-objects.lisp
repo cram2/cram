@@ -30,17 +30,6 @@
 
 (in-package :btr)
 
-;; Until we get the articulation models from knowrob, we fake them for
-;; now and use the kitchen urdf instead.
-
-(alexandria:define-constant +drawer-max-value+ 0.5
-  :documentation "Hard-coded ugly constant for maximal joint values
-  when drawer is out. This will be replaced by an articulation model")
-
-(alexandria:define-constant +door-max-value+ (* pi 0.7)
-  :documentation "Hard-coded ugly constant for maximal joint values
-  when door is open. This will be replaced by an articulation model")
-
 (defun owl-name-from-urdf-name (obj link)
   "Returns the name of the owl instance that corresponds to `link'"
   (declare (type semantic-map-object obj)
@@ -60,8 +49,8 @@
   (let* ((part-name ;; If `name' is a link name, find the
                     ;; corresponding semantic map entry.
            (if (gethash name (links obj))
-                        (owl-name-from-urdf-name obj name)
-                        name))
+               (owl-name-from-urdf-name obj name)
+               name))
          (part (when part-name
                  (lazy-car (sem-map-utils:sub-parts-with-name obj part-name)))))
     (assert part-name () "Link `~a' could not be mapped to a semantic map instance"
@@ -75,11 +64,8 @@
            (joint (car joints)))
       (assert (eql (length joints) 1) ()
               "Opening of objects with more than one joint not supported")
-      (string-case (sem-map-utils:obj-type joint)
-        ("PrismaticJoint" (setf (joint-state obj (sem-map-utils:urdf-name joint))
-                                +drawer-max-value+))
-        ("HingedJoint" (setf (joint-state obj (sem-map-utils:urdf-name joint))
-                             +door-max-value+))))))
+      (setf (joint-state obj (sem-map-utils:urdf-name joint))
+            (sem-map-utils:joint-maximal-value joint)))))
 
 (defun close-object (obj link)
   (when (typep obj 'semantic-map-object)
