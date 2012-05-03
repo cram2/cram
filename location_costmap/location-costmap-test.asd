@@ -30,7 +30,10 @@
   :author "Georg Bartels"
   :licence "BSD"
 
-  :depends-on (lisp-unit location-costmap)
+  :depends-on (lisp-unit
+               location-costmap
+               cram-roslisp-common
+               cram-utilities)
   :components
   ((:module "test"
             :components
