@@ -127,6 +127,13 @@
             goal: 0.02
   </rosparam>
   <node name="both_arms_controller_loader"
-        pkg="pr2_controller_manager" type="pr2_controller_manager" output="screen"
+        pkg="pr2_controller_manager" type="pr2_controller_manager"
         args="load both_arms_controller" />
+
+  <node pkg="joint_trajectory_generator" type="joint_trajectory_generator"
+        name="joint_trajectory_generator" ns="both_arms_controller" >
+    <param name="max_acc" value="2.0" />
+    <param name="max_vel" value="2.5" />
+  </node>
+
 </launch>
