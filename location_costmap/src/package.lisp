@@ -73,6 +73,8 @@
            #:invalid-probability-distribution
            #:no-cost-functions-registered
            #:register-cost-function
+           #:register-height-generator
+           #:register-orientation-generator
            #:gen-costmap-sample-point
            #:costmap-samples
            #:generators
