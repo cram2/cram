@@ -74,20 +74,24 @@
     (container ?w ?sem-map ?link))
 
   (<- (semantic-map-part ?world ?semantic-map ?part-name)
+    (%semantic-map-part ?world ?semantic-map ?part-name ?_))
+
+  (<- (%semantic-map-part ?world ?semantic-map ?part-name ?part-instance)
     (ground ?part-name)
     (semantic-map ?world ?semantic-map)
     (%object ?world ?semantic-map ?semantic-map-instance)
-    (lisp-pred sem-map-utils:semantic-map-part ?semantic-map-instance
-               ?part-name :recursive t))
+    (lisp-fun sem-map-utils:semantic-map-part ?semantic-map-instance
+               ?part-name :recursive t ?part-instance)
+    (lisp-pred identity ?part-instance))
 
-  (<- (semantic-map-part ?world ?semantic-map ?part-name)
+  (<- (%semantic-map-part ?world ?semantic-map ?part-name ?part-instance)
     (not (ground ?part-name))
     (semantic-map ?world ?semantic-map)
     (%object ?world ?semantic-map ?semantic-map-instance)
     (lisp-fun sem-map-utils:semantic-map-parts ?semantic-map-instance
               :recursive t ?parts)
-    (member ?part ?parts)
-    (lisp-fun sem-map-utils:name ?part ?part-name))
+    (member ?part-instance ?parts)
+    (lisp-fun sem-map-utils:name ?part-instance ?part-name))
 
   (<- (semantic-map-part-type ?world ?semantic-map ?part-name ?type)
     (semantic-map-part ?world ?semantic-map ?part-name)
@@ -95,4 +99,8 @@
     (lisp-fun sem-map-utils:semantic-map-part ?semantic-map-instance
               ?part-name :recursive t ?part)
     (lisp-fun sem-map-utils:obj-type ?part ?part-type)
-    (equal ?part-type ?type)))
+    (equal ?part-type ?type))
+
+  (<- (semantic-map-part-pose ?world ?semantic-map ?part-name ?pose)
+    (%semantic-map-part ?world ?semantic-map ?part-name ?part-instance)
+    (lisp-fun semantic-map-part-pose ?part-instance ?pose)))
