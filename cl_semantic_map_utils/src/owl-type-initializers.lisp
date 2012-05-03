@@ -1,5 +1,4 @@
-;;;
-;;; Copyright (c) 2011, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -26,21 +25,25 @@
 ;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
-;;;
 
-(defsystem cl-semantic-map-utils
-  :author "Lorenz Moesenlechner"
-  :license "BSD"
-  :description "Utilities to work with semantic maps in lisp"
-  
-  :depends-on (cl-json-pl-client
-               cram-roslisp-common
-               cl-transforms
-               designators)
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "owl-type-initializers" :depends-on ("package"))
-     (:file "semantic-map" :depends-on ("package" "owl-type-initializers"))
-     (:file "designator-utils" :depends-on ("package" "semantic-map"))))))
+(in-package :sem-map-utils)
+
+(defvar *owl-type-initializers* nil
+  "Alist that maps from strings representing OWL types to
+  initialization functions that return an instance of
+  SEMANTIC-MAP-PART or its derivatives.")
+
+(defmacro def-owl-type-initializer ((type name owl-name) &body body)
+  (declare (type string type)
+           (type symbol name owl-name))
+  `(flet ((type-initializer (,name ,owl-name) ,@body))
+     (when (assoc ,type *owl-type-initializers* :test #'equal)
+       (style-warn "Redefining OWL type initializer ~a." ,type))
+     (setf *owl-type-initializers*
+           (cons (cons ,type #'type-initializer)
+                 (remove ,type *owl-type-initializers* :test #'equal)))))
+
+(defun run-owl-type-initializer (type name owl-name)
+  (let ((initializer (cdr (assoc type *owl-type-initializers* :test #'equal))))
+    (when initializer
+      (funcall initializer name owl-name))))
