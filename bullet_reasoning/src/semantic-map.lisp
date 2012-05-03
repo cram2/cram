@@ -37,6 +37,21 @@
                  between the body that corresponds to the link and the
                  corresponding object in the semantic map.")))
 
+(defgeneric semantic-map-part-pose (semantic-map part-name)
+  (:documentation "Returns the pose of the part `part-name'.")
+  (:method ((semantic-map semantic-map-object) part-name)
+    (let ((part (lazy-car (sem-map-utils:sub-parts-with-name
+                           semantic-map part-name :recursive t))))
+      (unless part
+        (error 'simple-error
+               :format-control "Unable to find semantic map object `~a'."
+               :format-arguments (list part-name)))
+      (unless (typep part 'sem-map-utils:semantic-map-geom)
+        (error 'simple-error
+               :format-control "Semantic map object `~a' is not a geometric object."
+               :format-arguments (list part-name)))
+      (sem-map-utils:pose part))))
+
 (defmethod initialize-instance :after ((semantic-map semantic-map-object)
                                        &key)
   (with-slots (link-offsets) semantic-map
@@ -158,3 +173,4 @@
           (unless (eq (cl-urdf:joint-type joint)
                       :fixed)
             (update-semantic-map-joint sem-map joint-name)))))))
+
