@@ -73,6 +73,10 @@
            #:resolve-designator
            #:delete-location-generator-function
            #:delete-location-validation-function
+           #:enable-location-generator-function
+           #:disable-location-generator-function
+           #:enable-location-validation-function
+           #:disable-location-validation-function
            ;; Properties & prolog related stuff
            #:loc-desig?
            #:obj-desig?

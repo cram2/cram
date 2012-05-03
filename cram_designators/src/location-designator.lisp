@@ -68,6 +68,13 @@
   "The list of instances of type LOCATION-RESOLUTION-FUNCTION that are
   used to verify solutions.")
 
+(defvar *disabled-location-generators* nil
+  "List of location generators that should not be used although registered.")
+
+(defvar *disabled-validation-functions* nil
+  "List of validation function names that should not be used although
+  registered.")
+
 (defparameter *location-generator-max-retries* 50)
 
 (defun register-location-resolution-function (place priority function &optional documentation)
@@ -151,9 +158,16 @@ boolean indicating if the solution is valid or not."
               (assert-desig-binding new-desig (slot-value new-desig 'current-solution))))))))
 
 (defmethod resolve-designator ((desig location-designator) (role (eql 'default-role)))
-  (let* ((generators (location-resolution-function-list *location-generators*))
+  (let* ((generators (location-resolution-function-list (remove-if (lambda (generator)
+                                                                     (member generator *disabled-location-generators*))
+                                                                   *location-generators*
+                                                                   :key #'location-resolution-function-function)))
          (validation-functions (cons (constantly t)
-                                     (location-resolution-function-list *location-validation-functions*)))
+                                     (location-resolution-function-list
+                                      (remove-if (lambda (validation-function)
+                                                   (member validation-function *disabled-validation-functions*))
+                                                 *location-validation-functions*
+                                                 :key #'location-resolution-function-function))))
          (solutions (lazy-mapcan (lambda (fun)
                                    (funcall fun desig))
                                  generators)))
@@ -191,3 +205,17 @@ boolean indicating if the solution is valid or not."
   (setf *location-validation-functions*
         (remove function-name *location-validation-functions*
                 :key #'location-resolution-function-function)))
+
+(defun enable-location-generator-function (function-name)
+  (setf *disabled-location-generators*
+        (remove function-name *disabled-location-generators*)))
+
+(defun disable-location-generator-function (function-name)
+  (pushnew function-name *disabled-location-generators*))
+
+(defun enable-location-validation-function (function-name)
+  (setf *disabled-validation-functions*
+        (remove function-name *disabled-validation-functions*)))
+
+(defun disable-location-validation-function (function-name)
+  (pushnew function-name *disabled-validation-functions*))
