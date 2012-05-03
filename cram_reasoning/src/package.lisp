@@ -43,6 +43,7 @@
            #:take
            #:string-concat
            #:==
+           #:equal
            #:format
            #:warn
            #:error

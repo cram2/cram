@@ -40,7 +40,15 @@
   (bin-pred-fact <)
   (bin-pred-fact >)
   (bin-pred-fact <=)
-  (bin-pred-fact >=))
+  (bin-pred-fact >=)
+  
+  (<- (equal ?x ?y)
+    (ground (?x ?y))
+    (lisp-pred equal ?x ?y))
+
+  (<- (equal ?x ?y)
+    (not (ground (?x ?y)))
+    (== ?x ?y)))
 
 (def-fact-group list-utils ()
   (<- (member ?x (?x . ?y)))
