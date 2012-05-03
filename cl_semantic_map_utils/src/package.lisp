@@ -31,12 +31,13 @@
 (desig-props:def-desig-package semantic-map-utils
   (:nicknames #:sem-map-utils #:cl-semantic-map-utils)
   (:use #:common-lisp #:json-prolog #:cut)
-  (:export semantic-map semantic-map-part semantic-map-geom
+  (:export semantic-map semantic-map-part semantic-map-geom semantic-map-joint
            semantic-map-parts semantic-map-part-names get-semantic-map
-           clear-semantic-map-cache with-clear-semantic-map-cache
-           with-semantic-map-cache sub-parts-with-type parts
-           copy-semantic-map-object sub-parts-with-name name owl-name
-           obj-type urdf-name sub-parts update-pose pose dimensions
+           joint-minimal-value joint-maximal-value joint-direction
+           joint-connected-objects clear-semantic-map-cache
+           with-clear-semantic-map-cache with-semantic-map-cache
+           sub-parts-with-type parts copy-semantic-map-object sub-parts-with-name
+           name owl-name obj-type urdf-name sub-parts update-pose pose dimensions
            aliases urdf-name->obj-name owl-type-p
            designator->semantic-map-objects)
   (:desig-properties name type part-of on in))
