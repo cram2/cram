@@ -64,6 +64,8 @@
            (joint (car joints)))
       (assert (eql (length joints) 1) ()
               "Opening of objects with more than one joint not supported")
+      (assert (sem-map-utils:urdf-name joint) ()
+              "Joint ~a not bound to a urdf joint." (sem-map-utils:name joint))
       (setf (joint-state obj (sem-map-utils:urdf-name joint))
             (sem-map-utils:joint-maximal-value joint)))))
 
