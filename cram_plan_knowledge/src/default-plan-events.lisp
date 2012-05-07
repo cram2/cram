@@ -62,7 +62,10 @@
     :initarg :link :reader event-link
     :initform (error
                'simple-error
-               :format-control "OBJECT-CONNECTION-EVENT requires a link.")))
+               :format-control "OBJECT-CONNECTION-EVENT requires a link."))
+   (side
+    :initarg :side :reader event-side
+    :initform nil))
   (:documentation "Base class for all events that indicate that a
   physical connection between an object and the robot changed."))
 
