@@ -286,7 +286,8 @@
                                :object obj
                                :link (ecase side
                                       (:right "r_gripper_r_finger_tip_link")
-                                      (:left "l_gripper_r_finger_tip_link"))))
+                                      (:left "l_gripper_r_finger_tip_link"))
+                               :side side))
     (assert-occasion `(object-in-hand ,obj ,side))))
 
 (def-action-handler put-down (obj location side obstacles)
@@ -328,7 +329,8 @@
                                :object obj
                                :link (ecase side
                                        (:right "r_gripper_r_finger_tip_link")
-                                       (:left "l_gripper_r_finger_tip_link"))))
+                                       (:left "l_gripper_r_finger_tip_link"))
+                               :side side))
     (execute-arm-trajectory
      side (ik->trajectory (lazy-car unhand-solution)))
     (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))))
