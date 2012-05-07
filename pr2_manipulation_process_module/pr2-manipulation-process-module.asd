@@ -63,5 +63,5 @@
              (:file "collision-environment" :depends-on ("package"))
              (:file "process-module"
               :depends-on ("package" "kinematics" "collision-environment" "controller-manager"))
-             (:file "rete" :depends-on ("package" "collision-environment"))
+             (:file "events" :depends-on ("package" "collision-environment"))
              (:file "designator" :depends-on ("package" "process-module"))))))
