@@ -30,8 +30,11 @@
 
 (in-package :btr)
 
-(defclass semantic-map-object (robot-object sem-map-utils:semantic-map)
-  ((link-offsets :initform (make-hash-table :test 'equal)
+(defclass semantic-map-object (robot-object)
+  ((semantic-map :reader semantic-map
+                 :initform (sem-map-utils:get-semantic-map)
+                 :initarg :semantic-map)
+   (link-offsets :initform (make-hash-table :test 'equal)
                  :reader link-offsets
                  :documentation "Mapping of link names to pose offsets
                  between the body that corresponds to the link and the
@@ -41,7 +44,7 @@
   (:documentation "Returns the pose of the part `part-name'.")
   (:method ((semantic-map semantic-map-object) part-name)
     (let ((part (lazy-car (sem-map-utils:sub-parts-with-name
-                           semantic-map part-name :recursive t))))
+                           (semantic-map semantic-map) part-name :recursive t))))
       (unless part
         (error 'simple-error
                :format-control "Unable to find semantic map object `~a'."
@@ -55,7 +58,8 @@
 (defmethod initialize-instance :after ((semantic-map semantic-map-object)
                                        &key)
   (with-slots (link-offsets) semantic-map
-    (dolist (part (sem-map-utils:semantic-map-parts semantic-map :recursive t))
+    (dolist (part (sem-map-utils:semantic-map-parts
+                   (semantic-map semantic-map) :recursive t))
       (when (and (sem-map-utils:urdf-name part)
                  (typep part 'sem-map-utils:semantic-map-geom))
         (let ((link-pose (link-pose semantic-map (sem-map-utils:urdf-name part))))
@@ -109,10 +113,10 @@
        :relative nil :recursive t))))
 
 (defmethod copy-object ((obj semantic-map-object) (world bt-reasoning-world))
-  (with-slots (pose sem-map-utils:parts) obj
+  (with-slots (semantic-map link-offsets) obj
     (change-class
      (call-next-method) 'semantic-map-object
-     :parts sem-map-utils:parts)))
+     :semantic-map (sem-map-utils:copy-semantic-map-object semantic-map))))
 
 (defmethod add-object ((world bt-world) (type (eql 'semantic-map)) name pose &key urdf)
   (make-instance 'semantic-map-object
@@ -123,12 +127,11 @@
             (cl-urdf:robot urdf)
             (string (handler-bind ((cl-urdf:urdf-type-not-supported #'muffle-warning))
                       (cl-urdf:parse-urdf urdf))))
-    :parts (slot-value (sem-map-utils:get-semantic-map) 'sem-map-utils::parts)
     :collision-group :static-filter
     :collision-mask '(:default-filter :character-filter)))
 
 (defun update-semantic-map-joint (sem-map joint-name)
-  (with-slots (urdf links link-offsets) sem-map
+  (with-slots (urdf links link-offsets semantic-map) sem-map
     ;; We shouldn't use parent here but child for drawers. The problem
     ;; is that in the current semantic map, the drawer is connected to
     ;; the door by the joint. We will keep this code until the
@@ -138,10 +141,10 @@
            (child-link (gethash child-link-name links))
            (parent-sem-map-obj (lazy-car
                                 (sem-map-utils:sub-parts-with-name
-                                 sem-map (owl-name-from-urdf-name sem-map parent-link-name))))
+                                 semantic-map (owl-name-from-urdf-name sem-map parent-link-name))))
            (child-sem-map-obj (lazy-car
                                (sem-map-utils:sub-parts-with-name
-                                sem-map  (owl-name-from-urdf-name sem-map child-link-name))))
+                                semantic-map (owl-name-from-urdf-name sem-map child-link-name))))
            (sem-map-obj  (string-case (if parent-sem-map-obj
                                           (sem-map-utils:obj-type parent-sem-map-obj)
                                           "")
