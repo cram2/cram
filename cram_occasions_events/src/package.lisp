@@ -94,6 +94,9 @@
            #:robot-state-changed
            #:object-connection-event
            #:object-attached #:object-detached
+           #:event-object-designator #:object-designator
+           #:perception-source #:object #:event-object
+           #:link #:event-link #:side #:event-side
            #:holds)
   (:import-from #:cpl-impl
                 #:make-fluent
