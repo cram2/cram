@@ -45,11 +45,12 @@
     (%object ?w ?obj ?obj-instance)
     (lisp-type ?obj-instance semantic-map-object))
   
-  (<- (container ?w ?sem-map ?link)
+  (<- (container ?w ?semantic-map-object ?link)
     (bound ?link)
     (lisp-pred identity ?link)
-    (semantic-map ?w ?sem-map)
-    (%object ?w ?sem-map ?sem-map-inst)    
+    (semantic-map ?w ?semantic-map-object)
+    (%object ?w ?semantic-map-object ?semantic-map-instance)
+    (slot-value ?semantic-map-instance semantic-map ?semantic-map)
     (once
      (or
       (and
@@ -57,14 +58,14 @@
        ;; moment. The link the object is standing on relates to an owl
        ;; object of type Door, not to the actual drawer. That's why we
        ;; actually need to 
-       (lisp-fun owl-name-from-urdf-name ?sem-map-inst ?link
+       (lisp-fun owl-name-from-urdf-name ?semantic-map ?link
                  ?owl-name)
-       (lisp-fun sem-map-utils:sub-parts-with-name ?sem-map-inst ?owl-name
+       (lisp-fun sem-map-utils:sub-parts-with-name ?semantic-map ?owl-name
                  (?owl-obj))
        (lisp-fun sem-map-utils:obj-type ?owl-obj ?owl-type)
        (lisp-pred sem-map-utils:owl-type-p ?owl-type "Container"))
       (and
-       (lisp-fun parent-link-name ?sem-map-inst ?link ?parent)
+       (lisp-fun parent-link-name ?semantic-map ?link ?parent)
        (container ?w ?sem-map ?parent)))))
 
   (<- (container ?w ?sem-map ?link)
@@ -76,31 +77,31 @@
   (<- (semantic-map-part ?world ?semantic-map ?part-name)
     (%semantic-map-part ?world ?semantic-map ?part-name ?_))
 
-  (<- (%semantic-map-part ?world ?semantic-map ?part-name ?part-instance)
+  (<- (%semantic-map-part ?world ?semantic-map-object ?part-name ?part-instance)
     (ground ?part-name)
-    (semantic-map ?world ?semantic-map)
-    (%object ?world ?semantic-map ?semantic-map-instance)
+    (semantic-map ?world ?semantic-map-object)
+    (%object ?world ?semantic-map-object ?semantic-map-object-instance)
+    (slot-value ?semantic-map-object-instance semantic-map ?semantic-map-instance)
     (lisp-fun sem-map-utils:semantic-map-part ?semantic-map-instance
                ?part-name :recursive t ?part-instance)
     (lisp-pred identity ?part-instance))
 
-  (<- (%semantic-map-part ?world ?semantic-map ?part-name ?part-instance)
+  (<- (%semantic-map-part ?world ?semantic-map-object ?part-name ?part-instance)
     (not (ground ?part-name))
-    (semantic-map ?world ?semantic-map)
-    (%object ?world ?semantic-map ?semantic-map-instance)
+    (semantic-map ?world ?semantic-map-object)
+    (%object ?world ?semantic-map-object ?semantic-map-object-instance)
+    (slot-value ?semantic-map-object-instance semantic-map ?semantic-map-instance)
     (lisp-fun sem-map-utils:semantic-map-parts ?semantic-map-instance
               :recursive t ?parts)
     (member ?part-instance ?parts)
     (lisp-fun sem-map-utils:name ?part-instance ?part-name))
 
-  (<- (semantic-map-part-type ?world ?semantic-map ?part-name ?type)
-    (semantic-map-part ?world ?semantic-map ?part-name)
-    (%object ?world ?semantic-map ?semantic-map-instance)
-    (lisp-fun sem-map-utils:semantic-map-part ?semantic-map-instance
-              ?part-name :recursive t ?part)
+  (<- (semantic-map-part-type ?world ?semantic-map-object ?part-name ?type)
+    (%semantic-map-part ?world ?semantic-map-object ?part-name ?part)
     (lisp-fun sem-map-utils:obj-type ?part ?part-type)
     (equal ?part-type ?type))
 
-  (<- (semantic-map-part-pose ?world ?semantic-map ?part-name ?pose)
-    (%semantic-map-part ?world ?semantic-map ?part-name ?part-instance)
-    (lisp-fun semantic-map-part-pose ?part-instance ?pose)))
+  (<- (semantic-map-part-pose ?world ?semantic-map-object ?part-name ?pose)
+    (%semantic-map-part ?world ?semantic-map-object ?part-name ?part-instance)
+    (%object ?world ?semantic-map-object ?semantic-map-object-instance)
+    (lisp-fun semantic-map-part-pose ?semantic-map-object-instance ?part-instance ?pose)))

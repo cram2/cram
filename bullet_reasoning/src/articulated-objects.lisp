@@ -52,7 +52,7 @@
                (owl-name-from-urdf-name obj name)
                name))
          (part (when part-name
-                 (lazy-car (sem-map-utils:sub-parts-with-name obj part-name)))))
+                 (lazy-car (sem-map-utils:sub-parts-with-name (semantic-map obj) part-name)))))
     (assert part-name () "Link `~a' could not be mapped to a semantic map instance"
             name)
     (assert part () "Could not find semantic map object named `~a'" part-name)
