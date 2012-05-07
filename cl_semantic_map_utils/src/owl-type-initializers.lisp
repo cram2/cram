@@ -33,17 +33,17 @@
   initialization functions that return an instance of
   SEMANTIC-MAP-PART or its derivatives.")
 
-(defmacro def-owl-type-initializer ((type name owl-name) &body body)
+(defmacro def-owl-type-initializer ((type name owl-name parent) &body body)
   (declare (type string type)
            (type symbol name owl-name))
-  `(flet ((type-initializer (,name ,owl-name) ,@body))
+  `(flet ((type-initializer (,name ,owl-name ,parent) ,@body))
      (when (assoc ,type *owl-type-initializers* :test #'equal)
        (style-warn "Redefining OWL type initializer ~a." ,type))
      (setf *owl-type-initializers*
            (cons (cons ,type #'type-initializer)
                  (remove ,type *owl-type-initializers* :test #'equal)))))
 
-(defun run-owl-type-initializer (type name owl-name)
+(defun run-owl-type-initializer (type name owl-name parent)
   (let ((initializer (cdr (assoc type *owl-type-initializers* :test #'equal))))
     (when initializer
-      (funcall initializer name owl-name))))
+      (funcall initializer name owl-name parent))))

@@ -38,6 +38,6 @@
            with-clear-semantic-map-cache with-semantic-map-cache
            sub-parts-with-type parts copy-semantic-map-object sub-parts-with-name
            name owl-name obj-type urdf-name sub-parts update-pose pose dimensions
-           aliases urdf-name->obj-name owl-type-p
+           aliases urdf-name->obj-name owl-type-p parent
            designator->semantic-map-objects)
   (:desig-properties name type part-of on in))

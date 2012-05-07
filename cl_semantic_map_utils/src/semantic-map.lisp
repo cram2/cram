@@ -42,7 +42,8 @@
    (owl-name :initarg :owl-name :reader owl-name)
    (urdf-name :initarg :urdf-link-name :reader urdf-name)
    (sub-parts :reader sub-parts)
-   (aliases :initarg :aliases :reader aliases)))
+   (aliases :initarg :aliases :reader aliases)
+   (parent :initarg :parent :initform nil :reader parent)))
 
 (defclass semantic-map-geom (semantic-map-part)
   ((pose :initarg :pose :reader pose)
@@ -77,7 +78,11 @@
             ;; This is pretty ugly. It basically means that we always
             ;; query the complete semantic map the first time we
             ;; create it because SUB-PARTS expands everything
-            (mapcar #'copy-semantic-map-object (sub-parts part)))
+            (mapcar (lambda (part)
+                      (let ((copied-part (copy-semantic-map-object part)))
+                        (setf (slot-value copied-part 'parent) copy)
+                        copied-part))
+                    (sub-parts part)))
       copy))
   
   (:method ((geom semantic-map-geom))
@@ -159,12 +164,12 @@
                  (semantic-map-part part name :recursive recursive))
                (semantic-map-parts part)))))))
 
-(defgeneric make-semantic-map-part (type name owl-name)
-  (:method ((type t) name owlname)
+(defgeneric make-semantic-map-part (type name owl-name parent)
+  (:method ((type t) name owlname parent)
     ;; TODO(moesenle): The default handling feels pretty wrong
     ;; here. We need to find a better way to encode default handling
     ;; somehow inside an owl type initializer.
-    (or (run-owl-type-initializer type name owlname)
+    (or (run-owl-type-initializer type name owlname parent)
         (with-vars-bound (?pose ?dim ?labels)
             (lazy-car
              (json-prolog:prolog
@@ -180,7 +185,8 @@
                   :type type :name name :owl-name owlname
                   :aliases (mapcar (lambda (label)
                                      (remove #\' (symbol-name label)))
-                                   aliases))
+                                   aliases)
+                  :parent parent)
                 (make-instance 'semantic-map-geom
                   :type type
                   :name name
@@ -193,7 +199,8 @@
                   :dimensions (apply #'cl-transforms:make-3d-vector ?dim)
                   :aliases (mapcar (lambda (label)
                                      (remove #\' (symbol-name label)))
-                                   aliases))))))))
+                                   aliases)
+                  :parent parent)))))))
 
 (defgeneric update-pose (obj new-pose &key relative recursive)
   (:documentation "Updates the pose of `obj' using `new-pose'. When
@@ -241,7 +248,8 @@
                    (make-semantic-map-part
                     (remove #\' (symbol-name ?type))
                     (remove #\' (symbol-name ?name))
-                    (remove #\' (symbol-name ?sub)))))))
+                    (remove #\' (symbol-name ?sub))
+                    part)))))
             (json-prolog:prolog
              `(and
                ("rdf_has" ,(owl-name part) "http://ias.cs.tum.edu/kb/knowrob.owl#properPhysicalParts" ?sub)
@@ -303,7 +311,8 @@
                                     (list (make-semantic-map-part
                                            (remove #\' (symbol-name ?type))
                                            (remove #\' (symbol-name ?n))
-                                           (remove #\' (symbol-name ?o)))))))
+                                           (remove #\' (symbol-name ?o))
+                                           nil)))))
                               (json-prolog:prolog
                                '(and ("rootObjects" ?objs)
                                  ("member" ?o ?objs)
@@ -391,7 +400,7 @@ of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns
                       (sub-parts-with-name part name))))
                  (semantic-map-parts map))))
 
-(def-owl-type-initializer ("PrismaticJoint" name owl-name)
+(def-owl-type-initializer ("PrismaticJoint" name owl-name parent)
   (with-vars-bound (?min ?max ?connected ?labels ?directionx ?directiony ?directionz)
       (car
        (json-prolog:prolog-1
@@ -436,9 +445,10 @@ of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns
                                  (unless (is-var ?connected) ?connected))
       :aliases (mapcar (lambda (label)
                          (remove #\' (symbol-name label)))
-                       (unless (is-var ?labels) ?labels)))))
+                       (unless (is-var ?labels) ?labels))
+      :parent parent)))
 
-(def-owl-type-initializer ("HingedJoint" name owl-name)
+(def-owl-type-initializer ("HingedJoint" name owl-name parent)
   (with-vars-bound (?min ?max ?connected ?labels)
       (car
        (json-prolog:prolog-1
@@ -468,4 +478,5 @@ of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns
                                  (unless (is-var ?connected) ?connected))
       :aliases (mapcar (lambda (label)
                          (remove #\' (symbol-name label)))
-                       (unless (is-var ?labels) ?labels)))))
+                       (unless (is-var ?labels) ?labels))
+      :parent parent)))
