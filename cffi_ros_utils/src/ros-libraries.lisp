@@ -52,7 +52,8 @@
    (car (ros-load:rospack "cflags-only-I" pkg-name))
    :remove-empty-subseqs t))
 
-(defclass ros-grovel-file (cffi-grovel:grovel-file) ())
+(defclass ros-grovel-file (cffi-grovel:grovel-file)
+  ((ros-package :initarg :ros-package)))
 
 (defmethod reinitialize-instance :after ((c ros-grovel-file)
                                          &key (ros-package ros-load:*current-ros-package*))
