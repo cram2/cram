@@ -36,4 +36,5 @@
   (:shadowing-import-from #:btr object pose)
   (:export *robot-name* *check-ik-joint-states* *robot-valid-sides*)
   (:desig-properties side to see reach name type obj
-                     reachable-from pose object on))
+                     reachable-from pose object on execute
+                     location action))

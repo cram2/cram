@@ -71,21 +71,16 @@
          0.05)
       t))
 
-(defun pose-properties (world designator)
-  (append (desig-prop-values designator 'pose)
-          (mapcar (lambda (object)
-                    (typecase object
-                      (object-designator
-                       (cl-transforms:origin
-                        (designator-pose (current-desig object))))
-                      (t (cl-transforms:origin
-                          (btr:pose (btr:object world object))))))
-                  (append (desig-prop-values designator 'obj)
-                          (desig-prop-values designator 'object)))
-          (mapcar (lambda (location)
-                    (designator-pose
-                     (current-desig location)))
-                  (desig-prop-values designator 'location))))
+(defun reach-designator (designator)
+  (lazy-car
+   (prolog `(reachability-designator ,designator))))
+
+(defun pose-properties (designator)
+  (force-ll
+   (lazy-mapcar
+    (lambda (solution)
+      (var-value '?pose solution))
+    (prolog `(designator-reach-pose ,designator ?pose)))))
 
 (defun check-reachability (robot reach-pose &key side)
   (etypecase reach-pose
@@ -124,7 +119,7 @@
                poses)))))
 
 (defun check-ik-solution (designator pose)
-  (if (not (eq (desig-prop-value designator 'to) 'reach))
+  (if (not (reach-designator designator))
       t
       (let ((cached-function
               (or (gethash designator *designator-ik-check-cache*)
@@ -135,7 +130,7 @@
                                                :gravity-vector (bt:gravity-vector state))))
                                (robot (btr:object world *robot-name*)))
                           (make-ik-check-function
-                           robot (pose-properties world designator)
+                           robot (pose-properties designator)
                            (desig-prop-value designator 'side)))))))
         (funcall cached-function pose))))
 

@@ -86,16 +86,14 @@
     (assert (object-pose ?w ?robot ?robot-pose))
     (not (contact ?w ?robot ?_))
     (-> (desig-prop ?desig (side ?side)) (true) (true))
-    (forall (or (desig-prop ?desig (obj ?obj))
-                (desig-prop ?desig (object ?obj)))
-            (reachable ?w ?robot ?obj ?side))
-    (forall (or (desig-prop ?desig (pose ?pose))
-                (and
-                 (desig-prop ?desig (location ?location))
-                 (lisp-fun current-desig ?location ?current-location)
-                 (desig-reference ?current-location ?pose)))
-            (and
-             (pose-reachable ?w ?robot ?pose ?side))))
+    (forall (designator-reach-pose ?desig ?pose)
+            (or
+             (and
+              (lisp-type ?pose cl-transforms:pose)
+              (pose-reachable ?w ?robot ?pose ?side))
+             (and
+              (lisp-type ?pose cl-transforms:3d-vector)
+              (point-reachable ?w ?robot ?pose ?side)))))
     
   (<- (location-valid
        ?desig ?pose
@@ -107,10 +105,7 @@
        ?desig ?pose
        (desig-check-to-reach ?desig ?pose))
     (desig-prop ?desig (to reach))
-    (or (desig-prop ?desig (obj ?_))
-        (desig-prop ?desig (object ?_))
-        (desig-prop ?desig (location ?_))
-        (desig-prop ?desig (pose ?_))))
+    (reachability-designator ?desig))
 
   (<- (desig-check-to-see ?desig ?robot-pose)
     (bullet-world ?w)
@@ -140,3 +135,34 @@
                    (member ?point ?n-solutions)
                    (btr-desig-solution-valid ?desig ?point))
            ?points)))
+
+(def-fact-group reachability-designators ()
+
+  (<- (reachability-designator ?designator)
+    (desig-prop ?designator (to reach)))
+
+  (<- (reachability-designator ?designator)
+    (desig-prop ?designator (to execute))
+    (desig-prop ?designator (action ?_)))
+
+  (<- (designator-reach-pose ?designator ?pose)
+    (reachability-designator ?designator)
+    (desig-prop ?designator (pose ?pose)))
+
+  (<- (designator-reach-pose ?designator ?pose)
+    (reachability-designator ?designator)
+    (or (desig-prop ?designator (object ?object))
+        (desig-prop ?designator (obj ?object)))
+    (desig-location-prop ?object ?pose))
+
+  (<- (designator-reach-pose ?designator ?pose)
+    (reachability-designator ?designator)
+    (desig-prop ?designator (location ?location))
+    (desig-location-prop ?location ?pose))
+
+  (<- (designator-reach-pose ?designator ?pose)
+    (reachability-designator ?designator)
+    (desig-prop ?designator (to execute))
+    (desig-prop ?designator (action ?action))
+    (plan-knowledge:trajectory-point ?action ?pose)))
+
