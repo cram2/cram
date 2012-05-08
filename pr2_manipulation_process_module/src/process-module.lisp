@@ -35,7 +35,7 @@
 (defparameter *grasp-approach-distance* 0.10
   "Distance to approach the object. This parameter is used to
   calculate the pose to approach with move_arm.")
-(defparameter *grasp-distance* 0.00
+(defparameter *grasp-distance* 0.15
   "Tool length to calculate the pre-grasp pose, i.e. the pose at which
   the gripper is closed.")
 (defparameter *pre-put-down-distance* 0.07
@@ -226,9 +226,7 @@
                                 (grasp-pose
                                   (calculate-grasp-pose
                                    obj
-                                   :tool (calculate-tool-pose
-                                          grasp
-                                          *grasp-distance*))))
+                                   :tool grasp)))
                             ;; If we find IK solutions
                             ;; for both poses, yield them
                             ;; to the lazy list
@@ -513,7 +511,7 @@ by `planners' until one succeeds."
   (collision-environment-set-laser-period)
   (apply #'call-action (reference desig)))
 
-(defun open-drawer (pose side &optional (distance 0.15))
+(defun open-drawer (pose side &optional (distance *grasp-distance*))
   "Generates and executes a pull trajectory for the `side' arm in order
    to open the drawer whose handle is at `pose'."
   (cl-tf:wait-for-transform *tf*
@@ -600,7 +598,7 @@ by `planners' until one succeeds."
         (- distance) 0.0 0.0)
        (cl-transforms:make-identity-rotation))))))
 
-(defun close-drawer (pose side &optional (distance 0.15))
+(defun close-drawer (pose side &optional (distance *grasp-distance*))
   "Generates and executes a push trajectory for the `side' arm in order
    to close the drawer whose handle is at `pose'."
   (cl-tf:wait-for-transform *tf*
