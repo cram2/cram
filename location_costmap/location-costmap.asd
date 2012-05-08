@@ -33,6 +33,7 @@
                "cram-math"
                "cram-utilities"
                "cram-roslisp-common"
+               "cram-plan-knowledge"
                "nav_msgs-msg"
                "arm_navigation_msgs-msg"
                "visualization_msgs-msg"
