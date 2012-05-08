@@ -93,7 +93,7 @@
                                    "/r_arm_controller/joint_trajectory_generator"
                                    "pr2_controllers_msgs/JointTrajectoryAction"))
   (setf *trajectory-action-both* (actionlib:make-action-client
-                                   "/both_arms_controller/joint_trajectory_generator"
+                                   "/both_arms_controller/joint_trajectory_action"
                                    "pr2_controllers_msgs/JointTrajectoryAction"))
   (setf *trajectory-action-torso* (actionlib:make-action-client
                                    "/torso_controller/joint_trajectory_action"
@@ -568,6 +568,7 @@ by `planners' until one succeeds."
          (grasp-ik (lazy-car (get-ik side grasp-pose)))
          (open-ik (lazy-car (get-ik side open-pose)))
          (arm-away-ik (lazy-car (get-ik side arm-away-pose))))
+    (format t "pre-grasp-pose ~a~%" pre-grasp-pose)
     (unless pre-grasp-ik
       (error 'manipulation-pose-unreachable
              :format-control "Pre-grasp pose for handle not reachable: ~a"
@@ -599,8 +600,8 @@ by `planners' until one succeeds."
        (cl-transforms:make-identity-rotation))))))
 
 (defun close-drawer (pose side &optional (distance 0.15))
-  "Generates and executes a push trajectory for the `side' arm in order
-   to close the drawer whose handle is at `pose'."
+  "Generates and executes a push trajectory for the `side' arm in
+   order to close the drawer whose handle is at `pose'."
   (cl-tf:wait-for-transform *tf*
                             :timeout 1.0
                             :time (tf:stamp pose)
@@ -683,3 +684,190 @@ by `planners' until one succeeds."
         (+ distance) 0.0 0.0)
        (cl-transforms:make-identity-rotation))))))
 
+(defun grasp-object-with-both-arms (obj obstacles)
+  "Grasp an object `obj' with both arms considering the obstacles `obstacles'."
+  ;; build collision environment
+  (roslisp:ros-info (pr2-manip process-module) "Clearing collision map")
+  (clear-collision-objects)
+  (roslisp:ros-info (pr2-manip process-module) "Adding object as collision object")
+  (register-collision-object obj)
+  (roslisp:ros-info (pr2-manip process-module) "Registering semantic map objects")
+  (sem-map-coll-env:publish-semantic-map-collision-objects)
+  (dolist (obstacle (cut:force-ll obstacles))
+    (register-collision-object obstacle))
+  ;; compute grasping poses and execute dual arm grasp
+  (multiple-value-bind (left-grasp-pose right-grasp-pose)
+      (compute-both-arm-grasping-poses obj)
+    (execute-both-arm-grasp left-grasp-pose right-grasp-pose)))
+
+(defun compute-both-arm-grasping-poses (obj)
+  "Computes and returns the two grasping poses for an object `obj'
+that has to be grasped with two grippers."
+  (let* ((object-type (desig-prop-value obj 'type))
+        (object-pose (desig:designator-pose obj))
+         (object-transform (cl-transforms:pose->transform object-pose)))
+    ;; TODO(Georg): change these strings into symbols from the designator package
+    (cond ((equal object-type "Pot")
+           (let* (
+                  ;; the following magic-numbers came from Tom's demo
+                  (relative-left-handle-transform
+                    (cl-transforms:make-transform
+                     (cl-transforms:make-3d-vector
+                      0.136 -0.012 -0.014)
+                     (cl-transforms:make-quaternion
+                      -0.179 -0.684 0.685 -0.175)))
+                  (relative-right-handle-transform
+                    (cl-transforms:make-transform
+                     (cl-transforms:make-3d-vector
+                      -0.130 -0.008 -0.013)
+                     (cl-transforms:make-quaternion
+                      -0.677 0.116 0.168 0.707)))
+                  ;; get grasping poses for the handles
+                  (left-grasp-pose (cl-transforms:transform-pose
+                                    object-transform
+                                    relative-left-handle-transform))
+                  (right-grasp-pose (cl-transforms:transform-pose
+                                     object-transform
+                                     relative-right-handle-transform))
+                  ;; make 'em stamped poses
+                  (left-grasp-stamped-pose (cl-tf:make-pose-stamped
+                                            (cl-tf:frame-id object-pose)
+                                            (cl-tf:stamp object-pose)
+                                            (cl-transforms:origin left-grasp-pose)
+                                            (cl-transforms:orientation left-grasp-pose)))
+                  (right-grasp-stamped-pose (cl-tf:make-pose-stamped
+                                            (cl-tf:frame-id object-pose)
+                                            (cl-tf:stamp object-pose)
+                                            (cl-transforms:origin right-grasp-pose)
+                                            (cl-transforms:orientation right-grasp-pose))))
+             ;; return the grasping poses
+             (values left-grasp-stamped-pose right-grasp-stamped-pose)))
+          ((equal object-type "BigPlate")
+           ;; TODO(Georg): replace these identities with the actual values
+           (let ((left-grasp-pose (cl-transforms:make-identity-pose))
+                 (right-grasp-pose (cl-transforms:make-identity-pose)))
+             (values left-grasp-pose right-grasp-pose)))
+          (t (error 'manipulation-failed
+                    :format-control "Invalid objects for dual-arm manipulation specified.")))))
+
+(defun execute-both-arm-grasp
+    (grasping-pose-left grasping-pose-right)
+  "Grasps an object with both grippers
+simultaneously. `grasping-pose-left' and `grasping-pose-right' specify
+the goal poses for the left and right gripper. Before closing the
+grippers, both grippers will be opened, the pre-grasp positions (using
+parameter *grasp-approach-distance*) will be commanded, and finally
+the grasping positions (with offset of parameter *grasp-distance*)
+will be commanded."
+  ;; make sure that the desired tf transforms exist
+  (cl-tf:wait-for-transform *tf*
+                            :timeout 1.0
+                            :time (tf:stamp grasping-pose-left)
+                            :source-frame (tf:frame-id grasping-pose-left)
+                            :target-frame "base_footprint")
+  (cl-tf:wait-for-transform *tf*
+                            :timeout 1.0
+                            :time (tf:stamp grasping-pose-right)
+                            :source-frame (tf:frame-id grasping-pose-right)
+                            :target-frame "base_footprint")
+  (let* ((grasping-pose-left-transform (cl-transforms:pose->transform grasping-pose-left))
+         (grasping-pose-right-transform (cl-transforms:pose->transform grasping-pose-right))
+         ;; get grasping poses and pre-poses for both sides
+         (pre-grasp-pose-left
+           (cl-tf:transform-pose *tf*
+                                 :pose (tf:pose->pose-stamped
+                                        (tf:frame-id grasping-pose-left)
+                                        (tf:stamp grasping-pose-left)
+                                        ; this is adding a tool and an
+                                        ; approach offset in
+                                        ; tool-frame
+                                        (cl-transforms:transform-pose
+                                         grasping-pose-left-transform
+                                         (cl-transforms:make-transform
+                                          (cl-transforms:make-3d-vector
+                                           (+ -0.18 (- *grasp-approach-distance*)) 0.0 0.0)
+                                          (cl-transforms:make-identity-rotation))))
+                                 :target-frame "base_footprint"))
+         (pre-grasp-pose-right
+           (cl-tf:transform-pose *tf*
+                                 :pose (tf:pose->pose-stamped
+                                        (tf:frame-id grasping-pose-right)
+                                        (tf:stamp grasping-pose-right)
+                                        ; this is adding a tool and an
+                                        ; approach offset in
+                                        ; tool-frame
+                                        (cl-transforms:transform-pose
+                                         grasping-pose-right-transform
+                                         (cl-transforms:make-transform
+                                          (cl-transforms:make-3d-vector
+                                           (+ -0.18 (- *grasp-approach-distance*)) 0.0 0.0)
+                                          (cl-transforms:make-identity-rotation))))
+                                 :target-frame "base_footprint"))
+         (grasp-pose-left
+           (cl-tf:transform-pose *tf*
+                                 :pose (tf:pose->pose-stamped
+                                        (tf:frame-id grasping-pose-left)
+                                        (tf:stamp grasping-pose-left)
+                                        ; this is adding a tool and an
+                                        ; approach offset in
+                                        ; tool-frame
+                                        (cl-transforms:transform-pose
+                                         grasping-pose-left-transform
+                                         (cl-transforms:make-transform
+                                          (cl-transforms:make-3d-vector
+                                           (+ -0.18 (- *grasp-distance*)) 0.0 0.0)
+                                          (cl-transforms:make-identity-rotation))))
+                                 :target-frame "base_footprint"))
+         (grasp-pose-right
+           (cl-tf:transform-pose *tf*
+                                 :pose (tf:pose->pose-stamped
+                                        (tf:frame-id grasping-pose-right)
+                                        (tf:stamp grasping-pose-right)
+                                        ; this is adding a tool and an
+                                        ; approach offset in
+                                        ; tool-frame
+                                        (cl-transforms:transform-pose
+                                         grasping-pose-right-transform
+                                         (cl-transforms:make-transform
+                                          (cl-transforms:make-3d-vector
+                                           (+ -0.18 (- *grasp-distance*)) 0.0 0.0)
+                                          (cl-transforms:make-identity-rotation))))
+                                 :target-frame "base_footprint"))
+         ;; get ik-solutions for all poses
+         (pre-grasp-left-ik (lazy-car (get-ik :left pre-grasp-pose-left)))
+         (pre-grasp-right-ik (lazy-car (get-ik :right pre-grasp-pose-right)))
+         (grasp-left-ik (lazy-car (get-ik :left grasp-pose-left)))
+         (grasp-right-ik (lazy-car (get-ik :right grasp-pose-right))))
+    ;; check if all for all poses ik-solutions exist
+    (unless pre-grasp-left-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "Trying to grasp with both arms -> pre-grasp pose for the left arm is NOT reachable."))
+    (unless pre-grasp-right-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "Trying to grasp with both arms -> pre-grasp pose for the right arm is NOT reachable."))
+    (unless grasp-left-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "Trying to grasp with both arms -> grasp pose for the left arm is NOT reachable."))
+    (unless grasp-right-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "Trying to grasp with both arms -> grasp pose for the right arm is NOT reachable."))
+    ;; simultaneously open both grippers
+    (cpl-impl:par
+      ;; TODO(Georg): only open the grippers to 50%,
+      ;; Tom said that this is necessary for the demo.
+      (open-gripper :left)
+      (open-gripper :right))
+    ;; simultaneously approach pre-grasp positions from both sides
+    (let ((new-stamp (roslisp:ros-time)))
+      (cpl-impl:par      
+        (execute-arm-trajectory :left (ik->trajectory pre-grasp-left-ik :stamp new-stamp))
+        (execute-arm-trajectory :right (ik->trajectory pre-grasp-right-ik :stamp new-stamp))))
+    ;; simultaneously approach grasp positions from both sides
+    (let ((new-stamp (roslisp:ros-time)))
+      (cpl-impl:par
+        (execute-arm-trajectory :left (ik->trajectory grasp-left-ik :stamp new-stamp))
+        (execute-arm-trajectory :right (ik->trajectory grasp-right-ik :stamp new-stamp))))
+    ;; simultaneously close both grippers
+    (cpl-impl:par
+      (close-gripper :left 50)
+      (close-gripper :right 50))))
