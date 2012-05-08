@@ -88,9 +88,12 @@
            #:*z-padding*
            #:2d-cov #:points-mean
            #:points-cov
+           #:reachability-designator
+           #:designator-reach-pose
            ;; Costmap configuration symbols
            #:costmap-size #:costmap-origin #:costmap-resolution
            #:costmap-padding #:costmap-manipulation-padding
            #:costmap-in-reach-distance #:costmap-reach-minimal-distance)
-  (:desig-properties #:to #:see #:reach))
+  (:desig-properties #:to #:see #:reach #:execute #:location #:pose #:obj
+                     #:object #:action))
 

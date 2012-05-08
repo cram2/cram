@@ -172,9 +172,20 @@ orientations differ by `sample-step'."
 (def-fact-group location-costmap-desigs (desig-costmap)
 
   (<- (desig-costmap ?desig ?cm)
-    (or (desig-prop ?desig (to see))
-        (desig-prop ?desig (to reach)))
+    (desig-prop ?desig (to see))
     (bagof ?pose (desig-location-prop ?desig ?pose) ?poses)
+    (costmap ?cm)
+    (lisp-fun 2d-pose-covariance ?poses 0.5 (?mean ?covariance))
+    (costmap-add-function pose-distribution (make-gauss-cost-function ?mean ?covariance) ?cm)
+    (symbol-value *orientation-samples* ?samples)
+    (symbol-value *orientation-sample-step* ?sample-step)
+    (costmap-add-orientation-generator
+     (make-angle-to-point-generator ?mean :samples ?samples :sample-step ?sample-step)
+     ?cm))
+  
+  (<- (desig-costmap ?desig ?cm)
+    (reachability-designator ?desig)
+    (bagof ?pose (designator-reach-pose ?desig ?pose) ?poses)
     (costmap ?cm)
     (lisp-fun 2d-pose-covariance ?poses 0.5 (?mean ?covariance))
     (costmap-in-reach-distance ?distance)
@@ -208,3 +219,34 @@ orientations differ by `sample-step'."
 
   (<- (costmap-samples ?cm ?solutions)
     (lisp-fun costmap-samples ?cm ?solutions)))
+
+(def-fact-group reachability-designators ()
+
+  (<- (reachability-designator ?designator)
+    (desig-prop ?designator (to reach)))
+
+  (<- (reachability-designator ?designator)
+    (desig-prop ?designator (to execute))
+    (desig-prop ?designator (action ?_)))
+
+  (<- (designator-reach-pose ?designator ?pose)
+    (reachability-designator ?designator)
+    (desig-prop ?designator (pose ?pose)))
+
+  (<- (designator-reach-pose ?designator ?point)
+    (reachability-designator ?designator)
+    (or (desig-prop ?designator (object ?object))
+        (desig-prop ?designator (obj ?object)))
+    (desig-location-prop ?object ?pose)
+    (lisp-fun cl-transforms:origin ?pose ?point))
+
+  (<- (designator-reach-pose ?designator ?pose)
+    (reachability-designator ?designator)
+    (desig-prop ?designator (location ?location))
+    (desig-location-prop ?location ?pose))
+
+  (<- (designator-reach-pose ?designator ?pose)
+    (reachability-designator ?designator)
+    (desig-prop ?designator (to execute))
+    (desig-prop ?designator (action ?action))
+    (plan-knowledge:trajectory-point ?action ?pose)))
