@@ -136,33 +136,4 @@
                    (btr-desig-solution-valid ?desig ?point))
            ?points)))
 
-(def-fact-group reachability-designators ()
-
-  (<- (reachability-designator ?designator)
-    (desig-prop ?designator (to reach)))
-
-  (<- (reachability-designator ?designator)
-    (desig-prop ?designator (to execute))
-    (desig-prop ?designator (action ?_)))
-
-  (<- (designator-reach-pose ?designator ?pose)
-    (reachability-designator ?designator)
-    (desig-prop ?designator (pose ?pose)))
-
-  (<- (designator-reach-pose ?designator ?pose)
-    (reachability-designator ?designator)
-    (or (desig-prop ?designator (object ?object))
-        (desig-prop ?designator (obj ?object)))
-    (desig-location-prop ?object ?pose))
-
-  (<- (designator-reach-pose ?designator ?pose)
-    (reachability-designator ?designator)
-    (desig-prop ?designator (location ?location))
-    (desig-location-prop ?location ?pose))
-
-  (<- (designator-reach-pose ?designator ?pose)
-    (reachability-designator ?designator)
-    (desig-prop ?designator (to execute))
-    (desig-prop ?designator (action ?action))
-    (plan-knowledge:trajectory-point ?action ?pose)))
 
