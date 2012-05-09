@@ -602,15 +602,10 @@ by `planners' until one succeeds."
        (cl-transforms:make-identity-rotation))))))
 
 (defun close-drawer (pose side &optional (distance 0.15))
-<<<<<<< HEAD
   "Generates and executes a push trajectory for the `side' arm in order to close
    the drawer whose handle is at `pose'. The generated poses of the push trajectory
    are relative to the drawer handle `pose' and additionally transformed into
    base_footprint frame. Finally the new pose of the drawer handle is returned."
-=======
-  "Generates and executes a push trajectory for the `side' arm in
-   order to close the drawer whose handle is at `pose'."
->>>>>>> e424ee3abbd55d240e3d2f4a787531256884e105
   (cl-tf:wait-for-transform *tf*
                             :timeout 1.0
                             :time (tf:stamp pose)
