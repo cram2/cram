@@ -127,7 +127,7 @@ are used for each joint."
                                                   (- steps 1))))))
                                  (list (gethash name current))))))))))
 
-(defun ik->trajectory (ik-result &key (duration 5.0))
+(defun ik->trajectory (ik-result &key (duration 5.0) (stamp (roslisp:ros-time)))
   (declare (type kinematics_msgs-srv:getpositionik-response ik-result))
   "Converts the result of an IK call (type
 arm_navigation_msgs/RobotState) to a joint trajectory message that can
@@ -139,7 +139,7 @@ be used in the corresponding actions."
     (when (eql error-code 1)
       (roslisp:make-message
        "trajectory_msgs/JointTrajectory"
-       (stamp header) (roslisp:ros-time)
+       (stamp header) stamp
        joint_names solution-names
        points (vector
                (roslisp:make-message
