@@ -72,8 +72,8 @@
       t))
 
 (defun reach-designator (designator)
-  (lazy-car
-   (prolog `(reachability-designator ,designator))))
+  (prolog `(location-costmap:reachability-designator
+            ,designator)))
 
 (defun pose-side-properties (designator)
   "Returns a list of lists (pose side) that correspond to the poses
