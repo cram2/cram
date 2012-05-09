@@ -72,8 +72,8 @@
        (cl-transforms:transform*
         (cl-transforms:pose->transform object-pose)
         (cl-transforms:make-transform
-         (cl-transforms:make-3d-vector (- tool-length) 0 0)
-         (cl-transforms:make-quaternion 0 0 1 0)))))))
+         (cl-transforms:make-3d-vector 0 0 0)
+         (cl-transforms:euler->quaternion :ax (/ pi 2))))))))
 
 (def-fact-group manipulation (trajectory-point)
 
