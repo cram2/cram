@@ -56,14 +56,17 @@
     (assert part-name () "Link `~a' could not be mapped to a semantic map instance"
             name)
     (assert part () "Could not find semantic map object named `~a'" part-name)
-    (force-ll (sem-map-utils:sub-parts-with-type part "Joint-Physical"))))
+    (or
+     (force-ll (sem-map-utils:sub-parts-with-type part "Joint-Physical"))
+     (when (sem-map-utils:parent part)
+       (articulation-joint-objs obj (sem-map-utils:name (sem-map-utils:parent part)))))))
 
 (defun open-object (obj link)
   (when (typep obj 'semantic-map-object)
     (let* ((joints (articulation-joint-objs obj link))
            (joint (car joints)))
       (assert (eql (length joints) 1) ()
-              "Opening of objects with more than one joint not supported")
+              "Opening of objects with ~a joints not supported" (length joints))
       (assert (sem-map-utils:urdf-name joint) ()
               "Joint ~a not bound to a urdf joint." (sem-map-utils:name joint))
       (setf (joint-state obj (sem-map-utils:urdf-name joint))
