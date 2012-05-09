@@ -54,16 +54,6 @@
   (mapcar (alexandria:compose #'rosify-lisp-name #'cadr)
           (object-properties obj)))
 
-(defmethod make-new-desig-description ((old-desig object-designator)
-                                       (po cop-perceived-object))
-  (let ((obj-loc-desig (make-designator 'location `((pose ,(jlo->pose (object-jlo po)))))))
-    (append (remove-if (lambda (e)
-                         (or (eq (car e) 'at)
-                             (not (cop-ignore-property-p e))))
-                       (description old-desig))
-            (object-properties po)
-            `((at ,obj-loc-desig)))))
-
 (defun do-cop-search (desig query-info &key (command :locate))
   (let ((cop-reply (cop-query query-info :command command)))
     (ros-info (cop perception-process-module) "Cop reply: '~a'"
