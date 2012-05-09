@@ -59,8 +59,7 @@
                                   (sem-map-utils:joint-maximal-value joint)))
              (cl-transforms:make-identity-rotation)))))))))
 
-(defun get-articulated-gripper-position (part-name relative-joint-position
-                                         &key (tool-length *grasp-distance*))
+(defun get-articulated-gripper-position (part-name relative-joint-position)
   "Gets the position of the gripper to reach `part-name'. Uses its
   connecting joint and
   `relative-joint-position'. `relative-joint-position' is a value
