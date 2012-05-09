@@ -93,17 +93,6 @@
              (and
               (lisp-type ?pose cl-transforms:3d-vector)
               (point-reachable ?w ?robot ?pose ?side)))))
-    
-  (<- (location-valid
-       ?desig ?pose
-       (desig-check-to-see ?desig ?pose))
-    (desig-prop ?desig (to see))
-    (desig-prop ?desig (obj ?obj)))
-
-  (<- (location-valid
-       ?desig ?pose
-       (desig-check-to-reach ?desig ?pose))
-    (reachability-designator ?desig))
 
   (<- (desig-check-to-see ?desig ?robot-pose)
     (bullet-world ?w)
@@ -115,6 +104,42 @@
     (head-pointing-at ?w ?robot ?obj-pose)
     (desig-prop ?desig (obj ?obj))
     (visible ?w ?robot ?obj))
+
+  (<- (desig-check-articulated-object-manipulation
+       ?action-designator ?robot-pose)
+    (bullet-world ?world)
+    (robot ?robot)
+    (desig-prop ?action-designator (to open))
+    (desig-prop ?action-designator (handle ?handle))
+    (lisp-fun newest-valid-designator ?handle ?current-handle)
+    (-> (lisp-pred identity ?current-handle)
+        (desig-prop ?current-handle (name ?handle-name))
+        ;; Note(moesenle): This is not clean, it helps with debugging
+        ;; though.
+        (desig-prop ?handle (name ?handle-name)))
+    (semantic-map ?world ?semantic-map)
+    (with-stored-world ?world
+      (btr:execute ?world (btr:open ?semantic-map ?handle-name))
+      (not (contact ?world ?robot ?semantic-map))))
+
+  (<- (location-valid
+       ?desig ?pose
+       (desig-check-articulated-object-manipulation ?action ?pose))
+    (desig-prop ?desig (to execute))
+    (desig-prop ?desig (action ?action))
+    (desig-prop ?action (to open))
+    (desig-prop ?action (handle ?_)))
+
+  (<- (location-valid
+       ?desig ?pose
+       (desig-check-to-see ?desig ?pose))
+    (desig-prop ?desig (to see))
+    (desig-prop ?desig (obj ?obj)))
+
+  (<- (location-valid
+       ?desig ?pose
+       (desig-check-to-reach ?desig ?pose))
+    (reachability-designator ?desig))
 
   (<- (btr-desig-solution-valid ?desig ?solution)
     (bullet-world ?w)

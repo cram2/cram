@@ -37,4 +37,4 @@
   (:export *robot-name* *check-ik-joint-states* *robot-valid-sides*)
   (:desig-properties side to see reach name type obj
                      reachable-from pose object on execute
-                     location action))
+                     location action open handle name))
