@@ -77,10 +77,11 @@
 
 (def-fact-group manipulation (trajectory-point)
 
-  (<- (trajectory-point ?designator ?point)
+  (<- (trajectory-point ?designator ?point ?side)
     (trajectory-desig? ?designator)
     (desig-prop ?designator (to open))
     (desig-prop ?designator (handle ?handle))
+    (desig-prop ?designator (side ?side))
     (desig-prop ?handle (name ?handle-name))
     (member ?joint-pose (0.0 1.0))
     (lisp-fun get-articulated-gripper-position
