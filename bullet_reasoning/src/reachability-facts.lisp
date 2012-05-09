@@ -77,7 +77,13 @@
       (once
        (robot-pre-grasp-joint-states ?pre-grasp-joint-states)
        (assert (joint-state ?w ?robot-name ?pre-grasp-joint-states))
-       (lisp-pred pose-reachable-p ?robot ?pose :side ?side))))
+       (lisp-pred pose-reachable-p ?robot ?pose :side ?side)
+       ;; (lisp-fun reach-pose-ik ?robot ?pose :side ?side ?ik-solutions)
+       ;; (lisp-pred identity ?ik-solutions)
+       ;; (member ?ik-solution ?ik-solutions)
+       ;; (lisp-fun set-robot-state-from-joints ?ik-solution ?robot ?_)
+       ;; (lisp-fun break ?_)
+       )))
 
   (<- (blocking ?w ?robot-name ?obj-name ?blocking-names)
     (blocking ?w ?robot-name ?obj-name ?_ ?blocking-names))
