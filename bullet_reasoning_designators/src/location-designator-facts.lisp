@@ -85,8 +85,7 @@
     (robot ?robot)
     (assert (object-pose ?w ?robot ?robot-pose))
     (not (contact ?w ?robot ?_))
-    (-> (desig-prop ?desig (side ?side)) (true) (true))
-    (forall (designator-reach-pose ?desig ?pose)
+    (forall (designator-reach-pose ?desig ?pose ?side)
             (or
              (and
               (lisp-type ?pose cl-transforms:pose)
