@@ -28,7 +28,7 @@
 
 (in-package :btr)
 
-(def-fact-group reachability (object-grasp)
+(def-fact-group reachability (object-grasp assert)
   (<- (valid-grasp ?world ?object ?grasp ?sides)
     (-> (object-grasp ?w ?obj-name ?grasp ?sides)
         (true)
@@ -77,13 +77,7 @@
       (once
        (robot-pre-grasp-joint-states ?pre-grasp-joint-states)
        (assert (joint-state ?w ?robot-name ?pre-grasp-joint-states))
-       (lisp-pred pose-reachable-p ?robot ?pose :side ?side)
-       ;; (lisp-fun reach-pose-ik ?robot ?pose :side ?side ?ik-solutions)
-       ;; (lisp-pred identity ?ik-solutions)
-       ;; (member ?ik-solution ?ik-solutions)
-       ;; (lisp-fun set-robot-state-from-joints ?ik-solution ?robot ?_)
-       ;; (lisp-fun break ?_)
-       )))
+       (lisp-pred pose-reachable-p ?robot ?pose :side ?side))))
 
   (<- (blocking ?w ?robot-name ?obj-name ?blocking-names)
     (blocking ?w ?robot-name ?obj-name ?_ ?blocking-names))
@@ -112,13 +106,20 @@
          (robot-pre-grasp-joint-states ?pre-grasp-joint-states)
          (assert (joint-state ?w ?robot-name ?pre-grasp-joint-states))
          (lisp-fun reach-object-ik ?robot ?obj :side ?side :grasp ?grasp ?ik-solutions)
-         (lisp-pred identity ?ik-solutions))
-        (member ?ik-solution ?ik-solutions)
+         (member ?ik-solution ?ik-solutions))
         (%ik-solution-in-collision ?w ?robot ?ik-solution ?colliding-objects)
         (member ?o ?colliding-objects)
         (not (== ?o ?obj-name))
         (-> (bound ?supporting) (not (== ?o ?supporting)) (true)))
        ?objs)))
+
+  (<- (assert (reach-ik-solution ?world ?robot ?pose ?side))
+    (%object ?world ?robot ?robot-instance)
+    (side ?side)
+    (lisp-fun reach-pose-ik ?robot-instance ?pose :side ?side ?ik-solutions)
+    (lisp-pred identity ?ik-solutions)
+    (member ?ik-solution ?ik-solutions)
+    (lisp-fun set-robot-state-from-joints ?ik-solution ?robot-instance ?_))
   
   (<- (%ik-solution-in-collision ?w ?robot ?ik-solution ?colliding-objects)
     (lisp-fun set-robot-state-from-joints ?ik-solution ?robot ?_)
