@@ -104,7 +104,6 @@
   (<- (location-valid
        ?desig ?pose
        (desig-check-to-reach ?desig ?pose))
-    (desig-prop ?desig (to reach))
     (reachability-designator ?desig))
 
   (<- (desig-check-to-see ?desig ?robot-pose)
