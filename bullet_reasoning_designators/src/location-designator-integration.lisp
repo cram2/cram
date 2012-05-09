@@ -75,52 +75,50 @@
   (lazy-car
    (prolog `(reachability-designator ,designator))))
 
-(defun pose-properties (designator)
+(defun pose-side-properties (designator)
+  "Returns a list of lists (pose side) that correspond to the poses
+that `designator' tries to reach."
   (force-ll
    (lazy-mapcar
     (lambda (solution)
-      (var-value '?pose solution))
-    (prolog `(designator-reach-pose ,designator ?pose)))))
+      (with-vars-bound (?pose ?side) solution
+        (list ?pose (unless (is-var ?side) ?side))))
+    (prolog `(designator-reach-pose ,designator ?pose ?side)))))
 
 (defun check-reachability (robot reach-pose &key side)
   (etypecase reach-pose
     (cl-transforms:3d-vector (point-reachable-p robot reach-pose :side side))
     (cl-transforms:pose (pose-reachable-p robot reach-pose :side side))))
 
-(defun make-ik-check-function (robot poses &optional side)
-  (flet ((make-reachability-function ()
+(defun make-ik-check-function (robot poses-and-sides)
+  (flet ((check-reachability (reach-pose side)
            (case side
              ((:both :all)
-              (lambda (reach-pose)
-                (every (lambda (side)
-                         (check-reachability
-                          robot reach-pose :side side))
-                       *robot-valid-sides*)))
+              (every (lambda (side)
+                       (check-reachability
+                        robot reach-pose :side side))
+                     *robot-valid-sides*))
              ((nil :either)
-              (lambda (reach-pose)
-                (some (lambda (side)
-                        (check-reachability
-                         robot reach-pose :side side))
-                      *robot-valid-sides*)))
-             (t (lambda (reach-pose)
-                  (check-reachability
-                   robot reach-pose :side side))))))
-    (let ((reachability-function (make-reachability-function)))
-      (lambda (pose)
-        (setf (btr:pose robot) pose)
-        (every (lambda (pose-to-check)
-                 (if *check-ik-joint-states*
-                     (some (lambda (joint-state)
-                             (setf (btr:joint-state robot (car joint-state))
-                                   (cadr joint-state))
-                             (funcall reachability-function pose-to-check))
-                           *check-ik-joint-states*)
-                     (funcall reachability-function pose-to-check)))
-               poses)))))
+              (some (lambda (side)
+                      (check-reachability
+                       robot reach-pose :side side))
+                    *robot-valid-sides*))
+             (t (check-reachability
+                 robot reach-pose :side side)))))
+    (lambda (pose)
+      (setf (btr:pose robot) pose)
+      (every (lambda (pose-and-side-to-check)
+               (if *check-ik-joint-states*
+                   (some (lambda (joint-state)
+                           (setf (btr:joint-state robot (car joint-state))
+                                 (cadr joint-state))
+                           (apply #'check-reachability pose-and-side-to-check))
+                         *check-ik-joint-states*)
+                   (apply #'check-reachability pose-and-side-to-check)))
+             poses-and-sides))))
 
 (defun check-ik-solution (designator pose)
-  (if (not (reach-designator designator))
-      t
+  (or (not (reach-designator designator))
       (let ((cached-function
               (or (gethash designator *designator-ik-check-cache*)
                   (setf (gethash designator *designator-ik-check-cache*)
@@ -130,8 +128,7 @@
                                                :gravity-vector (bt:gravity-vector state))))
                                (robot (btr:object world *robot-name*)))
                           (make-ik-check-function
-                           robot (pose-properties designator)
-                           (desig-prop-value designator 'side)))))))
+                           robot (pose-side-properties designator)))))))
         (funcall cached-function pose))))
 
 (defun validate-designator-solution (desig pose)
