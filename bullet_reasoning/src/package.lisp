@@ -52,7 +52,8 @@
            assert joint-state urdf joint-names joint-state link-names
            link-pose set-robot-state-from-tf set-tf-from-robot-state
            semantic-map-object ensure-pose ensure-vector object-visibility
-           object-visibility-percentage
+           semantic-map container semantic-map-part semantic-map-part-type
+           semantic-map-part-pose object-visibility-percentage
            object-visibility-occluding-objects flat-color-object-proxy
            calculate-object-visibility object-visible-p
            occluding-objects simulate find-objects contact-p
@@ -69,7 +70,7 @@
            object-reachable-p pose-reachable-p calculate-orientation-in-robot
            calculate-object-tool-length set-robot-state-from-joints
            set-robot-state-from-tf init-ros-object-database clear-bullet-world
-           ros-household-object
+           ros-household-object execute open close reach-ik-solution
 
            robot-pan-tilt-links robot-pan-tilt-joints robot
            camera-frame robot-arms-parking-joint-states
