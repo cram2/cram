@@ -114,4 +114,3 @@
     (member ?obj ?objects)
     (lisp-pred point-on-object ?obj ?point)
     (lisp-fun obj-z-value ?obj :on ?z)))
-
