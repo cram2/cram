@@ -55,7 +55,7 @@
     (drivable-location-costmap ?cm ?padding))
 
   (<- (desig-costmap ?desig ?cm)
-    (desig-prop ?desig (to reach))
+    (reachability-designator ?desig)
     (costmap ?cm)
     (costmap-manipulation-padding ?padding)
     (drivable-location-costmap ?cm ?padding)))
