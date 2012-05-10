@@ -51,8 +51,12 @@
 (defclass big-plate-perceived-object (perceived-object)
   ())
 
+(defclass search-space ()
+  ((minimal-point :reader minimal-point :initarg :minimal-point)
+   (maximal-point :reader maximal-point :initarg :maximal-point)))
+
 (defun call-popcorn-perception-action
-    (&key class-name (num-hits 1) max min additional-keywords)
+    (&key class-name (num-hits 1) search-space additional-keywords)
   "Calls the perception routine behind the `ias_perception_actions'
   actiolib server and receives a common header containing the time
   stamp and the list of poses corresponding to the detected
@@ -68,9 +72,13 @@
                                 'vector
                                 (vector
                                  (make-msg "ias_perception_actions/Keyword_v"
-                                           key "min" v_value (tf:point->msg min))
+                                           key "min"
+                                           v_value (tf:point->msg
+                                                    (minimal-point search-space)))
                                  (make-msg "ias_perception_actions/Keyword_v"
-                                           key "max" v_value (tf:point->msg max)))
+                                           key "max"
+                                           v_value (tf:point->msg
+                                                    (maximal-point search-space))))
                                 additional-keywords)))
     (with-fields ((stamp (stamp header))
                   (frame-id (frame_id header))
@@ -85,43 +93,85 @@
                            (tf:msg->pose pose-message))))
            poses))))
 
+(defgeneric get-search-space (object-class pose)
+  (:documentation "Returns the search space for an object of type
+  `object-class' at `pose'. Note: `pose' is not on the supporting
+  plane but the expected pose of the object. Returns a list of two
+  vectors, the minimum point and the maximum point that describe the
+  search space box. Since the current detector cannot really be
+  configured wrt. the frame these points are in, we need to calculate
+  them in map."))
+
+(defun alligned-bounding-box-at-point (point size)
+  "Returns the list of the minimal and maximal corner points of a
+bounding box with its center at `point' and dimensions `size'."
+  (declare (type cl-transforms:3d-vector point size))
+  (let ((size/2 (cl-transforms:v* size 0.5)))
+    (make-instance 'search-space
+      :minimal-point (cl-transforms:v- point size/2)
+      :maximal-point(cl-transforms:v+ point size/2))))
+
+(defun search-space-in-map (pose-stamped size-x size-y size-z)
+  (declare (type tf:pose-stamped pose-stamped)
+           (type number size-x size-y size-z))
+  (let ((pose-in-map (tf:transform-pose
+                      *tf* :target-frame "map"
+                       :pose pose-stamped))
+        (search-space-size (cl-transforms:make-3d-vector
+                            size-x size-y size-z)))
+    (alligned-bounding-box-at-point
+     (cl-transforms:origin pose-in-map) search-space-size)))
+
+(defmethod get-search-space ((class (eql 'lid)) pose)
+  (search-space-in-map pose 0.25 0.25 0.115))
+
+(defmethod get-search-space ((class (eql 'small-bowl)) pose)
+  (search-space-in-map pose 0.25 0.25 0.13))
+
+(defmethod get-search-space ((class (eql 'pot)) pose)
+  (search-space-in-map pose 0.25 0.25 0.12))
+
+(defmethod get-search-space ((class (eql 'big-plate)) pose)
+  (search-space-in-map pose 0.25 0.25 0.9))
+
+(defun get-search-pose (designator perceived-object)
+  (if perceived-object
+      (object-pose perceived-object)
+      (desig:obj-desig-location (current-desig designator))))
+
 ;; TODO(moesenle): Add support for doc-strings in DEF-OBJECT-SEARCH-FUNCTION.
 (def-object-search-function lid-search-function popcorn-detector
     (((type lid)) desig perceived-object)
-  (declare (ignore desig perceived-object))
   (mapcar (lambda (pose)
             (make-instance 'lid-perceived-object :pose pose :probability 1.0))
           (call-popcorn-perception-action
            :class-name "Lid"
-           :min (cl-transforms:make-3d-vector 0.420 2.150 0.785)
-           :max (cl-transforms:make-3d-vector 0.610 2.400 0.900))))
+           :search-space (get-search-space
+                          'lid (get-search-pose desig perceived-object)))))
 
 (def-object-search-function small-bowl-search-function popcorn-detector
     (((type small-bowl)) desig perceived-object)
-  (declare (ignore desig perceived-object))
   (mapcar (lambda (pose)
             (make-instance 'small-bowl-perceived-object :pose pose :probability 1.0))
           (call-popcorn-perception-action
            :class-name "SmallBowl"
-           :min (cl-transforms:make-3d-vector 0.600 1.950 0.770)
-           :max (cl-transforms:make-3d-vector 0.900 2.100 0.900))))
+           :search-space (get-search-space
+                          'small-bowl (get-search-pose desig perceived-object)))))
 
 (def-object-search-function pot-search-function popcorn-detector
     (((type pot)) desig perceived-object)
-  (declare (ignore desig perceived-object))
   (mapcar (lambda (pose)
             (make-instance 'pot-perceived-object :pose pose :probability 1.0))
           (call-popcorn-perception-action
            :class-name "Pot"
-           :min (cl-transforms:make-3d-vector -2.0 1.26 0.88)
-           :max (cl-transforms:make-3d-vector -1.7 1.7 1.0))))
+           :search-space (get-search-space
+                          'pot (get-search-pose desig perceived-object)))))
 
 (def-object-search-function big-plate-search-function popcorn-detector
     (((type big-plate)) desig perceived-object)
-  (declare (ignore desig perceived-object))
   (mapcar (lambda (pose)
             (make-instance 'big-plate-perceived-object :pose pose :probability 1.0))
           (call-popcorn-perception-action
            :class-name "BigPlate"
-           :min (cl-transforms:make-3d-vector -2.0 1.26 0.91)
-           :max (cl-transforms:make-3d-vector -1.7 1.7 1.0))))
+           :search-space (get-search-space
+                          'big-plate (get-search-pose desig perceived-object)))))
