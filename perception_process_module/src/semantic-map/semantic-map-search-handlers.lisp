@@ -41,7 +41,8 @@
 
 (defmethod initialize-instance :after ((obj semantic-map-perceived-object) &key)
   (with-slots (semantic-map-object pose) obj
-    (setf pose (sem-map-utils:pose semantic-map-object))))
+    (setf pose (tf:pose->pose-stamped
+                *fixed-frame* 0.0 (sem-map-utils:pose semantic-map-object)))))
 
 (defmethod make-new-desig-description ((old-desig object-designator)
                                        (po semantic-map-perceived-object))
