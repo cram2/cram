@@ -68,6 +68,37 @@
          "kinematics_msgs/GetKinematicSolverInfo"))
     joint-names))
 
+(defun get-arm-state (side)
+  "Returns the state of one arm specified by `side', i.e. joint-names,
+current joint-values, lower joint limits, and upper joint limits -each
+as a vector. "
+  (let ((current (make-hash-table :test 'equal))
+        (lower (make-hash-table :test 'equal))
+        (upper (make-hash-table :test 'equal))
+        (joint-state *joint-state*))
+    (roslisp:with-fields ((joint-names (joint_names kinematic_solver_info))
+                          (limits (limits kinematic_solver_info)))
+        (cpl-impl:without-scheduling
+          (roslisp:call-service
+           (concatenate
+            'string
+            (ecase side
+              (:right *ik-right-ns*)
+              (:left *ik-left-ns*))
+            "/get_ik_solver_info")
+           "kinematics_msgs/GetKinematicSolverInfo"))
+      (map nil (lambda (limit joint-name)
+                 (roslisp:with-fields ((min min_position)
+                                       (max max_position))
+                     limit
+                   (setf (gethash joint-name lower) min)
+                   (setf (gethash joint-name upper) max)
+                   (setf (gethash joint-name current)
+                         (get-joint-position joint-state joint-name))))
+           limits joint-names)
+      (values joint-names current lower upper))))
+
+
 (defun make-seed-states (side joint-names &optional (steps 3))
   "Creates a lazy list of seed states. `steps' indicates how many
 steps should be used for going from joint angle minimum to
