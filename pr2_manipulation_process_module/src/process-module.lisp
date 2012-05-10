@@ -270,7 +270,7 @@
       (execute-arm-trajectory side (ik->trajectory grasp-solution))
       (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
       (roslisp:ros-info (pr2-manip process-module) "Closing gripper")
-      ;; (compliant-close-girpper side)
+      ;; (compliant-close-gripper side)
       (close-gripper side 50.0)
       (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
       (when (< (get-gripper-state side) 0.01)
@@ -456,7 +456,7 @@ by `planners' until one succeeds."
       (-33 (error 'manipulation-pose-occupied :result (list side pose)))
       (t (error 'manipulation-failed :result (list side pose))))))
 
-(defun compliant-close-girpper (side)
+(defun compliant-close-gripper (side)
   ;; (roslisp:call-service
   ;;  (ecase side
   ;;   (:right "/r_reactive_grasp/compliant_close")
