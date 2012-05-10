@@ -104,59 +104,27 @@ as a vector. "
 steps should be used for going from joint angle minimum to
 maximum. E.g 3 means that minimum, (mimimum + maximum) / 2 and maximum
 are used for each joint."
-  (flet ((init ()
-           (let ((current (make-hash-table :test 'equal))
-                 (lower (make-hash-table :test 'equal))
-                 (upper (make-hash-table :test 'equal))
-                 (joint-state *joint-state*))
-             (roslisp:with-fields ((joint-names (joint_names kinematic_solver_info))
-                                   (limits (limits kinematic_solver_info)))
-                 (cpl-impl:without-scheduling
-                   (roslisp:call-service
-                    (concatenate
-                     'string
-                     (ecase side
-                       (:right *ik-right-ns*)
-                       (:left *ik-left-ns*))
-                     "/get_ik_solver_info")
-                    "kinematics_msgs/GetKinematicSolverInfo"))
-               (map nil (lambda (limit joint-name)
-                          (roslisp:with-fields ((min min_position)
-                                                (max max_position))
-                              limit
-                            (setf (gethash joint-name lower) min)
-                            (setf (gethash joint-name upper) max)
-                            (setf (gethash joint-name current)
-                                  (get-joint-position joint-state joint-name))))
-                    limits joint-names)
-               (values joint-names current lower upper)))))
-    (multiple-value-bind (names current lower-limits upper-limits)
-        (init)
-      (lazy-mapcar (lambda (joint-states)
-                     (roslisp:make-msg
-                      "sensor_msgs/JointState"
-                      (stamp header) 0
-                      name names
-                      position (reverse
-                                (map 'vector #'identity joint-states))
-                      velocity (make-array (length names)
-                                           :element-type 'float
-                                           :initial-element 0.0)
-                      effort (make-array (length names)
+  (multiple-value-bind (names current lower-limits upper-limits)
+      (get-arm-state side)
+    (lazy-mapcar (lambda (joint-states)
+                   (roslisp:make-msg
+                    "sensor_msgs/JointState"
+                    (stamp header) 0
+                    name names
+                    position (reverse
+                              (map 'vector #'identity joint-states))
+                    velocity (make-array (length names)
                                          :element-type 'float
-                                         :initial-element 0.0)))
-                   (apply #'lazy-cross-product
-                          (reverse
-                           (loop for name across names collecting
-                             (if (seq-member name joint-names)
-                                 (cons (gethash name current)
-                                       (loop for i from 0 below steps collecting
-                                         (+ (gethash name lower-limits)
-                                            (* (- steps i 1)
-                                               (/ (- (gethash name upper-limits)
-                                                     (gethash name lower-limits))
-                                                  (- steps 1))))))
-                                 (list (gethash name current))))))))))
+                                         :initial-element 0.0)
+                    effort (make-array (length names)
+                                       :element-type 'float
+                                       :initial-element 0.0)))
+                 (apply #'lazy-cross-product
+                        (reverse
+                         (loop for name across names collecting
+                                                     (if (seq-member name joint-names)
+                                                         (cons (gethash name current)
+                                                               (loop for i from 0 below steps collecting)))))))))
 
 (defun ik->trajectory (ik-result &key (duration 5.0) (stamp (roslisp:ros-time)))
   (declare (type kinematics_msgs-srv:getpositionik-response ik-result))
