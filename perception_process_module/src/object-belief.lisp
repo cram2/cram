@@ -29,6 +29,8 @@
 
 (in-package :perception-pm)
 
+(defparameter *fixed-frame* "map")
+
 (defgeneric object-pose (obj)
   (:documentation "Returns the pose of a designator reference."))
 
