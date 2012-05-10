@@ -58,14 +58,14 @@
          numHits 1
          (keywords_v keywords) (vector (make-msg "ias_perception_actions/Keyword_v"
                                                  key "min"
-                                                 (x v_value) 0.440
+                                                 (x v_value) 0.420
                                                  (y v_value) 2.150
                                                  (z v_value) 0.785)
                                        (make-msg "ias_perception_actions/Keyword_v"
                                                  key "max"
                                                  (x v_value) 0.610
-                                                 (y v_value) 2.350
-                                                 (z v_value) 0.800))))
+                                                 (y v_value) 2.400
+                                                 (z v_value) 0.900))))
     (with-fields (header poses) objects
       (with-fields (stamp frame_id) header
         (when (> (length poses) 0)
@@ -101,8 +101,8 @@
          (keywords_v keywords) (vector (make-msg "ias_perception_actions/Keyword_v"
                                                  key "min"
                                                  (x v_value) 0.600
-                                                 (y v_value) 1.900
-                                                 (z v_value) 0.785)
+                                                 (y v_value) 1.950
+                                                 (z v_value) 0.770)
                                        (make-msg "ias_perception_actions/Keyword_v"
                                                  key "max"
                                                  (x v_value) 0.900
@@ -122,3 +122,89 @@
                       :target-frame "/map")
                      :stamp 0.0)
               :probability 1.0)))))))
+
+(defclass pot-perceived-object (perceived-object)
+  ())
+
+(def-object-search-function pot-search-function popcorn-detector
+    ;; Calls the perception routine behind the `ias_perception_actions' actiolib server
+    ;; and receives a common header containing the time stamp and the list of poses
+    ;; corresponding to the pot detected.    
+    ;; Takes the first pose, transforms it relative to a fix reference `/map' and then
+    ;; uses it to instantiate the `pot-perceived-object' which is returned.
+    (((type pot)) desig perceived-object)
+  (declare (ignore desig perceived-object))
+  (with-fields (objects)      
+      (actionlib:send-goal-and-wait
+       *popcorn-detectors-action*
+       (actionlib:make-action-goal *popcorn-detectors-action*
+         className "Pot"
+         numHits 1
+         (keywords_v keywords) (vector (make-msg "ias_perception_actions/Keyword_v"
+                                                 key "min"
+                                                 (x v_value) -2.000
+                                                 (y v_value)  1.260
+                                                 (z v_value)  0.880)
+                                       (make-msg "ias_perception_actions/Keyword_v"
+                                                 key "max"
+                                                 (x v_value) -1.700
+                                                 (y v_value)  1.700
+                                                 (z v_value)  1.000))))
+    (with-fields (header poses) objects
+      (with-fields (stamp frame_id) header
+        (when (> (length poses) 0)
+          (let ((pose (tf:msg->pose (elt poses 0))))
+            (list 
+             (make-instance 'pot-perceived-object
+               :pose (tf:copy-pose-stamped
+                      (tf:transform-pose
+                       ;; hack(moesenle): remove the time stamp because
+                       ;; tf fails to transform for some weird reason
+                       *tf*
+                       :pose (tf:pose->pose-stamped frame_id stamp pose)
+                       :target-frame "/map")
+                      :stamp 0.0)
+               :probability 1.0))))))))
+
+(defclass big-plate-perceived-object (perceived-object)
+  ())
+
+(def-object-search-function big-plate-search-function popcorn-detector
+    ;; Calls the perception routine behind the `ias_perception_actions' actiolib server
+    ;; and receives a common header containing the time stamp and the list of poses
+    ;; corresponding to the big plates detected.    
+    ;; Takes the first pose, transforms it relative to a fix reference `/map' and then
+    ;; uses it to instantiate the `big-plate-perceived-object' which is returned.
+    (((type big-plate)) desig perceived-object)
+  (declare (ignore desig perceived-object))
+  (with-fields (objects)      
+      (actionlib:send-goal-and-wait
+       *popcorn-detectors-action*
+       (actionlib:make-action-goal *popcorn-detectors-action*
+         className "BigPlate"
+         numHits 1
+         (keywords_v keywords) (vector (make-msg "ias_perception_actions/Keyword_v"
+                                                 key "min"
+                                                 (x v_value) -2.000
+                                                 (y v_value)  1.260
+                                                 (z v_value)  0.910)
+                                       (make-msg "ias_perception_actions/Keyword_v"
+                                                 key "max"
+                                                 (x v_value) -1.700
+                                                 (y v_value)  1.700
+                                                 (z v_value)  1.000))))
+    (with-fields (header poses) objects
+      (with-fields (stamp frame_id) header
+        (when (> (length poses) 0)
+          (let ((pose (tf:msg->pose (elt poses 0))))
+            (list 
+             (make-instance 'big-plate-perceived-object
+               :pose (tf:copy-pose-stamped
+                      (tf:transform-pose
+                       ;; hack(moesenle): remove the time stamp because
+                       ;; tf fails to transform for some weird reason
+                       *tf*
+                       :pose (tf:pose->pose-stamped frame_id stamp pose)
+                       :target-frame "/map")
+                      :stamp 0.0)
+               :probability 1.0))))))))
