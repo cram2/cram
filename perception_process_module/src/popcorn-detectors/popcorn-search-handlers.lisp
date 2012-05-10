@@ -111,28 +111,38 @@ bounding box with its center at `point' and dimensions `size'."
       :minimal-point (cl-transforms:v- point size/2)
       :maximal-point(cl-transforms:v+ point size/2))))
 
-(defun search-space-in-map (pose-stamped size-x size-y size-z)
+(defun search-space-in-map (pose-stamped offset size)
   (declare (type tf:pose-stamped pose-stamped)
-           (type number size-x size-y size-z))
+           (type cl-transforms:3d-vector offset size))
   (let ((pose-in-map (tf:transform-pose
                       *tf* :target-frame "map"
-                       :pose pose-stamped))
-        (search-space-size (cl-transforms:make-3d-vector
-                            size-x size-y size-z)))
+                       :pose pose-stamped)))
     (alligned-bounding-box-at-point
-     (cl-transforms:origin pose-in-map) search-space-size)))
+     (tf:v+ (cl-transforms:origin pose-in-map) offset) size)))
 
 (defmethod get-search-space ((class (eql 'lid)) pose)
-  (search-space-in-map pose 0.25 0.25 0.115))
+  (search-space-in-map
+   pose
+   (cl-transforms:make-3d-vector 0 0 0.05)
+   (cl-transforms:make-3d-vector 0.75 0.75 0.115)))
 
 (defmethod get-search-space ((class (eql 'small-bowl)) pose)
-  (search-space-in-map pose 0.25 0.25 0.13))
+  (search-space-in-map
+   pose
+   (cl-transforms:make-identity-vector)
+   (cl-transforms:make-3d-vector 0.25 0.25 0.13)))
 
 (defmethod get-search-space ((class (eql 'pot)) pose)
-  (search-space-in-map pose 0.25 0.25 0.12))
+  (search-space-in-map
+   pose
+   (cl-transforms:make-3d-vector 0 0 0.075)
+   (cl-transforms:make-3d-vector 0.75 0.75 0.15)))
 
 (defmethod get-search-space ((class (eql 'big-plate)) pose)
-  (search-space-in-map pose 0.25 0.25 0.9))
+  (search-space-in-map
+   pose
+   (cl-transforms:make-identity-vector)
+   (cl-transforms:make-3d-vector 0.25 0.25 0.9)))
 
 (defun get-search-pose (designator perceived-object)
   (if perceived-object
