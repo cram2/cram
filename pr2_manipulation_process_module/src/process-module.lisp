@@ -688,42 +688,33 @@ by `planners' until one succeeds."
         (+ distance) 0.0 0.0)
        (cl-transforms:make-identity-rotation))))))
 
-(defun grasp-object-with-both-arms (obj obstacles)
-  "Grasp an object `obj' with both arms considering the obstacles `obstacles'."
-  ;; build collision environment
-  (roslisp:ros-info (pr2-manip process-module) "Clearing collision map")
-  (clear-collision-objects)
-  (roslisp:ros-info (pr2-manip process-module) "Adding object as collision object")
-  (register-collision-object obj)
-  (roslisp:ros-info (pr2-manip process-module) "Registering semantic map objects")
-  (sem-map-coll-env:publish-semantic-map-collision-objects)
-  (dolist (obstacle (cut:force-ll obstacles))
-    (register-collision-object obstacle))
+(defun grasp-object-with-both-arms (obj)
+  "Grasp an object `obj' with both arms."
   ;; compute grasping poses and execute dual arm grasp
-  (multiple-value-bind (left-grasp-pose right-grasp-pose)
-      (compute-both-arm-grasping-poses obj)
-    (execute-both-arm-grasp left-grasp-pose right-grasp-pose)))
+  (let ((obj (newest-valid-designator obj)))
+    (multiple-value-bind (left-grasp-pose right-grasp-pose)
+        (compute-both-arm-grasping-poses obj)
+      (execute-both-arm-grasp left-grasp-pose right-grasp-pose))))
 
 (defun compute-both-arm-grasping-poses (obj)
   "Computes and returns the two grasping poses for an object `obj'
 that has to be grasped with two grippers."
   (let* ((object-type (desig-prop-value obj 'type))
-        (object-pose (desig:designator-pose obj))
+         (object-pose (desig:designator-pose obj))
          (object-transform (cl-transforms:pose->transform object-pose)))
-    ;; TODO(Georg): change these strings into symbols from the designator package
-    (cond ((equal object-type "Pot")
+    (cond ((eq object-type 'desig-props:pot)
            (let* (
                   ;; the following magic-numbers came from Tom's demo
-                  (relative-left-handle-transform
-                    (cl-transforms:make-transform
-                     (cl-transforms:make-3d-vector
-                      0.136 -0.012 -0.014)
-                     (cl-transforms:make-quaternion
-                      -0.179 -0.684 0.685 -0.175)))
                   (relative-right-handle-transform
                     (cl-transforms:make-transform
                      (cl-transforms:make-3d-vector
-                      -0.130 -0.008 -0.013)
+                      0.130 -0.012 0.031)
+                     (cl-transforms:make-quaternion
+                      -0.179 -0.684 0.685 -0.175)))
+                  (relative-left-handle-transform
+                    (cl-transforms:make-transform
+                     (cl-transforms:make-3d-vector
+                      -0.130 -0.008 0.032)
                      (cl-transforms:make-quaternion
                       -0.677 0.116 0.168 0.707)))
                   ;; get grasping poses for the handles
@@ -740,12 +731,13 @@ that has to be grasped with two grippers."
                                             (cl-transforms:origin left-grasp-pose)
                                             (cl-transforms:orientation left-grasp-pose)))
                   (right-grasp-stamped-pose (cl-tf:make-pose-stamped
-                                            (cl-tf:frame-id object-pose)
-                                            (cl-tf:stamp object-pose)
-                                            (cl-transforms:origin right-grasp-pose)
-                                            (cl-transforms:orientation right-grasp-pose))))
+                                             (cl-tf:frame-id object-pose)
+                                             (cl-tf:stamp object-pose)
+                                             (cl-transforms:origin right-grasp-pose)
+                                             (cl-transforms:orientation right-grasp-pose))))
              ;; return the grasping poses
              (values left-grasp-stamped-pose right-grasp-stamped-pose)))
+          ;; TODO(Georg): change these strings into symbols from the designator package
           ((equal object-type "BigPlate")
            ;; TODO(Georg): replace these identities with the actual values
            (let ((left-grasp-pose (cl-transforms:make-identity-pose))
@@ -753,6 +745,32 @@ that has to be grasped with two grippers."
              (values left-grasp-pose right-grasp-pose)))
           (t (error 'manipulation-failed
                     :format-control "Invalid objects for dual-arm manipulation specified.")))))
+
+(defun calc-seed-state-elbow-up (side)
+  ;; get names, current-values, lower-limits, and upper-limits for arm
+  ;; build joint-state msg with current values for arm
+  ;; set second joint to maximum, i.e. elbow up
+  ;; return msg
+  (multiple-value-bind (names current lower-limits upper-limits)
+      (get-arm-state side)
+    (let ((desired-positions
+            (map 'vector #'identity
+                 (loop for name across names collecting
+                                             (if (equal (aref names 1) name)
+                                                 (gethash name upper-limits)
+                                                 (gethash name current))))))
+      (roslisp:make-msg
+       "sensor_msgs/JointState"
+       (stamp header) 0
+       name names
+       position desired-positions
+       velocity (make-array (length names)
+                            :element-type 'float
+                            :initial-element 0.0)
+       effort (make-array (length names)
+                          :element-type 'float
+                          :initial-element 0.0)))))
+
 
 (defun execute-both-arm-grasp
     (grasping-pose-left grasping-pose-right)
@@ -837,11 +855,35 @@ will be commanded."
                                            (+ -0.18 (- *grasp-distance*)) 0.0 0.0)
                                           (cl-transforms:make-identity-rotation))))
                                  :target-frame "base_footprint"))
+         ;; get seed-states for ik
+         (left-seed-state (calc-seed-state-elbow-up :left))
+         (right-seed-state (calc-seed-state-elbow-up :right))
          ;; get ik-solutions for all poses
-         (pre-grasp-left-ik (lazy-car (get-ik :left pre-grasp-pose-left)))
-         (pre-grasp-right-ik (lazy-car (get-ik :right pre-grasp-pose-right)))
-         (grasp-left-ik (lazy-car (get-ik :left grasp-pose-left)))
-         (grasp-right-ik (lazy-car (get-ik :right grasp-pose-right))))
+         (pre-grasp-left-ik
+           (lazy-car
+            (get-ik :left pre-grasp-pose-left :seed-state left-seed-state)))
+         (pre-grasp-right-ik
+           (lazy-car
+            (get-ik :right pre-grasp-pose-right :seed-state right-seed-state)))
+         (grasp-left-ik
+           (lazy-car
+            (get-ik :left grasp-pose-left :seed-state left-seed-state)))
+         (grasp-right-ik
+           (lazy-car
+            (get-ik :right grasp-pose-right :seed-state right-seed-state))))
+    (format t "~a" pre-grasp-pose-left)
+    (format t "~a" pre-grasp-pose-right)
+    (format t "~a" grasp-pose-left)
+    (format t "~a" grasp-pose-right)
+    ;; check if left poses are left of right poses
+    (when (< (cl-transforms:y (cl-transforms:origin pre-grasp-pose-left))
+             (cl-transforms:y (cl-transforms:origin pre-grasp-pose-right)))
+      (error 'manipulation-failed
+             :format-control "Left pre-grasp pose right of right pre-grasp pose."))
+    (when (< (cl-transforms:y (cl-transforms:origin grasp-pose-left))
+             (cl-transforms:y (cl-transforms:origin grasp-pose-right)))
+      (error 'manipulation-failed
+             :format-control "Left grasp pose right of right grasp pose."))
     ;; check if all for all poses ik-solutions exist
     (unless pre-grasp-left-ik
       (error 'manipulation-pose-unreachable
