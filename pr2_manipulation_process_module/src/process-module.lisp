@@ -271,7 +271,7 @@
       (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
       (roslisp:ros-info (pr2-manip process-module) "Closing gripper")
       ;; (compliant-close-gripper side)
-      (close-gripper side 50.0)
+      (close-gripper side :max-effort 50.0)
       (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
       (when (< (get-gripper-state side) 0.01)
         (clear-collision-objects)
@@ -470,24 +470,24 @@ by `planners' until one succeeds."
      (actionlib:make-action-goal action
        (hardness_gain command) 0.03))))
 
-(defun close-gripper (side &optional (max-effort 100.0))
+(defun close-gripper (side &key (max-effort 100.0) (position 0.0))
   (let ((client (ecase side
                   (:right *gripper-action-right*)
                   (:left *gripper-action-left*))))
     (actionlib:send-goal-and-wait
      client (actionlib:make-action-goal client
-              (position command) 0.0
+              (position command) position
               (max_effort command) max-effort)
      :result-timeout 1.0)))
 
-(defun open-gripper (side &optional (max-effort 100.0))
+(defun open-gripper (side &key (max-effort 100.0) (position 0.085))
   (let ((client (ecase side
                   (:right *gripper-action-right*)
                   (:left *gripper-action-left*))))
     (prog1
         (actionlib:send-goal-and-wait
          client (actionlib:make-action-goal client
-                  (position command) 0.085
+                  (position command) position
                   (max_effort command) max-effort)
          :result-timeout 1.0)
       (let ((obj (var-value
@@ -708,13 +708,13 @@ that has to be grasped with two grippers."
                   (relative-right-handle-transform
                     (cl-transforms:make-transform
                      (cl-transforms:make-3d-vector
-                      0.130 -0.012 0.031)
+                      0.130 -0.012 0.055)
                      (cl-transforms:make-quaternion
                       -0.179 -0.684 0.685 -0.175)))
                   (relative-left-handle-transform
                     (cl-transforms:make-transform
                      (cl-transforms:make-3d-vector
-                      -0.130 -0.008 0.032)
+                      -0.130 -0.008 0.055)
                      (cl-transforms:make-quaternion
                       -0.677 0.116 0.168 0.707)))
                   ;; get grasping poses for the handles
@@ -756,9 +756,15 @@ that has to be grasped with two grippers."
     (let ((desired-positions
             (map 'vector #'identity
                  (loop for name across names collecting
-                                             (if (equal (aref names 1) name)
-                                                 (gethash name upper-limits)
-                                                 (gethash name current))))))
+                       (cond ((and (equal (aref names 2) name)
+                                   (eql side :right))
+                              (+ (/ PI 4) (gethash name lower-limits)))
+                             ((and (equal (aref names 2) name)
+                                   (eql side :left))
+                              (- (gethash name upper-limits) (/ PI 4)))
+                             ;; ((equal (aref names 1) name)
+                             ;;  (gethash name lower-limits))
+                             (t (gethash name current)))))))
       (roslisp:make-msg
        "sensor_msgs/JointState"
        (stamp header) 0
@@ -901,8 +907,8 @@ will be commanded."
     (cpl-impl:par
       ;; TODO(Georg): only open the grippers to 50%,
       ;; Tom said that this is necessary for the demo.
-      (open-gripper :left)
-      (open-gripper :right))
+      (open-gripper :left :position 0.04)
+      (open-gripper :right :position 0.04))
     ;; simultaneously approach pre-grasp positions from both sides
     (let ((new-stamp (roslisp:ros-time)))
       (cpl-impl:par      
@@ -915,5 +921,5 @@ will be commanded."
         (execute-arm-trajectory :right (ik->trajectory grasp-right-ik :stamp new-stamp))))
     ;; simultaneously close both grippers
     (cpl-impl:par
-      (close-gripper :left 50)
-      (close-gripper :right 50))))
+      (close-gripper :left :max-effort 50)
+      (close-gripper :right :max-effort 50))))
