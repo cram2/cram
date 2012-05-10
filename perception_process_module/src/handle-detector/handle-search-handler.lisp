@@ -104,7 +104,7 @@ account the shape of the handle."
                              ;; hack(moesenle): remove the time stamp because
                              ;; tf fails to transform for some weird reason
                              *tf* :pose (tf:copy-pose-stamped pose :stamp 0.0)
-                             :target-frame "map")
+                             :target-frame *fixed-frame*)
                             :stamp 0.0)
                      :probability 1.0)))
          handles)))
