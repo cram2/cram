@@ -50,7 +50,8 @@
                alexandria
                cram-plan-failures
                cl-semantic-map-utils
-               handle_detection-msg)
+               handle_detection-msg
+               ias_perception_actions-msg)
   :components
   ((:module "src"
             :components
@@ -70,6 +71,10 @@
                       :depends-on ("object-belief" "process-module" "package")
                       :components
                       ((:file "handle-search-handler")))
+             (:module "popcorn-detectors"
+                      :depends-on ("object-belief" "process-module" "package")
+                      :components
+                      ((:file "popcorn-search-handlers")))
              (:module "semantic-map"
                       :depends-on ("object-belief" "process-module" "package")
                       :components
