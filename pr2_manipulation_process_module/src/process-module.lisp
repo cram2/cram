@@ -169,6 +169,11 @@
     (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))))
 
 (def-action-handler lift (side distance)
+  (if (eq side :both)
+      (lift-grasped-object-with-both-arms distance)
+      (lift-grasped-object-with-one-arm side distance)))
+
+(defun lift-grasped-object-with-one-arm (side distance)
   (let* ((wrist-transform (tf:lookup-transform
                            *tf*
                            :time 0
@@ -182,6 +187,37 @@
                                        (cl-transforms:make-3d-vector 0 0 distance))
                      (cl-transforms:rotation wrist-transform))))
     (execute-arm-trajectory side (ik->trajectory (lazy-car (get-ik side lift-pose))))
+    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))))
+
+(defun lift-grasped-object-with-both-arms (distance)
+  "Finds the current poses of both arms relative to the
+`/base_footprint' reference then computes the lifting up poses and
+finally executes the motion for both arms to reach these poses"
+  (let* ((wrist-left-transform (tf:lookup-transform
+                                *tf*
+                                :time 0
+                                :source-frame "l_wrist_roll_link"
+                                :target-frame "/base_footprint"))
+         (wrist-right-transform (tf:lookup-transform
+                                 *tf*
+                                 :time 0
+                                 :source-frame "r_wrist_roll_link"
+                                 :target-frame "/base_footprint"))
+         (lift-left-pose (tf:make-pose-stamped
+                          (tf:frame-id wrist-left-transform)
+                          (tf:stamp wrist-left-transform)
+                          (cl-transforms:v+ (cl-transforms:translation wrist-left-transform)
+                                            (cl-transforms:make-3d-vector 0 0 distance))
+                          (cl-transforms:rotation wrist-left-transform)))
+         (lift-right-pose (tf:make-pose-stamped
+                           (tf:frame-id wrist-right-transform)
+                           (tf:stamp wrist-right-transform)
+                           (cl-transforms:v+ (cl-transforms:translation wrist-right-transform)
+                                             (cl-transforms:make-3d-vector 0 0 distance))
+                           (cl-transforms:rotation wrist-right-transform))))
+    (cpl-impl:par
+      (execute-arm-trajectory :left (ik->trajectory (lazy-car (get-ik :left lift-left-pose))))
+      (execute-arm-trajectory :right (ik->trajectory (lazy-car (get-ik :right lift-right-pose)))))    
     (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))))
 
 (def-action-handler grasp (object-type obj side obstacles)
