@@ -39,5 +39,7 @@
            sub-parts-with-type parts copy-semantic-map-object sub-parts-with-name
            name owl-name obj-type urdf-name sub-parts update-pose pose dimensions
            aliases urdf-name->obj-name owl-type-p parent
-           designator->semantic-map-objects)
+           designator->semantic-map-objects get-connecting-joint
+           get-articulated-position get-top-level-object
+           update-articulated-object-poses)
   (:desig-properties name type part-of on in))
