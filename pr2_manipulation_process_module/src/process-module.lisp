@@ -35,7 +35,7 @@
 (defparameter *grasp-approach-distance* 0.10
   "Distance to approach the object. This parameter is used to
   calculate the pose to approach with move_arm.")
-(defparameter *grasp-distance* 0.15
+(defparameter *grasp-distance* 0.18
   "Tool length to calculate the pre-grasp pose, i.e. the pose at which
   the gripper is closed.")
 (defparameter *pre-put-down-distance* 0.07
@@ -757,13 +757,13 @@ that has to be grasped with two grippers."
                   (relative-right-handle-transform
                     (cl-transforms:make-transform
                      (cl-transforms:make-3d-vector
-                      0.130 -0.012 0.055)
+                      0.135 -0.012 0.08)
                      (cl-transforms:make-quaternion
                       -0.179 -0.684 0.685 -0.175)))
                   (relative-left-handle-transform
                     (cl-transforms:make-transform
                      (cl-transforms:make-3d-vector
-                      -0.130 -0.008 0.055)
+                      -0.135 -0.008 0.08)
                      (cl-transforms:make-quaternion
                       -0.677 0.116 0.168 0.707)))
                   ;; get grasping poses for the handles
@@ -862,7 +862,7 @@ will be commanded."
                                          grasping-pose-left-transform
                                          (cl-transforms:make-transform
                                           (cl-transforms:make-3d-vector
-                                           (+ -0.18 (- *grasp-approach-distance*)) 0.0 0.0)
+                                           (+ (- *grasp-distance*) (- *grasp-approach-distance*)) 0.0 0.0)
                                           (cl-transforms:make-identity-rotation))))
                                  :target-frame "base_footprint"))
          (pre-grasp-pose-right
@@ -877,7 +877,7 @@ will be commanded."
                                          grasping-pose-right-transform
                                          (cl-transforms:make-transform
                                           (cl-transforms:make-3d-vector
-                                           (+ -0.18 (- *grasp-approach-distance*)) 0.0 0.0)
+                                           (+ (- *grasp-distance*) (- *grasp-approach-distance*)) 0.0 0.0)
                                           (cl-transforms:make-identity-rotation))))
                                  :target-frame "base_footprint"))
          (grasp-pose-left
@@ -892,7 +892,7 @@ will be commanded."
                                          grasping-pose-left-transform
                                          (cl-transforms:make-transform
                                           (cl-transforms:make-3d-vector
-                                           (+ -0.18 (- *grasp-distance*)) 0.0 0.0)
+                                           (- *grasp-distance*) 0.0 0.0)
                                           (cl-transforms:make-identity-rotation))))
                                  :target-frame "base_footprint"))
          (grasp-pose-right
@@ -907,7 +907,7 @@ will be commanded."
                                          grasping-pose-right-transform
                                          (cl-transforms:make-transform
                                           (cl-transforms:make-3d-vector
-                                           (+ -0.18 (- *grasp-distance*)) 0.0 0.0)
+                                           (- *grasp-distance*) 0.0 0.0)
                                           (cl-transforms:make-identity-rotation))))
                                  :target-frame "base_footprint"))
          ;; get seed-states for ik
