@@ -81,11 +81,12 @@
     (desig-prop ?desig (obj ?obj))
     (obstacles ?desig ?obstacles))
 
-  (<- (action-desig ?desig (grasp ?obj ?side ?obstacles))
+  (<- (action-desig ?desig (grasp ?object-type ?obj ?side ?obstacles))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to grasp))
     (desig-prop ?desig (obj ?obj))
     (desig-prop ?desig (side ?side))
+    (desig-prop ?obj (type ?object-type))
     (obstacles ?desig ?obstacles))
 
   (<- (action-desig ?desig (put-down ?obj ?loc ?side ?obstacles))
