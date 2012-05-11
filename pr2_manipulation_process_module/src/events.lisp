@@ -1,5 +1,4 @@
-;;;
-;;; Copyright (c) 2011, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -26,16 +25,17 @@
 ;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
-;;;
 
 (in-package :pr2-manip-pm)
 
-(def-production object-in-gripper
-  (object-in-hand ?obj ?side))
+(defmethod plan-knowledge:on-event
+    attach-object ((event plan-knowledge:object-attached))
+  (with-slots ((object plan-knowledge:object)
+               (side plan-knowledge:side)) event
+    (attach-collision-object side object)))
 
-(defun on-object-in-gripper (op &key ?obj ?side)
-  (ecase op
-    (:assert (attach-collision-object ?side ?obj))
-    (:retract (detach-collision-object ?side ?obj))))
-
-(register-production-handler 'object-in-gripper 'on-object-in-gripper)
+(defmethod plan-knowledge:on-event
+    detach-object ((event plan-knowledge:object-detached))
+  (with-slots ((object plan-knowledge:object)
+               (side plan-knowledge:side)) event
+    (attach-collision-object side object)))

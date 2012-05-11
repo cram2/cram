@@ -35,7 +35,7 @@
 (defparameter *grasp-approach-distance* 0.10
   "Distance to approach the object. This parameter is used to
   calculate the pose to approach with move_arm.")
-(defparameter *grasp-distance* 0.00
+(defparameter *grasp-distance* 0.15
   "Tool length to calculate the pre-grasp pose, i.e. the pose at which
   the gripper is closed.")
 (defparameter *pre-put-down-distance* 0.07
@@ -275,9 +275,7 @@
                                 (grasp-pose
                                   (calculate-grasp-pose
                                    obj
-                                   :tool (calculate-tool-pose
-                                          grasp
-                                          *grasp-distance*))))
+                                   :tool grasp)))
                             ;; If we find IK solutions
                             ;; for both poses, yield them
                             ;; to the lazy list
@@ -334,9 +332,55 @@
     (plan-knowledge:on-event (make-instance 'plan-knowledge:object-attached
                                :object obj
                                :link (ecase side
-                                       (:right "r_gripper_r_finger_tip_link")
-                                       (:left "l_gripper_r_finger_tip_link"))))
+                                      (:right "r_gripper_r_finger_tip_link")
+                                      (:left "l_gripper_r_finger_tip_link"))
+                               :side side))
     (assert-occasion `(object-in-hand ,obj ,side))))
+
+(def-action-handler put-down (obj location side obstacles)
+  (roslisp:ros-info (pr2-manip process-module) "Putting down object")
+  (assert (and (rete-holds `(object-in-hand ,obj ,side))) ()
+          "Object ~a needs to be in the gripper" obj)
+  (clear-collision-objects)
+  (sem-map-coll-env:publish-semantic-map-collision-objects)
+  (dolist (obstacle (cut:force-ll obstacles))
+    (register-collision-object obstacle))
+  (let* ((put-down-pose (calculate-put-down-pose obj location))
+         (pre-put-down-pose (tf:copy-pose-stamped
+                             put-down-pose
+                             :origin (cl-transforms:v+
+                                      (cl-transforms:origin put-down-pose)
+                                      (cl-transforms:make-3d-vector 0 0 *pre-put-down-distance*))))
+         (unhand-pose (cl-transforms:transform-pose
+                       (cl-transforms:reference-transform put-down-pose)
+                       (cl-transforms:make-pose
+                        (cl-transforms:make-3d-vector (- *pre-put-down-distance*) 0 0)
+                        (cl-transforms:make-identity-rotation))))
+         (unhand-pose-stamped (tf:make-pose-stamped
+                               (tf:frame-id put-down-pose) (tf:stamp put-down-pose)
+                               (cl-transforms:origin unhand-pose)
+                               (cl-transforms:orientation unhand-pose)))
+         (put-down-solution (get-constraint-aware-ik side put-down-pose))
+         (unhand-solution (get-constraint-aware-ik
+                           side unhand-pose-stamped
+                           :allowed-collision-objects (list "\"all\""))))
+    (when (or (not put-down-solution) (not unhand-solution))
+      (cpl:fail 'manipulation-pose-unreachable))
+    (execute-move-arm-pose side pre-put-down-pose)
+    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
+    (execute-arm-trajectory side (ik->trajectory (lazy-car put-down-solution)))
+    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
+    (open-gripper side)
+    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
+    (plan-knowledge:on-event (make-instance 'plan-knowledge:object-detached
+                               :object obj
+                               :link (ecase side
+                                       (:right "r_gripper_r_finger_tip_link")
+                                       (:left "l_gripper_r_finger_tip_link"))
+                               :side side))
+    (execute-arm-trajectory
+     side (ik->trajectory (lazy-car unhand-solution)))
+    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))))
 
 (defun execute-goal (server goal)
   (multiple-value-bind (result status)
@@ -516,7 +560,7 @@ by `planners' until one succeeds."
   (collision-environment-set-laser-period)
   (apply #'call-action (reference desig)))
 
-(defun open-drawer (pose side &optional (distance 0.15))
+(defun open-drawer (pose side &optional (distance *grasp-distance*))
   "Generates and executes a pull trajectory for the `side' arm in order to open the
    drawer whose handle is at `pose'. The generated poses of the pull trajectory are
    relative to the drawer handle `pose' and additionally transformed into base_footprint
@@ -606,7 +650,7 @@ by `planners' until one succeeds."
         (- distance) 0.0 0.0)
        (cl-transforms:make-identity-rotation))))))
 
-(defun close-drawer (pose side &optional (distance 0.15))
+(defun close-drawer (pose side &optional (distance *grasp-distance*))
   "Generates and executes a push trajectory for the `side' arm in order to close
    the drawer whose handle is at `pose'. The generated poses of the push trajectory
    are relative to the drawer handle `pose' and additionally transformed into
