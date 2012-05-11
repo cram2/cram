@@ -73,7 +73,7 @@
 
 (defclass object-detached (object-connection-event) ())
 
-(defclass object-articulation-event (even)
+(defclass object-articulation-event (event)
   ((object-designator
     :initarg :object-designator :reader event-object-designator
     :initform (error
