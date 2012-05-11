@@ -332,8 +332,8 @@
     (plan-knowledge:on-event (make-instance 'plan-knowledge:object-attached
                                :object obj
                                :link (ecase side
-                                      (:right "r_gripper_r_finger_tip_link")
-                                      (:left "l_gripper_r_finger_tip_link"))
+                                       (:right "r_gripper_r_finger_tip_link")
+                                       (:left "l_gripper_r_finger_tip_link"))
                                :side side))
     (assert-occasion `(object-in-hand ,obj ,side))))
 
