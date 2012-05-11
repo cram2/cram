@@ -400,6 +400,12 @@ of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns
                       (sub-parts-with-name part name))))
                  (semantic-map-parts map))))
 
+(defun get-top-level-object (part)
+  "Returns the top-level object that contains `part'"
+  (if (parent part)
+      (get-top-level-object (parent part))
+      part))
+
 (def-owl-type-initializer ("PrismaticJoint" name owl-name parent)
   (with-vars-bound (?min ?max ?connected ?labels ?directionx ?directiony ?directionz)
       (car
