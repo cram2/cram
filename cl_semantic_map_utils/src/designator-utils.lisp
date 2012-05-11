@@ -37,7 +37,7 @@
     ((desig:object-designator desig:location-designator)
      (designator->semantic-map-objects identifier))))
 
-(defun designator->semantic-map-objects (desig)
+(defun designator->semantic-map-objects (desig &optional (semantic-map (get-semantic-map)))
   "Returns the list of semantic-map-objects referenced by `desig' or
   NIL if no matching object could be found. `desig' can either be an
   object designator or a location designator. Currently supported
@@ -49,8 +49,7 @@
 
   (TYPE <type>) type is either a string or symbol"
   (desig:with-desig-props (part-of name type on in) desig
-    (let ((semantic-map (get-semantic-map))
-          (parents (if part-of
+    (let ((parents (if part-of
                        (resolve-part-of part-of)
                        (list (get-semantic-map))))
           (type (or type on in)))
