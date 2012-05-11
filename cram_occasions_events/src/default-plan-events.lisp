@@ -73,3 +73,14 @@
 
 (defclass object-detached (object-connection-event) ())
 
+(defclass object-articulation-event (even)
+  ((object-designator
+    :initarg :object-designator :reader event-object-designator
+    :initform (error
+               'simple-error
+               :format-control "OBJECT-ARTICULATION-EVENT requires an object."))
+   (opening-distance
+    :initarg :opening-distance :reader opening-distance
+    :initform  (error
+                'simple-error
+                :format-control "OBJECT-ARTICULATION-EVENT requires an opening distance."))))

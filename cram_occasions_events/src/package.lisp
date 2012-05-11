@@ -93,6 +93,7 @@
            #:object-perceived-event
            #:robot-state-changed
            #:object-connection-event
+           #:object-articulation-event           
            #:object-attached #:object-detached
            #:event-object-designator #:object-designator
            #:perception-source #:object #:event-object
