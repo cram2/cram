@@ -75,7 +75,8 @@
    #:cop-desig-info-location #:cop-ignore-property-p
    #:object-id
    ;; Semantic map
-   #:semantic-map
+   #:semantic-map #:semantic-map-perceived-object
+   #:semantic-map-object
    ;; occasions
    #:object-perceived)
 
