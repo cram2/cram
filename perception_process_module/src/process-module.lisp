@@ -29,6 +29,8 @@
 
 (in-package :perception-pm)
 
+(defvar *perception-role* nil)
+
 (defmacro def-object-search-function (function-name role (props desig perceived-object)
                                       &body body)
   (check-type function-name symbol)
@@ -54,7 +56,7 @@
        (<- (object-search-function-order ?fun ,(length props))
          (lisp-fun symbol-function ,function-name ?fun)))))
 
-(defun execute-object-search-functions (desig &key perceived-object (role *default-role*))
+(defun execute-object-search-functions (desig &key perceived-object (role *perception-role*))
   "Executes the matching search functions that fit the properties of
    `desig' until one succeeds. `role' specifies the role under which
    the search function should be found. If `role' is set to NIL, all
@@ -123,7 +125,7 @@
                (perceived-object->designator desig perceived-object)))
             (sort perceived-objects #'> :key #'perceived-object-probability))))
 
-(defparameter *known-roles* '(semantic-map handle-detector popcorn-detector cop)
+(defparameter *known-roles* '(semantic-map handle-detector popcorn-detector)
   "Ordered list of known roles for designator resolution. They are
   processed in the order specified in this list")
 
@@ -133,7 +135,7 @@
   (let* ((newest-valid (newest-valid-designator input))
          (result
           (some (lambda (role)
-                  (let ((*default-role* role))
+                  (let ((*perception-role* role))
                     (if newest-valid
                         ;; Designator that has alrady been equated to
                         ;; one with bound to a perceived-object
