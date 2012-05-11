@@ -124,7 +124,13 @@ are used for each joint."
                          (loop for name across names collecting
                                                      (if (seq-member name joint-names)
                                                          (cons (gethash name current)
-                                                               (loop for i from 0 below steps collecting)))))))))
+                                                               (loop for i from 0 below steps collecting
+                                                                                              (+ (gethash name lower-limits)
+                                                                                                 (* (- steps i 1)
+                                                                                                    (/ (- (gethash name upper-limits)
+                                                                                                          (gethash name lower-limits))
+                                                                                                       (- steps 1))))))
+                                                         (list (gethash name current)))))))))
 
 (defun ik->trajectory (ik-result &key (duration 5.0) (stamp (roslisp:ros-time)))
   (declare (type kinematics_msgs-srv:getpositionik-response ik-result))
