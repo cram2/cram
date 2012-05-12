@@ -214,10 +214,18 @@ finally executes the motion for both arms to reach these poses"
                            (tf:stamp wrist-right-transform)
                            (cl-transforms:v+ (cl-transforms:translation wrist-right-transform)
                                              (cl-transforms:make-3d-vector 0 0 distance))
-                           (cl-transforms:rotation wrist-right-transform))))
+                           (cl-transforms:rotation wrist-right-transform)))
+         (lift-left-ik (lazy-car (get-ik :left lift-left-pose)))
+         (lift-right-ik (lazy-car (get-ik :right lift-right-pose))))
+    (unless lift-left-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "Trying to lift with both arms -> goal pose for the left arm is NOT reachable."))
+    (unless lift-right-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "Trying to lift with both arms -> goal pose for the right arm is NOT reachable."))
     (cpl-impl:par
-      (execute-arm-trajectory :left (ik->trajectory (lazy-car (get-ik :left lift-left-pose))))
-      (execute-arm-trajectory :right (ik->trajectory (lazy-car (get-ik :right lift-right-pose)))))    
+      (execute-arm-trajectory :left (ik->trajectory lift-left-ik))
+      (execute-arm-trajectory :right (ik->trajectory lift-right-ik)))    
     (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))))
 
 (def-action-handler grasp (object-type obj side obstacles)
