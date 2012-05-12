@@ -870,7 +870,6 @@ that has to be grasped with two grippers."
                           :element-type 'float
                           :initial-element 0.0)))))
 
-
 (defun execute-both-arm-grasp
     (grasping-pose-left grasping-pose-right)
   "Grasps an object with both grippers
