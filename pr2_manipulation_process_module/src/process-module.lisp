@@ -73,6 +73,20 @@
 (defparameter *left-grasp* (cl-transforms:euler->quaternion :az (/ pi -2)))
 (defparameter *right-grasp* (cl-transforms:euler->quaternion :az (/ pi 2)))
 
+(defparameter *pot-relative-right-handle-transform*
+  (cl-transforms:make-transform
+   (cl-transforms:make-3d-vector
+    0.135 -0.012 0.08)
+   (cl-transforms:make-quaternion
+    -0.179 -0.684 0.685 -0.175)))
+
+(defparameter *pot-relative-left-handle-transform*
+  (cl-transforms:make-transform
+   (cl-transforms:make-3d-vector
+    -0.135 -0.008 0.08)
+   (cl-transforms:make-quaternion
+    -0.677 0.116 0.168 0.707)))
+
 (defun init-pr2-manipulation-process-module ()
   (setf *gripper-action-left* (actionlib:make-action-client
                                "/l_gripper_controller/gripper_action"
@@ -796,27 +810,13 @@ that has to be grasped with two grippers."
          (object-pose (desig:designator-pose obj))
          (object-transform (cl-transforms:pose->transform object-pose)))
     (cond ((eq object-type 'desig-props:pot)
-           (let* (
-                  ;; the following magic-numbers came from Tom's demo
-                  (relative-right-handle-transform
-                    (cl-transforms:make-transform
-                     (cl-transforms:make-3d-vector
-                      0.135 -0.012 0.08)
-                     (cl-transforms:make-quaternion
-                      -0.179 -0.684 0.685 -0.175)))
-                  (relative-left-handle-transform
-                    (cl-transforms:make-transform
-                     (cl-transforms:make-3d-vector
-                      -0.135 -0.008 0.08)
-                     (cl-transforms:make-quaternion
-                      -0.677 0.116 0.168 0.707)))
-                  ;; get grasping poses for the handles
+           (let* (;; get grasping poses for the handles
                   (left-grasp-pose (cl-transforms:transform-pose
                                     object-transform
-                                    relative-left-handle-transform))
+                                    *pot-relative-left-handle-transform*))
                   (right-grasp-pose (cl-transforms:transform-pose
                                      object-transform
-                                     relative-right-handle-transform))
+                                    *pot-relative-right-handle-transform*))
                   ;; make 'em stamped poses
                   (left-grasp-stamped-pose (cl-tf:make-pose-stamped
                                             (cl-tf:frame-id object-pose)
