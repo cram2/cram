@@ -801,7 +801,49 @@ by `planners' until one succeeds."
   (let ((obj (newest-valid-designator obj)))
     (multiple-value-bind (left-grasp-pose right-grasp-pose)
         (compute-both-arm-grasping-poses obj)
-      (execute-both-arm-grasp left-grasp-pose right-grasp-pose))))
+      (execute-both-arm-grasp left-grasp-pose right-grasp-pose)
+      ;; TODO(Georg): make this depend on the execution result
+      ;; update object designator, because it is now in the grippers
+      ;; TODO(Georg): this constant is pot-specific -> move it somewhere else
+      (update-picked-up-object-designator obj 'desig-props:both-grippers :left 0.06))))
+
+(defun update-picked-up-object-designator (obj-desig gripper side height)
+  "Function that creates and equates a new obj-designator to an object
+that has been grasped. `gripper' shall either include the symbols
+desig-props:gripper or desig-props:both-grippers to discriminate between
+single and dual grasps. `Side' indicates with respect to which gripper
+the new location designator shall be constructed. `height' is the
+difference in z-coordinate of the grasping point of the object and
+its' supporting plane."
+  ;; get current pose of the object in map frame
+  (let* ((obj-pose (cl-tf:transform-pose
+                    *tf* :pose (obj-desig-location (current-desig obj-desig))
+                         :target-frame "/map"))
+         ;; build a new location designator for the object:
+         ;; the transform will be in the wrist frame of the `side' gripper
+         ;; thus it'll move with the gripper;
+         ;; adding (in ,`gripper') indicates whether it has been grasped
+         ;; with one or two grippers;
+         ;; (orientation ...) is the intended put down orientation of the object;
+         (new-loc-desig (make-designator
+                         'location
+                         `((in ,gripper)
+                           (side ,side)
+                           (pose ,(tf:copy-pose-stamped
+                                   (cl-tf:transform-pose
+                                    *tf* :pose obj-pose
+                                         :target-frame (ecase side
+                                                         (:right "/r_wrist_roll_link")
+                                                         (:left "/l_wrist_roll_link")))
+                                   :stamp 0.0))
+                           (height ,height)
+                           (orientation ,(cl-transforms:orientation obj-pose))))))
+    ;; build and equate new object designator using the new location designator
+    ;; NOTE: this usage of make-designator does it both in one line
+    (make-designator
+     'object
+     `((at ,new-loc-desig) . ,(remove 'at (description obj-desig) :key #'car))
+     obj-desig)))
 
 (defun compute-both-arm-grasping-poses (obj)
   "Computes and returns the two grasping poses for an object `obj'
