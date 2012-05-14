@@ -187,7 +187,9 @@
       (lift-grasped-object-with-both-arms distance)
       (lift-grasped-object-with-one-arm side distance)))
 
-(defun lift-grasped-object-with-one-arm (side distance)
+(defun get-lifting-grasped-object-arm-trajectory (side distance)
+  "Returns the lifting trajectory for the `side' robot arm in order to
+lift the grasped object at the `distance' from the supporting plane."
   (let* ((wrist-transform (tf:lookup-transform
                            *tf*
                            :time 0
@@ -195,52 +197,37 @@
                                            (:right "r_wrist_roll_link")
                                            (:left "l_wrist_roll_link"))
                            :target-frame "/base_footprint"))
-         (lift-pose (tf:make-pose-stamped
-                     (tf:frame-id wrist-transform) (tf:stamp wrist-transform)
-                     (cl-transforms:v+ (cl-transforms:translation wrist-transform)
-                                       (cl-transforms:make-3d-vector 0 0 distance))
-                     (cl-transforms:rotation wrist-transform))))
-    (execute-arm-trajectory side (ik->trajectory (lazy-car (get-ik side lift-pose))))
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))))
+         (lifted-pose (tf:make-pose-stamped
+                       (tf:frame-id wrist-transform)
+                       (tf:stamp wrist-transform)
+                       (cl-transforms:v+ (cl-transforms:translation wrist-transform)
+                                         (cl-transforms:make-3d-vector 0 0 distance))
+                       (cl-transforms:rotation wrist-transform)))
+         (lifted-pose-ik (get-ik side lifted-pose)))
+    (unless lifted-pose-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "Lifted pose " 'side "unreachable !"))
+    (ik->trajectory (lazy-car lifted-pose-ik))))
+
+(defun lift-grasped-object-with-one-arm (side distance)
+  "Executes a lifting motion with the `side' arm which grasped the
+object in order to lift it at `distance' form the supporting plane"
+  (execute-arm-trajectory side
+                          ;; Computes the lifting trajectory for the `side' arm
+                          (get-lifting-grasped-object-arm-trajectory side distance)) 
+  (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))
 
 (defun lift-grasped-object-with-both-arms (distance)
-  "Finds the current poses of both arms relative to the
-`/base_footprint' reference then computes the lifting up poses and
-finally executes the motion for both arms to reach these poses"
-  (let* ((wrist-left-transform (tf:lookup-transform
-                                *tf*
-                                :time 0
-                                :source-frame "l_wrist_roll_link"
-                                :target-frame "/base_footprint"))
-         (wrist-right-transform (tf:lookup-transform
-                                 *tf*
-                                 :time 0
-                                 :source-frame "r_wrist_roll_link"
-                                 :target-frame "/base_footprint"))
-         (lift-left-pose (tf:make-pose-stamped
-                          (tf:frame-id wrist-left-transform)
-                          (tf:stamp wrist-left-transform)
-                          (cl-transforms:v+ (cl-transforms:translation wrist-left-transform)
-                                            (cl-transforms:make-3d-vector 0 0 distance))
-                          (cl-transforms:rotation wrist-left-transform)))
-         (lift-right-pose (tf:make-pose-stamped
-                           (tf:frame-id wrist-right-transform)
-                           (tf:stamp wrist-right-transform)
-                           (cl-transforms:v+ (cl-transforms:translation wrist-right-transform)
-                                             (cl-transforms:make-3d-vector 0 0 distance))
-                           (cl-transforms:rotation wrist-right-transform)))
-         (lift-left-ik (lazy-car (get-ik :left lift-left-pose)))
-         (lift-right-ik (lazy-car (get-ik :right lift-right-pose))))
-    (unless lift-left-ik
-      (error 'manipulation-pose-unreachable
-             :format-control "Trying to lift with both arms -> goal pose for the left arm is NOT reachable."))
-    (unless lift-right-ik
-      (error 'manipulation-pose-unreachable
-             :format-control "Trying to lift with both arms -> goal pose for the right arm is NOT reachable."))
-    (cpl-impl:par
-      (execute-arm-trajectory :left (ik->trajectory lift-left-ik))
-      (execute-arm-trajectory :right (ik->trajectory lift-right-ik)))    
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))))
+ "Executes a parallel lifting motion with both arms in order to lift
+the object which is grasped with both arms at `distance' form the
+supporting plane"
+  (cpl-impl:par
+    (execute-arm-trajectory :left
+                            ;; Compute the lifting trajectory for the `left' arm.
+                            (get-lifting-grasped-object-arm-trajectory :left distance))
+    (execute-arm-trajectory :right
+                            ;; Compute the lifting trajectory for the `right' arm.
+                            (get-lifting-grasped-object-arm-trajectory :right distance))))
 
 (def-action-handler grasp (object-type obj side obstacles)
   (cond ((eq object-type 'desig-props:pot)
