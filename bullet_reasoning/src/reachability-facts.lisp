@@ -114,6 +114,7 @@
        ?objs)))
 
   (<- (assert (reach-ik-solution ?world ?robot ?pose ?side))
+    (bullet-world ?world)
     (%object ?world ?robot ?robot-instance)
     (side ?side)
     (lisp-fun reach-pose-ik ?robot-instance ?pose :side ?side ?ik-solutions)
