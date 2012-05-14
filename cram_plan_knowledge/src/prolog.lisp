@@ -28,7 +28,7 @@
 
 (in-package :cram-plan-knowledge)
 
-(def-fact-group manipulateion (trajectory-point)
+(def-fact-group manipulation (trajectory-point)
 
   ;; Yields points that are part of a manipulation
   ;; trajectory. ?designator is bound to an action designator. The
