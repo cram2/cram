@@ -382,51 +382,6 @@ supporting plane"
                                :side side))
     (assert-occasion `(object-in-hand ,obj ,side))))
 
-(def-action-handler put-down (obj location side obstacles)
-  (roslisp:ros-info (pr2-manip process-module) "Putting down object")
-  (assert (and (rete-holds `(object-in-hand ,obj ,side))) ()
-          "Object ~a needs to be in the gripper" obj)
-  (clear-collision-objects)
-  (sem-map-coll-env:publish-semantic-map-collision-objects)
-  (dolist (obstacle (cut:force-ll obstacles))
-    (register-collision-object obstacle))
-  (let* ((put-down-pose (calculate-put-down-pose obj location))
-         (pre-put-down-pose (tf:copy-pose-stamped
-                             put-down-pose
-                             :origin (cl-transforms:v+
-                                      (cl-transforms:origin put-down-pose)
-                                      (cl-transforms:make-3d-vector 0 0 *pre-put-down-distance*))))
-         (unhand-pose (cl-transforms:transform-pose
-                       (cl-transforms:reference-transform put-down-pose)
-                       (cl-transforms:make-pose
-                        (cl-transforms:make-3d-vector (- *pre-put-down-distance*) 0 0)
-                        (cl-transforms:make-identity-rotation))))
-         (unhand-pose-stamped (tf:make-pose-stamped
-                               (tf:frame-id put-down-pose) (tf:stamp put-down-pose)
-                               (cl-transforms:origin unhand-pose)
-                               (cl-transforms:orientation unhand-pose)))
-         (put-down-solution (get-constraint-aware-ik side put-down-pose))
-         (unhand-solution (get-constraint-aware-ik
-                           side unhand-pose-stamped
-                           :allowed-collision-objects (list "\"all\""))))
-    (when (or (not put-down-solution) (not unhand-solution))
-      (cpl:fail 'manipulation-pose-unreachable))
-    (execute-move-arm-pose side pre-put-down-pose)
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
-    (execute-arm-trajectory side (ik->trajectory (lazy-car put-down-solution)))
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
-    (open-gripper side)
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:object-detached
-                               :object obj
-                               :link (ecase side
-                                       (:right "r_gripper_r_finger_tip_link")
-                                       (:left "l_gripper_r_finger_tip_link"))
-                               :side side))
-    (execute-arm-trajectory
-     side (ik->trajectory (lazy-car unhand-solution)))
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))))
-
 (defun execute-goal (server goal)
   (multiple-value-bind (result status)
       (actionlib:call-goal server goal)
