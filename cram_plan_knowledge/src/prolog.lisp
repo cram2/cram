@@ -38,5 +38,5 @@
   ;; here, e.g. when grasp planning has to be done, ?point is not
   ;; necessarily an exact trajectory point but it should at least be
   ;; close to the actual point.
-  (<- (trajectory-point ?designator ?point)
+  (<- (trajectory-point ?designator ?point ?side)
     (fail)))
