@@ -513,32 +513,48 @@ names for which collisions are allowed."
      (cl-transforms:translation goal-trans)
      (cl-transforms:rotation goal-trans))))
 
-(defun calculate-put-down-pose (obj location)
-  (let ((obj-loc (current-desig (desig-prop-value (current-desig obj) 'at))))
+(defun calc-goal-transform-for-picked-object (obj-desig goal-location-desig)
+  "Calculates the goal pose of an object that has already been picked
+up (`obj-desig') to get to `goal-location-desig' using its' location
+designator, which is relative to one of the grippers. The result is a
+transform in /base_footprint."
+  ;; get location designator of object designator,
+  ;; NOTE: this is relative to one of the grippers
+  (let ((obj-loc (current-desig (desig-prop-value (current-desig obj-desig) 'at))))
+    ;; make sure that object designator and its location designator
+    ;; have a proper structure
     (assert obj-loc () "Object ~a needs to have an `at' property"
-            obj)
-    (assert (and (eq (desig-prop-value obj-loc 'in) 'gripper)) ()
-                 "Object ~a needs to be in the gripper" obj)
+            obj-desig)
+    (assert (or (eq (desig-prop-value obj-loc 'in) 'gripper)
+                (eq (desig-prop-value obj-loc 'in) 'both-grippers)) ()
+                "Object ~a needs to be in the gripper" obj-loc)
     (assert (desig-prop-value obj-loc 'pose) ()
-            "Object ~a needs to have a `pose' property" obj)
+            "Object ~a needs to have a `pose' property" obj-desig)
     (assert (desig-prop-value obj-loc 'height) ()
-            "Object ~a needs to have a `height' property" obj)
-    (let* ((obj-in-gripper (desig-prop-value obj-loc 'pose))
-           (obj-pose-height (desig-prop-value obj-loc 'height))
+            "Object ~a needs to have a `height' property" obj-desig)
+    ;; get z difference between grasping point and supporting plane of object
+    (let* ((obj-pose-height (desig-prop-value obj-loc 'height))
            (location-in-robot (tf:transform-pose
-                               *tf* :pose (reference (current-desig location))
-                               :target-frame "/base_footprint"))
+                               *tf* :pose (reference (current-desig goal-location-desig))
+                                    :target-frame "/base_footprint")))
+      ;; calc transform of desired pose of object, adjusted by its z difference
+      (cl-transforms:reference-transform
+       (tf:copy-pose-stamped
+        location-in-robot
+        :origin (cl-transforms:v+
+                 (cl-transforms:origin location-in-robot)
+                 (cl-transforms:make-3d-vector 0 0 obj-pose-height)))))))
+
+(defun calculate-put-down-pose (obj location)
+  (let ((object-goal-transform (calc-goal-transform-for-picked-object obj location)))
+    (let* ((obj-loc (current-desig (desig-prop-value (current-desig obj) 'at)))
+           (obj-in-gripper (desig-prop-value obj-loc 'pose))
            (goal-trans (cl-transforms:transform*
-                        (cl-transforms:reference-transform
-                         (tf:copy-pose-stamped
-                          location-in-robot
-                          :origin (cl-transforms:v+
-                                   (cl-transforms:origin location-in-robot)
-                                   (cl-transforms:make-3d-vector 0 0 obj-pose-height))))
+                        object-goal-transform
                         (cl-transforms:transform-inv
                          (cl-transforms:reference-transform obj-in-gripper)))))
       (tf:make-pose-stamped
-       "/base_footprint" (tf:stamp location-in-robot)
+       "/base_footprint" (tf:stamp (reference (current-desig location)))
        (cl-transforms:translation goal-trans)
        (cl-transforms:rotation goal-trans)))))
 
