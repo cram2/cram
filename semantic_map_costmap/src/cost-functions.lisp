@@ -91,10 +91,10 @@
               (cl-transforms:y point)
               (cl-transforms:z
                (cl-transforms:translation transform)))))
-    (funcall #'inside-aabb (first bb) (second bb)
-             (cl-transforms:transform-point
-              (cl-transforms:transform-inv transform)
-              pt))))
+    (inside-aabb (first bb) (second bb)
+                 (cl-transforms:transform-point
+                  (cl-transforms:transform-inv transform)
+                  pt))))
 
 (defun make-semantic-map-obj-generator (object &key (padding 0.0))
   (declare (type sem-map-utils:semantic-map-geom object))
