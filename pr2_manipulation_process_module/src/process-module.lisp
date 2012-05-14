@@ -236,8 +236,15 @@ the given object type."
          (grasp-object-with-both-arms obj))
         (t (standard-grasping obj side obstacles))))
 
-(def-action-handler put-down (obj location side obstacles)
-  (roslisp:ros-info (pr2-manip process-module) "Putting down object")
+(def-action-handler put-down (object-designator location side obstacles)
+  "Delegates the type of the put down action which suppose to be executed
+for the currently type of grasped object."
+  (cond ((eq (desig-prop-value object-designator 'desig-props:type) 'desig-props:pot)
+         (put-down-grasped-object-with-both-arms object-designator location))
+        (t (put-down-grasped-object-with-single-arm object-designator location side obstacles))))
+
+(defun put-down-grasped-object-with-single-arm (obj location side obstacles)
+  (roslisp:ros-info (pr2-manip process-module) "Putting down object single-handedly.")
   (assert (and (rete-holds `(object-in-hand ,obj ,side))) ()
           "Object ~a needs to be in the gripper" obj)
   (clear-collision-objects)
@@ -279,6 +286,144 @@ the given object type."
     (execute-arm-trajectory
      side (ik->trajectory (lazy-car unhand-solution)))
     (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))))
+
+
+(defun put-down-grasped-object-with-both-arms (obj location)
+  (roslisp:ros-info (pr2-manip process-module) "Putting down the grasped object with both arms.")
+  ;; TODO(Georg): Talk to Lorenz about this, and how to get it running
+  ;; (assert (and (rete-holds `(object-in-hand ,obj ,side))) ()
+  ;;         "Object ~a needs to be in the gripper" obj)
+  (let* ((goal-transform-obj (calc-goal-transform-for-picked-object obj location))
+         ;; get put down poses for the handles
+         ;; T_centerPot_in_base * T_leftHandle_in_centerPot * T_tool_in_wrist_INVERSE
+         ;; result is a pose and still needs to get poseStamped
+         ;; NOTE: intended frame_id: /base_footprint
+         (left-put-down-pose (cl-transforms:transform-pose
+                (cl-transforms:pose->transform
+                 (cl-transforms:transform-pose
+                  goal-transform-obj
+                  *pot-relative-left-handle-transform*))
+                (cl-transforms:make-pose
+                 (cl-transforms:make-3d-vector
+                  (+ (- *grasp-distance*)) 0.0 0.0)
+                 (cl-transforms:make-identity-rotation))))
+         ;; T_centerPot_in_base * T_rightHandle_in_centerPot * T_tool_in_wrist_INVERSE
+         ;; result is a pose and still needs to get poseStamped
+         ;; NOTE: intended frame_id: /base_footprint
+         (right-put-down-pose (cl-transforms:transform-pose
+                (cl-transforms:pose->transform
+                 (cl-transforms:transform-pose
+                  goal-transform-obj
+                  *pot-relative-right-handle-transform*))
+                (cl-transforms:make-pose
+                 (cl-transforms:make-3d-vector
+                  (+ (- *grasp-distance*)) 0.0 0.0)
+                 (cl-transforms:make-identity-rotation))))
+         ;; make 'em stamped poses
+         (left-put-down-stamped-pose (cl-tf:make-pose-stamped
+                                      "/base_footprint"
+                                      (cl-tf:stamp
+                                       (reference (current-desig location)))
+                                      (cl-transforms:origin left-put-down-pose)
+                                      (cl-transforms:orientation left-put-down-pose)))
+         (right-put-down-stamped-pose (cl-tf:make-pose-stamped
+                                       "/base_footprint"
+                                       (cl-tf:stamp
+                                        (reference (current-desig location)))
+                                       (cl-transforms:origin right-put-down-pose)
+                                       (cl-transforms:orientation right-put-down-pose)))
+         ;; calc pre-put-down poses
+         (left-pre-put-down-pose (tf:copy-pose-stamped
+                                  left-put-down-stamped-pose
+                                  :origin (cl-transforms:v+
+                                           (cl-transforms:origin left-put-down-stamped-pose)
+                                           (cl-transforms:make-3d-vector 0 0 *pre-put-down-distance*))))
+         (right-pre-put-down-pose (tf:copy-pose-stamped
+                                  right-put-down-stamped-pose
+                                  :origin (cl-transforms:v+
+                                           (cl-transforms:origin right-put-down-stamped-pose)
+                                           (cl-transforms:make-3d-vector 0 0 *pre-put-down-distance*))))
+         ;; calc unhand poses
+         (left-unhand-pose (cl-transforms:transform-pose
+                            (cl-transforms:reference-transform left-put-down-stamped-pose)
+                            (cl-transforms:make-pose
+                             (cl-transforms:make-3d-vector (- *pre-put-down-distance*) 0 0)
+                             (cl-transforms:make-identity-rotation))))
+         (right-unhand-pose (cl-transforms:transform-pose
+                            (cl-transforms:reference-transform right-put-down-stamped-pose)
+                            (cl-transforms:make-pose
+                             (cl-transforms:make-3d-vector (- *pre-put-down-distance*) 0 0)
+                             (cl-transforms:make-identity-rotation))))
+         (left-unhand-pose-stamped (tf:make-pose-stamped
+                                    (tf:frame-id left-put-down-stamped-pose)
+                                    (tf:stamp left-put-down-stamped-pose)
+                                    (cl-transforms:origin left-unhand-pose)
+                                    (cl-transforms:orientation left-unhand-pose)))
+         (right-unhand-pose-stamped (tf:make-pose-stamped 
+                                     (tf:frame-id right-put-down-stamped-pose)
+                                     (tf:stamp right-put-down-stamped-pose)
+                                     (cl-transforms:origin right-unhand-pose)
+                                     (cl-transforms:orientation right-unhand-pose)))
+         ;; ask for ik solutions for all 6 poses (3 for each arm):
+         ;; pre-put-down, put-down, and unhand pose
+         (left-put-down-ik (get-ik :left left-put-down-stamped-pose))
+         (right-put-down-ik (get-ik :right right-put-down-stamped-pose))
+         (left-pre-put-down-ik (get-ik :left left-pre-put-down-pose))
+         (right-pre-put-down-ik (get-ik :right right-pre-put-down-pose))
+         (left-unhand-ik (get-ik :left left-unhand-pose-stamped))
+         (right-unhand-ik (get-ik :right right-unhand-pose-stamped)))
+    ;; check if left and right are not switched
+    (when (< (cl-transforms:y (cl-transforms:origin left-put-down-pose))
+             (cl-transforms:y (cl-transforms:origin right-put-down-pose)))
+      (error 'manipulation-failed
+             :format-control "Left put-down pose right of right put-down pose."))
+    ;; check if IKs exist
+    (unless left-put-down-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "No ik solution for left-put-down-pose"))
+    (unless right-put-down-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "No ik solution for right-put-down-pose"))
+    (unless left-pre-put-down-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "No ik solution for left-pre-put-down-pose"))
+    (unless right-pre-put-down-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "No ik solution for right-pre-put-down-pose"))
+    (unless left-unhand-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "No ik solution for left-unhand-pose"))
+    (unless right-unhand-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "No ik solution for right-unhand-pose"))
+    ;; Execute the put down motion...
+    ;; ... pre-pose
+    (cpl-impl:par
+      (execute-arm-trajectory :left (ik->trajectory (lazy-car left-pre-put-down-ik)))
+      (execute-arm-trajectory :right (ik->trajectory (lazy-car right-pre-put-down-ik))))
+    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
+    ;; ... pose
+    (cpl-impl:par
+      (execute-arm-trajectory :left (ik->trajectory (lazy-car left-put-down-ik)))
+      (execute-arm-trajectory :right (ik->trajectory (lazy-car right-put-down-ik))))
+    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
+    ;; ... open
+    (cpl-impl:par
+      (open-gripper :left :position 0.04)
+      (open-gripper :right :position 0.04))
+    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
+    ;; ... go away.
+    (cpl-impl:par
+      (execute-arm-trajectory :left (ik->trajectory (lazy-car left-unhand-ik)))
+      (execute-arm-trajectory :right (ik->trajectory (lazy-car right-unhand-ik))))
+    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
+    ;; TOD(Georg): ask Lorenz about this, and get it running
+    ;; (plan-knowledge:on-event (make-instance 'plan-knowledge:object-detached
+    ;;                            :object obj
+    ;;                            :link (ecase side
+    ;;                                    (:right "r_gripper_r_finger_tip_link")
+    ;;                                    (:left "l_gripper_r_finger_tip_link"))))
+    ))
 
 (defun standard-grasping (obj side obstacles)
   (roslisp:ros-info (pr2-manip process-module) "Opening gripper")
@@ -749,7 +894,7 @@ by `planners' until one succeeds."
       ;; TODO(Georg): make this depend on the execution result
       ;; update object designator, because it is now in the grippers
       ;; TODO(Georg): this constant is pot-specific -> move it somewhere else
-      (update-picked-up-object-designator obj 'desig-props:both-grippers :left 0.06))))
+      (update-picked-up-object-designator obj 'desig-props:both-grippers :left 0.0))))
 
 (defun update-picked-up-object-designator (obj-desig gripper side height)
   "Function that creates and equates a new obj-designator to an object
