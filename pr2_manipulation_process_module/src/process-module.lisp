@@ -1039,8 +1039,7 @@ will be commanded."
              :format-control "Trying to grasp with both arms -> grasp pose for the right arm is NOT reachable."))
     ;; simultaneously open both grippers
     (cpl-impl:par
-      ;; TODO(Georg): only open the grippers to 50%,
-      ;; Tom said that this is necessary for the demo.
+      ;; only open the grippers to 50% to not hit the lid
       (open-gripper :left :position 0.04)
       (open-gripper :right :position 0.04))
     ;; simultaneously approach pre-grasp positions from both sides
