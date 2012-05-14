@@ -230,6 +230,8 @@ supporting plane"
                             (get-lifting-grasped-object-arm-trajectory :right distance))))
 
 (def-action-handler grasp (object-type obj side obstacles)
+  "Selects and calls the appropriate grasping functionality based on
+the given object type."
   (cond ((eq object-type 'desig-props:pot)
          (grasp-object-with-both-arms obj))
         (t (standard-grasping obj side obstacles))))
@@ -953,10 +955,6 @@ will be commanded."
          (grasp-right-ik
            (lazy-car
             (get-ik :right grasp-pose-right :seed-state right-seed-state))))
-    (format t "~a" pre-grasp-pose-left)
-    (format t "~a" pre-grasp-pose-right)
-    (format t "~a" grasp-pose-left)
-    (format t "~a" grasp-pose-right)
     ;; check if left poses are left of right poses
     (when (< (cl-transforms:y (cl-transforms:origin pre-grasp-pose-left))
              (cl-transforms:y (cl-transforms:origin pre-grasp-pose-right)))
