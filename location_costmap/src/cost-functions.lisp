@@ -65,7 +65,7 @@
           out-range
           in-range))))
 
-(defun make-axis-boundary-cost-function (axis boundary side)
+(defun make-axis-boundary-cost-function (axis boundary predicate)
   "Returns a cost function that has the value 1 if the pose is on the
 respective side of `boundary'.
 
@@ -77,9 +77,9 @@ The value of `axis' is either :X or :Y.
 returned for poses < `boundary', otherwise poses > `boundary' result
 in a value of 1.0"
 
-  (let ((pred (ecase side
-                (:left #'<)
-                (:right #'>))))
+  (let ((pred (etypecase predicate
+                (function predicate)
+                (symbol (symbol-function predicate)))))
     (lambda (x y)
       (if (funcall
            pred
