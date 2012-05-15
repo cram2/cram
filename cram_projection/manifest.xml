@@ -1,0 +1,18 @@
+<package>
+  <description brief="cram_projection">
+
+     cram_projection
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cram_projection</url>
+  <depend package="alexandria" />
+  <depend package="cram_language" />
+  <depend package="cram_process_modules" />
+  <depend package="roslisp_runtime" />
+  <depend package="cram_utilities" />
+  <depend package="lisp_unit" />
+
+</package>
