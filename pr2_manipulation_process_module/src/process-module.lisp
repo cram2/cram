@@ -73,6 +73,20 @@
 (defparameter *left-grasp* (cl-transforms:euler->quaternion :az (/ pi -2)))
 (defparameter *right-grasp* (cl-transforms:euler->quaternion :az (/ pi 2)))
 
+(defparameter *pot-relative-right-handle-transform*
+  (cl-transforms:make-transform
+   (cl-transforms:make-3d-vector
+    0.135 -0.012 0.08)
+   (cl-transforms:make-quaternion
+    -0.179 -0.684 0.685 -0.175)))
+
+(defparameter *pot-relative-left-handle-transform*
+  (cl-transforms:make-transform
+   (cl-transforms:make-3d-vector
+    -0.135 -0.008 0.08)
+   (cl-transforms:make-quaternion
+    -0.677 0.116 0.168 0.707)))
+
 (defun init-pr2-manipulation-process-module ()
   (setf *gripper-action-left* (actionlib:make-action-client
                                "/l_gripper_controller/gripper_action"
@@ -169,6 +183,13 @@
     (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))))
 
 (def-action-handler lift (side distance)
+  (if (eq side :both)
+      (lift-grasped-object-with-both-arms distance)
+      (lift-grasped-object-with-one-arm side distance)))
+
+(defun get-lifting-grasped-object-arm-trajectory (side distance)
+  "Returns the lifting trajectory for the `side' robot arm in order to
+lift the grasped object at the `distance' from the supporting plane."
   (let* ((wrist-transform (tf:lookup-transform
                            *tf*
                            :time 0
@@ -176,21 +197,54 @@
                                            (:right "r_wrist_roll_link")
                                            (:left "l_wrist_roll_link"))
                            :target-frame "/base_footprint"))
-         (lift-pose (tf:make-pose-stamped
-                     (tf:frame-id wrist-transform) (tf:stamp wrist-transform)
-                     (cl-transforms:v+ (cl-transforms:translation wrist-transform)
-                                       (cl-transforms:make-3d-vector 0 0 distance))
-                     (cl-transforms:rotation wrist-transform))))
-    (execute-arm-trajectory side (ik->trajectory (lazy-car (get-ik side lift-pose))))
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))))
+         (lifted-pose (tf:make-pose-stamped
+                       (tf:frame-id wrist-transform)
+                       (tf:stamp wrist-transform)
+                       (cl-transforms:v+ (cl-transforms:translation wrist-transform)
+                                         (cl-transforms:make-3d-vector 0 0 distance))
+                       (cl-transforms:rotation wrist-transform)))
+         (lifted-pose-ik (get-ik side lifted-pose)))
+    (unless lifted-pose-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "Lifted pose " 'side "unreachable !"))
+    (ik->trajectory (lazy-car lifted-pose-ik))))
+
+(defun lift-grasped-object-with-one-arm (side distance)
+  "Executes a lifting motion with the `side' arm which grasped the
+object in order to lift it at `distance' form the supporting plane"
+  (execute-arm-trajectory side
+                          ;; Computes the lifting trajectory for the `side' arm
+                          (get-lifting-grasped-object-arm-trajectory side distance)) 
+  (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))
+
+(defun lift-grasped-object-with-both-arms (distance)
+ "Executes a parallel lifting motion with both arms in order to lift
+the object which is grasped with both arms at `distance' form the
+supporting plane"
+  (cpl-impl:par
+    (execute-arm-trajectory :left
+                            ;; Compute the lifting trajectory for the `left' arm.
+                            (get-lifting-grasped-object-arm-trajectory :left distance))
+    (execute-arm-trajectory :right
+                            ;; Compute the lifting trajectory for the `right' arm.
+                            (get-lifting-grasped-object-arm-trajectory :right distance))))
 
 (def-action-handler grasp (object-type obj side obstacles)
+  "Selects and calls the appropriate grasping functionality based on
+the given object type."
   (cond ((eq object-type 'desig-props:pot)
          (grasp-object-with-both-arms obj))
         (t (standard-grasping obj side obstacles))))
 
-(def-action-handler put-down (obj location side obstacles)
-  (roslisp:ros-info (pr2-manip process-module) "Putting down object")
+(def-action-handler put-down (object-designator location side obstacles)
+  "Delegates the type of the put down action which suppose to be executed
+for the currently type of grasped object."
+  (cond ((eq (desig-prop-value object-designator 'desig-props:type) 'desig-props:pot)
+         (put-down-grasped-object-with-both-arms object-designator location))
+        (t (put-down-grasped-object-with-single-arm object-designator location side obstacles))))
+
+(defun put-down-grasped-object-with-single-arm (obj location side obstacles)
+  (roslisp:ros-info (pr2-manip process-module) "Putting down object single-handedly.")
   (assert (and (rete-holds `(object-in-hand ,obj ,side))) ()
           "Object ~a needs to be in the gripper" obj)
   (clear-collision-objects)
@@ -232,6 +286,144 @@
     (execute-arm-trajectory
      side (ik->trajectory (lazy-car unhand-solution)))
     (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))))
+
+
+(defun put-down-grasped-object-with-both-arms (obj location)
+  (roslisp:ros-info (pr2-manip process-module) "Putting down the grasped object with both arms.")
+  ;; TODO(Georg): Talk to Lorenz about this, and how to get it running
+  ;; (assert (and (rete-holds `(object-in-hand ,obj ,side))) ()
+  ;;         "Object ~a needs to be in the gripper" obj)
+  (let* ((goal-transform-obj (calc-goal-transform-for-picked-object obj location))
+         ;; get put down poses for the handles
+         ;; T_centerPot_in_base * T_leftHandle_in_centerPot * T_tool_in_wrist_INVERSE
+         ;; result is a pose and still needs to get poseStamped
+         ;; NOTE: intended frame_id: /base_footprint
+         (left-put-down-pose (cl-transforms:transform-pose
+                (cl-transforms:pose->transform
+                 (cl-transforms:transform-pose
+                  goal-transform-obj
+                  *pot-relative-left-handle-transform*))
+                (cl-transforms:make-pose
+                 (cl-transforms:make-3d-vector
+                  (+ (- *grasp-distance*)) 0.0 0.0)
+                 (cl-transforms:make-identity-rotation))))
+         ;; T_centerPot_in_base * T_rightHandle_in_centerPot * T_tool_in_wrist_INVERSE
+         ;; result is a pose and still needs to get poseStamped
+         ;; NOTE: intended frame_id: /base_footprint
+         (right-put-down-pose (cl-transforms:transform-pose
+                (cl-transforms:pose->transform
+                 (cl-transforms:transform-pose
+                  goal-transform-obj
+                  *pot-relative-right-handle-transform*))
+                (cl-transforms:make-pose
+                 (cl-transforms:make-3d-vector
+                  (+ (- *grasp-distance*)) 0.0 0.0)
+                 (cl-transforms:make-identity-rotation))))
+         ;; make 'em stamped poses
+         (left-put-down-stamped-pose (cl-tf:make-pose-stamped
+                                      "/base_footprint"
+                                      (cl-tf:stamp
+                                       (reference (current-desig location)))
+                                      (cl-transforms:origin left-put-down-pose)
+                                      (cl-transforms:orientation left-put-down-pose)))
+         (right-put-down-stamped-pose (cl-tf:make-pose-stamped
+                                       "/base_footprint"
+                                       (cl-tf:stamp
+                                        (reference (current-desig location)))
+                                       (cl-transforms:origin right-put-down-pose)
+                                       (cl-transforms:orientation right-put-down-pose)))
+         ;; calc pre-put-down poses
+         (left-pre-put-down-pose (tf:copy-pose-stamped
+                                  left-put-down-stamped-pose
+                                  :origin (cl-transforms:v+
+                                           (cl-transforms:origin left-put-down-stamped-pose)
+                                           (cl-transforms:make-3d-vector 0 0 *pre-put-down-distance*))))
+         (right-pre-put-down-pose (tf:copy-pose-stamped
+                                  right-put-down-stamped-pose
+                                  :origin (cl-transforms:v+
+                                           (cl-transforms:origin right-put-down-stamped-pose)
+                                           (cl-transforms:make-3d-vector 0 0 *pre-put-down-distance*))))
+         ;; calc unhand poses
+         (left-unhand-pose (cl-transforms:transform-pose
+                            (cl-transforms:reference-transform left-put-down-stamped-pose)
+                            (cl-transforms:make-pose
+                             (cl-transforms:make-3d-vector (- *pre-put-down-distance*) 0 0)
+                             (cl-transforms:make-identity-rotation))))
+         (right-unhand-pose (cl-transforms:transform-pose
+                            (cl-transforms:reference-transform right-put-down-stamped-pose)
+                            (cl-transforms:make-pose
+                             (cl-transforms:make-3d-vector (- *pre-put-down-distance*) 0 0)
+                             (cl-transforms:make-identity-rotation))))
+         (left-unhand-pose-stamped (tf:make-pose-stamped
+                                    (tf:frame-id left-put-down-stamped-pose)
+                                    (tf:stamp left-put-down-stamped-pose)
+                                    (cl-transforms:origin left-unhand-pose)
+                                    (cl-transforms:orientation left-unhand-pose)))
+         (right-unhand-pose-stamped (tf:make-pose-stamped 
+                                     (tf:frame-id right-put-down-stamped-pose)
+                                     (tf:stamp right-put-down-stamped-pose)
+                                     (cl-transforms:origin right-unhand-pose)
+                                     (cl-transforms:orientation right-unhand-pose)))
+         ;; ask for ik solutions for all 6 poses (3 for each arm):
+         ;; pre-put-down, put-down, and unhand pose
+         (left-put-down-ik (get-ik :left left-put-down-stamped-pose))
+         (right-put-down-ik (get-ik :right right-put-down-stamped-pose))
+         (left-pre-put-down-ik (get-ik :left left-pre-put-down-pose))
+         (right-pre-put-down-ik (get-ik :right right-pre-put-down-pose))
+         (left-unhand-ik (get-ik :left left-unhand-pose-stamped))
+         (right-unhand-ik (get-ik :right right-unhand-pose-stamped)))
+    ;; check if left and right are not switched
+    (when (< (cl-transforms:y (cl-transforms:origin left-put-down-pose))
+             (cl-transforms:y (cl-transforms:origin right-put-down-pose)))
+      (error 'manipulation-failed
+             :format-control "Left put-down pose right of right put-down pose."))
+    ;; check if IKs exist
+    (unless left-put-down-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "No ik solution for left-put-down-pose"))
+    (unless right-put-down-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "No ik solution for right-put-down-pose"))
+    (unless left-pre-put-down-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "No ik solution for left-pre-put-down-pose"))
+    (unless right-pre-put-down-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "No ik solution for right-pre-put-down-pose"))
+    (unless left-unhand-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "No ik solution for left-unhand-pose"))
+    (unless right-unhand-ik
+      (error 'manipulation-pose-unreachable
+             :format-control "No ik solution for right-unhand-pose"))
+    ;; Execute the put down motion...
+    ;; ... pre-pose
+    (cpl-impl:par
+      (execute-arm-trajectory :left (ik->trajectory (lazy-car left-pre-put-down-ik)))
+      (execute-arm-trajectory :right (ik->trajectory (lazy-car right-pre-put-down-ik))))
+    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
+    ;; ... pose
+    (cpl-impl:par
+      (execute-arm-trajectory :left (ik->trajectory (lazy-car left-put-down-ik)))
+      (execute-arm-trajectory :right (ik->trajectory (lazy-car right-put-down-ik))))
+    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
+    ;; ... open
+    (cpl-impl:par
+      (open-gripper :left :position 0.04)
+      (open-gripper :right :position 0.04))
+    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
+    ;; ... go away.
+    (cpl-impl:par
+      (execute-arm-trajectory :left (ik->trajectory (lazy-car left-unhand-ik)))
+      (execute-arm-trajectory :right (ik->trajectory (lazy-car right-unhand-ik))))
+    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
+    ;; TOD(Georg): ask Lorenz about this, and get it running
+    ;; (plan-knowledge:on-event (make-instance 'plan-knowledge:object-detached
+    ;;                            :object obj
+    ;;                            :link (ecase side
+    ;;                                    (:right "r_gripper_r_finger_tip_link")
+    ;;                                    (:left "l_gripper_r_finger_tip_link"))))
+    ))
 
 (defun standard-grasping (obj side obstacles)
   (roslisp:ros-info (pr2-manip process-module) "Opening gripper")
@@ -336,51 +528,6 @@
                                        (:left "l_gripper_r_finger_tip_link"))
                                :side side))
     (assert-occasion `(object-in-hand ,obj ,side))))
-
-(def-action-handler put-down (obj location side obstacles)
-  (roslisp:ros-info (pr2-manip process-module) "Putting down object")
-  (assert (and (rete-holds `(object-in-hand ,obj ,side))) ()
-          "Object ~a needs to be in the gripper" obj)
-  (clear-collision-objects)
-  (sem-map-coll-env:publish-semantic-map-collision-objects)
-  (dolist (obstacle (cut:force-ll obstacles))
-    (register-collision-object obstacle))
-  (let* ((put-down-pose (calculate-put-down-pose obj location))
-         (pre-put-down-pose (tf:copy-pose-stamped
-                             put-down-pose
-                             :origin (cl-transforms:v+
-                                      (cl-transforms:origin put-down-pose)
-                                      (cl-transforms:make-3d-vector 0 0 *pre-put-down-distance*))))
-         (unhand-pose (cl-transforms:transform-pose
-                       (cl-transforms:reference-transform put-down-pose)
-                       (cl-transforms:make-pose
-                        (cl-transforms:make-3d-vector (- *pre-put-down-distance*) 0 0)
-                        (cl-transforms:make-identity-rotation))))
-         (unhand-pose-stamped (tf:make-pose-stamped
-                               (tf:frame-id put-down-pose) (tf:stamp put-down-pose)
-                               (cl-transforms:origin unhand-pose)
-                               (cl-transforms:orientation unhand-pose)))
-         (put-down-solution (get-constraint-aware-ik side put-down-pose))
-         (unhand-solution (get-constraint-aware-ik
-                           side unhand-pose-stamped
-                           :allowed-collision-objects (list "\"all\""))))
-    (when (or (not put-down-solution) (not unhand-solution))
-      (cpl:fail 'manipulation-pose-unreachable))
-    (execute-move-arm-pose side pre-put-down-pose)
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
-    (execute-arm-trajectory side (ik->trajectory (lazy-car put-down-solution)))
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
-    (open-gripper side)
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:object-detached
-                               :object obj
-                               :link (ecase side
-                                       (:right "r_gripper_r_finger_tip_link")
-                                       (:left "l_gripper_r_finger_tip_link"))
-                               :side side))
-    (execute-arm-trajectory
-     side (ik->trajectory (lazy-car unhand-solution)))
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))))
 
 (defun execute-goal (server goal)
   (multiple-value-bind (result status)
@@ -743,7 +890,49 @@ by `planners' until one succeeds."
   (let ((obj (newest-valid-designator obj)))
     (multiple-value-bind (left-grasp-pose right-grasp-pose)
         (compute-both-arm-grasping-poses obj)
-      (execute-both-arm-grasp left-grasp-pose right-grasp-pose))))
+      (execute-both-arm-grasp left-grasp-pose right-grasp-pose)
+      ;; TODO(Georg): make this depend on the execution result
+      ;; update object designator, because it is now in the grippers
+      ;; TODO(Georg): this constant is pot-specific -> move it somewhere else
+      (update-picked-up-object-designator obj 'desig-props:both-grippers :left 0.0))))
+
+(defun update-picked-up-object-designator (obj-desig gripper side height)
+  "Function that creates and equates a new obj-designator to an object
+that has been grasped. `gripper' shall either include the symbols
+desig-props:gripper or desig-props:both-grippers to discriminate between
+single and dual grasps. `Side' indicates with respect to which gripper
+the new location designator shall be constructed. `height' is the
+difference in z-coordinate of the grasping point of the object and
+its' supporting plane."
+  ;; get current pose of the object in map frame
+  (let* ((obj-pose (cl-tf:transform-pose
+                    *tf* :pose (obj-desig-location (current-desig obj-desig))
+                         :target-frame "/map"))
+         ;; build a new location designator for the object:
+         ;; the transform will be in the wrist frame of the `side' gripper
+         ;; thus it'll move with the gripper;
+         ;; adding (in ,`gripper') indicates whether it has been grasped
+         ;; with one or two grippers;
+         ;; (orientation ...) is the intended put down orientation of the object;
+         (new-loc-desig (make-designator
+                         'location
+                         `((in ,gripper)
+                           (side ,side)
+                           (pose ,(tf:copy-pose-stamped
+                                   (cl-tf:transform-pose
+                                    *tf* :pose obj-pose
+                                         :target-frame (ecase side
+                                                         (:right "/r_wrist_roll_link")
+                                                         (:left "/l_wrist_roll_link")))
+                                   :stamp 0.0))
+                           (height ,height)
+                           (orientation ,(cl-transforms:orientation obj-pose))))))
+    ;; build and equate new object designator using the new location designator
+    ;; NOTE: this usage of make-designator does it both in one line
+    (make-designator
+     'object
+     `((at ,new-loc-desig) . ,(remove 'at (description obj-desig) :key #'car))
+     obj-desig)))
 
 (defun compute-both-arm-grasping-poses (obj)
   "Computes and returns the two grasping poses for an object `obj'
@@ -752,27 +941,13 @@ that has to be grasped with two grippers."
          (object-pose (desig:designator-pose obj))
          (object-transform (cl-transforms:pose->transform object-pose)))
     (cond ((eq object-type 'desig-props:pot)
-           (let* (
-                  ;; the following magic-numbers came from Tom's demo
-                  (relative-right-handle-transform
-                    (cl-transforms:make-transform
-                     (cl-transforms:make-3d-vector
-                      0.135 -0.012 0.08)
-                     (cl-transforms:make-quaternion
-                      -0.179 -0.684 0.685 -0.175)))
-                  (relative-left-handle-transform
-                    (cl-transforms:make-transform
-                     (cl-transforms:make-3d-vector
-                      -0.135 -0.008 0.08)
-                     (cl-transforms:make-quaternion
-                      -0.677 0.116 0.168 0.707)))
-                  ;; get grasping poses for the handles
+           (let* (;; get grasping poses for the handles
                   (left-grasp-pose (cl-transforms:transform-pose
                                     object-transform
-                                    relative-left-handle-transform))
+                                    *pot-relative-left-handle-transform*))
                   (right-grasp-pose (cl-transforms:transform-pose
                                      object-transform
-                                     relative-right-handle-transform))
+                                    *pot-relative-right-handle-transform*))
                   ;; make 'em stamped poses
                   (left-grasp-stamped-pose (cl-tf:make-pose-stamped
                                             (cl-tf:frame-id object-pose)
@@ -825,7 +1000,6 @@ that has to be grasped with two grippers."
        effort (make-array (length names)
                           :element-type 'float
                           :initial-element 0.0)))))
-
 
 (defun execute-both-arm-grasp
     (grasping-pose-left grasping-pose-right)
@@ -926,10 +1100,6 @@ will be commanded."
          (grasp-right-ik
            (lazy-car
             (get-ik :right grasp-pose-right :seed-state right-seed-state))))
-    (format t "~a" pre-grasp-pose-left)
-    (format t "~a" pre-grasp-pose-right)
-    (format t "~a" grasp-pose-left)
-    (format t "~a" grasp-pose-right)
     ;; check if left poses are left of right poses
     (when (< (cl-transforms:y (cl-transforms:origin pre-grasp-pose-left))
              (cl-transforms:y (cl-transforms:origin pre-grasp-pose-right)))
@@ -954,8 +1124,7 @@ will be commanded."
              :format-control "Trying to grasp with both arms -> grasp pose for the right arm is NOT reachable."))
     ;; simultaneously open both grippers
     (cpl-impl:par
-      ;; TODO(Georg): only open the grippers to 50%,
-      ;; Tom said that this is necessary for the demo.
+      ;; only open the grippers to 50% to not hit the lid
       (open-gripper :left :position 0.04)
       (open-gripper :right :position 0.04))
     ;; simultaneously approach pre-grasp positions from both sides
