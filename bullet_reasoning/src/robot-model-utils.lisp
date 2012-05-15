@@ -40,11 +40,15 @@
 (defun set-robot-state-from-tf (tf robot &optional (reference-frame "/map"))
   (loop for name being the hash-keys in  (slot-value robot 'links) do
     (let ((tf-name (if (eql (elt name 0) #\/) name (concatenate 'string "/" name))))
-      (handler-case
-          (setf (link-pose robot name) (cl-transforms:transform->pose
-                                        (tf:lookup-transform tf :source-frame tf-name :target-frame reference-frame)))
-        (tf:tf-lookup-error ()
-          nil)))))
+      (when (tf:wait-for-transform
+             tf :timeout 0.5 :source-frame tf-name
+                :target-frame reference-frame)
+        (handler-case
+            (setf (link-pose robot name)
+                  (cl-transforms:transform->pose
+                   (tf:lookup-transform tf :source-frame tf-name :target-frame reference-frame)))
+          (tf:tf-lookup-error ()
+            nil))))))
 
 (defgeneric set-robot-state-from-joints (joint-states robot)
   (:method ((joint-states sensor_msgs-msg:jointstate) (robot robot-object))
