@@ -277,10 +277,12 @@ just a different name for an existing process module."
                                          (list definition)))
                                      process-modules)))
     `(flet ((body-function () ,@body))
-       (pursue
-         (par ,@(loop for (alias name) in process-module-definitions
-                      collecting `(pm-run ',name ',alias)))
-         (seq
-           (par ,@(loop for (alias name) in process-module-definitions
-                        collecting `(wait-for-process-module-running ',alias)))
-           (body-function))))))
+       ,(if process-modules
+            `(pursue
+               (par ,@(loop for (alias name) in process-module-definitions
+                            collecting `(pm-run ',name ',alias)))
+               (seq
+                 `(par ,@(loop for (alias name) in process-module-definitions
+                               collecting `(wait-for-process-module-running ',alias)))
+                 (body-function)))
+            `(body-function)))))
