@@ -193,7 +193,7 @@
     (%object ?world ?obj-name ?obj)
     (%pose ?obj ?pose-1)
     (with-stored-world ?world
-      (simulate ?world 0.5)
+      (simulate ?world 5)
       ;; checking for active-tag does not always work and requires
       ;; pretty long simlation times. Additionally some bodies are
       ;; just very unstable and never get deactivated, e.g. cylinders.
