@@ -206,7 +206,7 @@ lift the grasped object at the `distance' from the supporting plane."
          (lifted-pose-ik (get-ik side lifted-pose)))
     (unless lifted-pose-ik
       (error 'manipulation-pose-unreachable
-             :format-control "Lifted pose " 'side "unreachable !"))
+             :format-control "Lifted pose for " side " arm unreachable !"))
     (ik->trajectory (lazy-car lifted-pose-ik))))
 
 (defun lift-grasped-object-with-one-arm (side distance)
