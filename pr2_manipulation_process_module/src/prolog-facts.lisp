@@ -34,30 +34,15 @@
   (or *semantic-map*
       (setf *semantic-map* (sem-map-utils:get-semantic-map))))
 
-(defun get-connecting-joint (part)
-  "Returns the connecting joint of the part with name `part-name'."
-  (when part
-    (or (find-if (lambda (part)
-                   (typep part 'sem-map-utils:semantic-map-joint))
-                 (sem-map-utils:sub-parts part))
-        (get-connecting-joint (sem-map-utils:parent part)))))
-
-(defun get-articulated-position (part-name relative-joint-position)
-  "Returns the pose of `part' if its connecting joint is set to
-  `relative-joint-position' * <joint maximal value>."
-  (let ((part (sem-map-utils:semantic-map-part
-                (get-semantic-map) part-name :recursive t)))
-    (when part
-      (let ((joint (get-connecting-joint part)))
-        (when joint
-          (cl-transforms:transform->pose
-           (cl-transforms:transform*
-            (cl-transforms:pose->transform (sem-map-utils:pose part))
-            (cl-transforms:make-transform
-             (cl-transforms:v* (sem-map-utils:joint-direction joint)
-                               (* relative-joint-position
-                                  (sem-map-utils:joint-maximal-value joint)))
-             (cl-transforms:make-identity-rotation)))))))))
+(defmethod on-event ((event object-articulation-event))
+  (with-slots (object-designator opening-distance) event
+    (let ((perceived-object (reference object-designator)))
+      (declare (type perception-pm:semantic-map-perceived-object
+                     perceived-object))
+      (sem-map-utils:update-articulated-object-poses
+       (get-semantic-map)
+       (sem-map-utils:name (perception-pm:semantic-map-object perceived-object))
+       opening-distance))))
 
 (defun get-articulated-gripper-position (part-name relative-joint-position)
   "Gets the position of the gripper to reach `part-name'. Uses its
@@ -66,7 +51,9 @@
   between 0.0 and 1.0 and the joint's maximal value is multiplied by
   it to get the actual pose to grasp."
   (let ((object-pose
-          (get-articulated-position part-name relative-joint-position)))
+          (sem-map-utils:get-articulated-position
+           (get-semantic-map) part-name
+           relative-joint-position :relative t)))
     (when object-pose
       (cl-transforms:transform->pose
        (cl-transforms:transform*
