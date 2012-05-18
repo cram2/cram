@@ -41,7 +41,7 @@
     :color (apply-aplha-value color)))
 
 (defmethod urdf-make-collision-shape ((cylinder cl-urdf:cylinder) &optional (color '(0.8 0.8 0.8 1.0)))
-  (make-instance 'cylinder-shape
+  (make-instance 'colored-cylinder-shape
     :half-extents (cl-transforms:make-3d-vector
                    (cl-urdf:radius cylinder)
                    (cl-urdf:radius cylinder)
@@ -49,7 +49,7 @@
     :color (apply-aplha-value color)))
 
 (defmethod urdf-make-collision-shape ((sphere cl-urdf:sphere) &optional (color '(0.8 0.8 0.8 1.0)))
-  (make-instance 'sphere-shape :radius (cl-urdf:radius sphere)
+  (make-instance 'colored-sphere-shape :radius (cl-urdf:radius sphere)
     :color (apply-aplha-value color)))
 
 (defmethod urdf-make-collision-shape ((mesh cl-urdf:mesh) &optional (color '(0.8 0.8 0.8 1.0)))
