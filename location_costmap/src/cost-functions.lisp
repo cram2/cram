@@ -28,6 +28,14 @@
 
 (in-package :location-costmap)
 
+(defgeneric get-point (object)
+  (:documentation "Returns the point that is described by
+  `object'. E.g. if `object' is a pose, returns the position part.")
+  (:method ((pose cl-transforms:pose))
+    (cl-transforms:origin pose))
+  (:method ((point cl-transforms:3d-vector))
+    point))
+
 (defun make-gauss-cost-function (mean covariance)
   (let ((mean (etypecase mean
                 (list (make-array 2 :initial-contents mean))
@@ -53,12 +61,12 @@
     (make-gauss-cost-function loc `((,(float (* std-dev std-dev) 0.0d0) 0.0d0)
                                     (0.0d0 ,(float (* std-dev std-dev)))))))
 
-(defun make-range-cost-function (point distance &key invert)
+(defun make-range-cost-function (pose distance &key invert)
   "Returns a costfunction that returns 1 for every point that is not
   further than distance away from point."
-  (let ((z (cl-transforms:z point))
-        (in-range (if invert 0.0d0 1.0d0))
-        (out-range (if invert 1.0d0 0.0d0)))
+  (let* ((point (get-point pose)) (z (cl-transforms:z point))
+         (in-range (if invert 0.0d0 1.0d0))
+         (out-range (if invert 1.0d0 0.0d0)))
     (lambda (x y)
       (if (> (cl-transforms:v-dist point (cl-transforms:make-3d-vector x y z))
              distance)
