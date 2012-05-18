@@ -30,7 +30,6 @@
 (in-package :plan-lib)
 
 (defun distance-to-drive (goal)
-  ;; TODO(moesenle): use prolog here
   (let ((loc-1 (reference goal))
         (current-loc (cl-tf:lookup-transform
                       *tf*
@@ -43,8 +42,11 @@
   (ros-info (achieve plan-lib) "Driving to location ~a." ?loc)
   (unless (reference ?loc)
     (fail "Location designator invalid."))
-  (achieve `(looking-at :forward))
-  (achieve '(arm-parked :both))
+  (when (> (distance-to-drive ?loc) 1.5)
+    (ros-info (achieve plan-lib) "Distance to drive: ~a, parking arms.~%"
+              (distance-to-drive ?loc))
+    (achieve `(looking-at :forward))
+    (achieve '(arm-parked :both)))
   (pm-execute :navigation ?loc)
   (retract-occasion `(loc Robot ?_))
   (assert-occasion `(loc Robot ,?loc)))
