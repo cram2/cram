@@ -75,7 +75,7 @@
   "List of validation function names that should not be used although
   registered.")
 
-(defparameter *location-generator-max-retries* 50)
+(defparameter *location-generator-max-retries* 200)
 
 (defun register-location-resolution-function (place priority function &optional documentation)
   "Internal function used by the macro REGISTER-LOCATION-GENERATOR."
