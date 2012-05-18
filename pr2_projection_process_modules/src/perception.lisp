@@ -76,9 +76,9 @@
                                :preception-soource :projection
                                :object-designator designator))
                             designator)))
-                      (crs:prolog `(and (object ,object)
-                                        (visible ?_ ,object)
-                                        (object-pose ,object ?pose)))))))
+                      (crs:prolog `(and (object ?_ ,object)
+                                        (visible ?_ ?_ ,object)
+                                        (pose ?_ ,object ?pose)))))))
 
 (defun find-with-new-designator (designator)
   (desig:with-desig-props (desig-props:type) designator
@@ -95,7 +95,7 @@
                         (crs:prolog `(and
                                       (robot ?robot)
                                       (object ?_ ?object)
-                                      (object-type ?_ ?object ,desig-props:type)
+                                      (household-object-type ?_ ?object ,desig-props:type)
                                       (visible ?_ ?robot ?object)
                                       (pose ?_ ?object ?pose))))))))
 
