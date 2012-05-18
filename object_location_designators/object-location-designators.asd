@@ -33,7 +33,8 @@
   :depends-on (designators
                cl-semantic-map-utils
                cl-json-pl-client
-               cram-reasoning)
+               cram-reasoning
+               cram-projection)
   :components
   ((:module "src"
     :components
