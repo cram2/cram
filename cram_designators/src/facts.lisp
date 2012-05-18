@@ -121,21 +121,21 @@
 
   ;; parses description for pairs matching (?prop-name ?prop)
   (<- (desig-prop ?desig (?prop-name ?prop))
-    (bound ?desig)
+    (lisp-type ?desig designator)
     (lisp-fun check-desig-prop-package ?prop-name ?_)
     (lisp-fun description ?desig ?props)
     (member (?prop-name ?prop) ?props))
 
   ;; parses description and timestamp
   (<- (desig-prop ?desig (?prop-name ?prop) ?t)
-    (bound ?desig)
+    (lisp-type ?desig designator)    
     (lisp-fun check-desig-prop-package ?prop-name ?_)
     (desig-timestamp ?desig ?t)
     (desig-prop ?desig (?prop-name ?prop)))
 
   ;; parses timstamp of all equated designators
   (<- (desig-prop ?desig (?prop-name ?prop) ?t)
-    (bound ?desig)
+    (lisp-type ?desig designator)
     (lisp-fun check-desig-prop-package ?prop-name ?_)
     (desig-equal ?desig ?d-2)
     (desig-timestamp ?d-2 ?t)
