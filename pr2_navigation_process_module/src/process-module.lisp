@@ -45,7 +45,6 @@
   we might use nav-p controller.")
 (defvar *xy-goal-tolerance* 0.15)
 (defvar *yaw-goal-tolerance* 0.25)
-(defvar *fixed-frame* "map")
 
 (defun init-pr2-navigation-process-module ()
   (setf *move-base-client* (actionlib:make-action-client
@@ -63,9 +62,7 @@
   (when (roslisp:has-param "~navigation_process_module/xy_goal_tolerance")
     (setf *xy-goal-tolerance* (roslisp:get-param "~navigation_process_module/xy_goal_tolerance")))
   (when (roslisp:has-param "~navigation_process_module/yaw_goal_tolerance")
-    (setf *yaw-goal-tolerance* (roslisp:get-param "~navigation_process_module/yaw_goal_tolerance")))
-  (when (roslisp:has-param "~navigation_process_module/fixed_frame")
-    (setf *fixed-frame* (roslisp:get-param "~navigation_process_module/fixed_frame"))))
+    (setf *yaw-goal-tolerance* (roslisp:get-param "~navigation_process_module/yaw_goal_tolerance"))))
 
 (register-ros-init-function init-pr2-navigation-process-module)
 
@@ -112,12 +109,12 @@
   (let* ((goal-pose (reference desig))
          (goal-pose-in-fixed-frame (when (tf:wait-for-transform
                                           *tf* :time (tf:stamp goal-pose)
-                                               :target-frame *fixed-frame*
+                                               :target-frame designators-ros:*fixed-frame*
                                                :source-frame (tf:frame-id goal-pose)
                                                :timeout 1.0)
                                      (tf:transform-pose
                                       *tf* :pose goal-pose
-                                           :target-frame *fixed-frame*))))
+                                           :target-frame designators-ros:*fixed-frame*))))
     (unless goal-pose-in-fixed-frame
       (error 'tf:tf-lookup-error :frame (tf:frame-id goal-pose)))
     (multiple-value-bind (result status)
