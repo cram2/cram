@@ -36,7 +36,7 @@
   (:import-from #:alexandria compose curry rcurry with-gensyms copy-hash-table)
   (:import-from #:desig desig-solutions)
   (:shadow copy-object)
-  (:export *current-bullet-world*
+  (:export *current-bullet-world* *current-timeline*
            merge-bounding-boxes aabb with-stored-world *debug-window*
            add-debug-window add-costmap-function-object camera width
            height fov-y z-near z-far camera-axis pose gl-setup-camera
