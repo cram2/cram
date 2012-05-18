@@ -42,3 +42,14 @@
   (cl-transforms:v-dist
    (cl-transforms:origin (reference desig-1))
    (cl-transforms:origin (reference desig-2))))
+
+(defgeneric ensure-pose-stamped (position-object frame-id stamp)
+  (:method ((pose cl-transforms:pose) frame-id stamp)
+    (tf:pose->pose-stamped frame-id stamp pose))
+  (:method ((pose-stamped tf:pose-stamped) frame-id stamp)
+    (declare (ignore frame-id stamp))
+    pose-stamped))
+
+(defmethod reference :around ((designator location-designator) &optional role)
+  (declare (ignore role))
+  (ensure-pose-stamped (call-next-method) *fixed-frame* 0.0))
