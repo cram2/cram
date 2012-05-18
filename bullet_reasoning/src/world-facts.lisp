@@ -200,7 +200,7 @@
       ;;
       ;; (lisp-pred stable-p ?obj)
       (%pose ?obj ?pose-2))
-    (poses-equal ?pose-1 ?pose-2 (0.01 0.03)))
+    (poses-equal ?pose-1 ?pose-2 (0.005 0.015)))
 
   (<- (stable ?world)
     (bullet-world ?world)
