@@ -51,6 +51,7 @@
   (shape-color shape))
 
 (defclass colored-box-shape (box-shape colored-shape-mixin) ())
+(defclass colored-cylinder-shape (cylinder-shape colored-shape-mixin) ())
 (defclass colored-static-plane-shape (static-plane-shape colored-shape-mixin) ())
 (defclass colored-sphere-shape (sphere-shape colored-shape-mixin) ())
 (defclass colored-cone-shape (cone-shape colored-shape-mixin) ())
