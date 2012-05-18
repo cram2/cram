@@ -34,6 +34,7 @@
   
   :depends-on (cram-reasoning
                cram-roslisp-common
+               cram-projection
                cl-transforms
                cl-json-pl-client
                cl-semantic-map-utils

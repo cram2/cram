@@ -30,6 +30,16 @@
 
 (in-package :semantic-map-costmap)
 
+(defvar *semantic-map* nil)
+
+(cram-projection:define-special-projection-variable
+    *semantic-map* (sem-map-utils:copy-semantic-map-object
+                    (get-semantic-map)))
+
+(defun get-semantic-map ()
+  (or *semantic-map*
+      (setf *semantic-map* (sem-map-utils:get-semantic-map))))
+
 (defmethod costmap-generator-name->score ((name (eql 'semantic-map-objects)))
   10)
 
@@ -44,12 +54,15 @@
 
   ;; relation-tag is either IN or ON at the moment
   (<- (semantic-map-desig-objects ?desig ?objects)
-    (lisp-fun sem-map-utils:designator->semantic-map-objects ?desig ?objects)
+    (lisp-fun get-semantic-map ?semantic-map)
+    (lisp-fun sem-map-utils:designator->semantic-map-objects
+              ?desig ?semantic-map ?objects)
     (lisp-pred identity ?objects))
 
   (<- (semantic-map-objects ?objects)
-    (lisp-fun sem-map-utils:get-semantic-map ?sem-map)
-    (lisp-fun sem-map-utils:semantic-map-parts ?sem-map :recursive nil ?objects))
+    (lisp-fun get-semantic-map ?semantic-map)
+    (lisp-fun sem-map-utils:semantic-map-parts ?semantic-map
+              :recursive nil ?objects))
   
   (<- (desig-costmap ?desig ?cm)
     (semantic-map-desig-objects ?desig ?objects)
