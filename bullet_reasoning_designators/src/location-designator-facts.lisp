@@ -72,7 +72,7 @@
     (or (loc-desig? ?desig)
         (obj-desig? ?desig))
     (or (desig-prop ?desig (obj ?o))
-        (desig-prop ?desig (object ?o)))    
+        (desig-prop ?desig (object ?o)))
     (btr:object ?_ ?o)
     (btr:pose ?_ ?o ?loc))
 
@@ -103,7 +103,9 @@
     (not (contact ?w ?robot ?_))
     (head-pointing-at ?w ?robot ?obj-pose)
     (desig-prop ?desig (obj ?obj))
-    (visible ?w ?robot ?obj))
+    (-> (btr:object ?w ?obj)
+        (visible ?w ?robot ?obj)
+        (true)))
 
   (<- (desig-check-articulated-object-manipulation
        ?action-designator ?robot-pose)
