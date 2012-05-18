@@ -14,5 +14,6 @@
   <depend package="cram_designators" />
   <depend package="cram_plan_knowledge" />
   <depend package="cl_transforms" />
+  <depend package="cram_projection" />
 
 </package>
