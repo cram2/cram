@@ -51,7 +51,8 @@
                        'desig-props:object
                        (desig:update-designator-properties
                         `(,(when type `((desig-props:type ,type)))
-                           (at ,pose))
+                           (desig-props:at ,(desig:make-designator
+                                             'desig:location `((desig-props:pose ,pose)))))
                         (when parent (desig:properties parent)))
                        parent)
                       'projection-object-designator)))
@@ -66,19 +67,16 @@
      (cut:lazy-mapcar (lambda (bdg)
                         (cram-utilities:with-vars-bound (?pose) bdg
                           (assert (not (cut:is-var ?pose)))
-                          (let ((designator (make-object-designator
-                                             (make-instance 'perceived-object
-                                               :name (object-name object)
-                                               :pose ?pose)
-                                             :parent designator)))
-                            (cram-plan-knowledge:on-event
-                             (make-instance 'cram-plan-knowledge:object-perceived-event
-                               :preception-soource :projection
-                               :object-designator designator))
-                            designator)))
-                      (crs:prolog `(and (object ?_ ,object)
-                                        (visible ?_ ?_ ,object)
-                                        (pose ?_ ,object ?pose)))))))
+                          (make-object-designator
+                           (make-instance 'perceived-object
+                             :name object
+                             :pose ?pose)
+                           :parent designator)))
+                      (crs:prolog `(and (robot ?robot)
+                                        (bullet-world ?world)
+                                        (object ?world ,object)
+                                        (visible ?world ?robot ,object)
+                                        (pose ?world ,object ?pose)))))))
 
 (defun find-with-new-designator (designator)
   (desig:with-desig-props (desig-props:type) designator
