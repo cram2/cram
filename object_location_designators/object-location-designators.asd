@@ -39,4 +39,4 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "semantic-map-locations" :depends-on ("package"))))))
+     (:file "semantic-map" :depends-on ("package"))))))
