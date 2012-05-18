@@ -95,5 +95,5 @@
            #:costmap-padding #:costmap-manipulation-padding
            #:costmap-in-reach-distance #:costmap-reach-minimal-distance)
   (:desig-properties #:to #:see #:reach #:execute #:location #:pose #:obj
-                     #:object #:action))
+                     #:object #:action #:side))
 
