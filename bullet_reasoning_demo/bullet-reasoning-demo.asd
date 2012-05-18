@@ -44,7 +44,8 @@
               :components
               ((:file "designator-config")
                (:file "pr2-metadata")
-               (:module "executive-integration"
-                :components
-                ((:file "perception")
-                 (:file "perception-facts")))))))
+               ;; (:module "executive-integration"
+               ;;  :components
+               ;;  ((:file "perception")
+               ;;   (:file "perception-facts")))
+               ))))
