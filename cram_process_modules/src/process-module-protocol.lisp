@@ -282,7 +282,7 @@ just a different name for an existing process module."
                (par ,@(loop for (alias name) in process-module-definitions
                             collecting `(pm-run ',name ',alias)))
                (seq
-                 `(par ,@(loop for (alias name) in process-module-definitions
-                               collecting `(wait-for-process-module-running ',alias)))
+                 (par ,@(loop for (alias name) in process-module-definitions
+                              collecting `(wait-for-process-module-running ',alias)))
                  (body-function)))
             `(body-function)))))
