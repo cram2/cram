@@ -29,8 +29,15 @@
 (in-package :projection-process-modules)
 
 (def-process-module projection-ptu (input)
-  (let ((pose (desig:reference input 'projection-designators:projection-role)))
-    (let ((pose (tf:transform-pose (get-tf) :pose pose :target-frame "map")))
-      (crs:prolog `(head-pointing-at ?_ ,pose)))
+  (let* ((designator-solution (desig:reference input 'projection-designators:projection-role))
+         (pose (etypecase designator-solution
+                 (tf:pose-stamped designator-solution)
+                 (desig:location-designator (desig:reference designator-solution)))))
+    (let ((pose (tf:transform-pose *tf* :pose pose :target-frame "map")))
+      (assert
+       (crs:prolog `(and
+                     (bullet-world ?world)
+                     (robot ?robot)
+                     (head-pointing-at ?world ?robot ,pose)))))
     (cram-plan-knowledge:on-event
      (make-instance 'cram-plan-knowledge:robot-state-changed))))
