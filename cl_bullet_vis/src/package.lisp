@@ -45,8 +45,8 @@
            bullet-world-pixmap-renderer *background-color*
            collision-shape-color *collision-shape-color-overwrite*
            colored-shape-mixin colored-static-plane-shape
-           colored-box-shape colored-sphere-shape colored-cone-shape
-           colored-compound-shape colored-convex-hull-shape
+           colored-box-shape colored-cylinder-shape colored-sphere-shape
+           colored-cone-shape colored-compound-shape colored-convex-hull-shape
            *disable-texture-rendering*
            texture-str->bitmap textured-shape-mixin
            textured-static-plane-shape textured-box-shape
