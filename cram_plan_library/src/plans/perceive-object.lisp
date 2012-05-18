@@ -32,8 +32,9 @@
 (define-condition ambiguous-perception (simple-plan-failure) ())
 
 (def-goal (perceive-object all ?obj-desig)
-  (with-designators ((loc (location `((to see) (obj ,?obj-desig))))
-                     (obj-loc-desig (location `((of ,?obj-desig)))))
+  (with-designators ((obj-loc-desig (location `((of ,?obj-desig))))
+                     (loc (location `((to see) (obj ,?obj-desig)
+                                      (location ,obj-loc-desig)))))
     (let ((loc-retry-cnt 0))
       (with-failure-handling
           ((object-not-found (e)
