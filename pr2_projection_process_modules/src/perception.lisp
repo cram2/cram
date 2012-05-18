@@ -100,8 +100,14 @@
 (def-process-module projection-perception (input)
   (let ((newest-valid-designator (desig:newest-valid-designator input)))
     (or
-     (if newest-valid-designator
-         (find-with-bound-designator newest-valid-designator)
-         (find-with-new-designator input))
+     (mapcar (lambda (designator)
+               (cram-plan-knowledge:on-event
+                (make-instance 'cram-plan-knowledge:object-perceived-event
+                  :perception-source :projection
+                  :object-designator designator))
+               designator)
+             (if newest-valid-designator
+                 (find-with-bound-designator newest-valid-designator)
+                 (find-with-new-designator input)))
      (cpl:fail 'cram-plan-failures:object-not-found
                :object-desig input))))
