@@ -33,4 +33,4 @@
     (:use #:cl #:desig #:cut #:crs
           #:cram-roslisp-common)
   (:import-from #:tf pose pose-stamped)
-  (:export pose pose-stamped))
+  (:export pose pose-stamped *fixed-frame*))
