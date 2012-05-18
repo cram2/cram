@@ -1,4 +1,4 @@
-;;; Copyright (c) 2011, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -26,23 +26,16 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defpackage projection-process-modules
-  (:use #:common-lisp
-        #:bullet-reasoning
-        #:cram-process-modules
-        #:cram-projection)
-  (:shadowing-import-from #:bullet-reasoning name)
-  (:import-from #:cram-roslisp-common *tf*)
-  (:export execute-container-opened execute-container-closed
-           execute-park execute-lift execute-grasp execute-put-down
-           projection-navigation projection-ptu projection-perception
-           projection-manipulation))
+(in-package :projection-process-modules)
 
-(desig-props:def-desig-package projection-designators
-  (:use #:common-lisp #:cram-designators #:cram-reasoning
-        #:projection-process-modules)
-  (:export projection-role)
-  (:desig-properties at type to see follow pose location obj
-                     grasp carry lift park put-down open close
-                     side height distance parked))
-
+(define-projection-environment pr2-bullet-projection-environment
+  :special-variable-initializers
+  ((cram-roslisp-common:*tf* (make-instance 'tf:transformer))
+   ;; (*current-bullet-world* (bt:copy-world *current-bullet-world*))
+   (*current-timeline* nil))
+  :process-module-definitions
+  ((:perception projection-perception)
+   (:ptu projection-ptu)
+   (:manipulation projection-manipulation)
+   (:navigation projection-navigation))
+  :startup (update-tf))
