@@ -28,16 +28,15 @@
 
 (in-package :projection-process-modules)
 
-(defvar *tf* (make-instance 'tf:transformer))
-
 (defun update-tf (&key (base-frame "base_footprint")
-                    (odom-frame "odom_combined") (map-frame "map"))
+                    (odom-frame "odom_combined")
+                    (map-frame designators-ros:*fixed-frame*))
   (cut:with-vars-bound (?robot-instance ?robot-pose)
       (cut:lazy-car
        (crs:prolog `(and (robot ?robot)
                          (bullet-world ?world)
                          (%object ?world ?robot ?robot-instance)
-                         (pose ?robot ?robot-pose))))
+                         (pose ?world ?robot ?robot-pose))))
     (assert (not (cut:is-var ?robot-instance)))
     (bullet-reasoning:set-tf-from-robot-state *tf* ?robot-instance)
     (tf:set-transform
@@ -51,6 +50,6 @@
            (cl-transforms:make-identity-vector)
            (cl-transforms:make-identity-rotation)))))
 
-(defun get-tf ()
-  (update-tf)
-  *tf*)
+(defmethod cram-plan-knowledge:on-event update-tf
+    ((event cram-plan-knowledge:robot-state-changed))
+  (update-tf))
