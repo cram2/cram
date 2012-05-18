@@ -34,6 +34,7 @@
                designators
                bullet-reasoning
                cram-plan-knowledge
+               cram-projection
                cl-transforms)
   :components
   ((:module "src"
@@ -44,4 +45,5 @@
      (:file "manipulation" :depends-on ("package"))
      (:file "ptu" :depends-on ("package" "tf"))
      (:file "action-designators" :depends-on ("package"))
-     (:file "navigation" :depends-on ("package"))))))
+     (:file "navigation" :depends-on ("package"))
+     (:file "projection-environment" :depends-on ("package" "tf"))))))
