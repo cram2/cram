@@ -101,6 +101,9 @@
 
 (def-process-module projection-perception (input)
   (let ((newest-valid-designator (desig:newest-valid-designator input)))
-    (if newest-valid-designator
-        (find-with-bound-designator newest-valid-designator)
-        (find-with-new-designator input))))
+    (or
+     (if newest-valid-designator
+         (find-with-bound-designator newest-valid-designator)
+         (find-with-new-designator input))
+     (cpl:fail 'cram-plan-failures:object-not-found
+               :object-desig input))))
