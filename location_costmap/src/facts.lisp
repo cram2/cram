@@ -69,9 +69,7 @@ orientations differ by `sample-step'."
                            by sample-step
                        appending (list (cl-transforms:euler->quaternion :az angle)
                                        (cl-transforms:euler->quaternion :az (- angle)))))))
-    (let ((point (etypecase position
-                   (cl-transforms:pose (cl-transforms:origin position))
-                   (cl-transforms:3d-vector position)))
+    (let ((point (get-point position))
           (angle-differences (if (and sample-step (> samples 1))
                                  (make-angles samples sample-step)
                                  (list (cl-transforms:make-identity-rotation)))))
@@ -86,41 +84,33 @@ orientations differ by `sample-step'."
                               (cl-transforms:euler->quaternion :az angle)))
                            angle-differences)))))))
 
-(defun 2d-pose-covariance (poses &optional (minimal-variance 0.1))
-  (let* ((poses (force-ll poses))
-         (poses-length (length poses))
-         (mean-x (/ (reduce (lambda (previous pose)
-                              (+ previous (cl-transforms:x
-                                           (cl-transforms:origin pose))))
-                            poses :initial-value 0.0d0)
-                    poses-length))
-         (mean-y (/ (reduce (lambda (previous pose)
-                              (+ previous (cl-transforms:y
-                                           (cl-transforms:origin pose))))
-                            poses :initial-value 0.0d0)
-                    poses-length))
+(defun 2d-pose-covariance (positions &optional (minimal-variance 0.1))
+  (let* ((points (force-ll (lazy-mapcar #'get-point positions)))
+         (points-length (length points))
+         (mean-x (/ (reduce (lambda (previous point)
+                              (+ previous (cl-transforms:x point)))
+                            points :initial-value 0.0d0)
+                    points-length))
+         (mean-y (/ (reduce (lambda (previous point)
+                              (+ previous (cl-transforms:y point)))
+                            points :initial-value 0.0d0)
+                    points-length))
          (result (make-array '(2 2) :element-type 'double-float :initial-element 0.0d0)))
-    (dolist (pose poses)
+    (dolist (point points)
       (incf (aref result 0 0) (max
-                               (* (- (cl-transforms:x
-                                      (cl-transforms:origin pose)) mean-x)
-                                  (- (cl-transforms:x
-                                      (cl-transforms:origin pose)) mean-x))
+                               (* (- (cl-transforms:x point) mean-x)
+                                  (- (cl-transforms:x point) mean-x))
                                minimal-variance))
-      (incf (aref result 0 1) (* (- (cl-transforms:x
-                                     (cl-transforms:origin pose)) mean-x)
-                                 (- (cl-transforms:y
-                                     (cl-transforms:origin pose)) mean-y)))
+      (incf (aref result 0 1) (* (- (cl-transforms:x point) mean-x)
+                                 (- (cl-transforms:y point) mean-y)))
       (incf (aref result 1 0) (aref result 0 1))
       (incf (aref result 1 1) (max
-                               (* (- (cl-transforms:y
-                                      (cl-transforms:origin pose)) mean-y)
-                                  (- (cl-transforms:y
-                                      (cl-transforms:origin pose)) mean-y))
+                               (* (- (cl-transforms:y point) mean-y)
+                                  (- (cl-transforms:y point) mean-y))
                                minimal-variance)))
     (dotimes (y 2)
       (dotimes (x 2)
-        (setf (aref result y x) (/ (aref result y x) poses-length))))
+        (setf (aref result y x) (/ (aref result y x) points-length))))
     (list (cl-transforms:make-3d-vector mean-x mean-y 0.0d0)
           result)))
 
@@ -193,17 +183,16 @@ orientations differ by `sample-step'."
     (forall
      (member ?pose ?poses)
      (and
-      (lisp-fun cl-transforms:origin ?pose ?point)
       (instance-of pose-distribution-range-include-generator
                    ?include-generator-id)
       (costmap-add-function
        ?include-generator-id
-       (make-range-cost-function ?point ?distance) ?cm)
+       (make-range-cost-function ?pose ?distance) ?cm)
       (instance-of pose-distribution-range-exclude-generator
                    ?exclude-generator-id)
       (costmap-add-function
        ?exclude-generator-id
-       (make-range-cost-function ?point ?minimal-distance :invert t)
+       (make-range-cost-function ?pose ?minimal-distance :invert t)
        ?cm)))
     (costmap-add-function pose-distribution (make-gauss-cost-function ?mean ?covariance) ?cm)
     (symbol-value *orientation-samples* ?samples)

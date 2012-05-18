@@ -53,6 +53,6 @@
              (:file "ros-grid-cells" :depends-on ("package"))
              (:file "ros-occupancy-grid" :depends-on ("package"))
              (:file "visualization" :depends-on ("package" "occupancy-grid" "location-costmap"))
-             (:file "facts" :depends-on ("package"))
+             (:file "facts" :depends-on ("package" "cost-functions"))
              (:file "cost-function-utils" :depends-on ("package"))
              (:file "designator-integration" :depends-on ("package" "location-costmap"))))))
