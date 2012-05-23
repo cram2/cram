@@ -53,7 +53,8 @@
                object_manipulation_msgs-srv
                pr2_gripper_sensor_msgs-msg
                arm_navigation_msgs-srv
-               pr2_mechanism_msgs-srv)
+               pr2_mechanism_msgs-srv
+               pr2-manipulation-knowledge)
   :components
   ((:module "src"
             :components
@@ -64,5 +65,4 @@
              (:file "process-module"
               :depends-on ("package" "kinematics" "collision-environment" "controller-manager"))
              (:file "events" :depends-on ("package" "collision-environment"))
-             (:file "designator" :depends-on ("package" "process-module"))
-             (:file "prolog-facts" :depends-on ("package" "process-module"))))))
+             (:file "designator" :depends-on ("package" "process-module"))))))

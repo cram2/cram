@@ -28,5 +28,6 @@
   <depend package="pr2_gripper_sensor_msgs" />
   <depend package="arm_navigation_msgs" />
   <depend package="pr2_mechanism_msgs" />
+  <depend pacakge="pr2_manipulation_knowledge" />
 
 </package>
