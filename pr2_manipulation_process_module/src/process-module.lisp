@@ -78,14 +78,16 @@
    (cl-transforms:make-3d-vector
     0.135 -0.012 0.08)
    (cl-transforms:make-quaternion
-    -0.179 -0.684 0.685 -0.175)))
+    -0.17903158312000483d0 -0.6841142429564597d0
+    0.6850543286185364d0 -0.17503131625700874d0)))
 
 (defparameter *pot-relative-left-handle-transform*
   (cl-transforms:make-transform
    (cl-transforms:make-3d-vector
     -0.135 -0.008 0.08)
    (cl-transforms:make-quaternion
-    -0.677 0.116 0.168 0.707)))
+    -0.6770480569314481d0 0.11600823330627819d0
+    0.16801192666809586d0 0.7070502180947129d0)))
 
 (defun init-pr2-manipulation-process-module ()
   (setf *gripper-action-left* (actionlib:make-action-client
