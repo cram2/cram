@@ -33,9 +33,11 @@
   :depends-on (process-modules
                designators
                bullet-reasoning
+               bullet-reasoning-designators
                cram-plan-knowledge
                cram-projection
-               cl-transforms)
+               cram-roslisp-common
+               pr2-manipulation-knowledge)
   :components
   ((:module "src"
     :components

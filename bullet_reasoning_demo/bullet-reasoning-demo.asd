@@ -38,7 +38,8 @@
                  cram-roslisp-common
                  cram-plan-knowledge
                  bullet-reasoning
-                 bullet-reasoning-designators)
+                 bullet-reasoning-designators
+                 pr2-manipulation-knowledge)
     :components
     ((:module "src"
               :components
