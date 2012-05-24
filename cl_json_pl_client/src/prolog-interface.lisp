@@ -32,8 +32,20 @@
 (defvar *finish-marker* nil)
 (defvar *service-namespace* "/json_prolog")
 
+(defvar *persistent-services* (make-hash-table :test 'equal))
+
 (defun make-query-id ()
   (symbol-name (gensym (format nil "QUERY-~10,20$-" (ros-time)))))
+
+(defun call-prolog-service (name type &rest request)
+  (let ((service (gethash name *persistent-services*)))
+    (unless (and service (persistent-service-ok service))
+      (setf (gethash name *persistent-services*)
+            (make-instance 'persistent-service
+              :service-name name
+              :service-type type))))
+  (apply #'call-persistent-service (gethash name *persistent-services*)
+         request))
 
 (defun prolog-result->bdgs (query-id result &key (lispify nil) (package *package*))
   (unless (json_prolog-srv:ok result)
@@ -42,13 +54,13 @@
            :format-arguments (list (json_prolog-srv:message result))))
   (lazy-list ()
     (cond (*finish-marker*
-           (call-service (concatenate 'string *service-namespace* "/finish")
-                         'json_prolog-srv:PrologFinish
-                         :id query-id)
+           (call-prolog-service (concatenate 'string *service-namespace* "/finish")
+                                'json_prolog-srv:PrologFinish
+                                :id query-id)
            nil)
           (t
            (let ((next-value
-                  (call-service (concatenate 'string *service-namespace* "/next_solution")
+                   (call-prolog-service (concatenate 'string *service-namespace* "/next_solution")
                                 'json_prolog-srv:PrologNextSolution
                                 :id query-id)))
              (ecase (car (rassoc (json_prolog-srv:status next-value)
@@ -74,10 +86,10 @@
   (let ((query-id (make-query-id)))
     (prolog-result->bdgs
      query-id
-     (call-service (concatenate 'string *service-namespace* "/query")
-                   'json_prolog-srv:PrologQuery
-                   :id query-id
-                   :query (prolog->json exp :prologify prologify))
+     (call-prolog-service (concatenate 'string *service-namespace* "/query")
+                          'json_prolog-srv:PrologQuery
+                          :id query-id
+                          :query (prolog->json exp :prologify prologify))
      :lispify lispify :package package)))
 
 (defun prolog-1 (exp &key (prologify t) (lispify nil) (package *package*))
@@ -91,10 +103,10 @@ evaluates it."
   (let ((query-id (make-query-id)))
     (prolog-result->bdgs
      query-id
-     (call-service (concatenate 'string *service-namespace* "/simple_query")
-                   'json_prolog-srv:PrologQuery
-                   :id query-id
-                   :query query-str)
+     (call-prolog-service (concatenate 'string *service-namespace* "/simple_query")
+                          'json_prolog-srv:PrologQuery
+                          :id query-id
+                          :query query-str)
      :lispify lispify :package package)))
 
 (defun prolog-simple-1 (query-str &key (lispify nil) (package *package*))
