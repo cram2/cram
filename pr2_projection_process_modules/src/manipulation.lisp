@@ -36,7 +36,7 @@
                  (crs:lisp-fun reach-pose-ik ?robot-instance ,pose :side ,side
                                ?ik-solutions)
                  (member ?ik-solution ?ik-solutions)
-                 (assert (joint-state ?robot ?ik-solution))))
+                 (assert (joint-state ?_ ?robot ?ik-solution))))
    (cpl-impl:fail 'cram-plan-failures:manipulation-pose-unreachable)))
 
 (defun calculate-put-down-pose (object put-down-pose robot-pose)
@@ -98,11 +98,12 @@
     (assert (not (cut:is-var ?end-effector-pose)))
     (let* ((current-object (desig:newest-valid-designator object))
            (object-pose (desig:designator-pose current-object))
-           (lift-pose (cl-transforms:transform-pose
-                       (cl-transforms:make-transform
-                        (cl-transforms:make-3d-vector 0 0 distance)
-                        (cl-transforms:orientation ?end-effector-pose))
-                       object-pose)))
+           (lift-pose (cl-transforms:transform->pose
+                       (cl-transforms:transform*
+                        (cl-transforms:pose->transform object-pose)
+                        (cl-transforms:make-transform
+                         (cl-transforms:make-3d-vector 0 0 distance)
+                         (cl-transforms:orientation ?end-effector-pose))))))
       (set-robot-reach-pose side lift-pose))))
 
 (defun execute-grasp (object side)
@@ -121,7 +122,7 @@
                         (crs:lisp-fun reach-object-ik ?robot-instance ?object-instance
                                       :side ,side :grasp ?grasp ?ik-solutions)
                         (member ?ik-solution ?ik-solutions)
-                        (assert (joint-state ?robot ?ik-solution)))))
+                        (assert (joint-state ?_ ?robot ?ik-solution)))))
          (cpl-impl:fail 'cram-plan-failures:manipulation-pose-unreachable))
       (assert (not (cut:is-var ?gripper-link)))
       (cram-plan-knowledge:on-event
