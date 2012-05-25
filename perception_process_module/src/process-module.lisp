@@ -81,10 +81,6 @@
   (let ((new-desig (make-designator 'object
                                     (make-new-desig-description
                                      desig obj))))
-    ;; Todo: Use weak references here to make desigs gc-able
-    (assert (null (object-desig obj)) ()
-            "Cannot bind a perceived-object when it's already bound.")
-    (setf (object-desig obj) new-desig)
     (setf (slot-value new-desig 'data) obj)
     (setf (slot-value new-desig 'timestamp) (cut:current-timestamp))
     (setf (slot-value new-desig 'valid) t)
@@ -101,13 +97,12 @@
   "Takes the perceived-object of the parent designator as a bias for
    perception."
   (let* ((parent-desig (current-desig desig))
-         (perceived-object (desig-current-perceived-object parent-desig)))
+         (perceived-object (reference (newest-valid-designator parent-desig))))
     (or
      (when perceived-object
        
        (let ((perceived-objects
-               (sort (execute-object-search-functions parent-desig :perceived-object perceived-object)
-                     #'> :key #'perceived-object-probability)))
+               (execute-object-search-functions parent-desig :perceived-object perceived-object)))
          (when perceived-objects
            (car (mapcar (lambda (perceived-object)
                           (emit-perception-event
@@ -123,7 +118,7 @@
     (mapcar (lambda (perceived-object)
               (emit-perception-event
                (perceived-object->designator desig perceived-object)))
-            (sort perceived-objects #'> :key #'perceived-object-probability))))
+            perceived-objects)))
 
 (defparameter *known-roles* '(semantic-map handle-detector popcorn-detector)
   "Ordered list of known roles for designator resolution. They are

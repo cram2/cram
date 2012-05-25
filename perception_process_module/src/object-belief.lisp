@@ -29,36 +29,10 @@
 
 (in-package :perception-pm)
 
-(defgeneric object-pose (obj)
-  (:documentation "Returns the pose of a designator reference."))
-
-(defgeneric object-properties (obj)
-  (:documentation "Returns a valid designator description of the
-                   perceived object, i.e. a set of tuples."))
-
-(defgeneric object-desig (obj)
-  (:documentation "Returns the designator that references this object
-  instance."))
-
-(defgeneric (setf object-desig) (new-val obj)
-  (:documentation "Returns the designator that references this object
-  instance."))
-
-(defgeneric object-timestamp (obj)
-  (:documentation "Returns the timestamp this object has been
-  detected."))
-
-(defclass perceived-object ()
-  ((pose :accessor object-pose :initarg :pose)
-   (probability :accessor perceived-object-probability :initarg :probability)
-   (desig :accessor object-desig :initarg :desig :initform nil)
-   (timestamp :accessor object-timestamp :initarg :timestamp
-              :initform (current-timestamp))))
-
 (defgeneric make-new-desig-description (old-desig perceived-object)
   (:documentation "Merges the description of `old-desig' with the
   properties of `perceived-object'")
-  (:method ((old-desig object-designator) (po perceived-object))
+  (:method ((old-desig object-designator) (po object-designator-data))
     (let ((obj-loc-desig (make-designator 'location `((pose ,(object-pose po))))))
       (cons `(at ,obj-loc-desig)
             (remove 'at (description old-desig) :key #'car)))))
@@ -88,14 +62,6 @@
    `new-description' is used. "
   (reduce (rcurry (flip #'adjoin) :key #'car)
           old-description :initial-value new-description))
-
-(defun desig-current-perceived-object (desig &optional (type 'perceived-object))
-  (labels ((doit (d)
-             (cond ((typep (slot-value d 'data) type)
-                    (reference d))
-                   ((parent d)
-                    (doit (parent d))))))
-    (doit (current-desig desig))))
 
 (defmethod designator-pose ((desig object-designator))
   (object-pose (reference desig)))

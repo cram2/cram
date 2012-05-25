@@ -51,8 +51,8 @@
    #:perceived-object->designator
    ;; object-belief
    #:object-perceived
-   #:perceived-object #:queried-object #:object-properties
-   #:object-pose #:perceived-object-probability #:object-desig
+   #:object-properties
+   #:object-pose
    #:object-jlo
    #:object-timestamp
    #:clear-object-belief #:update-perceived-object

@@ -31,8 +31,7 @@
 (defvar *handle-detector-action* nil
   "Action client for handle detector.")
 
-(defclass handle-perceived-object (perceived-object)
-  ((name :initarg :name :initform nil :reader handle-name)))
+(defclass handle-perceived-object (object-designator-data) ())
 
 (defun init-handle-detector ()
   (setf *handle-detector-action*
@@ -47,7 +46,7 @@
   (let ((description (call-next-method)))
     (if (member 'name description :key #'car)
         description
-        (cons `(name ,(name perceived-object)) description))))
+        (cons `(name ,(object-identifier perceived-object)) description))))
 
 (defun point-to-box-distance (pose dimensions point)
   "Returns the minimum distance of `point' to the box described by
@@ -98,13 +97,12 @@ account the shape of the handle."
     (map 'list (lambda (handle-pose)
                  (let ((pose (tf:msg->pose-stamped handle-pose)))
                    (make-instance 'handle-perceived-object
-                     :name (find-handle-name desig pose)
+                     :object-identifier (find-handle-name desig pose)
                      :pose (tf:copy-pose-stamped
                             (tf:transform-pose
                              ;; hack(moesenle): remove the time stamp because
                              ;; tf fails to transform for some weird reason
                              *tf* :pose (tf:copy-pose-stamped pose :stamp 0.0)
                              :target-frame *fixed-frame*)
-                            :stamp 0.0)
-                     :probability 1.0)))
+                            :stamp 0.0))))
          handles)))

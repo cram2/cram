@@ -39,20 +39,17 @@
   (:documentation "Returns the list of cop class strings that belongs
   to `obj'."))
 
-(defclass cop-perceived-object (perceived-object)
+(defclass cop-perceived-object (object-designator-data)
   ((object-id :initarg :object-id :accessor object-id)
    (jlo :initarg :jlo :accessor object-jlo)
    (object-properties :initarg :properties
                       :accessor object-properties)
    (perception-primitive :initarg :perception-primitive
-                         :accessor perception-primitive)))
+                         :accessor perception-primitive)
+   (probability :initarg :probability :reader probability)))
 
 (defmethod has-cop-info ((obj cop-perceived-object))
   t)
-
-(defmethod object-classes ((obj cop-perceived-object))
-  (mapcar (alexandria:compose #'rosify-lisp-name #'cadr)
-          (object-properties obj)))
 
 (defun do-cop-search (desig query-info &key (command :locate))
   (let ((cop-reply (cop-query query-info :command command)))
@@ -159,9 +156,9 @@
   (cpl-impl:without-scheduling
     (let ((jlo (jlo:make-jlo :id (vision_msgs-msg:position reply))))
       (make-instance 'cop-perceived-object
-                     :pose (jlo->pose jlo)
-                     :jlo jlo
-                     :object-id (vision_msgs-msg:objectid reply)
-                     :properties (map 'list #'cop-model->property (vision_msgs-msg:models reply))
-                     :probability (vision_msgs-msg:probability reply)
-                     :perception-primitive perception-primitive))))
+        :pose (jlo->pose jlo)
+        :jlo jlo
+        :object-id (vision_msgs-msg:objectid reply)
+        :properties (map 'list #'cop-model->property (vision_msgs-msg:models reply))
+        :probability (vision_msgs-msg:probability reply)
+        :perception-primitive perception-primitive))))
