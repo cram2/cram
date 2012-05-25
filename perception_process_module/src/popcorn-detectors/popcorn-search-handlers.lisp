@@ -39,16 +39,16 @@
 
 (register-ros-init-function init-popcorn-detectors)
 
-(defclass lid-perceived-object (perceived-object)
+(defclass lid-perceived-object (object-designator-data)
   ())
 
-(defclass small-bowl-perceived-object (perceived-object)
+(defclass small-bowl-perceived-object (object-designator-data)
   ())
 
-(defclass pot-perceived-object (perceived-object)
+(defclass pot-perceived-object (object-designator-data)
   ())
 
-(defclass big-plate-perceived-object (perceived-object)
+(defclass big-plate-perceived-object (object-designator-data)
   ())
 
 (defclass search-space ()
@@ -153,7 +153,7 @@ bounding box with its center at `point' and dimensions `size'."
 (def-object-search-function lid-search-function popcorn-detector
     (((type lid)) desig perceived-object)
   (mapcar (lambda (pose)
-            (make-instance 'lid-perceived-object :pose pose :probability 1.0))
+            (make-instance 'lid-perceived-object :pose pose))
           (call-popcorn-perception-action
            :class-name "Lid"
            :search-space (get-search-space
@@ -162,7 +162,7 @@ bounding box with its center at `point' and dimensions `size'."
 (def-object-search-function small-bowl-search-function popcorn-detector
     (((type small-bowl)) desig perceived-object)
   (mapcar (lambda (pose)
-            (make-instance 'small-bowl-perceived-object :pose pose :probability 1.0))
+            (make-instance 'small-bowl-perceived-object :pose pose))
           (call-popcorn-perception-action
            :class-name "SmallBowl"
            :search-space (get-search-space
@@ -171,7 +171,7 @@ bounding box with its center at `point' and dimensions `size'."
 (def-object-search-function pot-search-function popcorn-detector
     (((type pot)) desig perceived-object)
   (mapcar (lambda (pose)
-            (make-instance 'pot-perceived-object :pose pose :probability 1.0))
+            (make-instance 'pot-perceived-object :pose pose))
           (call-popcorn-perception-action
            :class-name "Pot"
            :search-space (get-search-space
@@ -180,7 +180,7 @@ bounding box with its center at `point' and dimensions `size'."
 (def-object-search-function big-plate-search-function popcorn-detector
     (((type big-plate)) desig perceived-object)
   (mapcar (lambda (pose)
-            (make-instance 'big-plate-perceived-object :pose pose :probability 1.0))
+            (make-instance 'big-plate-perceived-object :pose pose))
           (call-popcorn-perception-action
            :class-name "BigPlate"
            :search-space (get-search-space

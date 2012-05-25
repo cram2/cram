@@ -31,10 +31,9 @@
 
 (defvar *semantic-map* nil)
 
-(defclass semantic-map-perceived-object (perceived-object)
+(defclass semantic-map-perceived-object (object-designator-data)
   ((semantic-map-object :initarg :semantic-map-object
-                        :reader semantic-map-object))
-  (:default-initargs :probability 1.0))
+                        :reader semantic-map-object)))
 
 (defgeneric owl-name (sem-map-po)
   (:method ((obj semantic-map-perceived-object))
@@ -42,9 +41,10 @@
       (sem-map-utils:owl-name semantic-map-object))))
 
 (defmethod initialize-instance :after ((obj semantic-map-perceived-object) &key)
-  (with-slots (semantic-map-object pose) obj
+  (with-slots (object-identifier semantic-map-object pose) obj
     (setf pose (tf:pose->pose-stamped
-                *fixed-frame* 0.0 (sem-map-utils:pose semantic-map-object)))))
+                *fixed-frame* 0.0 (sem-map-utils:pose semantic-map-object)))
+    (setf object-identifier (sem-map-utils:name semantic-map-object))))
 
 (defun get-semantic-map ()
   (or *semantic-map*
@@ -55,13 +55,7 @@
   (let ((description (call-next-method)))
     (if (member 'name description :key #'car)
         description
-        (cons `(name ,(name po)) description))))
-
-;; The generic function of this symbol is defined in
-;; semantic_map_utils already.
-(defmethod name ((obj semantic-map-perceived-object))
-  (with-slots (semantic-map-object) obj
-    (sem-map-utils:name semantic-map-object)))
+        (cons `(name ,(object-identifier po)) description))))
 
 (defun resolve-sem-map-obj-desig (desig)
   (mapcar (lambda (sem-map-obj)
@@ -88,10 +82,9 @@
 (defmethod cram-plan-knowledge:on-event
     ((event cram-plan-knowledge:object-articulation-event))
   (with-slots (object-designator opening-distance) event
-    (let ((perceived-object (reference object-designator)))
+    (let ((perceived-object (newest-valid-designator (reference object-designator))))
       (declare (type perception-pm:semantic-map-perceived-object
                      perceived-object))
       (sem-map-utils:update-articulated-object-poses
-       (get-semantic-map)
-       (sem-map-utils:name (perception-pm:semantic-map-object perceived-object))
+       (get-semantic-map) (object-identifier perceived-object)
        opening-distance))))
