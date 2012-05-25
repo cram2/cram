@@ -52,6 +52,7 @@
            #:assert-desig-binding
            #:retract-desig-binding
            #:object-designator
+           #:object-designator-data #:object-pose #:object-identifier
            #:register-object-desig-resolver
            #:resolve-object-desig
            #:action-designator #:action-desig #:action
