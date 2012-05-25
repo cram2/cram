@@ -31,13 +31,11 @@
 (defclass projection-object-designator (desig:object-designator)
   ())
 
-(defclass perceived-object ()
-  ((name :reader object-name :initarg :name)
-   (pose :reader object-pose :initarg :pose)
-   (designator :reader object-designator :initarg :designator)))
+(defclass perceived-object (desig:object-designator-data)
+  ((designator :reader object-designator :initarg :designator)))
 
 (defmethod desig:designator-pose ((designator projection-object-designator))
-  (object-pose (desig:reference designator)))
+  (desig:object-pose (desig:reference designator)))
 
 (defmethod desig:designator-distance ((designator-1 desig:object-designator)
                                       (designator-2 desig:object-designator))
@@ -45,7 +43,7 @@
                         (cl-transforms:origin (desig:designator-pose designator-2))))
 
 (defun make-object-designator (perceived-object &key parent type)
-  (let* ((pose (object-pose perceived-object))
+  (let* ((pose (desig:object-pose perceived-object))
          (designator (change-class
                       (desig:make-designator
                        'desig-props:object
@@ -62,14 +60,14 @@
     designator))
 
 (defun find-with-bound-designator (designator)
-  (let ((object (object-name (desig:reference designator))))
+  (let ((object (desig:object-identifier (desig:reference designator))))
     (cut:force-ll
      (cut:lazy-mapcar (lambda (bdg)
                         (cram-utilities:with-vars-bound (?pose) bdg
                           (assert (not (cut:is-var ?pose)))
                           (make-object-designator
                            (make-instance 'perceived-object
-                             :name object
+                             :object-identifier object
                              :pose ?pose)
                            :parent designator)))
                       (crs:prolog `(and (robot ?robot)
@@ -87,7 +85,7 @@
                             (assert (not (or (cut:is-var ?object) (cut:is-var ?pose))))
                             (make-object-designator
                              (make-instance 'perceived-object
-                               :name ?object
+                               :object-identifier ?object
                                :pose ?pose)
                              :type desig-props:type)))
                         (crs:prolog `(and

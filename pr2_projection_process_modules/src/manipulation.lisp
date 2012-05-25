@@ -108,7 +108,7 @@
 
 (defun execute-grasp (object side)
   (let* ((current-object (desig:newest-valid-designator object))
-         (object-name (object-name (desig:reference current-object))))
+         (object-name (desig:object-identifier (desig:reference current-object))))
     (cut:with-vars-bound (?gripper-link)
         (or
          (cram-utilities:lazy-car
