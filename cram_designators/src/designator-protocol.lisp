@@ -43,7 +43,7 @@
   () (:default-initargs :format-control "DESIGNATOR-ERROR"))
 
 (defclass designator ()
-  ((timestamp :reader timestamp :initform (current-timestamp)
+  ((timestamp :reader timestamp :initform nil
               :documentation "Timestamp of creation of reference or nil
                              if still not referencing an object.")
    (description :reader description :initarg :description
@@ -134,7 +134,10 @@
 
 (defmethod reference :after ((desig designator) &optional role)
   (declare (ignore role))
-  (setf (slot-value desig 'valid) t))
+  (with-slots (valid timestamp) desig
+    (setf (slot-value desig 'valid) t)
+    (unless timestamp
+      (setf timestamp (current-timestamp)))))
 
 (defmacro register-designator-class (type class-name)
   "Registers a class as a designator class so that it can be used
