@@ -32,4 +32,4 @@
   (:use #:common-lisp)
   (:export define-projection-environment
            define-special-projection-variable
-           with-projection-environment))
+           with-projection-environment *projecting*))

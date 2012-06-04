@@ -34,6 +34,9 @@
 (defvar *special-projection-variables* nil
   "List of special variables that need to be rebound for projection.")
 
+(cpl-impl:define-task-variable *projecting* nil
+  "When projecting, this variable is set to T.")
+
 (defstruct projection-environment
   name
   function)
@@ -47,7 +50,8 @@
 (defun make-projection-environment-function
     (special-variable-initializers process-module-definitions startup shutdown)
   `(lambda (function)
-     (let ,special-variable-initializers
+     (let ((*projecting* t)
+           ,@special-variable-initializers)
        (cram-process-modules:with-process-modules-running ,process-module-definitions
          (unwind-protect
               (progn
