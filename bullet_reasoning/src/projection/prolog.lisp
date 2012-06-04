@@ -30,8 +30,6 @@
 
 (in-package :btr)
 
-(defvar *current-timeline* nil)
-
 (defmacro with-timeline (timeline &body body)
   `(let ((*current-timeline* ,timeline))
      ,@body))
@@ -49,45 +47,52 @@
 
 (def-fact-group timeline-predicates (holds occurs)
 
+  (<- (timeline ?timeline)
+    (not (bound ?timeline))
+    (symbol-value *current-timeline* ?timeline)
+    (bullet-world ?world)
+    (-> (lisp-pred identity ?timeline)
+        (true)
+        (and
+         (lisp-fun timeline-init ?world ?timeline)
+         (set-symbol-value *current-timeline* ?timeline))))
+
   (<- (occurs ?timeline ?ev ?t)
+    (timeline ?timeline)
     (get-slot-value ?timeline events ?events)
     (member ?event-instance ?events)
     (get-slot-value ?event-instance timestamp ?t)
     (get-slot-value ?event-instance event ?ev))
   
-  (<- (holds ?timeline ?occ ?t)
-    (not (bound ?timeline))
-    (symbol-value *current-timeline* ?timeline)
-    (holds ?timeline ?occ ?t))
-
   (<- (holds ?timeline ?occ (at ?t))
     (bound ?occ)
-    (lisp-type ?timeline timeline)
+    (timeline ?timeline)
     (timeline-world-at ?timeline ?t ?world)
     (holds-in-stored-world ?world ?occ))
 
   (<- (holds ?timeline ?occ (during ?t-1 ?t-2))
-    (bound ?timeline)
     (bound ?occ)
+    (timeline ?timeline)    
     (timeline-world-at ?timeline ?t ?world)
     (lisp-pred >= ?t ?t-1)
     (lisp-pred < ?t ?t-2)
     (holds-in-stored-world ?world ?occ))
 
   (<- (holds ?timeline ?occ (throughout ?t-1 ?t-2))
-    (bound ?timeline)
-    (bound ?occ)    
+    (bound ?occ)
+    (timeline ?timeline)
     (every (and (timeline-world-at ?timeline ?t ?world)
                 (lisp-pred >= ?t ?t-1)
                 (lisp-pred < ?t ?t-2))
            (holds-in-stored-world ?world ?occ)))
 
   (<- (timeline-world-at ?timeline ?t ?world)
-    (ground (?timeline ?t))
+    (bound ?t)
+    (timeline ?timeline)
     (lisp-fun timeline-lookup ?timeline ?t ?world))
 
   (<- (timeline-world-at ?timeline ?t ?world)
-    (bound ?timeline)
     (not (bound ?t))
+    (timeline ?timeline)
     (occurs ?timeline ?_ ?t)
     (timeline-world-at ?timeline ?t ?world)))
