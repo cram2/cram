@@ -84,7 +84,8 @@
     (bullet-world ?w)
     (robot ?robot)
     (assert (object-pose ?w ?robot ?robot-pose))
-    (not (contact ?w ?robot ?_))
+    (forall (contact ?w ?robot ?object)
+            (attached ?w ?robot ?_ ?object))
     (forall (designator-reach-pose ?desig ?pose ?side)
             (or
              (and
