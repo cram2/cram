@@ -48,9 +48,6 @@
         (prolog ?occasion bdgs)))))
 
 (def-fact-group timeline-predicates (holds occurs)
-  (<- (occurs ?ev ?t)
-    (symbol-value *current-timeline* ?timeline)
-    (occurs ?timeline ?ev ?t))
 
   (<- (occurs ?timeline ?ev ?t)
     (get-slot-value ?timeline events ?events)
@@ -58,13 +55,14 @@
     (get-slot-value ?event-instance timestamp ?t)
     (get-slot-value ?event-instance event ?ev))
   
-  (<- (holds ?occ ?t)
+  (<- (holds ?timeline ?occ ?t)
+    (not (bound ?timeline))
     (symbol-value *current-timeline* ?timeline)
     (holds ?timeline ?occ ?t))
 
   (<- (holds ?timeline ?occ (at ?t))
-    (bound ?timeline)
     (bound ?occ)
+    (lisp-type ?timeline timeline)
     (timeline-world-at ?timeline ?t ?world)
     (holds-in-stored-world ?world ?occ))
 
