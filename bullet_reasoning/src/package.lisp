@@ -71,6 +71,7 @@
            calculate-object-tool-length set-robot-state-from-joints
            set-robot-state-from-tf init-ros-object-database clear-bullet-world
            ros-household-object execute open close reach-ik-solution
+           attached attach-object detach-object
 
            robot-pan-tilt-links robot-pan-tilt-joints robot
            camera-frame robot-arms-parking-joint-states
@@ -80,5 +81,6 @@
            timeline timeline-init timeline-advance
            timeline-current-world-state timeline-lookup
            execute-projection-rule timeline-apply-projection-rule
-           def-projection-rule rule holds occurs at during throughout))
+           holds-in-world def-projection-rule rule holds occurs at
+           during throughout))
 
