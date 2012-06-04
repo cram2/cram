@@ -82,3 +82,5 @@
               (event-world-state  curr))
             (cdr (events timeline))
             :initial-value (event-world-state (car (events timeline))))))
+
+(defvar *current-timeline* (timeline-init *current-bullet-world*))
