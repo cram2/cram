@@ -89,8 +89,9 @@
   (<- (attached ?world ?robot ?link-name ?object)
     (bullet-world ?world)
     (%object ?world ?robot ?robot-instance)
+    (%object ?world ?object ?object-instance)
     (lisp-fun attached-objects ?robot-instance ?attached-objects)
-    (member (?object . ?links) ?attached-objects)
+    (member (?object-instance . ?links) ?attached-objects)
     (member ?link ?links))
 
   (<- (assert (attached ?world ?robot ?link-name ?object))
