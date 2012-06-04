@@ -36,7 +36,7 @@
   `(let ((*current-timeline* ,timeline))
      ,@body))
 
-(def-prolog-handler holds-in-world (bdgs ?world ?occasion)
+(def-prolog-handler holds-in-stored-world (bdgs ?world ?occasion)
   (let ((?world (var-value ?world bdgs))
         (?occasion (var-value ?occasion bdgs)))
     (assert (not (is-var ?world)) () "?world needs to be bound")
@@ -66,7 +66,7 @@
     (bound ?timeline)
     (bound ?occ)
     (timeline-world-at ?timeline ?t ?world)
-    (holds-in-world ?world ?occ))
+    (holds-in-stored-world ?world ?occ))
 
   (<- (holds ?timeline ?occ (during ?t-1 ?t-2))
     (bound ?timeline)
@@ -74,7 +74,7 @@
     (timeline-world-at ?timeline ?t ?world)
     (lisp-pred >= ?t ?t-1)
     (lisp-pred < ?t ?t-2)
-    (holds-in-world ?world ?occ))
+    (holds-in-stored-world ?world ?occ))
 
   (<- (holds ?timeline ?occ (throughout ?t-1 ?t-2))
     (bound ?timeline)
@@ -82,7 +82,7 @@
     (every (and (timeline-world-at ?timeline ?t ?world)
                 (lisp-pred >= ?t ?t-1)
                 (lisp-pred < ?t ?t-2))
-           (holds-in-world ?world ?occ)))
+           (holds-in-stored-world ?world ?occ)))
 
   (<- (timeline-world-at ?timeline ?t ?world)
     (ground (?timeline ?t))
