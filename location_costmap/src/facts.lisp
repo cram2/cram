@@ -235,7 +235,7 @@ orientations differ by `sample-step'."
     (reachability-designator ?designator)
     (desig-prop ?designator (location ?location))
     (-> (desig-prop ?designator (side ?side)) (true) (true))
-    (desig-location-prop ?location ?pose))
+    (desig-location-prop ?designator ?pose))
 
   (<- (designator-reach-pose ?designator ?pose ?side)
     (reachability-designator ?designator)
