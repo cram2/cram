@@ -75,3 +75,5 @@
                          obj (copy-object obj world))))
             (setf (gethash name objects) obj)
             (invalidate-object obj)))))))
+
+(defvar *current-bullet-world* (make-instance 'bt-reasoning-world))

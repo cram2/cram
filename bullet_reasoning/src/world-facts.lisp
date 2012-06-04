@@ -28,8 +28,6 @@
 
 (in-package :btr)
 
-(defvar *current-bullet-world* nil)
-
 (defmacro with-current-bullet-world (world &body body)
   `(let ((*current-bullet-world* ,world))
      ,@body))
