@@ -40,15 +40,17 @@
               :documentation "The time stamp indicating when the event
               occurred")))
 
-(defgeneric execute-event (world event-pattern)
+(defgeneric apply-event (world event-pattern &optional timestamp)
   (:documentation "Executes the event that matches `event-pattern'
   `world' and returns the new world instance.")
-  (:method ((world bt-reasoning-world) event-pattern)
-    (let ((new-world (copy-world world)))
-      (unless (prolog `(event ,event-pattern ,new-world))
-        (error 'simple-error :format-control "Failed to execute event `~a'"
-               :format-arguments (list event-pattern)))
-      new-world)))
+  (:method ((world bt-reasoning-world) event-pattern
+            &optional (timestamp (cut:current-timestamp)))
+    (unless (prolog `(event ,event-pattern))
+      (error 'simple-error :format-control "Failed to apply event `~a'"
+                           :format-arguments (list event-pattern)))
+    (make-instance 'event
+      :event event-pattern :world-state (get-state *current-bullet-world*)
+      :timestamp timestamp)))
 
 (defun make-event-name-from-pat (event-pattern)
   "Returns a symbol representing the `event-pattern'. It constructs a
