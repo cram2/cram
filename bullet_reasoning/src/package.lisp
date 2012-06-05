@@ -44,7 +44,7 @@
            with-rendering-to-framebuffer render-to-framebuffer
            read-pixelbuffer read-depthbuffer to-png-image add-object
            generic-cup mug plate mondamin mesh remove-object object
-           object-type household-object-type name rigid-bodies
+           pot object-type household-object-type name rigid-bodies
            rigid-body-names rigid-body world make-object box
            static-plane sphere cylinder cone point-cloud
            bt-reasoning-world invalidate-object objects object %object
