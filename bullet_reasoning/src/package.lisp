@@ -77,7 +77,7 @@
            camera-frame robot-arms-parking-joint-states
            end-effector-link
 
-           event make-event def-event
+           event apply-event def-event
            timeline timeline-init timeline-advance
            timeline-current-world-state timeline-lookup
            holds-in-world holds occurs at
