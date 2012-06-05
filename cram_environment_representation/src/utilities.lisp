@@ -1,5 +1,4 @@
-;;;
-;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -26,27 +25,21 @@
 ;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
-;;;
 
-(defsystem bullet-reasoning-demo
-    :author "Lorenz Moesenlechner"
-    :license "BSD"
-    
-    :depends-on (semantic-map-costmap
-                 occupancy-grid-costmap
-                 perception-process-module
-                 cram-roslisp-common
-                 cram-plan-knowledge
-                 bullet-reasoning
-                 bullet-reasoning-designators
-                 pr2-manipulation-knowledge)
-    :components
-    ((:module "src"
-              :components
-              ((:file "designator-config")
-               (:file "pr2-metadata")
-               ;; (:module "executive-integration"
-               ;;  :components
-               ;;  ((:file "perception")
-               ;;   (:file "perception-facts")))
-               ))))
+(in-package :cram-environment-representation)
+
+(defun get-robot-object ()
+  (with-vars-bound (?robot-name)
+      (lazy-car (prolog `(robot ?robot-name)))
+    (unless (is-var ?robot-name)
+      (object *current-bullet-world* ?robot-name))))
+
+(defun get-designator-object-name (object-designator)
+  (let ((object-designator (desig:newest-valid-designator object-designator)))
+    (when object-designator
+      (desig:object-identifier (desig:reference object-designator)))))
+
+(defun get-designator-object (object-designator)
+  (let ((object-name (get-designator-object-name object-designator)))
+    (when object-name
+      (object *current-bullet-world* object-name))))
