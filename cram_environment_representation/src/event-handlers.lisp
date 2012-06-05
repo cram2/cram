@@ -1,5 +1,4 @@
-;;;
-;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -26,27 +25,36 @@
 ;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
-;;;
 
-(defsystem bullet-reasoning-demo
-    :author "Lorenz Moesenlechner"
-    :license "BSD"
-    
-    :depends-on (semantic-map-costmap
-                 occupancy-grid-costmap
-                 perception-process-module
-                 cram-roslisp-common
-                 cram-plan-knowledge
-                 bullet-reasoning
-                 bullet-reasoning-designators
-                 pr2-manipulation-knowledge)
-    :components
-    ((:module "src"
-              :components
-              ((:file "designator-config")
-               (:file "pr2-metadata")
-               ;; (:module "executive-integration"
-               ;;  :components
-               ;;  ((:file "perception")
-               ;;   (:file "perception-facts")))
-               ))))
+(in-package :cram-environment-representation)
+
+(def-event (pick-up ?object ?side) ?world)
+(def-event (put-down ?object ?location) ?world)
+(def-event (location-change ?object) ?world)
+(def-event (object-perceived ?object) ?world)
+
+(defmethod on-event attach-objects ((event object-attached))
+  (let ((robot (get-robot-object))
+        (object (get-designator-object (event-object event))))
+    (when object
+      (attach-object robot object (event-link event)))
+    (timeline-advance
+     *current-timeline* `(pick-up ,(event-object object) ,(event-side object)))))
+
+(defmethod on-event detach-objects ((event object-detached))
+  (let ((robot (get-robot-object))
+        (object (get-designator-object (event-object event))))
+    (when object
+      (detach-object robot object (event-link event)))
+    (timeline-advance
+     *current-timeline* `(put-down ,(event-object object) ,(event-side object)))
+    (timeline-advance
+     *current-timeline* `(location-change ,(event-object object)))))
+
+(defmethod on-event robot-moved ((event robot-state-changed))
+  (unless cram-projection:*projecting*
+    (let ((robot (get-robot-object)))
+      (when robot
+        (set-robot-state-from-tf cram-roslisp-common:*tf* robot))))
+  (timeline-advance
+   *current-timeline* `(location-change robot)))

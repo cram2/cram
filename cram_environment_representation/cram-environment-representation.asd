@@ -1,5 +1,4 @@
-;;;
-;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -26,27 +25,24 @@
 ;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
-;;;
 
-(defsystem bullet-reasoning-demo
-    :author "Lorenz Moesenlechner"
-    :license "BSD"
-    
-    :depends-on (semantic-map-costmap
-                 occupancy-grid-costmap
-                 perception-process-module
-                 cram-roslisp-common
-                 cram-plan-knowledge
-                 bullet-reasoning
-                 bullet-reasoning-designators
-                 pr2-manipulation-knowledge)
+(defsystem cram-environment-representation
+  :author "Lorenz Moesenlechner"
+  :license "BSD"
+  
+  :depends-on (cram-reasoning
+               cram-utilities
+               cram-projection
+               designators
+               cram-roslisp-common
+               bullet-reasoning
+               bullet-reasoning-designators
+               cram-plan-knowledge
+               cram-plan-library)
+  :components
+  ((:module "src"
     :components
-    ((:module "src"
-              :components
-              ((:file "designator-config")
-               (:file "pr2-metadata")
-               ;; (:module "executive-integration"
-               ;;  :components
-               ;;  ((:file "perception")
-               ;;   (:file "perception-facts")))
-               ))))
+    ((:file "package")
+     (:file "event-handlers" :depends-on ("package" "utilities"))
+     (:file "occasions" :depends-on ("package" "utilities"))
+     (:file "utilities" :depends-on ("package"))))))

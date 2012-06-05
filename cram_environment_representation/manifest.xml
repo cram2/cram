@@ -1,0 +1,23 @@
+<package>
+  <description brief="cram_environment_representation">
+
+     cram_environment_representation
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes="" />
+  <url>http://ros.org/wiki/cram_environment_representation</url>
+  <depend package="cram_reasoning" />
+  <depend package="cram_utilities" />
+  <depend package="cram_designators" />
+  <depend package="cram_roslisp_common" />
+  <depend package="cram_projection" />
+  <depend package="bullet_reasoning" />
+  <depend package="bullet_reasoning_designators" />
+  <depend package="cram_plan_knowledge" />
+  <depend package="cram_plan_library" />
+
+</package>
+
+

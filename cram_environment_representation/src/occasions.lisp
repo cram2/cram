@@ -26,31 +26,21 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :btr)
+(in-package :cram-environment-representation)
 
-(defun get-robot-object ()
-  (with-vars-bound (?robot-name)
-      (lazy-car (prolog `(robot ?robot-name)))
-    (unless (is-var ?robot-name)
-      (object *current-bullet-world* ?robot-name))))
+(def-fact-group occasions (holds)
+  (<- (object-in-hand ?object ?side)
+    (bullet-world ?world)
+    (robot ?robot)
+    (lisp-type ?object desig:object-designator)
+    (lisp-fun get-designator-object-name ?object ?object-name)
+    (attached ?world ?robot ?link ?object-name)
+    (end-effector-link ?side ?link))
+  
+  (<- (holds ?occasion)
+    (call ?occasion)))
 
-(defun get-designator-object (object-designator)
-  (let ((object-designator (desig:newest-valid-designator object-designator)))
-    (when object-designator
-      (object
-       *current-bullet-world*
-       (desig:object-identifier (desig:reference object-designator))))))
-
-(defmethod plan-knowledge:on-event attach-objects
-    ((event plan-knowledge:object-attached))
-  (let ((robot (get-robot-object))
-        (object (get-designator-object (plan-knowledge:event-object event))))
-    (when object
-      (attach-object robot object (plan-knowledge:event-link event)))))
-
-(defmethod plan-knowledge:on-event detach-objects
-    ((event plan-knowledge:object-detached))
-  (let ((robot (get-robot-object))
-        (object (get-designator-object (plan-knowledge:event-object event))))
-    (when object
-      (detach-object robot object (plan-knowledge:event-link event)))))
+(defmethod cram-plan-knowledge:holds (occasion &optional time-specification)
+  (if time-specification
+      (prolog `(holds ?_  ,occasion ,time-specification))
+      (prolog `(holds ,occasion))))
