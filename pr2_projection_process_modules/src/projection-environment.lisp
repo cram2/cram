@@ -28,14 +28,17 @@
 
 (in-package :projection-process-modules)
 
+(defvar *last-timeline* nil)
+
 (define-projection-environment pr2-bullet-projection-environment
   :special-variable-initializers
   ((cram-roslisp-common:*tf* (make-instance 'tf:transformer))
    ;; (*current-bullet-world* (bt:copy-world *current-bullet-world*))
-   (*current-timeline* nil))
+   (*current-timeline* (btr:timeline-init *current-bullet-world*)))
   :process-module-definitions
   ((:perception projection-perception)
    (:ptu projection-ptu)
    (:manipulation projection-manipulation)
    (:navigation projection-navigation))
-  :startup (update-tf))
+  :startup (update-tf)
+  :shutdown (setf *last-timeline* *current-timeline*))
