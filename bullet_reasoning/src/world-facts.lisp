@@ -205,9 +205,6 @@
     (forall (object ?world ?_ ?o)
             (stable ?world ?o)))
 
-  (<- (supported-by ?top ?bottom)
-    (supported-by ?_ ?top ?bottom))
-  
   (<- (supported-by ?world ?top ?bottom)
     (bullet-world ?world)
     (above ?world ?top ?bottom)
