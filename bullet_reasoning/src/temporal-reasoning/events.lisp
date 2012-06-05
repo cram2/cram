@@ -67,11 +67,11 @@
                   (concatenate 'string prev "-" (symbol-name curr)))
                 (cdr event-pattern) :initial-value (symbol-name (car event-pattern)))))))
 
-(defmacro def-event (event-pattern world-var &body body)
+(defmacro def-event (event-pattern &body body)
   (let ((fact-group-name (intern
                           (concatenate
                            'string "EVENT-"
                            (symbol-name (make-event-name-from-pat event-pattern))))))
     `(def-fact-group ,fact-group-name (event)
-       (<- (event ,event-pattern ,world-var)
+       (<- (event ,event-pattern)
          ,@body))))
