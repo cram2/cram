@@ -208,8 +208,7 @@
   (<- (supported-by ?world ?top ?bottom)
     (bullet-world ?world)
     (contact ?world ?top ?bottom)
-    (above ?world ?top ?bottom)
-    (stable ?world ?top))
+    (above ?world ?top ?bottom))
 
   (<- (supported-by ?world ?top ?bottom)
     (supported-by ?world ?top ?bottom ?_))
@@ -217,8 +216,7 @@
   (<- (supported-by ?world ?top ?bottom ?link)
     (bullet-world ?world)
     (contact ?world ?top ?bottom ?link)
-    (above ?world ?top ?bottom ?link)
-    (stable ?world ?top)))
+    (above ?world ?top ?bottom ?link)))
 
 (def-fact-group spatial-relations ()
 
