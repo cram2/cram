@@ -118,28 +118,23 @@
                       :active-tag))
                 (rigid-bodies obj)))))
 
+(defun compare-bounding-box-values (bounding-box-1 bounding-box-2
+                                    &key predicate key)
+  (declare (type function predicate key))
+  (funcall predicate
+           (- (funcall key (bounding-box-center bounding-box-1))
+              (/ (funcall key (bounding-box-dimensions bounding-box-1)) 2))
+           (+ (funcall key (bounding-box-center bounding-box-2))
+              (/ (funcall key (bounding-box-dimensions bounding-box-2)) 2))))
+
 (defun above-p (obj-1 obj-2)
   "Returns T if `obj-1' is above `obj-2'"
-  (let ((aabb-1 (aabb obj-1))
-        (aabb-2 (aabb obj-2)))
-    (> (- (cl-transforms:z (bounding-box-center aabb-1))
-          (cl-transforms:z (bounding-box-dimensions aabb-1)))
-       (+ (cl-transforms:z (bounding-box-center aabb-2))
-          (cl-transforms:z (bounding-box-dimensions aabb-2))))))
+  (compare-bounding-box-values
+   (aabb obj-1) (aabb obj-2)
+   :predicate #'>= :key #'cl-transforms:z))
 
-(defun find-objects-above (world obj)
-  "Returns a list of all objects thate are above `obj'"
-  (find-objects world (lambda (o) (above-p o obj))))
+(defun above-link-p (obj-1 obj-2 link)
+  (compare-bounding-box-values
+   (aabb obj-1) (aabb (gethash link (links obj-2)))
+   :predicate #'>= :key #'cl-transforms:z))
 
-(defun below-p (obj-1 obj-2)
-  "Returns T if `obj-1' is below `obj-2'"
-  (let ((aabb-1 (aabb obj-1))
-        (aabb-2 (aabb obj-2)))
-    (< (+ (cl-transforms:z (bounding-box-center aabb-1))
-          (cl-transforms:z (bounding-box-dimensions aabb-1)))
-       (- (cl-transforms:z (bounding-box-center aabb-2))
-          (cl-transforms:z (bounding-box-dimensions aabb-2))))))
-
-(defun find-objects-below (world obj)
-  "Returns a list of all objects that are below `obj'"
-  (find-objects world (lambda (o) (below-p o obj))))
