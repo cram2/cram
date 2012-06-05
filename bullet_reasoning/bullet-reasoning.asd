@@ -85,10 +85,9 @@
                (:file "reachability" :depends-on ("package" "robot-model-utils"))
                (:file "articulated-objects" :depends-on ("package" "semantic-map"))
                (:file "ros-household-object-database" :depends-on ("package" "objects" "household-objects"))
-               (:module "projection"
+               (:module "temporal-reasoning"
                         :depends-on ("package" "reasoning-world" "world-facts")
                         :components
                         ((:file "events")
                          (:file "timeline" :depends-on ("events"))
-                         (:file "projection-rules" :depends-on ("events" "timeline"))
                          (:file "prolog")))))))
