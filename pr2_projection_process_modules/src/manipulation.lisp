@@ -28,14 +28,14 @@
 
 (in-package :projection-process-modules)
 
-(defun set-robot-reach-pose (side pose)
+(defun set-robot-reach-pose (side pose &optional tool-frame)
   (or
    (crs:prolog `(crs:once
                  (robot ?robot)
                  (%object ?_ ?robot ?robot-instance)
-                 (crs:lisp-fun reach-pose-ik ?robot-instance ,pose :side ,side
+                 (crs:lisp-fun reach-pose-ik ?robot-instance ,pose
+                               :side ,side :tool-frame ,tool-frame
                                ?ik-solutions)
-                 (format "ik ~a ~a~%" ,pose ?ik-solutions)
                  (member ?ik-solution ?ik-solutions)
                  (assert (joint-state ?_ ?robot ?ik-solution))))
    (cpl-impl:fail 'cram-plan-failures:manipulation-pose-unreachable)))
@@ -147,7 +147,7 @@
       (let ((put-down-pose (calculate-put-down-pose
                             current-object (desig:reference (desig:current-desig location))
                             ?robot-pose)))
-        (set-robot-reach-pose side put-down-pose)
+        (set-robot-reach-pose side put-down-pose (cl-transforms:make-identity-pose))
         (cram-plan-knowledge:on-event
          (make-instance 'cram-plan-knowledge:robot-state-changed))        
         (cram-plan-knowledge:on-event
