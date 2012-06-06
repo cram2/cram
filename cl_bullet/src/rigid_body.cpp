@@ -165,4 +165,16 @@ extern "C"
     aabbMax[1] = max.y() / bulletWorldScalingFactor;
     aabbMax[2] = max.z() / bulletWorldScalingFactor;
   }
+
+  void getCollisionFilter(btRigidBody *body, int *group, int *mask)
+  {
+    *group = body->getBroadphaseProxy()->m_collisionFilterGroup;
+    *mask =  body->getBroadphaseProxy()->m_collisionFilterMask;
+  }
+
+  void setCollisionFilter(btRigidBody *body, int group, int mask)
+  {
+    body->getBroadphaseProxy()->m_collisionFilterGroup = group;
+    body->getBroadphaseProxy()->m_collisionFilterMask = mask;
+  }
 }

@@ -49,6 +49,8 @@
 (defgeneric angular-velocity (body))
 (defgeneric (setf angular-velocity) (new-value body))
 (defgeneric aabb (body))
+(defgeneric (setf collision-group) (new-value body))
+(defgeneric (setf collision-mask) (new-value body))
 
 (defclass rigid-body (foreign-class)
   ((name :reader name :initarg :name :initform (gensym "RIGID-BODY-"))
@@ -137,3 +139,9 @@
     (make-bounding-box
      :center (cl-transforms:v* (cl-transforms:v+ min max) 0.5)
      :dimensions (cl-transforms:v- max min))))
+
+(defmethod (setf collision-group) (new-value (body rigid-body))
+  (set-collision-filter (foreign-obj body) new-value (collision-mask body)))
+
+(defmethod (setf collision-mask) (new-value (body rigid-body))
+  (set-collision-filter (foreign-obj body) (collision-group body) new-value))
