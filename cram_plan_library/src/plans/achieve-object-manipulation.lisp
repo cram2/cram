@@ -32,10 +32,10 @@
 (def-goal (achieve (object-in-hand ?obj ?side))
   (ros-info (achieve plan-lib) "(achieve (object-in-hand))")
   (let ((retry-count 0)
-        (alternative-poses-cnt 0)
-        (obstacles nil))
+        (alternative-poses-cnt 0))
     (with-failure-handling
         ((object-lost (f)
+           (declare (ignore f))
            (ros-warn (achieve plan-lib) "Object lost.")
            (achieve `(arms-at ,(make-designator
                                 'action `((type trajectory) (pose parked) (side ,?side)))))
@@ -55,35 +55,13 @@
       (ros-info (achieve plan-lib) "Calling perceive")
       (setf ?obj (perceive-object 'a ?obj))
       (ros-info (achieve plan-lib) "Perceive done")
-      (ros-info (achieve plan-lib) "Searching for obstacles")
-      (with-designators ((pick-up-see-loc (location `((to see) (obj ,?obj)))))
-        (at-location (pick-up-see-loc)
-          (setf obstacles (remove-if
-                           (lambda (o)
-                             (or
-                              (< (cl-transforms:v-dist
-                                  (cl-transforms:origin (designator-pose o))
-                                  (cl-transforms:origin (designator-pose ?obj)))
-                                 0.1)
-                              (< (cl-transforms:x
-                                  (cl-transforms:origin
-                                   (tf:transform-pose
-                                    *tf* :target-frame "/base_footprint"
-                                    :pose (designator-pose o))))
-                                 0.35)))
-                           (perceive-object 'currently-visible (make-designator 'object `((type cluster))))))))
       (with-designators ((pick-up-loc (location `((to reach) (obj ,?obj))))
-                         (grasp-trajectory (action `((type trajectory) (to grasp) (obj ,?obj) (side ,?side)
-                                                     ,@(mapcar (lambda (o) `(obstacle ,o))
-                                                               obstacles))))
-                         (lift-trajectory (action `((type trajectory) (to lift) (obj ,?obj) (side ,?side)
-                                                    ,@(mapcar (lambda (o) `(obstacle ,o))
-                                                              obstacles))))
-                         (carry-trajectory (action `((type trajectory) (to carry) (obj ,?obj) (side ,?side)
-                                                     ,@(mapcar (lambda (o) `(obstacle ,o))
-                                                               obstacles)))))
+                         (grasp-trajectory (action `((type trajectory) (to grasp) (obj ,?obj) (side ,?side))))
+                         (lift-trajectory (action `((type trajectory) (to lift) (obj ,?obj) (side ,?side))))
+                         (carry-trajectory (action `((type trajectory) (to carry) (obj ,?obj) (side ,?side)))))
         (with-failure-handling
             ((manipulation-pose-unreachable (f)
+               (declare (ignore f))
                (ros-warn (achieve plan-lib) "Got unreachable grasp pose. Trying alternatives")
                (when (< alternative-poses-cnt 1)
                  (incf alternative-poses-cnt)
@@ -111,45 +89,21 @@
 (def-goal (achieve (object-placed-at ?obj ?loc))
   (ros-info (achieve plan-lib) "(achieve (object-placed-at))")
   (setf ?obj (current-desig ?obj))
-  (let ((object-in-hand-bdgs (holds-occasion `(object-in-hand ,?obj ?side)))
-        (alternative-poses-cnt 0)
-        (obstacles nil))
+  (let ((object-in-hand-bdgs (holds `(object-in-hand ,?obj ?side)))
+        (alternative-poses-cnt 0))
     (assert object-in-hand-bdgs ()
             "The object `~a ~a' needs to be in the hand before being able to place it."
             ?obj (description ?obj))
     (let ((side (var-value '?side (car object-in-hand-bdgs)))
           (obj (current-desig ?obj)))
-      (with-designators ((pick-up-see-loc (location `((to see) (location ,?loc)))))
-        (at-location (pick-up-see-loc)
-          (setf obstacles (remove-if
-                           (lambda (o)
-                             (or
-                              (< (cl-transforms:v-dist
-                                  (cl-transforms:origin (designator-pose o))
-                                  (cl-transforms:origin (obj-desig-location ?obj)))
-                                 0.1)
-                              (< (cl-transforms:x
-                                  (cl-transforms:origin
-                                   (tf:transform-pose
-                                    *tf* :target-frame "/base_footprint"
-                                    :pose (designator-pose o))))
-                                 ;; Evil magic constant! This
-                                 ;; filtering should better be done in
-                                 ;; the process module
-                                 0.35)))
-                           (perceive-object 'currently-visible
-                                            (make-designator 'object `((type cluster))))))))
       (with-designators ((put-down-loc (location `((to reach) (location ,?loc))))
                          (put-down-trajectory (action `((type trajectory) (to put-down)
-                                                        (obj ,obj) (at ,?loc) (side ,side)
-                                                        ,@(mapcar (lambda (o) `(obstacle ,o))
-                                                                  obstacles))))
-                         (park-trajectory (action `((type trajectory) (pose parked) (side ,side)
-                                                    ,@(mapcar (lambda (o) `(obstacle ,o))
-                                                              obstacles)))))
+                                                        (obj ,obj) (at ,?loc) (side ,side))))
+                         (park-trajectory (action `((type trajectory) (pose parked) (side ,side)))))
         (at-location (put-down-loc)
           (with-failure-handling
             ((manipulation-failure (f)
+               (declare (ignore f))
                (ros-warn (achieve plan-lib) "Got unreachable grasp pose. Trying alternatives")
                (when (< alternative-poses-cnt 1)
                  (incf alternative-poses-cnt)
