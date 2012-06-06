@@ -44,5 +44,4 @@
   (:export projection-role)
   (:desig-properties at type to see follow pose location obj
                      grasp carry lift park put-down open close
-                     side height distance parked))
-
+                     side z-offset distance parked))
