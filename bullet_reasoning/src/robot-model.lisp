@@ -117,8 +117,7 @@
   (:method ((robot-object robot-object) (obj object) &optional link)
     (with-slots (attached-objects) robot-object
       (cond (link
-             (let ((attachment (member obj attached-objects
-                                       :key #'name :test #'equal)))
+             (let ((attachment (assoc obj attached-objects)))
                (setf (cdr attachment) (remove link (cdr attachment)
                                               :test #'equal))
                (unless (cdr attachment)
