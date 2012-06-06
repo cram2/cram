@@ -37,8 +37,6 @@
     (with-failure-handling
         ((object-lost (f)
            (ros-warn (achieve plan-lib) "Object lost.")
-           (assert-occasion
-            `(object-in-hand-failure object-lost ,?obj ,?side ,f))
            (achieve `(arms-at ,(make-designator
                                 'action `((type trajectory) (pose parked) (side ,?side)))))
            (when (< (incf retry-count) 3)
@@ -86,8 +84,6 @@
                                                                obstacles)))))
         (with-failure-handling
             ((manipulation-pose-unreachable (f)
-               (assert-occasion
-                `(object-in-hand-failure manipulation-pose-unreachable ,?obj ,?side ,f))
                (ros-warn (achieve plan-lib) "Got unreachable grasp pose. Trying alternatives")
                (when (< alternative-poses-cnt 1)
                  (incf alternative-poses-cnt)
@@ -154,8 +150,6 @@
         (at-location (put-down-loc)
           (with-failure-handling
             ((manipulation-failure (f)
-               (assert-occasion
-                `(object-in-hand-failure manipulation-pose-unreachable ,?obj ,side ,f))
                (ros-warn (achieve plan-lib) "Got unreachable grasp pose. Trying alternatives")
                (when (< alternative-poses-cnt 1)
                  (incf alternative-poses-cnt)
@@ -163,8 +157,7 @@
                  (retract-occasion `(loc Robot ?_))
                  (retry))))
             (achieve `(looking-at ,(reference ?loc)))
-            (achieve `(arms-at ,put-down-trajectory))
-            (assert-occasion `(object-placed-at ,obj ,?loc)))
+            (achieve `(arms-at ,put-down-trajectory)))
           (achieve `(arms-at ,park-trajectory)))))))
 
 (def-goal (achieve (arm-parked ?side))
