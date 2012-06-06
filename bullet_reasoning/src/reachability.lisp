@@ -162,17 +162,18 @@ relative to the robot in world coordinates."
    :side side))
 
 (defmethod reach-pose-ik ((robot robot-object) (pose cl-transforms:pose)
-                          &key side (tool-frame (get-tool
-                                                 (cdr *tool*)
-                                                 (cl-transforms:make-identity-rotation))))
+                          &key side tool-frame)
   (declare (type robot-object robot)
            (type cl-transforms:pose pose)
-           (type cl-transforms:pose tool-frame))
+           (type (or cl-transforms:pose null) tool-frame))
   (let ((reference-frame (cl-urdf:name (cl-urdf:root-link (slot-value robot 'urdf)))))
     (get-ik
      robot (tf:pose->pose-stamped
             "world" 0.0 pose)
      :ik-namespace (side->ik-namespace side)
-     :tool-frame tool-frame
+     :tool-frame (or tool-frame
+                     (get-tool
+                      (cdr *tool*)
+                      (cl-transforms:make-identity-rotation)))
      :robot-base-frame reference-frame
      :fixed-frame "world")))
