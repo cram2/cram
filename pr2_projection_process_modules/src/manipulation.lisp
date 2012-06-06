@@ -85,8 +85,9 @@
     ;; correct end-effector orientation and use IK.
     (dolist (side sides)
       (crs:prolog `(and
+                    (robot ?robot)
                     (robot-arms-parking-joint-states ?joint-states ,side)
-                    (assert (joint-states pr2 ?joint-states)))))))
+                    (assert (joint-state ?_ ?robot ?joint-states)))))))
 
 (defun execute-lift (side object distance)
   (cut:with-vars-bound (?end-effector-pose)
