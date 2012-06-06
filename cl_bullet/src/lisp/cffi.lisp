@@ -234,6 +234,19 @@
      (translate-from-foreign min (make-instance 'bt-3d-vector))
      (translate-from-foreign max (make-instance 'bt-3d-vector)))))
 
+(defun get-collision-filter (body-handle)
+  (with-foreign-objects ((group :int)
+                         (mask :int))
+    (foreign-funcall
+     "getCollisionFilter" :pointer body-handle :pointer group :pointer mask)
+    (values (mem-ref group :int)
+            (mem-ref mask :int))))
+
+(defcfun ("setCollisionFilter" set-collision-filter) :void
+  (body-handle :pointer)
+  (group :int)
+  (mask :int))
+
 ;;; motion_state.cpp
 
 (defcfun ("newMotionState" new-motion-state) :pointer
