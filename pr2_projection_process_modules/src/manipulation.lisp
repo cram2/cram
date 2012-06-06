@@ -35,36 +35,36 @@
                  (%object ?_ ?robot ?robot-instance)
                  (crs:lisp-fun reach-pose-ik ?robot-instance ,pose :side ,side
                                ?ik-solutions)
+                 (format "ik ~a ~a~%" ,pose ?ik-solutions)
                  (member ?ik-solution ?ik-solutions)
                  (assert (joint-state ?_ ?robot ?ik-solution))))
    (cpl-impl:fail 'cram-plan-failures:manipulation-pose-unreachable)))
 
 (defun calculate-put-down-pose (object put-down-pose robot-pose)
-  (let ((current-object (desig:newest-valid-designator object)))
+  (let ((current-object (desig:current-desig object)))
     (desig:with-desig-props (desig-props:at) current-object
       (assert desig-props:at () "Object ~a needs to have an `at' property"
               object)
-      (desig:with-desig-props (desig-props:in desig-props:pose desig-props:height)
+      (desig:with-desig-props (desig-props:in desig-props:pose desig-props:z-offset)
           desig-props:at
-        (assert (and (eq desig-props:in 'gripper)) ()
+        (assert (eq desig-props:in 'desig-props:gripper) ()
                 "Object ~a needs to be in the gripper" object)
         (assert desig-props:pose () "Object ~a needs to have a `pose' property" object)
-        (assert desig-props:height () "Object ~a needs to have a `height' property" object)
-        (let* ((put-down-pose-in-robot (cl-transforms:transform*
-                                        (cl-transforms:transform-inv
-                                         (cl-transforms:reference-transform robot-pose))
-                                        put-down-pose))
+        (assert desig-props:z-offset () "Object ~a needs to have a `height' property" object)
+        (let* ((put-down-transform-in-robot (cl-transforms:transform*
+                                             (cl-transforms:transform-inv
+                                              (cl-transforms:pose->transform robot-pose))
+                                             (cl-transforms:pose->transform put-down-pose)))
                (goal-in-robot (cl-transforms:transform*
+                               put-down-transform-in-robot
                                (cl-transforms:make-transform
-                                (cl-transforms:make-3d-vector 0 0 desig-props:height)
+                                (cl-transforms:make-3d-vector 0 0 desig-props:z-offset)
                                 (cl-transforms:make-identity-rotation))
-                               (cl-transforms:reference-transform
-                                put-down-pose-in-robot)
                                (cl-transforms:transform-inv
-                                (cl-transforms:reference-transform desig-props:pose)))))
+                                (cl-transforms:pose->transform desig-props:pose)))))
           (cl-transforms:transform->pose
            (cl-transforms:transform*
-            (cl-transforms:reference-transform robot-pose)
+            (cl-transforms:pose->transform robot-pose)
             goal-in-robot)))))))
 
 (defun execute-container-opened (object side)
@@ -104,7 +104,9 @@
                         (cl-transforms:make-transform
                          (cl-transforms:make-3d-vector 0 0 distance)
                          (cl-transforms:orientation ?end-effector-pose))))))
-      (set-robot-reach-pose side lift-pose))))
+      (set-robot-reach-pose side lift-pose)
+      (cram-plan-knowledge:on-event
+       (make-instance 'cram-plan-knowledge:robot-state-changed)))))
 
 (defun execute-grasp (object side)
   (let* ((current-object (desig:newest-valid-designator object))
@@ -126,11 +128,13 @@
          (cpl-impl:fail 'cram-plan-failures:manipulation-pose-unreachable))
       (assert (not (cut:is-var ?gripper-link)))
       (cram-plan-knowledge:on-event
+       (make-instance 'cram-plan-knowledge:robot-state-changed))      
+      (cram-plan-knowledge:on-event
        (make-instance 'cram-plan-knowledge:object-attached
          :object current-object :link ?gripper-link)))))
 
 (defun execute-put-down (object location side)
-  (let* ((current-object (desig:newest-valid-designator object)))
+  (let* ((current-object (desig:current-desig object)))
     (cut:with-vars-bound (?robot-pose ?gripper-link)
         (cut:lazy-car
          (crs:prolog `(crs:once
@@ -144,11 +148,11 @@
                             ?robot-pose)))
         (set-robot-reach-pose side put-down-pose)
         (cram-plan-knowledge:on-event
+         (make-instance 'cram-plan-knowledge:robot-state-changed))        
+        (cram-plan-knowledge:on-event
          (make-instance 'cram-plan-knowledge:object-detached
            :object current-object :link ?gripper-link))))))
 
 (def-process-module projection-manipulation (input)
   (let ((action (desig:reference input 'projection-designators:projection-role)))
-    (apply (symbol-function (car action)) (cdr action))
-    (cram-plan-knowledge:on-event
-     (make-instance 'cram-plan-knowledge:robot-state-changed))))
+    (apply (symbol-function (car action)) (cdr action))))
