@@ -28,10 +28,11 @@
 
 (in-package :cl-user)
 
-(defpackage cram-environment-representation
+(desig-props:def-desig-package cram-environment-representation
   (:use #:common-lisp #:cram-plan-library #:cram-plan-knowledge
         #:bullet-reasoning #:cram-reasoning #:cram-utilities)
   (:shadowing-import-from
    #:bullet-reasoning side robot at throughout object during holds)
   (:shadowing-import-from #:cram-plan-knowledge event)
-  (:export))
+  (:export)
+  (:desig-properties pose in gripper z-offset))
