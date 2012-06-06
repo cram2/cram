@@ -130,6 +130,25 @@ relative to the robot in world coordinates."
    (reach-pose-ik
     robot pose :tool-frame tool-frame :side side)))
 
+(defun reach-point-ik (robot point
+                        &key side (grasp :top)
+                          (tool-length (cdr *tool*)))
+  (declare (type robot-object robot)
+           (type (or cl-transforms:3d-vector cl-transforms:pose) point))
+  (reach-pose-ik
+   robot
+   (etypecase point
+     (cl-transforms:3d-vector
+      (cl-transforms:make-pose
+       point (calculate-orientation-in-robot
+              robot (cl-transforms:make-identity-rotation))))
+     (cl-transforms:pose
+      (cl-transforms:copy-pose
+       point :new-orientation (calculate-orientation-in-robot
+                              robot (cl-transforms:make-identity-rotation)))))
+   :tool-frame (get-tool tool-length (get-grasp grasp side))
+   :side side))
+
 (defun reach-object-ik (robot obj
                         &key side (grasp :top)
                           (tool-length (calculate-object-tool-length obj)))
