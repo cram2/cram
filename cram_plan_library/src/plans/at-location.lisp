@@ -32,10 +32,12 @@
 (define-condition location-lost-failure (plan-failure) ())
 
 (defmacro at-location (&whole sexp (loc-var) &body body)
-  `(with-task-tree-node (:path-part `(goal-context (at-location (?loc)))
-                         :name ,(format nil "AT-LOCATION")
-                         :sexp ,sexp
-                         :lambda-list (,loc-var)
-                         :parameters (list ,loc-var))
-     (achieve `(loc Robot ,,loc-var))
-     ,@body))
+  `(progn
+     (reference ,loc-var)
+     (with-task-tree-node (:path-part `(goal-context (at-location (?loc)))
+                           :name ,(format nil "AT-LOCATION")
+                           :sexp ,sexp
+                           :lambda-list (,loc-var)
+                           :parameters (list ,loc-var))
+       (achieve `(loc Robot ,,loc-var))
+       ,@body)))
