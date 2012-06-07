@@ -54,7 +54,7 @@
      (:file "plans" :depends-on ("packages" "tasks"))
      (:file "goals" :depends-on ("packages" "tasks"))
      (:file "fluent-operators" :depends-on ("packages" "fluents"))
-     (:file "swank-indentation")))))
+     (:file "swank-indentation" :depends-on ("packages"))))))
 
 (defmethod asdf:perform ((o asdf:test-op)
                          (c (eql (asdf:find-system 'cram-language))))
