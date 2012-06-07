@@ -132,15 +132,12 @@ boolean indicating if the solution is valid or not."
   (with-slots (data current-solution) desig
     (unless current-solution
       (setf data (resolve-designator desig role))
-      (unless data
+      (unless (and data (lazy-car data))
         (error 'designator-error
                :format-control "Unable to resolve designator `~a'"
-               :format-arguments (list desig)))
+               :format-arguments (list desig)
+               :designator desig))
       (setf current-solution (lazy-car data))
-      (unless current-solution
-        (error 'designator-error
-               :format-control "Unable to resolve designator `~a'"
-               :format-arguments (list desig)))
       (assert-desig-binding desig current-solution))
     current-solution))
 

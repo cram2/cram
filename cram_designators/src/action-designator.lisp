@@ -42,7 +42,8 @@
         (setf (slot-value desig 'data) (lazy-car solutions))
         (error 'designator-error
                :format-control "Cannot resolve action designator ~a."
-               :format-arguments (list desig)))))
+               :format-arguments (list desig)
+               :designator desig))))
 
 (defmethod resolve-designator ((desig action-designator) (role (eql 'default-role)))
   (lazy-mapcan (lambda (bdg)

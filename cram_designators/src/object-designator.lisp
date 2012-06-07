@@ -54,4 +54,5 @@
   ;; objects. Therefore, the data slot has to be set by externally.
   (error 'designator-error
          :format-control "Designator `~a' does not reference an object."
-         :format-arguments (list desig)))
+         :format-arguments (list desig)
+         :designator desig))
