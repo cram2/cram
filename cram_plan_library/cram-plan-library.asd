@@ -50,15 +50,19 @@
                         ((:file "goal-declarations")
                          (:file "achieve-loc" :depends-on ("goal-declarations"
                                                            "achieve-object-manipulation"
-                                                           "achieve-ptu"))
+                                                           "achieve-ptu"
+                                                           "utilities"))
                          (:file "achieve-ptu" :depends-on ("goal-declarations"))
                          (:file "at-location")
                          (:file "perceive-object" :depends-on ("goal-declarations"
-                                                               "at-location"))
+                                                               "at-location"
+                                                               "utilities"))
                          (:file "perceive-state" :depends-on ("goal-declarations"))
                          (:file "achieve-object-manipulation"
                                 :depends-on ("goal-declarations"
-                                             "at-location"))))
+                                             "at-location"
+                                             "utilities"))
+                         (:file "utilities")))
              (:module "rete"
                       :depends-on ("package" "plans")
                       :components
