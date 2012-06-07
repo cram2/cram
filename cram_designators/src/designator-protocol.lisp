@@ -40,7 +40,8 @@
   "Defines the default role to be used to resolve designators")
 
 (define-condition designator-error (simple-error)
-  () (:default-initargs :format-control "DESIGNATOR-ERROR"))
+  ((designator :reader designator :initarg :designator :initform nil))
+  (:default-initargs :format-control "DESIGNATOR-ERROR"))
 
 (defclass designator ()
   ((timestamp :reader timestamp :initform nil
