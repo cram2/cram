@@ -34,6 +34,6 @@
              (boundp (intern "*APPLICATION-HINTS-TABLES*"
                              (find-package "SWANK"))))
     (push (alist-hash-table
-           '((with-failure-handling . flet)))
+           '((with-failure-handling . (as flet))))
           (symbol-value (intern "*APPLICATION-HINTS-TABLES*"
                                 (find-package "SWANK"))))))
