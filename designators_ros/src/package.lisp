@@ -33,4 +33,5 @@
     (:use #:cl #:desig #:cut #:crs
           #:cram-roslisp-common)
   (:import-from #:tf pose pose-stamped)
-  (:export pose pose-stamped *fixed-frame*))
+  (:export pose pose-stamped *fixed-frame* with-designator-solution-filter
+           next-filtered-designator-solution make-euclidean-distance-filter))

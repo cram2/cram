@@ -18,4 +18,5 @@
             :components
             ((:file "package")
              (:file "designator-extensions" :depends-on ("package"))
+             (:file "designator-filters" :depends-on ("package"))
              (:file "facts" :depends-on ("package"))))))
