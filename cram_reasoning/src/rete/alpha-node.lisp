@@ -39,7 +39,8 @@
   (maphash (lambda (a b)
              (declare (ignore a))
              (clear-facts b))
-           (slot-value node 'children)))
+           (slot-value node 'children))
+  (clrhash (slot-value node 'children)))
 
 (defmethod gc-node ((node alpha-node))
   (when (and (eql (hash-table-count (slot-value node 'children)) 0)
