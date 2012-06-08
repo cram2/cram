@@ -83,8 +83,8 @@
   (desig:make-designator
    'desig:object
    `((desig-props:at ,location-designator)
-     ,(remove 'desig-props:at (desig:properties object-designator)
-              :key #'car))
+     ,@(remove 'desig-props:at (desig:properties object-designator)
+               :key #'car))
    object-designator))
 
 (defun get-supporting-object-bounding-box (object-name)
