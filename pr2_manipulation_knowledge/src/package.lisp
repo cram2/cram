@@ -28,6 +28,8 @@
 
 (in-package :cl-user)
 
-(defpackage pr2-manipulation-knowledge
+(desig-props:def-desig-package pr2-manipulation-knowledge
   (:use #:common-lisp #:cram-plan-knowledge #:crs #:desig)
-  (:export))
+  (:export)
+  (:desig-properties to grasp obj side put-down at open close handle
+                     in gripper pose z-offset))
