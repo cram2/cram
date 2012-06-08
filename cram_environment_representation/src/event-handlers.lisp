@@ -121,7 +121,7 @@
           (supporting-bounding-box (get-supporting-object-bounding-box object-name)))
       (desig:make-designator
        'desig-props:location
-       `((in gripper) (pose ,object-pose-in-gripper)
+       `((in gripper) (pose ,(tf:copy-pose-stamped object-pose-in-gripper :stamp 0.0))
          (z-offset ,(cond (supporting-bounding-box
                            (- (cl-transforms:z (cl-transforms:origin object-pose))
                               (+ (cl-transforms:z
