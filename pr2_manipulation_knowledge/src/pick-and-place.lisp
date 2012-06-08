@@ -53,6 +53,36 @@
              (cl-transforms:make-3d-vector 0 0 *tool-length*)
              (cl-transforms:make-identity-rotation))))))))))
 
+(defun calculate-object-lift-pose (object-designator lifting-height)
+  (let* ((current-object-designator (current-desig object-designator))
+         (object-location (desig-prop-value current-object-designator 'at))
+         (lift-transform
+           (cl-transforms:transform*
+            (cl-transforms:make-transform
+             (cl-transforms:make-3d-vector 0 0 lifting-height)
+             (cl-transforms:make-identity-rotation))                          
+            (cl-transforms:pose->transform
+             (tf:transform-pose
+              cram-roslisp-common:*tf*
+              :pose (reference object-location)
+              :target-frame designators-ros:*fixed-frame*)))))
+    ;; If the object is in the gripper, we actually know about the
+    ;; grasp. In that case, we use that information and return a
+    ;; pose. Otherwise, we just return a point that is
+    ;; `lifting-height' above the object.
+    (cond ((eql (desig-prop-value object-location 'in) 'gripper)
+           (cl-transforms:transform->pose
+            (cl-transforms:transform*
+             lift-transform
+             (cl-transforms:transform-inv
+              (cl-transforms:transform*
+               (cl-transforms:pose->transform
+                (reference object-location))
+               (cl-transforms:make-transform
+                (cl-transforms:make-3d-vector 0 0 *tool-length*)
+                (cl-transforms:make-identity-rotation)))))))
+          (t (cl-transforms:translation lift-transform)))))
+
 (def-fact-group pick-and-place-manipulation (trajectory-point)
 
   (<- (trajectory-point ?designator ?point ?side)
@@ -71,4 +101,14 @@
     (desig-prop ?designator (at ?location))
     (lisp-fun current-desig ?location ?current-location)
     (lisp-fun reference ?current-location ?put-down-pose)
-    (lisp-fun calculate-put-down-hand-pose ?object ?put-down-pose ?point)))
+    (lisp-fun calculate-put-down-hand-pose ?object ?put-down-pose ?point))
+
+  (<- (trajectory-point ?designator ?point ?side)
+    (trajectory-desig? ?designator)
+    (desig-prop ?designator (to lift))
+    (desig-prop ?designator (obj ?object))
+    (desig-prop ?designator (side ?side))
+    (once (or (desig-prop ?designator (distance ?lifting-height))
+              (== ?lifting-height 0.10)))
+    (lisp-fun calculate-object-lift-pose ?object ?lifting-height
+              ?point)))

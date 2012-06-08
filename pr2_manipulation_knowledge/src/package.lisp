@@ -32,4 +32,4 @@
   (:use #:common-lisp #:cram-plan-knowledge #:crs #:desig)
   (:export)
   (:desig-properties to grasp obj side put-down at open close handle
-                     in gripper pose z-offset))
+                     in gripper pose z-offset lift distance))
