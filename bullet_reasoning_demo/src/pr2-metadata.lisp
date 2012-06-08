@@ -71,7 +71,7 @@
     (symbol-value *left-parking-joint-states* ?joint-states))
 
   (<- (robot-arms-parking-joint-states ?joint-states :right)
-    (symbol-value *left-parking-joint-states* ?joint-states))
+    (symbol-value *right-parking-joint-states* ?joint-states))
 
   (<- (robot-pre-grasp-joint-states
        (("torso_lift_joint" 0.33) . ?parking-joint-states))
