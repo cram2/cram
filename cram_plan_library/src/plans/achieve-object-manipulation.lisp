@@ -55,10 +55,10 @@
       (ros-info (achieve plan-lib) "Calling perceive")
       (setf ?obj (perceive-object 'a ?obj))
       (ros-info (achieve plan-lib) "Perceive done")
-      (with-designators ((pick-up-loc (location `((to reach) (obj ,?obj))))
-                         (grasp-trajectory (action `((type trajectory) (to grasp) (obj ,?obj) (side ,?side))))
+      (with-designators ((grasp-trajectory (action `((type trajectory) (to grasp) (obj ,?obj) (side ,?side))))
                          (lift-trajectory (action `((type trajectory) (to lift) (obj ,?obj) (side ,?side))))
-                         (carry-trajectory (action `((type trajectory) (to carry) (obj ,?obj) (side ,?side)))))
+                         (carry-trajectory (action `((type trajectory) (to carry) (obj ,?obj) (side ,?side))))
+                         (pick-up-loc (location `((to execute) (action ,grasp-trajectory) (action ,lift-trajectory)))))
         (with-failure-handling
             ((manipulation-pose-unreachable (f)
                (declare (ignore f))
@@ -99,7 +99,7 @@
           (obj (current-desig ?obj)))
       (with-failure-handling
           ((designator-error (condition)
-             (when (eq (desig-prop-value (designator condition) 'location) ?loc)
+             (when (eq (desig-prop-value (designator condition) 'to) 'execute)
                ;; When we couldn't resolve `put-down-loc' the
                ;; destination pose is probably not reachable. In that
                ;; case, we try to find a new solution for `?loc' and
@@ -119,10 +119,11 @@
                (when ?loc
                  (retry)))))
         (let ((manipulation-retries 0))
-          (with-designators ((put-down-loc (location `((to reach) (location ,?loc))))
-                             (put-down-trajectory (action `((type trajectory) (to put-down)
+          (with-designators ((put-down-trajectory (action `((type trajectory) (to put-down)
                                                             (obj ,obj) (at ,?loc) (side ,side))))
-                             (park-trajectory (action `((type trajectory) (pose parked) (side ,side)))))
+                             (park-trajectory (action `((type trajectory) (pose parked) (side ,side))))
+                             (put-down-loc (location `((to execute) (action ,put-down-trajectory)
+                                                       (action ,park-trajectory)))))
             (with-failure-handling
                 ((manipulation-failure (f)
                    (declare (ignore f))

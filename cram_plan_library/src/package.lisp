@@ -68,5 +68,5 @@
   (:desig-properties #:to #:see #:obj #:of #:reach :type #:trajectory #:pose #:open #:side
                      #:grasp #:lift #:carry :reach #:location #:at #:parked #:pose #:close
                      #:gripper #:follow #:pick-up #:put-down #:height #:orientation #:in
-                     #:obstacle #:cluster))
+                     #:obstacle #:cluster #:execute #:action))
 
