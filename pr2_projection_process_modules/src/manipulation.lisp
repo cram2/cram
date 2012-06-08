@@ -50,7 +50,7 @@
     (unless (cut:is-var ?end-effector-link)
       ?end-effector-link)))
 
-(defun execute-action-trajectory-points (action-designator object-name)
+(defun execute-action-trajectory-points (action-designator &optional object-name)
   (cut:force-ll
    (cut:lazy-mapcar
     (lambda (solution)
@@ -61,16 +61,17 @@
                   (cram-plan-knowledge:trajectory-point ,action-designator ?point ?side)
                   (crs:once
                    (bullet-world ?world)
-                   (valid-grasp ?world ,object-name ?grasp ?sides)
+                   ,(if object-name
+                        `(valid-grasp ?world ,object-name ?grasp ?sides)
+                        `(grasp ?grasp))
                    (member ?side ?sides)
                    (robot ?robot)
                    (%object ?world ?robot ?robot-instance)
                    (crs:-> (crs:lisp-type ?point cl-transforms:3d-vector)
                            (crs:lisp-fun reach-point-ik ?robot-instance ?point
                                          :side ?side :grasp ?grasp ?ik-solutions)
-                           (and
-                            (crs:lisp-fun reach-pose-ik ?robot-instance ?point
-                                          :side ?side ?ik-solutions)))
+                           (crs:lisp-fun reach-pose-ik ?robot-instance ?point
+                                         :side ?side ?ik-solutions))
                    (member ?ik-solution ?ik-solutions)
                    (assert (joint-state ?world ?robot ?ik-solution))))))))
 
@@ -96,25 +97,10 @@
                     (robot-arms-parking-joint-states ?joint-states ,side)
                     (assert (joint-state ?_ ?robot ?joint-states)))))))
 
-(defun execute-lift (side object distance)
-  (cut:with-vars-bound (?end-effector-pose)
-      (cut:lazy-car
-       (crs:prolog `(and
-                     (end-effector-link ,side ?link-name)
-                     (robot ?robot)
-                     (link-pose ?_ ?robot ?link-name ?end-effector-pose))))
-    (assert (not (cut:is-var ?end-effector-pose)))
-    (let* ((current-object (desig:newest-valid-designator object))
-           (object-pose (desig:designator-pose current-object))
-           (lift-pose (cl-transforms:transform->pose
-                       (cl-transforms:transform*
-                        (cl-transforms:pose->transform object-pose)
-                        (cl-transforms:make-transform
-                         (cl-transforms:make-3d-vector 0 0 distance)
-                         (cl-transforms:orientation ?end-effector-pose))))))
-      (set-robot-reach-pose side lift-pose)
-      (cram-plan-knowledge:on-event
-       (make-instance 'cram-plan-knowledge:robot-state-changed)))))
+(defun execute-lift (designator)
+  (or
+   (execute-action-trajectory-points designator)
+   (cpl-impl:fail 'cram-plan-failures:manipulation-pose-unreachable)))
 
 (defun execute-grasp (designator object)
   (let* ((current-object (desig:newest-valid-designator object))
