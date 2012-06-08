@@ -100,9 +100,9 @@
     (assert object)
     (desig:make-designator
      'desig-props:location
-     `((pose (tf:pose->pose-stamped
-              designators-ros:*fixed-frame* (cut:current-timestamp)
-              (pose object)))))))
+     `((pose ,(tf:pose->pose-stamped
+               designators-ros:*fixed-frame* (cut:current-timestamp)
+               (bt:pose object)))))))
 
 (defun make-object-location-in-gripper (object-name)
   "Returns a new location designator that indicates a location in the
