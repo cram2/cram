@@ -28,6 +28,8 @@
 
 (in-package :pr2-manipulation-knowledge)
 
+(defvar *tool-length* 0.20)
+
 (defun calculate-put-down-hand-pose (object-designator put-down-pose)
   (let ((current-object (desig:current-desig object-designator)))
     (desig:with-desig-props (desig-props:at) current-object
@@ -45,7 +47,11 @@
            (cl-transforms:make-3d-vector 0 0 desig-props:z-offset)
            (cl-transforms:make-identity-rotation))
           (cl-transforms:transform-inv
-           (cl-transforms:pose->transform desig-props:pose))))))))
+           (cl-transforms:transform*
+            (cl-transforms:pose->transform desig-props:pose)
+            (cl-transforms:make-transform
+             (cl-transforms:make-3d-vector 0 0 *tool-length*)
+             (cl-transforms:make-identity-rotation))))))))))
 
 (def-fact-group pick-and-place-manipulation (trajectory-point)
 
