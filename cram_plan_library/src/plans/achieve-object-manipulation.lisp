@@ -131,9 +131,9 @@
                    (when (< manipulation-retries 3)
                      (incf manipulation-retries)
                      (setf put-down-loc (next-different-location-solution put-down-loc))
-                     (format t "Trying new put-down location: ~a~%" (reference put-down-loc))
-                     (retract-occasion `(loc Robot ?_))
-                     (retry))))
+                     (when put-down-loc
+                       (retract-occasion `(loc Robot ?_))
+                       (retry)))))
               (at-location (put-down-loc)
                 (achieve `(looking-at ,(reference ?loc)))
                 (achieve `(arms-at ,put-down-trajectory))))
