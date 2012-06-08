@@ -48,9 +48,9 @@
                       (desig:make-designator
                        'desig-props:object
                        (desig:update-designator-properties
-                        `(,(when type `((desig-props:type ,type)))
-                           (desig-props:at ,(desig:make-designator
-                                             'desig:location `((desig-props:pose ,pose)))))
+                        `(,@(when type `((desig-props:type ,type)))
+                            (desig-props:at ,(desig:make-designator
+                                              'desig:location `((desig-props:pose ,pose)))))
                         (when parent (desig:properties parent)))
                        parent)
                       'projection-object-designator)))
