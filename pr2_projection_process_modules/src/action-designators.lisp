@@ -68,14 +68,11 @@
     (desig-prop ?desig (pose parked))
     (desig-prop ?desig (side ?side)))
 
-  (<- (action-desig-projection ?desig (execute-lift ?side ?obj ?distance))
+  (<- (action-desig-projection ?desig (execute-lift ?desig))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to lift))
-    (desig-prop ?desig (obj ?obj))
-    (desig-prop ?desig (side ?side))
-    (-> (desig-prop ?desig (distance ?distance))
-        (true)
-        (== ?distance 0.10)))
+    (desig-prop ?desig (obj ?_))
+    (desig-prop ?desig (side ?_)))
 
   (<- (action-desig-projection ?desig (execute-park ?side ?obj))
     (trajectory-desig? ?desig)
