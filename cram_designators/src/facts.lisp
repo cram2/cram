@@ -142,26 +142,26 @@
     (desig-prop ?d-2 (?prop-name ?prop)))
 
   (<- (desig-equal ?d1 ?d2)
-    (desig ?d1)
-    (desig ?d2)
+    (designator ?d1)
+    (designator ?d2)
     (lisp-pred desig-equal ?d1 ?d2))
 
   (<- (desig-class ?d ?type)
-    (desig ?d)
+    (designator ?d)
     (lisp-fun get-desig-class ?d ?type)
     (lisp-pred identity ?type))
 
   (<- (desig-value ?d ?val ?t)
-    (desig ?d)
+    (designator ?d)
     (desig-timestamp ?d ?t)
     (desig-value ?d ?val))
 
-  (<- (desig-value ?d ?val ?t)
-    (bound ?d)
-    (desig ?other-d)
-    (desig-equal ?d ?other-d)
-    (desig-timestamp ?other-d ?t)
-    (desig-value ?other-d ?val))
+  (<- (desig-value ?designator ?value ?t)
+    (bound ?designator)
+    (lisp-fun designator-solutions ?designator t ?equal-designators)
+    (member ?current-designator ?equal-designators)
+    (desig-timestamp ?current-designator ?t)
+    (desig-value ?current-designator ?value))
 
   ;; Constructor for designators
   (<- (designator ?class ?description ?desig)
@@ -174,11 +174,12 @@
     (desig-class ?desig ?class)
     (desig-description ?desig ?description)))
 
-(def-prolog-handler desig (bdgs ?desig)
-  (let* ((?tmp-desig (gen-var)))
-    (lazy-mapcan (lambda (bdg)
-                   (multiple-value-bind (new-bdgs ok?)
-                       (unify ?desig (var-value ?tmp-desig bdg) bdgs)
-                     (when ok?
-                       (list new-bdgs))))
-                 (rete-holds `(desig-bound ,?tmp-desig ?_)))))
+(def-prolog-handler designator (bdgs ?desig)
+  (let ((?desig (if (is-var ?desig)
+                    (var-value ?desig bdgs)
+                    ?desig)))
+    (cond ((is-var ?desig)
+           (loop for designator being the hash-keys of *designators*
+                 collecting (add-bdg ?desig designator bdgs)))
+          ((typep ?desig 'designator)
+           (list bdgs)))))
