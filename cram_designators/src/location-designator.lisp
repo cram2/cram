@@ -137,8 +137,7 @@ boolean indicating if the solution is valid or not."
                :format-control "Unable to resolve designator `~a'"
                :format-arguments (list desig)
                :designator desig))
-      (setf current-solution (lazy-car data))
-      (assert-desig-binding desig current-solution))
+      (setf current-solution (lazy-car data)))
     current-solution))
 
 (defmethod next-solution ((desig location-designator))
@@ -151,8 +150,7 @@ boolean indicating if the solution is valid or not."
           (when (lazy-cdr data)
             (setf (slot-value new-desig 'data) (lazy-cdr data))
             (setf (slot-value new-desig 'current-solution) (lazy-car (lazy-cdr data)))
-            (prog1 (equate desig new-desig)
-              (assert-desig-binding new-desig (slot-value new-desig 'current-solution))))))))
+            (equate desig new-desig))))))
 
 (defmethod resolve-designator ((desig location-designator) (role (eql 'default-role)))
   (let* ((generators (location-resolution-function-list (remove-if (lambda (generator)
