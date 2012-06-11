@@ -84,7 +84,6 @@
     (setf (slot-value new-desig 'data) obj)
     (setf (slot-value new-desig 'timestamp) (cut:current-timestamp))
     (setf (slot-value new-desig 'valid) t)
-    (assert-desig-binding new-desig obj)
     new-desig))
 
 (defun emit-perception-event (designator)
