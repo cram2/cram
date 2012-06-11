@@ -29,20 +29,13 @@
 (in-package :cram-environment-representation)
 
 (def-fact-group occasions (holds)
+  (<- (object-in-hand ?object)
+    (object-in-hand ?object ?_))
+
   (<- (object-in-hand ?object ?side)
     (bullet-world ?world)
     (robot ?robot)
-    (bagof (?object-name ?object)
-           (and
-            (desig:designator ?object)
-            (lisp-type ?object desig:object-designator)
-            (lisp-fun get-designator-object-name ?object
-                      ?object-name))
-           ?objects)
-    (setof ?object-name (member (?object-name ?_) ?objects) ?object-names)
-    (member ?object-name ?object-names)
-    (once (member (?object-name ?object-designator) ?objects))
-    (lisp-pred identity ?object-name)
+    (object-designator-name ?object ?object-name)
     (attached ?world ?robot ?link ?object-name)
     (end-effector-link ?side ?link))
 
@@ -54,24 +47,36 @@
     (object-at-location ?_ ?robot ?location))
 
   (<- (loc ?object ?location)
-    (lisp-type ?object desig:object-designator)
-    (lisp-fun get-designator-object-name ?object ?object-name)
-    (lisp-pred identity ?object-name)
+    (object-designator-name ?object ?object-name)
     (object-at-location ?_ ?object-name ?location))
   
   (<- (holds ?occasion)
     (call ?occasion)))
 
 (def-fact-group occasion-utilities ()
+  (<- (object-designator-name ?object-designator ?object-name)
+    (bagof (?object-name ?object-designator)
+           (and
+            (desig:designator ?object-designator)
+            (lisp-type ?object-designator desig:object-designator)
+            (lisp-fun get-designator-object-name ?object-designator
+                      ?object-name)
+            (lisp-pred identity ?object-name))
+           ?objects)
+    (setof ?object-name (member (?object-name ?_) ?objects) ?object-names)
+    (member ?object-name ?object-names)
+    (once (member (?object-name ?object-designator) ?objects))
+    (lisp-pred identity ?object-name))
+  
   (<- (object-at-location ?world ?object-name ?location-designator)
     (lisp-type ?location-designator desig:location-designator)
     (bullet-world ?world)
     (object-pose ?world ?object-name ?object-pose)
     (lisp-fun desig:current-desig ?location-designator ?current-location)
-    (lisp-pred identity ?current-location)    
-    (lisp-fun desig:reference ?current-location ?location-pose)
-    (location-costmap:costmap-resolution ?costmap-resolution)
-    (poses-equal ?object-pose ?location-pose (?costmap-resolution 0.2)))
+    (lisp-pred identity ?current-location)
+    (desig:desig-solutions ?current-location ?_)
+    (lisp-pred desig:validate-location-designator-solution
+               ?current-location ?object-pose))
 
   (<- (object-at-location ?world ?object-name ?location-designator)
     (not (bound ?location))
