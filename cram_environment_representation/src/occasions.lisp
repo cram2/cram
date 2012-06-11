@@ -32,8 +32,17 @@
   (<- (object-in-hand ?object ?side)
     (bullet-world ?world)
     (robot ?robot)
-    (lisp-type ?object desig:object-designator)
-    (lisp-fun get-designator-object-name ?object ?object-name)
+    (bagof (?object-name ?object)
+           (and
+            (desig:designator ?object)
+            (lisp-type ?object desig:object-designator)
+            (lisp-fun get-designator-object-name ?object
+                      ?object-name))
+           ?objects)
+    (setof ?object-name (member (?object-name ?_) ?objects) ?object-names)
+    (member ?object-name ?object-names)
+    (once (member (?object-name ?object-designator) ?objects))
+    (lisp-pred identity ?object-name)
     (attached ?world ?robot ?link ?object-name)
     (end-effector-link ?side ?link))
 
