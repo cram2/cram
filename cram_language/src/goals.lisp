@@ -74,7 +74,9 @@
 (defun call-goal (name args)
   (multiple-value-bind (def bdgs) (matching-goal-fun name args)
     (unless def
-      (error "No goal found that matches arguments."))
+      (error 'simple-error
+             :format-control "No goal found that matches arguments: ~a ~a"
+             :format-arguments (list name args)))
     (funcall (second def) bdgs)))
 
 (defmacro declare-goal (name lambda-list &body body)
