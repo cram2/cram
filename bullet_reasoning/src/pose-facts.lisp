@@ -30,11 +30,14 @@
 
 (def-fact-group poses (assert)
 
-  (<- (pose ?w ?obj-name ?pose)
+  (<- (object-pose ?w ?obj-name ?pose)
     (lisp-type ?obj-name symbol)
     (bullet-world ?w)
     (%object ?w ?obj-name ?obj)
     (%pose ?obj ?pose))
+
+  (<- (pose ?w ?obj-name ?pose)
+    (object-pose ?w ?obj-name ?pose))  
   
   (<- (%pose ?obj ?pose)
     (bound ?obj)
