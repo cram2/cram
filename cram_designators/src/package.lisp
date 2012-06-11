@@ -78,6 +78,7 @@
            #:disable-location-generator-function
            #:enable-location-validation-function
            #:disable-location-validation-function
+           #:validate-location-designator-solution
            ;; Properties & prolog related stuff
            #:loc-desig?
            #:obj-desig?
