@@ -112,7 +112,8 @@
 
     (<- (desig-solutions ?desig ?solutions)
       (ground ?desig)
-      (lisp-fun designator-solutions ?desig ?solutions))
+      (lisp-fun designator-solutions ?desig ?solutions)
+      (not (== ?solutions ())))
 
     (<- (equated-desigs ?desig ?equated)
       (lisp-fun get-equal-designators ?desig ?equated))))
