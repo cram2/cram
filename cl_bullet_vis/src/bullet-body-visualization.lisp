@@ -30,7 +30,23 @@
 
 (in-package :bt-vis)
 
+(defvar *draw-bounding-boxes* nil)
+
 (defmethod draw ((context gl-context) (body rigid-body))
   (gl:with-pushed-matrix
     (gl:mult-matrix (pose->gl-matrix (pose body)))
-    (draw context (collision-shape body))))
+    (draw context (collision-shape body)))
+  (when *draw-bounding-boxes*
+    (draw context (aabb body))))
+
+(defmethod draw ((context gl-context) (bounding-box bounding-box))
+  (gl:with-pushed-matrix
+    (gl:translate
+     (cl-transforms:x (bounding-box-center bounding-box))
+     (cl-transforms:y (bounding-box-center bounding-box))
+     (cl-transforms:z (bounding-box-center bounding-box)))
+    (gl:scale
+     (cl-transforms:x (bounding-box-dimensions bounding-box))
+     (cl-transforms:y (bounding-box-dimensions bounding-box))
+     (cl-transforms:z (bounding-box-dimensions bounding-box)))
+    (glut:wire-cube 1)))
