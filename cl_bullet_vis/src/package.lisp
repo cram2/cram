@@ -59,4 +59,4 @@
            force-redraw
            read-pixels-float
            math-function-object
-           gl-objects))
+           gl-objects *draw-bounding-boxes*))
