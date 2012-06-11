@@ -22,9 +22,6 @@
              (:file "designator-protocol" :depends-on ("package"))
              (:file "designator-id-mixin" :depends-on ("package" "designator-protocol"))
              (:file "designator-pose" :depends-on ("package" "designator-protocol"))
-             (:file "rete-integration" :depends-on ("package"
-                                                    "designator-id-mixin"
-                                                    "designator-protocol"))
              (:file "object-designator" :depends-on ("package"
                                                      "designator-id-mixin"
                                                      "designator-protocol"))
