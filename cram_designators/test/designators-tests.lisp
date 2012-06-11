@@ -36,21 +36,27 @@
 ;;; auxiliary generator and validation functions for testing
 
 (defun generator-1 (designator)
+  (declare (ignore designator))
   (list :foo))
 
 (defun generator-2 (designator)
+  (declare (ignore designator))  
   (list :bar))
 
 (defun generator-3 (designator)
+  (declare (ignore designator))  
   (loop for i from 1 to 51 collecting :foo))
 
 (defun validation-1 (designator solution)
+  (declare (ignore designator))  
   (or (eq solution :bar) (eq solution :foo)))
 
 (defun validation-2 (designator solution)
+  (declare (ignore designator))  
   (eq solution :foo))
 
 (defun validation-3 (designator solution)
+  (declare (ignore designator))  
   (eq solution :bar))
 
 ;;; auxiliary functions
