@@ -157,26 +157,12 @@ boolean indicating if the solution is valid or not."
                                                                      (member generator *disabled-location-generators*))
                                                                    *location-generators*
                                                                    :key #'location-resolution-function-function)))
-         (validation-functions (cons (constantly t)
-                                     (location-resolution-function-list
-                                      (remove-if (lambda (validation-function)
-                                                   (member validation-function *disabled-validation-functions*))
-                                                 *location-validation-functions*
-                                                 :key #'location-resolution-function-function))))
          (solutions (lazy-mapcan (lambda (fun)
                                    (funcall fun desig))
                                  generators)))
     (lazy-mapcan (let ((retries *location-generator-max-retries*))
                    (lambda (solution)
-                     (cond ((block nil
-                              (restart-case
-                                  (every (rcurry #'funcall desig solution) validation-functions)
-                                (accept-solution ()
-                                  :report "Accept this designator solution"
-                                  (return t))
-                                (reject-solution ()
-                                  :report "Refuse this designator solution"
-                                  (return nil))))
+                     (cond ((validate-location-designator-solution desig solution)
                             (setf retries *location-generator-max-retries*)
                             (list solution))
                            ((= retries 0)
@@ -186,6 +172,24 @@ boolean indicating if the solution is valid or not."
                             (invoke-restart :finish))
                            (t (decf retries) nil))))
                  solutions)))
+
+(defun validate-location-designator-solution (designator solution)
+  (declare (type location-designator designator))
+  (let ((validation-functions (cons (constantly t)
+                                    (location-resolution-function-list
+                                     (remove-if (lambda (validation-function)
+                                                  (member validation-function *disabled-validation-functions*))
+                                                *location-validation-functions*
+                                                :key #'location-resolution-function-function)))))
+    (block nil
+      (restart-case
+          (every (rcurry #'funcall designator solution) validation-functions)
+        (accept-solution ()
+          :report "Accept this designator solution"
+          (return t))
+        (reject-solution ()
+          :report "Refuse this designator solution"
+          (return nil))))))
 
 (defun delete-location-generator-function (function-name)
   "Delete a generator-function from the list of registered generator functions.
