@@ -198,8 +198,10 @@
 (def-prolog-handler member (bdgs ?pat ?ll)
   (let ((?ll (var-value ?ll bdgs)))
     (when (lazy-list-p ?ll)
-      (lazy-mapcar (lambda (s)
-                     (unify ?pat s bdgs))
+      (lazy-mapcan (lambda (s)
+                     (let ((new-bdgs (unify ?pat s bdgs)))
+                       (when new-bdgs
+                         (list new-bdgs))))
                    ?ll))))
 
 (def-prolog-handler take (bdgs ?n ?l ?o)
