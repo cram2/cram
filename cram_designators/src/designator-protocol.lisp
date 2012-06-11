@@ -39,6 +39,10 @@
 (defvar *default-role* 'default-role
   "Defines the default role to be used to resolve designators")
 
+(defvar *designators* (tg:make-weak-hash-table :weakness :key)
+  "Weak hash table that contains all currently valid designators as
+  keys. The values are unused.")
+
 (define-condition designator-error (simple-error)
   ((designator :reader designator :initarg :designator :initform nil))
   (:default-initargs :format-control "DESIGNATOR-ERROR"))
@@ -161,6 +165,9 @@ class (derived from class DESIGNATOR), e.g. OBJECT-DESIGNATOR."
     (when parent
       (equate parent desig))
     desig))
+
+(defmethod initialize-instance :after ((designator designator) &key)
+  (setf (gethash designator *designators*) t))
 
 (defmethod first-desig ((desig designator))
   (if (null (parent desig))
