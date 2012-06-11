@@ -206,16 +206,16 @@ class (derived from class DESIGNATOR), e.g. OBJECT-DESIGNATOR."
                    (first-desig desig)
                    desig)))
     (lazy-list ((current-designator-generator (lambda () desig)))
-      (let ((current-designator (funcall current-designator-generator)))
-        (handler-case
+      (handler-case
+          (let ((current-designator (funcall current-designator-generator)))
             (when current-designator
               (handler-case
                   (cont (reference current-designator)
                         (lambda () (next-solution current-designator)))
                 (designator-error ()
-                  (next (lambda () (next-solution current-designator))))))
-          (designator-error ()
-            nil))))))
+                  nil))))
+        (designator-error ()
+          nil)))))
 
 (defun check-desig-prop-package (prop)
   "Checks if `prop' is in the correct package and can be used as a designator property"
