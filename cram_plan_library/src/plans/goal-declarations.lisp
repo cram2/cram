@@ -60,6 +60,6 @@
 
 (declare-goal achieve (occasion)
   "Achieves `occasion' if it is not yet achieved."
-  (when (holds-occasion occasion)
+  (when (holds occasion)
     (ros-info (achieve plan-lib) "Occasion `~a' already achieved." occasion)
     (return nil)))
