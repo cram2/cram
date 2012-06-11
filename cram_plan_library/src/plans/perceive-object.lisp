@@ -71,7 +71,6 @@ first one is bound."
   (let ((new-desig (car (perceive-object 'all ?obj-desig))))
     (unless (desig-equal ?obj-desig new-desig)
       (equate ?obj-desig new-desig))
-    (assert-occasion `(perceived ,new-desig))
     new-desig))
 
 (def-goal (perceive-object the ?obj-desig)
@@ -84,7 +83,6 @@ found."
              :format-control "Found ~a objects that match ~a."
              :format-arguments (list (length new-desigs) (description ?obj-desig))))
     (equate ?obj-desig (car new-desigs))
-    (assert-occasion `(perceived ,(car new-desigs)))
     (car new-desigs)))
 
 (def-goal (perceive-object currently-visible ?obj-desig)

@@ -38,9 +38,7 @@
               (distance-to-drive ?loc))
     (achieve `(looking-at :forward))
     (achieve '(arm-parked :both)))
-  (pm-execute :navigation ?loc)
-  (retract-occasion `(loc Robot ?_))
-  (assert-occasion `(loc Robot ,?loc)))
+  (pm-execute :navigation ?loc))
 
 (def-goal (achieve (loc ?obj ?loc))
   (ros-info (achieve plan-lib) "(achieve (loc ?obj ?loc)")
@@ -52,6 +50,4 @@
            (when (< (incf retry-count) 3)
              (retry))))
       (achieve `(object-in-hand ,?obj :right))
-      (achieve `(object-placed-at ,?obj ,?loc))))
-  (retract-occasion `(loc ,?obj ?_))
-  (assert-occasion `(loc ,?obj ,?loc)))
+      (achieve `(object-placed-at ,?obj ,?loc)))))
