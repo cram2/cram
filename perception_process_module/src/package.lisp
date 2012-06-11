@@ -47,7 +47,6 @@
    #:object-search-function
    #:def-object-search-function
    #:execute-object-search-functions
-   #:newest-valid-designator
    #:perceived-object->designator
    ;; object-belief
    #:object-perceived
@@ -57,10 +56,7 @@
    #:object-timestamp
    #:clear-object-belief #:update-perceived-object
    #:perceived-objects-equal? #:compatible-properties
-   #:designator->production #:assert-perceived-object
-   #:retract-perceived-object #:assert-desig-binding
-   #:retract-desig-binding #:desig-current-perceived-object
-   #:matching-object #:merge-desig-descriptions
+   #:merge-desig-descriptions
    #:make-new-desig-description
    ;; cop stuff
    #:cop-perceived-object
@@ -76,9 +72,7 @@
    #:object-id
    ;; Semantic map
    #:semantic-map #:semantic-map-perceived-object
-   #:semantic-map-object
-   ;; occasions
-   #:object-perceived)
+   #:semantic-map-object)
 
   (:import-from #:cpl
                 #:pulsed
