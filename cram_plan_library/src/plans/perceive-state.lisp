@@ -28,11 +28,14 @@
 
 (in-package :plan-lib)
 
+(def-goal (perceive-state (loc robot ?location))
+  (holds `(loc robot ,?location)))
+
 (def-goal (perceive-state (loc ?object ?location))
-  (declare (ignore ?location))
   "Checks if an object is at a specific location."
   ;; To prove if an object is at a specific location, we perceive it.
-  (perceive-object 'the ?object))
+  (perceive-object 'the ?object)
+  (holds `(loc ,?object ,?location)))
 
 (def-goal (perceive-state ?state)
   "Default handler for PERCEIVE-STATE."
