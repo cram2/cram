@@ -36,9 +36,40 @@
     (lisp-fun get-designator-object-name ?object ?object-name)
     (attached ?world ?robot ?link ?object-name)
     (end-effector-link ?side ?link))
+
+  (<- (object-placed-at ?object ?location)
+    (loc ?object ?location))
+
+  (<- (loc plan-knowledge:robot ?location)
+    (robot ?robot)
+    (object-at-location ?_ ?robot ?location))
+
+  (<- (loc ?object ?location)
+    (lisp-type ?object desig:object-designator)
+    (lisp-fun get-designator-object-name ?object ?object-name)
+    (lisp-pred identity ?object-name)
+    (object-at-location ?_ ?object-name ?location))
   
   (<- (holds ?occasion)
     (call ?occasion)))
+
+(def-fact-group occasion-utilities ()
+  (<- (object-at-location ?world ?object-name ?location-designator)
+    (lisp-type ?location-designator desig:location-designator)
+    (bullet-world ?world)
+    (object-pose ?world ?object-name ?object-pose)
+    (lisp-fun desig:current-desig ?location-designator ?current-location)
+    (lisp-pred identity ?current-location)    
+    (lisp-fun desig:reference ?current-location ?location-pose)
+    (location-costmap:costmap-resolution ?costmap-resolution)
+    (poses-equal ?object-pose ?location-pose (?costmap-resolution 0.2)))
+
+  (<- (object-at-location ?world ?object-name ?location-designator)
+    (not (bound ?location))
+    (bullet-world ?world)
+    (object-pose ?world ?object-name ?object-pose)
+    (desig:designator desig:location ((pose ?object-pose))
+                      ?location-designator)))
 
 (defmethod cram-plan-knowledge:holds (occasion &optional time-specification)
   (if time-specification
