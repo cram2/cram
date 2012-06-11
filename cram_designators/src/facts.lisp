@@ -40,6 +40,10 @@
   (when (and loc-desig (typep loc-desig 'location-designator))
     (reference loc-desig)))
 
+(defun get-all-designators ()
+  (loop for designator being the hash-keys of *designators*
+        collecting designator))
+
 ;; This fact group contains general rules for location designators
 ;;
 ;; Process modules and other reasoning modules can extend location
@@ -172,14 +176,12 @@
   (<- (designator ?class ?description ?desig)
     (bound ?desig)
     (desig-class ?desig ?class)
-    (desig-description ?desig ?description)))
+    (desig-description ?desig ?description))
 
-(def-prolog-handler designator (bdgs ?desig)
-  (let ((?desig (if (is-var ?desig)
-                    (var-value ?desig bdgs)
-                    ?desig)))
-    (cond ((is-var ?desig)
-           (loop for designator being the hash-keys of *designators*
-                 collecting (add-bdg ?desig designator bdgs)))
-          ((typep ?desig 'designator)
-           (list bdgs)))))
+  (<- (designator ?designator)
+    (lisp-type ?designator designator))
+  
+  (<- (designator ?designator)
+    (not (bound ?designator))
+    (lisp-fun get-all-designators ?designators)
+    (member ?designator ?designators)))
