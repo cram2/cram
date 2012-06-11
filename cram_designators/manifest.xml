@@ -6,10 +6,11 @@
   <author>Lorenz Moesenlechner</author>
   <license>BSD</license>
   <url>http://ros.org/wiki/cram_designators</url>
-  <review status="unreviewed" notes=""/>
-  <depend package="sbcl"/>
-  <depend package="alexandria"/>
-  <depend package="cram_utilities"/>
-  <depend package="cram_reasoning"/>
-  <depend package="lisp_unit"/>
+  <review status="unreviewed" notes="" />
+  <depend package="sbcl" />
+  <depend package="alexandria" />
+  <depend package="cram_utilities" />
+  <depend package="cram_reasoning" />
+  <depend package="trivial_garbage" />
+  <depend package="lisp_unit" />
 </package>

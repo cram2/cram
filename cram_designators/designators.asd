@@ -12,8 +12,8 @@
                      includes object descriptions, locations and trajectories."
   :depends-on (:alexandria
                :cram-utilities
-               :cram-reasoning)
-
+               :cram-reasoning
+               :trivial-garbage)
   :components
   ((:module "src"
             :components
