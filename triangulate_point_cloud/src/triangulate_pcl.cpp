@@ -56,7 +56,7 @@ void reconstructMesh(const PointCloud<PointXYZ>::ConstPtr &cloud,
   indices->resize(cloud->points.size ());
   for (size_t i = 0; i < indices->size (); ++i) { (*indices)[i] = i; }
 
-  KdTree<PointXYZ>::Ptr tree(new KdTreeFLANN<PointXYZ>);
+  pcl::search::KdTree<PointXYZ>::Ptr tree(new pcl::search::KdTree<PointXYZ>);
   tree->setInputCloud(cloud);
 
   PointCloud<PointXYZ>::Ptr mls_points(new PointCloud<PointXYZ>);
