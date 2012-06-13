@@ -44,26 +44,21 @@
   ((:module "src"
             :components
             ((:file "package")
-             (:module "plans"
-                      :depends-on ("package")
-                      :components
-                        ((:file "goal-declarations")
-                         (:file "achieve-loc" :depends-on ("goal-declarations"
-                                                           "achieve-object-manipulation"
-                                                           "achieve-ptu"
-                                                           "utilities"))
-                         (:file "achieve-ptu" :depends-on ("goal-declarations"))
-                         (:file "at-location")
-                         (:file "perceive-object" :depends-on ("goal-declarations"
-                                                               "at-location"
-                                                               "utilities"))
-                         (:file "perceive-state" :depends-on ("goal-declarations"))
-                         (:file "achieve-object-manipulation"
-                                :depends-on ("goal-declarations"
-                                             "at-location"
-                                             "utilities"))
-                         (:file "utilities")))
-             (:module "rete"
-                      :depends-on ("package" "plans")
-                      :components
-                      ((:file "occasions")))))))
+             (:file "goal-declarations" :depends-on ("package"))
+             (:file "achieve-loc" :depends-on ("package"
+                                               "goal-declarations"
+                                               "achieve-object-manipulation"
+                                               "achieve-ptu"
+                                               "utilities"))
+             (:file "achieve-ptu" :depends-on ("package" "goal-declarations"))
+             (:file "at-location" :depends-on ("package"))
+             (:file "perceive-object" :depends-on ("package"
+                                                   "goal-declarations"
+                                                   "at-location"
+                                                   "utilities"))
+             (:file "perceive-state" :depends-on ("package" "goal-declarations"))
+             (:file "achieve-object-manipulation"
+              :depends-on ("goal-declarations"
+                           "at-location"
+                           "utilities"))
+             (:file "utilities")))))
