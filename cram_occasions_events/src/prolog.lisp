@@ -28,7 +28,7 @@
 
 (in-package :cram-plan-knowledge)
 
-(def-fact-group manipulation (trajectory-point)
+(def-fact-group manipulation (trajectory-point arm required-arms available-arms)
 
   ;; Yields points that are part of a manipulation
   ;; trajectory. ?designator is bound to an action designator. The
@@ -39,4 +39,19 @@
   ;; necessarily an exact trajectory point but it should at least be
   ;; close to the actual point.
   (<- (trajectory-point ?designator ?point ?side)
+    (fail))
+
+  ;; Unifies ?side with the name of an arm that is present on the
+  ;; current robot.
+  (<- (arm ?arm)
+    (fail))
+
+  ;; ?sides is unified with the list of arms that are required to
+  ;; manipulate the object indicated by the object designator ?object.
+  (<- (required-arms ?object-designator ?arms)
+    (fail))
+
+  ;; Similar to REQUIRED-ARMS but only unifies with currently unused
+  ;; arms.
+  (<- (available-arms ?object-designator ?arms)
     (fail)))
