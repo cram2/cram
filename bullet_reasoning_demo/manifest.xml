@@ -16,5 +16,6 @@
   <depend package="cram_roslisp_common" />
   <depend package="cram_plan_knowledge" />
   <depend package="pr2_manipulation_knowledge" />
+  <depend package="cram_pr2_knowledge" />
 
 </package>
