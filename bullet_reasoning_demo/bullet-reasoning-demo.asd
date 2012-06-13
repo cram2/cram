@@ -1,4 +1,3 @@
-;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
@@ -26,7 +25,6 @@
 ;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
-;;;
 
 (defsystem bullet-reasoning-demo
     :author "Lorenz Moesenlechner"
@@ -39,12 +37,12 @@
                  cram-plan-knowledge
                  bullet-reasoning
                  bullet-reasoning-designators
-                 pr2-manipulation-knowledge)
+                 pr2-manipulation-knowledge
+                 cram-pr2-knowledge)
     :components
     ((:module "src"
               :components
               ((:file "designator-config")
-               (:file "pr2-metadata")
                ;; (:module "executive-integration"
                ;;  :components
                ;;  ((:file "perception")
