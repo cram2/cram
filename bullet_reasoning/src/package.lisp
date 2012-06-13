@@ -64,6 +64,7 @@
            position orientation poses-equal contact stable
            link-contacts supported-by above below visible
            occluding-objects occluding-object valid-grasp grasp side reachable
+           def-grasp def-tool object-grasp
            point-reachable pose-reachable blocking debug-window
            debug-costmap head-pointing-at with-current-bullet-world
            reach-pose-ik reach-object-ik point-reachable-p reach-point-ik
@@ -72,14 +73,14 @@
            set-robot-state-from-tf init-ros-object-database clear-bullet-world
            ros-household-object execute open close reach-ik-solution
            attached attached-objects attach-object detach-object
+           side->ik-namespace
 
            robot-pan-tilt-links robot-pan-tilt-joints robot
            camera-frame robot-arms-parking-joint-states
-           end-effector-link
+           end-effector-link robot-pre-grasp-joint-states
 
            event apply-event def-event
            timeline timeline-init timeline-advance
            timeline-current-world-state timeline-lookup
            holds-in-world holds occurs at
            during throughout))
-
