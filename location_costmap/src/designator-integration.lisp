@@ -121,8 +121,16 @@
                                    cm
                                    (cl-transforms:x p)
                                    (cl-transforms:y p))
-                                  (get-cached-costmap-maxvalue cm))))
-            (> costmap-value *costmap-valid-solution-threshold*))
+                                  (get-cached-costmap-maxvalue cm)))
+                (costmap-heights (generate-heights
+                                  cm (cl-transforms:x p) (cl-transforms:y p))))
+            (and (> costmap-value *costmap-valid-solution-threshold*)
+                 (if costmap-heights
+                     (find-if (lambda (height)
+                                (< (abs (- height (cl-transforms:z p)))
+                                   1e-3))
+                              costmap-heights)
+                     t)))
           t))))
 
 (register-location-generator
