@@ -29,7 +29,7 @@
 
 (in-package :plan-lib)
 
-(def-goal (achieve (object-in-hand ?obj ?side))
+(def-goal (achieve (object-in-hand ?obj))
   (ros-info (achieve plan-lib) "(achieve (object-in-hand))")
   (let ((retry-count 0)
         (alternative-poses-cnt 0))
@@ -38,7 +38,7 @@
            (declare (ignore f))
            (ros-warn (achieve plan-lib) "Object lost.")
            (achieve `(arms-at ,(make-designator
-                                'action `((type trajectory) (pose parked) (side ,?side)))))
+                                'action `((type trajectory) (pose parked)))))
            (when (< (incf retry-count) 3)
              (retry)))
          ;; (manipulation-failure (f)
@@ -55,9 +55,9 @@
       (ros-info (achieve plan-lib) "Calling perceive")
       (setf ?obj (perceive-object 'a ?obj))
       (ros-info (achieve plan-lib) "Perceive done")
-      (with-designators ((grasp-trajectory (action `((type trajectory) (to grasp) (obj ,?obj) (side ,?side))))
-                         (lift-trajectory (action `((type trajectory) (to lift) (obj ,?obj) (side ,?side))))
-                         (carry-trajectory (action `((type trajectory) (to carry) (obj ,?obj) (side ,?side))))
+      (with-designators ((grasp-trajectory (action `((type trajectory) (to grasp) (obj ,?obj))))
+                         (lift-trajectory (action `((type trajectory) (to lift) (obj ,?obj))))
+                         (carry-trajectory (action `((type trajectory) (to carry) (obj ,?obj))))
                          (pick-up-loc (location `((to execute) (action ,grasp-trajectory) (action ,lift-trajectory)))))
         (with-failure-handling
             ((manipulation-pose-unreachable (f)
@@ -68,7 +68,7 @@
                  (setf pick-up-loc (next-different-location-solution pick-up-loc))
                  (retract-occasion `(loc Robot ?_))
                  (achieve `(arms-at ,(make-designator
-                                      'action `((type trajectory) (pose parked) (side ,?side)))))
+                                      'action `((type trajectory) (pose parked)))))
                  (when pick-up-loc
                    (retry)))))
           (ros-info (achieve plan-lib) "Grasping")
@@ -90,13 +90,12 @@
 (def-goal (achieve (object-placed-at ?obj ?loc))
   (ros-info (achieve plan-lib) "(achieve (object-placed-at))")
   (setf ?obj (current-desig ?obj))
-  (let ((object-in-hand-bdgs (holds `(object-in-hand ,?obj ?side)))
+  (let ((object-in-hand-bdgs (holds `(object-in-hand ,?obj)))
         (goal-pose-retries 0))
     (assert object-in-hand-bdgs ()
             "The object `~a ~a' needs to be in the hand before being able to place it."
             ?obj (description ?obj))
-    (let ((side (var-value '?side (car object-in-hand-bdgs)))
-          (obj (current-desig ?obj)))
+    (let ((obj (current-desig ?obj)))
       (with-failure-handling
           ((designator-error (condition)
              (when (eq (desig-prop-value (designator condition) 'to) 'execute)
@@ -120,8 +119,8 @@
                  (retry)))))
         (let ((manipulation-retries 0))
           (with-designators ((put-down-trajectory (action `((type trajectory) (to put-down)
-                                                            (obj ,obj) (at ,?loc) (side ,side))))
-                             (park-trajectory (action `((type trajectory) (pose parked) (side ,side))))
+                                                            (obj ,obj) (at ,?loc))))
+                             (park-trajectory (action `((type trajectory) (pose parked))))
                              (put-down-loc (location `((to execute) (action ,put-down-trajectory)
                                                        (action ,park-trajectory)))))
             (with-failure-handling
@@ -167,9 +166,9 @@
   (let ((side (desig-prop-value ?traj 'side)))
     (retract-occasion `(arms-at ?_))    
     (pm-execute :manipulation ?traj)
-    (when (member side '(:both :left))
+    (when (member side '(:both :left nil))
       (retract-occasion `(arm-parked :left)))
-    (when (member side '(:both :right))
+    (when (member side '(:both :right nil))
       (retract-occasion `(arm-parked :right)))
     (retract-occasion `(arms-at ?_))
     (assert-occasion `(arms-at ,?traj))))
