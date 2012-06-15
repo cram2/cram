@@ -45,7 +45,6 @@
                         (and loc (reference loc)))
                (incf loc-retry-cnt)
                (ros-info (perceive plan-lib) "Retrying at different location ~a." (reference loc))
-               (retract-occasion `(loc Robot ?_))
                (retry))
              (ros-warn (perceive plan-lib) "Failing at object-not-found failure.")))
         (at-location (loc)
