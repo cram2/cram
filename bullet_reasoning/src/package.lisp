@@ -60,7 +60,7 @@
            find-all-contacts find-objects-in-contact poses-equal-p
            stable-p above-p find-objects-above below-p
            find-objects-below bullet-world object
-           retract step simulate-realtime object-pose
+           retract step simulate-realtime object-pose object-bottom-pose
            position orientation poses-equal contact stable
            link-contacts supported-by above below visible
            occluding-objects occluding-object valid-grasp grasp side reachable

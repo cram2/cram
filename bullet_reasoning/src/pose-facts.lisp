@@ -36,6 +36,13 @@
     (%object ?w ?obj-name ?obj)
     (%pose ?obj ?pose))
 
+  (<- (object-bottom-pose ?world ?object-name ?pose)
+    (not (bound ?pose))
+    (lisp-type ?object-name symbol)
+    (bullet-world ?world)
+    (%object ?world ?object-name ?object)
+    (lisp-fun calculate-object-bottom-pose ?object ?pose))
+
   (<- (pose ?w ?obj-name ?pose)
     (object-pose ?w ?obj-name ?pose))  
   

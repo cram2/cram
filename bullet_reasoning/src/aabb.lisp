@@ -63,3 +63,13 @@
 (defmethod aabb ((obj object))
   (reduce #'merge-bounding-boxes
           (mapcar #'aabb (rigid-bodies obj))))
+
+(defun calculate-object-bottom-pose (object)
+  (let ((bounding-box (aabb object)))
+    (cl-transforms:copy-pose
+     (pose object)
+     :origin (cl-transforms:copy-3d-vector
+              (cl-transforms:origin (pose object))
+              :z (- (cl-transforms:z (bounding-box-center bounding-box))
+                    (/ (cl-transforms:z
+                        (bounding-box-dimensions bounding-box)) 2))))))
