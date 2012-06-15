@@ -71,10 +71,11 @@
   (<- (object-at-location ?world ?object-name ?location-designator)
     (lisp-type ?location-designator desig:location-designator)
     (bullet-world ?world)
-    (object-pose ?world ?object-name ?object-pose)
     (lisp-fun desig:current-desig ?location-designator ?current-location)
     (lisp-pred identity ?current-location)
     (desig:desig-solutions ?current-location ?_)
+    (or (object-pose ?world ?object-name ?object-pose)
+        (object-bottom-pose ?world ?object-name ?object-pose))
     (lisp-pred desig:validate-location-designator-solution
                ?current-location ?object-pose))
 
