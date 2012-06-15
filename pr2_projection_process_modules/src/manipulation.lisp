@@ -75,27 +75,23 @@
                    (member ?ik-solution ?ik-solutions)
                    (assert (joint-state ?world ?robot ?ik-solution))))))))
 
-(defun execute-container-opened (object side)
-  (declare (ignore object side))
+(defun execute-container-opened (object sides)
+  (declare (ignore object sides))
   nil)
 
-(defun execute-container-closed (object side)
-  (declare (ignore object side))
+(defun execute-container-closed (object sides)
+  (declare (ignore object sides))
   nil)
 
-(defun execute-park (side &optional object)
+(defun execute-park (sides &optional object)
   (declare (ignore object))
-  (let ((sides (ecase side
-                 (:left '(:left))
-                 (:right '(:right))
-                 (:both '(:left :right)))))
-    ;; TODO(moesenle): if parking with object, make sure to use the
-    ;; correct end-effector orientation and use IK.
-    (dolist (side sides)
-      (crs:prolog `(and
-                    (robot ?robot)
-                    (robot-arms-parking-joint-states ?joint-states ,side)
-                    (assert (joint-state ?_ ?robot ?joint-states)))))))
+  ;; TODO(moesenle): if parking with object, make sure to use the
+  ;; correct end-effector orientation and use IK.
+  (crs:prolog `(and
+                (robot ?robot)
+                (member ?side ,sides)
+                (robot-arms-parking-joint-states ?joint-states ?side)
+                (assert (joint-state ?_ ?robot ?joint-states)))))
 
 (defun execute-lift (designator)
   (or
