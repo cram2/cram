@@ -48,8 +48,9 @@
 
 (defun make-object-bounding-box-height-generator (object)
   (let ((bounding-box (aabb object)))
-    (constantly (+ (cl-transforms:z
-                    (cl-bullet:bounding-box-center bounding-box))
-                   (/ (cl-transforms:z
-                       (cl-bullet:bounding-box-dimensions bounding-box))
-                      2)))))
+    (constantly (list
+                 (+ (cl-transforms:z
+                     (cl-bullet:bounding-box-center bounding-box))
+                    (/ (cl-transforms:z
+                        (cl-bullet:bounding-box-dimensions bounding-box))
+                       2))))))
