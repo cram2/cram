@@ -183,9 +183,9 @@ that the bounding boxes of `bottom' and `top' are alligned."
                                           (bounding-box-center aabb-obj)
                                           (cl-transforms:v* (bounding-box-dimensions aabb-obj) -0.5))))
       (cl-transforms:copy-pose
-       pose :new-origin (cl-transforms:v+
-                         (cl-transforms:origin pose)
-                         bounding-box-relative-offset)))))
+       pose :origin (cl-transforms:v+
+                     (cl-transforms:origin pose)
+                     bounding-box-relative-offset)))))
 
 (defun obj-poses-on (obj-name poses &optional (world *current-bullet-world*))
   "Returns a new lazy-list of poses for the object `obj' that are on

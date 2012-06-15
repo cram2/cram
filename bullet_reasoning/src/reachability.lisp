@@ -144,8 +144,8 @@ relative to the robot in world coordinates."
               robot (cl-transforms:make-identity-rotation))))
      (cl-transforms:pose
       (cl-transforms:copy-pose
-       point :new-orientation (calculate-orientation-in-robot
-                              robot (cl-transforms:make-identity-rotation)))))
+       point :orientation (calculate-orientation-in-robot
+                           robot (cl-transforms:make-identity-rotation)))))
    :tool-frame (get-tool tool-length (get-grasp grasp side))
    :side side))
 
@@ -156,8 +156,8 @@ relative to the robot in world coordinates."
            (type object obj))
   (reach-pose-ik
    robot (cl-transforms:copy-pose
-          (pose obj) :new-orientation (calculate-orientation-in-robot
-                                       robot (cl-transforms:make-identity-rotation)))
+          (pose obj) :orientation (calculate-orientation-in-robot
+                                   robot (cl-transforms:make-identity-rotation)))
    :tool-frame (get-tool tool-length (get-grasp grasp side))
    :side side))
 
