@@ -64,12 +64,11 @@
    (height-generator
     :initform nil :initarg :height-generator :reader height-generator
     :documentation "A callable object that takes two parameters, X and
-                    Y and returns the corresponding height
-                    value (i.e. Z coordinate of the generated
-                    pose). The function doesn't necessarily need to be
-                    deterministic and is used whenever a costmap
-                    sample is generated. If not set, a constant value
-                    of 0.0d0 is returned.")
+                    Y and returns a list of valid height
+                    values (i.e. Z coordinate of the generated
+                    pose). The function needs to be deterministic and
+                    is used whenever a costmap sample is generated. If
+                    not set, a constant value of 0.0d0 is returned.")
    (orientation-generators
     :initform nil :initarg :orientation-generators :reader orientation-generators
     :documentation "A sequence of callable objects that take three
@@ -199,9 +198,15 @@ calls the generator functions and runs normalization."
        :orientation-generators (mapcan (compose #'copy-list #'orientation-generators) (cons cm-1 costmaps))))))
 
 (defun generate-height (map x y &optional (default 0.0d0))
-  (if (height-generator map)
-      (funcall (height-generator map) x y)
-      default))
+  (or
+   (when (height-generator map)
+     (let ((heights (generate-heights map x y)))
+       (random-elt heights)))
+   default))
+
+(defun generate-heights (map x y)
+  (when (height-generator map)
+    (funcall (height-generator map) x y)))
 
 (defun generate-orientations (map x y
                               &optional (default (list (cl-transforms:make-identity-rotation))))
