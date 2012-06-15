@@ -50,5 +50,5 @@
              (declare (ignore f))
              (when (< (incf retry-count) 3)
                (retry))))
-        (achieve `(object-in-hand ,?obj :right))
+        (achieve `(object-in-hand ,?obj))
         (achieve `(object-placed-at ,?obj ,?loc))))))
