@@ -96,14 +96,12 @@
     (let ((cm (get-cached-costmap desig)))
       (unless cm
         (return-from location-costmap-generator nil))
-      (let ((solutions (block nil
-                         (handler-bind
-                             ((location-costmap:invalid-probability-distribution
-                                (lambda (costmap-error)
-                                  (warn costmap-error)
-                                  (return nil))))
-                           (costmap-samples cm)))))
-        (publish-location-costmap cm)
+      (let ((solutions (handler-case
+                           (prog1
+                             (costmap-samples cm)
+                             (publish-location-costmap cm))
+                         (location-costmap:invalid-probability-distribution ()
+                           nil))))
         (lazy-list ((solutions solutions)
                     (generated-poses nil))
           (cond (generated-poses
