@@ -32,7 +32,7 @@
   
   :depends-on (cram-reasoning
                designators
-               cram-plan-knowledge
+               cram-manipulation-knowledge
                bullet-reasoning)
   :components
   ((:module "src"
