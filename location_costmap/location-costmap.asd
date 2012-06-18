@@ -28,17 +28,17 @@
 ;;;
 
 (defsystem location-costmap
-  :depends-on ("cram-reasoning"
-               "cram-language"
-               "cram-math"
-               "cram-utilities"
-               "cram-roslisp-common"
-               "cram-plan-knowledge"
-               "nav_msgs-msg"
-               "arm_navigation_msgs-msg"
-               "visualization_msgs-msg"
-               "trivial-garbage"
-               "designators-ros")
+  :depends-on (cram-reasoning
+               cram-language
+               cram-math
+               cram-utilities
+               cram-roslisp-common
+               cram-manipulation-knowledge
+               nav_msgs-msg
+               arm_navigation_msgs-msg
+               visualization_msgs-msg
+               trivial-garbage
+               designators-ros)
   :components
   ((:module "src"
             :components

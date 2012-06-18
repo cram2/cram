@@ -241,4 +241,4 @@ orientations differ by `sample-step'."
     (reachability-designator ?designator)
     (desig-prop ?designator (to execute))
     (desig-prop ?designator (action ?action))
-    (plan-knowledge:trajectory-point ?action ?pose ?side)))
+    (cram-manipulation-knowledge:trajectory-point ?action ?pose ?side)))
