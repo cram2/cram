@@ -50,5 +50,4 @@
              (:file "process-modules" :depends-on ("package"))
              (:file "event-protocol" :depends-on ("package"))
              (:file "default-plan-events" :depends-on ("package" "event-protocol"))
-             (:file "belief-state" :depends-on ("package" "default-plan-events"))
-             (:file "prolog" :depends-on ("package"))))))
+             (:file "belief-state" :depends-on ("package" "default-plan-events"))))))
