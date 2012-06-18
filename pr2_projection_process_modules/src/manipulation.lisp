@@ -45,7 +45,7 @@
       (cut:lazy-car
        (crs:prolog
         `(and
-          (cram-plan-knowledge:trajectory-point ,action-designator ?_ ?side)
+          (trajectory-point ,action-designator ?_ ?side)
           (end-effector-link ?side ?end-effector-link))))
     (unless (cut:is-var ?end-effector-link)
       ?end-effector-link)))
@@ -58,38 +58,38 @@
        (make-instance 'cram-plan-knowledge:robot-state-changed))
       solution)
     (crs:prolog `(and
-                  (cram-plan-knowledge:trajectory-point ,action-designator ?point ?side)
-                  (crs:once
-                   (bullet-world ?world)
-                   ,(if object-name
-                        `(valid-grasp ?world ,object-name ?grasp ?sides)
-                        `(grasp ?grasp))
-                   (member ?side ?sides)
-                   (robot ?robot)
-                   (%object ?world ?robot ?robot-instance)
-                   (crs:-> (crs:lisp-type ?point cl-transforms:3d-vector)
-                           (crs:lisp-fun reach-point-ik ?robot-instance ?point
-                                         :side ?side :grasp ?grasp ?ik-solutions)
-                           (crs:lisp-fun reach-pose-ik ?robot-instance ?point
-                                         :side ?side ?ik-solutions))
-                   (member ?ik-solution ?ik-solutions)
-                   (assert (joint-state ?world ?robot ?ik-solution))))))))
+                   (trajectory-point ,action-designator ?point ?side)
+                   (crs:once
+                    (bullet-world ?world)
+                    ,(if object-name
+                         `(valid-grasp ?world ,object-name ?grasp ?sides)
+                         `(grasp ?grasp))
+                    (member ?side ?sides)
+                    (robot ?robot)
+                    (%object ?world ?robot ?robot-instance)
+                    (crs:-> (crs:lisp-type ?point cl-transforms:3d-vector)
+                            (crs:lisp-fun reach-point-ik ?robot-instance ?point
+                                          :side ?side :grasp ?grasp ?ik-solutions)
+                            (crs:lisp-fun reach-pose-ik ?robot-instance ?point
+                                          :side ?side ?ik-solutions))
+                    (member ?ik-solution ?ik-solutions)
+                    (assert (joint-state ?world ?robot ?ik-solution))))))))
 
-(defun execute-container-opened (object sides)
-  (declare (ignore object sides))
-  nil)
+ (defun execute-container-opened (object sides)
+   (declare (ignore object sides))
+   nil)
 
-(defun execute-container-closed (object sides)
-  (declare (ignore object sides))
-  nil)
+ (defun execute-container-closed (object sides)
+   (declare (ignore object sides))
+   nil)
 
-(defun execute-park (sides &optional object)
-  (declare (ignore object))
-  ;; TODO(moesenle): if parking with object, make sure to use the
-  ;; correct end-effector orientation and use IK.
-  (crs:prolog `(and
-                (robot ?robot)
-                (member ?side ,sides)
+ (defun execute-park (sides &optional object)
+   (declare (ignore object))
+   ;; TODO(moesenle): if parking with object, make sure to use the
+   ;; correct end-effector orientation and use IK.
+   (crs:prolog `(and
+                 (robot ?robot)
+                 (member ?side ,sides)
                 (robot-arms-parking-joint-states ?joint-states ?side)
                 (assert (joint-state ?_ ?robot ?joint-states)))))
 
