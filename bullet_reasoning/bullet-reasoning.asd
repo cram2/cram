@@ -49,7 +49,8 @@
                  cram-plan-knowledge
                  triangulate_point_cloud-srv
                  vision_srvs-srv
-                 cl-semantic-map-utils)
+                 cl-semantic-map-utils
+                 cram-manipulation-knowledge)
     :components
     ((:module "src"
               :components

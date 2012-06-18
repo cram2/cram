@@ -10,6 +10,7 @@
   <url>http://ros.org/wiki/bullet_reasoning</url>
   <depend package="alexandria" />
   <depend package="cram_reasoning" />
+  <depend package="cram_manipulation_knowledge" />
   <depend package="cl_bullet" />
   <depend package="cl_bullet_vis" />
   <depend package="cl_json_pl_client" />

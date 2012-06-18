@@ -29,28 +29,6 @@
 
 (in-package :bullet-reasoning)
 
-(defvar *grasps* nil
-  "An alist that maps grasps to orientations in the robot's root
-  link. For internal use only.")
-
-(defvar *tool* nil
-  "A cons containing CL-TRANSFORMS:3D-VECTOR indicating the direction
-  of the tool and the default length of the tool. The vector must have
-  a length of 1.0.")
-
-(defmacro def-grasp (name orientation)
-  `(eval-when (:load-toplevel)
-     (when (assoc ,name *grasps*)
-       (style-warn "Redefining grasp ~s." ,name))
-     (setf *grasps* (cons (cons ,name ,orientation)
-                          (remove ,name *grasps* :key #'car)))))
-
-(defmacro def-tool (vector default-length)
-  `(eval-when (:load-toplevel)
-     (when *tool*
-       (style-warn "Redefining tool."))
-     (setf *tool* (cons ,vector ,default-length))))
-
 (defgeneric side->ik-namespace (side)
   (:documentation "Returns the ROS namespace of the IK service that
   corresponds to side indicator `side'."))
@@ -63,12 +41,6 @@
 (defgeneric reach-pose-ik (robot pose &key side tool-frame)
   (:documentation "Returns the IK solution for `robot' to reach
   `pose'. Returns NUL if the pose is unreachable."))
-
-(defun get-grasp (grasp side)
-  (ecase grasp
-    (:top (cdr (assoc :top *grasps*)))
-    (:front (cdr (assoc :front *grasps*)))
-    (:side (cdr (assoc side *grasps*)))))
 
 (defun calculate-orientation-in-robot (robot orientation-in-robot)
   "Calculates the orientation of `orientation-in-robot' which is
@@ -88,11 +60,6 @@ relative to the robot in world coordinates."
     (max minimal-tool-length
          (- (cl-transforms:x bounding-box-dimensions) minimal-tool-length)
          (- (cl-transforms:y bounding-box-dimensions) minimal-tool-length))))
-
-(defun get-tool (tool-length grasp-orientation)
-  (cl-transforms:make-pose
-   (cl-transforms:v* (car *tool*) tool-length)
-   grasp-orientation))
 
 (defun object-reachable-p (robot obj
                            &key side (grasp :top)
