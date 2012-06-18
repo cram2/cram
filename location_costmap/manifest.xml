@@ -21,8 +21,5 @@
   <depend package="visualization_msgs"/>
   <depend package="trivial_garbage"/>
   <depend package="lisp_unit"/>
-  <depend package="cram_plan_knowledge"/>
-
+  <depend package="cram_manipulation_knowledge"/>
 </package>
-
-
