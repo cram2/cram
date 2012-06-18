@@ -32,7 +32,7 @@
 
 (defpackage bullet-reasoning
     (:nicknames :btr)
-  (:use #:common-lisp #:crs #:bt #:bt-vis #:cut)
+  (:use #:common-lisp #:crs #:bt #:bt-vis #:cut #:cram-manipulation-knowledge)
   (:import-from #:alexandria compose curry rcurry with-gensyms copy-hash-table)
   (:import-from #:desig desig-solutions)
   (:shadow copy-object)
