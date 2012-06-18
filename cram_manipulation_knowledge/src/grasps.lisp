@@ -37,11 +37,17 @@
   of the tool and the default length of the tool. The vector must have
   a length of 1.0.")
 
-(defmacro def-grasp (name orientation)
+(defmacro def-grasp (name orientation &rest aliases)
+  "Defines a new grasp named `name'. The grasp's orientation is
+specified by `orientation'. `aliases' is a sequence of alternative
+names. `name' must not be in use by a different grasp while `aliases'
+can overlap. GET-GRASP then allows for matching aliases. E.g. if we
+have two side grasps, :LEFT and :RIGHT, the grasp can be named :LEFT
+and :RIGHT while the `aliases' parameters can be set to :SIDE."
   `(eval-when (:load-toplevel)
      (when (assoc ,name *grasps*)
-       (style-warn "Redefining grasp ~s." ,name))
-     (setf *grasps* (cons (cons ,name ,orientation)
+       (cut:style-warn "Redefining grasp ~s." ,name))
+     (setf *grasps* (cons (cons ,name (cons ,orientation ',aliases))
                           (remove ,name *grasps* :key #'car)))))
 
 (defmacro def-tool (vector default-length)
@@ -50,13 +56,49 @@
        (style-warn "Redefining tool."))
      (setf *tool* (cons ,vector ,default-length))))
 
-(defun get-grasp (grasp side)
-  (ecase grasp
-    (:top (cdr (assoc :top *grasps*)))
-    (:front (cdr (assoc :front *grasps*)))
-    (:side (cdr (assoc side *grasps*)))))
+(defun get-grasp (grasp)
+  "Returns the grasp named `grasp'."
+  (car (cdr (assoc grasp *grasps*))))
 
-(defun get-tool (tool-length grasp-orientation)
+(defun get-grasps (grasp-name &optional (filter (constantly t)))
+  "Returns the list of grasps that are either named `grasp' or have
+the alias `grasp' and for which `filter' returns T."
+  (mapcar #'cadr
+          (remove-if-not
+           (lambda (grasp)
+             (destructuring-bind (name orientation &rest aliases)
+                 grasp
+               (declare (ignore orientation))
+               (when (or (eq grasp-name name)
+                         (member grasp-name aliases))
+                 (funcall filter name))))
+           *grasps*)))
+
+(defun get-tool-direction-vector ()
+  (car *tool*))
+
+(defun get-tool-length ()
+  (cdr *tool*))
+
+(defun get-tool-vector ()
+  (cl-transforms:v* (car *tool*) (cdr *tool*)))
+
+(defun calculate-bounding-box-tool-length (bounding-box
+                                           &key (minimal-tool-length (get-tool-length)))
+  "Calculates the tool length for an object with bounding box
+`bounding-box' by taking the maximum of `minimal-tool-length', the
+bounding box x minus the minimal tool length and the bounding box y
+minus the minimal tool length. `bounding-box' needs to be a
+CL-TRANSFORMS:3D-VECTOR."
+  (declare (type cl-transforms:3d-vector bounding-box)
+           (type number minimal-tool-length))
+  (max minimal-tool-length
+       (- (cl-transforms:x bounding-box) minimal-tool-length)
+       (- (cl-transforms:y bounding-box) minimal-tool-length)))
+
+(defun calculate-tool (tool-length grasp-orientation)
+  "Calculates the tool pose given a `tool-length' and a
+`grasp-orientation'."
   (cl-transforms:make-pose
    (cl-transforms:v* (car *tool*) tool-length)
    grasp-orientation))

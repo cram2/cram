@@ -31,4 +31,5 @@
 (defpackage cram-manipulation-knowledge
   (:use #:common-lisp #:cram-reasoning)
   (:export trajectory-point arm required-arms available-arms
-           def-grasp def-tool get-grasp get-tool *tool* *grasps*))
+           def-grasp def-tool get-grasp get-grasps calculate-bounding-box-tool-length
+           get-tool-direction-vector get-tool-length get-tool-vector calculate-tool))
