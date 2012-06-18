@@ -32,7 +32,7 @@
   :description "Definitions for manipulating objects, including
   available grasps, trajectories etc."
   
-  :depends-on (cram-reasoning cl-transforms)
+  :depends-on (cram-reasoning cram-utilities cl-transforms)
   :components
   ((:module "src"
     :components

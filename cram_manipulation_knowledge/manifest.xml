@@ -9,5 +9,6 @@
   <review status="unreviewed" notes="" />
   <url>http://ros.org/wiki/cram_manipulation_knowledge</url>
   <depend package="cram_reasoning" />
+  <depend package="cram_utilities" />
   <depend package="cl_transforms" />
 </package>
