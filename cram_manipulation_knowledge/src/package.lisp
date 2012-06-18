@@ -26,32 +26,9 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-plan-knowledge)
+(in-package :cl-user)
 
-(def-fact-group manipulation (trajectory-point arm required-arms available-arms)
-
-  ;; Yields points that are part of a manipulation
-  ;; trajectory. ?designator is bound to an action designator. The
-  ;; intended use of this predicate is for reasoning about
-  ;; reachability. Since it is not always possible to generate the
-  ;; exactly same points that are used for the manipulation actions
-  ;; here, e.g. when grasp planning has to be done, ?point is not
-  ;; necessarily an exact trajectory point but it should at least be
-  ;; close to the actual point.
-  (<- (trajectory-point ?designator ?point ?side)
-    (fail))
-
-  ;; Unifies ?side with the name of an arm that is present on the
-  ;; current robot.
-  (<- (arm ?arm)
-    (fail))
-
-  ;; ?sides is unified with the list of arms that are required to
-  ;; manipulate the object indicated by the object designator ?object.
-  (<- (required-arms ?object-designator ?arms)
-    (fail))
-
-  ;; Similar to REQUIRED-ARMS but only unifies with currently unused
-  ;; arms.
-  (<- (available-arms ?object-designator ?arms)
-    (fail)))
+(defpackage cram-manipulation-knowledge
+  (:use #:common-lisp #:cram-reasoning)
+  (:export trajectory-point arm required-arms available-arms
+           def-grasp def-tool get-grasp get-tool *tool* *grasps*))

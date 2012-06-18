@@ -98,8 +98,7 @@
            #:event-object-designator #:object-designator
            #:perception-source #:object #:event-object
            #:link #:event-link #:side #:event-side
-           #:holds #:trajectory-point #:arm #:required-arms
-           #:available-arms)
+           #:holds)
   (:import-from #:cpl-impl
                 #:make-fluent
                 #:value

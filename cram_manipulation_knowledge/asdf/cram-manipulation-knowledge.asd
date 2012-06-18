@@ -1,0 +1,1 @@
+../cram-manipulation-knowledge.asd

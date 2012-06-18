@@ -1,5 +1,4 @@
-;;;
-;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -10,9 +9,10 @@
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
-;;;     * Neither the name of Willow Garage, Inc. nor the names of its
-;;;       contributors may be used to endorse or promote products derived from
-;;;       this software without specific prior written permission.
+;;;     * Neither the name of the Intelligent Autonomous Systems Group/
+;;;       Technische Universitaet Muenchen nor the names of its contributors 
+;;;       may be used to endorse or promote products derived from this software 
+;;;       without specific prior written permission.
 ;;; 
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -25,29 +25,18 @@
 ;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
-;;;
 
-(defsystem cram-plan-knowledge
-  :author "Lorenz Moesenlechner <moesenle@in.tum.de>"
+(defsystem cram-manipulation-knowledge
+  :author "Lorenz Moesenlechner"
   :license "BSD"
-  :description "Utilities for working with occasions and rete"
-
-  :depends-on (cram-reasoning
-               cram-language
-               cram-utilities
-               cram-execution-trace
-               process-modules
-               alexandria
-               designators
-               designators-ros)
+  :description "Definitions for manipulating objects, including
+  available grasps, trajectories etc."
+  
+  :depends-on (cram-reasoning cl-transforms)
   :components
   ((:module "src"
-            :components
-            ((:file "package")
-             (:file "occasions" :depends-on ("package"))
-             (:file "tasks" :depends-on ("package" "time"))
-             (:file "time" :depends-on ("package"))
-             (:file "process-modules" :depends-on ("package"))
-             (:file "event-protocol" :depends-on ("package"))
-             (:file "default-plan-events" :depends-on ("package" "event-protocol"))
-             (:file "belief-state" :depends-on ("package" "default-plan-events"))))))
+    :components
+    ((:file "package")
+     (:file "grasps" :depends-on ("package"))
+     (:file "trajectories" :depends-on ("package"))
+     (:file "arms" :depends-on ("package"))))))

@@ -1,0 +1,13 @@
+<package>
+  <description brief="cram_manipulation_knowledge">
+
+     cram_manipulation_knowledge
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes="" />
+  <url>http://ros.org/wiki/cram_manipulation_knowledge</url>
+  <depend package="cram_reasoning" />
+  <depend package="cl_transforms" />
+</package>
