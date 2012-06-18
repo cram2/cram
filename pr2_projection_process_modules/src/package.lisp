@@ -33,6 +33,7 @@
         #:cram-projection)
   (:shadowing-import-from #:bullet-reasoning name)
   (:import-from #:cram-roslisp-common *tf*)
+  (:import-from #:cram-manipulation-knowledge trajectory-point)  
   (:export execute-container-opened execute-container-closed
            execute-park execute-lift execute-grasp execute-put-down
            projection-navigation projection-ptu projection-perception
@@ -41,7 +42,8 @@
 (desig-props:def-desig-package projection-designators
   (:use #:common-lisp #:cram-designators #:cram-reasoning
         #:projection-process-modules)
-  (:import-from #:cram-plan-knowledge arm available-arms required-arms)
+  (:import-from #:cram-manipulation-knowledge
+                arm available-arms required-arms)
   (:export projection-role)
   (:desig-properties at type to see follow pose location obj
                      grasp carry lift park put-down open close

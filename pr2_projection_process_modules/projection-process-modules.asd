@@ -37,6 +37,7 @@
                cram-plan-knowledge
                cram-projection
                cram-roslisp-common
+               cram-manipulation-knowledge
                pr2-manipulation-knowledge)
   :components
   ((:module "src"
