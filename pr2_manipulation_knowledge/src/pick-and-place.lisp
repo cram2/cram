@@ -89,7 +89,11 @@
     (trajectory-desig? ?designator)
     (desig-prop ?designator (to grasp))
     (desig-prop ?designator (obj ?obj))
-    (desig-prop ?designator (side ?side))
+    ;; This is for one-arm manipulation
+    (once
+     (or
+      (desig-prop ?desig (side ?side))
+      (available-arms ?obj (?side))))
     (desig-location-prop ?obj ?pose)
     (lisp-fun cl-transforms:origin ?pose ?point))
 
@@ -97,7 +101,8 @@
     (trajectory-desig? ?designator)
     (desig-prop ?designator (to put-down))
     (desig-prop ?designator (obj ?object))
-    (desig-prop ?designator (side ?side))
+    (-> (desig-prop ?desig (side ?side)) (true) (true))
+    (object-in-hand ?object ?side)
     (desig-prop ?designator (at ?location))
     (lisp-fun current-desig ?location ?current-location)
     (lisp-fun reference ?current-location ?put-down-pose)
@@ -107,7 +112,13 @@
     (trajectory-desig? ?designator)
     (desig-prop ?designator (to lift))
     (desig-prop ?designator (obj ?object))
-    (desig-prop ?designator (side ?side))
+    (once
+     (or
+      (desig-prop ?desig (side ?side))
+      (object-in-hand ?object ?side)
+      ;; Lifting with one arm.
+      ;; TODO(moesenle): Lifting with two arms.
+      (available-arms ?object (?side))))
     (once (or (desig-prop ?designator (distance ?lifting-height))
               (== ?lifting-height 0.10)))
     (lisp-fun calculate-object-lift-pose ?object ?lifting-height
