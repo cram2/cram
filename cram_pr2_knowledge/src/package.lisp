@@ -30,6 +30,6 @@
 
 (desig-props:def-desig-package cram-pr2-knowledge
   (:use #:common-lisp #:bullet-reasoning #:cram-reasoning)
-  (:import-from #:cram-plan-knowledge arm required-arms available-arms)
+  (:import-from  #:cram-manipulation-knowledge arm required-arms available-arms)
   (:import-from #:cram-designators desig-prop)
   (:desig-properties type))
