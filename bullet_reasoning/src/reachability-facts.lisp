@@ -30,12 +30,12 @@
 
 (def-fact-group reachability (object-grasp assert)
   (<- (valid-grasp ?world ?object ?grasp ?sides)
-    (-> (not (object-grasp ?w ?_ ?_ ?_))
+    (-> (not (object-grasp ?world ?object ?_ ?_))
         (and
          (grasp ?grasp)
          (side ?side)
          (== ?sides (?side)))
-        (object-grasp ?w ?object ?grasp ?sides)))
+        (object-grasp ?world ?object ?grasp ?sides)))
 
   (<- (reachable ?w ?robot-name ?obj-name)
     (once (reachable ?w ?robot-name ?obj-name ?_)))
