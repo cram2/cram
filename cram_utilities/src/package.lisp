@@ -166,4 +166,6 @@
       ,@+queue-symbols+
       ;; barriers, reexported from synchronization-tools
       ,@+barrier-symbols+
-      ))
+      ;; file-cache
+      #:with-file-cache
+      #:cached-file-value))

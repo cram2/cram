@@ -27,7 +27,8 @@
              (:file "time" :depends-on ("package"))
              (:file "quad-tree" :depends-on ("package"))
              (:file "geometry" :depends-on ("package"))
-             (:file "deprecation" :depends-on ("package"))))))
+             (:file "deprecation" :depends-on ("package"))
+             (:file "file-cache" :depends-on ("package"))))))
 
 (defmethod asdf:perform ((o asdf:test-op)
                          (c (eql (asdf:find-system 'cram-utilities))))
