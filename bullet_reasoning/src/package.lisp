@@ -73,7 +73,7 @@
            set-robot-state-from-tf init-ros-object-database clear-bullet-world
            ros-household-object execute open close reach-ik-solution
            attached attached-objects attach-object detach-object
-           side->ik-namespace
+           side->ik-namespace household-object-dimensions
 
            robot-pan-tilt-links robot-pan-tilt-joints robot
            camera-frame robot-arms-parking-joint-states

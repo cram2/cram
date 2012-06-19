@@ -30,7 +30,6 @@
 
 (in-package :btr)
 
-
 (defparameter *mesh-files* '((mug "package://bullet_reasoning/resource/mug.stl" t)
                              (plate "package://bullet_reasoning/resource/plate.stl" nil)
                              (mondamin "package://bullet_reasoning/resource/mondamin.stl" nil)
@@ -40,6 +39,26 @@
 
 (defclass household-object (object)
   ((types :reader household-object-type :initarg :types)))
+
+(defgeneric household-object-dimensions (object)
+  (:method ((object household-object))
+    (bounding-box-dimensions (aabb object)))
+  (:method ((object-type symbol))
+    (let ((mesh-specification (assoc object-type *mesh-files*)))
+      (assert
+       mesh-specification ()
+       "Couldn't fine a mesh for object type ~a." object-type)
+      (destructuring-bind (type uri &optional flip-winding-order)
+          mesh-specification
+        (declare (ignore type))
+        (let ((model-filename (physics-utils:parse-uri uri)))
+          (with-file-cache
+              model model-filename (physics-utils:load-3d-model
+                                    model-filename
+                                    :flip-winding-order flip-winding-order)
+            (values
+             (physics-utils:calculate-aabb
+              (physics-utils:3d-model-vertices model)))))))))
 
 (defun make-household-object (world name types &optional bodies (add-to-world t))
   (make-instance 'household-object
