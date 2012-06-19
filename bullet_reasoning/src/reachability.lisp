@@ -49,17 +49,24 @@ relative to the robot in world coordinates."
    (cl-transforms:orientation (pose robot))
    orientation-in-robot))
 
-(defun calculate-object-tool-length (object &key (minimal-tool-length (cdr *tool*)))
+(defun calculate-object-tool-length
+    (object &key (minimal-tool-length (get-tool-length)))
   "Calculates the tool length for the object `object' by taking the
   maximum of `minimal-tool-length', the bounding box width minus the
   minimal tool length and the bounding box height minus the minimal
   tool length."
   (declare (type object object)
            (type number minimal-tool-length))
-  (let ((bounding-box-dimensions (bounding-box-dimensions (aabb object))))
-    (max minimal-tool-length
-         (- (cl-transforms:x bounding-box-dimensions) minimal-tool-length)
-         (- (cl-transforms:y bounding-box-dimensions) minimal-tool-length))))
+  (calculate-bounding-box-tool-length
+   (bounding-box-dimensions (aabb object))
+   :minimal-tool-length minimal-tool-length))
+
+(defun translate-grasp (grasp side)
+  "Returns the `grasp' that is either called `grasp' or has an alias
+  `side'."
+  (car (get-grasps grasp (lambda (grasp-name)
+                           (or (eq grasp-name grasp)
+                               (eq grasp-name side))))))
 
 (defun object-reachable-p (robot obj
                            &key side (grasp :top)
@@ -70,7 +77,7 @@ relative to the robot in world coordinates."
    robot (pose obj) :grasp grasp :side side :tool-length tool-length))
 
 (defun point-reachable-p (robot point
-                          &key side (grasp :top) (tool-length (cdr *tool*)))
+                          &key side (grasp :top) (tool-length (get-tool-length)))
   (declare (type robot-object robot)
            (type (or cl-transforms:3d-vector
                      cl-transforms:pose)
@@ -83,12 +90,14 @@ relative to the robot in world coordinates."
       (cl-transforms:pose (cl-transforms:origin point)))
     (calculate-orientation-in-robot
      robot (cl-transforms:make-identity-rotation)))
-   :tool-frame (get-tool tool-length (get-grasp grasp side))
+   :tool-frame (calculate-tool
+                tool-length
+                (translate-grasp grasp side))
    :side side))
 
 (defmethod pose-reachable-p ((robot robot-object) (pose cl-transforms:pose)
-                             &key side (tool-frame (get-tool
-                                                    (cdr *tool*)
+                             &key side (tool-frame (calculate-tool
+                                                    (get-tool-length)
                                                     (cl-transforms:make-identity-rotation))))
   (declare (type robot-object robot)
            (type cl-transforms:pose pose)
@@ -99,7 +108,7 @@ relative to the robot in world coordinates."
 
 (defun reach-point-ik (robot point
                         &key side (grasp :top)
-                          (tool-length (cdr *tool*)))
+                          (tool-length (get-tool-length)))
   (declare (type robot-object robot)
            (type (or cl-transforms:3d-vector cl-transforms:pose) point))
   (reach-pose-ik
@@ -113,7 +122,7 @@ relative to the robot in world coordinates."
       (cl-transforms:copy-pose
        point :orientation (calculate-orientation-in-robot
                            robot (cl-transforms:make-identity-rotation)))))
-   :tool-frame (get-tool tool-length (get-grasp grasp side))
+   :tool-frame (calculate-tool tool-length (translate-grasp grasp side))
    :side side))
 
 (defun reach-object-ik (robot obj
@@ -125,7 +134,7 @@ relative to the robot in world coordinates."
    robot (cl-transforms:copy-pose
           (pose obj) :orientation (calculate-orientation-in-robot
                                    robot (cl-transforms:make-identity-rotation)))
-   :tool-frame (get-tool tool-length (get-grasp grasp side))
+   :tool-frame (calculate-tool tool-length (translate-grasp grasp side))
    :side side))
 
 (defmethod reach-pose-ik ((robot robot-object) (pose cl-transforms:pose)
@@ -139,8 +148,8 @@ relative to the robot in world coordinates."
             "world" 0.0 pose)
      :ik-namespace (side->ik-namespace side)
      :tool-frame (or tool-frame
-                     (get-tool
-                      (cdr *tool*)
+                     (calculate-tool
+                      (get-tool-length)
                       (cl-transforms:make-identity-rotation)))
      :robot-base-frame reference-frame
      :fixed-frame "world")))
