@@ -53,7 +53,7 @@ and :RIGHT while the `aliases' parameters can be set to :SIDE."
 (defmacro def-tool (vector default-length)
   `(eval-when (:load-toplevel)
      (when *tool*
-       (style-warn "Redefining tool."))
+       (cut:style-warn "Redefining tool."))
      (setf *tool* (cons ,vector ,default-length))))
 
 (defun get-grasp (grasp)
