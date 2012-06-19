@@ -83,7 +83,18 @@
        (("torso_lift_joint" 0.00) . ?parking-joint-states))
     (robot-arms-parking-joint-states ?parking-joint-states)))
 
-(def-fact-group manipulation-knowledge (arm required-arms available-arms)
+(defun object-type->tool-length (object-type)
+  (let ((bounding-box (household-object-dimensions object-type)))
+    (cram-manipulation-knowledge:calculate-bounding-box-tool-length
+     bounding-box)))
+
+(def-fact-group manipulation-knowledge (arm
+                                        required-arms
+                                        available-arms
+                                        object-type-grasp
+                                        object-designator-grasp
+                                        object-type-tool-length
+                                        object-designator-tool-length)
   (<- (grasp :top))
   (<- (grasp :side))
   (<- (grasp :front))
@@ -98,6 +109,11 @@
   (<- (object-type-grasp plate :side (:left :right)))
 
   (<- (object-type-grasp pot :side (:left :right)))
+
+  (<- (object-designator-grasp ?object-designator ?grasp ?sides)
+    (lisp-fun desig:current-desig ?object-designator ?current-object-designator)
+    (desig:desig-prop ?current-object-designator (type ?object-type))
+    (object-type-grasp ?object-type ?grasp ?sides))
   
   ;; The OBJECT-GRASP predicate can be used to control which grasps
   ;; and which sides are valid for a specific object. The third
@@ -108,6 +124,23 @@
   (<- (object-grasp ?world ?object ?grasp ?sides)
     (household-object-type ?world ?object ?object-type)
     (object-type-grasp ?object-type ?grasp ?sides))
+
+  (<- (%object-type-tool-length ?object-type ?grasp ?tool-length)
+    (object-type-grasp ?object-type ?grasp ?_)
+    (lisp-fun object-type->tool-length ?object-type ?tool-length))
+
+  (<- (object-type-tool-length ?object-type ?grasp ?tool-length)
+    (once
+     (or
+      (%object-type-tool-length ?object-type ?grasp ?tool-length)
+      (== ?tool-length 0.0)))
+    (grasp ?grasp))
+
+  (<- (object-designator-tool-length
+       ?object-designator ?grasp ?tool-length)
+    (lisp-fun desig:current-desig ?object-designator ?current-object-designator)
+    (desig:desig-prop ?current-object-designator (type ?object-type))
+    (object-type-tool-length ?object-type ?grasp ?tool-length))
 
   (<- (side :right))
   (<- (side :left))
