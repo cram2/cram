@@ -49,7 +49,7 @@
       (once
        (robot-pre-grasp-joint-states ?pre-grasp-joint-states)
        (assert (joint-state ?w ?robot-name ?pre-grasp-joint-states))
-       (valid-grasp ?w ?obj ?grasp ?sides)
+       (valid-grasp ?w ?obj-name ?grasp ?sides)
        ;; Since forall doesn't fail if its cond fails, we verify its
        ;; validity first.
        (once (member ?side ?sides))
