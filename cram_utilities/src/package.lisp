@@ -166,19 +166,4 @@
       ,@+queue-symbols+
       ;; barriers, reexported from synchronization-tools
       ,@+barrier-symbols+
-      ;; string
-      #:->string #:string->symbol
-      #:string-concat #:string-prefix-p
-      #:split-one #:split
-      ;; number.lisp
-      #:bool->float
-      #:random-number
-      ;; list.lisp
-      #:make-random-list
-      #:rec-remove #:find-and-remove #:find-atom-rec-if
-      #:filter-if #:filter
-      #:make-number-list
-      ;; global-structures.lisp
-      #:create-global-structure #:remove-global-structure #:clear-global-structure
-      #:addgv #:isgv #:getgv #:setgv #:remgv #:putgv
       ))
