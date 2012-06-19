@@ -102,11 +102,14 @@
                        mass mesh (color '(0.5 0.5 0.5 1.0))
                        disable-face-culling)
   (let ((mesh-model (etypecase mesh
-                      (symbol (physics-utils:load-3d-model
-                               (physics-utils:parse-uri (cadr (assoc mesh *mesh-files*)))
-                               :flip-winding-order (caddr (assoc mesh *mesh-files*))))
-                      (string (physics-utils:load-3d-model
-                               (physics-utils:parse-uri mesh)))
+                      (symbol (let ((uri (physics-utils:parse-uri (cadr (assoc mesh *mesh-files*)))))
+                                (with-file-cache model uri                                  
+                                    (physics-utils:load-3d-model
+                                     uri :flip-winding-order (caddr (assoc mesh *mesh-files*)))
+                                  model)))
+                      (string (let ((uri  (physics-utils:parse-uri mesh)))
+                                (with-file-cache model uri (physics-utils:load-3d-model uri)
+                                  model)))
                       (physics-utils:3d-model mesh))))
     (make-household-object world name (list mesh)
                            (list
