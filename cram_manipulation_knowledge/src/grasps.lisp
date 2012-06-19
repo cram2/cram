@@ -102,3 +102,26 @@ CL-TRANSFORMS:3D-VECTOR."
   (cl-transforms:make-pose
    (cl-transforms:v* (car *tool*) tool-length)
    grasp-orientation))
+
+(def-fact-group grasps (object-type-grasp
+                        object-designator-grasp
+                        object-type-tool-length
+                        object-designator-tool-length)
+  ;; Unifies grasps with object types and required arms to manipulate
+  ;; that object.
+  (<- (object-type-grasp ?object-type ?grasp ?arms)
+    (fail))
+
+  ;; Given an object-designator, binds grasps and arms to manipulate
+  ;; that object.
+  (<- (object-designator-grasp ?object-designator ?grasp ?arms)
+    (fail))
+
+  ;; Unifies the tool length with an object type
+  (<- (object-type-tool-length ?object-type ?grasp ?tool-length)
+    (fail))
+
+  ;; Unifies the tool length with an object designator
+  (<- (object-designator-tool-length
+       ?object-designator ?grasp ?tool-length)
+    (fail)))

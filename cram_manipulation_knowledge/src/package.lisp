@@ -32,4 +32,6 @@
   (:use #:common-lisp #:cram-reasoning)
   (:export trajectory-point arm required-arms available-arms
            def-grasp def-tool get-grasp get-grasps calculate-bounding-box-tool-length
-           get-tool-direction-vector get-tool-length get-tool-vector calculate-tool))
+           get-tool-direction-vector get-tool-length get-tool-vector calculate-tool
+           object-type-grasp object-designator-grasp object-type-tool-length
+           object-designator-tool-length))
