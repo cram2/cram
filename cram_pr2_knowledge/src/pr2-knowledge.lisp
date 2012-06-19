@@ -45,8 +45,8 @@
                                       ("l_wrist_roll_joint" 2.586184460547585d0)))
 
 (def-grasp :top (cl-transforms:euler->quaternion :ay (/ pi -2)))
-(def-grasp :left (cl-transforms:euler->quaternion :az (/ pi 2)))
-(def-grasp :right (cl-transforms:euler->quaternion :az (/ pi -2)))
+(def-grasp :left (cl-transforms:euler->quaternion :az (/ pi 2)) :side)
+(def-grasp :right (cl-transforms:euler->quaternion :az (/ pi -2)) :side)
 (def-grasp :front (cl-transforms:make-identity-rotation))
 
 (def-tool (cl-transforms:make-3d-vector 1 0 0) 0.20)
