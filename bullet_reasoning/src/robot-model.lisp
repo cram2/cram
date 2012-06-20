@@ -95,6 +95,13 @@
 (defgeneric (setf link-pose) (new-value robot-object name)
   (:documentation "Sets the pose of a link and all its children"))
 
+(defgeneric object-attached (robot-object object)
+  (:documentation "Returns the list of links `object' has been
+  attached to.")
+  (:method ((robot-object robot-object) (object object))
+    (with-slots (attached-objects) robot-object
+      (cdr (assoc object attached-objects)))))
+
 (defgeneric attach-object (robot-object obj link)
   (:documentation "Adds `obj' to the set of attached objects. When the
   link the object is attached to is moved, the object moves
