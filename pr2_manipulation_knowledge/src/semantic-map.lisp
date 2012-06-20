@@ -63,13 +63,24 @@
          (cl-transforms:euler->quaternion :ax (/ pi 2))))))))
 
 (def-fact-group semantic-map-maniplation (trajectory-point)
+
+  (<- (handle-manipulation-designator ?designator)
+    (trajectory-desig? ?designator)
+    (or (desig-prop ?designator (to open))
+        (desig-prop ?designator (to close)))
+    (desig-prop ?designator (handle ?handle))
+    (desig-prop ?handle (name ?_)))
   
   (<- (trajectory-point ?designator ?point ?side)
-    (trajectory-desig? ?designator)
-    (desig-prop ?designator (to open))
+    (handle-manipulation-designator ?designator)
     (desig-prop ?designator (handle ?handle))
     (desig-prop ?designator (side ?side))
     (desig-prop ?handle (name ?handle-name))
-    (member ?joint-pose (0.0 1.0))
+    (-> (desig-prop ?designator (to open))
+        (member ?joint-pose (0.0 1.0))
+        (member ?joint-pose (1.0 0.0)))
     (lisp-fun get-articulated-gripper-position
-              ?handle-name ?joint-pose ?point)))
+              ?handle-name ?joint-pose ?point))
+
+  (<- (trajectory-point ?designator ?robot-reference-pose ?point ?side)
+    (trajectory-point ?designator ?point ?side)))
