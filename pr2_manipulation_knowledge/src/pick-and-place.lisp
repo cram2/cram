@@ -86,13 +86,14 @@
   (<- (trajectory-point ?designator ?point ?side)
     (trajectory-desig? ?designator)
     (desig-prop ?designator (to grasp))
-    (desig-prop ?designator (obj ?obj))
-    ;; This is for one-arm manipulation
-    (once
-     (or
-      (desig-prop ?desig (side ?side))
-      (available-arms ?obj (?side))))
-    (desig-location-prop ?obj ?pose)
+    (desig-prop ?designator (obj ?object))
+    (desig-location-prop ?object ?pose)
+    (-> (desig-prop ?desig (side ?side))
+        (available-arms ?object (?side))
+        (and
+         (once
+          (available-arms ?object ?sides))
+         (member ?side ?sides)))
     (lisp-fun cl-transforms:origin ?pose ?point))
 
   (<- (trajectory-point ?designator ?point ?side)
