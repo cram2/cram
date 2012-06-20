@@ -56,14 +56,14 @@
          (object-location (desig-prop-value current-object-designator 'at))
          (lift-transform
            (cl-transforms:transform*
-            (cl-transforms:make-transform
-             (cl-transforms:make-3d-vector 0 0 lifting-height)
-             (cl-transforms:make-identity-rotation))                          
             (cl-transforms:pose->transform
              (tf:transform-pose
               cram-roslisp-common:*tf*
               :pose (reference object-location)
-              :target-frame designators-ros:*fixed-frame*)))))
+              :target-frame designators-ros:*fixed-frame*))
+            (cl-transforms:make-transform
+             (cl-transforms:make-3d-vector 0 0 lifting-height)
+             (cl-transforms:make-identity-rotation)))))
     ;; If the object is in the gripper, we actually know about the
     ;; grasp. In that case, we use that information and return a
     ;; pose. Otherwise, we just return a point that is
