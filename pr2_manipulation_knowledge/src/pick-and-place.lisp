@@ -81,6 +81,25 @@
                 (cl-transforms:make-identity-rotation)))))))
           (t (cl-transforms:translation lift-transform)))))
 
+(defun calculate-grasp-trajectory-point
+    (robot-pose object-pose grasp side tool-length)
+  (let ((grasp-orientation
+          (car (get-grasps grasp (lambda (grasp-name)
+                                   (or (eq grasp-name grasp)
+                                       (eq grasp-name side)))))))
+    (cl-transforms:transform->pose
+     (cl-transforms:transform*
+      (cl-transforms:make-transform
+       (cl-transforms:origin object-pose)
+       (cl-transforms:q*
+        (cl-transforms:orientation robot-pose)
+        grasp-orientation))
+      (cl-transforms:make-transform
+       (cl-transforms:v-
+        (get-tool-vector)
+        (cl-transforms:v* (get-tool-direction-vector) tool-length))
+       (cl-transforms:make-identity-rotation))))))
+
 (def-fact-group pick-and-place-manipulation (trajectory-point)
 
   (<- (trajectory-point ?designator ?point ?side)
@@ -96,6 +115,16 @@
          (member ?side ?sides)))
     (lisp-fun cl-transforms:origin ?pose ?point))
 
+  (<- (trajectory-point ?designator ?robot-reference-pose ?point ?side)
+    (desig-prop ?designator (to grasp))
+    (desig-prop ?designator (obj ?object))
+    (trajectory-point ?designator ?point-in-object ?side)
+    (object-designator-tool-length ?object ?grasp ?tool-length)
+    (desig-location-prop ?object ?pose)
+    (lisp-fun calculate-grasp-trajectory-point
+              ?robot-reference-pose ?pose ?grasp ?side ?tool-length
+              ?point))
+
   (<- (trajectory-point ?designator ?point ?side)
     (trajectory-desig? ?designator)
     (desig-prop ?designator (to put-down))
@@ -107,18 +136,21 @@
     (lisp-fun reference ?current-location ?put-down-pose)
     (lisp-fun calculate-put-down-hand-pose ?object ?put-down-pose ?point))
 
+  (<- (trajectory-point ?designator ?robot-reference-pose ?point ?side)
+    (desig-prop ?designator (to put-down))
+    (trajectory-point ?designator ?point ?side))
+
   (<- (trajectory-point ?designator ?point ?side)
     (trajectory-desig? ?designator)
     (desig-prop ?designator (to lift))
     (desig-prop ?designator (obj ?object))
-    (once
-     (or
-      (desig-prop ?desig (side ?side))
-      (object-in-hand ?object ?side)
-      ;; Lifting with one arm.
-      ;; TODO(moesenle): Lifting with two arms.
-      (available-arms ?object (?side))))
+    (-> (desig-prop ?desig (side ?side)) (true) (true))
+    (object-in-hand ?object ?side)
     (once (or (desig-prop ?designator (distance ?lifting-height))
               (== ?lifting-height 0.10)))
     (lisp-fun calculate-object-lift-pose ?object ?lifting-height
-              ?point)))
+              ?point))
+
+  (<- (trajectory-point ?designator ?robot-reference-pose ?point ?side)
+    (desig-prop ?designator (to lift))
+    (trajectory-point ?designator ?point ?side)))
