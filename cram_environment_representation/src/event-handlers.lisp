@@ -36,7 +36,7 @@
 (defmethod on-event attach-objects ((event object-attached))
   (let ((robot (get-robot-object))
         (object (get-designator-object (event-object event))))
-    (when object
+    (when (and object (not (btr:object-attached robot object)))
       (attach-object robot object (event-link event))
       (update-object-designator-location
        (event-object event)
