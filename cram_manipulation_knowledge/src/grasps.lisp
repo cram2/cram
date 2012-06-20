@@ -93,8 +93,8 @@ CL-TRANSFORMS:3D-VECTOR."
   (declare (type cl-transforms:3d-vector bounding-box)
            (type number minimal-tool-length))
   (max minimal-tool-length
-       (- (cl-transforms:x bounding-box) minimal-tool-length)
-       (- (cl-transforms:y bounding-box) minimal-tool-length)))
+       (- (/ (cl-transforms:x bounding-box) 2) minimal-tool-length)
+       (- (/ (cl-transforms:y bounding-box) 2) minimal-tool-length)))
 
 (defun calculate-tool (tool-length grasp-orientation)
   "Calculates the tool pose given a `tool-length' and a
