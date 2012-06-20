@@ -33,6 +33,6 @@
         #:bullet-reasoning #:cram-reasoning #:cram-utilities)
   (:shadowing-import-from
    #:bullet-reasoning side robot at throughout object during holds)
-  (:shadowing-import-from #:cram-plan-knowledge event)
+  (:shadowing-import-from #:cram-plan-knowledge event object-attached)
   (:export)
   (:desig-properties pose in gripper z-offset))
