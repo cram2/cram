@@ -28,8 +28,6 @@
 
 (in-package :pr2-manipulation-knowledge)
 
-(defvar *tool-length* 0.20)
-
 (defun calculate-put-down-hand-pose (object-designator put-down-pose)
   (let ((current-object (desig:current-desig object-designator)))
     (desig:with-desig-props (desig-props:at) current-object
@@ -50,7 +48,7 @@
            (cl-transforms:transform*
             (cl-transforms:pose->transform desig-props:pose)
             (cl-transforms:make-transform
-             (cl-transforms:make-3d-vector 0 0 *tool-length*)
+             (cl-transforms:make-3d-vector 0 0 (get-tool-length))
              (cl-transforms:make-identity-rotation))))))))))
 
 (defun calculate-object-lift-pose (object-designator lifting-height)
@@ -79,7 +77,7 @@
                (cl-transforms:pose->transform
                 (reference object-location))
                (cl-transforms:make-transform
-                (cl-transforms:make-3d-vector 0 0 *tool-length*)
+                (cl-transforms:make-3d-vector 0 0 (get-tool-length))
                 (cl-transforms:make-identity-rotation)))))))
           (t (cl-transforms:translation lift-transform)))))
 
