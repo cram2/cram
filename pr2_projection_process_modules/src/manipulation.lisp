@@ -40,15 +40,16 @@
                  (assert (joint-state ?_ ?robot ?ik-solution))))
    (cpl-impl:fail 'cram-plan-failures:manipulation-pose-unreachable)))
 
-(defun action-end-effector-link (action-designator)
-  (cut:with-vars-bound (?end-effector-link)
-      (cut:lazy-car
-       (crs:prolog
-        `(and
-          (trajectory-point ,action-designator ?_ ?side)
-          (end-effector-link ?side ?end-effector-link))))
-    (unless (cut:is-var ?end-effector-link)
-      ?end-effector-link)))
+(defun action-end-effector-links (action-designator)
+  (cut:force-ll
+   (cut:lazy-mapcar (lambda (solution)
+                      (cut:with-vars-bound (?end-effector-link) solution
+                        (unless (cut:is-var ?end-effector-link)
+                          ?end-effector-link)))
+                    (crs:prolog
+                     `(and
+                       (trajectory-point ,action-designator ?_ ?side)
+                       (end-effector-link ?side ?end-effector-link))))))
 
 (defun execute-action-trajectory-points (action-designator &optional object-name)
   (cut:force-ll
@@ -58,22 +59,23 @@
        (make-instance 'cram-plan-knowledge:robot-state-changed))
       solution)
     (crs:prolog `(and
-                   (trajectory-point ,action-designator ?point ?side)
-                   (crs:once
-                    (bullet-world ?world)
-                    ,(if object-name
-                         `(valid-grasp ?world ,object-name ?grasp ?sides)
-                         `(grasp ?grasp))
-                    (member ?side ?sides)
-                    (robot ?robot)
-                    (%object ?world ?robot ?robot-instance)
-                    (crs:-> (crs:lisp-type ?point cl-transforms:3d-vector)
-                            (crs:lisp-fun reach-point-ik ?robot-instance ?point
-                                          :side ?side :grasp ?grasp ?ik-solutions)
-                            (crs:lisp-fun reach-pose-ik ?robot-instance ?point
-                                          :side ?side ?ik-solutions))
-                    (member ?ik-solution ?ik-solutions)
-                    (assert (joint-state ?world ?robot ?ik-solution))))))))
+                  (bullet-world ?world)
+                  (robot ?robot)
+                  (object-pose ?world ?robot ?robot-pose)
+                  (trajectory-point ,action-designator ?robot-pose ?point ?side)
+                  (crs:once
+                   ,(if object-name
+                        `(valid-grasp ?world ,object-name ?grasp ?sides)
+                        `(grasp ?grasp))
+                   (member ?side ?sides)
+                   (%object ?world ?robot ?robot-instance)
+                   (crs:-> (crs:lisp-type ?point cl-transforms:3d-vector)
+                           (crs:lisp-fun reach-point-ik ?robot-instance ?point
+                                         :side ?side :grasp ?grasp ?ik-solutions)
+                           (crs:lisp-fun reach-pose-ik ?robot-instance ?point
+                                         :side ?side ?ik-solutions))
+                   (member ?ik-solution ?ik-solutions)
+                   (assert (joint-state ?world ?robot ?ik-solution))))))))
 
  (defun execute-container-opened (object sides)
    (declare (ignore object sides))
@@ -103,11 +105,12 @@
          (object-name (desig:object-identifier (desig:reference current-object))))
     (or
      (when (execute-action-trajectory-points designator object-name)
-       (let ((gripper-link (action-end-effector-link designator)))
-         (assert gripper-link)         
-         (cram-plan-knowledge:on-event
-          (make-instance 'cram-plan-knowledge:object-attached
-            :object current-object :link gripper-link))))
+       (let ((gripper-links (action-end-effector-links designator)))
+         (assert gripper-links)
+         (dolist (gripper-link gripper-links t)
+           (cram-plan-knowledge:on-event
+            (make-instance 'cram-plan-knowledge:object-attached
+              :object current-object :link gripper-link)))))
      (cpl-impl:fail 'cram-plan-failures:manipulation-pose-unreachable))))
 
 (defun execute-put-down (designator object)
@@ -115,11 +118,12 @@
          (object-name (desig:object-identifier (desig:reference current-object))))
     (or
      (when (execute-action-trajectory-points designator object-name)
-       (let ((gripper-link (action-end-effector-link designator)))
-         (assert gripper-link)
-         (cram-plan-knowledge:on-event
-          (make-instance 'cram-plan-knowledge:object-detached
-            :object current-object :link gripper-link))))
+       (let ((gripper-links (action-end-effector-links designator)))
+         (assert gripper-links)
+         (dolist (gripper-link gripper-links t)
+           (cram-plan-knowledge:on-event
+            (make-instance 'cram-plan-knowledge:object-detached
+              :object current-object :link gripper-link)))))
      (cpl-impl:fail 'cram-plan-failures:manipulation-pose-unreachable))))
 
 (def-process-module projection-manipulation (input)
