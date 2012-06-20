@@ -38,4 +38,14 @@
   ;; necessarily an exact trajectory point but it should at least be
   ;; close to the actual point.
   (<- (trajectory-point ?designator ?point ?side)
+    (fail))
+
+  ;; The second version of the TRAJECTORY-POINT predicate takes an
+  ;; additional binding, the reference pose of the robot, i.e. the
+  ;; pose at which the robot will execute the trajectory. That way, it
+  ;; is possible to generate better trajectory points by e.g. taking
+  ;; into account the object size and the arm. For instance, to
+  ;; calculate the trajectory point for the left arm for grasping a
+  ;; pot, it is better to move the trajectory point to the side.
+  (<- (trajectory-point ?designator ?robot-reference-pose ?point ?side)
     (fail)))
