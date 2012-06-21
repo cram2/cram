@@ -362,9 +362,13 @@ the IK service."
                             (gethash tilt-link (cl-urdf:links (urdf robot)))))))
     (list
      (+ (joint-state robot pan-joint-name)
-        (atan (/ (cl-transforms:y (cl-transforms:translation pose-in-pan))
-                 (cl-transforms:x (cl-transforms:translation pose-in-pan)))))
+        (if (= (cl-transforms:x (cl-transforms:translation pose-in-pan)) 0)
+            0.0
+            (atan (cl-transforms:y (cl-transforms:translation pose-in-pan))
+                  (cl-transforms:x (cl-transforms:translation pose-in-pan)))))
      (+ (joint-state robot tilt-joint-name)
-        (atan  (- (cl-transforms:z (cl-transforms:translation pose-in-tilt)))
-               (+ (expt (cl-transforms:y (cl-transforms:translation pose-in-tilt)) 2)
-                  (expt (cl-transforms:x (cl-transforms:translation pose-in-tilt)) 2)))))))
+        (if (= (cl-transforms:x (cl-transforms:translation pose-in-tilt)) 0)
+            0.0
+            (atan (- (cl-transforms:z (cl-transforms:translation pose-in-tilt)))
+                  (+ (expt (cl-transforms:y (cl-transforms:translation pose-in-tilt)) 2)
+                     (expt (cl-transforms:x (cl-transforms:translation pose-in-tilt)) 2))))))))
