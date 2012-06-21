@@ -51,7 +51,7 @@
 
 (def-tool (cl-transforms:make-3d-vector 1 0 0) 0.20)
 
-(def-fact-group robot-metadata ()
+(def-fact-group robot-metadata (end-effector-link)
   (<- (robot pr2))
   (<- (camera-frame "openni_rgb_optical_frame"))
   (<- (camera-frame "narrow_stereo_optical_frame"))
