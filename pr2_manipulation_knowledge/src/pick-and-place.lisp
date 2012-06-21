@@ -73,12 +73,10 @@
             (cl-transforms:transform*
              lift-transform
              (cl-transforms:transform-inv
-              (cl-transforms:transform*
-               (cl-transforms:pose->transform
-                (reference object-location))
-               (cl-transforms:make-transform
-                (cl-transforms:make-3d-vector 0 0 (get-tool-length))
-                (cl-transforms:make-identity-rotation)))))))
+              (cl-transforms:pose->transform
+               (reference object-location)))
+             (cl-transforms:make-transform
+              (get-tool-vector) (cl-transforms:make-identity-rotation)))))
           (t (cl-transforms:translation lift-transform)))))
 
 (defun calculate-grasp-trajectory-point
