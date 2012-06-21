@@ -113,11 +113,11 @@
                        designators-ros:*fixed-frame* 0.0
                        (btr:pose object)))
          (robot (get-robot-object))
-         (attachement (assoc object (attached-objects robot))))
-    (assert attachement () "Object needs to be attached to the robot.")
+         (attached-links (btr:object-attached robot object)))
+    (assert attached-links () "Object needs to be attached to the robot.")
     (let ((object-pose-in-gripper (tf:transform-pose
                                    cram-roslisp-common:*tf*
-                                   :pose object-pose :target-frame (cadr attachement)))
+                                   :pose object-pose :target-frame (car attached-links)))
           (supporting-bounding-box (get-supporting-object-bounding-box object-name)))
       (desig:make-designator
        'desig-props:location

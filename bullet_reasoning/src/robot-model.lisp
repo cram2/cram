@@ -58,13 +58,24 @@
     :faces (physics-utils:3d-model-faces (cl-urdf:3d-model mesh))
     :points (physics-utils:3d-model-vertices (cl-urdf:3d-model mesh))))
 
+(defstruct attachment
+  "Represents a link between an object and a link. `object' must be an
+instance of class OBJECT. `link' must be a string, the name of the
+link. If `loose' is non-NIL, it means that if the link moves, the pose
+of the object should _not_ be updated."
+  (object nil :type object)
+  (link "" :type string)
+  (loose nil :type (or nil t)))
+
 (defclass robot-object (object)
   ((links :initarg :links :initform (make-hash-table :test 'equal) :reader links)
    (joint-states :initarg :joint-states :initform (make-hash-table :test 'equal)
                  :reader joint-states)
    (urdf :initarg :urdf :reader urdf)
    (attached-objects :initarg :attached-objects :initform nil
-                     :reader attached-objects)
+                     :reader attached-objects
+                     :documentation "An alist that maps object
+                     instances instances of the struct `attachment'.")
    (initial-pose :initarg :pose
                  :documentation "Pose that got passed in initially. It
                  is returned by the `pose' method if `reference-body'
@@ -100,22 +111,24 @@
   attached to.")
   (:method ((robot-object robot-object) (object object))
     (with-slots (attached-objects) robot-object
-      (cdr (assoc object attached-objects)))))
+      (mapcar #'attachment-link (cdr (assoc object attached-objects))))))
 
-(defgeneric attach-object (robot-object obj link)
-  (:documentation "Adds `obj' to the set of attached objects. When the
-  link the object is attached to is moved, the object moves
-  accordingly.")
-  (:method ((robot-object robot-object) (obj object) link)
+(defgeneric attach-object (robot-object obj link &key loose)
+  (:documentation "Adds `obj' to the set of attached objects. If
+  `loose' is set to NIL and the link the object is attached to is
+  moved, the object moves accordingly.")
+  (:method ((robot-object robot-object) (obj object) link &key loose)
     (unless (gethash link (links robot-object))
       (error 'simple-error :format-control "Link ~a unknown"
              :format-arguments (list link)))
     (with-slots (attached-objects) robot-object
-      (let ((obj-attachment (car (member obj attached-objects
-                                         :key #'car))))
+      (let ((obj-attachment (assoc obj attached-objects))
+            (new-attachment (make-attachment
+                             :object obj :link link :loose loose)))
         (if obj-attachment
-            (pushnew link (cdr obj-attachment) :test #'equal)
-            (push (cons obj (list link)) attached-objects))))))
+            (pushnew new-attachment (cdr obj-attachment)
+                     :test #'equal :key #'attachment-link)
+            (push (cons obj (list new-attachment)) attached-objects))))))
 
 (defgeneric detach-object (robot-object obj &optional link)
   (:documentation "Detaches `obj' from the set of attached objects. If
@@ -125,8 +138,9 @@
     (with-slots (attached-objects) robot-object
       (cond (link
              (let ((attachment (assoc obj attached-objects)))
-               (setf (cdr attachment) (remove link (cdr attachment)
-                                              :test #'equal))
+               (setf (cdr attachment) (remove
+                                       link (cdr attachment)
+                                       :test #'equal :key #'attachment-link))
                (unless (cdr attachment)
                  (setf attached-objects (remove obj attached-objects
                                                 :key #'car)))))
@@ -265,12 +279,17 @@
   (with-slots (attached-objects links) robot-object
     (let ((body (gethash (cl-urdf:name link) links)))
       (when body
-        (let* ((attachments (mapcar
-                             #'car
-                             (remove-if-not (lambda (attachment)
-                                              (member (cl-urdf:name link) (cdr attachment)
-                                                      :test #'equal))
-                                            attached-objects)))
+        (let* ((attachments
+                 (mapcar
+                  #'car
+                  (remove-if-not
+                   (lambda (attachment)
+                     (let ((link-attachment
+                             (find (cl-urdf:name link) (cdr attachment)
+                                   :key #'attachment-link :test #'equal)))
+                       (and link-attachment
+                            (not (attachment-loose link-attachment)))))
+                   attached-objects)))
                (body-transform (cl-transforms:reference-transform (pose body)))
                (pose-transform (cl-transforms:reference-transform pose))
                (pose-delta (cl-transforms:transform*
