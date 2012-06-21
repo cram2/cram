@@ -47,9 +47,9 @@
           (cl-transforms:transform-inv
            (cl-transforms:transform*
             (cl-transforms:pose->transform desig-props:pose)
-            (cl-transforms:make-transform
-             (cl-transforms:make-3d-vector 0 0 (get-tool-length))
-             (cl-transforms:make-identity-rotation))))))))))
+            (cl-transforms:transform-inv
+             (cl-transforms:make-transform
+              (get-tool-vector) (cl-transforms:make-identity-rotation)))))))))))
 
 (defun calculate-object-lift-pose (object-designator lifting-height)
   (let* ((current-object-designator (current-desig object-designator))
