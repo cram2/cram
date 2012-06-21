@@ -108,7 +108,7 @@
                  (let ((pose (take-closest-pose generated-poses)))
                    (publish-pose pose)
                    (cont pose solutions (remove pose generated-poses))))
-                (t
+                (solutions
                  (next (lazy-skip +costmap-n-samples+ solutions)
                        (force-ll (lazy-take +costmap-n-samples+ solutions))))))))))
 
