@@ -87,18 +87,18 @@
           (car (get-grasps grasp (lambda (grasp-name)
                                    (or (eq grasp-name grasp)
                                        (eq grasp-name side)))))))
+    (assert grasp-orientation)
     (cl-transforms:transform->pose
      (cl-transforms:transform*
       (cl-transforms:make-transform
        (cl-transforms:origin object-pose)
-       (cl-transforms:q*
-        (cl-transforms:orientation robot-pose)
-        grasp-orientation))
-      (cl-transforms:make-transform
-       (cl-transforms:v-
-        (get-tool-vector)
-        (cl-transforms:v* (get-tool-direction-vector) tool-length))
-       (cl-transforms:make-identity-rotation))))))
+       (cl-transforms:orientation robot-pose))
+      (cl-transforms:transform-inv
+       (cl-transforms:make-transform
+        (cl-transforms:v-
+         (get-tool-vector)
+         (cl-transforms:v* (get-tool-direction-vector) tool-length))
+        grasp-orientation))))))
 
 (def-fact-group pick-and-place-manipulation (trajectory-point)
 
