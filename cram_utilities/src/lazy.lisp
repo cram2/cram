@@ -85,7 +85,8 @@
         (var-decls (mapcar (lambda (var)
                              (if (atom var)
                                  `(,var nil)
-                                 var)) params)))
+                                 var)) params))
+        (next-hook-params (gensym "NEXT-HOOK-PARAMS-")))
     `(labels ((,generator ,(mapcar #'car var-decls)
                 (macrolet ((cont (value &rest params)
                              `(invoke-restart :cont ,value ,@params))
@@ -93,21 +94,29 @@
                              `(invoke-restart :next ,@params))
                            (finish (value)
                              `(invoke-restart :finish ,value)))
-                  (labels ((,next-hook ,(mapcar #'car var-decls)
-                             (restart-case
-                                 (progn ,@body)
-                               (:cont (value &rest params)
-                                 (return-from ,generator
-                                   (cons value (make-lazy-cons-elem
-                                                :generator (lambda () (apply #',generator params))))))
-                               (:next (&rest params)
-                                 (return-from ,next-hook (apply #',next-hook params)))
-                               (:finish (&optional (value nil value-p))
-                                 (if value-p
-                                     (return-from ,generator (cons value nil))
-                                     (return-from ,generator nil)))
-                               (:rest (rest)
-                                 (return-from ,generator rest)))))
+                  (labels ((,next-hook (&rest ,next-hook-params)
+                             ;; For some reason, tail call
+                             ;; optimization doesn't work here for
+                             ;; next. That's why we need to deal with
+                             ;; next using a loop.
+                             (flet ((next-hook-body ,(mapcar #'car var-decls)
+                                      ,@body))
+                               (loop do 
+                                 (restart-case
+                                     (return-from ,next-hook
+                                       (apply #'next-hook-body ,next-hook-params))
+                                   (:cont (value &rest params)
+                                     (return-from ,generator
+                                       (cons value (make-lazy-cons-elem
+                                                    :generator (lambda () (apply #',generator params))))))
+                                   (:next (&rest params)
+                                     (setf ,next-hook-params params))
+                                   (:finish (&optional (value nil value-p))
+                                     (if value-p
+                                         (return-from ,generator (cons value nil))
+                                         (return-from ,generator nil)))
+                                   (:rest (rest)
+                                     (return-from ,generator rest)))))))
                     (,next-hook ,@(mapcar #'car var-decls))))))
        (,generator ,@(mapcar #'cadr var-decls))
        ;; (list (make-lazy-cons-elem
