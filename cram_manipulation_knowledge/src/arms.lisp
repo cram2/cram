@@ -28,7 +28,7 @@
 
 (in-package :cram-manipulation-knowledge)
 
-(def-fact-group arms (arm required-arms available-arms)
+(def-fact-group arms (arm required-arms available-arms end-effector-link)
   ;; Unifies ?side with the name of an arm that is present on the
   ;; current robot.
   (<- (arm ?arm)
@@ -42,4 +42,8 @@
   ;; Similar to REQUIRED-ARMS but only unifies with currently unused
   ;; arms.
   (<- (available-arms ?object-designator ?arms)
+    (fail))
+
+  ;; Defines end-effector links for arms.
+  (<- (end-effector-link ?arm ?link-name)
     (fail)))
