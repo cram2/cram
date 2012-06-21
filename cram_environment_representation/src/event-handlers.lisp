@@ -34,14 +34,28 @@
 (def-event (object-perceived ?object))
 
 (defmethod on-event attach-objects ((event object-attached))
-  (let ((robot (get-robot-object))
-        (object (get-designator-object (event-object event))))
-    (when (and object (not (btr:object-attached robot object)))
-      (attach-object robot object (event-link event))
-      (update-object-designator-location
-       (event-object event)
-       (make-object-location-in-gripper (get-designator-object-name
-                                         (event-object event)))))
+  (let* ((robot (get-robot-object))
+         (current-event-object (desig:current-desig (event-object event)))
+         (object (get-designator-object current-event-object)))
+    (when object
+      (cond ((btr:object-attached robot object)
+             ;; If the object is already attached, it is already in
+             ;; the gripper. In that case, we update the designator
+             ;; location designator by extending the current location
+             ;; by a second pose in the gripper.
+             (attach-object robot object (event-link event) :loose t)
+             (break)
+             (desig:with-desig-props (at) current-event-object
+               (assert (eql (desig:desig-prop-value at 'in) 'gripper))
+               (update-object-designator-location
+                current-event-object
+                (extend-designator-properties
+                 at `((pose ,(object-pose-in-gripper object (event-link event))))))))
+            (t
+             (attach-object robot object (event-link event) :loose nil)
+             (update-object-designator-location
+              current-event-object
+              (make-object-location-in-gripper object (event-link event))))))
     (timeline-advance
      *current-timeline*
      (apply-event
@@ -54,7 +68,7 @@
     (when object
       (detach-object robot object (event-link event))
       (update-object-designator-location
-       (event-object event)
+       (desig:current-desig (event-object event))
        (make-object-location (get-designator-object-name
                               (event-object event)))))
     (timeline-advance
@@ -82,9 +96,8 @@
 (defun update-object-designator-location (object-designator location-designator)
   (desig:make-designator
    'desig:object
-   `((desig-props:at ,location-designator)
-     ,@(remove 'desig-props:at (desig:properties object-designator)
-               :key #'car))
+   `((at ,location-designator)
+     ,@(remove 'at (desig:properties object-designator) :key #'car))
    object-designator))
 
 (defun get-supporting-object-bounding-box (object-name)
@@ -104,24 +117,19 @@
                designators-ros:*fixed-frame* (cut:current-timestamp)
                (bt:pose object)))))))
 
-(defun make-object-location-in-gripper (object-name)
+(defun make-object-location-in-gripper (object gripper-link)
   "Returns a new location designator that indicates a location in the
   robot's gripper."
-  (declare (type symbol object-name))
-  (let* ((object (object *current-bullet-world* object-name))
-         (object-pose (tf:pose->pose-stamped
+  (declare (type object object))
+  (let* ((object-pose (tf:pose->pose-stamped
                        designators-ros:*fixed-frame* 0.0
                        (btr:pose object)))
-         (robot (get-robot-object))
-         (attached-links (btr:object-attached robot object)))
-    (assert attached-links () "Object needs to be attached to the robot.")
-    (let ((object-pose-in-gripper (tf:transform-pose
-                                   cram-roslisp-common:*tf*
-                                   :pose object-pose :target-frame (car attached-links)))
-          (supporting-bounding-box (get-supporting-object-bounding-box object-name)))
+         (robot (get-robot-object)))
+    (assert (member gripper-link (btr:object-attached robot object) :test #'equal))
+    (let ((supporting-bounding-box (get-supporting-object-bounding-box (name object))))
       (desig:make-designator
        'desig-props:location
-       `((in gripper) (pose ,(tf:copy-pose-stamped object-pose-in-gripper :stamp 0.0))
+       `((in gripper) (pose ,(object-pose-in-gripper object gripper-link))
          (z-offset ,(cond (supporting-bounding-box
                            (- (cl-transforms:z (cl-transforms:origin object-pose))
                               (+ (cl-transforms:z
@@ -131,3 +139,22 @@
                                       supporting-bounding-box))
                                     2))))
                           (t 0.0))))))))
+
+(defun object-pose-in-gripper (object gripper-link)
+  (declare (type object object)
+           (type string gripper-link))
+  (tf:copy-pose-stamped
+   (tf:transform-pose
+    cram-roslisp-common:*tf*
+    :pose (tf:pose->pose-stamped
+           designators-ros:*fixed-frame* 0.0
+           (btr:pose object))
+    :target-frame gripper-link)
+   :stamp 0.0))
+
+(defun extend-designator-properties (designator property-extension)
+  "Extends the properties of `designator' by `property-extension' and
+  returns a new (unequated) designator."
+  (desig:make-designator
+   (class-of designator)
+   (append (desig:properties designator) property-extension)))
