@@ -83,4 +83,5 @@
               ?handle-name ?joint-pose ?point))
 
   (<- (trajectory-point ?designator ?robot-reference-pose ?point ?side)
+    (handle-manipulation-designator ?designator)
     (trajectory-point ?designator ?point ?side)))
