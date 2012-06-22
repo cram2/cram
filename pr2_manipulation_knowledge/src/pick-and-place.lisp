@@ -35,6 +35,12 @@
            (desig-prop-values designator 'pose)
            :key #'tf:frame-id))
 
+(defun get-latest-detected-object-pose (object-designator)
+  "Returns the pose where the object has been detected using
+  perception the last time, i.e. the object pose contained in the
+  latest valid object designator."
+  (designator-pose (newest-valid-designator object-designator)))
+
 (defun calculate-grasp-trajectory-point
     (robot-pose object-pose grasp side tool-length)
   (let ((grasp-orientation
@@ -84,10 +90,7 @@
          (lift-transform
            (cl-transforms:transform*
             (cl-transforms:pose->transform
-             (tf:transform-pose
-              cram-roslisp-common:*tf*
-              :pose (reference object-location)
-              :target-frame designators-ros:*fixed-frame*))
+             (get-latest-detected-object-pose object-designator))
             (cl-transforms:make-transform
              (cl-transforms:make-3d-vector 0 0 lifting-height)
              (cl-transforms:make-identity-rotation)))))
