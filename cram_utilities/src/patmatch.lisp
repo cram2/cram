@@ -182,6 +182,17 @@
                 collecting `(,var (var-value ',var ,g-bdg)))
          ,@body))))
 
+(defmacro with-vars-strictly-bound (vars bdg &body body)
+  "Like WITH-VARS-BOUND with the difference that it throws an error if
+  a variable couldn't be bound."
+  `(with-vars-bound ,vars ,bdg
+     ,@(loop for var in vars collecting
+             `(when (is-var ,var)
+                (error 'simple-error
+                       :format-control "Couldn't resolve variable ~a."
+                       :format-arguments (list ,var))))
+     ,@body))
+
 (defmacro with-pat-vars-bound (pat seq &body body)
   "Evaluates `body' in a context where all the variables in `pat' are bound to
    their binding resulting from calling PAT-MATCH on `pat' and `seq'. Throws
