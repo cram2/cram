@@ -73,11 +73,11 @@
            set-robot-state-from-tf init-ros-object-database clear-bullet-world
            ros-household-object execute open close reach-ik-solution
            attached attached-objects object-attached attach-object detach-object
-           side->ik-namespace household-object-dimensions
+           side->ik-namespace household-object-dimensions get-ik
 
            robot-pan-tilt-links robot-pan-tilt-joints robot
            camera-frame robot-arms-parking-joint-states
-           robot-pre-grasp-joint-states
+           robot-pre-grasp-joint-states end-effector-parking-pose
 
            event apply-event def-event
            timeline timeline-init timeline-advance
