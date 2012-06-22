@@ -28,6 +28,32 @@
 
 (in-package :pr2-manipulation-knowledge)
 
+(defun find-designator-pose-in-link (gripper-link designator)
+  (find-if (lambda (pose-frame-id)
+             (equal (tf::ensure-fully-qualified-name gripper-link)
+                    (tf::ensure-fully-qualified-name pose-frame-id)))
+           (desig-prop-values designator 'pose)
+           :key #'tf:frame-id))
+
+(defun calculate-grasp-trajectory-point
+    (robot-pose object-pose grasp side tool-length)
+  (let ((grasp-orientation
+          (car (get-grasps grasp (lambda (grasp-name)
+                                   (or (eq grasp-name grasp)
+                                       (eq grasp-name side)))))))
+    (assert grasp-orientation)
+    (cl-transforms:transform->pose
+     (cl-transforms:transform*
+      (cl-transforms:make-transform
+       (cl-transforms:origin object-pose)
+       (cl-transforms:orientation robot-pose))
+      (cl-transforms:transform-inv
+       (cl-transforms:make-transform
+        (cl-transforms:v-
+         (get-tool-vector)
+         (cl-transforms:v* (get-tool-direction-vector) tool-length))
+        grasp-orientation))))))
+
 (defun calculate-put-down-hand-pose (gripper-link object-designator put-down-pose)
   (let ((current-object (desig:current-desig object-designator)))
     (desig:with-desig-props (desig-props:at) current-object
@@ -79,32 +105,6 @@
              (cl-transforms:make-transform
               (get-tool-vector) (cl-transforms:make-identity-rotation)))))
           (t (cl-transforms:translation lift-transform)))))
-
-(defun calculate-grasp-trajectory-point
-    (robot-pose object-pose grasp side tool-length)
-  (let ((grasp-orientation
-          (car (get-grasps grasp (lambda (grasp-name)
-                                   (or (eq grasp-name grasp)
-                                       (eq grasp-name side)))))))
-    (assert grasp-orientation)
-    (cl-transforms:transform->pose
-     (cl-transforms:transform*
-      (cl-transforms:make-transform
-       (cl-transforms:origin object-pose)
-       (cl-transforms:orientation robot-pose))
-      (cl-transforms:transform-inv
-       (cl-transforms:make-transform
-        (cl-transforms:v-
-         (get-tool-vector)
-         (cl-transforms:v* (get-tool-direction-vector) tool-length))
-        grasp-orientation))))))
-
-(defun find-designator-pose-in-link (gripper-link designator)
-  (find-if (lambda (pose-frame-id)
-             (equal (tf::ensure-fully-qualified-name gripper-link)
-                    (tf::ensure-fully-qualified-name pose-frame-id)))
-           (desig-prop-values designator 'pose)
-           :key #'tf:frame-id))
 
 (def-fact-group pick-and-place-manipulation (trajectory-point)
 
