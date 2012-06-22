@@ -69,8 +69,7 @@
      ?costmap))
 
   (<- (desig-location-prop ?desig ?loc)
-    (or (loc-desig? ?desig)
-        (obj-desig? ?desig))
+    (loc-desig? ?desig)
     (or (desig-prop ?desig (obj ?o))
         (desig-prop ?desig (object ?o)))
     (btr:object ?_ ?o)
