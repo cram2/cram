@@ -34,11 +34,13 @@
   (when (and (typep obj-desig 'object-designator)
              (desig-prop-value obj-desig 'at)
              (typep (desig-prop-value obj-desig 'at) 'designator))
-    (reference (current-desig (desig-prop-value obj-desig 'at)))))
+    (reference (current-desig (desig-prop-value
+                               (current-desig obj-desig)
+                               'at)))))
 
 (defun loc-desig-location (loc-desig)
   (when (and loc-desig (typep loc-desig 'location-designator))
-    (reference loc-desig)))
+    (reference (current-desig loc-desig))))
 
 (defun get-all-designators ()
   (loop for designator being the hash-keys of *designators*
@@ -53,11 +55,14 @@
 (def-fact-group location-designators (desig-loc desig-location-prop)
 
   ;; checks designator starts with (location ...)
-  (<- (loc-desig? ?desig)
-    (lisp-pred typep ?desig location-designator))
+  (<- (loc-desig? ?designator)
+    (lisp-type ?designator location-designator))
 
-  (<- (obj-desig? ?desig)
-    (lisp-pred typep ?desig object-designator))
+  (<- (obj-desig? ?designator)
+    (lisp-type ?designator object-designator))
+
+  (<- (action-desig? ?designator)
+    (lisp-type ?designator action-designator))
 
   (<- (desig-location-prop ?desig ?loc)
     (obj-desig? ?desig)
@@ -68,19 +73,19 @@
   (<- (desig-location-prop ?desig ?loc)
     (or (desig-prop ?desig (obj ?obj))
         (desig-prop ?desig (object ?obj)))
-    (lisp-type ?obj designator)
-    (lisp-fun current-desig ?obj ?curr-obj)
-    (lisp-fun obj-desig-location ?curr-obj ?loc)
+    (obj-desig? ?obj)
+    (lisp-fun obj-desig-location ?obj ?loc)
     (lisp-pred identity ?loc))
 
   ;; (location ... (location ?loc)...), e.g. location to see location
   (<- (desig-location-prop ?desig ?loc)
+    (loc-desig? ?desig)
     (desig-prop ?desig (location ?loc-desig))
-    (lisp-fun current-desig ?loc-desig ?curr-loc-desig)
     (lisp-fun loc-desig-location ?loc-desig ?loc))
 
   ;; (location ... (pose ?loc)...), e.g. location to see pose
   (<- (desig-location-prop ?desig ?pose)
+    (loc-desig? ?desig)
     (desig-prop ?desig (pose ?pose))))
 
 (def-fact-group manipulation-designator (action-desig)
