@@ -70,10 +70,11 @@
            reach-pose-ik reach-object-ik point-reachable-p reach-point-ik
            object-reachable-p pose-reachable-p calculate-orientation-in-robot
            calculate-object-tool-length set-robot-state-from-joints
-           set-robot-state-from-tf init-ros-object-database clear-bullet-world
+           init-ros-object-database clear-bullet-world
            ros-household-object execute open close reach-ik-solution
            attached attached-objects object-attached attach-object detach-object
            side->ik-namespace household-object-dimensions get-ik
+           make-joint-state-message
 
            robot-pan-tilt-links robot-pan-tilt-joints robot
            camera-frame robot-arms-parking-joint-states
