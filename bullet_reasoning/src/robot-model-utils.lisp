@@ -237,7 +237,8 @@ joint positions as seeds."
                               (cl-transforms:make-quaternion 0 0 0 1)))
                  (ik-namespace (error "Namespace of IK service has to be specified"))
                  (fixed-frame "map")
-                 (robot-base-frame "base_footprint"))
+                 (robot-base-frame "base_footprint")
+                 seed-state)
   (let ((tf (make-instance 'tf:transformer))
         (time (roslisp:ros-time)))
     (set-tf-from-robot-state tf robot
@@ -269,7 +270,10 @@ joint positions as seeds."
                              (calculate-tool-pose pose :tool tool-frame))
               :ik_seed_state (roslisp:make-msg
                               "arm_navigation_msgs/RobotState"
-                              joint_state (make-robot-joint-state-msg robot :joint-names joint-names)))
+                              joint_state
+                              (or seed-state
+                                  (make-robot-joint-state-msg
+                                   robot :joint-names joint-names))))
              :timeout 1.0)
           (when (eql error-code (roslisp-msg-protocol:symbol-code
                                  'arm_navigation_msgs-msg:ArmNavigationErrorCodes
