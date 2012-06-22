@@ -85,6 +85,21 @@ sensor_msgs/JointStates message."
                                          :element-type 'float
                                          :initial-element 0.0))))
 
+(defun make-joint-state-message (joint-states &key (time-stamp 0))
+  "`joint-states is a list of lists with two elements, the name of the
+  joint and its position. This function returns a message of type
+  sensor_msgs/JointState that is filled with these values."
+  (roslisp:make-msg "sensor_msgs/JointState"
+                    (stamp header) time-stamp
+                    name (map 'vector #'car joint-states)
+                    position (map 'vector #'cadr joint-states)
+                    velocity (make-array (length joint-states)
+                                         :element-type 'float
+                                         :initial-element 0.0)
+                    effort (make-array (length joint-states)
+                                       :element-type 'float
+                                       :initial-element 0.0)))
+
 (defun get-link-chain (robot start end)
   "Returns the chain of links from the link named `start' to the link
   named `end'"
