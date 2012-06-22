@@ -44,7 +44,6 @@
              ;; location designator by extending the current location
              ;; by a second pose in the gripper.
              (attach-object robot object (event-link event) :loose t)
-             (break)
              (desig:with-desig-props (at) current-event-object
                (assert (eql (desig:desig-prop-value at 'in) 'gripper))
                (update-object-designator-location
