@@ -46,7 +46,7 @@
            #:loc
            #:object-in-hand
            #:object-placed-at
-           #:arm-parked
+           #:arms-parked
            #:arms-at
            #:looking-at
            #:at-location

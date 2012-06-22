@@ -37,7 +37,7 @@
     (ros-info (achieve plan-lib) "Distance to drive: ~a, parking arms.~%"
               (distance-to-drive ?loc))
     (achieve `(looking-at :forward))
-    (achieve '(arm-parked :both)))
+    (achieve '(arms-parked)))
   (pm-execute :navigation ?loc))
 
 (def-goal (achieve (loc ?obj ?loc))
