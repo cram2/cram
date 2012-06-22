@@ -28,21 +28,36 @@
 
 (in-package :cram-pr2-knowledge)
 
-(defvar *right-parking-joint-states* '(("r_shoulder_pan_joint" -1.3810115229719555d0)
-                                       ("r_shoulder_lift_joint" 1.1282870348994702d0)
-                                       ("r_upper_arm_roll_joint" -1.7100000000000002d0)
-                                       ("r_elbow_flex_joint" -2.105735087282934d0)
-                                       ("r_forearm_roll_joint" -2.658135473603226d0)
-                                       ("r_wrist_flex_joint" -1.9927790883777252d0)
-                                       ("r_wrist_roll_joint" -2.5861844605475843d0)))
 
-(defvar *left-parking-joint-states* '(("l_shoulder_pan_joint" 1.3810115229719555d0)
-                                      ("l_shoulder_lift_joint" 1.1282870348994702d0)
-                                      ("l_upper_arm_roll_joint" 1.71d0)
-                                      ("l_elbow_flex_joint" -2.105735087282934d0)
-                                      ("l_forearm_roll_joint" 2.6581354736032257d0)
-                                      ("l_wrist_flex_joint" -1.9927790883777252d0)
-                                      ("l_wrist_roll_joint" 2.586184460547585d0)))
+(defparameter *right-parking-end-effector-pose*
+  (tf:make-pose-stamped
+   "torso_lift_link" 0.0
+   (cl-transforms:make-3d-vector 0.3 -0.3 -0.23)
+   (cl-transforms:euler->quaternion :ay (/ pi 2))))
+
+(defparameter *right-parking-joint-states*
+  '(("r_shoulder_pan_joint" -1.3810115229719555d0)
+    ("r_shoulder_lift_joint" 1.1282870348994702d0)
+    ("r_upper_arm_roll_joint" -1.7100000000000002d0)
+    ("r_elbow_flex_joint" -2.105735087282934d0)
+    ("r_forearm_roll_joint" -2.658135473603226d0)
+    ("r_wrist_flex_joint" -1.9927790883777252d0)
+    ("r_wrist_roll_joint" -2.5861844605475843d0)))
+
+(defparameter *left-parking-end-effector-pose*
+  (tf:make-pose-stamped
+   "torso_lift_link" 0.0
+   (cl-transforms:make-3d-vector 0.3 0.3 -0.23)
+   (cl-transforms:euler->quaternion :ay (/ pi 2))))
+
+(defparameter *left-parking-joint-states*
+  '(("l_shoulder_pan_joint" 1.3810115229719555d0)
+    ("l_shoulder_lift_joint" 1.1282870348994702d0)
+    ("l_upper_arm_roll_joint" 1.71d0)
+    ("l_elbow_flex_joint" -2.105735087282934d0)
+    ("l_forearm_roll_joint" 2.6581354736032257d0)
+    ("l_wrist_flex_joint" -1.9927790883777252d0)
+    ("l_wrist_roll_joint" 2.586184460547585d0)))
 
 (def-grasp :top (cl-transforms:euler->quaternion :ay (/ pi -2)))
 (def-grasp :left (cl-transforms:euler->quaternion :az (/ pi 2)) :side)
@@ -70,6 +85,12 @@
 
   (<- (robot-arms-parking-joint-states ?joint-states :right)
     (symbol-value *right-parking-joint-states* ?joint-states))
+
+  (<- (end-effector-parking-pose ?pose :left)
+    (symbol-value *left-parking-end-effector-pose* ?pose))
+
+  (<- (end-effector-parking-pose ?pose :right)
+    (symbol-value *right-parking-end-effector-pose* ?pose))
 
   (<- (robot-pre-grasp-joint-states
        (("torso_lift_joint" 0.33) . ?parking-joint-states))
