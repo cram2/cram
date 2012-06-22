@@ -148,3 +148,31 @@ i.e. `return' can be used."
                                  `(,(car clause) #',(cdr (assoc (car clause) condition-handler-syms))))
                                clauses))
                   (return (progn ,@body))))))))))
+
+(defmacro with-retry-counters (counter-definitions &body body)
+  "Lexically binds all counters in `counter-definitions' to the intial
+  values specified in `counter-definitions'. `counter-definitions' is
+  similar to `let' forms with the difference that the counters will
+  not be available under the specified names in the lexical
+  environment established by this macro. In addition, the macro
+  defines the local macro \(DO-RETRY <counter> <body-form>*\) to
+  decrement the counter and execute code when the maximal retry count
+  hasn't been reached yet and the function `\(RESET-COUNTER
+  <counter>\)."
+  (let ((counters (mapcar (lambda (definition)
+                            (let ((name (car definition)))
+                              (cons name (gensym (symbol-name name)))))
+                          counter-definitions)))
+    `(let ,(mapcar (lambda (counter)
+                     (list (cdr counter)
+                           (second (assoc (car counter) counter-definitions))))
+            counters)
+       (macrolet ((do-retry (counter &body body)
+                    (let ((counter-name (cdr (assoc counter ',counters))))
+                      `(when (> ,counter-name 0)
+                         (decf ,counter-name)
+                         ,@body)))
+                  (reset-counter (counter)
+                    `(setf ,(cdr (assoc counter ',counters))
+                           ,(second (assoc counter ',counter-definitions)))))
+         ,@body))))

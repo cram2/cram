@@ -127,6 +127,7 @@
            #:simple-plan-failure
            #:plan-failure
            #:with-failure-handling #:retry
+           #:with-retry-counters #:do-retry #:reset-counter
            #:common-lisp-error-envelope
            #:envelop-error
            #:*break-on-plan-failures*
