@@ -108,7 +108,8 @@ relative to the robot in world coordinates."
 
 (defun reach-point-ik (robot point
                         &key side (grasp :top)
-                          (tool-length (get-tool-length)))
+                          (tool-length (get-tool-length))
+                          seed-state)
   (declare (type robot-object robot)
            (type (or cl-transforms:3d-vector cl-transforms:pose) point))
   (reach-pose-ik
@@ -123,11 +124,13 @@ relative to the robot in world coordinates."
        point :orientation (calculate-orientation-in-robot
                            robot (cl-transforms:make-identity-rotation)))))
    :tool-frame (calculate-tool tool-length (translate-grasp grasp side))
-   :side side))
+   :side side
+   :seed-state seed-state))
 
 (defun reach-object-ik (robot obj
                         &key side (grasp :top)
-                          (tool-length (calculate-object-tool-length obj)))
+                          (tool-length (calculate-object-tool-length obj))
+                          seed-state)
   (declare (type robot-object robot)
            (type object obj))
   (reach-pose-ik
@@ -135,10 +138,11 @@ relative to the robot in world coordinates."
           (pose obj) :orientation (calculate-orientation-in-robot
                                    robot (cl-transforms:make-identity-rotation)))
    :tool-frame (calculate-tool tool-length (translate-grasp grasp side))
-   :side side))
+   :side side
+   :seed-state seed-state))
 
 (defmethod reach-pose-ik ((robot robot-object) (pose cl-transforms:pose)
-                          &key side tool-frame)
+                          &key side tool-frame seed-state)
   (declare (type robot-object robot)
            (type cl-transforms:pose pose)
            (type (or cl-transforms:pose null) tool-frame))
@@ -153,3 +157,5 @@ relative to the robot in world coordinates."
                       (cl-transforms:make-identity-rotation)))
      :robot-base-frame reference-frame
      :fixed-frame "world")))
+     :fixed-frame "world"
+     :seed-state seed-state)))
