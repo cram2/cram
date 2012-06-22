@@ -28,13 +28,20 @@
 
 (in-package :projection-process-modules)
 
-(defun set-robot-reach-pose (side pose &optional tool-frame)
+(defparameter *both-arms-carry-pose*
+  (tf:make-pose-stamped
+   "torso_lift_link" 0.0
+   (cl-transforms:make-3d-vector 0.5 0.0 -0.1)
+   (cl-transforms:make-quaternion 0 0 0 1)))
+
+(defun set-robot-reach-pose (side pose &key tool-frame seed-state)
   (or
    (crs:prolog `(crs:once
                  (robot ?robot)
                  (%object ?_ ?robot ?robot-instance)
                  (crs:lisp-fun reach-pose-ik ?robot-instance ,pose
                                :side ,side :tool-frame ,tool-frame
+                               :seed-state ,seed-state
                                ?ik-solutions)
                  (member ?ik-solution ?ik-solutions)
                  (assert (joint-state ?_ ?robot ?ik-solution))))
@@ -50,6 +57,11 @@
                      `(and
                        (trajectory-point ,action-designator ?_ ?side)
                        (end-effector-link ?side ?end-effector-link))))))
+
+(defun get-link-orientation-in-robot (link-name &key (base-link "base_footprint"))
+  (cl-transforms:rotation
+   (tf:lookup-transform
+    cram-roslisp-common:*tf* :source-frame link-name :target-frame base-link)))
 
 (defun execute-action-trajectory-points (action-designator &optional object-name)
   (cut:force-ll
@@ -77,23 +89,103 @@
                    (member ?ik-solution ?ik-solutions)
                    (assert (joint-state ?world ?robot ?ik-solution))))))))
 
- (defun execute-container-opened (object sides)
-   (declare (ignore object sides))
-   nil)
+(defun execute-container-opened (object sides)
+  (declare (ignore object sides))
+  nil)
 
- (defun execute-container-closed (object sides)
-   (declare (ignore object sides))
-   nil)
+(defun execute-container-closed (object sides)
+  (declare (ignore object sides))
+  nil)
 
- (defun execute-park (sides &optional object)
-   (declare (ignore object))
-   ;; TODO(moesenle): if parking with object, make sure to use the
-   ;; correct end-effector orientation and use IK.
-   (crs:prolog `(and
-                 (robot ?robot)
-                 (member ?side ,sides)
-                (robot-arms-parking-joint-states ?joint-states ?side)
+(defun carry-with-both-hands (object)
+  (declare (ignore object))
+  (cut:with-vars-strictly-bound (?left-end-effector
+                                 ?right-end-effector
+                                 ?left-parking-joint-states
+                                 ?right-parking-joint-states)
+      (cut:lazy-car
+       (crs:prolog `(and
+                     (end-effector-link :left ?left-end-effector)
+                     (end-effector-link :right ?right-end-effector)
+                     (robot-arms-parking-joint-states
+                      ?left-parking-joint-states :left)
+                     (robot-arms-parking-joint-states
+                      ?right-parking-joint-states :right))))
+    (let* ((left-gripper-transform
+             (tf:lookup-transform
+              cram-roslisp-common:*tf*
+              :source-frame ?left-end-effector :target-frame "base_footprint"))
+           (right-gripper-transform
+             (tf:lookup-transform
+              cram-roslisp-common:*tf*
+              :source-frame ?right-end-effector :target-frame "base_footprint"))
+           (left->right-arm-vector
+             (cl-transforms:v-
+              (cl-transforms:translation left-gripper-transform)
+              (cl-transforms:translation right-gripper-transform)))
+           (arm-distance (cl-transforms:v-norm left->right-arm-vector))
+           (carry-pose-in-base
+             (tf:transform-pose
+              cram-roslisp-common:*tf*
+              :target-frame "base_footprint" :pose *both-arms-carry-pose*)))
+      (set-robot-reach-pose
+       :left carry-pose-in-base
+       :tool-frame (cl-transforms:make-pose
+                    (cl-transforms:make-3d-vector (/ arm-distance 2) 0 0)
+                    (cl-transforms:q-inv
+                     (cl-transforms:rotation left-gripper-transform)))
+       :seed-state (make-joint-state-message ?left-parking-joint-states))
+      (set-robot-reach-pose
+       :right carry-pose-in-base
+       :tool-frame (cl-transforms:make-pose
+                    (cl-transforms:make-3d-vector (/ arm-distance 2) 0 0)
+                    (cl-transforms:q-inv
+                     (cl-transforms:rotation right-gripper-transform)))
+       :seed-state (make-joint-state-message ?right-parking-joint-states)))))
+
+(defun carry-with-one-hand (side object link)
+  (declare (ignore object))
+  (cut:with-vars-strictly-bound (?robot ?parking-pose ?joint-states)
+      (cut:lazy-car
+       (crs:prolog
+        `(and (robot ?robot)
+              (end-effector-parking-pose ?parking-pose ,side)
+              (robot-arms-parking-joint-states ?joint-states ,side))))
+    (let* ((robot-object (object *current-bullet-world* ?robot))
+           (ik-solution
+             (cut:lazy-car
+              (bullet-reasoning:get-ik
+               robot-object
+               (tf:copy-pose-stamped
+                ?parking-pose :orientation (get-link-orientation-in-robot link))
+               :ik-namespace (side->ik-namespace side)
+               :seed-state (make-joint-state-message ?joint-states)))))
+      (unless ik-solution
+        (cpl-impl:fail 'cram-plan-failures:manipulation-pose-unreachable))
+      (set-robot-state-from-joints ik-solution robot-object))))
+
+(defun park (side)
+  (crs:prolog `(and
+                (robot ?robot)
+                (robot-arms-parking-joint-states ?joint-states ,side)
                 (assert (joint-state ?_ ?robot ?joint-states)))))
+
+(defun execute-park (sides objects-in-hand)
+  (flet ((object-in-both-hands (objects-in-hand)
+           (when objects-in-hand
+             (eql (second (first objects-in-hand))
+                  (second (second objects-in-hand))))))
+    (cut:force-ll sides)
+    (cut:force-ll objects-in-hand)
+    (cond ((object-in-both-hands objects-in-hand)
+           (carry-with-both-hands (second (first objects-in-hand))))
+          (t
+           (dolist (side sides)
+             (let ((object-in-hand (assoc side objects-in-hand)))
+               (if object-in-hand
+                   (apply #'carry-with-one-hand object-in-hand)
+                   (park side)))))))
+  (break))
 
 (defun execute-lift (designator)
   (or

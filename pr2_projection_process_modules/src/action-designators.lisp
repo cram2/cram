@@ -69,24 +69,24 @@
         (true))
     (available-arms ?obj ?sides))
 
-  (<- (action-desig-projection ?desig (execute-park ?sides))
-    (trajectory-desig? ?desig)
-    (desig-prop ?desig (pose parked))
-    (-> (desig-prop ?desig (side ?side))
-        (-> (== ?side :both)
-            (setof ?arm-side (arm ?arm-side) ?sides)
-            (== ?sides (?side)))
-        (setof ?arm-side (arm ?arm-side) ?sides)))
-
   (<- (action-desig-projection ?desig (execute-lift ?desig))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to lift))
     (desig-prop ?desig (obj ?_)))
 
-  (<- (action-desig-projection ?desig (execute-park ?side ?obj))
+  (<- (action-desig-projection ?desig (execute-park ?sides ?objects-in-hand))
     (trajectory-desig? ?desig)
-    (desig-prop ?desig (to carry))
-    (desig-prop ?desig (obj ?obj)))
+    (or
+     (desig-prop ?desig (pose parked))
+     (desig-prop ?desig (to carry)))
+    (-> (desig-prop ?desig (side ?side))
+        (== ?sides ?side)
+        (findall ?side (arm ?side) ?sides))
+    (findall (?side ?obj ?link)
+             (and
+              (plan-knowledge:object-in-hand ?obj ?side)
+              (cram-manipulation-knowledge:end-effector-link ?side ?link))
+             ?objects-in-hand))
 
   (<- (action-desig-projection ?desig (execute-grasp ?desig ?obj))
     (trajectory-desig? ?desig)
