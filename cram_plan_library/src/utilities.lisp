@@ -44,3 +44,14 @@
                       :source-frame "/base_link")))
     (cl-transforms:v-dist (cl-transforms:origin loc-1)
                           (cl-transforms:translation current-loc))))
+
+(defmacro retry-with-updated-location (location update-form)
+  "If the evaluation of `update-form' returns non-nil, sets `location'
+  to the result of `update-form' and executes RETRY.
+
+  This macro can only be used in the dynamic extent of
+  WITH-FAILURE-HANDLING."
+  `(let ((new-location ,update-form))
+     (when new-location
+       (setf ,location new-location)
+       (retry))))
