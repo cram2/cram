@@ -280,65 +280,6 @@ joint positions as seeds."
                                  :success))
             (list solution)))))))
 
-(defun get-weighted-ik (robot pose-stamped &key
-                        (tool-frame (cl-transforms:make-pose
-                                     (cl-transforms:make-3d-vector 0 0 0)
-                                     (cl-transforms:make-quaternion 0 0 0 1)))
-                        (ik-namespace (error "Namespace of IK service has to be specified"))
-                        (ik-base-link "base_footprint")
-                        (fixed-frame "base_footprint")
-                        (weights-ts '(1 1 1 1 1 1))
-                        (weights-js nil)
-                        (lambda 0.1)
-                        (max-seeds 30))
-  "Calls the 'get_weighted_ik' service in `ik-namespace'. It
-transforms `pose-stamped' into `ik-base-link' by using `fixed-frame'
-as reference for building up a TF tree. `weight-ts' specifies the
-weight vector in task space. `weight-js' is an alist that maps joint
-names to the corresponding weight values. All un-specified joints are
-weighted by a factor of 1.0. `lambda' is the lambda value passed to
-the IK service."
-  (flet ((make-kdl-weights (ts-matrix js-matrix lambda)
-           (roslisp:make-msg "kdl_arm_kinematics/KDLWeights"
-                             mode 7
-                             weight_ts (make-array 36 :displaced-to ts-matrix)
-                             weight_js (make-array (array-total-size js-matrix)
-                                                   :displaced-to js-matrix)
-                             lambda lambda))
-         (make-js-weights (joint-names w)
-           (diagonal->matrix
-            (map 'vector
-                 (lambda (name)
-                   (or (cdr (assoc name w :test #'equal))
-                       1.0))
-                 joint-names))))
-    (let* ((tf (set-tf-from-robot-state (make-instance 'tf:transformer)
-                                        robot :base-frame fixed-frame))
-           (pose (tf:transform-pose tf :pose pose-stamped :target-frame ik-base-link))
-           (joint-names (kinematics_msgs-msg:joint_names 
-                         (kinematics_msgs-srv:kinematic_solver_info
-                          (roslisp:call-service
-                           (concatenate 'string ik-namespace "/get_ik_solver_info")
-                           'kinematics_msgs-srv:getkinematicsolverinfo)))))
-      (lazy-mapcan (lambda (seed)
-                     (roslisp:with-fields ((solution solution)
-                                           (error-code (val error_code)))
-                         (roslisp:call-service
-                          (concatenate 'string ik-namespace "/get_weighted_ik")
-                          'kdl_arm_kinematics-srv:getweightedik
-                          :pose (tf:pose-stamped->msg pose)
-                          :tool_frame (tf:pose->msg tool-frame)
-                          :ik_seed seed
-                          :weights (make-kdl-weights
-                                    (diagonal->matrix weights-ts)
-                                    (make-js-weights joint-names weights-js)
-                                    lambda))
-                       (when (eql error-code (roslisp-msg-protocol:symbol-code
-                                              'arm_navigation_msgs-msg:ArmNavigationErrorCodes
-                                              :success))
-                         (list solution))))
-                   (lazy-take max-seeds (make-seed-states robot joint-names 3))))))
-
 (defun calculate-pan-tilt (robot pan-link tilt-link pose)
   "Calculates values for the pan and tilt joints so that they pose on
   `pose'. Returns (LIST PAN-VALUE TILT-VALUE)"
