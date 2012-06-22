@@ -58,7 +58,8 @@
                                                    "utilities"))
              (:file "perceive-state" :depends-on ("package" "goal-declarations"))
              (:file "achieve-object-manipulation"
-              :depends-on ("goal-declarations"
+              :depends-on ("package"
+                           "goal-declarations"
                            "at-location"
                            "utilities"))
-             (:file "utilities")))))
+             (:file "utilities" :depends-on ("package"))))))
