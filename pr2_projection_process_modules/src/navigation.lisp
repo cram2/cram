@@ -30,11 +30,6 @@
 
 (def-process-module projection-navigation (location-designator)
   (let ((pose (desig:reference location-designator)))
-    (assert
-     (crs:prolog `(and
-                   (robot ?robot)
-                   (robot-arms-parking-joint-states ?joint-states)
-                   (assert (joint-state ?_ ?robot ?joint-states)))))
     (cram-plan-knowledge:on-event
      (make-instance 'cram-plan-knowledge:robot-state-changed))
     (assert 
