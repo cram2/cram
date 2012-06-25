@@ -237,6 +237,13 @@ orientations differ by `sample-step'."
     (-> (desig-prop ?designator (side ?side)) (true) (true))
     (desig-location-prop ?designator ?pose))
 
+  (<- (designator-reach-pose ?designator ?robot-pose ?pose ?side)
+    (reachability-designator ?designator)
+    (desig-prop ?designator (to execute))
+    (desig-prop ?designator (action ?action))
+    (cram-manipulation-knowledge:trajectory-point
+     ?action ?robot-pose ?pose ?side))
+  
   (<- (designator-reach-pose ?designator ?pose ?side)
     (reachability-designator ?designator)
     (desig-prop ?designator (to execute))
