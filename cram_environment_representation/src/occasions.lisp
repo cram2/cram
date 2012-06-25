@@ -30,12 +30,17 @@
 
 (def-fact-group occasions (holds)
   (<- (object-in-hand ?object)
-    (object-in-hand ?object ?_))
+    (setof ?object (object-in-hand ?object ?_) ?objects)
+    (member ?object ?objects))
 
   (<- (object-in-hand ?object ?side)
     (bullet-world ?world)
     (robot ?robot)
-    (object-designator-name ?object ?object-name)
+    (once
+     (object-designator-name ?object ?object-name)
+     (lisp-fun desig:current-desig ?object ?current-object)
+     (desig:desig-prop ?current-object (at ?object-location))
+     (desig:desig-prop ?object-location (in gripper)))
     (attached ?world ?robot ?link ?object-name)
     (end-effector-link ?side ?link))
 
@@ -55,17 +60,13 @@
 
 (def-fact-group occasion-utilities ()
   (<- (object-designator-name ?object-designator ?object-name)
-    (bagof (?object-name ?object-designator)
-           (and
-            (desig:designator ?object-designator)
-            (lisp-type ?object-designator desig:object-designator)
-            (lisp-fun get-designator-object-name ?object-designator
-                      ?object-name)
-            (lisp-pred identity ?object-name))
-           ?objects)
-    (setof ?object-name (member (?object-name ?_) ?objects) ?object-names)
-    (member ?object-name ?object-names)
-    (once (member (?object-name ?object-designator) ?objects))
+    (-> (bound ?object-designator)
+        (true)
+        (and
+         (lisp-fun unique-object-designators ?object-designators)
+         (member ?object-designator ?object-designators)))
+    (lisp-fun get-designator-object-name ?object-designator
+              ?object-name)
     (lisp-pred identity ?object-name))
   
   (<- (object-at-location ?world ?object-name ?location-designator)
@@ -85,6 +86,16 @@
     (object-pose ?world ?object-name ?object-pose)
     (desig:designator desig:location ((pose ?object-pose))
                       ?location-designator)))
+
+(defun unique-object-designators ()
+  "Returns all designators. For equated designators, only one instance
+is returned."
+  (remove-duplicates
+   (remove-if-not (lambda (designator)
+                    (and
+                     (typep designator 'desig:object-designator)))
+                  (desig:get-all-designators))
+   :test #'desig:desig-equal))
 
 (defmethod cram-plan-knowledge:holds (occasion &optional time-specification)
   (if time-specification

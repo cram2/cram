@@ -49,12 +49,14 @@
                (update-object-designator-location
                 current-event-object
                 (extend-designator-properties
-                 at `((pose ,(object-pose-in-gripper object (event-link event))))))))
+                 at `((pose ,(object-pose-in-frame object (event-link event))))))))
             (t
              (attach-object robot object (event-link event) :loose nil)
              (update-object-designator-location
               current-event-object
-              (make-object-location-in-gripper object (event-link event))))))
+              (extend-designator-properties
+               (make-object-location-in-gripper object (event-link event))
+               `((pose ,(object-pose-in-frame object "base_footprint"))))))))
     (timeline-advance
      *current-timeline*
      (apply-event
@@ -128,7 +130,7 @@
     (let ((supporting-bounding-box (get-supporting-object-bounding-box (name object))))
       (desig:make-designator
        'desig-props:location
-       `((in gripper) (pose ,(object-pose-in-gripper object gripper-link))
+       `((in gripper) (pose ,(object-pose-in-frame object gripper-link))
          (z-offset ,(cond (supporting-bounding-box
                            (- (cl-transforms:z (cl-transforms:origin object-pose))
                               (+ (cl-transforms:z
@@ -139,16 +141,16 @@
                                     2))))
                           (t 0.0))))))))
 
-(defun object-pose-in-gripper (object gripper-link)
+(defun object-pose-in-frame (object frame)
   (declare (type object object)
-           (type string gripper-link))
+           (type string frame))
   (tf:copy-pose-stamped
    (tf:transform-pose
     cram-roslisp-common:*tf*
     :pose (tf:pose->pose-stamped
            designators-ros:*fixed-frame* 0.0
            (btr:pose object))
-    :target-frame gripper-link)
+    :target-frame frame)
    :stamp 0.0))
 
 (defun extend-designator-properties (designator property-extension)
