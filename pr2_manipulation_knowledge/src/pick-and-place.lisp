@@ -60,7 +60,9 @@
          (cl-transforms:v* (get-tool-direction-vector) tool-length))
         grasp-orientation))))))
 
-(defun calculate-put-down-hand-pose (gripper-link object-designator put-down-pose)
+(defun calculate-put-down-hand-pose (gripper-link object-designator put-down-pose
+                                     &key robot-pose)
+  (declare (type tf:pose-stamped put-down-pose))
   (let ((current-object (desig:current-desig object-designator)))
     (desig:with-desig-props (desig-props:at) current-object
       (assert desig-props:at () "Object ~a needs to have an `at' property"
@@ -69,8 +71,21 @@
         (assert (eq in 'gripper) ()
                 "Object ~a needs to be in the gripper" current-object)
         (assert z-offset () "Object ~a needs to have a `height' property" current-object)
-        (let ((pose (find-designator-pose-in-link gripper-link at)))
-          (assert pose () "Object ~a needs to have a `pose' property" current-object)
+        (let* ((pose-in-gripper (find-designator-pose-in-link gripper-link at))
+               (put-down-pose-in-fixed-frame  (tf:transform-pose
+                                              cram-roslisp-common:*tf*
+                                              :target-frame designators-ros:*fixed-frame*
+                                              :pose put-down-pose))
+               (put-down-pose (if (not robot-pose)
+                                  put-down-pose-in-fixed-frame
+                                  (tf:copy-pose-stamped
+                                   put-down-pose-in-fixed-frame
+                                   :orientation (cl-transforms:q*
+                                                 (tf:orientation
+                                                  (find-designator-pose-in-link "base_footprint" at))
+                                                 (tf:orientation robot-pose))))))
+          (format t "put-down-pose 1: ~a~%" put-down-pose)
+          (assert pose-in-gripper () "Object ~a needs to have a `pose' property" current-object)
           (cl-transforms:transform->pose
            (cl-transforms:transform*
             (cl-transforms:pose->transform put-down-pose)
@@ -82,7 +97,7 @@
               (cl-transforms:make-transform
                (tf:v* (get-tool-vector) -1)
                (cl-transforms:make-identity-rotation))
-              (cl-transforms:pose->transform desig-props:pose))))))))))
+              (cl-transforms:pose->transform pose-in-gripper))))))))))
 
 (defun calculate-object-lift-pose (gripper-link object-designator lifting-height)
   (let* ((current-object-designator (current-desig object-designator))
@@ -135,6 +150,10 @@
               ?point))
 
   (<- (trajectory-point ?designator ?point ?side)
+    (desig-prop ?designator (to put-down))
+    (trajectory-point ?designator ?_ ?point ?side))
+
+  (<- (trajectory-point ?designator ?robot-reference-pose ?point ?side)
     (trajectory-desig? ?designator)
     (desig-prop ?designator (to put-down))
     (desig-prop ?designator (obj ?object))
@@ -144,11 +163,18 @@
     (desig-prop ?designator (at ?location))
     (lisp-fun current-desig ?location ?current-location)
     (lisp-fun reference ?current-location ?put-down-pose)
-    (lisp-fun calculate-put-down-hand-pose ?link ?object ?put-down-pose ?point))
-
-  (<- (trajectory-point ?designator ?robot-reference-pose ?point ?side)
-    (desig-prop ?designator (to put-down))
-    (trajectory-point ?designator ?point ?side))
+    (-> (not (bound ?robot-reference-pose))
+        (and (lisp-fun calculate-put-down-hand-pose ?link ?object ?put-down-pose
+                       ?pose)
+             (lisp-fun cl-transforms:origin ?pose ?point))
+        (-> (orientation-matters ?object)
+            (lisp-fun calculate-put-down-hand-pose
+                      ?link ?object ?put-down-pose ?point)
+            (and
+             (lisp-fun calculate-put-down-hand-pose
+                       ?link ?object ?put-down-pose
+                       :robot-pose ?robot-reference-pose
+                       ?point)))))
 
   (<- (trajectory-point ?designator ?point ?side)
     (trajectory-desig? ?designator)
