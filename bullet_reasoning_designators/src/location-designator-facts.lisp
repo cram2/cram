@@ -85,7 +85,7 @@
     (assert (object-pose ?w ?robot ?robot-pose))
     (forall (contact ?w ?robot ?object)
             (attached ?w ?robot ?_ ?object))
-    (forall (designator-reach-pose ?desig ?pose ?side)
+    (forall (designator-reach-pose ?desig ?robot-pose ?pose ?side)
             (or
              (and
               (lisp-type ?pose cl-transforms:pose)
