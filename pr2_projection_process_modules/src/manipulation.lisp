@@ -184,8 +184,7 @@
              (let ((object-in-hand (assoc side objects-in-hand)))
                (if object-in-hand
                    (apply #'carry-with-one-hand object-in-hand)
-                   (park side)))))))
-  (break))
+                   (park side))))))))
 
 (defun execute-lift (designator)
   (or
