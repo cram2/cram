@@ -84,7 +84,6 @@
                                                  (tf:orientation
                                                   (find-designator-pose-in-link "base_footprint" at))
                                                  (tf:orientation robot-pose))))))
-          (format t "put-down-pose 1: ~a~%" put-down-pose)
           (assert pose-in-gripper () "Object ~a needs to have a `pose' property" current-object)
           (cl-transforms:transform->pose
            (cl-transforms:transform*
