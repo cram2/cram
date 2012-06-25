@@ -26,12 +26,13 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
+(in-package :cram-manipulation-knowledge)
 
-(defpackage cram-manipulation-knowledge
-  (:use #:common-lisp #:cram-reasoning)
-  (:export trajectory-point arm required-arms available-arms
-           def-grasp def-tool get-grasp get-grasps calculate-bounding-box-tool-length
-           get-tool-direction-vector get-tool-length get-tool-vector calculate-tool
-           object-type-grasp object-designator-grasp object-type-tool-length
-           object-designator-tool-length end-effector-link orientation-matters))
+(def-fact-group object-knowledge (orientation-matters)
+
+  ;; The predicate ORIENTATION-MATTERS holds for all objects where the
+  ;; orientation really matters when putting down the object. E.g. for
+  ;; knives, forks, etc, the orientation is important while for plates
+  ;; the orientation doesn't matter at all.
+  (<- (orientation-matters ?object-designator)
+    (fail)))
