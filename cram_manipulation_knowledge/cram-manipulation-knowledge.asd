@@ -39,4 +39,5 @@
     ((:file "package")
      (:file "grasps" :depends-on ("package"))
      (:file "trajectories" :depends-on ("package"))
-     (:file "arms" :depends-on ("package"))))))
+     (:file "arms" :depends-on ("package"))
+     (:file "objects" :depends-on ("package"))))))
