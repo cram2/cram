@@ -247,6 +247,10 @@
   (group collision-filters)
   (mask collision-filters))
 
+(defcfun ("setMassProps" set-mass-props) :void
+  (body-handle :pointer)
+  (mass :double))
+
 ;;; motion_state.cpp
 
 (defcfun ("newMotionState" new-motion-state) :pointer

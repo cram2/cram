@@ -177,4 +177,14 @@ extern "C"
     body->getBroadphaseProxy()->m_collisionFilterGroup = group;
     body->getBroadphaseProxy()->m_collisionFilterMask = mask;
   }
+
+  void setMassProps(btRigidBody *body, double mass)
+  {
+    btVector3 inverseInertia = body->getInvInertiaDiagLocal();
+    btVector3 inertia = btVector3(
+        inverseInertia.x() != 0.0 ? 1.0 / inverseInertia.x() : 0.0,
+        inverseInertia.y() != 0.0 ? 1.0 / inverseInertia.y() : 0.0,
+        inverseInertia.z() != 0.0 ? 1.0 / inverseInertia.z() : 0.0);
+    body->setMassProps(mass, inertia);
+  }
 }
