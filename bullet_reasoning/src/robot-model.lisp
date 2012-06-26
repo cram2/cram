@@ -58,6 +58,9 @@
     :faces (physics-utils:3d-model-faces (cl-urdf:3d-model mesh))
     :points (physics-utils:3d-model-vertices (cl-urdf:3d-model mesh))))
 
+(defstruct collision-information
+  rigid-body-name flags)
+
 (defstruct attachment
   "Represents a link between an object and a link. `object' must be an
 instance of class OBJECT. `link' must be a string, the name of the
@@ -75,7 +78,9 @@ of the object should _not_ be updated."
    (attached-objects :initarg :attached-objects :initform nil
                      :reader attached-objects
                      :documentation "An alist that maps object
-                     instances instances of the struct `attachment'.")
+                     instances to a list of instances of the struct
+                     `attachment' and an instance of
+                     `collision-information'.")
    (initial-pose :initarg :pose
                  :documentation "Pose that got passed in initially. It
                  is returned by the `pose' method if `reference-body'
@@ -111,7 +116,7 @@ of the object should _not_ be updated."
   attached to.")
   (:method ((robot-object robot-object) (object object))
     (with-slots (attached-objects) robot-object
-      (mapcar #'attachment-link (cdr (assoc object attached-objects))))))
+      (mapcar #'attachment-link (car (cdr (assoc object attached-objects)))))))
 
 (defgeneric attach-object (robot-object obj link &key loose)
   (:documentation "Adds `obj' to the set of attached objects. If
@@ -123,29 +128,47 @@ of the object should _not_ be updated."
              :format-arguments (list link)))
     (with-slots (attached-objects) robot-object
       (let ((obj-attachment (assoc obj attached-objects))
-            (new-attachment (make-attachment
-                             :object obj :link link :loose loose)))
-        (if obj-attachment
-            (pushnew new-attachment (cdr obj-attachment)
-                     :test #'equal :key #'attachment-link)
-            (push (cons obj (list new-attachment)) attached-objects))))))
+            (new-attachment
+              (make-attachment
+               :object obj :link link :loose loose)))
+        (cond (obj-attachment
+               (pushnew new-attachment (car (cdr obj-attachment))
+                        :test #'equal :key #'attachment-link))
+              (t
+               (push (cons obj (cons
+                                (list new-attachment)
+                                (loop for body in (rigid-bodies obj)
+                                      collecting (make-collision-information
+                                                  :rigid-body-name (name body)
+                                                  :flags (collision-flags body))
+                                      do (setf (collision-flags body) :cf-static-object))))
+                     attached-objects)))))))
 
 (defgeneric detach-object (robot-object obj &optional link)
   (:documentation "Detaches `obj' from the set of attached objects. If
   `link' is specified, detaches the object only from
   `link'. Otherwise, detaches `obj' from all links.")
   (:method ((robot-object robot-object) (obj object) &optional link)
-    (with-slots (attached-objects) robot-object
-      (cond (link
-             (let ((attachment (assoc obj attached-objects)))
-               (setf (cdr attachment) (remove
-                                       link (cdr attachment)
-                                       :test #'equal :key #'attachment-link))
-               (unless (cdr attachment)
-                 (setf attached-objects (remove obj attached-objects
-                                                :key #'car)))))
-            (t (setf attached-objects (remove obj attached-objects
-                                              :key #'car)))))))
+    (flet ((reset-collision-information (object collision-information)
+             (loop for collision-data in collision-information
+                   for body = (rigid-body
+                               object (collision-information-rigid-body-name
+                                       collision-data))
+                   do (setf (collision-flags body)
+                            (collision-information-flags collision-data)))))
+      (with-slots (attached-objects) robot-object
+        (let ((attachment (assoc obj attached-objects)))
+          (cond (link
+                 (setf (car (cdr attachment))
+                       (remove link (car (cdr attachment))
+                               :test #'equal :key #'attachment-link))
+                 (unless (cdr attachment)
+                   (setf attached-objects (remove obj attached-objects
+                                                  :key #'car))
+                   (reset-collision-information obj (cdr (cdr attachment)))))
+                (t (setf attached-objects (remove obj attached-objects
+                                                  :key #'car))
+                   (reset-collision-information obj (cdr (cdr attachment))))))))))
 
 (defgeneric detatch-all-objects (robot-object)
   (:documentation "Removes all objects form the list of attached
@@ -285,7 +308,7 @@ of the object should _not_ be updated."
                   (remove-if-not
                    (lambda (attachment)
                      (let ((link-attachment
-                             (find (cl-urdf:name link) (cdr attachment)
+                             (find (cl-urdf:name link) (car (cdr attachment))
                                    :key #'attachment-link :test #'equal)))
                        (and link-attachment
                             (not (attachment-loose link-attachment)))))
