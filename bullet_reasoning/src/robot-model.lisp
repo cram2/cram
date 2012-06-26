@@ -59,9 +59,7 @@
     :points (physics-utils:3d-model-vertices (cl-urdf:3d-model mesh))))
 
 (defstruct collision-information
-  rigid-body-name
-  collision-group
-  collision-mask)
+  rigid-body-name group mask flags)
 
 (defstruct attachment
   "Represents a link between an object and a link. `object' must be an
@@ -142,15 +140,17 @@ of the object should _not_ be updated."
                                 (loop for body in (rigid-bodies obj)
                                       collecting (make-collision-information
                                                   :rigid-body-name (name body)
-                                                  :collision-group (collision-group body)
-                                                  :collision-mask (collision-mask body))
+                                                  :group (collision-group body)
+                                                  :mask (collision-mask body)
+                                                  :flags (collision-flags body))
                                       with robot-reference-body = (rigid-body
                                                                    robot-object
                                                                    (slot-value robot-object 'pose-reference-body))
                                       with robot-collision-group = (collision-group robot-reference-body)
                                       with robot-collision-mask = (collision-mask robot-reference-body)
                                       do (setf (collision-group body) robot-collision-group)
-                                         (setf (collision-mask body) robot-collision-mask))))
+                                         (setf (collision-mask body) robot-collision-mask)
+                                         (setf (collision-flags body) :cf-static-object))))
                      attached-objects)))))))
 
 (defgeneric detach-object (robot-object obj &optional link)
@@ -165,9 +165,11 @@ of the object should _not_ be updated."
                                        collision-data))
                    do
                       (setf (collision-group body)
-                            (collision-information-collision-group collision-data))
+                            (collision-information-group collision-data))
                       (setf (collision-mask body)
-                            (collision-information-collision-mask collision-data)))))
+                            (collision-information-mask collision-data))
+                      (setf (collision-flags body)
+                            (collision-information-flags collision-data)))))
       (with-slots (attached-objects) robot-object
         (let ((attachment (assoc obj attached-objects)))
           (cond (link
