@@ -51,6 +51,7 @@
 (defgeneric aabb (body))
 (defgeneric (setf collision-group) (new-value body))
 (defgeneric (setf collision-mask) (new-value body))
+(defgeneric (setf mass) (new-value body))
 
 (defclass rigid-body (foreign-class)
   ((name :reader name :initarg :name :initform (gensym "RIGID-BODY-"))
@@ -149,3 +150,8 @@
   (with-slots (collision-group collision-mask) body
     (setf collision-mask new-value)
     (set-collision-filter (foreign-obj body) collision-group new-value)))
+
+(defmethod (setf mass) (new-value (body rigid-body))
+  (with-slots (mass) body
+    (setf mass new-value)
+    (set-mass-props (foreign-obj body) (float new-value 0.0d0))))
