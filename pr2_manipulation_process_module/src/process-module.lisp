@@ -206,7 +206,7 @@ lift the grasped object at the `distance' from the supporting plane."
          (lifted-pose-ik (get-ik side lifted-pose)))
     (unless lifted-pose-ik
       (error 'manipulation-pose-unreachable
-             :format-control "Lifted pose " 'side "unreachable !"))
+             :format-control "Lifted pose for " side " arm unreachable !"))
     (ik->trajectory (lazy-car lifted-pose-ik))))
 
 (defun lift-grasped-object-with-one-arm (side distance)
@@ -797,6 +797,25 @@ by `planners' until one succeeds."
         (- distance) 0.0 0.0)
        (cl-transforms:make-identity-rotation))))))
 
+(defun tool-goal-pose->wrist-goal-pose (tool-goal-pose)
+  "Returns the goal pose for the wrist of the robot arm so that the
+  goal pose for the robot tool is reached. We need the goal pose for
+  the robot wrist because IK solver assumes that the pose for which we
+  want the solution is relative to the last arm joint which is the
+  wrist in our case."
+  (let ((tool-goal-pose-transform (cl-transforms:pose->transform tool-goal-pose)))
+    (cl-tf:wait-for-transform
+     *tf*
+     :timeout 1.0
+     :time (tf:stamp tool-goal-pose)
+     :source-frame (tf:frame-id tool-goal-pose)
+     :target-frame "base_footprint")
+    (cl-transforms:transform-pose
+     tool-goal-pose-transform
+     (cl-transforms:make-transform
+      (cl-transforms:make-3d-vector -0.20 0.0 0.0)
+      (cl-transforms:make-identity-rotation)))))
+
 (defun close-drawer (pose side &optional (distance *grasp-distance*))
   "Generates and executes a push trajectory for the `side' arm in order to close
    the drawer whose handle is at `pose'. The generated poses of the push trajectory
@@ -819,7 +838,7 @@ by `planners' until one succeeds."
                                            -0.25 0.0 0.0)
                                           (cl-transforms:make-identity-rotation))))
                                  :target-frame "base_footprint"))
-         (grasp-pose
+         (grasp-pose ;; (tool-goal-pose->wrist-goal-pose pose)
            (cl-tf:transform-pose *tf*
                                  :pose (tf:pose->pose-stamped
                                         (tf:frame-id pose) (tf:stamp pose)
