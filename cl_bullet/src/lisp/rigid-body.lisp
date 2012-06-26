@@ -141,7 +141,11 @@
      :dimensions (cl-transforms:v- max min))))
 
 (defmethod (setf collision-group) (new-value (body rigid-body))
-  (set-collision-filter (foreign-obj body) new-value (collision-mask body)))
+  (with-slots (collision-group collision-mask) body
+    (setf collision-group new-value)
+    (set-collision-filter (foreign-obj body) new-value collision-mask)))
 
 (defmethod (setf collision-mask) (new-value (body rigid-body))
-  (set-collision-filter (foreign-obj body) (collision-group body) new-value))
+  (with-slots (collision-group collision-mask) body
+    (setf collision-mask new-value)
+    (set-collision-filter (foreign-obj body) collision-group new-value)))
