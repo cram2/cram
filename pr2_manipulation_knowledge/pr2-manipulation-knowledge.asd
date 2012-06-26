@@ -31,6 +31,7 @@
   :license "BSD"
   
   :depends-on (cram-plan-knowledge
+               cram-manipulation-knowledge
                cram-reasoning
                cl-semantic-map-utils
                perception-process-module)
