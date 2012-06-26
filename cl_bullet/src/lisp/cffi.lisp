@@ -244,8 +244,8 @@
 
 (defcfun ("setCollisionFilter" set-collision-filter) :void
   (body-handle :pointer)
-  (group :int)
-  (mask :int))
+  (group collision-filters)
+  (mask collision-filters))
 
 ;;; motion_state.cpp
 
