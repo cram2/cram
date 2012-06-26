@@ -6,6 +6,8 @@
 
 (defvar *background-color* (list (/ 206 255) (/ 210 255) (/ 237 255) 0))
 
+(glut:init)
+
 (defclass bullet-world-window (glut:window bullet-world-gl-context event-queue)
   ((frame-rate :initform 25 :initarg :frame-rate :reader frame-rate
                :documentation "The desired frame rate in Hz. The

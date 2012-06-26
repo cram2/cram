@@ -31,5 +31,6 @@
 (in-package :bt-vis)
 
 (defmethod draw ((context gl-context) (world bt-world))
-  (dolist (body (bodies world))
-    (draw context body)))
+  (with-world-locked world
+    (dolist (body (bodies world))
+      (draw context body))))

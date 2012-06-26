@@ -87,57 +87,58 @@
    (frame-in-2 :initarg :frame-in-2 :reader frame-in-2)))
 
 (defmethod get-state ((world bt-world))
-  (make-instance 'world-state
-                 :bodies (mapcar #'get-state (bodies world))
-                 :constraints (mapcar #'get-state (constraints world))
-                 :gravity-vector (gravity-vector world)
-                 :debug-drawer (get-debug-drawer world)))
+  (with-world-locked world
+    (make-instance 'world-state
+      :bodies (mapcar #'get-state (bodies world))
+      :constraints (mapcar #'get-state (constraints world))
+      :gravity-vector (gravity-vector world)
+      :debug-drawer (get-debug-drawer world))))
 
 (defmethod get-state ((body rigid-body))
   (make-instance 'rigid-body-state
-                 :name (name body)
-                 :mass (mass body)
-                 :pose (pose body)
-                 :force (total-force body)
-                 :torque (total-torque body)
-                 :linear-velocity (linear-velocity body)
-                 :angular-velocity (angular-velocity body)
-                 :activation-state (activation-state body)
-                 :collision-flags (collision-flags body)
-                 :collision-shape (get-state (collision-shape body))
-                 :collision-group (collision-group body)
-                 :collision-mask (collision-mask body)))
+    :name (name body)
+    :mass (mass body)
+    :pose (pose body)
+    :force (total-force body)
+    :torque (total-torque body)
+    :linear-velocity (linear-velocity body)
+    :angular-velocity (angular-velocity body)
+    :activation-state (activation-state body)
+    :collision-flags (collision-flags body)
+    :collision-shape (get-state (collision-shape body))
+    :collision-group (collision-group body)
+    :collision-mask (collision-mask body)))
 
 (defmethod get-state ((constraint point-2-point-constraint))
   (make-instance 'point-2-point-constraint-state
-                 :body-1 (name (body-1 constraint))
-                 :body-2 (name (body-2 constraint))
-                 :point-in-1 (point-in-1 constraint)
-                 :point-in-2 (point-in-2 constraint)))
+    :body-1 (name (body-1 constraint))
+    :body-2 (name (body-2 constraint))
+    :point-in-1 (point-in-1 constraint)
+    :point-in-2 (point-in-2 constraint)))
 
 (defmethod get-state ((constraint hinge-constraint))
   (make-instance 'hinge-constraint-state
-                 :body-1 (name (body-1 constraint))
-                 :body-2 (name (body-2 constraint))
-                 :frame-in-1 (frame-in-1 constraint)
-                 :frame-in-2 (frame-in-2 constraint)
-                 :enabled (enabled constraint)
-                 :limits `((:lower . ,(limit constraint :lower))
-                           (:upper . ,(limit constraint :upper)))
-                 :max-impulse (max-impulse constraint)))
+    :body-1 (name (body-1 constraint))
+    :body-2 (name (body-2 constraint))
+    :frame-in-1 (frame-in-1 constraint)
+    :frame-in-2 (frame-in-2 constraint)
+    :enabled (enabled constraint)
+    :limits `((:lower . ,(limit constraint :lower))
+              (:upper . ,(limit constraint :upper)))
+    :max-impulse (max-impulse constraint)))
 
 (defmethod get-state ((constraint slider-constraint))
   (make-instance 'hinge-constraint-state
-                 :body-1 (name (body-1 constraint))
-                 :body-2 (name (body-2 constraint))
-                 :frame-in-1 (frame-in-1 constraint)
-                 :frame-in-2 (frame-in-2 constraint)
-                 :enabled (enabled constraint)
-                 :limits `((:lower-lin . ,(limit constraint :lower-lin))
-                           (:upper-lin . ,(limit constraint :upper-lin))
-                           (:lower-ang . ,(limit constraint :lower-ang))
-                           (:upper-ang . ,(limit constraint :upper-ang)))
-                 :max-impulse (max-impulse constraint)))
+    :body-1 (name (body-1 constraint))
+    :body-2 (name (body-2 constraint))
+    :frame-in-1 (frame-in-1 constraint)
+    :frame-in-2 (frame-in-2 constraint)
+    :enabled (enabled constraint)
+    :limits `((:lower-lin . ,(limit constraint :lower-lin))
+              (:upper-lin . ,(limit constraint :upper-lin))
+              (:lower-ang . ,(limit constraint :lower-ang))
+              (:upper-ang . ,(limit constraint :upper-ang)))
+    :max-impulse (max-impulse constraint)))
 
 (defmethod get-state ((shape collision-shape))
   "We don't need to store the collision shape since it is not changed
@@ -188,15 +189,15 @@ world."
                collision-mask)
       body
     (let ((body
-           (make-instance 'rigid-body
-                          :name name
-                          :pose pose
-                          :mass mass
-                          :collision-shape collision-shape
-                          :activation-state activation-state
-                          :collision-flags collision-flags
-                          :group collision-group
-                          :mask collision-mask)))
+            (make-instance 'rigid-body
+              :name name
+              :pose pose
+              :mass mass
+              :collision-shape collision-shape
+              :activation-state activation-state
+              :collision-flags collision-flags
+              :group collision-group
+              :mask collision-mask)))
       (add-rigid-body world body)
       (clear-forces body)
       (apply-central-force body force)
@@ -208,10 +209,10 @@ world."
 (defmethod restore-state ((constraint point-2-point-constraint-state) (world bt-world))
   (with-slots (body-1 body-2 point-in-1 point-in-2) constraint
     (let ((constraint (make-instance 'point-2-point-constraint
-                                     :body-1 (find body-1 (bodies world) :key #'name)
-                                     :body-1 (find body-2 (bodies world) :key #'name)
-                                     :point-in-1 point-in-1
-                                     :point-in-2 point-in-2)))
+                        :body-1 (find body-1 (bodies world) :key #'name)
+                        :body-1 (find body-2 (bodies world) :key #'name)
+                        :point-in-1 point-in-1
+                        :point-in-2 point-in-2)))
       (add-constraint world constraint)
       constraint)))
 
@@ -222,10 +223,10 @@ world."
                frame-in-1 frame-in-2)
       state
     (let ((constraint (make-instance class
-                                     :body-1 (find body-1 (bodies world) :key #'name)
-                                     :body-2 (find body-2 (bodies world) :key #'name)
-                                     :frame-in-1 frame-in-1
-                                     :frame-in-2 frame-in-2)))
+                        :body-1 (find body-1 (bodies world) :key #'name)
+                        :body-2 (find body-2 (bodies world) :key #'name)
+                        :frame-in-1 frame-in-1
+                        :frame-in-2 frame-in-2)))
       (setf (enabled constraint) enabled)
       (loop for (lim-type . lim-value) in limits do
         (setf (limit constraint lim-type) lim-value))
