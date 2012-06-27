@@ -30,6 +30,7 @@
 (in-package :designators-ros)
 
 (defparameter *fixed-frame* "map")
+(defparameter *robot-base-frame* "base_footprint")
 
 ;;; We need to place these methods here because in the designator
 ;;; package, we don't have a notion of poses, just more or less
