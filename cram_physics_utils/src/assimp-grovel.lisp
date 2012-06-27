@@ -28,11 +28,11 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(include "assimp/assimp.h")
-(include "assimp/aiMesh.h")
-(include "assimp/aiScene.h")
-(include "assimp/aiMaterial.h")
-(include "assimp/aiPostProcess.h")
+(include "assimp/types.h")
+(include "assimp/mesh.h")
+(include "assimp/scene.h")
+(include "assimp/material.h")
+(include "assimp/postprocess.h")
 
 (in-package :physics-utils)
 
