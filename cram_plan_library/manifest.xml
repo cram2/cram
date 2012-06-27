@@ -17,6 +17,6 @@
   <depend package="cram_plan_knowledge" />
   <depend package="cram_plan_failures" />
   <depend package="alexandria" />
-  <depend package="designagors_ros" />
+  <depend package="designators_ros" />
 
 </package>
