@@ -39,6 +39,7 @@
                cram-roslisp-common
                cram-plan-knowledge
                cram-plan-failures
+               designators-ros
                alexandria)
   :components
   ((:module "src"

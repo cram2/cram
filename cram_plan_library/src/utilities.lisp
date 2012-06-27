@@ -40,8 +40,8 @@
   (let ((loc-1 (reference goal))
         (current-loc (cl-tf:lookup-transform
                       *tf*
-                      :target-frame "/map"
-                      :source-frame "/base_link")))
+                      :target-frame designators-ros:*fixed-frame*
+                      :source-frame designators-ros:*robot-base-frame*)))
     (cl-transforms:v-dist (cl-transforms:origin loc-1)
                           (cl-transforms:translation current-loc))))
 

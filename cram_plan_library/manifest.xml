@@ -6,18 +6,17 @@
   </description>
   <author>Lorenz Moesenlechner</author>
   <license>BSD</license>
-  <review status="unreviewed" notes=""/>
+  <review status="unreviewed" notes="" />
   <url>http://ros.org/wiki/cram_plan_library</url>
-  <depend package="cram_language"/>
-  <depend package="cram_utilities"/>
-  <depend package="cram_process_modules"/>
-  <depend package="cram_reasoning"/>
-  <depend package="cram_designators"/>
-  <depend package="cram_roslisp_common"/>
-  <depend package="cram_plan_knowledge"/>
-  <depend package="cram_plan_failures"/>
-  <depend package="alexandria"/>
+  <depend package="cram_language" />
+  <depend package="cram_utilities" />
+  <depend package="cram_process_modules" />
+  <depend package="cram_reasoning" />
+  <depend package="cram_designators" />
+  <depend package="cram_roslisp_common" />
+  <depend package="cram_plan_knowledge" />
+  <depend package="cram_plan_failures" />
+  <depend package="alexandria" />
+  <depend package="designagors_ros" />
 
 </package>
-
-
