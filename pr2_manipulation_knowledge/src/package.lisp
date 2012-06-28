@@ -33,4 +33,4 @@
         #:crs #:desig)
   (:export)
   (:desig-properties to grasp obj side put-down at open close handle
-                     in gripper pose z-offset lift distance))
+                     in gripper pose z-offset lift distance name))

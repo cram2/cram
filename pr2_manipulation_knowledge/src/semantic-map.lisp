@@ -74,7 +74,11 @@
   (<- (trajectory-point ?designator ?point ?side)
     (handle-manipulation-designator ?designator)
     (desig-prop ?designator (handle ?handle))
-    (desig-prop ?designator (side ?side))
+    (-> (desig-prop ?desig (side ?side))
+        (available-arms ?object (?side))
+        (once
+         (available-arms ?handle ?sides)
+         (member ?side ?sides)))
     (desig-prop ?handle (name ?handle-name))
     (-> (desig-prop ?designator (to open))
         (member ?joint-pose (0.0 1.0))
