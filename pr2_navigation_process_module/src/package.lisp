@@ -37,5 +37,5 @@
         #:cram-process-modules
         #:cram-roslisp-common
         #:cram-plan-failures)
-  (:export #:pr2-navigation-process-module #:*navigation-endabled*)
+  (:export #:pr2-navigation-process-module #:*navigation-enabled*)
   (:desig-properties #:type #:navigation #:goal))
