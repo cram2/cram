@@ -131,6 +131,9 @@
 
   (<- (object-type-grasp pot :side (:left :right)))
 
+  (<- (object-type-grasp handle :front ?side)
+    (side ?side))
+
   (<- (object-designator-grasp ?object-designator ?grasp ?sides)
     (lisp-fun desig:current-desig ?object-designator ?current-object-designator)
     (desig:desig-prop ?current-object-designator (type ?object-type))
