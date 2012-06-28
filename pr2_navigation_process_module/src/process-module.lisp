@@ -29,7 +29,7 @@
 
 (in-package :pr2-navigation-process-module)
 
-(defparameter *navigation-endabled* t)
+(defparameter *navigation-enabled* t)
 
 (defvar *move-base-client* nil)
 (defvar *navp-client* nil)
@@ -131,7 +131,7 @@
                   :location desig)))))
 
 (def-process-module pr2-navigation-process-module (goal)
-  (when *navigation-endabled*
+  (when *navigation-enabled*
     (unwind-protect
          (progn
            (roslisp:ros-info (pr2-nav process-module)

@@ -39,7 +39,7 @@
     (:left :right)))
 
 (def-top-level-plan pick-and-place-on-table ()
-  (let ((navigation-enabled pr2-navigation-process-module:*navigation-endabled*)
+  (let ((navigation-enabled pr2-navigation-process-module:*navigation-enabled*)
         (cntr 0)
         (side (chose-side)))
     (unwind-protect
@@ -47,7 +47,7 @@
                             (obj (object `((type cluster) (at ,table))))
                             (put-down-location (location `((on counter-top) (name kitchen-island)
                                                            (for ,obj)))))
-           (setf pr2-navigation-process-module:*navigation-endabled* nil)
+           (setf pr2-navigation-process-module:*navigation-enabled* nil)
            (par
              (achieve `(arm-parked :left))
              (achieve `(arm-parked :right)))
@@ -87,4 +87,4 @@
              (when *pose-pub*
                (roslisp:publish *pose-pub* (tf:pose-stamped->msg (reference put-down-location))))
              (achieve `(object-placed-at ,obj ,put-down-location))))
-      (setf pr2-navigation-process-module:*navigation-endabled* navigation-enabled))))
+      (setf pr2-navigation-process-module:*navigation-enabled* navigation-enabled))))
