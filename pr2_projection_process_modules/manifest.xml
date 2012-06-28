@@ -8,6 +8,7 @@
   <license>BSD</license>
   <review status="unreviewed" notes="" />
   <url>http://ros.org/wiki/pr2_projection_cram_process_modules</url>
+  <depend package="alexandria" />
   <depend package="cram_process_modules" />
   <depend package="cram_roslisp_common" />
   <depend package="bullet_reasoning" />
@@ -19,5 +20,6 @@
   <depend package="cram_projection" />
   <depend package="pr2_manipulation_knowledge" />
   <depend package="cram_roslisp_common" />
+  <depend package="cl_semantic_map_utils" />
 
 </package>

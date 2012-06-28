@@ -59,41 +59,60 @@
     (setf (slot-value designator 'desig:valid) t)
     designator))
 
+(defun find-object (designator)
+  "Finds objects with (optional) name `object-name' and type `type'
+  and returns a list of elements of the form \(name pose\)."
+  (let ((object-name (when (slot-value designator 'desig:data)
+                       (desig:object-identifier (desig:reference designator))))
+        (type (or (desig:desig-prop-value designator 'desig-props:type)
+                  '?_)))
+    (flet ((find-household-object ()
+             (cut:force-ll
+              (cut:lazy-mapcar
+               (lambda (solution)
+                 (cut:with-vars-strictly-bound (?object ?pose) solution
+                   (list ?object ?pose)))
+               (crs:prolog `(and (robot ?robot)
+                                 (bullet-world ?world)
+                                 ,@(when object-name
+                                     `((crs:== ?object ,object-name)))
+                                 (object ?world ?object)
+                                 (household-object-type ?world ?object ,type)
+                                 (visible ?world ?robot ?object)
+                                 (pose ?world ?object ?pose))))))
+           (find-handle ()
+             (mapcar (lambda (semantic-map-object)
+                       (list
+                        (sem-map-utils:name semantic-map-object)
+                        (sem-map-utils:pose semantic-map-object)))
+                     (sem-map-utils:designator->semantic-map-objects designator))))
+      (case type
+        (desig-props:handle (find-handle))
+        (t (find-household-object))))))
+
 (defun find-with-bound-designator (designator)
-  (let ((object (desig:object-identifier (desig:reference designator))))
+  (flet ((make-designator (object pose)
+           (make-object-designator
+            (make-instance 'perceived-object
+              :object-identifier object
+              :pose pose)
+            :parent designator)))
     (cut:force-ll
-     (cut:lazy-mapcar (lambda (bdg)
-                        (cram-utilities:with-vars-bound (?pose) bdg
-                          (assert (not (cut:is-var ?pose)))
-                          (make-object-designator
-                           (make-instance 'perceived-object
-                             :object-identifier object
-                             :pose ?pose)
-                           :parent designator)))
-                      (crs:prolog `(and (robot ?robot)
-                                        (bullet-world ?world)
-                                        (object ?world ,object)
-                                        (visible ?world ?robot ,object)
-                                        (pose ?world ,object ?pose)))))))
+     (cut:lazy-mapcar
+      (alexandria:curry #'apply #'make-designator) (find-object designator)))))
 
 (defun find-with-new-designator (designator)
   (desig:with-desig-props (desig-props:type) designator
-    (when desig-props:type
-      (cut:force-ll
-       (cut:lazy-mapcar (lambda (bdg)
-                          (cut:with-vars-bound (?object ?pose) bdg
-                            (assert (not (or (cut:is-var ?object) (cut:is-var ?pose))))
-                            (make-object-designator
-                             (make-instance 'perceived-object
-                               :object-identifier ?object
-                               :pose ?pose)
-                             :type desig-props:type)))
-                        (crs:prolog `(and
-                                      (robot ?robot)
-                                      (object ?_ ?object)
-                                      (household-object-type ?_ ?object ,desig-props:type)
-                                      (visible ?_ ?robot ?object)
-                                      (pose ?_ ?object ?pose))))))))
+    (flet ((make-designator (object pose)
+             (make-object-designator
+              (make-instance 'perceived-object
+                :object-identifier object
+                :pose pose)
+              :type desig-props:type)))
+      (when desig-props:type
+        (cut:force-ll
+         (cut:lazy-mapcar
+          (alexandria:curry #'apply #'make-designator) (find-object designator)))))))
 
 (def-process-module projection-perception (input)
   (let ((newest-valid-designator (desig:newest-valid-designator input)))
