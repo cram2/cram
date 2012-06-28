@@ -89,13 +89,18 @@
                    (member ?ik-solution ?ik-solutions)
                    (assert (joint-state ?world ?robot ?ik-solution))))))))
 
-(defun execute-container-opened (object sides)
-  (declare (ignore object sides))
-  nil)
+(defun execute-container-opened (action-designator object-designator distance)
+  (execute-action-trajectory-points action-designator)
+  (cram-plan-knowledge:on-event
+   (make-instance 'cram-plan-knowledge:object-articulation-event
+     :object-designator object-designator
+     :opening-distance distance)))
 
-(defun execute-container-closed (object sides)
-  (declare (ignore object sides))
-  nil)
+(defun execute-container-closed (action-designator object-designator)
+  (execute-action-trajectory-points action-designator)
+  (cram-plan-knowledge:on-event
+   (make-instance 'cram-plan-knowledge:object-articulation-event
+     :object-designator object-designator :opening-distance 0.0)))
 
 (defun carry-with-both-hands (object)
   (declare (ignore object))
