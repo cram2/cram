@@ -81,10 +81,10 @@
 
 (defmethod cram-plan-knowledge:on-event
     ((event cram-plan-knowledge:object-articulation-event))
-  (with-slots (object-designator opening-distance) event
-    (let ((perceived-object (newest-valid-designator (reference object-designator))))
-      (declare (type perception-pm:semantic-map-perceived-object
-                     perceived-object))
+  (with-slots (cram-plan-knowledge:object-designator
+               cram-plan-knowledge:opening-distance) event
+    (let ((perceived-object (reference (newest-valid-designator
+                                        cram-plan-knowledge:object-designator))))
       (sem-map-utils:update-articulated-object-poses
        (get-semantic-map) (object-identifier perceived-object)
-       opening-distance))))
+       cram-plan-knowledge:opening-distance))))
