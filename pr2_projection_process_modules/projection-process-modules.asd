@@ -30,7 +30,8 @@
   :author "Lorenz Moesenlechner"
   :license "BSD"
   
-  :depends-on (process-modules
+  :depends-on (alexandria
+               process-modules
                designators
                bullet-reasoning
                bullet-reasoning-designators
@@ -38,7 +39,8 @@
                cram-projection
                cram-roslisp-common
                cram-manipulation-knowledge
-               pr2-manipulation-knowledge)
+               pr2-manipulation-knowledge
+               cl-semantic-map-utils)
   :components
   ((:module "src"
     :components
