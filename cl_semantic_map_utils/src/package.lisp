@@ -41,5 +41,5 @@
            aliases urdf-name->obj-name owl-type-p parent
            designator->semantic-map-objects get-connecting-joint
            get-articulated-position get-top-level-object
-           update-articulated-object-poses)
+           update-articulated-object-poses get-connecting-joint-limits)
   (:desig-properties name type part-of on in))
