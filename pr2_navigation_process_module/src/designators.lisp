@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2012, Jan Winkler <winkler@informatik.uni-bremen.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,25 +27,10 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :cl-user)
+(in-package :pr2-nav-pm)
 
-(desig-props:def-desig-package pr2-manipulation-process-module
-    (:nicknames :pr2-manip-pm)
-  (:use #:common-lisp
-        #:crs
-        #:cut
-        #:desig
-        #:designators-ros
-        #:cram-roslisp-common
-        #:cram-process-modules
-        #:cram-plan-failures
-        #:cram-plan-knowledge
-        #:perception-pm)
-  (:import-from alexandria ignore-some-conditions)
-  (:export
-   pr2-manipulation-process-module)
-  (:desig-properties #:trajectory #:type #:to #:open #:obj #:side #:close
-                     #:grasp #:put-down #:pose #:parked #:lift
-                     #:carry #:at #:orientation #:in #:gripper #:both-grippers
-                     #:height #:distance #:obstacle #:handle #:name
-                     #:goal #:navigation))
+(def-fact-group pr2-navigation-designators (action-desig)
+  
+    (<- (action-desig ?desig ?goal-location)
+      (desig-prop ?desig (type navigation))
+      (desig-prop ?desig (goal ?goal-location))))
