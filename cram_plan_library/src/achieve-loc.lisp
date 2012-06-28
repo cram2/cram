@@ -38,7 +38,8 @@
               (distance-to-drive ?loc))
     (achieve `(looking-at :forward))
     (achieve '(arms-parked)))
-  (pm-execute :navigation ?loc))
+  (with-designators ((navigation-action (action `((type navigation) (goal ,?loc)))))
+    (pm-execute :navigation navigation-action)))
 
 (def-goal (achieve (loc ?obj ?loc))
   (ros-info (achieve plan-lib) "(achieve (loc ?obj ?loc)")
