@@ -131,7 +131,7 @@
 
   (<- (object-type-grasp pot :side (:left :right)))
 
-  (<- (object-type-grasp handle :front ?side)
+  (<- (object-type-grasp handle :front (?side))
     (side ?side))
 
   (<- (object-designator-grasp ?object-designator ?grasp ?sides)
