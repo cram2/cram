@@ -32,42 +32,52 @@
   "Returns the connecting joint of the part with name `part-name'."
   (when part
     (or (find-if (lambda (part)
-                   (typep part 'sem-map-utils:semantic-map-joint))
-                 (sem-map-utils:sub-parts part))
-        (get-connecting-joint (sem-map-utils:parent part)))))
+                   (typep part 'semantic-map-joint))
+                 (sub-parts part))
+        (get-connecting-joint (parent part)))))
 
 (defun get-articulated-position (semantic-map part-name joint-position &key relative)
   "Returns the pose of `part' based on its connecting joint position
   `joint-position'. If `relative' is T, the actual value is calculated
   by `joint-position' * <joint maximal value>."
-  (let ((part (sem-map-utils:semantic-map-part
+  (let ((part (semantic-map-part
                semantic-map part-name :recursive t)))
-    (when part
+    (when (and part (typep part 'semantic-map-geom))
       (let ((joint (get-connecting-joint part)))
         (when joint
           (cl-transforms:transform->pose
            (cl-transforms:transform*
-            (cl-transforms:pose->transform (sem-map-utils:pose part))
+            (cl-transforms:pose->transform (pose part))
             (cl-transforms:make-transform
              (cl-transforms:v*
-              (sem-map-utils:joint-direction joint)
+              (joint-direction joint)
               (if relative
                   (* joint-position
-                     (sem-map-utils:joint-maximal-value joint))
+                     (joint-maximal-value joint))
                   joint-position))
              (cl-transforms:make-identity-rotation)))))))))
+
+(defun get-connecting-joint-limits (semantic-map part-name)
+  "Returns the limits of the connecting joints as a list. The first
+element is the minimal joint limit, the second the maximal limit."
+  (let ((part (semantic-map-part
+               semantic-map part-name :recursive t)))
+    (when part
+      (let ((joint (get-connecting-joint part)))
+        (list (joint-minimal-value joint)
+              (joint-maximal-value joint))))))
 
 (defun update-articulated-object-poses (semantic-map part-name joint-position &key relative)
   "Updates all object poses that belong to the articulated object
 `part-name' is part of according to the joint values specified "
-  (let ((articulated-object (sem-map-utils:get-top-level-object
-                             (sem-map-utils:semantic-map-part
+  (let ((articulated-object (get-top-level-object
+                             (semantic-map-part
                               semantic-map part-name :recursive t))))
     (when articulated-object
       (mapcar (lambda (sub-object)
-                (sem-map-utils:update-pose
-                 sub-object (sem-map-utils:get-articulated-position
-                             (get-semantic-map) (sem-map-utils:name sub-object)
+                (update-pose
+                 sub-object (get-articulated-position
+                             (get-semantic-map) (name sub-object)
                              joint-position :relative relative)
                  :recursive t))
-              (sem-map-utils:sub-parts articulated-object)))))
+              (sub-parts articulated-object)))))
