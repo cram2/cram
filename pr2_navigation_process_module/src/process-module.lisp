@@ -136,7 +136,7 @@
          (progn
            (roslisp:ros-info (pr2-nav process-module)
                              "Using nav-pcontroller.")
-           (call-nav-action *navp-client* goal))
+           (call-nav-action *navp-client* (reference goal)))
       ;; (cond ((use-navp? (reference goal))
       ;;        (roslisp:ros-info (pr2-nav process-module)
       ;;                          "Using nav-pcontroller.")

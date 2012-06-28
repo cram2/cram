@@ -47,4 +47,5 @@
   (:desig-properties #:trajectory #:type #:to #:open #:obj #:side #:close
                      #:grasp #:put-down #:pose #:parked #:lift
                      #:carry #:at #:orientation #:in #:gripper #:both-grippers
-                     #:height #:distance #:obstacle #:handle #:name))
+                     #:height #:distance #:obstacle #:handle #:name
+                     #:goal #:navigation))
