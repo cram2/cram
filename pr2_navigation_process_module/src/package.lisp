@@ -29,11 +29,13 @@
 
 (in-package :cl-user)
 
-(defpackage pr2-navigation-process-module
+(desig-props:def-desig-package pr2-navigation-process-module
+  (:nicknames :pr2-nav-pm)
   (:use #:common-lisp
         #:cram-reasoning
         #:cram-designators
         #:cram-process-modules
         #:cram-roslisp-common
         #:cram-plan-failures)
-  (:export #:pr2-navigation-process-module #:*navigation-endabled*))
+  (:export #:pr2-navigation-process-module #:*navigation-endabled*)
+  (:desig-properties #:type #:navigation #:goal))
