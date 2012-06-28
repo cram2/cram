@@ -97,4 +97,8 @@
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to put-down))
     (desig-prop ?desig (obj ?obj))
-    (desig-prop ?desig (at ?_))))
+    (desig-prop ?desig (at ?_)))
+
+  (<- (action-desig ?desig ?goal-location)
+    (desig-prop ?desig (type navigation))
+    (desig-prop ?desig (goal ?goal-location))))
