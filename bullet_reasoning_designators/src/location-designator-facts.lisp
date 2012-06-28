@@ -120,6 +120,7 @@
         ;; though.
         (desig-prop ?handle (name ?handle-name)))
     (semantic-map ?world ?semantic-map)
+    (assert (object-pose ?world ?robot ?robot-pose))
     (with-stored-world ?world
       (btr:execute ?world (btr:open ?semantic-map ?handle-name))
       (not (contact ?world ?robot ?semantic-map))))
