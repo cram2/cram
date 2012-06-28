@@ -35,4 +35,4 @@
                  object-designator-grasp object-type-tool-length
                  object-designator-tool-length end-effector-link)
   (:import-from #:cram-designators desig-prop)
-  (:desig-properties type))
+  (:desig-properties type handle))
