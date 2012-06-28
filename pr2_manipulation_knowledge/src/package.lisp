@@ -31,6 +31,6 @@
 (desig-props:def-desig-package pr2-manipulation-knowledge
   (:use #:common-lisp #:cram-plan-knowledge #:cram-manipulation-knowledge
         #:crs #:desig)
-  (:export)
+  (:export get-semantic-map)
   (:desig-properties to grasp obj side put-down at open close handle
                      in gripper pose z-offset lift distance name))

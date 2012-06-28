@@ -36,13 +36,10 @@
 
 (defmethod on-event manipulation-articulation-event ((event object-articulation-event))
   (with-slots (object-designator opening-distance) event
-    (let ((perceived-object (reference object-designator)))
-      (declare (type perception-pm:semantic-map-perceived-object
-                     perceived-object))
+    (let ((perceived-object (reference (newest-valid-designator object-designator))))
       (sem-map-utils:update-articulated-object-poses
        (get-semantic-map)
-       (sem-map-utils:name (perception-pm:semantic-map-object perceived-object))
-       opening-distance))))
+       (object-identifier perceived-object) opening-distance))))
 
 (defun get-articulated-gripper-position (part-name relative-joint-position)
   "Gets the position of the gripper to reach `part-name'. Uses its
