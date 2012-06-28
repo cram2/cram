@@ -42,7 +42,7 @@
   (cl-transforms:v-dist (cl-transforms:origin (desig:designator-pose designator-1))
                         (cl-transforms:origin (desig:designator-pose designator-2))))
 
-(defun make-object-designator (perceived-object &key parent type)
+(defun make-object-designator (perceived-object &key parent type name)
   (let* ((pose (desig:object-pose perceived-object))
          (designator (change-class
                       (desig:make-designator
@@ -50,7 +50,8 @@
                        (desig:update-designator-properties
                         `(,@(when type `((desig-props:type ,type)))
                             (desig-props:at ,(desig:make-designator
-                                              'desig:location `((desig-props:pose ,pose)))))
+                                              'desig:location `((desig-props:pose ,pose))))
+                            ,@(when name `((desig-props:name ,name))))
                         (when parent (desig:properties parent)))
                        parent)
                       'projection-object-designator)))
@@ -96,6 +97,7 @@
             (make-instance 'perceived-object
               :object-identifier object
               :pose pose)
+            :name object
             :parent designator)))
     (cut:force-ll
      (cut:lazy-mapcar
@@ -108,7 +110,8 @@
               (make-instance 'perceived-object
                 :object-identifier object
                 :pose pose)
-              :type desig-props:type)))
+              :type desig-props:type
+              :name object)))
       (when desig-props:type
         (cut:force-ll
          (cut:lazy-mapcar
