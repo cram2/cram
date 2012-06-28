@@ -35,6 +35,13 @@
                          (list ?solution))))
                    (crs:prolog `(action-desig-projection ,designator ?solution))))
 
+;;; TODO(moesenle): Fix this by using some kind of knowledge instead
+;;; of using the maximal value.
+(defun get-opening-distance (part-name)
+  (second
+   (sem-map-utils:get-connecting-joint-limits
+    (pr2-manipulation-knowledge:get-semantic-map) part-name)))
+
 (def-fact-group ptu-designators (action-desig-projection)
 
   (<- (action-desig-projection ?desig ?pose)
@@ -51,16 +58,19 @@
 
 (def-fact-group action-designators (action-desig-projection)
   
-  (<- (action-desig-projection ?desig (execute-container-opened ?obj ?sides))
+  (<- (action-desig-projection
+       ?desig (execute-container-opened ?desig ?obj ?distance))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to open))
     (desig-prop ?desig (handle ?obj))
+    (desig-prop ?obj (name ?handle-name))
     (-> (desig-prop ?desig (side ?side))
         (== ?sides (?side))
         (true))
-    (available-arms ?obj ?sides))
+    (available-arms ?obj ?sides)
+    (lisp-fun get-opening-distance ?handle-name ?distance))
 
-  (<- (action-desig-projection ?desig (execute-container-closed ?obj ?side))
+  (<- (action-desig-projection ?desig (execute-container-closed ?desig ?obj))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to close))
     (desig-prop ?desig (handle ?obj))
