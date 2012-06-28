@@ -38,7 +38,8 @@
                  bullet-reasoning
                  bullet-reasoning-designators
                  pr2-manipulation-knowledge
-                 cram-pr2-knowledge)
+                 cram-pr2-knowledge
+                 object-location-designators)
     :components
     ((:module "src"
               :components
