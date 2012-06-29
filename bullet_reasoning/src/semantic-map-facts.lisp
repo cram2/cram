@@ -42,6 +42,7 @@
 
   (<- (semantic-map ?w ?obj)
     (bullet-world ?w)
+    (object ?w ?obj)
     (%object ?w ?obj ?obj-instance)
     (lisp-type ?obj-instance semantic-map-object))
   
