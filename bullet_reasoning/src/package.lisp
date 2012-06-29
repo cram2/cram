@@ -74,7 +74,8 @@
            ros-household-object execute open close reach-ik-solution
            attached attached-objects object-attached attach-object detach-object
            side->ik-namespace household-object-dimensions get-ik
-           make-joint-state-message
+           make-joint-state-message open-object close-object
+           set-articulated-object-joint-position
 
            robot-pan-tilt-links robot-pan-tilt-joints robot
            camera-frame robot-arms-parking-joint-states
