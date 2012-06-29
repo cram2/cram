@@ -62,21 +62,30 @@
        (articulation-joint-objs obj (sem-map-utils:name (sem-map-utils:parent part)))))))
 
 (defun open-object (obj link)
-  (when (typep obj 'semantic-map-object)
-    (let* ((joints (articulation-joint-objs obj link))
-           (joint (car joints)))
+  (set-articulated-object-joint-position obj link :maximal))
+
+(defun close-object (obj link)
+  (set-articulated-object-joint-position obj link :minimal))
+
+(defun set-articulated-object-joint-position (object link opening-distance)
+  "Sets the joint position of the joint that moves `link' to
+`opening-distance'. `opening-distance' can either be a number
+or :MINIMAL or :MAXIMAL."
+  (declare (type string link))
+  (when (typep object 'semantic-map-object)
+    (let* ((joints (articulation-joint-objs object link))
+           (joint (car joints))
+           (opening-distance (case opening-distance
+                               (:minimal
+                                (sem-map-utils:joint-minimal-value joint))
+                               (:maximal
+                                (sem-map-utils:joint-maximal-value joint))
+                               (t opening-distance))))
       (assert (eql (length joints) 1) ()
               "Opening of objects with ~a joints not supported" (length joints))
       (assert (sem-map-utils:urdf-name joint) ()
               "Joint ~a not bound to a urdf joint." (sem-map-utils:name joint))
-      (setf (joint-state obj (sem-map-utils:urdf-name joint))
-            (sem-map-utils:joint-maximal-value joint)))))
-
-(defun close-object (obj link)
-  (when (typep obj 'semantic-map-object)
-    (let* ((joints (articulation-joint-objs obj link))
-           (joint (car joints)))
-      (assert (eql (length joints) 1) ()
-              "Opening of objects with more than one joint not supported")
-      (setf (joint-state obj (sem-map-utils:urdf-name joint))
-            0.0))))
+      (assert (>= opening-distance (sem-map-utils:joint-minimal-value joint)))
+      (assert (<= opening-distance (sem-map-utils:joint-maximal-value joint)))
+      (setf (joint-state object (sem-map-utils:urdf-name joint))
+            opening-distance))))
