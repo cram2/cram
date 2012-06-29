@@ -94,6 +94,23 @@
     *current-bullet-world*
     `(location-change robot))))
 
+(defmethod on-event open-or-close-object ((event object-articulation-event))
+  (with-slots (object-designator opening-distance) event
+    (let ((perceived-object (desig:reference
+                             (desig:newest-valid-designator object-designator)))
+          (semantic-map-object
+            (with-vars-strictly-bound (?semantic-map)
+                (lazy-car
+                 (prolog `(and
+                           (bullet-world ?world)
+                           (semantic-map ?world ?semantic-map-name)
+                           (%object ?world ?semantic-map-name
+                                    ?semantic-map))))
+              ?semantic-map)))
+      (set-articulated-object-joint-position
+       semantic-map-object (desig:object-identifier perceived-object)
+       opening-distance))))
+
 (defun update-object-designator-location (object-designator location-designator)
   (desig:make-designator
    'desig:object
