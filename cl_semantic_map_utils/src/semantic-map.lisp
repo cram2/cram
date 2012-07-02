@@ -52,6 +52,7 @@
 (defclass semantic-map-joint (semantic-map-part)
   ((minimal-value :initarg :minimal-value :reader joint-minimal-value)
    (maximal-value :initarg :maximal-value :reader joint-maximal-value)
+   (position :initarg :position :initform 0.0 :accessor joint-position)
    (connected-objects :initarg :connected-objects :reader joint-connected-objects)))
 
 (defclass semantic-map-prismatic-joint (semantic-map-joint)

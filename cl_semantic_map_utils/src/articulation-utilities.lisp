@@ -39,23 +39,28 @@
 (defun get-articulated-position (semantic-map part-name joint-position &key relative)
   "Returns the pose of `part' based on its connecting joint position
   `joint-position'. If `relative' is T, the actual value is calculated
-  by `joint-position' * <joint maximal value>."
+  by `joint-position' * <joint maximal value>. This method returns two
+  values, the new pose of the object and the joint that was changed."
   (let ((part (semantic-map-part
                semantic-map part-name :recursive t)))
     (when (and part (typep part 'semantic-map-geom))
       (let ((joint (get-connecting-joint part)))
         (when joint
-          (cl-transforms:transform->pose
-           (cl-transforms:transform*
-            (cl-transforms:pose->transform (pose part))
-            (cl-transforms:make-transform
-             (cl-transforms:v*
-              (joint-direction joint)
-              (if relative
-                  (* joint-position
-                     (joint-maximal-value joint))
-                  joint-position))
-             (cl-transforms:make-identity-rotation)))))))))
+          (values
+           (cl-transforms:transform->pose
+            (cl-transforms:transform*
+             (cl-transforms:pose->transform (pose part))
+             (cl-transforms:make-transform
+              (cl-transforms:v*
+               (joint-direction joint)
+               (-
+                (if relative
+                    (* joint-position
+                       (joint-maximal-value joint))
+                    joint-position)
+                (joint-position joint)))
+              (cl-transforms:make-identity-rotation))))
+           joint))))))
 
 (defun get-connecting-joint-limits (semantic-map part-name)
   "Returns the limits of the connecting joints as a list. The first
@@ -75,9 +80,12 @@ element is the minimal joint limit, the second the maximal limit."
                               semantic-map part-name :recursive t))))
     (when articulated-object
       (mapcar (lambda (sub-object)
-                (update-pose
-                 sub-object (get-articulated-position
-                             (get-semantic-map) (name sub-object)
-                             joint-position :relative relative)
-                 :recursive t))
+                (multiple-value-bind
+                      (new-pose joint)
+                    (get-articulated-position
+                     semantic-map (name sub-object) joint-position
+                     :relative relative)
+                  (when new-pose
+                    (update-pose sub-object new-pose :recursive t)
+                    (setf (joint-position joint) joint-position))))
               (sub-parts articulated-object)))))
