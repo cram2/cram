@@ -39,7 +39,8 @@
                cl-json-pl-client
                cl-semantic-map-utils
                location-costmap
-               alexandria)
+               alexandria
+               semantic-map-cache)
   :components
   ((:module "src"
             :components
