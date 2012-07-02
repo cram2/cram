@@ -29,8 +29,6 @@
 
 (in-package :perception-pm)
 
-(defvar *semantic-map* nil)
-
 (defclass semantic-map-perceived-object (object-designator-data)
   ((semantic-map-object :initarg :semantic-map-object
                         :reader semantic-map-object)))
@@ -45,10 +43,6 @@
     (setf pose (tf:pose->pose-stamped
                 *fixed-frame* 0.0 (sem-map-utils:pose semantic-map-object)))
     (setf object-identifier (sem-map-utils:name semantic-map-object))))
-
-(defun get-semantic-map ()
-  (or *semantic-map*
-      (setf *semantic-map* (sem-map-utils:get-semantic-map))))
 
 (defmethod make-new-desig-description ((old-desig object-designator)
                                        (po semantic-map-perceived-object))
@@ -78,13 +72,3 @@
     (((part-of ?parent)) desig perceived-object)
   (declare (ignore perceived-object))
   (resolve-sem-map-obj-desig desig))
-
-(defmethod cram-plan-knowledge:on-event
-    ((event cram-plan-knowledge:object-articulation-event))
-  (with-slots (cram-plan-knowledge:object-designator
-               cram-plan-knowledge:opening-distance) event
-    (let ((perceived-object (reference (newest-valid-designator
-                                        cram-plan-knowledge:object-designator))))
-      (sem-map-utils:update-articulated-object-poses
-       (get-semantic-map) (object-identifier perceived-object)
-       cram-plan-knowledge:opening-distance))))
