@@ -43,6 +43,7 @@
                cljlo
                cljlo-utils
                actionlib
+               semantic-map-cache
                vision_msgs-msg
                vision_srvs-srv
                std_msgs-msg

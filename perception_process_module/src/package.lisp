@@ -41,7 +41,8 @@
         #:designators-ros
         #:cljlo-utils
         #:roslisp
-        #:cram-plan-failures)
+        #:cram-plan-failures
+        #:semantic-map-cache)
   (:export
    #:perception #:object-not-found
    #:object-search-function

@@ -6,7 +6,7 @@
   </description>
   <author>Lorenz Moesenlechner</author>
   <license>BSD</license>
-  <review status="unreviewed" notes=""/>
+  <review status="unreviewed" notes="" />
   <url>http://ros.org/wiki/perception_process_module</url>
 
   <depend package="cram_roslisp_common" />
@@ -29,6 +29,5 @@
   <depend package="cl_semantic_map_utils" />
   <depend package="handle_detection" />
   <depend package="ias_perception_actions" />
-  
-
+  <depend package="semantic_map_cache" />
 </package>
