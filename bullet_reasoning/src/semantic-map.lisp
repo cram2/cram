@@ -131,7 +131,8 @@
     :collision-mask '(:default-filter :character-filter)))
 
 (defun update-semantic-map-joint (sem-map joint-name)
-  (with-slots (urdf links link-offsets semantic-map) sem-map
+  (with-slots (urdf links link-offsets semantic-map joint-states)
+      sem-map
     ;; We shouldn't use parent here but child for drawers. The problem
     ;; is that in the current semantic map, the drawer is connected to
     ;; the door by the joint. We will keep this code until the
@@ -159,7 +160,13 @@
                         (gethash (sem-map-utils:urdf-name sem-map-obj)
                                  link-offsets)
                         (cl-transforms:make-identity-transform))))
-         :relative nil :recursive t)))))
+         :relative nil :recursive t)
+        (let ((joint (find-if (lambda (object)
+                                (typep object 'sem-map-utils:semantic-map-joint))
+                              (sem-map-utils:sub-parts sem-map-obj))))
+          (when joint
+            (setf (sem-map-utils:joint-position joint)
+                  (gethash joint-name joint-states))))))))
 
 (defun update-semantic-map-poses (sem-map &optional (joint-names nil joint-names-p))
   ;; Instead of iterating over all links, just iterate over all
