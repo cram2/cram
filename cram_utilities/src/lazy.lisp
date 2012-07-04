@@ -62,6 +62,16 @@
 (defstruct lazy-cons-elem
   generator)
 
+(defvar *lazy-list-dynamic-environment*
+  (lambda (body-function) (funcall body-function)))
+
+(defmacro with-lazy-list-dynamic-environment (variable-definition-forms &body body)
+  `(flet ((run-in-environment (body-function)
+            (let ,variable-definition-forms
+              (funcall body-function))))
+     (let ((*lazy-list-dynamic-environment* #'run-in-environment))
+       ,@body)))
+
 (defmacro lazy-list ((&rest params) &body body)
   "Creates a new lazy list.
    To return a lazy list, two additional forms are lexically bound
@@ -87,41 +97,45 @@
                                  `(,var nil)
                                  var)) params))
         (next-hook-params (gensym "NEXT-HOOK-PARAMS-")))
-    `(labels ((,generator ,(mapcar #'car var-decls)
-                (macrolet ((cont (value &rest params)
-                             `(invoke-restart :cont ,value ,@params))
-                           (next (&rest params)
-                             `(invoke-restart :next ,@params))
-                           (finish (value)
-                             `(invoke-restart :finish ,value)))
-                  (labels ((,next-hook (&rest ,next-hook-params)
-                             ;; For some reason, tail call
-                             ;; optimization doesn't work here for
-                             ;; next. That's why we need to deal with
-                             ;; next using a loop.
-                             (flet ((next-hook-body ,(mapcar #'car var-decls)
-                                      ,@body))
-                               (loop do 
-                                 (restart-case
-                                     (return-from ,next-hook
-                                       (apply #'next-hook-body ,next-hook-params))
-                                   (:cont (value &rest params)
-                                     (return-from ,generator
-                                       (cons value (make-lazy-cons-elem
-                                                    :generator (lambda () (apply #',generator params))))))
-                                   (:next (&rest params)
-                                     (setf ,next-hook-params params))
-                                   (:finish (&optional (value nil value-p))
-                                     (if value-p
-                                         (return-from ,generator (cons value nil))
-                                         (return-from ,generator nil)))
-                                   (:rest (rest)
-                                     (return-from ,generator rest)))))))
-                    (,next-hook ,@(mapcar #'car var-decls))))))
-       (,generator ,@(mapcar #'cadr var-decls))
-       ;; (list (make-lazy-cons-elem
-       ;;        :generator #'(lambda () (,generator ,@(mapcar #'cadr var-decls)))))
-       )))
+    `(let ((call-in-environment-function *lazy-list-dynamic-environment*))
+       (labels ((,generator ,(mapcar #'car var-decls)
+                  (macrolet ((cont (value &rest params)
+                               `(invoke-restart :cont ,value ,@params))
+                             (next (&rest params)
+                               `(invoke-restart :next ,@params))
+                             (finish (value)
+                               `(invoke-restart :finish ,value)))
+                    (labels ((,next-hook (&rest ,next-hook-params)
+                               ;; For some reason, tail call
+                               ;; optimization doesn't work here for
+                               ;; next. That's why we need to deal with
+                               ;; next using a loop.
+                               (flet ((next-hook-body ,(mapcar #'car var-decls)
+                                        ,@body))
+                                 (loop do 
+                                   (restart-case
+                                       (return-from ,next-hook
+                                         (apply #'next-hook-body ,next-hook-params))
+                                     (:cont (value &rest params)
+                                       (return-from ,generator
+                                         (cons value (make-lazy-cons-elem
+                                                      :generator (lambda () (apply #',generator params))))))
+                                     (:next (&rest params)
+                                       (setf ,next-hook-params params))
+                                     (:finish (&optional (value nil value-p))
+                                       (if value-p
+                                           (return-from ,generator (cons value nil))
+                                           (return-from ,generator nil)))
+                                     (:rest (rest)
+                                       (return-from ,generator rest)))))))
+                      (funcall
+                       call-in-environment-function
+                       (lambda ()
+                         (,next-hook ,@(mapcar #'car var-decls))))))))
+         (,generator ,@(mapcar #'cadr var-decls))
+         ;; (list (make-lazy-cons-elem
+         ;;        :generator #'(lambda () (,generator ,@(mapcar #'cadr var-decls)))))
+         ))))
 
 
 (defun lazy-list-p (lc)
