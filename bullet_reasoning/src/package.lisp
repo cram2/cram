@@ -76,6 +76,7 @@
            side->ik-namespace household-object-dimensions get-ik
            make-joint-state-message open-object close-object
            set-articulated-object-joint-position
+           with-world copied-world with-copied-world
 
            robot-pan-tilt-links robot-pan-tilt-joints robot
            camera-frame robot-arms-parking-joint-states

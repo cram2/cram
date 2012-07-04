@@ -37,3 +37,19 @@
         (unwind-protect
              (prolog `(and ,@prolog-forms) bdgs)
           (restore-world-state world-state world))))))
+
+(def-prolog-handler with-world (bdgs ?world &rest prolog-forms)
+  (let ((world (var-value ?world bdgs)))
+    (when (typep world 'bt-world)
+      (with-current-bullet-world ?world
+        (prolog `(and ,@prolog-forms) bdgs)))))
+
+(def-prolog-handler with-copied-world (bdgs ?world &rest prolog-forms)
+  (assert (is-var ?world))
+  (let ((world (var-value ?world bdgs)))
+    (when (typep world 'bt-world)
+      (let ((copied-world (copy-world world)))
+        (with-current-bullet-world copied-world
+          (prolog `(and ,@prolog-forms)
+                  (add-bdg ?world copied-world
+                           (remove ?world bdgs :key #'car))))))))
