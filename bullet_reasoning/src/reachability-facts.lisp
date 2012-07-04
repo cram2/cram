@@ -45,7 +45,7 @@
     (%object ?w ?robot-name ?robot)
     (lisp-type ?robot robot-object)
     (%object ?w ?obj-name ?obj)
-    (with-stored-world ?w
+    (with-copied-world ?w
       (once
        (robot-pre-grasp-joint-states ?pre-grasp-joint-states)
        (assert (joint-state ?w ?robot-name ?pre-grasp-joint-states))
@@ -61,7 +61,7 @@
     (side ?side)
     (%object ?world ?robot-name ?robot)
     (lisp-type ?robot robot-object)
-    (with-stored-world ?world
+    (with-copied-world ?world
       (once
        (robot-pre-grasp-joint-states ?pre-grasp-joint-states)
        (assert (joint-state ?w ?robot-name ?pre-grasp-joint-states))
@@ -73,7 +73,7 @@
     (side ?side)
     (%object ?world ?robot-name ?robot)
     (lisp-type ?robot robot-object)
-    (with-stored-world ?world
+    (with-copied-world ?world
       (once
        (robot-pre-grasp-joint-states ?pre-grasp-joint-states)
        (assert (joint-state ?w ?robot-name ?pre-grasp-joint-states))
@@ -92,7 +92,7 @@
     (ground (?w ?robot-name))
     (%object ?w ?robot-name ?robot)
     (%object ?w ?obj-name ?obj)
-    (with-stored-world ?w
+    (with-copied-world ?w
       (setof
        ?o
        (and

@@ -121,7 +121,7 @@
         (desig-prop ?handle (name ?handle-name)))
     (semantic-map ?world ?semantic-map)
     (assert (object-pose ?world ?robot ?robot-pose))
-    (with-stored-world ?world
+    (with-copied-world ?world
       (btr:execute ?world (btr:open ?semantic-map ?handle-name))
       (not (contact ?world ?robot ?semantic-map))))
 
@@ -148,7 +148,7 @@
     (bullet-world ?w)
     (findall ?check (location-valid ?desig ?solution ?check)
              ?checks)
-    (with-stored-world ?w
+    (with-copied-world ?w
       (forall (member ?check ?checks) (call ?check))))
   
   (<- (btr-desig-solutions ?desig ?points)

@@ -60,6 +60,6 @@
                ((execute (open ?sem-map ?link))))
     (contact ?w ?obj ?sem-map ?link)
     (container ?w ?sem-map ?link)
-    (with-stored-world ?w
+    (with-copied-world ?w
       (execute ?w (open ?sem-map ?link))
       (achieve ?w (visible ?obj) ()))))
