@@ -28,22 +28,6 @@
 
 (in-package :pr2-manipulation-knowledge)
 
-(defvar *semantic-map* nil)
-
-(defun get-semantic-map ()
-  (or *semantic-map*
-      (setf *semantic-map* (sem-map-utils:get-semantic-map))))
-
-(defmethod on-event manipulation-articulation-event ((event object-articulation-event))
-  (with-slots (object-designator opening-distance) event
-    (let ((perceived-object (reference object-designator)))
-      (declare (type perception-pm:semantic-map-perceived-object
-                     perceived-object))
-      (sem-map-utils:update-articulated-object-poses
-       (get-semantic-map)
-       (sem-map-utils:name (perception-pm:semantic-map-object perceived-object))
-       opening-distance))))
-
 (defun get-articulated-gripper-position (part-name relative-joint-position)
   "Gets the position of the gripper to reach `part-name'. Uses its
   connecting joint and
@@ -74,7 +58,11 @@
   (<- (trajectory-point ?designator ?point ?side)
     (handle-manipulation-designator ?designator)
     (desig-prop ?designator (handle ?handle))
-    (desig-prop ?designator (side ?side))
+    (-> (desig-prop ?desig (side ?side))
+        (available-arms ?object (?side))
+        (once
+         (available-arms ?handle ?sides)
+         (member ?side ?sides)))
     (desig-prop ?handle (name ?handle-name))
     (-> (desig-prop ?designator (to open))
         (member ?joint-pose (0.0 1.0))
