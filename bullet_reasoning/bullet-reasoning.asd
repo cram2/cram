@@ -56,8 +56,8 @@
               :components
               ((:file "package")
                (:file "utils" :depends-on ("package"))
-               (:file "prolog-handlers" :depends-on ("package"))
-               (:file "world-facts" :depends-on ("package"))
+               (:file "prolog-handlers" :depends-on ("package" "world-facts"))
+               (:file "world-facts" :depends-on ("package" "reasoning-world"))
                (:file "pose-facts" :depends-on ("package"))
                (:file "pose-sampling-facts" :depends-on ("package" "world-facts"))
                (:file "robot-model-facts" :depends-on ("package"))

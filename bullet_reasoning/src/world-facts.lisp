@@ -53,6 +53,9 @@
   (<- (bullet-world ?world)
     (lisp-type ?world bt-reasoning-world))
 
+  (<- (copied-world ?world ?copy)
+    (lisp-fun copy-world ?world ?copy))
+
   (<- (bullet-world ?world ?obj)
     ;; The world ?obj belongs to
     (get-slot-value ?obj world ?world))
