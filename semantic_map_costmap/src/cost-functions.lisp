@@ -124,9 +124,13 @@
 (defun make-semantic-map-costmap (objects &key (invert nil) (padding 0.0))
   "Generates a semantic-map costmap for all `objects'. `objects' is a
 list of SEM-MAP-UTILS:SEMANTIC-MAP-GEOMs"
-  (let ((functions (mapcar (alexandria:rcurry #'make-semantic-map-obj-generator
-                                              :padding padding)
-                           (cut:force-ll objects))))
+  (let ((functions (mapcar
+                    (lambda (object)
+                      (caching-generator-function
+                       (sem-map-utils:name object)
+                       (make-semantic-map-obj-generator
+                        object :padding padding)))
+                    (cut:force-ll objects))))
     (if invert
         (lambda (x y)
           (if (some (alexandria:rcurry #'funcall x y) functions)
