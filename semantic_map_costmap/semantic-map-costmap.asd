@@ -45,5 +45,6 @@
   ((:module "src"
             :components
             ((:file "package")
-             (:file "cost-functions" :depends-on ("package"))
-             (:file "facts" :depends-on ("package"))))))
+             (:file "cost-functions" :depends-on ("package" "semantic-map-cache"))
+             (:file "facts" :depends-on ("package"))
+             (:file "semantic-map-cache" :depends-on ("package"))))))
