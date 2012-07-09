@@ -497,7 +497,7 @@ names for which collisions are allowed."
     (cl-transforms:transform-inv
      (cl-transforms:reference-transform grasp)))))
 
-(defun calculate-grasp-pose (obj &key
+(defun tool-goal-pose->wrist-goal-pose (obj &key
                              (tool (cl-transforms:make-pose
                                     (cl-transforms:make-3d-vector 0 0 0)
                                     (cl-transforms:make-quaternion 0 0 0 1))))
