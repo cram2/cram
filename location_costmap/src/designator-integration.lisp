@@ -68,49 +68,12 @@
         (cl-transforms:rotation robot))))))
 
 (defun location-costmap-generator (desig)
-  (flet ((take-closest-pose (poses)
-           ;; If we don't have tf available, just return the first of
-           ;; the points since we don't have any reference for
-           ;; distance measurement.
-           (cond ((and *tf*
-                       (cl-tf:can-transform
-                        *tf* :target-frame "/map" :source-frame "/base_footprint"))
-                  (let ((closest (car poses))
-                        (dist (cl-transforms:v-dist (cl-transforms:translation
-                                                     (cl-tf:lookup-transform
-                                                      *tf*
-                                                      :target-frame "/map"
-                                                      :source-frame "/base_footprint"))
-                                                    (cl-transforms:origin (car poses)))))
-                    (dolist (p (cdr poses) closest)
-                      (let ((new-dist (cl-transforms:v-dist (cl-transforms:translation
-                                                             (cl-tf:lookup-transform
-                                                              *tf*
-                                                              :target-frame "/map"
-                                                              :source-frame "/base_footprint"))
-                                                            (cl-transforms:origin p))))
-                        (when (< new-dist dist)
-                          (setf dist new-dist)
-                          (setf closest p))))))
-                 (t (car poses)))))
-    (let ((cm (get-cached-costmap desig)))
-      (unless cm
-        (return-from location-costmap-generator nil))
-      (let ((solutions (handler-case
-                           (prog1
-                             (costmap-samples cm)
-                             (publish-location-costmap cm))
-                         (location-costmap:invalid-probability-distribution ()
-                           nil))))
-        (lazy-list ((solutions solutions)
-                    (generated-poses nil))
-          (cond (generated-poses
-                 (let ((pose (take-closest-pose generated-poses)))
-                   (publish-pose pose)
-                   (cont pose solutions (remove pose generated-poses))))
-                (solutions
-                 (next (lazy-skip +costmap-n-samples+ solutions)
-                       (force-ll (lazy-take +costmap-n-samples+ solutions))))))))))
+  (let ((costmap (get-cached-costmap desig)))
+    (unless costmap
+      (return-from location-costmap-generator nil))
+    (handler-case (costmap-samples costmap)
+      (location-costmap:invalid-probability-distribution ()
+        nil))))
 
 (defun location-costmap-pose-validator (desig pose)
   (when (typep pose 'cl-transforms:pose)

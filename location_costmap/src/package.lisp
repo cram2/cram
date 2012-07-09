@@ -39,6 +39,7 @@
            #:global-fluent-value
            #:occupancy-grid
            #:grid-width #:grid-height #:origin-x #:origin-y
+           #:resolution
            #:inverted-occupancy-grid
            #:costmap-metadata
            #:costmap
@@ -90,6 +91,14 @@
            #:points-cov
            #:reachability-designator
            #:designator-reach-pose
+           #:costmap-generator
+           #:generator-name
+           #:generator-function
+           #:map-costmap-generator
+           #:function-costmap-generator
+           #:generate
+           #:map-coordinate->array-index
+           #:array-index->map-coordinate
            ;; Costmap configuration symbols
            #:costmap-size #:costmap-origin #:costmap-resolution
            #:costmap-padding #:costmap-manipulation-padding

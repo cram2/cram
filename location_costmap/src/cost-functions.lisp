@@ -52,8 +52,8 @@
                                 (cma:double-matrix-from-array mean)))
           (pos (cma:make-double-vector 2)))
       (lambda (x y)
-        (setf (aref pos 0 0) x)
-        (setf (aref pos 1 0) y)
+        (setf (aref pos 0 0) (float x 0.0d0))
+        (setf (aref pos 1 0) (float y 0.0d0))
         (funcall gauss-fun pos)))))
 
 (defun make-location-cost-function (loc std-dev)
@@ -100,18 +100,56 @@ in a value of 1.0"
 
 (defun make-occupancy-grid-cost-function (grid &key invert)
   (when grid
-    (let* ((grid (if invert
-                     (invert-occupancy-grid grid)
-                     grid))
-           (origin-x (origin-x grid))
-           (origin-y (origin-y grid))
-           (max-x (+ (width grid) origin-x (- (resolution grid))))
-           (max-y (+ (height grid) origin-y (- (resolution grid)))))
-      (lambda (x y)
-        (if (and (>= x origin-x) (>= y origin-y)
-                 (< x max-x) (< y max-y))
-            (coerce (get-grid-cell grid x y) 'double-float)
-            (if invert 1.0d0 0.0d0))))))
+    (let ((grid (if invert
+                    (invert-occupancy-grid grid)
+                    grid)))
+      (flet ((generator (costmap-metadata matrix)
+               (declare (type cma:double-matrix matrix))
+               (let ((start-x (max (origin-x grid) (origin-x costmap-metadata)))
+                     (start-y (max (origin-y grid) (origin-y costmap-metadata)))
+                     (end-x  (min (+ (width grid) (origin-x grid))
+                                  (+ (width costmap-metadata) (origin-x costmap-metadata))))
+                     (end-y (min (+ (height grid) (origin-y grid))
+                                 (+ (height costmap-metadata) (origin-y costmap-metadata))))
+                     (grid-matrix (grid grid)))
+                 (loop for y-source-index from (map-coordinate->array-index
+                                                start-y (resolution grid) (origin-y grid))
+                         below (map-coordinate->array-index
+                                end-y (resolution grid) (origin-y grid))
+                           by (/ (resolution costmap-metadata) (resolution grid))
+                       for y-destination-index from (map-coordinate->array-index
+                                                     start-y (resolution costmap-metadata)
+                                                     (origin-y costmap-metadata))
+                         below (map-coordinate->array-index
+                                end-y (resolution costmap-metadata)
+                                (origin-y costmap-metadata))
+                           by (/ (resolution costmap-metadata)
+                                 (resolution costmap-metadata))
+                       do (loop for x-source-index from (map-coordinate->array-index
+                                                         start-x (resolution grid) (origin-x grid))
+                                  below (map-coordinate->array-index
+                                         end-x (resolution grid) (origin-x grid))
+                                    by (/ (resolution costmap-metadata) (resolution grid))
+                                for x-destination-index from (map-coordinate->array-index
+                                                              start-x (resolution costmap-metadata)
+                                                              (origin-x costmap-metadata))
+                                  below (map-coordinate->array-index
+                                         end-x (resolution costmap-metadata)
+                                         (origin-x costmap-metadata))
+                                    by (/ (resolution costmap-metadata)
+                                          (resolution costmap-metadata))
+                                do (setf
+                                    (aref matrix
+                                          (truncate y-destination-index)
+                                          (truncate x-destination-index))
+                                    (float
+                                     (aref grid-matrix
+                                           (truncate y-source-index)
+                                           (truncate x-source-index))
+                                     0.0d0)))
+                       finally (return matrix)))))
+        (make-instance 'map-costmap-generator
+          :generator-function #'generator)))))
 
 (defun make-padded-costmap-cost-function (costmap padding &key invert)
   (when (and costmap padding)

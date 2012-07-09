@@ -46,7 +46,9 @@
              (:file "cost-functions"
                     :depends-on ("package" "occupancy-grid" "padding-mask"))
              (:file "2d-value-map" :depends-on ("package" "occupancy-grid"))
-             (:file "location-costmap" :depends-on ("package" "occupancy-grid"))
+             (:file "location-costmap" :depends-on ("package"
+                                                    "occupancy-grid"
+                                                    "costmap-generators"))
              (:file "location-prolog-handlers" :depends-on ("package" "location-costmap"))
              (:file "occupancy-grid" :depends-on ("package"))
              (:file "padding-mask" :depends-on ("package"))
@@ -55,4 +57,5 @@
              (:file "visualization" :depends-on ("package" "occupancy-grid" "location-costmap"))
              (:file "facts" :depends-on ("package" "cost-functions"))
              (:file "cost-function-utils" :depends-on ("package"))
+             (:file "costmap-generators" :depends-on ("package"))
              (:file "designator-integration" :depends-on ("package" "location-costmap"))))))

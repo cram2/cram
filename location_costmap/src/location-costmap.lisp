@@ -118,47 +118,30 @@
 (defmethod get-cost-map ((map location-costmap))
   "Returns the costmap matrix of `map', i.e. if not generated yet,
 calls the generator functions and runs normalization."
-  (flet ((calculate-map-value (map x y)
-           (declare (type location-costmap map)
-                    (type double-float x y))
-           (let ((value 1.0d0))
-             (dolist (cost-function (cost-functions map) value)
-               (when (eql value 0.0d0)
-                 (return-from calculate-map-value 0.0d0))
-               (setq value (* value (or (funcall (car cost-function) x y)
-                                        1.0d0)))))))
-    (declare (ftype (function (location-costmap double-float double-float)
-                              double-float)
-                    calculate-map-value))
-    (unless (cost-functions map)
-      (error 'no-cost-functions-registered))
-    (with-slots (width height origin-x origin-y resolution) map
-      (unless (slot-boundp map 'cost-map)
-        (setf (slot-value map 'cost-functions)
-              (sort (remove-duplicates (slot-value map 'cost-functions)
-                                       :key #'cdr)
-                    #'> :key (compose #'costmap-generator-name->score #'cdr)))
-        (let ((new-cost-map (cma:make-double-matrix
-                             (round (/ width resolution))
-                             (round (/ height resolution))))
-              (sum 0.0d0)
-              (cost-value 0.0d0)              
-              (curr-x (float origin-x 0.0d0))
-              (curr-y (float origin-y 0.0d0))
-              (resolution (coerce resolution 'double-float)))
-          (declare (type double-float sum cost-value curr-x curr-y resolution))
-          (dotimes (row (cma:height new-cost-map))
-            (setf curr-x (float origin-x 0.0d0))
-            (dotimes (col (cma:width new-cost-map))
-              (setf cost-value (calculate-map-value map curr-x curr-y))
-              (incf curr-x resolution)
-              (setf sum (+ sum cost-value))
-              (setf (aref new-cost-map row col) cost-value))
-            (incf curr-y resolution))
-          (when (= sum 0)
-            (error 'invalid-probability-distribution))
-          (setf (slot-value map 'cost-map) (cma:m./ new-cost-map sum))))
-      (slot-value map 'cost-map))))
+  (unless (cost-functions map)
+    (error 'no-cost-functions-registered))
+  (with-slots (width height origin-x origin-y resolution) map
+    (unless (slot-boundp map 'cost-map)
+      (setf (slot-value map 'cost-functions)
+            (sort (remove-duplicates (slot-value map 'cost-functions)
+                                     :key #'generator-name)
+                  #'> :key (compose
+                            #'costmap-generator-name->score
+                            #'generator-name)))
+      (let ((new-cost-map (cma:make-double-matrix
+                           (round (/ width resolution))
+                           (round (/ height resolution))
+                           :initial-element 1.0d0))
+            (sum 0.0d0))
+        (dolist (generator (cost-functions map))
+          (setf new-cost-map (generate generator new-cost-map map)))
+        (dotimes (row (cma:height new-cost-map))
+          (dotimes (column (cma:width new-cost-map))
+            (incf sum (aref new-cost-map row column))))
+        (when (= sum 0)
+          (error 'invalid-probability-distribution))
+        (setf (slot-value map 'cost-map) (cma:m./ new-cost-map sum))))
+    (slot-value map 'cost-map)))
 
 (defmethod get-map-value ((map location-costmap) x y)
   (aref (get-cost-map map)
@@ -167,9 +150,15 @@ calls the generator functions and runs normalization."
         (truncate (- x (slot-value map 'origin-x))
                   (slot-value map 'resolution))))
 
-(defmethod register-cost-function ((map location-costmap) fun name)
-  (when fun
-    (push (cons fun name) (slot-value map 'cost-functions))))
+(defmethod register-cost-function ((map location-costmap) (function function) name)
+  (push (make-instance 'function-costmap-generator
+          :name name :generator-function function)
+        (slot-value map 'cost-functions)))
+
+(defmethod register-cost-function
+    ((map location-costmap) (generator costmap-generator) name)
+  (setf (slot-value generator 'name) name)
+  (push generator (slot-value map 'cost-functions)))
 
 (defmethod register-height-generator ((map location-costmap) generator)
   (with-slots (height-generator) map
@@ -200,7 +189,8 @@ calls the generator functions and runs normalization."
   (or
    (when (height-generator map)
      (let ((heights (generate-heights map x y)))
-       (random-elt heights)))
+       (when heights
+         (random-elt heights))))
    default))
 
 (defun generate-heights (map x y)
