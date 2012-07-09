@@ -12,16 +12,14 @@
 (defun width (mat)
   (array-dimension mat 1))
 
-(declaim (ftype (function (fixnum fixnum &optional list) double-matrix) make-double-matrix))
-(defun make-double-matrix (width height &optional initial-contents)
-  (let ((result (make-array (list height width) :element-type 'double-float :initial-element 0.0d0)))
+(defun make-double-matrix (width height &key initial-contents (initial-element 0.0d0))
+  (let ((result (make-array (list height width) :element-type 'double-float :initial-element initial-element)))
     (when initial-contents
       (fill-double-matrix result :initial-contents initial-contents))
     result))
 
-(declaim (ftype (function (fixnum &optional list) double-matrix) make-double-vector))
-(defun make-double-vector (size &optional initial-contents)
-  (make-double-matrix 1 size initial-contents))
+(defun make-double-vector (size &key initial-contents)
+  (make-double-matrix 1 size :initial-contents initial-contents))
 
 (declaim (ftype (function (double-matrix) (array double-float 1)) flatten-double-matrix))
 (defun flatten-double-matrix (mat)
@@ -137,8 +135,6 @@
                                          (aref m-2 i col))))))))
   out)
 
-(declaim (inline m+ m- m* m/))
-
 (defmacro %wrap-matrix-elem-un-op (name op)
   `(progn
      (declaim (ftype (function (double-matrix double-float &optional double-matrix) double-matrix)
@@ -157,15 +153,21 @@
                      ,name))     
      (defun ,name (m-1 m-2 &optional (out (make-double-matrix (width m-1) (height m-2))))
        (declare (type double-matrix m-1 m-2 out))
-       (map-double-matrix-into out ,op m-1 m-2))))
+       (declare (optimize (safety 0) (speed 3)))
+       (dotimes (y (height m-1) out)
+         (dotimes (x (width m-1) out)
+           (setf (aref out y x)
+                 (,op (aref m-1 y x) (aref m-2 y x))))))))
+
+(declaim (inline m+ m- m* m/ m.+ m.- m.* m./))
 
 (%wrap-matrix-elem-un-op m.+ #'+)
 (%wrap-matrix-elem-un-op m.- #'-)
 (%wrap-matrix-elem-un-op m.* #'*)
 (%wrap-matrix-elem-un-op m./ #'/)
 
-(%wrap-matrix-elem-bin-op m+ #'+)
-(%wrap-matrix-elem-bin-op m- #'-)
-(%wrap-matrix-elem-bin-op m* #'*)
-(%wrap-matrix-elem-bin-op m/ #'/)
+(%wrap-matrix-elem-bin-op m+ +)
+(%wrap-matrix-elem-bin-op m- -)
+(%wrap-matrix-elem-bin-op m* *)
+(%wrap-matrix-elem-bin-op m/ /)
 

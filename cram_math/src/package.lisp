@@ -42,7 +42,7 @@
    #:double-vector-size #:fill-double-matrix #:double-matrix-from-array
    #:double-matrix-from-grid #:grid-from-double-matrix #:mref #:map-double-matrix
    #:map-double-matrix-into #:double-matrix-transpose #:double-matrix-product
-   #:m.+ #:m.- #:m.* #:m./
+   #:m.+ #:m.- #:m.* #:m./ #:m+ #:m- #:m* #:m/
    ;; functions
    #:determinant #:gauss
    ;; geometry
