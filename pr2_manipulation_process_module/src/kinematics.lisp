@@ -388,7 +388,7 @@ finding a solution."
                                           (:right "r_wrist_roll_link")
                                           (:left "l_wrist_roll_link"))
                           :pose_stamped (tf:pose-stamped->msg
-                                         (calculate-grasp-pose pose :tool tool))
+                                         (tool-goal-pose->wrist-goal-pose pose :tool tool))
                           :ik_seed_state (roslisp:make-msg
                                           "arm_navigation_msgs/RobotState"
                                           joint_state (lazy-car seeds)))
@@ -436,7 +436,7 @@ names for which collisions are allowed."
                                           (:right "r_wrist_roll_link")
                                           (:left "l_wrist_roll_link"))
                           :pose_stamped (tf:pose-stamped->msg
-                                         (calculate-grasp-pose pose :tool tool))
+                                         (tool-goal-pose->wrist-goal-pose pose :tool tool))
                           :ik_seed_state (roslisp:make-msg
                                           "arm_navigation_msgs/RobotState"
                                           joint_state (lazy-car seeds)))
@@ -498,9 +498,9 @@ names for which collisions are allowed."
      (cl-transforms:reference-transform grasp)))))
 
 (defun tool-goal-pose->wrist-goal-pose (obj &key
-                             (tool (cl-transforms:make-pose
-                                    (cl-transforms:make-3d-vector 0 0 0)
-                                    (cl-transforms:make-quaternion 0 0 0 1))))
+           (tool (cl-transforms:make-pose
+                  (cl-transforms:make-3d-vector 0 0 0)
+                  (cl-transforms:make-quaternion 0 0 0 1))))
   (let* ((pose (etypecase obj
                  (designator (desig:designator-pose obj))
                  (tf:pose-stamped obj)))
