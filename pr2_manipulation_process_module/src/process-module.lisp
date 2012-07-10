@@ -461,13 +461,13 @@ for the currently type of grasped object."
            50
            (lazy-mapcan (lambda (grasp)
                           (let ((pre-grasp-pose
-                                  (calculate-grasp-pose
+                                  (tool-goal-pose->wrist-goal-pose
                                    obj
                                    :tool (calculate-tool-pose
                                           grasp
                                           *grasp-approach-distance*)))
                                 (grasp-pose
-                                  (calculate-grasp-pose
+                                  (tool-goal-pose->wrist-goal-pose
                                    obj
                                    :tool grasp)))
                             ;; If we find IK solutions
