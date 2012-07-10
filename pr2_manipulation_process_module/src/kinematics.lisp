@@ -501,6 +501,8 @@ names for which collisions are allowed."
            (tool (cl-transforms:make-pose
                   (cl-transforms:make-3d-vector 0 0 0)
                   (cl-transforms:make-quaternion 0 0 0 1))))
+  "At which pose should be the wrist coordinate system so that the
+tool coordinate system will be at the specified `tool' pose? "
   (let* ((pose (etypecase obj
                  (designator (desig:designator-pose obj))
                  (tf:pose-stamped obj)))
