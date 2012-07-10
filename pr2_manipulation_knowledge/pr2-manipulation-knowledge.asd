@@ -34,7 +34,7 @@
                cram-manipulation-knowledge
                cram-reasoning
                cl-semantic-map-utils
-               perception-process-module)
+               semantic-map-cache)
   :components
   ((:module "src"
     :components
