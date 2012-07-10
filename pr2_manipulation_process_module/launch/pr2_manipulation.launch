@@ -6,6 +6,7 @@
   <include file="$(find pr2_arm_navigation_planning)/launch/ompl_planning.launch"/>
   <include file="$(find pr2_arm_navigation_planning)/launch/chomp_planning.launch"/>
 
+  <!--<include file="$(find planning_environment)/launch/environment_server.launch"/>-->
   <include file="$(find planning_environment)/launch/environment_server.launch"/>
 
   <include file="$(find pr2_arm_navigation_filtering)/launch/trajectory_filter.launch"/>
