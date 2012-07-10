@@ -59,6 +59,7 @@
   ((:module "src"
             :components
             ((:file "package")
+             (:file "motion-library" :depends-on ("package"))
              (:file "controller-manager" :depends-on ("package"))
              (:file "kinematics" :depends-on ("package"))
              (:file "collision-environment" :depends-on ("package"))
