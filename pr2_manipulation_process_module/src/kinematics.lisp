@@ -388,7 +388,7 @@ finding a solution."
                                           (:right "r_wrist_roll_link")
                                           (:left "l_wrist_roll_link"))
                           :pose_stamped (tf:pose-stamped->msg
-                                         (calculate-grasp-pose pose :tool tool))
+                                         (tool-goal-pose->wrist-goal-pose pose :tool tool))
                           :ik_seed_state (roslisp:make-msg
                                           "arm_navigation_msgs/RobotState"
                                           joint_state (lazy-car seeds)))
@@ -436,7 +436,7 @@ names for which collisions are allowed."
                                           (:right "r_wrist_roll_link")
                                           (:left "l_wrist_roll_link"))
                           :pose_stamped (tf:pose-stamped->msg
-                                         (calculate-grasp-pose pose :tool tool))
+                                         (tool-goal-pose->wrist-goal-pose pose :tool tool))
                           :ik_seed_state (roslisp:make-msg
                                           "arm_navigation_msgs/RobotState"
                                           joint_state (lazy-car seeds)))
@@ -497,10 +497,12 @@ names for which collisions are allowed."
     (cl-transforms:transform-inv
      (cl-transforms:reference-transform grasp)))))
 
-(defun calculate-grasp-pose (obj &key
-                             (tool (cl-transforms:make-pose
-                                    (cl-transforms:make-3d-vector 0 0 0)
-                                    (cl-transforms:make-quaternion 0 0 0 1))))
+(defun tool-goal-pose->wrist-goal-pose (obj &key
+           (tool (cl-transforms:make-pose
+                  (cl-transforms:make-3d-vector 0 0 0)
+                  (cl-transforms:make-quaternion 0 0 0 1))))
+  "At which pose should be the wrist coordinate system so that the
+tool coordinate system will be at the specified `tool' pose? "
   (let* ((pose (etypecase obj
                  (designator (desig:designator-pose obj))
                  (tf:pose-stamped obj)))
