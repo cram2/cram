@@ -176,7 +176,7 @@ lift the grasped object at the `distance' from the supporting plane."
          (lifted-pose-ik (get-ik side lifted-pose)))
     (unless lifted-pose-ik
       (error 'manipulation-pose-unreachable
-             :format-control "Lifted pose " 'side "unreachable !"))
+             :format-control "Lifted pose for " side " arm unreachable !"))
     (ik->trajectory (lazy-car lifted-pose-ik))))
 
 (defun lift-grasped-object-with-one-arm (side distance)
@@ -429,13 +429,13 @@ for the currently type of grasped object."
            50
            (lazy-mapcan (lambda (grasp)
                           (let ((pre-grasp-pose
-                                  (calculate-grasp-pose
+                                  (tool-goal-pose->wrist-goal-pose
                                    obj
                                    :tool (calculate-tool-pose
                                           grasp
                                           *grasp-approach-distance*)))
                                 (grasp-pose
-                                  (calculate-grasp-pose
+                                  (tool-goal-pose->wrist-goal-pose
                                    obj
                                    :tool grasp)))
                             ;; If we find IK solutions
@@ -789,7 +789,7 @@ by `planners' until one succeeds."
                                            -0.25 0.0 0.0)
                                           (cl-transforms:make-identity-rotation))))
                                  :target-frame "base_footprint"))
-         (grasp-pose
+         (grasp-pose ;; (tool-goal-pose->wrist-goal-pose pose)
            (cl-tf:transform-pose *tf*
                                  :pose (tf:pose->pose-stamped
                                         (tf:frame-id pose) (tf:stamp pose)
