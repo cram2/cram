@@ -38,6 +38,7 @@
                cram-math
                cram-reasoning
                cram-roslisp-common
+               designators-ros
                kinematics_msgs-srv)
   :components
   ((:module "src"
