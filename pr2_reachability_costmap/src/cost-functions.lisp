@@ -56,9 +56,11 @@
            (declare (type cma:double-matrix output-matrix))
            (let ((start-x (max origin-x (origin-x costmap-metadata)))
                  (start-y (max origin-y (origin-y costmap-metadata)))
-                 (end-x  (min (+ (cma:width matrix) origin-x)
+                 (end-x  (min (array-index->map-coordinate
+                               (1- (cma:width matrix)) resolution origin-x)
                               (+ (width costmap-metadata) (origin-x costmap-metadata))))
-                 (end-y (min (+ (cma:height matrix) origin-y)
+                 (end-y (min (array-index->map-coordinate
+                               (1- (cma:width matrix)) resolution origin-x)
                              (+ (height costmap-metadata) (origin-y costmap-metadata)))))
              (loop for y-source-index from (map-coordinate->array-index start-y resolution origin-y)
                      below (map-coordinate->array-index end-y resolution origin-y)
@@ -94,7 +96,7 @@
                                          &optional orientation-indices)
   "Returns a new two-dimentional CMA:DOUBLE-MATRIX with values between
   0 and 1 that represents an inverse reachability map calculated from
-  `rachability-map-matrix' at height `z'. `orientation-indices'
+  `readability-map-matrix' at height `z'. `orientation-indices'
   indicates the orientations to use. If it is NIL, all orientations
   are used, otherwise only the orientations with the specified indices
   are used. The value is calculated by summing up all valid
@@ -116,8 +118,7 @@
                            summing (float (aref reachability-map-matrix
                                                 z-index (- height y 1) (- width x 1) i)
                                           0.0d0))
-                     orientations))))
-      (break))))
+                     orientations)))))))
 
 (defun make-inverse-reachability-costmap (sides pose &optional orientations)
   (flet ((get-orientation-indices (reachability-map orientations)
