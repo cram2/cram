@@ -158,6 +158,16 @@
                        sides)))
       (make-instance 'map-costmap-generator
         :generator-function (lambda (costmap-metadata matrix)
-                              (dolist (function functions)
-                                (funcall function costmap-metadata matrix))
-                              matrix)))))
+                              (reduce (lambda (previous-matrix function)
+                                        (cma:m+
+                                         previous-matrix
+                                         (funcall
+                                          function costmap-metadata
+                                          (cma:make-double-matrix
+                                           (cma:width previous-matrix)
+                                           (cma:height previous-matrix)))))
+                                      (cdr functions)
+                                      :initial-value (funcall
+                                                      (car functions)
+                                                      costmap-metadata matrix)))
+        :name :inverse-reachability-costmap))))
