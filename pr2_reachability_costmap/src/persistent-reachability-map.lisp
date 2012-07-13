@@ -36,7 +36,7 @@
    (minimum :reader minimum :initarg :minimum :type cl-transforms:3d-vector)
    (maximum :reader maximum :initarg :maximum :type cl-transforms:3d-vector)
    (resolution :reader resolution :initarg :resolution ::type cl-transforms:3d-vector)
-   (angles :reader angles :initarg :angles :type list)
+   (orientations :reader orientations :initarg :orientations :type list)
    (reachability-map :reader reachability-map)))
 
 (defmethod initialize-instance :after ((map reachability-map) &key filename)
@@ -51,7 +51,7 @@
              map :namespace (cdr (assoc side *arm-namespaces*)))))))
 
 (defun generate-reachability-map (map &key namespace)
-  (with-slots (minimum maximum resolution angles) map
+  (with-slots (minimum maximum resolution orientations) map
     (loop with map = (make-array
                       (list
                        (1+ (round (- (cl-transforms:z maximum)
@@ -63,7 +63,7 @@
                        (1+ (round (- (cl-transforms:x maximum)
                                      (cl-transforms:x minimum))
                                   (cl-transforms:x resolution)))
-                       (length angles))
+                       (length orientations))
                       :element-type 'bit)
           for z from (cl-transforms:z minimum)
             by (cl-transforms:z resolution)
@@ -75,7 +75,7 @@
                       (loop for x from (cl-transforms:x minimum)
                               by (cl-transforms:x resolution)
                             for x-index from 0 below (array-dimension map 2)
-                            do (loop for angle in angles
+                            do (loop for angle in orientations
                                      for angle-index from 0
                                      do (cond ((find-ik-solution
                                                 :pose (cl-transforms:make-pose
@@ -91,7 +91,7 @@
 
 (defun store-reachability-map (map filename)
   (let ((reachability-map (reachability-map map)))
-    (with-slots (side minimum maximum resolution angles) map
+    (with-slots (side minimum maximum resolution orientations) map
       (with-open-file (file filename
                             :direction :output
                             :element-type 'unsigned-byte
@@ -100,16 +100,16 @@
         (store file minimum)
         (store file maximum)
         (store file resolution)
-        (store file angles)
+        (store file orientations)
         (store file reachability-map)))))
 
 (defun restore-reachability-map (map filename)
-  (with-slots (side minimum maximum resolution angles reachability-map)
+  (with-slots (side minimum maximum resolution orientations reachability-map)
       map
     (with-open-file (file filename :direction :input :element-type 'unsigned-byte)
       (setf side (restore file 'symbol))
       (setf minimum (restore file 'cl-transforms:3d-vector))
       (setf maximum (restore file 'cl-transforms:3d-vector))
       (setf resolution (restore file 'cl-transforms:3d-vector))
-      (setf angles (restore file 'list))
+      (setf orientations (restore file 'list))
       (setf reachability-map (restore file 'array)))))
