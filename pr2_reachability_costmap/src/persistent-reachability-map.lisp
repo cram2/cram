@@ -39,6 +39,16 @@
    (orientations :reader orientations :initarg :orientations :type list)
    (reachability-map :reader reachability-map)))
 
+(defgeneric origin (reachability-map)
+  (:method ((reachability-map reachability-map))
+    (minimum reachability-map)))
+
+(defgeneric size (reachability-map)
+  (:method ((reachability-map reachability-map))
+    (cl-transforms:v-
+     (maximum reachability-map)
+     (minimum reachability-map))))
+
 (defmethod initialize-instance :after ((map reachability-map) &key filename)
   (when filename
     (restore-reachability-map map filename)))
