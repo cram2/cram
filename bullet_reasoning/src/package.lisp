@@ -46,7 +46,7 @@
            generic-cup mug plate mondamin mesh remove-object object
            pot bowl object-type household-object-type name rigid-bodies
            rigid-body-names rigid-body world make-object box
-           static-plane sphere cylinder cone point-cloud
+           static-plane sphere cylinder cone point-cloud cutlery fork knife
            bt-reasoning-world invalidate-object objects object %object
            bt-reasoning-world-state robot-object links joint-states
            assert joint-state urdf joint-names joint-state link-names
