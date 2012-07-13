@@ -36,6 +36,7 @@
                cl-tf
                cram-utilities
                cram-math
+               cram-reasoning
                kinematics_msgs-srv)
   :components
   ((:module "src"

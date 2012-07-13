@@ -29,5 +29,5 @@
 (in-package :cl-user)
 
 (defpackage pr2-reachability-costmap
-  (:use #:common-lisp #:location-costmap)
+  (:use #:common-lisp #:location-costmap #:cram-reasoning)
   (:export generate-map-main))
