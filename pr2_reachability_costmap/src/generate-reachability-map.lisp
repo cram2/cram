@@ -28,8 +28,8 @@
 
 (in-package :pr2-reachability-costmap)
 
-(defparameter *minimum* (cl-transforms:make-3d-vector -1.5 -1.5 -1.5))
-(defparameter *maximum* (cl-transforms:make-3d-vector 1.5 1.5 1.5))
+(defparameter *minimum* (cl-transforms:make-3d-vector -1.0 -1.5 -0.75))
+(defparameter *maximum* (cl-transforms:make-3d-vector 1.0 1.5 0.5))
 (defparameter *steps* (cl-transforms:make-3d-vector 0.01 0.01 0.01))
 (defparameter *angles* (list (cl-transforms:make-identity-rotation)
                              (cl-transforms:euler->quaternion :ay (/ pi -2))
