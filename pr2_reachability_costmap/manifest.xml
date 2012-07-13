@@ -17,4 +17,5 @@
   <depend package="cram_math" />
   <depend package="cram_reasoning" />
   <depend package="cram_roslisp_common" />
+  <depend package="designators_ros" />
 </package>
