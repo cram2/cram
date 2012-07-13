@@ -129,8 +129,11 @@
                                   :test (lambda (orientation-1 orientation-2)
                                           (< (cl-transforms:angle-between-quaternions
                                               orientation-1 orientation-2)
-                                             1e-6) ))))))
-    (let* ((pose-in-ik-frame (tf:transform-pose
+                                             1e-6)))))))
+    (let* ((pose-in-map (tf:transform-pose
+                         cram-roslisp-common:*tf*
+                         :pose pose :target-frame designators-ros:*fixed-frame*))
+           (pose-in-ik-frame (tf:transform-pose
                               cram-roslisp-common:*tf*
                               :pose pose :target-frame *ik-reference-frame*))
            (functions (mapcar
@@ -139,9 +142,9 @@
                            ;; TODO(moesenle) don't ignore orientation
                            (matrix-cost-function
                             (+ (cl-transforms:x (origin reachability-map))
-                               (cl-transforms:x (cl-transforms:origin pose-in-ik-frame)))
+                               (cl-transforms:x (cl-transforms:origin pose-in-map)))
                             (+ (cl-transforms:y (origin reachability-map))
-                               (cl-transforms:y (cl-transforms:origin pose-in-ik-frame)))
+                               (cl-transforms:y (cl-transforms:origin pose-in-map)))
                             ;; TODO(moesenle) verify resolution
                             (cl-transforms:x (resolution reachability-map))
                             (make-inverse-reachability-matrix
