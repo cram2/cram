@@ -141,10 +141,10 @@
                                                  :disable-face-culling disable-face-culling))))))
 
 (defmethod add-object ((world bt-world) (type (eql 'cutlery)) name pose &key mass (color '(0.5 0.5 0.5 1.0)) obj)
-  (let ((size (cl-transforms:make-3d-vector 0.1 0.015 0.005)))
-    (if (eql obj 'knife)
-        (setf size (cl-transforms:make-3d-vector 0.1 0.01 0.005)))
-    (make-household-object world name (list obj)     
+  (let ((size (ecase obj
+                (fork (cl-transforms:make-3d-vector 0.1 0.015 0.005))
+                (knife (cl-transforms:make-3d-vector 0.1 0.01 0.005)))))
+    (make-household-object world name (list obj)
                            (list
                             (make-instance 'rigid-body
                               :name name :mass mass :pose (ensure-pose pose)
