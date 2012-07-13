@@ -29,7 +29,7 @@
 (in-package :pr2-reachability-costmap)
 
 (defparameter *arm-namespaces* `((:left . "/reasoning/pr2_left_arm_kinematics")
-                                 (:rigth . "/reasoning/pr2_right_arm_kinematics")))
+                                 (:right . "/reasoning/pr2_right_arm_kinematics")))
 
 (defclass reachability-map ()
   ((side :reader side :initarg :side :type (or :left :right))
