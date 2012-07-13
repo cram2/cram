@@ -35,7 +35,7 @@
   ((side :reader side :initarg :side :type (or :left :right))
    (minimum :reader minimum :initarg :minimum :type cl-transforms:3d-vector)
    (maximum :reader maximum :initarg :maximum :type cl-transforms:3d-vector)
-   (steps :reader steps :initarg :steps ::type cl-transforms:3d-vector)
+   (resolution :reader resolution :initarg :resolution ::type cl-transforms:3d-vector)
    (angles :reader angles :initarg :angles :type list)
    (reachability-map :reader reachability-map)))
 
@@ -51,29 +51,29 @@
              map :namespace (cdr (assoc side *arm-namespaces*)))))))
 
 (defun generate-reachability-map (map &key namespace)
-  (with-slots (minimum maximum steps angles) map
+  (with-slots (minimum maximum resolution angles) map
     (loop with map = (make-array
                       (list
                        (truncate (- (cl-transforms:z maximum)
                                     (cl-transforms:z minimum))
-                                 (cl-transforms:y steps))
+                                 (cl-transforms:y resolution))
                        (truncate (- (cl-transforms:y maximum)
                                     (cl-transforms:y minimum))
-                                 (cl-transforms:y steps))
+                                 (cl-transforms:y resolution))
                        (truncate (- (cl-transforms:x maximum)
                                     (cl-transforms:x minimum))
-                                 (cl-transforms:y steps))
+                                 (cl-transforms:y resolution))
                        (length angles))
                       :element-type 'bit)
           for z from (cl-transforms:z minimum)
-            by (cl-transforms:z steps)
+            by (cl-transforms:z resolution)
           for z-index from 0 below (array-dimension map 0)
           do (loop for y from (cl-transforms:y minimum)
-                     by (cl-transforms:y steps)
+                     by (cl-transforms:y resolution)
                    for y-index from 0 below (array-dimension map 1)
                    do (format t "y: ~a z: ~a~%" y z)
                       (loop for x from (cl-transforms:x minimum)
-                              by (cl-transforms:x steps)
+                              by (cl-transforms:x resolution)
                             for x-index from 0 below (array-dimension map 2)
                             do (loop for angle in angles
                                      for angle-index from 0
@@ -91,7 +91,7 @@
 
 (defun store-reachability-map (map filename)
   (let ((reachability-map (reachability-map map)))
-    (with-slots (side minimum maximum steps angles) map
+    (with-slots (side minimum maximum resolution angles) map
       (with-open-file (file filename
                             :direction :output
                             :element-type 'unsigned-byte
@@ -99,17 +99,17 @@
         (store file side)
         (store file minimum)
         (store file maximum)
-        (store file steps)
+        (store file resolution)
         (store file angles)
         (store file reachability-map)))))
 
 (defun restore-reachability-map (map filename)
-  (with-slots (side minimum maximum steps angles reachability-map)
+  (with-slots (side minimum maximum resolution angles reachability-map)
       map
     (with-open-file (file filename :direction :input :element-type 'unsigned-byte)
       (setf side (restore file 'symbol))
       (setf minimum (restore file 'cl-transforms:3d-vector))
       (setf maximum (restore file 'cl-transforms:3d-vector))
-      (setf steps (restore file 'cl-transforms:3d-vector))
+      (setf resolution (restore file 'cl-transforms:3d-vector))
       (setf angles (restore file 'list))
       (setf reachability-map (restore file 'array)))))
