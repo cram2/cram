@@ -124,24 +124,27 @@
 (defun compare-bounding-box-values (bounding-box-1 bounding-box-2
                                     &key predicate key)
   (declare (type function predicate key))
-  (let ((threshold (ecase (nth-value 2 (function-lambda-expression predicate))
-                     ((>= >) (- *bb-comparison-validity-threshold*))
-                     (t *bb-comparison-validity-threshold*))))
-    (funcall predicate
-             (- (- (funcall key (bounding-box-center bounding-box-1))
-                   (/ (funcall key (bounding-box-dimensions bounding-box-1)) 2))
-                (+ (funcall key (bounding-box-center bounding-box-2))
-                   (/ (funcall key (bounding-box-dimensions bounding-box-2)) 2)))
-             threshold)))
+  (funcall predicate
+           (- (funcall key (bounding-box-center bounding-box-1))
+              (/ (funcall key (bounding-box-dimensions bounding-box-1)) 2))
+           (+ (funcall key (bounding-box-center bounding-box-2))
+              (/ (funcall key (bounding-box-dimensions bounding-box-2)) 2))))
+
+(defun make-compare-function (predicate &key (threshold 0.0d0))
+  (lambda (lhs rhs)
+    (or (funcall predicate (+ lhs threshold) rhs)
+        (funcall predicate lhs (+ rhs threshold)))))
 
 (defun above-p (obj-1 obj-2)
   "Returns T if `obj-1' is above `obj-2'"
   (compare-bounding-box-values
    (aabb obj-1) (aabb obj-2)
-   :predicate #'>= :key #'cl-transforms:z))
+   :predicate (make-compare-function #'>= :threshold *bb-comparison-validity-threshold*)
+   :key #'cl-transforms:z))
 
 (defun above-link-p (obj-1 obj-2 link)
   (compare-bounding-box-values
    (aabb obj-1) (aabb (gethash link (links obj-2)))
-   :predicate #'>= :key #'cl-transforms:z))
+   :predicate (make-compare-function #'>= :threshold *bb-comparison-validity-threshold*)
+   :key #'cl-transforms:z))
 
