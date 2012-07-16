@@ -52,6 +52,7 @@
     (object-at-location ?_ ?robot ?location))
 
   (<- (loc ?object ?location)
+    (desig:obj-desig? object)
     (object-designator-name ?object ?object-name)
     (object-at-location ?_ ?object-name ?location))
   
