@@ -30,6 +30,9 @@
 
 (in-package :btr)
 
+(defparameter *bb-comparison-validity-threshold* 0.003d0
+  "Used in COMPARE-BOUNDING-BOX-VALUES")
+
 (defun simulate (world secs &optional (dt 0.1) realtime)
   (multiple-value-bind (steps rest) (truncate secs dt)
     (when (> rest 0.0)
@@ -121,11 +124,15 @@
 (defun compare-bounding-box-values (bounding-box-1 bounding-box-2
                                     &key predicate key)
   (declare (type function predicate key))
-  (funcall predicate
-           (- (funcall key (bounding-box-center bounding-box-1))
-              (/ (funcall key (bounding-box-dimensions bounding-box-1)) 2))
-           (+ (funcall key (bounding-box-center bounding-box-2))
-              (/ (funcall key (bounding-box-dimensions bounding-box-2)) 2))))
+  (let ((threshold (ecase (nth-value 2 (function-lambda-expression predicate))
+                     ((>= >) (- *bb-comparison-validity-threshold*))
+                     (t *bb-comparison-validity-threshold*))))
+    (funcall predicate
+             (- (- (funcall key (bounding-box-center bounding-box-1))
+                   (/ (funcall key (bounding-box-dimensions bounding-box-1)) 2))
+                (+ (funcall key (bounding-box-center bounding-box-2))
+                   (/ (funcall key (bounding-box-dimensions bounding-box-2)) 2)))
+             threshold)))
 
 (defun above-p (obj-1 obj-2)
   "Returns T if `obj-1' is above `obj-2'"
