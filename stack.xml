@@ -5,7 +5,7 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cram_physics</url>
   <depend stack="cram_highlevel" /> <!-- cl_json_pl_client -->
-  <depend stack="cram_pl" /> <!-- cram_reasoning, alexandria, cffi, cram_utilities, trivial_garbage, split_sequence -->
+  <depend stack="cram_core" /> <!-- cram_reasoning, alexandria, cffi, cram_utilities, trivial_garbage, split_sequence -->
   <depend stack="geometry" /> <!-- tf, tf_conversions -->
   <depend stack="kinematics" /> <!-- kinematics_msgs -->
   <depend stack="robot_model" /> <!-- convex_decomposition, ivcon, urdf, kdl_parser, assimp -->
