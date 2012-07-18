@@ -40,7 +40,7 @@
            #:global-fluent-value
            #:occupancy-grid
            #:grid-width #:grid-height #:origin-x #:origin-y
-           #:resolution
+           #:resolution #:width #:height
            #:inverted-occupancy-grid
            #:costmap-metadata
            #:costmap
