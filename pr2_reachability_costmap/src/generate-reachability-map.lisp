@@ -53,6 +53,6 @@
          :side side
          :minimum *minimum*
          :maximum *maximum*
-         :steps *steps*
-         :angles *angles*)
+         :resolution *steps*
+         :orientations *angles*)
        filename))))
