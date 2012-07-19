@@ -30,11 +30,12 @@
 
 (defparameter *minimum* (cl-transforms:make-3d-vector -1.0 -1.5 -0.75))
 (defparameter *maximum* (cl-transforms:make-3d-vector 1.0 1.5 0.5))
-(defparameter *steps* (cl-transforms:make-3d-vector 0.01 0.01 0.01))
-(defparameter *angles* (list (cl-transforms:make-identity-rotation)
-                             (cl-transforms:euler->quaternion :ay (/ pi -2))
-                             (cl-transforms:euler->quaternion :az (/ pi 2))
-                             (cl-transforms:euler->quaternion :az (/ pi -2))))
+(defparameter *steps* (cl-transforms:make-3d-vector 0.05 0.05 0.05))
+(defparameter *angles* (list*
+                        (cl-transforms:make-identity-rotation)
+                        (cl-transforms:euler->quaternion :ay (/ pi -2))
+                        (loop for i from (- pi) below pi by (/ pi 4)
+                              collecting (cl-transforms:euler->quaternion :az i))))
 
 (defun generate-map-main ()
   (let ((side (cond ((equal (second sb-ext:*posix-argv*) "left")
