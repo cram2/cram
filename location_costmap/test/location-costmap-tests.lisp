@@ -70,8 +70,8 @@
 
 (defmacro with-costmaps ((&rest names) &body body)
   `(let ,(loop for n in names collect
-               `(,n(make-instance 'location-costmap :width 2 :height 2
-                     :origin-x 0 :origin-y 0 :resolution 1)))
+               `(,n (make-instance 'location-costmap :width 2 :height 2
+                      :origin-x 0 :origin-y 0 :resolution 1)))
      ,@body))
 
 ;;; actual test cases

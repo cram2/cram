@@ -37,8 +37,6 @@
 ;;; returned should never be negative, and at least some must be
 ;;; non-zero
 
-(define-condition invalid-probability-distribution (error) ())
-
 (define-condition no-cost-functions-registered (error) ())
 
 ;; A location costmap is a 2d grid map that defines for each x,y point
@@ -206,21 +204,15 @@ calls the generator functions and runs normalization."
       default))
 
 (defmethod gen-costmap-sample-point ((map location-costmap))
-  (let ((rand (random 1.0))
-        (cntr 0.0)
-        (cost-map (get-cost-map map)))
+  (let ((cost-map (get-cost-map map)))
     (declare (type cma:double-matrix cost-map))
-    (with-slots (origin-x origin-y resolution) map
-      (dotimes (row (cma:height cost-map))
-        (dotimes (col (cma:width cost-map))
-          (setf cntr (+ cntr (aref cost-map row col)))
-          (when (> cntr rand)
-            (let* ((x (+ (* col resolution) origin-x))
-                   (y (+ (* row resolution) origin-y))
-                   (z (generate-height map x y)))
-              (return-from gen-costmap-sample-point
-                (cl-transforms:make-3d-vector x y z))))))))
-  (error 'invalid-probability-distribution))
+    (destructuring-bind (column row)
+        (cma:sample-from-distribution-matrix cost-map)
+      (with-slots (origin-x origin-y resolution) map
+        (let* ((x (+ (* column resolution) origin-x))
+               (y (+ (* row resolution) origin-y))
+               (z (generate-height map x y)))
+          (cl-transforms:make-3d-vector x y z))))))
 
 (defmethod costmap-samples ((map location-costmap))
   (lazy-mapcan (lambda (sample-point)
