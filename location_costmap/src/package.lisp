@@ -72,7 +72,6 @@
            #:location-costmap
            #:get-cost-map
            #:get-map-value
-           #:invalid-probability-distribution
            #:no-cost-functions-registered
            #:register-cost-function
            #:register-height-generator
@@ -104,6 +103,7 @@
            #:costmap-size #:costmap-origin #:costmap-resolution
            #:costmap-padding #:costmap-manipulation-padding
            #:costmap-in-reach-distance #:costmap-reach-minimal-distance)
+  (:import-from #:cram-math invalid-probability-distribution)
   (:desig-properties #:to #:see #:reach #:execute #:location #:pose #:obj
                      #:object #:action #:side))
 
