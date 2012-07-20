@@ -36,7 +36,8 @@
   (:nicknames :cma)
   (:export
    ;; math
-   #:sample #:sample-discrete
+   #:sample #:sample-discrete #:invalid-probability-distribution
+   #:sample-from-distribution-matrix
    ;; matrix
    #:double-matrix #:width #:height #:make-double-matrix #:make-double-vector
    #:double-vector-size #:fill-double-matrix #:double-matrix-from-array
