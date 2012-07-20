@@ -44,9 +44,9 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "persistent-reachability-map" :depends-on ("package" "ros" "storage"))
+     (:file "reachability-map" :depends-on ("package" "ros" "storage"))
      (:file "ros" :depends-on ("package"))
      (:file "storage" :depends-on ("package"))
-     (:file "cost-functions" :depends-on ("package" "persistent-reachability-map"))
+     (:file "cost-functions" :depends-on ("package" "reachability-map"))
      (:file "generate-reachability-map"
-      :depends-on ("package" "persistent-reachability-map"))))))
+      :depends-on ("package" "reachability-map"))))))
