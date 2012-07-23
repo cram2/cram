@@ -97,6 +97,7 @@
   (declare (type simple-array reachability-map-matrix)
            (type fixnum z-index)
            (type list orientation-indices))
+  (assert (> (list-length orientation-indices) 0))
   (let ((result (cma:make-double-matrix
                  (array-dimension reachability-map-matrix 2)
                  (array-dimension reachability-map-matrix 1))))
