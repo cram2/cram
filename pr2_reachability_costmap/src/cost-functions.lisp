@@ -92,35 +92,22 @@
                    finally (return output-matrix)))))
     #'generator))
 
-(defun make-inverse-reachability-matrix (reachability-map-matrix z-index
-                                         &optional orientation-indices)
-  "Returns a new two-dimentional CMA:DOUBLE-MATRIX with values between
-  0 and 1 that represents an inverse reachability map calculated from
-  `readability-map-matrix' at height `z'. `orientation-indices'
-  indicates the orientations to use. If it is NIL, all orientations
-  are used, otherwise only the orientations with the specified indices
-  are used. The value is calculated by summing up all valid
-  orientations and then dividing that number by the length of
-  `orientations'."
-  (let* ((width (array-dimension reachability-map-matrix 2))
-         (height (array-dimension reachability-map-matrix 1))
-         (result (cma:make-double-matrix width height))
-         (orientation-indices
-           (or (remove-duplicates orientation-indices)
-               (loop for i from 0 below (array-dimension reachability-map-matrix 3)
-                     collecting i)))
-         (orientations (list-length orientation-indices)))
-    (prog1
-        (dotimes (y (array-dimension reachability-map-matrix 1) result)
-          (dotimes (x (array-dimension reachability-map-matrix 2))
-            (setf (aref result y x)
-                  (/ (loop for i in orientation-indices
-                           summing (float (aref reachability-map-matrix
-                                                z-index (- height y 1) (- width x 1) i)
-                                          0.0d0))
-                     orientations)))))))
+(defun make-inverse-reachability-matrix
+    (reachability-map-matrix z-index orientation-indices)
+  (declare (type simple-array reachability-map-matrix)
+           (type fixnum z-index)
+           (type list orientation-indices))
+  (let ((result (cma:make-double-matrix
+                 (array-dimension reachability-map-matrix 2)
+                 (array-dimension reachability-map-matrix 1))))
+    (dotimes (y (array-dimension reachability-map-matrix 1))
+      (dotimes (x (array-dimension reachability-map-matrix 2))
+        (dolist (orientation-index orientation-indices)
+          (incf (aref result y x) (aref reachability-map-matrix
+                                        z-index y x orientation-index)))))
+    (cma:m./ result (float (list-length orientation-indices) 0.0d0))))
 
-(defun make-inverse-reachability-costmap (sides pose &optional orientations)
+(defun make-inverse-reachability-costmap (sides point &optional orientations)
   (flet ((get-orientation-indices (reachability-map orientations)
            (loop for orientation in orientations
                  collecting (remove
@@ -130,27 +117,27 @@
                                           (< (cl-transforms:angle-between-quaternions
                                               orientation-1 orientation-2)
                                              1e-6)))))))
-    (let* ((pose-in-map (tf:transform-pose
+    (let* ((point-in-map (tf:transform-point
                          cram-roslisp-common:*tf*
-                         :pose pose :target-frame designators-ros:*fixed-frame*))
-           (pose-in-ik-frame (tf:transform-pose
+                         :point point :target-frame designators-ros:*fixed-frame*))
+           (point-in-ik-frame (tf:transform-point
                               cram-roslisp-common:*tf*
-                              :pose pose :target-frame *ik-reference-frame*))
+                              :point point :target-frame *ik-reference-frame*))
            (functions (mapcar
                        (lambda (side)
                          (let ((reachability-map (get-reachability-map side)))
                            ;; TODO(moesenle) don't ignore orientation
                            (matrix-cost-function
                             (+ (cl-transforms:x (origin reachability-map))
-                               (cl-transforms:x (cl-transforms:origin pose-in-map)))
+                               (cl-transforms:x point-in-map))
                             (+ (cl-transforms:y (origin reachability-map))
-                               (cl-transforms:y (cl-transforms:origin pose-in-map)))
+                               (cl-transforms:y point-in-map))
                             ;; TODO(moesenle) verify resolution
                             (cl-transforms:x (resolution reachability-map))
                             (make-inverse-reachability-matrix
                              (reachability-map reachability-map)
                              (map-coordinate->array-index
-                              (cl-transforms:z (cl-transforms:origin pose-in-ik-frame))
+                              (cl-transforms:z point-in-ik-frame)
                               (cl-transforms:z (resolution reachability-map))
                               (cl-transforms:z (origin reachability-map)))
                              (get-orientation-indices
