@@ -44,6 +44,23 @@
   (:method ((reachability-map reachability-map))
     (minimum reachability-map)))
 
+(defgeneric inverse-map-origin (reachability-map)
+  (:method ((reachability-map reachability-map))
+    (let* ((reachability-map-matrix (reachability-map reachability-map))
+           (inverse-map-matrix (inverse-reachability-map reachability-map))
+           (resolution (resolution reachability-map))
+           (size-difference-x (* (- (array-dimension reachability-map-matrix 2)
+                                    (array-dimension inverse-map-matrix 2))
+                                 (cl-transforms:x resolution)))
+           (size-difference-y (* (- (array-dimension reachability-map-matrix 1)
+                                    (array-dimension inverse-map-matrix 1))
+                                 (cl-transforms:y resolution))))
+      (cl-transforms:v+ (origin reachability-map)
+                        (cl-transforms:v*
+                         (cl-transforms:make-3d-vector
+                          size-difference-x size-difference-y 0)
+                         0.5)))))
+
 (defgeneric size (reachability-map)
   (:method ((reachability-map reachability-map))
     (cl-transforms:v-
@@ -148,8 +165,9 @@ result is: (z y x orientation)"
                            (/ width 2) (/ height 2) 0))
                   (transformed-base-pose
                     (tf:v+ (cl-transforms:rotate
-                            orientation (cl-transforms:v-
-                                         base-pose center))
+                            orientation (cl-transforms:v-inv
+                                         (cl-transforms:v-
+                                          base-pose center)))
                            center))
                   (rounded-x (round (cl-transforms:x transformed-base-pose)))
                   (rounded-y (round (cl-transforms:y transformed-base-pose))))
@@ -159,34 +177,41 @@ result is: (z y x orientation)"
                  (values nil nil)
                  (values rounded-x rounded-y)))))
     (let* ((reachability-map-matrix (reachability-map reachability-map))
+           (orientations (orientations reachability-map))
+           (inverse-map-size (max (array-dimension reachability-map-matrix 2)
+                                  (array-dimension reachability-map-matrix 1)))
            (inverse-reachability-map-matrix
              (make-array
-              (array-dimensions reachability-map-matrix)
+              (list (array-dimension reachability-map-matrix 0)
+                    inverse-map-size inverse-map-size
+                    (array-dimension reachability-map-matrix 3))
               :element-type 'bit))
-           (orientations (orientations reachability-map))
            (width (array-dimension reachability-map-matrix 2))
-           (height (array-dimension reachability-map-matrix 1)))
+           (height (array-dimension reachability-map-matrix 1))
+           (x-offset (/ (- inverse-map-size width) 2))
+           (y-offset (/ (- inverse-map-size height) 2)))
       (dotimes (z (array-dimension reachability-map-matrix 0) inverse-reachability-map-matrix)
-        (dotimes (y (array-dimension reachability-map-matrix 1))
-          (dotimes (x (array-dimension reachability-map-matrix 2))
+        (dotimes (y inverse-map-size)
+          (dotimes (x inverse-map-size)
             (loop for goal-orientation in orientations
                   for goal-orientation-index from 0 do
                     (loop for current-orientation in orientations
                           for i from 0
                           with inverse-orientation = (cl-transforms:q-inv goal-orientation)
-                          with base-pose = (cl-transforms:make-3d-vector x y 0) do
-                            (multiple-value-bind (x-in-base y-in-base)
-                                (get-reachability-map-x-y
-                                 base-pose width height
-                                 (cl-transforms:q* current-orientation inverse-orientation))
-                              (when (and x-in-base y-in-base
-                                         (eql (aref reachability-map-matrix
-                                                    z y-in-base x-in-base i)
-                                              1))
-                                (setf (aref inverse-reachability-map-matrix
-                                            z y x goal-orientation-index)
-                                      1)
-                                (return)))))))))))
+                          with base-pose = (cl-transforms:make-3d-vector
+                                            (- x x-offset) (- y y-offset) 0)
+                          do (multiple-value-bind (x-in-base y-in-base)
+                                 (get-reachability-map-x-y
+                                  base-pose width height
+                                  (cl-transforms:q* inverse-orientation current-orientation))
+                               (when (and x-in-base y-in-base
+                                          (eql (aref reachability-map-matrix
+                                                     z y-in-base x-in-base i)
+                                               1))
+                                 (setf (aref inverse-reachability-map-matrix
+                                             z y x goal-orientation-index)
+                                       1)
+                                 (return)))))))))))
 
 (defun store-reachability-map (map filename)
   (let ((reachability-map (reachability-map map))
