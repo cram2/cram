@@ -110,52 +110,46 @@
 
 (defun make-inverse-reachability-costmap (sides point &optional orientations)
   (flet ((get-orientation-indices (reachability-map orientations)
-           (loop for orientation in orientations
-                 collecting (remove
-                             nil (position
-                                  orientation (orientations reachability-map)
-                                  :test (lambda (orientation-1 orientation-2)
-                                          (< (cl-transforms:angle-between-quaternions
-                                              orientation-1 orientation-2)
-                                             1e-6)))))))
+           (remove nil 
+                   (loop for orientation in orientations
+                         collecting (position
+                                     orientation (orientations reachability-map)
+                                     :test (lambda (orientation-1 orientation-2)
+                                             (< (cl-transforms:angle-between-quaternions
+                                                 orientation-1 orientation-2)
+                                                1e-6)))))))
     (let* ((point-in-map (tf:transform-point
-                         cram-roslisp-common:*tf*
-                         :point point :target-frame designators-ros:*fixed-frame*))
+                          cram-roslisp-common:*tf*
+                          :point point :target-frame designators-ros:*fixed-frame*))
            (point-in-ik-frame (tf:transform-point
-                              cram-roslisp-common:*tf*
-                              :point point :target-frame *ik-reference-frame*))
+                               cram-roslisp-common:*tf*
+                               :point point :target-frame *ik-reference-frame*))
            (functions (mapcar
                        (lambda (side)
-                         (let ((reachability-map (get-reachability-map side)))
+                         (let* ((reachability-map (get-reachability-map side))
+                                (origin (inverse-map-origin reachability-map)))
                            ;; TODO(moesenle) don't ignore orientation
                            (matrix-cost-function
-                            (+ (cl-transforms:x (origin reachability-map))
-                               (cl-transforms:x point-in-map))
-                            (+ (cl-transforms:y (origin reachability-map))
-                               (cl-transforms:y point-in-map))
+                            (+ (cl-transforms:x origin) (cl-transforms:x point-in-map))
+                            (+ (cl-transforms:y origin) (cl-transforms:y point-in-map))
                             ;; TODO(moesenle) verify resolution
                             (cl-transforms:x (resolution reachability-map))
                             (make-inverse-reachability-matrix
-                             (reachability-map reachability-map)
+                             (inverse-reachability-map reachability-map)
                              (map-coordinate->array-index
                               (cl-transforms:z point-in-ik-frame)
                               (cl-transforms:z (resolution reachability-map))
                               (cl-transforms:z (origin reachability-map)))
                              (get-orientation-indices
-                              reachability-map orientations)))))
+                              reachability-map
+                              (or orientations
+                                  (orientations reachability-map)))))))
                        sides)))
       (make-instance 'map-costmap-generator
         :generator-function (lambda (costmap-metadata matrix)
                               (reduce (lambda (previous-matrix function)
-                                        (cma:m+
-                                         previous-matrix
-                                         (funcall
-                                          function costmap-metadata
-                                          (cma:make-double-matrix
-                                           (cma:width previous-matrix)
-                                           (cma:height previous-matrix)))))
-                                      (cdr functions)
-                                      :initial-value (funcall
-                                                      (car functions)
-                                                      costmap-metadata matrix)))
+                                        (funcall
+                                         function costmap-metadata
+                                         previous-matrix))
+                                      functions :initial-value matrix))
         :name :inverse-reachability-costmap))))
