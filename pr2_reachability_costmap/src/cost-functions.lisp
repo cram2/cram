@@ -43,8 +43,8 @@
                 (make-instance 'reachability-map
                   :filename (concatenate
                              'string
-                             (pathname-name (ros-load:ros-package-path
-                                             *package-name*))
+                             (namestring (ros-load:ros-package-path
+                                          *package-name*))
                              (cdr (assoc side *reachability-map-files*))))))
           (push (cons side reachability-map) *reachability-maps*)
           reachability-map))))
