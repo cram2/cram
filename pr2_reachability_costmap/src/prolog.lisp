@@ -26,28 +26,21 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem pr2-reachability-costmap
-  :author "Lorenz Moesenlechner"
-  :license "BSD"
-  
-  :depends-on (roslisp
-               location-costmap
-               cl-transforms
-               cl-tf
-               cram-utilities
-               cram-math
-               cram-reasoning
-               cram-roslisp-common
-               designators-ros
-               kinematics_msgs-srv)
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "reachability-map" :depends-on ("package" "ros" "storage"))
-     (:file "ros" :depends-on ("package"))
-     (:file "storage" :depends-on ("package"))
-     (:file "cost-functions" :depends-on ("package" "reachability-map"))
-     (:file "prolog" :depends-on ("package" "cost-functions"))
-     (:file "generate-reachability-map"
-      :depends-on ("package" "reachability-map"))))))
+(in-package :pr2-reachability-costmap)
+
+(defclass pr2-reachability-map-generator () ())
+
+(defmethod costmap-generator-name->score ((name pr2-reachability-map-generator))
+  10)
+
+(def-fact-group pr2-reachability-costmap (desig-costmap)
+  (<- (desig-costmap ?designator ?costmap)
+    (reachability-designator ?designator)
+    (bagof (?pose ?side) (designator-reach-pose ?desig ?pose ?side) ?poses)
+    (costmap ?costmap)
+    (forall
+     (member (?pose ?side) ?poses)
+     (instance-of pr2-reachability-costmap ?generator-id)
+     (costmap-add-function
+      ?generator-id (make-inverse-reachability-costmap (?side) ?pose)
+      ?costmap))))
