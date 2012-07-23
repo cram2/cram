@@ -108,7 +108,32 @@
                                         z-index y x orientation-index)))))
     (cma:m./ result (float (list-length orientation-indices) 0.0d0))))
 
-(defun make-inverse-reachability-costmap (sides point &optional orientations)
+(defun find-closest-orientation (reference-orientation orientations)
+  (let ((current-best-index 0)
+        (current-best-angle (abs (cl-transforms:angle-between-quaternions
+                                   reference-orientation (car orientations))))
+        (current-best-orientation (car orientations)))
+    (loop
+      for index from current-best-index
+      for orientation in (cdr orientations)
+      for angle = (abs (cl-transforms:angle-between-quaternions
+                        reference-orientation orientation))
+      when (< angle current-best-angle) do
+        (setf current-best-index index)
+        (setf current-best-angle angle)
+        (setf current-best-orientation orientation)
+      finally (return (values current-best-orientation current-best-index)))))
+
+(defun make-inverse-reachability-costmap (sides pose-specification)
+  "Returns a generator that uses an inverse reachability map to
+generate poses from which `poses' are reachable. `sides' indicates the
+arms to use. Multiple size lead to an OR like combination of costmaps
+of the sides. 
+
+`pose-specification' can either be a TF:POSE-STAMPED or a
+TF:POINT-STAMPED. If the parameter is a pose-stamped, the closest
+orientation in the corresponding reachability-map is used. If it is a
+point-stamped, all orientations are used."
   (flet ((get-orientation-indices (reachability-map orientations)
            (remove nil 
                    (loop for orientation in orientations
@@ -118,7 +143,13 @@
                                              (< (cl-transforms:angle-between-quaternions
                                                  orientation-1 orientation-2)
                                                 1e-6)))))))
-    (let* ((point-in-map (tf:transform-point
+    (let* ((point (etypecase pose-specification
+                    (tf:point-stamped pose-specification)
+                    (tf:pose-stamped (tf:make-point-stamped
+                                      (tf:frame-id pose-specification)
+                                      (tf:stamp pose-specification)
+                                      (cl-transforms:origin pose-specification)))))
+           (point-in-map (tf:transform-point
                           cram-roslisp-common:*tf*
                           :point point :target-frame designators-ros:*fixed-frame*))
            (point-in-ik-frame (tf:transform-point
@@ -127,8 +158,15 @@
            (functions (mapcar
                        (lambda (side)
                          (let* ((reachability-map (get-reachability-map side))
-                                (origin (inverse-map-origin reachability-map)))
-                           ;; TODO(moesenle) don't ignore orientation
+                                (origin (inverse-map-origin reachability-map))
+                                (orientations
+                                  (etypecase pose-specification
+                                    (tf:point-stamped (orientations reachability-map))
+                                    (tf:pose-stamped (list
+                                                      (find-closest-orientation
+                                                       (cl-transforms:orientation
+                                                        pose-specification)
+                                                       (orientations reachability-map)))))))
                            (matrix-cost-function
                             (+ (cl-transforms:x origin) (cl-transforms:x point-in-map))
                             (+ (cl-transforms:y origin) (cl-transforms:y point-in-map))
@@ -141,9 +179,7 @@
                               (cl-transforms:z (resolution reachability-map))
                               (cl-transforms:z (origin reachability-map)))
                              (get-orientation-indices
-                              reachability-map
-                              (or orientations
-                                  (orientations reachability-map)))))))
+                              reachability-map orientations)))))
                        sides)))
       (make-instance 'map-costmap-generator
         :generator-function (lambda (costmap-metadata matrix)
