@@ -60,7 +60,7 @@
                                (1- (cma:width matrix)) resolution origin-x)
                               (+ (width costmap-metadata) (origin-x costmap-metadata))))
                  (end-y (min (array-index->map-coordinate
-                               (1- (cma:width matrix)) resolution origin-x)
+                               (1- (cma:height matrix)) resolution origin-x)
                              (+ (height costmap-metadata) (origin-y costmap-metadata)))))
              (loop for y-source-index from (map-coordinate->array-index start-y resolution origin-y)
                      below (map-coordinate->array-index end-y resolution origin-y)
