@@ -83,7 +83,7 @@
                                      end-x (resolution costmap-metadata)
                                      (origin-x costmap-metadata))
                                 by (/ resolution (resolution costmap-metadata))
-                            do (setf
+                            do (incf
                                 (aref output-matrix
                                       (truncate y-destination-index)
                                       (truncate x-destination-index))
