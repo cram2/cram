@@ -178,10 +178,16 @@ that the bounding boxes of `bottom' and `top' are alligned."
   box is in `pose'"
   (let ((pose (ensure-pose pose)))
     (let* ((aabb-obj (aabb obj))
-           (bounding-box-relative-offset (cl-transforms:v-
-                                          (cl-transforms:origin (pose obj))
-                                          (bounding-box-center aabb-obj)
-                                          (cl-transforms:v* (bounding-box-dimensions aabb-obj) -0.5))))
+           (bounding-box-relative-offset
+             (cl-transforms:v-
+              (cl-transforms:origin (pose obj))
+              (bounding-box-center aabb-obj)
+              ;; The on relation implies that the bottom coordinate of
+              ;; the object and pose should be aligned. x and y is
+              ;; aligned by just using the object calculated so far,
+              ;; but we need to add half of the z size.
+              (cl-transforms:make-3d-vector
+               0 0 (- (/ (cl-transforms:z (bounding-box-dimensions aabb-obj)) 2))))))
       (cl-transforms:copy-pose
        pose :origin (cl-transforms:v+
                      (cl-transforms:origin pose)
