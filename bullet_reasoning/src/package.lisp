@@ -31,7 +31,7 @@
 (in-package :cl-user)
 
 (defpackage bullet-reasoning
-    (:nicknames :btr)
+  (:nicknames :btr)
   (:use #:common-lisp #:crs #:bt #:bt-vis #:cut #:cram-manipulation-knowledge)
   (:import-from #:alexandria compose curry rcurry with-gensyms copy-hash-table)
   (:import-from #:desig desig-solutions)
@@ -77,6 +77,7 @@
            make-joint-state-message open-object close-object
            set-articulated-object-joint-position
            with-world copied-world with-copied-world
+           obj-pose-on obj-poses-on
 
            robot-pan-tilt-links robot-pan-tilt-joints robot
            camera-frame robot-arms-parking-joint-states
