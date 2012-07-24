@@ -126,6 +126,33 @@
         (setf current-best-orientation orientation)
       finally (return (values current-best-orientation current-best-index)))))
 
+(defun ensure-point-stamped (pose-specification)
+  (etypecase pose-specification
+    (tf:point-stamped pose-specification)
+    (tf:pose-stamped (tf:make-point-stamped
+                      (tf:frame-id pose-specification)
+                      (tf:stamp pose-specification)
+                      (cl-transforms:origin pose-specification)))
+    (cl-transforms:3d-vector (tf:make-point-stamped
+                              designators-ros:*fixed-frame* 0.0
+                              pose-specification))
+    (cl-transforms:pose (tf:make-point-stamped
+                         designators-ros:*fixed-frame* 0.0
+                         (cl-transforms:origin pose-specification)))))
+
+(defun get-closest-orientation (pose orientations)
+  "Returns the orientation in `orientation' that is closest to the
+  orientation of `pose'. If `pose' is of type TF:POSE-STAMPED,
+  transforms it first into the fixed frame."
+  (let ((pose (etypecase pose
+                (tf:pose-stamped (tf:transform-pose
+                                  cram-roslisp-common:*tf*
+                                  :target-frame designators-ros:*fixed-frame*
+                                  :pose pose))
+                (cl-transforms:pose pose))))
+    (find-closest-orientation
+     (cl-transforms:orientation pose) orientations)))
+
 (defun make-inverse-reachability-costmap (sides pose-specification)
   "Returns a generator that uses an inverse reachability map to
 generate poses from which `poses' are reachable. `sides' indicates the
@@ -145,12 +172,7 @@ point-stamped, all orientations are used."
                                              (< (cl-transforms:angle-between-quaternions
                                                  orientation-1 orientation-2)
                                                 1e-6)))))))
-    (let* ((point (etypecase pose-specification
-                    (tf:point-stamped pose-specification)
-                    (tf:pose-stamped (tf:make-point-stamped
-                                      (tf:frame-id pose-specification)
-                                      (tf:stamp pose-specification)
-                                      (cl-transforms:origin pose-specification)))))
+    (let* ((point (ensure-point-stamped pose-specification))
            (point-in-map (tf:transform-point
                           cram-roslisp-common:*tf*
                           :point point :target-frame designators-ros:*fixed-frame*))
@@ -163,12 +185,12 @@ point-stamped, all orientations are used."
                                 (origin (inverse-map-origin reachability-map))
                                 (orientations
                                   (etypecase pose-specification
-                                    (tf:point-stamped (orientations reachability-map))
-                                    (tf:pose-stamped (list
-                                                      (find-closest-orientation
-                                                       (cl-transforms:orientation
-                                                        pose-specification)
-                                                       (orientations reachability-map)))))))
+                                    (cl-transforms:3d-vector
+                                     (orientations reachability-map))
+                                    (cl-transforms:pose
+                                     (list (get-closest-orientation
+                                            pose-specification
+                                            (orientations reachability-map)))))))
                            (matrix-cost-function
                             (+ (cl-transforms:x origin) (cl-transforms:x point-in-map))
                             (+ (cl-transforms:y origin) (cl-transforms:y point-in-map))
