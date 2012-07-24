@@ -36,11 +36,13 @@
 (def-fact-group pr2-reachability-costmap (desig-costmap)
   (<- (desig-costmap ?designator ?costmap)
     (reachability-designator ?designator)
-    (bagof (?pose ?side) (designator-reach-pose ?desig ?pose ?side) ?poses)
+    (bagof ?pose (designator-reach-pose ?designator ?pose ?_)
+           ?poses)
     (costmap ?costmap)
     (forall
-     (member (?pose ?side) ?poses)
-     (instance-of pr2-reachability-costmap ?generator-id)
-     (costmap-add-function
-      ?generator-id (make-inverse-reachability-costmap (?side) ?pose)
-      ?costmap))))
+     (member ?pose ?poses)
+     (and
+      (instance-of pr2-reachability-map-generator ?generator-id)
+      (costmap-add-function
+       ?generator-id (make-inverse-reachability-costmap (:left :right) ?pose)
+       ?costmap)))))
