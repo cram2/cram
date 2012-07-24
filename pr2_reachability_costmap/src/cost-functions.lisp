@@ -37,15 +37,17 @@
 (defvar *reachability-maps* nil)
 
 (defun get-reachability-map (side)
-  (let ((map (cdr (assoc side *reachability-maps*))))
+  (let ((map (cdr (assoc side *reachability-maps*)))
+        (relative-filename (cdr (assoc side *reachability-map-files*))))
+    (assert relative-filename)
     (or map
         (let ((reachability-map
                 (make-instance 'reachability-map
                   :filename (concatenate
                              'string
                              (namestring (ros-load:ros-package-path
-                                          *package-name*))
-                             (cdr (assoc side *reachability-map-files*))))))
+                                           *package-name*))
+                             relative-filename))))
           (push (cons side reachability-map) *reachability-maps*)
           reachability-map))))
 
