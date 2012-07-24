@@ -38,6 +38,7 @@
                cram-math
                cram-reasoning
                cram-roslisp-common
+               cram-manipulation-knowledge
                designators-ros
                kinematics_msgs-srv)
   :components
