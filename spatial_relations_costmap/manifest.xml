@@ -1,0 +1,22 @@
+<package>
+  <description brief="spatial_relations_costmap">
+
+     spatial_relations_costmap
+
+  </description>
+  <author></author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/spatial_relations_costmap</url>
+  <depend package="cram_roslisp_common"/>
+  <depend package="cram_designators"/>
+  <depend package="location_costmap"/>
+  <depend package="roslisp_runtime"/>
+  <depend package="semantic_map_costmap"/>
+  <depend package="bullet_reasoning"/>
+  <depend package="cram_pr2_knowledge"/>
+  <depend package="cram_environment_representation"/>
+
+</package>
+
+
