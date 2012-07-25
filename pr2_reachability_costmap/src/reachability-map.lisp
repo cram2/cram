@@ -67,6 +67,18 @@
      (maximum reachability-map)
      (minimum reachability-map))))
 
+(defgeneric inverse-map-size (reachability-map)
+  (:method ((reachability-map reachability-map))
+    (with-slots (resolution) reachability-map
+      (let ((matrix (inverse-reachability-map reachability-map)))
+        (cl-transforms:make-3d-vector
+         (array-index->map-coordinate
+          (1- (array-dimension matrix 2)) (cl-transforms:x resolution) 0)
+         (array-index->map-coordinate
+          (1- (array-dimension matrix 1)) (cl-transforms:y resolution) 0)
+         (array-index->map-coordinate
+          (1- (array-dimension matrix 0)) (cl-transforms:z resolution) 0))))))
+
 (defmethod initialize-instance :after ((map reachability-map) &key filename)
   (when filename
     (restore-reachability-map map filename)))
