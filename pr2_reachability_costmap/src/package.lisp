@@ -30,4 +30,8 @@
 
 (defpackage pr2-reachability-costmap
   (:use #:common-lisp #:location-costmap #:cram-reasoning)
-  (:export generate-map-main))
+  (:export generate-map-main reachability-map side maximum minimum
+           resolution orientations reachability-map pose-reachable-p
+           inverse-reachability-map origin inverse-map-origin size
+           find-ik-solution get-reachability-map inverse-map-size
+           make-inverse-reachability-costmap))
