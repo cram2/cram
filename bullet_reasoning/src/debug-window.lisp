@@ -99,6 +99,6 @@
                                      z)
                                     (cl-transforms:make-quaternion 0 0 0 1))
                              :function #'costmap-function
-                             :step-size 0.05))))
+                             :step-size (location-costmap:resolution costmap)))))
     (when *debug-window*
       (push *current-costmap-function* (gl-objects *debug-window*)))))
