@@ -72,7 +72,10 @@
 
 (defmethod (setf pose) (new-value (body rigid-body))
   (setf (pose (motion-state body)) new-value)
-  (set-motion-state (foreign-obj body) (foreign-obj (motion-state body))))
+  (set-motion-state (foreign-obj body) (foreign-obj (motion-state body)))
+  ;; In case the object was deactivated, i.e. it was not moving
+  ;; anymore, we need to re-activate it.
+  (setf (activation-state body) :active-tag))
 
 (defmethod foreign-class-alloc ((body rigid-body) &key
                                 pose activation-state collision-flags
