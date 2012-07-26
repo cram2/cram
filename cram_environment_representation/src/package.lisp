@@ -35,5 +35,5 @@
    #:bullet-reasoning side robot at throughout object during holds)
   (:shadowing-import-from #:cram-plan-knowledge event object-attached)
   (:import-from #:cram-manipulation-knowledge end-effector-link)
-  (:export)
+  (:export get-robot-object get-designator-object-name get-designator-object)
   (:desig-properties pose in gripper z-offset at))
