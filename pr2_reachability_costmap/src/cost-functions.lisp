@@ -110,22 +110,6 @@
                                         z-index y x orientation-index)))))
     (cma:m./ result (float (list-length orientation-indices) 0.0d0))))
 
-(defun find-closest-orientation (reference-orientation orientations)
-  (let ((current-best-index 0)
-        (current-best-angle (abs (cl-transforms:angle-between-quaternions
-                                   reference-orientation (car orientations))))
-        (current-best-orientation (car orientations)))
-    (loop
-      for index from current-best-index
-      for orientation in (cdr orientations)
-      for angle = (abs (cl-transforms:angle-between-quaternions
-                        reference-orientation orientation))
-      when (< angle current-best-angle) do
-        (setf current-best-index index)
-        (setf current-best-angle angle)
-        (setf current-best-orientation orientation)
-      finally (return (values current-best-orientation current-best-index)))))
-
 (defun ensure-point-stamped (pose-specification)
   (etypecase pose-specification
     (tf:point-stamped pose-specification)
