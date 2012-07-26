@@ -176,24 +176,19 @@ reachability map. The map is generated from `reachability-map'. Each
 entry indicates from where the ((0 0 0) `orientation') for all
 orientations of `reachability-map' is reachable. The format of the
 result is: (z y x orientation)"
-  (flet ((get-reachability-map-x-y (base-pose width height orientation)
-           (let* ((center (cl-transforms:make-3d-vector
-                           (/ width 2) (/ height 2) 0))
-                  (transformed-base-pose
-                    (tf:v+ (cl-transforms:rotate
-                            orientation (cl-transforms:v-inv
-                                         (cl-transforms:v-
-                                          base-pose center)))
-                           center))
-                  (rounded-x (round (cl-transforms:x transformed-base-pose)))
-                  (rounded-y (round (cl-transforms:y transformed-base-pose))))
-             (if (or (not (= (cl-transforms:z transformed-base-pose) 0))
-                     (< rounded-x 0) (>= rounded-x width)
-                     (< rounded-y 0) (>= rounded-y height))
-                 (values nil nil)
-                 (values rounded-x rounded-y)))))
+  (flet ((origin-reachable-p (robot-point goal-orientation)
+           (some (lambda (orientation)
+                   (let ((pose (cl-transforms:transform-pose
+                                (cl-transforms:transform-inv
+                                 (cl-transforms:make-transform
+                                  robot-point orientation))
+                                (cl-transforms:make-pose
+                                 (cl-transforms:make-identity-vector)
+                                 goal-orientation))))
+                     (pose-reachable-p
+                      reachability-map pose :use-closest-orientation t)))
+                 (orientations reachability-map))))
     (let* ((reachability-map-matrix (reachability-map reachability-map))
-           (orientations (orientations reachability-map))
            (inverse-map-size (max (array-dimension reachability-map-matrix 2)
                                   (array-dimension reachability-map-matrix 1)))
            (inverse-reachability-map-matrix
@@ -201,33 +196,31 @@ result is: (z y x orientation)"
               (list (array-dimension reachability-map-matrix 0)
                     inverse-map-size inverse-map-size
                     (array-dimension reachability-map-matrix 3))
-              :element-type 'bit))
-           (width (array-dimension reachability-map-matrix 2))
-           (height (array-dimension reachability-map-matrix 1))
-           (x-offset (/ (- inverse-map-size width) 2))
-           (y-offset (/ (- inverse-map-size height) 2)))
-      (dotimes (z (array-dimension reachability-map-matrix 0) inverse-reachability-map-matrix)
-        (dotimes (y inverse-map-size)
-          (dotimes (x inverse-map-size)
-            (loop for goal-orientation in orientations
-                  for goal-orientation-index from 0 do
-                    (loop for current-orientation in orientations
-                          for i from 0
-                          with inverse-orientation = (cl-transforms:q-inv goal-orientation)
-                          with base-pose = (cl-transforms:make-3d-vector
-                                            (- x x-offset) (- y y-offset) 0)
-                          do (multiple-value-bind (x-in-base y-in-base)
-                                 (get-reachability-map-x-y
-                                  base-pose width height
-                                  (cl-transforms:q* inverse-orientation current-orientation))
-                               (when (and x-in-base y-in-base
-                                          (eql (aref reachability-map-matrix
-                                                     z y-in-base x-in-base i)
-                                               1))
-                                 (setf (aref inverse-reachability-map-matrix
-                                             z y x goal-orientation-index)
-                                       1)
-                                 (return)))))))))))
+              :element-type 'bit)))
+      (loop for z-index from 0 below (array-dimension reachability-map-matrix 0)
+            for z from (cl-transforms:z (origin reachability-map))
+              by (cl-transforms:z (resolution reachability-map))
+            do (format t "z: ~a~%" z)
+               (loop for y-index from 0 below inverse-map-size
+                     for y from (* (/ inverse-map-size -2)
+                                   (cl-transforms:y (resolution reachability-map)))
+                       by (cl-transforms:y (resolution reachability-map))
+                     do (format t "y: ~a~%" y)
+                        (loop for x-index from 0 below inverse-map-size
+                              for x from (* (/ inverse-map-size -2)
+                                            (cl-transforms:x (resolution reachability-map)))
+                                by (cl-transforms:x (resolution reachability-map))
+                              do (loop for orientation in (orientations reachability-map)
+                                       for orientation-index from 0 do
+                                         (setf (aref inverse-reachability-map-matrix
+                                                     z-index y-index x-index
+                                                     orientation-index)
+                                               (cond ((origin-reachable-p
+                                                       (cl-transforms:make-3d-vector x y z) orientation)
+                                                      (format t ".") 1)
+                                                     (t (format t "x") 0)))))
+                        (format t "~%")))
+      inverse-reachability-map-matrix)))
 
 (defun store-reachability-map (map filename)
   (let ((reachability-map (reachability-map map))
