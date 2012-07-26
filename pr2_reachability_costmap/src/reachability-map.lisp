@@ -253,3 +253,19 @@ result is: (z y x orientation)"
       (setf orientations (restore file 'list))
       (setf reachability-map (restore file 'array))
       (setf inverse-reachability-map (restore file 'array)))))
+
+(defun find-closest-orientation (reference-orientation orientations)
+  (let ((current-best-index 0)
+        (current-best-angle (abs (cl-transforms:angle-between-quaternions
+                                  reference-orientation (car orientations))))
+        (current-best-orientation (car orientations)))
+    (loop
+      for index from current-best-index
+      for orientation in (cdr orientations)
+      for angle = (abs (cl-transforms:angle-between-quaternions
+                        reference-orientation orientation))
+      when (< angle current-best-angle) do
+        (setf current-best-index index)
+        (setf current-best-angle angle)
+        (setf current-best-orientation orientation)
+      finally (return (values current-best-orientation current-best-index)))))
