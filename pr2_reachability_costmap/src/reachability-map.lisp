@@ -95,12 +95,12 @@
     (setf (slot-value map 'inverse-reachability-map)
           (generate-inverse-reachability-map map))))
 
-(defgeneric pose-reachable-p (reachability-map pose)
-  (:method ((reachability-map reachability-map) pose)
+(defgeneric pose-reachable-p (reachability-map pose &key use-closest-orientation)
+  (:method ((reachability-map reachability-map) pose &key use-closest-orientation)
     (with-slots ((origin cl-transforms:origin)
                  (orientation cl-transforms:orientation))
         pose
-      (let ((reachability-map (reachability-map reachability-map))
+      (let ((matrix (reachability-map reachability-map))
             (x-index (map-coordinate->array-index
                       (cl-transforms:x origin)
                       (cl-transforms:x (resolution reachability-map))
@@ -113,19 +113,23 @@
                       (cl-transforms:z origin)
                       (cl-transforms:z (resolution reachability-map))
                       (cl-transforms:z (origin reachability-map))))
-            (orientation-index (position
-                                orientation (orientations reachability-map)
-                                :test (lambda (rotation-1 rotation-2)
-                                        (< (cl-transforms:angle-between-quaternions
-                                            rotation-1 rotation-2)
-                                           1e-6)))))
+            (orientation-index
+              (if use-closest-orientation
+                  (nth-value
+                   1 (find-closest-orientation
+                      orientation (orientations reachability-map)))
+                  (position
+                   orientation (orientations reachability-map)
+                   :test (lambda (rotation-1 rotation-2)
+                           (< (cl-transforms:angle-between-quaternions
+                               rotation-1 rotation-2)
+                              1e-3))))))
         (when (and orientation-index
                    (> x-index 0) (> y-index 0) (> z-index 0)
-                   (< x-index (array-dimension reachability-map 2))
-                   (< y-index (array-dimension reachability-map 1))
-                   (< z-index (array-dimension reachability-map 0)))
-          (eql (aref reachability-map z-index y-index x-index orientation-index)
-               1))))))
+                   (< x-index (array-dimension matrix 2))
+                   (< y-index (array-dimension matrix 1))
+                   (< z-index (array-dimension matrix 0)))
+          (eql (aref matrix z-index y-index x-index orientation-index) 1))))))
 
 (defun generate-reachability-map (map &key namespace)
   (with-slots (minimum maximum resolution orientations) map
