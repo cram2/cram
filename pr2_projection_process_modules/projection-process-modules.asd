@@ -39,6 +39,7 @@
                cram-projection
                cram-roslisp-common
                cram-manipulation-knowledge
+               cram-plan-errors
                pr2-manipulation-knowledge
                cl-semantic-map-utils)
   :components
