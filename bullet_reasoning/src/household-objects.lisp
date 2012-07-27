@@ -44,21 +44,30 @@
   (:method ((object household-object))
     (bounding-box-dimensions (aabb object)))
   (:method ((object-type symbol))
-    (let ((mesh-specification (assoc object-type *mesh-files*)))
-      (assert
-       mesh-specification ()
-       "Couldn't fine a mesh for object type ~a." object-type)
-      (destructuring-bind (type uri &optional flip-winding-order)
-          mesh-specification
-        (declare (ignore type))
-        (let ((model-filename (physics-utils:parse-uri uri)))
-          (with-file-cache
-              model model-filename (physics-utils:load-3d-model
-                                    model-filename
-                                    :flip-winding-order flip-winding-order)
-            (values
-             (physics-utils:calculate-aabb
-              (physics-utils:3d-model-vertices model)))))))))
+    (or (cutlery-dimensions object-type)
+        (let ((mesh-specification (assoc object-type *mesh-files*)))
+          (assert
+           mesh-specification ()
+           "Couldn't fine a mesh for object type ~a." object-type)
+          (destructuring-bind (type uri &optional flip-winding-order)
+              mesh-specification
+            (declare (ignore type))
+            (let ((model-filename (physics-utils:parse-uri uri)))
+              (with-file-cache
+                  model model-filename (physics-utils:load-3d-model
+                                        model-filename
+                                        :flip-winding-order flip-winding-order)
+                (values
+                 (physics-utils:calculate-aabb
+                  (physics-utils:3d-model-vertices model))))))))))
+
+(defgeneric cutlery-dimensions (type)
+  (:method ((type t))
+    nil)
+  (:method ((type (eql 'knife)))
+    (cl-transforms:make-3d-vector 0.1 0.01 0.005))
+  (:method ((type (eql 'fork)))
+    (cl-transforms:make-3d-vector 0.1 0.015 0.005)))
 
 (defun make-household-object (world name types &optional bodies (add-to-world t))
   (make-instance 'household-object
@@ -140,11 +149,11 @@
                                                  :color color
                                                  :disable-face-culling disable-face-culling))))))
 
-(defmethod add-object ((world bt-world) (type (eql 'cutlery)) name pose &key mass (color '(0.5 0.5 0.5 1.0)) obj)
-  (let ((size (ecase obj
-                (fork (cl-transforms:make-3d-vector 0.1 0.015 0.005))
-                (knife (cl-transforms:make-3d-vector 0.1 0.01 0.005)))))
-    (make-household-object world name (list obj)
+(defmethod add-object ((world bt-world) (type (eql 'cutlery)) name pose
+                       &key mass (color '(0.5 0.5 0.5 1.0)) cutlery-type)
+  (let ((size (cutlery-dimensions cutlery-type)))
+    (assert size)
+    (make-household-object world name (list type cutlery-type)
                            (list
                             (make-instance 'rigid-body
                               :name name :mass mass :pose (ensure-pose pose)
