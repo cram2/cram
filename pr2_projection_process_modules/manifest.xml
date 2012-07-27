@@ -9,7 +9,7 @@
   <review status="unreviewed" notes="" />
   <url>http://ros.org/wiki/pr2_projection_cram_process_modules</url>
   <depend package="alexandria" />
-  <depend pacakge="cram_plan_errors" />
+  <depend pacakge="cram_plan_failures" />
   <depend package="cram_process_modules" />
   <depend package="cram_roslisp_common" />
   <depend package="bullet_reasoning" />
