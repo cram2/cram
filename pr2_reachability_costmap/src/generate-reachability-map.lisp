@@ -48,7 +48,7 @@
        'simple-error
        :format-control "Invalid command line parameters: Usage ~a <left | right> <filename>"
        :format-arguments (list (first sb-ext:*posix-argv*))))
-    (roslisp:with-ros-node ("generate_reachability_map")
+    (roslisp:with-ros-node ("generate_reachability_map" :anonymous t)
       (store-reachability-map
        (make-instance 'reachability-map
          :side side
