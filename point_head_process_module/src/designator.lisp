@@ -51,17 +51,21 @@
     (location-designator (reference pose))))
 
 (defun make-action-goal (pose-stamped)
-  (roslisp:make-message "pr2_controllers_msgs/PointHeadGoal"
-                        max_velocity 10
-                        min_duration 0.3
-                        pointing_frame "/head_pan_link"
-                        (x pointing_axis) 1.0
-                        (y pointing_axis) 0.0
-                        (z pointing_axis) 0.0
-                        target (pose-stamped->point-stamped-msg
-                                (tf:transform-pose
-                                 *tf* :pose (ensure-pose-stamped pose-stamped)
-                                 :target-frame "/base_link"))))
+  (let ((pose-stamped (ensure-pose-stamped pose-stamped)))
+    (tf:wait-for-transform
+     *tf* :source-frame (tf:frame-id pose-stamped)
+     :target-frame "base_link")
+    (roslisp:make-message "pr2_controllers_msgs/PointHeadGoal"
+                          max_velocity 10
+                          min_duration 0.3
+                          pointing_frame "/head_pan_link"
+                          (x pointing_axis) 1.0
+                          (y pointing_axis) 0.0
+                          (z pointing_axis) 0.0
+                          target (pose-stamped->point-stamped-msg
+                                  (tf:transform-pose
+                                   *tf* :pose pose-stamped
+                                   :target-frame "/base_link")))))
 
 (def-fact-group point-head (action-desig)
 
