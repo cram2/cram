@@ -33,6 +33,7 @@
   (:import-from  #:cram-manipulation-knowledge
                  arm required-arms available-arms object-type-grasp
                  object-designator-grasp object-type-tool-length
-                 object-designator-tool-length end-effector-link)
+                 object-designator-tool-length end-effector-link
+                 orientation-matters)
   (:import-from #:cram-designators desig-prop)
   (:desig-properties type handle))
