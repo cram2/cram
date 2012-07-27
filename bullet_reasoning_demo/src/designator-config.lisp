@@ -35,10 +35,10 @@
   (<- (costmap-origin -12.5 -12.5))
   (<- (costmap-resolution 0.05))
 
-  (<- (costmap-padding 0.38))
-  (<- (costmap-manipulation-padding 0.38))
+  (<- (costmap-padding 0.35))
+  (<- (costmap-manipulation-padding 0.35))
   (<- (costmap-in-reach-distance 1.0))
-  (<- (costmap-reach-minimal-distance 0.2)))
+  (<- (costmap-reach-minimal-distance 0.1)))
 
 (def-fact-group semantic-map-metadata ()
   (<- (semantic-map-obj btr::sem-map)))
