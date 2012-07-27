@@ -38,7 +38,13 @@
                semantic-map-costmap
                bullet-reasoning
                cram-pr2-knowledge
-               cram-environment-representation)
+               cram-environment-representation
+               projection-process-modules
+               occupancy-grid-costmap
+               cram-plan-knowledge
+               bullet-reasoning-designators
+               pr2-manipulation-knowledge
+               object-location-designators)
   :components
   ((:module "src"
     :components

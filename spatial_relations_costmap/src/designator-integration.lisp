@@ -51,7 +51,9 @@ In that case we need a costmap with specific spread angle."
                                         (location-costmap::get-cached-costmap-maxvalue cm))))
                   (with-vars-bound (?threshold)
                       (lazy-car
-                       (prolog `(object-costmap-threshold ?_ ,for-prop-value ?threshold)))
+                       (prolog `(and
+                                 (object-instance-name ,for-prop-value ?obj-name)
+                                 (object-costmap-threshold ?_ ?obj-name ?threshold))))
                     ;; (format t "validate ~a: costmap-val = ~a~% thresold = ~a~%"
                     ;;         for-prop-value costmap-value ?threshold)
                     (if (is-var ?threshold)
@@ -60,4 +62,3 @@ In that case we need a costmap with specific spread angle."
                     ))
                 t))
           t))))
-  
