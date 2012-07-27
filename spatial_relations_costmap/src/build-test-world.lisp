@@ -212,46 +212,70 @@
     (prolog `(assert (object-pose ?_ fork-1 ((1 0.8 0.8569999588202436d0) (0 0 0 1))))))
   (when knife
     (prolog `(assert (object-pose ?_ knife-1 ((1 0.7 0.8569999867081037d0) (0 0 0 1)))))))
-    
+
+(cpl-impl:def-top-level-plan put-plate-from-counter-on-table ()
+  (sb-ext:gc :full t)
+  (cram-projection:with-projection-environment 
+      projection-process-modules::pr2-bullet-projection-environment
+    (with-designators
+        ((on-counter (desig-props:location `((desig-props:on counter-top)
+                                             (desig-props:name "CounterTop205"))))
+         (on-kitchen-island (desig-props:location `((desig-props:on counter-top)
+                                                    (desig-props:name kitchen-island))))
+         (plate (desig-props:object `((type btr:plate) (desig-props:at ,on-counter)))))
+      (plan-knowledge:achieve `(plan-knowledge:loc ,plate ,on-kitchen-island))))
+  (sb-ext:gc :full t))
+
+
+(defvar *plate-obj* nil)
+(cpl-impl:def-top-level-plan find-plate-on-table ()
+  (sb-ext:gc :full t)
+  (cram-projection:with-projection-environment 
+      projection-process-modules::pr2-bullet-projection-environment
+    (with-designators
+        ((on-kitchen-island (desig-props:location `((desig-props:on counter-top)
+                                                    (desig-props:name kitchen-island))))
+         (plate (desig-props:object `((type btr:plate)
+                                      (desig-props:at ,on-kitchen-island)))))
+      (plan-lib:perceive-object 'cram-plan-library:a plate))))
+
+(cpl-impl:def-top-level-plan put-object-from-counter-near-plate (object-to-put-type spatial-relations
+                                                                                    plate-obj)
+  (sb-ext:gc :full t)
+  (cram-projection:with-projection-environment 
+      projection-process-modules::pr2-bullet-projection-environment
+    (with-designators
+        ((on-counter (location `((desig-props:on counter-top) (desig-props:name "CounterTop205"))))
+         (object-to-put (desig-props:object `((type ,object-to-put-type)
+                                              (desig-props:at ,on-counter))))
+         (put-down-location (desig-props:location `(,@(loop for property in spatial-relations
+                                                            collecting `(,property ,plate-obj)) 
+                                                    (desig-props:for ,object-to-put) 
+                                                    (desig-props:on counter-top)))))
+      (plan-knowledge:achieve `(plan-knowledge:loc ,object-to-put ,put-down-location))))
+  (sb-ext:gc :full t))
+
+
+(defun put-knife-from-counter-near-plate-from-table ()
+  (sb-ext:gc :full t)
+  (unless *plate-obj*
+    (setf *plate-obj* (find-plate-on-table)))
+  (put-object-from-counter-near-plate 'btr::knife '(desig-props:right-of) *plate-obj*))
+
+(defun put-fork-from-counter-near-plate-from-table ()
+  (sb-ext:gc :full t)
+  (unless *plate-obj*
+    (setf *plate-obj* (find-plate-on-table)))
+  (put-object-from-counter-near-plate 'btr::fork '(desig-props:left-of) *plate-obj*))
+
+(defun put-mug-from-counter-near-plate-from-table ()
+  (sb-ext:gc :full t)
+  (unless *plate-obj*
+    (setf *plate-obj* (find-plate-on-table)))
+  (put-object-from-counter-near-plate 'btr::mug '(desig-props:right-of desig-props:behind)
+                                      *plate-obj*))
+
 #|
-
-(sb-ext:gc :full t)
-
-(top-level
- (cram-projection:with-projection-environment 
-     projection-process-modules::pr2-bullet-projection-environment
-   (with-designators
-       ((on-counter (location `((desig-props:on counter-top) (desig-props:name "CounterTop205"))))
-        (on-kitchen-island (location `((desig-props:on counter-top) (desig-props:name kitchen-island))))
-        (plate (object `((type btr:plate) (desig-props:at ,on-counter)))))
-     (achieve `(loc ,plate ,on-kitchen-island)))))
-
-
-
-(setf object (top-level
-                         (cram-projection:with-projection-environment 
-                             projection-process-modules::pr2-bullet-projection-environment
-                           (with-designators
-                               ((on-kitchen-island (location `((desig-props:on counter-top) (desig-props:name kitchen-island))))
-                                (plate (object `((type btr:plate) (desig-props:at ,on-kitchen-island)))))
-                             (perceive-object 'a plate)))))
-(sb-ext:gc :full t)
-
-(top-level
- (cram-projection:with-projection-environment 
-     projection-process-modules::pr2-bullet-projection-environment
-   (with-designators
-       ((on-counter (location `((desig-props:on counter-top) (desig-props:name "CounterTop205")))) 
-        (on-kitchen-island (location `((desig-props:on counter-top) (desig-props:name kitchen-island))))
-        (knife (object `((type btr:knife) (desig-props:at ,on-counter))))
-        (put-down-location (location `((desig-props:right-of ,object) 
-                                       (desig-props:near ,object) 
-                                       (desig-props:for ,knife) 
-                                       (desig-props:on counter-top)))))
-     (achieve `(loc ,knife ,put-down-location)))))
-
-(sb-ext:gc :full t)
-
 (top-level
  (cram-projection:with-projection-environment 
      projection-process-modules::pr2-bullet-projection-environment
