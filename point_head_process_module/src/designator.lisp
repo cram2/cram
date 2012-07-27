@@ -52,9 +52,14 @@
 
 (defun make-action-goal (pose-stamped)
   (let ((pose-stamped (ensure-pose-stamped pose-stamped)))
-    (tf:wait-for-transform
-     *tf* :source-frame (tf:frame-id pose-stamped)
-     :target-frame "base_link")
+    (unless (tf:wait-for-transform
+             *tf* :source-frame (tf:frame-id pose-stamped)
+                  :target-frame "base_link"
+                  :time (tf:stamp pose-stamped)
+                  :timeout 1.0)
+      (error 'simple-error
+             :format-control "Could not transform ~a into base_link. Invalid time stamp."
+             :format-arguments (list pose-stamped)))
     (roslisp:make-message "pr2_controllers_msgs/PointHeadGoal"
                           max_velocity 10
                           min_duration 0.3
