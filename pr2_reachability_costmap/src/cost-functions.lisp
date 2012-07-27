@@ -137,7 +137,8 @@
     (find-closest-orientation
      (cl-transforms:orientation pose) orientations)))
 
-(defun make-inverse-reachability-costmap (sides pose-specification)
+(defun make-inverse-reachability-costmap (sides pose-specification
+                                          &key orientations)
   "Returns a generator that uses an inverse reachability map to
 generate poses from which `poses' are reachable. `sides' indicates the
 arms to use. Multiple size lead to an OR like combination of costmaps
@@ -156,6 +157,9 @@ point-stamped, all orientations are used."
                                              (< (cl-transforms:angle-between-quaternions
                                                  orientation-1 orientation-2)
                                                 1e-6)))))))
+    (when (and (typep pose-specification 'cl-transforms:pose) orientations)
+      (error 'simple-error
+             :format-control "`orientations' cannot be specified in combination with a CL-TRANSFORMS:POSE."))
     (let* ((point (ensure-point-stamped pose-specification))
            (point-in-map (tf:transform-point
                           cram-roslisp-common:*tf*
@@ -170,7 +174,7 @@ point-stamped, all orientations are used."
                                 (orientations
                                   (etypecase pose-specification
                                     (cl-transforms:3d-vector
-                                     (orientations reachability-map))
+                                     (or orientations (orientations reachability-map)))
                                     (cl-transforms:pose
                                      (list (get-closest-orientation
                                             pose-specification
