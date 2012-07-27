@@ -54,10 +54,11 @@
                                (assert (object ?w static-plane floor ((0 0 0) (0 0 0 1)) :normal (0 0 1) :constant 0))
                                (debug-window ?w)
                                (assert (object ?w semantic-map sem-map ((1.4 2.8 0) (0 0 0.9994 -0.0342)) :urdf ,kitchen-urdf))
-                               (assert (object ?w urdf pr2 ((0 0 0) (0 0 0 1)) :urdf ,urdf))
+                               (robot ?robot)
+                               (assert (object ?w urdf ?robot ((0 0 0) (0 0 0 1)) :urdf ,urdf))
                                (robot-arms-parking-joint-states ?joint-states)
-                               (assert (joint-state ?w pr2 ?joint-states))
-                               (assert (joint-state ?w pr2 (("torso_lift_joint" 0.33))))
+                               (assert (joint-state ?w ?robot ?joint-states))
+                               (assert (joint-state ?w ?robot (("torso_lift_joint" 0.33))))
 
                                ;; (assert (object ?w mesh pot-1
                                ;;                 ((-2.15 3.44 0.945) (0 0 0 1)) ; y = 2.14
@@ -66,50 +67,51 @@
                                ;;                 :mesh bowl :mass 0.2))
                                ;; (assert (object ?w mesh mondamin-1 ((1.2 2 2.5) (0 0 0 1))
                                ;;                 :mesh mondamin :mass 0.2 :color (1 1 0)))
-                               (assert (object ?w mesh plate-1 ((1.1 1 1) (0 0 0 1))
+                               
+                               (assert (object ?w mesh plate-1 ((0 0 0) (0 0 0 1))
                                                :mesh plate :mass 0.2 :color (0 1 1)))
-                               (assert (object ?w mesh plate-2 ((1.1 1 1) (0 0 0 1))
+                               (assert (object ?w mesh plate-2 ((0 0 0) (0 0 0 1))
                                                :mesh plate :mass 0.2 :color (0 1 1)))
-                               (assert (object ?w mesh plate-3 ((1.1 1 1) (0 0 0 1))
+                               (assert (object ?w mesh plate-3 ((0 0 0) (0 0 0 1))
                                                :mesh plate :mass 0.2 :color (0 1 1)))
-                               (assert (object ?w mesh plate-4 ((1.1 1 1) (0 0 0 1))
+                               (assert (object ?w mesh plate-4 ((0 0 0) (0 0 0 1))
                                                :mesh plate :mass 0.2 :color (0 1 1)))
 
-                               (assert (object ?w mesh mug-1 ((1.1 1 1) (0 0 0 1))
+                               (assert (object ?w mesh mug-1 ((0 0 0) (0 0 0 1))
                                                :mesh mug :mass 0.2 :color (1 0.5 0)))
-                               (assert (object ?w mesh mug-2 ((1.1 1 1) (0 0 0 1))
+                               (assert (object ?w mesh mug-2 ((0 0 0) (0 0 0 1))
                                                :mesh mug :mass 0.2 :color (1 0.5 0)))
-                               (assert (object ?w mesh mug-3 ((1.1 1 1) (0 0 0 1))
+                               (assert (object ?w mesh mug-3 ((0 0 0) (0 0 0 1))
                                                :mesh mug :mass 0.2 :color (1 0.5 0)))
-                               (assert (object ?w mesh mug-4 ((1.1 1 1) (0 0 0 1))
+                               (assert (object ?w mesh mug-4 ((0 0 0) (0 0 0 1))
                                                :mesh mug :mass 0.2 :color (1 0.5 0)))
                                
                                (assert (object ?w cutlery fork-1 ((0 0 0) (0 0 0 1))
-                                         :color (1 0 1) :mass 0.2 :obj fork))
+                                         :color (1 0 1) :mass 0.2 :cutlery-type fork))
                                (assert (object ?w cutlery fork-2 ((0 0 0) (0 0 0 1))
-                                         :color (1 0 1) :mass 0.2 :obj fork))
+                                         :color (1 0 1) :mass 0.2 :cutlery-type fork))
                                (assert (object ?w cutlery fork-3 ((0 0 0) (0 0 0 1))
-                                         :color (1 0 1) :mass 0.2 :obj fork))
+                                         :color (1 0 1) :mass 0.2 :cutlery-type fork))
                                (assert (object ?w cutlery fork-4 ((0 0 0) (0 0 0 1))
-                                         :color (1 0 1) :mass 0.2 :obj fork))
+                                         :color (1 0 1) :mass 0.2 :cutlery-type fork))
                                
                                (assert (object ?w cutlery knife-1 ((0 0 0) (0 0 0 1))
-                                         :color (1 0 0) :mass 0.2 :obj knife))
+                                         :color (1 0 0) :mass 0.2 :cutlery-type knife))
                                (assert (object ?w cutlery knife-2 ((0 0 0) (0 0 0 1))
-                                         :color (1 0 0) :mass 0.2 :obj knife))
+                                         :color (1 0 0) :mass 0.2 :cutlery-type knife))
                                (assert (object ?w cutlery knife-3 ((0 0 0) (0 0 0 1))
-                                         :color (1 0 0) :mass 0.2 :obj knife))
+                                         :color (1 0 0) :mass 0.2 :cutlery-type knife))
                                (assert (object ?w cutlery knife-4 ((0 0 0) (0 0 0 1))
-                                         :color (1 0 0) :mass 0.2 :obj knife))
+                                         :color (1 0 0) :mass 0.2 :cutlery-type knife))
 
                                ;; TODO: use a loop instead of copy-pasting
-                               (make-on-counter-top-desig ?des1)
-                               (make-on-counter-top-desig ?des2)
-                               (make-on-counter-top-desig ?des3)
-                               (make-on-counter-top-desig ?des4)
-                               (make-on-counter-top-desig ?des5)
-                               (make-on-counter-top-desig ?des6)
-                               (make-on-counter-top-desig ?des7)
+                               ;; (make-on-counter-top-desig ?des1)
+                               ;; (make-on-counter-top-desig ?des2)
+                               ;; (make-on-counter-top-desig ?des3)
+                               ;; (make-on-counter-top-desig ?des4)
+                               ;; (make-on-counter-top-desig ?des5)
+                               ;; (make-on-counter-top-desig ?des6)
+                               ;; (make-on-counter-top-desig ?des7)
 
                                ;; (assign-object-pos pot-1 ?des1)
                                ;; (assign-object-pos bowl-1 ?des2)
@@ -125,7 +127,7 @@
                                ;; (assert (object-pose ?w plate-3 ,pose-on-table-2))
                                )))))
 
-    ;; (setf pr2 (var-value '?pr2 (lazy-car (prolog `(%object ?w pr2 ?pr2) *bdgs*))))
+    ;; (setf pr2 (var-value '?pr2 (lazy-car (prolog `(and (robot ?robot) (%object ?w ?robot ?pr2)) *bdgs*))))
     ;; (setf sem-map (var-value '?sem-map (lazy-car (prolog `(%object ?w sem-map ?sem-map) *bdgs*))))
 
     ;; (simulate *current-bullet-world* 50)
@@ -136,20 +138,15 @@
 
 ;; ;; to-reach object
 ;; (setf to-reach-desig (desig:make-designator 'desig-props:location '((desig-props:to desig-props:reach) (desig-props:obj pot-1))))
-;; (desig:reference to-reach-desig)
 
 ;; ;; left-of pose
 ;; (setf my-awesome-desig (desig:make-designator 'desig-props:location `((desig-props:left-of ,(cl-transforms:make-identity-pose)))))
-;; (desig:reference my-awesome-desig)
 
 ;; ;; left-of object
 ;; (setf des (desig:make-designator 'desig-props:location '((desig-props:left-of pot-1))))
 
 ;; ;; combination
 ;; (setf des (desig:make-designator 'desig-props:location '((desig-props:left-of mug-1) (desig-props:right-of mondamin-1) (desig-props:on counter-top) (desig-props:name kitchen-island))))
-
-;; ;; for
-;; (setf des (desig:make-designator 'desig-props:location '((desig-props:left-of pot-1) (desig-props:for mug-1))))
 
 ;; ;; for a glass near a plate
 ;; (setf des (desig:make-designator 'desig-props:location '((desig-props:right-of plate-1) (desig-props:behind plate-1) (desig-props:near plate-1) (desig-props:for mug-1) (desig-props:on counter-top) (desig-props:name kitchen-island))))
@@ -158,19 +155,19 @@
 ;; (setf des (desig:make-designator 'desig-props:location '((desig-props:left-of plate-1)  (desig-props:near plate-1) (desig-props:for fork-1))))
 ;; (force-ll (prolog `(and (symbol-value des ?des) (assign-object-pos fork-1 ?des))))
 
-(defun put-plates-on-table ()
+(defun put-plates-on-table (&optional (number-of-plates 4))
   (let ((pose-on-table-1 (cl-transforms:make-pose (cl-transforms:make-3d-vector -2.2 2.14 0.8574701697205431d0) (cl-transforms:make-identity-rotation)))
         (pose-on-table-2 (cl-transforms:make-pose (cl-transforms:make-3d-vector -1.75 2.14 0.8574701697205431d0) (cl-transforms:make-identity-rotation)))
         (des-for-plate-2 (desig:make-designator 'desig-props:location '((desig-props:right-of plate-1) (desig-props:far-from plate-1) (desig-props:for plate-2))))
         (des-for-plate-4 (desig:make-designator 'desig-props:location '((desig-props:left-of plate-3) (desig-props:far-from plate-3) (desig-props:for plate-4)))))
-    (force-ll (prolog `(and
-                        (bullet-world ?w)
-                        (assert (object-pose ?w plate-1 ,pose-on-table-1))
-                        (assert (object-pose ?w plate-3 ,pose-on-table-2))
-                        (assign-object-pos-on plate-2 ,des-for-plate-2)
-                        (assign-object-pos-on plate-4 ,des-for-plate-4)
-                        (supported-by-link-obj ?_ plate-2 ?link-obj)
-                        (supported-by-link-obj ?_ plate-4 ?link-obj))))))
+    (when (> number-of-plates 0)
+      (prolog `(assert (object-pose ?_ plate-1 ,pose-on-table-1)))
+      (when (> number-of-plates 1)
+        (prolog `(assert (object-pose ?_ plate-3 ,pose-on-table-2)))
+        (when (> number-of-plates 2)
+          (prolog `(assign-object-pos-on plate-2 ,des-for-plate-2))
+          (when (> number-of-plates 3)
+            (prolog `(assign-object-pos-on plate-4 ,des-for-plate-4))))))))
 
 (defun set-table ()
   (time
@@ -206,6 +203,72 @@
                         (assign-object-pos mug-3 ,des-for-mug-3)
                         (assign-object-pos mug-4 ,des-for-mug-4)))))))
 
+(defun put-first-set-on-counter (&key (plate t) (mug t) (fork t) (knife t))
+  (when plate
+    (prolog `(assert (object-pose ?_ plate-1 ((0.9 1 0.8594702033075609d0) (0 0 0 1))))))
+  (when mug
+    (prolog `(assert (object-pose ?_ mug-1 ((1 1.4 0.9119799601336841d0) (0 0 0 1))))))
+  (when fork
+    (prolog `(assert (object-pose ?_ fork-1 ((1 0.8 0.8569999588202436d0) (0 0 0 1))))))
+  (when knife
+    (prolog `(assert (object-pose ?_ knife-1 ((1 0.7 0.8569999867081037d0) (0 0 0 1)))))))
+    
+#|
+
+(sb-ext:gc :full t)
+
+(top-level
+ (cram-projection:with-projection-environment 
+     projection-process-modules::pr2-bullet-projection-environment
+   (with-designators
+       ((on-counter (location `((desig-props:on counter-top) (desig-props:name "CounterTop205"))))
+        (on-kitchen-island (location `((desig-props:on counter-top) (desig-props:name kitchen-island))))
+        (plate (object `((type btr:plate) (desig-props:at ,on-counter)))))
+     (achieve `(loc ,plate ,on-kitchen-island)))))
+
+
+
+(setf object (top-level
+                         (cram-projection:with-projection-environment 
+                             projection-process-modules::pr2-bullet-projection-environment
+                           (with-designators
+                               ((on-kitchen-island (location `((desig-props:on counter-top) (desig-props:name kitchen-island))))
+                                (plate (object `((type btr:plate) (desig-props:at ,on-kitchen-island)))))
+                             (perceive-object 'a plate)))))
+(sb-ext:gc :full t)
+
+(top-level
+ (cram-projection:with-projection-environment 
+     projection-process-modules::pr2-bullet-projection-environment
+   (with-designators
+       ((on-counter (location `((desig-props:on counter-top) (desig-props:name "CounterTop205")))) 
+        (on-kitchen-island (location `((desig-props:on counter-top) (desig-props:name kitchen-island))))
+        (knife (object `((type btr:knife) (desig-props:at ,on-counter))))
+        (put-down-location (location `((desig-props:right-of ,object) 
+                                       (desig-props:near ,object) 
+                                       (desig-props:for ,knife) 
+                                       (desig-props:on counter-top)))))
+     (achieve `(loc ,knife ,put-down-location)))))
+
+(sb-ext:gc :full t)
+
+(top-level
+ (cram-projection:with-projection-environment 
+     projection-process-modules::pr2-bullet-projection-environment
+   (with-designators
+       ((on-counter (location `((desig-props:on counter-top) (desig-props:name "CounterTop205")))) 
+        (on-kitchen-island (location `((desig-props:on counter-top) (desig-props:name kitchen-island))))
+        (fork (object `((type btr:fork) (desig-props:at ,on-counter))))
+        (put-down-location (location `((desig-props:left-of ,object) 
+                                       (desig-props:near ,object) 
+                                       (desig-props:for ,fork) 
+                                       (desig-props:on counter-top)))))
+     (achieve `(loc ,fork ,put-down-location)))))
+
+(sb-ext:gc :full t)
+
+(sb-ext:gc :full t)
+|#
 
 ;; (defun set-obj-pose (obj-name pose)
 ;;   (let ((obj (gethash obj-name (slot-value *current-bullet-world* 'objects))))

@@ -102,6 +102,7 @@
 
   ;; TODO pred is too long!
   ;; uses make-potential-field-cost-function to resolve the designator
+  ;; TODO fix such that would work without FOR!!!
   (<- (potential-field-costmap ?designator ?object ?relation ?costmap)
     (desig-location-prop ?object ?reference-pose)
     (lisp-fun get-y-of-pose ?reference-pose ?y-of-pose)
@@ -114,10 +115,10 @@
     (lisp-fun sem-map-utils:dimensions ?link-obj ?supp-obj-dims)
     ;; costmap to exclude everything which is outside of supp. object boundaries
     (lisp-fun list ?link-obj ?link-obj-list)
-    (costmap-add-function
-     supporting-object
-     (semantic-map-costmap::make-semantic-map-costmap ?link-obj-list)
-     ?costmap)
+    ;; (costmap-add-function
+    ;;  supporting-object
+    ;;  (semantic-map-costmap::make-semantic-map-costmap ?link-obj-list)
+    ;;  ?costmap)
     ;; the actual potential field costmap
     ;; The axis of the potential field depends on to which side of supporting object
     ;; the reference object is the closest
@@ -127,21 +128,23 @@
     (costmap-add-function
      ?field-generator-id
      (make-potential-field-cost-function ?axis ?x-of-pose ?y-of-pose
-                                         ?supp-obj-pose ?pred) ;; TODO: threshold?
+                                         ?supp-obj-pose ?pred)
      ?costmap)
     ;; collision costmap
-    (findall ?obj (and (household-object-type ?world ?name ?_)
-                       (%object ?world ?name ?obj)) ?objs)
-    (costmap-padding-in-meters ?padding)
-    (desig-prop ?designator (for ?obj-name))
-    (object ?world ?obj-name)
-    (object-size-without-handles ?world ?obj-name ?obj-size)
-    (lisp-fun / ?obj-size 2 ?obj-size/2)
-    (lisp-fun + ?obj-size/2 ?padding ?overall-padding) 
-    (costmap-add-function
-     collision
-     (make-objects-bounding-box-costmap-generator ?objs :invert t :padding ?padding)
-     ?costmap)
+    ;; (findall ?obj (and (household-object-type ?world ?name ?_)
+    ;;                    (%object ?world ?name ?obj)) ?objs)
+    ;; (costmap-padding-in-meters ?padding)
+    ;; (desig-prop ?designator (for ?object))
+    ;; (object-instance-name ?object ?obj-name)
+    ;; (object ?world ?obj-name)
+    ;; (object-size-without-handles ?world ?obj-name ?obj-size)
+    ;; (lisp-fun / ?obj-size 2 ?obj-size/2)
+    ;; (lisp-fun + ?obj-size/2 ?padding ?overall-padding)
+    ;; (format "hop~%")
+    ;; (costmap-add-function
+    ;;  collision
+    ;;  (make-objects-bounding-box-costmap-generator ?objs :invert t :padding ?padding)
+    ;;  ?costmap)
     ;; the height generator
     ;;(semantic-map-costmap::semantic-map-objects ?objects)
     (costmap-add-height-generator
@@ -150,18 +153,19 @@
      ?costmap)
     ;; orientation generator
     (orientation-costmap ?designator ?object ?costmap))
-
+  
   ;; uses make-objects-bounding-box-costmap-generator
-  (<- (collision-invert-costmap ?desig ?objs ?padding ?cm) 
-    (costmap ?cm)    
-    (costmap-add-function
-     collision
-     (make-objects-bounding-box-costmap-generator ?objs :invert t :padding ?padding)
-     ?cm))
+  ;; (<- (collision-invert-costmap ?desig ?objs ?padding ?cm) 
+  ;;   (costmap ?cm)    
+  ;;   (costmap-add-function
+  ;;    collision
+  ;;    (make-objects-bounding-box-costmap-generator ?objs :invert t :padding ?padding)
+  ;;    ?cm))
 
   ;; uses make-orientation-generator with supporting-obj-alligned-direction
   (<- (orientation-costmap ?designator ?ref-obj-name ?costmap)
-    (desig-prop ?designator (for ?obj-name))
+    (desig-prop ?designator (for ?object))
+    (object-instance-name ?object ?obj-name)
     (bullet-world ?world)
     (object ?world ?obj-name)
     (costmap ?costmap)
@@ -190,36 +194,41 @@
   ;; left-of for bullet objects using potential field cost-function
   (<- (desig-costmap ?designator ?costmap)
     (desig-prop ?designator (left-of ?object))
+    (object-instance-name ?object ?obj-name)
     (btr:bullet-world ?world)
-    (btr:object ?world ?object)
-    (potential-field-costmap ?designator ?object left-of ?costmap))
+    (btr:object ?world ?obj-name)
+    (potential-field-costmap ?designator ?obj-name left-of ?costmap))
 
   ;; right-of for bullet objects using potential field cost-function
   (<- (desig-costmap ?designator ?costmap)
     (desig-prop ?designator (right-of ?object))
+    (object-instance-name ?object ?obj-name)
     (btr:bullet-world ?world)
-    (btr:object ?world ?object)
-    (potential-field-costmap ?designator ?object right-of ?costmap))
+    (btr:object ?world ?obj-name)
+    (potential-field-costmap ?designator ?obj-name right-of ?costmap))
 
   ;; in-front-of for bullet objects using potential field cost-function
   (<- (desig-costmap ?designator ?costmap)
     (desig-prop ?designator (in-front-of ?object))
+    (object-instance-name ?object ?obj-name)
     (btr:bullet-world ?world)
-    (btr:object ?world ?object)
-    (potential-field-costmap ?designator ?object in-front-of ?costmap))
+    (btr:object ?world ?obj-name)
+    (potential-field-costmap ?designator ?obj-name in-front-of ?costmap))
 
   ;; behind for bullet objects using potential field cost-function
   (<- (desig-costmap ?designator ?costmap)
     (desig-prop ?designator (behind ?object))
+    (object-instance-name ?object ?obj-name)
     (btr:bullet-world ?world)
-    (btr:object ?world ?object)
-    (potential-field-costmap ?designator ?object behind ?costmap))
+    (btr:object ?world ?obj-name)
+    (potential-field-costmap ?designator ?obj-name behind ?costmap))
 
   ;; near and far-from for bullet objects
   (<- (desig-costmap ?designator ?costmap)
     (or
-     (desig-prop ?designator (near ?ref-obj-name))
-     (desig-prop ?designator (far-from ?ref-obj-name)))
+     (desig-prop ?designator (near ?ref-obj))
+     (desig-prop ?designator (far-from ?ref-obj)))
+    (object-instance-name ?ref-obj ?ref-obj-name)
     (btr:bullet-world ?world)
     (btr:object ?world ?ref-obj-name)
     ;;
@@ -227,12 +236,13 @@
     (object-size-without-handles ?world ?ref-obj-name ?ref-obj-size)
     (padding-size ?world ?ref-obj-name ?ref-padding)
     ;;
-    (desig-prop ?designator (for ?for-obj-name))
+    (desig-prop ?designator (for ?for-obj))
+    (object-instance-name ?for-obj ?for-obj-name)
     (object ?world ?for-obj-name)
     (object-size-without-handles ?world ?for-obj-name ?for-obj-size)
     (padding-size ?world ?for-obj-name ?for-padding)
     ;;
-    (-> (desig-prop ?designator (near ?ref-obj-name))
+    (-> (desig-prop ?designator (near ?ref-obj))
         (near-costmap ?designator ?ref-obj-pose ?ref-obj-size ?ref-padding
                       ?for-obj-size ?for-padding ?costmap)
         (far-from-costmap ?designator ?ref-obj-pose ?ref-obj-size ?ref-padding
@@ -252,7 +262,8 @@
   ;;                      (%object ?world ?name ?obj)) ?objs)
   ;;   ;;
   ;;   (costmap-padding-in-meters ?padding)
-  ;;   (desig-prop ?designator (for ?obj-name))
+  ;;   (desig-prop ?designator (for ?obj))
+  ;;   (object-instance-name ?obj ?obj-name)
   ;;   (object ?world ?obj-name)
   ;;   (object-size-without-handles ?world ?obj-name ?obj-size)
   ;;   (lisp-fun / ?obj-size 2 ?obj-size/2)
@@ -280,6 +291,15 @@
 
 
 (def-fact-group location-desig-utils ()
+  (<- (object-instance-name ?name ?name)
+    (lisp-type ?name symbol))
+  ;;
+  (<- (object-instance-name ?designator ?name)
+    (obj-desig? ?designator)
+    (lisp-fun cram-environment-representation::get-designator-object-name
+              ?designator ?name))
+
+  
   ;; returns diameter or something similar in meters
   (<- (object-size-without-handles ?world ?obj-name ?size)
     (object-shape ?world ?obj-name ?shape)
@@ -288,19 +308,19 @@
     (lisp-fun bt:bounding-box-dimensions ?aabb ?dims)
     ;; (format "dimensions of ~a = ~a~%" ?obj-name ?dims)
     (%object-size-without-handles ?world ?obj ?shape ?size))
-  
+  ;;
   (<- (%object-size-without-handles ?world ?obj ?shape ?size)
     (== ?shape :circle) 
     (lisp-fun get-aabb-circle-diameter ?obj ?size))
-
+  ;;
   (<- (%object-size-without-handles ?world ?obj ?shape ?size)
     (== ?shape :rectangle)       
     (lisp-fun get-aabb-min-length ?obj ?size))
-
+  ;;
   (<- (%object-size-without-handles ?world ?obj ?shape ?size)
     (== ?shape :oval)       
     (lisp-fun get-aabb-oval-diameter ?obj ?size))
-
+  ;;
   (<- (%object-size-without-handles ?world ?obj ?shape ?size)
     (== ?shape :complex)
     (lisp-fun get-aabb-circle-diameter ?obj ?obj-size)
