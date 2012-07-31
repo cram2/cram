@@ -31,7 +31,9 @@
 
 (defun pose-stamped->point-stamped-msg (ps)
   (roslisp:make-message "geometry_msgs/PointStamped"
-                        (stamp header) 0
+                        ;; Why is the stamp here set to zero?
+			;;(stamp header) 0
+			(stamp header) (tf:stamp ps)
                         (frame_id header) (tf:frame-id ps)
                         (x point) (cl-transforms:x
                                    (cl-transforms:origin ps))
@@ -60,17 +62,16 @@
       (error 'simple-error
              :format-control "Could not transform ~a into base_link. Invalid time stamp."
              :format-arguments (list pose-stamped)))
-    (roslisp:make-message "pr2_controllers_msgs/PointHeadGoal"
-                          max_velocity 10
-                          min_duration 0.3
-                          pointing_frame "/head_pan_link"
-                          (x pointing_axis) 1.0
-                          (y pointing_axis) 0.0
-                          (z pointing_axis) 0.0
-                          target (pose-stamped->point-stamped-msg
-                                  (tf:transform-pose
-                                   *tf* :pose pose-stamped
-                                   :target-frame "/base_link")))))
+    (let* ((transformed-pose-stamped (tf:transform-pose *tf* :pose pose-stamped :target-frame "/base_link"))
+	   (point-stamped-msg (pose-stamped->point-stamped-msg transformed-pose-stamped)))
+      (roslisp:make-message "pr2_controllers_msgs/PointHeadGoal"
+			    max_velocity 10
+			    min_duration 0.3
+			    pointing_frame "/head_pan_link"
+			    (x pointing_axis) 1.0
+			    (y pointing_axis) 0.0
+			    (z pointing_axis) 0.0
+			    target point-stamped-msg))))
 
 (def-fact-group point-head (action-desig)
 

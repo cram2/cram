@@ -74,7 +74,7 @@
         (let* ((pose-in-gripper (find-designator-pose-in-link gripper-link at))
                (put-down-pose-in-fixed-frame  (tf:transform-pose
                                               cram-roslisp-common:*tf*
-                                              :target-frame designators-ros:*fixed-frame*
+                                             :target-frame designators-ros:*fixed-frame*
                                               :pose put-down-pose))
                (put-down-pose (if (not robot-pose)
                                   put-down-pose-in-fixed-frame

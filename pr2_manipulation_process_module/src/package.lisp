@@ -48,4 +48,4 @@
                      #:grasp #:put-down #:pose #:parked #:lift
                      #:carry #:at #:orientation #:in #:gripper #:both-grippers
                      #:height #:distance #:obstacle #:handle #:name
-                     #:goal #:navigation))
+                     #:goal #:navigation #:handled #:handles))
