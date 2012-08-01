@@ -202,10 +202,10 @@ supporting plane"
 (def-action-handler grasp (object-type obj side obstacles)
   "Selects and calls the appropriate grasping functionality based on
 the given object type."
-  (cond ((eq object-type 'desig-props:pot)
+  (cond ((not (eq (desig-prop-values obj 'desig-props:handles) nil))
+	 (grab-object-with-handles obj side))
+	((eq object-type 'desig-props:pot)
          (grasp-object-with-both-arms obj))
-        ((eq object-type 'desig-props:handled)
-         (grab-object-with-handles obj side))
         (t (standard-grasping obj side obstacles))))
 
 (def-action-handler put-down (object-designator location side obstacles)
