@@ -73,9 +73,9 @@
         (assert z-offset () "Object ~a needs to have a `height' property" current-object)
         (let* ((pose-in-gripper (find-designator-pose-in-link gripper-link at))
                (put-down-pose-in-fixed-frame  (tf:transform-pose
-                                              cram-roslisp-common:*tf*
-                                             :target-frame designators-ros:*fixed-frame*
-                                              :pose put-down-pose))
+                                               cram-roslisp-common:*tf*
+                                               :target-frame designators-ros:*fixed-frame*
+                                               :pose put-down-pose))
                (put-down-pose (if (not robot-pose)
                                   put-down-pose-in-fixed-frame
                                   (tf:copy-pose-stamped
