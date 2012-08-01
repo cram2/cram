@@ -211,9 +211,14 @@ the given object type."
 (def-action-handler put-down (object-designator location side obstacles)
   "Delegates the type of the put down action which suppose to be executed
 for the currently type of grasped object."
-  (cond ((eq (desig-prop-value object-designator 'desig-props:type) 'desig-props:pot)
+  (cond ((not (eq (desig-prop-values object-designator 'desig-props:handle) nil))
+	 (place-object-with-handles object-designator side))
+	((eq (desig-prop-value object-designator 'desig-props:type) 'desig-props:pot)
          (put-down-grasped-object-with-both-arms object-designator location))
         (t (put-down-grasped-object-with-single-arm object-designator location side obstacles))))
+
+(defun place-object-with-handles (obj side)
+  (format t "Place object with handles~%"))
 
 (defun grab-object-with-handles (obj side)
   "Grasp an object `obj' on one of its handles with the specified
@@ -223,7 +228,7 @@ the gripper and lifting the object by 0.2m by default."
   (with-desig-props (handle) obj
     ;; Check if there are handles
     (assert (> (length handle) 0) () "Object ~a needs at least one handle." obj)
-                                        ;, Get the nearest (atm the first) handle
+    ;; Get the nearest (atm the first) handle
     (let ((nearest-handle (nearest-handle-for-side obj side)))
       ;; Go into pregrasp for that handle on side `side'
       (pregrasp-handled-object-with-relative-location obj side nearest-handle)
@@ -234,6 +239,9 @@ the gripper and lifting the object by 0.2m by default."
       ;; Close gripper
       (close-gripper side :position 0.01)
       ;; Lift object
+      ;; TODO(winkler): This is supposed to be a function on it's own.
+      ;; Lifting in general has nothing to do with grasping. This means,
+      ;; a separate action designator has to be generated for lifting.
       (lift-handled-object-with-relative-location obj side nearest-handle))))
 
 (defun taxi-handled-object (obj side relative-handle-loc
