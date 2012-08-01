@@ -39,7 +39,7 @@
   (:export *current-bullet-world* *current-timeline*
            merge-bounding-boxes aabb with-stored-world *debug-window*
            add-debug-window add-costmap-function-object camera width
-           height fov-y z-near z-far camera-axis pose gl-setup-camera
+           height fov-y z-near z-far pose gl-execute-with-camera
            camera-transform look-at-object-rotation
            with-rendering-to-framebuffer render-to-framebuffer
            read-pixelbuffer read-depthbuffer to-png-image add-object

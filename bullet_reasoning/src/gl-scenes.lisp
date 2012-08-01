@@ -44,11 +44,12 @@
                     (cl-transforms:make-3d-vector 0 0 0)
                     (cl-transforms:make-quaternion 0 0 0 1)))))
 
-(defgeneric gl-setup-camera (camera)
-  (:documentation "Sets the gl camera so that the view port is along
-  x- and y- axis and the z axis of the camera is ponting into the
-  scene.")
-  (:method ((camera camera))
+(defgeneric gl-execute-with-camera (camera function)
+  (:documentation "Executes `function' with `camera' set.")
+  (:method ((camera t) (function function))
+    (funcall function))
+  (:method :before ((camera camera) function)
+    (declare (ignore function))
     (with-slots (width height fov-y z-near z-far) camera
       (gl:viewport 0 0 width height)
       (gl:matrix-mode :projection)
@@ -131,9 +132,10 @@
              (unwind-protect
                   (progn
                     (gl:clear :color-buffer :depth-buffer)
-                    (gl-setup-camera camera)
-                    (draw gl-context drawable)
-                    (gl:flush)
+                    (gl-execute-with-camera
+                     camera (lambda ()
+                              (draw gl-context drawable)
+                              (gl:flush)))
                     (list (when get-pixelbuffer (read-pixelbuffer camera mirror))
                           (when get-depthbuffer (read-depthbuffer camera mirror))))
                (apply #'gl:viewport viewport)))))
