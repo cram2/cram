@@ -96,11 +96,3 @@
     (desig-prop ?desig (obj ?obj))
     (desig-prop ?desig (at ?loc))
     (obstacles ?desig ?obstacles)))
-
-  ;; Jan's additions
-;; (<- (action-desig ?desig (grasp ?object-type ?obj ?side ?obstacles))
-;;       (trajectory-desig? ?desig)
-;;       (desig-prop ?desig (to grasp))
-;;       (desig-prop ?desig (obj ?obj))
-;;       (desig-prop ?obj (type ?object-type))
-;;       (obstacles ?desig ?obstacles)))
