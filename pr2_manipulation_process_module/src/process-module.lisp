@@ -202,7 +202,7 @@ supporting plane"
 (def-action-handler grasp (object-type obj side obstacles)
   "Selects and calls the appropriate grasping functionality based on
 the given object type."
-  (cond ((not (eq (desig-prop-values obj 'desig-props:handles) nil))
+  (cond ((not (eq (desig-prop-values obj 'desig-props:handle) nil))
 	 (grab-object-with-handles obj side))
 	((eq object-type 'desig-props:pot)
          (grasp-object-with-both-arms obj))
@@ -220,9 +220,9 @@ for the currently type of grasped object."
 gripper side `side'. This includes going into pregrasp for the nearest
 handle, opening the gripper, going into the grasp position, closing
 the gripper and lifting the object by 0.2m by default."
-  (with-desig-props (handles) obj
+  (with-desig-props (handle) obj
     ;; Check if there are handles
-    (assert (> (length handles) 0) () "Object ~a needs at least one handle." obj)
+    (assert (> (length handle) 0) () "Object ~a needs at least one handle." obj)
                                         ;, Get the nearest (atm the first) handle
     (let ((nearest-handle (nearest-handle-for-side obj side)))
       ;; Go into pregrasp for that handle on side `side'
@@ -314,8 +314,8 @@ applied."
 (defun nearest-handle-for-side (obj side)
   "Get the nearest handle location designator on object `obj' in respect to the chosen gripper side `side'."
   ;; TODO(winkler): Implement *actual* calculations concerning distance here. Atm, this always returns the first handle on the object. This is no problem as long as we only have one handle.
-  (with-desig-props (handles) obj
-    (first handles)))
+  (with-desig-props (handle) obj
+    (first handle)))
 
 (defun put-down-grasped-object-with-single-arm (obj location side obstacles)
   (roslisp:ros-info (pr2-manip process-module) "Putting down object single-handedly.")
