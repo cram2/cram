@@ -59,3 +59,16 @@
    (cl-transforms:make-quaternion
     -0.6770480569314481d0 0.11600823330627819d0
     0.16801192666809586d0 0.7070502180947129d0)))
+
+(defparameter *grasp-approach-distance* 0.10
+  "Distance to approach the object. This parameter is used to
+  calculate the pose to approach with move_arm.")
+(defparameter *grasp-distance* 0.18
+  "Tool length to calculate the pre-grasp pose, i.e. the pose at which
+  the gripper is closed.")
+(defparameter *pre-put-down-distance* 0.07
+  "Distance above the goal before putting down the object")
+
+(defparameter *max-graspable-size* (cl-transforms:make-3d-vector 0.15 0.15 0.30))
+
+
