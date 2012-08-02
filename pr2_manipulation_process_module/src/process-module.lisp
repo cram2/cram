@@ -251,11 +251,8 @@ the gripper and lifting the object by 0.2m by default."
 it is grasped with. The old handle designator is equated to the new
 one."
   (equate handle
-	  (make-designator
-	   'object
-	   `((desig-props:location (desig-prop-value handle location))
-	     (desig-props:radius (desig-prop-value handle radius))
-	     (desig-props:grasped-by side)))))
+	  (copy-designator handle
+			   :new-description `((desig-props:grasped-by side)))))
 
 (defun taxi-handled-object (obj side handle
                             &key (relative-gripper-pose (tf:make-identity-pose)))
