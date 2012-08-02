@@ -29,23 +29,24 @@
 
 (in-package :cl-user)
 
-(desig-props:def-desig-package pr2-manipulation-process-module
-    (:nicknames :pr2-manip-pm)
-  (:use #:common-lisp
-        #:crs
-        #:cut
-        #:desig
-        #:designators-ros
-        #:cram-roslisp-common
-        #:cram-process-modules
-        #:cram-plan-failures
-        #:cram-plan-knowledge
-        #:perception-pm)
-  (:import-from alexandria ignore-some-conditions)
-  (:export
-   pr2-manipulation-process-module)
-  (:desig-properties #:trajectory #:type #:to #:open #:obj #:side #:close
-                     #:grasp #:put-down #:pose #:parked #:lift
-                     #:carry #:at #:orientation #:in #:gripper #:both-grippers
-                     #:height #:distance #:obstacle #:handle #:name
-                     #:goal #:navigation #:grasped-by #:radius))
+(desig-props:def-desig-package
+ pr2-manipulation-process-module
+ (:nicknames :pr2-manip-pm)
+ (:use #:common-lisp
+       #:crs
+       #:cut
+       #:desig
+       #:designators-ros
+       #:cram-roslisp-common
+       #:cram-process-modules
+       #:cram-plan-failures
+       #:cram-plan-knowledge
+       #:perception-pm)
+ (:import-from alexandria ignore-some-conditions)
+ (:export
+  pr2-manipulation-process-module)
+ (:desig-properties #:trajectory #:type #:to #:open #:obj #:side #:close
+		    #:grasp #:put-down #:pose #:parked #:lift
+		    #:carry #:at #:orientation #:in #:gripper #:both-grippers
+		    #:height #:distance #:obstacle #:handle #:name
+		    #:goal #:navigation #:grasped-by #:radius))
