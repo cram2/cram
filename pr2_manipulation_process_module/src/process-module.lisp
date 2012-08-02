@@ -246,6 +246,17 @@ the gripper and lifting the object by 0.2m by default."
       ;; a separate action designator has to be generated for lifting.
       (lift-handled-object-with-relative-location obj side nearest-handle))))
 
+(defun update-handle-grasp-status (handle side)
+  "Generate a new handle designator that reflects the current gripper
+it is grasped with. The old handle designator is equated to the new
+one."
+  (equate handle
+	  (make-designator
+	   'object
+	   `((desig-props:location (desig-prop-value handle location))
+	     (desig-props:radius (desig-prop-value handle radius))
+	     (desig-props:grasped-by side)))))
+
 (defun taxi-handled-object (obj side handle
                             &key (relative-gripper-pose (tf:make-identity-pose)))
   "Commutes the arm to a certain absolute pose. The target pose is
