@@ -116,7 +116,7 @@
 (defmethod call-action :around (action-sym &rest params)
   (roslisp:ros-info (pr2-manip process-module) "Executing manipulation action ~a ~a."
                     action-sym params)
-  (call-next-method)
+  (prog1 (call-next-method))
   (roslisp:ros-info (pr2-manip process-module) "Manipulation action done."))
 
 (def-action-handler container-opened (handle side)
