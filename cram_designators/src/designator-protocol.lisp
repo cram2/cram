@@ -237,13 +237,13 @@ class (derived from class DESIGNATOR), e.g. OBJECT-DESIGNATOR."
           new-properties :initial-value old-properties))
 
 (defun copy-designator (old-designator &key (new-description nil))
-  "Returns an exact copy of the given designator
+  "Returns a new designator with the same properties as
 `old-designator'. When present, the description parameter
 `new-description' will be merged with the old description. The new
 description will be dominant in this relation."
   (let ((old-description (description old-designator))
-	(old-class (get-desig-class old-designator)))
+        (old-class (get-desig-class old-designator)))
     (let ((merged-description
-	   (reduce (rcurry (flip #'adjoin) :key #'car)
-		   old-description :initial-value new-description)))
+            (reduce (rcurry (flip #'adjoin) :key #'car)
+                    old-description :initial-value new-description)))
       (make-designator old-class merged-description))))
