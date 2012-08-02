@@ -72,6 +72,12 @@
 (defparameter *max-graspable-size* (cl-transforms:make-3d-vector 0.15 0.15 0.30))
 
 
+(defmacro def-action-handler (name args &body body)
+  (alexandria:with-gensyms (action-sym params)
+    `(defmethod call-action ((,action-sym (eql ',name)) &rest ,params)
+       (destructuring-bind ,args ,params ,@body))))
+
+
 (defun get-lifting-grasped-object-arm-trajectory (side distance)
   "Returns the lifting trajectory for the `side' robot arm in order to
 lift the grasped object at the `distance' from the supporting plane."
