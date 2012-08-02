@@ -211,14 +211,9 @@ the given object type."
 (def-action-handler put-down (object-designator location side obstacles)
   "Delegates the type of the put down action which suppose to be executed
 for the currently type of grasped object."
-  (cond ((not (eq (desig-prop-values object-designator 'desig-props:handle) nil))
-	 (place-object-with-handles object-designator side))
-	((eq (desig-prop-value object-designator 'desig-props:type) 'desig-props:pot)
+  (cond ((eq (desig-prop-value object-designator 'desig-props:type) 'desig-props:pot)
          (put-down-grasped-object-with-both-arms object-designator location))
         (t (put-down-grasped-object-with-single-arm object-designator location side obstacles))))
-
-(defun place-object-with-handles (obj side)
-  (format t "Place object with handles~%"))
 
 (defun grab-object-with-handles (obj side)
   "Grasp an object `obj' on one of its handles with the specified
@@ -239,38 +234,7 @@ the gripper and lifting the object by 0.2m by default."
       ;; Go into grasp pose
       (grasp-handled-object-with-relative-location obj side nearest-handle)
       ;; Close gripper
-      (close-gripper side :position handle-radius)
-      ;; Update the handle designator so that the grasp is reflected
-      (update-handle-grasp-status obj nearest-handle side))))
-      ;; Lift object
-      ;; TODO(winkler): This is supposed to be a function on it's own.
-      ;; Lifting in general has nothing to do with grasping. This means,
-      ;; a separate action designator has to be generated for lifting.
-      ;;(lift-handled-object-with-relative-location obj side nearest-handle))))
-
-(defun update-handle-grasp-status (obj handle side)
-  "Generate a new handle designator that reflects the current gripper
-side `side' it is grasped with. The old handle designator `handle' is
-equated to the new one. The change is inserted in the object `obj'."
-  (let ((new-handles-list)
-	(new-handle-desig (equate handle
-	  (cram-designators::copy-designator
-	   handle
-	   :new-description `((desig-props:grasped-by ,side)))))
-	(handles (desig-prop-values obj 'desig-props:handle)))
-    (dotimes (i (length handles))
-      (if (eq (elt handles i) handle)
-	  (setf new-handles-list
-		(append
-		 new-handles-list
-		 `((desig-props:handle ,new-handle-desig))))
-	(setf new-handles-list
-	      (append
-	       new-handles-list
-	       `((desig-props:handle ,(elt handles i)))))))
-    (equate obj (cram-designators::copy-designator
-		 obj
-		 :new-description new-handles-list))))
+      (close-gripper side :position handle-radius))))
 
 (defun taxi-handled-object (obj side handle
                             &key (relative-gripper-pose (tf:make-identity-pose)))
