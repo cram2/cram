@@ -35,11 +35,13 @@
                designators
                location-costmap
                designators-ros
-               cram-utilities)
+               cram-utilities
+               cram-environment-representation)
   :components
   ((:module "src"
     :components
     ((:file "package")
      (:file "location-designator-facts" :depends-on ("package"))
      (:file "location-designator-integration" :depends-on ("package"))
+     (:file "visibility-costmap" :depends-on ("package"))
      (:file "costmap-generators" :depends-on ("package"))))))

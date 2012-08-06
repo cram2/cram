@@ -41,9 +41,15 @@
 (defmethod costmap-generator-name->score ((name (eql 'on-bounding-box)))
   5)
 
+(defmethod costmap-generator-name->score ((name (eql 'visible)))
+  20)
+
 (def-fact-group bullet-reasoning-location-desig (desig-costmap
                                                  desig-loc
                                                  desig-location-prop)
+
+  (<- (visibility-costmap-size 3.0))
+
   (<- (desig-costmap ?desig ?cm)
     (costmap ?cm)
     (desig-prop ?desig (reachable-from ?pose))
@@ -59,13 +65,39 @@
   (<- (desig-costmap ?designator ?costmap)
     (desig-prop ?designator (on ?object))
     (bullet-world ?world)
-    (%object ?world ?object ?object-instance)
+    (once
+     (or (cram-environment-representation:object-designator-name
+          ?object ?object-instance-name)
+         (== ?object ?object-instance-name)))
+    (%object ?world ?object-instance-name ?object-instance)
     (costmap ?costmap)
     (costmap-add-function
      on-bounding-box (make-object-bounding-box-costmap-generator ?object-instance)
      ?costmap)
     (costmap-add-cached-height-generator
      (make-object-bounding-box-height-generator ?object-instance)
+     ?costmap))
+
+  (<- (desig-costmap ?designator ?costmap)
+    (desig-prop ?designator (to see))
+    (or (desig-prop ?designator (obj ?object))
+        (desig-prop ?designator (object ?object)))
+    (bullet-world ?world)
+    (once
+     (or (cram-environment-representation:object-designator-name
+          ?object ?object-name)
+         (== ?object ?object-name)))
+    (robot ?robot)
+    (camera-minimal-height ?minimal-height)
+    (camera-maximal-height ?maximal-height)
+    (costmap-resolution ?resolution)
+    (visibility-costmap-size ?size)
+    (costmap ?costmap)
+    (costmap-add-function
+     visible
+     (make-object-visibility-costmap
+      ?world ?object-name ?robot
+      ?minimal-height ?maximal-height ?size ?resolution)
      ?costmap))
 
   (<- (desig-location-prop ?desig ?loc)
