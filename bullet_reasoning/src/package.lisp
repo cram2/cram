@@ -84,6 +84,7 @@
            robot-pan-tilt-links robot-pan-tilt-joints robot
            camera-frame robot-arms-parking-joint-states
            robot-pre-grasp-joint-states end-effector-parking-pose
+           camera-minimal-height camera-maximal-height
 
            event apply-event def-event
            timeline timeline-init timeline-advance
