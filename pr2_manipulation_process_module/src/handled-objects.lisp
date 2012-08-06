@@ -30,11 +30,11 @@
 (in-package :pr2-manip-pm)
 
 
-(defun make-handled-object-designator (&key (object-type nil) (handles nil))
+(defun make-handled-object-designator (&key (object-type nil) (object-pose nil) (handles nil))
   "Creates and returns an object designator with object type
-`object-type' and attaches location designators according to handle
-informatik in `handles'."
-  (let ((combined-description (append `((desig-props:type ,object-type))
+`object-type' and object pose `object-pose' and attaches location
+designators according to handle information in `handles'."
+  (let ((combined-description (append `((desig-props:type ,object-type) (desig-props:pose ,object-pose))
 				      (make-handle-designator-sequence handles))))
     (cram-designators:make-designator
      'cram-designators:object
