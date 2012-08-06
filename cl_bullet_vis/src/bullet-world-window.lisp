@@ -98,8 +98,8 @@
         (dolist (obj transparent-objects)
           (draw window obj))
         (%gl:depth-mask t)))
-  ;; When we are moving around, draw a little yellow disk similar to
-  ;; that one RVIZ draws.
+    ;; When we are moving around, draw a little yellow disk similar to
+    ;; that one RVIZ draws.
     (when (or (eq (motion-mode window) :rotate)
               (eq (motion-mode window) :translate))
       (gl:with-pushed-matrix
