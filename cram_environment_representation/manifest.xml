@@ -14,7 +14,6 @@
   <depend package="cram_roslisp_common" />
   <depend package="cram_projection" />
   <depend package="bullet_reasoning" />
-  <depend package="bullet_reasoning_designators" />
   <depend package="cram_plan_knowledge" />
   <depend package="cram_plan_library" />
 
