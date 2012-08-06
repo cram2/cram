@@ -53,17 +53,14 @@
   (dolist (obj (drawable-list-drawables drawables))
     (draw context obj)))
 
-(defun get-rendering-context (world width height)
-  (cond ((and *rendering-context*
+(defun get-rendering-context (width height)
+  (unless (and *rendering-context*
                (eql width (cl-glx:width *rendering-context*))
                (eql height (cl-glx:height *rendering-context*)))
-         (setf (world *rendering-context*) world))
-        (t
-         (setf *rendering-context* (make-instance 'bullet-world-pixmap-renderer
-                                     :width width
-                                     :height height
-                                     :depth 24
-                                     :world world))))
+    (setf *rendering-context* (make-instance 'pixmap-gl-context
+                                :width width
+                                :height height
+                                :depth 24)))
   *rendering-context*)
 
 (defun calculate-object-visibility (reasoning-world camera-pose object
@@ -82,7 +79,7 @@
   ;; image 2 is used. All pixels that are set there and don't belong
   ;; to `object' in image 3 are occluding pixels and hence the
   ;; corresponding object is occluding `object.
-  (let ((rendering-context (get-rendering-context reasoning-world width height)))
+  (let ((rendering-context (get-rendering-context width height)))
     (with-gl-context rendering-context
       (let ((*collision-shape-color-overwrite* '(1.0 1.0 1.0 1.0))
             (*disable-texture-rendering* t))
