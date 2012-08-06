@@ -35,7 +35,10 @@
 `object-type' and object pose `object-pose' and attaches location
 designators according to handle information in `handles'."
   (let ((combined-description (append `((desig-props:type ,object-type)
-					(desig-props:location ,(cram-designators:make-designator 'cram-designators:location `((desig-props:pose ,object-pose)))))
+					(desig-props:location
+					 ,(cram-designators:make-designator
+					   'cram-designators:location
+					   `((desig-props:pose ,object-pose)))))
 				      `,(make-handle-designator-sequence handles))))
     (cram-designators:make-designator
      'cram-designators:object
