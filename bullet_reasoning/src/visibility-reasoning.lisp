@@ -86,8 +86,10 @@
     (with-gl-context rendering-context
       (let ((*collision-shape-color-overwrite* '(1.0 1.0 1.0 1.0))
             (*disable-texture-rendering* t))
-        (gl:with-pushed-attrib (:enable-bit :color-buffer-bit)
+        (gl:with-pushed-attrib (:enable-bit :color-buffer-bit :depth-buffer-bit)
           (gl:disable :lighting)
+          (gl:depth-func :lequal)
+          (gl:enable :depth-test)
           (%gl:clear-color 0 0 0 0)
           (with-rendering-to-framebuffer (width height)
             (let* ((camera-centered (cl-transforms:make-pose
