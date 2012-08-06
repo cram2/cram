@@ -232,20 +232,26 @@ If the value is greater than 1, the samples' orientations differ by `sample-step
   (<- (designator-reach-pose ?designator ?pose ?side)
     (reachability-designator ?designator)
     (desig-prop ?designator (pose ?pose))
-    (-> (desig-prop ?designator (side ?side)) (true) (true)))
+    (once
+     (-> (desig-prop ?designator (side ?side)) (true)
+         (cram-manipulation-knowledge:arm ?side))))
 
   (<- (designator-reach-pose ?designator ?point ?side)
     (reachability-designator ?designator)
     (or (desig-prop ?designator (object ?object))
         (desig-prop ?designator (obj ?object)))
     (desig-location-prop ?object ?pose)
-    (-> (desig-prop ?designator (side ?side)) (true) (true))
+    (once
+     (-> (desig-prop ?designator (side ?side)) (true)
+         (cram-manipulation-knowledge:arm ?side)))
     (lisp-fun cl-transforms:origin ?pose ?point))
 
   (<- (designator-reach-pose ?designator ?pose ?side)
     (reachability-designator ?designator)
     (desig-prop ?designator (location ?location))
-    (-> (desig-prop ?designator (side ?side)) (true) (true))
+    (once
+     (-> (desig-prop ?designator (side ?side)) (true)
+         (cram-manipulation-knowledge:arm ?side)))
     (desig-location-prop ?designator ?pose))
 
   (<- (designator-reach-pose ?designator ?robot-pose ?pose ?side)
