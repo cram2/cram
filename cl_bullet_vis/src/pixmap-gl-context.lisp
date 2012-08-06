@@ -28,11 +28,11 @@
 
 (in-package :bt-vis)
 
-(defclass bullet-world-pixmap-renderer
-    (bullet-world-gl-context cl-glx::pixmap-rendering-context)
+(defclass pixmap-gl-context
+    (gl-context cl-glx:pixmap-rendering-context)
   ())
 
-(defmethod run-in-gl-context ((context bullet-world-gl-context) function)
+(defmethod run-in-gl-context ((context pixmap-gl-context) function)
   (cl-glx:with-rendering-context context
     (prog1
         (funcall function)
