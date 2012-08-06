@@ -37,6 +37,7 @@
            #:make-axis-boundary-cost-function
            #:make-padded-costmap-cost-function
            #:make-orientation-generator
+           #:make-matrix-cost-function
            #:global-fluent-value
            #:occupancy-grid
            #:grid-width #:grid-height #:origin-x #:origin-y
