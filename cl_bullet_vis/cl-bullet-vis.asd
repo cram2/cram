@@ -74,4 +74,5 @@
                       :depends-on ("package" "transforms" "bullet-world-gl-context" "visualization"))
                (:file "bullet-world-pixmap-renderer"
                       :depends-on ("package" "bullet-world-gl-context"))
-               (:file "display-lists" :depends-on ("package" "gl-context" "visualization"))))))
+               (:file "display-lists" :depends-on ("package" "gl-context" "visualization"))
+               (:file "shaders" :depends-on ("package"))))))
