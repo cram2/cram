@@ -136,19 +136,20 @@ point-stamped, all orientations are used."
                                      (list (get-closest-orientation
                                             pose-specification
                                             (orientations reachability-map)))))))
-                           (make-matrix-cost-function
-                            (+ (cl-transforms:x origin) (cl-transforms:x point-in-map))
-                            (+ (cl-transforms:y origin) (cl-transforms:y point-in-map))
-                            ;; TODO(moesenle) verify resolution
-                            (cl-transforms:x (resolution reachability-map))
-                            (make-inverse-reachability-matrix
-                             (inverse-reachability-map reachability-map)
-                             (map-coordinate->array-index
-                              (cl-transforms:z point-in-ik-frame)
-                              (cl-transforms:z (resolution reachability-map))
-                              (cl-transforms:z (origin reachability-map)))
-                             (get-orientation-indices
-                              reachability-map orientations)))))
+                           (generator-function
+                            (make-matrix-cost-function
+                             (+ (cl-transforms:x origin) (cl-transforms:x point-in-map))
+                             (+ (cl-transforms:y origin) (cl-transforms:y point-in-map))
+                             ;; TODO(moesenle) verify resolution
+                             (cl-transforms:x (resolution reachability-map))
+                             (make-inverse-reachability-matrix
+                              (inverse-reachability-map reachability-map)
+                              (map-coordinate->array-index
+                               (cl-transforms:z point-in-ik-frame)
+                               (cl-transforms:z (resolution reachability-map))
+                               (cl-transforms:z (origin reachability-map)))
+                              (get-orientation-indices
+                               reachability-map orientations))))))
                        sides)))
       (make-instance 'map-costmap-generator
         :generator-function (lambda (costmap-metadata matrix)
