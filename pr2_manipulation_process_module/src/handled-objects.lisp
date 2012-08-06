@@ -161,6 +161,9 @@ applied."
 
 (defun nearest-handle-for-side (obj side)
   "Get the nearest handle location designator on object `obj' in respect to the chosen gripper side `side'."
-  ;; TODO(winkler): Implement *actual* calculations concerning distance here. Atm, this always returns the first handle on the object. This is no problem as long as we only have (at most) one handle.
+  ;; TODO(winkler): Implement *actual* calculations concerning
+  ;; distance here. Atm, this always returns the first handle on the
+  ;; object. This is no problem as long as we only have (at most) one
+  ;; handle.
   (let ((handles (desig-prop-values obj 'desig-props:handle)))
     (first handles)))
