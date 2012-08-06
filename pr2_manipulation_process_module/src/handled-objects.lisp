@@ -40,7 +40,6 @@ informatik in `handles'."
      'cram-designators:object
      `,combined-description)))
 
-
 (defun make-handle-designator-sequence (handles)
   "Converts the sequence `handles' (handle-pose handle-radius) into a
 sequence of object designators representing handle objects. Each
@@ -58,7 +57,6 @@ purposes."
 		 (desig-props:radius ,(second handle-desc))
 		 (desig-props:type desig-props:handle)))))
 	    handles))
-
 
 (defun grab-object-with-handles (obj side)
   "Grasp an object `obj' on one of its handles with the specified

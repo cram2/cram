@@ -71,12 +71,10 @@
 
 (defparameter *max-graspable-size* (cl-transforms:make-3d-vector 0.15 0.15 0.30))
 
-
 (defmacro def-action-handler (name args &body body)
   (alexandria:with-gensyms (action-sym params)
     `(defmethod call-action ((,action-sym (eql ',name)) &rest ,params)
        (destructuring-bind ,args ,params ,@body))))
-
 
 (defun get-lifting-grasped-object-arm-trajectory (side distance)
   "Returns the lifting trajectory for the `side' robot arm in order to
@@ -136,7 +134,6 @@ for the currently type of grasped object."
          (put-down-grasped-object-with-both-arms object-designator location))
         (t (put-down-grasped-object-with-single-arm object-designator location side obstacles))))
 
-
 (defun put-down-grasped-object-with-single-arm (obj location side obstacles)
   (roslisp:ros-info (pr2-manip process-module) "Putting down object single-handedly.")
   (assert (and (rete-holds `(object-in-hand ,obj ,side))) ()
@@ -180,7 +177,6 @@ for the currently type of grasped object."
     (execute-arm-trajectory
      side (ik->trajectory (lazy-car unhand-solution)))
     (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))))
-
 
 (defun put-down-grasped-object-with-both-arms (obj location)
   (roslisp:ros-info (pr2-manip process-module) "Putting down the grasped object with both arms.")
@@ -423,7 +419,6 @@ for the currently type of grasped object."
                                :side side))
     (assert-occasion `(object-in-hand ,obj ,side))))
 
-
 (defun open-drawer (pose side &optional (distance *grasp-distance*))
   "Generates and executes a pull trajectory for the `side' arm in order to open the
    drawer whose handle is at `pose'. The generated poses of the pull trajectory are
@@ -612,7 +607,6 @@ for the currently type of grasped object."
       ;; update object designator, because it is now in the grippers
       ;; TODO(Georg): this constant is pot-specific -> move it somewhere else
       (update-picked-up-object-designator obj 'desig-props:both-grippers :left 0.0))))
-
 
 (defun execute-both-arm-grasp
     (grasping-pose-left grasping-pose-right)

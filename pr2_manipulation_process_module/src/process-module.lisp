@@ -320,7 +320,6 @@ by `planners' until one succeeds."
   (collision-environment-set-laser-period)
   (apply #'call-action (reference desig)))
 
-
 (defun update-picked-up-object-designator (obj-desig gripper side height)
   "Function that creates and equates a new obj-designator to an object
 that has been grasped. `gripper' shall either include the symbols
@@ -425,4 +424,3 @@ that has to be grasped with two grippers."
        effort (make-array (length names)
                           :element-type 'float
                           :initial-element 0.0)))))
-
