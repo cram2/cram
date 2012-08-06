@@ -123,7 +123,8 @@ in a value of 1.0"
                          below (map-coordinate->array-index
                                 end-y (resolution costmap-metadata)
                                 (origin-y costmap-metadata))
-                           by (/ (resolution grid) (resolution costmap-metadata))
+                           by (/ (resolution costmap-metadata)
+                                 (resolution costmap-metadata))
                        do (loop for x-source-index from (map-coordinate->array-index
                                                          start-x (resolution grid) (origin-x grid))
                                   below (map-coordinate->array-index
@@ -135,7 +136,8 @@ in a value of 1.0"
                                   below (map-coordinate->array-index
                                          end-x (resolution costmap-metadata)
                                          (origin-x costmap-metadata))
-                                    by (/ (resolution grid) (resolution costmap-metadata))
+                                    by (/ (resolution costmap-metadata)
+                                          (resolution costmap-metadata))
                                 do (setf
                                     (aref matrix
                                           (truncate y-destination-index)
