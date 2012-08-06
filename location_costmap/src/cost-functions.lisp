@@ -221,4 +221,6 @@ corner."
                                 (aref matrix
                                       (truncate y-source-index) (truncate x-source-index))))
                    finally (return output-matrix)))))
-    #'generator))
+    (make-instance 'map-costmap-generator
+      :generator-function #'generator)))
+
