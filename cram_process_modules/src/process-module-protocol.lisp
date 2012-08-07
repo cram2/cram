@@ -51,7 +51,9 @@
 (define-condition process-module-not-running (simple-error) ())
 
 (defclass process-module ()
-  ((name :reader name :documentation "The name of the process-module")
+  ((name :reader name :documentation "The name of the process-module"
+         :initform (error "Process modules need a name.")
+         :initarg :name)
    (input :reader input :documentation "Input fluent.")
    (feedback :reader feedback :documentation "Feedback fluent.")
    (result :reader result :documentation "Result fluent")
@@ -62,6 +64,24 @@
    (caller :reader caller
            :documentation "Fluent containing the task that sent the
                            current input.")))
+
+(defmethod initialize-instance :after ((pm process-module) &key)
+  ;; We cannot initialize the slots inside the class because we need
+  ;; the name of the module to construct the fluent names.
+  (flet ((make-fluent-name (process-module-name type)
+           (declare (type symbol process-module-name type))
+           (intern (concatenate
+                    'string (symbol-name process-module-name)
+                    "-" (symbol-name type)))))
+    (with-slots (name input feedback result status cancel caller)
+        pm
+      (setf input (make-fluent :name (make-fluent-name name :input)))
+      (setf feedback (make-fluent :name (make-fluent-name name :feedback)))
+      (setf result (make-fluent :name (make-fluent-name name :result)))
+      (setf status (make-fluent :name (make-fluent-name name :status)
+                                :value :offline))
+      (setf cancel (make-fluent :name (make-fluent-name name :cancel)))
+      (setf caller (make-fluent :name (make-fluent-name name :caller))))))
 
 (defgeneric pm-run (process-module &optional name)
   (:documentation "Represents the main event loop of the process

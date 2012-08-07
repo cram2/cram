@@ -30,48 +30,6 @@
 
 (in-package :cpm)
 
-(defmethod initialize-instance :after
-    ((pm process-module)
-     &key (name (error "Process modules need a name."))
-       (input (make-fluent
-               :name (intern
-                      (concatenate 'string
-                       (symbol-name name)
-                       "-INPUT"))))
-       (feedback (make-fluent
-                  :name (intern
-                         (concatenate 'string
-                          (symbol-name name)
-                          "-FEEDBACK"))))
-       (result (make-fluent
-                :name (intern
-                       (concatenate 'string
-                        (symbol-name name)
-                        "-RESULT"))))
-       (cancel (make-fluent
-                :name (intern
-                       (concatenate 'string
-                        (symbol-name name)
-                        "-CANCEL"))))
-       (status (make-fluent
-                :name (intern
-                       (concatenate 'string
-                        (symbol-name name)
-                        "-STATUS"))
-                :value :offline))
-       (caller (make-fluent
-                :name (intern
-                       (concatenate 'string
-                        (symbol-name name)
-                        "-CALLER")))))
-  (setf (slot-value pm 'name) name
-        (slot-value pm 'input) input
-        (slot-value pm 'feedback) feedback
-        (slot-value pm 'result) result
-        (slot-value pm 'status) status
-        (slot-value pm 'cancel) cancel
-        (slot-value pm 'caller) caller))
-
 (defmethod pm-run :around ((pm process-module) &optional name)
   (assert (eq (value (slot-value pm 'status)) :offline) ()
           "Process module `~a' already running." pm)
