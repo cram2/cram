@@ -1,4 +1,3 @@
-;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
@@ -26,7 +25,6 @@
 ;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
-;;;
 
 (in-package :pr2-manip-pm)
 
@@ -97,7 +95,6 @@ as a vector. "
                          (get-joint-position joint-state joint-name))))
            limits joint-names)
       (values joint-names current lower upper))))
-
 
 (defun make-seed-states (side joint-names &optional (steps 3))
   "Creates a lazy list of seed states. `steps' indicates how many
