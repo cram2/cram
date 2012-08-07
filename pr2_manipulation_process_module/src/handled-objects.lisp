@@ -73,8 +73,6 @@ the gripper and lifting the object by 0.2m by default."
     (let* ((nearest-handle (nearest-handle-for-side obj side))
            (handle-radius-property (desig-prop-value nearest-handle
                                                      'desig-props:radius))
-           ;; TODO(winkler): Return value of first non-nil element
-           ;; here instead of (or ...) clause.
            (handle-radius (or (handle-radius-property 0.0))))
       (pregrasp-handled-object-with-relative-location obj side nearest-handle)
       (open-gripper side :position (+ handle-radius 0.02))
