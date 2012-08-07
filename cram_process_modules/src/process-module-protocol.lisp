@@ -59,11 +59,6 @@
            :documentation "Status fluent. Possible status: 
                            :waiting :running :failed")
    (cancel :reader cancel :documentation "Cancel request fluent")
-   (priority :reader priority :initform nil
-             :documentation "Priority of the currently running
-                             process. Only higher priorized processes
-                             can send new inputs while the process
-                             module is running.")
    (caller :reader caller
            :documentation "Fluent containing the task that sent the
                            current input.")))
@@ -86,12 +81,11 @@
   `name' is an optional name of the process-module if the name should
   not be the name of the CLOS class."))
 
-(defgeneric pm-execute (process-module input &key async priority wait-for-free task)
+(defgeneric pm-execute (process-module input &key async wait-for-free task)
   (:documentation "Executes a process module.  
 
                    async: return immediately after sending the input
                           and triggering execution.
-                   priority: priority of the task triggering the pm.
                    wait-for-free: if already running wait for exit and send input.
                    task: the task triggering the pm."))
 
@@ -122,15 +116,14 @@
              ,@body)))
        (pushnew ',name *process-modules*))))
 
-(defmethod pm-execute ((pm symbol) input &key
-                       (async nil) (priority 0) (wait-for-free t)
-                       (task *current-task*))
+(defmethod pm-execute ((pm symbol) input
+                       &key async (wait-for-free t)
+                         (task *current-task*))
   (let ((pm-known (get-running-process-module pm)))
     (unless pm-known
       (error 'unknown-process-module :format-control "Unknown process module: ~a "  :format-arguments (list pm)))
     (pm-execute pm-known input
-     :async async :priority priority
-     :wait-for-free wait-for-free :task task)))
+     :async async :wait-for-free wait-for-free :task task)))
 
 (cut:define-hook on-process-module-started (module input)
   (:documentation "Hook that is called whenever the process module
