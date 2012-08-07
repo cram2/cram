@@ -89,15 +89,11 @@ gripper pose defaults to an identity pose."
   (let ((absolute-loc (object-handle-absolute
                        obj handle :handle-offset-pose relative-gripper-pose)))
     (let ((move-ik (get-ik side (desig-prop-value absolute-loc 'desig-props:pose))))
-      (assert
-       (not (eq move-ik nil)) ()
-       "IK solution generation for side ~a failed during taxi for
-       location designator ~a.~%" side absolute-loc)
+      (unless move-ik (cpl:fail
+                       'cram-plan-failures:manipulation-pose-unreachable))
       (let ((move-trajectory (ik->trajectory (first move-ik) :duration 5.0)))
-        (assert
-         (not (eq move-trajectory nil)) ()
-         "Trajectory generation for side ~a failed during taxi for
-         location designator ~a.~%" side move-trajectory)
+        (unless move-trajectory (cpl:fail
+                                 'cram-plan-failures:manipulation-failed))
         (multiple-value-bind (result resultflag) (execute-arm-trajectory
                                                   side
                                                   move-trajectory)
