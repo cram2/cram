@@ -51,49 +51,6 @@
           (push (cons side reachability-map) *reachability-maps*)
           reachability-map))))
 
-(defun matrix-cost-function (origin-x origin-y resolution matrix)
-  (declare (type number origin-x origin-y resolution)
-           (type cma:double-matrix matrix))
-  (flet ((generator (costmap-metadata output-matrix)
-           (declare (type cma:double-matrix output-matrix))
-           (let ((start-x (max origin-x (origin-x costmap-metadata)))
-                 (start-y (max origin-y (origin-y costmap-metadata)))
-                 (end-x  (min (array-index->map-coordinate
-                               (1- (cma:width matrix)) resolution origin-x)
-                              (+ (width costmap-metadata) (origin-x costmap-metadata))))
-                 (end-y (min (array-index->map-coordinate
-                               (1- (cma:height matrix)) resolution origin-y)
-                             (+ (height costmap-metadata) (origin-y costmap-metadata)))))
-             (loop for y-source-index from (map-coordinate->array-index start-y resolution origin-y)
-                     below (map-coordinate->array-index end-y resolution origin-y)
-                       by (/ (resolution costmap-metadata) resolution)
-                   for y-destination-index from (map-coordinate->array-index
-                                                 start-y (resolution costmap-metadata)
-                                                 (origin-y costmap-metadata))
-                     below (map-coordinate->array-index
-                            end-y (resolution costmap-metadata)
-                            (origin-y costmap-metadata))
-                       by (/ resolution (resolution costmap-metadata))
-                   do (loop for x-source-index from (map-coordinate->array-index
-                                                     start-x resolution origin-x)
-                              below (map-coordinate->array-index end-x resolution origin-x)
-                                by (/ (resolution costmap-metadata) resolution)
-                            for x-destination-index from (map-coordinate->array-index
-                                                          start-x (resolution costmap-metadata)
-                                                          (origin-x costmap-metadata))
-                              below (map-coordinate->array-index
-                                     end-x (resolution costmap-metadata)
-                                     (origin-x costmap-metadata))
-                                by (/ resolution (resolution costmap-metadata))
-                            do (incf
-                                (aref output-matrix
-                                      (truncate y-destination-index)
-                                      (truncate x-destination-index))
-                                (aref matrix
-                                      (truncate y-source-index) (truncate x-source-index))))
-                   finally (return output-matrix)))))
-    #'generator))
-
 (defun make-inverse-reachability-matrix
     (reachability-map-matrix z-index orientation-indices)
   (declare (type simple-array reachability-map-matrix)
@@ -179,19 +136,20 @@ point-stamped, all orientations are used."
                                      (list (get-closest-orientation
                                             pose-specification
                                             (orientations reachability-map)))))))
-                           (matrix-cost-function
-                            (+ (cl-transforms:x origin) (cl-transforms:x point-in-map))
-                            (+ (cl-transforms:y origin) (cl-transforms:y point-in-map))
-                            ;; TODO(moesenle) verify resolution
-                            (cl-transforms:x (resolution reachability-map))
-                            (make-inverse-reachability-matrix
-                             (inverse-reachability-map reachability-map)
-                             (map-coordinate->array-index
-                              (cl-transforms:z point-in-ik-frame)
-                              (cl-transforms:z (resolution reachability-map))
-                              (cl-transforms:z (origin reachability-map)))
-                             (get-orientation-indices
-                              reachability-map orientations)))))
+                           (generator-function
+                            (make-matrix-cost-function
+                             (+ (cl-transforms:x origin) (cl-transforms:x point-in-map))
+                             (+ (cl-transforms:y origin) (cl-transforms:y point-in-map))
+                             ;; TODO(moesenle) verify resolution
+                             (cl-transforms:x (resolution reachability-map))
+                             (make-inverse-reachability-matrix
+                              (inverse-reachability-map reachability-map)
+                              (map-coordinate->array-index
+                               (cl-transforms:z point-in-ik-frame)
+                               (cl-transforms:z (resolution reachability-map))
+                               (cl-transforms:z (origin reachability-map)))
+                              (get-orientation-indices
+                               reachability-map orientations))))))
                        sides)))
       (make-instance 'map-costmap-generator
         :generator-function (lambda (costmap-metadata matrix)
