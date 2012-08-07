@@ -92,6 +92,11 @@
 
 (defgeneric call-action (action &rest params))
 
+(defmacro def-action-handler (name args &body body)
+  (alexandria:with-gensyms (action-sym params)
+    `(defmethod call-action ((,action-sym (eql ',name)) &rest ,params)
+       (destructuring-bind ,args ,params ,@body))))
+
 (defmethod call-action ((action-sym t) &rest params)
   (roslisp:ros-info (pr2-manip process-module)
                     "Unimplemented operation `~a' with parameters ~a. Doing nothing."
@@ -141,6 +146,22 @@
   (if (eq side :both)
       (lift-grasped-object-with-both-arms distance)
       (lift-grasped-object-with-one-arm side distance)))
+
+(def-action-handler grasp (object-type obj side obstacles)
+  "Selects and calls the appropriate grasping functionality based on
+the given object type."
+  (cond ((not (eq (desig-prop-values obj 'desig-props:handle) nil))
+	 (grab-object-with-handles obj side))
+	((eq object-type 'desig-props:pot)
+         (grasp-object-with-both-arms obj))
+        (t (standard-grasping obj side obstacles))))
+
+(def-action-handler put-down (object-designator location side obstacles)
+  "Delegates the type of the put down action which suppose to be executed
+for the currently type of grasped object."
+  (cond ((eq (desig-prop-value object-designator 'desig-props:type) 'desig-props:pot)
+         (put-down-grasped-object-with-both-arms object-designator location))
+        (t (put-down-grasped-object-with-single-arm object-designator location side obstacles))))
 
 (defun execute-goal (server goal)
   (multiple-value-bind (result status)
