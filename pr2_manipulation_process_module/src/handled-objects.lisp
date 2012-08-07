@@ -139,19 +139,25 @@ location designator. The optional parameter `handle-offset-pose' is
 applied to the handle pose before the absolute object pose is
 applied."
   (let* ((absolute-object-loc (desig-prop-value obj 'desig-props:location))
-         (absolute-object-pose-stamped (desig-prop-value absolute-object-loc 'desig-props:pose))
+         (absolute-object-pose-stamped (desig-prop-value
+                                        absolute-object-loc
+                                        'desig-props:pose))
          (relative-handle-loc (desig-prop-value handle 'desig-props:location))
          (relative-handle-pose (cl-transforms:transform-pose
                                 (tf:pose->transform
-                                 (desig-prop-value relative-handle-loc 'desig-props:pose))
+                                 (desig-prop-value relative-handle-loc
+                                                   'desig-props:pose))
                                 handle-offset-pose)))
-      (make-designator 'location `((desig-props:pose
-                                    ,(tf:pose->pose-stamped
-                                      (tf:frame-id absolute-object-pose-stamped)
-                                      (tf:stamp absolute-object-pose-stamped)
-                                      (cl-transforms:transform-pose
-                                       (tf:pose->transform absolute-object-pose-stamped)
-                                       relative-handle-pose))))))))
+    (make-designator
+     'location
+     `((desig-props:pose
+        ,(tf:pose->pose-stamped
+          (tf:frame-id absolute-object-pose-stamped)
+          (tf:stamp absolute-object-pose-stamped)
+          (cl-transforms:transform-pose
+           (tf:pose->transform
+            absolute-object-pose-stamped)
+           relative-handle-pose))))))))
 
 (defun nearest-handle-for-side (obj side)
   "Get the nearest handle location designator on object `obj' in respect to the chosen gripper side `side'."
