@@ -50,7 +50,7 @@
 (define-condition process-module-running (simple-error) ())
 (define-condition process-module-not-running (simple-error) ())
 
-(defclass process-module ()
+(defclass abstract-process-module ()
   ((name :reader name :documentation "The name of the process-module"
          :initform (error "Process modules need a name.")
          :initarg :name)
@@ -65,7 +65,7 @@
            :documentation "Fluent containing the task that sent the
                            current input.")))
 
-(defmethod initialize-instance :after ((pm process-module) &key)
+(defmethod initialize-instance :after ((pm abstract-process-module) &key)
   ;; We cannot initialize the slots inside the class because we need
   ;; the name of the module to construct the fluent names.
   (flet ((make-fluent-name (process-module-name type)
@@ -125,17 +125,6 @@
     (make-instance 'process-module-collection)
     "The list of currently running process modules.")
 
-(defmacro def-process-module (name (desig-var) &body body)
-  (with-gensyms (pm-var-name name-variable)
-    `(progn
-       (defclass ,name (process-module) ())
-       (defmethod pm-run ((,pm-var-name ,name) &optional ,name-variable)
-         (declare (ignore ,name-variable))
-         (block nil
-           (let ((,desig-var (current-desig (value (slot-value ,pm-var-name 'input)))))
-             ,@body)))
-       (pushnew ',name *process-modules*))))
-
 (defmethod pm-run ((process-module symbol) &optional name)
   (unless (find process-module *process-modules*)
     (error 'unknown-process-module
@@ -175,12 +164,12 @@
 (defun get-running-process-module-name (module)
   "Returns the name of the process module indicated by `module' or NIL
   if the module is not registered"
-  (declare (type process-module module))
+  (declare (type abstract-process-module module))
   (car (rassoc module (reverse (process-modules *running-process-modules*)))))
 
 (defun get-running-process-module-names (module)
   "Returns the list of all aliases for `module'"
-  (declare (type process-module module))
+  (declare (type abstract-process-module module))
   (mapcar #'car (remove-if-not
                  (lambda (i) (eql i module))
                  (process-modules *running-process-modules*) :key #'cdr)))
@@ -196,12 +185,12 @@ just a different name for an existing process module."
     (push (cons alias module) (process-modules *running-process-modules*))))
 
 (defun check-process-module-running (process-module &key (throw-error t))
-  (declare (type (or symbol process-module) process-module))
+  (declare (type (or symbol abstract-process-module) process-module))
   (or
    (find process-module (process-modules *running-process-modules*)
          :key (etypecase process-module
                 (symbol #'car)
-                (process-module #'cdr)))
+                (abstract-process-module #'cdr)))
    (when throw-error
      (error 'process-module-not-running
             :format-control "Process module `~a' not running."
@@ -209,7 +198,7 @@ just a different name for an existing process module."
 
 (defun set-process-module-running (name instance)
   (declare (type symbol name)
-           (type process-module instance))
+           (type abstract-process-module instance))
   (when (or (not (eql (value (status instance)) :offline))
             (check-process-module-running name :throw-error nil))
     (error 'process-module-running
@@ -221,14 +210,14 @@ just a different name for an existing process module."
       (sb-thread:condition-broadcast condition))))
 
 (defun remove-process-module-running (process-module)
-  (declare (type (or symbol process-module) process-module))
+  (declare (type (or symbol abstract-process-module) process-module))
   (with-slots (lock condition process-modules) *running-process-modules*
     (sb-thread:with-mutex (lock)
       (setf process-modules
             (remove process-module process-modules
                     :key (etypecase process-module
                            (symbol #'car)
-                           (process-module #'cdr))))
+                           (abstract-process-module #'cdr))))
       (sb-thread:condition-broadcast condition))))
 
 (defun wait-for-process-module-running (process-module &key timeout)

@@ -30,6 +30,19 @@
 
 (in-package :cpm)
 
+(defclass process-module (abstract-process-module) ())
+
+(defmacro def-process-module (name (desig-var) &body body)
+  (with-gensyms (pm-var-name name-variable)
+    `(progn
+       (defclass ,name (process-module) ())
+       (defmethod pm-run ((,pm-var-name ,name) &optional ,name-variable)
+         (declare (ignore ,name-variable))
+         (block nil
+           (let ((,desig-var (current-desig (value (slot-value ,pm-var-name 'input)))))
+             ,@body)))
+       (pushnew ',name *process-modules*))))
+
 (defmethod pm-run :around ((pm process-module) &optional name)
   (assert (eq (value (slot-value pm 'status)) :offline) ()
           "Process module `~a' already running." pm)
