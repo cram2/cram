@@ -147,10 +147,10 @@
            :format-arguments (list process-module)))
   (pm-run (make-instance process-module :name name) name))
 
-(defmethod pm-execute ((pm process-module) input &key
-                       (async nil) (priority 0) (wait-for-free t)
-                       (task *current-task*))
-  ;; Note: priorities are unused currently.
+(defmethod pm-execute ((pm process-module) input
+                       &key async (wait-for-free t) (task *current-task*))
+  (when async
+    (warn "Parameter `async' not supported in default process module. Ignoring."))
   (with-slots (status result caller) pm
     (when (eq (value status) :offline)
       (warn "Process module ~a not running. Status is ~a. Waiting for it to come up." pm (value status))
@@ -161,20 +161,18 @@
       (wait-for (not (eq status :running))))
     (retry-after-suspension
       (setf (value caller) task)
-      (setf (slot-value pm 'priority) priority)
       ;; Set the status to running here. Otherwise we might get a race
       ;; condition because status is not set to running yet and the next
       ;; wait-for returns immediately.
       (setf (value (slot-value pm 'input)) input)
       (wait-for (eq status :running))
-      (unless async
-        (unwind-protect
-             (progn
-               (wait-for (not (eq status :running)))
-               (when (eq (value status) :failed)
-                 (error (value result))))
-          (pm-cancel pm))
-        (value result)))))
+      (unwind-protect
+           (progn
+             (wait-for (not (eq status :running)))
+             (when (eq (value status) :failed)
+               (error (value result))))
+        (pm-cancel pm))
+      (value result))))
 
 (defmethod pm-cancel ((pm process-module))
   (setf (value (slot-value pm 'cancel)) t)
