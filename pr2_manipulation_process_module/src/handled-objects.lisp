@@ -27,7 +27,9 @@
 
 (in-package :pr2-manip-pm)
 
-(defun make-handled-object-designator (&key (object-type nil) (object-pose nil) (handles nil))
+(defun make-handled-object-designator (&key (object-type nil)
+                                            (object-pose nil)
+                                            (handles nil))
   "Creates and returns an object designator with object type
 `object-type' and object pose `object-pose' and attaches location
 designators according to handle information in `handles'."
@@ -69,7 +71,8 @@ the gripper and lifting the object by 0.2m by default."
     ;; TODO(winkler): Get the nearest (atm the first) handle. This has
     ;; to be changed to a more sophisticated algorithm.
     (let* ((nearest-handle (nearest-handle-for-side obj side))
-	   (handle-radius-property (desig-prop-value nearest-handle 'desig-props:radius))
+	   (handle-radius-property (desig-prop-value nearest-handle
+                                                     'desig-props:radius))
            ;; TODO(winkler): Return value of first non-nil element
            ;; here instead of (or ...) clause.
            (handle-radius (or (handle-radius-property 0.0))))
@@ -97,10 +100,13 @@ gripper pose defaults to an identity pose."
          (not (eq move-trajectory nil)) ()
          "Trajectory generation for side ~a failed during taxi for location designator ~a.~%"
          side move-trajectory)
-        (multiple-value-bind (result resultflag) (execute-arm-trajectory side move-trajectory)
+        (multiple-value-bind (result resultflag) (execute-arm-trajectory
+                                                  side
+                                                  move-trajectory)
           resultflag)))))
 
-(defun lift-handled-object-with-relative-location (obj side handle &key (lift-height 0.2))
+(defun lift-handled-object-with-relative-location (obj side handle
+                                                       &key (lift-height 0.2))
   "Moves the gripper side `side' into the lift position with respect
 to the object's `obj' handle `handle'. The lift height is specified
 through the key parameter `lift-height'."
@@ -132,7 +138,8 @@ respect to the object's `obj' handle `handle'."
     (tf:make-3d-vector 0.2 0.0 0.0)
     (tf:euler->quaternion :az pi :ax (/ pi 2)))))
 
-(defun object-handle-absolute (obj handle &key (handle-offset-pose (tf:make-identity-pose)))
+(defun object-handle-absolute (obj handle
+                                   &key (handle-offset-pose (tf:make-identity-pose)))
   "Transforms the relative handle location `handle' of object `obj'
 into the object's coordinate system and returns the appropriate
 location designator. The optional parameter `handle-offset-pose' is
@@ -160,7 +167,8 @@ applied."
            relative-handle-pose))))))))
 
 (defun nearest-handle-for-side (obj side)
-  "Get the nearest handle location designator on object `obj' in respect to the chosen gripper side `side'."
+  "Get the nearest handle location designator on object `obj' in
+respect to the chosen gripper side `side'."
   ;; TODO(winkler): Implement *actual* calculations concerning
   ;; distance here. Atm, this always returns the first handle on the
   ;; object. This is no problem as long as we only have (at most) one
