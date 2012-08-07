@@ -65,19 +65,17 @@ gripper side `side'. This includes going into pregrasp for the nearest
 handle, opening the gripper, going into the grasp position, closing
 the gripper and lifting the object by 0.2m by default."
   (let* ((handles (desig-prop-values obj 'desig-props:handle)))
-    ;; Check if there are handles
     (assert (> (length handles) 0) () "Object ~a needs at least one handle." obj)
-    ;; Get the nearest (atm the first) handle
+    ;; TODO(winkler): Get the nearest (atm the first) handle. This has
+    ;; to be changed to a more sophisticated algorithm.
     (let* ((nearest-handle (nearest-handle-for-side obj side))
 	   (handle-radius-property (desig-prop-value nearest-handle 'desig-props:radius))
-	   (handle-radius (if (eq handle-radius-property nil) 0.0 handle-radius-property)))
-      ;; Go into pregrasp for that handle on side `side'
+           ;; TODO(winkler): Return value of first non-nil element
+           ;; here instead of (or ...) clause.
+           (handle-radius (or (handle-radius-property 0.0))))
       (pregrasp-handled-object-with-relative-location obj side nearest-handle)
-      ;; Open gripper
       (open-gripper side :position (+ handle-radius 0.02))
-      ;; Go into grasp pose
       (grasp-handled-object-with-relative-location obj side nearest-handle)
-      ;; Close gripper
       (close-gripper side :position handle-radius))))
 
 (defun taxi-handled-object (obj side handle
