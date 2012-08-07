@@ -34,11 +34,11 @@
 `object-type' and object pose `object-pose' and attaches location
 designators according to handle information in `handles'."
   (let ((combined-description (append `((desig-props:type ,object-type)
-					(desig-props:location
-					 ,(cram-designators:make-designator
-					   'cram-designators:location
-					   `((desig-props:pose ,object-pose)))))
-				      `,(make-handle-designator-sequence handles))))
+                                        (desig-props:location
+                                         ,(cram-designators:make-designator
+                                           'cram-designators:location
+                                           `((desig-props:pose ,object-pose)))))
+                                      `,(make-handle-designator-sequence handles))))
     (cram-designators:make-designator
      'cram-designators:object
      `,combined-description)))
@@ -50,16 +50,16 @@ handle object then consist of a location designator describing its
 relative position as well as the handle's radius for grasping
 purposes."
   (mapcar (lambda (handle-desc)
-	    `(desig-props:handle
-	      ,(cram-designators:make-designator
-	       'cram-designators:object
-	       `((desig-props:location
-		  ,(cram-designators:make-designator
-		    'cram-designators:location
-		    `((desig-props:pose ,(first handle-desc)))))
-		 (desig-props:radius ,(second handle-desc))
-		 (desig-props:type desig-props:handle)))))
-	    handles))
+            `(desig-props:handle
+              ,(cram-designators:make-designator
+                'cram-designators:object
+                `((desig-props:location
+                   ,(cram-designators:make-designator
+                     'cram-designators:location
+                     `((desig-props:pose ,(first handle-desc)))))
+                  (desig-props:radius ,(second handle-desc))
+                  (desig-props:type desig-props:handle)))))
+          handles))
 
 (defun grab-object-with-handles (obj side)
   "Grasp an object `obj' on one of its handles with the specified
@@ -71,7 +71,7 @@ the gripper and lifting the object by 0.2m by default."
     ;; TODO(winkler): Get the nearest (atm the first) handle. This has
     ;; to be changed to a more sophisticated algorithm.
     (let* ((nearest-handle (nearest-handle-for-side obj side))
-	   (handle-radius-property (desig-prop-value nearest-handle
+           (handle-radius-property (desig-prop-value nearest-handle
                                                      'desig-props:radius))
            ;; TODO(winkler): Return value of first non-nil element
            ;; here instead of (or ...) clause.
@@ -82,7 +82,7 @@ the gripper and lifting the object by 0.2m by default."
       (close-gripper side :position handle-radius))))
 
 (defun taxi-handled-object (obj side handle
-                            &key (relative-gripper-pose (tf:make-identity-pose)))
+                                &key (relative-gripper-pose (tf:make-identity-pose)))
   "Commutes the arm to a certain absolute pose. The target pose is
 determined through the absolute object pose of object `obj', the
 relative object handle location `relative-handle-loc' and the relative
@@ -93,17 +93,17 @@ gripper pose defaults to an identity pose."
     (let ((move-ik (get-ik side (desig-prop-value absolute-loc 'desig-props:pose))))
       (assert
        (not (eq move-ik nil)) ()
-       "IK solution generation for side ~a failed during taxi for location designator ~a.~%"
-       side absolute-loc)
+       "IK solution generation for side ~a failed during taxi for
+       location designator ~a.~%" side absolute-loc)
       (let ((move-trajectory (ik->trajectory (first move-ik) :duration 5.0)))
         (assert
          (not (eq move-trajectory nil)) ()
-         "Trajectory generation for side ~a failed during taxi for location designator ~a.~%"
-         side move-trajectory)
+         "Trajectory generation for side ~a failed during taxi for
+         location designator ~a.~%" side move-trajectory)
         (multiple-value-bind (result resultflag) (execute-arm-trajectory
                                                   side
                                                   move-trajectory)
-          resultflag)))))
+                             resultflag)))))
 
 (defun lift-handled-object-with-relative-location (obj side handle
                                                        &key (lift-height 0.2))
