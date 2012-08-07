@@ -144,13 +144,12 @@ location designator. The optional parameter `handle-offset-pose' is
 applied to the handle pose before the absolute object pose is
 applied."
   (let* ((absolute-object-loc (desig-prop-value obj 'desig-props:location))
-         (absolute-object-pose-stamped (desig-prop-value absolute-object-loc 'desig-props:pose)))
-    (let* ((relative-handle-loc (desig-prop-value handle 'desig-props:location))
-	   (relative-handle-pose
-            (cl-transforms:transform-pose
-             (tf:pose->transform
-              (desig-prop-value relative-handle-loc 'desig-props:pose))
-             handle-offset-pose)))
+         (absolute-object-pose-stamped (desig-prop-value absolute-object-loc 'desig-props:pose))
+         (relative-handle-loc (desig-prop-value handle 'desig-props:location))
+         (relative-handle-pose (cl-transforms:transform-pose
+                                (tf:pose->transform
+                                 (desig-prop-value relative-handle-loc 'desig-props:pose))
+                                handle-offset-pose)))
       (make-designator 'location `((desig-props:pose
                                     ,(tf:pose->pose-stamped
                                       (tf:frame-id absolute-object-pose-stamped)
@@ -167,3 +166,10 @@ applied."
   ;; handle.
   (let ((handles (desig-prop-values obj 'desig-props:handle)))
     (first handles)))
+
+(defun trajectory-reaching-length (loc-desig side)
+  ;; TODO(winkler): Atm, the trajectory reaching length is determined
+  ;; by just the cartesian distance between the two origins of gripper
+  ;; wrist roll and destination location designator. Later on, this
+  ;; should be improved.
+  0)
