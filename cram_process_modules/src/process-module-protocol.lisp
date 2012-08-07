@@ -136,6 +136,17 @@
              ,@body)))
        (pushnew ',name *process-modules*))))
 
+(defmethod pm-run ((process-module symbol) &optional name)
+  (unless (find process-module *process-modules*)
+    (error 'unknown-process-module
+           :format-control "Unknown process module: ~a "
+           :format-arguments (list process-module)))
+  (when (check-process-module-running process-module :throw-error nil)
+    (error 'process-module-running
+           :format-control "Process module `~a' already running. foo foo"
+           :format-arguments (list process-module)))
+  (pm-run (make-instance process-module :name name) name))
+
 (defmethod pm-execute ((pm symbol) input
                        &key async (wait-for-free t)
                          (task *current-task*))
