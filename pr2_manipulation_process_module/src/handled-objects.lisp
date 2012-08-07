@@ -1,4 +1,3 @@
-;;;
 ;;; Copyright (c) 2012, Jan Winkler <winkler@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
@@ -25,10 +24,8 @@
 ;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
-;;;
 
 (in-package :pr2-manip-pm)
-
 
 (defun make-handled-object-designator (&key (object-type nil) (object-pose nil) (handles nil))
   "Creates and returns an object designator with object type
