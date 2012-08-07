@@ -71,11 +71,6 @@
 
 (defparameter *max-graspable-size* (cl-transforms:make-3d-vector 0.15 0.15 0.30))
 
-(defmacro def-action-handler (name args &body body)
-  (alexandria:with-gensyms (action-sym params)
-    `(defmethod call-action ((,action-sym (eql ',name)) &rest ,params)
-       (destructuring-bind ,args ,params ,@body))))
-
 (defun get-lifting-grasped-object-arm-trajectory (side distance)
   "Returns the lifting trajectory for the `side' robot arm in order to
 lift the grasped object at the `distance' from the supporting plane."
@@ -117,22 +112,6 @@ supporting plane"
     (execute-arm-trajectory :right
                             ;; Compute the lifting trajectory for the `right' arm.
                             (get-lifting-grasped-object-arm-trajectory :right distance))))
-
-(def-action-handler grasp (object-type obj side obstacles)
-  "Selects and calls the appropriate grasping functionality based on
-the given object type."
-  (cond ((not (eq (desig-prop-values obj 'desig-props:handle) nil))
-	 (grab-object-with-handles obj side))
-	((eq object-type 'desig-props:pot)
-         (grasp-object-with-both-arms obj))
-        (t (standard-grasping obj side obstacles))))
-
-(def-action-handler put-down (object-designator location side obstacles)
-  "Delegates the type of the put down action which suppose to be executed
-for the currently type of grasped object."
-  (cond ((eq (desig-prop-value object-designator 'desig-props:type) 'desig-props:pot)
-         (put-down-grasped-object-with-both-arms object-designator location))
-        (t (put-down-grasped-object-with-single-arm object-designator location side obstacles))))
 
 (defun put-down-grasped-object-with-single-arm (obj location side obstacles)
   (roslisp:ros-info (pr2-manip process-module) "Putting down object single-handedly.")
