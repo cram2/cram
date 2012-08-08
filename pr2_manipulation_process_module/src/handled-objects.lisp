@@ -62,7 +62,7 @@ gripper pose `relative-gripper-pose' w.r.t. the handle. The relative
 gripper pose defaults to an identity pose."
   (let ((absolute-loc (object-handle-absolute
                        obj handle :handle-offset-pose relative-gripper-pose)))
-    (let ((move-ik (get-ik side (desig-prop-value absolute-loc 'desig-props:pose))))
+    (let ((move-ik (get-ik side (desig:designator-pose absolute-loc))))
       (unless move-ik (cpl:fail
                        'cram-plan-failures:manipulation-pose-unreachable))
       (let ((move-trajectory (ik->trajectory (first move-ik) :duration 5.0)))
@@ -99,14 +99,13 @@ location designator. The optional parameter `handle-offset-pose' is
 applied to the handle pose before the absolute object pose is
 applied."
   (let* ((absolute-object-loc (desig-prop-value obj 'desig-props:at))
-         (absolute-object-pose-stamped (desig-prop-value
-                                        absolute-object-loc
-                                        'desig-props:pose))
+         (absolute-object-pose-stamped (desig:designator-pose
+                                        absolute-object-loc))
          (relative-handle-loc (desig-prop-value handle 'desig-props:at))
          (relative-handle-pose (cl-transforms:transform-pose
                                 (tf:pose->transform
-                                 (desig-prop-value relative-handle-loc
-                                                   'desig-props:pose))
+                                 (desig:designator-pose
+                                  relative-handle-loc))
                                 handle-offset-pose)))
     (make-designator
      'location
