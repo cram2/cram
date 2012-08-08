@@ -100,21 +100,6 @@ gripper pose defaults to an identity pose."
                                                   move-trajectory)
                              resultflag)))))
 
-(defun lift-handled-object-with-relative-location (obj side handle
-                                                       &key (lift-height 0.2))
-  "Moves the gripper side `side' into the lift position with respect
-to the object's `obj' handle `handle'. The lift height is specified
-through the key parameter `lift-height'."
-  (taxi-handled-object
-   obj side handle :relative-gripper-pose 
-   (cl-transforms:transform-pose
-    (tf:make-transform
-     (tf:make-3d-vector 0.12 0.0 0.0)
-     (tf:euler->quaternion :az pi :ax (/ pi 2)))
-    (tf:make-pose
-     (tf:make-3d-vector 0.0 0.0 lift-height)
-     (tf:make-identity-rotation)))))
-
 (defun grasp-handled-object-with-relative-location (obj side handle)
   "Moves the gripper side `side' into the grasp position with respect
 to the object's `obj' handle `handle'."
