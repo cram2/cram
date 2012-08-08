@@ -101,13 +101,9 @@
   `name' is an optional name of the process-module if the name should
   not be the name of the CLOS class."))
 
-(defgeneric pm-execute (process-module input &key async wait-for-free task)
-  (:documentation "Executes a process module.  
-
-                   async: return immediately after sending the input
-                          and triggering execution.
-                   wait-for-free: if already running wait for exit and send input.
-                   task: the task triggering the pm."))
+(defgeneric pm-execute (process-module input &key task)
+  (:documentation "Executes a process module. `task' should should be
+  set to the task that is calling PM-EXECUTE."))
 
 (defgeneric pm-cancel (process-module))
 
@@ -136,14 +132,11 @@
            :format-arguments (list process-module)))
   (pm-run (make-instance process-module :name name) name))
 
-(defmethod pm-execute ((pm symbol) input
-                       &key async (wait-for-free t)
-                         (task *current-task*))
+(defmethod pm-execute ((pm symbol) input &key (task *current-task*))
   (let ((pm-known (get-running-process-module pm)))
     (unless pm-known
       (error 'unknown-process-module :format-control "Unknown process module: ~a "  :format-arguments (list pm)))
-    (pm-execute pm-known input
-     :async async :wait-for-free wait-for-free :task task)))
+    (pm-execute pm-known input :task task)))
 
 (cut:define-hook on-process-module-started (module input)
   (:documentation "Hook that is called whenever the process module
