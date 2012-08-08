@@ -726,3 +726,13 @@ will be commanded."
     (cpl-impl:par
       (close-gripper :left :max-effort 50)
       (close-gripper :right :max-effort 50))))
+
+(defun check-valid-gripper-state (side &key (min-position 0.01) safety-ik)
+  (when (< (get-gripper-state side) min-position)
+    (clear-collision-objects)
+    (open-gripper side)
+    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
+    (when safety-ik
+      (execute-arm-trajectory side (ik->trajectory pre-solution))
+      (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))
+    (cpl:fail 'object-lost)))

@@ -27,16 +27,6 @@
 
 (in-package :pr2-manip-pm)
 
-(defun check-valid-gripper-state (side &key (min-position 0.01) safety-ik)
-  (when (< (get-gripper-state side) min-position)
-    (clear-collision-objects)
-    (open-gripper side)
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
-    (when safety-ik
-      (execute-arm-trajectory side (ik->trajectory pre-solution))
-      (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))
-    (cpl:fail 'object-lost)))
-
 (defun grab-object-with-handles (obj side)
   "Grasp an object `obj' on one of its handles with the specified
 gripper side `side'. This includes going into pregrasp for the nearest
