@@ -135,8 +135,22 @@
 (defmethod pm-execute ((pm symbol) input &key (task *current-task*))
   (let ((pm-known (get-running-process-module pm)))
     (unless pm-known
-      (error 'unknown-process-module :format-control "Unknown process module: ~a "  :format-arguments (list pm)))
+      (error 'unknown-process-module
+             :format-control "Unknown process module: ~a "
+             :format-arguments (list pm)))
     (pm-execute pm-known input :task task)))
+
+(defmethod pm-execute :before ((process-module abstract-process-module) input &key task)
+  (declare (ignore task))
+  (with-slots (status) process-module
+    (when (eq (value status) :offline)
+      (warn "Process module ~a not running. Status is ~a. Waiting for it to come up."
+            process-module (value status))
+      (wait-for (not (eq status :offline))))
+    (when (eq (value status) :running)
+      (warn "Process module ~a already processing input. Waiting for it to become free."
+            process-module)
+      (wait-for (not (eq status :running))))))
 
 (cut:define-hook on-process-module-started (module input)
   (:documentation "Hook that is called whenever the process module

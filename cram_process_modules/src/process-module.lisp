@@ -108,18 +108,14 @@
             (setf (value status) :offline)))))))
 
 (defmethod pm-execute ((pm process-module) input &key (task *current-task*))
-  (with-slots (status result caller) pm
-    (when (eq (value status) :offline)
-      (warn "Process module ~a not running. Status is ~a. Waiting for it to come up." pm (value status))
-      (wait-for (not (eq status :offline))))
-    (when (eq (value status) :running)
-      (wait-for (not (eq status :running))))
+  (with-slots ((input-fluent input)
+               status result caller) pm
     (retry-after-suspension
       (setf (value caller) task)
       ;; Set the status to running here. Otherwise we might get a race
       ;; condition because status is not set to running yet and the next
       ;; wait-for returns immediately.
-      (setf (value (slot-value pm 'input)) input)
+      (setf (value input-fluent) input)
       (wait-for (eq status :running))
       (unwind-protect
            (progn
