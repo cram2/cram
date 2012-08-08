@@ -98,11 +98,11 @@ into the object's coordinate system and returns the appropriate
 location designator. The optional parameter `handle-offset-pose' is
 applied to the handle pose before the absolute object pose is
 applied."
-  (let* ((absolute-object-loc (desig-prop-value obj 'desig-props:location))
+  (let* ((absolute-object-loc (desig-prop-value obj 'desig-props:at))
          (absolute-object-pose-stamped (desig-prop-value
                                         absolute-object-loc
                                         'desig-props:pose))
-         (relative-handle-loc (desig-prop-value handle 'desig-props:location))
+         (relative-handle-loc (desig-prop-value handle 'desig-props:at))
          (relative-handle-pose (cl-transforms:transform-pose
                                 (tf:pose->transform
                                  (desig-prop-value relative-handle-loc
