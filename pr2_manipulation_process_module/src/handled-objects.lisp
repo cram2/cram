@@ -27,9 +27,9 @@
 
 (in-package :pr2-manip-pm)
 
-(defun make-handled-object-designator (&key (object-type nil)
-                                            (object-pose nil)
-                                            (handles nil))
+(defun make-handled-object-designator (&key object-type
+                                            object-pose
+                                            handles)
   "Creates and returns an object designator with object type
 `object-type' and object pose `object-pose' and attaches location
 designators according to handle information in `handles'."
