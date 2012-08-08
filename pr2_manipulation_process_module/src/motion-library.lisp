@@ -388,7 +388,6 @@ supporting plane"
         (execute-arm-trajectory side (ik->trajectory pre-solution))
         (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
         (cpl:fail 'object-lost)))
-    ;; TODO: Check if gripper is not completely closed to make sure that we are holding the object
     (roslisp:ros-info (pr2-manip process-module) "Attaching object to gripper")
     (plan-knowledge:on-event (make-instance 'plan-knowledge:object-attached
                                :object obj
