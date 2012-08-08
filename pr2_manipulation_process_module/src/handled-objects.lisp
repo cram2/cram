@@ -44,7 +44,14 @@ the gripper and lifting the object by 0.2m by default."
       (pregrasp-handled-object-with-relative-location obj side nearest-handle)
       (open-gripper side :position (+ handle-radius 0.02))
       (grasp-handled-object-with-relative-location obj side nearest-handle)
-      (close-gripper side :position handle-radius))))
+      (close-gripper side :position handle-radius)
+      (when (< (get-gripper-state side) (- handle-radius 0.01))
+        (clear-collision-objects)
+        (open-gripper side)
+        (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
+        (execute-arm-trajectory side (ik->trajectory pre-solution))
+        (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
+        (cpl:fail 'object-lost)))))
 
 (defun taxi-handled-object (obj side handle
                                 &key (relative-gripper-pose (tf:make-identity-pose)))
