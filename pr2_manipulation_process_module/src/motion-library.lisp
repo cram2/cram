@@ -381,13 +381,7 @@ supporting plane"
       ;; (compliant-close-gripper side)
       (close-gripper side :max-effort 50.0)
       (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
-      (when (< (get-gripper-state side) 0.01)
-        (clear-collision-objects)
-        (open-gripper side)
-        (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
-        (execute-arm-trajectory side (ik->trajectory pre-solution))
-        (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
-        (cpl:fail 'object-lost)))
+      (check-valid-gripper-state side :safety-ik pre-solution))
     (roslisp:ros-info (pr2-manip process-module) "Attaching object to gripper")
     (plan-knowledge:on-event (make-instance 'plan-knowledge:object-attached
                                :object obj
