@@ -71,9 +71,10 @@ the gripper and lifting the object by 0.2m by default."
     ;; TODO(winkler): Get the nearest (atm the first) handle. This has
     ;; to be changed to a more sophisticated algorithm.
     (let* ((nearest-handle (nearest-handle-for-side obj side))
-           (handle-radius-property (desig-prop-value nearest-handle
-                                                     'desig-props:radius))
-           (handle-radius (or (handle-radius-property 0.0))))
+           (handle-radius (or (desig-prop-value
+                               nearest-handle
+                               'desig-props:radius)
+                              0.0)))
       (pregrasp-handled-object-with-relative-location obj side nearest-handle)
       (open-gripper side :position (+ handle-radius 0.02))
       (grasp-handled-object-with-relative-location obj side nearest-handle)
@@ -158,7 +159,7 @@ applied."
           (cl-transforms:transform-pose
            (tf:pose->transform
             absolute-object-pose-stamped)
-           relative-handle-pose))))))))
+           relative-handle-pose)))))))
 
 (defun nearest-handle-for-side (obj side)
   "Get the nearest handle location designator on object `obj' in
