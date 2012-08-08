@@ -59,11 +59,12 @@
   ((:module "src"
             :components
             ((:file "package")
+             (:file "handled-objects" :depends-on ("package"))
              (:file "motion-library" :depends-on ("package"))
              (:file "controller-manager" :depends-on ("package"))
              (:file "kinematics" :depends-on ("package"))
              (:file "collision-environment" :depends-on ("package"))
              (:file "process-module"
-              :depends-on ("package" "kinematics" "collision-environment" "controller-manager" "motion-library"))
+              :depends-on ("package" "kinematics" "collision-environment" "controller-manager" "motion-library" "handled-objects"))
              (:file "events" :depends-on ("package" "collision-environment"))
              (:file "designator" :depends-on ("package" "process-module"))))))

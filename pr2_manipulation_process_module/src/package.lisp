@@ -1,4 +1,3 @@
-;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
@@ -25,27 +24,27 @@
 ;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
-;;;
 
 (in-package :cl-user)
 
-(desig-props:def-desig-package pr2-manipulation-process-module
-    (:nicknames :pr2-manip-pm)
-  (:use #:common-lisp
-        #:crs
-        #:cut
-        #:desig
-        #:designators-ros
-        #:cram-roslisp-common
-        #:cram-process-modules
-        #:cram-plan-failures
-        #:cram-plan-knowledge
-        #:perception-pm)
-  (:import-from alexandria ignore-some-conditions)
-  (:export
-   pr2-manipulation-process-module)
-  (:desig-properties #:trajectory #:type #:to #:open #:obj #:side #:close
-                     #:grasp #:put-down #:pose #:parked #:lift
-                     #:carry #:at #:orientation #:in #:gripper #:both-grippers
-                     #:height #:distance #:obstacle #:handle #:name
-                     #:goal #:navigation #:handled #:handles))
+(desig-props:def-desig-package
+ pr2-manipulation-process-module
+ (:nicknames :pr2-manip-pm)
+ (:use #:common-lisp
+       #:crs
+       #:cut
+       #:desig
+       #:designators-ros
+       #:cram-roslisp-common
+       #:cram-process-modules
+       #:cram-plan-failures
+       #:cram-plan-knowledge
+       #:perception-pm)
+ (:import-from alexandria ignore-some-conditions)
+ (:export
+  pr2-manipulation-process-module)
+ (:desig-properties #:trajectory #:type #:to #:open #:obj #:side #:close
+		    #:grasp #:put-down #:pose #:parked #:lift
+		    #:carry #:at #:orientation #:in #:gripper #:both-grippers
+		    #:height #:distance #:obstacle #:handle #:name
+		    #:goal #:navigation #:grasped-by #:radius))
