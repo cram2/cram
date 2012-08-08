@@ -107,17 +107,12 @@
                      (return-from pm-body))))
             (setf (value status) :offline)))))))
 
-(defmethod pm-execute ((pm process-module) input
-                       &key async (wait-for-free t) (task *current-task*))
-  (when async
-    (warn "Parameter `async' not supported in default process module. Ignoring."))
+(defmethod pm-execute ((pm process-module) input &key (task *current-task*))
   (with-slots (status result caller) pm
     (when (eq (value status) :offline)
       (warn "Process module ~a not running. Status is ~a. Waiting for it to come up." pm (value status))
       (wait-for (not (eq status :offline))))
     (when (eq (value status) :running)
-      (unless  wait-for-free
-        (fail "Process module already processing an input."))
       (wait-for (not (eq status :running))))
     (retry-after-suspension
       (setf (value caller) task)
