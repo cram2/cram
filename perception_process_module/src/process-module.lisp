@@ -140,3 +140,37 @@
       (fail 'object-not-found :object-desig input))
     (ros-info (perception process-module) "Found objects: ~a" result)
     result))
+
+(defun make-handled-object-designator (&key object-type
+                                            object-pose
+                                            handles)
+  "Creates and returns an object designator with object type
+`object-type' and object pose `object-pose' and attaches location
+designators according to handle information in `handles'."
+  (let ((combined-description (append `((desig-props:type ,object-type)
+                                        (desig-props:location
+                                         ,(cram-designators:make-designator
+                                           'cram-designators:location
+                                           `((desig-props:pose ,object-pose)))))
+                                      `,(make-handle-designator-sequence handles))))
+    (cram-designators:make-designator
+     'cram-designators:object
+     `,combined-description)))
+
+(defun make-handle-designator-sequence (handles)
+  "Converts the sequence `handles' (handle-pose handle-radius) into a
+sequence of object designators representing handle objects. Each
+handle object then consist of a location designator describing its
+relative position as well as the handle's radius for grasping
+purposes."
+  (mapcar (lambda (handle-desc)
+            `(desig-props:handle
+              ,(cram-designators:make-designator
+                'cram-designators:object
+                `((desig-props:location
+                   ,(cram-designators:make-designator
+                     'cram-designators:location
+                     `((desig-props:pose ,(first handle-desc)))))
+                  (desig-props:radius ,(second handle-desc))
+                  (desig-props:type desig-props:handle)))))
+          handles))
