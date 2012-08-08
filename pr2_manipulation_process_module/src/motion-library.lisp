@@ -384,11 +384,11 @@ supporting plane"
       (check-valid-gripper-state side :safety-ik pre-solution))
     (roslisp:ros-info (pr2-manip process-module) "Attaching object to gripper")
     (plan-knowledge:on-event (make-instance 'plan-knowledge:object-attached
-                               :object obj
-                               :link (ecase side
-                                       (:right "r_gripper_r_finger_tip_link")
-                                       (:left "l_gripper_r_finger_tip_link"))
-                               :side side))
+                                            :object obj
+                                            :link (ecase side
+                                                         (:right "r_gripper_r_finger_tip_link")
+                                                         (:left "l_gripper_r_finger_tip_link"))
+                                            :side side))
     (assert-occasion `(object-in-hand ,obj ,side))))
 
 (defun open-drawer (pose side &optional (distance *grasp-distance*))
@@ -403,49 +403,49 @@ supporting plane"
                             :target-frame "base_footprint")
   (let* ((pose-transform (cl-transforms:pose->transform pose))
          (pre-grasp-pose
-           (cl-tf:transform-pose cram-roslisp-common:*tf*
-                                 :pose (tf:pose->pose-stamped
-                                        (tf:frame-id pose) (tf:stamp pose)
-                                        (cl-transforms:transform-pose
-                                         pose-transform
-                                         (cl-transforms:make-pose
-                                          (cl-transforms:make-3d-vector
-                                           -0.25 0.0 0.0)
-                                          (cl-transforms:make-identity-rotation))))
-                                 :target-frame "base_footprint"))
+          (cl-tf:transform-pose cram-roslisp-common:*tf*
+                                :pose (tf:pose->pose-stamped
+                                       (tf:frame-id pose) (tf:stamp pose)
+                                       (cl-transforms:transform-pose
+                                        pose-transform
+                                        (cl-transforms:make-pose
+                                         (cl-transforms:make-3d-vector
+                                          -0.25 0.0 0.0)
+                                         (cl-transforms:make-identity-rotation))))
+                                :target-frame "base_footprint"))
          (grasp-pose
-           (cl-tf:transform-pose cram-roslisp-common:*tf*
-                                 :pose (tf:pose->pose-stamped
-                                        (tf:frame-id pose) (tf:stamp pose)
-                                        (cl-transforms:transform-pose
-                                         pose-transform
-                                         (cl-transforms:make-pose
-                                          (cl-transforms:make-3d-vector
-                                           -0.20 0.0 0.0)
-                                          (cl-transforms:make-identity-rotation))))
-                                 :target-frame "base_footprint"))
+          (cl-tf:transform-pose cram-roslisp-common:*tf*
+                                :pose (tf:pose->pose-stamped
+                                       (tf:frame-id pose) (tf:stamp pose)
+                                       (cl-transforms:transform-pose
+                                        pose-transform
+                                        (cl-transforms:make-pose
+                                         (cl-transforms:make-3d-vector
+                                          -0.20 0.0 0.0)
+                                         (cl-transforms:make-identity-rotation))))
+                                :target-frame "base_footprint"))
          (open-pose
-           (cl-tf:transform-pose cram-roslisp-common:*tf*
-                                 :pose (tf:pose->pose-stamped
-                                        (tf:frame-id pose) (tf:stamp pose)
-                                        (cl-transforms:transform-pose
-                                         pose-transform
-                                         (cl-transforms:make-pose
-                                          (cl-transforms:make-3d-vector
-                                           (- -0.20 distance) 0.0 0.0)
-                                          (cl-transforms:make-identity-rotation))))
-                                 :target-frame "base_footprint"))
+          (cl-tf:transform-pose cram-roslisp-common:*tf*
+                                :pose (tf:pose->pose-stamped
+                                       (tf:frame-id pose) (tf:stamp pose)
+                                       (cl-transforms:transform-pose
+                                        pose-transform
+                                        (cl-transforms:make-pose
+                                         (cl-transforms:make-3d-vector
+                                          (- -0.20 distance) 0.0 0.0)
+                                         (cl-transforms:make-identity-rotation))))
+                                :target-frame "base_footprint"))
          (arm-away-pose
-           (cl-tf:transform-pose cram-roslisp-common:*tf*
-                                 :pose (tf:pose->pose-stamped
-                                        (tf:frame-id pose) (tf:stamp pose)
-                                        (cl-transforms:transform-pose
-                                         pose-transform
-                                         (cl-transforms:make-pose
-                                          (cl-transforms:make-3d-vector
-                                           (+ -0.10 (- -0.20 distance)) 0.0 0.0)
-                                          (cl-transforms:make-identity-rotation))))
-                                 :target-frame "base_footprint"))
+          (cl-tf:transform-pose cram-roslisp-common:*tf*
+                                :pose (tf:pose->pose-stamped
+                                       (tf:frame-id pose) (tf:stamp pose)
+                                       (cl-transforms:transform-pose
+                                        pose-transform
+                                        (cl-transforms:make-pose
+                                         (cl-transforms:make-3d-vector
+                                          (+ -0.10 (- -0.20 distance)) 0.0 0.0)
+                                         (cl-transforms:make-identity-rotation))))
+                                :target-frame "base_footprint"))
          (pre-grasp-ik (lazy-car (get-ik side pre-grasp-pose)))
          (grasp-ik (lazy-car (get-ik side grasp-pose)))
          (open-ik (lazy-car (get-ik side open-pose)))
@@ -493,49 +493,49 @@ supporting plane"
                             :target-frame "base_footprint")
   (let* ((pose-transform (cl-transforms:pose->transform pose))
          (pre-grasp-pose
-           (cl-tf:transform-pose *tf*
-                                 :pose (tf:pose->pose-stamped
-                                        (tf:frame-id pose) (tf:stamp pose)
-                                        (cl-transforms:transform-pose
-                                         pose-transform
-                                         (cl-transforms:make-transform
-                                          (cl-transforms:make-3d-vector
-                                           -0.25 0.0 0.0)
-                                          (cl-transforms:make-identity-rotation))))
-                                 :target-frame "base_footprint"))
+          (cl-tf:transform-pose *tf*
+                                :pose (tf:pose->pose-stamped
+                                       (tf:frame-id pose) (tf:stamp pose)
+                                       (cl-transforms:transform-pose
+                                        pose-transform
+                                        (cl-transforms:make-transform
+                                         (cl-transforms:make-3d-vector
+                                          -0.25 0.0 0.0)
+                                         (cl-transforms:make-identity-rotation))))
+                                :target-frame "base_footprint"))
          (grasp-pose ;; (tool-goal-pose->wrist-goal-pose pose)
-           (cl-tf:transform-pose *tf*
-                                 :pose (tf:pose->pose-stamped
-                                        (tf:frame-id pose) (tf:stamp pose)
-                                        (cl-transforms:transform-pose
-                                         pose-transform
-                                         (cl-transforms:make-transform
-                                          (cl-transforms:make-3d-vector
-                                           -0.20 0.0 0.0)
-                                          (cl-transforms:make-identity-rotation))))
-                                 :target-frame "base_footprint"))
+          (cl-tf:transform-pose *tf*
+                                :pose (tf:pose->pose-stamped
+                                       (tf:frame-id pose) (tf:stamp pose)
+                                       (cl-transforms:transform-pose
+                                        pose-transform
+                                        (cl-transforms:make-transform
+                                         (cl-transforms:make-3d-vector
+                                          -0.20 0.0 0.0)
+                                         (cl-transforms:make-identity-rotation))))
+                                :target-frame "base_footprint"))
          (close-pose
-           (cl-tf:transform-pose *tf*
-                                 :pose (tf:pose->pose-stamped
-                                        (tf:frame-id pose) (tf:stamp pose)
-                                        (cl-transforms:transform-pose
-                                         pose-transform
-                                         (cl-transforms:make-transform
-                                          (cl-transforms:make-3d-vector
-                                           (+ -0.20 distance) 0.0 0.0)
-                                          (cl-transforms:make-identity-rotation))))
-                                 :target-frame "base_footprint"))
+          (cl-tf:transform-pose *tf*
+                                :pose (tf:pose->pose-stamped
+                                       (tf:frame-id pose) (tf:stamp pose)
+                                       (cl-transforms:transform-pose
+                                        pose-transform
+                                        (cl-transforms:make-transform
+                                         (cl-transforms:make-3d-vector
+                                          (+ -0.20 distance) 0.0 0.0)
+                                         (cl-transforms:make-identity-rotation))))
+                                :target-frame "base_footprint"))
          (arm-away-pose
-           (cl-tf:transform-pose *tf*
-                                 :pose (tf:pose->pose-stamped
-                                        (tf:frame-id pose) (tf:stamp pose)
-                                        (cl-transforms:transform-pose
-                                         pose-transform
-                                         (cl-transforms:make-transform
-                                          (cl-transforms:make-3d-vector
-                                           -0.15 0.0 0.0)
-                                          (cl-transforms:make-identity-rotation))))
-                                 :target-frame "base_footprint"))
+          (cl-tf:transform-pose *tf*
+                                :pose (tf:pose->pose-stamped
+                                       (tf:frame-id pose) (tf:stamp pose)
+                                       (cl-transforms:transform-pose
+                                        pose-transform
+                                        (cl-transforms:make-transform
+                                         (cl-transforms:make-3d-vector
+                                          -0.15 0.0 0.0)
+                                         (cl-transforms:make-identity-rotation))))
+                                :target-frame "base_footprint"))
          (pre-grasp-ik (lazy-car (get-ik side pre-grasp-pose)))
          (grasp-ik (lazy-car (get-ik side grasp-pose)))
          (close-ik (lazy-car (get-ik side close-pose)))
@@ -573,15 +573,16 @@ supporting plane"
   ;; compute grasping poses and execute dual arm grasp
   (let ((obj (newest-valid-designator obj)))
     (multiple-value-bind (left-grasp-pose right-grasp-pose)
-        (compute-both-arm-grasping-poses obj)
-      (execute-both-arm-grasp left-grasp-pose right-grasp-pose)
-      ;; TODO(Georg): make this depend on the execution result
-      ;; update object designator, because it is now in the grippers
-      ;; TODO(Georg): this constant is pot-specific -> move it somewhere else
-      (update-picked-up-object-designator obj 'desig-props:both-grippers :left 0.0))))
+                         (compute-both-arm-grasping-poses obj)
+                         (execute-both-arm-grasp left-grasp-pose right-grasp-pose)
+                         ;; TODO(Georg): make this depend on the execution result
+                         ;; update object designator, because it is now in the grippers
+                         ;; TODO(Georg): this constant is pot-specific -> move it somewhere else
+                         (update-picked-up-object-designator
+                          obj 'desig-props:both-grippers :left 0.0))))
 
 (defun execute-both-arm-grasp
-    (grasping-pose-left grasping-pose-right)
+  (grasping-pose-left grasping-pose-right)
   "Grasps an object with both grippers
 simultaneously. `grasping-pose-left' and `grasping-pose-right' specify
 the goal poses for the left and right gripper. Before closing the
@@ -604,81 +605,81 @@ will be commanded."
          (grasping-pose-right-transform (cl-transforms:pose->transform grasping-pose-right))
          ;; get grasping poses and pre-poses for both sides
          (pre-grasp-pose-left
-           (cl-tf:transform-pose *tf*
-                                 :pose (tf:pose->pose-stamped
-                                        (tf:frame-id grasping-pose-left)
-                                        (tf:stamp grasping-pose-left)
+          (cl-tf:transform-pose *tf*
+                                :pose (tf:pose->pose-stamped
+                                       (tf:frame-id grasping-pose-left)
+                                       (tf:stamp grasping-pose-left)
                                         ; this is adding a tool and an
                                         ; approach offset in
                                         ; tool-frame
-                                        (cl-transforms:transform-pose
-                                         grasping-pose-left-transform
-                                         (cl-transforms:make-transform
-                                          (cl-transforms:make-3d-vector
-                                           (+ (- *grasp-distance*) (- *grasp-approach-distance*)) 0.0 0.0)
-                                          (cl-transforms:make-identity-rotation))))
-                                 :target-frame "base_footprint"))
+                                       (cl-transforms:transform-pose
+                                        grasping-pose-left-transform
+                                        (cl-transforms:make-transform
+                                         (cl-transforms:make-3d-vector
+                                          (+ (- *grasp-distance*) (- *grasp-approach-distance*)) 0.0 0.0)
+                                         (cl-transforms:make-identity-rotation))))
+                                :target-frame "base_footprint"))
          (pre-grasp-pose-right
-           (cl-tf:transform-pose *tf*
-                                 :pose (tf:pose->pose-stamped
-                                        (tf:frame-id grasping-pose-right)
-                                        (tf:stamp grasping-pose-right)
+          (cl-tf:transform-pose *tf*
+                                :pose (tf:pose->pose-stamped
+                                       (tf:frame-id grasping-pose-right)
+                                       (tf:stamp grasping-pose-right)
                                         ; this is adding a tool and an
                                         ; approach offset in
                                         ; tool-frame
-                                        (cl-transforms:transform-pose
-                                         grasping-pose-right-transform
-                                         (cl-transforms:make-transform
-                                          (cl-transforms:make-3d-vector
-                                           (+ (- *grasp-distance*) (- *grasp-approach-distance*)) 0.0 0.0)
-                                          (cl-transforms:make-identity-rotation))))
-                                 :target-frame "base_footprint"))
+                                       (cl-transforms:transform-pose
+                                        grasping-pose-right-transform
+                                        (cl-transforms:make-transform
+                                         (cl-transforms:make-3d-vector
+                                          (+ (- *grasp-distance*) (- *grasp-approach-distance*)) 0.0 0.0)
+                                         (cl-transforms:make-identity-rotation))))
+                                :target-frame "base_footprint"))
          (grasp-pose-left
-           (cl-tf:transform-pose *tf*
-                                 :pose (tf:pose->pose-stamped
-                                        (tf:frame-id grasping-pose-left)
-                                        (tf:stamp grasping-pose-left)
+          (cl-tf:transform-pose *tf*
+                                :pose (tf:pose->pose-stamped
+                                       (tf:frame-id grasping-pose-left)
+                                       (tf:stamp grasping-pose-left)
                                         ; this is adding a tool and an
                                         ; approach offset in
                                         ; tool-frame
-                                        (cl-transforms:transform-pose
-                                         grasping-pose-left-transform
-                                         (cl-transforms:make-transform
-                                          (cl-transforms:make-3d-vector
-                                           (- *grasp-distance*) 0.0 0.0)
-                                          (cl-transforms:make-identity-rotation))))
-                                 :target-frame "base_footprint"))
+                                       (cl-transforms:transform-pose
+                                        grasping-pose-left-transform
+                                        (cl-transforms:make-transform
+                                         (cl-transforms:make-3d-vector
+                                          (- *grasp-distance*) 0.0 0.0)
+                                         (cl-transforms:make-identity-rotation))))
+                                :target-frame "base_footprint"))
          (grasp-pose-right
-           (cl-tf:transform-pose *tf*
-                                 :pose (tf:pose->pose-stamped
-                                        (tf:frame-id grasping-pose-right)
-                                        (tf:stamp grasping-pose-right)
+          (cl-tf:transform-pose *tf*
+                                :pose (tf:pose->pose-stamped
+                                       (tf:frame-id grasping-pose-right)
+                                       (tf:stamp grasping-pose-right)
                                         ; this is adding a tool and an
                                         ; approach offset in
                                         ; tool-frame
-                                        (cl-transforms:transform-pose
-                                         grasping-pose-right-transform
-                                         (cl-transforms:make-transform
-                                          (cl-transforms:make-3d-vector
-                                           (- *grasp-distance*) 0.0 0.0)
-                                          (cl-transforms:make-identity-rotation))))
-                                 :target-frame "base_footprint"))
+                                       (cl-transforms:transform-pose
+                                        grasping-pose-right-transform
+                                        (cl-transforms:make-transform
+                                         (cl-transforms:make-3d-vector
+                                          (- *grasp-distance*) 0.0 0.0)
+                                         (cl-transforms:make-identity-rotation))))
+                                :target-frame "base_footprint"))
          ;; get seed-states for ik
          (left-seed-state (calc-seed-state-elbow-up :left))
          (right-seed-state (calc-seed-state-elbow-up :right))
          ;; get ik-solutions for all poses
          (pre-grasp-left-ik
-           (lazy-car
-            (get-ik :left pre-grasp-pose-left :seed-state left-seed-state)))
+          (lazy-car
+           (get-ik :left pre-grasp-pose-left :seed-state left-seed-state)))
          (pre-grasp-right-ik
-           (lazy-car
-            (get-ik :right pre-grasp-pose-right :seed-state right-seed-state)))
+          (lazy-car
+           (get-ik :right pre-grasp-pose-right :seed-state right-seed-state)))
          (grasp-left-ik
-           (lazy-car
-            (get-ik :left grasp-pose-left :seed-state left-seed-state)))
+          (lazy-car
+           (get-ik :left grasp-pose-left :seed-state left-seed-state)))
          (grasp-right-ik
-           (lazy-car
-            (get-ik :right grasp-pose-right :seed-state right-seed-state))))
+          (lazy-car
+           (get-ik :right grasp-pose-right :seed-state right-seed-state))))
     ;; check if left poses are left of right poses
     (when (< (cl-transforms:y (cl-transforms:origin pre-grasp-pose-left))
              (cl-transforms:y (cl-transforms:origin pre-grasp-pose-right)))
@@ -703,23 +704,23 @@ will be commanded."
              :format-control "Trying to grasp with both arms -> grasp pose for the right arm is NOT reachable."))
     ;; simultaneously open both grippers
     (cpl-impl:par
-      ;; only open the grippers to 50% to not hit the lid
-      (open-gripper :left :position 0.04)
-      (open-gripper :right :position 0.04))
+     ;; only open the grippers to 50% to not hit the lid
+     (open-gripper :left :position 0.04)
+     (open-gripper :right :position 0.04))
     ;; simultaneously approach pre-grasp positions from both sides
     (let ((new-stamp (roslisp:ros-time)))
       (cpl-impl:par      
-        (execute-arm-trajectory :left (ik->trajectory pre-grasp-left-ik :stamp new-stamp))
-        (execute-arm-trajectory :right (ik->trajectory pre-grasp-right-ik :stamp new-stamp))))
+       (execute-arm-trajectory :left (ik->trajectory pre-grasp-left-ik :stamp new-stamp))
+       (execute-arm-trajectory :right (ik->trajectory pre-grasp-right-ik :stamp new-stamp))))
     ;; simultaneously approach grasp positions from both sides
     (let ((new-stamp (roslisp:ros-time)))
       (cpl-impl:par
-        (execute-arm-trajectory :left (ik->trajectory grasp-left-ik :stamp new-stamp))
-        (execute-arm-trajectory :right (ik->trajectory grasp-right-ik :stamp new-stamp))))
+       (execute-arm-trajectory :left (ik->trajectory grasp-left-ik :stamp new-stamp))
+       (execute-arm-trajectory :right (ik->trajectory grasp-right-ik :stamp new-stamp))))
     ;; simultaneously close both grippers
     (cpl-impl:par
-      (close-gripper :left :max-effort 50)
-      (close-gripper :right :max-effort 50))))
+     (close-gripper :left :max-effort 50)
+     (close-gripper :right :max-effort 50))))
 
 (defun check-valid-gripper-state (side &key (min-position 0.01) safety-ik)
   (when (< (get-gripper-state side) min-position)
