@@ -30,7 +30,7 @@
 (in-package :cpl-impl)
 
 (defclass fluent ()
-  ((name :initarg :name :initform (error "No name specified.")
+  ((name :initarg :name :initform (gensym "FLUENT-")
          :reader name :type symbol
          :documentation "The name of the fluent. Should be a globally unique symbol.")
    (on-update :initform (make-hash-table :test 'cl:eq) :type hash-table
