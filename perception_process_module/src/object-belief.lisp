@@ -1,4 +1,3 @@
-;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
@@ -25,13 +24,12 @@
 ;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
-;;;
 
 (in-package :perception-pm)
 
 (defgeneric make-new-desig-description (old-desig perceived-object)
   (:documentation "Merges the description of `old-desig' with the
-  properties of `perceived-object'")
+properties of `perceived-object'")
   (:method ((old-desig object-designator) (po object-designator-data))
     (let ((obj-loc-desig (make-designator 'location `((pose ,(object-pose po))))))
       (cons `(at ,obj-loc-desig)
