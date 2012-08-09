@@ -110,6 +110,10 @@
 (defmethod pm-execute ((pm process-module) input &key (task *current-task*))
   (with-slots ((input-fluent input)
                status result caller) pm
+    (when (eq (value status) :running)
+      (warn "Process module ~a already processing input. Waiting for it to become free."
+            pm)
+      (wait-for (not (eq status :running))))    
     (retry-after-suspension
       (setf (value caller) task)
       ;; Set the status to running here. Otherwise we might get a race

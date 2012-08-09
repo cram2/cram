@@ -146,11 +146,7 @@
     (when (eq (value status) :offline)
       (warn "Process module ~a not running. Status is ~a. Waiting for it to come up."
             process-module (value status))
-      (wait-for (not (eq status :offline))))
-    (when (eq (value status) :running)
-      (warn "Process module ~a already processing input. Waiting for it to become free."
-            process-module)
-      (wait-for (not (eq status :running))))))
+      (wait-for (not (eq status :offline))))))
 
 (cut:define-hook on-process-module-started (module input)
   (:documentation "Hook that is called whenever the process module
