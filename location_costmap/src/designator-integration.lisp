@@ -72,7 +72,7 @@
     (unless costmap
       (return-from location-costmap-generator nil))
     (handler-case (costmap-samples costmap)
-      (location-costmap:invalid-probability-distribution ()
+      (invalid-probability-distribution ()
         nil))))
 
 (defun location-costmap-pose-validator (desig pose)
