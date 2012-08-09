@@ -60,6 +60,9 @@ and :RIGHT while the `aliases' parameters can be set to :SIDE."
   "Returns the grasp named `grasp'."
   (car (cdr (assoc grasp *grasps*))))
 
+(defun get-grasp-names ()
+  (mapcar #'car *grasps*))
+
 (defun get-grasps (grasp-name &optional (filter (constantly t)))
   "Returns the list of grasps that are either named `grasp' or have
 the alias `grasp' and for which `filter' returns T."

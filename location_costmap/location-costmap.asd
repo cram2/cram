@@ -57,5 +57,5 @@
              (:file "visualization" :depends-on ("package" "occupancy-grid" "location-costmap"))
              (:file "facts" :depends-on ("package" "cost-functions"))
              (:file "cost-function-utils" :depends-on ("package"))
-             (:file "costmap-generators" :depends-on ("package"))
+             (:file "costmap-generators" :depends-on ("package" "occupancy-grid"))
              (:file "designator-integration" :depends-on ("package" "location-costmap"))))))
