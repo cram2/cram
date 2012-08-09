@@ -43,5 +43,6 @@
            get-process-module-names get-running-process-module-names
            on-process-module-started on-process-module-finished
            terminate-pm continue-pm with-process-modules-running
-           wait-for-process-module-running *process-module-debugger-hook*)
+           abstract-process-module wait-for-process-module-running
+           *process-module-debugger-hook*)
   (:shadowing-import-from #:cram-designators name))
