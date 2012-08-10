@@ -129,6 +129,12 @@
     (make-instance 'process-module-collection)
     "The list of currently running process modules.")
 
+(defmethod pm-cancel ((pm symbol))
+  (pm-cancel (get-running-process-module pm)))
+
+(defmethod pm-status ((pm symbol))
+  (pm-status (get-running-process-module pm)))
+
 (defmethod pm-run ((process-module symbol) &optional name)
   (unless (find process-module *process-modules*)
     (error 'unknown-process-module
