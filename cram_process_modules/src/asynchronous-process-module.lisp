@@ -205,7 +205,10 @@
                  (setf failures (cdr failures))
                  (error (car error-info))))
              (not (or (value input) processed-designators input-queue))))
-      (let ((notification (pulsed notification-fluent :handle-missed-pulses :always)))
+      (let ((notification (pulsed notification-fluent :handle-missed-pulses :once))
+            (designators (typecase designators
+                           (list designators)
+                           (t (list designators)))))
         (loop do
           (sb-thread:with-mutex (queue-lock)
             (when (if designators
