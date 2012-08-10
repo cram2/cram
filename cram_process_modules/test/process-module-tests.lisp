@@ -147,7 +147,8 @@
             (:tag execute
               (pm-execute 'test-process-module designator-1))
             (cpl-impl:with-task-suspended (execute)
-              (pm-execute 'test-process-module designator-2)
+              (handler-bind ((warning #'muffle-warning))
+                (pm-execute 'test-process-module designator-2))
               (cpl:sleep 0.2))))))
     (assert-eql 2 a-run)
     (assert-eql 1 b-run)))
