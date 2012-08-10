@@ -162,6 +162,9 @@
   (:documentation "Hook that is called whenever the process module
   `module' finishes."))
 
+(defun register-process-module (name)
+  (pushnew name *process-modules*))
+
 (defun get-process-module-names ()
   *process-modules*)
 

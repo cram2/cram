@@ -46,7 +46,7 @@
          (block nil
            (let ((,desig-var (current-desig (value (slot-value ,pm-var-name 'input)))))
              ,@body)))
-       (pushnew ',name *process-modules*))))
+       (register-process-module ',name))))
 
 (defmethod pm-run :around ((pm process-module) &optional name)
   (assert (eq (value (slot-value pm 'status)) :offline) ()
