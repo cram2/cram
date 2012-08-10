@@ -1,4 +1,3 @@
-;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
@@ -25,7 +24,6 @@
 ;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
-;;;
 
 (in-package :cpm)
 
@@ -55,7 +53,6 @@
          :initform (error "Process modules need a name.")
          :initarg :name)
    (input :reader input :documentation "Input fluent.")
-   (feedback :reader feedback :documentation "Feedback fluent.")
    (result :reader result :documentation "Result fluent")
    (status :reader status
            :documentation "Status fluent. Possible status: 
@@ -73,10 +70,9 @@
            (intern (concatenate
                     'string (symbol-name process-module-name)
                     "-" (symbol-name type)))))
-    (with-slots (name input feedback result status cancel caller)
+    (with-slots (name input result status cancel caller)
         pm
       (setf input (make-fluent :name (make-fluent-name name :input)))
-      (setf feedback (make-fluent :name (make-fluent-name name :feedback)))
       (setf result (make-fluent :name (make-fluent-name name :result)))
       (setf status (make-fluent :name (make-fluent-name name :status)
                                 :value :offline))
@@ -89,9 +85,7 @@
   method). Otherwise, the process module would be dead. When a cancel
   is triggered, the pm-run method is evaporated and restarted. status
   and result are set implicitly. pm-run must not set these
-  values. Feedback can be used to provide feedback information.
-
-  Parameters:
+  values. Parameters:
 
   `process-module' The process module to run, either an CLOS instance
   or a symbol naming the CLOS class. If an instance is passed and the
