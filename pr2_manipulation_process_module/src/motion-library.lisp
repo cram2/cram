@@ -384,11 +384,11 @@ supporting plane"
       (check-valid-gripper-state side :safety-ik pre-solution))
     (roslisp:ros-info (pr2-manip process-module) "Attaching object to gripper")
     (plan-knowledge:on-event (make-instance 'plan-knowledge:object-attached
-                                            :object obj
-                                            :link (ecase side
-                                                         (:right "r_gripper_r_finger_tip_link")
-                                                         (:left "l_gripper_r_finger_tip_link"))
-                                            :side side))
+                               :object obj
+                               :link (ecase side
+                                       (:right "r_gripper_r_finger_tip_link")
+                                       (:left "l_gripper_r_finger_tip_link"))
+                               :side side))
     (assert-occasion `(object-in-hand ,obj ,side))))
 
 (defun open-drawer (pose side &optional (distance *grasp-distance*))
