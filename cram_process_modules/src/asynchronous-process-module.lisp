@@ -134,7 +134,8 @@
                              (car processed-designators)))))
                    (when input-value
                      (on-input process-module input-value)
-                     (pulse notification-fluent))))
+                     (pulse notification-fluent)
+                     (on-process-module-started process-module input-value))))
                (whenever (cancel)
                  (on-cancel process-module)))
           (setf (value status) :offline))))))
@@ -164,7 +165,8 @@
              (setf processed-designators (remove designator processed-designators)))
             (t (setf processed-designators nil)
                (setf (value status) :waiting)))
-      (pulse notification-fluent))))
+      (pulse notification-fluent)))
+  (on-process-module-finished process-module designator nil))
 
 (defmethod fail-process-module ((process-module asynchronous-process-module) error
                                 &key designator)
