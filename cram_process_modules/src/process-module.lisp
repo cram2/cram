@@ -27,7 +27,15 @@
 
 (in-package :cpm)
 
-(defclass process-module (abstract-process-module) ())
+(defclass process-module (abstract-process-module)
+  ((result :reader result :documentation "Result fluent")))
+
+(defmethod initialize-instance :after ((process-module process-module) &key)
+  (with-slots (name result) process-module
+    (setf result (make-fluent
+                  :name (intern
+                         (concatenate
+                          'string (symbol-name name) "-RESULT"))))))
 
 (defmacro def-process-module (name (desig-var) &body body)
   (with-gensyms (pm-var-name name-variable)
