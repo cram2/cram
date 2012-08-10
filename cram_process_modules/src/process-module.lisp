@@ -134,14 +134,8 @@
   ;; (wait-for (not (eq (slot-value pm 'status) :running)))
   )
 
-(defmethod pm-cancel ((pm symbol))
-  (pm-cancel (get-running-process-module pm)))
-
 (defmethod pm-status ((pm process-module))
   (slot-value pm 'status))
-
-(defmethod pm-status ((pm symbol))
-  (pm-status (get-running-process-module pm)))
 
 (defmethod running-fluent ((process-module process-module))
   (eq (slot-value process-module 'status) :running))
