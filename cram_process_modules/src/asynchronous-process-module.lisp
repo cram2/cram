@@ -132,8 +132,8 @@
                              (setf input-queue (cdr input-queue))
                              (car processed-designators)))))
                    (when input-value
-                     (on-input process-module input-value))
-                   (pulse notification-fluent)))
+                     (on-input process-module input-value)
+                     (pulse notification-fluent))))
                (whenever (cancel)
                  (on-cancel process-module)))
           (setf (value status) :offline))))))
