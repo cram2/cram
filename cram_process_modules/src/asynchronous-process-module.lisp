@@ -171,7 +171,7 @@
       process-module
     (sb-thread:with-mutex (queue-lock)
       (cond (designator
-             (assert (find designator process-module) ()
+             (assert (find designator processed-designators) ()
                      "Cannot fail for designator that is not processed: ~a"
                      designator)
              (setf processed-designators (remove designator processed-designators))
