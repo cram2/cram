@@ -109,6 +109,14 @@
 
 (defgeneric pm-status (process-module))
 
+(defgeneric running-fluent (process-module)
+  (:documentation "Convenience method that returns a fluent that is T
+  when the process module is running and NIL otherwise."))
+
+(defgeneric finished-fluent (process-module)
+  (:documentation "Convenience method that returns a fluent that is T
+  when the process module is finished, NIL otherwise."))
+
 (defclass process-module-collection ()
   ((process-modules :initform nil :accessor process-modules)
    (lock :initform (sb-thread:make-mutex))

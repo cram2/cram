@@ -142,3 +142,9 @@
 
 (defmethod pm-status ((pm symbol))
   (pm-status (get-running-process-module pm)))
+
+(defmethod running-fluent ((process-module process-module))
+  (eq (slot-value process-module 'status) :running))
+
+(defmethod finished-fluent ((process-module process-module))
+  (not (running-fluent process-module)))

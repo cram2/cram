@@ -44,5 +44,6 @@
            on-process-module-started on-process-module-finished
            terminate-pm continue-pm with-process-modules-running
            abstract-process-module wait-for-process-module-running
-           *process-module-debugger-hook*)
+           *process-module-debugger-hook* finished-fluent running-fluent
+           with-process-module-registered-running)
   (:shadowing-import-from #:cram-designators name))
