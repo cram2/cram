@@ -74,13 +74,11 @@
                         'test (lambda (module input)
                                 (sleep 0.2)
                                 (setf time-1 (get-internal-real-time))
-                                (format t "finish 1 ~a~%" input)
                                 (finish-process-module module :designator input))))
          (designator-2 (desig:make-designator
                         'test (lambda (module input)
                                 (sleep 0.2)
                                 (setf time-2 (get-internal-real-time))
-                                (format t "finish 2 ~a~%" input)                                
                                 (finish-process-module module :designator input)))))
     (cpl:top-level
       (with-process-modules-running ((:module asynchronous-test-module))
@@ -90,3 +88,72 @@
         (monitor-process-module :module)))
     (assert-true (> time-1 time-3))
     (assert-true (> time-2 time-3))))
+
+(define-test test-monitoring-separately
+  (let* ((time-1 nil)
+         (time-2 nil)
+         (time-3 nil)
+         (designator-1 (desig:make-designator
+                        'test (lambda (module input)
+                                (sb-thread:make-thread
+                                 (lambda ()
+                                   (sleep 0.2)
+                                   (setf time-1 (get-internal-real-time))
+                                   (finish-process-module module :designator input))))))
+         (designator-2 (desig:make-designator
+                        'test (lambda (module input)
+                                (sb-thread:make-thread
+                                 (lambda ()
+                                   (setf time-2 (get-internal-real-time))
+                                   (finish-process-module module :designator input)))))))
+    (cpl:top-level
+      (with-process-modules-running ((:module asynchronous-test-module))
+        (pm-execute :module designator-1)
+        (pm-execute :module designator-2)
+        (monitor-process-module :module :designators designator-2)
+        (setf time-3 (get-internal-real-time))
+        (monitor-process-module :module :designators designator-1)))
+    (assert-true (> time-1 time-3))
+    (assert-true (<= time-2 time-3))))
+
+(define-test test-failure
+  (let* ((condition (make-condition 'process-module-test-error))
+         (designator (desig:make-designator
+                     'test (lambda (module input)
+                             (declare (ignore input))
+                             (fail-process-module module condition))))
+        (received-condition nil))
+    (cpl:top-level
+      (with-process-modules-running ((:module asynchronous-test-module))
+        (pm-execute :module designator)
+        (handler-case (monitor-process-module :module)
+          (process-module-test-error (thrown-condition)
+            (setf received-condition thrown-condition)))))
+    (assert-eq condition received-condition)))
+
+(define-test test-specific-failure
+  (let* ((condition-1 (make-condition 'process-module-test-error))
+         (condition-2 (make-condition 'process-module-test-error))
+         (designator-1 (desig:make-designator
+                        'test (lambda (module input)
+                                (sb-thread:make-thread
+                                 (lambda ()
+                                   (sleep 0.1)
+                                   (fail-process-module
+                                    module condition-1 :designator input))))))
+         (designator-2 (desig:make-designator
+                        'test (lambda (module input)
+                                (sb-thread:make-thread
+                                 (lambda ()
+                                   (fail-process-module
+                                    module condition-2 :designator input))))))
+        (received-condition nil))
+    (cpl:top-level
+      (with-process-modules-running ((:module asynchronous-test-module))
+        (pm-execute :module designator-1)
+        (pm-execute :module designator-2)
+        (handler-case (monitor-process-module
+                       :module :designators designator-1)
+          (process-module-test-error (thrown-condition)
+            (setf received-condition thrown-condition)))))
+    (assert-eq condition-1 received-condition)))

@@ -59,8 +59,6 @@
     (assert-true process-module-1-executed)
     (assert-true process-module-2-executed)))
 
-(define-condition process-module-test-error (error) ())
-
 (define-test process-module-execution-error
   (let* ((condition (make-condition 'process-module-test-error))
          (caught-condition nil)
