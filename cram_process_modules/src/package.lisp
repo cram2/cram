@@ -38,12 +38,15 @@
   (:export process-module name input feedback result
            status cancel priority caller pm-run pm-execute
            pm-cancel pm-status def-process-module
-           process-module-alias with-process-module-aliases
+           register-process-module process-module-alias
+           with-process-module-aliases
            get-running-process-module get-running-process-module-name
            get-process-module-names get-running-process-module-names
            on-process-module-started on-process-module-finished
            terminate-pm continue-pm with-process-modules-running
            abstract-process-module wait-for-process-module-running
            *process-module-debugger-hook* finished-fluent running-fluent
-           with-process-module-registered-running)
+           with-process-module-registered-running
+           asynchronous-process-module on-input on-cancel synchronization-fluent
+           finish-process-module fail-process-module monitor-process-module)
   (:shadowing-import-from #:cram-designators name))
