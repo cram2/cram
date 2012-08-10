@@ -28,17 +28,6 @@
 
 (in-package :cram-process-module-tests)
 
-(defun run-process-module-tests ()
-  (run-tests))
-
-(defclass test-designator (desig:designator) ())
-
-(desig:register-designator-class test test-designator)
-
-(defmethod desig:reference ((designator test-designator) &optional role)
-  (declare (ignore role))
-  (desig:properties designator))
-
 (def-process-module test-process-module (input)
   (funcall (desig:reference input)))
 
