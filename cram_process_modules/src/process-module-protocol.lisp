@@ -53,7 +53,6 @@
          :initform (error "Process modules need a name.")
          :initarg :name)
    (input :reader input :documentation "Input fluent.")
-   (result :reader result :documentation "Result fluent")
    (status :reader status
            :documentation "Status fluent. Possible status: 
                            :waiting :running :failed")
@@ -70,10 +69,9 @@
            (intern (concatenate
                     'string (symbol-name process-module-name)
                     "-" (symbol-name type)))))
-    (with-slots (name input result status cancel caller)
+    (with-slots (name input status cancel caller)
         pm
       (setf input (make-fluent :name (make-fluent-name name :input)))
-      (setf result (make-fluent :name (make-fluent-name name :result)))
       (setf status (make-fluent :name (make-fluent-name name :status)
                                 :value :offline))
       (setf cancel (make-fluent :name (make-fluent-name name :cancel)))
