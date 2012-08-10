@@ -61,10 +61,11 @@
   (:method ((process-module asynchronous-process-module))
     nil))
 
-(defgeneric synchronization-fluent (process-module)
+(defgeneric synchronization-fluent (process-module designator)
   (:documentation "Returns a fluent indicating if PM-EXECUTE needs to
-  block or can immediately return. In other words, PM-EXECUTE always
-  first calls WAIT-FOR on the result of this method.
+  block or can immediately return when called with `designator'. In
+  other words, PM-EXECUTE always first calls WAIT-FOR on the result of
+  this method.
 
   The idea is that, for instance, navigation needs to block until
   manipulation is finished, manipulation needs to block until
@@ -146,7 +147,7 @@
     (sb-thread:with-mutex (input-lock)
       ;; If the process module is receiving input already, wait.
       (wait-for (cpl:not input))
-      (wait-for (synchronization-fluent process-module))
+      (wait-for (synchronization-fluent process-module input-designator))
       (setf (value caller) task)
       (setf (value input) input-designator))))
 

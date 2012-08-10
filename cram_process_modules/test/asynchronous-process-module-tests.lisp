@@ -34,7 +34,8 @@
 (defmethod on-input ((module asynchronous-test-module) input-designator)
   (funcall (desig:reference input-designator) module input-designator))
 
-(defmethod synchronization-fluent ((module asynchronous-test-module))
+(defmethod synchronization-fluent ((module asynchronous-test-module) input)
+  (declare (ignore input))
   (cpl:make-fluent :value t))
 
 (define-test test-finish
