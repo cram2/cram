@@ -120,7 +120,7 @@
                    (setf (value input) nil)
                    (sb-thread:with-mutex (queue-lock)
                      (if input-queue
-                         (setf (cdr (last input-queue)) input-value)
+                         (setf (cdr (last input-queue)) (list input-value))
                          (setf input-queue (list input-value))))
                    (pulse notification-fluent)))
                (whenever ((pulsed notification-fluent
