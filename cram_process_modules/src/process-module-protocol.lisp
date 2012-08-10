@@ -230,19 +230,23 @@ just a different name for an existing process module."
       (sb-thread:condition-broadcast condition))))
 
 (defun wait-for-process-module-running (process-module &key timeout)
-  (block nil
-    (let ((timer (sb-ext:make-timer (lambda () (return nil)))))
-      (when timeout
-        (sb-ext:schedule-timer timer timeout)
-        (unwind-protect
-             (with-slots (lock condition process-modules)
-                 *running-process-modules*
-               (loop until (check-process-module-running
-                            process-module :throw-error nil)
-                     do (sb-thread:with-mutex (lock)
-                          (sb-thread:condition-wait condition lock))
-                     finally (return t)))
-          (sb-ext:unschedule-timer timer))))))
+  (flet ((timer-function ()
+           (return-from wait-for-process-module-running nil))
+         (wait-for-running ()
+           (with-slots (lock condition process-modules)
+               *running-process-modules*
+             (loop until (check-process-module-running
+                          process-module :throw-error nil)
+                   do (sb-thread:with-mutex (lock)
+                        (sb-thread:condition-wait condition lock))
+                   finally (return-from wait-for-process-module-running t)))))
+    (let ((timer (sb-ext:make-timer #'timer-function)))
+      (cond (timeout
+             (sb-ext:schedule-timer timer timeout)
+             (unwind-protect
+                  (wait-for-running)
+               (sb-ext:unschedule-timer timer)))
+            (t (wait-for-running))))))
 
 (defmacro with-process-module-aliases (alias-definitions &body body)
   "Executes body with process module aliases bound in the current
