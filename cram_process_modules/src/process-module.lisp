@@ -75,13 +75,14 @@
                                                              *debugger-hook*)))
                                                    (funcall #'invoke-debugger e)))))
                                 (handler-case
-                                    (flet ((handle-failure (e)
-                                             (setf (value result) e)
-                                             (setf (value status) :failed)))
-                                      (handler-bind ((plan-failure #'handle-failure)
-                                                     (error #'handle-failure))
-                                        (let ((input-value (value input))
-                                              (result-value nil))
+                                    (let ((input-value (value input))
+                                          (result-value nil))
+                                      (flet ((handle-failure (e)
+                                               (setf (value result) e)
+                                               (setf (value status) :failed)
+                                               (on-process-module-failed pm input-value e)))
+                                        (handler-bind ((plan-failure #'handle-failure)
+                                                       (error #'handle-failure))
                                           (unwind-protect
                                                (progn
                                                  (assert
