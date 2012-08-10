@@ -22,4 +22,6 @@
             :components
             ((:file "package")
              (:file "process-module-protocol" :depends-on ("package"))
-             (:file "process-module" :depends-on ("package" "process-module-protocol"))))))
+             (:file "process-module" :depends-on ("package" "process-module-protocol"))
+             (:file "asynchronous-process-module"
+                    :depends-on ("package" "process-module-protocol"))))))
