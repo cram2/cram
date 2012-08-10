@@ -162,6 +162,10 @@
   (:documentation "Hook that is called whenever the process module
   `module' finishes."))
 
+(cut:define-hook on-process-module-failed (module input failure)
+  (:documentation "Hook that is called whenever the process module
+  `module' throws an error."))
+
 (defun register-process-module (name)
   (pushnew name *process-modules*))
 

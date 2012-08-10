@@ -182,7 +182,8 @@
             (t (dolist (designator processed-designators)
                  (push (cons error designator) failures))
                (setf processed-designators nil)))
-      (pulse notification-fluent))))
+      (pulse notification-fluent)))
+  (on-process-module-failed process-module designator error))
 
 (defmethod monitor-process-module ((process-module asynchronous-process-module)
                                    &key designators)
