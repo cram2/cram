@@ -60,9 +60,10 @@
    (successor :reader successor :initform nil
               :documentation "The successor designator this designator
                               is parent of.")
-   (valid :reader valid :initform nil
-          :documentation "Returns true if the designator is valid,
-                         i.e. its reference has already been computed.")
+   (effective :reader effective :initform nil
+          :documentation "Returns true if the designator is an
+          effective designator, i.e. it is grounded in either
+          reasoning or sensor data and has a valid solution.")
    (data :initform nil
          :documentation "Data this designator describes or nil if the
                         designator was resolved yet.")))
@@ -139,8 +140,8 @@
 
 (defmethod reference :after ((desig designator) &optional role)
   (declare (ignore role))
-  (with-slots (valid timestamp) desig
-    (setf (slot-value desig 'valid) t)
+  (with-slots (effective timestamp) desig
+    (setf (slot-value desig 'effective) t)
     (unless timestamp
       (setf timestamp (current-timestamp)))))
 
@@ -180,13 +181,13 @@ class (derived from class DESIGNATOR), e.g. OBJECT-DESIGNATOR."
       desig
       (current-desig (successor desig))))
 
-(defun newest-valid-designator (desig)
-  (labels ((find-valid-desig (desig)
+(defun newest-effective-designator (desig)
+  (labels ((find-effective-desig (desig)
              (cond ((not desig) nil)
-                   ((valid desig)
+                   ((effective desig)
                     desig)
-                   (t (find-valid-desig (parent desig))))))
-    (find-valid-desig (current-desig desig))))
+                   (t (find-effective-desig (parent desig))))))
+    (find-effective-desig (current-desig desig))))
 
 ;;; TODO: Make with-designators use language features. We need a
 ;;; transparent with-designator macro.

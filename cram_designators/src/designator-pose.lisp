@@ -33,12 +33,12 @@
 (defgeneric designator-pose (desig)
   (:documentation "Returns the pose of the object referenced by `desig'")
   (:method :around ((desig designator))
-    (when (valid desig)
+    (when (effective desig)
       (call-next-method))))
 
 (defgeneric designator-distance (desig-1 desig-2)
   (:documentation "Returns the (euclidean) distance between the
   entities referenced by the two designators")
   (:method :around ((desig-1 designator) (desig-2 designator))
-    (when (and (valid desig-1) (valid desig-2))
+    (when (and (effective desig-1) (effective desig-2))
       (call-next-method))))
