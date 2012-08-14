@@ -222,7 +222,7 @@ square depth image of size `pixels' and the index of the depth image."
          (objects-to-render (remove robot (objects world))))
     (visibility-costmap
      (btr:make-drawable-list :drawables objects-to-render)
-     (reference location) camera-minimal-height camera-maximal-height
+     (reference (current-desig location)) camera-minimal-height camera-maximal-height
      size resolution)))
 
 (defun make-object-visibility-costmap
