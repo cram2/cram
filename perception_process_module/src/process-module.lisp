@@ -78,13 +78,9 @@
           (sort obj-search-functions #'> :key #'third))))
 
 (defun perceived-object->designator (desig obj)
-  (let ((new-desig (make-designator 'object
-                                    (make-new-desig-description
-                                     desig obj))))
-    (setf (slot-value new-desig 'data) obj)
-    (setf (slot-value new-desig 'timestamp) (cut:current-timestamp))
-    (setf (slot-value new-desig 'effective) t)
-    new-desig))
+  (make-effective-designator
+   desig :new-properties (make-new-desig-description desig obj)
+         :data-object obj))
 
 (defun emit-perception-event (designator)
   (cram-plan-knowledge:on-event (make-instance 'cram-plan-knowledge:object-perceived-event
