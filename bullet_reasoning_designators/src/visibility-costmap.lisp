@@ -202,9 +202,15 @@ square depth image of size `pixels' and the index of the depth image."
                               (truncate
                                (* (aref column-ranges y x 0) (/ pixels 2)))))
                         (1- pixels))
-                  do (when (< (sqrt (+ (expt (- (* x resolution) size/2) 2)
-                                       (expt (- (* y resolution) size/2) 2)))
-                              (* (aref (aref depth-maps map-index) row column-index)))
+                  for distance-from-origin = (sqrt
+                                              (+ (expt
+                                                  (- (* x resolution) size/2) 2)
+                                                 (expt
+                                                  (- (* y resolution) size/2) 2)))
+                  do (when (and
+                            (< distance-from-origin size/2)
+                            (< distance-from-origin
+                               (* (aref (aref depth-maps map-index) row column-index))))
                        (incf (aref costmap (- pixels y 1) x) 1.0d0))
                      (incf maximal-value))
             (when (> maximal-value 0)
