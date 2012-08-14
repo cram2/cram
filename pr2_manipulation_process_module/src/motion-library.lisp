@@ -571,7 +571,7 @@ supporting plane"
 (defun grasp-object-with-both-arms (obj)
   "Grasp an object `obj' with both arms."
   ;; compute grasping poses and execute dual arm grasp
-  (let ((obj (newest-valid-designator obj)))
+  (let ((obj (newest-effective-designator obj)))
     (multiple-value-bind (left-grasp-pose right-grasp-pose)
                          (compute-both-arm-grasping-poses obj)
                          (execute-both-arm-grasp left-grasp-pose right-grasp-pose)

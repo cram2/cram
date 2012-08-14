@@ -107,13 +107,13 @@
     (roslisp:ros-info (pr2-manip process-module) "Manipulation action done.")))
 
 (def-action-handler container-opened (handle side)
-  (let* ((handle-pose (designator-pose (newest-valid-designator handle)))
+  (let* ((handle-pose (designator-pose (newest-effective-designator handle)))
          (new-object-pose (open-drawer handle-pose side)))
     (update-object-designator-pose handle new-object-pose))
   (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))
 
 (def-action-handler container-closed (handle side)
-  (let* ((handle-pose (designator-pose (newest-valid-designator handle)))
+  (let* ((handle-pose (designator-pose (newest-effective-designator handle)))
          (new-object-pose (close-drawer handle-pose side)))
     (update-object-designator-pose handle new-object-pose))
   (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))
