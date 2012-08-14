@@ -40,10 +40,10 @@
   (:export #:designator #:timestamp #:description #:properties
            #:parent #:successor #:designator-error
            #:*default-role* #:default-role
-           #:valid #:data #:equate #:desig-equal #:reference
+           #:effective #:data #:equate #:desig-equal #:reference
            #:next-solution #:register-designator-class
            #:make-designator #:first-desig #:current-desig
-           #:newest-valid-designator #:with-desig-props #:with-designators
+           #:newest-effective-designator #:with-desig-props #:with-designators
            #:designator-solutions #:desig-prop-value
            #:desig-prop-values #:*designator-pprint-description*
            #:get-equal-designators
@@ -86,7 +86,7 @@
            #:desig-solution
            #:desig-prop #:desig-class
            #:desig-timestamp #:desig-description
-           #:desig-valid #:desig-value
+           #:effective-designator #:desig-value
            #:desig-location-prop
            #:equated-desigs
            #:desig

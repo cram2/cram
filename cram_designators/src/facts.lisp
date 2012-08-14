@@ -106,13 +106,16 @@
     ;; DESIG-DESCRIPTION
     (def-desig-accessor description)
     ;; DESIG-VALID
-    (def-desig-accessor valid)
+    (def-desig-accessor effective)
     ;; DESIG-VALUE
     (def-desig-accessor data value)
 
+    (<- (effective-designator ?designator)
+      (desig-effective ?designator ?effective)
+      (lisp-pred identity ?valid))
+
     (<- (desig-reference ?desig ?reference)
-      (desig-valid ?desig ?valid)
-      (lisp-pred identity ?valid)
+      (effective-designator ?desig)
       (lisp-fun reference ?desig ?reference))
 
     (<- (desig-solutions ?desig ?solutions)
