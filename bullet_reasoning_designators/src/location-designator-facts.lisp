@@ -78,27 +78,51 @@
      (make-object-bounding-box-height-generator ?object-instance)
      ?costmap))
 
-  (<- (desig-costmap ?designator ?costmap)
-    (desig-prop ?designator (to see))
+  (<- (visibility-costmap-metadata
+       ?minimal-height ?maximal-height ?resolution ?size)
+    (camera-minimal-height ?minimal-height)
+    (camera-maximal-height ?maximal-height)
+    (costmap-resolution ?resolution)
+    (visibility-costmap-size ?size))
+
+  (<- (object-visibility-costmap ?designator ?costmap)
     (or (desig-prop ?designator (obj ?object))
         (desig-prop ?designator (object ?object)))
     (bullet-world ?world)
     (once
      (or (cram-environment-representation:object-designator-name
           ?object ?object-name)
-         (== ?object ?object-name)))
+         (and (lisp-type ?object symbol)
+              (== ?object ?object-name))))
     (robot ?robot)
-    (camera-minimal-height ?minimal-height)
-    (camera-maximal-height ?maximal-height)
-    (costmap-resolution ?resolution)
-    (visibility-costmap-size ?size)
     (costmap ?costmap)
+    (visibility-costmap-metadata
+     ?minimal-height ?maximal-height ?resolution ?size)
     (costmap-add-function
      visible
      (make-object-visibility-costmap
       ?world ?object-name ?robot
       ?minimal-height ?maximal-height ?size ?resolution)
      ?costmap))
+
+  (<- (location-visibility-costmap ?designator ?costmap)
+    (desig-prop ?designator (location ?location))
+    (bullet-world ?world)
+    (robot ?robot)
+    (costmap ?costmap)
+    (visibility-costmap-metadata
+     ?minimal-height ?maximal-height ?resolution ?size)
+    (costmap-add-function
+     visible
+     (make-location-visibility-costmap
+      ?world ?location ?robot
+      ?minimal-height ?maximal-height ?size ?resolution)
+     ?costmap))
+  
+  (<- (desig-costmap ?designator ?costmap)
+    (desig-prop ?designator (to see))
+    (once (or (object-visibility-costmap ?designator ?costmap)
+              (location-visibility-costmap ?designator ?costmap))))
 
   (<- (desig-location-prop ?desig ?loc)
     (loc-desig? ?desig)
