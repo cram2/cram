@@ -83,7 +83,7 @@
                                      desig obj))))
     (setf (slot-value new-desig 'data) obj)
     (setf (slot-value new-desig 'timestamp) (cut:current-timestamp))
-    (setf (slot-value new-desig 'valid) t)
+    (setf (slot-value new-desig 'effective) t)
     new-desig))
 
 (defun emit-perception-event (designator)
@@ -96,7 +96,7 @@
   "Takes the perceived-object of the parent designator as a bias for
    perception."
   (let* ((parent-desig (current-desig desig))
-         (perceived-object (reference (newest-valid-designator parent-desig))))
+         (perceived-object (reference (newest-effective-designator parent-desig))))
     (or
      (when perceived-object
        
@@ -126,14 +126,14 @@
 (def-process-module perception (input)
   (assert (typep input 'object-designator))
   (ros-info (perception process-module) "Searching for object ~a" input)
-  (let* ((newest-valid (newest-valid-designator input))
+  (let* ((newest-effective (newest-effective-designator input))
          (result
           (some (lambda (role)
                   (let ((*perception-role* role))
-                    (if newest-valid
+                    (if newest-effective
                         ;; Designator that has alrady been equated to
                         ;; one with bound to a perceived-object
-                        (find-with-parent-desig newest-valid)
+                        (find-with-parent-desig newest-effective)
                         (find-with-new-desig input))))
                 *known-roles*)))
     (unless result
