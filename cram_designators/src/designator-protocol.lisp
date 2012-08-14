@@ -189,6 +189,23 @@ class (derived from class DESIGNATOR), e.g. OBJECT-DESIGNATOR."
                    (t (find-effective-desig (parent desig))))))
     (find-effective-desig (current-desig desig))))
 
+(defun make-effective-designator (parent &key new-properties data-object
+                                           (timestamp (cut:current-timestamp)))
+  "Returns a new designator that has the same type as `parent'. If
+`new-properties' is NIL, uses the properties of `parent'. The DATA
+slot is bound to `data-object'. It sets the slot EFFECTIVE to T and
+returns the new equated designator that is not equated yet."
+  (let ((new-designator (make-designator
+                         (class-of parent)
+                         (or new-properties (properties parent)))))
+    (with-slots (data effective
+                 (designator-timestamp timestamp))
+        new-designator
+      (setf data data-object)
+      (setf designator-timestamp timestamp)
+      (setf effective t))
+    new-designator))
+
 ;;; TODO: Make with-designators use language features. We need a
 ;;; transparent with-designator macro.
 (defmacro with-designators (defs &body body)
