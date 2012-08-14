@@ -75,15 +75,6 @@
      ?cm))  
 
   (<- (desig-costmap ?desig ?cm)
-    (semantic-map-desig-objects ?desig ?objects)
-    (or (desig-prop ?desig (on ?type))
-        (desig-prop ?desig (in ?type)))
-    (desig-prop ?desig (name ?name))
-    (costmap ?cm)
-    (member ?obj ?objects)
-    (costmap-add-function table-distribution (make-on-cost-function ?obj) ?cm))
-
-  (<- (desig-costmap ?desig ?cm)
     (or (desig-prop ?desig (to see))
         (desig-prop ?desig (to reach)))
     (costmap ?cm)
