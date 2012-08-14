@@ -41,7 +41,7 @@
 (defmethod on-event manipulation-articulation-event ((event object-articulation-event))
   (format t "semantic-map: ~a~%" (get-semantic-map))
   (with-slots (object-designator opening-distance) event
-    (let ((perceived-object (desig:reference (desig:newest-valid-designator
+    (let ((perceived-object (desig:reference (desig:newest-effective-designator
                                               object-designator))))
       (sem-map-utils:update-articulated-object-poses
        (get-semantic-map)
