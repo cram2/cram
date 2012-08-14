@@ -29,7 +29,7 @@
 (in-package :projection-process-modules)
 
 (def-process-module projection-navigation (location-designator)
-  (let ((location-designator(desig:reference location-designator)))
+  (let ((location-designator (desig:reference location-designator)))
     (cram-plan-knowledge:on-event
      (make-instance 'cram-plan-knowledge:robot-state-changed))
     (assert 

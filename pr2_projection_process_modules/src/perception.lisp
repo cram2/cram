@@ -57,7 +57,7 @@
                       'projection-object-designator)))
     (setf (slot-value perceived-object 'designator) designator)
     (setf (slot-value designator 'desig:data) perceived-object)
-    (setf (slot-value designator 'desig:valid) t)
+    (setf (slot-value designator 'desig:effective) t)
     designator))
 
 (defun find-object (designator)
@@ -118,7 +118,7 @@
           (alexandria:curry #'apply #'make-designator) (find-object designator)))))))
 
 (def-process-module projection-perception (input)
-  (let ((newest-valid-designator (desig:newest-valid-designator input)))
+  (let ((newest-effective-designator (desig:newest-effective-designator input)))
     (or
      (mapcar (lambda (designator)
                (cram-plan-knowledge:on-event
@@ -126,8 +126,8 @@
                   :perception-source :projection
                   :object-designator designator))
                designator)
-             (if newest-valid-designator
-                 (find-with-bound-designator newest-valid-designator)
+             (if newest-effective-designator
+                 (find-with-bound-designator newest-effective-designator)
                  (find-with-new-designator input)))
      (cpl:fail 'cram-plan-failures:object-not-found
                :object-desig input))))
