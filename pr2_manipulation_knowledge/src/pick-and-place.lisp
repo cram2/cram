@@ -39,7 +39,7 @@
   "Returns the pose where the object has been detected using
   perception the last time, i.e. the object pose contained in the
   latest valid object designator."
-  (designator-pose (newest-valid-designator object-designator)))
+  (designator-pose (newest-effective-designator object-designator)))
 
 (defun calculate-grasp-trajectory-point
     (robot-pose object-pose grasp side tool-length)
