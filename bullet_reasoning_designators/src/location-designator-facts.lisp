@@ -145,7 +145,7 @@
     (robot ?robot)
     (desig-prop ?action-designator (to open))
     (desig-prop ?action-designator (handle ?handle))
-    (lisp-fun newest-valid-designator ?handle ?current-handle)
+    (lisp-fun newest-effective-designator ?handle ?current-handle)
     (-> (lisp-pred identity ?current-handle)
         (desig-prop ?current-handle (name ?handle-name))
         ;; Note(moesenle): This is not clean, it helps with debugging

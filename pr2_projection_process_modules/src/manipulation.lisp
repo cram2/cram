@@ -197,7 +197,7 @@
    (cpl-impl:fail 'cram-plan-failures:manipulation-pose-unreachable)))
 
 (defun execute-grasp (designator object)
-  (let* ((current-object (desig:newest-valid-designator object))
+  (let* ((current-object (desig:newest-effective-designator object))
          (object-name (desig:object-identifier (desig:reference current-object))))
     (or
      (when (execute-action-trajectory-points designator object-name)
@@ -210,7 +210,7 @@
      (cpl-impl:fail 'cram-plan-failures:manipulation-pose-unreachable))))
 
 (defun execute-put-down (designator object)
-  (let* ((current-object (desig:newest-valid-designator object))
+  (let* ((current-object (desig:newest-effective-designator object))
          (object-name (desig:object-identifier (desig:reference current-object))))
     (or
      (when (execute-action-trajectory-points designator object-name)
