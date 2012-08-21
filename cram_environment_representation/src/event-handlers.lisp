@@ -84,7 +84,7 @@
       `(location-change ,(event-object event))))))
 
 (defmethod on-event robot-moved ((event robot-state-changed))
-  (unless cram-projection:*projecting*
+  (unless cram-projection:*projection-environment*
     (let ((robot (get-robot-object)))
       (when robot
         (set-robot-state-from-tf cram-roslisp-common:*tf* robot))))
