@@ -350,6 +350,20 @@
             (make-condition 'composite-failure
                             :failures ,failures)))))))
 
+(def-plan-macro try-each-in-order ((variable list) &body body)
+  "Executes `body' with `variable' bound to each element in `list'
+  sequentially until `body' succeeds, i.e. returns the result of
+  `body' as soon as `body' succeeds and stops iterating."
+  (with-gensyms (failures)
+    `(let ((,failures (list)))
+       (dolist (,variable ,list (assert-no-returning
+                                  (signal
+                                   (make-condition 'composite-failure
+                                                   :failures ,failures))))
+         (handler-case (return (progn ,@body))
+           (plan-failure (condition)
+             (push condition ,failures)))))))
+
 ;;; FIXME: circular ordering could be detected at compile-time.
 
 (def-plan-macro partial-order ((&body steps) &body orderings)
