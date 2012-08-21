@@ -42,6 +42,37 @@
    (sem-map-utils:get-connecting-joint-limits
     (pr2-manipulation-knowledge:get-semantic-map) part-name)))
 
+(def-fact-group process-modules (matching-process-module available-process-module)
+
+  (<- (matching-process-module ?designator projection-ptu)
+    (trajectory-desig? ?designator)
+    (or (desig-prop ?designator (to see))
+        (desig-prop ?designator (to follow))))
+
+  (<- (matching-process-module ?designator projection-perception)
+    (obj-desig? ?designator))
+
+  (<- (matching-process-module ?designator projection-manipulation)
+    (trajectory-desig? ?designator)
+    (not
+     (or (desig-prop ?designator (to see))
+         (desig-prop ?designator (to follow)))))
+  
+  (<- (matching-process-module ?designator projection-navigation)
+    (desig-prop ?designator (type navigation)))
+
+  (<- (available-process-module projection-ptu)
+    (symbol-value *projection-environment* pr2-bullet-projection-environment))
+
+  (<- (available-process-module projection-perception)
+    (symbol-value *projection-environment* pr2-bullet-projection-environment))
+
+  (<- (available-process-module projection-manipulation)
+    (symbol-value *projection-environment* pr2-bullet-projection-environment))
+
+  (<- (available-process-module projection-navigation)
+    (symbol-value *projection-environment* pr2-bullet-projection-environment)))
+
 (def-fact-group ptu-designators (action-desig-projection)
 
   (<- (action-desig-projection ?desig ?pose)

@@ -36,9 +36,6 @@
    ;; (*current-bullet-world* (bt:copy-world *current-bullet-world*))
    (*current-timeline* (btr:timeline-init *current-bullet-world*)))
   :process-module-definitions
-  ((:perception projection-perception)
-   (:ptu projection-ptu)
-   (:manipulation projection-manipulation)
-   (:navigation projection-navigation))
+  (projection-perception projection-ptu projection-manipulation projection-navigation)
   :startup (update-tf)
   :shutdown (setf *last-timeline* *current-timeline*))
