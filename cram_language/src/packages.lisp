@@ -166,7 +166,7 @@
            ;; base.lisp
            #:top-level #:seq #:par #:tag #:with-tags #:with-task-suspended
            #:pursue #:composite-failure #:try-all #:try-in-order #:tagged
-           #:partial-order
+           #:try-each-in-order #:partial-order
            #:on-top-level-setup-hook
            #:on-top-level-cleanup-hook
            ;; plans.lisp

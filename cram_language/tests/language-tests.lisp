@@ -407,6 +407,34 @@
     (is (eq 't worker-2-exec))
     (is (eq 't worker-3-exec))))
 
+(define-cram-test try-each-in-order.1
+  "Success on first iteration." ()
+  (let ((value (top-level
+                 (try-each-in-order (value '(1 2 3))
+                   value))))
+    (is (eq value 1))))
+
+(define-cram-test try-each-in-order.2
+  "Success on second iteration." ()
+  (let ((value (top-level
+                 (try-each-in-order (value '(1 2 3))
+                   (unless (evenp value)
+                     (fail))
+                   value))))
+    (is (eq value 2))))
+
+(define-cram-test try-each-in-order.3
+    "Failure with compound failure" ()
+  (let ((values (list)))
+    (signals composite-failure
+      (top-level
+        (try-each-in-order (value '(1 2 3))
+          (push value values)
+          (fail))))
+    (is (member 1 values))
+    (is (member 2 values))
+    (is (member 3 values))))
+
 (define-cram-test with-parallel-childs.1
     "Make sure that WITH-PARALLEL-CHILDS' watcher-body is executed
      once and only once per status change." ()
@@ -529,7 +557,3 @@
                       (seq (sleep* 3.0) :C)))
             (with-task-suspended (slave)
               (setf (value knob) t))))))))
-
-
-
-
