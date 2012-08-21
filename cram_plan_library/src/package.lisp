@@ -43,6 +43,8 @@
   (:nicknames :plan-lib)
   (:shadowing-import-from #:desig #:name)
   (:export #:achieve
+           #:perform
+           #:perform-on-process-module
            #:loc
            #:object-in-hand
            #:object-placed-at
