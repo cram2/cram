@@ -61,7 +61,9 @@
                          (format t "trying at new location: ~a~%" (reference obj-loc-desig))
                          (retry))))))
               (achieve `(looking-at ,obj-loc-desig))
-              (pm-execute :perception ?obj-desig))))))))
+              ;; TODO(moesenle): use an action designator for
+              ;; perceiving objects.
+              (perform ?obj-desig))))))))
 
 (def-goal (perceive-object a ?obj-desig)
   "Tries to find the object described by ?obj-desig and equates the
@@ -88,4 +90,5 @@ found."
   (with-failure-handling ((object-not-found (f)
                               (declare (ignore f))
                               (return nil)))
-      (pm-execute :perception ?obj-desig)))
+    ;; TODO(moesenle): Use an action designator here.
+    (perform ?obj-desig)))
