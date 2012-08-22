@@ -52,7 +52,8 @@
                cram-plan-failures
                cl-semantic-map-utils
                handle_detection-msg
-               ias_perception_actions-msg)
+               ias_perception_actions-msg
+               cram-projection)
   :components
   ((:module "src"
             :components

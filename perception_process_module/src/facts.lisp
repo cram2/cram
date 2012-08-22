@@ -37,3 +37,11 @@
     (obj-subtype ?tmp ?b))
   (<- (obj-direct-subtype object cluster))
   (<- (obj-direct-subtype cluster ?x)))
+
+(def-fact-group process-module (matching-process-module available-process-module)
+
+  (<- (matching-process-module ?designator perception)
+    (obj-desig? ?designator))
+
+  (<- (available-process-module perception)
+    (symbol-value cram-projection:*projection-environment* nil)))
