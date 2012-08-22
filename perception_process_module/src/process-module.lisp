@@ -120,19 +120,20 @@
   processed in the order specified in this list")
 
 (def-process-module perception (input)
-  (assert (typep input 'object-designator))
-  (ros-info (perception process-module) "Searching for object ~a" input)
-  (let* ((newest-effective (newest-effective-designator input))
-         (result
-          (some (lambda (role)
-                  (let ((*perception-role* role))
-                    (if newest-effective
-                        ;; Designator that has alrady been equated to
-                        ;; one with bound to a perceived-object
-                        (find-with-parent-desig newest-effective)
-                        (find-with-new-desig input))))
-                *known-roles*)))
-    (unless result
-      (fail 'object-not-found :object-desig input))
-    (ros-info (perception process-module) "Found objects: ~a" result)
-    result))
+  (assert (typep input 'action-designator))
+  (let ((object-designator (reference input)))
+    (ros-info (perception process-module) "Searching for object ~a" object-designator)
+    (let* ((newest-effective (newest-effective-designator object-designator))
+           (result
+             (some (lambda (role)
+                     (let ((*perception-role* role))
+                       (if newest-effective
+                           ;; Designator that has alrady been equated to
+                           ;; one with bound to a perceived-object
+                           (find-with-parent-desig newest-effective)
+                           (find-with-new-desig object-designator))))
+                   *known-roles*)))
+      (unless result
+        (fail 'object-not-found :object-desig object-designator))
+      (ros-info (perception process-module) "Found objects: ~a" result)
+      result)))
