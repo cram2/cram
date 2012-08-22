@@ -32,8 +32,15 @@
   (let ((matching-process-modules (matching-process-module-names ?action-designator)))
     (unless matching-process-modules
       (fail "No process modules found for executing designator ~a" ?action-designator))
-    (try-each-in-order (module matching-process-modules)
-      (perform-on-process-module module ?action-designator))))
+    ;; Rethrow the first error in the composite-failure. This is
+    ;; necessary to keep the high-level plans working. For instance,
+    ;; if perception fails, plans expect an OBJECT-NOT-FOUND failure,
+    ;; not a COMPOSITE-FAILURE.
+    (with-failure-handling
+        ((composite-failure (failure)
+           (fail (car (composite-failures failure)))))
+      (try-each-in-order (module matching-process-modules)
+        (perform-on-process-module module ?action-designator)))))
 
 (def-goal (perform-on-process-module ?module ?action-designator)
   (pm-execute ?module ?action-designator))
