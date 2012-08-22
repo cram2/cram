@@ -114,3 +114,14 @@
     (desig-prop ?desig (obj ?obj))
     (obj-desig-location ?obj ?pose)
     (lisp-fun make-action-goal ?pose ?act)))
+
+(def-fact-group point-head-process-module
+    (matching-process-module available-process-module)
+
+  (<- (matching-process-module ?designator point-head-process-module)
+    (trajectory-desig? ?designator)
+    (or (desig-prop ?designator (to see))
+        (desig-prop ?designator (to follow))))
+
+  (<- (available-process-module point-head-process-module)
+    (symbol-value cram-projection:*projection-environment* nil)))

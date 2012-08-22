@@ -31,6 +31,14 @@
 
 (def-fact-group pr2-navigation-designators (action-desig)
   
-    (<- (action-desig ?desig ?goal-location)
-      (desig-prop ?desig (type navigation))
-      (desig-prop ?desig (goal ?goal-location))))
+    (<- (action-desig ?designator ?goal-location)
+      (desig-prop ?designator (type navigation))
+      (desig-prop ?designator (goal ?goal-location))))
+
+(def-fact-group navigation-process-module (matching-process-module available-process-module)
+
+  (<- (matching-process-module ?designator pr2-navigation-process-module)
+    (desig-prop ?designator (type navigation)))
+
+  (<- (available-process-module pr2-navigation-process-module)
+    (symbol-value cram-projection:*projection-environment* nil)))

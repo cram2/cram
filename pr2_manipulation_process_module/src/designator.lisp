@@ -94,3 +94,18 @@
     (desig-prop ?desig (obj ?obj))
     (desig-prop ?desig (at ?loc))
     (obstacles ?desig ?obstacles)))
+
+(def-fact-group manipulation-process-module (matching-process-module available-process-module)
+
+  (<- (matching-process-module ?designator pr2-manipulation-process-module)
+    (trajectory-desig? ?designator)
+    (or (desig-prop ?designator (to grasp))
+        (desig-prop ?designator (to put-down))
+        (desig-prop ?designator (to open))
+        (desig-prop ?designator (to close))
+        (desig-prop ?designator (pose ?_))
+        (desig-prop ?designator (to lift))
+        (desig-prop ?designator (to carry))))
+
+  (<- (available-process-module pr2-manipulation-process-module)
+    (symbol-value cram-projection:*projection-environment* nil)))
