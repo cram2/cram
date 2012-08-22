@@ -62,10 +62,7 @@ gripper pose defaults to an identity pose."
       (let ((move-trajectory (ik->trajectory (first move-ik) :duration 5.0)))
         (unless move-trajectory (cpl:fail
                                  'cram-plan-failures:manipulation-failed))
-        (multiple-value-bind (result resultflag) (execute-arm-trajectory
-                                                  side
-                                                  move-trajectory)
-                             resultflag)))))
+        (nth-value 1 (execute-arm-trajectory side move-trajectory))))))
 
 (defun grasp-handled-object-with-relative-location (obj side handle)
   "Moves the gripper side `side' into the grasp position with respect
@@ -115,6 +112,7 @@ applied."
 (defun nearest-handle-for-side (obj side)
   "Get the nearest handle location designator on object `obj' in
 respect to the chosen gripper side `side'."
+  (declare (ignore side))
   ;; TODO(winkler): Implement *actual* calculations concerning
   ;; distance here. Atm, this always returns the first handle on the
   ;; object. This is no problem as long as we only have (at most) one
@@ -123,6 +121,7 @@ respect to the chosen gripper side `side'."
     (first handles)))
 
 (defun trajectory-reaching-length (loc-desig side)
+  (declare (ignore loc-desig side))
   ;; TODO(winkler): Atm, the trajectory reaching length is determined
   ;; by just the cartesian distance between the two origins of gripper
   ;; wrist roll and destination location designator. Later on, this
