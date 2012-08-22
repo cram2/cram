@@ -348,7 +348,7 @@
          (assert-no-returning
            (signal
             (make-condition 'composite-failure
-                            :failures ,failures)))))))
+                            :failures (reverse ,failures))))))))
 
 (def-plan-macro try-each-in-order ((variable list) &body body)
   "Executes `body' with `variable' bound to each element in `list'
@@ -359,7 +359,7 @@
        (dolist (,variable ,list (assert-no-returning
                                   (signal
                                    (make-condition 'composite-failure
-                                                   :failures ,failures))))
+                                                   :failures (reverse ,failures)))))
          (handler-case (return (progn ,@body))
            (plan-failure (condition)
              (push condition ,failures)))))))
