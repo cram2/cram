@@ -51,9 +51,10 @@
     (fail)))
 
 (defun matching-process-module-names (action-designator)
-  (lazy-mapcar (lambda (bindings)
-                 (var-value '?process-module-name bindings))
-               (prolog `(and
-                         (matching-process-module
-                          ,action-designator ?process-module-name)
-                         (available-process-module ?process-module-name)))))
+  (force-ll
+   (lazy-mapcar (lambda (bindings)
+                  (var-value '?process-module-name bindings))
+                (prolog `(and
+                          (matching-process-module
+                           ,action-designator ?process-module-name)
+                          (available-process-module ?process-module-name))))))
