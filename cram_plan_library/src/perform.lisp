@@ -30,6 +30,8 @@
 
 (def-goal (perform ?action-designator)
   (let ((matching-process-modules (matching-process-module-names ?action-designator)))
+    (unless matching-process-modules
+      (fail "No process modules found for executing designator ~a" ?action-designator))
     (try-each-in-order (module matching-process-modules)
       (perform-on-process-module module ?action-designator))))
 
