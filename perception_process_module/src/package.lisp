@@ -90,6 +90,6 @@
                 #:def-process-module)
   (:import-from #:cram-plan-knowledge
                 matching-process-module available-process-module)
-  (:desig-properties #:cluster #:type #:object #:on
-                     #:part-of #:at #:name #:pose
-                     #:handle #:lid #:small-bowl #:pot #:big-plate))
+  (:desig-properties #:cluster #:type #:object #:on #:to #:perceive #:obj
+                     #:part-of #:at #:name #:pose #:handle #:lid #:small-bowl
+                     #:pot #:big-plate))
