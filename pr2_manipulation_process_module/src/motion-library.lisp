@@ -728,6 +728,6 @@ will be commanded."
     (open-gripper side)
     (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
     (when safety-ik
-      (execute-arm-trajectory side (ik->trajectory pre-solution))
+      (execute-arm-trajectory side (ik->trajectory safety-ik))
       (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))
     (cpl:fail 'object-lost)))
