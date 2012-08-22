@@ -165,7 +165,8 @@
            #:goal-task-tree-node-goal
            ;; base.lisp
            #:top-level #:seq #:par #:tag #:with-tags #:with-task-suspended
-           #:pursue #:composite-failure #:try-all #:try-in-order #:tagged
+           #:pursue #:composite-failure #:composite-failures #:try-all
+           #:try-in-order #:tagged
            #:try-each-in-order #:partial-order
            #:on-top-level-setup-hook
            #:on-top-level-cleanup-hook
