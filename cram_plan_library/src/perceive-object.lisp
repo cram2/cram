@@ -34,7 +34,8 @@
 (def-goal (perceive-object all ?obj-desig)
   (with-designators ((obj-loc-desig (location `((of ,?obj-desig))))
                      (loc (location `((to see) (obj ,?obj-desig)
-                                      (location ,obj-loc-desig)))))
+                                      (location ,obj-loc-desig))))
+                     (perceive-action (action `((to perceive) (obj ,?obj-desig)))))
     (let ((loc-retry-cnt 0))
       (with-failure-handling
           ((object-not-found (e)
@@ -63,7 +64,7 @@
               (achieve `(looking-at ,obj-loc-desig))
               ;; TODO(moesenle): use an action designator for
               ;; perceiving objects.
-              (perform ?obj-desig))))))))
+              (perform perceive-action))))))))
 
 (def-goal (perceive-object a ?obj-desig)
   "Tries to find the object described by ?obj-desig and equates the
@@ -87,8 +88,8 @@ found."
     (car new-desigs)))
 
 (def-goal (perceive-object currently-visible ?obj-desig)
-  (with-failure-handling ((object-not-found (f)
+  (with-designators ((perceive-action (action `((to perceive) (obj ,?obj-desig)))))
+    (with-failure-handling ((object-not-found (f)
                               (declare (ignore f))
                               (return nil)))
-    ;; TODO(moesenle): Use an action designator here.
-    (perform ?obj-desig)))
+      (perform perceive-action))))
