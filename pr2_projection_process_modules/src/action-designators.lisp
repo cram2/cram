@@ -50,7 +50,7 @@
         (desig-prop ?designator (to follow))))
 
   (<- (matching-process-module ?designator projection-perception)
-    (obj-desig? ?designator))
+    (desig-prop ?designator (to perceive)))
 
   (<- (matching-process-module ?designator projection-manipulation)
     (trajectory-desig? ?designator)
@@ -87,7 +87,13 @@
      (desig-prop ?desig (to follow)))
     (desig-location-prop ?desig ?pose)))
 
-(def-fact-group action-designators (action-desig-projection)
+(def-fact-group perception-designators (action-desig-projection)
+
+  (<- (action-desig-projection ?designator ?object-designator)
+    (desig-prop ?designator (to perceive))
+    (desig-prop ?designator (obj ?object-designator))))
+
+(def-fact-group manipulation-designators (action-desig-projection)
   
   (<- (action-desig-projection
        ?desig (execute-container-opened ?desig ?obj ?distance))
@@ -138,8 +144,9 @@
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to put-down))
     (desig-prop ?desig (obj ?obj))
-    (desig-prop ?desig (at ?_)))
+    (desig-prop ?desig (at ?_))))
 
-  (<- (action-desig ?desig ?goal-location)
+(def-fact-group navigation-designators (action-desig-projection)
+  (<- (action-desig-projection ?desig ?goal-location)
     (desig-prop ?desig (type navigation))
     (desig-prop ?desig (goal ?goal-location))))
