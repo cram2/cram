@@ -116,7 +116,8 @@
           (alexandria:curry #'apply #'make-designator) (find-object designator)))))))
 
 (def-process-module projection-perception (input)
-  (let ((newest-effective-designator (desig:newest-effective-designator input)))
+  (let* ((object-designator (desig:reference input 'projection-designators:projection-role))
+         (newest-effective-designator (desig:newest-effective-designator object-designator)))
     (or
      (mapcar (lambda (designator)
                (cram-plan-knowledge:on-event
@@ -126,6 +127,6 @@
                designator)
              (if newest-effective-designator
                  (find-with-bound-designator newest-effective-designator)
-                 (find-with-new-designator input)))
+                 (find-with-new-designator object-designator)))
      (cpl:fail 'cram-plan-failures:object-not-found
-               :object-desig input))))
+               :object-desig object-designator))))
