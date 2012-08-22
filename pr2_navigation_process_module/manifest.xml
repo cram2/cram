@@ -16,6 +16,7 @@
   <depend package="cram_roslisp_common" />
   <depend package="cram_plan_failures" />
   <depend package="cram_plan_knowledge" />
+  <depend package="cram_projection" />
 </package>
 
 

@@ -38,6 +38,7 @@
                cram-roslisp-common
                cram-plan-failures
                cram-plan-knowledge
+               cram-projection
                move_base_msgs-msg)
   :components
   ((:module "src"

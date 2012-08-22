@@ -38,4 +38,6 @@
         #:cram-roslisp-common
         #:cram-plan-failures)
   (:export #:pr2-navigation-process-module #:*navigation-enabled*)
+  (:import-from #:cram-plan-knowledge
+                matching-process-module available-process-module)
   (:desig-properties #:type #:navigation #:goal))
