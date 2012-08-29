@@ -37,15 +37,18 @@
   (:export execute-container-opened execute-container-closed
            execute-park execute-lift execute-grasp execute-put-down
            projection-navigation projection-ptu projection-perception
-           projection-manipulation))
+           projection-manipulation pr2-bullet-projection-environment))
 
 (desig-props:def-desig-package projection-designators
   (:use #:common-lisp #:cram-designators #:cram-reasoning
         #:projection-process-modules)
   (:import-from #:cram-manipulation-knowledge
                 arm available-arms required-arms)
+  (:import-from #:cram-plan-knowledge
+                matching-process-module available-process-module)
+  (:import-from #:cram-projection *projection-environment*)
   (:export projection-role)
-  (:desig-properties at type to see follow pose location obj
-                     grasp carry lift park put-down open close
-                     side z-offset distance parked navigation
-                     goal handle name))
+  (:desig-properties at type to see follow pose location obj perceive
+                     grasp carry lift park put-down open close side
+                     z-offset distance parked navigation goal handle
+                     name))

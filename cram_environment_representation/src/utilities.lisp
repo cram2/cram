@@ -35,7 +35,7 @@
       (object *current-bullet-world* ?robot-name))))
 
 (defun get-designator-object-name (object-designator)
-  (let ((object-designator (desig:newest-valid-designator object-designator)))
+  (let ((object-designator (desig:newest-effective-designator object-designator)))
     (when object-designator
       (desig:object-identifier (desig:reference object-designator)))))
 

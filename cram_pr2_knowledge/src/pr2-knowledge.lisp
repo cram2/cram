@@ -70,6 +70,8 @@
   (<- (robot pr2))
   (<- (camera-frame "openni_rgb_optical_frame"))
   (<- (camera-frame "narrow_stereo_optical_frame"))
+  (<- (camera-minimal-height 1.27))
+  (<- (camera-maximal-height 1.60))
   (<- (robot-pan-tilt-links "head_pan_link" "head_tilt_link"))
   (<- (robot-pan-tilt-joints "head_pan_joint" "head_tilt_joint"))
   (<- (end-effector-link :left "l_wrist_roll_link"))

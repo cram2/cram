@@ -44,11 +44,12 @@
                     (cl-transforms:make-3d-vector 0 0 0)
                     (cl-transforms:make-quaternion 0 0 0 1)))))
 
-(defgeneric gl-setup-camera (camera)
-  (:documentation "Sets the gl camera so that the view port is along
-  x- and y- axis and the z axis of the camera is ponting into the
-  scene.")
-  (:method ((camera camera))
+(defgeneric gl-execute-with-camera (camera function)
+  (:documentation "Executes `function' with `camera' set.")
+  (:method ((camera t) (function function))
+    (funcall function))
+  (:method :before ((camera camera) function)
+    (declare (ignore function))
     (with-slots (width height fov-y z-near z-far) camera
       (gl:viewport 0 0 width height)
       (gl:matrix-mode :projection)
@@ -131,9 +132,10 @@
              (unwind-protect
                   (progn
                     (gl:clear :color-buffer :depth-buffer)
-                    (gl-setup-camera camera)
-                    (draw gl-context drawable)
-                    (gl:flush)
+                    (gl-execute-with-camera
+                     camera (lambda ()
+                              (draw gl-context drawable)
+                              (gl:flush)))
                     (list (when get-pixelbuffer (read-pixelbuffer camera mirror))
                           (when get-depthbuffer (read-depthbuffer camera mirror))))
                (apply #'gl:viewport viewport)))))
@@ -142,25 +144,33 @@
         (with-rendering-to-framebuffer ((width camera) (height camera))
           (do-rendering)))))
 
+(defun mirror-buffer (width height gl-buffer channels)
+  (let ((result (make-array (array-dimension gl-buffer 0)
+                            :element-type (array-element-type gl-buffer))))
+    (declare (type simple-array gl-buffer result))
+    (dotimes (y height result)
+      (dotimes (x width)
+        (dotimes (i channels)
+          (setf (aref result (+ (* channels (+ (* y width) x)) i))
+                (aref gl-buffer (+ (* channels
+                                      (+ (* y width) (- width x 1))) i))))))))
+
 (defun read-pixelbuffer (camera &optional mirror)
   (let* ((width (width camera))
          (height (height camera))
-         (gl-buffer (bt-vis:read-pixels-float 0 0 width height :rgb))
-         (result (make-array (array-dimension gl-buffer 0)
-                             :element-type (array-element-type gl-buffer))))
-    (declare (type (simple-array single-float 1) gl-buffer result))
+         (gl-buffer (bt-vis:read-pixels-float 0 0 width height :rgb)))
     ;; Note: gl's result is mirrored on the y axis, so let's mirror it back
     (if mirror
-        (dotimes (y height result)
-          (dotimes (x width)
-            (dotimes (i 3)
-              (setf (aref result (+ (* 3 (+ (* y width) x)) i))
-                    (aref gl-buffer (+ (* 3 (+ (* y width) (- width x 1))) i))))))
+        (mirror-buffer width height gl-buffer 3)
         gl-buffer)))
 
 (defun read-depthbuffer (camera &optional mirror)
-  (declare (ignore mirror))
-  (bt-vis:read-pixels-float 0 0 (width camera) (height camera) :depth-component))
+  (let ((gl-buffer (bt-vis:read-pixels-float
+                    0 0 (width camera) (height camera)
+                    :depth-component)))
+    (if mirror
+        (mirror-buffer (width camera) (height camera) gl-buffer 1)
+        gl-buffer)))
 
 (defun to-png-image (width height buffer &optional (color-mode :rgb))
   (let ((channels (ecase color-mode

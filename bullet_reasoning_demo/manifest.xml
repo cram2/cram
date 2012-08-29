@@ -18,5 +18,6 @@
   <depend package="pr2_manipulation_knowledge" />
   <depend package="cram_pr2_knowledge" />
   <depend package="object_location_designators" />
+  <depend package="pr2_reachability_costmap" />
 
 </package>
