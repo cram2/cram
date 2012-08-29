@@ -84,7 +84,7 @@
       `(location-change ,(event-object event))))))
 
 (defmethod on-event robot-moved ((event robot-state-changed))
-  (unless cram-projection:*projecting*
+  (unless cram-projection:*projection-environment*
     (let ((robot (get-robot-object)))
       (when robot
         (set-robot-state-from-tf cram-roslisp-common:*tf* robot))))
@@ -97,7 +97,7 @@
 (defmethod on-event open-or-close-object ((event object-articulation-event))
   (with-slots (object-designator opening-distance) event
     (let ((perceived-object (desig:reference
-                             (desig:newest-valid-designator object-designator)))
+                             (desig:newest-effective-designator object-designator)))
           (semantic-map-object
             (with-vars-strictly-bound (?semantic-map)
                 (lazy-car

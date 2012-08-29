@@ -42,6 +42,37 @@
    (sem-map-utils:get-connecting-joint-limits
     (pr2-manipulation-knowledge:get-semantic-map) part-name)))
 
+(def-fact-group process-modules (matching-process-module available-process-module)
+
+  (<- (matching-process-module ?designator projection-ptu)
+    (trajectory-desig? ?designator)
+    (or (desig-prop ?designator (to see))
+        (desig-prop ?designator (to follow))))
+
+  (<- (matching-process-module ?designator projection-perception)
+    (desig-prop ?designator (to perceive)))
+
+  (<- (matching-process-module ?designator projection-manipulation)
+    (trajectory-desig? ?designator)
+    (not
+     (or (desig-prop ?designator (to see))
+         (desig-prop ?designator (to follow)))))
+  
+  (<- (matching-process-module ?designator projection-navigation)
+    (desig-prop ?designator (type navigation)))
+
+  (<- (available-process-module projection-ptu)
+    (symbol-value *projection-environment* pr2-bullet-projection-environment))
+
+  (<- (available-process-module projection-perception)
+    (symbol-value *projection-environment* pr2-bullet-projection-environment))
+
+  (<- (available-process-module projection-manipulation)
+    (symbol-value *projection-environment* pr2-bullet-projection-environment))
+
+  (<- (available-process-module projection-navigation)
+    (symbol-value *projection-environment* pr2-bullet-projection-environment)))
+
 (def-fact-group ptu-designators (action-desig-projection)
 
   (<- (action-desig-projection ?desig ?pose)
@@ -56,7 +87,13 @@
      (desig-prop ?desig (to follow)))
     (desig-location-prop ?desig ?pose)))
 
-(def-fact-group action-designators (action-desig-projection)
+(def-fact-group perception-designators (action-desig-projection)
+
+  (<- (action-desig-projection ?designator ?object-designator)
+    (desig-prop ?designator (to perceive))
+    (desig-prop ?designator (obj ?object-designator))))
+
+(def-fact-group manipulation-designators (action-desig-projection)
   
   (<- (action-desig-projection
        ?desig (execute-container-opened ?desig ?obj ?distance))
@@ -107,8 +144,9 @@
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to put-down))
     (desig-prop ?desig (obj ?obj))
-    (desig-prop ?desig (at ?_)))
+    (desig-prop ?desig (at ?_))))
 
-  (<- (action-desig ?desig ?goal-location)
+(def-fact-group navigation-designators (action-desig-projection)
+  (<- (action-desig-projection ?desig ?goal-location)
     (desig-prop ?desig (type navigation))
     (desig-prop ?desig (goal ?goal-location))))

@@ -14,5 +14,6 @@
   <depend package="bullet_reasoning" />
   <depend package="cram_designators" />
   <depend package="location_costmap" />
+  <depend package="cram_environment_representation" />
 
 </package>

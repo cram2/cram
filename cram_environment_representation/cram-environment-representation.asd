@@ -36,7 +36,6 @@
                designators
                cram-roslisp-common
                bullet-reasoning
-               bullet-reasoning-designators
                cram-plan-knowledge
                cram-plan-library)
   :components

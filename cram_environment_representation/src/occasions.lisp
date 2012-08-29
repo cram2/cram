@@ -61,6 +61,8 @@
 
 (def-fact-group occasion-utilities ()
   (<- (object-designator-name ?object-designator ?object-name)
+    (or (not (bound ?object-designator))
+        (lisp-type ?object-designator desig:object-designator))
     (-> (bound ?object-designator)
         (true)
         (and
