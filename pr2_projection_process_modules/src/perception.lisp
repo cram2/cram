@@ -43,22 +43,19 @@
                         (cl-transforms:origin (desig:designator-pose designator-2))))
 
 (defun make-object-designator (perceived-object &key parent type name)
-  (let* ((pose (desig:object-pose perceived-object))
-         (designator (change-class
-                      (desig:make-designator
-                       'desig-props:object
-                       (desig:update-designator-properties
-                        `(,@(when type `((desig-props:type ,type)))
-                            (desig-props:at ,(desig:make-designator
-                                              'desig:location `((desig-props:pose ,pose))))
-                            ,@(when name `((desig-props:name ,name))))
-                        (when parent (desig:properties parent)))
-                       parent)
-                      'projection-object-designator)))
-    (setf (slot-value perceived-object 'designator) designator)
-    (setf (slot-value designator 'desig:data) perceived-object)
-    (setf (slot-value designator 'desig:valid) t)
-    designator))
+  (assert parent)
+  (let ((pose (desig:object-pose perceived-object)))
+    (change-class
+     (desig:make-effective-designator
+      parent
+      :new-properties (desig:update-designator-properties
+                       `(,@(when type `((desig-props:type ,type)))
+                         (desig-props:at ,(desig:make-designator
+                                           'desig:location `((desig-props:pose ,pose))))
+                         ,@(when name `((desig-props:name ,name))))
+                       (when parent (desig:properties parent)))
+      :data-object perceived-object)
+     'projection-object-designator)))
 
 (defun find-object (designator)
   "Finds objects with (optional) name `object-name' and type `type'
@@ -111,6 +108,7 @@
                 :object-identifier object
                 :pose pose)
               :type desig-props:type
+              :parent designator
               :name object)))
       (when desig-props:type
         (cut:force-ll
@@ -118,7 +116,8 @@
           (alexandria:curry #'apply #'make-designator) (find-object designator)))))))
 
 (def-process-module projection-perception (input)
-  (let ((newest-valid-designator (desig:newest-valid-designator input)))
+  (let* ((object-designator (desig:reference input 'projection-designators:projection-role))
+         (newest-effective-designator (desig:newest-effective-designator object-designator)))
     (or
      (mapcar (lambda (designator)
                (cram-plan-knowledge:on-event
@@ -126,8 +125,8 @@
                   :perception-source :projection
                   :object-designator designator))
                designator)
-             (if newest-valid-designator
-                 (find-with-bound-designator newest-valid-designator)
-                 (find-with-new-designator input)))
+             (if newest-effective-designator
+                 (find-with-bound-designator newest-effective-designator)
+                 (find-with-new-designator object-designator)))
      (cpl:fail 'cram-plan-failures:object-not-found
-               :object-desig input))))
+               :object-desig object-designator))))
