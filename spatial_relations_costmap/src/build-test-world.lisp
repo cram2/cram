@@ -44,7 +44,8 @@
   ;; (setf *sem-map* nil)
   
   (cram-roslisp-common:startup-ros :anonymous nil)
-  (let* ((urdf (cl-urdf:parse-urdf (roslisp:get-param "robot_description_lowres")))
+  (let* ((num-sets-on-table 4)
+         (urdf (cl-urdf:parse-urdf (roslisp:get-param "robot_description_lowres")))
          (kitchen-urdf (cl-urdf:parse-urdf (roslisp:get-param "kitchen_description"))))
     (setf *bdgs*
           (car
@@ -67,51 +68,26 @@
                                ;;                 :mesh bowl :mass 0.2))
                                ;; (assert (object ?w mesh mondamin-1 ((1.2 2 2.5) (0 0 0 1))
                                ;;                 :mesh mondamin :mass 0.2 :color (1 1 0)))
-                               
-                               (assert (object ?w mesh plate-1 ((0 0 0) (0 0 0 1))
-                                               :mesh plate :mass 0.2 :color (0 1 1)))
-                               (assert (object ?w mesh plate-2 ((0 0 0) (0 0 0 1))
-                                               :mesh plate :mass 0.2 :color (0 1 1)))
-                               (assert (object ?w mesh plate-3 ((0 0 0) (0 0 0 1))
-                                               :mesh plate :mass 0.2 :color (0 1 1)))
-                               (assert (object ?w mesh plate-4 ((0 0 0) (0 0 0 1))
-                                               :mesh plate :mass 0.2 :color (0 1 1)))
 
-                               (assert (object ?w mesh mug-1 ((0 0 0) (0 0 0 1))
-                                               :mesh mug :mass 0.2 :color (1 0.5 0)))
-                               (assert (object ?w mesh mug-2 ((0 0 0) (0 0 0 1))
-                                               :mesh mug :mass 0.2 :color (1 0.5 0)))
-                               (assert (object ?w mesh mug-3 ((0 0 0) (0 0 0 1))
-                                               :mesh mug :mass 0.2 :color (1 0.5 0)))
-                               (assert (object ?w mesh mug-4 ((0 0 0) (0 0 0 1))
-                                               :mesh mug :mass 0.2 :color (1 0.5 0)))
-                               
-                               (assert (object ?w cutlery fork-1 ((0 0 0) (0 0 0 1))
-                                         :color (1 0 1) :mass 0.2 :cutlery-type fork))
-                               (assert (object ?w cutlery fork-2 ((0 0 0) (0 0 0 1))
-                                         :color (1 0 1) :mass 0.2 :cutlery-type fork))
-                               (assert (object ?w cutlery fork-3 ((0 0 0) (0 0 0 1))
-                                         :color (1 0 1) :mass 0.2 :cutlery-type fork))
-                               (assert (object ?w cutlery fork-4 ((0 0 0) (0 0 0 1))
-                                         :color (1 0 1) :mass 0.2 :cutlery-type fork))
-                               
-                               (assert (object ?w cutlery knife-1 ((0 0 0) (0 0 0 1))
-                                         :color (1 0 0) :mass 0.2 :cutlery-type knife))
-                               (assert (object ?w cutlery knife-2 ((0 0 0) (0 0 0 1))
-                                         :color (1 0 0) :mass 0.2 :cutlery-type knife))
-                               (assert (object ?w cutlery knife-3 ((0 0 0) (0 0 0 1))
-                                         :color (1 0 0) :mass 0.2 :cutlery-type knife))
-                               (assert (object ?w cutlery knife-4 ((0 0 0) (0 0 0 1))
-                                         :color (1 0 0) :mass 0.2 :cutlery-type knife))
+                               ,@(loop for i from 1 to num-sets-on-table collect
+                                       `(assert (object ?w mesh ,(new-symbol "PLATE-" i) ((2 0 0) (0 0 0 1))
+                                                        :mesh plate :mass 0.2 :color (0 1 1))))
 
-                               ;; TODO: use a loop instead of copy-pasting
-                               ;; (make-on-counter-top-desig ?des1)
-                               ;; (make-on-counter-top-desig ?des2)
-                               ;; (make-on-counter-top-desig ?des3)
-                               ;; (make-on-counter-top-desig ?des4)
-                               ;; (make-on-counter-top-desig ?des5)
-                               ;; (make-on-counter-top-desig ?des6)
-                               ;; (make-on-counter-top-desig ?des7)
+                               ,@(loop for i from 1 to num-sets-on-table collect
+                                       `(assert (object ?w mesh ,(new-symbol "MUG-" i) ((2 0 0) (0 0 0 1))
+                                                        :mesh mug :mass 0.2 :color (1 0.5 0))))
+                               
+                               ,@(loop for i from 1 to num-sets-on-table collect
+                                       `(assert (object ?w cutlery ,(new-symbol "FORK-" i) ((2 0 0) (0 0 0 1))
+                                                        :color (1 0 1) :mass 0.2 :cutlery-type fork)))
+                            
+                               ,@(loop for i from 1 to num-sets-on-table collect
+                                       `(assert (object ?w cutlery ,(new-symbol "KNIFE-" i) ((2 0 0) (0 0 0 1))
+                                                        :color (1 0 0) :mass 0.2 :cutlery-type knife)))
+
+                               
+                               ;; ,@(loop for i from 1 to 7 collect
+                               ;;         `(make-on-counter-top-desig ,(new-symbol "?DES" i)))
 
                                ;; (assign-object-pos pot-1 ?des1)
                                ;; (assign-object-pos bowl-1 ?des2)
@@ -203,77 +179,85 @@
                         (assign-object-pos mug-3 ,des-for-mug-3)
                         (assign-object-pos mug-4 ,des-for-mug-4)))))))
 
-(defun put-first-set-on-counter (&key (plate t) (mug t) (fork t) (knife t))
-  (when plate
-    (prolog `(assert (object-pose ?_ plate-1 ((0.9 1 0.8594702033075609d0) (0 0 0 1))))))
-  (when mug
-    (prolog `(assert (object-pose ?_ mug-1 ((1 1.4 0.9119799601336841d0) (0 0 0 1))))))
-  (when fork
-    (prolog `(assert (object-pose ?_ fork-1 ((1 0.8 0.8569999588202436d0) (0 0 0 1))))))
-  (when knife
-    (prolog `(assert (object-pose ?_ knife-1 ((1 0.7 0.8569999867081037d0) (0 0 0 1)))))))
 
-(cpl-impl:def-top-level-plan put-plate-from-counter-on-table ()
+(defun put-n-sets-on-table (n)
+  (loop for i from 1 to n do
+    (put-nth-set-on-counter :n i)
+    (let ((plate (put-plate-from-counter-on-table)))
+      (mapcar (alexandria:rcurry #'put-object-from-counter-near-plate plate)
+              '(btr::fork btr::knife btr::mug)))))
+
+(declaim (inline new-symbol))
+(defun new-symbol (string number)
+  (intern (concatenate 'string string (write-to-string number)) "SPATIAL-RELATIONS-COSTMAP"))
+
+(defun put-nth-set-on-counter (&key (n 1) (plate t) (mug t) (fork t) (knife t))
+   (and plate
+        (prolog `(assert (object-pose ?_ ,(new-symbol "PLATE-" n) ((0.9 1 0.8594702033075609d0) (0 0 0 1))))))
+   (and mug
+        (prolog `(assert (object-pose ?_ ,(new-symbol "MUG-" n) ((1 1.4 0.9119799601336841d0) (0 0 0 1))))))
+   (and fork
+        (prolog `(assert (object-pose ?_ ,(new-symbol "FORK-" n) ((1 0.8 0.8569999588202436d0) (0 0 0 1))))))
+   (and knife
+        (prolog `(assert (object-pose ?_ ,(new-symbol "KNIFE-" n) ((1 0.7 0.8569999867081037d0) (0 0 0 1)))))))
+
+
+
+(defun put-plate-from-counter-on-table ()
   (sb-ext:gc :full t)
-  (cram-projection:with-projection-environment 
-      projection-process-modules::pr2-bullet-projection-environment
-    (with-designators
-        ((on-counter (desig-props:location `((desig-props:on counter-top)
-                                             (desig-props:name "CounterTop205"))))
-         (on-kitchen-island (desig-props:location `((desig-props:on counter-top)
-                                                    (desig-props:name kitchen-island))))
-         (plate (desig-props:object `((type btr:plate) (desig-props:at ,on-counter)))))
-      (plan-knowledge:achieve `(plan-knowledge:loc ,plate ,on-kitchen-island))))
-  (sb-ext:gc :full t))
+  (let ((plate (find-object 'btr:plate "CounterTop205")))
+    (sb-ext:gc :full t)
+    (put-object-from-counter-on-table plate)
+    plate))
 
-
-(defvar *plate-obj* nil)
-(cpl-impl:def-top-level-plan find-plate-on-table ()
-  (sb-ext:gc :full t)
+    
+(cpl-impl:def-top-level-plan put-object-from-counter-on-table (the-object)
   (cram-projection:with-projection-environment 
       projection-process-modules::pr2-bullet-projection-environment
     (with-designators
         ((on-kitchen-island (desig-props:location `((desig-props:on counter-top)
-                                                    (desig-props:name kitchen-island))))
-         (plate (desig-props:object `((type btr:plate)
-                                      (desig-props:at ,on-kitchen-island)))))
-      (plan-lib:perceive-object 'cram-plan-library:a plate))))
+                                                    (desig-props:name kitchen-island)))))
+      (plan-knowledge:achieve `(plan-knowledge:loc ,the-object ,on-kitchen-island)))))
 
-(cpl-impl:def-top-level-plan put-object-from-counter-near-plate (object-to-put-type spatial-relations
-                                                                                    plate-obj)
-  (sb-ext:gc :full t)
+
+
+(cpl-impl:def-top-level-plan find-object (object-type counter-to-search-on)
   (cram-projection:with-projection-environment 
       projection-process-modules::pr2-bullet-projection-environment
     (with-designators
-        ((on-counter (location `((desig-props:on counter-top) (desig-props:name "CounterTop205"))))
-         (object-to-put (desig-props:object `((type ,object-to-put-type)
-                                              (desig-props:at ,on-counter))))
-         (put-down-location (desig-props:location `(,@(loop for property in spatial-relations
-                                                            collecting `(,property ,plate-obj)) 
-                                                    (desig-props:for ,object-to-put) 
+        ((the-place (desig-props:location `((desig-props:on counter-top)
+                                            (desig-props:name ,counter-to-search-on))))
+         (the-object (desig-props:object `((type ,object-type)
+                                           (desig-props:at ,the-place)))))
+      (plan-lib:perceive-object 'cram-plan-library:a the-object))))
+
+
+(cpl-impl:def-top-level-plan put-object-near-plate (object-to-put
+                                                                 spatial-relations
+                                                                 plate-obj)
+  (cram-projection:with-projection-environment 
+      projection-process-modules::pr2-bullet-projection-environment
+    (with-designators
+        ((put-down-location (desig-props:location `(,@(loop for property in spatial-relations
+                                                            collecting `(,property ,plate-obj))
+                                                    (desig-props:near ,plate-obj)
+                                                    (desig-props:for ,object-to-put)
                                                     (desig-props:on counter-top)))))
-      (plan-knowledge:achieve `(plan-knowledge:loc ,object-to-put ,put-down-location))))
-  (sb-ext:gc :full t))
+      (plan-knowledge:achieve `(plan-knowledge:loc ,object-to-put ,put-down-location)))))
 
 
-(defun put-knife-from-counter-near-plate-from-table ()
+(defun put-object-from-counter-near-plate (object-type plate-obj)
+  (format t "plate = ~a~%object-type = ~a~%package = ~a~%" plate-obj object-type
+          (package-name (symbol-package object-type)))
   (sb-ext:gc :full t)
-  (unless *plate-obj*
-    (setf *plate-obj* (find-plate-on-table)))
-  (put-object-from-counter-near-plate 'btr::knife '(desig-props:right-of) *plate-obj*))
-
-(defun put-fork-from-counter-near-plate-from-table ()
-  (sb-ext:gc :full t)
-  (unless *plate-obj*
-    (setf *plate-obj* (find-plate-on-table)))
-  (put-object-from-counter-near-plate 'btr::fork '(desig-props:left-of) *plate-obj*))
-
-(defun put-mug-from-counter-near-plate-from-table ()
-  (sb-ext:gc :full t)
-  (unless *plate-obj*
-    (setf *plate-obj* (find-plate-on-table)))
-  (put-object-from-counter-near-plate 'btr::mug '(desig-props:right-of desig-props:behind)
-                                      *plate-obj*))
+  (let ((obj (find-object object-type "CounterTop205")))
+    (sb-ext:gc :full t)
+    (put-object-near-plate obj
+                           (ecase object-type
+                             (btr::fork '(desig-props:left-of))
+                             (btr::knife '(desig-props:right-of))
+                             (btr::mug '(desig-props:right-of desig-props:behind)))
+                           plate-obj)))
 
 #|
 (top-level
