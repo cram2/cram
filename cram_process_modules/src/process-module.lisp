@@ -28,7 +28,8 @@
 (in-package :cpm)
 
 (defclass process-module (abstract-process-module)
-  ((result :reader result :documentation "Result fluent")))
+  ((execute-lock :initform (sb-thread:make-mutex))
+   (result :reader result :documentation "Result fluent")))
 
 (defmethod initialize-instance :after ((process-module process-module) &key)
   (with-slots (name result) process-module
@@ -115,25 +116,28 @@
 
 (defmethod pm-execute ((pm process-module) input &key (task *current-task*))
   (with-slots ((input-fluent input)
-               status result caller) pm
-    (when (eq (value status) :running)
-      (warn "Process module ~a already processing input. Waiting for it to become free."
-            pm)
-      (wait-for (not (eq status :running))))    
+               status result caller
+               execute-lock) pm
     (retry-after-suspension
-      (setf (value caller) task)
-      ;; Set the status to running here. Otherwise we might get a race
-      ;; condition because status is not set to running yet and the next
-      ;; wait-for returns immediately.
-      (setf (value input-fluent) input)
-      (wait-for (eq status :running))
       (unwind-protect
            (progn
+             (sb-thread:with-mutex (execute-lock)
+               (when (eq (value status) :running)
+                 (warn "Process module ~a already processing input. Waiting for it to become free."
+                       pm)
+                 (wait-for (not (eq status :running))))    
+               (setf (value caller) task)
+               (setf (value input-fluent) input)
+               ;; Wait for the input fluent to be cleared again. That indicates
+               ;; that the process module started processing it. Please note
+               ;; that waiting for the status to become :running can lead to
+               ;; race conditions if the process module immediately returns.
+               (wait-for (not input-fluent)))
              (wait-for (not (eq status :running)))
              (when (eq (value status) :failed)
-               (error (value result))))
-        (pm-cancel pm))
-      (value result))))
+               (error (value result)))
+             (value result))
+        (pm-cancel pm)))))
 
 (defmethod pm-cancel ((pm process-module))
   (setf (value (slot-value pm 'cancel)) t)
