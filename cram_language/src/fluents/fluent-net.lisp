@@ -46,19 +46,27 @@
   (funcall (slot-value fluent 'calculate-value-fun)))
 
 (defgeneric update-value (fluent)
+  (:documentation "Re-calculates the value of the fluent. This method
+  returns two values, the new value and T if the value actually
+  changed.")
   (:method ((fluent fl-net-cacheable-fluent))
-    (let ((new-value (funcall (slot-value fluent 'calculate-value-fun))))
-      (with-fluent-locked fluent
-        (setf (slot-value fluent 'value) new-value)))))
+    (with-slots (value calculate-value-fun) fluent
+      (let ((new-value (funcall calculate-value-fun)))
+        (with-fluent-locked fluent
+          (let ((value-changed (not (and (slot-boundp fluent 'value)
+                                         (eql new-value value)))))
+            (setf (slot-value fluent 'value) new-value)
+            (values new-value value-changed)))))))
 
 (defmethod value ((fluent fl-net-cacheable-fluent))
   (with-fluent-locked fluent
     (when (slot-boundp fluent 'value)
       (return-from value (slot-value fluent 'value))))
-  (update-value fluent))
+  (nth-value 0 (update-value fluent)))
 
-(defmethod pulse :before ((fluent fl-net-cacheable-fluent))
-  (update-value fluent))
+(defmethod pulse :around ((fluent fl-net-cacheable-fluent))
+  (when (nth-value 1 (update-value fluent))
+    (call-next-method)))
 
 (defmacro def-fluent-operator (&whole w name args &body body)
   "def-fluent-operator allows to define fluent operators. It creates a
@@ -104,10 +112,11 @@
                         (dolist (fluent fluents)
                           (remove-update-callback fluent fl-name)))))))))
     (let* ((fl-name (format-gensym "FN-~A" name))
+           (cachable (and (not force-no-cache)
+                          (every (rcurry #'typep 'fl-cacheable-value-mixin)
+                                 fluents)))
            (result-fluent (make-fluent
-                           :class (if (and (not force-no-cache)
-                                           (every (rcurry #'typep 'fl-cacheable-value-mixin)
-                                                  fluents))
+                           :class (if cachable
                                       'fl-net-cacheable-fluent
                                       'fl-net-fluent)
                            :name fl-name
@@ -119,6 +128,11 @@
           (register-update-callback
            fluent fl-name
            (make-fluent-callback weak-result-fluent fl-name))))
+      (when cachable
+        ;; calculate the cached value to get pulses correctly. The
+        ;; initial calculation of the cached value should not trigger
+        ;; a pulse.
+        (update-value result-fluent))
       result-fluent)))
 
 ;;; FIXME: allow arbitrary arglist, use PARSE-ORDINARY-ARGLIST,
