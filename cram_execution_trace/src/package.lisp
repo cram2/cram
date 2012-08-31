@@ -48,6 +48,8 @@
    #:*last-episode-knowledge*
    #:get-top-level-episode-knowledge
    #:register-top-level-episode-knowledge
+   #:defstore-episode-knowledge-backend
+   #:defrestore-episode-knowledge-backend
    #:episode-knowledge-zero-time
    #:episode-knowledge-max-time
    #:episode-knowledge-task-tree
