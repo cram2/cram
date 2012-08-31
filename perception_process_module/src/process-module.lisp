@@ -76,13 +76,9 @@
           (sort obj-search-functions #'> :key #'third))))
 
 (defun perceived-object->designator (desig obj)
-  (let ((new-desig (make-designator 'object
-                                    (make-new-desig-description
-                                     desig obj))))
-    (setf (slot-value new-desig 'data) obj)
-    (setf (slot-value new-desig 'timestamp) (cut:current-timestamp))
-    (setf (slot-value new-desig 'valid) t)
-    new-desig))
+  (make-effective-designator
+   desig :new-properties (make-new-desig-description desig obj)
+         :data-object obj))
 
 (defun emit-perception-event (designator)
   (cram-plan-knowledge:on-event (make-instance 'cram-plan-knowledge:object-perceived-event
@@ -94,7 +90,7 @@
   "Takes the perceived-object of the parent designator as a bias for
    perception."
   (let* ((parent-desig (current-desig desig))
-         (perceived-object (reference (newest-valid-designator parent-desig))))
+         (perceived-object (reference (newest-effective-designator parent-desig))))
     (or
      (when perceived-object
        
@@ -122,22 +118,23 @@
   processed in the order specified in this list")
 
 (def-process-module perception (input)
-  (assert (typep input 'object-designator))
-  (ros-info (perception process-module) "Searching for object ~a" input)
-  (let* ((newest-valid (newest-valid-designator input))
-         (result
-          (some (lambda (role)
-                  (let ((*perception-role* role))
-                    (if newest-valid
-                        ;; Designator that has alrady been equated to
-                        ;; one with bound to a perceived-object
-                        (find-with-parent-desig newest-valid)
-                        (find-with-new-desig input))))
-                *known-roles*)))
-    (unless result
-      (fail 'object-not-found :object-desig input))
-    (ros-info (perception process-module) "Found objects: ~a" result)
-    result))
+  (assert (typep input 'action-designator))
+  (let ((object-designator (reference input)))
+    (ros-info (perception process-module) "Searching for object ~a" object-designator)
+    (let* ((newest-effective (newest-effective-designator object-designator))
+           (result
+             (some (lambda (role)
+                     (let ((*perception-role* role))
+                       (if newest-effective
+                           ;; Designator that has alrady been equated to
+                           ;; one with bound to a perceived-object
+                           (find-with-parent-desig newest-effective)
+                           (find-with-new-desig object-designator))))
+                   *known-roles*)))
+      (unless result
+        (fail 'object-not-found :object-desig object-designator))
+      (ros-info (perception process-module) "Found objects: ~a" result)
+      result)))
 
 (defun make-handled-object-designator (&key object-type
                                             object-pose

@@ -1,5 +1,4 @@
-;;;
-;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -10,9 +9,10 @@
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
-;;;     * Neither the name of Willow Garage, Inc. nor the names of its
-;;;       contributors may be used to endorse or promote products derived from
-;;;       this software without specific prior written permission.
+;;;     * Neither the name of the Intelligent Autonomous Systems Group/
+;;;       Technische Universitaet Muenchen nor the names of its contributors 
+;;;       may be used to endorse or promote products derived from this software 
+;;;       without specific prior written permission.
 ;;; 
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -25,31 +25,19 @@
 ;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
-;;;
 
-(in-package :plan-lib)
+(in-package :perception-pm)
 
-(def-goal (achieve (loc Robot ?loc))
-  (ros-info (achieve plan-lib) "Driving to location ~a." ?loc)
-  (unless (reference ?loc)
-    (fail "Location designator invalid."))
-  (when (> (distance-to-drive ?loc) 1.5)
-    (ros-info (achieve plan-lib) "Distance to drive: ~a, parking arms.~%"
-              (distance-to-drive ?loc))
-    (achieve `(looking-at :forward))
-    (achieve '(arms-parked)))
-  (with-designators ((navigation-action (action `((type navigation) (goal ,?loc)))))
-    (perform navigation-action)))
+(def-fact-group process-module (matching-process-module available-process-module)
 
-(def-goal (achieve (loc ?obj ?loc))
-  (ros-info (achieve plan-lib) "(achieve (loc ?obj ?loc)")
-  (ros-info (achieve plan-lib) "?obj `~a' ?loc `~a'" (description ?obj) (description ?loc))
-  (unless (perceive-state `(loc ,?obj ,?loc))
-    (let ((retry-count 0))
-      (with-failure-handling
-          ((object-lost (f)
-             (declare (ignore f))
-             (when (< (incf retry-count) 3)
-               (retry))))
-        (achieve `(object-in-hand ,?obj))
-        (achieve `(object-placed-at ,?obj ,?loc))))))
+  (<- (matching-process-module ?designator perception)
+    (obj-desig? ?designator))
+
+  (<- (available-process-module perception)
+    (symbol-value cram-projection:*projection-environment* nil)))
+
+(def-fact-group perception-action-designator (action-desig)
+
+  (<- (action-desig ?designator ?object)
+    (desig-prop ?desig (to perceive))
+    (desig-prop ?desig (obj ?object))))

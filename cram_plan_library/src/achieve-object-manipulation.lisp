@@ -50,7 +50,7 @@
         (ros-info (achieve plan-lib) "Grasping")
         (at-location (pick-up-loc)
           (achieve `(looking-at ,(reference (make-designator 'location `((of ,?obj))))))
-          (achieve `(arms-at ,grasp-trajectory))))
+          (perform grasp-trajectory)))
       (with-failure-handling
           ((manipulation-pose-unreachable (f)
              (declare (ignore f))
@@ -58,8 +58,8 @@
              (do-retry carry-retry-count
                (retry))
              (return)))
-        (achieve `(arms-at ,lift-trajectory))
-        (achieve `(arms-at ,carry-trajectory)))))
+        (perform lift-trajectory)
+        (perform carry-trajectory))))
   ?obj)
 
 (def-goal (achieve (object-placed-at ?obj ?loc))
@@ -98,12 +98,10 @@
                     put-down-loc (next-different-location-solution put-down-loc)))))
             (at-location (put-down-loc)
               (achieve `(looking-at ,(reference ?loc)))
-              (achieve `(arms-at ,put-down-trajectory))))
-          (achieve `(arms-at ,park-trajectory)))))))
+              (perform put-down-trajectory)))
+          (perform park-trajectory))))))
 
 (def-goal (achieve (arms-parked))
   (with-designators ((parking (action `((type trajectory) (pose parked)))))
-    (achieve `(arms-at ,parking))))
+    (perform parking)))
 
-(def-goal (achieve (arms-at ?traj))
-  (pm-execute :manipulation ?traj))

@@ -63,3 +63,12 @@
   (when (holds occasion)
     (ros-info (achieve plan-lib) "Occasion `~a' already achieved." occasion)
     (return nil)))
+
+(declare-goal perform (action-designator)
+  "Performs the action defined by `action-designator'. This goal
+  infers which process module to use and calls pm-execute in it."
+  (declare (ignore action-designator)))
+
+(declare-goal perform-on-process-module (module action-designator)
+  "Sends `action-designator' to the process module name `module'."
+  (declare (ignore module action-designator)))

@@ -63,4 +63,5 @@
                            "goal-declarations"
                            "at-location"
                            "utilities"))
+             (:file "perform" :depends-on ("package" "goal-declarations"))
              (:file "utilities" :depends-on ("package"))))))

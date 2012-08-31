@@ -98,7 +98,9 @@
            #:event-object-designator #:object-designator
            #:perception-source #:object #:event-object
            #:link #:event-link #:side #:event-side
-           #:holds #:opening-distance)
+           #:holds #:opening-distance
+           #:matching-process-module #:available-process-module
+           #:matching-process-module-names)
   (:import-from #:cpl-impl
                 #:make-fluent
                 #:value

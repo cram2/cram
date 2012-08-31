@@ -26,23 +26,35 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :semantic-map-cache)
+(in-package :cram-plan-knowledge)
 
-(defvar *semantic-map* nil)
+;;; This file contains a (empty) definitions of Prolog predicates to
+;;; reason about which process modules should and can be used to
+;;; execute a specific action designator
+;;;
+;;; The predicate MATCHING-PROCESS-MODULE allows for inferring which
+;;; process modules are suitable for executing an action designator,
+;;; i.e. it should bind the name of the process module that can
+;;; execute ?action-designator.
+;;;
+;;; The predicate AVAILABLE-PROCESS-MODULE holds for all process
+;;; modules that are currently available. When projecting, it should
+;;; only hold for the projection process modules of the current
+;;; projection environment.
 
-;; (cram-projection:define-special-projection-variable
-;;     *semantic-map* (sem-map-utils:copy-semantic-map-object
-;;                     (get-semantic-map)))
+(def-fact-group process-modules (matching-process-module available-process-module)
 
-(defun get-semantic-map ()
-  (or *semantic-map*
-      (setf *semantic-map* (sem-map-utils:get-semantic-map))))
+  (<- (matching-process-module ?action-designator ?process-module-name)
+    (fail))
 
-(defmethod on-event manipulation-articulation-event ((event object-articulation-event))
-  (format t "semantic-map: ~a~%" (get-semantic-map))
-  (with-slots (object-designator opening-distance) event
-    (let ((perceived-object (desig:reference (desig:newest-effective-designator
-                                              object-designator))))
-      (sem-map-utils:update-articulated-object-poses
-       (get-semantic-map)
-       (desig:object-identifier perceived-object) opening-distance))))
+  (<- (available-process-module ?process-name)
+    (fail)))
+
+(defun matching-process-module-names (action-designator)
+  (force-ll
+   (lazy-mapcar (lambda (bindings)
+                  (var-value '?process-module-name bindings))
+                (prolog `(and
+                          (matching-process-module
+                           ,action-designator ?process-module-name)
+                          (available-process-module ?process-module-name))))))
