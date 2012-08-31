@@ -35,3 +35,4 @@
     (obj-subtype ?tmp ?b))
   (<- (obj-direct-subtype object cluster))
   (<- (obj-direct-subtype cluster ?x)))
+

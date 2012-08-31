@@ -43,6 +43,8 @@
   (:nicknames :plan-lib)
   (:shadowing-import-from #:desig #:name)
   (:export #:achieve
+           #:perform
+           #:perform-on-process-module
            #:loc
            #:object-in-hand
            #:object-placed-at
@@ -68,5 +70,5 @@
   (:desig-properties #:to #:see #:obj #:of #:reach :type #:trajectory #:pose #:open #:side
                      #:grasp #:lift #:carry :reach #:location #:at #:parked #:pose #:close
                      #:gripper #:follow #:pick-up #:put-down #:height #:orientation #:in
-                     #:obstacle #:cluster #:execute #:action #:goal #:navigation))
+                     #:perceive #:obstacle #:cluster #:execute #:action #:goal #:navigation))
 

@@ -52,7 +52,8 @@
                cram-plan-failures
                cl-semantic-map-utils
                handle_detection-msg
-               ias_perception_actions-msg)
+               ias_perception_actions-msg
+               cram-projection)
   :components
   ((:module "src"
             :components
@@ -60,6 +61,7 @@
              (:file "object-belief"
                     :depends-on ("package" "facts"))
              (:file "facts" :depends-on ("package"))
+             (:file "action-designator" :depends-on ("package"))
              (:file "process-module"
                     :depends-on ("object-belief" "package"))
              (:module "cop"
