@@ -111,4 +111,12 @@
     (bullet-world ?world)
     (object ?world ?obj-name)
     (or (household-object-type ?world ?obj-name knife)
-        (household-object-type ?world ?obj-name fork))))
+        (household-object-type ?world ?obj-name fork)))
+
+  ;; table setting related
+  (<- (paddings-list kitchen-island table-setting (0.05d0 0.05d0 0.05d0 0.8d0)))
+  (<- (preferred-supporting-object-side kitchen-island table-setting :-))
+  (<- (max-slot-size btr::plate table-setting 0.8d0))
+    ;; (household-object-type ?world ?_ ?object-type)
+  (<- (min-slot-size btr::plate table-setting 0.5d0))
+  (<- (position-deviation-threshold btr::plate table-setting 0.05d0)))

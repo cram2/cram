@@ -62,7 +62,7 @@
                                (assert (joint-state ?w ?robot (("torso_lift_joint" 0.33))))
 
                                ;; (assert (object ?w mesh pot-1
-                               ;;                 ((-2.15 3.44 0.945) (0 0 0 1)) ; y = 2.14
+                               ;;                 ((-2.15 2.14 0.945) (0 0 0 1)) ; y = 2.14
                                ;;                 :mesh pot :mass 0.2))
                                ;; (assert (object ?w mesh bowl-1 ((1.2 2 2.0) (0 0 0 1))
                                ;;                 :mesh bowl :mass 0.2))
@@ -180,7 +180,7 @@
                         (assign-object-pos mug-4 ,des-for-mug-4)))))))
 
 
-(defun put-n-sets-on-table (n)
+(defun put-n-sets-on-table (&optional (n 1))
   (loop for i from 1 to n do
     (put-nth-set-on-counter :n i)
     (let ((plate (put-plate-from-counter-on-table)))
@@ -207,10 +207,20 @@
   (sb-ext:gc :full t)
   (let ((plate (find-object 'btr:plate "CounterTop205")))
     (sb-ext:gc :full t)
-    (put-object-from-counter-on-table plate)
+    (put-plate-from-counter-on-corresponding-place-on-table plate)
     plate))
 
-    
+(cpl-impl:def-top-level-plan put-plate-from-counter-on-corresponding-place-on-table (the-plate)
+  (cram-projection:with-projection-environment 
+      projection-process-modules::pr2-bullet-projection-environment
+    (with-designators
+        ((on-kitchen-island (desig-props:location `((desig-props:on counter-top)
+                                                    (desig-props:name kitchen-island)
+                                                    (desig-props:context table-setting)
+                                                    (desig-props:for btr::plate)
+                                                    (desig-props:object-count 4)))))
+      (plan-knowledge:achieve `(plan-knowledge:loc ,the-plate ,on-kitchen-island)))))
+
 (cpl-impl:def-top-level-plan put-object-from-counter-on-table (the-object)
   (cram-projection:with-projection-environment 
       projection-process-modules::pr2-bullet-projection-environment

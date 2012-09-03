@@ -35,6 +35,8 @@ degrees. Theoretically it is correct, but for practical use we need to make the 
 narrower. The best solutions are near smaller angles, so we put a threshold on the
 solution values.")
 
+;; TODO: add collision verification for nearly all the costmaps
+
 (defun spatial-relations-costmap-pose-validator (desig pose)
   "If desig-props:for is specified it means we generated a costmap for a specific object.
 In that case we need a costmap with specific spread angle."
