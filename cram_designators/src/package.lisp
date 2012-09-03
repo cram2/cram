@@ -39,7 +39,7 @@
                 #:timestamp)
   (:export #:designator #:timestamp #:description #:properties
            #:parent #:successor #:designator-error
-           #:*default-role* #:default-role
+           #:*default-role*
            #:effective #:data #:equate #:desig-equal #:reference
            #:next-solution #:register-designator-class
            #:make-designator #:first-desig #:current-desig

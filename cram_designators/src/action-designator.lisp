@@ -45,7 +45,7 @@
                :format-arguments (list desig)
                :designator desig))))
 
-(defmethod resolve-designator ((desig action-designator) (role (eql 'default-role)))
+(defmethod resolve-designator ((desig action-designator) (role t))
   (lazy-mapcan (lambda (bdg)
                  (let ((action-desig (var-value '?act bdg)))
                    (unless (is-var action-desig)

@@ -152,11 +152,12 @@ boolean indicating if the solution is valid or not."
             (setf (slot-value new-desig 'current-solution) (lazy-car (lazy-cdr data)))
             (equate desig new-desig))))))
 
-(defmethod resolve-designator ((desig location-designator) (role (eql 'default-role)))
-  (let* ((generators (location-resolution-function-list (remove-if (lambda (generator)
-                                                                     (member generator *disabled-location-generators*))
-                                                                   *location-generators*
-                                                                   :key #'location-resolution-function-function)))
+(defmethod resolve-designator ((desig location-designator) (role t))
+  (let* ((generators (location-resolution-function-list
+                      (remove-if (lambda (generator)
+                                   (member generator *disabled-location-generators*))
+                                 *location-generators*
+                                 :key #'location-resolution-function-function)))
          (solutions (lazy-mapcan (lambda (fun)
                                    (funcall fun desig))
                                  generators)))
