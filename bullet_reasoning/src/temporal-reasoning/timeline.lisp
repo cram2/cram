@@ -56,7 +56,7 @@
   (:method ((timeline timeline) (event event))
     (with-slots (events last-event) timeline
       (when (car last-event)
-        (assert (< (timestamp (car last-event)) (timestamp event)) ()
+        (assert (<= (timestamp (car last-event)) (timestamp event)) ()
                 "Cannot advance a timeline with an event before the last event on the timeline"))
       (let ((new-entry (cons event nil)))
         (if last-event
