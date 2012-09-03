@@ -30,11 +30,18 @@
 
 (defvar *last-timeline* nil)
 
+(defmethod desig:resolve-designator :around (designator (role (eql 'projection-role)))
+  (with-partially-ordered-clock-disabled *projection-clock*
+    (call-next-method)))
+
 (define-projection-environment pr2-bullet-projection-environment
   :special-variable-initializers
   ((cram-roslisp-common:*tf* (make-instance 'tf:transformer))
    ;; (*current-bullet-world* (bt:copy-world *current-bullet-world*))
-   (*current-timeline* (btr:timeline-init *current-bullet-world*)))
+   (*current-timeline* (btr:timeline-init *current-bullet-world*))
+   (desig:*default-role* 'projection-role)
+   (*projection-clock* (make-instance 'partially-ordered-clock))
+   (cut:*timestamp-function* #'projection-timestamp-function))
   :process-module-definitions
   (projection-perception projection-ptu projection-manipulation projection-navigation)
   :startup (update-tf)
