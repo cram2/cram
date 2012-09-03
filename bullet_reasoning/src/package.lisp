@@ -86,8 +86,7 @@
            robot-pre-grasp-joint-states end-effector-parking-pose
            camera-minimal-height camera-maximal-height
 
-           event apply-event def-event
-           timeline timeline-init timeline-advance
+           event make-event timeline timeline-init timeline-advance
            timeline-current-world-state timeline-lookup
            holds-in-world holds occurs at
            during throughout))

@@ -40,38 +40,12 @@
               :documentation "The time stamp indicating when the event
               occurred")))
 
-(defgeneric apply-event (world event-pattern &optional timestamp)
-  (:documentation "Executes the event that matches `event-pattern'
-  `world' and returns the new world instance.")
+(defgeneric make-event (world event-pattern &optional timestamp)
+  (:documentation "Creates a new event described by `event-pattern' in
+  `world' and returns the event instance. Please not that this does
+  perform any changes in `world'.")
   (:method ((world bt-reasoning-world) event-pattern
             &optional (timestamp (cut:current-timestamp)))
-    (unless (prolog `(event ,event-pattern))
-      (error 'simple-error :format-control "Failed to apply event `~a'"
-                           :format-arguments (list event-pattern)))
     (make-instance 'event
       :event event-pattern :world-state (get-state *current-bullet-world*)
       :timestamp timestamp)))
-
-(defun make-event-name-from-pat (event-pattern)
-  "Returns a symbol representing the `event-pattern'. It constructs a
-  symbol by concatenating all symbols in `event-pattern' and
-  separating them by a dash."
-  (etypecase event-pattern
-    (symbol event-pattern)
-    (list
-       (assert (every #'symbolp event-pattern) ()
-               "event-pattern ~a invalid. It must contain only symbols"
-               event-pattern)
-       (intern
-        (reduce (lambda (prev curr)
-                  (concatenate 'string prev "-" (symbol-name curr)))
-                (cdr event-pattern) :initial-value (symbol-name (car event-pattern)))))))
-
-(defmacro def-event (event-pattern &body body)
-  (let ((fact-group-name (intern
-                          (concatenate
-                           'string "EVENT-"
-                           (symbol-name (make-event-name-from-pat event-pattern))))))
-    `(def-fact-group ,fact-group-name (event)
-       (<- (event ,event-pattern)
-         ,@body))))
