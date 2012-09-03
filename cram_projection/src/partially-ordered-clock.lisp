@@ -107,6 +107,14 @@
 (defun step-clock (clock)
   (with-slots (time lock wait-queue increment-delay)
       clock
+    ;; Waiting for enabled twice here seems weird but we want to sleep
+    ;; only after we are actually enabled. However, since we cannot
+    ;; release the lock, sleep and re-acquire it as condition-wait
+    ;; does it, we cannot do the wait-for while holding the lock. But
+    ;; we also must not update the time when being disabled. That's
+    ;; why we first wait for enabled, sleep, wait again, this time
+    ;; inside the lock and then update the time.
+    (wait-for-enabled clock)    
     (cpl:sleep increment-delay)
     (sb-thread:with-mutex (lock)
       (wait-for-enabled clock)
