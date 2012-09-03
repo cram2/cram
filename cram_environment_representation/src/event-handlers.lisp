@@ -28,11 +28,6 @@
 
 (in-package :cram-environment-representation)
 
-(def-event (pick-up ?object ?side))
-(def-event (put-down ?object ?location))
-(def-event (location-change ?object))
-(def-event (object-perceived ?object))
-
 (defmethod on-event attach-objects ((event object-attached))
   (let* ((robot (get-robot-object))
          (current-event-object (desig:current-desig (event-object event)))
@@ -59,7 +54,7 @@
                `((pose ,(object-pose-in-frame object "base_footprint"))))))))
     (timeline-advance
      *current-timeline*
-     (apply-event
+     (make-event
       *current-bullet-world*
       `(pick-up ,(event-object event) ,(event-side event))))))
 
@@ -74,12 +69,12 @@
                               (event-object event)))))
     (timeline-advance
      *current-timeline*
-     (apply-event
+     (make-event
       *current-bullet-world*
       `(put-down ,(event-object event) ,(event-side event))))
     (timeline-advance
      *current-timeline*
-     (apply-event
+     (make-event
       *current-bullet-world*
       `(location-change ,(event-object event))))))
 
@@ -90,7 +85,7 @@
         (set-robot-state-from-tf cram-roslisp-common:*tf* robot))))
   (timeline-advance
    *current-timeline*
-   (apply-event
+   (make-event
     *current-bullet-world*
     `(location-change robot))))
 
