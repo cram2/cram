@@ -35,4 +35,6 @@
   ((:module "tests"
     :components
     ((:file "package")
-     (:file "projection-environment-test" :depends-on ("package"))))))
+     (:file "projection-environment-test" :depends-on ("package"))
+     (:file "linear-clock-test" :depends-on ("package"))
+     (:file "partially-ordered-clock-test" :depends-on ("package"))))))

@@ -26,19 +26,10 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-projection
-  :author "Lorenz Moesenlechner"
-  :license "BSD"
-  :description "Support for setting up the environment for plan projection."
-  :depends-on (alexandria
-               cram-language
-               cram-utilities
-               process-modules)
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "projection-environment" :depends-on ("package"))
-     (:file "projection-clock" :depends-on ("package"))
-     (:file "linear-clock" :depends-on ("package" "projection-clock"))
-     (:file "partially-ordered-clock" :depends-on ("package" "projection-clock"))))))
+(defgeneric clock-time (clock)
+  (:documentation "Returns the current time of `clock'."))
+
+(defgeneric clock-wait (clock duration)
+  (:documentation "Waits for `duration' using `clock'. After the call,
+  a call to CLOCK-TIME must return a value >= `duration' compared to
+  CLOCK-TIME before the call to CLOCK-WAIT."))
