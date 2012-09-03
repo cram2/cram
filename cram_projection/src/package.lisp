@@ -32,4 +32,8 @@
   (:use #:common-lisp)
   (:export define-projection-environment
            define-special-projection-variable
-           with-projection-environment *projection-environment*))
+           with-projection-environment *projection-environment*
+           clock-time clock-wait
+           linear-clock partially-ordered-clock
+           partially-ordered-clock-enabled
+           with-partially-ordered-clock-disabled))

@@ -26,19 +26,17 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-projection
-  :author "Lorenz Moesenlechner"
-  :license "BSD"
-  :description "Support for setting up the environment for plan projection."
-  :depends-on (alexandria
-               cram-language
-               cram-utilities
-               process-modules)
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "projection-environment" :depends-on ("package"))
-     (:file "projection-clock" :depends-on ("package"))
-     (:file "linear-clock" :depends-on ("package" "projection-clock"))
-     (:file "partially-ordered-clock" :depends-on ("package" "projection-clock"))))))
+(in-package :cram-projection)
+
+(defclass linear-clock ()
+  ((time :initarg :initial-time :initform 0 :reader clock-time)
+   (lock :initform (sb-thread:make-mutex))))
+
+(defmethod clock-wait ((clock linear-clock) duration)
+  "Implements the simplest possible clock. CLOCK-WAIT just increment's
+the clock's internal time by `duration' and returns immediately. This
+does not allow for reasoning about parallel processes with duration."
+  (declare (type number duration))
+  (with-slots (time lock) clock
+    (sb-thread:with-mutex (lock)
+      (incf time duration))))

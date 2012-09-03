@@ -26,19 +26,12 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-projection
-  :author "Lorenz Moesenlechner"
-  :license "BSD"
-  :description "Support for setting up the environment for plan projection."
-  :depends-on (alexandria
-               cram-language
-               cram-utilities
-               process-modules)
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "projection-environment" :depends-on ("package"))
-     (:file "projection-clock" :depends-on ("package"))
-     (:file "linear-clock" :depends-on ("package" "projection-clock"))
-     (:file "partially-ordered-clock" :depends-on ("package" "projection-clock"))))))
+(in-package :cram-projection-tests)
+
+(define-test linear-clock.clock-wait-increments-correctly
+  (let ((clock (make-instance 'linear-clock))
+        (duration 10))
+    (let ((start-time (clock-time clock)))
+      (clock-wait clock duration)
+      (assert-equality #'< start-time (clock-time clock))
+      (assert-equality #'>= (clock-time clock) (+ start-time duration)))))
