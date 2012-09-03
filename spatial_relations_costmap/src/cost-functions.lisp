@@ -129,6 +129,7 @@
 ;; TODO: maybe include bb into deciding not just the pose and ratio
 (defun get-closest-edge (obj-pose supp-obj-pose supp-obj-dims)
   "The supp-obj is supposed to be rectangular and have 4 edges
+(as if rectangles have more edges :))
 with y axis looking to the left and x - to the back.
 `obj-pose' should be in the world frame.
 The function returns one of the following keys: :front, :back, :left, :right."
@@ -277,3 +278,88 @@ otherwise it will be defined by (x, y)."
       (setf supp-angle (- (* 2 pi) supp-angle)))
     ;; (format t "edge = ~a~%angle = ~a~%" edge (/ (* (+ supp-angle angle-in-supp) 180) pi))
     (+ supp-angle angle-in-supp)))
+
+
+(defun make-slot-cost-function (supp-object paddings-list
+                                preferred-supporting-object-side object-count
+                                max-slot-size min-slot-size position-deviation-threshold)
+  "`preferred-supporting-object-size' is either :+ or :-.
+`paddings-list' is of format '(padd-left padd-right padd-front padd-back).
+The `supp-object' is supposed to be rectangular with y axis looking to the left
+and x - to the back.
+TODO: the rest."
+  (declare (type sem-map-utils::semantic-map-part supp-object)
+           (type list paddings-list)
+           (type keyword preferred-supporting-object-side)
+           (type integer object-count)
+           (type real max-slot-size min-slot-size position-deviation-threshold))
+  (flet ((calculate-points (distance point-count longer-side-axis coord-on-other-axis)
+           (let ((next-coord (* (/ (1- point-count) 2) distance))
+                 (resulting-points nil))
+             (dotimes (whatever point-count resulting-points)
+               (cond
+                 ((eql longer-side-axis #'cl-transforms:x)
+                  (setf resulting-points (cons (list next-coord coord-on-other-axis)
+                                               resulting-points)))
+                 ((eql longer-side-axis #'cl-transforms:y)
+                  (setf resulting-points (cons (list coord-on-other-axis next-coord)
+                                               resulting-points))))
+               (setf next-coord (- next-coord distance)))))) 
+    (let* ((supp-obj-dims (cl-transforms:v-
+                           (sem-map-utils:dimensions supp-object)
+                           (cl-transforms:make-3d-vector (+ (third paddings-list)
+                                                            (fourth paddings-list))
+                                                         (+ (first paddings-list)
+                                                            (second paddings-list)) 
+                                                         0.0d0)))
+           ;; we need the inverse transform of the origin of the center of padded region
+           (transform-for-padding (cl-transforms:make-transform
+                                   (cl-transforms:make-3d-vector
+                                    (/ (- (fourth paddings-list) (third paddings-list)) 2)
+                                    (/ (- (first paddings-list) (second paddings-list)) 2)
+                                    0)
+                                   (cl-transforms:make-identity-rotation)))
+           (longer-side-axis #'cl-transforms:x)
+           (shorter-side-axis #'cl-transforms:y)
+           (longer-side-length nil)
+           (max-possible-object-count nil)) 
+      (when (> (cl-transforms:y supp-obj-dims) (cl-transforms:x supp-obj-dims))
+        (setf longer-side-axis #'cl-transforms:y)
+        (setf shorter-side-axis #'cl-transforms:x))
+      (setf longer-side-length (funcall longer-side-axis supp-obj-dims))
+      (setf max-possible-object-count (* (floor longer-side-length min-slot-size) 2))
+      (when (> object-count max-possible-object-count)
+        (setf object-count max-possible-object-count))
+      (let* ((object-count-on-preferred-side (ceiling object-count 2))
+            (object-count-on-other-side (floor object-count 2))
+            (coord-on-other-axis (/ (funcall shorter-side-axis supp-obj-dims) 4.0))
+            (distance (/ longer-side-length object-count-on-preferred-side)))
+        (when (> distance max-slot-size)
+          (setf distance max-slot-size))
+        (ecase preferred-supporting-object-side
+          (:+ nil)
+          (:- (setf coord-on-other-axis (- coord-on-other-axis))))
+        (let* ((placement-points (concatenate 'list
+                                            (calculate-points distance object-count-on-preferred-side
+                                                              longer-side-axis coord-on-other-axis)
+                                            (calculate-points distance object-count-on-other-side
+                                                              longer-side-axis (- coord-on-other-axis))))
+               (supp-obj-pose (sem-map-utils:pose supp-object))
+               (transform (cl-transforms:pose->transform supp-obj-pose))
+               (world->supp-trans (cl-transforms:transform-inv transform)))
+          (lambda (x y)
+            (let* ((point (cl-transforms:transform-point
+                           transform-for-padding
+                           (cl-transforms:transform-point world->supp-trans
+                                                          (cl-transforms:make-3d-vector x y 0))))
+                   (min-dist (reduce #'min (mapcar (lambda (x-and-y)
+                                                     (sqrt (+ (expt (- (cl-transforms:x point)
+                                                                       (first x-and-y))
+                                                                    2)
+                                                              (expt (- (cl-transforms:y point)
+                                                                       (second x-and-y))
+                                                                    2))))
+                                                   placement-points)))) 
+              (if (<= min-dist position-deviation-threshold)
+                  1.0
+                  0.0))))))))

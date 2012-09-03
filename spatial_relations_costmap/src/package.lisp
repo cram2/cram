@@ -35,5 +35,6 @@
           )
   (:shadowing-import-from #:btr object pose object-pose width height)
   (:desig-properties #:left-of #:right-of #:in-front-of #:behind #:obj #:for
-                     #:near #:far-from))
+                     #:near #:far-from
+                     #:on #:name #:context #:object-count))
 

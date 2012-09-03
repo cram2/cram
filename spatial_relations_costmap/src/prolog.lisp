@@ -29,6 +29,7 @@
 (in-package :spatial-relations-costmap)
 
 (defmethod costmap-generator-name->score ((name (eql 'supporting-object))) 2)
+(defmethod costmap-generator-name->score ((name (eql 'slot-generator))) 5)
 (defmethod costmap-generator-name->score ((name (eql 'left-of-axis))) 8)
 (defmethod costmap-generator-name->score ((name (eql 'collision))) 6)
 
@@ -102,7 +103,7 @@
 
   ;; TODO pred is too long!
   ;; uses make-potential-field-cost-function to resolve the designator
-  ;; TODO fix such that would work without FOR!!!
+  ;; TODO fix such that would work without FOR
   (<- (potential-field-costmap ?designator ?object ?relation ?costmap)
     (desig-location-prop ?object ?reference-pose)
     (lisp-fun get-y-of-pose ?reference-pose ?y-of-pose)
@@ -123,6 +124,7 @@
     ;; The axis of the potential field depends on to which side of supporting object
     ;; the reference object is the closest
     (lisp-fun get-closest-edge ?reference-pose ?supp-obj-pose ?supp-obj-dims ?edge)
+    (format "edge: ~a~%" ?edge)
     (relation-axis-and-pred ?edge ?relation ?axis ?pred)
     (instance-of field-generator ?field-generator-id)
     (costmap-add-function
@@ -189,7 +191,6 @@
                                       :sample-step ?samples-step)
           ?costmap))
         (true)))
-
   
   ;; left-of for bullet objects using potential field cost-function
   (<- (desig-costmap ?designator ?costmap)
@@ -269,7 +270,36 @@
   ;;   (lisp-fun / ?obj-size 2 ?obj-size/2)
   ;;   (lisp-fun + ?obj-size/2 ?padding ?overall-padding)
   ;;   (collision-invert-costmap ?desig ?objs ?overall-padding ?cm)))
-)
+
+
+  ;; for plates on table
+  ;; '((on counter-top) (name kitchen-island)
+  ;;   (context table-setting) (for plate) (object-count 4))
+  (<- (desig-costmap ?designator ?costmap)
+    (desig-prop ?designator (on ?_))
+    (desig-prop ?designator (name ?supp-obj-name)) 
+    (desig-prop ?designator (context table-setting))
+    (desig-prop ?designator (for ?object-type))
+    (desig-prop ?designator (object-count ?object-count)) 
+    ;;
+    (lisp-fun sem-map-utils:designator->semantic-map-objects
+              ?designator ?supp-objects)
+    (member ?supp-object ?supp-objects) 
+    ;;
+    (paddings-list ?supp-obj-name table-setting ?paddings-list)
+    (preferred-supporting-object-side ?supp-obj-name table-setting ?preferred-side) 
+    (max-slot-size ?object-type table-setting ?max-slot-size)
+    (min-slot-size ?object-type table-setting ?min-slot-size)
+    (position-deviation-threshold ?object-type table-setting ?pos-dev-threshold) 
+    ;;
+    (costmap ?costmap)
+    (costmap-add-function
+     slot-generator
+     (make-slot-cost-function ?supp-object ?paddings-list ?preferred-side
+                              ?object-count ?max-slot-size ?min-slot-size
+                              ?pos-dev-threshold)
+     ?costmap)))
+
 
 (def-fact-group relations-lookup-table ()
   (<- (relation-axis-and-pred :front left-of :Y >))
