@@ -26,6 +26,8 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
+(in-package :cram-projection)
+
 (defgeneric clock-time (clock)
   (:documentation "Returns the current time of `clock'."))
 
