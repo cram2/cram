@@ -47,7 +47,7 @@
   (with-slots (data) desig
     (or data (setf data (resolve-designator desig role)))))
 
-(defmethod resolve-designator ((desig object-designator) (role (eql 'default-role)))
+(defmethod resolve-designator ((desig object-designator) (role t))
   ;; Object designators are somehow special because the REFERENCE
   ;; method cannot generate a new reference. The reason is that
   ;; the robot needs to interact with the environment to reference

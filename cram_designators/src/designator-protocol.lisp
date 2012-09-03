@@ -36,8 +36,8 @@
 
 (in-package :desig)
 
-(defvar *default-role* 'default-role
-  "Defines the default role to be used to resolve designators")
+(defvar *default-role* nil
+  "Defines the default role to be used to resolve designators.")
 
 (defvar *designators* (tg:make-weak-hash-table :weakness :key)
   "Weak hash table that contains all currently valid designators as
