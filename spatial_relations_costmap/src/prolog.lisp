@@ -124,7 +124,7 @@
     ;; The axis of the potential field depends on to which side of supporting object
     ;; the reference object is the closest
     (lisp-fun get-closest-edge ?reference-pose ?supp-obj-pose ?supp-obj-dims ?edge)
-    (format "edge: ~a~%" ?edge)
+    ;; (format "edge: ~a~%" ?edge)
     (relation-axis-and-pred ?edge ?relation ?axis ?pred)
     (instance-of field-generator ?field-generator-id)
     (costmap-add-function
@@ -248,7 +248,8 @@
                       ?for-obj-size ?for-padding ?costmap)
         (far-from-costmap ?designator ?ref-obj-pose ?ref-obj-size ?ref-padding
                       ?for-obj-size ?for-padding ?costmap)))
-  
+
+  ;; TODO: move collision stuff into unused code
   ;; ;; collision avoidance costmap for the spatial relations desigs
   ;; (<- (desig-costmap ?desig ?cm)
   ;;   (or
@@ -279,9 +280,12 @@
     (desig-prop ?designator (on ?_))
     (desig-prop ?designator (name ?supp-obj-name)) 
     (desig-prop ?designator (context table-setting))
-    (desig-prop ?designator (for ?object-type))
+    (desig-prop ?designator (for ?for-object))
     (desig-prop ?designator (object-count ?object-count)) 
     ;;
+    (bullet-world ?world)
+    (object-instance-name ?for-object ?object-name)
+    (household-object-type ?world ?object-name ?object-type) 
     (lisp-fun sem-map-utils:designator->semantic-map-objects
               ?designator ?supp-objects)
     (member ?supp-object ?supp-objects) 
@@ -298,7 +302,20 @@
      (make-slot-cost-function ?supp-object ?paddings-list ?preferred-side
                               ?object-count ?max-slot-size ?min-slot-size
                               ?pos-dev-threshold)
-     ?costmap)))
+     ?costmap))
+
+  (<- (desig-solution-not-in-collision ?desig ?object-to-check ?pose)
+    (bullet-world ?world)
+    (with-copied-world ?world
+      (object-instance-name ?object-to-check ?object-name)
+      (assert (object-pose ?world ?object-name ?pose))
+      (contact ?world ?object-name ?grrr)
+      (format "коллижн объект: ~a~%" ?grrr)
+      (object-type ?world ?other-object-name ?type)
+      (format "тип объекта: ~a~%" ?type)
+      (forall (contact ?world ?object-name ?other-object-name)
+              (not (object-type ?world ?other-object-name household-object)))
+      (format "а вот и мы :Р ~%"))))
 
 
 (def-fact-group relations-lookup-table ()
