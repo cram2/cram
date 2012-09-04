@@ -1,5 +1,4 @@
-;;;
-;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -26,26 +25,42 @@
 ;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
-;;;
 
-(in-package :btr)
+(in-package :projection-process-modules)
 
-(defclass event ()
-  ((event :initarg :event :reader event
-          :documentation "The event that is represented by this
-          class")
-   (world-state :initarg :world-state :reader event-world-state
-                :documentation "The world state after the event occurred")
-   (timestamp :initarg :timestamp :reader timestamp
-              :documentation "The time stamp indicating when the event
-              occurred")))
+(defvar *projection-clock* nil)
 
-(defgeneric make-event (world event-pattern &optional timestamp)
-  (:documentation "Creates a new event described by `event-pattern' in
-  `world' and returns the event instance. Please not that this does
-  perform any changes in `world'.")
-  (:method ((world bt-reasoning-world) event-pattern
-            &optional (timestamp (cut:current-timestamp)))
-    (make-instance 'event
-      :event event-pattern :world-state (get-state *current-bullet-world*)
-      :timestamp timestamp)))
+(crs:def-fact-group action-facts (action-duration)
+  ;; Declaration of the action-duration predicate
+  (crs:<- (action-duration ?designator ?duration)
+    (crs:fail)))
+
+(defun projection-timestamp-function ()
+  (clock-time *projection-clock*))
+
+(defun action-duration (designator &key (default 1))
+  "Returns the duration of the action as a number. Please not that no
+  unit is given. This value is mainly used for ordering events and
+  blocking until an action is terminated."
+  (cut:with-vars-bound (?duration)
+      (cut:lazy-car (crs:prolog `(action-duration ,designator ?duration)))
+    (if (cut:is-var ?duration) default ?duration)))
+
+(defun execute-as-action (designator action-function)
+  "Executes `action-function' as an action. First, it
+  generates an event for the action to be started. Then, waits for the
+  duration of the action as returned by ACTION-DURATION using
+  *PROJECTION-CLOCK*. Finally, calls `action-function' to trigger all
+  updates in the world."
+  (declare (type desig:action-designator designator)
+           (type function action-function))
+  (let ((duration (action-duration designator)))
+    (timeline-advance
+     *current-timeline*
+     (make-event *current-bullet-world* `(action-started ,designator)))
+    (clock-wait *projection-clock* duration)
+    (unwind-protect
+         (funcall action-function)
+      (timeline-advance
+       *current-timeline*
+       (make-event *current-bullet-world* `(action-finished ,designator))))))

@@ -37,7 +37,8 @@
   (:export execute-container-opened execute-container-closed
            execute-park execute-lift execute-grasp execute-put-down
            projection-navigation projection-ptu projection-perception
-           projection-manipulation pr2-bullet-projection-environment))
+           projection-manipulation pr2-bullet-projection-environment
+           action-started action-finished action-duration projection-role))
 
 (desig-props:def-desig-package projection-designators
   (:use #:common-lisp #:cram-designators #:cram-reasoning
