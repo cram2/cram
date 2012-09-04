@@ -76,10 +76,11 @@
                   (object-pose ?world ?robot ?robot-pose)
                   (trajectory-point ,action-designator ?robot-pose ?point ?side)
                   (crs:once
-                   ,(if object-name
-                        `(valid-grasp ?world ,object-name ?grasp ?sides)
-                        `(grasp ?grasp))
-                   (member ?side ?sides)
+                   ,@(if object-name
+                         `((valid-grasp ?world ,object-name ?grasp ?sides)
+                           (member ?side ?sides))
+                         `((grasp ?grasp)
+                           (cram-manipulation-knowledge:arm ?side)))
                    (%object ?world ?robot ?robot-instance)
                    (crs:-> (crs:lisp-type ?point cl-transforms:3d-vector)
                            (crs:lisp-fun reach-point-ik ?robot-instance ?point
