@@ -1,4 +1,4 @@
-;;; Copyright (c) 2011, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -28,19 +28,39 @@
 
 (in-package :projection-process-modules)
 
-(def-process-module projection-ptu (input)
-  (let* ((designator-solution (desig:reference input))
-         (pose (etypecase designator-solution
-                 (tf:pose-stamped designator-solution)
-                 (desig:location-designator (desig:reference designator-solution)))))
-    (execute-as-action
-     input
-     (lambda ()
-       (let ((pose (tf:transform-pose *tf* :pose pose :target-frame "map")))
-         (assert
-          (crs:prolog `(and
-                        (bullet-world ?world)
-                        (robot ?robot)
-                        (head-pointing-at ?world ?robot ,pose)))))
-       (cram-plan-knowledge:on-event
-        (make-instance 'cram-plan-knowledge:robot-state-changed))))))
+(defvar *projection-clock* nil)
+
+(crs:def-fact-group action-facts (action-duration)
+  ;; Declaration of the action-duration predicate
+  (crs:<- (action-duration ?designator ?duration)
+    (crs:fail)))
+
+(defun projection-timestamp-function ()
+  (clock-time *projection-clock*))
+
+(defun action-duration (designator &key (default 1))
+  "Returns the duration of the action as a number. Please not that no
+  unit is given. This value is mainly used for ordering events and
+  blocking until an action is terminated."
+  (cut:with-vars-bound (?duration)
+      (cut:lazy-car (crs:prolog `(action-duration ,designator ?duration)))
+    (if (cut:is-var ?duration) default ?duration)))
+
+(defun execute-as-action (designator action-function)
+  "Executes `action-function' as an action. First, it
+  generates an event for the action to be started. Then, waits for the
+  duration of the action as returned by ACTION-DURATION using
+  *PROJECTION-CLOCK*. Finally, calls `action-function' to trigger all
+  updates in the world."
+  (declare (type desig:action-designator designator)
+           (type function action-function))
+  (let ((duration (action-duration designator)))
+    (timeline-advance
+     *current-timeline*
+     (make-event *current-bullet-world* `(action-started ,designator)))
+    (clock-wait *projection-clock* duration)
+    (unwind-protect
+         (funcall action-function)
+      (timeline-advance
+       *current-timeline*
+       (make-event *current-bullet-world* `(action-finished ,designator))))))

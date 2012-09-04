@@ -76,10 +76,11 @@
                   (object-pose ?world ?robot ?robot-pose)
                   (trajectory-point ,action-designator ?robot-pose ?point ?side)
                   (crs:once
-                   ,(if object-name
-                        `(valid-grasp ?world ,object-name ?grasp ?sides)
-                        `(grasp ?grasp))
-                   (member ?side ?sides)
+                   ,@(if object-name
+                         `((valid-grasp ?world ,object-name ?grasp ?sides)
+                           (member ?side ?sides))
+                         `((grasp ?grasp)
+                           (cram-manipulation-knowledge:arm ?side)))
                    (%object ?world ?robot ?robot-instance)
                    (crs:-> (crs:lisp-type ?point cl-transforms:3d-vector)
                            (crs:lisp-fun reach-point-ik ?robot-instance ?point
@@ -189,7 +190,9 @@
              (let ((object-in-hand (assoc side objects-in-hand)))
                (if object-in-hand
                    (apply #'carry-with-one-hand object-in-hand)
-                   (park side))))))))
+                   (park side))))))
+    (cram-plan-knowledge:on-event
+     (make-instance 'cram-plan-knowledge:robot-state-changed))))
 
 (defun execute-lift (designator)
   (or
@@ -223,5 +226,6 @@
      (cpl-impl:fail 'cram-plan-failures:manipulation-pose-unreachable))))
 
 (def-process-module projection-manipulation (input)
-  (let ((action (desig:reference input 'projection-designators:projection-role)))
-    (apply (symbol-function (car action)) (cdr action))))
+  (let ((action (desig:reference input)))
+    (execute-as-action
+     input (lambda () (apply (symbol-function (car action)) (cdr action))))))
