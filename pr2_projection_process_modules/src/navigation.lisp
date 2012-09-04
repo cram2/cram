@@ -28,14 +28,14 @@
 
 (in-package :projection-process-modules)
 
-(def-process-module projection-navigation (location-designator)
-  (let ((location-designator (desig:reference
-                              location-designator 'projection-designators:projection-role)))
-    (cram-plan-knowledge:on-event
-     (make-instance 'cram-plan-knowledge:robot-state-changed))
-    (assert 
-     (crs:prolog
-      `(and (robot ?robot)
-            (assert (object-pose ?_ ?robot ,(desig:reference location-designator))))))
-    (cram-plan-knowledge:on-event
-     (make-instance 'cram-plan-knowledge:robot-state-changed))))
+(def-process-module projection-navigation (input-designator)
+  (let ((location-designator (desig:reference input-designator)))
+    (execute-as-action
+     input-designator
+     (lambda ()
+       (assert 
+        (crs:prolog
+         `(and (robot ?robot)
+               (assert (object-pose ?_ ?robot ,(desig:reference location-designator))))))
+       (cram-plan-knowledge:on-event
+        (make-instance 'cram-plan-knowledge:robot-state-changed))))))
