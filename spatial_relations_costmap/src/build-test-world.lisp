@@ -35,6 +35,7 @@
 ;; TODO: declares everywhere!
 
 (defvar *bdgs* nil)
+(defparameter *num-of-sets-on-table* 4)
 ;; (defvar *pr2* nil)
 ;; (defvar *sem-map* nil)
 
@@ -44,8 +45,7 @@
   ;; (setf *sem-map* nil)
   
   (cram-roslisp-common:startup-ros :anonymous nil)
-  (let* ((num-sets-on-table 4)
-         (urdf (cl-urdf:parse-urdf (roslisp:get-param "robot_description_lowres")))
+  (let* ((urdf (cl-urdf:parse-urdf (roslisp:get-param "robot_description_lowres")))
          (kitchen-urdf (cl-urdf:parse-urdf (roslisp:get-param "kitchen_description"))))
     (setf *bdgs*
           (car
@@ -69,19 +69,19 @@
                                ;; (assert (object ?w mesh mondamin-1 ((1.2 2 2.5) (0 0 0 1))
                                ;;                 :mesh mondamin :mass 0.2 :color (1 1 0)))
 
-                               ,@(loop for i from 1 to num-sets-on-table collect
+                               ,@(loop for i from 1 to *num-of-sets-on-table* collect
                                        `(assert (object ?w mesh ,(new-symbol "PLATE-" i) ((2 0 0) (0 0 0 1))
                                                         :mesh plate :mass 0.2 :color (0 1 1))))
 
-                               ,@(loop for i from 1 to num-sets-on-table collect
+                               ,@(loop for i from 1 to *num-of-sets-on-table* collect
                                        `(assert (object ?w mesh ,(new-symbol "MUG-" i) ((2 0 0) (0 0 0 1))
                                                         :mesh mug :mass 0.2 :color (1 0.5 0))))
                                
-                               ,@(loop for i from 1 to num-sets-on-table collect
+                               ,@(loop for i from 1 to *num-of-sets-on-table* collect
                                        `(assert (object ?w cutlery ,(new-symbol "FORK-" i) ((2 0 0) (0 0 0 1))
                                                         :color (1 0 1) :mass 0.2 :cutlery-type fork)))
                             
-                               ,@(loop for i from 1 to num-sets-on-table collect
+                               ,@(loop for i from 1 to *num-of-sets-on-table* collect
                                        `(assert (object ?w cutlery ,(new-symbol "KNIFE-" i) ((2 0 0) (0 0 0 1))
                                                         :color (1 0 0) :mass 0.2 :cutlery-type knife)))
 
@@ -179,10 +179,21 @@
                         (assign-object-pos mug-3 ,des-for-mug-3)
                         (assign-object-pos mug-4 ,des-for-mug-4)))))))
 
+(defun staple-plates-on-counter ()
+  (prolog `(assert (object-pose ?_ ,(new-symbol "PLATE-" 1) ((0.9 1 0.86d0) (0 0 0 1)))))
+  (prolog `(assert (object-pose ?_ ,(new-symbol "PLATE-" 2) ((0.9 1 0.889d0) (0 0 0 1)))))
+  (prolog `(assert (object-pose ?_ ,(new-symbol "PLATE-" 3) ((0.9 1 0.91d0) (0 0 0 1))))))
 
 (defun put-n-sets-on-table (&optional (n 1))
   (loop for i from 1 to n do
     (put-nth-set-on-counter :n i)
+    (let ((plate (put-plate-from-counter-on-table)))
+      (mapcar (alexandria:rcurry #'put-object-from-counter-near-plate plate)
+              '(btr::fork btr::knife btr::mug)))))
+
+(defun put-stuff-on-table ()
+  ;; (put-stuff-on-counter)
+  (loop for i from 1 to *num-of-sets-on-table* do 
     (let ((plate (put-plate-from-counter-on-table)))
       (mapcar (alexandria:rcurry #'put-object-from-counter-near-plate plate)
               '(btr::fork btr::knife btr::mug)))))
@@ -195,11 +206,46 @@
    (and plate
         (prolog `(assert (object-pose ?_ ,(new-symbol "PLATE-" n) ((0.9 1 0.8594702033075609d0) (0 0 0 1))))))
    (and mug
-        (prolog `(assert (object-pose ?_ ,(new-symbol "MUG-" n) ((1 1.4 0.9119799601336841d0) (0 0 0 1))))))
+        (prolog `(assert (object-pose ?_ ,(new-symbol "MUG-" n) ((0.8 1.4 0.9119799601336841d0) (0 0 0 1))))))
    (and fork
         (prolog `(assert (object-pose ?_ ,(new-symbol "FORK-" n) ((1 0.8 0.8569999588202436d0) (0 0 0 1))))))
    (and knife
         (prolog `(assert (object-pose ?_ ,(new-symbol "KNIFE-" n) ((1 0.7 0.8569999867081037d0) (0 0 0 1)))))))
+
+(defun put-stuff-on-counter ()
+  (prolog `(assert (object-pose ?_ plate-4 ((0 0 0) (0 0 0 1)))))
+  (prolog `(and
+            (assert (object-pose ?_ plate-1 ((0.88 1 0.86d0) (0 0 0 1))))
+            (assert (object-pose ?_ plate-2 ((0.88 1 0.88d0) (0 0 0 1))))
+            (assert (object-pose ?_ plate-3 ((0.88 1 0.9d0) (0 0 0 1))))))
+  ;; (simulate *current-bullet-world* 50)
+  ;; (simulate *current-bullet-world* 50)
+  (prolog `(and
+            (assert (object-pose ?_ plate-4 ((0.88 1 0.935d0) (0 0 0 1))))
+            ;; (assert (object-pose ?_ plate-5 ((0.88 0.75 0.882d0) (0 0 0 1))))
+            ))
+  (simulate *current-bullet-world* 50)
+  (simulate *current-bullet-world* 250)
+  ;;
+  (prolog `(and 
+            (assert (object-pose ?_ fork-1 ((0.8 0.7 0.8569999588202436d0) (0 0 1 1))))
+            (assert (object-pose ?_ fork-2 ((0.84 0.7 0.8569999588202436d0) (0 0 1 1))))
+            (assert (object-pose ?_ fork-3 ((0.88 0.7 0.8569999588202436d0) (0 0 1 1))))
+            (assert (object-pose ?_ fork-4 ((0.92 0.7 0.8569999588202436d0) (0 0 1 1))))
+            ;; (assert (object-pose ?_ fork-5 ((0.96 0.7 0.8569999588202436d0) (0 0 1 1))))
+            ;;
+            (assert (object-pose ?_ knife-1 ((1.04 0.7 0.8569999588202436d0) (0 0 1 1))))
+            (assert (object-pose ?_ knife-2 ((1.08 0.7 0.8569999588202436d0) (0 0 1 1))))
+            (assert (object-pose ?_ knife-3 ((1.12 0.7 0.8569999588202436d0) (0 0 1 1))))
+            (assert (object-pose ?_ knife-4 ((1 0.7 0.8569999588202436d0) (0 0 1 1))))
+            ;; (assert (object-pose ?_ knife-5 ((1.2 0.7 0.8569999588202436d0) (0 0 1 1))))
+            ;;
+            (assert (object-pose ?_ mug-1 ((0.8 1.48 0.9119799601336841d0) (0 0 0 1))))
+            (assert (object-pose ?_ mug-2 ((0.78 1.32 0.9119799601336841d0) (0 0 0 1))))
+            (assert (object-pose ?_ mug-3 ((0.9 1.4 0.9119799601336841d0) (0 0 0 1))))
+            (assert (object-pose ?_ mug-4 ((1 1.29 0.9119799601336841d0) (0 0 0 1))))
+            ;; (assert (object-pose ?_ mug-5 ((0.98 1.47 0.9119799601336841d0) (0 0 0 1))))
+            )))
 
 
 
@@ -211,14 +257,16 @@
     plate))
 
 (cpl-impl:def-top-level-plan put-plate-from-counter-on-corresponding-place-on-table (the-plate)
+  (format t "global shit = ~a~%" *num-of-sets-on-table*)
+  (format t "typep integer?: ~a~%" (typep *num-of-sets-on-table* 'integer))
   (cram-projection:with-projection-environment 
       projection-process-modules::pr2-bullet-projection-environment
     (with-designators
         ((on-kitchen-island (desig-props:location `((desig-props:on counter-top)
                                                     (desig-props:name kitchen-island)
-                                                    (desig-props:context table-setting)
-                                                    (desig-props:for btr::plate)
-                                                    (desig-props:object-count 4)))))
+                                                    (desig-props:context table-setting) 
+                                                    (desig-props:object-count 4)
+                                                    (desig-props:for ,the-plate)))))
       (plan-knowledge:achieve `(plan-knowledge:loc ,the-plate ,on-kitchen-island)))))
 
 (cpl-impl:def-top-level-plan put-object-from-counter-on-table (the-object)
@@ -269,24 +317,6 @@
                              (btr::mug '(desig-props:right-of desig-props:behind)))
                            plate-obj)))
 
-#|
-(top-level
- (cram-projection:with-projection-environment 
-     projection-process-modules::pr2-bullet-projection-environment
-   (with-designators
-       ((on-counter (location `((desig-props:on counter-top) (desig-props:name "CounterTop205")))) 
-        (on-kitchen-island (location `((desig-props:on counter-top) (desig-props:name kitchen-island))))
-        (fork (object `((type btr:fork) (desig-props:at ,on-counter))))
-        (put-down-location (location `((desig-props:left-of ,object) 
-                                       (desig-props:near ,object) 
-                                       (desig-props:for ,fork) 
-                                       (desig-props:on counter-top)))))
-     (achieve `(loc ,fork ,put-down-location)))))
-
-(sb-ext:gc :full t)
-
-(sb-ext:gc :full t)
-|#
 
 ;; (defun set-obj-pose (obj-name pose)
 ;;   (let ((obj (gethash obj-name (slot-value *current-bullet-world* 'objects))))
