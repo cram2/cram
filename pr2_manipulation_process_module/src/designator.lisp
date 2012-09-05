@@ -103,7 +103,8 @@
         (desig-prop ?designator (to put-down))
         (desig-prop ?designator (to open))
         (desig-prop ?designator (to close))
-        (desig-prop ?designator (pose ?_))
+        (desig-prop ?designator (pose parked))
+        (desig-prop ?designator (pose open))        
         (desig-prop ?designator (to lift))
         (desig-prop ?designator (to carry))))
 
