@@ -38,7 +38,11 @@
                              (bowl "package://bullet_reasoning/resource/bowl.stl" nil)))
 
 (defclass household-object (object)
-  ((types :reader household-object-type :initarg :types)))
+  ((types :reader household-object-types :initarg :types)))
+
+(defmethod copy-object ((object household-object) (world bt-reasoning-world))
+  (change-class (call-next-method) 'household-object
+                :types (household-object-types object)))
 
 (defgeneric household-object-dimensions (object)
   (:method ((object household-object))
