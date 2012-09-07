@@ -307,15 +307,10 @@
   (<- (desig-solution-not-in-collision ?desig ?object-to-check ?pose)
     (bullet-world ?world)
     (with-copied-world ?world
-      (object-instance-name ?object-to-check ?object-name)
-      (assert (object-pose ?world ?object-name ?pose))
-      (contact ?world ?object-name ?grrr)
-      (format "коллижн объект: ~a~%" ?grrr)
-      (object-type ?world ?other-object-name ?type)
-      (format "тип объекта: ~a~%" ?type)
+      (object-instance-name ?object-to-check ?object-name) 
+      (assert (object-pose ?world ?object-name ?pose)) 
       (forall (contact ?world ?object-name ?other-object-name)
-              (not (object-type ?world ?other-object-name household-object)))
-      (format "а вот и мы :Р ~%"))))
+              (not (object-type ?world ?other-object-name btr::household-object))))))
 
 
 (def-fact-group relations-lookup-table ()
@@ -379,7 +374,7 @@
   (<- (supported-by-link-obj ?world ?obj-name ?link-obj)
     ;; (format "support for ~a?~%" ?obj-name)
     (supported-by ?world ?obj-name ?supp-obj-name ?supp-obj-link-name)
-    (format "~a has support: ~a~%" ?obj-name ?supp-obj-link-name)
+    ;; (format "~a has support: ~a~%" ?obj-name ?supp-obj-link-name)
     (%object ?world ?supp-obj-name ?supp-obj)
     (lisp-fun get-sem-map-part ?supp-obj ?supp-obj-link-name ?link-obj)
     (lisp-pred identity ?link-obj)))

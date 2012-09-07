@@ -92,7 +92,7 @@
   (<- (object-type-costmap-threshold pot 0.85d0))
   (<- (object-type-costmap-threshold bowl 0.9d0))
   (<- (object-type-costmap-threshold mondamin 0.9d0))
-  (<- (object-type-costmap-threshold mug 0.98d0))
+  (<- (object-type-costmap-threshold mug 0.97d0))
   (<- (object-type-costmap-threshold plate 0.999d0))
   (<- (object-type-costmap-threshold fork 0.98d0))
   (<- (object-type-costmap-threshold knife 0.98d0))
@@ -114,7 +114,7 @@
         (household-object-type ?world ?obj-name fork)))
 
   ;; table setting related
-  (<- (paddings-list kitchen-island table-setting (-0.04d0 0.03d0 0.03d0 0.8d0)))
+  (<- (paddings-list kitchen-island table-setting (-0.04d0 0.01d0 0.03d0 0.8d0)))
   (<- (preferred-supporting-object-side kitchen-island table-setting :-))
   (<- (max-slot-size btr::plate table-setting 0.8d0))
     ;; (household-object-type ?world ?_ ?object-type)

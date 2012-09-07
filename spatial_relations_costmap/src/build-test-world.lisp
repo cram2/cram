@@ -193,7 +193,8 @@
 
 (defun put-stuff-on-table ()
   ;; (put-stuff-on-counter)
-  (loop for i from 1 to *num-of-sets-on-table* do 
+  (loop for i from 1 to *num-of-sets-on-table* do
+    (format t "Put a plate from counter onto the table.~%")
     (let ((plate (put-plate-from-counter-on-table)))
       (mapcar (alexandria:rcurry #'put-object-from-counter-near-plate plate)
               '(btr::fork btr::knife btr::mug)))))
@@ -213,21 +214,13 @@
         (prolog `(assert (object-pose ?_ ,(new-symbol "KNIFE-" n) ((1 0.7 0.8569999867081037d0) (0 0 0 1)))))))
 
 (defun put-stuff-on-counter ()
-  (prolog `(assert (object-pose ?_ plate-4 ((0 0 0) (0 0 0 1)))))
   (prolog `(and
+            (assert (object-pose ?_ plate-4 ((0 0 0) (0 0 0 1))))
             (assert (object-pose ?_ plate-1 ((0.88 1 0.86d0) (0 0 0 1))))
-            (assert (object-pose ?_ plate-2 ((0.88 1 0.88d0) (0 0 0 1))))
-            (assert (object-pose ?_ plate-3 ((0.88 1 0.9d0) (0 0 0 1))))))
-  ;; (simulate *current-bullet-world* 50)
-  ;; (simulate *current-bullet-world* 50)
-  (prolog `(and
-            (assert (object-pose ?_ plate-4 ((0.88 1 0.935d0) (0 0 0 1))))
-            ;; (assert (object-pose ?_ plate-5 ((0.88 0.75 0.882d0) (0 0 0 1))))
-            ))
-  (simulate *current-bullet-world* 50)
-  (simulate *current-bullet-world* 250)
-  ;;
-  (prolog `(and 
+            (assert (object-pose ?_ plate-2 ((0.88 1 0.887d0) (0 0 0 1))))
+            (assert (object-pose ?_ plate-3 ((0.88 1 0.914d0) (0 0 0 1))))
+            (assert (object-pose ?_ plate-4 ((0.88 1 0.941d0) (0 0 0 1))))
+            ;;
             (assert (object-pose ?_ fork-1 ((0.8 0.7 0.8569999588202436d0) (0 0 1 1))))
             (assert (object-pose ?_ fork-2 ((0.84 0.7 0.8569999588202436d0) (0 0 1 1))))
             (assert (object-pose ?_ fork-3 ((0.88 0.7 0.8569999588202436d0) (0 0 1 1))))
@@ -305,8 +298,7 @@
 
 
 (defun put-object-from-counter-near-plate (object-type plate-obj)
-  (format t "plate = ~a~%object-type = ~a~%package = ~a~%" plate-obj object-type
-          (package-name (symbol-package object-type)))
+  (format t "Put a %a from counter onto the table near ~a.~%" object-type plate-obj)
   (sb-ext:gc :full t)
   (let ((obj (find-object object-type "CounterTop205")))
     (sb-ext:gc :full t)
