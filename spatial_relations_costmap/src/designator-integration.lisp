@@ -73,6 +73,5 @@ In that case we need a costmap with specific spread angle."
   (when (typep pose 'cl-transforms:pose)
     (let ((for-prop-value (desig-prop-value desig 'for)))
       (if for-prop-value
-          (progn (format t "prolog returned: ~a~%" (prolog `(desig-solution-not-in-collision ,desig ,for-prop-value ,pose)))
-        (prolog `(desig-solution-not-in-collision ,desig ,for-prop-value ,pose)))
-        t))))
+          (prolog `(desig-solution-not-in-collision ,desig ,for-prop-value ,pose))
+          t))))
