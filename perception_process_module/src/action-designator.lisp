@@ -31,6 +31,7 @@
 (def-fact-group process-module (matching-process-module available-process-module)
 
   (<- (matching-process-module ?designator perception)
+    (desig-prop ?designator (to perceive))
     (desig-prop ?designator (obj ?object))
     (obj-desig? ?object))
 
