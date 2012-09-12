@@ -56,7 +56,7 @@ gripper pose `relative-gripper-pose' w.r.t. the handle. The relative
 gripper pose defaults to an identity pose."
   (let ((absolute-loc (object-handle-absolute
                        obj handle :handle-offset-pose relative-gripper-pose)))
-    (let ((move-ik (get-ik side (desig:designator-pose absolute-loc))))
+    (let ((move-ik (get-ik side (reference absolute-loc))))
       (unless move-ik (cpl:fail
                        'cram-plan-failures:manipulation-pose-unreachable))
       (let ((move-trajectory (ik->trajectory (first move-ik) :duration 5.0)))
@@ -93,11 +93,10 @@ applied."
          (absolute-object-pose-stamped (desig:designator-pose
                                         absolute-object-loc))
          (relative-handle-loc (desig-prop-value handle 'desig-props:at))
-         (relative-handle-pose (cl-transforms:transform-pose
-                                (tf:pose->transform
-                                 (desig:designator-pose
-                                  relative-handle-loc))
-                                handle-offset-pose)))
+	 (relative-handle-pose (cl-transforms:transform-pose
+				(tf:pose->transform
+				 (reference relative-handle-loc))
+				handle-offset-pose)))
     (make-designator
      'location
      `((desig-props:pose
@@ -107,7 +106,7 @@ applied."
           (cl-transforms:transform-pose
            (tf:pose->transform
             absolute-object-pose-stamped)
-           relative-handle-pose)))))))
+           relative-handle-pose))))))))
 
 (defun nearest-handle-for-side (obj side)
   "Get the nearest handle location designator on object `obj' in
