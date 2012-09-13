@@ -93,10 +93,10 @@ applied."
          (absolute-object-pose-stamped (desig:designator-pose
                                         absolute-object-loc))
          (relative-handle-loc (desig-prop-value handle 'desig-props:at))
-	 (relative-handle-pose (cl-transforms:transform-pose
-				(tf:pose->transform
-				 (reference relative-handle-loc))
-				handle-offset-pose)))
+         (relative-handle-pose (cl-transforms:transform-pose
+                                (tf:pose->transform
+                                 (reference relative-handle-loc))
+                                handle-offset-pose)))
     (make-designator
      'location
      `((desig-props:pose
