@@ -90,7 +90,7 @@
         (mask-size-y (array-dimension mask 0)))
     (declare (type fixnum x y)
              (type (simple-array fixnum *) grid-arr mask))
-    (do ((grid-row (- y (truncate (/ (array-dimension mask 0) 2)))
+    (do ((grid-row (- y (- (truncate (/ (array-dimension mask 0) 2)) 1))
            (+ grid-row 1))
          (mask-row 0 (+ mask-row 1)))
         ((>= mask-row mask-size-y))
@@ -100,4 +100,3 @@
           ((>= mask-col mask-size-x))
         (when (eql (aref mask mask-row mask-col) 1)
           (setf (aref grid-arr grid-row grid-col) 1))))))
-
