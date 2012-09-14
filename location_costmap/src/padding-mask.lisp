@@ -94,7 +94,7 @@
            (+ grid-row 1))
          (mask-row 0 (+ mask-row 1)))
         ((>= mask-row mask-size-y))
-      (do ((grid-col (- x (truncate (/ (array-dimension mask 1) 2)))
+      (do ((grid-col (- x (- (truncate (/ (array-dimension mask 1) 2)) 1))
              (+ grid-col 1))
            (mask-col 0 (+ mask-col 1)))
           ((>= mask-col mask-size-x))
