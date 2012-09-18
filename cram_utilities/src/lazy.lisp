@@ -270,11 +270,13 @@
   (with-gensyms (list-var)
     `(let* ((,list-var ,list)
             (,var nil))
-       (tagbody next-loop
-          (setq ,var (lazy-car ,list-var))
-          ,@body
-          (setq ,list-var (lazy-cdr ,list-var))
-          (when ,list-var
-            (go next-loop)))
-       ,result)))
+       (block nil
+         (tagbody next-loop
+            (setq ,var (lazy-car ,list-var))
+            ,@body
+            (setq ,list-var (lazy-cdr ,list-var))
+            (when ,list-var
+              (go next-loop)))
+         ,result))))
+
 
