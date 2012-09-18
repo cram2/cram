@@ -89,4 +89,4 @@
            event make-event timeline timeline-init timeline-advance
            timeline-current-world-state timeline-lookup
            holds-in-world holds occurs at
-           during throughout))
+           during throughout with-timeline))
