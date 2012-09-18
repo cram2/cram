@@ -31,7 +31,7 @@
 
 ;;; Location designator resolution is based on two concepts:
 ;;; 
-;;;  - Generation of solutions: Generator functions are functions that
+;;;  * Generation of solutions: Generator functions are functions that
 ;;;    take one parameter, the designator to be resolved and return a
 ;;;    possibly infinite (lazy) list of possible
 ;;;    solutions. Generators are ordered wrt. a priority value and
@@ -41,14 +41,28 @@
 ;;;    priority. Generators are defined with the macro
 ;;;    DEF-LOCATION-GENERATOR.
 ;;;  
-;;;  - Validation of solutions: After generation, a solution is
+;;;  * Validation of solutions: After generation, a solution is
 ;;;    verified by a sequence of validation functions. Validation
 ;;;    functions are functions that get two parameters, the designator
-;;;    and the generated solution and returns a generalized boolean to
-;;;    indicate if the solution is valid or not. If the solution is
-;;;    valid, it is used as the designator reference. Otherwise, a new
-;;;    solution is taken from the generated sequence of solutions and
-;;;    the validation functions are executed again. The variable
+;;;    and the generated solution.
+;;;
+;;;    Validation functions must return one of the following values:
+;;;
+;;;      - :ACCEPT the solution will be accepted unless another
+;;;         validation function rejects it.
+;;;
+;;;      - :MAYBE-REJECT the solution will be rejected unless at least
+;;;         validation function accepts it.
+;;;
+;;;      - :UNKNOWN the decision is completely left to the other
+;;;         validation functions.
+;;;
+;;;      - anything else will cause the solution to be rejected.
+;;;       
+;;;    If the solution is accepted, it is used as the designator
+;;;    reference. Otherwise, a new solution is taken from the
+;;;    generated sequence of solutions and the validation functions
+;;;    are executed again. The variable
 ;;;    *LOCATION-GENERATOR-MAX-RETRIES* indicates how often this
 ;;;    process can be repeated without finding a solution before an
 ;;;    error is signaled. Validation functions are declared with the
@@ -176,21 +190,43 @@ boolean indicating if the solution is valid or not."
 
 (defun validate-location-designator-solution (designator solution)
   (declare (type location-designator designator))
-  (let ((validation-functions (cons (constantly t)
-                                    (location-resolution-function-list
-                                     (remove-if (lambda (validation-function)
-                                                  (member validation-function *disabled-validation-functions*))
-                                                *location-validation-functions*
-                                                :key #'location-resolution-function-function)))))
-    (block nil
-      (restart-case
-          (every (rcurry #'funcall designator solution) validation-functions)
-        (accept-solution ()
-          :report "Accept this designator solution"
-          (return t))
-        (reject-solution ()
-          :report "Refuse this designator solution"
-          (return nil))))))
+  (labels ((validate (validation-functions designator solution
+                      &optional (result :unknown))
+             (or
+              (unless validation-functions
+                (ecase result
+                  (:accept t)
+                  (:maybe-reject nil)
+                  (:unknown t)))
+              (let ((validation-result
+                      (funcall (car validation-functions) designator solution)))
+                (case validation-result
+                  (:accept
+                   (validate
+                    (cdr validation-functions) designator solution
+                    :accept))
+                  (:unknown
+                   (validate
+                    (cdr validation-functions) designator solution
+                    result))
+                  (:maybe-reject
+                   (validate
+                    (cdr validation-functions) designator solution
+                    (if (eq result :accept) :accept :maybe-reject))))))))
+    (let ((validation-functions (location-resolution-function-list
+                                 (remove-if (lambda (validation-function)
+                                              (member validation-function *disabled-validation-functions*))
+                                            *location-validation-functions*
+                                            :key #'location-resolution-function-function))))
+      (block nil
+        (restart-case
+            (validate validation-functions designator solution)
+          (accept-solution ()
+            :report "Accept this designator solution"
+            (return t))
+          (reject-solution ()
+            :report "Refuse this designator solution"
+            (return nil)))))))
 
 (defun delete-location-generator-function (function-name)
   "Delete a generator-function from the list of registered generator functions.

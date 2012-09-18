@@ -48,16 +48,19 @@
   (loop for i from 1 to 51 collecting :foo))
 
 (defun validation-1 (designator solution)
-  (declare (ignore designator))  
-  (or (eq solution :bar) (eq solution :foo)))
+  (declare (ignore designator))
+  (when (or (eq solution :bar) (eq solution :foo))
+    :accept))
 
 (defun validation-2 (designator solution)
-  (declare (ignore designator))  
-  (eq solution :foo))
+  (declare (ignore designator))
+  (when (eq solution :foo)
+    :accept))
 
 (defun validation-3 (designator solution)
-  (declare (ignore designator))  
-  (eq solution :bar))
+  (declare (ignore designator))
+  (when (eq solution :bar)
+    :accept))
 
 ;;; auxiliary functions
 
