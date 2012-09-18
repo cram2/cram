@@ -31,6 +31,9 @@
 
 (defparameter *fixed-frame* "map")
 (defparameter *robot-base-frame* "base_footprint")
+(defparameter *distance-equality-threshold* 0.025)
+(defparameter *angle-equality-threshold* (* 5 (/ pi 180)))
+
 
 ;;; We need to place these methods here because in the designator
 ;;; package, we don't have a notion of poses, just more or less
@@ -50,6 +53,23 @@
   (:method ((pose-stamped tf:pose-stamped) frame-id stamp)
     (declare (ignore frame-id stamp))
     pose-stamped))
+
+(defmethod designator-solutions-equal
+    ((solution-1 cl-transforms:pose) (solution-2 cl-transforms:pose))
+  (let ((pose-1-in-map (tf:transform-pose
+                        *tf* :pose (ensure-pose-stamped solution-1 *fixed-frame* 0.0)
+                             :target-frame *fixed-frame*))
+        (pose-2-in-map (tf:transform-pose
+                        *tf* :pose (ensure-pose-stamped solution-2 *fixed-frame* 0.0)
+                             :target-frame *fixed-frame*)))
+    (and (< (cl-transforms:v-dist
+             (cl-transforms:origin pose-1-in-map)
+             (cl-transforms:origin pose-2-in-map))
+            *distance-equality-threshold*)
+         (< (cl-transforms:angle-between-quaternions
+             (cl-transforms:orientation pose-1-in-map)
+             (cl-transforms:orientation pose-2-in-map))
+            *angle-equality-threshold*))))
 
 (defmethod reference :around ((designator location-designator) &optional role)
   (declare (ignore role))
