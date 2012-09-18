@@ -46,6 +46,7 @@
            #:make-effective-designator
            #:newest-effective-designator #:with-desig-props #:with-designators
            #:designator-solutions #:desig-prop-value
+           #:designator-solutions-equal
            #:desig-prop-values #:*designator-pprint-description*
            #:get-equal-designators
            #:update-designator-properties
