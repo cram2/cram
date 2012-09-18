@@ -159,13 +159,10 @@ handle object then consist of a location designator describing its
 relative position as well as the handle's radius for grasping
 purposes."
   (mapcar (lambda (handle-desc)
-            `(desig-props:handle
-              ,(cram-designators:make-designator
-                'cram-designators:object
-                `((desig-props:at
-                   ,(cram-designators:make-designator
-                     'cram-designators:location
-                     `((desig-props:pose ,(first handle-desc)))))
-                  (desig-props:radius ,(second handle-desc))
-                  (desig-props:type desig-props:handle)))))
+            `(handle
+              ,(make-designator
+                'object
+                `((at ,(make-designator 'location `((pose ,(first handle-desc)))))
+                  (radius ,(second handle-desc))
+                  (type handle)))))
           handles))
