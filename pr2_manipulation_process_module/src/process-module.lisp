@@ -147,16 +147,16 @@
 (def-action-handler grasp (object-type obj side obstacles)
   "Selects and calls the appropriate grasping functionality based on
 the given object type."
-  (cond ((not (eq (desig-prop-values obj 'desig-props:handle) nil))
-	 (grab-object-with-handles obj side))
-	((eq object-type 'desig-props:pot)
+  (cond ((not (eq (desig-prop-values obj 'handle) nil))
+         (grab-object-with-handles obj side))
+        ((eq object-type 'pot)
          (grasp-object-with-both-arms obj))
         (t (standard-grasping obj side obstacles))))
 
 (def-action-handler put-down (object-designator location side obstacles)
   "Delegates the type of the put down action which suppose to be executed
 for the currently type of grasped object."
-  (cond ((eq (desig-prop-value object-designator 'desig-props:type) 'desig-props:pot)
+  (cond ((eq (desig-prop-value object-designator 'type) 'pot)
          (put-down-grasped-object-with-both-arms object-designator location))
         (t (put-down-grasped-object-with-single-arm object-designator location side obstacles))))
 
@@ -339,7 +339,7 @@ by `planners' until one succeeds."
 (defun update-picked-up-object-designator (obj-desig gripper side height)
   "Function that creates and equates a new obj-designator to an object
 that has been grasped. `gripper' shall either include the symbols
-desig-props:gripper or desig-props:both-grippers to discriminate between
+GRIPPER or BOTH-GRIPPERS to discriminate between
 single and dual grasps. `Side' indicates with respect to which gripper
 the new location designator shall be constructed. `height' is the
 difference in z-coordinate of the grasping point of the object and
@@ -380,7 +380,7 @@ that has to be grasped with two grippers."
   (let* ((object-type (desig-prop-value obj 'type))
          (object-pose (desig:designator-pose obj))
          (object-transform (cl-transforms:pose->transform object-pose)))
-    (cond ((eq object-type 'desig-props:pot)
+    (cond ((eq object-type 'pot)
            (let* (;; get grasping poses for the handles
                   (left-grasp-pose (cl-transforms:transform-pose
                                     object-transform
