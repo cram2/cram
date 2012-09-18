@@ -66,7 +66,8 @@
                         (destructuring-bind (key . val) elem
                           (cons key (copy-semantic-map-object val))))
                       (alexandria:hash-table-alist (slot-value map 'parts))))))
-
+  (:method ((null null))
+    nil)
   (:method ((part semantic-map-part))
     (let* ((slots '(type name owl-name urdf-name aliases))
            (initargs '(:type :name :owl-name :urdf-link-name :aliases))
@@ -112,6 +113,9 @@
          :direction direction)))))
 
 (defgeneric semantic-map-parts (map &key recursive)
+  (:method ((null null) &key recursive)
+    (declare (ignore recursive))
+    nil)  
   (:method ((map semantic-map) &key recursive)
     (let ((direct-children (loop for part being the hash-values of (slot-value map 'parts)
                                  collecting part)))
@@ -130,6 +134,8 @@
                         direct-children))))))
 
 (defgeneric semantic-map-part-names (map)
+  (:method ((null null))
+    nil)  
   (:method ((map semantic-map))
     (loop for name being the hash-keys of (slot-value map 'parts)
           collecting name))
@@ -138,6 +144,9 @@
     (mapcar #'name (sub-parts map))))
 
 (defgeneric semantic-map-part (map name &key recursive)
+  (:method ((null null) name &key recursive)
+    (declare (ignore name recursive))
+    nil)  
   (:method ((map semantic-map) name &key recursive)
     (or (gethash name (slot-value map 'parts))
         (loop for p-name being the hash-keys in (slot-value map 'parts)
