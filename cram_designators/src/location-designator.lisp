@@ -192,27 +192,28 @@ boolean indicating if the solution is valid or not."
   (declare (type location-designator designator))
   (labels ((validate (validation-functions designator solution
                       &optional (result :unknown))
-             (or
-              (unless validation-functions
+             (cond
+               ((not validation-functions)
                 (ecase result
                   (:accept t)
                   (:maybe-reject nil)
                   (:unknown t)))
-              (let ((validation-result
-                      (funcall (car validation-functions) designator solution)))
-                (case validation-result
-                  (:accept
-                   (validate
-                    (cdr validation-functions) designator solution
-                    :accept))
-                  (:unknown
-                   (validate
-                    (cdr validation-functions) designator solution
-                    result))
-                  (:maybe-reject
-                   (validate
-                    (cdr validation-functions) designator solution
-                    (if (eq result :accept) :accept :maybe-reject))))))))
+               (t
+                (let ((validation-result
+                        (funcall (car validation-functions) designator solution)))
+                  (case validation-result
+                    (:accept
+                     (validate
+                      (cdr validation-functions) designator solution
+                      :accept))
+                    (:unknown
+                     (validate
+                      (cdr validation-functions) designator solution
+                      result))
+                    (:maybe-reject
+                     (validate
+                      (cdr validation-functions) designator solution
+                      (if (eq result :accept) :accept :maybe-reject)))))))))
     (let ((validation-functions (location-resolution-function-list
                                  (remove-if (lambda (validation-function)
                                               (member validation-function *disabled-validation-functions*))
