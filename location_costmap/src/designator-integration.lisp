@@ -79,22 +79,23 @@
   (when (typep pose 'cl-transforms:pose)
     (let* ((cm (get-cached-costmap desig))
            (p (cl-transforms:origin pose)))
-      (if cm
-          (let ((costmap-value (/ (get-map-value
-                                   cm
-                                   (cl-transforms:x p)
-                                   (cl-transforms:y p))
-                                  (get-cached-costmap-maxvalue cm)))
-                (costmap-heights (generate-heights
-                                  cm (cl-transforms:x p) (cl-transforms:y p))))
-            (and (> costmap-value *costmap-valid-solution-threshold*)
-                 (if costmap-heights
-                     (find-if (lambda (height)
-                                (< (abs (- height (cl-transforms:z p)))
-                                   1e-3))
-                              costmap-heights)
-                     t)))
-          t))))
+      (unless cm
+        (return-from location-costmap-pose-validator :unknown))
+      (let ((costmap-value (/ (get-map-value
+                               cm
+                               (cl-transforms:x p)
+                               (cl-transforms:y p))
+                              (get-cached-costmap-maxvalue cm)))
+            (costmap-heights (generate-heights
+                              cm (cl-transforms:x p) (cl-transforms:y p))))
+        (when (> costmap-value *costmap-valid-solution-threshold*)
+          (cond ((not costmap-heights)
+                 :accept)
+                ((find-if (lambda (height)
+                            (< (abs (- height (cl-transforms:z p)))
+                               1e-3))
+                          costmap-heights)
+                 :accept)))))))
 
 (register-location-generator
  15 robot-current-pose-generator
