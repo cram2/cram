@@ -42,12 +42,12 @@ function that takes exactly one parameter, the solution."
 
 (defun filter-solution (designator solution)
   (declare (ignore designator))
-  (if *filter-functions*
-      (progn
-        (every (lambda (function)
-                 (funcall function solution))
-               *filter-functions*))
-      t))
+  (cond ((not *filter-functions*)
+         :unknown)
+        ((every (lambda (function)
+                  (funcall function solution))
+                *filter-functions*)
+         :accept)))
 
 (defun next-filtered-designator-solution (designator filter)
   (with-designator-solution-filter filter
