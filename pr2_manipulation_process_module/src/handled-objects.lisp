@@ -106,7 +106,7 @@ applied."
           (cl-transforms:transform-pose
            (tf:pose->transform
             absolute-object-pose-stamped)
-           relative-handle-pose))))))))
+           relative-handle-pose)))))))
 
 (defun nearest-handle-for-side (obj side)
   "Get the nearest handle location designator on object `obj' in
