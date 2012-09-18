@@ -201,6 +201,9 @@
     (reachability-designator ?desig))
 
   (<- (btr-desig-solution-valid ?desig ?solution)
+    (btr-desig-solution-valid ?desig ?solution ?_))
+
+  (<- (btr-desig-solution-valid ?desig ?solution ?checks)
     (bullet-world ?w)
     (findall ?check (location-valid ?desig ?solution ?check)
              ?checks)
@@ -217,5 +220,3 @@
                    (member ?point ?n-solutions)
                    (btr-desig-solution-valid ?desig ?point))
            ?points)))
-
-

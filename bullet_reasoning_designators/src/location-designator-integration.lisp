@@ -66,10 +66,11 @@
           (add-costmap-function-object map))))))
 
 (defun robot-location-on-floor (designator pose)
-  (if (member (desig-prop-value designator 'to) '(reach see))
-      (< (cl-transforms:z (cl-transforms:origin pose))
-         0.05)
-      t))
+  (cond ((not (member (desig-prop-value designator 'to) '(reach see)))
+         :unknown)
+        ((< (cl-transforms:z (cl-transforms:origin pose))
+            0.05)
+         :accept)))
 
 (defun get-robot-name ()
   (or *robot-name* (with-vars-bound (?robot)
@@ -124,18 +125,22 @@ that `designator' tries to reach."
              poses-and-sides))))
 
 (defun check-ik-solution (designator pose)
-  (or (not (reach-designator designator))
-      (let ((cached-function
-              (or (gethash designator *designator-ik-check-cache*)
-                  (setf (gethash designator *designator-ik-check-cache*)
-                        (let* ((state (bt:get-state *current-bullet-world*))
-                               (world (bullet:restore-world-state
-                                       state (make-instance 'btr:bt-reasoning-world
-                                               :gravity-vector (bt:gravity-vector state))))
-                               (robot (btr:object world (get-robot-name))))
-                          (make-ik-check-function
-                           robot (pose-side-properties designator)))))))
-        (funcall cached-function pose))))
+  (cond ((not (reach-designator designator))
+         :unknown)
+        ((let ((cached-function
+                 (or (gethash designator *designator-ik-check-cache*)
+                     (setf (gethash designator *designator-ik-check-cache*)
+                           (let* ((state (bt:get-state *current-bullet-world*))
+                                  (world (bullet:restore-world-state
+                                          state (make-instance 'btr:bt-reasoning-world
+                                                  :gravity-vector (bt:gravity-vector state))))
+                                  (robot (btr:object world (get-robot-name))))
+                             (make-ik-check-function
+                              robot (pose-side-properties designator)))))))
+           (funcall cached-function pose))
+         :accept)))
 
 (defun validate-designator-solution (desig pose)
-  (prolog `(btr-desig-solution-valid ,desig ,pose)))
+  (cut:with-vars-bound (?checks)
+      (cut:lazy-car (prolog `(btr-desig-solution-valid ,desig ,pose ?checks)))
+    (if ?checks :accept :unknown)))
