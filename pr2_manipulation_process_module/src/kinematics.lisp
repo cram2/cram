@@ -33,6 +33,12 @@
 
 (defvar *joint-state* nil)
 
+(defgeneric designator->graspable-object (designator reference-frame)
+  (:documentation "Returns an instance of type
+  `object_manipulation_msgs/GraspableObject' for the object designator
+  `designator'. `reference-frame' is the frame the graspable object
+  should be in."))
+
 (defun seq-member (item sequence)
   (some (lambda (s)
           (equal item s))
@@ -465,7 +471,7 @@ names for which collisions are allowed."
            :arm_name (ecase side
                        (:left "left_arm")
                        (:right "right_arm"))
-           :target (cop-obj->graspable-obj obj "/base_footprint")))
+           :target (designator->graspable-object obj "/base_footprint")))
       (unless (= error-code 0)
         (error 'manipulation-failed
                :format-control "Couldn't find valid grasps"))
