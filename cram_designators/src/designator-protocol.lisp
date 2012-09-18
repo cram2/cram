@@ -110,6 +110,12 @@
   designator. A default implementation is provided for the
   role 'DEFAULT-ROLE."))
 
+(defgeneric designator-solutions-equal (solution-1 solution-2)
+  (:documentation "Compares two designator solutions and returns T if
+  they are equal.")
+  (:method ((solution-1 t) (solution-2 t))
+    (eql solution-1 solution-2)))
+
 (defvar *designator-pprint-description* t
   "If set to T, DESIGNATOR objects will be pretty printed with their description.")
 
