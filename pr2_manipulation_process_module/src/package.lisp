@@ -37,8 +37,7 @@
         #:cram-roslisp-common
         #:cram-process-modules
         #:cram-plan-failures
-        #:cram-plan-knowledge
-        #:perception-pm)
+        #:cram-plan-knowledge)
   (:import-from alexandria ignore-some-conditions)
   (:import-from #:cram-plan-knowledge
                 matching-process-module available-process-module)

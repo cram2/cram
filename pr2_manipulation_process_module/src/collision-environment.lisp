@@ -96,14 +96,13 @@
               (apply #'cl-transforms:make-3d-vector
                      (map 'list #'identity dimensions)))))))))
 
-(defun register-collision-object (desig)
+(defun register-collision-object (designator)
+  "Registers the object referenced by `designator' in the collision
+environment."
   (declare (type object-designator desig))
-  (roslisp:with-fields (added_object)
-      (roslisp:call-service
-       "/cop_collision" 'vision_srvs-srv:cop_add_collision
-       :object_id (perception-pm:object-id (reference desig)))
-    (setf (gethash desig *known-collision-objects*)
-          added_object)))
+  (declare (ignore designator))
+  (warn 'simple-warning
+        :foramt-control "REGISTER-COLLISION-OBJECT is not implemented at the moment."))
 
 (defun remove-collision-object (desig)
   (let ((collision-object (find-desig-collision-object desig)))
@@ -201,42 +200,6 @@
                        pose-tf (cl-transforms:make-3d-vector x y z))
                       "geometry_msgs/Point32")))
                  points))))
-
-(defun cop-obj->point-cloud (desig)
-  (let ((po (reference desig))
-        (pose (designator-pose desig)))
-    (declare (type perception-pm:cop-perceived-object po))
-    (roslisp:with-fields ((type (type shape))
-                          (vertices (vertices shape)))
-        (roslisp:call-service "/cop_geometric_shape" 'vision_srvs-srv:cop_get_object_shape
-                              :object_id (perception-pm:object-id po))
-      (ecase type
-        (3 (points->point-cloud pose vertices))
-        (4 (points->point-cloud (tf:copy-pose-stamped
-                                 pose
-                                 :origin (cl-transforms:make-identity-vector)
-                                 :orientation (cl-transforms:make-identity-rotation)) vertices))))))
-
-(defun cop-obj->graspable-obj (desig &optional (reference-frame "/base_footprint"))
-  (let ((po (reference desig))
-        (pose (designator-pose desig)))
-    (declare (type perception-pm:cop-perceived-object po))
-    (roslisp:with-fields ((type (type shape))
-                          (vertices (vertices shape)))
-        (roslisp:call-service "/cop_geometric_shape" 'vision_srvs-srv:cop_get_object_shape
-                              :object_id (perception-pm:object-id po))
-      (when (or (eql type 3) (eql type 4))
-        (roslisp:make-msg
-         "object_manipulation_msgs/GraspableObject"
-         reference_frame_id reference-frame
-         cluster (points->point-cloud
-                  (ecase type
-                    (3 pose)
-                    (4 (tf:copy-pose-stamped
-                        pose
-                        :origin (cl-transforms:make-identity-vector)
-                        :orientation (cl-transforms:make-identity-rotation))))
-                  vertices))))))
 
 (defun collision-environment-set-laser-period ()
   "Sets the tilting laser period to work best with collision
