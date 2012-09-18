@@ -324,15 +324,13 @@ by `planners' until one succeeds."
         (unless (is-var obj)
           (retract-occasion `(object-in-hand ,obj ,side)))))))
 
-(defclass manipulated-perceived-object (perceived-object) ())
+(defclass manipulated-perceived-object (desig:object-designator-data) ())
 
 (defun update-object-designator-pose (object-designator new-object-pose)
   (equate object-designator
-          (perceived-object->designator
-           object-designator
-           (make-instance 'manipulated-perceived-object
-             :pose new-object-pose
-             :probability 1.0))))
+          (desig:make-effective-designator
+           object-designator :data-object (make-instance 'manipulated-perceived-object
+                                            :pose new-object-pose))))
 
 (def-process-module pr2-manipulation-process-module (desig)
   (collision-environment-set-laser-period)
