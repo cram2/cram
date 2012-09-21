@@ -90,4 +90,4 @@
                        `((at ,new-loc) . ,(remove 'at (description ?obj) :key #'car))
                        ?obj))))
 
-(crs:register-production-handler 'object-picked-up 'on-object-picked-up)
+;; (crs:register-production-handler 'object-picked-up 'on-object-picked-up)
