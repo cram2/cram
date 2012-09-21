@@ -118,8 +118,8 @@ optional doc string."
   "Registers a location validation function. `priority' is a fixnum
 that indicates the evaluation order of all validation
 functions. `function' is a symbol naming a function that takes exactly
-two arguments, the designator and a solution and returns a generalized
-boolean indicating if the solution is valid or not."
+two arguments, the designator and a solution and returns
+either :ACCEPT, :REJECT, :MAYBE-REJECT or :UNKNOWN."
   (declare (type fixnum priority)
            (type symbol function)
            (type (or null string) documentation))
