@@ -32,16 +32,17 @@
 (define-hook on-def-top-level-plan-hook (plan-name)
   (:documentation "Executed when a top-level-plan is defined."))
 
-(defmacro def-top-level-plan (name args &body body)
-  "Defines a top-level plan. Every top-level plan has its own
-   episode-knowledge and task-tree.
+(defmacro def-top-level-cram-function (name args &body body)
+  "Defines a top-level cram function. Every top-level function has its
+   own episode-knowledge and task-tree.
 
-   CAVEAT: Don't have surrounding FLET / LABLES / MACROLET / SYMBOL-MACROLET /
-   LET / etc when using DEF-TOP-LEVEL-PLAN or DEF-PLAN (unless you really know
-   what you are doing). They could mess with (WITH-TAGS ...) or shadow
-   globally defined plans, which would not be picked up by WITH-TAGS /
-   EXPAND-PLAN.  See the comment before the definition of WITH-TAGS for more
-   details."
+   CAVEAT: Don't have surrounding FLET / LABLES / MACROLET /
+   SYMBOL-MACROLET / LET / etc when using DEF-TOP-LEVEL-CRAM-FUNCTION
+   or DEF-CRAM-FUNCTION (unless you really know what you are
+   doing). They could mess with (WITH-TAGS ...) or shadow globally
+   defined plans, which would not be picked up by WITH-TAGS /
+   EXPAND-PLAN. See the comment before the definition of WITH-TAGS for
+   more details."
   (with-gensyms (call-args)
     (multiple-value-bind (body-forms declarations doc-string)
         (parse-body body :documentation t)
@@ -59,11 +60,16 @@
                (with-tags
                  ,@body-forms))))))))
 
-(defmacro def-plan (name lambda-list &rest body)
-  "Defines a plan. All functions that should appear in the task-tree
-   must be defined with def-plan.
+(defmacro def-top-level-plan (name lambda-list &body body)
+  (style-warn 'simple-style-warning
+              :format-control "Use of deprecated form DEF-TOP-LEVEL-PLAN. Please use DEF-TOP-LEVEL-CRAM-FUNCTION instead.")
+  `(def-top-level-cram-function ,name ,lambda-list ,@body))
 
-   CAVEAT: See docstring of def-top-level-plan."
+(defmacro def-cram-function (name lambda-list &rest body)
+  "Defines a cram function. All functions that should appear in the
+   task-tree must be defined with def-cram-function.
+
+   CAVEAT: See docstring of def-top-level-cram-function."
   (with-gensyms (call-args)
     (multiple-value-bind (body-forms declarations doc-string)
         (parse-body body :documentation t)
@@ -78,3 +84,8 @@
            (replaceable-function ,name ,lambda-list ,call-args (list ',name)
              (with-tags
                ,@body-forms)))))))
+
+(defmacro def-plan (name lambda-list &rest body)
+  (style-warn 'simple-style-warning
+              :format-control "Use of deprecated form DEF-PLAN. Please use DEF-CRAM-FUNCTION instead.")
+  `(def-cram-function ,name ,lambda-list ,@body))
