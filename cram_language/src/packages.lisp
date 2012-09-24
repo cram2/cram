@@ -173,6 +173,7 @@
            ;; plans.lisp
            #:on-def-top-level-plan-hook
            #:def-top-level-plan #:get-top-level-task-tree #:def-plan
+           #:def-cram-function #:def-dop-level-cram-function
            ;; goals.lisp
            #:declare-goal #:def-goal #:goal #:register-goal #:goal-context
            #:succeed #:describe-goal))
