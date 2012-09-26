@@ -38,8 +38,8 @@ the gripper and lifting the object by 0.2m by default."
     ;; to be changed to a more sophisticated algorithm.
     (let* ((nearest-handle (nearest-handle-for-side obj side))
            (handle-radius (or (desig-prop-value
-			       nearest-handle
-			       'radius)
+                               nearest-handle
+                               'radius)
                               0.0)))
       (pregrasp-handled-object-with-relative-location obj side nearest-handle)
       (open-gripper side :position (+ handle-radius 0.02))
@@ -55,15 +55,17 @@ relative object handle location `relative-handle-loc' and the relative
 gripper pose `relative-gripper-pose' w.r.t. the handle. The relative
 gripper pose defaults to an identity pose."
   (let* ((absolute-loc (object-handle-absolute
-                       obj handle :handle-offset-pose relative-gripper-pose))
-	 (absolute-pose-map (reference absolute-loc))
-	 (absolute-pose (tf:transform-pose *tf* :pose absolute-pose-map :target-frame "base_footprint"))
-	 (move-ik (get-ik side absolute-pose)))
+                        obj handle :handle-offset-pose relative-gripper-pose))
+         (absolute-pose-map (reference absolute-loc))
+         (absolute-pose (tf:transform-pose *tf*
+                                           :pose absolute-pose-map
+                                           :target-frame "base_footprint"))
+         (move-ik (get-ik side absolute-pose)))
     (unless move-ik (cpl:fail
-		     'cram-plan-failures:manipulation-pose-unreachable))
+                     'cram-plan-failures:manipulation-pose-unreachable))
     (let ((move-trajectory (ik->trajectory (first move-ik) :duration 5.0)))
       (unless move-trajectory (cpl:fail
-			       'cram-plan-failures:manipulation-failed))
+                               'cram-plan-failures:manipulation-failed))
       (nth-value 1 (execute-arm-trajectory side move-trajectory)))))
 
 (defun grasp-handled-object-with-relative-location (obj side handle)
@@ -85,7 +87,7 @@ respect to the object's `obj' handle `handle'."
     (tf:euler->quaternion :az pi :ax (/ pi 2)))))
 
 (defun object-handle-absolute (obj handle
-                                   &key (handle-offset-pose (tf:make-identity-pose)))
+                               &key (handle-offset-pose (tf:make-identity-pose)))
   "Transforms the relative handle location `handle' of object `obj'
 into the object's coordinate system and returns the appropriate
 location designator. The optional parameter `handle-offset-pose' is
