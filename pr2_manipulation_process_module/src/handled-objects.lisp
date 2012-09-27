@@ -148,7 +148,7 @@ respect to the chosen gripper side `side'."
               (joint-state-distance name position joint_names positions))))))))
 
 (defun joint-state-distance (names-from positions-from names-to positions-to)
-  "Calculated the square summed difference between to joint-space positions. Only named joint-states found in both sequence pairs are used during the calculation."
+  "Calculates the square summed difference between to joint-space positions. Only named joint-states found in both sequence pairs are used during the calculation."
   (let ((dist 0))
     (dotimes (n (length names-from))
       (let* ((name-from (elt names-from n))
