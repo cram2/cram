@@ -59,7 +59,9 @@ gripper pose defaults to an identity pose."
          (absolute-pose-map (reference absolute-loc))
          (absolute-pose (tf:transform-pose *tf*
                                            :pose absolute-pose-map
-                                           :target-frame "base_footprint"))
+                                           :target-frame "torso_lift_link"))
+         ;; This makes reach the carry-pose impossible
+         ;; atm. :seed-state (calc-seed-state-elbow-up side))))
          (move-ik (get-ik side absolute-pose)))
     (unless move-ik (cpl:fail
                      'cram-plan-failures:manipulation-pose-unreachable))
