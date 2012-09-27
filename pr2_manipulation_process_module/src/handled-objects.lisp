@@ -131,3 +131,38 @@ respect to the chosen gripper side `side'."
   ;; wrist roll and destination location designator. Later on, this
   ;; should be improved.
   0)
+
+(defun reaching-length (pose side)
+  "Calculates the squared sum of all joint angle differences between the current state of the robot and the joint state it would have after reaching pose `pose` through calculating a trajectory via inverse kinematics solution for side `side`."
+  ;; TODO(winkler): Extend this to take ALL trajectory points into account.
+  (let ((obj-value 0)
+        (ik (get-ik side pose)))
+    (when ik
+      (let ((traj (ik->trajectory (first ik)))
+            (state (get-robot-state)))
+        (roslisp:with-fields (joint_names points) traj
+          (roslisp:with-fields (positions) (elt
+                                            points
+                                            (- (length points) 1))
+            (roslisp:with-fields (name position) state
+              (joint-state-distance name position joint_names positions))))))))
+
+(defun joint-state-distance (names-from positions-from names-to positions-to)
+  "Calculated the square summed difference between to joint-space positions. Only named joint-states found in both sequence pairs are used during the calculation."
+  (let ((dist 0))
+    (dotimes (n (length names-from))
+      (let* ((name-from (elt names-from n))
+             (position-to (position name-from
+                                    names-to
+                                    :test (lambda (name-from name-to)
+                                            (equal name-from name-to)))))
+        (when position-to
+          (let ((pos-from (elt positions-from n))
+                (pos-to (elt positions-to position-to)))
+            (setf dist
+                  (+ dist
+                     (* (- pos-from
+                           pos-to)
+                        (- pos-from
+                           pos-to))))))))
+    dist))
