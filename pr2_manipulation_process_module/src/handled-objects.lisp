@@ -85,6 +85,12 @@ gripper pose defaults to an identity pose."
                              obj
                              handle
                              :handle-offset-pose relative-gripper-pose))
+         ;; NOTE(winkler): We're transforming into the tf-frame
+         ;; "torso_lift_link" here due to the fact that get-ik
+         ;; (service node constraint_awake_ik) does not transform from
+         ;; the map-frame. The constructor of the class does not
+         ;; create a tf listener. Therefore, the goal has to be
+         ;; specified in the ik root.
          (absolute-pose (tf:transform-pose *tf*
                                            :pose absolute-pose-map
                                            :target-frame "torso_lift_link"))
