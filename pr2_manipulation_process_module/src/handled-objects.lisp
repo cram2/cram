@@ -31,12 +31,16 @@
   (tf:make-pose
    (tf:make-3d-vector 0.2 0.0 0.0)
    (tf:euler->quaternion :az pi :ax (/ pi 2)))
-  "Specifies the gripper pose relative to the respective handle coordinate system (including it's origin and rotation) when going into pregrasp.")
+  "Specifies the gripper pose relative to the respective handle
+  coordinate system (including it's origin and rotation) when going
+  into pregrasp.")
 (defparameter *handle-grasp-offset-pose*
   (tf:make-pose
    (tf:make-3d-vector 0.12 0.0 0.0)
    (tf:euler->quaternion :az pi :ax (/ pi 2)))
-  "Specifies the gripper pose relative to the respective handle coordinate system (including it's origin and rotation) when going into grasp.")
+  "Specifies the gripper pose relative to the respective handle
+  coordinate system (including it's origin and rotation) when going
+  into grasp.")
 
 (defun grab-object-with-handles (obj side)
   "Grasp an object `obj' on one of its handles with the specified
@@ -44,7 +48,8 @@ gripper side `side'. This includes going into pregrasp for the nearest
 handle, opening the gripper, going into the grasp position, closing
 the gripper and lifting the object by 0.2m by default."
   (let* ((handles (desig-prop-values obj 'handle)))
-    (assert (> (length handles) 0) () "Object ~a needs at least one handle." obj)
+    (assert (> (length handles) 0)
+            () "Object ~a needs at least one handle." obj)
     (let* ((nearest-handle-data
              (nearest-handle
               obj
