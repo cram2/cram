@@ -133,22 +133,60 @@ respect to the chosen gripper side `side'."
   0)
 
 (defun reaching-length (pose side)
-  "Calculates the squared sum of all joint angle differences between the current state of the robot and the joint state it would have after reaching pose `pose` through calculating a trajectory via inverse kinematics solution for side `side`."
-  ;; TODO(winkler): Extend this to take ALL trajectory points into account.
+  "Calculates the squared sum of all joint angle differences between
+the current state of the robot and the joint state it would have after
+reaching pose `pose` through calculating a trajectory via inverse
+kinematics solution for side `side`. All intermediate trajectory
+points between the starting joint-state and the final trajectory point
+are taken into account. NIL is returned when no inverse kinematics
+solution could be found."
   (let ((obj-value 0)
         (ik (get-ik side pose)))
     (when ik
       (let ((traj (ik->trajectory (first ik)))
             (state (get-robot-state)))
-        (roslisp:with-fields (joint_names points) traj
-          (roslisp:with-fields (positions) (elt
-                                            points
-                                            (- (length points) 1))
-            (roslisp:with-fields (name position) state
-              (joint-state-distance name position joint_names positions))))))))
+        (roslisp:with-fields ((names-traj joint_names)
+                              (points-traj points)) traj
+          (dotimes (traj-point-n (length points-traj))
+            (let ((current-traj-positions (get-positions-from-trajectory
+                                           traj
+                                           :index traj-point-n)))
+              (if (= traj-point-n 0)
+                  (roslisp:with-fields ((names-state name)
+                                        (positions-state position)) state
+                    (setf obj-value
+                          (+ obj-value
+                             (joint-state-distance
+                              names-state
+                              positions-state
+                              names-traj
+                              current-traj-positions))))
+                  (let ((last-traj-positions (get-positions-from-trajectory
+                                              traj
+                                              :index (- traj-point-n 1))))
+                    (setf obj-value
+                          (+ obj-value
+                             (joint-state-distance
+                              names-traj
+                              last-traj-positions
+                              names-traj
+                              current-traj-positions)))))))
+          obj-value)))))
 
+(defun get-positions-from-trajectory (trajectory &key (index 0))
+  "Extracts the positions field of a given trajectory-point index from
+a given trajectory. The result is a sequence and consists of the joint
+angles in the same order as the names-field define in the same
+trajectory."
+  (roslisp:with-fields (points) trajectory
+    (let ((point (elt points index)))
+      (roslisp:with-fields (positions) point
+        positions))))
+  
 (defun joint-state-distance (names-from positions-from names-to positions-to)
-  "Calculates the square summed difference between to joint-space positions. Only named joint-states found in both sequence pairs are used during the calculation."
+  "Calculates the square summed difference between to joint-space
+positions. Only named joint-states found in both sequence pairs are
+used during the calculation."
   (let ((dist 0))
     (dotimes (n (length names-from))
       (let* ((name-from (elt names-from n))
