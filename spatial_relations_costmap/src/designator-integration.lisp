@@ -60,18 +60,23 @@ In that case we need a costmap with specific spread angle."
                        (prolog `(and
                                  (object-instance-name ,for-prop-value ?obj-name)
                                  (object-costmap-threshold ?_ ?obj-name ?threshold))))
-                    ;; (format t "validate ~a: costmap-val = ~a~% thresold = ~a~%"
-                    ;;         for-prop-value costmap-value ?threshold)
+                    (format t "~%validate: costmap-val = ~a; thresold = ~a~%"
+                            costmap-value ?threshold)
+                    (sb-ext:gc :full t)
                     (if (is-var ?threshold)
-                        t
-                        (> costmap-value ?threshold))
+                        :accept
+                        (if (> costmap-value ?threshold)
+                            :accept
+                            :reject))
                     ))
-                t))
-          t))))
+                :accept))
+          :accept))))
 
 (defun collision-pose-validator (desig pose)
   (when (typep pose 'cl-transforms:pose)
     (let ((for-prop-value (desig-prop-value desig 'for)))
       (if for-prop-value
-          (prolog `(desig-solution-not-in-collision ,desig ,for-prop-value ,pose))
-          t))))
+          (if (prolog `(desig-solution-not-in-collision ,desig ,for-prop-value ,pose))
+              :accept
+              :reject)
+          :accept))))

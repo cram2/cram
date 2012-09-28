@@ -194,7 +194,7 @@
 (defun put-stuff-on-table ()
   ;; (put-stuff-on-counter)
   (loop for i from 1 to *num-of-sets-on-table* do
-    (format t "Put a plate from counter onto the table.~%")
+    (format t "Put PLATE from counter on table~%")
     (let ((plate (put-plate-from-counter-on-table)))
       (mapcar (alexandria:rcurry #'put-object-from-counter-near-plate plate)
               '(btr::fork btr::knife btr::mug)))))
@@ -250,8 +250,8 @@
     plate))
 
 (cpl-impl:def-top-level-plan put-plate-from-counter-on-corresponding-place-on-table (the-plate)
-  (format t "global shit = ~a~%" *num-of-sets-on-table*)
-  (format t "typep integer?: ~a~%" (typep *num-of-sets-on-table* 'integer))
+  ;; (format t "global shit = ~a~%" *num-of-sets-on-table*)
+  ;; (format t "typep integer?: ~a~%" (typep *num-of-sets-on-table* 'integer))
   (cram-projection:with-projection-environment 
       projection-process-modules::pr2-bullet-projection-environment
     (with-designators
@@ -298,7 +298,8 @@
 
 
 (defun put-object-from-counter-near-plate (object-type plate-obj)
-  (format t "Put a %a from counter onto the table near ~a.~%" object-type plate-obj)
+  (format t "Put ~a from counter on table near ~a~%" object-type
+          (desig-prop-value plate-obj 'name))
   (sb-ext:gc :full t)
   (let ((obj (find-object object-type "CounterTop205")))
     (sb-ext:gc :full t)
@@ -307,7 +308,8 @@
                              (btr::fork '(desig-props:left-of))
                              (btr::knife '(desig-props:right-of))
                              (btr::mug '(desig-props:right-of desig-props:behind)))
-                           plate-obj)))
+                           plate-obj)
+    (sb-ext:gc :full t)))
 
 
 ;; (defun set-obj-pose (obj-name pose)

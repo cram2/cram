@@ -105,6 +105,10 @@
   ;; uses make-potential-field-cost-function to resolve the designator
   ;; TODO fix such that would work without FOR
   (<- (potential-field-costmap ?designator ?object ?relation ?costmap)
+    ;; TODO GET RID OF THIS UGLYNESS
+    (lisp-fun set-*use-priority-sampling* ?return-val)
+
+    
     (desig-location-prop ?object ?reference-pose)
     (lisp-fun get-y-of-pose ?reference-pose ?y-of-pose)
     (lisp-fun get-x-of-pose ?reference-pose ?x-of-pose)
@@ -173,7 +177,7 @@
     (costmap ?costmap)
     (-> (orientation-matters ?obj-name)
         (and
-         (format "~a: orientation matters!~%" ?obj-name)
+         (format "~a: orientation matters~%" ?obj-name)
          (supported-by-link-obj ?world ?ref-obj-name ?link-obj)
          (lisp-fun sem-map-utils:pose ?link-obj ?supp-obj-pose)
          (lisp-fun sem-map-utils:dimensions ?link-obj ?supp-obj-dims)
@@ -380,3 +384,5 @@
     (lisp-pred identity ?link-obj)))
 
 
+(defun set-*use-priority-sampling* ()
+  (setf location-costmap::*use-priority-sampling* t))
