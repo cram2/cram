@@ -27,6 +27,17 @@
 
 (in-package :pr2-manip-pm)
 
+(defparameter *handle-pregrasp-offset-pose*
+  (tf:make-pose
+   (tf:make-3d-vector 0.2 0.0 0.0)
+   (tf:euler->quaternion :az pi :ax (/ pi 2)))
+  "Specifies the gripper pose relative to the respective handle coordinate system (including it's origin and rotation) when going into pregrasp.")
+(defparameter *handle-grasp-offset-pose*
+  (tf:make-pose
+   (tf:make-3d-vector 0.12 0.0 0.0)
+   (tf:euler->quaternion :az pi :ax (/ pi 2)))
+  "Specifies the gripper pose relative to the respective handle coordinate system (including it's origin and rotation) when going into grasp.")
+
 (defun grab-object-with-handles (obj side)
   "Grasp an object `obj' on one of its handles with the specified
 gripper side `side'. This includes going into pregrasp for the nearest
@@ -34,29 +45,41 @@ handle, opening the gripper, going into the grasp position, closing
 the gripper and lifting the object by 0.2m by default."
   (let* ((handles (desig-prop-values obj 'handle)))
     (assert (> (length handles) 0) () "Object ~a needs at least one handle." obj)
-    ;; TODO(winkler): Get the nearest (atm the first) handle. This has
-    ;; to be changed to a more sophisticated algorithm.
-    (let* ((nearest-handle (nearest-handle-for-side obj side))
-           (handle-radius (or (desig-prop-value
-                               nearest-handle
-                               'radius)
-                              0.0)))
-      (pregrasp-handled-object-with-relative-location obj side nearest-handle)
-      (open-gripper side :position (+ handle-radius 0.02))
-      (grasp-handled-object-with-relative-location obj side nearest-handle)
-      (close-gripper side :position handle-radius)
-      (check-valid-gripper-state side :min-position (- handle-radius 0.01)))))
+    (let* ((nearest-handle-data
+             (nearest-handle
+              obj
+              :side side
+              :handle-offset-pose *handle-pregrasp-offset-pose*))
+           (distance (first nearest-handle-data))
+           (nearest-handle (second nearest-handle-data)))
+      (declare (ignore distance))
+      (let ((handle-radius (or (desig-prop-value
+                                nearest-handle
+                                'radius)
+                               0.0)))
+        (pregrasp-handled-object-with-relative-location
+         obj
+         side
+         nearest-handle)
+        (open-gripper side :position (+ handle-radius 0.02))
+        (grasp-handled-object-with-relative-location obj side nearest-handle)
+        (close-gripper side :position handle-radius)
+        (check-valid-gripper-state
+         side
+         :min-position (- handle-radius 0.01))))))
 
 (defun taxi-handled-object (obj side handle
-                                &key (relative-gripper-pose (tf:make-identity-pose)))
+                                &key (relative-gripper-pose
+                                      (tf:make-identity-pose)))
   "Commutes the arm to a certain absolute pose. The target pose is
 determined through the absolute object pose of object `obj', the
 relative object handle location `relative-handle-loc' and the relative
 gripper pose `relative-gripper-pose' w.r.t. the handle. The relative
 gripper pose defaults to an identity pose."
-  (let* ((absolute-loc (object-handle-absolute
-                        obj handle :handle-offset-pose relative-gripper-pose))
-         (absolute-pose-map (reference absolute-loc))
+  (let* ((absolute-pose-map (object-handle-absolute
+                             obj
+                             handle
+                             :handle-offset-pose relative-gripper-pose))
          (absolute-pose (tf:transform-pose *tf*
                                            :pose absolute-pose-map
                                            :target-frame "torso_lift_link"))
@@ -75,21 +98,18 @@ gripper pose defaults to an identity pose."
 to the object's `obj' handle `handle'."
   (taxi-handled-object
    obj side handle :relative-gripper-pose
-   (tf:make-pose
-    (tf:make-3d-vector 0.12 0.0 0.0)
-    (tf:euler->quaternion :az pi :ax (/ pi 2)))))
+   *handle-grasp-offset-pose*))
 
 (defun pregrasp-handled-object-with-relative-location (obj side handle)
   "Moves the gripper side `side' into the pregrasp position with
 respect to the object's `obj' handle `handle'."
   (taxi-handled-object
    obj side handle :relative-gripper-pose
-   (tf:make-pose
-    (tf:make-3d-vector 0.2 0.0 0.0)
-    (tf:euler->quaternion :az pi :ax (/ pi 2)))))
+   *handle-pregrasp-offset-pose*))
 
 (defun object-handle-absolute (obj handle
-                               &key (handle-offset-pose (tf:make-identity-pose)))
+                               &key (handle-offset-pose
+                                     (tf:make-identity-pose)))
   "Transforms the relative handle location `handle' of object `obj'
 into the object's coordinate system and returns the appropriate
 location designator. The optional parameter `handle-offset-pose' is
@@ -102,35 +122,70 @@ applied."
                                 (tf:pose->transform
                                  (reference relative-handle-loc))
                                 handle-offset-pose)))
-    (make-designator
-     'location
-     `((desig-props:pose
-        ,(tf:pose->pose-stamped
-          (tf:frame-id absolute-object-pose-stamped)
-          (tf:stamp absolute-object-pose-stamped)
-          (cl-transforms:transform-pose
-           (tf:pose->transform
-            absolute-object-pose-stamped)
-           relative-handle-pose)))))))
+    (tf:pose->pose-stamped
+     (tf:frame-id absolute-object-pose-stamped)
+     (tf:stamp absolute-object-pose-stamped)
+     (cl-transforms:transform-pose
+      (tf:pose->transform
+       absolute-object-pose-stamped)
+      relative-handle-pose))))
 
-(defun nearest-handle-for-side (obj side)
-  "Get the nearest handle location designator on object `obj' in
-respect to the chosen gripper side `side'."
-  (declare (ignore side))
-  ;; TODO(winkler): Implement *actual* calculations concerning
-  ;; distance here. Atm, this always returns the first handle on the
-  ;; object. This is no problem as long as we only have (at most) one
-  ;; handle.
-  (let ((handles (desig-prop-values obj 'handle)))
-    (first handles)))
+(defun nearest-handle (obj &key side (handle-offset-pose
+                                 (tf:make-identity-pose)))
+  "Get the nearest handle location designator on object `obj'. If the
+parameter `side' is set, the nearest handle for this side is
+determined. If it is left out (e.g. has a value of NIL), the nearest
+handle in respect of both sides (:left, :right) is calculated. A list
+of the form `(side handle)' is returned. The optional parameter
+`handle-offset-pose' can be used to specify an offset to the
+respective handles in their respective coordinate system."
+  (if side
+      (nearest-handle-for-side
+       obj
+       side
+       :handle-offset-pose handle-offset-pose)
+      (let* ((nearest-left (nearest-handle-for-side
+                            obj
+                            :left
+                            :handle-offset-pose handle-offset-pose))
+             (nearest-right (nearest-handle-for-side
+                             obj
+                             :right
+                             :handle-offset-pose handle-offset-pose))
+             (distance-left (first nearest-left))
+             (distance-right (first nearest-right))
+             (handle-left (second nearest-left))
+             (handle-right (second nearest-right)))
+        (if (or handle-left handle-right)
+            (if (and handle-left handle-right)
+                (if (< distance-left distance-right)
+                    nearest-left
+                    nearest-right)
+                (if handle-left nearest-left nearest-right))))))
 
-(defun trajectory-reaching-length (loc-desig side)
-  (declare (ignore loc-desig side))
-  ;; TODO(winkler): Atm, the trajectory reaching length is determined
-  ;; by just the cartesian distance between the two origins of gripper
-  ;; wrist roll and destination location designator. Later on, this
-  ;; should be improved.
-  0)
+(defun nearest-handle-for-side (obj side &key (handle-offset-pose
+                                               (tf:make-identity-pose)))
+  "Calculate the closest handle (in terms of joint-space) for side
+`side'. Returns a list in the form of (distance handle) for the found
+nearest handle and (-1 NIL) if no reachable handles were found. The
+optional parameter `handle-offset-pose' can be used to specify an
+offset to the respective handles in their respective coordinate
+system."
+  (let ((lowest-distance -1)
+        (nearest-handle nil)
+        (handles (desig-prop-values obj 'handle)))
+    (loop for handle in handles
+      do (let* ((handle-pose-abs (object-handle-absolute
+                                  obj
+                                  handle
+                                  :handle-offset-pose handle-offset-pose))
+                (distance (reaching-length handle-pose-abs side)))
+           (when (and distance
+                      (or (eq lowest-distance -1)
+                          (< distance lowest-distance)))
+                      (setf lowest-distance distance)
+                      (setf nearest-handle handle))))
+         (list lowest-distance nearest-handle)))
 
 (defun reaching-length (pose side)
   "Calculates the squared sum of all joint angle differences between
@@ -140,8 +195,18 @@ kinematics solution for side `side`. All intermediate trajectory
 points between the starting joint-state and the final trajectory point
 are taken into account. NIL is returned when no inverse kinematics
 solution could be found."
-  (let ((obj-value 0)
-        (ik (get-ik side pose)))
+  (let* ((obj-value 0)
+         ;; NOTE(winkler): We're transforming into the tf-frame
+         ;; "torso_lift_link" here due to the fact that get-ik
+         ;; (service node constraint_awake_ik) does not transform from
+         ;; the map-frame. The constructor of the class does not
+         ;; create a tf listener. Therefore, the goal has to be
+         ;; specified in the ik root.
+         (pose-in-torso-lift-link (tf:transform-pose
+                                   *tf*
+                                   :pose pose
+                                   :target-frame "torso_lift_link"))
+         (ik (get-ik side pose-in-torso-lift-link)))
     (when ik
       (let ((traj (ik->trajectory (first ik)))
             (state (get-robot-state)))
