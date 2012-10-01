@@ -58,37 +58,38 @@ the gripper and lifting the object by 0.2m by default."
            (distance (first nearest-handle-data))
            (nearest-handle (second nearest-handle-data)))
       (declare (ignore distance))
-      (if nearest-handle
-          (let ((handle-radius (or (desig-prop-value
-                                    nearest-handle
-                                    'radius)
-                                   0.0)))
-            (roslisp:ros-info (pr2-manipulation-process-module)
-                              "Going into pregrasp for handled object")
-            (pregrasp-handled-object-with-relative-location
-             obj
-             side
-             nearest-handle)
-            (roslisp:ros-info (pr2-manipulation-process-module)
-                              "Opening gripper")
-            (open-gripper side :position (+ handle-radius 0.02))
-            (roslisp:ros-info (pr2-manipulation-process-module)
-                              "Going into grasp for handled object")
-            (grasp-handled-object-with-relative-location
-             obj
-             side
-             nearest-handle)
-            (roslisp:ros-info (pr2-manipulation-process-module)
-                              "Closing gripper")
-            (close-gripper side :position handle-radius)
-            (check-valid-gripper-state
-             side
-             :min-position (- handle-radius 0.01)))
-          (cpl:fail 'manipulating-handle-failed)))))
+      (cond (nearest-handle
+             (let ((handle-radius (or (desig-prop-value
+                                       nearest-handle
+                                       'radius)
+                                      0.0)))
+               (roslisp:ros-info (pr2-manipulation-process-module)
+                                 "Going into pregrasp for handled object")
+               (pregrasp-handled-object-with-relative-location
+                obj
+                side
+                nearest-handle)
+               (roslisp:ros-info (pr2-manipulation-process-module)
+                                 "Opening gripper")
+               (open-gripper side :position (+ handle-radius 0.02))
+               (roslisp:ros-info (pr2-manipulation-process-module)
+                                 "Going into grasp for handled object")
+               (grasp-handled-object-with-relative-location
+                obj
+                side
+                nearest-handle)
+               (roslisp:ros-info (pr2-manipulation-process-module)
+                                 "Closing gripper")
+               (close-gripper side :position handle-radius)
+               (check-valid-gripper-state
+                side
+                :min-position (- handle-radius 0.01))))
+            (t
+             (cpl:fail 'manipulation-pose-unreachable))))))
 
 (defun taxi-handled-object (obj side handle
-                                &key (relative-gripper-pose
-                                      (tf:make-identity-pose)))
+                            &key (relative-gripper-pose
+                                  (tf:make-identity-pose)))
   "Commutes the arm to a certain absolute pose. The target pose is
 determined through the absolute object pose of object `obj', the
 relative object handle location `relative-handle-loc' and the relative
@@ -155,7 +156,7 @@ applied."
       relative-handle-pose))))
 
 (defun nearest-handle (obj &key side (handle-offset-pose
-                                 (tf:make-identity-pose)))
+                                      (tf:make-identity-pose)))
   "Get the nearest handle location designator on object `obj'. If the
 parameter `side' is set, the nearest handle for this side is
 determined. If it is left out (e.g. has a value of NIL), the nearest
@@ -163,29 +164,29 @@ handle in respect of both sides (:left, :right) is calculated. A list
 of the form `(side handle)' is returned. The optional parameter
 `handle-offset-pose' can be used to specify an offset to the
 respective handles in their respective coordinate system."
-  (if side
-      (nearest-handle-for-side
-       obj
-       side
-       :handle-offset-pose handle-offset-pose)
-      (let* ((nearest-left (nearest-handle-for-side
-                            obj
-                            :left
-                            :handle-offset-pose handle-offset-pose))
-             (nearest-right (nearest-handle-for-side
-                             obj
-                             :right
-                             :handle-offset-pose handle-offset-pose))
-             (distance-left (first nearest-left))
-             (distance-right (first nearest-right))
-             (handle-left (second nearest-left))
-             (handle-right (second nearest-right)))
-        (if (or handle-left handle-right)
-            (if (and handle-left handle-right)
-                (if (< distance-left distance-right)
-                    nearest-left
-                    nearest-right)
-                (if handle-left nearest-left nearest-right))))))
+  (cond (side
+         (nearest-handle-for-side
+          obj
+          side
+          :handle-offset-pose handle-offset-pose))
+        (t
+         (let* ((nearest-left (nearest-handle-for-side
+                               obj
+                               :left
+                               :handle-offset-pose handle-offset-pose))
+                (nearest-right (nearest-handle-for-side
+                                obj
+                                :right
+                                :handle-offset-pose handle-offset-pose))
+                (distance-left (first nearest-left))
+                (distance-right (first nearest-right))
+                (handle-left (second nearest-left))
+                (handle-right (second nearest-right)))
+           (cond ((and handle-left handle-right)
+                  (if (< distance-left distance-right)
+                      nearest-left nearest-right))
+                 (handle-left nearest-left)
+                 (handle-right nearest-right))))))
 
 (defun nearest-handle-for-side (obj side &key (handle-offset-pose
                                                (tf:make-identity-pose)))
@@ -195,21 +196,20 @@ nearest handle and (-1 NIL) if no reachable handles were found. The
 optional parameter `handle-offset-pose' can be used to specify an
 offset to the respective handles in their respective coordinate
 system."
-  (let ((lowest-distance -1)
+  (let ((lowest-distance nil)
         (nearest-handle nil)
         (handles (desig-prop-values obj 'handle)))
     (loop for handle in handles
-      do (let* ((handle-pose-abs (object-handle-absolute
-                                  obj
-                                  handle
-                                  :handle-offset-pose handle-offset-pose))
-                (distance (reaching-length handle-pose-abs side)))
-           (when (and distance
-                      (or (eq lowest-distance -1)
-                          (< distance lowest-distance)))
-                      (setf lowest-distance distance)
-                      (setf nearest-handle handle))))
-         (list lowest-distance nearest-handle)))
+          for distance = (reaching-length (object-handle-absolute
+                                           obj
+                                           handle
+                                           :handle-offset-pose
+                                           handle-offset-pose) side)
+          when (or (not lowest-distance)
+                   (and distance (< distance lowest-distance)))
+            do (setf lowest-distance distance)
+               (setf nearest-handle handle))
+    (list lowest-distance nearest-handle)))
 
 (defun reaching-length (pose side)
   "Calculates the squared sum of all joint angle differences between
@@ -240,26 +240,24 @@ solution could be found."
             (let ((current-traj-positions (get-positions-from-trajectory
                                            traj
                                            :index traj-point-n)))
-              (if (= traj-point-n 0)
-                  (roslisp:with-fields ((names-state name)
-                                        (positions-state position)) state
-                    (setf obj-value
-                          (+ obj-value
+              (cond ((= traj-point-n 0)
+                     (roslisp:with-fields ((names-state name)
+                                           (positions-state position)) state
+                       (incf obj-value
                              (joint-state-distance
                               names-state
                               positions-state
                               names-traj
                               current-traj-positions))))
-                  (let ((last-traj-positions (get-positions-from-trajectory
-                                              traj
-                                              :index (- traj-point-n 1))))
-                    (setf obj-value
-                          (+ obj-value
-                             (joint-state-distance
-                              names-traj
-                              last-traj-positions
-                              names-traj
-                              current-traj-positions)))))))
+                    (t
+                     (let ((last-traj-positions (get-positions-from-trajectory
+                                                 traj
+                                                 :index (- traj-point-n 1))))
+                       (incf obj-value (joint-state-distance
+                                        names-traj
+                                        last-traj-positions
+                                        names-traj
+                                        current-traj-positions)))))))
           obj-value)))))
 
 (defun get-positions-from-trajectory (trajectory &key (index 0))
@@ -271,7 +269,7 @@ trajectory."
     (let ((point (elt points index)))
       (roslisp:with-fields (positions) point
         positions))))
-  
+
 (defun joint-state-distance (names-from positions-from names-to positions-to)
   "Calculates the square summed difference between to joint-space
 positions. Only named joint-states found in both sequence pairs are
@@ -286,10 +284,5 @@ used during the calculation."
         (when position-to
           (let ((pos-from (elt positions-from n))
                 (pos-to (elt positions-to position-to)))
-            (setf dist
-                  (+ dist
-                     (* (- pos-from
-                           pos-to)
-                        (- pos-from
-                           pos-to))))))))
+            (incf dist (expt (- pos-from pos-to) 2))))))
     dist))
