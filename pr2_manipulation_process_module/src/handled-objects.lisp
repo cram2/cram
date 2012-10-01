@@ -32,14 +32,14 @@
 gripper side `side'. This includes going into pregrasp for the nearest
 handle, opening the gripper, going into the grasp position, closing
 the gripper and lifting the object by 0.2m by default."
-  (let* ((handles (desig-prop-values obj 'desig-props:handle)))
+  (let* ((handles (desig-prop-values obj 'handle)))
     (assert (> (length handles) 0) () "Object ~a needs at least one handle." obj)
     ;; TODO(winkler): Get the nearest (atm the first) handle. This has
     ;; to be changed to a more sophisticated algorithm.
     (let* ((nearest-handle (nearest-handle-for-side obj side))
            (handle-radius (or (desig-prop-value
                                nearest-handle
-                               'desig-props:radius)
+                               'radius)
                               0.0)))
       (pregrasp-handled-object-with-relative-location obj side nearest-handle)
       (open-gripper side :position (+ handle-radius 0.02))
@@ -54,15 +54,22 @@ determined through the absolute object pose of object `obj', the
 relative object handle location `relative-handle-loc' and the relative
 gripper pose `relative-gripper-pose' w.r.t. the handle. The relative
 gripper pose defaults to an identity pose."
-  (let ((absolute-loc (object-handle-absolute
-                       obj handle :handle-offset-pose relative-gripper-pose)))
-    (let ((move-ik (get-ik side (desig:designator-pose absolute-loc))))
-      (unless move-ik (cpl:fail
-                       'cram-plan-failures:manipulation-pose-unreachable))
-      (let ((move-trajectory (ik->trajectory (first move-ik) :duration 5.0)))
-        (unless move-trajectory (cpl:fail
-                                 'cram-plan-failures:manipulation-failed))
-        (nth-value 1 (execute-arm-trajectory side move-trajectory))))))
+  (let* ((absolute-loc (object-handle-absolute
+                        obj handle :handle-offset-pose relative-gripper-pose))
+         (absolute-pose-map (reference absolute-loc))
+         (absolute-pose (tf:transform-pose *tf*
+                                           :pose absolute-pose-map
+                                           :target-frame "torso_lift_link"))  
+         ;; This makes reach the carry-pose impossible
+         ;; atm. :seed-state (calc-seed-state-elbow-up side))))
+         (move-ik (get-ik side absolute-pose
+                          :seed-state (calc-seed-state-elbow-up side :elbow-up t :elbow-out t))))
+    (unless move-ik (cpl:fail
+                     'cram-plan-failures:manipulation-pose-unreachable))
+    (let ((move-trajectory (ik->trajectory (first move-ik) :duration 5.0)))
+      (unless move-trajectory (cpl:fail
+                               'cram-plan-failures:manipulation-failed))
+      (nth-value 1 (execute-arm-trajectory side move-trajectory)))))
 
 (defun grasp-handled-object-with-relative-location (obj side handle)
   "Moves the gripper side `side' into the grasp position with respect
@@ -83,20 +90,18 @@ respect to the object's `obj' handle `handle'."
     (tf:euler->quaternion :az pi :ax (/ pi 2)))))
 
 (defun object-handle-absolute (obj handle
-                                   &key (handle-offset-pose (tf:make-identity-pose)))
+                               &key (handle-offset-pose (tf:make-identity-pose)))
   "Transforms the relative handle location `handle' of object `obj'
 into the object's coordinate system and returns the appropriate
 location designator. The optional parameter `handle-offset-pose' is
 applied to the handle pose before the absolute object pose is
 applied."
-  (let* ((absolute-object-loc (desig-prop-value obj 'desig-props:at))
-         (absolute-object-pose-stamped (desig:designator-pose
-                                        absolute-object-loc))
-         (relative-handle-loc (desig-prop-value handle 'desig-props:at))
+  (let* ((absolute-object-loc (desig-prop-value obj 'at))
+         (absolute-object-pose-stamped (reference absolute-object-loc))
+         (relative-handle-loc (desig-prop-value handle 'at))
          (relative-handle-pose (cl-transforms:transform-pose
                                 (tf:pose->transform
-                                 (desig:designator-pose
-                                  relative-handle-loc))
+                                 (reference relative-handle-loc))
                                 handle-offset-pose)))
     (make-designator
      'location
@@ -117,7 +122,7 @@ respect to the chosen gripper side `side'."
   ;; distance here. Atm, this always returns the first handle on the
   ;; object. This is no problem as long as we only have (at most) one
   ;; handle.
-  (let ((handles (desig-prop-values obj 'desig-props:handle)))
+  (let ((handles (desig-prop-values obj 'handle)))
     (first handles)))
 
 (defun trajectory-reaching-length (loc-desig side)
