@@ -58,20 +58,33 @@ the gripper and lifting the object by 0.2m by default."
            (distance (first nearest-handle-data))
            (nearest-handle (second nearest-handle-data)))
       (declare (ignore distance))
-      (let ((handle-radius (or (desig-prop-value
-                                nearest-handle
-                                'radius)
-                               0.0)))
-        (pregrasp-handled-object-with-relative-location
-         obj
-         side
-         nearest-handle)
-        (open-gripper side :position (+ handle-radius 0.02))
-        (grasp-handled-object-with-relative-location obj side nearest-handle)
-        (close-gripper side :position handle-radius)
-        (check-valid-gripper-state
-         side
-         :min-position (- handle-radius 0.01))))))
+      (if nearest-handle
+          (let ((handle-radius (or (desig-prop-value
+                                    nearest-handle
+                                    'radius)
+                                   0.0)))
+            (roslisp:ros-info (pr2-manipulation-process-module)
+                              "Going into pregrasp for handled object")
+            (pregrasp-handled-object-with-relative-location
+             obj
+             side
+             nearest-handle)
+            (roslisp:ros-info (pr2-manipulation-process-module)
+                              "Opening gripper")
+            (open-gripper side :position (+ handle-radius 0.02))
+            (roslisp:ros-info (pr2-manipulation-process-module)
+                              "Going into grasp for handled object")
+            (grasp-handled-object-with-relative-location
+             obj
+             side
+             nearest-handle)
+            (roslisp:ros-info (pr2-manipulation-process-module)
+                              "Closing gripper")
+            (close-gripper side :position handle-radius)
+            (check-valid-gripper-state
+             side
+             :min-position (- handle-radius 0.01)))
+          (cpl:fail 'manipulating-handle-failed)))))
 
 (defun taxi-handled-object (obj side handle
                                 &key (relative-gripper-pose
