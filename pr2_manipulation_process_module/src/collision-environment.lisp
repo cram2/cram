@@ -99,7 +99,7 @@
 (defun register-collision-object (designator)
   "Registers the object referenced by `designator' in the collision
 environment."
-  (declare (type object-designator desig))
+  (declare (type object-designator designator))
   (declare (ignore designator))
   (warn 'simple-warning
         :foramt-control "REGISTER-COLLISION-OBJECT is not implemented at the moment."))
