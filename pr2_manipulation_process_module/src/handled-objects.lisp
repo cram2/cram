@@ -83,7 +83,18 @@ the gripper and lifting the object by 0.2m by default."
                (close-gripper side :position handle-radius)
                (check-valid-gripper-state
                 side
-                :min-position (- handle-radius 0.01))))
+                :min-position (- handle-radius 0.01)))
+             (roslisp:ros-info (pr2-manip process-module)
+                               "Attaching object to gripper")
+             (plan-knowledge:on-event
+              (make-instance
+               'plan-knowledge:object-attached
+               :object obj
+               :link (ecase side
+                       (:right "r_gripper_r_finger_tip_link")
+                       (:left "l_gripper_r_finger_tip_link"))
+               :side side))
+             (assert-occasion `(object-in-hand ,obj ,side)))
             (t
              (cpl:fail 'manipulation-pose-unreachable))))))
 
@@ -111,7 +122,7 @@ gripper pose defaults to an identity pose."
          ;; This makes reach the carry-pose impossible
          ;; atm. :seed-state (calc-seed-state-elbow-up side))))
          (move-ik (get-ik side absolute-pose
-                          :seed-state (calc-seed-state-elbow-up side :elbow-up t :elbow-out t))))
+                          :seed-state (calc-seed-state-elbow-up side :elbow-up nil :elbow-out nil))))
     (unless move-ik (cpl:fail
                      'cram-plan-failures:manipulation-pose-unreachable))
     (let ((move-trajectory (ik->trajectory (first move-ik) :duration 5.0)))
