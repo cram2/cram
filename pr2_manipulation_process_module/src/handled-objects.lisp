@@ -55,9 +55,9 @@ the gripper and lifting the object by 0.2m by default."
               obj
               :side side
               :handle-offset-pose *handle-pregrasp-offset-pose*))
-           (distance (first nearest-handle-data))
+           (nearest-side (first nearest-handle-data))
            (nearest-handle (second nearest-handle-data)))
-      (declare (ignore distance))
+      (declare (ignore nearest-side))
       (cond (nearest-handle
              (let ((handle-radius (or (desig-prop-value
                                        nearest-handle
@@ -166,10 +166,12 @@ of the form `(side handle)' is returned. The optional parameter
 `handle-offset-pose' can be used to specify an offset to the
 respective handles in their respective coordinate system."
   (cond (side
-         (nearest-handle-for-side
-          obj
-          side
-          :handle-offset-pose handle-offset-pose))
+         (let ((nearest-handle-data 
+                 (nearest-handle-for-side
+                  obj
+                  side
+                  :handle-offset-pose handle-offset-pose)))
+           (list side (second nearest-handle-data))))
         (t
          (let* ((nearest-left (nearest-handle-for-side
                                obj
@@ -185,9 +187,10 @@ respective handles in their respective coordinate system."
                 (handle-right (second nearest-right)))
            (cond ((and handle-left handle-right)
                   (if (< distance-left distance-right)
-                      nearest-left nearest-right))
-                 (handle-left nearest-left)
-                 (handle-right nearest-right))))))
+                      (list :left handle-left)
+                      (list :right handle-right)))
+                 (handle-left (list :left handle-left))
+                 (handle-right (list :right handle-right)))))))
 
 (defun nearest-handle-for-side (obj side &key (handle-offset-pose
                                                (tf:make-identity-pose)))
