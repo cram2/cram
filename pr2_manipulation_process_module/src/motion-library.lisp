@@ -80,7 +80,7 @@ lift the grasped object at the `distance' from the supporting plane."
                            :source-frame (ecase side
                                            (:right "r_wrist_roll_link")
                                            (:left "l_wrist_roll_link"))
-                           :target-frame "/base_footprint"))
+                           :target-frame "/torso_lift_link"))
          (lifted-pose (tf:make-pose-stamped
                        (tf:frame-id wrist-transform)
                        (tf:stamp wrist-transform)
