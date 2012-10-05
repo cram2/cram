@@ -38,6 +38,17 @@
   (<- (obstacles ?desig ?obstacles)
     (findall ?o (desig-prop ?desig (obstacle ?o))
              ?obstacles))
+  
+  (<- (handles ?desig ?handles)
+    (findall ?h (desig-prop ?desig (handle ?h))
+             ?handles))
+
+  (<- (handled-obj-desig? ?designator)
+    (obj-desig? ?designator)
+    (desig-prop ?designator (handle ?_)))
+
+  (<- (best-grasp ?obj ?handles ?obstacles ?grasps ?arms)
+    (lisp-fun calc-best-grasps-and-arms ?obj ?handles ?obstacles (?grasps ?arms)))
 
   (<- (action-desig ?desig (container-opened ?handle :right))
     (trajectory-desig? ?desig)
@@ -70,6 +81,23 @@
     (desig-prop ?desig (to carry))
     (desig-prop ?desig (obj ?obj))
     (obstacles ?desig ?obstacles))
+
+  ;; rule added by Georg:
+  ;; right now, it is intended to be limited to grasping of
+  ;; handled objects, i.e. the ones produced by the gazebo
+  ;; perception process module.
+  ;; later, however, it could be used as the general rule for
+  ;; all grasping because the predicate 'best-grasp' can be
+  ;; used as a hook for grasp planning or any other manipulation
+  ;; reasoning process that chooses the correct arm/grasp setup
+  (<- (action-desig ?desig (grasp-slave ?obj ?grasps ?arms ?obstacles))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to grasp))
+    (desig-prop ?desig (obj ?obj))
+    (handled-obj-desig? ?obj)
+    (handles ?obj ?handles)
+    (obstacles ?desig ?obstacles)
+    (best-grasp ?obj ?handles ?obstacles ?grasps ?arms))
 
   (<- (action-desig ?desig (grasp ?object-type ?obj :right ?obstacles))
     (trajectory-desig? ?desig)
