@@ -43,6 +43,7 @@
            #:effective #:data #:equate #:desig-equal #:reference
            #:next-solution #:register-designator-class
            #:make-designator #:first-desig #:current-desig
+           #:current-designator
            #:make-effective-designator
            #:newest-effective-designator #:with-desig-props #:with-designators
            #:designator-solutions #:desig-prop-value
