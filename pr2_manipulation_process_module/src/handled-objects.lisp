@@ -185,12 +185,13 @@ respective handles in their respective coordinate system."
                 (distance-right (first nearest-right))
                 (handle-left (second nearest-left))
                 (handle-right (second nearest-right)))
-           (cond ((and handle-left handle-right)
+           (cond ((and handle-left handle-right distance-left distance-right)
                   (if (< distance-left distance-right)
                       (list :left handle-left)
                       (list :right handle-right)))
                  (handle-left (list :left handle-left))
-                 (handle-right (list :right handle-right)))))))
+                 (handle-right (list :right handle-right))
+                 (t (roslisp::ros-warn (pr2-manip-pm handled-objects) "No nearest handle found.")))))))
 
 (defun nearest-handle-for-side (obj side &key (handle-offset-pose
                                                (tf:make-identity-pose)))
@@ -209,9 +210,11 @@ system."
                                            handle
                                            :handle-offset-pose
                                            handle-offset-pose) side)
-          when (or (not lowest-distance)
-                   (and distance (< distance lowest-distance)))
-            do (setf lowest-distance distance)
+          when (and distance
+                    (or (not lowest-distance)
+                        (< distance lowest-distance)))
+            do (assert handle)
+               (setf lowest-distance distance)
                (setf nearest-handle handle))
     (list lowest-distance nearest-handle)))
 
