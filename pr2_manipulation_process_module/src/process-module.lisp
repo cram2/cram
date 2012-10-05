@@ -376,6 +376,10 @@ single and dual grasps. `Side' indicates with respect to which gripper
 the new location designator shall be constructed. `height' is the
 difference in z-coordinate of the grasping point of the object and
 its' supporting plane."
+  (style-warn 'simple-style-warning
+              :format-control "Use of deprecated form
+              UPDATE-PICKED-UP-OBJECT-DESIGNATOR. Please use
+              UPDATE-GRASPED-OBJECT-DESIGNATOR instead.")
   ;; get current pose of the object in map frame
   (let* ((obj-pose (cl-tf:transform-pose
                     *tf* :pose (obj-desig-location (current-desig obj-desig))
