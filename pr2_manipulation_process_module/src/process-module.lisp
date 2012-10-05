@@ -341,6 +341,33 @@ by `planners' until one succeeds."
   (collision-environment-set-laser-period)
   (apply #'call-action (reference desig)))
 
+(defun update-grasped-object-designator (obj grippers)
+  (let* ((target-frame (var-value '?target-frame
+                                 (lazy-car
+                                  (crs:prolog
+                                   `(cram-pr2-knowledge::end-effector-link
+                                     ,(car grippers)
+                                     ?target-frame)))))
+         (obj-pose-in-gripper (tf:pose->pose-stamped
+                               target-frame
+                               0.0
+                               (cl-tf:transform-pose
+                                *tf*
+                                :pose (obj-desig-location
+                                       (current-desig obj))
+                                :target-frame target-frame)))
+         (loc-desig-in-gripper (make-designator
+                                'location
+                                (append `((pose ,obj-pose-in-gripper)
+                                          (in gripper))
+                                        (mapcar (lambda (grip)
+                                                  `(gripper ,grip))
+                                                grippers)))))
+        (make-designator
+         'object
+         `((at ,loc-desig-in-gripper) . ,(remove 'at (description obj) :key #'car))
+         obj)))
+
 (defun update-picked-up-object-designator (obj-desig gripper side height)
   "Function that creates and equates a new obj-designator to an object
 that has been grasped. `gripper' shall either include the symbols
