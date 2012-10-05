@@ -193,4 +193,10 @@
   (<- (designator ?designator)
     (not (bound ?designator))
     (lisp-fun get-all-designators ?designators)
-    (member ?designator ?designators)))
+    (member ?designator ?designators))
+
+  (<- (current-designator ?designator ?current)
+    (lisp-fun current-desig ?designator ?current))
+
+  (<- (newest-effective-designator ?designator ?effective)
+    (lisp-fun newest-effective-designator ?designator ?effective)))
