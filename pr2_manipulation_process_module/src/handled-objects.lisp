@@ -29,7 +29,7 @@
 
 (defparameter *handle-pregrasp-offset-pose*
   (tf:make-pose
-   (tf:make-3d-vector 0.35 0.0 0.0)
+   (tf:make-3d-vector 0.15 0.0 0.0)
    (tf:euler->quaternion :az pi :ax (/ pi 2)))
   "Specifies the gripper pose relative to the respective handle
   coordinate system (including it's origin and rotation) when going
@@ -83,7 +83,18 @@ the gripper and lifting the object by 0.2m by default."
                (close-gripper side :position handle-radius)
                (check-valid-gripper-state
                 side
-                :min-position (- handle-radius 0.01))))
+                :min-position (- handle-radius 0.01)))
+             (roslisp:ros-info (pr2-manip process-module)
+                               "Attaching object to gripper")
+             (plan-knowledge:on-event
+              (make-instance
+               'plan-knowledge:object-attached
+               :object obj
+               :link (ecase side
+                       (:right "r_gripper_r_finger_tip_link")
+                       (:left "l_gripper_r_finger_tip_link"))
+               :side side))
+             (assert-occasion `(object-in-hand ,obj ,side)))
             (t
              (cpl:fail 'manipulation-pose-unreachable))))))
 
@@ -111,7 +122,7 @@ gripper pose defaults to an identity pose."
          ;; This makes reach the carry-pose impossible
          ;; atm. :seed-state (calc-seed-state-elbow-up side))))
          (move-ik (get-ik side absolute-pose
-                          :seed-state (calc-seed-state-elbow-up side :elbow-up t :elbow-out t))))
+                          :seed-state (calc-seed-state-elbow-up side :elbow-up nil :elbow-out nil))))
     (unless move-ik (cpl:fail
                      'cram-plan-failures:manipulation-pose-unreachable))
     (let ((move-trajectory (ik->trajectory (first move-ik) :duration 5.0)))
@@ -205,16 +216,31 @@ system."
         (nearest-handle nil)
         (handles (desig-prop-values obj 'handle)))
     (loop for handle in handles
-          for distance = (reaching-length (object-handle-absolute
-                                           obj
-                                           handle
-                                           :handle-offset-pose
-                                           handle-offset-pose) side)
-          when (and distance
+          ;; NOTE(winkler): Both, the distance with the pregrasp pose
+          ;; included and the one without the pregrasp pose are
+          ;; checked here for valid IK solutions. There is no sense in
+          ;; marking a handle as "reachable" just because the pregrasp
+          ;; pose is reachable.
+          for distance-with-offset = (reaching-length
+                                      (object-handle-absolute
+                                       obj
+                                       handle
+                                       :handle-offset-pose
+                                       handle-offset-pose)
+                                      side)
+          for distance-without-offset = (reaching-length
+                                         (object-handle-absolute
+                                          obj
+                                          handle)
+                                         side)
+          when (and distance-with-offset
+                    distance-without-offset
                     (or (not lowest-distance)
-                        (< distance lowest-distance)))
+                        (and distance-with-offset
+                             (< distance-with-offset
+                                lowest-distance))))
             do (assert handle)
-               (setf lowest-distance distance)
+               (setf lowest-distance distance-with-offset)
                (setf nearest-handle handle))
     (list lowest-distance nearest-handle)))
 
