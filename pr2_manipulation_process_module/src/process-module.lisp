@@ -144,6 +144,11 @@
       (lift-grasped-object-with-both-arms distance)
       (lift-grasped-object-with-one-arm side distance)))
 
+(def-action-handler grasp-slave (obj grasps arms obstacles)
+  (declare (ignore grasps obstacles))
+  (format t "~%~%[GRASP-SLAVE]: calling grap-object-with-handles... arm: ~a~%~%" (first arms))
+  (grab-object-with-handles obj (first arms)))
+
 (def-action-handler grasp (object-type obj side obstacles)
   "Selects and calls the appropriate grasping functionality based on
 the given object type."
@@ -460,3 +465,26 @@ that has to be grasped with two grippers."
        effort (make-array (length names)
                           :element-type 'float
                           :initial-element 0.0)))))
+
+(defun calc-best-grasps-and-arms (obj handles obstacles)
+  ;; TODO(georg): major refactoring ahead in the close future:
+  ;; - obstacles should be used for collision-aware IK
+  ;; - Jan's distance functions should be changed to
+  ;;   accept handles parameter
+  ;; - Jan's distance functions should be changed to
+  ;;   to use the seed-state IK
+  ;; - no more reasoning inside the grasping function
+  ;;   of Jan, it should just go for the indicated handle...
+  ;; - allow for input of available arms (not :left, :right)
+  (declare (ignore handles obstacles))
+  ;; using Jan's distance functionality to choose correct
+  ;; side and handle
+  (let* ((nearest-handle-data
+           (nearest-handle
+            obj
+            :side nil
+            :handle-offset-pose *handle-pregrasp-offset-pose*))
+         (side (first nearest-handle-data))
+         (handle (second nearest-handle-data)))
+    (format t "~%~%[CALC-BEST-GRASPS-AND-ARMS]: best arm: ~a~%~%" side)
+    (list (list handle) (list side))))
