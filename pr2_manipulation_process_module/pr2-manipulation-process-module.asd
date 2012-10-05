@@ -39,6 +39,7 @@
                cram-plan-failures
                cram-plan-knowledge
                cram-projection
+               cram-pr2-knowledge
                pr2_controllers_msgs-msg
                pr2_msgs-msg
                pr2_msgs-srv
