@@ -212,14 +212,30 @@ system."
         (nearest-handle nil)
         (handles (desig-prop-values obj 'handle)))
     (loop for handle in handles
-          for distance = (reaching-length (object-handle-absolute
-                                           obj
-                                           handle
-                                           :handle-offset-pose
-                                           handle-offset-pose) side)
-          when (or (not lowest-distance)
-                   (and distance (< distance lowest-distance)))
-            do (setf lowest-distance distance)
+          ;; NOTE(winkler): Both, the distance with the pregrasp pose
+          ;; included and the one without the pregrasp pose are
+          ;; checked here for valid IK solutions. There is no sense in
+          ;; marking a handle as "reachable" just because the pregrasp
+          ;; pose is reachable.
+          for distance-with-offset = (reaching-length
+                                      (object-handle-absolute
+                                       obj
+                                       handle
+                                       :handle-offset-pose
+                                       handle-offset-pose)
+                                      side)
+          for distance-without-offset = (reaching-length
+                                         (object-handle-absolute
+                                          obj
+                                          handle)
+                                         side)
+          when (and distance-with-offset
+                    distance-without-offset
+                    (or (not lowest-distance)
+                        (and distance-with-offset
+                             (< distance-with-offset
+                                lowest-distance))))
+            do (setf lowest-distance distance-with-offset)
                (setf nearest-handle handle))
     (list lowest-distance nearest-handle)))
 
