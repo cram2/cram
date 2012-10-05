@@ -93,7 +93,8 @@ the gripper and lifting the object by 0.2m by default."
                :link (ecase side
                        (:right "r_gripper_r_finger_tip_link")
                        (:left "l_gripper_r_finger_tip_link"))
-               :side side)))
+               :side side))
+             (update-grasped-object-designator obj (list side)))
             (t
              (cpl:fail 'manipulation-pose-unreachable))))))
 
