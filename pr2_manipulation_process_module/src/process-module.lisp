@@ -139,10 +139,18 @@
                                :allowed-collision-objects (list "\"all\"")))
     (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))))
 
-(def-action-handler lift (side distance)
-  (if (eq side :both)
-      (lift-grasped-object-with-both-arms distance)
-      (lift-grasped-object-with-one-arm side distance)))
+(def-action-handler lift (arms distance)
+  ;; Note(Georg) Curious! We do not need the object designator
+  ;; for execution of this action?
+  (force-ll arms)
+  (cond ((eql (length arms) 1)
+         (lift-grasped-object-with-one-arm (first arms) distance))
+        ;; TODO(Georg): the next cases is actually deprecated
+        ;; because it still relies on the :both arms setup
+        ((> (length arms) 1)
+         (lift-grasped-object-with-both-arms distance))
+        (t (roslisp:ros-warn (pr2-manip process-module)
+                             "No arms to lift object infererd."))))
 
 (def-action-handler grasp-slave (obj grasps arms obstacles)
   (declare (ignore grasps obstacles))

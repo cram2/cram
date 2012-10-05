@@ -82,7 +82,19 @@
     (trajectory-desig? ?desig)
     (desig-prop ?desig (pose parked)))
 
-  (<- (action-desig ?desig (lift :right ?distance))
+  (<- (action-desig ?desig (lift ?grippers ?distance))
+    ;; NOTE(Georg): we're blurring the distinction
+    ;; between arms and grippers here. feels fishy...
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to lift))
+    (desig-prop ?desig (obj ?obj))
+    (current-designator ?obj ?current-obj)
+    (holding-grippers ?current-obj ?grippers)
+    (-> (desig-prop ?desig (distance ?distance))
+        (true)
+        (== ?distance 0.10)))
+
+  (<- (action-desig ?desig (lift (:right) ?distance))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to lift))
     (-> (desig-prop ?desig (distance ?distance))
