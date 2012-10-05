@@ -43,9 +43,22 @@
     (findall ?h (desig-prop ?desig (handle ?h))
              ?handles))
 
+  (<- (holding-grippers ?desig ?grippers)
+    (gripped-obj-desig? ?desig)
+    (desig-prop ?desig (at ?obj-loc))
+    (findall ?g (desig-prop ?obj-loc (gripper ?g)) 
+             ?grippers))
+
   (<- (handled-obj-desig? ?designator)
     (obj-desig? ?designator)
     (desig-prop ?designator (handle ?_)))
+
+  (<- (gripped-obj-desig? ?designator)
+    (obj-desig? ?designator)
+    (desig-prop ?designator (at ?obj-loc))
+    (loc-desig? ?obj-loc)
+    (desig-prop ?obj-loc (in gripper)))
+    
 
   (<- (best-grasp ?obj ?handles ?obstacles ?grasps ?arms)
     (lisp-fun calc-best-grasps-and-arms ?obj ?handles ?obstacles (?grasps ?arms)))
