@@ -43,9 +43,22 @@
     (findall ?h (desig-prop ?desig (handle ?h))
              ?handles))
 
+  (<- (holding-grippers ?desig ?grippers)
+    (gripped-obj-desig? ?desig)
+    (desig-prop ?desig (at ?obj-loc))
+    (findall ?g (desig-prop ?obj-loc (gripper ?g)) 
+             ?grippers))
+
   (<- (handled-obj-desig? ?designator)
     (obj-desig? ?designator)
     (desig-prop ?designator (handle ?_)))
+
+  (<- (gripped-obj-desig? ?designator)
+    (obj-desig? ?designator)
+    (desig-prop ?designator (at ?obj-loc))
+    (loc-desig? ?obj-loc)
+    (desig-prop ?obj-loc (in gripper)))
+    
 
   (<- (best-grasp ?obj ?handles ?obstacles ?grasps ?arms)
     (lisp-fun calc-best-grasps-and-arms ?obj ?handles ?obstacles (?grasps ?arms)))
@@ -69,7 +82,19 @@
     (trajectory-desig? ?desig)
     (desig-prop ?desig (pose parked)))
 
-  (<- (action-desig ?desig (lift :right ?distance))
+  (<- (action-desig ?desig (lift ?grippers ?distance))
+    ;; NOTE(Georg): we're blurring the distinction
+    ;; between arms and grippers here. feels fishy...
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to lift))
+    (desig-prop ?desig (obj ?obj))
+    (current-designator ?obj ?current-obj)
+    (holding-grippers ?current-obj ?grippers)
+    (-> (desig-prop ?desig (distance ?distance))
+        (true)
+        (== ?distance 0.10)))
+
+  (<- (action-desig ?desig (lift (:right) ?distance))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to lift))
     (-> (desig-prop ?desig (distance ?distance))

@@ -16,6 +16,7 @@
   <depend package="cram_plan_failures" />
   <depend package="cram_plan_knowledge" />
   <depend package="cram_projection" />
+  <depend package="cram_pr2_knowledge" />
   <depend package="pr2_controllers_msgs" />
   <depend package="kinematics_msgs" />
   <depend package="arm_navigation_msgs" />
