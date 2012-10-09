@@ -202,7 +202,8 @@ respective handles in their respective coordinate system."
                       (list :right handle-right)))
                  (handle-left (list :left handle-left))
                  (handle-right (list :right handle-right))
-                 (t (roslisp::ros-warn (pr2-manip-pm handled-objects) "No nearest handle found.")))))))
+                 (t (roslisp::ros-warn (pr2-manip-pm handled-objects) "No nearest handle found.")
+                    (list nil nil)))))))
 
 (defun nearest-handle-for-side (obj side &key (handle-offset-pose
                                                (tf:make-identity-pose)))
