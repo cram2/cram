@@ -155,7 +155,11 @@
 (def-action-handler grasp-slave (obj grasps arms obstacles)
   (declare (ignore grasps obstacles))
   (format t "~%~%[GRASP-SLAVE]: calling grap-object-with-handles... arm: ~a~%~%" (first arms))
-  (grab-object-with-handles obj (first arms)))
+  (grab-object-with-handles-constraint-aware
+   obj
+   (first arms)
+   obstacles
+   :obj-as-obstacle t))
 
 (def-action-handler grasp (object-type obj side obstacles)
   "Selects and calls the appropriate grasping functionality based on
