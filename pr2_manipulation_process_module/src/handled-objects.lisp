@@ -51,7 +51,8 @@
   (dolist (obstacle (cut:force-ll obstacles))
     (register-collision-object obstacle))
   (register-collision-object obj)
-  ;; NOTE(winkler): Check for the constraint-aware IK service. At the moment, register-collision-object is not really implemented.
+  ;; NOTE(winkler): Check for the constraint-aware IK service. At the
+  ;; moment, register-collision-object is not really implemented.
   (grab-object-with-handles obj side :constraint-aware t))
 
 (defun grab-object-with-handles (obj side &key constraint-aware)
@@ -88,11 +89,16 @@ the gripper and lifting the object by 0.2m by default."
                (open-gripper side :position (+ handle-radius 0.02))
                (roslisp:ros-info (pr2-manipulation-process-module)
                                  "Going into grasp for handled object")
+               ;; NOTE(winkler): The grasp itself should not be
+               ;; constraint-aware as we are already near the object
+               ;; (no obstacles between gripper and object assumed)
+               ;; and we need to get real close to the object with the
+               ;; gripper. Having this function constraint-aware would
+               ;; break the grasping.
                (grasp-handled-object-with-relative-location
                 obj
                 side
-                nearest-handle
-                :constraint-aware constraint-aware)
+                nearest-handle)
                (roslisp:ros-info (pr2-manipulation-process-module)
                                  "Closing gripper")
                (close-gripper side :position handle-radius)
