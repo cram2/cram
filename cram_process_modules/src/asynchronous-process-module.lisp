@@ -91,16 +91,6 @@
      (get-running-process-module process-module)
      error :designator designator)))
 
-(defgeneric monitor-process-module (process-module &key designators)
-  (:documentation "Until the process module has finished processing or
-  throws an error. In that case rethrows the error. When `designators'
-  is set, only monitors the execution of `designators'. Otherwise,
-  monitors all failures. `designators' can be a single designators or a
-  list of designators.")
-  (:method ((process-module symbol) &key designators)
-    (monitor-process-module
-     (get-running-process-module process-module) :designators designators)))
-
 (defmethod pm-run ((process-module asynchronous-process-module) &optional name)
   (assert (eq (value (slot-value process-module 'status)) :offline) ()
           "Process module `~a' already running." process-module)  

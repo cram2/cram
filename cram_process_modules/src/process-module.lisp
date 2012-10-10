@@ -152,3 +152,22 @@
 
 (defmethod finished-fluent ((process-module process-module))
   (not (running-fluent process-module)))
+
+(defmethod monitor-process-module ((process-module process-module) &key designators)
+  (declare (ignore designators))
+  ;; Since the actual pm-execute call already blocks and rethrows
+  ;; errors, we only wait for the process module to finish in case it
+  ;; is running.
+  ;;
+  ;; NOTE(moesenle): The implementation here is less than perfect, it
+  ;; might suffer from different race conditions. For instance, if one
+  ;; process calls PM-EXECUTE and right after calls
+  ;; MONITOR-PROCESS-MODULE and another process calls PM-EXECUTE right
+  ;; in between, the monitor function will block on the other process'
+  ;; input.
+  ;;
+  ;; NOTE(moesenle): this is not really clean. I guess we need to
+  ;; either check if a condition has been handled in pm-execute and
+  ;; rethrow it in case it has not been handled or we need to rethrow
+  ;; errors in any case. Not sure what's right here...
+  (wait-for (finished-fluent process-module)))
