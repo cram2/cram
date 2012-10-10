@@ -109,6 +109,17 @@
   (:documentation "Convenience method that returns a fluent that is T
   when the process module is finished, NIL otherwise."))
 
+(defgeneric monitor-process-module (process-module &key designators)
+  (:documentation "Monitors the execution of a process module. The
+  method blocks until the process module has finished processing or
+  throws an error. In that case rethrows the error. When `designators'
+  is set, only monitors the execution of `designators'. Otherwise,
+  monitors all failures. `designators' can be a single designators or
+  a list of designators.")
+  (:method ((process-module symbol) &key designators)
+    (monitor-process-module
+     (get-running-process-module process-module) :designators designators)))
+
 (defclass process-module-collection ()
   ((process-modules :initform nil :accessor process-modules)
    (lock :initform (sb-thread:make-mutex))
