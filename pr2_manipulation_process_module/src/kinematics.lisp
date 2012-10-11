@@ -94,7 +94,7 @@ as a vector. "
       (map nil (lambda (limit joint-name)
                  (roslisp:with-fields ((min min_position)
                                        (max max_position))
-                   limit
+                     limit
                    (setf (gethash joint-name lower) min)
                    (setf (gethash joint-name upper) max)
                    (setf (gethash joint-name current)
@@ -136,7 +136,6 @@ are used for each joint."
                                                          (list (gethash name current)))))))))
 
 (defun ik->trajectory (ik-result &key (duration 5.0) (stamp (roslisp:ros-time)))
-;  (declare (type kinematics_msgs-srv:getpositionik-response ik-result))
   "Converts the result of an IK call (type
 arm_navigation_msgs/RobotState) to a joint trajectory message that can
 be used in the corresponding actions."
@@ -442,9 +441,6 @@ names for which collisions are allowed."
                                      :ik_seed_state (roslisp:make-msg
                                                      "arm_navigation_msgs/RobotState"
                                                      joint_state (lazy-car seeds)))
-;                                    :ordered_collision_operations (make-collision-operations
-;                                                                    side
-;                                                                    (cons "\"attached\"" allowed-collision-objects))
                                     :timeout 30.0))))
                    (roslisp:with-fields ((error-code (val error_code)))
                      result
@@ -482,7 +478,7 @@ names for which collisions are allowed."
        (let ((result (sort (map 'list
                                 (lambda (grasp)
                                   (roslisp:with-fields (grasp_pose success_probability)
-                                    grasp
+                                      grasp
                                     (cons grasp_pose success_probability)))
                                 grasps)
                            #'> :key #'cdr)))
@@ -576,7 +572,7 @@ transform in /base_footprint."
                      (t (find-closest-angle rot (cdr rotations) closest))))))
     (let ((pose-in-base (tf:transform-pose
                          *tf* :pose pose
-                         :target-frame "/base_footprint")))
+                              :target-frame "/base_footprint")))
       (< (find-closest-angle (cl-transforms:orientation pose-in-base)
                              good)
          (find-closest-angle (cl-transforms:orientation pose-in-base)
@@ -599,7 +595,7 @@ and a side orientation otherwise."
 (defun get-robot-state ()
   "Returns the current joint state of the robot"
   (roslisp:with-fields ((joint-state (joint_state robot_state)))
-      (cpl-impl:without-scheduling
+    (cpl-impl:without-scheduling
         (roslisp:call-service
          "/environment_server/get_robot_state"
          "arm_navigation_msgs/GetRobotState"))
@@ -608,8 +604,7 @@ and a side orientation otherwise."
 (defun get-gripper-state (side)
   "Returns the position of the gripper. 0 indicates a completely
 closed gripper."
-  (roslisp:with-fields (name position)
-      (get-robot-state)
+  (roslisp:with-fields (name position) (get-robot-state)
     (let ((idx (position (ecase side
                            (:right "r_gripper_joint")
                            (:left "l_gripper_joint"))
