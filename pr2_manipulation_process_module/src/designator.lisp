@@ -58,7 +58,6 @@
     (desig-prop ?designator (at ?obj-loc))
     (loc-desig? ?obj-loc)
     (desig-prop ?obj-loc (in gripper)))
-    
 
   (<- (best-grasp ?obj ?handles ?obstacles ?grasps ?arms)
     (lisp-fun calc-best-grasps-and-arms ?obj ?handles ?obstacles (?grasps ?arms)))
