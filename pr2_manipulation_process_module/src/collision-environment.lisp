@@ -102,7 +102,7 @@ environment."
   (declare (type object-designator designator))
   (declare (ignore designator))
   (warn 'simple-warning
-        :foramt-control "REGISTER-COLLISION-OBJECT is not implemented at the moment."))
+        :format-control "REGISTER-COLLISION-OBJECT is not implemented at the moment."))
 
 (defun remove-collision-object (desig)
   (let ((collision-object (find-desig-collision-object desig)))

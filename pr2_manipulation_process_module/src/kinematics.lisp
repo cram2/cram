@@ -82,7 +82,7 @@ as a vector. "
         (joint-state *joint-state*))
     (roslisp:with-fields ((joint-names (joint_names kinematic_solver_info))
                           (limits (limits kinematic_solver_info)))
-        (cpl-impl:without-scheduling
+      (cpl-impl:without-scheduling
           (roslisp:call-service
            (concatenate
             'string
@@ -136,7 +136,6 @@ are used for each joint."
                                                          (list (gethash name current)))))))))
 
 (defun ik->trajectory (ik-result &key (duration 5.0) (stamp (roslisp:ros-time)))
-  (declare (type kinematics_msgs-srv:getpositionik-response ik-result))
   "Converts the result of an IK call (type
 arm_navigation_msgs/RobotState) to a joint trajectory message that can
 be used in the corresponding actions."
@@ -421,38 +420,33 @@ names for which collisions are allowed."
     (lazy-list ((seeds (if max-tries
                            (lazy-take max-tries seeds)
                            seeds)))
-      (when seeds
-        (let ((result (cpl-impl:without-scheduling
-                        (roslisp:call-service
-                         (concatenate
-                          'string
-                          (ecase side
-                            (:right *ik-right-ns*)
-                            (:left *ik-left-ns*))
-                          "/get_constraint_aware_ik")
-                         'kinematics_msgs-srv:getconstraintawarepositionik
-                       
-                         :ik_request
-                         (roslisp:make-msg
-                          "kinematics_msgs/PositionIKRequest"
-                          :ik_link_name (ecase side
-                                          (:right "r_wrist_roll_link")
-                                          (:left "l_wrist_roll_link"))
-                          :pose_stamped (tf:pose-stamped->msg
-                                         (tool-goal-pose->wrist-goal-pose pose :tool tool))
-                          :ik_seed_state (roslisp:make-msg
-                                          "arm_navigation_msgs/RobotState"
-                                          joint_state (lazy-car seeds)))
-                         :ordered_collision_operations (make-collision-operations
-                                                        side
-                                                        (cons "\"attached\"" allowed-collision-objects))
-                       
-                         :timeout 3.0))))
-          (roslisp:with-fields ((error-code (val error_code)))
-              result
-            (if (eql error-code 1)
-                (cont result (lazy-cdr seeds))
-                (next (lazy-cdr seeds)))))))))
+               (when seeds
+                 (let ((result (cpl-impl:without-scheduling
+                                   (roslisp:call-service
+                                    (concatenate
+                                     'string
+                                     (ecase side
+                                       (:right *ik-right-ns*)
+                                       (:left *ik-left-ns*))
+                                     "/get_constraint_aware_ik")
+                                    'kinematics_msgs-srv:getconstraintawarepositionik
+                                    :ik_request
+                                    (roslisp:make-msg
+                                     "kinematics_msgs/PositionIKRequest"
+                                     :ik_link_name (ecase side
+                                                     (:right "r_wrist_roll_link")
+                                                     (:left "l_wrist_roll_link"))
+                                     :pose_stamped (tf:pose-stamped->msg
+                                                    (tool-goal-pose->wrist-goal-pose pose :tool tool))
+                                     :ik_seed_state (roslisp:make-msg
+                                                     "arm_navigation_msgs/RobotState"
+                                                     joint_state (lazy-car seeds)))
+                                    :timeout 30.0))))
+                   (roslisp:with-fields ((error-code (val error_code)))
+                     result
+                     (if (eql error-code 1)
+                         (cont result (lazy-cdr seeds))
+                         (next (lazy-cdr seeds)))))))))
 
 (defun get-point-cluster-grasps (side obj)
   "Returns the (lazy) list of grasps calculated by the
@@ -462,10 +456,10 @@ names for which collisions are allowed."
                      (cl-transforms:reference-transform
                       (tf:transform-pose
                        *tf* :pose (designator-pose obj)
-                       :target-frame "/base_footprint")))))
+                            :target-frame "/base_footprint")))))
     (roslisp:with-fields ((error-code (value error_code))
                           (grasps grasps))
-        (cpl-impl:without-scheduling
+      (cpl-impl:without-scheduling
           (roslisp:call-service
            "/plan_point_cluster_grasp" 'object_manipulation_msgs-srv:graspplanning
            :arm_name (ecase side
@@ -578,7 +572,7 @@ transform in /base_footprint."
                      (t (find-closest-angle rot (cdr rotations) closest))))))
     (let ((pose-in-base (tf:transform-pose
                          *tf* :pose pose
-                         :target-frame "/base_footprint")))
+                              :target-frame "/base_footprint")))
       (< (find-closest-angle (cl-transforms:orientation pose-in-base)
                              good)
          (find-closest-angle (cl-transforms:orientation pose-in-base)
@@ -601,7 +595,7 @@ and a side orientation otherwise."
 (defun get-robot-state ()
   "Returns the current joint state of the robot"
   (roslisp:with-fields ((joint-state (joint_state robot_state)))
-      (cpl-impl:without-scheduling
+    (cpl-impl:without-scheduling
         (roslisp:call-service
          "/environment_server/get_robot_state"
          "arm_navigation_msgs/GetRobotState"))
@@ -610,8 +604,7 @@ and a side orientation otherwise."
 (defun get-gripper-state (side)
   "Returns the position of the gripper. 0 indicates a completely
 closed gripper."
-  (roslisp:with-fields (name position)
-      (get-robot-state)
+  (roslisp:with-fields (name position) (get-robot-state)
     (let ((idx (position (ecase side
                            (:right "r_gripper_joint")
                            (:left "l_gripper_joint"))

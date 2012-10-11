@@ -155,7 +155,11 @@
 (def-action-handler grasp-slave (obj grasps arms obstacles)
   (declare (ignore grasps obstacles))
   (format t "~%~%[GRASP-SLAVE]: calling grap-object-with-handles... arm: ~a~%~%" (first arms))
-  (grab-object-with-handles obj (first arms)))
+  (grab-object-with-handles-constraint-aware
+   obj
+   (first arms)
+   obstacles
+   :obj-as-obstacle t))
 
 (def-action-handler grasp (object-type obj side obstacles)
   "Selects and calls the appropriate grasping functionality based on
@@ -349,13 +353,13 @@ by `planners' until one succeeds."
   (collision-environment-set-laser-period)
   (apply #'call-action (reference desig)))
 
-(defun update-grasped-object-designator (obj grippers)
+(defun update-grasped-object-designator (obj grippers &key new-properties)
   (let* ((target-frame (var-value '?target-frame
-                                 (lazy-car
-                                  (crs:prolog
-                                   `(cram-pr2-knowledge::end-effector-link
-                                     ,(car grippers)
-                                     ?target-frame)))))
+                                  (lazy-car
+                                   (crs:prolog
+                                    `(cram-pr2-knowledge::end-effector-link
+                                      ,(car grippers)
+                                      ?target-frame)))))
          (obj-pose-in-gripper (tf:pose->pose-stamped
                                target-frame
                                0.0
@@ -371,10 +375,11 @@ by `planners' until one succeeds."
                                         (mapcar (lambda (grip)
                                                   `(gripper ,grip))
                                                 grippers)))))
-        (make-designator
-         'object
-         `((at ,loc-desig-in-gripper) . ,(remove 'at (description obj) :key #'car))
-         obj)))
+    (make-designator
+     'object
+     (append `((at ,loc-desig-in-gripper) . ,(remove 'at (description obj) :key #'car))
+             new-properties)
+     obj)))
 
 (defun update-picked-up-object-designator (obj-desig gripper side height)
   "Function that creates and equates a new obj-designator to an object

@@ -42,7 +42,18 @@
   coordinate system (including it's origin and rotation) when going
   into grasp.")
 
-(defun grab-object-with-handles (obj side)
+(defun grab-object-with-handles-constraint-aware (obj side obstacles
+                                                  &key
+                                                    obj-as-obstacle)
+  (clear-collision-objects)
+  (dolist (obstacle (cut:force-ll obstacles))
+    (register-collision-object obstacle))
+  (register-collision-object obj)
+  ;; NOTE(winkler): Check for the constraint-aware IK service. At the
+  ;; moment, register-collision-object is not really implemented.
+  (grab-object-with-handles obj side :constraint-aware t))
+
+(defun grab-object-with-handles (obj side &key constraint-aware)
   "Grasp an object `obj' on one of its handles with the specified
 gripper side `side'. This includes going into pregrasp for the nearest
 handle, opening the gripper, going into the grasp position, closing
@@ -54,7 +65,8 @@ the gripper and lifting the object by 0.2m by default."
              (nearest-handle
               obj
               :side side
-              :handle-offset-pose *handle-pregrasp-offset-pose*))
+              :handle-offset-pose *handle-pregrasp-offset-pose*
+              :constraint-aware constraint-aware))
            (nearest-side (first nearest-handle-data))
            (nearest-handle (second nearest-handle-data)))
       (declare (ignore nearest-side))
@@ -68,12 +80,19 @@ the gripper and lifting the object by 0.2m by default."
                (pregrasp-handled-object-with-relative-location
                 obj
                 side
-                nearest-handle)
+                nearest-handle
+                :constraint-aware constraint-aware)
                (roslisp:ros-info (pr2-manipulation-process-module)
                                  "Opening gripper")
                (open-gripper side :position (+ handle-radius 0.02))
                (roslisp:ros-info (pr2-manipulation-process-module)
                                  "Going into grasp for handled object")
+               ;; NOTE(winkler): The grasp itself should not be
+               ;; constraint-aware as we are already near the object
+               ;; (no obstacles between gripper and object assumed)
+               ;; and we need to get real close to the object with the
+               ;; gripper. Having this function constraint-aware would
+               ;; break the grasping.
                (grasp-handled-object-with-relative-location
                 obj
                 side
@@ -93,14 +112,14 @@ the gripper and lifting the object by 0.2m by default."
                :link (ecase side
                        (:right "r_gripper_r_finger_tip_link")
                        (:left "l_gripper_r_finger_tip_link"))
-               :side side))
-             (update-grasped-object-designator obj (list side)))
+               :side side)))
             (t
              (cpl:fail 'manipulation-pose-unreachable))))))
 
 (defun taxi-handled-object (obj side handle
                             &key (relative-gripper-pose
-                                  (tf:make-identity-pose)))
+                                  (tf:make-identity-pose))
+                              constraint-aware)
   "Commutes the arm to a certain absolute pose. The target pose is
 determined through the absolute object pose of object `obj', the
 relative object handle location `relative-handle-loc' and the relative
@@ -121,8 +140,15 @@ gripper pose defaults to an identity pose."
                                            :target-frame "torso_lift_link"))  
          ;; This makes reach the carry-pose impossible
          ;; atm. :seed-state (calc-seed-state-elbow-up side))))
-         (move-ik (get-ik side absolute-pose
-                          :seed-state (calc-seed-state-elbow-up side :elbow-up nil :elbow-out nil))))
+         (seed-state (calc-seed-state-elbow-up
+                      side
+                      :elbow-up nil
+                      :elbow-out nil))
+         (move-ik (if constraint-aware
+                      (get-constraint-aware-ik side
+                                               absolute-pose
+                                               :seed-state seed-state)
+                      (get-ik side absolute-pose :seed-state seed-state))))
     (unless move-ik (cpl:fail
                      'cram-plan-failures:manipulation-pose-unreachable))
     (let ((move-trajectory (ik->trajectory (first move-ik) :duration 5.0)))
@@ -130,19 +156,21 @@ gripper pose defaults to an identity pose."
                                'cram-plan-failures:manipulation-failed))
       (nth-value 1 (execute-arm-trajectory side move-trajectory)))))
 
-(defun grasp-handled-object-with-relative-location (obj side handle)
+(defun grasp-handled-object-with-relative-location (obj side handle
+                                                    &key constraint-aware)
   "Moves the gripper side `side' into the grasp position with respect
 to the object's `obj' handle `handle'."
   (taxi-handled-object
-   obj side handle :relative-gripper-pose
-   *handle-grasp-offset-pose*))
+   obj side handle :relative-gripper-pose *handle-grasp-offset-pose*
+                   :constraint-aware constraint-aware))
 
-(defun pregrasp-handled-object-with-relative-location (obj side handle)
+(defun pregrasp-handled-object-with-relative-location (obj side handle
+                                                       &key constraint-aware)
   "Moves the gripper side `side' into the pregrasp position with
 respect to the object's `obj' handle `handle'."
   (taxi-handled-object
-   obj side handle :relative-gripper-pose
-   *handle-pregrasp-offset-pose*))
+   obj side handle :relative-gripper-pose *handle-pregrasp-offset-pose*
+                   :constraint-aware constraint-aware))
 
 (defun object-handle-absolute (obj handle
                                &key (handle-offset-pose
@@ -168,7 +196,8 @@ applied."
       relative-handle-pose))))
 
 (defun nearest-handle (obj &key side (handle-offset-pose
-                                      (tf:make-identity-pose)))
+                                      (tf:make-identity-pose))
+                             constraint-aware)
   "Get the nearest handle location designator on object `obj'. If the
 parameter `side' is set, the nearest handle for this side is
 determined. If it is left out (e.g. has a value of NIL), the nearest
@@ -181,17 +210,20 @@ respective handles in their respective coordinate system."
                  (nearest-handle-for-side
                   obj
                   side
-                  :handle-offset-pose handle-offset-pose)))
+                  :handle-offset-pose handle-offset-pose
+                  :constraint-aware constraint-aware)))
            (list side (second nearest-handle-data))))
         (t
          (let* ((nearest-left (nearest-handle-for-side
                                obj
                                :left
-                               :handle-offset-pose handle-offset-pose))
+                               :handle-offset-pose handle-offset-pose
+                               :constraint-aware constraint-aware))
                 (nearest-right (nearest-handle-for-side
                                 obj
                                 :right
-                                :handle-offset-pose handle-offset-pose))
+                                :handle-offset-pose handle-offset-pose
+                                :constraint-aware constraint-aware))
                 (distance-left (first nearest-left))
                 (distance-right (first nearest-right))
                 (handle-left (second nearest-left))
@@ -206,7 +238,8 @@ respective handles in their respective coordinate system."
                     (list nil nil)))))))
 
 (defun nearest-handle-for-side (obj side &key (handle-offset-pose
-                                               (tf:make-identity-pose)))
+                                               (tf:make-identity-pose))
+                                           constraint-aware)
   "Calculate the closest handle (in terms of joint-space) for side
 `side'. Returns a list in the form of (distance handle) for the found
 nearest handle and (-1 NIL) if no reachable handles were found. The
@@ -228,12 +261,16 @@ system."
                                        handle
                                        :handle-offset-pose
                                        handle-offset-pose)
-                                      side)
+                                      side
+                                      :constraint-aware
+                                      constraint-aware)
           for distance-without-offset = (reaching-length
                                          (object-handle-absolute
                                           obj
                                           handle)
-                                         side)
+                                         side
+                                         :constraint-aware
+                                         constraint-aware)
           when (and distance-with-offset
                     distance-without-offset
                     (or (not lowest-distance)
@@ -245,7 +282,7 @@ system."
                (setf nearest-handle handle))
     (list lowest-distance nearest-handle)))
 
-(defun reaching-length (pose side)
+(defun reaching-length (pose side &key constraint-aware)
   "Calculates the squared sum of all joint angle differences between
 the current state of the robot and the joint state it would have after
 reaching pose `pose` through calculating a trajectory via inverse
@@ -264,7 +301,9 @@ solution could be found."
                                    *tf*
                                    :pose pose
                                    :target-frame "torso_lift_link"))
-         (ik (get-ik side pose-in-torso-lift-link)))
+         (ik (if constraint-aware
+                 (get-ik side pose-in-torso-lift-link)
+                 (get-constraint-aware-ik side pose-in-torso-lift-link))))
     (when ik
       (let ((traj (ik->trajectory (first ik)))
             (state (get-robot-state)))
@@ -320,3 +359,69 @@ used during the calculation."
                 (pos-to (elt positions-to position-to)))
             (incf dist (expt (- pos-from pos-to) 2))))))
     dist))
+
+(defun euclidean-distance (names-from positions-from names-to positions-to
+                           &key target-links)
+  "Calculates and returns the euclidean distance of a vector of links
+`target-links' between two joint space configurations. The
+configurations are given as vectors, each consisting of a `names' and
+a `positions' vector. The `-from' and `-to' pairs are interchangable
+here. If no target links are given, all available links will be used."
+  (let ((pose-from (get-fk names-from positions-from
+                           :target-links target-links))
+        (pose-to (get-fk names-to positions-to
+                         :target-links target-links)))
+    (when (and pose-from pose-to)
+      (tf:v-dist (tf:origin pose-from) (tf:origin pose-to)))))
+
+(defun available-fk-links ()
+  (roslisp:with-fields (kinematic_solver_info)
+      (roslisp:call-service
+       "/pr2_right_arm_kinematics/get_fk_solver_info"
+       'kinematics_msgs-srv:getkinematicsolverinfo)
+    (roslisp:with-fields (joint_names limits link_names)
+        kinematic_solver_info
+      (declare (ignore joint_names limits))
+      link_names)))
+
+(defun get-fk (names positions &key target-links (frame-id "torso_lift_link"))
+  "Return the FK solution for the links `target-links' for a given
+joint space configuration described by `names' and `positions'. All
+joints not specified in these vectors are taken from the current robot
+state by the `get_fk' service. The optional parameter `frame-id'
+specifies the frame in which the solution is calculated. The return
+value is a pose-stamped containing the resulting forward kinematics
+solution. If no target links are given, all available links will be
+used."
+  ;; TODO(winkler): Find out why the get_fk service always returns an
+  ;; error (-32, INVALID_LINK_NAME). Apparently, the links requested
+  ;; through target-links (no matter which these are) are not
+  ;; calculatable (although they are present in the return value of
+  ;; get_fk_solver_info). Right now, this function is broken due to
+  ;; the non-working service.
+  (assert (eq (length names) (length positions)) ()
+          "The list lengths for joint names and positions differ.")
+  (let* ((target-links-used (cond ((eq (length target-links) 0)
+                                   (available-fk-links))
+                                  (t target-links)))
+         (header (roslisp:make-message
+                  "std_msgs/Header"
+                  :seq 0
+                  :stamp 0
+                  :frame_id frame-id))
+         (target-robot-state (roslisp:make-message
+                              "arm_navigation_msgs/RobotState"
+                              :joint_state (roslisp:make-message
+                                            "sensor_msgs/Jointstate"
+                                            :header header
+                                            :name names
+                                            :position positions))))
+    (roslisp:with-fields (pose_stamped fk_link_names error_code)
+        (roslisp:call-service
+         "/pr2_left_arm_kinematics/get_fk"
+         'kinematics_msgs-srv:getpositionfk
+         :header header
+         :fk_link_names target-links-used
+         :robot_state target-robot-state)
+      (declare (ignore fk_link_names error_code))
+      pose_stamped)))
