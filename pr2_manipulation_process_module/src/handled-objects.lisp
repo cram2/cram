@@ -361,3 +361,69 @@ used during the calculation."
                 (pos-to (elt positions-to position-to)))
             (incf dist (expt (- pos-from pos-to) 2))))))
     dist))
+
+(defun euclidean-distance (names-from positions-from names-to positions-to
+                           &key target-links)
+  "Calculates and returns the euclidean distance of a vector of links
+`target-links' between two joint space configurations. The
+configurations are given as vectors, each consisting of a `names' and
+a `positions' vector. The `-from' and `-to' pairs are interchangable
+here. If no target links are given, all available links will be used."
+  (let ((pose-from (get-fk names-from positions-from
+                           :target-links target-links))
+        (pose-to (get-fk names-to positions-to
+                         :target-links target-links)))
+    (when (and pose-from pose-to)
+      (tf:v-dist (tf:origin pose-from) (tf:origin pose-to)))))
+
+(defun available-fk-links ()
+  (roslisp:with-fields (kinematic_solver_info)
+      (roslisp:call-service
+       "/pr2_right_arm_kinematics/get_fk_solver_info"
+       'kinematics_msgs-srv:getkinematicsolverinfo)
+    (roslisp:with-fields (joint_names limits link_names)
+        kinematic_solver_info
+      (declare (ignore joint_names limits))
+      link_names)))
+
+(defun get-fk (names positions &key target-links (frame-id "torso_lift_link"))
+  "Return the FK solution for the links `target-links' for a given
+joint space configuration described by `names' and `positions'. All
+joints not specified in these vectors are taken from the current robot
+state by the `get_fk' service. The optional parameter `frame-id'
+specifies the frame in which the solution is calculated. The return
+value is a pose-stamped containing the resulting forward kinematics
+solution. If no target links are given, all available links will be
+used."
+  ;; TODO(winkler): Find out why the get_fk service always returns an
+  ;; error (-32, INVALID_LINK_NAME). Apparently, the links requested
+  ;; through target-links (no matter which these are) are not
+  ;; calculatable (although they are present in the return value of
+  ;; get_fk_solver_info). Right now, this function is broken due to
+  ;; the non-working service.
+  (assert (eq (length names) (length positions)) ()
+          "The list lengths for joint names and positions differ.")
+  (let* ((target-links-used (cond ((eq (length target-links) 0)
+                                   (available-fk-links))
+                                  (t target-links)))
+         (header (roslisp:make-message
+                  "std_msgs/Header"
+                  :seq 0
+                  :stamp 0
+                  :frame_id frame-id))
+         (target-robot-state (roslisp:make-message
+                              "arm_navigation_msgs/RobotState"
+                              :joint_state (roslisp:make-message
+                                            "sensor_msgs/Jointstate"
+                                            :header header
+                                            :name names
+                                            :position positions))))
+    (roslisp:with-fields (pose_stamped fk_link_names error_code)
+        (roslisp:call-service
+         "/pr2_left_arm_kinematics/get_fk"
+         'kinematics_msgs-srv:getpositionfk
+         :header header
+         :fk_link_names target-links-used
+         :robot_state target-robot-state)
+      (declare (ignore fk_link_names error_code))
+      pose_stamped)))
