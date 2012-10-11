@@ -136,9 +136,6 @@ are used for each joint."
                                                          (list (gethash name current)))))))))
 
 (defun ik->trajectory (ik-result &key (duration 5.0) (stamp (roslisp:ros-time)))
-  (declare (type (or kinematics_msgs-srv:getpositionik-response
-                     kinematics_msgs-srv:getconstraintawarepositionik-response)
-                 ik-result))
   "Converts the result of an IK call (type
 arm_navigation_msgs/RobotState) to a joint trajectory message that can
 be used in the corresponding actions."
@@ -411,6 +408,7 @@ finding a solution."
                                 allowed-collision-objects
                                 (max-tries 1)
                                 seed-state)
+  (declare (ignore allowed-collision-objects))
   "Similar to GET-IK but uses the constraint-aware IK
 service. `allowed-collision-objects' is a sequence of collision-object
 names for which collisions are allowed."
