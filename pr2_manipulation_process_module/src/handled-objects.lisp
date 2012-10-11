@@ -42,9 +42,7 @@
   coordinate system (including it's origin and rotation) when going
   into grasp.")
 
-(defun grab-object-with-handles-constraint-aware (obj
-                                                  side
-                                                  obstacles
+(defun grab-object-with-handles-constraint-aware (obj side obstacles
                                                   &key
                                                     obj-as-obstacle)
   (clear-collision-objects)
@@ -114,8 +112,7 @@ the gripper and lifting the object by 0.2m by default."
                :link (ecase side
                        (:right "r_gripper_r_finger_tip_link")
                        (:left "l_gripper_r_finger_tip_link"))
-               :side side))
-             (update-grasped-object-designator obj (list side)))
+               :side side)))
             (t
              (cpl:fail 'manipulation-pose-unreachable))))))
 
