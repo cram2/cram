@@ -149,8 +149,8 @@
         ;; because it still relies on the :both arms setup
         ((> (length arms) 1)
          (lift-grasped-object-with-both-arms distance))
-        (t (roslisp:ros-warn (pr2-manip process-module)
-                             "No arms to lift object infererd."))))
+        (t (error 'manipulation-failed
+                    :format-control "No arms for lifting infered."))))
 
 (def-action-handler grasp-slave (obj grasps arms obstacles)
   (declare (ignore grasps obstacles))
