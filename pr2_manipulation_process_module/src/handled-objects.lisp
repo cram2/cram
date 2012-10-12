@@ -228,13 +228,15 @@ respective handles in their respective coordinate system."
                 (distance-right (first nearest-right))
                 (handle-left (second nearest-left))
                 (handle-right (second nearest-right)))
-           (cond ((and handle-left handle-right distance-left distance-right)
+           (cond ((and handle-left handle-right
+                       distance-left distance-right)
                   (if (< distance-left distance-right)
                       (list :left handle-left)
                       (list :right handle-right)))
                  (handle-left (list :left handle-left))
                  (handle-right (list :right handle-right))
-                 (t (roslisp::ros-warn (pr2-manip-pm handled-objects) "No nearest handle found.")
+                 (t (roslisp::ros-warn (pr2-manip-pm handled-objects)
+                                       "No nearest handle found.")
                     (list nil nil)))))))
 
 (defun nearest-handle-for-side (obj side &key (handle-offset-pose
@@ -263,16 +265,17 @@ system."
                                        handle-offset-pose)
                                       side
                                       :constraint-aware
-                                      constraint-aware)
+                                      constraint-aware
+                                      :calc-euclidean-distance t)
           for distance-without-offset = (reaching-length
                                          (object-handle-absolute
                                           obj
                                           handle)
                                          side
                                          :constraint-aware
-                                         constraint-aware)
-          when (and distance-with-offset
-                    distance-without-offset
+                                         constraint-aware
+                                         :calc-euclidean-distance t)
+          when (and distance-with-offset distance-without-offset
                     (or (not lowest-distance)
                         (and distance-with-offset
                              (< distance-with-offset
@@ -281,147 +284,3 @@ system."
                (setf lowest-distance distance-with-offset)
                (setf nearest-handle handle))
     (list lowest-distance nearest-handle)))
-
-(defun reaching-length (pose side &key constraint-aware)
-  "Calculates the squared sum of all joint angle differences between
-the current state of the robot and the joint state it would have after
-reaching pose `pose` through calculating a trajectory via inverse
-kinematics solution for side `side`. All intermediate trajectory
-points between the starting joint-state and the final trajectory point
-are taken into account. NIL is returned when no inverse kinematics
-solution could be found."
-  (let* ((obj-value 0)
-         ;; NOTE(winkler): We're transforming into the tf-frame
-         ;; "torso_lift_link" here due to the fact that get-ik
-         ;; (service node constraint_awake_ik) does not transform from
-         ;; the map-frame. The constructor of the class does not
-         ;; create a tf listener. Therefore, the goal has to be
-         ;; specified in the ik root.
-         (pose-in-torso-lift-link (tf:transform-pose
-                                   *tf*
-                                   :pose pose
-                                   :target-frame "torso_lift_link"))
-         (ik (if constraint-aware
-                 (get-ik side pose-in-torso-lift-link)
-                 (get-constraint-aware-ik side pose-in-torso-lift-link))))
-    (when ik
-      (let ((traj (ik->trajectory (first ik)))
-            (state (get-robot-state)))
-        (roslisp:with-fields ((names-traj joint_names)
-                              (points-traj points)) traj
-          (dotimes (traj-point-n (length points-traj))
-            (let ((current-traj-positions (get-positions-from-trajectory
-                                           traj
-                                           :index traj-point-n)))
-              (cond ((= traj-point-n 0)
-                     (roslisp:with-fields ((names-state name)
-                                           (positions-state position)) state
-                       (incf obj-value
-                             (joint-state-distance
-                              names-state
-                              positions-state
-                              names-traj
-                              current-traj-positions))))
-                    (t
-                     (let ((last-traj-positions (get-positions-from-trajectory
-                                                 traj
-                                                 :index (- traj-point-n 1))))
-                       (incf obj-value (joint-state-distance
-                                        names-traj
-                                        last-traj-positions
-                                        names-traj
-                                        current-traj-positions)))))))
-          obj-value)))))
-
-(defun get-positions-from-trajectory (trajectory &key (index 0))
-  "Extracts the positions field of a given trajectory-point index from
-a given trajectory. The result is a sequence and consists of the joint
-angles in the same order as the names-field define in the same
-trajectory."
-  (roslisp:with-fields (points) trajectory
-    (let ((point (elt points index)))
-      (roslisp:with-fields (positions) point
-        positions))))
-
-(defun joint-state-distance (names-from positions-from names-to positions-to)
-  "Calculates the square summed difference between to joint-space
-positions. Only named joint-states found in both sequence pairs are
-used during the calculation."
-  (let ((dist 0))
-    (dotimes (n (length names-from))
-      (let* ((name-from (elt names-from n))
-             (position-to (position name-from
-                                    names-to
-                                    :test (lambda (name-from name-to)
-                                            (equal name-from name-to)))))
-        (when position-to
-          (let ((pos-from (elt positions-from n))
-                (pos-to (elt positions-to position-to)))
-            (incf dist (expt (- pos-from pos-to) 2))))))
-    dist))
-
-(defun euclidean-distance (names-from positions-from names-to positions-to
-                           &key target-links)
-  "Calculates and returns the euclidean distance of a vector of links
-`target-links' between two joint space configurations. The
-configurations are given as vectors, each consisting of a `names' and
-a `positions' vector. The `-from' and `-to' pairs are interchangable
-here. If no target links are given, all available links will be used."
-  (let ((pose-from (get-fk names-from positions-from
-                           :target-links target-links))
-        (pose-to (get-fk names-to positions-to
-                         :target-links target-links)))
-    (when (and pose-from pose-to)
-      (tf:v-dist (tf:origin pose-from) (tf:origin pose-to)))))
-
-(defun available-fk-links ()
-  (roslisp:with-fields (kinematic_solver_info)
-      (roslisp:call-service
-       "/pr2_right_arm_kinematics/get_fk_solver_info"
-       'kinematics_msgs-srv:getkinematicsolverinfo)
-    (roslisp:with-fields (joint_names limits link_names)
-        kinematic_solver_info
-      (declare (ignore joint_names limits))
-      link_names)))
-
-(defun get-fk (names positions &key target-links (frame-id "torso_lift_link"))
-  "Return the FK solution for the links `target-links' for a given
-joint space configuration described by `names' and `positions'. All
-joints not specified in these vectors are taken from the current robot
-state by the `get_fk' service. The optional parameter `frame-id'
-specifies the frame in which the solution is calculated. The return
-value is a pose-stamped containing the resulting forward kinematics
-solution. If no target links are given, all available links will be
-used."
-  ;; TODO(winkler): Find out why the get_fk service always returns an
-  ;; error (-32, INVALID_LINK_NAME). Apparently, the links requested
-  ;; through target-links (no matter which these are) are not
-  ;; calculatable (although they are present in the return value of
-  ;; get_fk_solver_info). Right now, this function is broken due to
-  ;; the non-working service.
-  (assert (eq (length names) (length positions)) ()
-          "The list lengths for joint names and positions differ.")
-  (let* ((target-links-used (cond ((eq (length target-links) 0)
-                                   (available-fk-links))
-                                  (t target-links)))
-         (header (roslisp:make-message
-                  "std_msgs/Header"
-                  :seq 0
-                  :stamp 0
-                  :frame_id frame-id))
-         (target-robot-state (roslisp:make-message
-                              "arm_navigation_msgs/RobotState"
-                              :joint_state (roslisp:make-message
-                                            "sensor_msgs/Jointstate"
-                                            :header header
-                                            :name names
-                                            :position positions))))
-    (roslisp:with-fields (pose_stamped fk_link_names error_code)
-        (roslisp:call-service
-         "/pr2_left_arm_kinematics/get_fk"
-         'kinematics_msgs-srv:getpositionfk
-         :header header
-         :fk_link_names target-links-used
-         :robot_state target-robot-state)
-      (declare (ignore fk_link_names error_code))
-      pose_stamped)))
