@@ -265,16 +265,17 @@ system."
                                        handle-offset-pose)
                                       side
                                       :constraint-aware
-                                      constraint-aware)
+                                      constraint-aware
+                                      :calc-euclidean-distance t)
           for distance-without-offset = (reaching-length
                                          (object-handle-absolute
                                           obj
                                           handle)
                                          side
                                          :constraint-aware
-                                         constraint-aware)
-          when (and distance-with-offset
-                    distance-without-offset
+                                         constraint-aware
+                                         :calc-euclidean-distance t)
+          when (and distance-with-offset distance-without-offset
                     (or (not lowest-distance)
                         (and distance-with-offset
                              (< distance-with-offset
