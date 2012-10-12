@@ -441,7 +441,8 @@ used."
                 do (setf name-pose-pairs
                          (append name-pose-pairs
                                  (list (cons (elt fk_link_names i)
-                                             (elt pose_stamped i))))))
+                                             (tf:msg->pose-stamped
+                                              (elt pose_stamped i)))))))
           name-pose-pairs)))))
 
 (defun get-constraint-aware-ik (side pose &key
@@ -699,20 +700,17 @@ here. If no target links are given, all available links will be used."
         (pose-name-pairs-to (get-fk names-to positions-to
                                     :target-links target-links))
         (distance-name-pairs nil))
-    (loop for pose-name-pair-from across pose-name-pairs-from
+    (loop for pose-name-pair-from in pose-name-pairs-from
           do (let ((var-val (assoc (car pose-name-pair-from)
-                                   pose-name-pairs-to)))
-               (when var-value
-                 (setf distance-name-pairs
-                       (concatenate
-                        'vector
-                        (cons
-                         (car var-value)
-                         (tf:v-dist
-                          (tf:origin
-                           (cdr var-val))
-                          (tf:origin
-                           (cdr pose-name-pair-from)))))))))))
+                                   pose-name-pairs-to :test 'equal)))
+               (when var-val
+                 (push (cons
+                        (car var-val)
+                        (tf:v-dist
+                         (tf:origin (cdr var-val))
+                         (tf:origin (cdr pose-name-pair-from))))
+                       distance-name-pairs))))
+    distance-name-pairs))
 
 (defun available-fk-links ()
   "Returns the usable forward kinematics links as returned by the
@@ -798,7 +796,10 @@ used during the calculation."
             (incf dist (expt (- pos-from pos-to) 2))))))
     dist))
 
-(defun reaching-length (pose side &key constraint-aware)
+(defun reaching-length (pose side &key constraint-aware
+                                    calc-euclidean-distance
+                                    (euclidean-target-link
+                                     "r_wrist_roll_link"))
   "Calculates the squared sum of all joint angle differences between
 the current state of the robot and the joint state it would have after
 reaching pose `pose` through calculating a trajectory via inverse
@@ -807,7 +808,10 @@ points between the starting joint-state and the final trajectory point
 are taken into account. NIL is returned when no inverse kinematics
 solution could be found. Optionally, the constraint aware IK solver
 service can be used by setting the parameter `constraint-aware' to
-`T'."
+`T'. When `calc-euclidean-distance' is set to `T', the euclidean
+distance is used. Otherwise, the (unweighted) quadratic joint-space
+integral is calculated. Both methods may not be mixed as their scale
+is fundamentally different."
   (let* ((obj-value 0)
          ;; NOTE(winkler): We're transforming into the tf-frame
          ;; "torso_lift_link" here due to the fact that get-ik
@@ -837,20 +841,45 @@ service can be used by setting the parameter `constraint-aware' to
                                            (positions-state position))
                          state
                        (incf obj-value
-                             (joint-state-distance
-                              names-state
-                              positions-state
-                              names-traj
-                              current-traj-positions))))
+                             (cond (calc-euclidean-distance
+                                    (cdr
+                                     (assoc
+                                      euclidean-target-link
+                                      (euclidean-distance
+                                       names-state
+                                       positions-state
+                                       names-traj
+                                       current-traj-positions
+                                       :target-links (vector
+                                                      euclidean-target-link))
+                                      :test 'equal)))
+                                   (t
+                                    (joint-state-distance
+                                     names-state
+                                     positions-state
+                                     names-traj
+                                     current-traj-positions))))))
                     (t
                      (let ((last-traj-positions
                              (get-positions-from-trajectory
                               traj
                               :index (- traj-point-n 1))))
                        (incf obj-value
-                             (joint-state-distance
-                              names-traj
-                              last-traj-positions
-                              names-traj
-                              current-traj-positions)))))))
+                             (cond (calc-euclidean-distance
+                                    (cdr
+                                     (assoc euclidean-target-link
+                                            (euclidean-distance
+                                             names-traj
+                                             last-traj-positions
+                                             names-traj
+                                             current-traj-positions
+                                             :target-links (vector
+                                                            euclidean-target-link))
+                                            :test 'equal)))
+                                   (t
+                                    (joint-state-distance
+                                     names-traj
+                                     last-traj-positions
+                                     names-traj
+                                     current-traj-positions)))))))))
           obj-value)))))
