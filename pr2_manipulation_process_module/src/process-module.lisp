@@ -153,7 +153,7 @@
                     :format-control "No arms for lifting infered."))))
 
 (def-action-handler grasp-slave (obj grasps arms obstacles)
-  (declare (ignore grasps obstacles))
+  (declare (ignore grasps))
   (format t "~%~%[GRASP-SLAVE]: calling grap-object-with-handles... arm: ~a~%~%" (first arms))
   (grab-object-with-handles-constraint-aware
    obj

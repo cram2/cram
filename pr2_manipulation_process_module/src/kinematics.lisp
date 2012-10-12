@@ -401,6 +401,50 @@ finding a solution."
                 (cont result (lazy-cdr seeds))
                 (next (lazy-cdr seeds)))))))))
 
+(defun get-fk (names positions
+               &key target-links (frame-id "torso_lift_link"))
+  "Return the FK solution for the links `target-links' for a given
+joint space configuration described by `names' and `positions'. All
+joints not specified in these vectors are taken from the current robot
+state by the `get_fk' service. The optional parameter `frame-id'
+specifies the frame in which the solution is calculated. The return
+value is a pose-stamped containing the resulting forward kinematics
+solution. If no target links are given, all available links will be
+used."
+  (assert (eq (length names) (length positions)) ()
+          "The list lengths for joint names and positions differ.")
+  (let* ((target-links-used (cond ((eq (length target-links) 0)
+                                   (available-fk-links))
+                                  (t target-links)))
+         (header (roslisp:make-message "std_msgs/Header"
+                                       :stamp (roslisp:ros-time)
+                                       :frame_id frame-id)))
+    (multiple-value-bind (jts-names jts-positions jts-velocities
+                          jts-accels)
+        (resulting-fk-state names positions)
+      (roslisp:with-fields (pose_stamped fk_link_names error_code)
+        (roslisp:call-service
+         "/pr2_right_arm_kinematics/get_fk"
+         'kinematics_msgs-srv:getpositionfk
+         :header header
+         :fk_link_names target-links-used
+         :robot_state (roslisp:make-message
+                       "arm_navigation_msgs/RobotState"
+                       (stamp header joint_state) (roslisp:ros-time)
+                       (name joint_state) jts-names
+                       (position joint_state) jts-positions
+                       (velocity joint_state) jts-velocities
+                       (effort joint_state) jts-accels))
+        (declare (ignore error_code))
+        (let ((name-pose-pairs nil))
+          (loop for i from 0 to (- (length fk_link_names) 1)
+                do (setf name-pose-pairs
+                         (append name-pose-pairs
+                                 (list (cons (elt fk_link_names i)
+                                             (tf:msg->pose-stamped
+                                              (elt pose_stamped i)))))))
+          name-pose-pairs)))))
+
 (defun get-constraint-aware-ik (side pose &key
                                 (tool (cl-transforms:make-pose
                                        (cl-transforms:make-3d-vector 0 0 0)
@@ -408,6 +452,7 @@ finding a solution."
                                 allowed-collision-objects
                                 (max-tries 1)
                                 seed-state)
+  (declare (ignore allowed-collision-objects))
   "Similar to GET-IK but uses the constraint-aware IK
 service. `allowed-collision-objects' is a sequence of collision-object
 names for which collisions are allowed."
@@ -642,3 +687,199 @@ or designators."
                       penetration_distance 0.1))
                    (get-gripper-links side)))
          allowed-collision-objects))))
+
+(defun euclidean-distance (names-from positions-from names-to
+                           positions-to &key target-links)
+  "Calculates and returns the euclidean distance of a vector of links
+`target-links' between two joint space configurations. The
+configurations are given as vectors, each consisting of a `names' and
+a `positions' vector. The `-from' and `-to' pairs are interchangable
+here. If no target links are given, all available links will be used."
+  (let ((pose-name-pairs-from (get-fk names-from positions-from
+                                      :target-links target-links))
+        (pose-name-pairs-to (get-fk names-to positions-to
+                                    :target-links target-links))
+        (distance-name-pairs nil))
+    (loop for pose-name-pair-from in pose-name-pairs-from
+          do (let ((var-val (assoc (car pose-name-pair-from)
+                                   pose-name-pairs-to :test 'equal)))
+               (when var-val
+                 (push (cons
+                        (car var-val)
+                        (tf:v-dist
+                         (tf:origin (cdr var-val))
+                         (tf:origin (cdr pose-name-pair-from))))
+                       distance-name-pairs))))
+    distance-name-pairs))
+
+(defun available-fk-links ()
+  "Returns the usable forward kinematics links as returned by the
+service `get_fk_solver_info'."
+  (roslisp:with-fields (kinematic_solver_info)
+      (roslisp:call-service
+       "/pr2_right_arm_kinematics/get_fk_solver_info"
+       'kinematics_msgs-srv:getkinematicsolverinfo)
+    (roslisp:with-fields (joint_names limits link_names)
+        kinematic_solver_info
+      (declare (ignore joint_names limits))
+      link_names)))
+
+(defun available-fk-joints ()
+  "Returns the usable forward kinematics joints as returned by the
+service `get_fk_solver_info'."
+  (roslisp:with-fields (kinematic_solver_info)
+      (roslisp:call-service
+       "/pr2_right_arm_kinematics/get_fk_solver_info"
+       'kinematics_msgs-srv:getkinematicsolverinfo)
+    (roslisp:with-fields (joint_names limits link_names)
+        kinematic_solver_info
+      (declare (ignore link_names limits))
+      joint_names)))
+
+(defun resulting-fk-state (names positions)
+  "Forms the resulting set of possible forward kinematics joints and
+the joints given in the `names' vector. Returns a multiple bound value
+list consisting of all FK joint names, the given positions in
+`positions' (or 0 if the joint is not specified in `names') and two
+vectors holding the value `0' for each joint's velocity and
+acceleration."
+  (let ((jts-names nil)
+        (jts-positions nil)
+        (jts-velocities nil)
+        (jts-accels nil)
+        (avail-jts (available-fk-joints)))
+    (loop for joint across avail-jts
+          do (let* ((pos (position joint names :test 'equal))
+                    (val (cond (pos (elt positions pos))
+                               (t 0.0))))
+               (setf jts-names (concatenate 'vector
+                                            jts-names
+                                            (vector joint)))
+               (setf jts-positions (concatenate 'vector
+                                                jts-positions
+                                                (vector val)))
+               (setf jts-velocities (concatenate 'vector
+                                                 jts-velocities
+                                                 (vector 0)))
+               (setf jts-accels (concatenate 'vector
+                                             jts-accels
+                                             (vector 0)))))
+    (values jts-names jts-positions jts-velocities jts-accels)))
+
+(defun get-positions-from-trajectory (trajectory &key (index 0))
+  "Extracts the positions field of a given trajectory-point index from
+a given trajectory. The result is a sequence and consists of the joint
+angles in the same order as the names-field define in the same
+trajectory."
+  (roslisp:with-fields (points) trajectory
+    (let ((point (elt points index)))
+      (roslisp:with-fields (positions) point
+        positions))))
+
+(defun joint-state-distance (names-from positions-from names-to
+                             positions-to)
+  "Calculates the square summed difference between to joint-space
+positions. Only named joint-states found in both sequence pairs are
+used during the calculation."
+  (let ((dist 0))
+    (dotimes (n (length names-from))
+      (let* ((name-from (elt names-from n))
+             (position-to (position name-from
+                                    names-to
+                                    :test (lambda (name-from name-to)
+                                            (equal
+                                             name-from
+                                             name-to)))))
+        (when position-to
+          (let ((pos-from (elt positions-from n))
+                (pos-to (elt positions-to position-to)))
+            (incf dist (expt (- pos-from pos-to) 2))))))
+    dist))
+
+(defun reaching-length (pose side &key constraint-aware
+                                    calc-euclidean-distance
+                                    (euclidean-target-link
+                                     "r_wrist_roll_link"))
+  "Calculates the squared sum of all joint angle differences between
+the current state of the robot and the joint state it would have after
+reaching pose `pose` through calculating a trajectory via inverse
+kinematics solution for side `side`. All intermediate trajectory
+points between the starting joint-state and the final trajectory point
+are taken into account. NIL is returned when no inverse kinematics
+solution could be found. Optionally, the constraint aware IK solver
+service can be used by setting the parameter `constraint-aware' to
+`T'. When `calc-euclidean-distance' is set to `T', the euclidean
+distance is used. Otherwise, the (unweighted) quadratic joint-space
+integral is calculated. Both methods may not be mixed as their scale
+is fundamentally different."
+  (let* ((obj-value 0)
+         ;; NOTE(winkler): We're transforming into the tf-frame
+         ;; "torso_lift_link" here due to the fact that get-ik
+         ;; (service node constraint_awake_ik) does not transform from
+         ;; the map-frame. The constructor of the class does not
+         ;; create a tf listener. Therefore, the goal has to be
+         ;; specified in the ik root.
+         (pose-in-torso-lift-link (tf:transform-pose
+                                   *tf*
+                                   :pose pose
+                                   :target-frame "torso_lift_link"))
+         (ik (if constraint-aware
+                 (get-ik side pose-in-torso-lift-link)
+                 (get-constraint-aware-ik side
+                                          pose-in-torso-lift-link))))
+    (when ik
+      (let ((traj (ik->trajectory (first ik)))
+            (state (get-robot-state)))
+        (roslisp:with-fields ((names-traj joint_names)
+                              (points-traj points)) traj
+          (dotimes (traj-point-n (length points-traj))
+            (let ((current-traj-positions (get-positions-from-trajectory
+                                           traj
+                                           :index traj-point-n)))
+              (cond ((= traj-point-n 0)
+                     (roslisp:with-fields ((names-state name)
+                                           (positions-state position))
+                         state
+                       (incf obj-value
+                             (cond (calc-euclidean-distance
+                                    (cdr
+                                     (assoc
+                                      euclidean-target-link
+                                      (euclidean-distance
+                                       names-state
+                                       positions-state
+                                       names-traj
+                                       current-traj-positions
+                                       :target-links (vector
+                                                      euclidean-target-link))
+                                      :test 'equal)))
+                                   (t
+                                    (joint-state-distance
+                                     names-state
+                                     positions-state
+                                     names-traj
+                                     current-traj-positions))))))
+                    (t
+                     (let ((last-traj-positions
+                             (get-positions-from-trajectory
+                              traj
+                              :index (- traj-point-n 1))))
+                       (incf obj-value
+                             (cond (calc-euclidean-distance
+                                    (cdr
+                                     (assoc euclidean-target-link
+                                            (euclidean-distance
+                                             names-traj
+                                             last-traj-positions
+                                             names-traj
+                                             current-traj-positions
+                                             :target-links (vector
+                                                            euclidean-target-link))
+                                            :test 'equal)))
+                                   (t
+                                    (joint-state-distance
+                                     names-traj
+                                     last-traj-positions
+                                     names-traj
+                                     current-traj-positions)))))))))
+          obj-value)))))
