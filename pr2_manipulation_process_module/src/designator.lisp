@@ -61,7 +61,8 @@
     (desig-prop ?obj-loc (in gripper)))
 
   (<- (best-grasp ?obj ?handles ?obstacles ?grasps ?arms)
-    (lisp-fun calc-best-grasps-and-arms ?obj ?handles ?obstacles (?grasps ?arms)))
+    (lisp-fun calc-best-grasps-and-arms
+	      ?obj ?handles ?obstacles (?grasps ?arms)))
 
   (<- (action-desig ?desig (container-opened ?handle :right))
     (trajectory-desig? ?desig)
