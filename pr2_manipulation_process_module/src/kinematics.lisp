@@ -135,7 +135,21 @@ are used for each joint."
                                                                                                        (- steps 1))))))
                                                          (list (gethash name current)))))))))
 
-(defun ik->trajectory (ik-result &key (duration 5.0) (stamp (roslisp:ros-time)))
+(defun ik->trajectory-ex (ik-result &key (duration 5.0) (stamp (roslisp:ros-time)))
+  ;; NOTE(winkler): The "(declare (type (or" formulation does not work
+  ;; here as it does not play well with
+  ;; `roslisp:with-fields'. `roslisp:with-fields' internally wants to
+  ;; transform `ik-result' into a list and reads the `type' from
+  ;; `ik-result', resulting in an error saying "OR
+  ;; KINEMATICS_MSGS-SRC:GETPOSITIONIK-RESPONSE
+  ;; KINEMATICS_MSGS-SRV:GETCONSTRAINTAWAREPOSITIONIK-RESPONSE is not
+  ;; of type SYMBOL". Due to this, the function holding the actual
+  ;; functionality is renamed to `ik->trajectory-ex' and two separate
+  ;; adapter functions `ik->trajectory' are created, each stating the
+  ;; type of message they accept in the parameters list.
+  ;; (declare (type (or kinematics_msgs-srv:getpositionik-response
+  ;;                    kinematics_msgs-srv:getconstraintawarepositionik-response)
+  ;;                ik-result))
   "Converts the result of an IK call (type
 arm_navigation_msgs/RobotState) to a joint trajectory message that can
 be used in the corresponding actions."
@@ -159,6 +173,20 @@ be used in the corresponding actions."
                                    (make-list (length solution-positions)
                                               :initial-element 0.0))
                 time_from_start duration))))))
+
+(defmethod ik->trajectory ((ik-result kinematics_msgs-srv:getpositionik-response)
+                               &key (duration 5.0) (stamp (roslisp:ros-time)))
+  "This function only accepts ik-result messages of the type
+`kinematics_msgs-srv:getpositionik-response', calling
+`ik->trajectory-ex' afterwards."
+  (ik->trajectory-ex ik-result :duration duration :stamp stamp))
+
+(defmethod ik->trajectory ((ik-result kinematics_msgs-srv:getconstraintawarepositionik-response)
+                               &key (duration 5.0) (stamp (roslisp:ros-time)))
+  "This function only accepts ik-result messages of the type
+`kinematics_msgs-srv:getconstraintawarepositionik-response', calling
+`ik->trajectory-ex' afterwards."
+  (ik->trajectory-ex ik-result :duration duration :stamp stamp))
 
 (defun remove-trajectory-joints (joints trajectory &key invert)
   "Removes (or keeps) only the joints that are specified in
