@@ -79,12 +79,12 @@ the gripper and lifting the object by 0.2m by default."
                                  "Going into pregrasp for handled object")
                (pregrasp-handled-object-with-relative-location
                 obj
-                side
+                nearest-side
                 nearest-handle
                 :constraint-aware constraint-aware)
                (roslisp:ros-info (pr2-manipulation-process-module)
                                  "Opening gripper")
-               (open-gripper side :position (+ handle-radius 0.02))
+               (open-gripper nearest-side :position (+ handle-radius 0.02))
                (roslisp:ros-info (pr2-manipulation-process-module)
                                  "Going into grasp for handled object")
                ;; NOTE(winkler): The grasp itself should not be
@@ -95,13 +95,13 @@ the gripper and lifting the object by 0.2m by default."
                ;; break the grasping.
                (grasp-handled-object-with-relative-location
                 obj
-                side
+                nearest-side
                 nearest-handle)
                (roslisp:ros-info (pr2-manipulation-process-module)
                                  "Closing gripper")
-               (close-gripper side :position handle-radius)
+               (close-gripper nearest-side :position handle-radius)
                (check-valid-gripper-state
-                side
+                nearest-side
                 :min-position (- handle-radius 0.01)))
              (roslisp:ros-info (pr2-manip process-module)
                                "Attaching object to gripper")
@@ -109,10 +109,10 @@ the gripper and lifting the object by 0.2m by default."
               (make-instance
                'plan-knowledge:object-attached
                :object obj
-               :link (ecase side
+               :link (ecase nearest-side
                        (:right "r_gripper_r_finger_tip_link")
                        (:left "l_gripper_r_finger_tip_link"))
-               :side side)))
+               :side nearest-side)))
             (t
              (cpl:fail 'manipulation-pose-unreachable))))))
 
