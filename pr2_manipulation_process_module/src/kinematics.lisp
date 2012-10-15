@@ -688,6 +688,23 @@ or designators."
                    (get-gripper-links side)))
          allowed-collision-objects))))
 
+(defun euclidean-distance-for-link (names-from positions-from names-to
+                                    positions-to target-link)
+  "Calculates and returns the euclidean distance of exactly one link
+`targe-link' between two joint space configurations. The
+configurations are given as vectors, each consisting of a `names' and
+a `positions' vector. The `-from' and `-to' pairs are interchangable
+here. If no target links are given, all available links will be
+used. This function is a simplified interface function for
+`euclidean-distance', which takes a vector of target links as
+parameter and returns the distance for each of these."
+  (cdr (assoc
+        target-link
+        (euclidean-distance names-state positions-state
+                            names-traj current-traj-positions
+                            :target-links (vector target-link))
+        :test 'equal)))
+
 (defun euclidean-distance (names-from positions-from names-to
                            positions-to &key target-links)
   "Calculates and returns the euclidean distance of a vector of links
@@ -842,17 +859,12 @@ is fundamentally different."
                          state
                        (incf obj-value
                              (cond (calc-euclidean-distance
-                                    (cdr
-                                     (assoc
-                                      euclidean-target-link
-                                      (euclidean-distance
-                                       names-state
-                                       positions-state
-                                       names-traj
-                                       current-traj-positions
-                                       :target-links (vector
-                                                      euclidean-target-link))
-                                      :test 'equal)))
+                                    (euclidean-distance-for-link
+                                     names-state
+                                     positions-state
+                                     names-traj
+                                     current-traj-positions
+                                     euclidean-target-link))
                                    (t
                                     (joint-state-distance
                                      names-state
