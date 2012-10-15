@@ -102,10 +102,12 @@
         (true)
         (== ?distance 0.10)))
 
-  (<- (action-desig ?desig (park ?obj :right ?obstacles))
+  (<- (action-desig ?desig (park ?obj ?grippers ?obstacles))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to carry))
     (desig-prop ?desig (obj ?obj))
+    (current-designator ?obj ?current-obj)
+    (holding-grippers ?current-obj ?grippers)
     (obstacles ?desig ?obstacles))
 
   ;; rule added by Georg:
