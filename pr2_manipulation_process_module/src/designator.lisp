@@ -46,7 +46,7 @@
   (<- (holding-grippers ?desig ?grippers)
     (gripped-obj-desig? ?desig)
     (desig-prop ?desig (at ?obj-loc))
-    (desig-prop ?desig (gripper ?_))
+    (desig-prop ?obj-loc (gripper ?_))
     (findall ?g (desig-prop ?obj-loc (gripper ?g)) 
              ?grippers))
 
