@@ -761,11 +761,11 @@ here. If no target links are given, all available links will be used."
   "Returns the usable forward kinematics links as returned by the
 service `get_fk_solver_info'."
   (roslisp:with-fields (kinematic_solver_info)
-    (roslisp:call-service
-     "/pr2_right_arm_kinematics/get_fk_solver_info"
-     'kinematics_msgs-srv:getkinematicsolverinfo)
+      (roslisp:call-service
+       "/pr2_right_arm_kinematics/get_fk_solver_info"
+       'kinematics_msgs-srv:getkinematicsolverinfo)
     (roslisp:with-fields (joint_names limits link_names)
-      kinematic_solver_info
+        kinematic_solver_info
       (declare (ignore joint_names limits))
       link_names)))
 
@@ -773,9 +773,9 @@ service `get_fk_solver_info'."
   "Returns the usable forward kinematics joints as returned by the
 service `get_fk_solver_info'."
   (roslisp:with-fields (kinematic_solver_info)
-    (roslisp:call-service
-     "/pr2_right_arm_kinematics/get_fk_solver_info"
-     'kinematics_msgs-srv:getkinematicsolverinfo)
+      (roslisp:call-service
+       "/pr2_right_arm_kinematics/get_fk_solver_info"
+       'kinematics_msgs-srv:getkinematicsolverinfo)
     (roslisp:with-fields (joint_names limits link_names)
         kinematic_solver_info
       (declare (ignore link_names limits))
