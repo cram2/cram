@@ -731,3 +731,22 @@ will be commanded."
       (execute-arm-trajectory side (ik->trajectory safety-ik))
       (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))
     (cpl:fail 'object-lost)))
+
+(defun park-grasped-object-with-one-arm (obj side &optional obstacles)
+  (when obstacles
+    (clear-collision-objects)
+    (sem-map-coll-env:publish-semantic-map-collision-objects)
+    (dolist (obstacle (cut:force-ll obstacles))
+      (register-collision-object obstacle)))
+  (let ((orientation (calculate-carry-orientation
+                      obj side
+                      (list *top-grasp* (cl-transforms:make-identity-rotation))))
+        (carry-pose (ecase side
+                      (:right *carry-pose-right*)
+                      (:left *carry-pose-left*))))
+    (if orientation
+        (execute-move-arm-pose side (tf:copy-pose-stamped carry-pose :orientation orientation)
+                               :allowed-collision-objects (list "\"all\""))
+        (execute-move-arm-pose side carry-pose
+                               :allowed-collision-objects (list "\"all\"")))
+    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))))
