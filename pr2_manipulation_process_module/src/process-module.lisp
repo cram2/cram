@@ -165,7 +165,7 @@
   "Selects and calls the appropriate grasping functionality based on
 the given object type."
   (cond ((not (eq (desig-prop-values obj 'handle) nil))
-         (grab-object-with-handles obj side))
+         (grab-object-with-handles-constraint-aware obj side))
         ((eq object-type 'pot)
          (grasp-object-with-both-arms obj))
         (t (standard-grasping obj side obstacles))))
@@ -527,7 +527,8 @@ that has to be grasped with two grippers."
            (nearest-handle
             obj
             :side nil
-            :handle-offset-pose *handle-pregrasp-offset-pose*))
+            :handle-offset-pose *handle-pregrasp-offset-pose*
+	    :constraint-aware t))
          (side (first nearest-handle-data))
          (handle (second nearest-handle-data)))
     (format t "~%~%[CALC-BEST-GRASPS-AND-ARMS]: best arm: ~a~%~%" side)
