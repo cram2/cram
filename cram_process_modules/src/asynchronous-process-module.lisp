@@ -126,6 +126,8 @@
                      (on-input process-module input-value)
                      (pulse notification-fluent)
                      (on-process-module-started process-module input-value))))
+               ;; TODO(moesenle): add handling of cancellation on a
+               ;; per-designator basis.
                (whenever (cancel)
                  (sb-thread:with-mutex (queue-lock)
                    (dolist (designator processed-designators)
@@ -205,6 +207,8 @@
             (designators (typecase designators
                            (list designators)
                            (t (list designators)))))
+        ;; TODO(moesenle): add handling of suspension/non-local exits
+        ;; to cancel and maybe restart the action.
         (loop do
           (sb-thread:with-mutex (queue-lock)
             (when (if designators
