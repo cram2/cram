@@ -149,7 +149,7 @@
         ;; because it still relies on the :both arms setup
         ((> (length arms) 1)
          (lift-grasped-object-with-both-arms distance))
-        (t (error 'manipulation-failed
+        (t (cpl-impl:fail 'manipulation-failed
                     :format-control "No arms for lifting infered."))))
 
 (def-action-handler grasp-slave (obj grasps arms obstacles)
