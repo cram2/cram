@@ -175,14 +175,14 @@ be used in the corresponding actions."
                 time_from_start duration))))))
 
 (defmethod ik->trajectory ((ik-result kinematics_msgs-srv:getpositionik-response)
-                               &key (duration 5.0) (stamp (roslisp:ros-time)))
+                           &key (duration 5.0) (stamp (roslisp:ros-time)))
   "This function only accepts ik-result messages of the type
 `kinematics_msgs-srv:getpositionik-response', calling
 `ik->trajectory-ex' afterwards."
   (ik->trajectory-ex ik-result :duration duration :stamp stamp))
 
 (defmethod ik->trajectory ((ik-result kinematics_msgs-srv:getconstraintawarepositionik-response)
-                               &key (duration 5.0) (stamp (roslisp:ros-time)))
+                           &key (duration 5.0) (stamp (roslisp:ros-time)))
   "This function only accepts ik-result messages of the type
 `kinematics_msgs-srv:getconstraintawarepositionik-response', calling
 `ik->trajectory-ex' afterwards."
@@ -727,11 +727,11 @@ used. This function is a simplified interface function for
 `euclidean-distance', which takes a vector of target links as
 parameter and returns the distance for each of these."
   (cdr (assoc
-	target-link
-	(euclidean-distance names-from positions-from
-			    names-to positions-to
-			    :target-links (vector target-link))
-	:test 'equal)))
+        target-link
+        (euclidean-distance names-from positions-from
+                            names-to positions-to
+                            :target-links (vector target-link))
+        :test 'equal)))
 
 (defun euclidean-distance (names-from positions-from names-to
                            positions-to &key target-links)
@@ -761,11 +761,11 @@ here. If no target links are given, all available links will be used."
   "Returns the usable forward kinematics links as returned by the
 service `get_fk_solver_info'."
   (roslisp:with-fields (kinematic_solver_info)
-      (roslisp:call-service
-       "/pr2_right_arm_kinematics/get_fk_solver_info"
-       'kinematics_msgs-srv:getkinematicsolverinfo)
+    (roslisp:call-service
+     "/pr2_right_arm_kinematics/get_fk_solver_info"
+     'kinematics_msgs-srv:getkinematicsolverinfo)
     (roslisp:with-fields (joint_names limits link_names)
-        kinematic_solver_info
+      kinematic_solver_info
       (declare (ignore joint_names limits))
       link_names)))
 
@@ -773,9 +773,9 @@ service `get_fk_solver_info'."
   "Returns the usable forward kinematics joints as returned by the
 service `get_fk_solver_info'."
   (roslisp:with-fields (kinematic_solver_info)
-      (roslisp:call-service
-       "/pr2_right_arm_kinematics/get_fk_solver_info"
-       'kinematics_msgs-srv:getkinematicsolverinfo)
+    (roslisp:call-service
+     "/pr2_right_arm_kinematics/get_fk_solver_info"
+     'kinematics_msgs-srv:getkinematicsolverinfo)
     (roslisp:with-fields (joint_names limits link_names)
         kinematic_solver_info
       (declare (ignore link_names limits))
