@@ -69,7 +69,6 @@ the gripper and lifting the object by 0.2m by default."
               :constraint-aware constraint-aware))
            (nearest-side (first nearest-handle-data))
            (nearest-handle (second nearest-handle-data)))
-      (declare (ignore nearest-side))
       (cond (nearest-handle
              (let ((handle-radius (or (desig-prop-value
                                        nearest-handle
@@ -277,9 +276,8 @@ system."
                                          :calc-euclidean-distance t)
           when (and distance-with-offset distance-without-offset
                     (or (not lowest-distance)
-                        (and distance-with-offset
-                             (< distance-with-offset
-                                lowest-distance))))
+                        (< distance-with-offset
+                           lowest-distance)))
             do (assert handle)
                (setf lowest-distance distance-with-offset)
                (setf nearest-handle handle))
