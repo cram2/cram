@@ -29,7 +29,7 @@
 
 (defparameter *handle-pregrasp-offset-pose*
   (tf:make-pose
-   (tf:make-3d-vector 0.15 0.0 0.0)
+   (tf:make-3d-vector 0.25 0.0 0.0)
    (tf:euler->quaternion :az pi :ax (/ pi 2)))
   "Specifies the gripper pose relative to the respective handle
   coordinate system (including it's origin and rotation) when going
@@ -69,7 +69,6 @@ the gripper and lifting the object by 0.2m by default."
               :constraint-aware constraint-aware))
            (nearest-side (first nearest-handle-data))
            (nearest-handle (second nearest-handle-data)))
-      (declare (ignore nearest-side))
       (cond (nearest-handle
              (let ((handle-radius (or (desig-prop-value
                                        nearest-handle
@@ -79,12 +78,12 @@ the gripper and lifting the object by 0.2m by default."
                                  "Going into pregrasp for handled object")
                (pregrasp-handled-object-with-relative-location
                 obj
-                side
+                nearest-side
                 nearest-handle
                 :constraint-aware constraint-aware)
                (roslisp:ros-info (pr2-manipulation-process-module)
                                  "Opening gripper")
-               (open-gripper side :position (+ handle-radius 0.02))
+               (open-gripper nearest-side :position (+ handle-radius 0.02))
                (roslisp:ros-info (pr2-manipulation-process-module)
                                  "Going into grasp for handled object")
                ;; NOTE(winkler): The grasp itself should not be
@@ -95,13 +94,13 @@ the gripper and lifting the object by 0.2m by default."
                ;; break the grasping.
                (grasp-handled-object-with-relative-location
                 obj
-                side
+                nearest-side
                 nearest-handle)
                (roslisp:ros-info (pr2-manipulation-process-module)
                                  "Closing gripper")
-               (close-gripper side :position handle-radius)
+               (close-gripper nearest-side :position handle-radius)
                (check-valid-gripper-state
-                side
+                nearest-side
                 :min-position (- handle-radius 0.01)))
              (roslisp:ros-info (pr2-manip process-module)
                                "Attaching object to gripper")
@@ -109,10 +108,10 @@ the gripper and lifting the object by 0.2m by default."
               (make-instance
                'plan-knowledge:object-attached
                :object obj
-               :link (ecase side
+               :link (ecase nearest-side
                        (:right "r_gripper_r_finger_tip_link")
                        (:left "l_gripper_r_finger_tip_link"))
-               :side side)))
+               :side nearest-side)))
             (t
              (cpl:fail 'manipulation-pose-unreachable))))))
 
@@ -277,9 +276,8 @@ system."
                                          :calc-euclidean-distance t)
           when (and distance-with-offset distance-without-offset
                     (or (not lowest-distance)
-                        (and distance-with-offset
-                             (< distance-with-offset
-                                lowest-distance))))
+                        (< distance-with-offset
+                           lowest-distance)))
             do (assert handle)
                (setf lowest-distance distance-with-offset)
                (setf nearest-handle handle))

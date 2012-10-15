@@ -135,7 +135,21 @@ are used for each joint."
                                                                                                        (- steps 1))))))
                                                          (list (gethash name current)))))))))
 
-(defun ik->trajectory (ik-result &key (duration 5.0) (stamp (roslisp:ros-time)))
+(defun ik->trajectory-ex (ik-result &key (duration 5.0) (stamp (roslisp:ros-time)))
+  ;; NOTE(winkler): The "(declare (type (or" formulation does not work
+  ;; here as it does not play well with
+  ;; `roslisp:with-fields'. `roslisp:with-fields' internally wants to
+  ;; transform `ik-result' into a list and reads the `type' from
+  ;; `ik-result', resulting in an error saying "OR
+  ;; KINEMATICS_MSGS-SRC:GETPOSITIONIK-RESPONSE
+  ;; KINEMATICS_MSGS-SRV:GETCONSTRAINTAWAREPOSITIONIK-RESPONSE is not
+  ;; of type SYMBOL". Due to this, the function holding the actual
+  ;; functionality is renamed to `ik->trajectory-ex' and two separate
+  ;; adapter functions `ik->trajectory' are created, each stating the
+  ;; type of message they accept in the parameters list.
+  ;; (declare (type (or kinematics_msgs-srv:getpositionik-response
+  ;;                    kinematics_msgs-srv:getconstraintawarepositionik-response)
+  ;;                ik-result))
   "Converts the result of an IK call (type
 arm_navigation_msgs/RobotState) to a joint trajectory message that can
 be used in the corresponding actions."
@@ -159,6 +173,20 @@ be used in the corresponding actions."
                                    (make-list (length solution-positions)
                                               :initial-element 0.0))
                 time_from_start duration))))))
+
+(defmethod ik->trajectory ((ik-result kinematics_msgs-srv:getpositionik-response)
+                           &key (duration 5.0) (stamp (roslisp:ros-time)))
+  "This function only accepts ik-result messages of the type
+`kinematics_msgs-srv:getpositionik-response', calling
+`ik->trajectory-ex' afterwards."
+  (ik->trajectory-ex ik-result :duration duration :stamp stamp))
+
+(defmethod ik->trajectory ((ik-result kinematics_msgs-srv:getconstraintawarepositionik-response)
+                           &key (duration 5.0) (stamp (roslisp:ros-time)))
+  "This function only accepts ik-result messages of the type
+`kinematics_msgs-srv:getconstraintawarepositionik-response', calling
+`ik->trajectory-ex' afterwards."
+  (ik->trajectory-ex ik-result :duration duration :stamp stamp))
 
 (defun remove-trajectory-joints (joints trajectory &key invert)
   "Removes (or keeps) only the joints that are specified in
@@ -688,6 +716,23 @@ or designators."
                    (get-gripper-links side)))
          allowed-collision-objects))))
 
+(defun euclidean-distance-for-link (names-from positions-from names-to
+                                    positions-to target-link)
+  "Calculates and returns the euclidean distance of exactly one link
+`targe-link' between two joint space configurations. The
+configurations are given as vectors, each consisting of a `names' and
+a `positions' vector. The `-from' and `-to' pairs are interchangable
+here. If no target links are given, all available links will be
+used. This function is a simplified interface function for
+`euclidean-distance', which takes a vector of target links as
+parameter and returns the distance for each of these."
+  (cdr (assoc
+        target-link
+        (euclidean-distance names-from positions-from
+                            names-to positions-to
+                            :target-links (vector target-link))
+        :test 'equal)))
+
 (defun euclidean-distance (names-from positions-from names-to
                            positions-to &key target-links)
   "Calculates and returns the euclidean distance of a vector of links
@@ -716,11 +761,11 @@ here. If no target links are given, all available links will be used."
   "Returns the usable forward kinematics links as returned by the
 service `get_fk_solver_info'."
   (roslisp:with-fields (kinematic_solver_info)
-      (roslisp:call-service
-       "/pr2_right_arm_kinematics/get_fk_solver_info"
-       'kinematics_msgs-srv:getkinematicsolverinfo)
+    (roslisp:call-service
+     "/pr2_right_arm_kinematics/get_fk_solver_info"
+     'kinematics_msgs-srv:getkinematicsolverinfo)
     (roslisp:with-fields (joint_names limits link_names)
-        kinematic_solver_info
+      kinematic_solver_info
       (declare (ignore joint_names limits))
       link_names)))
 
@@ -728,9 +773,9 @@ service `get_fk_solver_info'."
   "Returns the usable forward kinematics joints as returned by the
 service `get_fk_solver_info'."
   (roslisp:with-fields (kinematic_solver_info)
-      (roslisp:call-service
-       "/pr2_right_arm_kinematics/get_fk_solver_info"
-       'kinematics_msgs-srv:getkinematicsolverinfo)
+    (roslisp:call-service
+     "/pr2_right_arm_kinematics/get_fk_solver_info"
+     'kinematics_msgs-srv:getkinematicsolverinfo)
     (roslisp:with-fields (joint_names limits link_names)
         kinematic_solver_info
       (declare (ignore link_names limits))
@@ -842,17 +887,12 @@ is fundamentally different."
                          state
                        (incf obj-value
                              (cond (calc-euclidean-distance
-                                    (cdr
-                                     (assoc
-                                      euclidean-target-link
-                                      (euclidean-distance
-                                       names-state
-                                       positions-state
-                                       names-traj
-                                       current-traj-positions
-                                       :target-links (vector
-                                                      euclidean-target-link))
-                                      :test 'equal)))
+                                    (euclidean-distance-for-link
+                                     names-state
+                                     positions-state
+                                     names-traj
+                                     current-traj-positions
+                                     euclidean-target-link))
                                    (t
                                     (joint-state-distance
                                      names-state
@@ -866,16 +906,12 @@ is fundamentally different."
                               :index (- traj-point-n 1))))
                        (incf obj-value
                              (cond (calc-euclidean-distance
-                                    (cdr
-                                     (assoc euclidean-target-link
-                                            (euclidean-distance
-                                             names-traj
-                                             last-traj-positions
-                                             names-traj
-                                             current-traj-positions
-                                             :target-links (vector
-                                                            euclidean-target-link))
-                                            :test 'equal)))
+                                    (euclidean-distance-for-link
+                                     names-traj
+                                     last-traj-positions
+                                     names-traj
+                                     current-traj-positions
+                                     euclidean-target-link))
                                    (t
                                     (joint-state-distance
                                      names-traj
