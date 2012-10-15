@@ -118,26 +118,19 @@
     (update-object-designator-pose handle new-object-pose))
   (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))
 
-(def-action-handler park (obj side &optional obstacles)
+(def-action-handler park (obj arms &optional obstacles)
   (roslisp:ros-info (pr2-manip process-module) "Park arms ~a ~a"
-                    obj side)
-  (when obstacles
-    (clear-collision-objects)
-    (sem-map-coll-env:publish-semantic-map-collision-objects)
-    (dolist (obstacle (cut:force-ll obstacles))
-      (register-collision-object obstacle)))
-  (let ((orientation (calculate-carry-orientation
-                      obj side
-                      (list *top-grasp* (cl-transforms:make-identity-rotation))))
-        (carry-pose (ecase side
-                      (:right *carry-pose-right*)
-                      (:left *carry-pose-left*))))
-    (if orientation
-        (execute-move-arm-pose side (tf:copy-pose-stamped carry-pose :orientation orientation)
-                               :allowed-collision-objects (list "\"all\""))
-        (execute-move-arm-pose side carry-pose
-                               :allowed-collision-objects (list "\"all\"")))
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))))
+                    obj arms)
+  (force-ll arms)
+  (cond ((eql (length arms) 1)
+         (park-grasped-object-with-one-arm obj (first arms) obstacles))
+        ((> (length arms) 1)
+         ;; TODO(Georg): implement this, possibly using stuff from
+         ;;  the single arm case
+         (cpl-impl:fail 'manipulation-failed
+                         :format-control "Parking with several arms not implemented, yet."))
+        (t (cpl-impl:fail 'manipulation-failed
+                          :format-control "No arms for parking infered."))))
 
 (def-action-handler lift (arms distance)
   ;; Note(Georg) Curious! We do not need the object designator
