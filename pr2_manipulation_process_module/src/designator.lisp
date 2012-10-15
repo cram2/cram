@@ -31,7 +31,7 @@
   (apply #'roslisp::make-message-fn type-str slots))
 
 (def-fact-group pr2-manipulation-designators (action-desig)
-
+  
   (<- (ros-message ?type ?slots ?msg)
     (lisp-fun make-message ?type ?slots ?msg))
 
@@ -62,7 +62,7 @@
 
   (<- (best-grasp ?obj ?handles ?obstacles ?grasps ?arms)
     (lisp-fun calc-best-grasps-and-arms
-	      ?obj ?handles ?obstacles (?grasps ?arms)))
+              ?obj ?handles ?obstacles (?grasps ?arms)))
 
   (<- (action-desig ?desig (container-opened ?handle :right))
     (trajectory-desig? ?desig)
