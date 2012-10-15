@@ -55,10 +55,10 @@
   received. ON-INPUT invocations are always sequential, i.e. they
   never happen before the previous ON-INPUT returned."))
 
-(defgeneric on-cancel (process-module)
+(defgeneric on-cancel (process-module input-designator)
   (:documentation "Is called when cancellation is requested. The
-  default does nothing.")
-  (:method ((process-module asynchronous-process-module))
+  default implementation does nothing.")
+  (:method ((process-module asynchronous-process-module) input-designator)
     nil))
 
 (defgeneric synchronization-fluent (process-module designator)
@@ -127,7 +127,9 @@
                      (pulse notification-fluent)
                      (on-process-module-started process-module input-value))))
                (whenever (cancel)
-                 (on-cancel process-module)))
+                 (sb-thread:with-mutex (queue-lock)
+                   (dolist (designator processed-designators)
+                     (on-cancel process-module designator)))))
           (setf (value status) :offline))))))
 
 (defmethod pm-execute ((process-module asynchronous-process-module) input-designator
