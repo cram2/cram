@@ -727,11 +727,11 @@ used. This function is a simplified interface function for
 `euclidean-distance', which takes a vector of target links as
 parameter and returns the distance for each of these."
   (cdr (assoc
-        target-link
-        (euclidean-distance names-from positions-from
-                            names-to positions-to
-                            :target-links (vector target-link))
-        :test 'equal)))
+	target-link
+	(euclidean-distance names-from positions-from
+			    names-to positions-to
+			    :target-links (vector target-link))
+	:test 'equal)))
 
 (defun euclidean-distance (names-from positions-from names-to
                            positions-to &key target-links)
