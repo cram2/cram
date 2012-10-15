@@ -906,16 +906,12 @@ is fundamentally different."
                               :index (- traj-point-n 1))))
                        (incf obj-value
                              (cond (calc-euclidean-distance
-                                    (cdr
-                                     (assoc euclidean-target-link
-                                            (euclidean-distance
-                                             names-traj
-                                             last-traj-positions
-                                             names-traj
-                                             current-traj-positions
-                                             :target-links (vector
-                                                            euclidean-target-link))
-                                            :test 'equal)))
+                                    (euclidean-distance-for-link
+                                     names-traj
+                                     last-traj-positions
+                                     names-traj
+                                     current-traj-positions
+                                     euclidean-target-link))
                                    (t
                                     (joint-state-distance
                                      names-traj
