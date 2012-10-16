@@ -43,12 +43,21 @@
     (findall ?h (desig-prop ?desig (handle ?h))
              ?handles))
 
+  (<- (gripper-arms-in-desig ?desig ?grippers)
+    (desig-prop ?desig (at ?obj-loc))
+    (desig-prop ?obj-loc (gripper ?_))
+    (findall ?g (desig-prop ?obj-loc (gripper ?g))
+             ?grippers))
+
+  (<- (gripper-arms-in-belief ?desig ?grippers)
+    (findall ?g (object-in-hand ?desig ?g)
+             ?grippers))
+
   (<- (holding-grippers ?desig ?grippers)
     (gripped-obj-desig? ?desig)
     (desig-prop ?desig (at ?obj-loc))
-    (desig-prop ?obj-loc (gripper ?_))
-    (findall ?g (desig-prop ?obj-loc (gripper ?g)) 
-             ?grippers))
+    (-> (gripper-arms-in-desig ?desig ?grippers)
+        (gripper-arms-in-belief ?desig ?grippers)))
 
   (<- (handled-obj-desig? ?designator)
     (obj-desig? ?designator)
@@ -60,9 +69,9 @@
     (loc-desig? ?obj-loc)
     (desig-prop ?obj-loc (in gripper)))
 
-  (<- (best-grasp ?obj ?handles ?obstacles ?grasps ?arms)
+  (<- (best-grasp ?obj ?obj-handles ?obstacles ?reachable-handles ?arms)
     (lisp-fun calc-best-grasps-and-arms
-              ?obj ?handles ?obstacles (?grasps ?arms)))
+              ?obj ?obj-handles ?obstacles (?reachable-handles ?arms)))
 
   (<- (action-desig ?desig (container-opened ?handle :right))
     (trajectory-desig? ?desig)
@@ -95,13 +104,6 @@
         (true)
         (== ?distance 0.10)))
 
-  (<- (action-desig ?desig (lift (:right) ?distance))
-    (trajectory-desig? ?desig)
-    (desig-prop ?desig (to lift))
-    (-> (desig-prop ?desig (distance ?distance))
-        (true)
-        (== ?distance 0.10)))
-
   (<- (action-desig ?desig (park ?obj ?grippers ?obstacles))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to carry))
@@ -118,14 +120,14 @@
   ;; all grasping because the predicate 'best-grasp' can be
   ;; used as a hook for grasp planning or any other manipulation
   ;; reasoning process that chooses the correct arm/grasp setup
-  (<- (action-desig ?desig (grasp-slave ?obj ?grasps ?arms ?obstacles))
+  (<- (action-desig ?desig (grasp-slave ?obj ?reachable-handles ?arms ?obstacles))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to grasp))
     (desig-prop ?desig (obj ?obj))
     (handled-obj-desig? ?obj)
-    (handles ?obj ?handles)
+    (handles ?obj ?obj-handles)
     (obstacles ?desig ?obstacles)
-    (best-grasp ?obj ?handles ?obstacles ?grasps ?arms))
+    (best-grasp ?obj ?obj-handles ?obstacles ?reachable-handles ?arms))
 
   (<- (action-desig ?desig (grasp ?object-type ?obj :right ?obstacles))
     (trajectory-desig? ?desig)
