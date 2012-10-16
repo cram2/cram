@@ -220,6 +220,8 @@ respective handles in their respective coordinate system."
 (defun handle-distances (obj arms &key (handle-offset-pose
                                         (tf:make-identity-pose))
                                     constraint-aware)
+  "Generates a list of handles and their respective arms which can
+reach them, as well as the respective distances for each."
   (let ((handles (desig-prop-values obj 'handle))
         (distances nil))
     (loop for handle in handles
@@ -236,6 +238,13 @@ respective handles in their respective coordinate system."
 (defun arm-handle-distances (obj handle arms &key (handle-offset-pose
                                                (tf:make-identity-pose))
                                            constraint-aware)
+  "Calculates the distances for each arm given in the `arms' list with
+  respect to the handle `handle'. Only arms that can actually reach
+  the handle are included. The resulting list consists of entries of
+  the form `((\"with-offset\"
+  . distance-with-offset) (\"without-offset\"
+  . distance-without-offset)' for each arm given in `arms'. If no arm
+  could reach the handle, `NIL' is returned."
   (let ((distances nil))
     (loop for arm in arms
           for dist-with-offset = (reaching-length
@@ -286,7 +295,8 @@ system."
 
 (defun nearest-side-on-handle (handle)
   "Returns a list of the format `(nearest-side lowest-distance)' or
-`nil' if no (reachable) handle was found."
+`nil' if no arm side was found from which the handle `handle' was
+reachable."
   (let* ((nearest-handle nil)
          (nearest-side nil)
          (lowest-distance nil)
@@ -309,6 +319,10 @@ system."
       (list nearest-side lowest-distance))))
 
 (defun handle-nearer-p (handle-in-question handle-compare)
+  "Checks to see if `handle-in-question' is actually nearer to the
+robot than `handle-compare'. If that is the case, the nearest arm side
+as saved in the respective handle variable is returned. If it is not,
+`NIL' is returned."
   (let* ((dist-in-question (nearest-side-on-handle
                             handle-in-question))
          (dist-compare (nearest-side-on-handle
