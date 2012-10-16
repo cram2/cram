@@ -104,13 +104,6 @@
         (true)
         (== ?distance 0.10)))
 
-  (<- (action-desig ?desig (lift (:right) ?distance))
-    (trajectory-desig? ?desig)
-    (desig-prop ?desig (to lift))
-    (-> (desig-prop ?desig (distance ?distance))
-        (true)
-        (== ?distance 0.10)))
-
   (<- (action-desig ?desig (park ?obj :right ?obstacles))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to carry))
