@@ -135,6 +135,9 @@
 (def-action-handler lift (arms distance)
   ;; Note(Georg) Curious! We do not need the object designator
   ;; for execution of this action?
+  ;; NOTE(winkler): No, we actually don't. The lifting is done by just
+  ;; recalculating the new position based on the old one and the fact
+  ;; that the gripper should stick to it's current orientation.
   (force-ll arms)
   (cond ((eql (length arms) 1)
          (lift-grasped-object-with-one-arm (first arms) distance))
@@ -145,14 +148,16 @@
         (t (cpl-impl:fail 'manipulation-failed
                     :format-control "No arms for lifting infered."))))
 
-(def-action-handler grasp-slave (obj grasps arms obstacles)
-  (declare (ignore grasps))
-  (format t "~%~%[GRASP-SLAVE]: calling grap-object-with-handles... arm: ~a~%~%" (first arms))
-  (grab-object-with-handles-constraint-aware
-   obj
-   (first arms)
-   obstacles
-   :obj-as-obstacle t))
+(def-action-handler grasp-slave (obj reachable-handles arms obstacles)
+  (assert (> (length arms) 0) ()
+          "No arms specified in `grasp-slave'.")
+  (assert (> (length reachable-handles) 0) ()
+          "No reachable handled specified in `grasp-slave'.")
+  (let ((arm (first arms))
+        (reachable-handle (first reachable-handles)))
+    (format t "~%~%[GRASP-SLAVE]: calling grasp-object-with-handles... arm: ~a~%~%" arm)
+    (grab-handled-object-constraint-aware obj reachable-handle arm obstacles
+                                          :obj-as-obstacle t)))
 
 (def-action-handler grasp (object-type obj side obstacles)
   "Selects and calls the appropriate grasping functionality based on
@@ -510,8 +515,6 @@ that has to be grasped with two grippers."
   ;;   accept handles parameter
   ;; - Jan's distance functions should be changed to
   ;;   to use the seed-state IK
-  ;; - no more reasoning inside the grasping function
-  ;;   of Jan, it should just go for the indicated handle...
   ;; - allow for input of available arms (not :left, :right)
   (declare (ignore handles obstacles))
   ;; using Jan's distance functionality to choose correct
@@ -519,7 +522,6 @@ that has to be grasped with two grippers."
   (let* ((nearest-handle-data
            (nearest-handle
             obj
-            :side nil
             :handle-offset-pose *handle-pregrasp-offset-pose*
             :constraint-aware t))
          (side (first nearest-handle-data))

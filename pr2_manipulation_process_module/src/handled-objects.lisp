@@ -42,78 +42,55 @@
   coordinate system (including it's origin and rotation) when going
   into grasp.")
 
-(defun grab-object-with-handles-constraint-aware (obj side obstacles
-                                                  &key
-                                                    obj-as-obstacle)
+(defun grab-handled-object-constraint-aware (obj handle arm obstacles
+                                             &key obj-as-obstacle)
   (clear-collision-objects)
   (dolist (obstacle (cut:force-ll obstacles))
     (register-collision-object obstacle))
-  (register-collision-object obj)
+  (when obj-as-obstacle
+    (register-collision-object obj))
   ;; NOTE(winkler): Check for the constraint-aware IK service. At the
   ;; moment, register-collision-object is not really implemented.
-  (grab-object-with-handles obj side :constraint-aware t))
+  (grab-handled-object obj handle arm :constraint-aware t))
 
-(defun grab-object-with-handles (obj side &key constraint-aware)
-  "Grasp an object `obj' on one of its handles with the specified
-gripper side `side'. This includes going into pregrasp for the nearest
-handle, opening the gripper, going into the grasp position, closing
-the gripper and lifting the object by 0.2m by default."
-  (let* ((handles (desig-prop-values obj 'handle)))
-    (assert (> (length handles) 0)
-            () "Object ~a needs at least one handle." obj)
-    (let* ((nearest-handle-data
-             (nearest-handle
-              obj
-              :side side
-              :handle-offset-pose *handle-pregrasp-offset-pose*
-              :constraint-aware constraint-aware))
-           (nearest-side (first nearest-handle-data))
-           (nearest-handle (second nearest-handle-data)))
-      (cond (nearest-handle
-             (let ((handle-radius (or (desig-prop-value
-                                       nearest-handle
-                                       'radius)
-                                      0.0)))
-               (roslisp:ros-info (pr2-manipulation-process-module)
-                                 "Going into pregrasp for handled object")
-               (pregrasp-handled-object-with-relative-location
-                obj
-                nearest-side
-                nearest-handle
-                :constraint-aware constraint-aware)
-               (roslisp:ros-info (pr2-manipulation-process-module)
-                                 "Opening gripper")
-               (open-gripper nearest-side :position (+ handle-radius 0.02))
-               (roslisp:ros-info (pr2-manipulation-process-module)
-                                 "Going into grasp for handled object")
+(defun grab-handled-object (obj handle arm &key constraint-aware)
+  (assert arm () "No arm side specified in `grab-handled-object'.")
+  (assert handle () "No handle specified in `grab-handled-object'.")
+  (let ((handle-radius (or (desig-prop-value handle 'radius)
+                           0.0)))
+    (roslisp:ros-info (pr2-manipulation-process-module)
+                      "Going into pregrasp for handled object (arm ~a,
+                      handle ~a)" arm handle)
+    (pregrasp-handled-object-with-relative-location
+     obj arm handle :constraint-aware constraint-aware)
+    (roslisp:ros-info (pr2-manipulation-process-module)
+                      "Opening gripper")
+    (open-gripper arm :position (+ handle-radius 0.02))
+    (roslisp:ros-info (pr2-manipulation-process-module)
+                      "Going into grasp for handled object (arm ~a,
+                      handle ~a)" arm handle)
                ;; NOTE(winkler): The grasp itself should not be
                ;; constraint-aware as we are already near the object
                ;; (no obstacles between gripper and object assumed)
                ;; and we need to get real close to the object with the
                ;; gripper. Having this function constraint-aware would
                ;; break the grasping.
-               (grasp-handled-object-with-relative-location
-                obj
-                nearest-side
-                nearest-handle)
-               (roslisp:ros-info (pr2-manipulation-process-module)
-                                 "Closing gripper")
-               (close-gripper nearest-side :position handle-radius)
-               (check-valid-gripper-state
-                nearest-side
-                :min-position (- handle-radius 0.01)))
-             (roslisp:ros-info (pr2-manip process-module)
-                               "Attaching object to gripper")
-             (plan-knowledge:on-event
-              (make-instance
-               'plan-knowledge:object-attached
-               :object obj
-               :link (ecase nearest-side
-                       (:right "r_gripper_r_finger_tip_link")
-                       (:left "l_gripper_r_finger_tip_link"))
-               :side nearest-side)))
-            (t
-             (cpl:fail 'manipulation-pose-unreachable))))))
+    (grasp-handled-object-with-relative-location
+     obj arm handle)
+    (roslisp:ros-info (pr2-manipulation-process-module)
+                      "Closing gripper")
+    (close-gripper arm :position handle-radius)
+    (check-valid-gripper-state arm
+                               :min-position (- handle-radius 0.01)))
+  (roslisp:ros-info (pr2-manip process-module) "Attaching object to gripper")
+  (plan-knowledge:on-event
+   (make-instance
+    'plan-knowledge:object-attached
+    :object obj
+    :link (ecase arm
+            (:right "r_gripper_r_finger_tip_link")
+            (:left "l_gripper_r_finger_tip_link"))
+    :side arm)))
 
 (defun taxi-handled-object (obj side handle
                             &key (relative-gripper-pose
@@ -234,8 +211,10 @@ respective handles in their respective coordinate system."
                       (list :right handle-right)))
                  (handle-left (list :left handle-left))
                  (handle-right (list :right handle-right))
-                 (t (roslisp::ros-warn (pr2-manip-pm handled-objects)
-                                       "No nearest handle found.")
+                 (t
+                  (cpl:fail 'manipulation-pose-unreachable)
+                  (roslisp::ros-warn (pr2-manip-pm handled-objects)
+                                     "No nearest handle found.")
                     (list nil nil)))))))
 
 (defun nearest-handle-for-side (obj side &key (handle-offset-pose
