@@ -162,9 +162,7 @@
 (def-action-handler grasp (object-type obj side obstacles)
   "Selects and calls the appropriate grasping functionality based on
 the given object type."
-  (cond ((not (eq (desig-prop-values obj 'handle) nil))
-         (grab-object-with-handles-constraint-aware obj side))
-        ((eq object-type 'pot)
+  (cond ((eq object-type 'pot)
          (grasp-object-with-both-arms obj))
         (t (standard-grasping obj side obstacles))))
 
