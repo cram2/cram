@@ -293,6 +293,16 @@ system."
                (setf nearest-handle handle-data))
     (list nearest-side (car nearest-handle))))
 
+(defun nearest-of-handles (handle-distances)
+  (let ((nearest-side nil)
+        (nearest-handle nil))
+    (loop for handle-data in handle-distances
+          for nearer-side = (handle-nearer-p handle-data nearest-handle)
+          when nearer-side
+            do (setf nearest-side nearer-side)
+               (setf nearest-handle handle-data))
+    (list nearest-side (car nearest-handle))))
+
 (defun nearest-side-on-handle (handle)
   "Returns a list of the format `(nearest-side lowest-distance)' or
 `nil' if no arm side was found from which the handle `handle' was
