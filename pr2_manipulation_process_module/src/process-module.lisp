@@ -152,14 +152,21 @@
         (t (error 'manipulation-failed
                     :format-control "No arms for lifting infered."))))
 
-(def-action-handler grasp-slave (obj grasps arms obstacles)
-  (declare (ignore grasps))
-  (format t "~%~%[GRASP-SLAVE]: calling grap-object-with-handles... arm: ~a~%~%" (first arms))
-  (grab-object-with-handles-constraint-aware
-   obj
-   (first arms)
-   obstacles
-   :obj-as-obstacle t))
+(def-action-handler grasp-slave (obj reachable-handles arms obstacles)
+  (assert (> (length arms) 0) ()
+          "No arms specified in `grasp-slave'.")
+  (assert (> (length reachable-handles) 0) ()
+          "No reachable handled specified in `grasp-slave'.")
+  (let ((arm (first arms))
+        (reachable-handle (first reachable-handles)))
+    (format t "~%~%[GRASP-SLAVE]: calling grasp-object-with-handles... arm: ~a~%~%" arm)
+    (grab-handled-object-constraint-aware obj reachable-handle arm obstacles
+                                          :obj-as-obstacle t)))
+    ;; (grab-object-with-handles-constraint-aware
+    ;;  obj
+    ;;  (first arms)
+    ;;  obstacles
+    ;;  :obj-as-obstacle t))
 
 (def-action-handler grasp (object-type obj side obstacles)
   "Selects and calls the appropriate grasping functionality based on
@@ -526,10 +533,10 @@ that has to be grasped with two grippers."
   (let* ((nearest-handle-data
            (nearest-handle
             obj
-            :side nil
             :handle-offset-pose *handle-pregrasp-offset-pose*
             :constraint-aware t))
          (side (first nearest-handle-data))
          (handle (second nearest-handle-data)))
+    (format t "Nearest handle data: ~a~%" nearest-handle-data)
     (format t "~%~%[CALC-BEST-GRASPS-AND-ARMS]: best arm: ~a~%~%" side)
     (list (list handle) (list side))))
