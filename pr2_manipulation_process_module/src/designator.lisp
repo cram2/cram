@@ -55,7 +55,6 @@
 
   (<- (holding-grippers ?desig ?grippers)
     (gripped-obj-desig? ?desig)
-    (desig-prop ?desig (at ?obj-loc))
     (-> (gripper-arms-in-desig ?desig ?grippers)
         (gripper-arms-in-belief ?desig ?grippers)))
 
