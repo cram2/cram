@@ -215,49 +215,133 @@ respective handles in their respective coordinate system."
                   (cpl:fail 'manipulation-pose-unreachable)
                   (roslisp::ros-warn (pr2-manip-pm handled-objects)
                                      "No nearest handle found.")
-                    (list nil nil)))))))
+                  (list nil nil)))))))
+
+(defun handle-distances (obj arms &key (handle-offset-pose
+                                        (tf:make-identity-pose))
+                                    constraint-aware)
+  "Generates a list of handles and their respective arms which can
+reach them, as well as the respective distances for each."
+  (let ((handles (desig-prop-values obj 'handle))
+        (distances nil))
+    (loop for handle in handles
+          for arm-distances = (arm-handle-distances
+                               obj handle arms
+                               :handle-offset-pose
+                               handle-offset-pose
+                               :constraint-aware
+                               constraint-aware)
+          when (> (length arm-distances) 0)
+            do (push (cons handle arm-distances) distances))
+    distances))
+
+(defun arm-handle-distances (obj handle arms &key (handle-offset-pose
+                                               (tf:make-identity-pose))
+                                           constraint-aware)
+  "Calculates the distances for each arm given in the `arms' list with
+  respect to the handle `handle'. Only arms that can actually reach
+  the handle are included. The resulting list consists of entries of
+  the form `((\"with-offset\"
+  . distance-with-offset) (\"without-offset\"
+  . distance-without-offset)' for each arm given in `arms'. If no arm
+  could reach the handle, `NIL' is returned."
+  (let ((distances nil))
+    (loop for arm in arms
+          for dist-with-offset = (reaching-length
+                                  (object-handle-absolute
+                                   obj handle
+                                   :handle-offset-pose
+                                   handle-offset-pose)
+                                  arm
+                                  :constraint-aware
+                                  constraint-aware
+                                  :calc-euclidean-distance t)
+          for dist-without-offset = (reaching-length
+                                     (object-handle-absolute
+                                      obj handle)
+                                     arm
+                                     :constraint-aware
+                                     constraint-aware
+                                     :calc-euclidean-distance t)
+          when (and dist-with-offset dist-without-offset)
+            do (push (cons
+                      arm
+                      (list (cons "with-offset" dist-with-offset)
+                            (cons "without-offset" dist-without-offset)))
+                     distances))
+    distances))
 
 (defun nearest-handle-for-side (obj side &key (handle-offset-pose
                                                (tf:make-identity-pose))
                                            constraint-aware)
   "Calculate the closest handle (in terms of joint-space) for side
 `side'. Returns a list in the form of (distance handle) for the found
-nearest handle and (-1 NIL) if no reachable handles were found. The
+nearest handle and `(NIL NIL)' if no reachable handles were found. The
 optional parameter `handle-offset-pose' can be used to specify an
 offset to the respective handles in their respective coordinate
 system."
-  (let ((lowest-distance nil)
+  (let ((nearest-side nil)
         (nearest-handle nil)
-        (handles (desig-prop-values obj 'handle)))
-    (loop for handle in handles
-          ;; NOTE(winkler): Both, the distance with the pregrasp pose
-          ;; included and the one without the pregrasp pose are
-          ;; checked here for valid IK solutions. There is no sense in
-          ;; marking a handle as "reachable" just because the pregrasp
-          ;; pose is reachable.
-          for distance-with-offset = (reaching-length
-                                      (object-handle-absolute
-                                       obj
-                                       handle
-                                       :handle-offset-pose
-                                       handle-offset-pose)
-                                      side
-                                      :constraint-aware
-                                      constraint-aware
-                                      :calc-euclidean-distance t)
-          for distance-without-offset = (reaching-length
-                                         (object-handle-absolute
-                                          obj
-                                          handle)
-                                         side
-                                         :constraint-aware
-                                         constraint-aware
-                                         :calc-euclidean-distance t)
-          when (and distance-with-offset distance-without-offset
-                    (or (not lowest-distance)
-                        (< distance-with-offset
-                           lowest-distance)))
-            do (assert handle)
-               (setf lowest-distance distance-with-offset)
-               (setf nearest-handle handle))
-    (list lowest-distance nearest-handle)))
+        (handle-distances (handle-distances
+                           obj (list side)
+                           :handle-offset-pose handle-offset-pose
+                           :constraint-aware constraint-aware)))
+    (loop for handle-data in handle-distances
+          for nearer-side = (handle-nearer-p handle-data nearest-handle)
+          when nearer-side
+            do (setf nearest-side nearer-side)
+               (setf nearest-handle handle-data))
+    (list nearest-side (car nearest-handle))))
+
+(defun nearest-of-handles (handle-distances)
+  (let ((nearest-side nil)
+        (nearest-handle nil))
+    (loop for handle-data in handle-distances
+          for nearer-side = (handle-nearer-p handle-data nearest-handle)
+          when nearer-side
+            do (setf nearest-side nearer-side)
+               (setf nearest-handle handle-data))
+    (list nearest-side (car nearest-handle))))
+
+(defun nearest-side-on-handle (handle)
+  "Returns a list of the format `(nearest-side lowest-distance)' or
+`nil' if no arm side was found from which the handle `handle' was
+reachable."
+  (let* ((nearest-handle nil)
+         (nearest-side nil)
+         (lowest-distance nil)
+         (sides-distances (cdr handle)))
+    (when (> (length sides-distances) 0)
+      (loop for side-distances in sides-distances
+            for side = (car side-distances)
+            for distances = (cdr side-distances)
+            for dist-without-offset = (cdr
+                                       (assoc
+                                        "without-offset"
+                                        distances
+                                        :test 'equal))
+            when (or (not lowest-distance)
+                     (< dist-without-offset lowest-distance))
+              do (setf nearest-side side)
+                 (setf nearest-handle handle)
+                 (setf lowest-distance dist-without-offset)))
+    (when (and nearest-side lowest-distance)
+      (list nearest-side lowest-distance))))
+
+(defun handle-nearer-p (handle-in-question handle-compare)
+  "Checks to see if `handle-in-question' is actually nearer to the
+robot than `handle-compare'. If that is the case, the nearest arm side
+as saved in the respective handle variable is returned. If it is not,
+`NIL' is returned."
+  (let* ((dist-in-question (nearest-side-on-handle
+                            handle-in-question))
+         (dist-compare (nearest-side-on-handle
+                        handle-compare))
+         (side-in-question (first dist-in-question))
+         (distance-in-question (second dist-in-question))
+         (distance-compare (second dist-compare)))
+    (cond ((and dist-in-question dist-compare)
+           (when (< distance-in-question distance-compare)
+             side-in-question))
+          (dist-in-question
+           side-in-question))))

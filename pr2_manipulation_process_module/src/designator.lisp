@@ -55,7 +55,6 @@
 
   (<- (holding-grippers ?desig ?grippers)
     (gripped-obj-desig? ?desig)
-    (desig-prop ?desig (at ?obj-loc))
     (-> (gripper-arms-in-desig ?desig ?grippers)
         (gripper-arms-in-belief ?desig ?grippers)))
 
@@ -69,9 +68,29 @@
     (loc-desig? ?obj-loc)
     (desig-prop ?obj-loc (in gripper)))
 
-  (<- (best-grasp ?obj ?obj-handles ?obstacles ?reachable-handles ?arms)
-    (lisp-fun calc-best-grasps-and-arms
-              ?obj ?obj-handles ?obstacles (?reachable-handles ?arms)))
+  (<- (graspable-handles ?obj-desig ?arms ?handles-graspable)
+    (handles ?obj-desig ?handles)
+    (lisp-fun handle-distances ?obj-desig ?arms
+              ?handles-graspable))
+
+  (<- (nearest-handle ?handles ?nearest-side ?nearest-handle)
+    (lisp-fun nearest-of-handles ?handles (?nearest-side ?nearest-handle)))
+
+  ;; NOTE(winkler): This pattern now first gets all graspable handles
+  ;; for the object `?obj' when the arm sides `(:left :right)' are
+  ;; allowed. The result is stored in
+  ;; `?graspable-handles'. Afterwards, the nearest handle from these
+  ;; is determined using the predicate `nearest-handle' which returns
+  ;; the nearest arm and the nearest handle. The respective predicates
+  ;; each call a lisp function which does the *actual work* but now
+  ;; the lisp stuff is just used for servicing prolog, not vice versa.
+
+  ;; TODO(winkler): Clean up the variable naming here and delete all
+  ;; unnecessary lisp functions (e.g. for nearest-handle-evaluation
+  ;; which was formerly used by grasp-object-with-handles).
+  (<- (best-grasp ?obj ?obj-handles ?obstacles (?nearest-handle) (?nearest-arm))
+    (graspable-handles ?obj (:left :right) ?graspable-handles)
+    (nearest-handle ?graspable-handles ?nearest-arm ?nearest-handle))
 
   (<- (action-desig ?desig (container-opened ?handle :right))
     (trajectory-desig? ?desig)
