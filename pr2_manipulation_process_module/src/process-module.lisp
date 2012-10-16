@@ -142,6 +142,9 @@
 (def-action-handler lift (arms distance)
   ;; Note(Georg) Curious! We do not need the object designator
   ;; for execution of this action?
+  ;; NOTE(winkler): No, we actually don't. The lifting is done by just
+  ;; recalculating the new position based on the old one and the fact
+  ;; that the gripper should stick to it's current orientation.
   (force-ll arms)
   (cond ((eql (length arms) 1)
          (lift-grasped-object-with-one-arm (first arms) distance))
@@ -162,11 +165,6 @@
     (format t "~%~%[GRASP-SLAVE]: calling grasp-object-with-handles... arm: ~a~%~%" arm)
     (grab-handled-object-constraint-aware obj reachable-handle arm obstacles
                                           :obj-as-obstacle t)))
-    ;; (grab-object-with-handles-constraint-aware
-    ;;  obj
-    ;;  (first arms)
-    ;;  obstacles
-    ;;  :obj-as-obstacle t))
 
 (def-action-handler grasp (object-type obj side obstacles)
   "Selects and calls the appropriate grasping functionality based on
@@ -524,8 +522,6 @@ that has to be grasped with two grippers."
   ;;   accept handles parameter
   ;; - Jan's distance functions should be changed to
   ;;   to use the seed-state IK
-  ;; - no more reasoning inside the grasping function
-  ;;   of Jan, it should just go for the indicated handle...
   ;; - allow for input of available arms (not :left, :right)
   (declare (ignore handles obstacles))
   ;; using Jan's distance functionality to choose correct
@@ -537,6 +533,5 @@ that has to be grasped with two grippers."
             :constraint-aware t))
          (side (first nearest-handle-data))
          (handle (second nearest-handle-data)))
-    (format t "Nearest handle data: ~a~%" nearest-handle-data)
     (format t "~%~%[CALC-BEST-GRASPS-AND-ARMS]: best arm: ~a~%~%" side)
     (list (list handle) (list side))))

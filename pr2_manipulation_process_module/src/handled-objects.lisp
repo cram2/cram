@@ -279,7 +279,6 @@ respective handles in their respective coordinate system."
                 (distance-right (first nearest-right))
                 (handle-left (second nearest-left))
                 (handle-right (second nearest-right)))
-           (format t "NH: ~a ~a~%" nearest-left nearest-right)
            (cond ((and handle-left handle-right
                        distance-left distance-right)
                   (if (< distance-left distance-right)
