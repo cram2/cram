@@ -82,8 +82,7 @@
     (close-gripper arm :position handle-radius)
     (check-valid-gripper-state arm
                                :min-position (- handle-radius 0.01)))
-  (roslisp:ros-info (pr2-manip process-module)
-                    "Attaching object to gripper")
+  (roslisp:ros-info (pr2-manip process-module) "Attaching object to gripper")
   (plan-knowledge:on-event
    (make-instance
     'plan-knowledge:object-attached
