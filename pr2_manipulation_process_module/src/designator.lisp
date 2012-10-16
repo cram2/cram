@@ -69,9 +69,9 @@
     (loc-desig? ?obj-loc)
     (desig-prop ?obj-loc (in gripper)))
 
-  (<- (best-grasp ?obj ?handles ?obstacles ?grasps ?arms)
+  (<- (best-grasp ?obj ?obj-handles ?obstacles ?reachable-handles ?arms)
     (lisp-fun calc-best-grasps-and-arms
-              ?obj ?handles ?obstacles (?grasps ?arms)))
+              ?obj ?obj-handles ?obstacles (?reachable-handles ?arms)))
 
   (<- (action-desig ?desig (container-opened ?handle :right))
     (trajectory-desig? ?desig)
@@ -118,14 +118,14 @@
   ;; all grasping because the predicate 'best-grasp' can be
   ;; used as a hook for grasp planning or any other manipulation
   ;; reasoning process that chooses the correct arm/grasp setup
-  (<- (action-desig ?desig (grasp-slave ?obj ?grasps ?arms ?obstacles))
+  (<- (action-desig ?desig (grasp-slave ?obj ?reachable-handles ?arms ?obstacles))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to grasp))
     (desig-prop ?desig (obj ?obj))
     (handled-obj-desig? ?obj)
-    (handles ?obj ?handles)
+    (handles ?obj ?obj-handles)
     (obstacles ?desig ?obstacles)
-    (best-grasp ?obj ?handles ?obstacles ?grasps ?arms))
+    (best-grasp ?obj ?obj-handles ?obstacles ?reachable-handles ?arms))
 
   (<- (action-desig ?desig (grasp ?object-type ?obj :right ?obstacles))
     (trajectory-desig? ?desig)
