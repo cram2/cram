@@ -44,19 +44,22 @@
              ?handles))
 
   (<- (gripper-arms-in-desig ?desig ?grippers)
-    (desig-prop ?desig (at ?obj-loc))
+    (current-desig ?desig ?current-desig)
+    (desig-prop ?current-desig (at ?obj-loc))
     (desig-prop ?obj-loc (gripper ?_))
     (findall ?g (desig-prop ?obj-loc (gripper ?g))
              ?grippers))
 
   (<- (gripper-arms-in-belief ?desig ?grippers)
-    (findall ?g (object-in-hand ?desig ?g)
+    (current-desig ?desig ?current-desig)
+    (findall ?g (object-in-hand ?current-desig ?g)
              ?grippers))
 
   (<- (holding-grippers ?desig ?grippers)
-    (gripped-obj-desig? ?desig)
-    (-> (gripper-arms-in-desig ?desig ?grippers)
-        (gripper-arms-in-belief ?desig ?grippers)))
+    (current-desig ?desig ?current-desig)
+    (gripped-obj-desig? ?current-desig)
+    (-> (gripper-arms-in-desig ?current-desig ?grippers)
+        (gripper-arms-in-belief ?current-desig ?grippers)))
 
   (<- (handled-obj-desig? ?designator)
     (obj-desig? ?designator)
