@@ -45,6 +45,7 @@
 
   (<- (gripper-arms-in-desig ?desig ?grippers)
     (current-desig ?desig ?current-desig)
+    (gripped-obj-desig? ?current-desig)
     (desig-prop ?current-desig (at ?obj-loc))
     (desig-prop ?obj-loc (gripper ?_))
     (findall ?g (desig-prop ?obj-loc (gripper ?g))
@@ -57,7 +58,6 @@
 
   (<- (holding-grippers ?desig ?grippers)
     (current-desig ?desig ?current-desig)
-    (gripped-obj-desig? ?current-desig)
     (-> (gripper-arms-in-desig ?current-desig ?grippers)
         (gripper-arms-in-belief ?current-desig ?grippers)))
 
