@@ -345,3 +345,8 @@ as saved in the respective handle variable is returned. If it is not,
              side-in-question))
           (dist-in-question
            side-in-question))))
+
+(defun fail-on-no-nearest-handle (handle)
+  (unless handle
+    (cpl:fail 'manipulation-pose-unreachable))
+  t)
