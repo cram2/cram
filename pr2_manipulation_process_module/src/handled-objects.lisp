@@ -36,7 +36,7 @@
   into pregrasp.")
 (defparameter *handle-grasp-offset-pose*
   (tf:make-pose
-   (tf:make-3d-vector 0.12 0.0 0.0)
+   (tf:make-3d-vector 0.135 0.0 0.0)
    (tf:euler->quaternion :az pi :ax (/ pi 2)))
   "Specifies the gripper pose relative to the respective handle
   coordinate system (including it's origin and rotation) when going
