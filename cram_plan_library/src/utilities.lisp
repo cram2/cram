@@ -36,14 +36,19 @@
    designator (designators-ros:make-euclidean-distance-filter
                (reference designator) threshold)))
 
+(defun current-robot-location ()
+  (cl-tf:transform-pose
+   *tf* :pose (tf:make-pose-stamped
+               designators-ros:*robot-base-frame* 0.0
+               (cl-transforms:make-identity-vector)
+               (cl-transforms:make-identity-rotation))
+        :target-frame designators-ros:*fixed-frame*))
+
 (defun distance-to-drive (goal)
   (let ((loc-1 (reference goal))
-        (current-loc (cl-tf:lookup-transform
-                      *tf*
-                      :target-frame designators-ros:*fixed-frame*
-                      :source-frame designators-ros:*robot-base-frame*)))
+        (current-loc (current-robot-location)))
     (cl-transforms:v-dist (cl-transforms:origin loc-1)
-                          (cl-transforms:translation current-loc))))
+                          (cl-transforms:origin current-loc))))
 
 (defmacro retry-with-updated-location (location update-form)
   "If the evaluation of `update-form' returns non-nil, sets `location'
