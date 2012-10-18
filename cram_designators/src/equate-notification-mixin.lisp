@@ -61,7 +61,14 @@
   (:method ((designator equate-notification-mixin) (other designator))
     (with-slots (equate-notification-callbacks) designator
       (dolist (callback equate-notification-callbacks)
-        (funcall callback other)))))
+        (funcall callback other))))
+  ;; Note(moesenle): We need to specialize on type T here and not on
+  ;; type DESIGNATOR because in the inheritance tree of the more
+  ;; specific designator types (location, action, object), designator
+  ;; and the mixins are on the same level. That means specializations
+  ;; on mixins are only executed after specializations on DESIGNATOR.
+  (:method ((designator t) (other t))
+    nil))
 
 (defmacro with-equate-callback ((designator callback) &body body)
   (with-gensyms (evaluated-designator evaluated-callback)
@@ -84,4 +91,3 @@
 
 (defmethod equate :after ((parent equate-notification-mixin) successor)
   (execute-all-equated-callbacks parent successor))
-
