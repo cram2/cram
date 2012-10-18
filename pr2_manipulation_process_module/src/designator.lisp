@@ -44,19 +44,22 @@
              ?handles))
 
   (<- (gripper-arms-in-desig ?desig ?grippers)
-    (desig-prop ?desig (at ?obj-loc))
+    (current-designator ?desig ?current-desig)
+    (gripped-obj-desig? ?current-desig)
+    (desig-prop ?current-desig (at ?obj-loc))
     (desig-prop ?obj-loc (gripper ?_))
     (findall ?g (desig-prop ?obj-loc (gripper ?g))
              ?grippers))
 
   (<- (gripper-arms-in-belief ?desig ?grippers)
-    (findall ?g (object-in-hand ?desig ?g)
+    (current-designator ?desig ?current-desig)
+    (findall ?g (object-in-hand ?current-desig ?g)
              ?grippers))
 
   (<- (holding-grippers ?desig ?grippers)
-    (gripped-obj-desig? ?desig)
-    (-> (gripper-arms-in-desig ?desig ?grippers)
-        (gripper-arms-in-belief ?desig ?grippers)))
+    (current-designator ?desig ?current-desig)
+    (-> (gripper-arms-in-desig ?current-desig ?grippers)
+        (gripper-arms-in-belief ?current-desig ?grippers)))
 
   (<- (handled-obj-desig? ?designator)
     (obj-desig? ?designator)
@@ -68,13 +71,14 @@
     (loc-desig? ?obj-loc)
     (desig-prop ?obj-loc (in gripper)))
 
-  (<- (graspable-handles ?obj-desig ?arms ?handles-graspable)
+  (<- (graspable-handles ?obj-desig ?arms ?handle-evaluations)
     (handles ?obj-desig ?handles)
-    (lisp-fun handle-distances ?obj-desig ?arms
-              ?handles-graspable))
+    (lisp-fun handle-distances ?obj-desig ?arms ?handle-evaluations))
 
-  (<- (nearest-handle ?handles ?nearest-side ?nearest-handle)
-    (lisp-fun nearest-of-handles ?handles (?nearest-side ?nearest-handle)))
+  (<- (nearest-handle ?handle-evaluations ?nearest-side ?nearest-handle)
+    (lisp-fun nearest-of-handles ?handle-evaluations
+              (?nearest-side ?nearest-handle))
+    (lisp-pred fail-on-no-nearest-handle ?nearest-handle))
 
   ;; NOTE(winkler): This pattern now first gets all graspable handles
   ;; for the object `?obj' when the arm sides `(:left :right)' are
@@ -84,6 +88,12 @@
   ;; the nearest arm and the nearest handle. The respective predicates
   ;; each call a lisp function which does the *actual work* but now
   ;; the lisp stuff is just used for servicing prolog, not vice versa.
+
+  ;; NOTE(winkler): Maybe, the list of allowed arms (which currently
+  ;; is `(:left :right)') can be replaced by the currently available
+  ;; arms. This would take the arm availability into account and would
+  ;; purge the need for explicit information about the arm
+  ;; architecture here.
 
   ;; TODO(winkler): Clean up the variable naming here and delete all
   ;; unnecessary lisp functions (e.g. for nearest-handle-evaluation
