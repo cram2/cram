@@ -88,7 +88,3 @@
 (defmethod equate :after (parent (successor equate-notification-mixin))
   (execute-all-equated-callbacks successor parent))
 
-(defmethod equate :after ((parent equate-notification-mixin)
-                          (successor equate-notification-mixin))
-  (execute-all-equated-callbacks parent successor)
-  (execute-all-equated-callbacks successor parent))
