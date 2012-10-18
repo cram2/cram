@@ -29,15 +29,62 @@
 
 (in-package :plan-lib)
 
-(define-condition location-lost-failure (plan-failure) ())
+(defun location-designator-reached (current-location location-designator)
+  "Returns a boolean fluent that indicates if `current-location' is a
+valid solution for `location-designator'"
+  (let ((result (validate-location-designator-solution location-designator current-location)))
+    result))
+
+(defmacro with-equate-fluent ((designator fluent-name) &body body)
+  "Executes `body' with `fluent-name' bound to a lexical variable. The
+  fluent is pulsed whenever `designator' is equated to another
+  designator."
+  (alexandria:with-gensyms (callback)
+    `(let ((,fluent-name (make-fluent :value nil :name ',fluent-name)))
+       (flet ((,callback (other)
+                (declare (ignore other))
+                (pulse ,fluent-name)))
+         (with-equate-callback (,designator #',callback)
+           ,@body)))))
 
 (defmacro at-location (&whole sexp (loc-var) &body body)
-  `(progn
-     (reference ,loc-var)
-     (with-task-tree-node (:path-part `(goal-context (at-location (?loc)))
-                           :name ,(format nil "AT-LOCATION")
-                           :sexp ,sexp
-                           :lambda-list (,loc-var)
-                           :parameters (list ,loc-var))
-       (achieve `(loc Robot ,,loc-var))
-       ,@body)))
+  (alexandria:with-gensyms (terminated robot-location-changed-fluent designator-updated)
+    `(let ((,terminated nil)
+           (,robot-location-changed-fluent (make-fluent :allow-tracing nil)))
+       (flet ((set-current-location ()
+                (pulse ,robot-location-changed-fluent)))
+         (tf:with-transforms-changed-callback (*tf* #'set-current-location)
+           (reference ,loc-var)
+           (with-task-tree-node (:path-part `(goal-context (at-location (?loc)))
+                                 :name ,(format nil "AT-LOCATION")
+                                 :sexp ,sexp
+                                 :lambda-list (,loc-var)
+                                 :parameters (list ,loc-var))
+             (with-equate-fluent (,loc-var ,designator-updated)
+               (loop until ,terminated do
+                 (achieve `(loc Robot ,,loc-var))
+                 (pursue
+                   ;; We are ignoring the designator-updated and
+                   ;; location-changed fluents inside the body of the
+                   ;; lambda function since it is only used to trigger
+                   ;; the lambda function in case the designator or
+                   ;; the robot's location changes. The data for
+                   ;; actually checking if the robot is still at the
+                   ;; correct location is computed inside the lambda
+                   ;; function.
+                   ;;
+                   ;; Note(moesenle): The fl-funcall function might be
+                   ;; executed even when none of the input fluents
+                   ;; changed its values. The reason is that WAIT-FOR
+                   ;; uses a condition variable to be notified on
+                   ;; fluent changes and then call VALUE which causes
+                   ;; re-calculation of the fluent's value.
+                   (seq
+                     (wait-for (fl-funcall (lambda (location-changed designator-updated)
+                                             (declare (ignore designator-updated))
+                                             (not (location-designator-reached
+                                                   (current-robot-location) ,loc-var)))
+                                           (pulsed ,robot-location-changed-fluent)
+                                           (pulsed ,designator-updated))))
+                   (prog1 (progn ,@body)
+                     (setf ,terminated t)))))))))))
