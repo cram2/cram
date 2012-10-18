@@ -148,15 +148,15 @@
         (t (cpl-impl:fail 'manipulation-failed
                     :format-control "No arms for lifting infered."))))
 
-(def-action-handler grasp-slave (obj reachable-handles arms obstacles)
+(def-action-handler grasp-handles (obj handles arms obstacles)
   (assert (> (length arms) 0) ()
-          "No arms specified in `grasp-slave'.")
-  (assert (> (length reachable-handles) 0) ()
-          "No reachable handled specified in `grasp-slave'.")
+          "No arms specified in `grasp-handles'.")
+  (assert (> (length handles) 0) ()
+          "No handles specified in `grasp-handles'.")
   (let ((arm (first arms))
-        (reachable-handle (first reachable-handles)))
-    (format t "~%~%[GRASP-SLAVE]: calling grasp-object-with-handles... arm: ~a~%~%" arm)
-    (grab-handled-object-constraint-aware obj reachable-handle arm obstacles
+        (handle (first handles)))
+    (format t "~%~%[GRASP-HANDLES]: calling grasp-object-with-handles... arm: ~a~%~%" arm)
+    (grab-handled-object-constraint-aware obj handle arm obstacles
                                           :obj-as-obstacle t)))
 
 (def-action-handler grasp (object-type obj side obstacles)
