@@ -52,6 +52,10 @@
            #:get-equal-designators
            #:update-designator-properties
            #:designator-id-mixin #:object-id
+           #:equate-notification-mixin
+           #:register-equate-callback
+           #:unregister-equate-callback
+           #:with-equate-callback
            #:assert-desig-binding
            #:retract-desig-binding
            #:object-designator

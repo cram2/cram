@@ -137,7 +137,7 @@ either :ACCEPT, :REJECT, :MAYBE-REJECT or :UNKNOWN."
 (defun list-location-validation-functions ()
   (location-resolution-function-list *location-validation-functions*))
 
-(defclass location-designator (designator designator-id-mixin)
+(defclass location-designator (designator designator-id-mixin equate-notification-mixin)
   ((current-solution :reader current-solution :initform nil)))
 
 (register-designator-class location location-designator)

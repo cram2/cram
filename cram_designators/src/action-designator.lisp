@@ -29,7 +29,7 @@
 
 (in-package :desig)
 
-(defclass action-designator (designator designator-id-mixin)
+(defclass action-designator (designator designator-id-mixin equate-notification-mixin)
   ((solutions)))
 
 (register-designator-class action action-designator)

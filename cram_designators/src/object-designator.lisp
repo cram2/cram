@@ -29,7 +29,7 @@
 
 (in-package :desig)
 
-(defclass object-designator-data ()
+(defclass object-designator-data (equate-notification-mixin)
   ((pose :reader object-pose :initarg :pose)
    (object-identifier :reader object-identifier :initarg :object-identifier
                       :initform (gensym "OBJECT-")))
