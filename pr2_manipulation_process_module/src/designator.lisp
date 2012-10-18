@@ -156,9 +156,7 @@
     (handled-obj-desig? ?obj)
     (handles ?obj ?obj-handles)
     (obstacles ?desig ?obstacles)
-    (format "blub~%")
-    (best-grasp ?obj ?obj-handles ?obstacles ?reachable-handles ?arms)
-    (format "r-h: ~a~%arms:~a~%" ?reachable-handles ?arms))
+    (best-grasp ?obj ?obj-handles ?obstacles ?reachable-handles ?arms))
 
   (<- (action-desig ?desig (grasp ?object-type ?obj :right ?obstacles))
     (trajectory-desig? ?desig)
