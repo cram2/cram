@@ -125,7 +125,6 @@ variables for all environments. `name' is the name of the special
 variable and `initializer' is a form that is evaluated at
 initialization time of projection. `name' is defined as a task
 variable according to CPL:DEFINE-TASK-VARIABLE."
-  
   `(eval-when (:compile-toplevel :load-toplevel :execute)
      (cpl:define-task-variable ,name)
      (setf *special-projection-variables*
