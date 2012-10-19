@@ -190,8 +190,8 @@ reach them, as well as the respective distances for each."
     distances))
 
 (defun arm-handle-distances (obj handle arms &key (handle-offset-pose
-                                               (tf:make-identity-pose))
-                                           constraint-aware)
+                                                   (tf:make-identity-pose))
+                                               constraint-aware)
   "Calculates the distances for each arm given in the `arms' list with
   respect to the handle `handle'. Only arms that can actually reach
   the handle are included. The resulting list consists of entries of
@@ -201,6 +201,9 @@ reach them, as well as the respective distances for each."
   could reach the handle, `NIL' is returned."
   (let ((distances nil))
     (loop for arm in arms
+          for target-link = (ecase arm
+                              (:left "l_wrist_roll_link")
+                              (:right "r_wrist_roll_link"))
           for dist-with-offset = (reaching-length
                                   (object-handle-absolute
                                    obj handle
@@ -209,14 +212,16 @@ reach them, as well as the respective distances for each."
                                   arm
                                   :constraint-aware
                                   constraint-aware
-                                  :calc-euclidean-distance t)
+                                  :calc-euclidean-distance t
+                                  :euclidean-target-link target-link)
           for dist-without-offset = (reaching-length
                                      (object-handle-absolute
                                       obj handle)
                                      arm
                                      :constraint-aware
                                      constraint-aware
-                                     :calc-euclidean-distance t)
+                                     :calc-euclidean-distance t
+                                     :euclidean-target-link target-link)
           when (and dist-with-offset dist-without-offset)
             do (push (cons
                       arm
