@@ -822,18 +822,18 @@ acceleration."
           do (let* ((pos (position joint names :test 'equal))
                     (val (cond (pos (elt positions pos))
                                (t 0.0))))
-                 (setf jts-names (concatenate 'vector
-                                              jts-names
-                                              (vector joint)))
-                 (setf jts-positions (concatenate 'vector
-                                                  jts-positions
-                                                  (vector val)))
-                 (setf jts-velocities (concatenate 'vector
-                                                   jts-velocities
-                                                   (vector 0)))
-                 (setf jts-accels (concatenate 'vector
-                                               jts-accels
-                                               (vector 0)))))
+               (setf jts-names (concatenate 'vector
+                                            jts-names
+                                            (vector joint)))
+               (setf jts-positions (concatenate 'vector
+                                                jts-positions
+                                                (vector val)))
+               (setf jts-velocities (concatenate 'vector
+                                                 jts-velocities
+                                                 (vector 0)))
+               (setf jts-accels (concatenate 'vector
+                                             jts-accels
+                                             (vector 0)))))
     (values jts-names jts-positions jts-velocities jts-accels)))
 
 (defun get-positions-from-trajectory (trajectory &key (index 0))
