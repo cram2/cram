@@ -39,6 +39,7 @@
                cram-roslisp-common
                cram-plan-knowledge
                cram-plan-failures
+               cram-projection
                designators-ros
                alexandria)
   :components

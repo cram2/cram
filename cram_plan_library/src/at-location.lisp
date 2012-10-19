@@ -29,6 +29,14 @@
 
 (in-package :plan-lib)
 
+(defvar *at-location-lock* (sb-thread:make-mutex :name "AT-LOCATION-LOCK")
+  "Mutex that is used to synchronize on parallel AT-LOCATION forms. To
+  prevent oscillations, we need to wait until one AT-LOCATION form
+  terminates before executing the body of the second one.")
+
+(cram-projection:define-special-projection-variable *at-location-lock*
+    (sb-thread:make-mutex :name "AT-LOCATION-PROJECTION-LOCK"))
+
 (defun location-designator-reached (current-location location-designator)
   "Returns a boolean fluent that indicates if `current-location' is a
 valid solution for `location-designator'"
@@ -47,10 +55,12 @@ valid solution for `location-designator'"
          (with-equate-callback (,designator #',callback)
            ,@body)))))
 
-(defmacro at-location (&whole sexp (loc-var) &body body)
-  (alexandria:with-gensyms (terminated robot-location-changed-fluent designator-updated)
+(defmacro at-location (&whole sexp (location) &body body)
+  (alexandria:with-gensyms
+      (loc-var terminated robot-location-changed-fluent designator-updated navigation-done)
     `(let ((,terminated nil)
-           (,robot-location-changed-fluent (make-fluent :allow-tracing nil)))
+           (,robot-location-changed-fluent (make-fluent :allow-tracing nil))
+           (,loc-var ,location))
        (flet ((set-current-location ()
                 (pulse ,robot-location-changed-fluent)))
          (tf:with-transforms-changed-callback (*tf* #'set-current-location)
@@ -61,30 +71,48 @@ valid solution for `location-designator'"
                                  :lambda-list (,loc-var)
                                  :parameters (list ,loc-var))
              (with-equate-fluent (,loc-var ,designator-updated)
-               (loop until ,terminated do
-                 (achieve `(loc Robot ,,loc-var))
+               (loop
+                 for ,navigation-done = (make-fluent :value nil)
+                 until ,terminated do
                  (pursue
-                   ;; We are ignoring the designator-updated and
-                   ;; location-changed fluents inside the body of the
-                   ;; lambda function since it is only used to trigger
-                   ;; the lambda function in case the designator or
-                   ;; the robot's location changes. The data for
-                   ;; actually checking if the robot is still at the
-                   ;; correct location is computed inside the lambda
-                   ;; function.
-                   ;;
-                   ;; Note(moesenle): The fl-funcall function might be
-                   ;; executed even when none of the input fluents
-                   ;; changed its values. The reason is that WAIT-FOR
-                   ;; uses a condition variable to be notified on
-                   ;; fluent changes and then call VALUE which causes
-                   ;; re-calculation of the fluent's value.
+                   (cond ((perceive-state `(loc Robot ,,loc-var))
+                          (setf (value ,navigation-done) t)
+                          (sb-thread:with-mutex (*at-location-lock*)
+                            (wait-for (make-fluent :value nil))))
+                         (t
+                          (sb-thread:with-mutex (*at-location-lock*)
+                            (achieve `(loc Robot ,,loc-var))
+                            (setf (value ,navigation-done) t)
+                            ;; Wait for ever, i.e. terminate (and
+                            ;; release the mutex) only when the other
+                            ;; branch of pursue terminates. This is
+                            ;; necessary because we want to keep the
+                            ;; log until AT-LOCATION terminates.
+                            (wait-for (make-fluent :value nil)))))
                    (seq
-                     (wait-for (fl-funcall (lambda (location-changed designator-updated)
-                                             (declare (ignore designator-updated))
-                                             (not (location-designator-reached
-                                                   (current-robot-location) ,loc-var)))
-                                           (pulsed ,robot-location-changed-fluent)
-                                           (pulsed ,designator-updated))))
-                   (prog1 (progn ,@body)
-                     (setf ,terminated t)))))))))))
+                     (wait-for ,navigation-done)
+                     (pursue
+                       ;; We are ignoring the designator-updated and
+                       ;; location-changed fluents inside the body of the
+                       ;; lambda function since it is only used to trigger
+                       ;; the lambda function in case the designator or
+                       ;; the robot's location changes. The data for
+                       ;; actually checking if the robot is still at the
+                       ;; correct location is computed inside the lambda
+                       ;; function.
+                       ;;
+                       ;; Note(moesenle): The fl-funcall function might be
+                       ;; executed even when none of the input fluents
+                       ;; changed its values. The reason is that WAIT-FOR
+                       ;; uses a condition variable to be notified on
+                       ;; fluent changes and then call VALUE which causes
+                       ;; re-calculation of the fluent's value.
+                       (seq
+                         (wait-for (fl-funcall (lambda (location-changed designator-updated)
+                                                 (declare (ignore location-changed designator-updated))
+                                                 (not (location-designator-reached
+                                                       (current-robot-location) ,loc-var)))
+                                               (pulsed ,robot-location-changed-fluent)
+                                               (pulsed ,designator-updated))))
+                       (prog1 (progn ,@body)
+                         (setf ,terminated t)))))))))))))
