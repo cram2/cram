@@ -73,7 +73,11 @@
 
   (<- (graspable-handles ?obj-desig ?arms ?handle-evaluations)
     (handles ?obj-desig ?handles)
-    (lisp-fun handle-distances ?obj-desig ?arms ?handle-evaluations))
+    (symbol-value *handle-pregrasp-offset-pose* ?pregrasp-offset-pose)
+    (lisp-fun handle-distances ?obj-desig ?arms
+              :handle-offset-pose ?pregrasp-offset-pose
+              :constraint-aware t
+              ?handle-evaluations))
 
   (<- (nearest-handle ?handle-evaluations ?nearest-side ?nearest-handle)
     (lisp-fun nearest-of-handles ?handle-evaluations
