@@ -171,52 +171,6 @@ applied."
        absolute-object-pose-stamped)
       relative-handle-pose))))
 
-(defun nearest-handle (obj &key side (handle-offset-pose
-                                      (tf:make-identity-pose))
-                             constraint-aware)
-  "Get the nearest handle location designator on object `obj'. If the
-parameter `side' is set, the nearest handle for this side is
-determined. If it is left out (e.g. has a value of NIL), the nearest
-handle in respect of both sides (:left, :right) is calculated. A list
-of the form `(side handle)' is returned. The optional parameter
-`handle-offset-pose' can be used to specify an offset to the
-respective handles in their respective coordinate system."
-  (cond (side
-         (let ((nearest-handle-data 
-                 (nearest-handle-for-side
-                  obj
-                  side
-                  :handle-offset-pose handle-offset-pose
-                  :constraint-aware constraint-aware)))
-           (list side (second nearest-handle-data))))
-        (t
-         (let* ((nearest-left (nearest-handle-for-side
-                               obj
-                               :left
-                               :handle-offset-pose handle-offset-pose
-                               :constraint-aware constraint-aware))
-                (nearest-right (nearest-handle-for-side
-                                obj
-                                :right
-                                :handle-offset-pose handle-offset-pose
-                                :constraint-aware constraint-aware))
-                (distance-left (first nearest-left))
-                (distance-right (first nearest-right))
-                (handle-left (second nearest-left))
-                (handle-right (second nearest-right)))
-           (cond ((and handle-left handle-right
-                       distance-left distance-right)
-                  (if (< distance-left distance-right)
-                      (list :left handle-left)
-                      (list :right handle-right)))
-                 (handle-left (list :left handle-left))
-                 (handle-right (list :right handle-right))
-                 (t
-                  (cpl:fail 'manipulation-pose-unreachable)
-                  (roslisp::ros-warn (pr2-manip-pm handled-objects)
-                                     "No nearest handle found.")
-                  (list nil nil)))))))
-
 (defun handle-distances (obj arms &key (handle-offset-pose
                                         (tf:make-identity-pose))
                                     constraint-aware)
@@ -270,28 +224,6 @@ reach them, as well as the respective distances for each."
                             (cons "without-offset" dist-without-offset)))
                      distances))
     distances))
-
-(defun nearest-handle-for-side (obj side &key (handle-offset-pose
-                                               (tf:make-identity-pose))
-                                           constraint-aware)
-  "Calculate the closest handle (in terms of joint-space) for side
-`side'. Returns a list in the form of (distance handle) for the found
-nearest handle and `(NIL NIL)' if no reachable handles were found. The
-optional parameter `handle-offset-pose' can be used to specify an
-offset to the respective handles in their respective coordinate
-system."
-  (let ((nearest-side nil)
-        (nearest-handle nil)
-        (handle-distances (handle-distances
-                           obj (list side)
-                           :handle-offset-pose handle-offset-pose
-                           :constraint-aware constraint-aware)))
-    (loop for handle-data in handle-distances
-          for nearer-side = (handle-nearer-p handle-data nearest-handle)
-          when nearer-side
-            do (setf nearest-side nearer-side)
-               (setf nearest-handle handle-data))
-    (list nearest-side (car nearest-handle))))
 
 (defun nearest-of-handles (handle-distances)
   (let ((nearest-side nil)
