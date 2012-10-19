@@ -62,8 +62,6 @@
                          (format t "trying at new location: ~a~%" (reference obj-loc-desig))
                          (retry))))))
               (achieve `(looking-at ,obj-loc-desig))
-              ;; TODO(moesenle): use an action designator for
-              ;; perceiving objects.
               (perform perceive-action))))))))
 
 (def-goal (perceive-object a ?obj-desig)
