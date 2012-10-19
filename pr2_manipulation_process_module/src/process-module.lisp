@@ -155,7 +155,8 @@
           "No handles specified in `grasp-handles'.")
   (let ((arm (first arms))
         (handle (first handles)))
-    (format t "~%~%[GRASP-HANDLES]: calling grasp-object-with-handles... arm: ~a~%~%" arm)
+    (roslisp:ros-info (pr2-manip-pm grasp-handles)
+                      "Calling grasp-handled-object-constraint-aware with arm: ~a." arm)
     (grab-handled-object-constraint-aware obj handle arm obstacles
                                           :obj-as-obstacle t)))
 
@@ -505,24 +506,3 @@ that has to be grasped with two grippers."
        effort (make-array (length names)
                           :element-type 'float
                           :initial-element 0.0)))))
-
-(defun calc-best-grasps-and-arms (obj handles obstacles)
-  ;; TODO(georg): major refactoring ahead in the close future:
-  ;; - obstacles should be used for collision-aware IK
-  ;; - Jan's distance functions should be changed to
-  ;;   accept handles parameter
-  ;; - Jan's distance functions should be changed to
-  ;;   to use the seed-state IK
-  ;; - allow for input of available arms (not :left, :right)
-  (declare (ignore handles obstacles))
-  ;; using Jan's distance functionality to choose correct
-  ;; side and handle
-  (let* ((nearest-handle-data
-           (nearest-handle
-            obj
-            :handle-offset-pose *handle-pregrasp-offset-pose*
-            :constraint-aware t))
-         (side (first nearest-handle-data))
-         (handle (second nearest-handle-data)))
-    (format t "~%~%[CALC-BEST-GRASPS-AND-ARMS]: best arm: ~a~%~%" side)
-    (list (list handle) (list side))))
