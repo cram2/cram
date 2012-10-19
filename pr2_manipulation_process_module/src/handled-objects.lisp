@@ -120,16 +120,17 @@ gripper pose defaults to an identity pose."
                       side
                       :elbow-up nil
                       :elbow-out nil))
-         (move-ik (if constraint-aware
-                      (get-constraint-aware-ik side
-                                               absolute-pose
-                                               :seed-state seed-state)
-                      (get-ik side absolute-pose :seed-state seed-state))))
-    (unless move-ik (cpl:fail
-                     'cram-plan-failures:manipulation-pose-unreachable))
+         (move-ik (cond (constraint-aware
+                         (get-constraint-aware-ik side
+                                                  absolute-pose
+                                                  :seed-state seed-state))
+                        (t
+                         (get-ik side absolute-pose :seed-state seed-state)))))
+    (unless move-ik
+      (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))
     (let ((move-trajectory (ik->trajectory (first move-ik) :duration 5.0)))
-      (unless move-trajectory (cpl:fail
-                               'cram-plan-failures:manipulation-failed))
+      (unless move-trajectory
+        (cpl:fail 'cram-plan-failures:manipulation-failed))
       (nth-value 1 (execute-arm-trajectory side move-trajectory)))))
 
 (defun grasp-handled-object-with-relative-location (obj side handle
