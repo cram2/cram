@@ -139,3 +139,11 @@
               (cpl:sleep 0.2))))))
     (assert-eql 2 a-run)
     (assert-eql 1 b-run)))
+
+(define-test return-value
+  (let ((designator (desig:make-designator 'test (lambda () :ok)))
+        (result nil))
+    (cpl:top-level
+      (with-process-modules-running (test-process-module)
+        (setf result (pm-execute 'test-process-module designator))))
+    (assert-eq :ok result)))
