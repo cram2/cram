@@ -28,8 +28,8 @@
 
 (in-package :cram-process-module-tests)
 
-(defclass asynchronous-test-module (asynchronous-process-module) ())
-(register-process-module 'asynchronous-test-module)
+(def-asynchronous-process-module asynchronous-test-module
+  ())
 
 (defmethod on-input ((module asynchronous-test-module) input-designator)
   (funcall (desig:reference input-designator) module input-designator))

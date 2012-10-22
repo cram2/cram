@@ -42,6 +42,16 @@
    (input-lock :reader input-lock :initform (sb-thread:make-mutex))
    (notification-fluent :reader notification-fluent)))
 
+(defmacro def-asynchronous-process-module (name direct-slots &rest options)
+  "Defines a new asynchronous process module. The macro wraps around
+  DEFCLASS and should be used to create new asynchronous process
+  modules. `name' is the name of the process module to be defined. The
+  `direct-slots' and `options' parameters are directly passed to
+  DEFCLASS."
+  `(progn
+     (defclass ,name (asynchronous-process-module) ,direct-slots ,@options)
+     (register-process-module ',name)))
+
 (defmethod initialize-instance :after ((process-module asynchronous-process-module) &key)
   (with-slots (name notification-fluent) process-module
     (setf notification-fluent
