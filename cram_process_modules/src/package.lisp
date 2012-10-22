@@ -48,6 +48,6 @@
            *process-module-debugger-hook* finished-fluent running-fluent
            with-process-module-registered-running
            def-asynchronous-process-module asynchronous-process-module
-           on-input on-cancel synchronization-fluent
+           on-input on-cancel on-run synchronization-fluent
            finish-process-module fail-process-module monitor-process-module)
   (:shadowing-import-from #:cram-designators name))
