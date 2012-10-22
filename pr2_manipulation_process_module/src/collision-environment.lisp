@@ -100,9 +100,50 @@
   "Registers the object referenced by `designator' in the collision
 environment."
   (declare (type object-designator designator))
-  (declare (ignore designator))
-  (warn 'simple-warning
-        :format-control "REGISTER-COLLISION-OBJECT is not implemented at the moment."))
+  (when (desig-prop-values designator 'collision-parts)
+    (let* ((obj-pose-stamped (designator-pose designator))
+           (obj-trans (tf:pose->transform obj-pose-stamped))
+           (collision-parts (desig-prop-values designator 'collision-part))
+           (collision-shape-msgs
+             (map 'vector 'identity
+                  (mapcar (lambda (collision-part)
+                            (roslisp:make-msg
+                             "arm_navigation_msgs/Shape"
+                             type (ecase (desig-prop-value collision-part 'shape)
+                                    (:cylinder (roslisp-msg-protocol:symbol-code
+                                                'arm_navigation_msgs-msg:shape
+                                                :cylinder)))
+                             dimensions (ecase (desig-prop-value collision-part 'shape)
+                                          (:cylinder
+                                           (vector
+                                            (desig-prop-value collision-part 'radius)
+                                            (desig-prop-value collision-part 'length))))))
+                          collision-parts)))
+           (collision-pose-msgs
+             (map 'vector 'identity
+                  (mapcar (lambda (collision-part)
+                            (tf:pose->msg
+                             ;; Pose of collision parts w.r.t. pose of object, therefore
+                             ;; we transform the collision part pose
+                             (cl-transforms:transform-pose
+                              obj-trans
+                              (reference
+                               (desig-prop-value collision-part 'at)))))
+                          collision-parts)))
+           (object-name (desig-prop-value designator 'name))
+           (collision-msg (roslisp:make-msg
+                           "arm_navigation_msgs/CollisionObject"
+                           (seq header) 0
+                           (stamp header) (tf:stamp obj-pose-stamped)
+                           (frame_id header) (tf:frame-id obj-pose-stamped)
+                           id object-name
+                           padding -1
+                           (operation operation) (roslisp-msg-protocol:symbol-code
+                                                  'arm_navigation_msgs-msg:collisionobjectoperation
+                                                  :add)
+                           shapes collision-shape-msgs
+                           poses collision-pose-msgs)))
+      (roslisp:publish *collision-object-pub* collision-msg))))
 
 (defun remove-collision-object (desig)
   (let ((collision-object (find-desig-collision-object desig)))
