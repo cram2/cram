@@ -71,6 +71,16 @@
   (:method ((process-module asynchronous-process-module) input-designator)
     nil))
 
+(defgeneric on-run (process-module)
+  (:documentation "Method that is executed when the process module is
+  started. When it blocks, this method will be unwound when the
+  process module is shut down. It can be used to implement the process
+  module's worker thread. Note that in rare cases, it can happen that
+  ON-INPUT is called before ON-RUN when input is received right after
+  the process module has been started.")
+  (:method ((process-module asynchronous-process-module))
+    nil))
+
 (defgeneric synchronization-fluent (process-module designator)
   (:documentation "Returns a fluent indicating if PM-EXECUTE needs to
   block or can immediately return when called with `designator'. In
@@ -103,7 +113,7 @@
 
 (defmethod pm-run ((process-module asynchronous-process-module) &optional name)
   (assert (eq (value (slot-value process-module 'status)) :offline) ()
-          "Process module `~a' already running." process-module)  
+          "Process module `~a' already running." process-module)
   (with-slots (input-queue processed-designators notification-fluent
                input status cancel queue-lock)
       process-module
@@ -114,6 +124,7 @@
               (value cancel) nil)
         (unwind-protect
              (par
+               (on-run process-module)
                (whenever (input)
                  (setf (value status) :running)
                  (setf (value cancel) nil)
