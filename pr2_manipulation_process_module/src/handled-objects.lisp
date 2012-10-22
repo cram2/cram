@@ -49,8 +49,6 @@
     (register-collision-object obstacle))
   (when obj-as-obstacle
     (register-collision-object obj))
-  ;; NOTE(winkler): Check for the constraint-aware IK service. At the
-  ;; moment, register-collision-object is not really implemented.
   (grab-handled-object obj handle arm :constraint-aware t))
 
 (defun grab-handled-object (obj handle arm &key constraint-aware)
