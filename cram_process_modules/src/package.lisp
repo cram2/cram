@@ -47,6 +47,7 @@
            abstract-process-module wait-for-process-module-running
            *process-module-debugger-hook* finished-fluent running-fluent
            with-process-module-registered-running
-           asynchronous-process-module on-input on-cancel synchronization-fluent
+           def-asynchronous-process-module asynchronous-process-module
+           on-input on-cancel synchronization-fluent
            finish-process-module fail-process-module monitor-process-module)
   (:shadowing-import-from #:cram-designators name))
