@@ -429,7 +429,7 @@ finding a solution."
                 (cont result (lazy-cdr seeds))
                 (next (lazy-cdr seeds)))))))))
 
-(defun get-fk (names positions
+(defun get-fk (names positions arm
                &key target-links (frame-id "torso_lift_link"))
   "Return the FK solution for the links `target-links' for a given
 joint space configuration described by `names' and `positions'. All
@@ -452,7 +452,12 @@ used."
         (resulting-fk-state names positions)
       (roslisp:with-fields (pose_stamped fk_link_names error_code)
         (roslisp:call-service
-         "/pr2_right_arm_kinematics/get_fk"
+         (concatenate
+          'string
+          (ecase arm
+            (:right *ik-right-ns*)
+            (:left *ik-left-ns*))
+          "/get_fk")
          'kinematics_msgs-srv:getpositionfk
          :header header
          :fk_link_names target-links-used
@@ -717,7 +722,7 @@ or designators."
          allowed-collision-objects))))
 
 (defun euclidean-distance-for-link (names-from positions-from names-to
-                                    positions-to target-link)
+                                    positions-to arm target-link)
   "Calculates and returns the euclidean distance of exactly one link
 `targe-link' between two joint space configurations. The
 configurations are given as vectors, each consisting of a `names' and
@@ -729,20 +734,20 @@ parameter and returns the distance for each of these."
   (cdr (assoc
         target-link
         (euclidean-distance names-from positions-from
-                            names-to positions-to
+                            names-to positions-to arm
                             :target-links (vector target-link))
         :test 'equal)))
 
 (defun euclidean-distance (names-from positions-from names-to
-                           positions-to &key target-links)
+                           positions-to arm &key target-links)
   "Calculates and returns the euclidean distance of a vector of links
 `target-links' between two joint space configurations. The
 configurations are given as vectors, each consisting of a `names' and
 a `positions' vector. The `-from' and `-to' pairs are interchangable
 here. If no target links are given, all available links will be used."
-  (let ((pose-name-pairs-from (get-fk names-from positions-from
+  (let ((pose-name-pairs-from (get-fk names-from positions-from arm
                                       :target-links target-links))
-        (pose-name-pairs-to (get-fk names-to positions-to
+        (pose-name-pairs-to (get-fk names-to positions-to arm
                                     :target-links target-links))
         (distance-name-pairs nil))
     (loop for pose-name-pair-from in pose-name-pairs-from
@@ -757,29 +762,49 @@ here. If no target links are given, all available links will be used."
                        distance-name-pairs))))
     distance-name-pairs))
 
-(defun available-fk-links ()
-  "Returns the usable forward kinematics links as returned by the
-service `get_fk_solver_info'."
+(defun available-fk-links-for-arm (arm)
   (roslisp:with-fields (kinematic_solver_info)
       (roslisp:call-service
-       "/pr2_right_arm_kinematics/get_fk_solver_info"
+       (concatenate
+        'string
+        (ecase arm
+          (:right *ik-right-ns*)
+          (:left *ik-left-ns*))
+        "/get_fk_solver_info")
        'kinematics_msgs-srv:getkinematicsolverinfo)
     (roslisp:with-fields (joint_names limits link_names)
         kinematic_solver_info
       (declare (ignore joint_names limits))
       link_names)))
 
-(defun available-fk-joints ()
-  "Returns the usable forward kinematics joints as returned by the
+(defun available-fk-links ()
+  "Returns the usable forward kinematics links as returned by the
 service `get_fk_solver_info'."
+  (concatenate 'vector
+               (available-fk-links-for-arm :left)
+               (available-fk-links-for-arm :right)))
+
+(defun available-fk-joints-for-arm (arm)
   (roslisp:with-fields (kinematic_solver_info)
       (roslisp:call-service
-       "/pr2_right_arm_kinematics/get_fk_solver_info"
+       (concatenate
+        'string
+        (ecase arm
+          (:right *ik-right-ns*)
+          (:left *ik-left-ns*))
+        "/get_fk_solver_info")
        'kinematics_msgs-srv:getkinematicsolverinfo)
     (roslisp:with-fields (joint_names limits link_names)
         kinematic_solver_info
       (declare (ignore link_names limits))
       joint_names)))
+
+(defun available-fk-joints ()
+  "Returns the usable forward kinematics joints as returned by the
+service `get_fk_solver_info'."
+  (concatenate 'vector
+               (available-fk-joints-for-arm :left)
+               (available-fk-joints-for-arm :right)))
 
 (defun resulting-fk-state (names positions)
   "Forms the resulting set of possible forward kinematics joints and
@@ -843,8 +868,7 @@ used during the calculation."
 
 (defun reaching-length (pose side &key constraint-aware
                                     calc-euclidean-distance
-                                    (euclidean-target-link
-                                     "r_wrist_roll_link"))
+                                    euclidean-target-link)
   "Calculates the squared sum of all joint angle differences between
 the current state of the robot and the joint state it would have after
 reaching pose `pose` through calculating a trajectory via inverse
@@ -864,14 +888,14 @@ is fundamentally different."
          ;; the map-frame. The constructor of the class does not
          ;; create a tf listener. Therefore, the goal has to be
          ;; specified in the ik root.
-         (pose-in-torso-lift-link (tf:transform-pose
+         (pose-in-target-link (tf:transform-pose
                                    *tf*
                                    :pose pose
-                                   :target-frame "torso_lift_link"))
+                                   :target-frame euclidean-target-link))
          (ik (if constraint-aware
-                 (get-ik side pose-in-torso-lift-link)
+                 (get-ik side pose-in-target-link)
                  (get-constraint-aware-ik side
-                                          pose-in-torso-lift-link))))
+                                          pose-in-target-link))))
     (when ik
       (let ((traj (ik->trajectory (first ik)))
             (state (get-robot-state)))
@@ -892,6 +916,7 @@ is fundamentally different."
                                      positions-state
                                      names-traj
                                      current-traj-positions
+                                     side
                                      euclidean-target-link))
                                    (t
                                     (joint-state-distance
@@ -911,6 +936,7 @@ is fundamentally different."
                                      last-traj-positions
                                      names-traj
                                      current-traj-positions
+                                     side
                                      euclidean-target-link))
                                    (t
                                     (joint-state-distance

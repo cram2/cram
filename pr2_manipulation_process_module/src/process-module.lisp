@@ -148,15 +148,16 @@
         (t (cpl-impl:fail 'manipulation-failed
                     :format-control "No arms for lifting infered."))))
 
-(def-action-handler grasp-slave (obj reachable-handles arms obstacles)
+(def-action-handler grasp-handles (obj handles arms obstacles)
   (assert (> (length arms) 0) ()
-          "No arms specified in `grasp-slave'.")
-  (assert (> (length reachable-handles) 0) ()
-          "No reachable handled specified in `grasp-slave'.")
+          "No arms specified in `grasp-handles'.")
+  (assert (> (length handles) 0) ()
+          "No handles specified in `grasp-handles'.")
   (let ((arm (first arms))
-        (reachable-handle (first reachable-handles)))
-    (format t "~%~%[GRASP-SLAVE]: calling grasp-object-with-handles... arm: ~a~%~%" arm)
-    (grab-handled-object-constraint-aware obj reachable-handle arm obstacles
+        (handle (first handles)))
+    (roslisp:ros-info (pr2-manip-pm grasp-handles)
+                      "Calling grasp-handled-object-constraint-aware with arm: ~a." arm)
+    (grab-handled-object-constraint-aware obj handle arm obstacles
                                           :obj-as-obstacle t)))
 
 (def-action-handler grasp (object-type obj side obstacles)
@@ -505,24 +506,3 @@ that has to be grasped with two grippers."
        effort (make-array (length names)
                           :element-type 'float
                           :initial-element 0.0)))))
-
-(defun calc-best-grasps-and-arms (obj handles obstacles)
-  ;; TODO(georg): major refactoring ahead in the close future:
-  ;; - obstacles should be used for collision-aware IK
-  ;; - Jan's distance functions should be changed to
-  ;;   accept handles parameter
-  ;; - Jan's distance functions should be changed to
-  ;;   to use the seed-state IK
-  ;; - allow for input of available arms (not :left, :right)
-  (declare (ignore handles obstacles))
-  ;; using Jan's distance functionality to choose correct
-  ;; side and handle
-  (let* ((nearest-handle-data
-           (nearest-handle
-            obj
-            :handle-offset-pose *handle-pregrasp-offset-pose*
-            :constraint-aware t))
-         (side (first nearest-handle-data))
-         (handle (second nearest-handle-data)))
-    (format t "~%~%[CALC-BEST-GRASPS-AND-ARMS]: best arm: ~a~%~%" side)
-    (list (list handle) (list side))))

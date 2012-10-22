@@ -73,7 +73,11 @@
 
   (<- (graspable-handles ?obj-desig ?arms ?handle-evaluations)
     (handles ?obj-desig ?handles)
-    (lisp-fun handle-distances ?obj-desig ?arms ?handle-evaluations))
+    (symbol-value *handle-pregrasp-offset-pose* ?pregrasp-offset-pose)
+    (lisp-fun handle-distances ?obj-desig ?arms
+              :handle-offset-pose ?pregrasp-offset-pose
+              :constraint-aware t
+              ?handle-evaluations))
 
   (<- (nearest-handle ?handle-evaluations ?nearest-side ?nearest-handle)
     (lisp-fun nearest-of-handles ?handle-evaluations
@@ -149,7 +153,7 @@
   ;; all grasping because the predicate 'best-grasp' can be
   ;; used as a hook for grasp planning or any other manipulation
   ;; reasoning process that chooses the correct arm/grasp setup
-  (<- (action-desig ?desig (grasp-slave ?obj ?reachable-handles ?arms ?obstacles))
+  (<- (action-desig ?desig (grasp-handles ?obj ?reachable-handles ?arms ?obstacles))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to grasp))
     (desig-prop ?desig (obj ?obj))
