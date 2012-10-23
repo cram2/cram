@@ -204,8 +204,7 @@ reach them, as well as the respective distances for each."
                                    :handle-offset-pose
                                    pregrasp-offset)
                                   arm
-                                  :constraint-aware
-                                  constraint-aware
+                                  :constraint-aware constraint-aware
                                   :calc-euclidean-distance t
                                   :euclidean-target-link target-link)
           for dist-without-offset = (reaching-length
