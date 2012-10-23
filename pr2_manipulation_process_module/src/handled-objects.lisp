@@ -187,12 +187,11 @@ reach them, as well as the respective distances for each."
                                                (grasp-offset (tf:make-identity-pose))
                                                constraint-aware)
   "Calculates the distances for each arm given in the `arms' list with
-  respect to the handle `handle'. Only arms that can actually reach
-  the handle are included. The resulting list consists of entries of
-  the form `((\"with-offset\"
-  . distance-with-offset) (\"without-offset\"
-  . distance-without-offset)' for each arm given in `arms'. If no arm
-  could reach the handle, `NIL' is returned."
+respect to the handle `handle'. Only arms that can actually reach the
+handle are included. The resulting list consists of entries of the
+form `((\"with-offset\" . distance-with-offset) (\"without-offset\"
+. distance-without-offset)' for each arm given in `arms'. If no arm
+could reach the handle, `NIL' is returned."
   (let ((distances nil))
     (loop for arm in arms
           for target-link = (ecase arm
