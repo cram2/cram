@@ -29,7 +29,7 @@
 
 (defparameter *handle-pregrasp-offset-pose*
   (tf:make-pose
-   (tf:make-3d-vector 0.25 0.0 0.0)
+   (tf:make-3d-vector 0.20 0.0 0.0)
    (tf:euler->quaternion :az pi :ax (/ pi 2)))
   "Specifies the gripper pose relative to the respective handle
   coordinate system (including it's origin and rotation) when going
@@ -49,8 +49,6 @@
     (register-collision-object obstacle))
   (when obj-as-obstacle
     (register-collision-object obj))
-  ;; NOTE(winkler): Check for the constraint-aware IK service. At the
-  ;; moment, register-collision-object is not really implemented.
   (grab-handled-object obj handle arm :constraint-aware t))
 
 (defun grab-handled-object (obj handle arm &key constraint-aware)
@@ -101,36 +99,31 @@ determined through the absolute object pose of object `obj', the
 relative object handle location `relative-handle-loc' and the relative
 gripper pose `relative-gripper-pose' w.r.t. the handle. The relative
 gripper pose defaults to an identity pose."
-  (let* ((absolute-pose-map (object-handle-absolute
-                             obj
-                             handle
-                             :handle-offset-pose relative-gripper-pose))
-         ;; NOTE(winkler): We're transforming into the tf-frame
-         ;; "torso_lift_link" here due to the fact that get-ik
-         ;; (service node constraint_awake_ik) does not transform from
-         ;; the map-frame. The constructor of the class does not
-         ;; create a tf listener. Therefore, the goal has to be
-         ;; specified in the ik root.
-         (absolute-pose (tf:transform-pose *tf*
-                                           :pose absolute-pose-map
-                                           :target-frame "torso_lift_link"))  
-         ;; This makes reach the carry-pose impossible
-         ;; atm. :seed-state (calc-seed-state-elbow-up side))))
-         (seed-state (calc-seed-state-elbow-up
-                      side
-                      :elbow-up nil
-                      :elbow-out nil))
-         (move-ik (if constraint-aware
-                      (get-constraint-aware-ik side
-                                               absolute-pose
-                                               :seed-state seed-state)
-                      (get-ik side absolute-pose :seed-state seed-state))))
-    (unless move-ik (cpl:fail
-                     'cram-plan-failures:manipulation-pose-unreachable))
+  (let*
+      ;; NOTE(winkler): We're transforming into the tf-frame
+      ;; "torso_lift_link" here due to the fact that get-ik
+      ;; (service node constraint_awake_ik) does not transform from
+      ;; the map-frame. The constructor of the class does not
+      ;; create a tf listener. Therefore, the goal has to be
+      ;; specified in the ik root.
+      ((absolute-pose-map (object-handle-absolute
+                           obj handle
+                           :handle-offset-pose relative-gripper-pose))
+       (absolute-pose (tf:transform-pose *tf*
+                                         :pose absolute-pose-map
+                                         :target-frame "torso_lift_link"))  
+       (seed-state (calc-seed-state-elbow-up side))
+       (move-ik (cond (constraint-aware
+                       (get-constraint-aware-ik side absolute-pose
+                                                :seed-state seed-state))
+                      (t
+                       (get-ik side absolute-pose :seed-state seed-state)))))
+    (unless move-ik
+      (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))
     (let ((move-trajectory (ik->trajectory (first move-ik) :duration 5.0)))
-      (unless move-trajectory (cpl:fail
-                               'cram-plan-failures:manipulation-failed))
-      (nth-value 1 (execute-arm-trajectory side move-trajectory)))))
+      (unless move-trajectory
+        (cpl:fail 'cram-plan-failures:manipulation-failed))
+      (nth-value 1 (execute-arm-trajectory side move-trajectory))))))
 
 (defun grasp-handled-object-with-relative-location (obj side handle
                                                     &key constraint-aware)
@@ -171,8 +164,9 @@ applied."
        absolute-object-pose-stamped)
       relative-handle-pose))))
 
-(defun handle-distances (obj arms &key (handle-offset-pose
-                                        (tf:make-identity-pose))
+(defun handle-distances (obj arms &key
+                                    (pregrasp-offset (tf:make-identity-pose))
+                                    (grasp-offset (tf:make-identity-pose))
                                     constraint-aware)
   "Generates a list of handles and their respective arms which can
 reach them, as well as the respective distances for each."
@@ -181,16 +175,16 @@ reach them, as well as the respective distances for each."
     (loop for handle in handles
           for arm-distances = (arm-handle-distances
                                obj handle arms
-                               :handle-offset-pose
-                               handle-offset-pose
-                               :constraint-aware
-                               constraint-aware)
+                               :pregrasp-offset pregrasp-offset
+                               :grasp-offset grasp-offset
+                               :constraint-aware constraint-aware)
           when (> (length arm-distances) 0)
             do (push (cons handle arm-distances) distances))
     distances))
 
-(defun arm-handle-distances (obj handle arms &key (handle-offset-pose
-                                                   (tf:make-identity-pose))
+(defun arm-handle-distances (obj handle arms &key
+                                               (pregrasp-offset (tf:make-identity-pose))
+                                               (grasp-offset (tf:make-identity-pose))
                                                constraint-aware)
   "Calculates the distances for each arm given in the `arms' list with
   respect to the handle `handle'. Only arms that can actually reach
@@ -208,18 +202,17 @@ reach them, as well as the respective distances for each."
                                   (object-handle-absolute
                                    obj handle
                                    :handle-offset-pose
-                                   handle-offset-pose)
+                                   pregrasp-offset)
                                   arm
-                                  :constraint-aware
-                                  constraint-aware
+                                  :constraint-aware constraint-aware
                                   :calc-euclidean-distance t
                                   :euclidean-target-link target-link)
           for dist-without-offset = (reaching-length
                                      (object-handle-absolute
-                                      obj handle)
+                                      obj handle
+                                      :handle-offset-pose
+                                      grasp-offset)
                                      arm
-                                     :constraint-aware
-                                     constraint-aware
                                      :calc-euclidean-distance t
                                      :euclidean-target-link target-link)
           when (and dist-with-offset dist-without-offset)
