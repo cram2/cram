@@ -96,7 +96,7 @@
               (apply #'cl-transforms:make-3d-vector
                      (map 'list #'identity dimensions)))))))))
 
-(defun register-collision-object (designator)
+(defun register-collision-object (designator &key (padding -1))
   "Registers the object referenced by `designator' in the collision
 environment."
   (declare (type object-designator designator))
@@ -137,7 +137,7 @@ environment."
                            (stamp header) (tf:stamp obj-pose-stamped)
                            (frame_id header) (tf:frame-id obj-pose-stamped)
                            id object-name
-                           padding -1
+                           padding padding
                            (operation operation) (roslisp-msg-protocol:symbol-code
                                                   'arm_navigation_msgs-msg:collisionobjectoperation
                                                   :add)
