@@ -98,9 +98,11 @@
 
 (defun register-collision-object (designator &key (padding -1))
   "Registers the object referenced by `designator' in the collision
-environment."
+environment. To actually add the object to the collision environment,
+at least one `collision-part' has to be specified in the object
+designator."
   (declare (type object-designator designator))
-  (when (desig-prop-values designator 'collision-parts)
+  (when (desig-prop-values designator 'collision-part)
     (let* ((obj-pose-stamped (designator-pose designator))
            (obj-trans (tf:pose->transform obj-pose-stamped))
            (collision-parts (desig-prop-values designator 'collision-part))
@@ -143,6 +145,8 @@ environment."
                                                   :add)
                            shapes collision-shape-msgs
                            poses collision-pose-msgs)))
+      (roslisp:ros-info
+       (pr2-manip-pm collision-environment) "Added collision object to environment server.")
       (roslisp:publish *collision-object-pub* collision-msg))))
 
 (defun remove-collision-object (desig)

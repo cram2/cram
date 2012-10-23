@@ -933,11 +933,25 @@ service can be used by setting the parameter `constraint-aware' to
 distance is used. Otherwise, the (unweighted) quadratic joint-space
 integral is calculated. Both methods may not be mixed as their scale
 is fundamentally different."
-  (let* ((obj-value 0)
+  ;; NOTE(winkler): We transform the pose into `torso_lift_link' here
+  ;; due to the fact that the (constraint aware) get_ik solver service
+  ;; doesn't work with links outside the kinematic chain of the
+  ;; robot. It first has to be transformed into the root link of the
+  ;; chain, which here is `torso_lift_link'. Also, we wait for the
+  ;; transform to make sure it is available.
+  (tf:wait-for-transform *tf*
+                         :timeout 5.0
+                         :time (roslisp:ros-time)
+                         :source-frame "/map"
+                         :target-frame euclidean-target-link)
+  (let* ((pose-in-tl (tf:transform-pose *tf*
+                                        :pose pose
+                                        :target-frame "torso_lift_link"))
+         (obj-value 0)
          (ik (cond (constraint-aware
-                    (get-constraint-aware-ik side pose))
+                    (get-constraint-aware-ik side pose-in-tl))
                    (t
-                    (get-ik side pose)))))
+                    (get-ik side pose-in-tl)))))
     (when ik
       (let ((traj (ik->trajectory (first ik)))
             (state (get-robot-state)))
