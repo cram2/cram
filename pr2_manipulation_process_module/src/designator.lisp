@@ -171,11 +171,13 @@
     (desig-prop ?obj (type ?object-type))
     (obstacles ?desig ?obstacles))
 
-  (<- (action-desig ?desig (put-down ?obj ?loc :right ?obstacles))
+  (<- (action-desig ?desig (put-down ?obj ?loc ?side ?obstacles))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to put-down))
     (desig-prop ?desig (obj ?obj))
     (desig-prop ?desig (at ?loc))
+    (current-designator ?obj ?current-obj)
+    (holding-grippers ?current-obj (?side))
     (obstacles ?desig ?obstacles)))
 
 (def-fact-group manipulation-process-module (matching-process-module available-process-module)
