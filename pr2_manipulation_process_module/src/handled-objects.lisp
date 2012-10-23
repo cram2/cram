@@ -111,7 +111,7 @@ gripper pose defaults to an identity pose."
                            :handle-offset-pose relative-gripper-pose))
        (absolute-pose (tf:transform-pose *tf*
                                          :pose absolute-pose-map
-                                         :target-frame "torso_lift_link"))  
+                                         :target-frame "torso_lift_link"))
        (seed-state (calc-seed-state-elbow-up side))
        (move-ik (cond (constraint-aware
                        (get-constraint-aware-ik side absolute-pose
@@ -123,7 +123,7 @@ gripper pose defaults to an identity pose."
     (let ((move-trajectory (ik->trajectory (first move-ik) :duration 5.0)))
       (unless move-trajectory
         (cpl:fail 'cram-plan-failures:manipulation-failed))
-      (nth-value 1 (execute-arm-trajectory side move-trajectory))))))
+      (nth-value 1 (execute-arm-trajectory side move-trajectory)))))
 
 (defun grasp-handled-object-with-relative-location (obj side handle
                                                     &key constraint-aware)
