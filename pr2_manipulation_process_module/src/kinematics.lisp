@@ -883,23 +883,10 @@ distance is used. Otherwise, the (unweighted) quadratic joint-space
 integral is calculated. Both methods may not be mixed as their scale
 is fundamentally different."
   (let* ((obj-value 0)
-         ;; NOTE(winkler): We're transforming into the tf-frame
-         ;; "torso_lift_link" here due to the fact that get-ik
-         ;; (service node constraint_aware_ik, but not
-         ;; get-constraint-aware-ik) does not transform from the
-         ;; map-frame. The constructor of the class does not create a
-         ;; tf listener. Therefore, the goal has to be specified in
-         ;; the ik root.
-         (pose-in-target-link (tf:copy-pose-stamped
-                               (tf:transform-pose
-                                *tf*
-                                :pose pose
-                                :target-frame euclidean-target-link)
-                               :stamp 0.0))
          (ik (cond (constraint-aware
-                    (get-constraint-aware-ik side pose-in-target-link))
+                    (get-constraint-aware-ik side pose))
                    (t
-                    (get-ik side pose-in-target-link)))))
+                    (get-ik side pose)))))
     (when ik
       (let ((traj (ik->trajectory (first ik)))
             (state (get-robot-state)))
