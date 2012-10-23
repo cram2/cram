@@ -47,5 +47,5 @@
   (:method ((world bt-reasoning-world) event-pattern
             &optional (timestamp (cut:current-timestamp)))
     (make-instance 'event
-      :event event-pattern :world-state (get-state *current-bullet-world*)
+      :event event-pattern :world-state (get-state world)
       :timestamp timestamp)))
