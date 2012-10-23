@@ -750,3 +750,25 @@ will be commanded."
         (execute-move-arm-pose side carry-pose
                                :allowed-collision-objects (list "\"all\"")))
     (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))))
+
+(defun shrug-arms ()
+  "Moves the arms in an upper side-ways position so that they don't
+interfere with one another when manipulation is one."
+  (let* ((shrug-pose-right (tf:make-pose-stamped
+                            "torso_lift_link"
+                            0.0
+                            (tf:make-3d-vector 0.3 -0.8 0.0)
+                            (tf:euler->quaternion :az (/ pi -8))))
+         (shrug-pose-left (tf:make-pose-stamped
+                            "torso_lift_link"
+                            0.0
+                            (tf:make-3d-vector 0.3 0.8 0.0)
+                            (tf:euler->quaternion :az (/ pi 8))))
+         (ik-right (first (get-ik :right shrug-pose-right
+                                  :seed-state (calc-seed-state-elbow-up :right))))
+         (ik-left (first (get-ik :left shrug-pose-left
+                                 :seed-state (calc-seed-state-elbow-up :left)))))
+    (when (and ik-right ik-left)
+      (cram-language::par
+        (execute-arm-trajectory :right (ik->trajectory ik-right))
+        (execute-arm-trajectory :left (ik->trajectory ik-left))))))

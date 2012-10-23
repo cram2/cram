@@ -479,12 +479,12 @@ used."
           name-pose-pairs)))))
 
 (defun get-constraint-aware-ik (side pose &key
-                                (tool (cl-transforms:make-pose
-                                       (cl-transforms:make-3d-vector 0 0 0)
-                                       (cl-transforms:make-quaternion 0 0 0 1)))
-                                allowed-collision-objects
-                                (max-tries 1)
-                                seed-state)
+                                            (tool (cl-transforms:make-pose
+                                                   (cl-transforms:make-3d-vector 0 0 0)
+                                                   (cl-transforms:make-quaternion 0 0 0 1)))
+                                            allowed-collision-objects
+                                            (max-tries 1)
+                                            seed-state)
   (declare (ignore allowed-collision-objects))
   "Similar to GET-IK but uses the constraint-aware IK
 service. `allowed-collision-objects' is a sequence of collision-object
@@ -498,33 +498,34 @@ names for which collisions are allowed."
     (lazy-list ((seeds (if max-tries
                            (lazy-take max-tries seeds)
                            seeds)))
-               (when seeds
-                 (let ((result (cpl-impl:without-scheduling
-                                   (roslisp:call-service
-                                    (concatenate
-                                     'string
-                                     (ecase side
-                                       (:right *ik-right-ns*)
-                                       (:left *ik-left-ns*))
-                                     "/get_constraint_aware_ik")
-                                    'kinematics_msgs-srv:getconstraintawarepositionik
-                                    :ik_request
-                                    (roslisp:make-msg
-                                     "kinematics_msgs/PositionIKRequest"
-                                     :ik_link_name (ecase side
-                                                     (:right "r_wrist_roll_link")
-                                                     (:left "l_wrist_roll_link"))
-                                     :pose_stamped (tf:pose-stamped->msg
-                                                    (tool-goal-pose->wrist-goal-pose pose :tool tool))
-                                     :ik_seed_state (roslisp:make-msg
-                                                     "arm_navigation_msgs/RobotState"
-                                                     joint_state (lazy-car seeds)))
-                                    :timeout 30.0))))
-                   (roslisp:with-fields ((error-code (val error_code)))
-                     result
-                     (if (eql error-code 1)
-                         (cont result (lazy-cdr seeds))
-                         (next (lazy-cdr seeds)))))))))
+      (when seeds
+        (let ((result (cpl-impl:without-scheduling
+                        (roslisp:call-service
+                         (concatenate
+                          'string
+                          (ecase side
+                            (:right *ik-right-ns*)
+                            (:left *ik-left-ns*))
+                          "/get_constraint_aware_ik")
+                         'kinematics_msgs-srv:getconstraintawarepositionik
+                         :ik_request
+                         (roslisp:make-msg
+                          "kinematics_msgs/PositionIKRequest"
+                          :ik_link_name (ecase side
+                                          (:right "r_wrist_roll_link")
+                                          (:left "l_wrist_roll_link"))
+                          :pose_stamped (tf:pose-stamped->msg
+                                         (tool-goal-pose->wrist-goal-pose
+                                          pose :tool tool))
+                          :ik_seed_state (roslisp:make-msg
+                                          "arm_navigation_msgs/RobotState"
+                                          joint_state (lazy-car seeds)))
+                         :timeout 30.0))))
+          (roslisp:with-fields ((error-code (val error_code)))
+              result
+            (if (eql error-code 1)
+                (cont result (lazy-cdr seeds))
+                (next (lazy-cdr seeds)))))))))
 
 (defun get-point-cluster-grasps (side obj)
   "Returns the (lazy) list of grasps calculated by the
@@ -882,20 +883,10 @@ distance is used. Otherwise, the (unweighted) quadratic joint-space
 integral is calculated. Both methods may not be mixed as their scale
 is fundamentally different."
   (let* ((obj-value 0)
-         ;; NOTE(winkler): We're transforming into the tf-frame
-         ;; "torso_lift_link" here due to the fact that get-ik
-         ;; (service node constraint_awake_ik) does not transform from
-         ;; the map-frame. The constructor of the class does not
-         ;; create a tf listener. Therefore, the goal has to be
-         ;; specified in the ik root.
-         (pose-in-target-link (tf:transform-pose
-                                   *tf*
-                                   :pose pose
-                                   :target-frame euclidean-target-link))
-         (ik (if constraint-aware
-                 (get-ik side pose-in-target-link)
-                 (get-constraint-aware-ik side
-                                          pose-in-target-link))))
+         (ik (cond (constraint-aware
+                    (get-constraint-aware-ik side pose))
+                   (t
+                    (get-ik side pose)))))
     (when ik
       (let ((traj (ik->trajectory (first ik)))
             (state (get-robot-state)))
