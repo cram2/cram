@@ -98,7 +98,9 @@
 
 (defun register-collision-object (designator &key (padding -1))
   "Registers the object referenced by `designator' in the collision
-environment."
+environment. To actually add the object to the collision environment,
+at least one `collision-part' has to be specified in the object
+designator."
   (declare (type object-designator designator))
   (when (desig-prop-values designator 'collision-parts)
     (let* ((obj-pose-stamped (designator-pose designator))
