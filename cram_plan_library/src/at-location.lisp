@@ -29,8 +29,8 @@
 
 (defvar *at-location-lock* (sb-thread:make-mutex :name "AT-LOCATION-LOCK")
   "Mutex that is used to synchronize on parallel AT-LOCATION forms. To
-  prevent oscillations, we need to wait until one AT-LOCATION form
-  terminates before executing the body of the second one.")
+prevent oscillations, we need to wait until one AT-LOCATION form
+terminates before executing the body of the second one.")
 
 (cram-projection:define-special-projection-variable *at-location-lock*
     (sb-thread:make-mutex :name "AT-LOCATION-PROJECTION-LOCK"))
@@ -43,8 +43,8 @@ valid solution for `location-designator'"
 
 (defmacro with-equate-fluent ((designator fluent-name) &body body)
   "Executes `body' with `fluent-name' bound to a lexical variable. The
-  fluent is pulsed whenever `designator' is equated to another
-  designator."
+fluent is pulsed whenever `designator' is equated to another
+designator."
   (alexandria:with-gensyms (callback)
     `(let ((,fluent-name (make-fluent :value nil :name ',fluent-name)))
        (flet ((,callback (other)
@@ -112,7 +112,8 @@ valid solution for `location-designator'"
                          ;; fluent changes and then call VALUE which causes
                          ;; re-calculation of the fluent's value.
                          (wait-for (fl-funcall (lambda (location-changed designator-updated)
-                                                 (declare (ignore location-changed designator-updated))
+                                                 (declare (ignore location-changed
+                                                                  designator-updated))
                                                  (not (location-designator-reached
                                                        (current-robot-location) ,loc-var)))
                                                (pulsed ,robot-location-changed-fluent)
