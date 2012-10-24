@@ -71,7 +71,7 @@
     (loc-desig? ?obj-loc)
     (desig-prop ?obj-loc (in gripper)))
 
-  (<- (graspable-handles ?obj-desig ?arms ?handle-evaluations)
+  (<- (reachable-handles ?obj-desig ?arms ?handle-evaluations)
     (handles ?obj-desig ?handles)
     (symbol-value *handle-pregrasp-offset-pose* ?pregrasp-offset)
     (symbol-value *handle-grasp-offset-pose* ?grasp-offset)
@@ -105,8 +105,8 @@
   ;; unnecessary lisp functions (e.g. for nearest-handle-evaluation
   ;; which was formerly used by grasp-object-with-handles).
   (<- (best-grasp ?obj ?obj-handles ?obstacles (?nearest-handle) (?nearest-arm))
-    (graspable-handles ?obj (:left :right) ?graspable-handles)
-    (nearest-handle ?graspable-handles ?nearest-arm ?nearest-handle))
+    (reachable-handles ?obj (:left :right) ?reachable-handles)
+    (nearest-handle ?reachable-handles ?nearest-arm ?nearest-handle))
 
   (<- (action-desig ?desig (container-opened ?handle :right))
     (trajectory-desig? ?desig)
