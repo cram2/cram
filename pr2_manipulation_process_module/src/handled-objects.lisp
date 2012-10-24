@@ -182,12 +182,13 @@ reach them, as well as the respective distances for each."
             do (push (cons handle arm-distances) distances))
     distances))
 
-(defun arm-handle-distances (obj handle arms &key
-                                               (pregrasp-offset
-                                                (tf:make-identity-pose))
-                                               (grasp-offset
-                                                (tf:make-identity-pose))
-                                               constraint-aware)
+(defun arm-handle-distances (obj handle arms
+                             &key
+                               (pregrasp-offset
+                                (tf:make-identity-pose))
+                               (grasp-offset
+                                (tf:make-identity-pose))
+                               constraint-aware)
   "Calculates the distances for each arm given in the `arms' list with
 respect to the handle `handle'. Only arms that can actually reach the
 handle are included. The resulting list consists of entries of the
