@@ -171,10 +171,12 @@
     (desig-prop ?obj (type ?object-type))
     (obstacles ?desig ?obstacles))
 
-  (<- (action-desig ?desig (put-down ?obj ?loc :right ?obstacles))
+  (<- (action-desig ?desig (put-down ?obj ?loc ?grippers ?obstacles))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to put-down))
     (desig-prop ?desig (obj ?obj))
+    (current-designator ?obj ?current-obj)
+    (holding-grippers ?current-obj ?grippers)
     (desig-prop ?desig (at ?loc))
     (obstacles ?desig ?obstacles)))
 
