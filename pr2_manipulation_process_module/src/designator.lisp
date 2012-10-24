@@ -43,23 +43,23 @@
     (findall ?h (desig-prop ?desig (handle ?h))
              ?handles))
 
-  (<- (gripper-arms-in-desig ?desig ?grippers)
+  (<- (gripper-arms-in-desig ?desig ?arms)
     (current-designator ?desig ?current-desig)
     (gripped-obj-desig? ?current-desig)
     (desig-prop ?current-desig (at ?obj-loc))
     (desig-prop ?obj-loc (gripper ?_))
     (findall ?g (desig-prop ?obj-loc (gripper ?g))
-             ?grippers))
+             ?arms))
 
-  (<- (gripper-arms-in-belief ?desig ?grippers)
+  (<- (gripper-arms-in-belief ?desig ?arms)
     (current-designator ?desig ?current-desig)
     (findall ?g (object-in-hand ?current-desig ?g)
-             ?grippers))
+             ?arms))
 
-  (<- (holding-grippers ?desig ?grippers)
+  (<- (holding-arms ?desig ?arms)
     (current-designator ?desig ?current-desig)
-    (-> (gripper-arms-in-desig ?current-desig ?grippers)
-        (gripper-arms-in-belief ?current-desig ?grippers)))
+    (-> (gripper-arms-in-desig ?current-desig ?arms)
+        (gripper-arms-in-belief ?current-desig ?arms)))
 
   (<- (handled-obj-desig? ?designator)
     (obj-desig? ?designator)
@@ -123,24 +123,22 @@
     (trajectory-desig? ?desig)
     (desig-prop ?desig (pose parked)))
 
-  (<- (action-desig ?desig (lift ?grippers ?distance))
-    ;; NOTE(Georg): we're blurring the distinction
-    ;; between arms and grippers here. feels fishy...
+  (<- (action-desig ?desig (lift ?arms ?distance))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to lift))
     (desig-prop ?desig (obj ?obj))
     (current-designator ?obj ?current-obj)
-    (holding-grippers ?current-obj ?grippers)
+    (holding-arms ?current-obj ?arms)
     (-> (desig-prop ?desig (distance ?distance))
         (true)
         (== ?distance 0.10)))
 
-  (<- (action-desig ?desig (park ?obj ?grippers ?obstacles))
+  (<- (action-desig ?desig (park ?obj ?arms ?obstacles))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to carry))
     (desig-prop ?desig (obj ?obj))
     (current-designator ?obj ?current-obj)
-    (holding-grippers ?current-obj ?grippers)
+    (holding-arms ?current-obj ?arms)
     (obstacles ?desig ?obstacles))
 
   ;; rule added by Georg:
@@ -167,12 +165,12 @@
     (desig-prop ?obj (type ?object-type))
     (obstacles ?desig ?obstacles))
 
-  (<- (action-desig ?desig (put-down ?obj ?loc ?grippers ?obstacles))
+  (<- (action-desig ?desig (put-down ?obj ?loc ?arms ?obstacles))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to put-down))
     (desig-prop ?desig (obj ?obj))
     (current-designator ?obj ?current-obj)
-    (holding-grippers ?current-obj ?grippers)
+    (holding-arms ?current-obj ?arms)
     (desig-prop ?desig (at ?loc))
     (obstacles ?desig ?obstacles)))
 
