@@ -173,7 +173,7 @@ for the currently type of grasped object."
   (cond ((eq (desig-prop-value object-designator 'type) 'pot)
          (put-down-grasped-object-with-both-arms object-designator location))
         (t (put-down-grasped-object-with-single-arm
-	    object-designator location (first arms) obstacles))))
+            object-designator location (first arms) obstacles))))
 
 (defun execute-goal (server goal)
   (multiple-value-bind (result status)
