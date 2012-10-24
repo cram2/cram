@@ -100,10 +100,6 @@
   ;; arms. This would take the arm availability into account and would
   ;; purge the need for explicit information about the arm
   ;; architecture here.
-
-  ;; TODO(winkler): Clean up the variable naming here and delete all
-  ;; unnecessary lisp functions (e.g. for nearest-handle-evaluation
-  ;; which was formerly used by grasp-object-with-handles).
   (<- (best-grasp ?obj ?obj-handles ?obstacles (?nearest-handle) (?nearest-arm))
     (reachable-handles ?obj (:left :right) ?reachable-handles)
     (nearest-handle ?reachable-handles ?nearest-arm ?nearest-handle))
