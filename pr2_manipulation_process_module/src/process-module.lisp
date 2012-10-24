@@ -167,12 +167,13 @@ the given object type."
          (grasp-object-with-both-arms obj))
         (t (standard-grasping obj side obstacles))))
 
-(def-action-handler put-down (object-designator location side obstacles)
+(def-action-handler put-down (object-designator location arms obstacles)
   "Delegates the type of the put down action which suppose to be executed
 for the currently type of grasped object."
   (cond ((eq (desig-prop-value object-designator 'type) 'pot)
          (put-down-grasped-object-with-both-arms object-designator location))
-        (t (put-down-grasped-object-with-single-arm object-designator location side obstacles))))
+        (t (put-down-grasped-object-with-single-arm
+            object-designator location (first arms) obstacles))))
 
 (defun execute-goal (server goal)
   (multiple-value-bind (result status)
