@@ -233,7 +233,7 @@ could reach the handle, `NIL' is returned."
           when nearer-side
             do (setf nearest-side nearer-side)
                (setf nearest-handle handle-data))
-    (list nearest-side (car nearest-handle))))
+    (cons nearest-side (car nearest-handle))))
 
 (defun nearest-side-on-handle (handle)
   "Returns a list of the format `(nearest-side lowest-distance)' or
@@ -278,7 +278,108 @@ as saved in the respective handle variable is returned. If it is not,
           (dist-in-question
            side-in-question))))
 
-(defun fail-on-no-nearest-handle (handle)
-  (unless handle
+(defun fail-on-no-nearest-handle (arm-handle)
+  (unless arm-handle
     (cpl:fail 'manipulation-pose-unreachable))
   t)
+
+(defun optimal-handle-assignment (avail-arms avail-handles min-handles
+                                  &key max-handles)
+  "Finds the assignment solution of arms to handles on a handles
+object based in the available arms list `avail-arms', the reachable
+handles list `avail-handles' (which is a handle-evaluation including
+the `cost' to reach the respective handle with each gripper in reach)
+and the minimum amount of handles to be used. The optional parameter
+`max-handles' can be set to limit the solutions to those which use at
+most that many handles/arms. The function returns a list of cons
+cells, containint the identifier of the respective arm as `car' and
+the handle to grasp with it as `cdr' element."
+  (when (and (>= (length avail-arms) min-handles)
+             (>= (length avail-handles) min-handles))
+    (let* ((cheapest-assignment nil)
+           (current-lowest-cost nil)
+           (assignment-tree (assign-handles-tree avail-arms avail-handles 0))
+           (assignment-lists (assign-handles-tree->list assignment-tree)))
+      (loop for assignment-list in assignment-lists
+            for assignment = (car assignment-list)
+            for assign-count = (length assignment)
+            for obj-value = (cdr assignment-list)
+            when (and (or (not max-handles)
+                          (<= assign-count max-handles))
+                      (or (not current-lowest-cost)
+                          (< obj-value current-lowest-cost)))
+              do (setf cheapest-assignment assignment)
+                 (setf current-lowest-cost obj-value))
+      cheapest-assignment)))
+
+(defun assign-handles-tree->list (assignment-tree)
+  "This function onverts a handle-assignment tree into an appropriate
+list which contains all paths of the tree, plus the respective cost
+value of the last link (which represents the cosy for the whole
+path). A list of lists of these assignments is returned."
+  (let ((assignment-lists nil))
+    (loop for branch in assignment-tree
+          for current-assignment = (cdr (assoc :assignment branch))
+          for current-arm-handle = (cons (first current-assignment)
+                                         (second current-assignment))
+          for current-obj-value = (cdr (assoc :obj-value branch))
+          for next-assignments-tree = (cdr (assoc :next-assignments branch))
+          for next-assignments-list = (assign-handles-tree->list
+                                       next-assignments-tree)
+          do (cond (next-assignments-tree
+                    (push
+                     (first
+                      (mapcar (lambda (x)
+                                (let ((xcar (car x))
+                                      (xcdr (cdr x)))
+                                  (cons (push current-arm-handle xcar) xcdr)))
+                              next-assignments-list))
+                     assignment-lists))
+                   (t
+                    (push (cons (list current-arm-handle) current-obj-value)
+                          assignment-lists))))
+    assignment-lists))
+
+(defun assign-handles-tree (avail-arms avail-handles current-objective-value)
+  "Recursive function that builds a tree of all possible grasp
+solutions using the available arms `avail-arms' on the available
+handles `avail-handles'. The `current-objective-value' keeps track of
+the objective value calculated for the current path up to the current
+parent node. It is initially zero."
+  (let ((assignments nil))
+    (when (> (length avail-arms) 0)
+      (loop for handle in avail-handles
+            do (loop for arm in avail-arms
+                     for handle-reachable-by-arm = (eq
+                                                    (not
+                                                     (position
+                                                      arm
+                                                      (cdr handle)
+                                                      :test
+                                                      (lambda
+                                                          (test-arm test-he)
+                                                        (eq test-arm
+                                                            (car test-he)))))
+                                                    nil)
+                     for handle-objective-value = (or
+                                                   (cdr
+                                                    (assoc
+                                                     "without-offset"
+                                                     (cdr (assoc arm
+                                                                 (cdr handle)))
+                                                     :test 'equal))
+                                                   0)
+                     for combined-objective-value = (+ current-objective-value
+                                                       handle-objective-value)
+                     when handle-reachable-by-arm
+                       do (push
+                           (list
+                            (cons :assignment (cons arm handle))
+                            (cons :obj-value combined-objective-value)
+                            (cons :next-assignments
+                                  (assign-handles-tree
+                                   (remove arm avail-arms)
+                                   (remove handle avail-handles)
+                                   combined-objective-value)))
+                           assignments))))
+    assignments))

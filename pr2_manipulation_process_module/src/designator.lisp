@@ -81,28 +81,22 @@
               :constraint-aware t
               ?handle-evaluations))
 
-  (<- (nearest-handle ?handle-evaluations ?nearest-side ?nearest-handle)
-    (lisp-fun nearest-of-handles ?handle-evaluations
-              (?nearest-side ?nearest-handle))
-    (lisp-pred fail-on-no-nearest-handle ?nearest-handle))
+  (<- (nearest-handle ?handle-evaluations ?nearest-arm-handle)
+    (lisp-fun nearest-of-handles ?handle-evaluations ?nearest-arm-handle))
 
-  ;; NOTE(winkler): This pattern now first gets all graspable handles
-  ;; for the object `?obj' when the arm sides `(:left :right)' are
-  ;; allowed. The result is stored in
-  ;; `?graspable-handles'. Afterwards, the nearest handle from these
-  ;; is determined using the predicate `nearest-handle' which returns
-  ;; the nearest arm and the nearest handle. The respective predicates
-  ;; each call a lisp function which does the *actual work* but now
-  ;; the lisp stuff is just used for servicing prolog, not vice versa.
+  (<- (best-grasp ?obj ?obj-handles ?available-arms ?obstacles
+                  ?arm-handle-assignments)
+    (reachable-handles ?obj ?available-arms ?reachable-handles)
+    (desig-prop ?obj (min-handles ?min-handles))
+    (optimal-arm-handle-assignments ?reachable-handles ?min-handles
+                                    ?available-arms ?arm-handle-assignments))
 
-  ;; NOTE(winkler): Maybe, the list of allowed arms (which currently
-  ;; is `(:left :right)') can be replaced by the currently available
-  ;; arms. This would take the arm availability into account and would
-  ;; purge the need for explicit information about the arm
-  ;; architecture here.
-  (<- (best-grasp ?obj ?obj-handles ?obstacles (?nearest-handle) (?nearest-arm))
-    (reachable-handles ?obj (:left :right) ?reachable-handles)
-    (nearest-handle ?reachable-handles ?nearest-arm ?nearest-handle))
+  (<- (optimal-arm-handle-assignments ?reachable-handles ?min-handles
+                                      ?available-arms ?optimal-assignment)
+    (lisp-fun optimal-handle-assignment
+              ?available-arms ?reachable-handles ?min-handles
+              :max-handles ?min-handles ?optimal-assignment)
+    (lisp-pred fail-on-no-nearest-handle ?optimal-assignment))
 
   (<- (action-desig ?desig (container-opened ?handle :right))
     (trajectory-desig? ?desig)
@@ -149,14 +143,14 @@
   ;; all grasping because the predicate 'best-grasp' can be
   ;; used as a hook for grasp planning or any other manipulation
   ;; reasoning process that chooses the correct arm/grasp setup
-  (<- (action-desig ?desig (grasp-handles ?obj ?chosen-handles ?arms ?obstacles))
+  (<- (action-desig ?desig (grasp-handles ?obj ?arm-handle-assignments ?obstacles))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to grasp))
     (desig-prop ?desig (obj ?obj))
     (handled-obj-desig? ?obj)
     (handles ?obj ?obj-handles)
     (obstacles ?desig ?obstacles)
-    (best-grasp ?obj ?obj-handles ?obstacles ?chosen-handles ?arms))
+    (best-grasp ?obj ?obj-handles (:left :right) ?obstacles ?arm-handle-assignments))
 
   (<- (action-desig ?desig (grasp ?object-type ?obj :right ?obstacles))
     (trajectory-desig? ?desig)
