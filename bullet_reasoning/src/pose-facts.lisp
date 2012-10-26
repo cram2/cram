@@ -58,14 +58,17 @@
     (%pose ?obj ?obj-pose)
     (poses-equal ?pose ?obj-pose 0.01 0.01))
 
-  (<- (assert (object-pose ?world ?obj-name ?pose))
+  (<- (assert ?world (object-pose ?obj-name ?pose))
     (bound ?obj-name)
     (bound ?pose)
     (bullet-world ?world)
     (%object ?world ?obj-name ?obj)
     (lisp-fun set-object-pose ?obj ?pose ?_))
 
-  (<- (assert (object-pose-on ?world ?obj-name ?pose))
+  (<- (assert (object-pose ?world ?obj-name ?pose))
+    (assert ?world (object-pose ?obj-name ?pose)))
+
+  (<- (assert ?world (object-pose-on ?obj-name ?pose))
     ;; Like (assert (object-pose...)) but puts lower plane of the
     ;; object on the pose.
     (bound ?obj-name)
@@ -74,6 +77,9 @@
     (%object ?world ?obj-name ?obj)
     (lisp-fun obj-pose-on ?pose ?obj ?pose-on)
     (lisp-fun set-object-pose ?obj ?pose-on ?_))
+
+  (<- (assert (object-pose-on ?world ?obj-name ?pose))
+    (assert ?world (object-pose-on ?obj-name ?pose)))
 
   (<- (pose ?obj-name ?position ?orientation)
     (pose ?_ ?obj-name ?position ?orientation))
