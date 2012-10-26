@@ -81,9 +81,6 @@
               :constraint-aware t
               ?handle-evaluations))
 
-  (<- (nearest-handle ?handle-evaluations ?nearest-arm-handle)
-    (lisp-fun nearest-of-handles ?handle-evaluations ?nearest-arm-handle))
-
   (<- (best-grasp ?obj ?obj-handles ?available-arms ?obstacles
                   ?arm-handle-assignments)
     (reachable-handles ?obj ?available-arms ?reachable-handles)
