@@ -60,21 +60,27 @@
     ;; The world ?obj belongs to
     (get-slot-value ?obj world ?world))
 
-  (<- (assert (object ?world ?object-type ?name ?pose . ?_))
+  (<- (assert ?world (object ?object-type ?name ?pose . ?_))
     (object ?world ?name)
     (pose ?world ?p . ?pose)
     (assert (object-pose ?world ?name ?p)))
   
-  (<- (assert (object ?world ?object-type ?name ?pose . ?args))
+  (<- (assert ?world (object ?object-type ?name ?pose . ?args))
     (not (object ?world ?name))
     (lisp-fun apply add-object
               ?world ?object-type
               ?name ?pose ?args
               ?_))
 
-  (<- (retract (object ?world ?name))
+  (<- (assert (object ?world ?object-type ?name ?pose . ?args))
+    (assert ?world (object ?object-type ?name ?pose . ?args)))
+
+  (<- (retract ?world (object ?name))
     (bullet-world ?world)
     (lisp-fun remove-object ?world ?name ?_))
+
+  (<- (retract (object ?world ?name))
+    (retract ?world (object ?name)))
 
   (<- (object ?world ?name)
     (bullet-world ?world)
