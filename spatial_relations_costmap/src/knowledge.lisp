@@ -38,16 +38,27 @@
   (<- (costmap-in-reach-distance 1.0))
   (<- (costmap-reach-minimal-distance 0.2)))
 
-(def-fact-group semantic-map-metadata ()
-  (<- (semantic-map-obj btr::sem-map)))
+;; (def-fact-group costmap-metadata ()
+;;   (<- (costmap-size 25 25))
+;;   (<- (costmap-origin -12.5 -12.5))
+;;   (<- (costmap-resolution 0.05))
 
+;;   (<- (costmap-padding 0.35))
+;;   (<- (costmap-manipulation-padding 0.35))
+;;   (<- (costmap-in-reach-distance 1.0))
+;;   (<- (costmap-reach-minimal-distance 0.1)))
 
+(def-fact-group semantic-map-data ()
+  (<- (semantic-map-obj btr::sem-map))
+  (<- (kitchen-island-z 0.8399999737739563d0)))
+
+;; TODO change after near and far is refactored
+;; TODO maybe remove collision costmap completely, but rather just disable and uncomment
 (def-fact-group costmap-params ()
-  (<- (costmap-padding-in-meters 0.01d0)) ; for collision costmap
-  (<- (gauss-std 0.5d0)) ; reference object size dependent maybe TODO
-  (<- (costmap-width-in-obj-size-percentage 0.4d0))) ; for far-from and near costmaps
-                                                     ; (percents of objs size average)
-
+  (<- (collision-costmap-padding-in-meters 0.01d0)) ; for collision costmap
+  (<- (near-costmap-gauss-std 1.0d0)) ; reference object size dependent maybe TODO
+  (<- (costmap-width-in-obj-size-percentage-near 1.0d0)) ; for far-from and near costmaps
+  (<- (costmap-width-in-obj-size-percentage-far 0.5d0)))  ; (percents of objs size average)
 
 (def-fact-group spatial-relations-knowledge ()
   ;; object shape related
@@ -76,11 +87,11 @@
     (object-type-handle-size ?object-type ?handle-size))
 
   ;; padding related
-  (<- (object-type-padding-size pot 0.07d0))
-  (<- (object-type-padding-size bowl 0.045d0))
-  (<- (object-type-padding-size mondamin 0.02d0))
-  (<- (object-type-padding-size mug 0.03d0))
-  (<- (object-type-padding-size plate 0.03d0))
+  (<- (object-type-padding-size pot 0.04d0))
+  (<- (object-type-padding-size bowl 0.03d0))
+  (<- (object-type-padding-size mondamin 0.01d0))
+  (<- (object-type-padding-size mug 0.01d0))
+  (<- (object-type-padding-size plate 0.005d0))
   (<- (object-type-padding-size fork 0.005d0))
   (<- (object-type-padding-size knife 0.005d0))
   ;;
@@ -89,13 +100,15 @@
     (object-type-padding-size ?object-type ?padding))
   
   ;; costmap threshold related
+  ;; depends on how flexible you want the positioning to be,
+  ;; e.g. in case of cluttered scenes etc.
   (<- (object-type-costmap-threshold pot 0.85d0))
   (<- (object-type-costmap-threshold bowl 0.9d0))
   (<- (object-type-costmap-threshold mondamin 0.9d0))
-  (<- (object-type-costmap-threshold mug 0.97d0))
-  (<- (object-type-costmap-threshold plate 0.999d0))
-  (<- (object-type-costmap-threshold fork 0.99d0))
-  (<- (object-type-costmap-threshold knife 0.99d0))
+  (<- (object-type-costmap-threshold mug 0.8d0)) ; 0.97d0))
+  (<- (object-type-costmap-threshold plate 0.8d0)) ; 0.999d0))
+  (<- (object-type-costmap-threshold fork 0.8d0)) ; 0.99d0))
+  (<- (object-type-costmap-threshold knife 0.8d0)) ; 0.99d0))
   ;;
   (<- (object-costmap-threshold ?world ?object-name ?threshold)
     (household-object-type ?world ?object-name ?object-type)
@@ -115,8 +128,9 @@
 
   ;; table setting related
   (<- (paddings-list kitchen-island table-setting (-0.04d0 0.01d0 0.03d0 0.8d0)))
+  (<- (paddings-list "CounterTop208" table-setting (-0.04d0 0.01d0 0.03d0 0.8d0)))
   (<- (preferred-supporting-object-side kitchen-island table-setting :-))
+  (<- (preferred-supporting-object-side "CounterTop208" table-setting :-))
   (<- (max-slot-size btr::plate table-setting 0.8d0))
-    ;; (household-object-type ?world ?_ ?object-type)
   (<- (min-slot-size btr::plate table-setting 0.5d0))
   (<- (position-deviation-threshold btr::plate table-setting 0.03d0)))

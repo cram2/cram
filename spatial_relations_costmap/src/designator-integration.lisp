@@ -29,21 +29,22 @@
 (in-package :spatial-relations-costmap)
 
 (register-location-validation-function
- 1 potential-field-costmap-pose-validator
+ 5 potential-field-costmap-pose-validator
  "The potential field cost-function that we use for spatial relations is too wide - 180
-degrees. Theoretically it is correct, but for practical use we need to make the angle
-narrower. The best solutions are near smaller angles, so we put a threshold on the
-solution values.")
+  degrees. Theoretically it is correct, but for practical use we need to make the angle
+  narrower. At the smaller angles the solutions have the highest values, so we put a
+  threshold on the solution values.")
 
 (register-location-validation-function
- 1 collision-pose-validator
- "TODO!!!!")
-
-;; TODO: add collision verification for nearly all the costmaps
+ 6 collision-pose-validator
+ "If a location was generated for a household object, then it is checked if the
+  generated pose causes collisions of that object with other household objects,
+  in which case the pose is rejected.")
 
 (defun potential-field-costmap-pose-validator (desig pose)
   "If desig-props:for is specified it means we generated a costmap for a specific object.
-In that case we need a costmap with specific spread angle." 
+   In that case a specific costmap spread angle might be needed for that object, i.e.
+   a threshold on costmap values is specified for that object in the knowledge base."
   (when (typep pose 'cl-transforms:pose)
     (let ((for-prop-value (desig-prop-value desig 'for)))
       (if for-prop-value
@@ -58,24 +59,29 @@ In that case we need a costmap with specific spread angle."
                   (with-vars-bound (?threshold)
                       (lazy-car
                        (prolog `(and
+                                 (bullet-world ?w)
                                  (object-instance-name ,for-prop-value ?obj-name)
-                                 (object-costmap-threshold ?_ ?obj-name ?threshold))))
-                    (format t "~%validate: costmap-val = ~a; thresold = ~a~%"
+                                 (object-costmap-threshold ?w ?obj-name ?threshold))))
+                    (format t "validate: costmap-val = ~a; thresold = ~a~%"
                             costmap-value ?threshold)
                     (sb-ext:gc :full t)
                     (if (is-var ?threshold)
                         :accept
                         (if (> costmap-value ?threshold)
                             :accept
-                            :reject))
-                    ))
+                            :reject))))
                 :accept))
           :accept))))
 
 (defun collision-pose-validator (desig pose)
+  "Checks if desig has a property FOR. If so, checks if the object described by FOR is
+   a household object. If so, uses the prolog predicate desig-solution-not-in-collision."
   (when (typep pose 'cl-transforms:pose)
-    (let ((for-prop-value (desig-prop-value desig 'for)))
-      (if for-prop-value
+    (let ((for-prop-value (desig-prop-value desig 'for))) 
+      (if (and for-prop-value
+               (prolog `(and
+                         (object-instance-name ,for-prop-value ?object-name)
+                         (household-object-type ?world ?object-name ?_))))
           (if (prolog `(desig-solution-not-in-collision ,desig ,for-prop-value ,pose))
               :accept
               :reject)
