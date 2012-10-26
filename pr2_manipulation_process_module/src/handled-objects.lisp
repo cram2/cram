@@ -32,15 +32,15 @@
    (tf:make-3d-vector 0.20 0.0 0.0)
    (tf:euler->quaternion :az pi :ax (/ pi 2)))
   "Specifies the gripper pose relative to the respective handle
-  coordinate system (including it's origin and rotation) when going
-  into pregrasp.")
+coordinate system (including it's origin and rotation) when going into
+pregrasp.")
 (defparameter *handle-grasp-offset-pose*
   (tf:make-pose
    (tf:make-3d-vector 0.135 0.0 0.0)
    (tf:euler->quaternion :az pi :ax (/ pi 2)))
   "Specifies the gripper pose relative to the respective handle
-  coordinate system (including it's origin and rotation) when going
-  into grasp.")
+coordinate system (including it's origin and rotation) when going into
+grasp.")
 
 (defun grab-handled-object-constraint-aware (obj arms-handles-pairs obstacles
                                              &key obj-as-obstacle)
@@ -55,6 +55,15 @@
     (grab-handled-object obj handle arm :constraint-aware t)))
 
 (defun grab-handled-object (obj handle arm &key constraint-aware)
+  "Grasps an object `obj' on its designated handle `handle' with the
+robot arm side `arm'. The gripper will go into a pregrasp
+pose (relatively defined by `*handle-pregrasp-offset-pose*' w.r.t. the
+absolute position of the handle), opens the respective gripper and
+moves into a grasp pose (relatively defined by
+`*handle-grasp-offset-pose*' w.r.t. the absolute position of the
+handle). Afterwards, the gripper is closed (until it reaches the
+opening position defined by the `radius' property of the handle
+object) and lifted. The robot then goes into a carry pose."
   (assert arm () "No arm side specified in `grab-handled-object'.")
   (assert handle () "No handle specified in `grab-handled-object'.")
   (let ((handle-radius (or (desig-prop-value handle 'radius)
@@ -70,20 +79,20 @@
     (roslisp:ros-info (pr2-manipulation-process-module)
                       "Going into grasp for handled object (arm ~a,
                       handle ~a)" arm handle)
-               ;; NOTE(winkler): The grasp itself should not be
-               ;; constraint-aware as we are already near the object
-               ;; (no obstacles between gripper and object assumed)
-               ;; and we need to get real close to the object with the
-               ;; gripper. Having this function constraint-aware would
-               ;; break the grasping.
-    (grasp-handled-object-with-relative-location
-     obj arm handle)
+    ;; NOTE(winkler): The grasp itself should not be
+    ;; constraint-aware as we are already near the object
+    ;; (no obstacles between gripper and object assumed)
+    ;; and we need to get real close to the object with the
+    ;; gripper. Having this function constraint-aware would
+    ;; break the grasping.
+    (grasp-handled-object-with-relative-location obj arm handle)
     (roslisp:ros-info (pr2-manipulation-process-module)
                       "Closing gripper")
     (close-gripper arm :position handle-radius)
     (check-valid-gripper-state arm
                                :min-position (- handle-radius 0.01)))
-  (roslisp:ros-info (pr2-manip process-module) "Attaching object to gripper")
+  (roslisp:ros-info (pr2-manip process-module)
+                    "Attaching object to gripper")
   (plan-knowledge:on-event
    (make-instance
     'plan-knowledge:object-attached
