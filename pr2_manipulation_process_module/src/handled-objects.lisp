@@ -42,14 +42,17 @@
   coordinate system (including it's origin and rotation) when going
   into grasp.")
 
-(defun grab-handled-object-constraint-aware (obj handle arm obstacles
+(defun grab-handled-object-constraint-aware (obj arms-handles-pairs obstacles
                                              &key obj-as-obstacle)
   (clear-collision-objects)
   (dolist (obstacle (cut:force-ll obstacles))
     (register-collision-object obstacle))
   (when obj-as-obstacle
     (register-collision-object obj))
-  (grab-handled-object obj handle arm :constraint-aware t))
+  (let* ((first-pair (first arms-handles-pairs))
+         (arm (car first-pair))
+         (handle (cdr first-pair)))
+    (grab-handled-object obj handle arm :constraint-aware t)))
 
 (defun grab-handled-object (obj handle arm &key constraint-aware)
   (assert arm () "No arm side specified in `grab-handled-object'.")

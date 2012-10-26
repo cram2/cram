@@ -152,14 +152,11 @@
   (assert (> (length arms-handles) 0) ()
           "No arms/handles combinations have been specified in
           `grasp-handles'.")
-  (let* ((first-arm-handle (first arms-handles))
-         (arm (car first-arm-handle))
-         (handle (cdr first-arm-handle)))
-    (roslisp:ros-info (pr2-manip-pm grasp-handles)
-                      "Calling grasp-handled-object-constraint-aware
-                      with arm: ~a." arm)
-    (grab-handled-object-constraint-aware obj handle arm obstacles
-                                          :obj-as-obstacle t)))
+  (roslisp:ros-info (pr2-manip-pm grasp-handles)
+                    "Calling grasp-handled-object-constraint-aware
+                      with ~a arms." (length arms-handles))
+  (grab-handled-object-constraint-aware obj arms-handles obstacles
+                                        :obj-as-obstacle t))
 
 (def-action-handler grasp (object-type obj side obstacles)
   "Selects and calls the appropriate grasping functionality based on
