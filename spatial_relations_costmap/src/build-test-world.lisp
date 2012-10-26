@@ -260,6 +260,8 @@
                                            (desig-props:name ,counter-name))))
        (the-object (desig-props:object `((desig-props:type ,object-type)
                                          (desig-props:at ,on-counter)))))
+    (format t "on-counter: ~%~a~%" on-counter)
+    (format t "the-object: ~%~a~%" the-object)
     (reference on-counter)
     (plan-lib:perceive-object 'cram-plan-library:a the-object)))
 
@@ -270,18 +272,13 @@
                                       (object-count 4)))))
     (plan-knowledge:achieve `(plan-knowledge:loc ,plate-obj-desig ,on-kitchen-island))))
 
-;;(cpl-impl:def-cram-function put-plate-from-counter-on-table ()
-(cpl-impl:def-top-level-cram-function put-plate-from-counter-on-table ()
-  (cram-projection:with-projection-environment 
-      projection-process-modules::pr2-bullet-projection-environment
-    
+(cpl-impl:def-cram-function put-plate-from-counter-on-table ()
   (sb-ext:gc :full t)
   (format t "Put a PLATE from counter on table~%")
   (let ((plate (find-object-on-counter 'btr:plate "CounterTop205")))
     (sb-ext:gc :full t)
     (put-plate-on-table plate)
     plate))
-  )
 
 (cpl-impl:def-cram-function put-object-near-plate (object-to-put plate-obj
                                                    spatial-relations)
@@ -292,12 +289,7 @@
                                       (on counter-top)))))
     (plan-knowledge:achieve `(plan-knowledge:loc ,object-to-put ,put-down-location))))
 
-;; (cpl-impl:def-cram-function put-object-from-counter-near-plate (object-type plate-obj)
-(cpl-impl:def-top-level-cram-function put-object-from-counter-near-plate (object-type
-                                                                          plate-obj)
-  (cram-projection:with-projection-environment 
-      projection-process-modules::pr2-bullet-projection-environment
-    
+(cpl-impl:def-cram-function put-object-from-counter-near-plate (object-type plate-obj)
   (format t "Put ~a from counter on table near ~a~%"
           object-type (desig-prop-value plate-obj 'name))
   (sb-ext:gc :full t)
@@ -309,25 +301,19 @@
                              (btr::knife '(desig-props:right-of))
                              (btr::mug '(desig-props:right-of desig-props:behind))))
     (sb-ext:gc :full t)))
-  )
 
-
-
-;;(cpl-impl:def-top-level-cram-function put-stuff-on-table ()
-  ;; (cram-projection:with-projection-environment 
-  ;;     projection-process-modules::pr2-bullet-projection-environment
-(defun put-stuff-on-table ()
+(cpl-impl:def-top-level-cram-function put-stuff-on-table ()
+  (cram-projection:with-projection-environment 
+      projection-process-modules::pr2-bullet-projection-environment
   (loop for i from 1 to *num-of-sets-on-table* do
     (let ((plate (put-plate-from-counter-on-table)))
       (mapcar (alexandria:rcurry #'put-object-from-counter-near-plate plate)
-              '(btr::fork btr::knife btr::mug)))))
-;;)
+              '(btr::fork btr::knife btr::mug))))))
 
 
 (defun set-table-in-projection ()
   (put-stuff-on-counter)
-  
-    (put-stuff-on-table))
+  (put-stuff-on-table))
 
 
 (defun bring-robot-to-table ()
