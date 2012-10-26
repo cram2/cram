@@ -81,10 +81,13 @@
     (%object ?world ?robot-name ?robot)
     (lisp-fun joint-state ?robot ?state))
 
-  (<- (assert (joint-state ?world ?robot-name ?joint-states))
+  (<- (assert ?world (joint-state ?robot-name ?joint-states))
     (bullet-world ?world)
     (%object ?world ?robot-name ?robot)
     (lisp-fun set-robot-state-from-joints ?joint-states ?robot ?_))
+
+  (<- (assert (joint-state ?world ?robot-name ?joint-states))
+    (assert ?world (joint-state ?robot-name ?joint-states)))
 
   (<- (attached ?world ?robot ?link-name ?object)
     (bullet-world ?world)
@@ -94,18 +97,23 @@
     (lisp-fun object-attached ?robot-instance ?object-instance ?links)
     (member ?link-name ?links))
 
-  (<- (assert (attached ?world ?robot ?link-name ?object))
+  (<- (assert ?world (attached ?robot ?link-name ?object))
     (bullet-world ?world)
     (%object ?world ?robot ?robot-instance)
     (lisp-fun attach-object ?robot-instance ?object ?link-name ?_))
 
-  (<- (retract (attached ?world ?robot ?object))
+  (<- (assert (attached ?world ?robot ?link-name ?object))
+    (assert ?world (attached ?robot ?link-name ?object)))
+
+  (<- (retract ?world (attached ?robot ?object))
     (bullet-world ?world)
     (%object ?world ?robot ?robot-instance)
     (lisp-fun detach-object ?robot-instance ?object ?_))
 
-  (<- (retract (attached ?world ?robot ?link-name ?object))
+  (<- (retract ?world (attached ?robot ?link-name ?object))
     (bullet-world ?world)
     (%object ?world ?robot ?robot-instance)
-    (lisp-fun detach-object ?robot-instance ?object ?link-name ?_)))
+    (lisp-fun detach-object ?robot-instance ?object ?link-name ?_))
 
+  (<- (retract (attached ?world . ?rest))
+    (retract ?world (attached . ?rest))))
