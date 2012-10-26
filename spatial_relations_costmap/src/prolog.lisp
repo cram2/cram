@@ -28,13 +28,12 @@
 
 (in-package :spatial-relations-costmap)
 
-(defmethod costmap-generator-name->score ((name (eql 'supporting-object))) 2)
+(defmethod costmap-generator-name->score ((name (eql 'supporting-object))) 3)
 (defmethod costmap-generator-name->score ((name (eql 'slot-generator))) 5)
-(defmethod costmap-generator-name->score ((name (eql 'left-of-axis))) 8)
-(defmethod costmap-generator-name->score ((name (eql 'collision))) 6)
+(defmethod costmap-generator-name->score ((name (eql 'collision))) 10)
 
-(defclass padding-generator () ())
-(defmethod costmap-generator-name->score ((name padding-generator)) 3)
+(defclass range-generator () ())
+(defmethod costmap-generator-name->score ((name range-generator)) 2)
 
 (defclass gaussian-generator () ())
 (defmethod costmap-generator-name->score ((name gaussian-generator)) 6)
@@ -48,67 +47,62 @@
                     ?for-obj-size ?for-padding ?costmap)
     (costmap ?costmap)
     ;;
-    (gauss-std ?std)
+    (near-costmap-gauss-std ?std)
     (instance-of gaussian-generator ?gaussian-generator-id)
     (costmap-add-function
      ?gaussian-generator-id
      (make-location-cost-function ?ref-obj-pose ?std)
      ?costmap)
     ;;
-    ;; (format "~a~%~a~%~a~%~a~%" ?ref-obj-size ?for-obj-size ?ref-padding ?for-padding)
-    (lisp-fun calculate-near-costmap-radius ?ref-obj-size ?for-obj-size
-              ?ref-padding ?for-padding ?cm-radius)
-    ;; (format "radius = ~a~%" ?cm-radius)
-    (costmap-width-in-obj-size-percentage ?cm-width-perc)
-    (lisp-fun calculate-costmap-width/2 ?ref-obj-size ?for-obj-size ?cm-width-perc
-              ?cm-width/2)
+    (lisp-fun calculate-near-costmap-min-radius ?ref-obj-size ?for-obj-size
+              ?ref-padding ?for-padding ?min-radius)
+    (costmap-width-in-obj-size-percentage-near ?cm-width-perc)
+    (lisp-fun calculate-costmap-width ?ref-obj-size ?for-obj-size ?cm-width-perc
+              ?cm-width)
     ;;
-    (lisp-fun + ?cm-radius ?cm-width/2 ?max)
-    (instance-of padding-generator ?padding-generator-id-1)
+    (lisp-fun + ?min-radius ?cm-width ?max-radius)
+    (instance-of range-generator ?range-generator-id-1)
     (costmap-add-function
-     ?padding-generator-id-1
-     (make-range-cost-function ?ref-obj-pose ?max)
+     ?range-generator-id-1
+     (make-range-cost-function ?ref-obj-pose ?max-radius)
      ?costmap)
     ;;
-    (lisp-fun - ?cm-radius ?cm-width/2 ?min)
-    (instance-of padding-generator ?padding-generator-id-2)
+    (instance-of range-generator ?range-generator-id-2)
     (costmap-add-function
-     ?padding-generator-id-2
-     (make-range-cost-function ?ref-obj-pose ?min :invert t)
+     ?range-generator-id-2
+     (make-range-cost-function ?ref-obj-pose ?min-radius :invert t)
      ?costmap))
 
   (<- (far-from-costmap ?designator ?ref-obj-pose ?ref-obj-size ?ref-padding
                         ?for-obj-size ?for-padding ?costmap)
     (costmap ?costmap)
     ;;
-    (lisp-fun calculate-far-costmap-radius ?ref-obj-size ?for-obj-size
-              ?ref-padding ?for-padding ?cm-radius)
-    (costmap-width-in-obj-size-percentage ?cm-width-perc)
-    (lisp-fun calculate-costmap-width/2 ?ref-obj-size ?for-obj-size ?cm-width-perc
-              ?cm-width/2)
+    (lisp-fun calculate-far-costmap-min-radius ?ref-obj-size ?for-obj-size
+              ?ref-padding ?for-padding ?min-radius)
+    (costmap-width-in-obj-size-percentage-far ?cm-width-perc)
+    (lisp-fun calculate-costmap-width ?ref-obj-size ?for-obj-size ?cm-width-perc
+              ?cm-width)
     ;;
-    (lisp-fun + ?cm-radius ?cm-width/2 ?max)
-    (instance-of padding-generator ?padding-generator-id-1)
+    (lisp-fun + ?min-radius ?cm-width ?max-radius)
+    (instance-of range-generator ?range-generator-id-1)
     (costmap-add-function
-     ?padding-generator-id-1
-     (make-range-cost-function ?ref-obj-pose ?max)
+     ?range-generator-id-1
+     (make-range-cost-function ?ref-obj-pose ?max-radius)
      ?costmap)
     ;;
-    (lisp-fun - ?cm-radius ?cm-width/2 ?min)
-    (instance-of padding-generator ?padding-generator-id-2)
+    (instance-of range-generator ?range-generator-id-2)
     (costmap-add-function
-     ?padding-generator-id-2
-     (make-range-cost-function ?ref-obj-pose ?min :invert t)
+     ?range-generator-id-2
+     (make-range-cost-function ?ref-obj-pose ?min-radius :invert t)
      ?costmap))
 
-  ;; TODO pred is too long!
   ;; uses make-potential-field-cost-function to resolve the designator
-  ;; TODO fix such that would work without FOR
+  ;; TODO height generator is based only on semantic map (no stacking up allowed)
   (<- (potential-field-costmap ?designator ?object ?relation ?costmap)
-    ;; TODO GET RID OF THIS UGLYNESS
-    (lisp-fun set-*use-priority-sampling* ?return-val)
-
-    
+    ;; TODO GET RID OF THIS!
+    ;; Todo new mechanism for switching between sampling functions...
+    (lisp-fun set location-costmap::*use-priority-sampling* t ?_)
+    ;;
     (desig-location-prop ?object ?reference-pose)
     (lisp-fun get-y-of-pose ?reference-pose ?y-of-pose)
     (lisp-fun get-x-of-pose ?reference-pose ?x-of-pose)
@@ -120,15 +114,14 @@
     (lisp-fun sem-map-utils:dimensions ?link-obj ?supp-obj-dims)
     ;; costmap to exclude everything which is outside of supp. object boundaries
     (lisp-fun list ?link-obj ?link-obj-list)
-    ;; (costmap-add-function
-    ;;  supporting-object
-    ;;  (semantic-map-costmap::make-semantic-map-costmap ?link-obj-list)
-    ;;  ?costmap)
+    (costmap-add-function
+     supporting-object
+     (semantic-map-costmap::make-semantic-map-costmap ?link-obj-list)
+     ?costmap)
     ;; the actual potential field costmap
     ;; The axis of the potential field depends on to which side of supporting object
     ;; the reference object is the closest
     (lisp-fun get-closest-edge ?reference-pose ?supp-obj-pose ?supp-obj-dims ?edge)
-    ;; (format "edge: ~a~%" ?edge)
     (relation-axis-and-pred ?edge ?relation ?axis ?pred)
     (instance-of field-generator ?field-generator-id)
     (costmap-add-function
@@ -136,39 +129,14 @@
      (make-potential-field-cost-function ?axis ?x-of-pose ?y-of-pose
                                          ?supp-obj-pose ?pred)
      ?costmap)
-    ;; collision costmap
-    ;; (findall ?obj (and (household-object-type ?world ?name ?_)
-    ;;                    (%object ?world ?name ?obj)) ?objs)
-    ;; (costmap-padding-in-meters ?padding)
-    ;; (desig-prop ?designator (for ?object))
-    ;; (object-instance-name ?object ?obj-name)
-    ;; (object ?world ?obj-name)
-    ;; (object-size-without-handles ?world ?obj-name ?obj-size)
-    ;; (lisp-fun / ?obj-size 2 ?obj-size/2)
-    ;; (lisp-fun + ?obj-size/2 ?padding ?overall-padding)
-    ;; (format "hop~%")
-    ;; (costmap-add-function
-    ;;  collision
-    ;;  (make-objects-bounding-box-costmap-generator ?objs :invert t :padding ?padding)
-    ;;  ?costmap)
     ;; the height generator
-    ;;(semantic-map-costmap::semantic-map-objects ?objects)
     (costmap-add-height-generator
      (semantic-map-costmap::make-semantic-map-height-function ?link-obj-list :on)
-                                        ;;?objects :on)
      ?costmap)
     ;; orientation generator
     (orientation-costmap ?designator ?object ?costmap))
-  
-  ;; uses make-objects-bounding-box-costmap-generator
-  ;; (<- (collision-invert-costmap ?desig ?objs ?padding ?cm) 
-  ;;   (costmap ?cm)    
-  ;;   (costmap-add-function
-  ;;    collision
-  ;;    (make-objects-bounding-box-costmap-generator ?objs :invert t :padding ?padding)
-  ;;    ?cm))
 
-  ;; uses make-orientation-generator with supporting-obj-alligned-direction
+  ;; uses make-orientation-generator with supporting-obj-aligned-direction
   (<- (orientation-costmap ?designator ?ref-obj-name ?costmap)
     (desig-prop ?designator (for ?object))
     (object-instance-name ?object ?obj-name)
@@ -181,9 +149,10 @@
          (supported-by-link-obj ?world ?ref-obj-name ?link-obj)
          (lisp-fun sem-map-utils:pose ?link-obj ?supp-obj-pose)
          (lisp-fun sem-map-utils:dimensions ?link-obj ?supp-obj-dims)
+         (kitchen-island-z ?supp-obj-z)
          (desig-location-prop ?ref-obj-name ?ref-obj-pose)
          (lisp-fun alexandria:rcurry supporting-obj-alligned-direction
-                   ?supp-obj-pose ?supp-obj-dims
+                   ?supp-obj-pose ?supp-obj-dims ?supp-obj-z
                    :ref-obj-dependent t
                    :ref-obj-pose ?ref-obj-pose
                    ?orientation-function)
@@ -195,7 +164,37 @@
                                       :sample-step ?samples-step)
           ?costmap))
         (true)))
+
+  ;; uses make-slot-cost-function
+  (<- (slot-costmap ?designator ?supp-object ?context ?object-type ?object-count
+                    ?costmap)
+    (lisp-fun sem-map-utils:name ?supp-object ?supp-object-name)
+    (paddings-list ?supp-obj-name ?context ?paddings-list)
+    (preferred-supporting-object-side ?supp-obj-name ?context ?preferred-side) 
+    (max-slot-size ?object-type ?context ?max-slot-size)
+    (min-slot-size ?object-type ?context ?min-slot-size)
+    (position-deviation-threshold ?object-type ?context ?pos-dev-threshold) 
+    ;;
+    (costmap ?costmap)
+    (costmap-add-function
+     slot-generator
+     (make-slot-cost-function ?supp-object ?paddings-list ?preferred-side
+                              ?object-count ?max-slot-size ?min-slot-size
+                              ?pos-dev-threshold)
+     ?costmap))
   
+  ;; uses make-objects-bounding-box-costmap-generator
+  (<- (collision-invert-costmap ?desig ?padding ?cm)
+    (bullet-world ?world)
+    (findall ?obj (and (household-object-type ?world ?name ?_)
+                       (%object ?world ?name ?obj)) ?objs)
+    (costmap ?cm)
+    (costmap-add-function
+     collision
+     (make-objects-bounding-box-costmap-generator ?objs :invert t
+                                                        :padding ?padding)
+     ?cm))
+
   ;; left-of for bullet objects using potential field cost-function
   (<- (desig-costmap ?designator ?costmap)
     (desig-prop ?designator (left-of ?object))
@@ -253,29 +252,27 @@
         (far-from-costmap ?designator ?ref-obj-pose ?ref-obj-size ?ref-padding
                       ?for-obj-size ?for-padding ?costmap)))
 
-  ;; TODO: move collision stuff into unused code
-  ;; ;; collision avoidance costmap for the spatial relations desigs
-  ;; (<- (desig-costmap ?desig ?cm)
-  ;;   (or
-  ;;    (desig-prop ?desig (left-of ?_))
-  ;;    (desig-prop ?desig (right-of ?_))
-  ;;    (desig-prop ?desig (in-front-of ?_))
-  ;;    (desig-prop ?desig (behind ?_))
-  ;;    (desig-prop ?desig (far-from ?_))
-  ;;    (desig-prop ?desig (near ?_)))
-  ;;   (bullet-world ?world)
-  ;;   (findall ?obj (and (household-object-type ?world ?name ?_)
-  ;;                      (%object ?world ?name ?obj)) ?objs)
-  ;;   ;;
-  ;;   (costmap-padding-in-meters ?padding)
-  ;;   (desig-prop ?designator (for ?obj))
-  ;;   (object-instance-name ?obj ?obj-name)
-  ;;   (object ?world ?obj-name)
-  ;;   (object-size-without-handles ?world ?obj-name ?obj-size)
-  ;;   (lisp-fun / ?obj-size 2 ?obj-size/2)
-  ;;   (lisp-fun + ?obj-size/2 ?padding ?overall-padding)
-  ;;   (collision-invert-costmap ?desig ?objs ?overall-padding ?cm)))
-
+  ;; collision avoidance costmap for the spatial relations desigs
+  ;; Disabled.
+  (<- (desig-costmap ?desig ?cm)
+    nil
+    (or
+     (desig-prop ?desig (left-of ?_))
+     (desig-prop ?desig (right-of ?_))
+     (desig-prop ?desig (in-front-of ?_))
+     (desig-prop ?desig (behind ?_))
+     (desig-prop ?desig (far-from ?_))
+     (desig-prop ?desig (near ?_)))
+    (collision-costmap-padding-in-meters ?padding)
+    (-> (desig-prop ?desig (for ?object))
+        (and
+         (object-instance-name ?object ?object-name) 
+         (object ?world ?object-name)
+         (object-size-without-handles ?world ?object-name ?obj-size) 
+         (lisp-fun / ?obj-size 2 ?obj-size/2)
+         (lisp-fun + ?obj-size/2 ?padding ?overall-padding)
+         (collision-invert-costmap ?desig ?overall-padding ?cm))
+        (collision-invert-costmap ?desig ?padding ?cm)))
 
   ;; for plates on table
   ;; '((on counter-top) (name kitchen-island)
@@ -285,34 +282,22 @@
     (desig-prop ?designator (name ?supp-obj-name)) 
     (desig-prop ?designator (context table-setting))
     (desig-prop ?designator (for ?for-object))
-    (desig-prop ?designator (object-count ?object-count)) 
-    ;;
+    (desig-prop ?designator (object-count ?object-count))
     (bullet-world ?world)
-    (object-instance-name ?for-object ?object-name)
-    (household-object-type ?world ?object-name ?object-type) 
+    (object-instance-name ?for-object ?object-name) 
+    (household-object-type ?world ?object-name ?object-type)
     (lisp-fun sem-map-utils:designator->semantic-map-objects
               ?designator ?supp-objects)
-    (member ?supp-object ?supp-objects) 
-    ;;
-    (paddings-list ?supp-obj-name table-setting ?paddings-list)
-    (preferred-supporting-object-side ?supp-obj-name table-setting ?preferred-side) 
-    (max-slot-size ?object-type table-setting ?max-slot-size)
-    (min-slot-size ?object-type table-setting ?min-slot-size)
-    (position-deviation-threshold ?object-type table-setting ?pos-dev-threshold) 
-    ;;
-    (costmap ?costmap)
-    (costmap-add-function
-     slot-generator
-     (make-slot-cost-function ?supp-object ?paddings-list ?preferred-side
-                              ?object-count ?max-slot-size ?min-slot-size
-                              ?pos-dev-threshold)
-     ?costmap))
+    (member ?supp-object ?supp-objects)
+    (slot-costmap ?designator ?supp-object table-setting ?object-type ?object-count
+                  ?costmap))
 
+  ;; TODO: a smarter mechanism is needed. Collision with shelves is still possible
   (<- (desig-solution-not-in-collision ?desig ?object-to-check ?pose)
     (bullet-world ?world)
     (with-copied-world ?world
       (object-instance-name ?object-to-check ?object-name) 
-      (assert (object-pose ?world ?object-name ?pose)) 
+      (assert (object-pose ?world ?object-name ?pose))
       (forall (contact ?world ?object-name ?other-object-name)
               (not (object-type ?world ?other-object-name btr::household-object))))))
 
@@ -345,14 +330,12 @@
     (lisp-fun cram-environment-representation::get-designator-object-name
               ?designator ?name))
 
-  
   ;; returns diameter or something similar in meters
   (<- (object-size-without-handles ?world ?obj-name ?size)
     (object-shape ?world ?obj-name ?shape)
     (%object ?world ?obj-name ?obj)
     (lisp-fun aabb ?obj ?aabb)
     (lisp-fun bt:bounding-box-dimensions ?aabb ?dims)
-    ;; (format "dimensions of ~a = ~a~%" ?obj-name ?dims)
     (%object-size-without-handles ?world ?obj ?shape ?size))
   ;;
   (<- (%object-size-without-handles ?world ?obj ?shape ?size)
@@ -374,7 +357,6 @@
     (object-handle-size ?world ?obj-name ?handle-size)
     (lisp-fun - ?obj-size ?handle-size ?size))
 
-
   (<- (supported-by-link-obj ?world ?obj-name ?link-obj)
     ;; (format "support for ~a?~%" ?obj-name)
     (supported-by ?world ?obj-name ?supp-obj-name ?supp-obj-link-name)
@@ -382,7 +364,3 @@
     (%object ?world ?supp-obj-name ?supp-obj)
     (lisp-fun get-sem-map-part ?supp-obj ?supp-obj-link-name ?link-obj)
     (lisp-pred identity ?link-obj)))
-
-
-(defun set-*use-priority-sampling* ()
-  (setf location-costmap::*use-priority-sampling* t))
