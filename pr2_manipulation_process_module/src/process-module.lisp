@@ -148,13 +148,12 @@
         (t (cpl-impl:fail 'manipulation-failed
                     :format-control "No arms for lifting infered."))))
 
-(def-action-handler grasp-handles (obj handles arms obstacles)
-  (assert (> (length arms) 0) ()
-          "No arms specified in `grasp-handles'.")
-  (assert (> (length handles) 0) ()
-          "No handles specified in `grasp-handles'.")
-  (let ((arm (first arms))
-        (handle (first handles)))
+(def-action-handler grasp-handles (obj arms-handles obstacles)
+  (assert (> (length arms-handles) 0) ()
+          "No arms/handles combinations have been specified in `grasp-handles'.")
+  (let* ((first-arm-handle (first arms-handles))
+         (arm (car first-arm-handle))
+         (handle (cdr first-arm-handle)))
     (roslisp:ros-info (pr2-manip-pm grasp-handles)
                       "Calling grasp-handled-object-constraint-aware with arm: ~a." arm)
     (grab-handled-object-constraint-aware obj handle arm obstacles
