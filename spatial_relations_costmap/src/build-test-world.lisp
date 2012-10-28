@@ -260,8 +260,6 @@
                                            (desig-props:name ,counter-name))))
        (the-object (desig-props:object `((desig-props:type ,object-type)
                                          (desig-props:at ,on-counter)))))
-    (format t "on-counter: ~%~a~%" on-counter)
-    (format t "the-object: ~%~a~%" the-object)
     (reference on-counter)
     (plan-lib:perceive-object 'cram-plan-library:a the-object)))
 
