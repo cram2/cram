@@ -49,58 +49,108 @@ grasp.")
     (register-collision-object obstacle))
   (when obj-as-obstacle
     (register-collision-object obj))
-  (let* ((first-pair (first arms-handles-pairs))
-         (arm (car first-pair))
-         (handle (cdr first-pair)))
-    (grab-handled-object obj handle arm :constraint-aware t)))
+  (grab-handled-object obj arms-handles-pairs :constraint-aware t))
 
-(defun grab-handled-object (obj handle arm &key constraint-aware)
-  "Grasps an object `obj' on its designated handle `handle' with the
-robot arm side `arm'. The gripper will go into a pregrasp
-pose (relatively defined by `*handle-pregrasp-offset-pose*' w.r.t. the
-absolute position of the handle), opens the respective gripper and
-moves into a grasp pose (relatively defined by
+(defun grab-handled-object (obj arms-handles-pairs
+                            &key constraint-aware)
+  "Grasps an object `obj' on its designated handles with the chosen
+robot arm sides, both specified in `arms-handles-pairs'. The grippers
+will go into a pregrasp pose (relatively defined by
+`*handle-pregrasp-offset-pose*' w.r.t. the absolute position of the
+handle), will open and move into a grasp pose (relatively defined by
 `*handle-grasp-offset-pose*' w.r.t. the absolute position of the
-handle). Afterwards, the gripper is closed (until it reaches the
+handle). Afterwards, the grippers are closed (until they reach the
 opening position defined by the `radius' property of the handle
-object) and lifted. The robot then goes into a carry pose."
-  (assert arm () "No arm side specified in `grab-handled-object'.")
-  (assert handle () "No handle specified in `grab-handled-object'.")
-  (let ((handle-radius (or (desig-prop-value handle 'radius)
-                           0.0)))
+objects)."
+  (let ((pair-count (length arms-handles-pairs)))
+    (assert (> pair-count 0) ()
+            "No arm/handle pairs specified in `grab-handled-object'.")
     (roslisp:ros-info (pr2-manipulation-process-module)
-                      "Going into pregrasp for handled object (arm ~a,
-                      handle ~a)" arm handle)
-    (pregrasp-handled-object-with-relative-location
-     obj arm handle :constraint-aware constraint-aware)
+                      "Going into pregrasp for ~a handle(s)."
+                      pair-count)
+    (eval (let ((par-list nil))
+            (loop for itm in arms-handles-pairs
+                  for arm = (car itm)
+                  for handle = (cdr itm)
+                  do (push
+                      (list
+                       'pregrasp-handled-object-with-relative-location
+                       obj arm handle
+                       :constraint-aware constraint-aware) par-list))
+            (push 'cpl-impl::par par-list)
+            par-list))
     (roslisp:ros-info (pr2-manipulation-process-module)
-                      "Opening gripper")
-    (open-gripper arm :position (+ handle-radius 0.02))
+                      "Opening grippers for ~a arms." pair-count)
+    (eval (let ((par-list nil))
+            (loop for itm in arms-handles-pairs
+                  for arm = (car itm)
+                  for handle = (cdr itm)
+                  for radius = (or (desig-prop-value handle 'radius)
+                                   0.0)
+                  do (push
+                      (list
+                       'open-gripper arm :position (+ radius 0.02))
+                      par-list))
+            (push 'cpl-impl::par par-list)
+            par-list))
     (roslisp:ros-info (pr2-manipulation-process-module)
-                      "Going into grasp for handled object (arm ~a,
-                      handle ~a)" arm handle)
-    ;; NOTE(winkler): The grasp itself should not be
-    ;; constraint-aware as we are already near the object
-    ;; (no obstacles between gripper and object assumed)
-    ;; and we need to get real close to the object with the
-    ;; gripper. Having this function constraint-aware would
-    ;; break the grasping.
-    (grasp-handled-object-with-relative-location obj arm handle)
+                      "Going into grasp for ~a handle(s)."
+                      pair-count)
+    (eval (let ((par-list nil))
+            (loop for itm in arms-handles-pairs
+                  for arm = (car itm)
+                  for handle = (cdr itm)
+                  do (push
+                      (list
+                       'grasp-handled-object-with-relative-location
+                       obj arm handle
+                       :constraint-aware constraint-aware) par-list))
+            (push 'cpl-impl::par par-list)
+            par-list))
     (roslisp:ros-info (pr2-manipulation-process-module)
-                      "Closing gripper")
-    (close-gripper arm :position handle-radius)
-    (check-valid-gripper-state arm
-                               :min-position (- handle-radius 0.01)))
-  (roslisp:ros-info (pr2-manip process-module)
-                    "Attaching object to gripper")
-  (plan-knowledge:on-event
-   (make-instance
-    'plan-knowledge:object-attached
-    :object obj
-    :link (ecase arm
-            (:right "r_gripper_r_finger_tip_link")
-            (:left "l_gripper_r_finger_tip_link"))
-    :side arm)))
+                      "Closing grippers for ~a arms." pair-count)
+    (eval (let ((par-list nil))
+            (loop for itm in arms-handles-pairs
+                  for arm = (car itm)
+                  for handle = (cdr itm)
+                  for radius = (or (desig-prop-value handle 'radius)
+                                   0.0)
+                  do (push
+                      (list
+                       'close-gripper arm :position radius)
+                      par-list))
+            (push 'cpl-impl::par par-list)
+            par-list))
+    (eval (let ((par-list nil))
+            (loop for itm in arms-handles-pairs
+                  for arm = (car itm)
+                  for handle = (cdr itm)
+                  for radius = (or (desig-prop-value handle 'radius)
+                                   0.0)
+                  do (push
+                      (list
+                       'check-valid-gripper-state arm 
+                       :min-position (- radius 0.01))
+                      par-list))
+            (push 'cpl-impl::par par-list)
+            par-list))
+    (eval (let ((par-list nil))
+            (loop for itm in arms-handles-pairs
+                  for arm = (car itm)
+                  for handle = (cdr itm)
+                  do (push
+                      (list
+                       'plan-knowledge:on-event
+                       (make-instance
+                        'plan-knowledge:object-attached
+                        :object obj
+                        :link (ecase arm
+                                (:right "r_gripper_r_finger_tip_link")
+                                (:left "l_gripper_r_finger_tip_link"))
+                        :side arm))
+                      par-list))
+            (push 'cpl-impl::par par-list)
+            par-list))))
 
 (defun taxi-handled-object (obj side handle
                             &key (relative-gripper-pose
