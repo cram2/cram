@@ -103,12 +103,7 @@ objects)."
                  (push
                   (list
                    'close-gripper arm :position radius)
-                  close-gripper-list)
-                 (push
-                  (list
-                   'check-valid-gripper-state arm 
-                   :min-position (- radius 0.01))
-                  validity-check-list))
+                  close-gripper-list))
         (setf par-synced-list
               (append par-synced-list
                       (list
@@ -138,12 +133,16 @@ objects)."
                           (pr2-manipulation-process-module)
                           "Closing grippers for ~a arm(s)."
                           ,pair-count)))
-                      (list close-gripper-list)
-                      (list validity-check-list)))
+                      (list close-gripper-list)))
         (eval par-synced-list))))
   (loop for itm in arms-handles-pairs
         for arm = (car itm)
-        do (plan-knowledge:on-event
+        for handle = (cdr itm)
+        for radius = (or (desig-prop-value handle 'radius) 0.0)
+        do (check-valid-gripper-state arm 
+                                      :min-position
+                                      (- radius 0.01))
+           (plan-knowledge:on-event
             (make-instance
              'plan-knowledge:object-attached
              :object obj
