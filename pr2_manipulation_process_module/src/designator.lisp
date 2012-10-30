@@ -58,8 +58,18 @@
 
   (<- (holding-arms ?desig ?arms)
     (current-designator ?desig ?current-desig)
-    (-> (gripper-arms-in-desig ?current-desig ?arms)
-        (gripper-arms-in-belief ?current-desig ?arms)))
+    ;; NOTE(winkler): The order of these was changed. At the moment,
+    ;; we are checking for the holding arms in the belief state
+    ;; first. This is due to the fact that the belief state can
+    ;; currently handle multiple arms per object, which the designator
+    ;; can not. The designator has to be populated with multiple `in
+    ;; gripper' data sets, which includes refactoring of the
+    ;; `simple-belief::update-grasped-object-designator' and
+    ;; `grab-handled-object' functions. The current solution *works*
+    ;; but is not as elegant (and fail-proof) as it could be.
+    (gripper-arms-in-belief ?current-desig ?arms))
+    ;;(-> (gripper-arms-in-belief ?current-desig ?arms)
+    ;;    (gripper-arms-in-desig ?current-desig ?arms)))
 
   (<- (handled-obj-desig? ?designator)
     (obj-desig? ?designator)
