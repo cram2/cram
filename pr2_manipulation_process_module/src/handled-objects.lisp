@@ -80,8 +80,7 @@ objects)."
       (let ((pregrasp-list nil)
             (open-gripper-list nil)
             (grasp-list nil)
-            (close-gripper-list nil)
-            (validity-check-list nil))
+            (close-gripper-list nil))
         (loop for itm in arms-handles-pairs
               for arm = (car itm)
               for handle = (cdr itm)
