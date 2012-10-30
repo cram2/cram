@@ -91,7 +91,7 @@ objects)."
         (open-gripper (car arm-handle-pair)
                       :position (+ radius 0.02))))
     (roslisp:ros-info (pr2-manipulation-process-module)
-                      "Going into graspfor ~a arm(s)" pair-count)
+                      "Going into grasp for ~a arm(s)" pair-count)
     (par-loop (arm-handle-pair arms-handles-pairs)
       (grasp-handled-object-with-relative-location
        obj (car arm-handle-pair) (cdr arm-handle-pair)))
