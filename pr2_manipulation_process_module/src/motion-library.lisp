@@ -107,11 +107,15 @@ the object which is grasped with both arms at `distance' form the
 supporting plane"
   (cpl-impl:par
     (execute-arm-trajectory :left
-                            ;; Compute the lifting trajectory for the `left' arm.
-                            (get-lifting-grasped-object-arm-trajectory :left distance))
+                            ;; Compute the lifting trajectory for the
+                            ;; `left' arm.
+                            (get-lifting-grasped-object-arm-trajectory
+                             :left distance))
     (execute-arm-trajectory :right
-                            ;; Compute the lifting trajectory for the `right' arm.
-                            (get-lifting-grasped-object-arm-trajectory :right distance))))
+                            ;; Compute the lifting trajectory for the
+                            ;; `right' arm.
+                            (get-lifting-grasped-object-arm-trajectory
+                             :right distance))))
 
 (defun put-down-grasped-object-with-single-arm (obj location side obstacles)
   (roslisp:ros-info (pr2-manip process-module) "Putting down object single-handedly.")
