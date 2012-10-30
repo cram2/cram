@@ -124,11 +124,12 @@
   (force-ll arms)
   (cond ((eql (length arms) 1)
          (park-grasped-object-with-one-arm obj (first arms) obstacles))
+        ((eql (length arms) 2)
+         (park-grasped-object-with-two-arms obj arms obstacles))
         ((> (length arms) 1)
-         ;; TODO(Georg): implement this, possibly using stuff from
-         ;;  the single arm case
          (cpl-impl:fail 'manipulation-failed
-                         :format-control "Parking with several arms not implemented, yet."))
+                        :format-control
+                        "Parking with more than 2 arms not implemented."))
         (t (cpl-impl:fail 'manipulation-failed
                           :format-control "No arms for parking infered."))))
 
