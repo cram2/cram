@@ -403,6 +403,15 @@ finding a solution."
                 (cont result (lazy-cdr seeds))
                 (next (lazy-cdr seeds)))))))))
 
+(defun get-fk-current-state (arm
+                             &key target-links
+                               (frame-id "torso_lift_link"))
+  (roslisp:with-fields (name position)
+      (get-robot-state)
+    (get-fk name position arm
+            :target-links target-links
+            :frame-id frame-id)))
+
 (defun get-fk (names positions arm
                &key target-links (frame-id "torso_lift_link"))
   "Return the FK solution for the links `target-links' for a given
