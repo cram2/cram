@@ -97,7 +97,7 @@ objects)."
                  (push
                   (list
                    'grasp-handled-object-with-relative-location
-                   obj arm handle :constraint-aware constraint-aware)
+                   obj arm handle :constraint-aware nil)
                   grasp-list)
                  (push
                   (list
