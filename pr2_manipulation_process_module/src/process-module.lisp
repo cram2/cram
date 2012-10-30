@@ -141,8 +141,14 @@
   (force-ll arms)
   (cond ((eql (length arms) 1)
          (lift-grasped-object-with-one-arm (first arms) distance))
-        ;; TODO(Georg): the next cases is actually deprecated
-        ;; because it still relies on the :both arms setup
+        ;; TODO(Georg): the next cases is actually deprecated because
+        ;; it still relies on the :both arms setup
+        
+        ;; NOTE(winkler): Apparently it is replaced by a `(par'
+        ;; solution already. Nevertheless, it should be extended to be
+        ;; more general and support `n' arms when lifting (although we
+        ;; only have :left and :right on the PR2). This current
+        ;; solution works great, though.
         ((> (length arms) 1)
          (lift-grasped-object-with-both-arms distance))
         (t (cpl-impl:fail 'manipulation-failed
