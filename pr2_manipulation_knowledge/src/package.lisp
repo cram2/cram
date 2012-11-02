@@ -33,4 +33,4 @@
         #:crs #:desig #:semantic-map-cache)
   (:export get-semantic-map)
   (:desig-properties to grasp obj side put-down at open close handle
-                     in gripper pose z-offset lift distance name))
+                     in gripper pose z-offset lift distance name height))
