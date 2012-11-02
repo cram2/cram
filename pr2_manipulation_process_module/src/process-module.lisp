@@ -64,8 +64,8 @@
                                    "/r_arm_controller/joint_trajectory_generator"
                                    "pr2_controllers_msgs/JointTrajectoryAction"))
   (setf *trajectory-action-both* (actionlib:make-action-client
-                                   "/both_arms_controller/joint_trajectory_action"
-                                   "pr2_controllers_msgs/JointTrajectoryAction"))
+                                  "/both_arms_controller/joint_trajectory_action"
+                                  "pr2_controllers_msgs/JointTrajectoryAction"))
   (setf *trajectory-action-torso* (actionlib:make-action-client
                                    "/torso_controller/joint_trajectory_action"
                                    "pr2_controllers_msgs/JointTrajectoryAction"))
@@ -128,7 +128,7 @@
          ;; TODO(Georg): implement this, possibly using stuff from
          ;;  the single arm case
          (cpl-impl:fail 'manipulation-failed
-                         :format-control "Parking with several arms not implemented, yet."))
+                        :format-control "Parking with several arms not implemented, yet."))
         (t (cpl-impl:fail 'manipulation-failed
                           :format-control "No arms for parking infered."))))
 
@@ -146,7 +146,7 @@
         ((> (length arms) 1)
          (lift-grasped-object-with-both-arms distance))
         (t (cpl-impl:fail 'manipulation-failed
-                    :format-control "No arms for lifting infered."))))
+                          :format-control "No arms for lifting infered."))))
 
 (def-action-handler grasp-handles (obj handles arms obstacles)
   (assert (> (length arms) 0) ()
@@ -237,7 +237,6 @@ by `planners' until one succeeds."
                       (planner_id motion_plan_request) ""
                       (allowed_planning_time motion_plan_request) 5.0
                       (expected_path_duration motion_plan_request) 5.0
-
                       (position_constraints goal_constraints motion_plan_request)
                       (vector
                        (roslisp:make-msg
@@ -253,7 +252,6 @@ by `planners' until one succeeds."
                         (dimensions constraint_region_shape) #(0.01 0.01 0.01)
                         (w constraint_region_orientation) 1.0
                         weight 1.0))
-
                       (orientation_constraints goal_constraints motion_plan_request)
                       (vector
                        (roslisp:make-msg
@@ -267,12 +265,10 @@ by `planners' until one succeeds."
                         absolute_pitch_tolerance 0.01
                         absolute_yaw_tolerance 0.01
                         weight 1.0))
-
                       operations (make-collision-operations side (cons "\"attached\"" allowed-collision-objects))
                       disable_collision_monitoring t)
                     :result-timeout 4.0)
                  val)))))
-
     (case (reduce (lambda (result planner)
                     (declare (ignore result))
                     (let ((val (execute-action planner)))
@@ -345,7 +341,7 @@ by `planners' until one succeeds."
   (equate object-designator
           (desig:make-effective-designator
            object-designator :data-object (make-instance 'manipulated-perceived-object
-                                            :pose new-object-pose))))
+                                                         :pose new-object-pose))))
 
 (def-process-module pr2-manipulation-process-module (desig)
   (collision-environment-set-laser-period)
