@@ -1,4 +1,3 @@
-;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
@@ -25,12 +24,11 @@
 ;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
-;;;
 
 (in-package :cl-user)
 
 (desig-props:def-desig-package cram-plan-library
-    (:documentation "Library of plans for pick-and-place tasks.")
+  (:documentation "Library of plans for pick-and-place tasks.")
   (:use #:cpl
         #:cram-designators
         #:cram-utilities
@@ -73,4 +71,3 @@
                      #:follow #:pick-up #:put-down #:height #:orientation
                      #:in #:perceive #:obstacle #:cluster #:execute
                      #:action #:goal #:navigation))
-
