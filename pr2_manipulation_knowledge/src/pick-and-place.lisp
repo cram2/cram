@@ -67,10 +67,10 @@
     (desig:with-desig-props (desig-props:at) current-object
       (assert desig-props:at () "Object ~a needs to have an `at' property"
               current-object)
-      (desig:with-desig-props (in z-offset) at
+      (desig:with-desig-props (in height) at
         (assert (eq in 'gripper) ()
                 "Object ~a needs to be in the gripper" current-object)
-        (assert z-offset () "Object ~a needs to have a `height' property" current-object)
+        (assert height () "Object ~a needs to have a `height' property" current-object)
         (let* ((pose-in-gripper (find-designator-pose-in-link gripper-link at))
                (put-down-pose-in-fixed-frame  (tf:transform-pose
                                                cram-roslisp-common:*tf*
@@ -89,7 +89,7 @@
            (cl-transforms:transform*
             (cl-transforms:pose->transform put-down-pose)
             (cl-transforms:make-transform
-             (cl-transforms:make-3d-vector 0 0 desig-props:z-offset)
+             (cl-transforms:make-3d-vector 0 0 desig-props:height)
              (cl-transforms:make-identity-rotation))
             (cl-transforms:transform-inv
              (cl-transforms:transform*

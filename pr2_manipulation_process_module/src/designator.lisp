@@ -31,14 +31,14 @@
   (apply #'roslisp::make-message-fn type-str slots))
 
 (def-fact-group pr2-manipulation-designators (action-desig)
-  
+
   (<- (ros-message ?type ?slots ?msg)
     (lisp-fun make-message ?type ?slots ?msg))
 
   (<- (obstacles ?desig ?obstacles)
     (findall ?o (desig-prop ?desig (obstacle ?o))
              ?obstacles))
-  
+
   (<- (handles ?desig ?handles)
     (findall ?h (desig-prop ?desig (handle ?h))
              ?handles))
@@ -50,6 +50,11 @@
     (desig-prop ?obj-loc (gripper ?_))
     (findall ?g (desig-prop ?obj-loc (gripper ?g))
              ?arms))
+
+  (<- (gripper-in-desig ?desig ?grippers)
+    (current-designator ?desig ?current-desig)
+    (findall ?g (desig-prop ?current-desig (gripper ?g))
+             ?grippers))
 
   (<- (gripper-arms-in-belief ?desig ?arms)
     (current-designator ?desig ?current-desig)
@@ -103,15 +108,16 @@
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to close))
     (desig-prop ?desig (handle ?handle)))
-  
+
   ;; On the PR2 we don't need an open pose
   (<- (action-desig ?desig (noop ?desig))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (pose open)))
 
-  (<- (action-desig ?desig (park nil :right))
+  (<- (action-desig ?desig (park nil ?grippers))
     (trajectory-desig? ?desig)
-    (desig-prop ?desig (pose parked)))
+    (desig-prop ?desig (pose parked))
+    (gripper-in-desig ?desig ?grippers))
 
   (<- (action-desig ?desig (lift ?arms ?distance))
     (trajectory-desig? ?desig)
@@ -155,7 +161,7 @@
     (desig-prop ?obj (type ?object-type))
     (obstacles ?desig ?obstacles))
 
-  (<- (action-desig ?desig (put-down ?obj ?loc ?arms ?obstacles))
+  (<- (action-desig ?desig (put-down ?current-obj ?loc ?arms ?obstacles))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to put-down))
     (desig-prop ?desig (obj ?obj))
