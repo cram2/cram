@@ -51,6 +51,11 @@
     (findall ?g (desig-prop ?obj-loc (gripper ?g))
              ?grippers))
 
+  (<- (gripper-in-desig ?desig ?grippers)
+    (current-designator ?desig ?current-desig)
+    (findall ?g (desig-prop ?current-desig (gripper ?g))
+             ?grippers))
+
   (<- (gripper-arms-in-belief ?desig ?grippers)
     (current-designator ?desig ?current-desig)
     (findall ?g (object-in-hand ?current-desig ?g)
