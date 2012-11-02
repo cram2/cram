@@ -31,14 +31,14 @@
   (apply #'roslisp::make-message-fn type-str slots))
 
 (def-fact-group pr2-manipulation-designators (action-desig)
-  
+
   (<- (ros-message ?type ?slots ?msg)
     (lisp-fun make-message ?type ?slots ?msg))
 
   (<- (obstacles ?desig ?obstacles)
     (findall ?o (desig-prop ?desig (obstacle ?o))
              ?obstacles))
-  
+
   (<- (handles ?desig ?handles)
     (findall ?h (desig-prop ?desig (handle ?h))
              ?handles))
@@ -122,15 +122,16 @@
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to close))
     (desig-prop ?desig (handle ?handle)))
-  
+
   ;; On the PR2 we don't need an open pose
   (<- (action-desig ?desig (noop ?desig))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (pose open)))
 
-  (<- (action-desig ?desig (park nil :right))
+  (<- (action-desig ?desig (park nil ?grippers))
     (trajectory-desig? ?desig)
-    (desig-prop ?desig (pose parked)))
+    (desig-prop ?desig (pose parked))
+    (gripper-in-desig ?desig ?grippers))
 
   (<- (action-desig ?desig (lift ?grippers ?distance))
     ;; NOTE(Georg): we're blurring the distinction
@@ -176,7 +177,7 @@
     (desig-prop ?obj (type ?object-type))
     (obstacles ?desig ?obstacles))
 
-  (<- (action-desig ?desig (put-down ?obj ?loc ?grippers ?obstacles))
+  (<- (action-desig ?desig (put-down ?current-obj ?loc ?grippers ?obstacles))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to put-down))
     (desig-prop ?desig (obj ?obj))
