@@ -120,7 +120,7 @@
            (with-vars-bound (?visible-objects)
                (lazy-car (prolog `(and (bullet-world ?w)
                                        (robot ?robot)
-                                       (camera-frame ?camera)
+                                       (camera-frame ?robot ?camera)
                                        (link-pose ?w ?robot ?camera ?camera-pose)
                                        (setof ?obj (and (object-type ?obj household-object)
                                                         (visible ?w ?camera-pose ?obj))

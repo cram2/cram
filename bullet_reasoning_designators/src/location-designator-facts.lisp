@@ -153,7 +153,7 @@
   (<- (desig-check-to-see ?desig ?robot-pose)
     (bullet-world ?w)
     (robot ?robot)
-    (camera-frame ?cam-frame)
+    (camera-frame ?robot ?cam-frame)
     (desig-location-prop ?desig ?obj-pose)
     (assert (object-pose ?w ?robot ?robot-pose))
     (not (contact ?w ?robot ?_))
