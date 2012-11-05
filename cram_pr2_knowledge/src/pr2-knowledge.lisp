@@ -68,8 +68,8 @@
 
 (def-fact-group robot-metadata (end-effector-link)
   (<- (robot pr2))
-  (<- (camera-frame "openni_rgb_optical_frame"))
-  (<- (camera-frame "narrow_stereo_optical_frame"))
+  (<- (camera-frame pr2 "openni_rgb_optical_frame"))
+  (<- (camera-frame pr2 "narrow_stereo_optical_frame"))
   (<- (camera-minimal-height 1.27))
   (<- (camera-maximal-height 1.60))
   (<- (robot-pan-tilt-links "head_pan_link" "head_tilt_link"))

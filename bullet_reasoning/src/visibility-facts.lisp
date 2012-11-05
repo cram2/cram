@@ -33,7 +33,7 @@
   (<- (visible ?world ?robot ?object)
     (bullet-world ?world)
     (robot ?robot)
-    (camera-frame ?camera-frame)
+    (camera-frame ?robot ?camera-frame)
     (link-pose ?robot ?camera-frame ?camera-pose)
     (visible-from ?world ?camera-pose ?object))
   
