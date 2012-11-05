@@ -90,9 +90,9 @@
   
   (<- (%blocking ?w ?robot-name ?obj-name ?side ?objs)
     (ground (?w ?robot-name))
-    (%object ?w ?robot-name ?robot)
-    (%object ?w ?obj-name ?obj)
     (with-copied-world ?w
+      (%object ?w ?robot-name ?robot)
+      (%object ?w ?obj-name ?obj)
       (setof
        ?o
        (and
