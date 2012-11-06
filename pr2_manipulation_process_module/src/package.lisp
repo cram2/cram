@@ -46,5 +46,5 @@
                      #:grasp #:put-down #:pose #:parked #:lift
                      #:carry #:at #:orientation #:in #:gripper #:both-grippers
                      #:height #:distance #:obstacle #:handle #:name
-                     #:goal #:navigation #:grasped-by #:radius #:pot #:shape #:collision-part
+                     #:goal #:navigation #:grasped-by #:radius #:pot #:shape #:collision-part #:park
                      #:cylinder #:length))
