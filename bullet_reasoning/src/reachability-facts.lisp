@@ -40,21 +40,22 @@
   (<- (reachable ?w ?robot-name ?obj-name)
     (once (reachable ?w ?robot-name ?obj-name ?_)))
 
-  (<- (reachable ?w ?robot-name ?obj-name ?side)
+  (<- (reachable ?w ?robot-name ?obj-name ?arms)
     (bullet-world ?w)
+    (robot ?robot-name)
     (%object ?w ?robot-name ?robot)
     (lisp-type ?robot robot-object)
     (%object ?w ?obj-name ?obj)
     (with-copied-world ?w
+      (setof ?sides (valid-grasp ?w ?obj-name ?_ ?sides)
+             ?all-possible-arms)
+      (member ?arms ?all-possible-arms)
       (once
+       (valid-grasp ?w ?obj-name ?grasp ?arms)
        (robot-pre-grasp-joint-states ?pre-grasp-joint-states)
        (assert (joint-state ?w ?robot-name ?pre-grasp-joint-states))
-       (valid-grasp ?w ?obj-name ?grasp ?sides)
-       ;; Since forall doesn't fail if its cond fails, we verify its
-       ;; validity first.
-       (once (member ?side ?sides))
-       (forall (member ?side ?sides)
-               (lisp-pred object-reachable-p ?robot ?obj :side ?side :grasp ?grasp)))))
+       (forall (member ?arm ?arms)
+               (lisp-pred object-reachable-p ?robot ?obj :side ?arm :grasp ?grasp)))))
 
   (<- (point-reachable ?world ?robot-name ?point ?side)
     (bullet-world ?world)
