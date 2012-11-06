@@ -51,11 +51,6 @@
     (findall ?g (desig-prop ?obj-loc (gripper ?g))
              ?grippers))
 
-  (<- (gripper-in-desig ?desig ?grippers)
-    (current-designator ?desig ?current-desig)
-    (findall ?g (desig-prop ?current-desig (gripper ?g))
-             ?grippers))
-
   (<- (gripper-arms-in-belief ?desig ?grippers)
     (current-designator ?desig ?current-desig)
     (findall ?g (object-in-hand ?current-desig ?g)
@@ -130,8 +125,9 @@
 
   (<- (action-desig ?desig (park nil ?grippers))
     (trajectory-desig? ?desig)
-    (desig-prop ?desig (pose parked))
-    (gripper-in-desig ?desig ?grippers))
+    (desig-prop ?desig (to park))
+    (desig-prop ?desig (obj ?obj))
+    (gripper-arms-in-desig ?obj ?grippers))
 
   (<- (action-desig ?desig (lift ?grippers ?distance))
     ;; NOTE(Georg): we're blurring the distinction
@@ -194,7 +190,7 @@
         (desig-prop ?designator (to put-down))
         (desig-prop ?designator (to open))
         (desig-prop ?designator (to close))
-        (desig-prop ?designator (pose parked))
+        (desig-prop ?designator (to park))
         (desig-prop ?designator (pose open))        
         (desig-prop ?designator (to lift))
         (desig-prop ?designator (to carry))))
