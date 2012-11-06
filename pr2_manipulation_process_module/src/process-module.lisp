@@ -124,9 +124,9 @@
   (force-ll arms)
   (cond ((eql (length arms) 1)
          (park-grasped-object-with-one-arm obj (first arms) obstacles))
+        ((eql (length arms) 2)
+         (park-grasped-object-with-two-arms obj arms obstacles))
         ((> (length arms) 1)
-         ;; TODO(Georg): implement this, possibly using stuff from
-         ;;  the single arm case
          (cpl-impl:fail 'manipulation-failed
                         :format-control "Parking with several arms not implemented, yet."))
         (t (cpl-impl:fail 'manipulation-failed
@@ -141,24 +141,28 @@
   (force-ll arms)
   (cond ((eql (length arms) 1)
          (lift-grasped-object-with-one-arm (first arms) distance))
-        ;; TODO(Georg): the next cases is actually deprecated
-        ;; because it still relies on the :both arms setup
+        ;; TODO(Georg): the next cases is actually deprecated because
+        ;; it still relies on the :both arms setup
+        
+        ;; NOTE(winkler): Apparently it is replaced by a `(par'
+        ;; solution already. Nevertheless, it should be extended to be
+        ;; more general and support `n' arms when lifting (although we
+        ;; only have :left and :right on the PR2). This current
+        ;; solution works great, though.
         ((> (length arms) 1)
          (lift-grasped-object-with-both-arms distance))
         (t (cpl-impl:fail 'manipulation-failed
                           :format-control "No arms for lifting infered."))))
 
-(def-action-handler grasp-handles (obj handles arms obstacles)
-  (assert (> (length arms) 0) ()
-          "No arms specified in `grasp-handles'.")
-  (assert (> (length handles) 0) ()
-          "No handles specified in `grasp-handles'.")
-  (let ((arm (first arms))
-        (handle (first handles)))
-    (roslisp:ros-info (pr2-manip-pm grasp-handles)
-                      "Calling grasp-handled-object-constraint-aware with arm: ~a." arm)
-    (grab-handled-object-constraint-aware obj handle arm obstacles
-                                          :obj-as-obstacle t)))
+(def-action-handler grasp-handles (obj arms-handles obstacles)
+  (assert (> (length arms-handles) 0) ()
+          "No arms/handles combinations have been specified in
+          `grasp-handles'.")
+  (roslisp:ros-info (pr2-manip-pm grasp-handles)
+                    "Calling grasp-handled-object-constraint-aware
+                      with ~a arms." (length arms-handles))
+  (grab-handled-object-constraint-aware obj arms-handles obstacles
+                                        :obj-as-obstacle t))
 
 (def-action-handler grasp (object-type obj side obstacles)
   "Selects and calls the appropriate grasping functionality based on

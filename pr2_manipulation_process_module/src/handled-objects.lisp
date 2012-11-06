@@ -32,63 +32,90 @@
    (tf:make-3d-vector 0.20 0.0 0.0)
    (tf:euler->quaternion :az pi :ax (/ pi 2)))
   "Specifies the gripper pose relative to the respective handle
-  coordinate system (including it's origin and rotation) when going
-  into pregrasp.")
+coordinate system (including it's origin and rotation) when going into
+pregrasp.")
 (defparameter *handle-grasp-offset-pose*
   (tf:make-pose
    (tf:make-3d-vector 0.135 0.0 0.0)
    (tf:euler->quaternion :az pi :ax (/ pi 2)))
   "Specifies the gripper pose relative to the respective handle
-  coordinate system (including it's origin and rotation) when going
-  into grasp.")
+coordinate system (including it's origin and rotation) when going into
+grasp.")
 
-(defun grab-handled-object-constraint-aware (obj handle arm obstacles
+(defmacro par-loop ((var sequence) &body body)
+  "Executes body in parallel for each `var' in `sequence'."
+  (alexandria:with-gensyms (loop-body evaluated-sequence)
+    `(labels ((,loop-body (,evaluated-sequence)
+                (cpl:par
+                  (let ((,var (car ,evaluated-sequence)))
+                    (cpl:seq ,@body))
+                  (when (cdr ,evaluated-sequence)
+                    (,loop-body (cdr ,evaluated-sequence))))))
+       (,loop-body ,sequence))))
+
+(defun grab-handled-object-constraint-aware (obj arms-handles-pairs obstacles
                                              &key obj-as-obstacle)
   (clear-collision-objects)
   (dolist (obstacle (cut:force-ll obstacles))
     (register-collision-object obstacle))
   (when obj-as-obstacle
     (register-collision-object obj))
-  (grab-handled-object obj handle arm :constraint-aware t))
+  (grab-handled-object obj arms-handles-pairs :constraint-aware t))
 
-(defun grab-handled-object (obj handle arm &key constraint-aware)
-  (assert arm () "No arm side specified in `grab-handled-object'.")
-  (assert handle () "No handle specified in `grab-handled-object'.")
-  (let ((handle-radius (or (desig-prop-value handle 'radius)
-                           0.0)))
+(defun grab-handled-object (obj arms-handles-pairs
+                            &key constraint-aware)
+  "Grasps an object `obj' on its designated handles with the chosen
+robot arm sides, both specified in `arms-handles-pairs'. The grippers
+will go into a pregrasp pose (relatively defined by
+`*handle-pregrasp-offset-pose*' w.r.t. the absolute position of the
+handle), will open and move into a grasp pose (relatively defined by
+`*handle-grasp-offset-pose*' w.r.t. the absolute position of the
+handle). Afterwards, the grippers are closed (until they reach the
+opening position defined by the `radius' property of the handle
+objects)."
+  (let ((pair-count (length arms-handles-pairs)))
+    (assert (> pair-count 0) ()
+            "No arm/handle pairs specified in `grab-handled-object'.")
     (roslisp:ros-info (pr2-manipulation-process-module)
-                      "Going into pregrasp for handled object (arm ~a,
-                      handle ~a)" arm handle)
-    (pregrasp-handled-object-with-relative-location
-     obj arm handle :constraint-aware constraint-aware)
+                      "Going into pregrasp for ~a arm(s)" pair-count)
+    (par-loop (arm-handle-pair arms-handles-pairs)
+      (pregrasp-handled-object-with-relative-location
+       obj (car arm-handle-pair) (cdr arm-handle-pair)
+       :constraint-aware constraint-aware))
     (roslisp:ros-info (pr2-manipulation-process-module)
-                      "Opening gripper")
-    (open-gripper arm :position (+ handle-radius 0.02))
+                      "Opening gripper(s) for ~a arm(s)" pair-count)
+    (par-loop (arm-handle-pair arms-handles-pairs)
+      (let* ((handle (cdr arm-handle-pair))
+             (radius (or (desig-prop-value handle 'radius)
+                         0.0)))
+        (open-gripper (car arm-handle-pair)
+                      :position (+ radius 0.02))))
     (roslisp:ros-info (pr2-manipulation-process-module)
-                      "Going into grasp for handled object (arm ~a,
-                      handle ~a)" arm handle)
-               ;; NOTE(winkler): The grasp itself should not be
-               ;; constraint-aware as we are already near the object
-               ;; (no obstacles between gripper and object assumed)
-               ;; and we need to get real close to the object with the
-               ;; gripper. Having this function constraint-aware would
-               ;; break the grasping.
-    (grasp-handled-object-with-relative-location
-     obj arm handle)
+                      "Going into grasp for ~a arm(s)" pair-count)
+    (par-loop (arm-handle-pair arms-handles-pairs)
+      (grasp-handled-object-with-relative-location
+       obj (car arm-handle-pair) (cdr arm-handle-pair)))
     (roslisp:ros-info (pr2-manipulation-process-module)
-                      "Closing gripper")
-    (close-gripper arm :position handle-radius)
-    (check-valid-gripper-state arm
-                               :min-position (- handle-radius 0.01)))
-  (roslisp:ros-info (pr2-manip process-module) "Attaching object to gripper")
-  (plan-knowledge:on-event
-   (make-instance
-    'plan-knowledge:object-attached
-    :object obj
-    :link (ecase arm
-            (:right "r_gripper_r_finger_tip_link")
-            (:left "l_gripper_r_finger_tip_link"))
-    :side arm)))
+                      "Closing gripper(s) for ~a arm(s)" pair-count)
+    (par-loop (arm-handle-pair arms-handles-pairs)
+      (let* ((handle (cdr arm-handle-pair))
+             (radius (or (desig-prop-value handle 'radius)
+                         0.0)))
+        (close-gripper (car arm-handle-pair)
+                       :position radius)))
+    (loop for (arm . handle) in arms-handles-pairs
+          for radius = (or (desig-prop-value handle 'radius) 0.0)
+          do (check-valid-gripper-state arm
+                                        :min-position
+                                        (- radius 0.01))
+             (plan-knowledge:on-event
+              (make-instance
+               'plan-knowledge:object-attached
+               :object obj
+               :link (ecase arm
+                       (:right "r_gripper_r_finger_tip_link")
+                       (:left "l_gripper_r_finger_tip_link"))
+               :side arm)))))
 
 (defun taxi-handled-object (obj side handle
                             &key (relative-gripper-pose
@@ -182,10 +209,13 @@ reach them, as well as the respective distances for each."
             do (push (cons handle arm-distances) distances))
     distances))
 
-(defun arm-handle-distances (obj handle arms &key
-                                               (pregrasp-offset (tf:make-identity-pose))
-                                               (grasp-offset (tf:make-identity-pose))
-                                               constraint-aware)
+(defun arm-handle-distances (obj handle arms
+                             &key
+                               (pregrasp-offset
+                                (tf:make-identity-pose))
+                               (grasp-offset
+                                (tf:make-identity-pose))
+                               constraint-aware)
   "Calculates the distances for each arm given in the `arms' list with
 respect to the handle `handle'. Only arms that can actually reach the
 handle are included. The resulting list consists of entries of the
@@ -230,7 +260,7 @@ could reach the handle, `NIL' is returned."
           when nearer-side
             do (setf nearest-side nearer-side)
                (setf nearest-handle handle-data))
-    (list nearest-side (car nearest-handle))))
+    (cons nearest-side (car nearest-handle))))
 
 (defun nearest-side-on-handle (handle)
   "Returns a list of the format `(nearest-side lowest-distance)' or
@@ -275,7 +305,110 @@ as saved in the respective handle variable is returned. If it is not,
           (dist-in-question
            side-in-question))))
 
-(defun fail-on-no-nearest-handle (handle)
-  (unless handle
+(defun fail-on-no-nearest-handle (arm-handle)
+  (unless arm-handle
     (cpl:fail 'manipulation-pose-unreachable))
   t)
+
+(defun optimal-handle-assignment (avail-arms avail-handles min-handles
+                                  &key max-handles)
+  "Finds the assignment solution of arms to handles on a handles
+object based in the available arms list `avail-arms', the reachable
+handles list `avail-handles' (which is a handle-evaluation including
+the `cost' to reach the respective handle with each gripper in reach)
+and the minimum amount of handles to be used. The optional parameter
+`max-handles' can be set to limit the solutions to those which use at
+most that many handles/arms. The function returns a list of cons
+cells, containint the identifier of the respective arm as `car' and
+the handle to grasp with it as `cdr' element."
+  (roslisp:ros-info (pr2-manipulation-process-module)
+                    "Calculating optimal arm/handle combination for grasp.")
+  (when (and (>= (length avail-arms) min-handles)
+             (>= (length avail-handles) min-handles))
+    (let* ((cheapest-assignment nil)
+           (current-lowest-cost nil)
+           (assignment-tree (assign-handles-tree avail-arms avail-handles 0))
+           (assignment-lists (assign-handles-tree->list assignment-tree)))
+      (loop for assignment-list in assignment-lists
+            for assignment = (car assignment-list)
+            for assign-count = (length assignment)
+            for obj-value = (cdr assignment-list)
+            when (and (or (not max-handles)
+                          (<= assign-count max-handles))
+                      (or (not current-lowest-cost)
+                          (< obj-value current-lowest-cost)))
+              do (setf cheapest-assignment assignment)
+                 (setf current-lowest-cost obj-value))
+      cheapest-assignment)))
+
+(defun assign-handles-tree->list (assignment-tree)
+  "This function onverts a handle-assignment tree into an appropriate
+list which contains all paths of the tree, plus the respective cost
+value of the last link (which represents the cosy for the whole
+path). A list of lists of these assignments is returned."
+  (let ((assignment-lists nil))
+    (loop for branch in assignment-tree
+          for current-assignment = (cdr (assoc :assignment branch))
+          for current-arm-handle = (cons (first current-assignment)
+                                         (second current-assignment))
+          for current-obj-value = (cdr (assoc :obj-value branch))
+          for next-assignments-tree = (cdr (assoc :next-assignments branch))
+          for next-assignments-list = (assign-handles-tree->list
+                                       next-assignments-tree)
+          do (cond (next-assignments-tree
+                    (push
+                     (first
+                      (mapcar (lambda (x)
+                                (let ((xcar (car x))
+                                      (xcdr (cdr x)))
+                                  (cons (push current-arm-handle xcar) xcdr)))
+                              next-assignments-list))
+                     assignment-lists))
+                   (t
+                    (push (cons (list current-arm-handle) current-obj-value)
+                          assignment-lists))))
+    assignment-lists))
+
+(defun assign-handles-tree (avail-arms avail-handles current-objective-value)
+  "Recursive function that builds a tree of all possible grasp
+solutions using the available arms `avail-arms' on the available
+handles `avail-handles'. The `current-objective-value' keeps track of
+the objective value calculated for the current path up to the current
+parent node. It is initially zero."
+  (let ((assignments nil))
+    (when (> (length avail-arms) 0)
+      (loop for handle in avail-handles
+            do (loop for arm in avail-arms
+                     for handle-reachable-by-arm = (eq
+                                                    (not
+                                                     (position
+                                                      arm
+                                                      (cdr handle)
+                                                      :test
+                                                      (lambda
+                                                          (test-arm test-he)
+                                                        (eq test-arm
+                                                            (car test-he)))))
+                                                    nil)
+                     for handle-objective-value = (or
+                                                   (cdr
+                                                    (assoc
+                                                     "without-offset"
+                                                     (cdr (assoc arm
+                                                                 (cdr handle)))
+                                                     :test 'equal))
+                                                   0)
+                     for combined-objective-value = (+ current-objective-value
+                                                       handle-objective-value)
+                     when handle-reachable-by-arm
+                       do (push
+                           (list
+                            (cons :assignment (cons arm handle))
+                            (cons :obj-value combined-objective-value)
+                            (cons :next-assignments
+                                  (assign-handles-tree
+                                   (remove arm avail-arms)
+                                   (remove handle avail-handles)
+                                   combined-objective-value)))
+                           assignments))))
+    assignments))
