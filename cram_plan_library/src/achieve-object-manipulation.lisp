@@ -64,9 +64,7 @@
 
 (def-goal (achieve (object-placed-at ?obj ?loc))
   (ros-info (achieve plan-lib) "(achieve (object-placed-at))")
-  (let* ((obj (current-desig ?obj))
-         (obj-loc (desig-prop-value obj 'at))
-         (gripper-in-loc (desig-prop-value obj-loc 'gripper)))
+  (let ((obj (current-desig ?obj)))
     (assert (holds `(object-in-hand ,obj)) ()
             "The object `~a' needs to be in the hand before being able to place it." obj)
     (with-retry-counters ((goal-pose-retries 3)
@@ -88,7 +86,7 @@
                (retry-with-updated-location ?loc (next-solution ?loc)))))
         (with-designators ((put-down-trajectory (action `((type trajectory) (to put-down)
                                                           (obj ,obj) (at ,?loc))))
-                           (park-trajectory (action `((type trajectory) (pose parked) (gripper ,gripper-in-loc))))
+                           (park-trajectory (action `((type trajectory) (to park) (obj ,obj))))
                            (put-down-loc (location `((to execute) (action ,put-down-trajectory)
                                                      (action ,park-trajectory)))))
           (with-failure-handling
@@ -104,6 +102,6 @@
           (perform park-trajectory))))))
 
 (def-goal (achieve (arms-parked))
-  (with-designators ((parking (action `((type trajectory) (pose parked)))))
+  (with-designators ((parking (action `((type trajectory) (to park)))))
     (perform parking)))
 
