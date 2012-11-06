@@ -107,11 +107,15 @@ the object which is grasped with both arms at `distance' form the
 supporting plane"
   (cpl-impl:par
     (execute-arm-trajectory :left
-                            ;; Compute the lifting trajectory for the `left' arm.
-                            (get-lifting-grasped-object-arm-trajectory :left distance))
+                            ;; Compute the lifting trajectory for the
+                            ;; `left' arm.
+                            (get-lifting-grasped-object-arm-trajectory
+                             :left distance))
     (execute-arm-trajectory :right
-                            ;; Compute the lifting trajectory for the `right' arm.
-                            (get-lifting-grasped-object-arm-trajectory :right distance))))
+                            ;; Compute the lifting trajectory for the
+                            ;; `right' arm.
+                            (get-lifting-grasped-object-arm-trajectory
+                             :right distance))))
 
 (defun put-down-grasped-object-with-single-arm (obj location side obstacles)
   (roslisp:ros-info (pr2-manip process-module) "Putting down object single-handedly.") 
@@ -752,6 +756,65 @@ will be commanded."
         (execute-move-arm-pose side carry-pose
                                :allowed-collision-objects (list "\"all\"")))
     (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))))
+
+(defun park-grasped-object-with-two-arms (obj side &optional obstacles)
+  "Moves the object which was grasped with two arms into a position in
+front of the torso, keeping original gripper distance and
+orientation. The center point between the two grippers is positioned
+directly in front of `torso_lift_link'."
+  (declare (ignore obj side))
+  (when obstacles
+    (clear-collision-objects)
+    (dolist (obstacle (cut:force-ll obstacles))
+      (register-collision-object obstacle)))
+  (let* ((r-solution (get-fk-current-state :right
+                                           :target-links
+                                           (vector "r_wrist_roll_link")))
+         (r-pose-stamped (cdr (first r-solution)))
+         (l-solution (get-fk-current-state :left
+                                           :target-links
+                                           (vector "l_wrist_roll_link")))
+         (l-pose-stamped (cdr (first l-solution)))
+         (c-target-pose-stamped (tf:make-pose-stamped
+                                 (tf:frame-id r-pose-stamped)
+                                 (tf:stamp r-pose-stamped)
+                                 (tf:make-3d-vector 0.5 0.0 0.0)
+                                 (tf:make-identity-rotation)))
+         ;; NOTE(winkler): This function assumes that all grasped
+         ;; handles are on the same z-level. If they are not, the
+         ;; object will be rotated until the two grippers are on the
+         ;; same z-level. This could potentially cause problems while
+         ;; putting it down, but at the moment we don't need to care
+         ;; much about it. Once the z-level differs, the exact x- and
+         ;; y-distance between the grippers with respect to correct
+         ;; object-rotation needs to be taken into account. So, this
+         ;; function is subject to changes in the future as necessary
+         ;; and as problems arise.
+         (dist (tf:v-dist (tf:origin r-pose-stamped)
+                          (tf:origin l-pose-stamped)))
+         (r-new-pose (tf:make-pose-stamped
+                      (tf:frame-id r-pose-stamped)
+                      (tf:stamp r-pose-stamped)
+                      (tf:v+ (tf:origin c-target-pose-stamped)
+                             (tf:make-3d-vector
+                              0.0 (- (/ dist 2)) 0.0))
+                      (tf:orientation r-pose-stamped)))
+         (l-new-pose (tf:make-pose-stamped
+                      (tf:frame-id l-pose-stamped)
+                      (tf:stamp l-pose-stamped)
+                      (tf:v+ (tf:origin c-target-pose-stamped)
+                             (tf:make-3d-vector
+                              0.0 (/ dist 2) 0.0))
+                      (tf:orientation l-pose-stamped)))
+         (l-ik (get-ik :left l-new-pose))
+         (r-ik (get-ik :right r-new-pose)))
+    (unless (and l-ik r-ik)
+      (cpl-impl:fail 'manipulation-failed
+                     :format-control
+                     "Parking with 2 arms failed due to invalid IK solution(s)"))
+    (cpl:par
+      (execute-arm-trajectory :left (ik->trajectory (first l-ik)))
+      (execute-arm-trajectory :right (ik->trajectory (first r-ik))))))
 
 (defun shrug-arms ()
   "Moves the arms in an upper side-ways position so that they don't
