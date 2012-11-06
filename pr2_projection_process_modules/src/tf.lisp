@@ -38,17 +38,21 @@
                          (%object ?world ?robot ?robot-instance)
                          (pose ?world ?robot ?robot-pose))))
     (assert (not (cut:is-var ?robot-instance)))
-    (bullet-reasoning:set-tf-from-robot-state *tf* ?robot-instance)
     (tf:set-transform
-     *tf* (tf:make-stamped-transform
-           odom-frame base-frame (roslisp:ros-time)
-           (cl-transforms:origin ?robot-pose)
-           (cl-transforms:orientation ?robot-pose)))
+     *tf*
+     (tf:make-stamped-transform
+      odom-frame base-frame (roslisp:ros-time)
+      (cl-transforms:origin ?robot-pose)
+      (cl-transforms:orientation ?robot-pose))
+     :suppress-callbacks t)
     (tf:set-transform
-     *tf* (tf:make-stamped-transform
-           map-frame odom-frame (roslisp:ros-time)
-           (cl-transforms:make-identity-vector)
-           (cl-transforms:make-identity-rotation)))))
+     *tf*
+     (tf:make-stamped-transform
+      map-frame odom-frame (roslisp:ros-time)
+      (cl-transforms:make-identity-vector)
+      (cl-transforms:make-identity-rotation))
+     :suppress-callbacks t)
+    (bullet-reasoning:set-tf-from-robot-state *tf* ?robot-instance)))
 
 (defmethod cram-plan-knowledge:on-event update-tf
     ((event cram-plan-knowledge:robot-state-changed))
