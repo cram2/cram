@@ -80,14 +80,18 @@
        (assert (joint-state ?w ?robot-name ?pre-grasp-joint-states))
        (lisp-pred pose-reachable-p ?robot ?pose :side ?side))))
 
-  (<- (blocking ?w ?robot-name ?obj-name ?blocking-names)
-    (blocking ?w ?robot-name ?obj-name ?_ ?blocking-names))
+  (<- (blocking ?w ?robot ?object ?blocking-object)
+    (setof ?b
+           (blocking ?w ?robot ?object ?_ ?b)
+           ?blocking-objects)
+    (member ?blocking-object ?blocking-objects))
 
-  (<- (blocking ?w ?robot-name ?obj-name ?side ?blocking-names)
+  (<- (blocking ?w ?robot ?object ?arm ?blocking-object)
     (bullet-world ?w)
-    (%blocking ?w ?robot-name ?obj-name ?side ?blocking)
-    (findall ?b (and (member ?b ?blocking))
-             ?blocking-names))
+    (robot ?robot)
+    (side ?arm)
+    (%blocking ?w ?robot ?object ?arm ?blocking-objects)
+    (member ?blocking-object ?blocking-objects))
   
   (<- (%blocking ?w ?robot-name ?obj-name ?side ?objs)
     (ground (?w ?robot-name))
