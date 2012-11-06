@@ -86,7 +86,7 @@
                (retry-with-updated-location ?loc (next-solution ?loc)))))
         (with-designators ((put-down-trajectory (action `((type trajectory) (to put-down)
                                                           (obj ,obj) (at ,?loc))))
-                           (park-trajectory (action `((type trajectory) (pose parked))))
+                           (park-trajectory (action `((type trajectory) (to park) (obj ,obj))))
                            (put-down-loc (location `((to execute) (action ,put-down-trajectory)
                                                      (action ,park-trajectory)))))
           (with-failure-handling
@@ -102,6 +102,6 @@
           (perform park-trajectory))))))
 
 (def-goal (achieve (arms-parked))
-  (with-designators ((parking (action `((type trajectory) (pose parked)))))
+  (with-designators ((parking (action `((type trajectory) (to park)))))
     (perform parking)))
 
