@@ -70,4 +70,4 @@
                      #:location #:at #:parked #:pose #:close #:gripper
                      #:follow #:pick-up #:put-down #:height #:orientation
                      #:in #:perceive #:obstacle #:cluster #:execute
-                     #:action #:goal #:navigation))
+                     #:action #:goal #:navigation #:park))
