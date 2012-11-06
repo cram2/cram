@@ -36,15 +36,15 @@
                              (action `((type trajectory)
                                        ,@(typecase ?pose
                                            (symbol
-                                              (ecase ?pose
-                                                (:forward
-                                                   `((to see)
-                                                     (pose ,(tf:make-pose-stamped
-                                                             "/base_link" 0.0
-                                                             (cl-transforms:make-3d-vector
-                                                              3.0 0.0 1.5)
-                                                             (cl-transforms:make-quaternion
-                                                              0.0 0.0 0.0 1.0)))))))
+                                            (ecase ?pose
+                                              (:forward
+                                               `((to see)
+                                                 (pose ,(tf:make-pose-stamped
+                                                         "/base_link" 0.0
+                                                         (cl-transforms:make-3d-vector
+                                                          3.0 0.0 1.5)
+                                                         (cl-transforms:make-quaternion
+                                                          0.0 0.0 0.0 1.0)))))))
                                            (t `((to follow) (pose ,?pose))))))))
            (prog1 (perform look-at-desig)
              (ros-info (achieve plan-lib) "Look at done~%"))))))
