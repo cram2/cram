@@ -1,1 +1,1 @@
-/home/eris/ros/workspace/cram_highlevel/spatial_relations_costmap/spatial-relations-costmap.asd
+../spatial-relations-costmap.asd
