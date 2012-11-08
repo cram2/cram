@@ -4,7 +4,7 @@
      spatial_relations_costmap
 
   </description>
-  <author></author>
+  <author>Gayane Kazhoyan</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/spatial_relations_costmap</url>
