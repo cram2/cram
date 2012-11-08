@@ -59,6 +59,7 @@
            calculate-object-visibility object-visible-p
            occluding-objects simulate find-objects contact-p
            find-all-contacts find-objects-in-contact poses-equal-p
+           object-pose-different
            stable-p above-p find-objects-above below-p
            find-objects-below bullet-world object
            retract step simulate-realtime object-pose object-bottom-pose

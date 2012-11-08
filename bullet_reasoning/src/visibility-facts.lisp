@@ -33,7 +33,7 @@
   (<- (visible ?world ?robot ?object)
     (bullet-world ?world)
     (robot ?robot)
-    (camera-frame ?camera-frame)
+    (camera-frame ?robot ?camera-frame)
     (link-pose ?robot ?camera-frame ?camera-pose)
     (visible-from ?world ?camera-pose ?object))
   
@@ -45,6 +45,7 @@
 
   (<- (occluding-objects ?world ?camera-pose ?obj-name ?occluding-names)
     (bound ?camera-pose)
+    (instance-of cl-transforms:pose ?camera-pose)
     (bullet-world ?world)
     (%object ?world ?obj-name ?obj)
     (lisp-fun occluding-objects ?world ?camera-pose ?obj ?objs)
@@ -52,6 +53,12 @@
                             (%object ?world ?occ-name ?occ))
              ?occluding-names))
 
-  (<- (occluding-object ?world ?camera-pose ?obj ?occluding-obj)
-    (occluding-objects ?world ?camera-pose ?obj ?objs)
+  (<- (occluding-objects ?world ?robot ?obj-name ?occluding-names)
+    (robot ?robot)
+    (camera-frame ?robot ?camera-frame)
+    (link-pose ?robot ?camera-frame ?camera-pose)
+    (occluding-objects ?world ?camera-pose ?obj-name ?occluding-names))
+
+  (<- (occluding-object ?world ?camera-or-robot ?obj ?occluding-obj)
+    (occluding-objects ?world ?camera-or-robot ?obj ?objs)
     (member ?occluding-obj ?objs)))
