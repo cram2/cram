@@ -32,7 +32,6 @@
     
     :depends-on (semantic-map-costmap
                  occupancy-grid-costmap
-                 perception-process-module
                  cram-roslisp-common
                  cram-plan-knowledge
                  bullet-reasoning
@@ -44,9 +43,4 @@
     :components
     ((:module "src"
               :components
-              ((:file "designator-config")
-               ;; (:module "executive-integration"
-               ;;  :components
-               ;;  ((:file "perception")
-               ;;   (:file "perception-facts")))
-               ))))
+              ((:file "designator-config")))))
