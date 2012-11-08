@@ -148,6 +148,8 @@
          (supported-by-link-obj ?world ?ref-obj-name ?link-obj)
          (lisp-fun sem-map-utils:pose ?link-obj ?supp-obj-pose)
          (lisp-fun sem-map-utils:dimensions ?link-obj ?supp-obj-dims)
+         ;; TODO(moesenle) make this more generic, i.e. not specific
+         ;; for the kitchen island.
          (kitchen-island-z ?supp-obj-z)
          (desig-location-prop ?ref-obj-name ?ref-obj-pose)
          (lisp-fun alexandria:rcurry supporting-obj-alligned-direction
