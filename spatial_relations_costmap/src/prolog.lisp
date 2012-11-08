@@ -145,7 +145,6 @@
     (costmap ?costmap)
     (-> (orientation-matters ?obj-name)
         (and
-         (format "~a: orientation matters~%" ?obj-name)
          (supported-by-link-obj ?world ?ref-obj-name ?link-obj)
          (lisp-fun sem-map-utils:pose ?link-obj ?supp-obj-pose)
          (lisp-fun sem-map-utils:dimensions ?link-obj ?supp-obj-dims)
@@ -358,9 +357,7 @@
     (lisp-fun - ?obj-size ?handle-size ?size))
 
   (<- (supported-by-link-obj ?world ?obj-name ?link-obj)
-    ;; (format "support for ~a?~%" ?obj-name)
     (supported-by ?world ?obj-name ?supp-obj-name ?supp-obj-link-name)
-    ;; (format "~a has support: ~a~%" ?obj-name ?supp-obj-link-name)
     (%object ?world ?supp-obj-name ?supp-obj)
     (lisp-fun get-sem-map-part ?supp-obj ?supp-obj-link-name ?link-obj)
     (lisp-pred identity ?link-obj)))

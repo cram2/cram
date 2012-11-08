@@ -214,8 +214,6 @@
            (type cl-transforms:3d-vector supp-obj-dims)
            (type boolean ref-obj-dependent))
   (let* ((pose (cond (ref-obj-dependent
-                      (unless ref-obj-pose
-                        (format t "In supporting-obj-alligned-dir: ref-obj-pose is NIL~%"))
                       ref-obj-pose)
                      (t (cl-transforms:make-pose
                          (cl-transforms:make-3d-vector x y supp-obj-z)

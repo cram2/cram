@@ -62,8 +62,6 @@
                                  (bullet-world ?w)
                                  (object-instance-name ,for-prop-value ?obj-name)
                                  (object-costmap-threshold ?w ?obj-name ?threshold))))
-                    (format t "validate: costmap-val = ~a; thresold = ~a~%"
-                            costmap-value ?threshold)
                     (sb-ext:gc :full t)
                     (if (is-var ?threshold)
                         :accept
