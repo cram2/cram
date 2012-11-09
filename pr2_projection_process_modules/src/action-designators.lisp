@@ -124,7 +124,7 @@
   (<- (action-desig-projection ?desig (execute-park ?sides ?objects-in-hand))
     (trajectory-desig? ?desig)
     (or
-     (desig-prop ?desig (pose parked))
+     (desig-prop ?desig (to park))
      (desig-prop ?desig (to carry)))
     (-> (desig-prop ?desig (side ?side))
         (== ?sides ?side)
