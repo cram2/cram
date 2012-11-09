@@ -122,7 +122,9 @@
   (roslisp:ros-info (pr2-manip process-module) "Park arms ~a ~a"
                     obj arms)
   (force-ll arms)
-  (cond ((eql (length arms) 1)
+  (cond ((not arms)
+         (shrug-arms))
+        ((eql (length arms) 1)
          (park-grasped-object-with-one-arm obj (first arms) obstacles))
         ((eql (length arms) 2)
          (park-grasped-object-with-two-arms obj arms obstacles))

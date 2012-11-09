@@ -115,6 +115,10 @@
     (desig-prop ?desig (obj ?obj))
     (gripper-arms-in-desig ?obj ?grippers))
 
+  (<- (action-desig ?desig (park nil nil))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to park)))
+
   (<- (action-desig ?desig (lift ?arms ?distance))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to lift))
