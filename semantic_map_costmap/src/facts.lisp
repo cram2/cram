@@ -74,21 +74,32 @@
      (make-semantic-map-height-function ?objects :in)
      ?cm))  
 
-  (<- (desig-costmap ?desig ?cm)
-    (or (desig-prop ?desig (to see))
-        (desig-prop ?desig (to reach)))
-    (costmap ?cm)
-    (semantic-map-objects ?objects)
-    (costmap-padding ?padding)    
-    (costmap-add-function semantic-map-free-space
-                          (make-semantic-map-costmap
-                           ?objects :invert t :padding ?padding)
-                          ?cm)
-    ;; Locations to see and to reach are on the floor, so we can use a
-    ;; constant height of 0
-    (costmap-add-cached-height-generator
-     (make-constant-height-function 0.0)
-     ?cm))
+  ;; NOTE(winkler): This predicate does not work currently. The
+  ;; function `make-semantic-map-costmap' seems to return empty free
+  ;; space regions. This in turn breaks the `at-location' macro,
+  ;; resulting in infinite loops when trying to reach a generated base
+  ;; position. It is commented out for the sake of using the other
+  ;; features of semantic costmaps (i.e. location resolutions on
+  ;; tables, etc.). It has to be debugged, finding out why it does not
+  ;; work. When the fake map server node is running, that information
+  ;; is used for location generation, resulting in the same location
+  ;; generation for simple scenarios.
+
+  ;; (<- (desig-costmap ?desig ?cm)
+  ;;   (or (desig-prop ?desig (to see))
+  ;;       (desig-prop ?desig (to reach)))
+  ;;   (costmap ?cm)
+  ;;   (semantic-map-objects ?objects)
+  ;;   (costmap-padding ?padding)    
+  ;;   (costmap-add-function semantic-map-free-space
+  ;;                         (make-semantic-map-costmap
+  ;;                          ?objects :invert t :padding ?padding)
+  ;;                         ?cm)
+  ;;   ;; Locations to see and to reach are on the floor, so we can use a
+  ;;   ;; constant height of 0
+  ;;   (costmap-add-cached-height-generator
+  ;;    (make-constant-height-function 0.0)
+  ;;    ?cm))
 
   ;; The desig-z-value and supporting-z-value predicates are sort of
   ;; an evil hack. At the moment they are used by grasping to infer
