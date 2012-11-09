@@ -155,7 +155,9 @@ sensor_msgs/JointStates message."
           (tf:set-transform tf (tf:make-stamped-transform
                                 base-frame link time
                                 (cl-transforms:translation transform)
-                                (cl-transforms:rotation transform))))))))
+                                (cl-transforms:rotation transform))
+                            :suppress-callbacks t))))
+    (tf:execute-changed-callbacks tf)))
 
 (defun make-seed-states (robot joint-names &optional (steps 3))
   "Returns a sequence of possible seed states. The first seed state is

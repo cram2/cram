@@ -12,7 +12,6 @@
   <depend package="bullet_reasoning_designators" />
   <depend package="semantic_map_costmap" />
   <depend package="occupancy_grid_costmap" />
-  <depend package="perception_process_module" />
   <depend package="cram_roslisp_common" />
   <depend package="cram_plan_knowledge" />
   <depend package="pr2_manipulation_knowledge" />

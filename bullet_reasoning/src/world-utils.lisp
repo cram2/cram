@@ -30,7 +30,7 @@
 
 (in-package :btr)
 
-(defparameter *bb-comparison-validity-threshold* 0.003d0
+(defparameter *bb-comparison-validity-threshold* 0.005d0
   "Used in COMPARE-BOUNDING-BOX-VALUES")
 
 (defun simulate (world secs &optional (dt 0.1) realtime)

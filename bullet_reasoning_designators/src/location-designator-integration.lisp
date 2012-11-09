@@ -143,4 +143,6 @@ that `designator' tries to reach."
 (defun validate-designator-solution (desig pose)
   (cut:with-vars-bound (?checks)
       (cut:lazy-car (prolog `(btr-desig-solution-valid ,desig ,pose ?checks)))
-    (if ?checks :accept :unknown)))
+    (cond ((is-var ?checks) :reject)
+          ((eq ?checks nil) :unknown)
+          (t :accept))))

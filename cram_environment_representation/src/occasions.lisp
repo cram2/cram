@@ -55,7 +55,10 @@
     (desig:obj-desig? object)
     (object-designator-name ?object ?object-name)
     (object-at-location ?_ ?object-name ?location))
-  
+
+  (<- (looking-at ?location)
+    (fail))
+
   (<- (holds ?occasion)
     (call ?occasion)))
 

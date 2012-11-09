@@ -115,11 +115,14 @@
 
 (defun get-supporting-object-bounding-box (object-name)
   (with-vars-bound (?supporting-name ?supporting-link)
-      (lazy-car (prolog `(supported-by ?_ ,object-name ?supporting-name ?supporting-link)))
-    (unless (or (is-var ?supporting-name) (is-var ?supporting-link))
-      (aabb (gethash
-             ?supporting-link
-             (links (object *current-bullet-world* ?supporting-name)))))))
+      (lazy-car (prolog `(or (supported-by ?_ ,object-name ?supporting-name ?supporting-link)
+                             (supported-by ?_ ,object-name ?supporting-name))))
+    (unless (is-var ?supporting-name)
+      (if (is-var ?supporting-link)
+          (aabb (object *current-bullet-world* ?supporting-name))
+          (aabb (gethash
+                 ?supporting-link
+                 (links (object *current-bullet-world* ?supporting-name))))))))
 
 (defun make-object-location (object-name)
   (let ((object (object *current-bullet-world* object-name)))
