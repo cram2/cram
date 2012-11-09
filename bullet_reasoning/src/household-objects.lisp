@@ -35,7 +35,9 @@
                              (mondamin "package://bullet_reasoning/resource/mondamin.stl" nil)
                              (pot "package://bullet_reasoning/resource/pot-ww.stl" nil)
                              (weisswurst "package://bullet_reasoning/resource/ww.stl" nil)
-                             (bowl "package://bullet_reasoning/resource/bowl.stl" nil)))
+                             (bowl "package://bullet_reasoning/resource/bowl.stl" nil)
+                             (fork "package://bullet_reasoning/resource/fork.stl" nil)
+                             (knife "package://bullet_reasoning/resource/knife.stl" nil)))
 
 (defclass household-object (object)
   ((types :reader household-object-types :initarg :types)))

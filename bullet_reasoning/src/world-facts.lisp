@@ -60,21 +60,27 @@
     ;; The world ?obj belongs to
     (get-slot-value ?obj world ?world))
 
-  (<- (assert (object ?world ?object-type ?name ?pose . ?_))
+  (<- (assert ?world (object ?object-type ?name ?pose . ?_))
     (object ?world ?name)
     (pose ?world ?p . ?pose)
     (assert (object-pose ?world ?name ?p)))
   
-  (<- (assert (object ?world ?object-type ?name ?pose . ?args))
+  (<- (assert ?world (object ?object-type ?name ?pose . ?args))
     (not (object ?world ?name))
     (lisp-fun apply add-object
               ?world ?object-type
               ?name ?pose ?args
               ?_))
 
-  (<- (retract (object ?world ?name))
+  (<- (assert (object ?world ?object-type ?name ?pose . ?args))
+    (assert ?world (object ?object-type ?name ?pose . ?args)))
+
+  (<- (retract ?world (object ?name))
     (bullet-world ?world)
     (lisp-fun remove-object ?world ?name ?_))
+
+  (<- (retract (object ?world ?name))
+    (retract ?world (object ?name)))
 
   (<- (object ?world ?name)
     (bullet-world ?world)
@@ -191,22 +197,28 @@
 
   (<- (stable ?world ?obj-name)
     (bullet-world ?world)
-    (%object ?world ?obj-name ?obj)
-    (%pose ?obj ?pose-1)
-    (with-copied-world ?world
-      (simulate ?world 5)
-      ;; checking for active-tag does not always work and requires
-      ;; pretty long simlation times. Additionally some bodies are
-      ;; just very unstable and never get deactivated, e.g. cylinders.
-      ;;
-      ;; (lisp-pred stable-p ?obj)
-      (%pose ?obj ?pose-2))
-    (poses-equal ?pose-1 ?pose-2 (0.005 0.015)))
+    (copied-world ?world ?copy)
+    (simulate ?copy 5)
+    (object ?world ?obj-name)
+    (not (object-pose-different ?world ?copy ?obj-name)))
 
   (<- (stable ?world)
     (bullet-world ?world)
-    (forall (object ?world ?_ ?o)
-            (stable ?world ?o)))
+    (copied-world ?world ?copy)
+    (simulate ?copy 5)
+    (forall (object ?world ?object)
+            (not (object-pose-different ?world ?copy ?object))))
+
+  (<- (object-pose-different ?world-1 ?world-2 ?object)
+    (bound ?world-1)
+    (bound ?world-2)
+    (bullet-world ?world-1)
+    (bullet-world ?world-2)
+    (%object ?world-1 ?object ?object-instance-1)
+    (%pose ?object-instance-1 ?pose-1)
+    (%object ?world-2 ?object ?object-instance-2)
+    (%pose ?object-instance-2 ?pose-2)
+    (not (poses-equal ?pose-1 ?pose-2 (0.005 0.015))))
 
   (<- (supported-by ?world ?top ?bottom)
     (bullet-world ?world)

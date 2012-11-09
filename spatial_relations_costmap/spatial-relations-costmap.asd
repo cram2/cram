@@ -1,4 +1,4 @@
-;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2012, Gayane Kazhoyan <kazhoyan@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -26,34 +26,31 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :projection-process-modules)
-
-(defun update-tf (&key (base-frame "base_footprint")
-                    (odom-frame "odom_combined")
-                    (map-frame designators-ros:*fixed-frame*))
-  (cut:with-vars-bound (?robot-instance ?robot-pose)
-      (cut:lazy-car
-       (crs:prolog `(and (robot ?robot)
-                         (bullet-world ?world)
-                         (%object ?world ?robot ?robot-instance)
-                         (pose ?world ?robot ?robot-pose))))
-    (assert (not (cut:is-var ?robot-instance)))
-    (tf:set-transform
-     *tf*
-     (tf:make-stamped-transform
-      odom-frame base-frame (roslisp:ros-time)
-      (cl-transforms:origin ?robot-pose)
-      (cl-transforms:orientation ?robot-pose))
-     :suppress-callbacks t)
-    (tf:set-transform
-     *tf*
-     (tf:make-stamped-transform
-      map-frame odom-frame (roslisp:ros-time)
-      (cl-transforms:make-identity-vector)
-      (cl-transforms:make-identity-rotation))
-     :suppress-callbacks t)
-    (bullet-reasoning:set-tf-from-robot-state *tf* ?robot-instance)))
-
-(defmethod cram-plan-knowledge:on-event update-tf
-    ((event cram-plan-knowledge:robot-state-changed))
-  (update-tf))
+(defsystem spatial-relations-costmap
+  :author "eris"
+  :license "BSD"
+  
+  :depends-on (designators
+               cram-roslisp-common
+               location-costmap
+               cram-reasoning
+               roslisp
+               semantic-map-costmap
+               bullet-reasoning
+               cram-pr2-knowledge
+               cram-environment-representation
+               projection-process-modules
+               occupancy-grid-costmap
+               cram-plan-knowledge
+               bullet-reasoning-designators
+               pr2-manipulation-knowledge
+               object-location-designators)
+  :components
+  ((:module "src"
+    :components
+    ((:file "package")
+     (:file "designator-integration" :depends-on ("package"))
+     (:file "cost-functions" :depends-on ("package"))
+     (:file "prolog" :depends-on ("package"))
+     (:file "build-test-world" :depends-on ("package"))
+     (:file "knowledge" :depends-on ("package"))))))
