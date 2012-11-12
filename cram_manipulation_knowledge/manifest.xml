@@ -10,5 +10,9 @@
   <url>http://ros.org/wiki/cram_manipulation_knowledge</url>
   <depend package="cram_reasoning" />
   <depend package="cram_utilities" />
+  <depend package="cram_designators" />
+  <depend package="cram_physics_utils" />
   <depend package="cl_transforms" />
+  <depend package="arm_navigation_msgs" />
+  <depend package="roslisp" />
 </package>
