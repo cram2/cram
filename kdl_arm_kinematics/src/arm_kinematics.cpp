@@ -540,7 +540,7 @@ bool Kinematics::getPositionFK(kinematics_msgs::GetPositionFK::Request &request,
         tf_listener.transformPose(request.header.frame_id,tf_pose,tf_pose);
       } catch (...) {
         ROS_ERROR("Could not transform FK pose to frame: %s",request.header.frame_id.c_str());
-        response.error_code.val = response.error_code.FRAME_TRANSFORM_FAILURE;
+        response.error_code.val = arm_navigation_msgs::ArmNavigationErrorCodes::FRAME_TRANSFORM_FAILURE;
         return false;
       }
       tf::poseStampedTFToMsg(tf_pose,pose);
@@ -549,7 +549,7 @@ bool Kinematics::getPositionFK(kinematics_msgs::GetPositionFK::Request &request,
       response.error_code.val = response.error_code.SUCCESS;
     } else {
       ROS_ERROR("Could not compute FK for %s",request.fk_link_names[i].c_str());
-      response.error_code.val = response.error_code.NO_FK_SOLUTION;
+      response.error_code.val = arm_navigation_msgs::ArmNavigationErrorCodes::NO_FK_SOLUTION;
     }
   }
   return true;
