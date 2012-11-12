@@ -82,7 +82,7 @@ as a vector. "
         (joint-state *joint-state*))
     (roslisp:with-fields ((joint-names (joint_names kinematic_solver_info))
                           (limits (limits kinematic_solver_info)))
-      (cpl-impl:without-scheduling
+        (cpl-impl:without-scheduling
           (roslisp:call-service
            (concatenate
             'string
@@ -109,31 +109,34 @@ maximum. E.g 3 means that minimum, (mimimum + maximum) / 2 and maximum
 are used for each joint."
   (multiple-value-bind (names current lower-limits upper-limits)
       (get-arm-state side)
-    (lazy-mapcar (lambda (joint-states)
-                   (roslisp:make-msg
-                    "sensor_msgs/JointState"
-                    (stamp header) 0
-                    name names
-                    position (reverse
-                              (map 'vector #'identity joint-states))
-                    velocity (make-array (length names)
-                                         :element-type 'float
-                                         :initial-element 0.0)
-                    effort (make-array (length names)
-                                       :element-type 'float
-                                       :initial-element 0.0)))
-                 (apply #'lazy-cross-product
-                        (reverse
-                         (loop for name across names collecting
-                                                     (if (seq-member name joint-names)
-                                                         (cons (gethash name current)
-                                                               (loop for i from 0 below steps collecting
-                                                                                              (+ (gethash name lower-limits)
-                                                                                                 (* (- steps i 1)
-                                                                                                    (/ (- (gethash name upper-limits)
-                                                                                                          (gethash name lower-limits))
-                                                                                                       (- steps 1))))))
-                                                         (list (gethash name current)))))))))
+    (lazy-mapcar
+     (lambda (joint-states)
+       (roslisp:make-msg
+        "sensor_msgs/JointState"
+        (stamp header) 0
+        name names
+        position (reverse
+                  (map 'vector #'identity joint-states))
+        velocity (make-array (length names)
+                             :element-type 'float
+                             :initial-element 0.0)
+        effort (make-array (length names)
+                           :element-type 'float
+                           :initial-element 0.0)))
+     (apply
+      #'lazy-cross-product
+      (reverse
+       (loop for name across names collecting
+                                   (if (seq-member name joint-names)
+                                       (cons
+                                        (gethash name current)
+                                        (loop for i from 0 below steps collecting
+                                                                       (+ (gethash name lower-limits)
+                                                                          (* (- steps i 1)
+                                                                             (/ (- (gethash name upper-limits)
+                                                                                   (gethash name lower-limits))
+                                                                                (- steps 1))))))
+                                       (list (gethash name current)))))))))
 
 (defun ik->trajectory (ik-result &key (duration 5.0) (stamp (roslisp:ros-time)))
   (declare (type (or kinematics_msgs-srv:getpositionik-response
@@ -258,24 +261,27 @@ method merges a number of trajectories, all for the same joints."
                                     (roslisp:make-message
                                      "trajectory_msgs/JointTrajectoryPoint"
                                      positions positions
-                                     velocities (map 'vector #'identity
-                                                     (make-list (length joint-names)
-                                                                :initial-element velocity))
-                                     accelerations (map 'vector #'identity
-                                                        (make-list (length joint-names)
-                                                                   :initial-element 0.0))
+                                     velocities
+                                     (map 'vector #'identity
+                                          (make-list (length joint-names)
+                                                     :initial-element velocity))
+                                     accelerations
+                                     (map 'vector #'identity
+                                          (make-list (length joint-names)
+                                                     :initial-element 0.0))
                                      time_from_start current-time)
                                     (roslisp:make-message
                                      "trajectory_msgs/JointTrajectoryPoint"
                                      positions positions
-                                     velocities (map 'vector #'identity
-                                                     (make-list (length joint-names)
-                                                                :initial-element 0.0))
-                                     accelerations (map 'vector #'identity
-                                                        (make-list (length joint-names)
-                                                                   :initial-element 0.0))
-                                     time_from_start current-time))
-                              )))
+                                     velocities
+                                     (map 'vector #'identity
+                                          (make-list (length joint-names)
+                                                     :initial-element 0.0))
+                                     accelerations
+                                     (map 'vector #'identity
+                                          (make-list (length joint-names)
+                                                     :initial-element 0.0))
+                                     time_from_start current-time)))))
                         (concatenate 'vector points-1 points-2))))
              (cdr trajectories)))))
       trajectory))
@@ -318,42 +324,49 @@ points."
            :format-control "The number of trajectory points differs."))
         (roslisp:make-msg
          "trajectory_msgs/JointTrajectory"
-         (stamp header) (or
-                         timestamp
-                         (when (eql stamp-1 stamp-2)
-                           stamp-1)
-                         (error
-                          'simple-error
-                          :format-control
-                          "Cannot combine trajectories. Timestamps not equal. ~a != ~a"
-                          :format-arguments (list stamp-1 stamp-2)))
+         (stamp header)
+         (or
+          timestamp
+          (when (eql stamp-1 stamp-2)
+            stamp-1)
+          (error
+           'simple-error
+           :format-control
+           "Cannot combine trajectories. Timestamps not equal. ~a != ~a"
+           :format-arguments (list stamp-1 stamp-2)))
          joint_names (concatenate 'vector joint-names-1 joint-names-2)
-         points (map 'vector (lambda (point-1 point-2 time-from-start)
-                               (roslisp:with-fields ((positions-1 positions)
-                                                     (velocities-1 velocities)
-                                                     (accelerations-1 accelerations)
-                                                     (time-from-start-1 time_from_start))
-                                   point-1
-                                 (roslisp:with-fields ((positions-2 positions)
-                                                       (velocities-2 velocities)
-                                                       (accelerations-2 accelerations)
-                                                       (time-from-start-2 time_from_start))
-                                     point-2
-                                   (roslisp:make-message
-                                    "trajectory_msgs/JointTrajectoryPoint"
-                                    positions (concatenate 'vector positions-1 positions-2)
-                                    velocities (concatenate 'vector velocities-1 velocities-2)
-                                    accelerations (concatenate 'vector accelerations-1 accelerations-2)
-                                    time_from_start
-                                    (or time-from-start
-                                        (when (eql time-from-start-1 time-from-start-2)
-                                          time-from-start-1)
-                                        (error
-                                         'simple-error
-                                         :format-control "time_from_start slots don't match for points ~a and ~a."
-                                         :format-arguments (list point-1 point-2)))))))
-                     points-1 points-2 (or times-from-start
-                                           (make-list (length points-1) :initial-element nil))))))))
+         points
+         (map 'vector (lambda (point-1 point-2 time-from-start)
+                        (roslisp:with-fields ((positions-1 positions)
+                                              (velocities-1 velocities)
+                                              (accelerations-1 accelerations)
+                                              (time-from-start-1
+                                               time_from_start))
+                            point-1
+                          (roslisp:with-fields ((positions-2 positions)
+                                                (velocities-2 velocities)
+                                                (accelerations-2 accelerations)
+                                                (time-from-start-2
+                                                 time_from_start))
+                              point-2
+                            (roslisp:make-message
+                             "trajectory_msgs/JointTrajectoryPoint"
+                             positions (concatenate 'vector positions-1
+                                                    positions-2)
+                             velocities (concatenate 'vector velocities-1
+                                                     velocities-2)
+                             accelerations (concatenate 'vector accelerations-1
+                                                        accelerations-2)
+                             time_from_start
+                             (or time-from-start
+                                 (when (eql time-from-start-1 time-from-start-2)
+                                   time-from-start-1)
+                                 (error
+                                  'simple-error
+                                  :format-control "time_from_start slots don't match for points ~a and ~a."
+                                  :format-arguments (list point-1 point-2)))))))
+              points-1 points-2 (or times-from-start
+                                    (make-list (length points-1) :initial-element nil))))))))
 
 (defun get-ik (side pose &key
                (tool (cl-transforms:make-pose
