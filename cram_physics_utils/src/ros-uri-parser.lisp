@@ -1,4 +1,5 @@
-;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;;
+;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -25,15 +26,22 @@
 ;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
+;;;
 
-(in-package :cl-user)
+(in-package :physics-utils)
 
-(defpackage cram-manipulation-knowledge
-  (:use #:common-lisp #:cram-reasoning)
-  (:export trajectory-point arm required-arms available-arms
-           def-grasp def-tool get-grasp get-grasps calculate-bounding-box-tool-length
-           get-tool-direction-vector get-tool-length get-tool-vector calculate-tool
-           object-type-grasp object-designator-grasp object-type-tool-length
-           object-designator-tool-length end-effector-link orientation-matters
-           get-grasp-names object-shape-data-mixin object-mesh-data-mixin
-           object-point-data-mixin get-shape-message))
+(defun parse-uri (uri)
+  (let ((uri-package-prefix "package://"))
+    (cond ((equal (subseq uri 0 (length uri-package-prefix))
+                  uri-package-prefix)
+           (let* ((uri-sans-prefix (subseq uri (length uri-package-prefix)))
+                  (package-name (subseq uri-sans-prefix 0
+                                        (position #\/ uri-sans-prefix)))
+                  (package-path (car (ros-load:rospack "find" package-name))))
+             (when package-path
+               (pathname
+                (concatenate
+                 'string
+                 package-path "/"
+                 (subseq uri-sans-prefix (position #\/ uri-sans-prefix)))))))
+          (t (pathname uri)))))

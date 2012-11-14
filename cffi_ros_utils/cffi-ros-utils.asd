@@ -1,4 +1,5 @@
-;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;;
+;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -25,15 +26,15 @@
 ;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
+;;;
 
-(in-package :cl-user)
+(defsystem cffi-ros-utils
+  :author "Lorenz Moesenlechner <moesenle@in.tum.de>"
+  :license "BSD"
 
-(defpackage cram-manipulation-knowledge
-  (:use #:common-lisp #:cram-reasoning)
-  (:export trajectory-point arm required-arms available-arms
-           def-grasp def-tool get-grasp get-grasps calculate-bounding-box-tool-length
-           get-tool-direction-vector get-tool-length get-tool-vector calculate-tool
-           object-type-grasp object-designator-grasp object-type-tool-length
-           object-designator-tool-length end-effector-link orientation-matters
-           get-grasp-names object-shape-data-mixin object-mesh-data-mixin
-           object-point-data-mixin get-shape-message))
+  :depends-on (cffi cffi-grovel ros-load-manifest split-sequence)
+  :components
+  ((:module "src"
+            :components
+            ((:file "package")
+             (:file "ros-libraries" :depends-on ("package"))))))

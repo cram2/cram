@@ -1,4 +1,5 @@
-;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;;
+;;; Copyright (c) 2011, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -25,15 +26,24 @@
 ;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
+;;;
 
-(in-package :cl-user)
+(in-package :physics-utils)
 
-(defpackage cram-manipulation-knowledge
-  (:use #:common-lisp #:cram-reasoning)
-  (:export trajectory-point arm required-arms available-arms
-           def-grasp def-tool get-grasp get-grasps calculate-bounding-box-tool-length
-           get-tool-direction-vector get-tool-length get-tool-vector calculate-tool
-           object-type-grasp object-designator-grasp object-type-tool-length
-           object-designator-tool-length end-effector-link orientation-matters
-           get-grasp-names object-shape-data-mixin object-mesh-data-mixin
-           object-point-data-mixin get-shape-message))
+(defgeneric calculate-mass (shape &key density &allow-other-keys)
+  (:documentation "Returns the mass of the shape by using `density' to
+  calculate it")
+  (:method ((shape (eql :sphere)) &key (density 1000) radius)
+    (* density (/ 4 3) pi (* radius radius radius)))
+  (:method ((shape (eql :box)) &key (density 1000)
+                               size-x size-y size-z)
+    (* density size-x size-y size-z))
+  (:method ((shape (eql :cylinder)) &key (density 1000)
+                                      radius height)
+    (* density radius radius pi height))
+  (:method ((shape (eql :mesh)) &key (density 1000) points)
+    (let ((aabb (calculate-aabb points)))
+      (calculate-mass :box :density density
+                      :size-x (cl-transforms:x aabb)
+                      :size-y (cl-transforms:y aabb)
+                      :size-z (cl-transforms:z aabb)))))

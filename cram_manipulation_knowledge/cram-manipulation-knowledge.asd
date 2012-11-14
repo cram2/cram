@@ -32,7 +32,13 @@
   :description "Definitions for manipulating objects, including
   available grasps, trajectories etc."
   
-  :depends-on (cram-reasoning cram-utilities cl-transforms)
+  :depends-on (cram-reasoning
+               cram-utilities
+               physics-utils
+               cl-transforms
+               designators
+               roslisp
+               arm_navigation_msgs-msg)
   :components
   ((:module "src"
     :components
@@ -40,4 +46,5 @@
      (:file "grasps" :depends-on ("package"))
      (:file "trajectories" :depends-on ("package"))
      (:file "arms" :depends-on ("package"))
-     (:file "objects" :depends-on ("package"))))))
+     (:file "objects" :depends-on ("package"))
+     (:file "object-designator-extensions" :depends-on ("package"))))))
