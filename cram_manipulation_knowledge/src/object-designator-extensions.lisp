@@ -58,7 +58,7 @@
   (:documentation "Returns an instance of arm_navigation_msgs/Shape
   representing the object referenced by OBJECT-DESIGNATOR-DATA or NIL
   if no shape can be generated.")
-  (:method ((data desig:object-designator-data))
+  (:method ((data t))
     nil)
 
   (:method ((data object-shape-data-mixin))
