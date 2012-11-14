@@ -286,7 +286,16 @@
         (setf upper (read-number upper-str))))
     limits))
 
-(defun parse-urdf (xml-string)
-  (let ((xml (s-xml:parse-xml (make-string-input-stream xml-string)
-                              :output-type :xml-struct)))
-    (parse-xml-node (s-xml:xml-element-name xml) xml)))
+(defgeneric parse-urdf (identifier)
+  (:documentation "Parses a URDF file and returns the corresponding
+  Lisp representation. `identifier' can either be a pathname pointing
+  to a URDF file, a stream or a string that contains the complete XML
+  description.")
+  (:method ((identifier stream))
+    (let ((xml (s-xml:parse-xml identifier :output-type :xml-struct)))
+      (parse-xml-node (s-xml:xml-element-name xml) xml)))
+  (:method ((identifier string))
+    (parse-urdf (make-string-input-stream identifier)))
+  (:method ((identifier pathname))
+    (with-open-file (stream identifier :direction :input)
+      (parse-urdf stream))))
