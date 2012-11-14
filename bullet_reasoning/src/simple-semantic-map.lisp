@@ -34,17 +34,17 @@
                                        &key (collision-group :default-filter)
                                          (collision-mask :all-filter)
                                          (pose (cl-transforms:make-identity-pose)))
-  (with-slots (semantic-map) semantic-map-object
-    (initialize-rigid-bodies
-     semantic-map-object
-     (loop for part in (sem-map-utils:semantic-map-parts
-                        semantic-map :recursive t)
-           for body = (semantic-map-part-ridig-body
-                       part
-                       :pose pose
-                       :collision-group collision-group
-                       :collision-mask collision-mask)
-           when body collect body))))
+  (with-slots (pose-reference-body semantic-map) semantic-map-object
+    (let ((bodies (loop for part in (sem-map-utils:semantic-map-parts
+                                     semantic-map :recursive t)
+                        for body = (semantic-map-part-ridig-body
+                                    part
+                                    :pose pose
+                                    :collision-group collision-group
+                                    :collision-mask collision-mask)
+                        when body collect body)))
+      (initialize-rigid-bodies semantic-map-object bodies)
+      (setf pose-reference-body (car bodies)))))
 
 (defgeneric semantic-map-part-ridig-body (part &key pose collision-group collision-mask)
   (:documentation "Returns a rigid body for the semantic map part `part'.")
