@@ -96,58 +96,33 @@
               (apply #'cl-transforms:make-3d-vector
                      (map 'list #'identity dimensions)))))))))
 
-(defun register-collision-object (designator &key (padding -1))
+(defun register-collision-object (designator &key (padding 0))
   "Registers the object referenced by `designator' in the collision
 environment. To actually add the object to the collision environment,
 at least one `collision-part' has to be specified in the object
 designator."
   (declare (type object-designator designator))
-  (when (desig-prop-values designator 'collision-part)
-    (let* ((obj-pose-stamped (designator-pose designator))
-           (obj-trans (tf:pose->transform obj-pose-stamped))
-           (collision-parts (desig-prop-values designator 'collision-part))
-           (collision-shape-msgs
-             (map 'vector 'identity
-                  (mapcar (lambda (collision-part)
-                            (roslisp:make-msg
-                             "arm_navigation_msgs/Shape"
-                             type (ecase (desig-prop-value collision-part 'shape)
-                                    (:cylinder (roslisp-msg-protocol:symbol-code
-                                                'arm_navigation_msgs-msg:shape
-                                                :cylinder)))
-                             dimensions (ecase (desig-prop-value collision-part 'shape)
-                                          (:cylinder
-                                           (vector
-                                            (desig-prop-value collision-part 'radius)
-                                            (desig-prop-value collision-part 'length))))))
-                          collision-parts)))
-           (collision-pose-msgs
-             (map 'vector 'identity
-                  (mapcar (lambda (collision-part)
-                            (tf:pose->msg
-                             ;; Pose of collision parts w.r.t. pose of object, therefore
-                             ;; we transform the collision part pose
-                             (cl-transforms:transform-pose
-                              obj-trans
-                              (reference
-                               (desig-prop-value collision-part 'at)))))
-                          collision-parts)))
-           (object-name (desig-prop-value designator 'name))
-           (collision-msg (roslisp:make-msg
-                           "arm_navigation_msgs/CollisionObject"
-                           (seq header) 0
-                           (stamp header) (tf:stamp obj-pose-stamped)
-                           (frame_id header) (tf:frame-id obj-pose-stamped)
-                           id object-name
-                           padding padding
-                           (operation operation) (roslisp-msg-protocol:symbol-code
-                                                  'arm_navigation_msgs-msg:collisionobjectoperation
-                                                  :add)
-                           shapes collision-shape-msgs
-                           poses collision-pose-msgs)))
+  (let* ((effective-designator (newest-effective-designator designator))
+         (shape (cram-manipulation-knowledge:get-shape-message
+                 (reference effective-designator)))
+         (object-pose (designator-pose effective-designator))
+         (name (desig-prop-value effective-designator 'name))
+         (message (roslisp:make-msg
+                   "arm_navigation_msgs/CollisionObject"
+                   (stamp header) (tf:stamp object-pose)
+                   (frame_id header) (tf:frame-id object-pose)
+                   id name
+                   padding padding
+                   (operation operation) (roslisp-msg-protocol:symbol-code
+                                          'arm_navigation_msgs-msg:collisionobjectoperation
+                                          :add)
+                   shapes (vector shape)
+                   poses (vector (tf:pose->msg object-pose)))))
+    (when shape
+      (setf (gethash effective-designator *known-collision-objects*) message)
+      (roslisp:publish *collision-object-pub* message)
       (roslisp:ros-info
-       (pr2-manip-pm collision-environment) "Added collision object to environment server.")
-      (roslisp:publish *collision-object-pub* collision-msg))))
+       (pr2-manip-pm collision-environment) "Added collision object to environment server."))))
 
 (defun remove-collision-object (desig)
   (let ((collision-object (find-desig-collision-object desig)))
