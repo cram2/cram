@@ -41,9 +41,16 @@
           :format-control "URDF element type `~a' not supported. Ignoring it."
           :format-arguments (list name))))
 
-(defun read-triple (str)
+(defun read-fields (str)
+  "Returns a list of space-separated fields in `str'. This function uses
+  the Lisp reader for parsing."
   (let ((*read-eval* nil))
     (read-from-string (concatenate 'string "(" str ")"))))
+
+(defun read-triple (str)
+  (let ((fields (read-fields str)))
+    (assert (eql (list-length fields) 3))
+    fields))
 
 (defun read-number (str)
   (let ((*read-eval* nil))
@@ -194,11 +201,14 @@
 
 (defmethod parse-xml-node ((name (eql :|mesh|)) node &optional robot)
   (declare (ignore robot))
-  (make-instance
-   'mesh
-   :filename (physics-utils:parse-uri (s-xml:xml-element-attribute node :|filename|))
-   :scale (s-xml:xml-element-attribute node :|scale|)
-   :size (s-xml:xml-element-attribute node :|size|)))
+  (let ((scale (read-fields (s-xml:xml-element-attribute node :|scale|))))
+    (make-instance
+        'mesh
+      :filename (physics-utils:parse-uri (s-xml:xml-element-attribute node :|filename|))
+      :scale (case (list-length scale)
+               (1 (first scale))
+               (3 (apply #'cl-transforms:make-3d-vector scale)))
+      :size (s-xml:xml-element-attribute node :|size|))))
 
 (defmethod parse-xml-node ((name (eql :|joint|)) node &optional robot)
   (let* ((axis-node (xml-element-child node :|axis|))
