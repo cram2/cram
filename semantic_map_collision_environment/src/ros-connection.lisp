@@ -125,7 +125,7 @@
      id (make-collision-obj-name obj)
      (operation operation) 0
      shapes (vector (roslisp:make-msg
-                     "geometric_shapes_msgs/Shape"
+                     "arm_navigation_msgs/Shape"
                      type 1
                      dimensions (vector
                                  (x dimensions)
