@@ -36,4 +36,4 @@
                  object-designator-tool-length end-effector-link
                  orientation-matters)
   (:import-from #:cram-designators desig-prop)
-  (:desig-properties type handle))
+  (:desig-properties type handle mug mondamin plate pot handle cutlery knife fork))

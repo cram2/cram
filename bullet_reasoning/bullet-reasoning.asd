@@ -50,7 +50,8 @@
                  triangulate_point_cloud-srv
                  vision_srvs-srv
                  cl-semantic-map-utils
-                 cram-manipulation-knowledge)
+                 cram-manipulation-knowledge
+                 designators)
     :components
     ((:module "src"
               :components
