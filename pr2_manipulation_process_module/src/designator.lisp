@@ -83,7 +83,9 @@
   (<- (best-grasp ?obj ?obj-handles ?available-arms ?obstacles
                   ?arm-handle-assignments)
     (reachable-handles ?obj ?available-arms ?reachable-handles)
-    (desig-prop ?obj (min-handles ?min-handles))
+    (desig-prop ?obj (type ?object-type))
+    (cram-manipulation-knowledge:object-type-grasp ?object-type ?_ ?sides)
+    (lisp-fun list-length ?sides ?min-handles)
     (optimal-arm-handle-assignments ?reachable-handles ?min-handles
                                     ?available-arms ?arm-handle-assignments))
 
