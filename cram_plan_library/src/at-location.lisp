@@ -32,6 +32,10 @@
 prevent oscillations, we need to wait until one AT-LOCATION form
 terminates before executing the body of the second one.")
 
+(defconstant +at-location-retry-count+ 5
+  "Number of retries if at-location detects that the location is lost,
+  evaporates the body and triggers navigation again.")
+
 (cram-projection:define-special-projection-variable *at-location-lock*
     (sb-thread:make-mutex :name "AT-LOCATION-PROJECTION-LOCK"))
 
@@ -60,7 +64,8 @@ designator."
        robot-location-changed-fluent
        designator-updated
        navigation-done
-       result-values)
+       result-values
+       location-lost-count)
     `(let ((,terminated nil)
            (,robot-location-changed-fluent (make-fluent :allow-tracing nil))
            (,loc-var ,location)
@@ -77,6 +82,11 @@ designator."
              (with-equate-fluent (,loc-var ,designator-updated)
                (loop
                  for ,navigation-done = (make-fluent :value nil)
+                 for ,location-lost-count from 0
+                 when (>= ,location-lost-count +at-location-retry-count+) do
+                   (fail 'simple-plan-failure
+                         :format-control "Navigation lost ~a times. Aborting"
+                         :format-arguments (list ,location-lost-count))
                  until ,terminated do
                    (pursue
                      (cond ((perceive-state `(loc Robot ,,loc-var))
