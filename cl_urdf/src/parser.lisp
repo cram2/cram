@@ -108,7 +108,7 @@
 (defmethod parse-xml-node ((name (eql :|material|)) node &optional robot)
   (flet ((parse-color (color-node)
            (when color-node
-             (read-triple (s-xml:xml-element-attribute color-node :|rgba|))))
+             (read-fields (s-xml:xml-element-attribute color-node :|rgba|))))
          (parse-texture (texture-node)
            (when texture-node
              (physics-utils:parse-uri (s-xml:xml-element-attribute texture-node :|filename|)))))
