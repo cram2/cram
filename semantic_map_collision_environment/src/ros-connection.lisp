@@ -93,8 +93,9 @@
 (defun publish-semantic-map-markers ()
   (unless (> (hash-table-count *semantic-map-obj-cache*) 0)
     (init-semantic-map-obj-cache))
-  (loop for obj being the hash-values of *semantic-map-obj-cache* do
-    (roslisp:publish *marker-publisher* (collision-object->marker obj))))
+  (loop for objs being the hash-values of *semantic-map-obj-cache* do
+    (dolist (obj objs)
+      (roslisp:publish *marker-publisher* (collision-object->marker obj)))))
 
 (defun collision-object->marker (obj &optional (frame-id "/map"))
   (declare (type sem-map-obj obj))
