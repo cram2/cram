@@ -96,6 +96,23 @@
                       (= '(?d ?w ?h) ?dim))
                 :package :sem-map-coll-env)))
 
+(defmethod get-sem-map-objs ((type (eql '|'Cupboard'|)) name)
+  (lazy-mapcan (lambda (bdg)
+                 (with-vars-bound (?pose ?dim)
+                     bdg
+                   (lazy-append
+                    (make-box
+                     name type
+                     (pl-matrix->pose ?pose)
+                     (apply #'make-3d-vector ?dim)
+                     :front nil)
+                    (query-physical-parts name))))
+               (json-prolog:prolog
+                `(and ("objectPose" ,name ?pose)
+                      ("objectDimensions" ,name ?w ?d ?h)
+                      (= '(?d ?w ?h) ?dim))
+                :package :sem-map-coll-env)))
+
 (defmethod get-sem-map-objs ((type (eql '|'Dishwasher'|)) name)
   (lazy-mapcan (lambda (bdg)
                  (with-vars-bound (?pose ?dim)
