@@ -35,4 +35,5 @@
            get-tool-direction-vector get-tool-length get-tool-vector calculate-tool
            object-type-grasp object-designator-grasp object-type-tool-length
            object-designator-tool-length end-effector-link orientation-matters
-           get-grasp-names))
+           get-grasp-names object-shape-data-mixin object-mesh-data-mixin
+           object-point-data-mixin get-shape-message))
