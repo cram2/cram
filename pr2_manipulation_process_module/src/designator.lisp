@@ -154,7 +154,9 @@
     (handled-obj-desig? ?obj)
     (handles ?obj ?obj-handles)
     (obstacles ?desig ?obstacles)
-    (best-grasp ?obj ?obj-handles (:left :right) ?obstacles ?arm-handle-assignments))
+    (setof ?arm (cram-manipulation-knowledge:available-arms ?obj (?arm))
+           ?arms)
+    (best-grasp ?obj ?obj-handles ?arms ?obstacles ?arm-handle-assignments))
 
   (<- (action-desig ?desig (grasp ?object-type ?obj :right ?obstacles))
     (trajectory-desig? ?desig)
