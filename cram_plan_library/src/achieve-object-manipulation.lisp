@@ -112,7 +112,7 @@
                  (declare (ignore f))
                  (ros-warn
                   (achieve plan-lib)
-                  "Got unreachable grasp pose. Trying alternatives")
+                  "Got unreachable putdown pose. Trying alternatives")
                  (do-retry manipulation-retries
                    (retry-with-updated-location
                     put-down-loc
