@@ -30,7 +30,7 @@
 (in-package :cram-plan-failures)
 
 (define-condition manipulation-failure (simple-plan-failure)
-  ((result :initarg :result :reader result))
+  ((result :initarg :result :reader result :initform nil))
   (:default-initargs :format-control "manipulation-failure"))
 
 (define-condition object-lost (manipulation-failure) ())
