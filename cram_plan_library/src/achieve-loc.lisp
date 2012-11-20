@@ -49,5 +49,13 @@
              (declare (ignore f))
              (when (< (incf retry-count) 3)
                (retry))))
-        (achieve `(object-in-hand ,?obj))
-        (achieve `(object-placed-at ,?obj ,?loc))))))
+        (with-failure-handling
+            ((manipulation-pose-unreachable (f)
+               (declare (ignore f))
+               (fail 'manipulation-pickup-failed)))
+          (achieve `(object-in-hand ,?obj)))
+        (with-failure-handling
+            ((manipulation-pose-unreachable (f)
+               (declare (ignore f))
+               (fail 'manipulation-pose-occupied)))
+          (achieve `(object-placed-at ,?obj ,?loc)))))))
