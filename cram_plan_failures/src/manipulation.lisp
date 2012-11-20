@@ -39,4 +39,6 @@
 
 (define-condition manipulation-pose-unreachable (manipulation-failure) ())
 
+(define-condition manipulation-pickup-failed (manipulation-pose-unreachable) ())
+
 (define-condition manipulation-pose-occupied (manipulation-failure) ())
