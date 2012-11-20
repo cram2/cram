@@ -60,7 +60,9 @@ grasp.")
     (register-collision-object obstacle))
   (when obj-as-obstacle
     (register-collision-object obj))
-  (grab-handled-object obj arms-handles-pairs :constraint-aware t))
+  (grab-handled-object obj arms-handles-pairs :constraint-aware t)
+  (loop for (arm handle) in arms-handles-pairs
+        do (attach-collision-object arm obj)))
 
 (defun grab-handled-object (obj arms-handles-pairs
                             &key constraint-aware)
