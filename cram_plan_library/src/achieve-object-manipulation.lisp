@@ -33,14 +33,21 @@
   (ros-info (achieve plan-lib) "(achieve (object-in-hand))")
   (with-retry-counters ((alternative-poses-cnt 3)
                         (carry-retry-count 3))
-    (with-designators ((grasp-trajectory (action `((type trajectory) (to grasp) (obj ,?obj))))
-                       (lift-trajectory (action `((type trajectory) (to lift) (obj ,?obj))))
-                       (carry-trajectory (action `((type trajectory) (to carry) (obj ,?obj))))
-                       (pick-up-loc (location `((to execute) (action ,grasp-trajectory) (action ,lift-trajectory)))))
+    (with-designators ((grasp-trajectory
+                        (action `((type trajectory) (to grasp) (obj ,?obj))))
+                       (lift-trajectory
+                        (action `((type trajectory) (to lift) (obj ,?obj))))
+                       (carry-trajectory
+                        (action `((type trajectory) (to carry) (obj ,?obj))))
+                       (pick-up-loc
+                        (location `((to execute) (action ,grasp-trajectory)
+                                    (action ,lift-trajectory)))))
       (with-failure-handling
           ((manipulation-pose-unreachable (f)
              (declare (ignore f))
-             (ros-warn (achieve plan-lib) "Got unreachable grasp pose. Trying alternatives")
+             (ros-warn
+              (achieve plan-lib)
+              "Got unreachable grasp pose. Trying alternatives")
              (do-retry alternative-poses-cnt
                (retry-with-updated-location
                 pick-up-loc (next-different-location-solution pick-up-loc)))))
@@ -49,7 +56,8 @@
         (ros-info (achieve plan-lib) "Perceive done")
         (ros-info (achieve plan-lib) "Grasping")
         (at-location (pick-up-loc)
-          (achieve `(looking-at ,(reference (make-designator 'location `((of ,?obj))))))
+          (achieve `(looking-at ,(reference (make-designator
+                                             'location `((of ,?obj))))))
           (perform grasp-trajectory)))
       (with-failure-handling
           ((manipulation-pose-unreachable (f)
@@ -65,8 +73,10 @@
 (def-goal (achieve (object-placed-at ?obj ?loc))
   (ros-info (achieve plan-lib) "(achieve (object-placed-at))")
   (let ((obj (current-desig ?obj)))
-    (assert (holds `(object-in-hand ,obj)) ()
-            "The object `~a' needs to be in the hand before being able to place it." obj)
+    (assert
+     (holds `(object-in-hand ,obj)) ()
+     "The object `~a' needs to be in the hand before being able to place it."
+     obj)
     (with-retry-counters ((goal-pose-retries 3)
                           (manipulation-retries 3))
       (with-failure-handling
@@ -76,26 +86,37 @@
                ;; destination pose is probably not reachable. In that
                ;; case, we try to find a new solution for `?loc' and
                ;; retry.
-               (ros-warn (achieve plan-lib) "Unable to resolve put-down location designator.")
+               (ros-warn
+                (achieve plan-lib)
+                "Unable to resolve put-down location designator.")
                (do-retry goal-pose-retries
                  (retry-with-updated-location ?loc (next-solution ?loc)))))
            (manipulation-failure (f)
              (declare (ignore f))
-             (ros-warn (achieve plan-lib) "Got unreachable grasp pose. Trying different put-down location")
+             (ros-warn
+              (achieve plan-lib)
+              "Got unreachable putdown pose. Trying different put-down location")
              (do-retry goal-pose-retries
                (retry-with-updated-location ?loc (next-solution ?loc)))))
-        (with-designators ((put-down-trajectory (action `((type trajectory) (to put-down)
-                                                          (obj ,obj) (at ,?loc))))
-                           (park-trajectory (action `((type trajectory) (to park) (obj ,obj))))
-                           (put-down-loc (location `((to execute) (action ,put-down-trajectory)
-                                                     (action ,park-trajectory)))))
+        (with-designators ((put-down-trajectory
+                            (action `((type trajectory) (to put-down)
+                                      (obj ,obj) (at ,?loc))))
+                           (park-trajectory
+                            (action `((type trajectory) (to park) (obj ,obj))))
+                           (put-down-loc
+                            (location `((to execute)
+                                        (action ,put-down-trajectory)
+                                        (action ,park-trajectory)))))
           (with-failure-handling
               ((manipulation-failure (f)
                  (declare (ignore f))
-                 (ros-warn (achieve plan-lib) "Got unreachable grasp pose. Trying alternatives")
+                 (ros-warn
+                  (achieve plan-lib)
+                  "Got unreachable grasp pose. Trying alternatives")
                  (do-retry manipulation-retries
                    (retry-with-updated-location
-                    put-down-loc (next-different-location-solution put-down-loc)))))
+                    put-down-loc
+                    (next-different-location-solution put-down-loc)))))
             (at-location (put-down-loc)
               (achieve `(looking-at ,(reference ?loc)))
               (perform put-down-trajectory)))
@@ -104,4 +125,3 @@
 (def-goal (achieve (arms-parked))
   (with-designators ((parking (action `((type trajectory) (to park)))))
     (perform parking)))
-
