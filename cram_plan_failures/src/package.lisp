@@ -45,5 +45,6 @@
    #:object-lost
    #:manipulation-failed
    #:manipulation-pose-unreachable
+   #:manipulation-pickup-failed
    #:manipulation-pose-occupied
    #:result))
