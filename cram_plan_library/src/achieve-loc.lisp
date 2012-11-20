@@ -51,11 +51,9 @@
                (retry))))
         (with-failure-handling
             ((manipulation-pose-unreachable (f)
-               (declare (ignore f))
-               (fail 'manipulation-pickup-failed)))
+               (fail 'manipulation-pickup-failed :result (result f))))
           (achieve `(object-in-hand ,?obj)))
         (with-failure-handling
             ((manipulation-pose-unreachable (f)
-               (declare (ignore f))
-               (fail 'manipulation-pose-occupied)))
+               (fail 'manipulation-pose-occupied :result (result f))))
           (achieve `(object-placed-at ,?obj ,?loc)))))))
