@@ -35,7 +35,7 @@
                       :initform (gensym "OBJECT-")))
   (:documentation "Base class for all objects that are bound to an
   object designator's data slot. The minimum data that needs to be
-  provides is the pose of the object and an identifier for the
+  provided is the pose of the object and an identifier for the
   object."))
 
 (defclass object-designator (designator designator-id-mixin equate-notification-mixin)
