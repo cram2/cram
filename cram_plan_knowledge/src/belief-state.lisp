@@ -28,6 +28,8 @@
 
 (in-package :cram-plan-knowledge)
 
+(define-hook clear-belief ())
+
 (defgeneric holds (occasion &optional time-specification)
   (:documentation "Proves if `occasion' holds in the belief
   state. Returns all found solutions as a lazy-list of bindings."))

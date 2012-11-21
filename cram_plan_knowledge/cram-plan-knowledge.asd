@@ -44,7 +44,7 @@
   ((:module "src"
             :components
             ((:file "package")
-             (:file "occasions" :depends-on ("package"))
+             (:file "occasions" :depends-on ("package" "belief-state"))
              (:file "tasks" :depends-on ("package" "time"))
              (:file "time" :depends-on ("package"))
              (:file "event-protocol" :depends-on ("package"))

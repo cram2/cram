@@ -37,7 +37,7 @@
       (desig-equal lhs rhs)
       (eql lhs rhs)))
 
-(defun clear-belief ()
+(defmethod clear-belief simple-occasions ()
   (setf (value *believed-occasions*) nil)
   (clear-alpha-network))
 
