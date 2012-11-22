@@ -42,6 +42,7 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "event-handlers" :depends-on ("package" "utilities"))
+     (:file "object-perceptions" :depends-on ("package"))
+     (:file "event-handlers" :depends-on ("package" "object-perceptions" "utilities"))
      (:file "occasions" :depends-on ("package" "utilities"))
      (:file "utilities" :depends-on ("package"))))))
