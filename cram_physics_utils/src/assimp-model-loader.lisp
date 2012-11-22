@@ -154,7 +154,7 @@
             (incf result-index))))
       (adjust-array result-array result-index))))
 
-(defun fix-normals (faces)
+(defun fix-normals (faces &key always-recalculate)
   (map 'vector
        (lambda (face)
          (let* ((normal (cl-transforms:cross-product
@@ -165,8 +165,12 @@
                 (normal-norm (cl-transforms:v-norm normal)))
            (make-face
             :points (face-points face)
-            :normals (loop for n in (face-normals face)
-                           when (< (cl-transforms:v-norm n) 1) collecting
-                             (cl-transforms:v* normal (/ normal-norm))
-                           else collecting n))))
+            :normals (cond (always-recalculate
+                            (loop for point in (face-points face)
+                                  collecting (cl-transforms:v* normal (/ normal-norm))))
+                           (t
+                            (loop for n in (face-normals face)
+                                  when (< (cl-transforms:v-norm n) 1)
+                                    collecting (cl-transforms:v* normal (/ normal-norm))
+                                  else collecting n))))))
        faces))
