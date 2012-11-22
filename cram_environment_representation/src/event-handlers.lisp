@@ -106,6 +106,10 @@
        semantic-map-object (desig:object-identifier perceived-object)
        opening-distance))))
 
+(defmethod on-event object-perceived ((event object-perceived-event))
+  (unless cram-projection:*projection-environment*
+    (register-object-designator-data (desig:reference (event-object-designator event)))))
+
 (defun update-object-designator-location (object-designator location-designator)
   (desig:make-designator
    'desig:object
