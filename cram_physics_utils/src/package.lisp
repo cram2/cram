@@ -43,4 +43,5 @@
    points->point-cloud
    calculate-mass
    event-queue post-event get-next-event
-   wait-for-queue-empty))
+   wait-for-queue-empty
+   fix-normals))
