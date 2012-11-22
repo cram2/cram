@@ -66,8 +66,8 @@
                             (foreign-slot-value mesh 'ai-mesh 'num-vertices)))
 
 (defun get-faces (mesh &key
-                  (vertices (get-vertices mesh))
-                  (normals (get-normals mesh)))
+                         (vertices (get-vertices mesh))
+                         (normals (get-normals mesh)))
   (let ((result (make-array
                  (foreign-slot-value mesh 'ai-mesh 'num-faces)
                  :element-type 'list
@@ -85,13 +85,13 @@
                (loop for pt-index below num-indices
                      for index = (mem-aref
                                   (foreign-slot-value face 'ai-face 'indices)
-                                     :unsigned-int pt-index)
+                                  :unsigned-int pt-index)
                      collect (aref vertices index) into points
                      collect (aref normals index) into vertex-normals
                      finally (return (list :points points :normals vertex-normals)))))))))
 
 (defun load-3d-model (filename &key
-                      (mesh-index 0) flip-winding-order
+                      flip-winding-order
                       (remove-identical-vertices t) (fix-normals t))
   "Loads the mesh with index `mesh-index' from the file named
 `filename' and returns an instance of type 3D-MODEL."
@@ -111,22 +111,21 @@
              (error '3d-model-import-error
                     :format-control "Unable to load 3d model from file `~a': ~a"
                     :format-arguments (list filename (ai-get-error-string))))
-           (unless (< mesh-index
-                      (foreign-slot-value scene 'ai-scene 'num-meshes))
+           (unless (> (foreign-slot-value scene 'ai-scene 'num-meshes) 0)
              (error '3d-model-import-error
-                    :format-control "Invalid mesh index `~a'. The file contains only ~a meshes."
-                    :format-arguments `(,mesh-index ,(foreign-slot-value scene 'ai-scene 'num-meshes))))
-           (let* ((mesh (mem-aref (foreign-slot-value scene 'ai-scene 'meshes)
-                                  :pointer mesh-index))
-                  (vertices (get-vertices mesh))
-                  (faces (if fix-normals
-                             (fix-normals (get-faces mesh :vertices vertices))
-                             (get-faces mesh :vertices vertices))))
-             (make-3d-model
-              :vertices (if remove-identical-vertices
-                            (remove-identical-vertices vertices)
-                            vertices)
-              :faces faces)))
+                    :format-control "The file does not contain any meshes."))
+           (let ((models (loop for mesh-index below (foreign-slot-value scene 'ai-scene 'num-meshes)
+                               for mesh = (mem-aref (foreign-slot-value scene 'ai-scene 'meshes)
+                                                    :pointer mesh-index)
+                               when (member :triangle (foreign-slot-value mesh 'ai-mesh 'primitive-types))
+                                 collecting (let* ((vertices (get-vertices mesh))
+                                                   (faces (if fix-normals
+                                                              (fix-normals (get-faces mesh :vertices vertices))
+                                                              (get-faces mesh :vertices vertices))))
+                                              (make-3d-model
+                                               :vertices vertices
+                                               :faces faces)))))
+             (merge-3d-models models :remove-identical-vertices remove-identical-vertices)))
       (when scene
         (ai-release-import scene)))))
 
@@ -174,3 +173,14 @@
                                     collecting (cl-transforms:v* normal (/ normal-norm))
                                   else collecting n))))))
        faces))
+
+(defun merge-3d-models (models &key remove-identical-vertices)
+  (let ((merged-vertices (apply #'concatenate 'vector
+                                (mapcar #'3d-model-vertices models)))
+        (merged-faces (apply #'concatenate 'vector
+                             (mapcar #'3d-model-faces models))))
+    (make-3d-model
+     :vertices (if remove-identical-vertices
+                   (remove-identical-vertices merged-vertices)
+                   merged-vertices)
+     :faces merged-faces)))
