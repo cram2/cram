@@ -59,4 +59,9 @@
       :collision-shape (make-instance 'box-shape
                          :half-extents (cl-transforms:v*
                                         (sem-map-utils:dimensions part)
-                                        0.5)))))
+                                        0.5))))
+  (:method ((part t) &key pose collision-group collision-mask)
+    (declare (ignore pose collision-group collision-mask))
+    (warn 'simple-warning
+          :format-control "Unable to generate a rigid body for semantic map part of type `~a'."
+          :format-arguments (list (type-of part)))))
