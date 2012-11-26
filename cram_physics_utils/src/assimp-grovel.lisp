@@ -124,6 +124,25 @@
  (z "z" :type :float))
 
 (cstruct
+ ai-matrix-4x4 "aiMatrix4x4"
+ (a1 "a1" :type :float)
+ (a2 "a2" :type :float)
+ (a3 "a3" :type :float)
+ (a4 "a4" :type :float)
+ (b1 "b1" :type :float)
+ (b2 "b2" :type :float)
+ (b3 "b3" :type :float)
+ (b4 "b4" :type :float)
+ (c1 "c1" :type :float)
+ (c2 "c2" :type :float)
+ (c3 "c3" :type :float)
+ (c4 "c4" :type :float)
+ (d1 "d1" :type :float)
+ (d2 "d2" :type :float)
+ (d3 "d3" :type :float)
+ (d4 "d4" :type :float))
+
+(cstruct
  ai-string "aiString"
   (length "length" :type :unsigned-int)
   (data "data" :type :char :count 1024))
