@@ -57,6 +57,28 @@
              (mem-aref foreign-array
                        'ai-vector-3d i))))))
 
+(defun ai-matrix4x4->transform (ai-matrix)
+  (cl-transforms:matrix->transform
+   (make-array
+    '(4 4) :element-type 'double-float
+    :initial-contents
+    `((,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'a1) 0.0d0)
+       ,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'a2) 0.0d0)
+       ,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'a3) 0.0d0)
+       ,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'a4) 0.0d0))
+      (,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'b1) 0.0d0)
+       ,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'b2) 0.0d0)
+       ,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'b3) 0.0d0)
+       ,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'b4) 0.0d0))
+      (,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'c1) 0.0d0)
+       ,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'c2) 0.0d0)
+       ,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'c3) 0.0d0)
+       ,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'c4) 0.0d0))
+      (,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'd1) 0.0d0)
+       ,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'd2) 0.0d0)
+       ,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'd3) 0.0d0)
+       ,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'd4) 0.0d0))))))
+
 (defun get-vertices (mesh)
   (parse-ai-3d-vector-array (foreign-slot-value mesh 'ai-mesh 'vertices)
                             (foreign-slot-value mesh 'ai-mesh 'num-vertices)))
@@ -65,8 +87,12 @@
   (parse-ai-3d-vector-array (foreign-slot-value mesh 'ai-mesh 'normals)
                             (foreign-slot-value mesh 'ai-mesh 'num-vertices)))
 
-(defun get-faces (mesh &key
-                         (vertices (get-vertices mesh))
+(defun vertex-accessor-function (vertices)
+  (lambda (index)
+    (aref vertices index)))
+
+(defun get-faces (mesh &key (post-process-vertex-index
+                             (vertex-accessor-function (get-vertices mesh)))
                          (normals (get-normals mesh)))
   (let ((result (make-array
                  (foreign-slot-value mesh 'ai-mesh 'num-faces)
@@ -86,9 +112,30 @@
                      for index = (mem-aref
                                   (foreign-slot-value face 'ai-face 'indices)
                                   :unsigned-int pt-index)
-                     collect (aref vertices index) into points
+                     collect (funcall post-process-vertex-index index) into points
                      collect (aref normals index) into vertex-normals
                      finally (return (list :points points :normals vertex-normals)))))))))
+
+(defun get-mesh (ai-mesh &key post-process-vertex-index)
+  (when (equal (foreign-slot-value ai-mesh 'ai-mesh 'primitive-types)
+               '(:triangle))
+    (if post-process-vertex-index
+        (make-3d-model
+         :vertices (get-vertices ai-mesh)
+         :faces (get-faces ai-mesh :post-process-vertex-index post-process-vertex-index))
+        (make-3d-model
+         :vertices (get-vertices ai-mesh)
+         :faces (get-faces ai-mesh)))))
+
+(defun get-meshes (ai-scene &key post-process-vertex-index)
+  (let ((result (make-array (foreign-slot-value ai-scene 'ai-scene 'num-meshes)))
+        (meshes (foreign-slot-value ai-scene 'ai-scene 'meshes)))
+    (dotimes (i (array-dimension result 0) result)
+      (setf (aref result i)
+            (if post-process-vertex-index
+                (get-mesh (mem-aref meshes :pointer i)
+                          :post-process-vertex-index post-process-vertex-index)
+                (get-mesh (mem-aref meshes :pointer i)))))))
 
 (defun load-3d-model (filename &key
                       flip-winding-order
@@ -114,20 +161,83 @@
            (unless (> (foreign-slot-value scene 'ai-scene 'num-meshes) 0)
              (error '3d-model-import-error
                     :format-control "The file does not contain any meshes."))
-           (let ((models (loop for mesh-index below (foreign-slot-value scene 'ai-scene 'num-meshes)
-                               for mesh = (mem-aref (foreign-slot-value scene 'ai-scene 'meshes)
-                                                    :pointer mesh-index)
-                               when (member :triangle (foreign-slot-value mesh 'ai-mesh 'primitive-types))
-                                 collecting (let* ((vertices (get-vertices mesh))
-                                                   (faces (if fix-normals
-                                                              (fix-normals (get-faces mesh :vertices vertices))
-                                                              (get-faces mesh :vertices vertices))))
-                                              (make-3d-model
-                                               :vertices vertices
-                                               :faces faces)))))
-             (merge-3d-models models :remove-identical-vertices remove-identical-vertices)))
+           (let ((mesh (build-model-mesh scene :fix-normals fix-normals)))
+             (if remove-identical-vertices
+                 (make-3d-model
+                  :vertices (remove-identical-vertices (3d-model-vertices mesh))
+                  :faces (3d-model-faces mesh))
+                 mesh)))
       (when scene
         (ai-release-import scene)))))
+
+(defun build-model-mesh (scene &key (fix-normals t))
+  "Recursively traverses all scene nodes and builds a single mesh file
+  from it."
+  (labels ((insert-node (ai-node meshes transform 3d-model)
+             (let ((transformation
+                     (cl-transforms:transform*
+                      transform
+                      (ai-matrix4x4->transform
+                       (foreign-slot-value ai-node 'ai-node 'transform)))))
+               (dotimes (i (foreign-slot-value ai-node 'ai-node 'num-meshes))
+                 (setf 3d-model (insert-mesh
+                                 (aref meshes i)
+                                 3d-model transformation)))
+               (dotimes (i (foreign-slot-value ai-node 'ai-node 'num-children))
+                 (setf 3d-model
+                       (insert-node
+                        (mem-aref (foreign-slot-value ai-node 'ai-node 'children)
+                                  :pointer)
+                        meshes transformation 3d-model)))
+               3d-model)))
+    (let ((result (insert-node
+                   (foreign-slot-value scene 'ai-scene 'root-node)
+                   (get-meshes scene :post-process-vertex-index #'identity)
+                   (cl-transforms:make-identity-transform)
+                   (make-3d-model
+                    :vertices #()
+                    :faces #()))))
+
+      (make-3d-model
+       :vertices (3d-model-vertices result)
+       :faces (map 'vector
+                   (lambda (face)
+                     (make-face
+                      :points (mapcar (lambda (index)
+                                        (aref (3d-model-vertices result)
+                                              index))
+                                      (face-points face))
+                      :normals (if fix-normals
+                                   (fix-normal face)
+                                   face)))
+                   (3d-model-faces result))))))
+
+(defun insert-mesh (3d-model destination-3d-model transform)
+  "Inserts `3d-model' into `destination-3d-model' at `transform'. All
+  points of the two 3d models are merged and all points in the source
+  model are transformed by the specified transform."
+  (declare (type 3d-model 3d-model destination-3d-model)
+           (type cl-transforms:transform transform))
+  (flet ((transform-point (point)
+           (declare (type cl-transforms:3d-vector point))
+           (cl-transforms:transform-point transform point))
+         (reindex-face (face offset)
+           (make-face
+            :points (mapcar (lambda (n) (+ n offset)) (face-points face))
+            :normals (face-normals face))))
+    (let ((original-vertices-size (array-dimension
+                                   (3d-model-vertices destination-3d-model)
+                                   0)))
+      (make-3d-model
+       :vertices (concatenate
+                  'vector (3d-model-vertices destination-3d-model)
+                  (map 'vector #'transform-point (3d-model-vertices 3d-model)))
+       :faces (concatenate
+               'vector (3d-model-faces destination-3d-model)
+               (map 'vector
+                    (lambda (face)
+                      (reindex-face face original-vertices-size))
+                    (3d-model-faces 3d-model)))))))
 
 (defun remove-identical-vertices (vertex-array)
   (flet ((find-point-in-array (pt pts n &optional (epsilon 0.0001))
@@ -156,23 +266,28 @@
 (defun fix-normals (faces &key always-recalculate)
   (map 'vector
        (lambda (face)
-         (let* ((normal (cl-transforms:cross-product
-                         (cl-transforms:v- (second (face-points face))
-                                           (first (face-points face)))
-                         (cl-transforms:v- (third (face-points face))
-                                           (first (face-points face)))))
-                (normal-norm (cl-transforms:v-norm normal)))
-           (make-face
-            :points (face-points face)
-            :normals (cond (always-recalculate
-                            (loop for point in (face-points face)
-                                  collecting (cl-transforms:v* normal (/ normal-norm))))
-                           (t
-                            (loop for n in (face-normals face)
-                                  when (< (cl-transforms:v-norm n) 1)
-                                    collecting (cl-transforms:v* normal (/ normal-norm))
-                                  else collecting n))))))
+         (fix-normal face :always-recalculate always-recalculate))
        faces))
+
+(defun fix-normal (face &key always-recalculate)
+  (let* ((normal (cl-transforms:cross-product
+                  (cl-transforms:v- (second (face-points face))
+                                    (first (face-points face)))
+                  (cl-transforms:v- (third (face-points face))
+                                    (first (face-points face)))))
+         (normal-norm (cl-transforms:v-norm normal)))
+    (make-face
+     :points (face-points face)
+     :normals (cond (always-recalculate
+                     (loop for point in (face-points face)
+                           collecting (cl-transforms:v* normal (/ normal-norm))))
+                    (t
+                     (loop for n in (face-normals face)
+                           when (< (cl-transforms:v-norm n) 1)
+                             collecting (if (> normal-norm 0)
+                                            (cl-transforms:v* normal (/ normal-norm))
+                                            normal)
+                           else collecting n))))))
 
 (defun merge-3d-models (models &key remove-identical-vertices)
   (let ((merged-vertices (apply #'concatenate 'vector
