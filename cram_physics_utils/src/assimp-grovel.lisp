@@ -200,6 +200,16 @@
  (name "mName" :type ai-string))
 
 (cstruct
+ ai-node "aiNode"
+ (name "mName" :type ai-string)
+ (transform "mTransformation" :type ai-matrix-4x4)
+ (parent "mParent" :type :pointer)
+ (num-children "mNumChildren" :type :unsigned-int)
+ (children "mChildren" :type :pointer)
+ (num-meshes "mNumMeshes" :type :unsigned-int)
+ (meshes "mMeshes" :type :pointer))
+
+(cstruct
  ai-scene "aiScene"
  (flags "mFlags" :type :unsigned-int)
  (root-node "mRootNode" :type :pointer)
