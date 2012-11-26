@@ -173,22 +173,25 @@
 (defun build-model-mesh (scene &key (fix-normals t))
   "Recursively traverses all scene nodes and builds a single mesh file
   from it."
-  (labels ((insert-node (ai-node meshes transform 3d-model)
-             (let ((transformation
+  (labels ((insert-node (ai-node meshes parent-transformation 3d-model)
+             (let ((node-transformation
                      (cl-transforms:transform*
-                      transform
+                      parent-transformation
                       (ai-matrix4x4->transform
                        (foreign-slot-value ai-node 'ai-node 'transform)))))
                (dotimes (i (foreign-slot-value ai-node 'ai-node 'num-meshes))
-                 (setf 3d-model (insert-mesh
-                                 (aref meshes i)
-                                 3d-model transformation)))
+                 (let ((mesh (aref meshes
+                                   (mem-aref
+                                    (foreign-slot-value ai-node 'ai-node 'meshes)
+                                    :unsigned-int i))))
+                   (when mesh
+                     (setf 3d-model (insert-mesh mesh 3d-model node-transformation)))))
                (dotimes (i (foreign-slot-value ai-node 'ai-node 'num-children))
                  (setf 3d-model
                        (insert-node
                         (mem-aref (foreign-slot-value ai-node 'ai-node 'children)
-                                  :pointer)
-                        meshes transformation 3d-model)))
+                                  :pointer i)
+                        meshes node-transformation 3d-model)))
                3d-model)))
     (let ((result (insert-node
                    (foreign-slot-value scene 'ai-scene 'root-node)
@@ -197,19 +200,20 @@
                    (make-3d-model
                     :vertices #()
                     :faces #()))))
-
       (make-3d-model
        :vertices (3d-model-vertices result)
        :faces (map 'vector
                    (lambda (face)
-                     (make-face
-                      :points (mapcar (lambda (index)
-                                        (aref (3d-model-vertices result)
-                                              index))
-                                      (face-points face))
-                      :normals (if fix-normals
-                                   (fix-normal face)
-                                   face)))
+                     (let ((new-face
+                             (make-face
+                              :points (mapcar (lambda (index)
+                                                (aref (3d-model-vertices result)
+                                                      index))
+                                              (face-points face))
+                              :normals (face-normals face))))
+                       (if fix-normals
+                           (fix-face-normals new-face)
+                           face)))
                    (3d-model-faces result))))))
 
 (defun insert-mesh (3d-model destination-3d-model transform)
@@ -266,10 +270,10 @@
 (defun fix-normals (faces &key always-recalculate)
   (map 'vector
        (lambda (face)
-         (fix-normal face :always-recalculate always-recalculate))
+         (fix-face-normals face :always-recalculate always-recalculate))
        faces))
 
-(defun fix-normal (face &key always-recalculate)
+(defun fix-face-normals (face &key always-recalculate)
   (let* ((normal (cl-transforms:cross-product
                   (cl-transforms:v- (second (face-points face))
                                     (first (face-points face)))
@@ -296,6 +300,7 @@
                              (mapcar #'3d-model-faces models))))
     (make-3d-model
      :vertices (if remove-identical-vertices
+
                    (remove-identical-vertices merged-vertices)
                    merged-vertices)
      :faces merged-faces)))
