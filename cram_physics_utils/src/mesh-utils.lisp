@@ -107,3 +107,27 @@
                  (/ (cl-transforms:y size) (cl-transforms:y aabb))
                  (/ (cl-transforms:z size) (cl-transforms:z aabb)))))
     (scale-3d-model model scale)))
+
+(defun transform-3d-model (model transform)
+  "Returns a new model that is translated and rotated according to
+`transform'."
+  (declare (type 3d-model model))
+  (declare (type cl-transforms:transform transform))
+  (make-3d-model
+   :vertices (map (type-of (3d-model-vertices model))
+                  (lambda (point)
+                    (cl-transforms:transform-point transform point))
+                  (3d-model-vertices model))
+   :faces (map (type-of (3d-model-faces model))
+               (lambda (face)
+                 (make-face
+                  :points (mapcar (lambda (point)
+                                    (cl-transforms:transform-point
+                                     transform point))
+                                  (face-points face))
+                  :normals (mapcar (lambda (normal)
+                                     (cl-transforms:rotate
+                                      (cl-transforms:rotation transform)
+                                      normal))
+                                   (face-normals face))))
+               (3d-model-faces model))))

@@ -44,4 +44,4 @@
    calculate-mass
    event-queue post-event get-next-event
    wait-for-queue-empty
-   fix-normals))
+   fix-normals transform-3d-model))
