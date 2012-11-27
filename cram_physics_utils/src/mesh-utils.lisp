@@ -89,9 +89,11 @@
                       (3d-model-vertices model))
        :faces (map 'vector
                    (lambda (f)
-                     (mapcar (lambda (v)
-                               (scale-vector v scale))
-                             (face-points f)))
+                     (make-face
+                      :points (mapcar (lambda (v)
+                                        (scale-vector v scale))
+                                      (face-points f))
+                      :normals (face-normals f)))
                    (3d-model-faces model))))))
 
 (defun resize-3d-model (model size)
