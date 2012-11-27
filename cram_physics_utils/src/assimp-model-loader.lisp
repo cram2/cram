@@ -175,10 +175,17 @@
   from it."
   (labels ((insert-node (ai-node meshes parent-transformation 3d-model)
              (let ((node-transformation
-                     (cl-transforms:transform*
-                      parent-transformation
-                      (ai-matrix4x4->transform
-                       (foreign-slot-value ai-node 'ai-node 'transform)))))
+                     ;; Assimp's root node transformation might do
+                     ;; stupid things, for instance transforming the
+                     ;; mesh to y-up. Ignore the node transformation
+                     ;; if we are processing the root node.
+                     (if (null-pointer-p
+                          (foreign-slot-value ai-node 'ai-node 'parent))
+                         (cl-transforms:make-identity-transform)
+                         (cl-transforms:transform*
+                          parent-transformation
+                          (ai-matrix4x4->transform
+                           (foreign-slot-value ai-node 'ai-node 'transform))))))
                (dotimes (i (foreign-slot-value ai-node 'ai-node 'num-meshes))
                  (let ((mesh (aref meshes
                                    (mem-aref
