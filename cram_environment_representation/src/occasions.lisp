@@ -36,12 +36,9 @@
   (<- (object-in-hand ?object ?side)
     (bullet-world ?world)
     (robot ?robot)
-    (once
-     (object-designator-name ?object ?object-name)
-     (lisp-fun desig:current-desig ?object ?current-object)
-     (desig:desig-prop ?current-object (at ?object-location))
-     (desig:desig-prop ?object-location (in gripper)))
     (attached ?world ?robot ?link ?object-name)
+    (once
+     (object-designator-name ?object ?object-name))
     (end-effector-link ?side ?link))
 
   (<- (object-placed-at ?object ?location)
