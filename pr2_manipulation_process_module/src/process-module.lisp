@@ -328,17 +328,22 @@ by `planners' until one succeeds."
                   (:right *gripper-action-right*)
                   (:left *gripper-action-left*))))
     (prog1
-        (actionlib:send-goal-and-wait
-         client (actionlib:make-action-goal client
-                  (position command) position
-                  (max_effort command) max-effort)
-         :result-timeout 1.0)
-      (let ((obj (var-value
-                  '?obj
-                  (lazy-car
-                   (rete-holds `(object-in-hand ?obj ,side))))))
-        (unless (is-var obj)
-          (retract-occasion `(object-in-hand ,obj ,side)))))))
+        (unwind-protect
+             (actionlib:send-goal-and-wait
+              client (actionlib:make-action-goal client
+                       (position command) position
+                       (max_effort command) max-effort)
+              :result-timeout 1.0)
+          (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))
+      (with-vars-bound (?carried-object ?gripper-link)
+          (lazy-car (prolog `(and (object-in-hand ?carried-object ,side)
+                                  (cram-manipulation-knowledge:end-effector-link ,side ?gripper-link))))
+        (unless (is-var ?carried-object)
+          (plan-knowledge:on-event
+           (make-instance 'object-detached
+             :object ?carried-object
+             :link ?gripper-link
+             :side side)))))))
 
 (defclass manipulated-perceived-object (desig:object-designator-data) ())
 
