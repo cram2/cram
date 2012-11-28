@@ -108,14 +108,14 @@ objects)."
           do (check-valid-gripper-state arm
                                         :min-position
                                         (- radius 0.01))
-             (plan-knowledge:on-event
-              (make-instance
-               'plan-knowledge:object-attached
-               :object obj
-               :link (ecase arm
-                       (:right "r_gripper_r_finger_tip_link")
-                       (:left "l_gripper_r_finger_tip_link"))
-               :side arm)))))
+             (with-vars-strictly-bound (?link-name)
+                 (lazy-car (prolog `(cram-manipulation-knowledge:end-effector-link ,arm ?link-name)))
+               (plan-knowledge:on-event
+                (make-instance
+                    'plan-knowledge:object-attached
+                  :object obj
+                  :link ?link-name
+                  :side arm))))))
 
 (defun taxi-handled-object (obj side handle
                             &key (relative-gripper-pose
