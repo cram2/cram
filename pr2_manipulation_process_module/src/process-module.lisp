@@ -109,14 +109,12 @@
 (def-action-handler container-opened (handle side)
   (let* ((handle-pose (designator-pose (newest-effective-designator handle)))
          (new-object-pose (open-drawer handle-pose side)))
-    (update-object-designator-pose handle new-object-pose))
-  (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))
+    (update-object-designator-pose handle new-object-pose)))
 
 (def-action-handler container-closed (handle side)
   (let* ((handle-pose (designator-pose (newest-effective-designator handle)))
          (new-object-pose (close-drawer handle-pose side)))
-    (update-object-designator-pose handle new-object-pose))
-  (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))
+    (update-object-designator-pose handle new-object-pose)))
 
 (def-action-handler park (obj arms &optional obstacles)
   (roslisp:ros-info (pr2-manip process-module) "Park arms ~a ~a"
@@ -132,7 +130,7 @@
          (cpl-impl:fail 'manipulation-failed
                         :format-control "Parking with several arms not implemented, yet."))
         (t (cpl-impl:fail 'manipulation-failed
-                          :format-control "No arms for parking infered."))))
+                          :format-control "No arms for parking inferred."))))
 
 (def-action-handler lift (arms distance)
   ;; Note(Georg) Curious! We do not need the object designator
@@ -154,7 +152,7 @@
         ((> (length arms) 1)
          (lift-grasped-object-with-both-arms distance))
         (t (cpl-impl:fail 'manipulation-failed
-                          :format-control "No arms for lifting infered."))))
+                          :format-control "No arms for lifting inferred."))))
 
 (def-action-handler grasp-handles (obj arms-handles obstacles)
   (assert (> (length arms-handles) 0) ()
@@ -166,16 +164,11 @@
   (grab-handled-object-constraint-aware obj arms-handles obstacles
                                         :obj-as-obstacle t))
 
-(def-action-handler grasp (object-type obj side obstacles)
-  "Selects and calls the appropriate grasping functionality based on
-the given object type."
-  (cond ((eq object-type 'pot)
-         (grasp-object-with-both-arms obj))
-        (t (standard-grasping obj side obstacles))))
-
 (def-action-handler put-down (object-designator location arms obstacles)
   "Delegates the type of the put down action which suppose to be executed
 for the currently type of grasped object."
+  ;; TODO(moesenle): don't check for type pot here but either use the
+  ;; predicate REQUIRED-ARMS or OBJECT-IN-HAND
   (cond ((eq (desig-prop-value object-designator 'type) 'pot)
          (put-down-grasped-object-with-both-arms object-designator location))
         (t (put-down-grasped-object-with-single-arm
@@ -207,11 +200,13 @@ for the currently type of grasped object."
                    (switch-controller
                     #("both_arms_controller") #("l_arm_controller" "r_arm_controller"))
                    *trajectory-action-both*))))
-    (actionlib:call-goal
-     action
-     (actionlib:make-action-goal
-         action
-       :trajectory (remove-trajectory-joints #("torso_lift_joint") trajectory)))))
+    (unwind-protect
+         (actionlib:call-goal
+          action
+          (actionlib:make-action-goal
+              action
+            :trajectory (remove-trajectory-joints #("torso_lift_joint") trajectory)))
+      (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))))
 
 (defun execute-move-arm-pose (side pose &key
                                           (planners '(:chomp :ompl))
@@ -275,30 +270,32 @@ by `planners' until one succeeds."
                       disable_collision_monitoring t)
                     :result-timeout 4.0)
                  val)))))
-    (case (reduce (lambda (result planner)
-                    (declare (ignore result))
-                    (let ((val (execute-action planner)))
-                      (roslisp:ros-info (pr2-manip process-module)
-                                        "Move arm returned with ~a"
-                                        val)
-                      (when (eql val 1)
-                        (let ((goal-in-arm (tf:transform-pose
-                                            *tf* :pose pose
+    (unwind-protect
+         (case (reduce (lambda (result planner)
+                         (declare (ignore result))
+                         (let ((val (execute-action planner)))
+                           (roslisp:ros-info (pr2-manip process-module)
+                                             "Move arm returned with ~a"
+                                             val)
+                           (when (eql val 1)
+                             (let ((goal-in-arm (tf:transform-pose
+                                                 *tf* :pose pose
                                                  :target-frame (ecase side
                                                                  (:left "l_wrist_roll_link")
                                                                  (:right "r_wrist_roll_link")))))
-                          (when (or (> (cl-transforms:v-norm (cl-transforms:origin goal-in-arm))
-                                       0.015)
-                                    (> (cl-transforms:normalize-angle
-                                        (nth-value 1 (cl-transforms:quaternion->axis-angle
-                                                      (cl-transforms:orientation goal-in-arm))))
-                                       0.03))
-                            (error 'manipulation-failed)))
-                        (return-from execute-move-arm-pose t))))
-                  planners :initial-value nil)
-      (-31 (error 'manipulation-pose-unreachable :result (list side pose)))
-      (-33 (error 'manipulation-pose-occupied :result (list side pose)))
-      (t (error 'manipulation-failed :result (list side pose))))))
+                               (when (or (> (cl-transforms:v-norm (cl-transforms:origin goal-in-arm))
+                                            0.015)
+                                         (> (cl-transforms:normalize-angle
+                                             (nth-value 1 (cl-transforms:quaternion->axis-angle
+                                                           (cl-transforms:orientation goal-in-arm))))
+                                            0.03))
+                                 (error 'manipulation-failed)))
+                             (return-from execute-move-arm-pose t))))
+                       planners :initial-value nil)
+           (-31 (error 'manipulation-pose-unreachable :result (list side pose)))
+           (-33 (error 'manipulation-pose-occupied :result (list side pose)))
+           (t (error 'manipulation-failed :result (list side pose))))
+      (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))))
 
 (defun compliant-close-gripper (side)
   ;; (roslisp:call-service
@@ -318,28 +315,35 @@ by `planners' until one succeeds."
   (let ((client (ecase side
                   (:right *gripper-action-right*)
                   (:left *gripper-action-left*))))
-    (actionlib:send-goal-and-wait
-     client (actionlib:make-action-goal client
-              (position command) position
-              (max_effort command) max-effort)
-     :result-timeout 1.0)))
+    (unwind-protect
+         (actionlib:send-goal-and-wait
+          client (actionlib:make-action-goal client
+                   (position command) position
+                   (max_effort command) max-effort)
+          :result-timeout 1.0)
+      (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))))
 
 (defun open-gripper (side &key (max-effort 100.0) (position 0.085))
   (let ((client (ecase side
                   (:right *gripper-action-right*)
                   (:left *gripper-action-left*))))
     (prog1
-        (actionlib:send-goal-and-wait
-         client (actionlib:make-action-goal client
-                  (position command) position
-                  (max_effort command) max-effort)
-         :result-timeout 1.0)
-      (let ((obj (var-value
-                  '?obj
-                  (lazy-car
-                   (rete-holds `(object-in-hand ?obj ,side))))))
-        (unless (is-var obj)
-          (retract-occasion `(object-in-hand ,obj ,side)))))))
+        (unwind-protect
+             (actionlib:send-goal-and-wait
+              client (actionlib:make-action-goal client
+                       (position command) position
+                       (max_effort command) max-effort)
+              :result-timeout 1.0)
+          (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))
+      (with-vars-bound (?carried-object ?gripper-link)
+          (lazy-car (prolog `(and (object-in-hand ?carried-object ,side)
+                                  (cram-manipulation-knowledge:end-effector-link ,side ?gripper-link))))
+        (unless (is-var ?carried-object)
+          (plan-knowledge:on-event
+           (make-instance 'object-detached
+             :object ?carried-object
+             :link ?gripper-link
+             :side side)))))))
 
 (defclass manipulated-perceived-object (desig:object-designator-data) ())
 
