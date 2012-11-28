@@ -96,6 +96,7 @@
            #:object-articulation-event           
            #:object-attached #:object-detached
            #:event-object-designator #:object-designator
+           #:event-timestamp
            #:perception-source #:object #:event-object
            #:link #:event-link #:side #:event-side
            #:holds #:opening-distance
