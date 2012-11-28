@@ -28,16 +28,6 @@
 
 (in-package :cram-environment-representation)
 
-(cpl:define-task-variable *object-identifier-to-instance-mappings*
-    (make-hash-table :test #'equal)
-    "Mapping from object-identifiers as bound in the
-OBJECT-DESIGNATOR-DATA class to instance names in the bullet world
-database.")
-
-(cram-projection:define-special-projection-variable
-    *object-identifier-to-instance-mappings*
-    (alexandria:copy-hash-table *object-identifier-to-instance-mappings*))
-
 (defmethod clear-belief object-identifiers ()
   (clrhash *object-identifier-to-instance-mappings*))
 
