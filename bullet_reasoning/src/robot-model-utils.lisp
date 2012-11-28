@@ -38,23 +38,36 @@
   handles.")
 
 (defun set-robot-state-from-tf (tf robot &key (reference-frame "/map") timestamp)
-  (loop for name being the hash-keys in  (slot-value robot 'links) do
-    (let ((tf-name (if (eql (elt name 0) #\/) name (concatenate 'string "/" name))))
-      ;; We wait transforms instead of calling can-transform because
-      ;; in particular at initialization time, the TF tree might not
-      ;; be fully received yet.
-      (when (tf:wait-for-transform
-             tf :timeout 2.0 :source-frame tf-name
-                :target-frame reference-frame
-                :time timestamp)
-        (handler-case
-            (setf (link-pose robot name)
-                  (cl-transforms:transform->pose
-                   (tf:lookup-transform
-                    tf :source-frame tf-name :target-frame reference-frame
-                       :time timestamp)))
-          (tf:tf-lookup-error ()
-            nil))))))
+  (let* ((root-link (cl-urdf:name (cl-urdf:root-link (urdf robot))))
+         (robot-transform (when (tf:wait-for-transform
+                                 tf :timeout 2.0 :source-frame root-link
+                                    :target-frame reference-frame
+                                    :time timestamp)
+                            (tf:lookup-transform
+                             tf :source-frame root-link :target-frame reference-frame
+                                :time timestamp))))
+    (when robot-transform
+      (setf (link-pose robot root-link)
+            (cl-transforms:transform->pose robot-transform))
+      (loop for name being the hash-keys in  (slot-value robot 'links) do
+        (let ((tf-name (if (eql (elt name 0) #\/) name (concatenate 'string "/" name))))
+          ;; We wait transforms instead of calling can-transform because
+          ;; in particular at initialization time, the TF tree might not
+          ;; be fully received yet.
+          (when (tf:wait-for-transform
+                 tf :timeout 0.5 :source-frame tf-name
+                 :target-frame root-link
+                 :time timestamp)
+            (handler-case
+                (setf (link-pose robot name)
+                      (cl-transforms:transform->pose
+                       (cl-transforms:transform*
+                        robot-transform
+                        (tf:lookup-transform
+                         tf :source-frame tf-name :target-frame root-link
+                         :time timestamp))))
+              (tf:tf-lookup-error ()
+                nil))))))))
 
 (defgeneric set-robot-state-from-joints (joint-states robot)
   (:method ((joint-states sensor_msgs-msg:jointstate) (robot robot-object))
