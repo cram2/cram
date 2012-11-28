@@ -189,16 +189,16 @@
     (desig-prop ?action (to open))
     (desig-prop ?action (handle ?_)))
 
-  (<- (location-valid
-       ?desig ?pose
-       (desig-check-to-see ?desig ?pose))
-    (desig-prop ?desig (to see))
-    (desig-prop ?desig (obj ?obj)))
+  ;; (<- (location-valid
+  ;;      ?desig ?pose
+  ;;      (desig-check-to-see ?desig ?pose))
+  ;;   (desig-prop ?desig (to see))
+  ;;   (desig-prop ?desig (obj ?obj)))
 
-  (<- (location-valid
-       ?desig ?pose
-       (desig-check-to-reach ?desig ?pose))
-    (reachability-designator ?desig))
+  ;; (<- (location-valid
+  ;;      ?desig ?pose
+  ;;      (desig-check-to-reach ?desig ?pose))
+  ;;   (reachability-designator ?desig))
 
   (<- (btr-desig-solution-valid ?desig ?solution)
     (btr-desig-solution-valid ?desig ?solution ?_))
