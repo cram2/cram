@@ -65,13 +65,17 @@ designator."
        designator-updated
        navigation-done
        result-values
-       location-lost-count)
+       location-lost-count
+       pulse-thread)
     `(let ((,terminated nil)
            (,robot-location-changed-fluent (make-fluent :allow-tracing nil))
            (,loc-var ,location)
-           (,result-values nil))
+           (,result-values nil)
+           (,pulse-thread nil))
        (flet ((set-current-location ()
-                (pulse ,robot-location-changed-fluent)))
+                (unless (and ,pulse-thread (sb-thread:thread-alive-p ,pulse-thread))
+                  (setf ,pulse-thread (sb-thread:make-thread
+                                      (lambda () (pulse ,robot-location-changed-fluent)))))))
          (tf:with-transforms-changed-callback (*tf* #'set-current-location)
            (reference ,loc-var)
            (with-task-tree-node (:path-part `(goal-context (at-location (?loc)))
@@ -89,7 +93,8 @@ designator."
                          :format-arguments (list ,location-lost-count))
                  until ,terminated do
                    (pursue
-                     (cond ((perceive-state `(loc Robot ,,loc-var))
+                     (cond ((and (sb-thread:mutex-owner *at-location-lock*)
+                                 (perceive-state `(loc Robot ,,loc-var)))
                             (setf (value ,navigation-done) t)
                             (sb-thread:with-mutex (*at-location-lock*)
                               (wait-for (make-fluent :value nil))))
