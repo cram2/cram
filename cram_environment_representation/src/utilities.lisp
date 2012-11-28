@@ -28,6 +28,19 @@
 
 (in-package :cram-environment-representation)
 
+(cpl:define-task-variable *object-identifier-to-instance-mappings*
+    (make-hash-table :test #'equal)
+    "Mapping from object-identifiers as bound in the
+OBJECT-DESIGNATOR-DATA class to instance names in the bullet world
+database.")
+
+(cram-projection:define-special-projection-variable
+    *object-identifier-to-instance-mappings*
+    (alexandria:copy-hash-table *object-identifier-to-instance-mappings*))
+
+(defun get-object-instance-name (object-identifier)
+  (gethash object-identifier *object-identifier-to-instance-mappings*))
+
 (defun get-robot-object ()
   (with-vars-bound (?robot-name)
       (lazy-car (prolog `(robot ?robot-name)))
@@ -37,7 +50,8 @@
 (defun get-designator-object-name (object-designator)
   (let ((object-designator (desig:newest-effective-designator object-designator)))
     (when object-designator
-      (desig:object-identifier (desig:reference object-designator)))))
+      (get-object-instance-name
+       (desig:object-identifier (desig:reference object-designator))))))
 
 (defun get-designator-object (object-designator)
   (let ((object-name (get-designator-object-name object-designator)))
