@@ -133,7 +133,7 @@
   (add-object world 'mesh name pose :mass mass :mesh 'mug))
 
 (defmethod add-object ((world bt-world) (type (eql 'mesh)) name pose &key
-                       mass mesh (color '(0.5 0.5 0.5 1.0))
+                       mass mesh (color '(0.5 0.5 0.5 1.0)) types
                        disable-face-culling)
   (let ((mesh-model (etypecase mesh
                       (symbol (let ((uri (physics-utils:parse-uri (cadr (assoc mesh *mesh-files*)))))
@@ -145,7 +145,7 @@
                                 (with-file-cache model uri (physics-utils:load-3d-model uri)
                                   model)))
                       (physics-utils:3d-model mesh))))
-    (make-household-object world name (list mesh)
+    (make-household-object world name (or types (list mesh))
                            (list
                             (make-instance 'rigid-body
                               :name name :mass mass :pose (ensure-pose pose)
