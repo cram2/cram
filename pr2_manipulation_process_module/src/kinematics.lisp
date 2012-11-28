@@ -655,10 +655,10 @@ transform in /base_footprint."
                 "Object ~a needs to be in the gripper" obj-loc)
     (assert (desig-prop-value obj-loc 'pose) ()
             "Object ~a needs to have a `pose' property" obj-desig)
-    (assert (desig-prop-value obj-loc 'height) ()
-            "Object ~a needs to have a `height' property" obj-desig)
+    (assert (desig-prop-value obj-loc 'z-offset) ()
+            "Object ~a needs to have a `z-offset' property" obj-desig)
     ;; get z difference between grasping point and supporting plane of object
-    (let* ((obj-pose-height (desig-prop-value obj-loc 'height))
+    (let* ((obj-pose-z-offset (desig-prop-value obj-loc 'z-offset))
            (location-in-robot (tf:transform-pose
                                *tf* :pose (reference (current-desig goal-location-desig))
                                     :target-frame "/base_footprint")))
@@ -668,7 +668,7 @@ transform in /base_footprint."
         location-in-robot
         :origin (cl-transforms:v+
                  (cl-transforms:origin location-in-robot)
-                 (cl-transforms:make-3d-vector 0 0 obj-pose-height)))))))
+                 (cl-transforms:make-3d-vector 0 0 obj-pose-z-offset)))))))
 
 (defun calculate-put-down-pose (obj location)
   (let ((object-goal-transform (calc-goal-transform-for-picked-object obj location)))
