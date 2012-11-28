@@ -96,10 +96,10 @@ lift the grasped object at the `distance' from the supporting plane."
 (defun lift-grasped-object-with-one-arm (side distance)
   "Executes a lifting motion with the `side' arm which grasped the
 object in order to lift it at `distance' form the supporting plane"
-  (execute-arm-trajectory side
-                          ;; Computes the lifting trajectory for the `side' arm
-                          (get-lifting-grasped-object-arm-trajectory side distance))
-  (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))
+  (execute-arm-trajectory
+   side
+   ;; Computes the lifting trajectory for the `side' arm
+   (get-lifting-grasped-object-arm-trajectory side distance)))
 
 (defun lift-grasped-object-with-both-arms (distance)
   "Executes a parallel lifting motion with both arms in order to lift
@@ -146,21 +146,18 @@ supporting plane"
     (when (or (not put-down-solution) (not unhand-solution))
       (cpl:fail 'manipulation-pose-unreachable))
     (execute-move-arm-pose side pre-put-down-pose)
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
     (execute-arm-trajectory side (ik->trajectory (lazy-car put-down-solution)))
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
     (open-gripper side)
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
-    (plan-knowledge:on-event (make-instance
-                              'plan-knowledge:object-detached
-                              :side side
-                              :object obj
-                              :link (ecase side
-                                      (:right "r_gripper_r_finger_tip_link")
-                                      (:left "l_gripper_r_finger_tip_link"))))
+    (plan-knowledge:on-event
+     (make-instance
+         'plan-knowledge:object-detached
+       :side side
+       :object obj
+       :link (ecase side
+               (:right "r_gripper_r_finger_tip_link")
+               (:left "l_gripper_r_finger_tip_link"))))
     (execute-arm-trajectory
-     side (ik->trajectory (lazy-car unhand-solution)))
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))))
+     side (ik->trajectory (lazy-car unhand-solution)))))
 
 (defun put-down-grasped-object-with-both-arms (obj location)
   (roslisp:ros-info (pr2-manip process-module) "Putting down the grasped object with both arms.")
@@ -275,22 +272,18 @@ supporting plane"
     (cpl-impl:par
       (execute-arm-trajectory :left (ik->trajectory (lazy-car left-pre-put-down-ik)))
       (execute-arm-trajectory :right (ik->trajectory (lazy-car right-pre-put-down-ik))))
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
     ;; ... pose
     (cpl-impl:par
       (execute-arm-trajectory :left (ik->trajectory (lazy-car left-put-down-ik)))
       (execute-arm-trajectory :right (ik->trajectory (lazy-car right-put-down-ik))))
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
     ;; ... open
     (cpl-impl:par
       (open-gripper :left :position 0.04)
       (open-gripper :right :position 0.04))
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
     ;; ... go away.
     (cpl-impl:par
       (execute-arm-trajectory :left (ik->trajectory (lazy-car left-unhand-ik)))
       (execute-arm-trajectory :right (ik->trajectory (lazy-car right-unhand-ik))))
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
     ;; TODO(Georg): ask Lorenz about this, and get it running
     ;; (plan-knowledge:on-event (make-instance 'plan-knowledge:object-detached
     ;;                            :object obj
@@ -500,8 +493,7 @@ supporting plane"
         (execute-move-arm-pose side (tf:copy-pose-stamped carry-pose :orientation orientation)
                                :allowed-collision-objects (list "\"all\""))
         (execute-move-arm-pose side carry-pose
-                               :allowed-collision-objects (list "\"all\"")))
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))))
+                               :allowed-collision-objects (list "\"all\"")))))
 
 (defun park-grasped-object-with-two-arms (obj side &optional obstacles)
   "Moves the object which was grasped with two arms into a position in
