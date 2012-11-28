@@ -82,7 +82,8 @@
   (unless cram-projection:*projection-environment*
     (let ((robot (get-robot-object)))
       (when robot
-        (set-robot-state-from-tf cram-roslisp-common:*tf* robot))))
+        (set-robot-state-from-tf
+         cram-roslisp-common:*tf* robot :timestamp (event-timestamp event)))))
   (timeline-advance
    *current-timeline*
    (make-event
