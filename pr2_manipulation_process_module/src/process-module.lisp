@@ -166,16 +166,11 @@
   (grab-handled-object-constraint-aware obj arms-handles obstacles
                                         :obj-as-obstacle t))
 
-(def-action-handler grasp (object-type obj side obstacles)
-  "Selects and calls the appropriate grasping functionality based on
-the given object type."
-  (cond ((eq object-type 'pot)
-         (grasp-object-with-both-arms obj))
-        (t (standard-grasping obj side obstacles))))
-
 (def-action-handler put-down (object-designator location arms obstacles)
   "Delegates the type of the put down action which suppose to be executed
 for the currently type of grasped object."
+  ;; TODO(moesenle): don't check for type pot here but either use the
+  ;; predicate REQUIRED-ARMS or OBJECT-IN-HAND
   (cond ((eq (desig-prop-value object-designator 'type) 'pot)
          (put-down-grasped-object-with-both-arms object-designator location))
         (t (put-down-grasped-object-with-single-arm
