@@ -41,7 +41,7 @@ database.")
 (defmethod clear-belief object-identifiers ()
   (clrhash *object-identifier-to-instance-mappings*))
 
-(defgeneric register-object-designator-data (data)
+(defgeneric register-object-designator-data (data &key type)
   (:documentation "Registers an object in the belief state. The object
 is identified by its corresponding OBJECT-DESIGNATOR-DATA object. This
 method is also responsible for entity resolution, i.e. for finding the
@@ -59,11 +59,12 @@ just updated. Otherwise a new instance is created."))
   identified by `data' which is of type OBJECT-DESIGNATOR-DATA."))
 
 (defmethod register-object-designator-data
-    ((data cram-manipulation-knowledge:object-shape-data-mixin))
+    ((data cram-manipulation-knowledge:object-shape-data-mixin) &key type)
+  (declare (ignore type))
   nil)
 
 (defmethod register-object-designator-data
-    ((data cram-manipulation-knowledge:object-mesh-data-mixin))
+    ((data cram-manipulation-knowledge:object-mesh-data-mixin) &key type)
   (let ((instance-name (or
                         (gethash (desig:object-identifier data)
                                  *object-identifier-to-instance-mappings*)
@@ -79,10 +80,12 @@ just updated. Otherwise a new instance is created."))
                                                  ,(desig:object-pose data)
                                                  :mesh ,(object-mesh data)
                                                  :mass ,(object-mass data)
+                                                 :types ,(list type)
                                                  :disable-face-culling t)))))))
 
 (defmethod register-object-designator-data
-    ((data cram-manipulation-knowledge:object-point-data-mixin))
+    ((data cram-manipulation-knowledge:object-point-data-mixin) &key type)
+  (declare (ignore type))
   nil)
 
 (defmethod object-mass ((data cram-manipulation-knowledge:object-mesh-data-mixin))

@@ -37,4 +37,4 @@
   (:import-from #:cram-manipulation-knowledge end-effector-link)
   (:export get-robot-object get-designator-object-name get-designator-object
            object-designator-name)
-  (:desig-properties pose in gripper z-offset at))
+  (:desig-properties pose in gripper z-offset at type))

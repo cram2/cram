@@ -109,7 +109,9 @@
 
 (defmethod on-event object-perceived ((event object-perceived-event))
   (unless cram-projection:*projection-environment*
-    (register-object-designator-data (desig:reference (event-object-designator event)))))
+    (register-object-designator-data
+     (desig:reference (event-object-designator event))
+     :type (desig:desig-prop-value (event-object-designator event) 'type))))
 
 (defun update-object-designator-location (object-designator location-designator)
   (desig:make-designator
