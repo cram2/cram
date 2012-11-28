@@ -232,6 +232,10 @@
   (flet ((transform-point (point)
            (declare (type cl-transforms:3d-vector point))
            (cl-transforms:transform-point transform point))
+         (rotate-vector (vector)
+           (declare (type cl-transforms:3d-vector vector))
+           (cl-transforms:rotate
+            (cl-transforms:rotation transform) vector))
          (reindex-face (face offset)
            (make-face
             :points (mapcar (lambda (n) (+ n offset)) (face-points face))
@@ -247,7 +251,10 @@
                'vector (3d-model-faces destination-3d-model)
                (map 'vector
                     (lambda (face)
-                      (reindex-face face original-vertices-size))
+                      (let ((reindexed-face (reindex-face face original-vertices-size)))
+                        (make-face
+                         :points (face-points reindexed-face)
+                         :normals (mapcar #'rotate-vector (face-normals reindexed-face)))))
                     (3d-model-faces 3d-model)))))))
 
 (defun remove-identical-vertices (vertex-array)
