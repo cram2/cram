@@ -1,4 +1,3 @@
-;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
@@ -57,7 +56,10 @@
                pr2_mechanism_msgs-srv
                pr2-manipulation-knowledge
                constraint_msgs-msg
-               cram-feature-constraints)
+               cram-feature-constraints
+               ;;necessary for integration with KU Leuven
+               task_msgs-msg
+               task_msgs-srv)
   :components
   ((:module "src"
             :components
@@ -76,4 +78,9 @@
              (:file "action-handlers" :depends-on ("package" "process-module"))
              (:file "feature-controllers" :depends-on ("package"))
              (:file "feature-controller-tests" 
-              :depends-on ("package" "feature-controllers" "controller-manager" "process-module" ))))))
+              :depends-on ("package" "feature-controllers" "controller-manager" "process-module" ))
+             ;; necessary for integration with KU Leuven
+             (:file "itasc-integration" :depends-on ("package"))
+             (:file "itasc-database" :depends-on ("package"))
+             (:file "itasc-conversions" :depends-on ("package" "itasc-database"))
+             (:file "itasc-executive" :depends-on ("package" "itasc-database" "itasc-integration" "itasc-conversions"))))))
