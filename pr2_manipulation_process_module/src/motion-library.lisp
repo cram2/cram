@@ -96,10 +96,10 @@ lift the grasped object at the `distance' from the supporting plane."
 (defun lift-grasped-object-with-one-arm (side distance)
   "Executes a lifting motion with the `side' arm which grasped the
 object in order to lift it at `distance' form the supporting plane"
-  (execute-arm-trajectory side
-                          ;; Computes the lifting trajectory for the `side' arm
-                          (get-lifting-grasped-object-arm-trajectory side distance))
-  (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))
+  (execute-arm-trajectory
+   side
+   ;; Computes the lifting trajectory for the `side' arm
+   (get-lifting-grasped-object-arm-trajectory side distance)))
 
 (defun lift-grasped-object-with-both-arms (distance)
   "Executes a parallel lifting motion with both arms in order to lift
@@ -146,21 +146,18 @@ supporting plane"
     (when (or (not put-down-solution) (not unhand-solution))
       (cpl:fail 'manipulation-pose-unreachable))
     (execute-move-arm-pose side pre-put-down-pose)
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
     (execute-arm-trajectory side (ik->trajectory (lazy-car put-down-solution)))
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
     (open-gripper side)
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
-    (plan-knowledge:on-event (make-instance
-                              'plan-knowledge:object-detached
-                              :side side
-                              :object obj
-                              :link (ecase side
-                                      (:right "r_gripper_r_finger_tip_link")
-                                      (:left "l_gripper_r_finger_tip_link"))))
+    (plan-knowledge:on-event
+     (make-instance
+         'plan-knowledge:object-detached
+       :side side
+       :object obj
+       :link (ecase side
+               (:right "r_gripper_r_finger_tip_link")
+               (:left "l_gripper_r_finger_tip_link"))))
     (execute-arm-trajectory
-     side (ik->trajectory (lazy-car unhand-solution)))
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))))
+     side (ik->trajectory (lazy-car unhand-solution)))))
 
 (defun put-down-grasped-object-with-both-arms (obj location)
   (roslisp:ros-info (pr2-manip process-module) "Putting down the grasped object with both arms.")
@@ -275,22 +272,18 @@ supporting plane"
     (cpl-impl:par
       (execute-arm-trajectory :left (ik->trajectory (lazy-car left-pre-put-down-ik)))
       (execute-arm-trajectory :right (ik->trajectory (lazy-car right-pre-put-down-ik))))
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
     ;; ... pose
     (cpl-impl:par
       (execute-arm-trajectory :left (ik->trajectory (lazy-car left-put-down-ik)))
       (execute-arm-trajectory :right (ik->trajectory (lazy-car right-put-down-ik))))
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
     ;; ... open
     (cpl-impl:par
       (open-gripper :left :position 0.04)
       (open-gripper :right :position 0.04))
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
     ;; ... go away.
     (cpl-impl:par
       (execute-arm-trajectory :left (ik->trajectory (lazy-car left-unhand-ik)))
       (execute-arm-trajectory :right (ik->trajectory (lazy-car right-unhand-ik))))
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
     ;; TODO(Georg): ask Lorenz about this, and get it running
     ;; (plan-knowledge:on-event (make-instance 'plan-knowledge:object-detached
     ;;                            :object obj
@@ -298,104 +291,6 @@ supporting plane"
     ;;                                    (:right "r_gripper_r_finger_tip_link")
     ;;                                    (:left "l_gripper_r_finger_tip_link"))))
     ))
-
-(defun standard-grasping (obj side obstacles)
-  (roslisp:ros-info (pr2-manip process-module) "Opening gripper")
-  (open-gripper side)
-  (roslisp:ros-info (pr2-manip process-module) "Clearing collision map")
-  (clear-collision-objects)
-  (roslisp:ros-info (pr2-manip process-module) "Adding object as collision object")
-  (register-collision-object obj)
-  ;; Check if the object we want to grasp is not too big
-  (let ((bb (desig-bounding-box obj)))
-    (when bb
-      (roslisp:ros-info
-       (pr2-manip process-module) "Bounding box: ~a ~a ~a"
-       (cl-transforms:x bb) (cl-transforms:y bb) (cl-transforms:z bb)))
-    (when (and
-           bb
-           (or
-            (> (cl-transforms:x bb)
-               (cl-transforms:x *max-graspable-size*))
-            (> (cl-transforms:y bb)
-               (cl-transforms:y *max-graspable-size*))
-            (> (cl-transforms:z bb)
-               (cl-transforms:z *max-graspable-size*))))
-      ;; TODO: Use a more descriptive condition here
-      (error 'manipulation-pose-unreachable
-             :format-control "No valid grasp pose found")))
-  (roslisp:ros-info (pr2-manip process-module) "Registering semantic map objects")
-  (sem-map-coll-env:publish-semantic-map-collision-objects)
-  (dolist (obstacle (cut:force-ll obstacles))
-    (register-collision-object obstacle))
-  (let ((grasp-poses
-          (lazy-take
-           50
-           (lazy-mapcan (lambda (grasp)
-                          (let ((pre-grasp-pose
-                                  (tool-goal-pose->wrist-goal-pose
-                                   obj
-                                   :tool (calculate-tool-pose
-                                          grasp
-                                          *grasp-approach-distance*)))
-                                (grasp-pose
-                                  (tool-goal-pose->wrist-goal-pose
-                                   obj
-                                   :tool grasp)))
-                            ;; If we find IK solutions
-                            ;; for both poses, yield them
-                            ;; to the lazy list
-                            (when (and (ecase side
-                                         (:left
-                                          (grasp-orientation-valid
-                                           pre-grasp-pose
-                                           (list *top-grasp* *left-grasp*)
-                                           (list *right-grasp*)))
-                                         (:right
-                                          (grasp-orientation-valid
-                                           pre-grasp-pose
-                                           (list *top-grasp* *right-grasp*)
-                                           (list *left-grasp*)))))
-                              (let* ((pre-grasp-solution (lazy-car
-                                                          (get-ik
-                                                           side pre-grasp-pose)))
-                                     (grasp-solution (lazy-car
-                                                      (get-constraint-aware-ik
-                                                       side grasp-pose
-                                                       :allowed-collision-objects (list "\"all\"")))))
-                                (when (and pre-grasp-solution grasp-solution)
-                                  (roslisp:ros-info (pr2-manip process-module) "Found valid grasp ~a ~a"
-                                                    pre-grasp-pose grasp-pose)
-                                  `(((,pre-grasp-pose ,pre-grasp-solution)
-                                     (,grasp-pose ,grasp-solution))))))))
-                        (prog2
-                            (roslisp:ros-info (pr2-manip process-module) "Planning grasp")
-                            (get-point-cluster-grasps side obj)
-                          (roslisp:ros-info (pr2-manip process-module) "Grasp planning finished"))))))
-    (unless grasp-poses
-      (cpl:fail 'manipulation-pose-unreachable
-                :format-control "No valid grasp pose found"))
-    (roslisp:ros-info (pr2-manip process-module) "Executing move-arm")
-    (destructuring-bind ((pre-grasp pre-solution) (grasp grasp-solution)) (lazy-car grasp-poses)
-      (declare (ignore grasp))
-      (execute-move-arm-pose side pre-grasp)
-      (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
-      (execute-arm-trajectory side (ik->trajectory grasp-solution))
-      (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
-      (roslisp:ros-info (pr2-manip process-module) "Closing gripper")
-      ;; (compliant-close-gripper side)
-      (close-gripper side :max-effort 50.0)
-      (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
-      (check-valid-gripper-state side :safety-ik pre-solution))
-    (roslisp:ros-info (pr2-manip process-module) "Attaching object to gripper")
-    (plan-knowledge:on-event (make-instance
-                              'plan-knowledge:object-attached
-                              :object obj
-                              :link (ecase side
-                                      (:right "r_gripper_r_finger_tip_link")
-                                      (:left "l_gripper_r_finger_tip_link"))
-                              :side side))
-    (assert-occasion `(object-in-hand ,obj ,side))))
 
 (defun open-drawer (pose side &optional (distance *grasp-distance*))
   "Generates and executes a pull trajectory for the `side' arm in order to open the
@@ -574,168 +469,12 @@ supporting plane"
         (+ distance) 0.0 0.0)
        (cl-transforms:make-identity-rotation))))))
 
-(defun grasp-object-with-both-arms (obj)
-  "Grasp an object `obj' with both arms."
-  ;; compute grasping poses and execute dual arm grasp
-  (let ((obj (newest-effective-designator obj)))
-    (multiple-value-bind (left-grasp-pose right-grasp-pose)
-        (compute-both-arm-grasping-poses obj)
-      (execute-both-arm-grasp left-grasp-pose right-grasp-pose)
-      ;; TODO(Georg): make this depend on the execution result
-      ;; update object designator, because it is now in the grippers
-      ;; TODO(Georg): this constant is pot-specific -> move it somewhere else
-      (update-picked-up-object-designator
-       obj 'desig-props:both-grippers :left 0.0))))
-
-(defun execute-both-arm-grasp
-    (grasping-pose-left grasping-pose-right)
-  "Grasps an object with both grippers
-simultaneously. `grasping-pose-left' and `grasping-pose-right' specify
-the goal poses for the left and right gripper. Before closing the
-grippers, both grippers will be opened, the pre-grasp positions (using
-parameter *grasp-approach-distance*) will be commanded, and finally
-the grasping positions (with offset of parameter *grasp-distance*)
-will be commanded."
-  ;; make sure that the desired tf transforms exist
-  (cl-tf:wait-for-transform *tf*
-                            :timeout 1.0
-                            :time (tf:stamp grasping-pose-left)
-                            :source-frame (tf:frame-id grasping-pose-left)
-                            :target-frame "base_footprint")
-  (cl-tf:wait-for-transform *tf*
-                            :timeout 1.0
-                            :time (tf:stamp grasping-pose-right)
-                            :source-frame (tf:frame-id grasping-pose-right)
-                            :target-frame "base_footprint")
-  (let* ((grasping-pose-left-transform (cl-transforms:pose->transform grasping-pose-left))
-         (grasping-pose-right-transform (cl-transforms:pose->transform grasping-pose-right))
-         ;; get grasping poses and pre-poses for both sides
-         (pre-grasp-pose-left
-           (cl-tf:transform-pose *tf*
-                                 :pose (tf:pose->pose-stamped
-                                        (tf:frame-id grasping-pose-left)
-                                        (tf:stamp grasping-pose-left)
-                                        ; this is adding a tool and an
-                                        ; approach offset in
-                                        ; tool-frame
-                                        (cl-transforms:transform-pose
-                                         grasping-pose-left-transform
-                                         (cl-transforms:make-transform
-                                          (cl-transforms:make-3d-vector
-                                           (+ (- *grasp-distance*) (- *grasp-approach-distance*)) 0.0 0.0)
-                                          (cl-transforms:make-identity-rotation))))
-                                 :target-frame "base_footprint"))
-         (pre-grasp-pose-right
-           (cl-tf:transform-pose *tf*
-                                 :pose (tf:pose->pose-stamped
-                                        (tf:frame-id grasping-pose-right)
-                                        (tf:stamp grasping-pose-right)
-                                        ; this is adding a tool and an
-                                        ; approach offset in
-                                        ; tool-frame
-                                        (cl-transforms:transform-pose
-                                         grasping-pose-right-transform
-                                         (cl-transforms:make-transform
-                                          (cl-transforms:make-3d-vector
-                                           (+ (- *grasp-distance*) (- *grasp-approach-distance*)) 0.0 0.0)
-                                          (cl-transforms:make-identity-rotation))))
-                                 :target-frame "base_footprint"))
-         (grasp-pose-left
-           (cl-tf:transform-pose *tf*
-                                 :pose (tf:pose->pose-stamped
-                                        (tf:frame-id grasping-pose-left)
-                                        (tf:stamp grasping-pose-left)
-                                        ; this is adding a tool and an
-                                        ; approach offset in
-                                        ; tool-frame
-                                        (cl-transforms:transform-pose
-                                         grasping-pose-left-transform
-                                         (cl-transforms:make-transform
-                                          (cl-transforms:make-3d-vector
-                                           (- *grasp-distance*) 0.0 0.0)
-                                          (cl-transforms:make-identity-rotation))))
-                                 :target-frame "base_footprint"))
-         (grasp-pose-right
-           (cl-tf:transform-pose *tf*
-                                 :pose (tf:pose->pose-stamped
-                                        (tf:frame-id grasping-pose-right)
-                                        (tf:stamp grasping-pose-right)
-                                        ; this is adding a tool and an
-                                        ; approach offset in
-                                        ; tool-frame
-                                        (cl-transforms:transform-pose
-                                         grasping-pose-right-transform
-                                         (cl-transforms:make-transform
-                                          (cl-transforms:make-3d-vector
-                                           (- *grasp-distance*) 0.0 0.0)
-                                          (cl-transforms:make-identity-rotation))))
-                                 :target-frame "base_footprint"))
-         ;; get seed-states for ik
-         (left-seed-state (calc-seed-state-elbow-up :left))
-         (right-seed-state (calc-seed-state-elbow-up :right))
-         ;; get ik-solutions for all poses
-         (pre-grasp-left-ik
-           (lazy-car
-            (get-ik :left pre-grasp-pose-left :seed-state left-seed-state)))
-         (pre-grasp-right-ik
-           (lazy-car
-            (get-ik :right pre-grasp-pose-right :seed-state right-seed-state)))
-         (grasp-left-ik
-           (lazy-car
-            (get-ik :left grasp-pose-left :seed-state left-seed-state)))
-         (grasp-right-ik
-           (lazy-car
-            (get-ik :right grasp-pose-right :seed-state right-seed-state))))
-    ;; check if left poses are left of right poses
-    (when (< (cl-transforms:y (cl-transforms:origin pre-grasp-pose-left))
-             (cl-transforms:y (cl-transforms:origin pre-grasp-pose-right)))
-      (error 'manipulation-failed
-             :format-control "Left pre-grasp pose right of right pre-grasp pose."))
-    (when (< (cl-transforms:y (cl-transforms:origin grasp-pose-left))
-             (cl-transforms:y (cl-transforms:origin grasp-pose-right)))
-      (error 'manipulation-failed
-             :format-control "Left grasp pose right of right grasp pose."))
-    ;; check if all for all poses ik-solutions exist
-    (unless pre-grasp-left-ik
-      (error 'manipulation-pose-unreachable
-             :format-control "Trying to grasp with both arms -> pre-grasp pose for the left arm is NOT reachable."))
-    (unless pre-grasp-right-ik
-      (error 'manipulation-pose-unreachable
-             :format-control "Trying to grasp with both arms -> pre-grasp pose for the right arm is NOT reachable."))
-    (unless grasp-left-ik
-      (error 'manipulation-pose-unreachable
-             :format-control "Trying to grasp with both arms -> grasp pose for the left arm is NOT reachable."))
-    (unless grasp-right-ik
-      (error 'manipulation-pose-unreachable
-             :format-control "Trying to grasp with both arms -> grasp pose for the right arm is NOT reachable."))
-    ;; simultaneously open both grippers
-    (cpl-impl:par
-      ;; only open the grippers to 50% to not hit the lid
-      (open-gripper :left :position 0.04)
-      (open-gripper :right :position 0.04))
-    ;; simultaneously approach pre-grasp positions from both sides
-    (let ((new-stamp (roslisp:ros-time)))
-      (cpl-impl:par      
-        (execute-arm-trajectory :left (ik->trajectory pre-grasp-left-ik :stamp new-stamp))
-        (execute-arm-trajectory :right (ik->trajectory pre-grasp-right-ik :stamp new-stamp))))
-    ;; simultaneously approach grasp positions from both sides
-    (let ((new-stamp (roslisp:ros-time)))
-      (cpl-impl:par
-        (execute-arm-trajectory :left (ik->trajectory grasp-left-ik :stamp new-stamp))
-        (execute-arm-trajectory :right (ik->trajectory grasp-right-ik :stamp new-stamp))))
-    ;; simultaneously close both grippers
-    (cpl-impl:par
-      (close-gripper :left :max-effort 50)
-      (close-gripper :right :max-effort 50))))
-
 (defun check-valid-gripper-state (side &key (min-position 0.01) safety-ik)
   (when (< (get-gripper-state side) min-position)
     (clear-collision-objects)
     (open-gripper side)
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
     (when safety-ik
-      (execute-arm-trajectory side (ik->trajectory safety-ik))
-      (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))
+      (execute-arm-trajectory side (ik->trajectory safety-ik)))
     (cpl:fail 'object-lost)))
 
 (defun park-grasped-object-with-one-arm (obj side &optional obstacles)
@@ -754,8 +493,7 @@ will be commanded."
         (execute-move-arm-pose side (tf:copy-pose-stamped carry-pose :orientation orientation)
                                :allowed-collision-objects (list "\"all\""))
         (execute-move-arm-pose side carry-pose
-                               :allowed-collision-objects (list "\"all\"")))
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))))
+                               :allowed-collision-objects (list "\"all\"")))))
 
 (defun park-grasped-object-with-two-arms (obj side &optional obstacles)
   "Moves the object which was grasped with two arms into a position in
