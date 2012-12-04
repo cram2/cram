@@ -57,14 +57,18 @@
   (:method ((timeline timeline) (event event))
     (with-slots (events last-event lock) timeline
       (sb-thread:with-mutex (lock)
-        (when (car last-event)
-          (assert (<= (timestamp (car last-event)) (timestamp event)) ()
-                  "Cannot advance a timeline with an event before the last event on the timeline"))
-        (let ((new-entry (cons event nil)))
-          (if last-event
-              (setf (cdr last-event) new-entry)
-              (setf events new-entry))
-          (setf last-event new-entry))))
+        (cond ((and last-event (> (timestamp (car last-event)) (timestamp event)))
+               (setf events (insert-before-if
+                             event
+                             (lambda (timeline-event)
+                               (> (timestamp timeline-event)
+                                  (timestamp event)))
+                             events :count 1)))
+              (t (let ((new-entry (cons event nil)))
+                   (if last-event
+                       (setf (cdr last-event) new-entry)
+                       (setf events new-entry))
+                   (setf last-event new-entry))))))
     timeline))
 
 (defgeneric timeline-current-world-state (timeline)
