@@ -90,7 +90,7 @@
                (:file "articulated-objects" :depends-on ("package" "semantic-map"))
                (:file "ros-household-object-database" :depends-on ("package" "objects" "household-objects"))
                (:module "temporal-reasoning"
-                        :depends-on ("package" "reasoning-world" "world-facts")
+                        :depends-on ("package" "reasoning-world" "world-facts" "utils")
                         :components
                         ((:file "events")
                          (:file "timeline" :depends-on ("events"))

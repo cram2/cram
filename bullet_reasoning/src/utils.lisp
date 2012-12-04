@@ -59,3 +59,21 @@
          (result (make-array (list dim dim))))
     (dotimes (i dim result)
       (setf (aref result i i) (elt diagonal i)))))
+
+(defun insert-before-if (item condition list &key count)
+  "Inserts `item' in `list' at the position right before the item for
+which `condition' is non-NIL and returns the resulting list. `count'
+either needs to be an integer or NIL. This function might
+destructively modify the list."
+  (labels ((iterate (previous-cons list count)
+             (when (and list (or (not count) (> count 0)))
+               (cond ((funcall condition (car list))
+                      (setf (cdr previous-cons) (cons item list))
+                      (iterate list (cdr list) (when count (- count 1))))
+                     (t (iterate list (cdr list) count))))))
+    (cond ((funcall condition (car list))
+           (iterate list (cdr list) (when count (- count 1)))
+           (cons item list))
+          (t (iterate list (cdr list) count)
+             list))))
+
