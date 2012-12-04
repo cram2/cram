@@ -37,7 +37,8 @@
    (last-event :initform nil :reader last-event
                :documentation "A reference to the last event on the
                timeline. It represents the current state of the
-               world.")))
+               world.")
+   (lock :initform (sb-thread:make-mutex) :reader timeline-lock)))
 
 (defgeneric timeline-init (world &optional time)
   (:documentation "Creates and initializes a new timeline with a
@@ -54,33 +55,37 @@
 (defgeneric timeline-advance (timeline event)
   (:documentation "Advances the `timeline', i.e. adds the event `event' to its end")
   (:method ((timeline timeline) (event event))
-    (with-slots (events last-event) timeline
-      (when (car last-event)
-        (assert (<= (timestamp (car last-event)) (timestamp event)) ()
-                "Cannot advance a timeline with an event before the last event on the timeline"))
-      (let ((new-entry (cons event nil)))
-        (if last-event
-            (setf (cdr last-event) new-entry)
-            (setf events new-entry))
-        (setf last-event new-entry)))
+    (with-slots (events last-event lock) timeline
+      (sb-thread:with-mutex (lock)
+        (when (car last-event)
+          (assert (<= (timestamp (car last-event)) (timestamp event)) ()
+                  "Cannot advance a timeline with an event before the last event on the timeline"))
+        (let ((new-entry (cons event nil)))
+          (if last-event
+              (setf (cdr last-event) new-entry)
+              (setf events new-entry))
+          (setf last-event new-entry))))
     timeline))
 
 (defgeneric timeline-current-world-state (timeline)
   (:documentation "Returns the world state object of the last event on the timeline")
   (:method ((timeline timeline))
-    (with-slots (last-event) timeline
-      (when (car last-event)
-        (event-world-state (car last-event))))))
+    (with-slots (last-event lock) timeline
+      (sb-thread:with-mutex (lock)
+        (when (car last-event)
+          (event-world-state (car last-event)))))))
 
 (defgeneric timeline-lookup (timeline stamp)
   (:documentation "Returns the world state that correspinds to `stamp'
   in `timeline'")
   (:method ((timeline timeline) (stamp number))
-    (reduce (lambda (prev curr)
-              (when (> (timestamp curr) stamp)
-                (return-from timeline-lookup prev))
-              (event-world-state  curr))
-            (cdr (events timeline))
-            :initial-value (event-world-state (car (events timeline))))))
+    (with-slots (events lock) timeline
+      (sb-thread:with-mutex (lock)
+        (reduce (lambda (prev curr)
+                  (when (> (timestamp curr) stamp)
+                    (return-from timeline-lookup prev))
+                  (event-world-state curr))
+                (cdr events)
+                :initial-value (event-world-state (car events)))))))
 
 (defvar *current-timeline* (timeline-init *current-bullet-world*))
