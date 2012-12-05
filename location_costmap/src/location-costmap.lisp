@@ -98,11 +98,11 @@
   (:documentation "Registers an orientation generator in the
   costmap"))
 
-(defgeneric gen-costmap-sample-point (map)
+(defgeneric gen-costmap-sample-point (map &key sampling-function)
   (:documentation "Draws a sample from the costmap `map' interpreted
   as a probability function and returns it as CL-TRANSFORMS:3D-VECTOR"))
 
-(defgeneric costmap-samples (map)
+(defgeneric costmap-samples (map &key sampling-function)
   (:documentation "Returns the lazy-list of randomly generated costmap
   samples, i.e. a lazy-list of instances of type CL-TRANSFORMS:POSE"))
 
@@ -204,18 +204,19 @@ calls the generator functions and runs normalization."
                 (orientation-generators map) :initial-value nil))
       default))
 
-(defmethod gen-costmap-sample-point ((map location-costmap))
+(defmethod gen-costmap-sample-point ((map location-costmap)
+                                     &key (sampling-function #'cma:sample-from-distribution-matrix))
   (let ((cost-map (get-cost-map map)))
     (declare (type cma:double-matrix cost-map))
     (destructuring-bind (column row)
-        (cma:sample-from-distribution-matrix cost-map)
+        (funcall sampling-function cost-map)
       (with-slots (origin-x origin-y resolution) map
         (let* ((x (+ (* column resolution) origin-x))
                (y (+ (* row resolution) origin-y))
                (z (generate-height map x y)))
           (cl-transforms:make-3d-vector x y z))))))
 
-(defmethod costmap-samples ((map location-costmap))
+(defmethod costmap-samples ((map location-costmap) &key sampling-function)
   (lazy-mapcan (lambda (sample-point)
                  (lazy-mapcar (lambda (orientation)
                                 (tf:make-pose sample-point orientation))
@@ -224,4 +225,7 @@ calls the generator functions and runs normalization."
                                (cl-transforms:x sample-point)
                                (cl-transforms:y sample-point))))
                (lazy-list ()
-                 (cont (gen-costmap-sample-point map)))))
+                 (cont (if sampling-function
+                           (gen-costmap-sample-point
+                            map :sampling-function sampling-function)
+                           (gen-costmap-sample-point map))))))
