@@ -59,14 +59,13 @@
                                    duplicates. To set this slot, use
                                    register-cost-function
                                    preferably.")
-   (height-generator
-    :initform nil :initarg :height-generator :reader height-generator
-    :documentation "A callable object that takes two parameters, X and
-                    Y and returns a list of valid height
-                    values (i.e. Z coordinate of the generated
-                    pose). The function needs to be deterministic and
-                    is used whenever a costmap sample is generated. If
-                    not set, a constant value of 0.0d0 is returned.")
+   (height-generators
+    :initform nil :initarg :height-generators :reader height-generators
+    :documentation "A list of callable objects that take two
+                    parameters, X and Y and return a list of valid
+                    height values (i.e. Z coordinate of the generated
+                    pose). If no height generator is defined, a constant
+                    value of 0.0d0 is returned.")
    (orientation-generators
     :initform nil :initarg :orientation-generators :reader orientation-generators
     :documentation "A sequence of callable objects that take three
@@ -159,8 +158,8 @@ calls the generator functions and runs normalization."
   (push generator (slot-value map 'cost-functions)))
 
 (defmethod register-height-generator ((map location-costmap) generator)
-  (with-slots (height-generator) map
-    (setf height-generator generator)))
+  (with-slots (height-generators) map
+    (setf height-generators (append height-generators (list generator)))))
 
 (defmethod register-orientation-generator ((map location-costmap) generator)
   (with-slots (orientation-generators) map
@@ -180,20 +179,22 @@ calls the generator functions and runs normalization."
        :resolution (resolution cm-1)
        :cost-functions (reduce #'append (mapcar #'cost-functions costmaps)
                                :initial-value (cost-functions cm-1))
-       :height-generator (some #'height-generator (cons cm-1 costmaps))
+       :height-generators (mapcan (compose #'copy-list #'height-generators) (cons cm-1 costmaps))
        :orientation-generators (mapcan (compose #'copy-list #'orientation-generators) (cons cm-1 costmaps))))))
 
 (defun generate-height (map x y &optional (default 0.0d0))
   (or
-   (when (height-generator map)
+   (when (height-generators map)
      (let ((heights (generate-heights map x y)))
        (when heights
          (random-elt heights))))
    default))
 
 (defun generate-heights (map x y)
-  (when (height-generator map)
-    (funcall (height-generator map) x y)))
+  (when (height-generators map)
+    (mapcan (lambda (generator)
+              (copy-list (funcall generator x y)))
+            (height-generators map))))
 
 (defun generate-orientations (map x y
                               &optional (default (list (cl-transforms:make-identity-rotation))))
