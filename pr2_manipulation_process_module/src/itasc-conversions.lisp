@@ -34,8 +34,7 @@
      "task_msgs/Object"
      name (object-name itasc-object)
      type (object-type itasc-object)
-     object_frames (map 'vector #'identity (attached-frames itasc-object))
-     external_location (external-location itasc-object))))
+     object_frames (map 'vector #'identity (attached-frames itasc-object)))))
 
 (defun assemble-itasc-object-msg-list (object-name-list)
   ;; create the corresponding object-msg for every object-name
@@ -44,7 +43,10 @@
               (cond (itasc-object
                      (make-itasc-object-msg itasc-object))
                     (t (cpl-impl:fail 'manipulation-failed
-                                      :format-control "Could not find object in database.")))))
+                                      :format-control 
+                                      (concatenate 'string
+                                                   "Could not find object in database. Object: "
+                                                   object-name))))))
           object-name-list))
 
 (defun assemble-itasc-object-msg-vector (object-name-list)
@@ -134,4 +136,8 @@
      controller (roslisp:make-msg
                  "task_msgs/Controller"
                  type (controller constraint))
-     trajectory_generator_name (trajectory-generator constraint))))
+     trajectory_generator (roslisp:make-msg
+                           "task_msgs/TrajectoryGenerator"
+                           type (trajectory-type constraint)
+                           execution_time (trajectory-duration constraint)
+                           velocity_boundary (trajectory-velocity constraint)))))
