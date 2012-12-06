@@ -330,8 +330,6 @@
   (when *save-tasks*
     (enqueue new-task *tasks*)))
 
-
-
 ;;;; Events
 
 ;;; EVENTs are used to induce status transitions of TASKs, mostly
