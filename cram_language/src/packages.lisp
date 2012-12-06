@@ -110,6 +110,11 @@
            #:current-task
            #:define-task-variable
            #:task #:toplevel-task
+           #:task-alive #:task-dead
+           #:task-running-p
+           #:task-dead-p
+           #:task-done-p
+           #:task-failed-p
            #:status #:result
            #:status-indicator
            #:+alive+
