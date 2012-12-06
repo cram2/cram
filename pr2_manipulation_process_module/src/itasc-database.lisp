@@ -29,6 +29,8 @@
 
 (defvar *itasc-objects* () "List of itasc objects used in the demo")
 
+(defvar *itasc-robots* () "List of itasc objects that might be used in a demo")
+
 (defvar *robot-joint-weights* () "List of joint weights for the PR2.")
 
 (defvar *itasc-tasks* () "List of tasks that are used in our demonstration.")
@@ -37,8 +39,12 @@
 (defclass itasc-object-information ()
   ((object-name :reader object-name :initarg :object-name)
    (object-type :reader object-type :initarg :object-type)
-   (attached-frames :reader attached-frames :initarg :attached-frames)
-   (external-location :reader external-location :initarg :external-location)))
+   (attached-frames :reader attached-frames :initarg :attached-frames)))
+
+(defclass itasc-robot ()
+  ((robot-name :reader robot-name :initarg :robot-name)
+   (robot-type :reader robot-type :initarg :robot-type)
+   (attached-frames :reader attached-frames :initarg :attached-frames)))
 
 (defclass itasc-robot-joint-weight ()
   ((joint-name :reader joint-name :initarg :joint-name)
@@ -75,25 +81,30 @@
    (upper-boundary :reader upper-boundary :initarg :upper-boundary)
    (weight :reader weight :initarg :weight)
    (controller :reader controller :initarg :controller)
-   (trajectory-generator :reader trajectory-generator :initarg :trajectory-generator)))
+   (trajectory-type :reader trajectory-type :initarg :trajectory-type)
+   (trajectory-duration :reader trajectory-duration :initarg :trajectory-duration)
+   (trajectory-velocity :reader trajectory-velocity :initarg :trajectory-velocity)))
 
 ;;; object database convenience functions...
 (defun clear-itasc-object-list ()
   (setf *itasc-objects* ()))
 
-(defun add-itasc-object (&key object-name object-type frames external-location)
+(defun add-itasc-object (&key object-name object-type frames)
   (setf *itasc-objects*
         (append *itasc-objects*
                 (list (make-instance 'itasc-object-information
                                      :object-name object-name
                                      :object-type object-type
-                                     :attached-frames frames
-                                     :external-location external-location)))))
+                                     :attached-frames frames)))))
 
 (defun find-itasc-object (object-name)
   (find object-name *itasc-objects* :key #'object-name :test #'string=))
 
 (defun object-frame-valid-p (object-name frame-name)
+  (or (object-frame-on-object-p object-name frame-name)
+      (object-frame-on-robot-p object-name frame-name)))
+
+(defun object-frame-on-object-p (object-name frame-name)
   (when (and object-name frame-name)
     (when (find-itasc-object object-name)
       (when (some (lambda (frame)
@@ -111,6 +122,29 @@
                 (list (make-instance 'itasc-robot-joint-weight
                                      :joint-name joint-name
                                      :weight weight)))))
+
+;;; robot description convenience functions
+(defun clear-itasc-robot-list ()
+  (setf *itasc-robots* ()))
+
+(defun add-itasc-robot (&key robot-name robot-type frames)
+  (setf *itasc-robots*
+        (append *itasc-robots*
+                (list (make-instance 'itasc-robot
+                                     :robot-name robot-name
+                                     :robot-type robot-type
+                                     :attached-frames frames)))))
+
+(defun find-itasc-robot (robot-name)
+  (find robot-name *itasc-robots* :key #'robot-name :test #'string=))
+
+(defun object-frame-on-robot-p (robot-name frame-name)
+  (when (and robot-name frame-name)
+    (when (find-itasc-robot robot-name)
+      (when (some (lambda (frame)
+                    (string= frame frame-name))
+                  (attached-frames (find-itasc-robot robot-name)))
+        t))))
 
 ;;; itasc task convenience functions...
 (defun clear-itasc-tasks ()
@@ -135,7 +169,11 @@
                         :object-name object-name
                         :frame-name frame-name))
          (t (cpl-impl:fail 'manipulation-failed
-                           :format-control "Asked to make invalid object-frame."))))
+                           :format-control (concatenate 'string
+                                                        "Asked to make invalid object-frame. Object: "
+                                                        object-name
+                                                        " Frame: "
+                                                        frame-name)))))
 
 (defun make-chain-joint (&key joint-name joint-type)
   (make-instance 'itasc-chain-joint
@@ -143,9 +181,10 @@
                  :joint-type joint-type))
 
 (defun make-constraint (&key constraint-type constraint-name referred-joint
-                             operator value (weight 1)
-                             (lower-boundary 0) (upper-boundary 0)
-                             (controller 1) (trajectory-generator "trapezoidal-trajectory"))
+                          operator value (weight 1)
+                          (lower-boundary 0) (upper-boundary 0)
+                          (controller 1) (trajectory-type 2)
+                          (trajectory-duration 0) (trajectory-velocity 0))
   (make-instance 'itasc-constraint
                  :constraint-type constraint-type
                  :constraint-name constraint-name
@@ -156,4 +195,6 @@
                  :lower-boundary lower-boundary
                  :upper-boundary upper-boundary
                  :controller controller
-                 :trajectory-generator trajectory-generator))
+                 :trajectory-type trajectory-type
+                 :trajectory-duration trajectory-duration
+                 :trajectory-velocity trajectory-velocity))
