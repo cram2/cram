@@ -42,8 +42,7 @@ terminates before executing the body of the second one.")
 (defun location-designator-reached (current-location location-designator)
   "Returns a boolean fluent that indicates if `current-location' is a
 valid solution for `location-designator'"
-  (let ((result (validate-location-designator-solution location-designator current-location)))
-    result))
+  (validate-location-designator-solution location-designator current-location))
 
 (defmacro with-equate-fluent ((designator fluent-name) &body body)
   "Executes `body' with `fluent-name' bound to a lexical variable. The
@@ -74,8 +73,16 @@ designator."
            (,pulse-thread nil))
        (flet ((set-current-location ()
                 (unless (and ,pulse-thread (sb-thread:thread-alive-p ,pulse-thread))
-                  (setf ,pulse-thread (sb-thread:make-thread
-                                      (lambda () (pulse ,robot-location-changed-fluent)))))))
+                  (let ((tf *tf*))
+                    (setf ,pulse-thread (sb-thread:make-thread
+                                         (lambda ()
+                                           ;; We need to dynamically
+                                           ;; rebind tf, otherwise
+                                           ;; *tf* might point to the
+                                           ;; global binding, not the
+                                           ;; one used in projection.
+                                           (let ((*tf* tf))
+                                             (pulse ,robot-location-changed-fluent)))))))))
          (tf:with-transforms-changed-callback (*tf* #'set-current-location)
            (reference ,loc-var)
            (with-task-tree-node (:path-part `(goal-context (at-location (?loc)))
