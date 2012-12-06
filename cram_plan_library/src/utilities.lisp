@@ -42,7 +42,7 @@
                designators-ros:*robot-base-frame* 0.0
                (cl-transforms:make-identity-vector)
                (cl-transforms:make-identity-rotation))
-        :target-frame designators-ros:*fixed-frame*))
+   :target-frame designators-ros:*fixed-frame*))
 
 (defun distance-to-drive (goal)
   (let ((loc-1 (reference goal))
