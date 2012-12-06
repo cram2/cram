@@ -65,24 +65,19 @@ designator."
        navigation-done
        result-values
        location-lost-count
-       pulse-thread)
+       pulse-task)
     `(let ((,terminated nil)
            (,robot-location-changed-fluent (make-fluent :allow-tracing nil))
            (,loc-var ,location)
            (,result-values nil)
-           (,pulse-thread nil))
+           (,pulse-task nil))
        (flet ((set-current-location ()
-                (unless (and ,pulse-thread (sb-thread:thread-alive-p ,pulse-thread))
-                  (let ((tf *tf*))
-                    (setf ,pulse-thread (sb-thread:make-thread
-                                         (lambda ()
-                                           ;; We need to dynamically
-                                           ;; rebind tf, otherwise
-                                           ;; *tf* might point to the
-                                           ;; global binding, not the
-                                           ;; one used in projection.
-                                           (let ((*tf* tf))
-                                             (pulse ,robot-location-changed-fluent)))))))))
+                (unless (and ,pulse-task
+                             (not (task-running-p ,pulse-task)))
+                  (setf ,pulse-task
+                        (make-instance 'task
+                          :thread-fun (lambda ()
+                                        (pulse ,robot-location-changed-fluent)))))))
          (tf:with-transforms-changed-callback (*tf* #'set-current-location)
            (reference ,loc-var)
            (with-task-tree-node (:path-part `(goal-context (at-location (?loc)))
