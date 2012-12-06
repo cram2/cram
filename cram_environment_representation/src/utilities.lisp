@@ -39,7 +39,11 @@ database.")
     (alexandria:copy-hash-table *object-identifier-to-instance-mappings*))
 
 (defun get-object-instance-name (object-identifier)
-  (gethash object-identifier *object-identifier-to-instance-mappings*))
+  (or (gethash object-identifier *object-identifier-to-instance-mappings*)
+      ;; as a fallback, return the object identifier. This is not
+      ;; really clean but makes integration of projection perception a
+      ;; little easier.
+      object-identifier))
 
 (defun get-robot-object ()
   (with-vars-bound (?robot-name)
