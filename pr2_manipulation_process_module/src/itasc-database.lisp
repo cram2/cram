@@ -193,8 +193,9 @@
                  :joint-name joint-name
                  :joint-type joint-type))
 
-(defun make-constraint (&key constraint-type constraint-name referred-joint
-                          operator value (weight 1)
+(defun make-constraint (&key constraint-name referred-joint
+                          value (constraint-type :constrained)
+                          (operator :equality_operator) (weight 1.0)
                           (lower-boundary 0) (upper-boundary 0)
                           (controller :position) 
                           (trajectory-type :trapezoidal_velocity_profile)
