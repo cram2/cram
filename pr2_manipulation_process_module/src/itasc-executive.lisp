@@ -86,7 +86,6 @@
                   :joint-constraints nil
                   :feature-constraints (list
                                         (make-constraint
-                                         :constraint-type :constrained
                                          :constraint-name "stay above value"
                                          :referred-joint "radius"
                                          :operator :greater_operator
@@ -109,40 +108,28 @@
                   :joint-constraints nil
                   :feature-constraints (list
                                         (make-constraint
-                                         :constraint-type :constrained
                                          :constraint-name "go to the front"
                                          :referred-joint "x"
-                                         :operator :equality_operator
                                          :value 0.5)
                                         (make-constraint
-                                         :constraint-type :constrained
                                          :constraint-name "go left"
                                          :referred-joint "y"
-                                         :operator :equality_operator
                                          :value 0.2)
                                         (make-constraint
-                                         :constraint-type :constrained
                                          :constraint-name "go up"
                                          :referred-joint "z"
-                                         :operator :equality_operator
                                          :value 1.2)
                                         (make-constraint
-                                         :constraint-type :constrained
                                          :constraint-name "roll"
                                          :referred-joint "roll"
-                                         :operator :equality_operator
                                          :value 0.0)
                                         (make-constraint
-                                         :constraint-type :constrained
                                          :constraint-name "pitch"
                                          :referred-joint "pitch"
-                                         :operator :equality_operator
                                          :value 0.0)
                                         (make-constraint
-                                         :constraint-type :constrained
                                          :constraint-name "yaw"
                                          :referred-joint "yaw"
-                                         :operator :equality_operator
                                          :value 0.0))
                   :priority 1)))
 
