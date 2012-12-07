@@ -175,6 +175,19 @@
                                                         " Frame: "
                                                         frame-name)))))
 
+(defun make-chain-joint-list (&key joint-names joint-types)
+  (when (and joint-names joint-types)
+    (cond ((eql (length joint-names)
+                (length joint-types))
+           (mapcar (lambda (name type)
+                     (make-chain-joint
+                      :joint-name name
+                      :joint-type type))
+                   joint-names joint-types))
+          (t (cpl-impl:fail 'manipulation-failed
+                            :format-control 
+                            "Provided joint-names and joint-types lists that are of different length")))))
+
 (defun make-chain-joint (&key joint-name joint-type)
   (make-instance 'itasc-chain-joint
                  :joint-name joint-name

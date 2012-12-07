@@ -147,37 +147,19 @@
                   :priority 1)))
 
 (defun make-cylindrical-coordinate-system ()
-  (list (make-chain-joint
-         :joint-name "phi"
-         :joint-type :rotation_z)
-        (make-chain-joint
-         :joint-name "radius"
-         :joint-type :translation_x)
-        (make-chain-joint
-         :joint-name "height"
-         :joint-type :translation_z)))
+  (make-chain-joint-list
+   :joint-names (list "phi" "radius" "height")
+   :joint-types (list :rotation_z :translation_x :translation_z)))
 
 (defun make-cartesian-coordinate-system ()
-  (list (make-chain-joint
-         :joint-name "x"
-         :joint-type :translation_x)
-        (make-chain-joint
-         :joint-name "y"
-         :joint-type :translation_y)
-        (make-chain-joint
-         :joint-name "z"
-         :joint-type :translation_z)))
+  (make-chain-joint-list
+   :joint-names (list "x" "y" "z")
+   :joint-types (list :translation_x :translation_y :translation_z)))
 
 (defun make-rpy-representation ()
-  (list (make-chain-joint
-         :joint-name "roll"
-         :joint-type :rotation_x)
-        (make-chain-joint
-         :joint-name "pitch"
-         :joint-type :rotation_y)
-        (make-chain-joint
-         :joint-name "yaw"
-         :joint-type :rotation_z)))
+  (make-chain-joint-list
+   :joint-names (list "roll" "pitch" "yaw")
+   :joint-types (list :rotation_x :rotation_y :rotation_z)))
 
 ;; using the database
 (defun goto-bunny-config ()
