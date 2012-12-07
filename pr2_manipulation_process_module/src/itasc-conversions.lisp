@@ -82,7 +82,9 @@
   (when task
     (roslisp:make-msg
      "task_msgs/ItascTask"
-     output_type (output-type task)
+     output_type (roslisp-msg-protocol:symbol-code
+                  'task_msgs-msg:itasctask
+                  (output-type task))
      name (name task)
      kinematic_chain (make-itasc-vkc-msg
                       (vkc task))
@@ -111,7 +113,9 @@
   (when chain-joint
     (roslisp:make-msg
      "task_msgs/ChainJoint"
-     type (joint-type chain-joint)
+     type (roslisp-msg-protocol:symbol-code
+           'task_msgs-msg:chainjoint
+           (joint-type chain-joint))
      name (joint-name chain-joint))))
 
 (defun make-itasc-object-frame-msg (object-frame)
@@ -125,19 +129,27 @@
   (when constraint
     (roslisp:make-msg
      "task_msgs/Constraint"
-     constraint_type (constraint-type constraint)
+     constraint_type (roslisp-msg-protocol:symbol-code
+                      'task_msgs-msg:constraint
+                      (constraint-type constraint))
      name (constraint-name constraint)
      referred_joint (referred-joint constraint)
-     constraint_operator (operator constraint)
+     constraint_operator (roslisp-msg-protocol:symbol-code
+                          'task_msgs-msg:constraint
+                          (operator constraint))
      constraint_value (value constraint)
      lower_tracking_boundary (lower-boundary constraint)
      upper_tracking_boundary (upper-boundary constraint)
      weight (weight constraint)
      controller (roslisp:make-msg
                  "task_msgs/Controller"
-                 type (controller constraint))
+                 type (roslisp-msg-protocol:symbol-code
+                       'task_msgs-msg:controller
+                       (controller constraint)))
      trajectory_generator (roslisp:make-msg
                            "task_msgs/TrajectoryGenerator"
-                           type (trajectory-type constraint)
+                           type (roslisp-msg-protocol:symbol-code
+                                 'task_msgs-msg:trajectorygenerator
+                                 (trajectory-type constraint))
                            execution_time (trajectory-duration constraint)
                            velocity_boundary (trajectory-velocity constraint)))))

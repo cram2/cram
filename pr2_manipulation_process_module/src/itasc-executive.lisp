@@ -63,20 +63,16 @@
 (defun fill-robot-joint-weights-database ()
   (clear-robot-joint-weights)
   (add-robot-joint-weight
-   :joint-name "joint0"
-   :weight 1.0)
+   :joint-name "joint0")
   (add-robot-joint-weight
-   :joint-name "joint1"
-   :weight 1.0))
+   :joint-name "joint1"))
 
 (defun fill-itasc-tasks ()
   (clear-itasc-tasks)
   (add-itasc-task
    (make-instance 'itasc-task
                   :name "robot base avoid cupboard"
-                  :output-type (roslisp-msg-protocol:symbol-code
-                                'task_msgs-msg:itasctask
-                                :feature_constraints)
+                  :output-type :feature_constraints
                   :vkc (make-vkc
                         :chain-joints (append
                                        (make-cylindrical-coordinate-system)
@@ -90,22 +86,16 @@
                   :joint-constraints nil
                   :feature-constraints (list
                                         (make-constraint
-                                         :constraint-type (roslisp-msg-protocol:symbol-code
-                                                           'task_msgs-msg:constraint
-                                                           :constrained)
+                                         :constraint-type :constrained
                                          :constraint-name "stay above value"
                                          :referred-joint "radius"
-                                         :operator (roslisp-msg-protocol:symbol-code
-                                                    'task_msgs-msg:constraint
-                                                    :greater_operator)
+                                         :operator :greater_operator
                                          :value 0.5))
                   :priority 1))
   (add-itasc-task
    (make-instance 'itasc-task
                   :name "left gripper into bunny pose"
-                  :output-type (roslisp-msg-protocol:symbol-code
-                                'task_msgs-msg:itasctask
-                                :feature_constraints)
+                  :output-type :feature_constraints
                   :vkc (make-vkc
                         :chain-joints (append
                                        (make-cartesian-coordinate-system)
@@ -119,117 +109,75 @@
                   :joint-constraints nil
                   :feature-constraints (list
                                         (make-constraint
-                                         :constraint-type (roslisp-msg-protocol:symbol-code
-                                                           'task_msgs-msg:constraint
-                                                           :constrained)
+                                         :constraint-type :constrained
                                          :constraint-name "go to the front"
                                          :referred-joint "x"
-                                         :operator (roslisp-msg-protocol:symbol-code
-                                                    'task_msgs-msg:constraint
-                                                    :equality_operator)
+                                         :operator :equality_operator
                                          :value 0.5)
                                         (make-constraint
-                                         :constraint-type (roslisp-msg-protocol:symbol-code
-                                                           'task_msgs-msg:constraint
-                                                           :constrained)
+                                         :constraint-type :constrained
                                          :constraint-name "go left"
                                          :referred-joint "y"
-                                         :operator (roslisp-msg-protocol:symbol-code
-                                                    'task_msgs-msg:constraint
-                                                    :equality_operator)
+                                         :operator :equality_operator
                                          :value 0.2)
                                         (make-constraint
-                                         :constraint-type (roslisp-msg-protocol:symbol-code
-                                                           'task_msgs-msg:constraint
-                                                           :constrained)
+                                         :constraint-type :constrained
                                          :constraint-name "go up"
                                          :referred-joint "z"
-                                         :operator (roslisp-msg-protocol:symbol-code
-                                                    'task_msgs-msg:constraint
-                                                    :equality_operator)
+                                         :operator :equality_operator
                                          :value 1.2)
                                         (make-constraint
-                                         :constraint-type (roslisp-msg-protocol:symbol-code
-                                                           'task_msgs-msg:constraint
-                                                           :constrained)
+                                         :constraint-type :constrained
                                          :constraint-name "roll"
                                          :referred-joint "roll"
-                                         :operator (roslisp-msg-protocol:symbol-code
-                                                    'task_msgs-msg:constraint
-                                                    :equality_operator)
+                                         :operator :equality_operator
                                          :value 0.0)
                                         (make-constraint
-                                         :constraint-type (roslisp-msg-protocol:symbol-code
-                                                           'task_msgs-msg:constraint
-                                                           :constrained)
+                                         :constraint-type :constrained
                                          :constraint-name "pitch"
                                          :referred-joint "pitch"
-                                         :operator (roslisp-msg-protocol:symbol-code
-                                                    'task_msgs-msg:constraint
-                                                    :equality_operator)
+                                         :operator :equality_operator
                                          :value 0.0)
                                         (make-constraint
-                                         :constraint-type (roslisp-msg-protocol:symbol-code
-                                                           'task_msgs-msg:constraint
-                                                           :constrained)
+                                         :constraint-type :constrained
                                          :constraint-name "yaw"
                                          :referred-joint "yaw"
-                                         :operator (roslisp-msg-protocol:symbol-code
-                                                    'task_msgs-msg:constraint
-                                                    :equality_operator)
+                                         :operator :equality_operator
                                          :value 0.0))
                   :priority 1)))
 
 (defun make-cylindrical-coordinate-system ()
   (list (make-chain-joint
          :joint-name "phi"
-         :joint-type (roslisp-msg-protocol:symbol-code
-                      'task_msgs-msg:chainjoint
-                      :rotation_z))
+         :joint-type :rotation_z)
         (make-chain-joint
          :joint-name "radius"
-         :joint-type (roslisp-msg-protocol:symbol-code
-                      'task_msgs-msg:chainjoint
-                      :translation_x))
+         :joint-type :translation_x)
         (make-chain-joint
          :joint-name "height"
-         :joint-type (roslisp-msg-protocol:symbol-code
-                      'task_msgs-msg:chainjoint
-                      :translation_z))))
+         :joint-type :translation_z)))
 
 (defun make-cartesian-coordinate-system ()
   (list (make-chain-joint
          :joint-name "x"
-         :joint-type (roslisp-msg-protocol:symbol-code
-                      'task_msgs-msg:chainjoint
-                      :translation_x))
+         :joint-type :translation_x)
         (make-chain-joint
          :joint-name "y"
-         :joint-type (roslisp-msg-protocol:symbol-code
-                      'task_msgs-msg:chainjoint
-                      :translation_y))
+         :joint-type :translation_y)
         (make-chain-joint
          :joint-name "z"
-         :joint-type (roslisp-msg-protocol:symbol-code
-                      'task_msgs-msg:chainjoint
-                      :translation_z))))
+         :joint-type :translation_z)))
 
 (defun make-rpy-representation ()
   (list (make-chain-joint
          :joint-name "roll"
-         :joint-type (roslisp-msg-protocol:symbol-code
-                      'task_msgs-msg:chainjoint
-                      :rotation_x))
+         :joint-type :rotation_x)
         (make-chain-joint
          :joint-name "pitch"
-         :joint-type (roslisp-msg-protocol:symbol-code
-                      'task_msgs-msg:chainjoint
-                      :rotation_y))
+         :joint-type :rotation_y)
         (make-chain-joint
          :joint-name "yaw"
-         :joint-type (roslisp-msg-protocol:symbol-code
-                      'task_msgs-msg:chainjoint
-                      :rotation_z))))
+         :joint-type :rotation_z)))
 
 ;; using the database
 (defun goto-bunny-config ()
