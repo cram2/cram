@@ -74,7 +74,9 @@
   (add-itasc-task
    (make-instance 'itasc-task
                   :name "robot base avoid cupboard"
-                  :output-type 2
+                  :output-type (roslisp-msg-protocol:symbol-code
+                                'task_msgs-msg:itasctask
+                                :feature_constraints)
                   :vkc (make-vkc
                         :chain-joints (append
                                        (make-cylindrical-coordinate-system)
@@ -88,16 +90,22 @@
                   :joint-constraints nil
                   :feature-constraints (list
                                         (make-constraint
-                                         :constraint-type 2
+                                         :constraint-type (roslisp-msg-protocol:symbol-code
+                                                           'task_msgs-msg:constraint
+                                                           :constrained)
                                          :constraint-name "stay above value"
                                          :referred-joint "radius"
-                                         :operator 2
+                                         :operator (roslisp-msg-protocol:symbol-code
+                                                    'task_msgs-msg:constraint
+                                                    :greater_operator)
                                          :value 0.5))
                   :priority 1))
   (add-itasc-task
    (make-instance 'itasc-task
                   :name "left gripper into bunny pose"
-                  :output-type 2
+                  :output-type (roslisp-msg-protocol:symbol-code
+                                'task_msgs-msg:itasctask
+                                :feature_constraints)
                   :vkc (make-vkc
                         :chain-joints (append
                                        (make-cartesian-coordinate-system)
@@ -111,84 +119,126 @@
                   :joint-constraints nil
                   :feature-constraints (list
                                         (make-constraint
-                                         :constraint-type 2
+                                         :constraint-type (roslisp-msg-protocol:symbol-code
+                                                           'task_msgs-msg:constraint
+                                                           :constrained)
                                          :constraint-name "go to the front"
                                          :referred-joint "x"
-                                         :operator 1
+                                         :operator (roslisp-msg-protocol:symbol-code
+                                                    'task_msgs-msg:constraint
+                                                    :equality_operator)
                                          :value 0.5)
                                         (make-constraint
-                                         :constraint-type 2
+                                         :constraint-type (roslisp-msg-protocol:symbol-code
+                                                           'task_msgs-msg:constraint
+                                                           :constrained)
                                          :constraint-name "go left"
                                          :referred-joint "y"
-                                         :operator 1
+                                         :operator (roslisp-msg-protocol:symbol-code
+                                                    'task_msgs-msg:constraint
+                                                    :equality_operator)
                                          :value 0.2)
                                         (make-constraint
-                                         :constraint-type 2
+                                         :constraint-type (roslisp-msg-protocol:symbol-code
+                                                           'task_msgs-msg:constraint
+                                                           :constrained)
                                          :constraint-name "go up"
                                          :referred-joint "z"
-                                         :operator 1
+                                         :operator (roslisp-msg-protocol:symbol-code
+                                                    'task_msgs-msg:constraint
+                                                    :equality_operator)
                                          :value 1.2)
                                         (make-constraint
-                                         :constraint-type 2
+                                         :constraint-type (roslisp-msg-protocol:symbol-code
+                                                           'task_msgs-msg:constraint
+                                                           :constrained)
                                          :constraint-name "roll"
                                          :referred-joint "roll"
-                                         :operator 1
+                                         :operator (roslisp-msg-protocol:symbol-code
+                                                    'task_msgs-msg:constraint
+                                                    :equality_operator)
                                          :value 0.0)
                                         (make-constraint
-                                         :constraint-type 2
+                                         :constraint-type (roslisp-msg-protocol:symbol-code
+                                                           'task_msgs-msg:constraint
+                                                           :constrained)
                                          :constraint-name "pitch"
                                          :referred-joint "pitch"
-                                         :operator 1
+                                         :operator (roslisp-msg-protocol:symbol-code
+                                                    'task_msgs-msg:constraint
+                                                    :equality_operator)
                                          :value 0.0)
                                         (make-constraint
-                                         :constraint-type 2
+                                         :constraint-type (roslisp-msg-protocol:symbol-code
+                                                           'task_msgs-msg:constraint
+                                                           :constrained)
                                          :constraint-name "yaw"
                                          :referred-joint "yaw"
-                                         :operator 1
+                                         :operator (roslisp-msg-protocol:symbol-code
+                                                    'task_msgs-msg:constraint
+                                                    :equality_operator)
                                          :value 0.0))
                   :priority 1)))
 
 (defun make-cylindrical-coordinate-system ()
   (list (make-chain-joint
          :joint-name "phi"
-         :joint-type 6)
+         :joint-type (roslisp-msg-protocol:symbol-code
+                      'task_msgs-msg:chainjoint
+                      :rotation_z))
         (make-chain-joint
          :joint-name "radius"
-         :joint-type 1)
+         :joint-type (roslisp-msg-protocol:symbol-code
+                      'task_msgs-msg:chainjoint
+                      :translation_x))
         (make-chain-joint
          :joint-name "height"
-         :joint-type 3)))
+         :joint-type (roslisp-msg-protocol:symbol-code
+                      'task_msgs-msg:chainjoint
+                      :translation_z))))
 
 (defun make-cartesian-coordinate-system ()
   (list (make-chain-joint
          :joint-name "x"
-         :joint-type 1)
+         :joint-type (roslisp-msg-protocol:symbol-code
+                      'task_msgs-msg:chainjoint
+                      :translation_x))
         (make-chain-joint
          :joint-name "y"
-         :joint-type 2)
+         :joint-type (roslisp-msg-protocol:symbol-code
+                      'task_msgs-msg:chainjoint
+                      :translation_y))
         (make-chain-joint
          :joint-name "z"
-         :joint-type 3)))
+         :joint-type (roslisp-msg-protocol:symbol-code
+                      'task_msgs-msg:chainjoint
+                      :translation_z))))
 
 (defun make-rpy-representation ()
   (list (make-chain-joint
          :joint-name "roll"
-         :joint-type 4)
+         :joint-type (roslisp-msg-protocol:symbol-code
+                      'task_msgs-msg:chainjoint
+                      :rotation_x))
         (make-chain-joint
          :joint-name "pitch"
-         :joint-type 5)
+         :joint-type (roslisp-msg-protocol:symbol-code
+                      'task_msgs-msg:chainjoint
+                      :rotation_y))
         (make-chain-joint
          :joint-name "yaw"
-         :joint-type 6)))
+         :joint-type (roslisp-msg-protocol:symbol-code
+                      'task_msgs-msg:chainjoint
+                      :rotation_z))))
 
 ;; using the database
 (defun goto-bunny-config ()
   (let ((bunny-action (create-itasc-action
-                 :tasks (assemble-tasks-msg-vector
-                         (list
-                          "robot base avoid cupboard"
-                          "left gripper into bunny pose"))
-                 :robot-joint-weights (assemble-robot-joint-weights-msg-vector)
-                 :objects (assemble-itasc-object-msg-vector 
-                           (list "cupboard-top1")))))
+                       :tasks (assemble-tasks-msg-vector
+                               (list
+                                "robot base avoid cupboard"
+                                "left gripper into bunny pose"))
+                       :robot-joint-weights (assemble-robot-joint-weights-msg-vector)
+                       :objects (assemble-itasc-object-msg-vector 
+                                 (list "cupboard-top1")))))
     (perform-itasc-motion bunny-action)))
