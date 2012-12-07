@@ -116,7 +116,7 @@
 (defun clear-robot-joint-weights ()
   (setf *robot-joint-weights* ()))
 
-(defun add-robot-joint-weight (&key joint-name weight)
+(defun add-robot-joint-weight (&key joint-name (weight 1.0))
   (setf *robot-joint-weights*
         (append *robot-joint-weights*
                 (list (make-instance 'itasc-robot-joint-weight
@@ -183,7 +183,8 @@
 (defun make-constraint (&key constraint-type constraint-name referred-joint
                           operator value (weight 1)
                           (lower-boundary 0) (upper-boundary 0)
-                          (controller 1) (trajectory-type 2)
+                          (controller :position) 
+                          (trajectory-type :trapezoidal_velocity_profile)
                           (trajectory-duration 0) (trajectory-velocity 0))
   (make-instance 'itasc-constraint
                  :constraint-type constraint-type
