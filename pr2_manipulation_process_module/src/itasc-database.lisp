@@ -31,8 +31,6 @@
 
 (defvar *itasc-robots* () "List of itasc objects that might be used in a demo")
 
-(defvar *robot-joint-weights* () "List of joint weights for the PR2.")
-
 (defvar *itasc-tasks* () "List of tasks that are used in our demonstration.")
 
 ;; Definitions of classes that hold the relevant information for our demo
@@ -44,7 +42,12 @@
 (defclass itasc-robot ()
   ((robot-name :reader robot-name :initarg :robot-name)
    (robot-type :reader robot-type :initarg :robot-type)
+   (kinematic-chains :reader kinematic-chains :initarg :kinematic-chains)
    (attached-frames :reader attached-frames :initarg :attached-frames)))
+
+(defclass itasc-robot-kinematic-chain ()
+  ((chain-name :reader chain-name :initarg :chain-name)
+   (robot-joint-weights :reader robot-joint-weights :initarg :robot-joint-weights)))
 
 (defclass itasc-robot-joint-weight ()
   ((joint-name :reader joint-name :initarg :joint-name)
@@ -112,31 +115,74 @@
                   (attached-frames (find-itasc-object object-name)))
         t))))
 
-;;; robot joint weight convenience functions...
-(defun clear-robot-joint-weights ()
-  (setf *robot-joint-weights* ()))
-
-(defun add-robot-joint-weight (&key joint-name (weight 1.0))
-  (setf *robot-joint-weights*
-        (append *robot-joint-weights*
-                (list (make-instance 'itasc-robot-joint-weight
-                                     :joint-name joint-name
-                                     :weight weight)))))
-
 ;;; robot description convenience functions
 (defun clear-itasc-robot-list ()
   (setf *itasc-robots* ()))
 
-(defun add-itasc-robot (&key robot-name robot-type frames)
+(defun add-itasc-robot (&key robot-name robot-type kinematic-chains frames)
   (setf *itasc-robots*
         (append *itasc-robots*
                 (list (make-instance 'itasc-robot
                                      :robot-name robot-name
                                      :robot-type robot-type
+                                     :kinematic-chains kinematic-chains
                                      :attached-frames frames)))))
 
 (defun find-itasc-robot (robot-name)
   (find robot-name *itasc-robots* :key #'robot-name :test #'string=))
+
+(defun make-robot-kinematic-chain (&key chain-name robot-joint-weights)
+  (make-instance 'itasc-robot-kinematic-chain
+                 :chain-name chain-name
+                 :robot-joint-weights robot-joint-weights))
+
+(defun assemble-robot-joint-weights (&key robot-name chain-names)
+  (apply #'append
+         (mapcar (lambda (chain-name)
+                   (let ((chain (find-kinematic-chain robot-name chain-name)))
+                     (cond (chain
+                            (robot-joint-weights chain))
+                           (t
+                            (cpl-impl:fail 'manipulation-failed
+                                           :format-control 
+                                           (concatenate 'string
+                                                        "Asked to retrieve joint weights of non-existent kinematic chain. Chain name: "
+                                                        chain-name
+                                                        " Robot name: "
+                                                        robot-name))))))
+                 chain-names)))
+
+(defun find-kinematic-chain (robot-name chain-name)
+  (let ((robot (find-itasc-robot robot-name)))
+    (when robot
+      (find chain-name (kinematic-chains robot) :key #'chain-name :test #'string=))))
+
+(defun make-robot-joint-weight-list (&key joint-names weights)
+  (when (and joint-names weights)
+    (cond ((eql (length joint-names)
+                (length weights))
+           (mapcar (lambda (name weight)
+                     (make-robot-weight
+                      :joint-name name
+                      :weight weight))
+                   joint-names weights))
+          (t (cpl-impl:fail 'manipulation-failed
+                            :format-control 
+                            "Provided joint-names and weights lists that are of different length")))))
+
+(defun make-robot-joint-weight-standard-list (&key joint-names)
+  ;;uses standard joint weights of 1.0
+  (when (listp joint-names)
+    (let ((result (mapcar (lambda (name)
+                            (make-robot-weight
+                             :joint-name name))
+                          joint-names)))
+      result)))
+
+(defun make-robot-weight (&key joint-name (weight 1.0))
+  (make-instance 'itasc-robot-joint-weight
+                 :joint-name joint-name
+                 :weight weight))
 
 (defun object-frame-on-robot-p (robot-name frame-name)
   (when (and robot-name frame-name)

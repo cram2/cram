@@ -30,8 +30,7 @@
 ;; the actual content and filling of the database
 (defun fill-demo-database ()
   (fill-itasc-object-database)
-  (fill-robot-joint-weights-database)
-  (fill-robot-databse)
+  (fill-robot-database)
   (fill-itasc-tasks))
 
 (defun fill-itasc-object-database ()
@@ -49,23 +48,32 @@
    :object-type "drawer"
    :frames (list "drawer1")))
 
-(defun fill-robot-databse ()
+(defun fill-robot-database ()
   (clear-itasc-robot-list)
   (add-itasc-robot
    :robot-name "Rubens"
    :robot-type "PR2"
+   :kinematic-chains
+   (list (make-robot-kinematic-chain
+          :chain-name "left arm"
+          :robot-joint-weights
+          (make-robot-joint-weight-standard-list
+           :joint-names (list "joint0" "joint1" "joint2")))
+         (make-robot-kinematic-chain
+          :chain-name "right arm"
+          :robot-joint-weights
+          (make-robot-joint-weight-standard-list
+           :joint-names (list "joint4" "joint5" "joint6")))
+         (make-robot-kinematic-chain
+          :chain-name "torso"
+          :robot-joint-weights
+          (make-robot-joint-weight-standard-list
+           :joint-names (list "torse-joint"))))
    :frames (list "base_link" "left_gripper" "right_gripper"))
   (add-itasc-robot
    :robot-name "James"
    :robot-type "PR2")
   :frames (list "base_link" "gripper"))
-
-(defun fill-robot-joint-weights-database ()
-  (clear-robot-joint-weights)
-  (add-robot-joint-weight
-   :joint-name "joint0")
-  (add-robot-joint-weight
-   :joint-name "joint1"))
 
 (defun fill-itasc-tasks ()
   (clear-itasc-tasks)
@@ -155,7 +163,12 @@
                                (list
                                 "robot base avoid cupboard"
                                 "left gripper into bunny pose"))
-                       :robot-joint-weights (assemble-robot-joint-weights-msg-vector)
+                       :robot-joint-weights (make-robot-joint-weights-msg-vector
+                                             (assemble-robot-joint-weights
+                                              :robot-name "Rubens"
+                                              :chain-names (list "torso"
+                                                                 "left arm"
+                                                                 "right arm")))
                        :objects (assemble-itasc-object-msg-vector 
                                  (list "cupboard-top1")))))
     (perform-itasc-motion bunny-action)))
