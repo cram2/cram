@@ -60,11 +60,9 @@
    joint_name (joint-name robot-joint-weight)
    weight (weight robot-joint-weight)))
 
-(defun assemble-robot-joint-weights-msg-list ()
-  (mapcar #'make-robot-joint-weight-msg *robot-joint-weights*))
-
-(defun assemble-robot-joint-weights-msg-vector ()
-  (map 'vector #'identity (assemble-robot-joint-weights-msg-list)))
+(defun make-robot-joint-weights-msg-vector (robot-joint-weights)
+  (map 'vector #'identity 
+       (mapcar #'make-robot-joint-weight-msg robot-joint-weights)))
 
 ;;; Conversions to create the "tasks" part of the goal message
 (defun assemble-tasks-msg-vector (task-names-list)
