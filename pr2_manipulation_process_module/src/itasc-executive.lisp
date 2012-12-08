@@ -67,8 +67,9 @@
          (make-robot-kinematic-chain
           :chain-name "torso"
           :robot-joint-weights
-          (make-robot-joint-weight-standard-list
-           :joint-names (list "torse-joint"))))
+          (make-robot-joint-weight-list
+           :joint-names (list "torso-joint")
+           :weights (list 0.0))))
    :frames (list "base_link" "left_gripper" "right_gripper"))
   (add-itasc-robot
    :robot-name "James"
