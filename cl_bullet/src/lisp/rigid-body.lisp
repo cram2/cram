@@ -79,7 +79,7 @@
   (set-motion-state (foreign-obj body) (foreign-obj (motion-state body)))
   ;; In case the object was deactivated, i.e. it was not moving
   ;; anymore, we need to re-activate it.
-  (setf (activation-state body) :active-tag))
+  (activate body))
 
 (defmethod foreign-class-alloc ((body rigid-body) &key
                                 pose activation-state collision-flags
@@ -106,13 +106,16 @@
   (cffi-get-total-torque (foreign-obj body)))
 
 (defmethod apply-force ((body rigid-body) force rel-pos)
-  (cffi-apply-force (foreign-obj body) force rel-pos))
+  (cffi-apply-force (foreign-obj body) force rel-pos)
+  (activate body))
 
 (defmethod apply-central-force ((body rigid-body) force)
-  (cffi-apply-central-force (foreign-obj body) force))
+  (cffi-apply-central-force (foreign-obj body) force)
+  (activate body))
 
 (defmethod apply-torque ((body rigid-body) torque)
-  (cffi-apply-torque (foreign-obj body) torque))
+  (cffi-apply-torque (foreign-obj body) torque)
+  (activate body))
 
 (defmethod clear-forces ((body rigid-body))
   (cffi-clear-forces (foreign-obj body)))
@@ -121,13 +124,15 @@
   (get-linear-velocity (foreign-obj body)))
 
 (defmethod (setf linear-velocity) (new-value (body rigid-body))
-  (set-linear-velocity (foreign-obj body) new-value))
+  (set-linear-velocity (foreign-obj body) new-value)
+  (activate body))
 
 (defmethod angular-velocity ((body rigid-body))
   (get-angular-velocity (foreign-obj body)))
 
 (defmethod (setf angular-velocity) (new-value (body rigid-body))
-  (set-angular-velocity (foreign-obj body) new-value))
+  (set-angular-velocity (foreign-obj body) new-value)
+  (activate body))
 
 (defmethod activation-state ((body rigid-body))
   (get-activation-state (foreign-obj body)))
@@ -139,7 +144,8 @@
   (get-collision-flags (foreign-obj body)))
 
 (defmethod (setf collision-flags) (new-value (body rigid-body))
-  (set-collision-flags (foreign-obj body) new-value))
+  (set-collision-flags (foreign-obj body) new-value)
+  (activate body))
 
 (defmethod aabb ((body rigid-body))
   (destructuring-bind (min max)
@@ -151,14 +157,17 @@
 (defmethod (setf collision-group) (new-value (body rigid-body))
   (with-slots (collision-group collision-mask) body
     (setf collision-group new-value)
-    (set-collision-filter (foreign-obj body) new-value collision-mask)))
+    (set-collision-filter (foreign-obj body) new-value collision-mask))
+  (activate body))
 
 (defmethod (setf collision-mask) (new-value (body rigid-body))
   (with-slots (collision-group collision-mask) body
     (setf collision-mask new-value)
-    (set-collision-filter (foreign-obj body) collision-group new-value)))
+    (set-collision-filter (foreign-obj body) collision-group new-value))
+  (activate body))
 
 (defmethod (setf mass) (new-value (body rigid-body))
   (with-slots (mass) body
     (setf mass new-value)
-    (set-mass-props (foreign-obj body) (float new-value 0.0d0))))
+    (set-mass-props (foreign-obj body) (float new-value 0.0d0)))
+  (activate body))
