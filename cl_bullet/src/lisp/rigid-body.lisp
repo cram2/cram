@@ -67,6 +67,10 @@
    (collision-mask :initarg :mask :initform :all-filter
                    :reader collision-mask)))
 
+(defgeneric activate (body)
+  (:method ((body rigid-body))
+    (setf (activation-state body) :active-tag)))
+
 (defmethod pose ((body rigid-body))
   (pose (motion-state body)))
 
