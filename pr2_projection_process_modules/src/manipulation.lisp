@@ -225,6 +225,12 @@
               :object current-object :link gripper-link)))))
      (cpl-impl:fail 'cram-plan-failures:manipulation-pose-unreachable))))
 
+(def-asynchronous-process-module projection-manipulation
+    ((processing-trigger
+      :initform (cpl:make-fluent :value nil)
+      :documentation "Fluent that gets pulsed whenever execution
+      starts or finishes.")))
+
 (def-process-module projection-manipulation (input)
   (let ((action (desig:reference input)))
     (execute-as-action
