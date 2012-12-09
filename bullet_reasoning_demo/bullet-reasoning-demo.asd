@@ -43,4 +43,5 @@
     :components
     ((:module "src"
               :components
-              ((:file "designator-config")))))
+              ((:file "designator-config")
+               (:file "reachability-map-visualization")))))
