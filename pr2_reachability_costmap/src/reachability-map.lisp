@@ -46,20 +46,11 @@
 
 (defgeneric inverse-map-origin (reachability-map)
   (:method ((reachability-map reachability-map))
-    (let* ((reachability-map-matrix (reachability-map reachability-map))
-           (inverse-map-matrix (inverse-reachability-map reachability-map))
-           (resolution (resolution reachability-map))
-           (size-difference-x (* (- (array-dimension reachability-map-matrix 2)
-                                    (array-dimension inverse-map-matrix 2))
-                                 (cl-transforms:x resolution)))
-           (size-difference-y (* (- (array-dimension reachability-map-matrix 1)
-                                    (array-dimension inverse-map-matrix 1))
-                                 (cl-transforms:y resolution))))
-      (cl-transforms:v+ (origin reachability-map)
-                        (cl-transforms:v*
-                         (cl-transforms:make-3d-vector
-                          size-difference-x size-difference-y 0)
-                         0.5)))))
+    (let ((size/-2 (cl-transforms:v* (inverse-map-size reachability-map) -0.5)))
+      (cl-transforms:make-3d-vector
+       (cl-transforms:x size/-2)
+       (cl-transforms:y size/-2)
+       (- (cl-transforms:z (maximum reachability-map)))))))
 
 (defgeneric size (reachability-map)
   (:method ((reachability-map reachability-map))
