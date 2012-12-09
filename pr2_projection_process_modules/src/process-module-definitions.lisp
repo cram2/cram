@@ -1,4 +1,4 @@
-;;; Copyright (c) 2011, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -26,32 +26,10 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem projection-process-modules
-  :author "Lorenz Moesenlechner"
-  :license "BSD"
-  
-  :depends-on (alexandria
-               process-modules
-               designators
-               bullet-reasoning
-               bullet-reasoning-designators
-               cram-plan-knowledge
-               cram-projection
-               cram-roslisp-common
-               cram-manipulation-knowledge
-               cram-plan-failures
-               pr2-manipulation-knowledge
-               cl-semantic-map-utils)
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "tf" :depends-on ("package"))
-     (:file "process-module-definitions" :depends-on ("package"))
-     (:file "perception" :depends-on ("package" "action-events"))
-     (:file "manipulation" :depends-on ("package" "action-events" "process-module-definitions"))
-     (:file "ptu" :depends-on ("package" "tf" "action-events"))
-     (:file "action-designators" :depends-on ("package"))
-     (:file "navigation" :depends-on ("package" "action-events" "process-module-definitions"))
-     (:file "projection-environment" :depends-on ("package" "tf" "action-events"))
-     (:file "action-events" :depends-on ("package"))))))
+(in-package :projection-process-modules)
+
+(defgeneric processing (process-module)
+  (:documentation "Returns a fluent that indicates if the process
+   module is processing input at the moment.")
+  (:method ((process-module process-module))
+    (cpl:eq (pm-status process-module) :running)))
