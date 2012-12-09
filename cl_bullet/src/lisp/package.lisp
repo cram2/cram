@@ -56,6 +56,7 @@
    ;; rigid bodies
    bounding-box make-bounding-box
    bounding-box-center bounding-box-dimensions
+   activate
    activation-state
    collision-flags
    get-total-force
