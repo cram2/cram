@@ -60,8 +60,10 @@
 (defun find-object (designator)
   "Finds objects with (optional) name `object-name' and type `type'
   and returns a list of elements of the form \(name pose\)."
-  (let ((object-name (when (slot-value designator 'desig:data)
-                       (desig:object-identifier (desig:reference designator))))
+  (let ((object-name (or
+                      (when (slot-value designator 'desig:data)
+                        (desig:object-identifier (desig:reference designator)))
+                      (desig:desig-prop-value designator 'desig-props:name)))
         (type (or (desig:desig-prop-value designator 'desig-props:type)
                   '?_)))
     (flet ((find-household-object ()
