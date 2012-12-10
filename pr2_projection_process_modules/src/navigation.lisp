@@ -37,10 +37,11 @@
   (with-slots (processing goal) process-module
     (cpl:whenever (goal)
       (unwind-protect
-           (let ((location-designator (desig:reference (cpl:value goal))))
+           (let* ((goal-action (cpl:value goal))
+                  (location-designator (desig:reference goal-action)))
              (setf (cpl:value processing) t)
              (execute-as-action
-              location-designator
+              goal-action
               (lambda ()
                 (assert 
                  (crs:prolog
@@ -48,7 +49,7 @@
                         (assert (object-pose ?_ ?robot ,(desig:reference location-designator))))))
                 (cram-plan-knowledge:on-event
                  (make-instance 'cram-plan-knowledge:robot-state-changed))))
-             (finish-process-module process-module :designator location-designator))
+             (finish-process-module process-module :designator goal-action))
         (setf (cpl:value goal) nil)
         (setf (cpl:value processing) nil)))))
 
@@ -59,7 +60,8 @@
 
 (defmethod synchronization-fluent ((process-module projection-navigation)
                                    (designator desig:action-designator))
-  (or (processing process-module)
-      (processing (get-running-process-module 'projection-manipulation))
-      (processing (get-running-process-module 'projection-ptu))
-      (processing (get-running-process-module 'projection-perception))))
+  (cpl-impl:fl-not
+   (cpl-impl:fl-or (processing process-module)
+                   (processing (get-running-process-module 'projection-manipulation))
+                   (processing (get-running-process-module 'projection-ptu))
+                   (processing (get-running-process-module 'projection-perception)))))
