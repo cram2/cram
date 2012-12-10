@@ -121,6 +121,7 @@
            #:+dead+
            #:+done+
            #:evaporate #:suspend #:wake-up #:join-task
+           #:tv-closure
            #:task-path
            #:without-scheduling
            #:with-scheduling
