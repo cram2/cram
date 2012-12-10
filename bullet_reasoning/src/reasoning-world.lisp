@@ -45,35 +45,39 @@
 (defgeneric objects (reasoning-world)
   (:documentation "Returns the list of objects in `reasoning-world'")
   (:method ((world bt-reasoning-world))
-    (loop for obj being the hash-values of (slot-value world 'objects)
-          collecting obj)))
+    (with-world-locked world
+      (loop for obj being the hash-values of (slot-value world 'objects)
+            collecting obj))))
 
 (defgeneric object (world name)
   (:method ((world bt-reasoning-world) name)
-    (gethash name (slot-value world 'objects))))
+    (with-world-locked world
+      (gethash name (slot-value world 'objects)))))
 
 (defclass bt-reasoning-world-state (world-state)
   ((objects :reader objects :initarg :objects
             :documentation "alist of objects")))
 
 (defmethod get-state ((world bt-reasoning-world))
-  (let ((state (call-next-method)))
-    (change-class state 'bt-reasoning-world-state
-                  :objects (loop for name being the hash-keys of (slot-value world 'objects)
-                                 using (hash-value object)
-                                 collecting (cons name object)))))
+  (with-world-locked world
+    (let ((state (call-next-method)))
+      (change-class state 'bt-reasoning-world-state
+                    :objects (loop for name being the hash-keys of (slot-value world 'objects)
+                                   using (hash-value object)
+                                   collecting (cons name object))))))
 
 (defmethod restore-state ((world-state bt-reasoning-world-state)
                           (world bt-reasoning-world))
-  (prog1
-      (call-next-method)
-    (with-world-locked world
-      (with-slots (objects) world
-        (clrhash objects)
-        (loop for (name . obj) in (objects world-state) do
-          (let ((obj (if (eq world (world obj))
-                         obj (copy-object obj world))))
-            (setf (gethash name objects) obj)
-            (invalidate-object obj)))))))
+  (with-world-locked world
+    (prog1
+        (call-next-method)
+      (with-world-locked world
+        (with-slots (objects) world
+          (clrhash objects)
+          (loop for (name . obj) in (objects world-state) do
+            (let ((obj (if (eq world (world obj))
+                           obj (copy-object obj world))))
+              (setf (gethash name objects) obj)
+              (invalidate-object obj))))))))
 
 (defvar *current-bullet-world* (make-instance 'bt-reasoning-world))
