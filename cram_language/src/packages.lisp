@@ -171,6 +171,7 @@
            #:goal-task-tree-node-goal
            ;; base.lisp
            #:top-level #:seq #:par #:tag #:with-tags #:with-task-suspended
+           #:par-loop
            #:pursue #:composite-failure #:composite-failures #:try-all
            #:try-in-order #:tagged
            #:try-each-in-order #:partial-order
