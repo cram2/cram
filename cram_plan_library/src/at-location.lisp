@@ -65,19 +65,24 @@ designator."
        navigation-done
        result-values
        location-lost-count
-       pulse-task)
+       pulse-thread
+       at-location-task)
     `(let ((,terminated nil)
            (,robot-location-changed-fluent (make-fluent :allow-tracing nil))
            (,loc-var ,location)
            (,result-values nil)
-           (,pulse-task nil))
+           (,pulse-thread nil)
+           (,at-location-task *current-task*))
        (flet ((set-current-location ()
-                (unless (and ,pulse-task
-                             (not (task-running-p ,pulse-task)))
-                  (setf ,pulse-task
-                        (make-instance 'task
-                          :thread-fun (lambda ()
-                                        (pulse ,robot-location-changed-fluent)))))))
+                (unless (and ,pulse-thread
+                             (sb-thread:thread-alive-p ,pulse-thread))
+                  (setf ,pulse-thread
+                        (sb-thread:make-thread
+                         (lambda ()
+                           (tv-closure
+                            nil ,at-location-task
+                            (lambda  ()
+                              (pulse ,robot-location-changed-fluent)))))))))
          (tf:with-transforms-changed-callback (*tf* #'set-current-location)
            (reference ,loc-var)
            (with-task-tree-node (:path-part `(goal-context (at-location (?loc)))
