@@ -27,17 +27,22 @@
 
 (in-package :plan-lib)
 
-(def-goal (achieve (loc Robot ?loc))
-  (ros-info (achieve plan-lib) "Driving to location ~a." ?loc)
-  (unless (reference ?loc)
+(def-cram-function navigate (goal)
+  (ros-info (achieve plan-lib) "Driving to location ~a." goal)
+  (unless (reference goal)
     (fail "Location designator invalid."))
-  (when (> (distance-to-drive ?loc) 1.5)
+  (when (> (distance-to-drive goal) 1.5)
     (ros-info (achieve plan-lib) "Distance to drive: ~a, parking arms.~%"
-              (distance-to-drive ?loc))
+              (distance-to-drive goal))
     (achieve `(looking-at :forward))
     (achieve '(arms-parked)))
-  (with-designators ((navigation-action (action `((type navigation) (goal ,?loc)))))
-    (perform navigation-action)))
+  (with-designators ((navigation-action (action `((type navigation) (goal ,goal)))))
+    (prog1
+        (perform navigation-action)
+      (monitor-action navigation-action))))
+
+(def-goal (achieve (loc Robot ?loc))
+  (navigate ?loc))
 
 (def-goal (achieve (loc ?obj ?loc))
   (ros-info (achieve plan-lib) "(achieve (loc ?obj ?loc)")
