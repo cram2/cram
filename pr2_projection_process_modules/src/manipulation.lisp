@@ -225,13 +225,64 @@
               :object current-object :link gripper-link)))))
      (cpl-impl:fail 'cram-plan-failures:manipulation-pose-unreachable))))
 
-(def-asynchronous-process-module projection-manipulation
-    ((processing-trigger
-      :initform (cpl:make-fluent :value nil)
-      :documentation "Fluent that gets pulsed whenever execution
-      starts or finishes.")))
+;; (def-process-module projection-manipulation (input)
+;;   (let ((action (desig:reference input)))
+;;     (execute-as-action
+;;      input (lambda () (apply (symbol-function (car action)) (cdr action))))))
 
-(def-process-module projection-manipulation (input)
-  (let ((action (desig:reference input)))
-    (execute-as-action
-     input (lambda () (apply (symbol-function (car action)) (cdr action))))))
+(def-asynchronous-process-module projection-manipulation
+    ((arms :initform (make-instance 'resources
+                       :resources (list :left :right)))
+     (tasks :initform nil)
+     (tasks-lock :initform (sb-thread:make-mutex))
+     (processing :initform (cpl-impl:make-fluent :name 'manipulation-processing :value nil)
+                 :reader processing)))
+
+(defmethod on-input ((process-module projection-manipulation) (input desig:action-designator))
+  (flet ((thread-function ()
+           (let ((action (desig:reference input))
+                 (resources (required-sides input)))
+             (handler-case
+                 (with-slots (arms tasks tasks-lock) process-module
+                   (unwind-protect
+                        (with-resources (arms resources)
+                          (execute-as-action
+                           input (lambda () (apply (symbol-function (car action)) (cdr action)))))
+                     (sb-thread:with-mutex (tasks-lock)
+                       (setf tasks (remove cpl-impl:*current-task* tasks)))
+                     (update-processing process-module))
+                   (finish-process-module process-module :designator input))
+               (cpl-impl:plan-failure (failure)
+                 (fail-process-module process-module failure :designator input))))))
+    (with-slots (tasks tasks-lock) process-module
+      (sb-thread:with-mutex (tasks-lock)
+        (push (make-instance 'cpl-impl:task :thread-fun #'thread-function) tasks)))))
+
+(defmethod synchronization-fluent
+    ((process-module projection-manipulation) (input desig:action-designator))
+  (with-slots (arms) process-module
+    (apply
+     #'cpl-impl:fl-and
+     (cpl-impl:fl-not
+      (cpl-impl:fl-or (processing (get-running-process-module 'projection-manipulation))
+                      (processing (get-running-process-module 'projection-ptu))
+                      (processing (get-running-process-module 'projection-perception))))
+     (mapcar (lambda (arm)
+               (resource-available-fluent arms :resource arm))
+             (required-sides input)))))
+
+(defun required-sides (designator)
+  (declare (type desig:action-designator designator))
+  (cut:with-vars-strictly-bound (?sides)
+      (cut:lazy-car
+       (crs:prolog
+        `(projection-designators:required-sides ,designator ?sides)))
+    (cut:force-ll ?sides)))
+
+(defun update-processing (process-module)
+  "Updates the slot PROCESSING based on the number of tasks that are
+  still alive."
+  (with-slots (processing tasks tasks-lock) process-module
+    (sb-thread:with-mutex (tasks-lock)
+      (setf (cpl:value processing)
+            (> (count-if #'cpl-impl:task-running-p  tasks) 0)))))

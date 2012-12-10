@@ -28,7 +28,11 @@
 
 (in-package :projection-process-modules)
 
-(def-process-module projection-ptu (input)
+(def-asynchronous-process-module projection-ptu
+    ((processing :initform (cpl-impl:make-fluent :value nil)
+                 :reader processing)))
+
+(defmethod on-input ((process-module projection-ptu) (input desig:action-designator))
   (let* ((designator-solution (desig:reference input))
          (pose (etypecase designator-solution
                  (tf:pose-stamped designator-solution)
@@ -43,4 +47,12 @@
                         (robot ?robot)
                         (head-pointing-at ?world ?robot ,pose)))))
        (cram-plan-knowledge:on-event
-        (make-instance 'cram-plan-knowledge:robot-state-changed))))))
+        (make-instance 'cram-plan-knowledge:robot-state-changed))))
+    (finish-process-module process-module :designator input)))
+
+(defmethod synchronization-fluent ((process-module projection-ptu)
+                                   (designator desig:action-designator))
+  (cpl-impl:fl-not
+   (cpl-impl:fl-or (processing (get-running-process-module 'projection-ptu))
+                   (processing (get-running-process-module 'projection-perception)))))
+

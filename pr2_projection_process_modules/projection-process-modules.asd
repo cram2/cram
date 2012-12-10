@@ -49,9 +49,11 @@
      (:file "tf" :depends-on ("package"))
      (:file "process-module-definitions" :depends-on ("package"))
      (:file "perception" :depends-on ("package" "action-events"))
-     (:file "manipulation" :depends-on ("package" "action-events" "process-module-definitions"))
+     (:file "manipulation"
+      :depends-on ("package" "action-events" "process-module-definitions" "resources"))
      (:file "ptu" :depends-on ("package" "tf" "action-events"))
      (:file "action-designators" :depends-on ("package"))
      (:file "navigation" :depends-on ("package" "action-events" "process-module-definitions"))
      (:file "projection-environment" :depends-on ("package" "tf" "action-events"))
-     (:file "action-events" :depends-on ("package"))))))
+     (:file "action-events" :depends-on ("package"))
+     (:file "resources" :depends-on ("package"))))))

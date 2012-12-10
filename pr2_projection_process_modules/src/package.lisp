@@ -48,7 +48,7 @@
   (:import-from #:cram-plan-knowledge
                 matching-process-module available-process-module)
   (:import-from #:cram-projection *projection-environment*)
-  (:export projection-role)
+  (:export projection-role required-sides)
   (:desig-properties at type to see follow pose location obj perceive
                      grasp carry lift park put-down open close side
                      z-offset distance parked navigation goal handle
