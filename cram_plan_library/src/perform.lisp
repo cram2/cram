@@ -44,3 +44,10 @@
 
 (def-goal (perform-on-process-module ?module ?action-designator)
   (pm-execute ?module ?action-designator))
+
+(def-goal (monitor-action ?action-designator)
+  (let ((matching-process-modules (matching-process-module-names ?action-designator)))
+    (monitor-process-module (car matching-process-modules) :designators (list ?action-designator))
+    ;; (par-loop (module matching-process-modules)
+    ;;   (monitor-process-module module :designators (list ?action-designator)))
+    ))

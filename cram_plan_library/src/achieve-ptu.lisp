@@ -47,4 +47,5 @@
                                                           0.0 0.0 0.0 1.0)))))))
                                            (t `((to follow) (pose ,?pose))))))))
            (prog1 (perform look-at-desig)
+             (monitor-action look-at-desig)
              (ros-info (achieve plan-lib) "Look at done~%"))))))
