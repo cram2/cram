@@ -107,7 +107,7 @@ designator."
                               (wait-for (make-fluent :value nil))))
                            (t
                             (sb-thread:with-mutex (*at-location-lock*)
-                              (achieve `(loc Robot ,,loc-var))
+                              (navigate ,loc-var)
                               (setf (value ,navigation-done) t)
                               ;; Wait for ever, i.e. terminate (and
                               ;; release the mutex) only when the other
