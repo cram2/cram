@@ -72,3 +72,8 @@
 (declare-goal perform-on-process-module (module action-designator)
   "Sends `action-designator' to the process module name `module'."
   (declare (ignore module action-designator)))
+
+(declare-goal monitor-action (action-designator)
+  "Blocks and monitors the execution of `action-designators' using the
+  method MONITOR-PROCESS-MODULE."
+  (declare (ignore action-designator)))

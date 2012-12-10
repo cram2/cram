@@ -58,7 +58,8 @@
         (at-location (pick-up-loc)
           (achieve `(looking-at ,(reference (make-designator
                                              'location `((of ,?obj))))))
-          (perform grasp-trajectory)))
+          (perform grasp-trajectory)
+          (monitor-action grasp-trajectory)))
       (with-failure-handling
           ((manipulation-pose-unreachable (f)
              (declare (ignore f))
@@ -67,7 +68,10 @@
                (retry))
              (return)))
         (perform lift-trajectory)
-        (perform carry-trajectory))))
+        (perform carry-trajectory)
+        (par
+          (monitor-action lift-trajectory)
+          (monitor-action carry-trajectory)))))
   ?obj)
 
 (def-goal (achieve (object-placed-at ?obj ?loc))
@@ -119,9 +123,12 @@
                     (next-different-location-solution put-down-loc)))))
             (at-location (put-down-loc)
               (achieve `(looking-at ,(reference ?loc)))
-              (perform put-down-trajectory)))
-          (perform park-trajectory))))))
+              (perform put-down-trajectory)
+              (monitor-action put-down-trajectory)))
+          (perform park-trajectory)
+          (monitor-action park-trajectory))))))
 
 (def-goal (achieve (arms-parked))
   (with-designators ((parking (action `((type trajectory) (to park)))))
-    (perform parking)))
+    (perform parking)
+    (monitor-action parking)))
