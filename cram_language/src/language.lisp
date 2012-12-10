@@ -395,3 +395,14 @@ reference it by its path relative to the PARTIAL-ORDER form."
                            (task-constraints ,constrained)))
        (par
          ,@steps))))
+
+(def-plan-macro par-loop ((var sequence) &body body)
+  "Executes body in parallel for each `var' in `sequence'."
+  (alexandria:with-gensyms (loop-body evaluated-sequence)
+    `(labels ((,loop-body (,evaluated-sequence)
+                (cpl:par
+                  (let ((,var (car ,evaluated-sequence)))
+                    (cpl:seq ,@body))
+                  (when (cdr ,evaluated-sequence)
+                    (,loop-body (cdr ,evaluated-sequence))))))
+       (,loop-body ,sequence))))
