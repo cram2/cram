@@ -101,7 +101,8 @@ designator."
                  until ,terminated do
                    (pursue
                      (cond ((and (sb-thread:mutex-owner *at-location-lock*)
-                                 (perceive-state `(loc Robot ,,loc-var)))
+                                 (location-designator-reached
+                                  (current-robot-location) ,loc-var))
                             (setf (value ,navigation-done) t)
                             (sb-thread:with-mutex (*at-location-lock*)
                               (wait-for (make-fluent :value nil))))
