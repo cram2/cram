@@ -31,26 +31,28 @@
 (in-package :btr)
 
 (defvar *debug-window* nil)
+(defvar *debug-window-lock* (sb-thread:make-mutex))
 (defvar *current-costmap-function* nil)
 
 (defun add-debug-window (world)
-  (cond ((not (and *debug-window* (not (closed *debug-window*))))
-         (setf *debug-window* (make-instance 'bullet-world-window
-                                             :world world
-                                             :camera-transform (cl-transforms:make-transform
-                                                                (cl-transforms:make-3d-vector -5 0 3)
-                                                                (cl-transforms:axis-angle->quaternion
-                                                                 (cl-transforms:make-3d-vector 0 1 0)
-                                                                 (/ pi 8)))
-                                             :light-position (cl-transforms:make-3d-vector -1.8 -2.0 5.0)))
-         (sb-thread:make-thread
-          (lambda () (glut:display-window *debug-window*))
-          :name "Debug window"))
-        ((not (eq world (world *debug-window*)))
-         (setf (world *debug-window*)
-               world)))
-  (when (hidden *debug-window*)
-    (show-window *debug-window*)))
+  (sb-thread:with-mutex (*debug-window-lock*)
+    (cond ((not (and *debug-window* (not (closed *debug-window*))))
+           (setf *debug-window* (make-instance 'bullet-world-window
+                                  :world world
+                                  :camera-transform (cl-transforms:make-transform
+                                                     (cl-transforms:make-3d-vector -5 0 3)
+                                                     (cl-transforms:axis-angle->quaternion
+                                                      (cl-transforms:make-3d-vector 0 1 0)
+                                                      (/ pi 8)))
+                                  :light-position (cl-transforms:make-3d-vector -1.8 -2.0 5.0)))
+           (sb-thread:make-thread
+            (lambda () (glut:display-window *debug-window*))
+            :name "Debug window"))
+          ((not (eq world (world *debug-window*)))
+           (setf (world *debug-window*)
+                 world)))
+    (when (hidden *debug-window*)
+      (show-window *debug-window*))))
 
 (defun costmap-color-fun (vec)
   (let ((val (cl-transforms:z vec)))
@@ -66,39 +68,41 @@
             (t (list 1.0 0.0 0.0))))))
 
 (defun clear-current-costmap-function-object ()
-  (when (and *current-costmap-function* *debug-window*)
-    (setf (gl-objects *debug-window*)
-          (remove *current-costmap-function* (gl-objects *debug-window*)))
-    (setf *current-costmap-function* nil)))
+  (sb-thread:with-mutex (*debug-window-lock*)
+    (when (and *current-costmap-function* *debug-window*)
+      (setf (gl-objects *debug-window*)
+            (remove *current-costmap-function* (gl-objects *debug-window*)))
+      (setf *current-costmap-function* nil))))
 
 (defun add-costmap-function-object (costmap &optional (z 0.0))
-  (when (and *current-costmap-function* *debug-window*)
-    (setf (gl-objects *debug-window*)
-          (remove *current-costmap-function* (gl-objects *debug-window*))))
-  (when costmap
-    (let* ((map-array (location-costmap:get-cost-map costmap))
-           (max-val (loop for y from 0 below (array-dimension map-array 1)
-                          maximizing (loop for x from 0 below (array-dimension map-array 1)
-                                           maximizing (aref map-array y x)))))
-      (declare (type cma:double-matrix map-array))
-      (flet ((costmap-function (x y)
-           (let ((val (/ (location-costmap:get-map-value costmap x y) max-val)))
-             (when (> val 0.01)
-               val))))
-        (setf *current-costmap-function*
-              (make-instance 'math-function-object
-                             :width (location-costmap:grid-width costmap)
-                             :height (location-costmap:grid-height costmap)
-                             :alpha 0.5 :color-fun #'costmap-color-fun
-                             :pose (cl-transforms:make-pose
-                                    (cl-transforms:make-3d-vector
-                                     (+ (location-costmap:origin-x costmap)
-                                        (/ (location-costmap:grid-width costmap) 2))
-                                     (+ (location-costmap:origin-y costmap)
-                                        (/ (location-costmap:grid-height costmap) 2))
-                                     z)
-                                    (cl-transforms:make-quaternion 0 0 0 1))
-                             :function #'costmap-function
-                             :step-size (location-costmap:resolution costmap)))))
-    (when *debug-window*
-      (push *current-costmap-function* (gl-objects *debug-window*)))))
+  (sb-thread:with-mutex (*debug-window-lock*)
+    (when (and *current-costmap-function* *debug-window*)
+      (setf (gl-objects *debug-window*)
+            (remove *current-costmap-function* (gl-objects *debug-window*))))
+    (when costmap
+      (let* ((map-array (location-costmap:get-cost-map costmap))
+             (max-val (loop for y from 0 below (array-dimension map-array 1)
+                            maximizing (loop for x from 0 below (array-dimension map-array 1)
+                                             maximizing (aref map-array y x)))))
+        (declare (type cma:double-matrix map-array))
+        (flet ((costmap-function (x y)
+                 (let ((val (/ (location-costmap:get-map-value costmap x y) max-val)))
+                   (when (> val 0.01)
+                     val))))
+          (setf *current-costmap-function*
+                (make-instance 'math-function-object
+                  :width (location-costmap:grid-width costmap)
+                  :height (location-costmap:grid-height costmap)
+                  :alpha 0.5 :color-fun #'costmap-color-fun
+                  :pose (cl-transforms:make-pose
+                         (cl-transforms:make-3d-vector
+                          (+ (location-costmap:origin-x costmap)
+                             (/ (location-costmap:grid-width costmap) 2))
+                          (+ (location-costmap:origin-y costmap)
+                             (/ (location-costmap:grid-height costmap) 2))
+                          z)
+                         (cl-transforms:make-quaternion 0 0 0 1))
+                  :function #'costmap-function
+                  :step-size (location-costmap:resolution costmap)))))
+      (when *debug-window*
+        (push *current-costmap-function* (gl-objects *debug-window*))))))
