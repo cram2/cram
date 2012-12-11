@@ -265,7 +265,7 @@
 (defmethod execute ((new-task abstract-task))
   (let ((parent-task *current-task*))
     (setup new-task parent-task)
-    (with-slots (name thread thread-fun parent-barrier constraints) new-task
+    (with-slots (name thread thread-fun parent-barrier constraints status) new-task
       (flet ((task-initial-function ()
                (setf thread (current-thread))
                (let ((*current-task* new-task)
@@ -286,7 +286,8 @@
                                 (result new-task))
                       (:tags :finish)))))))
         (spawn-thread name (tv-closure new-task parent-task
-                                       #'task-initial-function))))))
+                                       #'task-initial-function)))
+      (wait-for (fl-not (fl-eql status :created))))))
 
 (defun tv-closure (task parent-task continuation)
   "Establish bindings for task variables and initialize them."
