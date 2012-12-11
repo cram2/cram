@@ -134,3 +134,29 @@
     (register-location-generator 3 generator-3)
     (register-location-validation-function 3 validation-3)
     (assert-error 'designator-error (reference desig))))
+
+(defclass test-designator (designator) ())
+(register-designator-class test test-designator)
+
+(defmethod reference ((designator test-designator) &optional role)
+  (declare (ignore role))
+  (or (slot-value designator 'data)
+      (setf (slot-value designator 'data)
+            (funcall (properties designator)))))
+
+(define-test synchronized-reference
+  (let ((designator (make-designator 'test (lambda ()
+                                             (sleep 0.2)
+                                             (random 1.0))))
+        (value-1 nil)
+        (value-2 nil))
+    (let ((thread-1 (sb-thread:make-thread
+                     (lambda ()
+                       (setf value-1 (reference designator)))))
+          (thread-2 (sb-thread:make-thread
+                     (lambda ()
+                       (sleep 0.1)
+                       (setf value-2 (reference designator))))))
+      (sb-thread:join-thread thread-1)
+      (sb-thread:join-thread thread-2))
+    (assert-eq value-1 value-2)))

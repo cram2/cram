@@ -66,7 +66,9 @@
           reasoning or sensor data and has a valid solution.")
    (data :initform nil
          :documentation "Data this designator describes or nil if the
-                        designator was resolved yet.")))
+                        designator was resolved yet.")
+   (lock :initform (sb-thread:make-mutex)
+         :documentation "Lock for synchronizing reference calls.")))
 
 (defgeneric make-designator (class description &optional parent)
   (:documentation "Returns a new designator of type `class', matching
@@ -143,6 +145,12 @@
 
 (defmethod desig-equal ((desig-1 t) (desig-2 t))
   nil)
+
+(defmethod reference :around ((designator designator) &optional role)
+  (declare (ignore role))
+  (with-slots (lock) designator
+    (sb-thread:with-mutex (lock)
+      (call-next-method))))
 
 (defmethod reference :after ((desig designator) &optional role)
   (declare (ignore role))
