@@ -52,7 +52,8 @@
   (code-replacements (list))
   (parent nil)
   (children nil)
-  (path nil))
+  (path nil)
+  (lock (sb-thread:make-mutex)))
 
 ;; #demmeln: ask rittweiler for advice on layout of  pretty printing
 
@@ -100,13 +101,15 @@
     `(let* ((*current-path* (cons ,path-part *current-path*))
             (*current-task-tree-node* (ensure-tree-node *current-path*)))
        (declare (special *current-path* *current-task-tree-node*))
-       (let ((,task (make-task :name ',(gensym (format nil "[~a]-" name))
-                               :sexp ',(or sexp body)
-                               :function (lambda ,lambda-list
-                                           ,@body)
-                               :parameters ,parameters)))
-         (execute ,task)
-         (join-task ,task)))))
+       (join-task
+        (sb-thread:with-mutex ((task-tree-node-lock *current-task-tree-node*))
+          (let ((,task (make-task :name ',(gensym (format nil "[~a]-" name))
+                                  :sexp ',(or sexp body)
+                                  :function (lambda ,lambda-list
+                                              ,@body)
+                                  :parameters ,parameters)))
+            (execute ,task)
+            ,task))))))
 
 (defmacro replaceable-function (name lambda-list parameters path-part
                                 &body body)
@@ -156,26 +159,27 @@
                        (path *current-path*)
                        (parameters nil))
   "Returns a runnable task for the path"
-  (let* ((node (register-task-code sexp function :path path))
-         (code (task-tree-node-effective-code node)))
-    (cond ((not (code-task code))
-           (setf (code-parameters code) parameters)
-           (setf (code-task code)
-                 (make-instance 'task
-                   :name name
-                   :thread-fun (lambda ()
-                                 (apply (code-function code)
-                                        parameters))
-                   :run-thread nil
-                   :path path)))
-          ((executed (code-task code))
-           (make-task :name name
-                      :sexp sexp
-                      :function function
-                      :path `(,(path-next-iteration (car path)) . ,(cdr path))
-                      :parameters parameters))
-          (t
-           (code-task code)))))
+  (let ((node (register-task-code sexp function :path path)))
+    (sb-thread:with-recursive-lock ((task-tree-node-lock node))
+      (let ((code (task-tree-node-effective-code node)))
+        (cond ((not (code-task code))
+               (setf (code-parameters code) parameters)
+               (setf (code-task code)
+                     (make-instance 'task
+                       :name name
+                       :thread-fun (lambda ()
+                                     (apply (code-function code)
+                                            parameters))
+                       :run-thread nil
+                       :path path)))
+              ((executed (code-task code))
+               (make-task :name name
+                          :sexp sexp
+                          :function function
+                          :path `(,(path-next-iteration (car path)) . ,(cdr path))
+                          :parameters parameters))
+              (t
+               (code-task code)))))))
 
 (defun sub-task (path)
   "Small helper function to get a sub-task of the current task."
@@ -194,13 +198,14 @@
 (defun clear-tasks (task-tree-node)
   "Removes recursively all tasks from the tree. Keeps tree structure and
    leaves code-replacements in place."
-  (when (task-tree-node-code task-tree-node)
-    (setf (code-task (task-tree-node-code task-tree-node)) nil
-          (code-sexp (task-tree-node-code task-tree-node)) nil
-          (code-function (task-tree-node-code task-tree-node)) nil
-          (code-parameters (task-tree-node-code task-tree-node)) nil))
-  (loop for code-replacement in (task-tree-node-code-replacements task-tree-node)
-     do (setf (code-task code-replacement) nil))
+  (sb-thread:with-mutex ((task-tree-node-lock task-tree-node))
+    (when (task-tree-node-code task-tree-node)
+      (setf (code-task (task-tree-node-code task-tree-node)) nil
+            (code-sexp (task-tree-node-code task-tree-node)) nil
+            (code-function (task-tree-node-code task-tree-node)) nil
+            (code-parameters (task-tree-node-code task-tree-node)) nil))
+    (loop for code-replacement in (task-tree-node-code-replacements task-tree-node)
+          do (setf (code-task code-replacement) nil)))
   (mapc (compose #'clear-tasks #'cdr) (task-tree-node-children task-tree-node))
   task-tree-node)
 
@@ -223,11 +228,12 @@
                                       :test #'equal)))
                    (current-path (cons (car path) walked-path)))
                (unless child
-                 (setf child (make-task-tree-node
-                              :parent node
-                              :path current-path))
-                 (push (cons (car path) child)
-                       (task-tree-node-children node)))
+                 (sb-thread:with-recursive-lock ((task-tree-node-lock node))
+                   (setf child (make-task-tree-node
+                                :parent node
+                                :path current-path))
+                   (push (cons (car path) child)
+                         (task-tree-node-children node))))
                (cond ((not (cdr path))
                       child)
                      (t
@@ -236,8 +242,10 @@
 
 (defun replace-task-code (sexp function path &optional (task-tree *task-tree*))
   "Adds a code replacement to a specific task tree node."
-  (push (make-code :sexp sexp :function function)
-        (task-tree-node-code-replacements (ensure-tree-node path task-tree))))
+  (let ((node (ensure-tree-node path task-tree)))
+    (sb-thread:with-mutex ((task-tree-node-lock node))
+      (push (make-code :sexp sexp :function function)
+            (task-tree-node-code-replacements node)))))
 
 (defun register-task-code (sexp function &key
                            (path *current-path*) (task-tree *task-tree*)
@@ -245,20 +253,21 @@
   "Registers a code as the default code of a specific task tree
    node. If the parameter 'replace-registered' is true, old code is
    always overwritten. Returns the node."
-  (let* ((node (ensure-tree-node path task-tree))
-         (code (task-tree-node-code node)))
-    (cond ((or replace-registered
-               (not code))
-           (setf (task-tree-node-code node)
-                 (make-code :sexp sexp :function function)))
-          ((or (not (code-function code))
-               (not (code-sexp code)))
-           (setf (code-sexp code) sexp)
-           (setf (code-function code) function)
-           (when (and (code-task code)
-                      (not (executed (code-task code))))
-             (setf (slot-value (code-task code) 'thread-fun)
-                   function))))
+  (let ((node (ensure-tree-node path task-tree)))
+    (sb-thread:with-recursive-lock ((task-tree-node-lock node))
+      (let ((code (task-tree-node-code node)))
+        (cond ((or replace-registered
+                   (not code))
+               (setf (task-tree-node-code node)
+                     (make-code :sexp sexp :function function)))
+              ((or (not (code-function code))
+                   (not (code-sexp code)))
+               (setf (code-sexp code) sexp)
+               (setf (code-function code) function)
+               (when (and (code-task code)
+                          (not (executed (code-task code))))
+                 (setf (slot-value (code-task code) 'thread-fun)
+                       function))))))
     node))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
