@@ -132,19 +132,21 @@
                        mass)
   (add-object world 'mesh name pose :mass mass :mesh 'mug))
 
-(defmethod add-object ((world bt-world) (type (eql 'mesh)) name pose &key
-                       mass mesh (color '(0.5 0.5 0.5 1.0)) types
-                       disable-face-culling)
-  (let ((mesh-model (etypecase mesh
-                      (symbol (let ((uri (physics-utils:parse-uri (cadr (assoc mesh *mesh-files*)))))
-                                (with-file-cache model uri                                  
-                                    (physics-utils:load-3d-model
-                                     uri :flip-winding-order (caddr (assoc mesh *mesh-files*)))
-                                  model)))
-                      (string (let ((uri  (physics-utils:parse-uri mesh)))
-                                (with-file-cache model uri (physics-utils:load-3d-model uri)
-                                  model)))
-                      (physics-utils:3d-model mesh))))
+(defmethod add-object ((world bt-world) (type (eql 'mesh)) name pose
+                       &key mass mesh (color '(0.5 0.5 0.5 1.0)) types (scale 1.0)
+                         disable-face-culling)
+  (let ((mesh-model (physics-utils:scale-3d-model
+                     (etypecase mesh
+                       (symbol (let ((uri (physics-utils:parse-uri (cadr (assoc mesh *mesh-files*)))))
+                                 (with-file-cache model uri                                  
+                                     (physics-utils:load-3d-model
+                                      uri :flip-winding-order (caddr (assoc mesh *mesh-files*)))
+                                   model)))
+                       (string (let ((uri  (physics-utils:parse-uri mesh)))
+                                 (with-file-cache model uri (physics-utils:load-3d-model uri)
+                                   model)))
+                       (physics-utils:3d-model mesh))
+                     scale)))
     (make-household-object world name (or types (list mesh))
                            (list
                             (make-instance 'rigid-body
