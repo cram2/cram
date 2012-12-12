@@ -125,6 +125,9 @@
 
 (defun compare-bounding-box-values (bounding-box-1 bounding-box-2
                                     &key predicate key)
+  "Compares two bounding boxes, i.e. checks if `predicate' executed
+with two parameters, bottom of `bounding-box-1` and the top of
+`bounding-box-2, holds."
   (declare (type function predicate key))
   (funcall predicate
            (- (funcall key (bounding-box-center bounding-box-1))
@@ -149,4 +152,3 @@
    (aabb obj-1) (aabb (gethash link (links obj-2)))
    :predicate (make-compare-function #'>= :threshold *bb-comparison-validity-threshold*)
    :key #'cl-transforms:z))
-
