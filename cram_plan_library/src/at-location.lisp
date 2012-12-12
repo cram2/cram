@@ -32,12 +32,20 @@
 prevent oscillations, we need to wait until one AT-LOCATION form
 terminates before executing the body of the second one.")
 
-(defconstant +at-location-retry-count+ 5
+(defvar *navigating-lock* (sb-thread:make-mutex :name "NAVIGATING-LOCK")
+  "Mutex to synchronize calls to NAVIGATE and prevent race conditions
+  where at-location starts executing at a location and another
+  navigate just moves away.")
+
+(defconstant +at-location-retry-count+ 10
   "Number of retries if at-location detects that the location is lost,
   evaporates the body and triggers navigation again.")
 
 (cram-projection:define-special-projection-variable *at-location-lock*
     (sb-thread:make-mutex :name "AT-LOCATION-PROJECTION-LOCK"))
+
+(cram-projection:define-special-projection-variable *navigating-lock*
+    (sb-thread:make-mutex :name "NAVIGATING-PROJECTION-LOCK"))
 
 (defun location-designator-reached (current-location location-designator)
   "Returns a boolean fluent that indicates if `current-location' is a
@@ -56,92 +64,89 @@ designator."
          (with-equate-callback (,designator #',callback)
            ,@body)))))
 
+(defun %execute-at-location (loc-var function)
+  (let ((terminated nil)
+        (robot-location-changed-fluent (make-fluent :allow-tracing nil))
+        (result-values nil)
+        (pulse-thread nil)
+        (at-location-task *current-task*))
+    (flet ((set-current-location ()
+             (unless (and pulse-thread
+                          (sb-thread:thread-alive-p pulse-thread))
+               (setf pulse-thread
+                     (sb-thread:make-thread
+                      (lambda ()
+                        (tv-closure
+                         nil at-location-task
+                         (lambda  ()
+                           (pulse robot-location-changed-fluent)))))))))
+      (tf:with-transforms-changed-callback (*tf* #'set-current-location)
+        (reference loc-var)
+        (with-equate-fluent (loc-var designator-updated)
+          (loop
+            for navigation-done = (make-fluent :value nil)
+            for location-lost-count from 0
+            when (>= location-lost-count +at-location-retry-count+) do
+              (fail 'simple-plan-failure
+                    :format-control "Navigation lost ~a times. Aborting"
+                    :format-arguments (list location-lost-count))
+            until terminated do
+              (pursue
+                (cond ((sb-thread:with-mutex (*navigating-lock*)
+                         (and (sb-thread:mutex-owner *at-location-lock*)
+                              (location-designator-reached
+                               (current-robot-location) loc-var)
+                              (setf (value navigation-done) t)))
+                       (sb-thread:with-mutex (*at-location-lock*)
+                         (wait-for (make-fluent :value nil)))
+                       nil)
+                      (t
+                       (sb-thread:with-mutex (*at-location-lock*)
+                         (sb-thread:with-mutex (*navigating-lock*)
+                           (navigate loc-var)
+                           (setf (value navigation-done) t))
+                         ;; Wait for ever, i.e. terminate (and
+                         ;; release the mutex) only when the other
+                         ;; branch of pursue terminates. This is
+                         ;; necessary because we want to keep the
+                         ;; log until AT-LOCATION terminates.
+                         (wait-for (make-fluent :value nil)))))
+                (seq
+                  (wait-for navigation-done)
+                  (pursue
+                    ;; We are ignoring the designator-updated and
+                    ;; location-changed fluents inside the body of the
+                    ;; lambda function since it is only used to trigger
+                    ;; the lambda function in case the designator or
+                    ;; the robot's location changes. The data for
+                    ;; actually checking if the robot is still at the
+                    ;; correct location is computed inside the lambda
+                    ;; function.
+                    ;;
+                    ;; Note(moesenle): The fl-funcall function might be
+                    ;; executed even when none of the input fluents
+                    ;; changed its values. The reason is that WAIT-FOR
+                    ;; uses a condition variable to be notified on
+                    ;; fluent changes and then call VALUE which causes
+                    ;; re-calculation of the fluent's value.
+                    (wait-for (fl-funcall (lambda (location-changed designator-updated)
+                                            (declare (ignore location-changed
+                                                             designator-updated))
+                                            (not (location-designator-reached
+                                                  (current-robot-location) loc-var)))
+                                          (pulsed robot-location-changed-fluent)
+                                          (pulsed designator-updated)))
+                    (seq
+                      (setf result-values (multiple-value-list (funcall function)))
+                      (setf terminated t)))))
+            finally (return (apply #'values result-values))))))))
+
 (defmacro at-location (&whole sexp (location) &body body)
-  (alexandria:with-gensyms
-      (loc-var
-       terminated
-       robot-location-changed-fluent
-       designator-updated
-       navigation-done
-       result-values
-       location-lost-count
-       pulse-thread
-       at-location-task)
-    `(let ((,terminated nil)
-           (,robot-location-changed-fluent (make-fluent :allow-tracing nil))
-           (,loc-var ,location)
-           (,result-values nil)
-           (,pulse-thread nil)
-           (,at-location-task *current-task*))
-       (flet ((set-current-location ()
-                (unless (and ,pulse-thread
-                             (sb-thread:thread-alive-p ,pulse-thread))
-                  (setf ,pulse-thread
-                        (sb-thread:make-thread
-                         (lambda ()
-                           (tv-closure
-                            nil ,at-location-task
-                            (lambda  ()
-                              (pulse ,robot-location-changed-fluent)))))))))
-         (tf:with-transforms-changed-callback (*tf* #'set-current-location)
-           (reference ,loc-var)
-           (with-task-tree-node (:path-part `(goal-context (at-location (?loc)))
-                                 :name ,(format nil "AT-LOCATION")
-                                 :sexp ,sexp
-                                 :lambda-list (,loc-var)
-                                 :parameters (list ,loc-var))
-             (with-equate-fluent (,loc-var ,designator-updated)
-               (loop
-                 for ,navigation-done = (make-fluent :value nil)
-                 for ,location-lost-count from 0
-                 when (>= ,location-lost-count +at-location-retry-count+) do
-                   (fail 'simple-plan-failure
-                         :format-control "Navigation lost ~a times. Aborting"
-                         :format-arguments (list ,location-lost-count))
-                 until ,terminated do
-                   (pursue
-                     (cond ((and (sb-thread:mutex-owner *at-location-lock*)
-                                 (location-designator-reached
-                                  (current-robot-location) ,loc-var))
-                            (setf (value ,navigation-done) t)
-                            (sb-thread:with-mutex (*at-location-lock*)
-                              (wait-for (make-fluent :value nil))))
-                           (t
-                            (sb-thread:with-mutex (*at-location-lock*)
-                              (navigate ,loc-var)
-                              (setf (value ,navigation-done) t)
-                              ;; Wait for ever, i.e. terminate (and
-                              ;; release the mutex) only when the other
-                              ;; branch of pursue terminates. This is
-                              ;; necessary because we want to keep the
-                              ;; log until AT-LOCATION terminates.
-                              (wait-for (make-fluent :value nil)))))
-                     (seq
-                       (wait-for ,navigation-done)
-                       (pursue
-                         ;; We are ignoring the designator-updated and
-                         ;; location-changed fluents inside the body of the
-                         ;; lambda function since it is only used to trigger
-                         ;; the lambda function in case the designator or
-                         ;; the robot's location changes. The data for
-                         ;; actually checking if the robot is still at the
-                         ;; correct location is computed inside the lambda
-                         ;; function.
-                         ;;
-                         ;; Note(moesenle): The fl-funcall function might be
-                         ;; executed even when none of the input fluents
-                         ;; changed its values. The reason is that WAIT-FOR
-                         ;; uses a condition variable to be notified on
-                         ;; fluent changes and then call VALUE which causes
-                         ;; re-calculation of the fluent's value.
-                         (wait-for (fl-funcall (lambda (location-changed designator-updated)
-                                                 (declare (ignore location-changed
-                                                                  designator-updated))
-                                                 (not (location-designator-reached
-                                                       (current-robot-location) ,loc-var)))
-                                               (pulsed ,robot-location-changed-fluent)
-                                               (pulsed ,designator-updated)))
-                         (seq
-                           (setf ,result-values (multiple-value-list (progn ,@body)))
-                           (setf ,terminated t)))))
-                 finally (return (apply #'values ,result-values))))))))))
+  `(flet ((at-location-body () ,@body))
+     (let ((evaluated-location ,location))
+       (with-task-tree-node (:path-part `(goal-context (at-location (?loc)))
+                             :name ,(format nil "AT-LOCATION")
+                             :sexp ,sexp
+                             :lambda-list (evaluated-location)
+                             :parameters (list evaluated-location))
+         (%execute-at-location evaluated-location #'at-location-body)))))
