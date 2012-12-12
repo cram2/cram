@@ -30,20 +30,21 @@
 
 (in-package :location-costmap)
 
-(defparameter *costmap-valid-solution-threshold* 0.20)
+(defparameter *costmap-valid-solution-threshold* 0.10)
 (defconstant +costmap-n-samples+ 1)
 
 (defvar *costmap-cache* (tg:make-weak-hash-table :test 'eq :weakness :key))
 (defvar *costmap-max-values (tg:make-weak-hash-table :test 'eq :weakness :key))
 
 (defun get-cached-costmap (desig)
-  (or (gethash desig *costmap-cache*)
-      (setf (gethash desig *costmap-cache*)
-            (with-vars-bound (?cm)
-                (lazy-car
-                 (prolog `(merged-desig-costmap ,desig ?cm)))
-              (unless (is-var ?cm)
-                ?cm)))))
+  (let ((first-designator (first-desig desig)))
+    (or (gethash first-designator *costmap-cache*)
+        (setf (gethash first-designator *costmap-cache*)
+              (with-vars-bound (?cm)
+                  (lazy-car
+                   (prolog `(merged-desig-costmap ,desig ?cm)))
+                (unless (is-var ?cm)
+                  ?cm))))))
 
 (defun get-cached-costmap-maxvalue (costmap)
   (or (gethash costmap *costmap-max-values)
