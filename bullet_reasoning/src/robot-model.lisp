@@ -66,7 +66,7 @@
 instance of class OBJECT. `link' must be a string, the name of the
 link. If `loose' is non-NIL, it means that if the link moves, the pose
 of the object should _not_ be updated."
-  (object nil :type object)
+  (object nil :type symbol)
   (link "" :type string)
   (loose nil :type (or nil t)))
 
@@ -75,7 +75,8 @@ of the object should _not_ be updated."
    (joint-states :initarg :joint-states :initform (make-hash-table :test 'equal)
                  :reader joint-states)
    (urdf :initarg :urdf :reader urdf)
-   (attached-objects :initarg :attached-objects :initform nil
+   (attached-objects
+    :initarg :attached-objects :initform nil
                      :reader attached-objects
                      :documentation "An alist that maps object
                      instances to a list of instances of the struct
@@ -116,7 +117,7 @@ of the object should _not_ be updated."
   attached to.")
   (:method ((robot-object robot-object) (object object))
     (with-slots (attached-objects) robot-object
-      (mapcar #'attachment-link (car (cdr (assoc object attached-objects)))))))
+      (mapcar #'attachment-link (car (cdr (assoc (name object) attached-objects)))))))
 
 (defgeneric attach-object (robot-object obj link &key loose)
   (:documentation "Adds `obj' to the set of attached objects. If
@@ -127,21 +128,22 @@ of the object should _not_ be updated."
       (error 'simple-error :format-control "Link ~a unknown"
              :format-arguments (list link)))
     (with-slots (attached-objects) robot-object
-      (let ((obj-attachment (assoc obj attached-objects))
+      (let ((obj-attachment (assoc (name obj) attached-objects))
             (new-attachment
               (make-attachment
-               :object obj :link link :loose loose)))
+               :object (name obj) :link link :loose loose)))
         (cond (obj-attachment
                (pushnew new-attachment (car (cdr obj-attachment))
                         :test #'equal :key #'attachment-link))
               (t
-               (push (cons obj (cons
-                                (list new-attachment)
-                                (loop for body in (rigid-bodies obj)
-                                      collecting (make-collision-information
-                                                  :rigid-body-name (name body)
-                                                  :flags (collision-flags body))
-                                      do (setf (collision-flags body) :cf-static-object))))
+               (push (cons (name obj)
+                           (cons
+                            (list new-attachment)
+                            (loop for body in (rigid-bodies obj)
+                                  collecting (make-collision-information
+                                              :rigid-body-name (name body)
+                                              :flags (collision-flags body))
+                                  do (setf (collision-flags body) :cf-static-object))))
                      attached-objects)))))))
 
 (defgeneric detach-object (robot-object obj &optional link)
@@ -157,16 +159,16 @@ of the object should _not_ be updated."
                    do (setf (collision-flags body)
                             (collision-information-flags collision-data)))))
       (with-slots (attached-objects) robot-object
-        (let ((attachment (assoc obj attached-objects)))
+        (let ((attachment (assoc (name obj) attached-objects)))
           (cond (link
                  (setf (car (cdr attachment))
                        (remove link (car (cdr attachment))
                                :test #'equal :key #'attachment-link))
                  (unless (cdr attachment)
-                   (setf attached-objects (remove obj attached-objects
+                   (setf attached-objects (remove (name obj) attached-objects
                                                   :key #'car))
                    (reset-collision-information obj (cdr (cdr attachment)))))
-                (t (setf attached-objects (remove obj attached-objects
+                (t (setf attached-objects (remove (name obj) attached-objects
                                                   :key #'car))
                    (reset-collision-information obj (cdr (cdr attachment))))))))))
 
@@ -174,7 +176,8 @@ of the object should _not_ be updated."
   (:documentation "Removes all objects form the list of attached
   objects.")
   (:method ((robot-object robot-object))
-    (setf (slot-value robot-object 'attached-objects) nil)))
+    (dolist (attached-object (attached-objects robot-object))
+      (detach-object robot-object attached-object))))
 
 (defgeneric gc-attached-objects (robot-object)
   (:documentation "Removes all attached objects with an invalid world
@@ -282,7 +285,8 @@ of the object should _not_ be updated."
      :links (copy-hash-table links)
      :joint-states (copy-hash-table joint-states)
      :urdf urdf
-     :pose (slot-value obj 'initial-pose))))
+     :pose (slot-value obj 'initial-pose)
+     :attached-objects (copy-list (attached-objects obj)))))
 
 (defmethod add-object ((world bt-world) (type (eql 'urdf)) name pose
                        &key urdf (color '(0.8 0.8 0.8 1.0)))
@@ -321,8 +325,9 @@ of the object should _not_ be updated."
                              (cl-urdf:origin (cl-urdf:collision link)))
                             (cl-transforms:transform-inv body-transform))))
           (dolist (attachment attachments)
-            (setf (pose attachment)
-                  (cl-transforms:transform-pose pose-delta (pose attachment)))))))))
+            (let ((attached-object (object (world robot-object) attachment)))
+              (setf (pose attached-object)
+                    (cl-transforms:transform-pose pose-delta (pose attached-object))))))))))
 
 (defun update-link-poses (robot-object link pose)
   "Updates the pose of `link' and all its children according to
