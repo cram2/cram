@@ -72,18 +72,20 @@
   (perform-collision-detection world)  
   (let ((objects (objects world)))
     (remove-duplicates
-     (remove-if-not
-      #'identity
-      (mapcar (lambda (contact)
-                (when (> (array-dimension (contact-points contact) 0)
-                         0)
-                  (list (find-if (lambda (obj)
-                                   (rigid-body obj (name (body-1 contact))))
-                                 objects)
-                        (find-if (lambda (obj)
-                                   (rigid-body obj (name (body-2 contact))))
-                                 objects))))
-              (contact-manifolds world)))
+     (mapcan (lambda (contact)
+               (when (> (array-dimension (contact-points contact) 0)
+                        0)
+                 (let ((contact-1
+                         (find-if (lambda (obj)
+                                    (rigid-body obj (name (body-1 contact))))
+                                  objects))
+                       (contact-2 (find-if
+                                   (lambda (obj)
+                                     (rigid-body obj (name (body-2 contact))))
+                                   objects)))
+                   (list (list contact-1 contact-2)
+                         (list contact-2 contact-1)))))
+             (contact-manifolds world))
      :test #'equal)))
 
 (defun find-objects-in-contact (world obj)
