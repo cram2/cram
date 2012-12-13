@@ -46,20 +46,11 @@
 
 (defgeneric inverse-map-origin (reachability-map)
   (:method ((reachability-map reachability-map))
-    (let* ((reachability-map-matrix (reachability-map reachability-map))
-           (inverse-map-matrix (inverse-reachability-map reachability-map))
-           (resolution (resolution reachability-map))
-           (size-difference-x (* (- (array-dimension reachability-map-matrix 2)
-                                    (array-dimension inverse-map-matrix 2))
-                                 (cl-transforms:x resolution)))
-           (size-difference-y (* (- (array-dimension reachability-map-matrix 1)
-                                    (array-dimension inverse-map-matrix 1))
-                                 (cl-transforms:y resolution))))
-      (cl-transforms:v+ (origin reachability-map)
-                        (cl-transforms:v*
-                         (cl-transforms:make-3d-vector
-                          size-difference-x size-difference-y 0)
-                         0.5)))))
+    (let ((size/-2 (cl-transforms:v* (inverse-map-size reachability-map) -0.5)))
+      (cl-transforms:make-3d-vector
+       (cl-transforms:x size/-2)
+       (cl-transforms:y size/-2)
+       (- (cl-transforms:z (maximum reachability-map)))))))
 
 (defgeneric size (reachability-map)
   (:method ((reachability-map reachability-map))
@@ -94,6 +85,54 @@
   (unless (slot-boundp map 'inverse-reachability-map)
     (setf (slot-value map 'inverse-reachability-map)
           (generate-inverse-reachability-map map))))
+
+(defgeneric pose-reachability (reachability-map pose)
+  (:documentation "Returns a value between 0 and 1 indicating how many
+  orientations are reachable in a specific cell.")
+  (:method ((reachability-map reachability-map) pose)
+    (with-slots ((origin cl-transforms:origin)) pose
+      (let ((matrix (reachability-map reachability-map))
+            (x-index (map-coordinate->array-index
+                      (cl-transforms:x origin)
+                      (cl-transforms:x (resolution reachability-map))
+                      (cl-transforms:x (origin reachability-map))))
+            (y-index (map-coordinate->array-index
+                      (cl-transforms:y origin)
+                      (cl-transforms:y (resolution reachability-map))
+                      (cl-transforms:y (origin reachability-map))))
+            (z-index (map-coordinate->array-index
+                      (cl-transforms:z origin)
+                      (cl-transforms:z (resolution reachability-map))
+                      (cl-transforms:z (origin reachability-map)))))
+        (let ((result 0))
+          (dotimes (orientation-index (length (orientations reachability-map)))
+            (when (eql (aref matrix z-index y-index x-index orientation-index) 1)
+              (incf result)))
+          (/ result (length (orientations reachability-map))))))))
+
+(defgeneric inverse-pose-reachability (reachability-map pose)
+  (:documentation "Returns a value between 0 and 1 indicating from how
+  many orientations the origin is reachable from `pose'.")
+  (:method ((reachability-map reachability-map) pose)
+    (with-slots ((origin cl-transforms:origin)) pose
+      (let ((matrix (inverse-reachability-map reachability-map))
+            (x-index (map-coordinate->array-index
+                      (cl-transforms:x origin)
+                      (cl-transforms:x (resolution reachability-map))
+                      (cl-transforms:x (inverse-map-origin reachability-map))))
+            (y-index (map-coordinate->array-index
+                      (cl-transforms:y origin)
+                      (cl-transforms:y (resolution reachability-map))
+                      (cl-transforms:y (inverse-map-origin reachability-map))))
+            (z-index (map-coordinate->array-index
+                      (cl-transforms:z origin)
+                      (cl-transforms:z (resolution reachability-map))
+                      (cl-transforms:z (inverse-map-origin reachability-map)))))
+        (let ((result 0))
+          (dotimes (orientation-index (length (orientations reachability-map)))
+            (when (eql (aref matrix z-index y-index x-index orientation-index) 1)
+              (incf result)))
+          (/ result (length (orientations reachability-map))))))))
 
 (defgeneric pose-reachable-p (reachability-map pose &key use-closest-orientation)
   (:method ((reachability-map reachability-map) pose &key use-closest-orientation)

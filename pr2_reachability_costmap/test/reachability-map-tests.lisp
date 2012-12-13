@@ -74,17 +74,15 @@
         for matrix = (inverse-reachability-map reachability-map) do
           (format t "side: ~a:~%" side)
           (loop for z-index from 0 below (array-dimension matrix 0)
-                for z from (cl-transforms:z (origin reachability-map))
+                for z from (cl-transforms:z (inverse-map-origin reachability-map))
                   by (cl-transforms:z (resolution reachability-map))
                 do (format t "z: ~a~%" z)
                    (loop for y-index from 0 below (array-dimension matrix 1)
-                         for y from (* (/ (array-dimension matrix 1) -2)
-                                       (cl-transforms:y resolution))
+                         for y from (cl-transforms:y (inverse-map-origin reachability-map))
                            by (cl-transforms:y resolution)
                          do (loop for x-index from 0 below (array-dimension matrix 2)
-                                  for x from (* (/ (array-dimension matrix 2) -2)
-                                                (cl-transforms:x resolution))
-                                    by (cl-transforms:x resolution)
+                                  for x from (cl-transforms:x (inverse-map-origin reachability-map))
+                                    by (cl-transforms:z resolution)
                                   do (loop for orientation in (orientations reachability-map)
                                            for orientation-index from 0 do
                                              (if (eql (aref matrix z-index y-index x-index
