@@ -42,17 +42,6 @@ pregrasp.")
 coordinate system (including it's origin and rotation) when going into
 grasp.")
 
-(defmacro par-loop ((var sequence) &body body)
-  "Executes body in parallel for each `var' in `sequence'."
-  (alexandria:with-gensyms (loop-body evaluated-sequence)
-    `(labels ((,loop-body (,evaluated-sequence)
-                (cpl:par
-                  (let ((,var (car ,evaluated-sequence)))
-                    (cpl:seq ,@body))
-                  (when (cdr ,evaluated-sequence)
-                    (,loop-body (cdr ,evaluated-sequence))))))
-       (,loop-body ,sequence))))
-
 (defun grab-handled-object-constraint-aware (obj arms-handles-pairs obstacles
                                              &key obj-as-obstacle)
   (clear-collision-objects)
@@ -80,13 +69,13 @@ objects)."
             "No arm/handle pairs specified in `grab-handled-object'.")
     (roslisp:ros-info (pr2-manipulation-process-module)
                       "Going into pregrasp for ~a arm(s)" pair-count)
-    (par-loop (arm-handle-pair arms-handles-pairs)
+    (cpl:par-loop (arm-handle-pair arms-handles-pairs)
       (pregrasp-handled-object-with-relative-location
        obj (car arm-handle-pair) (cdr arm-handle-pair)
        :constraint-aware constraint-aware))
     (roslisp:ros-info (pr2-manipulation-process-module)
                       "Opening gripper(s) for ~a arm(s)" pair-count)
-    (par-loop (arm-handle-pair arms-handles-pairs)
+    (cpl:par-loop (arm-handle-pair arms-handles-pairs)
       (let* ((handle (cdr arm-handle-pair))
              (radius (or (desig-prop-value handle 'radius)
                          0.0)))
@@ -94,12 +83,12 @@ objects)."
                       :position (+ radius 0.02))))
     (roslisp:ros-info (pr2-manipulation-process-module)
                       "Going into grasp for ~a arm(s)" pair-count)
-    (par-loop (arm-handle-pair arms-handles-pairs)
+    (cpl:par-loop (arm-handle-pair arms-handles-pairs)
       (grasp-handled-object-with-relative-location
        obj (car arm-handle-pair) (cdr arm-handle-pair)))
     (roslisp:ros-info (pr2-manipulation-process-module)
                       "Closing gripper(s) for ~a arm(s)" pair-count)
-    (par-loop (arm-handle-pair arms-handles-pairs)
+    (cpl:par-loop (arm-handle-pair arms-handles-pairs)
       (let* ((handle (cdr arm-handle-pair))
              (radius (or (desig-prop-value handle 'radius)
                          0.0)))
