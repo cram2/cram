@@ -37,12 +37,22 @@
                (reference designator) threshold)))
 
 (defun current-robot-location ()
-  (cl-tf:transform-pose
-   *tf* :pose (tf:make-pose-stamped
-               designators-ros:*robot-base-frame* 0.0
-               (cl-transforms:make-identity-vector)
-               (cl-transforms:make-identity-rotation))
-   :target-frame designators-ros:*fixed-frame*))
+  ;; NOTE(moesenle): Unfortunately, the robot's pose can be slightly
+  ;; below (or maybe above) the floor. This can screw up designator
+  ;; validation. To fix it for now, just set the z coordinate to
+  ;; zero. This is an ugly hack that I feel bad about. Someone needs
+  ;; to fix it in the future.
+  (let ((robot-pose
+          (cl-tf:transform-pose
+           *tf* :pose (tf:make-pose-stamped
+                       designators-ros:*robot-base-frame* 0.0
+                       (cl-transforms:make-identity-vector)
+                       (cl-transforms:make-identity-rotation))
+           :target-frame designators-ros:*fixed-frame*)))
+    (tf:copy-pose-stamped
+     robot-pose
+     :origin (cl-transforms:copy-3d-vector
+              (cl-transforms:origin robot-pose) :z 0.0))))
 
 (defun distance-to-drive (goal)
   (let ((loc-1 (reference goal))
