@@ -81,7 +81,6 @@ designator."
                          (lambda  ()
                            (pulse robot-location-changed-fluent)))))))))
       (tf:with-transforms-changed-callback (*tf* #'set-current-location)
-        (reference loc-var)
         (with-equate-fluent (loc-var designator-updated)
           (loop
             for navigation-done = (make-fluent :value nil)
@@ -146,6 +145,12 @@ designator."
 (defmacro at-location (&whole sexp (location) &body body)
   `(flet ((at-location-body () ,@body))
      (let ((evaluated-location ,location))
+       ;; We dereference the location before creating a new task to
+       ;; make sure that in case the location cannot be resolved, the
+       ;; error is thrown in the parent task. That way, if the user
+       ;; handles it using WITH-FAILURE-HANDLING, Lisp won't enter the
+       ;; debugger.
+       (reference evaluated-location)
        (with-task-tree-node (:path-part `(goal-context (at-location (?loc)))
                              :name ,(format nil "AT-LOCATION")
                              :sexp ,sexp
