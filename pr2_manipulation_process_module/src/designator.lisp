@@ -94,6 +94,8 @@
     (lisp-fun optimal-handle-assignment
               ?available-arms ?reachable-handles ?min-handles
               :max-handles ?min-handles ?optimal-assignment)
+    ;; TODO(moesenle): throwing a lisp error from inside prolog is
+    ;; pretty bad. Don't do that.
     (lisp-pred fail-on-no-nearest-handle ?optimal-assignment))
 
   (<- (action-desig ?desig (container-opened ?handle :right))
@@ -147,23 +149,17 @@
   ;; all grasping because the predicate 'best-grasp' can be
   ;; used as a hook for grasp planning or any other manipulation
   ;; reasoning process that chooses the correct arm/grasp setup
-  (<- (action-desig ?desig (grasp-handles ?obj ?arm-handle-assignments ?obstacles))
+  (<- (action-desig ?desig (grasp-handles ?current-obj ?arm-handle-assignments ?obstacles))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to grasp))
     (desig-prop ?desig (obj ?obj))
-    (handled-obj-desig? ?obj)
-    (handles ?obj ?obj-handles)
+    (newest-effective-designator ?obj ?current-obj)
+    (handled-obj-desig? ?current-obj)
+    (handles ?current-obj ?obj-handles)
     (obstacles ?desig ?obstacles)
-    (setof ?arm (cram-manipulation-knowledge:available-arms ?obj (?arm))
+    (setof ?arm (cram-manipulation-knowledge:available-arms ?current-obj (?arm))
            ?arms)
-    (best-grasp ?obj ?obj-handles ?arms ?obstacles ?arm-handle-assignments))
-
-  (<- (action-desig ?desig (grasp ?object-type ?obj :right ?obstacles))
-    (trajectory-desig? ?desig)
-    (desig-prop ?desig (to grasp))
-    (desig-prop ?desig (obj ?obj))
-    (desig-prop ?obj (type ?object-type))
-    (obstacles ?desig ?obstacles))
+    (best-grasp ?current-obj ?obj-handles ?arms ?obstacles ?arm-handle-assignments))
 
   (<- (action-desig ?desig (put-down ?current-obj ?loc ?arms ?obstacles))
     (trajectory-desig? ?desig)
