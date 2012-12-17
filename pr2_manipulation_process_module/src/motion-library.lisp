@@ -71,6 +71,22 @@
 
 (defparameter *max-graspable-size* (cl-transforms:make-3d-vector 0.15 0.15 0.30))
 
+(defun execute-grasp (&key pregrasp-pose grasp-solution
+                        side (gripper-close-pos 0.0))
+  (assert (and pregrasp-pose grasp-solution) ()
+          "Unspecified parameter in execute-grasp.")
+  (roslisp:ros-info (pr2-manip-pm execute-grasp)
+                    "Executing grasp for side ~a~%" side)
+  (execute-move-arm-pose side pregrasp-pose)
+  (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
+  (execute-arm-trajectory side (ik->trajectory grasp-solution))
+  (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
+  (roslisp:ros-info (pr2-manip process-module) "Closing gripper")
+  (close-gripper side :max-effort 50.0 :position gripper-close-pos)
+  (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
+  (check-valid-gripper-state side :safety-pose pregrasp-pose
+                                  :min-position gripper-close-pos))
+
 (defun get-lifting-grasped-object-arm-trajectory (side distance)
   "Returns the lifting trajectory for the `side' robot arm in order to
 lift the grasped object at the `distance' from the supporting plane."
@@ -469,12 +485,21 @@ supporting plane"
         (+ distance) 0.0 0.0)
        (cl-transforms:make-identity-rotation))))))
 
-(defun check-valid-gripper-state (side &key (min-position 0.01) safety-ik)
+(defun check-valid-gripper-state (side &key (min-position 0.01) safety-ik safety-pose)
   (when (< (get-gripper-state side) min-position)
     (clear-collision-objects)
     (open-gripper side)
-    (when safety-ik
-      (execute-arm-trajectory side (ik->trajectory safety-ik)))
+    (cond ((and safety-ik safety-pose)
+           (roslisp:ros-error (pr2-manip-pm check-valid-gripper-state)
+                              "Only one of `safety-ik' and `safety-pose' can be specified."))
+          (safety-ik
+           (execute-arm-trajectory side (ik->trajectory safety-ik)))
+          (safety-pose
+           (execute-move-arm-pose side safety-pose))
+          (t
+           (roslisp:ros-error
+            (pr2-manip-pm check-valid-gripper-state)
+            "Neither `safety-ik' nor `safety-pose' specified. Not moving gripper to a safe pose.")))
     (cpl:fail 'object-lost)))
 
 (defun park-grasped-object-with-one-arm (obj side &optional obstacles)
