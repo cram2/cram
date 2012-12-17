@@ -127,10 +127,8 @@
         ((eql (length arms) 2)
          (park-grasped-object-with-two-arms obj arms obstacles))
         ((> (length arms) 1)
-         (cpl-impl:fail 'manipulation-failed
-                        :format-control "Parking with several arms not implemented, yet."))
-        (t (cpl-impl:fail 'manipulation-failed
-                          :format-control "No arms for parking inferred."))))
+         (error 'simple-error :format-control "Parking with several arms not implemented, yet."))
+        (t (error 'simple-error :format-control "No arms for parking inferred."))))
 
 (def-action-handler lift (arms distance)
   ;; Note(Georg) Curious! We do not need the object designator
@@ -151,8 +149,7 @@
         ;; solution works great, though.
         ((> (length arms) 1)
          (lift-grasped-object-with-both-arms distance))
-        (t (cpl-impl:fail 'manipulation-failed
-                          :format-control "No arms for lifting inferred."))))
+        (t (error 'simple-error :format-control "No arms for lifting inferred."))))
 
 (def-action-handler grasp-handles (obj arms-handles obstacles)
   (assert (> (length arms-handles) 0) ()

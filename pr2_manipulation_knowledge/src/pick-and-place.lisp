@@ -129,21 +129,23 @@
     (trajectory-desig? ?designator)
     (desig-prop ?designator (to grasp))
     (desig-prop ?designator (obj ?object))
-    (desig-location-prop ?object ?pose)
+    (newest-effective-designator ?object ?current-object)
+    (desig-location-prop ?current-object ?pose)
     (-> (desig-prop ?desig (side ?side))
-        (available-arms ?object (?side))
+        (available-arms ?current-object (?side))
         (and
          (once
-          (available-arms ?object ?sides))
+          (available-arms ?current-object ?sides))
          (member ?side ?sides)))
     (lisp-fun cl-transforms:origin ?pose ?point))
 
   (<- (trajectory-point ?designator ?robot-reference-pose ?point ?side)
     (desig-prop ?designator (to grasp))
     (desig-prop ?designator (obj ?object))
+    (newest-effective-designator ?object ?current-object)
     (trajectory-point ?designator ?point-in-object ?side)
-    (object-designator-tool-length ?object ?grasp ?tool-length)
-    (desig-location-prop ?object ?pose)
+    (object-designator-tool-length ?current-object ?grasp ?tool-length)
+    (desig-location-prop ?current-object ?pose)
     (lisp-fun calculate-grasp-trajectory-point
               ?robot-reference-pose ?pose ?grasp ?side ?tool-length
               ?point))
@@ -156,22 +158,23 @@
     (trajectory-desig? ?designator)
     (desig-prop ?designator (to put-down))
     (desig-prop ?designator (obj ?object))
+    (current-designator ?object ?current-object)
     (-> (desig-prop ?desig (side ?side)) (true) (true))
-    (object-in-hand ?object ?side)
+    (object-in-hand ?current-object ?side)
     (end-effector-link ?side ?link)
     (desig-prop ?designator (at ?location))
     (lisp-fun current-desig ?location ?current-location)
     (lisp-fun reference ?current-location ?put-down-pose)
     (-> (not (bound ?robot-reference-pose))
-        (and (lisp-fun calculate-put-down-hand-pose ?link ?object ?put-down-pose
+        (and (lisp-fun calculate-put-down-hand-pose ?link ?current-object ?put-down-pose
                        ?pose)
              (lisp-fun cl-transforms:origin ?pose ?point))
-        (-> (orientation-matters ?object)
+        (-> (orientation-matters ?current-object)
             (lisp-fun calculate-put-down-hand-pose
-                      ?link ?object ?put-down-pose ?point)
+                      ?link ?current-object ?put-down-pose ?point)
             (and
              (lisp-fun calculate-put-down-hand-pose
-                       ?link ?object ?put-down-pose
+                       ?link ?current-object ?put-down-pose
                        :robot-pose ?robot-reference-pose
                        ?point)))))
 
@@ -179,12 +182,13 @@
     (trajectory-desig? ?designator)
     (desig-prop ?designator (to lift))
     (desig-prop ?designator (obj ?object))
+    (current-designator ?object ?current-object)
     (-> (desig-prop ?desig (side ?side)) (true) (true))
-    (object-in-hand ?object ?side)
+    (object-in-hand ?current-object ?side)
     (end-effector-link ?side ?link)
     (once (or (desig-prop ?designator (distance ?lifting-height))
               (== ?lifting-height 0.10)))
-    (lisp-fun calculate-object-lift-pose ?link ?object ?lifting-height
+    (lisp-fun calculate-object-lift-pose ?link ?current-object ?lifting-height
               ?point))
 
   (<- (trajectory-point ?designator ?robot-reference-pose ?point ?side)
