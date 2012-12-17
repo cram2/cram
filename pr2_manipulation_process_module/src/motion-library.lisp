@@ -72,12 +72,14 @@
 (defparameter *max-graspable-size* (cl-transforms:make-3d-vector 0.15 0.15 0.30))
 
 (defun execute-grasp (&key pregrasp-pose grasp-solution
-                        side (gripper-close-pos 0.0))
+                        side (gripper-open-pos 0.08) (gripper-close-pos 0.0))
   (assert (and pregrasp-pose grasp-solution) ()
           "Unspecified parameter in execute-grasp.")
   (roslisp:ros-info (pr2-manip-pm execute-grasp)
                     "Executing grasp for side ~a~%" side)
   (execute-move-arm-pose side pregrasp-pose)
+  (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
+  (open-gripper side :max-effort 50.0 :position gripper-open-pos)
   (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
   (execute-arm-trajectory side (ik->trajectory grasp-solution))
   (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
