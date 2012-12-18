@@ -42,6 +42,15 @@
   name
   function)
 
+(defstruct projection-environment-result
+  "Data structure returned by WITH-PROJECTION-ENVIRONMENT. It contains
+  the name of the projection environment, the list of result values
+  and the bindings of all global and local special projection
+  variables."
+  name
+  result
+  environment)
+
 (defun execute-in-projection-environment (projection-environment function)
   "Executes `function' in the environment defined by
   `projection-environment'."
@@ -57,8 +66,20 @@
          (unwind-protect
               (progn
                 ,startup
-                (funcall function))
+                (make-projection-environment-result
+                 :name *projection-environment*
+                 :result (multiple-value-list (funcall function))
+                 :environment (symbol-values-alist
+                               (append ',(mapcar #'car special-variable-initializers)
+                                       (mapcar #'car *special-projection-variables*)))))
            ,shutdown)))))
+
+(defun symbol-values-alist (variable-names)
+  "Returns an alist for all symbol values in `variable-names' of the
+  form (variable-name . (symbol-value variable-name))."
+  (mapcar (lambda (name)
+            (cons name (symbol-value name)))
+          variable-names))
 
 (defmacro define-projection-environment
     (name &key special-variable-initializers process-module-definitions
