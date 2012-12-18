@@ -9,5 +9,4 @@
              (:file "ros-node" :depends-on ("package"))
              (:file "time" :depends-on ("package" "ros-node"))
              (:file "lispification" :depends-on ("package"))
-             (:file "tf" :depends-on ("package" "ros-node"))
-             (:file "roslisp-hotpatches")))))
+             (:file "tf" :depends-on ("package" "ros-node"))))))
