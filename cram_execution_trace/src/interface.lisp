@@ -57,6 +57,8 @@
 ;;; Interface
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defvar *top-level-episode-knowledge-lock* (sb-thread:make-mutex))
+
 (defvar *top-level-episode-knowledge* (make-hash-table :test 'eq)
   "The episode knowledge for named top-levels (top level plans) is stored in
    this hash-table indexed by the plan name (which is a symbol).")
@@ -65,11 +67,9 @@
   "Registers a live-episode-knowledge object for `name'. This is done
    automatically for top-level plans. If you want to use named-top-levels with
    tracing manually, you need to register the name manually."
-  (setf (gethash name *top-level-episode-knowledge*)
-        (make-instance 'live-episode-knowledge)))
-
-(defmethod on-def-top-level-plan-hook :execution-trace (plan-name)
-  (register-top-level-episode-knowledge plan-name))
+  (sb-thread:with-mutex (*top-level-episode-knowledge-lock*)
+    (setf (gethash name *top-level-episode-knowledge*)
+          (make-instance 'live-episode-knowledge))))
 
 (defun get-top-level-episode-knowledge (name)
   "Returns the episode-knowledge of the top level plan.
@@ -79,9 +79,16 @@
    importantly, you can easily access it with this function after the plan has
    run."
   (declare (type symbol name))
-  (or (gethash name *top-level-episode-knowledge*)
+  (or (sb-thread:with-mutex (*top-level-episode-knowledge-lock*)
+        (gethash name *top-level-episode-knowledge*))
       (error "Accessing top-level episode-knowledge for unregisterd top-level plan ~a."
              name)))
+
+(defun set-top-level-episode-knowledge (name episode-knowledge)
+  (declare (type symbol name)
+           (type episode-knowledge episode-knowledge))
+  (sb-thread:with-mutex (*top-level-episode-knowledge-lock*)
+    (setf (gethash name *top-level-episode-knowledge*) episode-knowledge)))
 
 (defun episode-knowledge-zero-time (&optional (episode *episode-knowledge*))
   "Starting time of episode. All timestampes (e.g. in traces) can be
