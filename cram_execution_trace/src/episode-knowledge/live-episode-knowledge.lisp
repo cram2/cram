@@ -190,9 +190,7 @@
   (setf (gethash fluent (fluents episode)) t))
 
 (defmethod on-top-level-setup-hook :execution-trace (top-level-name task-tree)
-  (let ((ek (if top-level-name
-                (get-top-level-episode-knowledge top-level-name)
-                (make-instance 'live-episode-knowledge))))
+  (let ((ek (make-instance 'live-episode-knowledge)))
     (reset ek task-tree)
     (start ek)
     (global-fluents-register-callbacks ek)
@@ -203,5 +201,6 @@
   (unregister-fluent-callbacks *episode-knowledge*)
   (global-fluents-unregister-callbacks)
   (setf *last-episode-knowledge* *episode-knowledge*)
+  (set-top-level-episode-knowledge top-level-name *episode-knowledge*)
   (when (auto-tracing-enabled)
     (save-episode *episode-knowledge* (auto-tracing-filepath top-level-name))))
