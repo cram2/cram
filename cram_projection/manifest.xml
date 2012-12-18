@@ -14,5 +14,6 @@
   <depend package="roslisp_runtime" />
   <depend package="cram_utilities" />
   <depend package="lisp_unit" />
+  <depend package="cram_execution_trace" />
 
 </package>
