@@ -26,21 +26,9 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-projection
-  :author "Lorenz Moesenlechner"
-  :license "BSD"
-  :description "Support for setting up the environment for plan projection."
-  :depends-on (alexandria
-               cram-language
-               cram-utilities
-               process-modules
-               cram-execution-trace)
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "projection-environment" :depends-on ("package"))
-     (:file "projection-clock" :depends-on ("package"))
-     (:file "linear-clock" :depends-on ("package" "projection-clock"))
-     (:file "partially-ordered-clock" :depends-on ("package" "projection-clock"))
-     (:file "default-projection-variables" :depends-on ("package" "projection-environment"))))))
+(in-package :cram-projection)
+
+;;; When projecting, store the episode knowledge in the projection
+;;; result for easy access.
+(cram-projection:define-special-projection-variable
+    cet:*episode-knowledge* cet:*episode-knowledge*)
