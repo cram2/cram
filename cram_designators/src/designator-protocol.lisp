@@ -220,15 +220,6 @@ returns the new equated designator that is not equated yet."
       (setf effective t))
     new-designator))
 
-;;; TODO: Make with-designators use language features. We need a
-;;; transparent with-designator macro.
-(defmacro with-designators (defs &body body)
-  `(let* ,(mapcar (lambda (def)
-                    (destructuring-bind (name (type props)) def
-                      `(,name (make-designator ',type ,props))))
-                  defs)
-     ,@body))
-
 (defun designator-solutions (desig &optional from-root)
   "Returns the lazy list of designator references that provide a
   solution for `desig'. If `from-root' is non-nil, the list of all
