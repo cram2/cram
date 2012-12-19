@@ -1,4 +1,4 @@
-;;; Copyright (c) 2011, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -28,31 +28,8 @@
 
 (in-package :projection-process-modules)
 
-(def-asynchronous-process-module projection-ptu
-    ((processing :initform (cpl-impl:make-fluent :value nil)
-                 :reader processing)))
-
-(defmethod on-input ((process-module projection-ptu) (input desig:action-designator))
-  (let* ((designator-solution (desig:reference input))
-         (pose (etypecase designator-solution
-                 (tf:pose-stamped designator-solution)
-                 (desig:location-designator (desig:reference designator-solution)))))
-    (execute-as-action
-     input
-     (lambda ()
-       (let ((pose (tf:transform-pose *tf* :pose pose :target-frame "map")))
-         (assert
-          (crs:prolog `(and
-                        (bullet-world ?world)
-                        (robot ?robot)
-                        (head-pointing-at ?world ?robot ,pose)))))
-       (cram-plan-knowledge:on-event
-        (make-instance 'cram-plan-knowledge:robot-state-changed))))
-    (finish-process-module process-module :designator input)))
-
-(defmethod synchronization-fluent ((process-module projection-ptu)
-                                   (designator desig:action-designator))
-  (cpl-impl:fl-not
-   (cpl-impl:fl-or (processing (get-running-process-module 'projection-ptu))
-                   (processing (get-running-process-module 'projection-perception)))))
-
+(defgeneric processing (process-module)
+  (:documentation "Returns a fluent that indicates if the process
+   module is processing input at the moment.")
+  (:method ((process-module process-module))
+    (cpl:eq (pm-status process-module) :running)))

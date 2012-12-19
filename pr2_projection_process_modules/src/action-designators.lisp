@@ -144,7 +144,17 @@
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to put-down))
     (desig-prop ?desig (obj ?obj))
-    (desig-prop ?desig (at ?_))))
+    (desig-prop ?desig (at ?_)))
+
+  (<- (required-sides ?designator ?sides)
+    (setof ?side (cram-manipulation-knowledge:trajectory-point
+                  ?designator ?_ ?side)
+           ?sides))
+
+  ;; TRAJECTORY-POINT is defined for grasp, lift and put-down but not
+  ;; for carry. We need to define a second version.
+  (<- (required-sides ?designator ?sides)
+    (action-desig-projection ?designator (execute-park ?sides ?_))))
 
 (def-fact-group navigation-designators (action-desig-projection)
   (<- (action-desig-projection ?desig ?goal-location)

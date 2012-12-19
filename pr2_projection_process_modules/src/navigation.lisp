@@ -28,14 +28,40 @@
 
 (in-package :projection-process-modules)
 
-(def-process-module projection-navigation (input-designator)
-  (let ((location-designator (desig:reference input-designator)))
-    (execute-as-action
-     input-designator
-     (lambda ()
-       (assert 
-        (crs:prolog
-         `(and (robot ?robot)
-               (assert (object-pose ?_ ?robot ,(desig:reference location-designator))))))
-       (cram-plan-knowledge:on-event
-        (make-instance 'cram-plan-knowledge:robot-state-changed))))))
+(def-asynchronous-process-module projection-navigation
+    ((processing :initform (cpl:make-fluent :value nil)
+                 :reader processing)
+     (goal :initform (cpl:make-fluent :value nil))))
+
+(defmethod on-run ((process-module projection-navigation))
+  (with-slots (processing goal) process-module
+    (cpl:whenever (goal)
+      (unwind-protect
+           (let* ((goal-action (cpl:value goal))
+                  (location-designator (desig:reference goal-action)))
+             (setf (cpl:value processing) t)
+             (execute-as-action
+              goal-action
+              (lambda ()
+                (assert 
+                 (crs:prolog
+                  `(and (robot ?robot)
+                        (assert (object-pose ?_ ?robot ,(desig:reference location-designator))))))
+                (cram-plan-knowledge:on-event
+                 (make-instance 'cram-plan-knowledge:robot-state-changed))))
+             (finish-process-module process-module :designator goal-action))
+        (setf (cpl:value goal) nil)
+        (setf (cpl:value processing) nil)))))
+
+(defmethod on-input ((process-module projection-navigation) (input desig:action-designator))
+  (with-slots (processing goal) process-module
+    (assert (not (cpl:value processing)))
+    (setf (cpl:value goal) input)))
+
+(defmethod synchronization-fluent ((process-module projection-navigation)
+                                   (designator desig:action-designator))
+  (cpl-impl:fl-not
+   (cpl-impl:fl-or (processing process-module)
+                   (processing (get-running-process-module 'projection-manipulation))
+                   (processing (get-running-process-module 'projection-ptu))
+                   (processing (get-running-process-module 'projection-perception)))))
