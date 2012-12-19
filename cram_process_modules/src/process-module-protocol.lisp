@@ -322,11 +322,22 @@ just a different name for an existing process module."
                                      process-modules)))
     `(flet ((body-function () ,@body))
        ,(if process-modules
-            `(pursue
-               (par ,@(loop for (alias name) in process-module-definitions
-                            collecting `(pm-run ',name ',alias)))
-               (seq
-                 (par ,@(loop for (alias name) in process-module-definitions
-                              collecting `(wait-for-process-module-running ',alias)))
-                 (body-function)))
+            `(flet ((process-modules-thread (running-fluent)
+                      (top-level
+                        (pursue
+                          (par ,@(loop for (alias name) in process-module-definitions
+                                       collecting `(pm-run ',name ',alias)))
+                          (seq
+                            (par ,@(loop for (alias name) in process-module-definitions
+                                         collecting `(wait-for-process-module-running ',alias)))
+                            (setf (value running-fluent) t)
+                            (wait-for (not running-fluent)))))))
+               (let ((process-modules-running (make-fluent :value nil)))
+                 (sb-thread:make-thread
+                  (tv-closure nil nil
+                              (lambda ()
+                                (process-modules-thread process-modules-running))))
+                 (wait-for process-modules-running)
+                 (unwind-protect (body-function)
+                   (setf (value process-modules-running) nil))))
             `(body-function)))))
