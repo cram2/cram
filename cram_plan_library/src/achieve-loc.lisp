@@ -37,9 +37,8 @@
     (achieve `(looking-at :forward))
     (achieve '(arms-parked)))
   (with-designators ((navigation-action (action `((type navigation) (goal ,goal)))))
-    (prog1
-        (perform navigation-action)
-      (monitor-action navigation-action))))
+    (perform navigation-action)
+    (monitor-action navigation-action)))
 
 (def-goal (achieve (loc Robot ?loc))
   (navigate ?loc))
