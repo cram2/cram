@@ -147,3 +147,41 @@
       (with-process-modules-running (test-process-module)
         (setf result (pm-execute 'test-process-module designator))))
     (assert-eq :ok result)))
+
+(define-test process-module.monitor-return-value.1
+  (let ((designator (desig:make-designator 'test (lambda () :ok)))
+        (execute-result nil)
+        (monitor-result nil))
+    (cpl:top-level
+      (with-process-modules-running (test-process-module)
+        (setf execute-result (pm-execute 'test-process-module designator))
+        (setf monitor-result (monitor-process-module 'test-process-module))))
+    (assert-eq :ok execute-result)
+    (assert-eq :ok monitor-result)))
+
+(define-test process-module.monitor-return-value.2
+  (let ((designator (desig:make-designator 'test (lambda () :ok)))
+        (execute-result nil)
+        (monitor-result nil))
+    (cpl:top-level
+      (with-process-modules-running (test-process-module)
+        (setf execute-result (pm-execute 'test-process-module designator))
+        (setf monitor-result (monitor-process-module
+                              'test-process-module
+                              :designators (list designator)))))
+    (assert-eq :ok execute-result)
+    (assert-eq :ok monitor-result)))
+
+(define-test process-module.monitor-return-value.3
+  (let ((designator (desig:make-designator 'test (lambda () (sleep 0.2) :ok)))
+        (execute-result nil)
+        (monitor-result nil))
+    (cpl:top-level
+      (with-process-modules-running (test-process-module)
+        (cpl:par
+          (setf execute-result (pm-execute 'test-process-module designator))
+          (setf monitor-result (monitor-process-module
+                                'test-process-module
+                                :designators (list designator))))))
+    (assert-eq :ok execute-result)
+    (assert-eq :ok monitor-result)))

@@ -29,7 +29,12 @@
 
 (defclass process-module (abstract-process-module)
   ((execute-lock :initform (sb-thread:make-mutex))
-   (result :reader result :documentation "Result fluent")))
+   (result :reader result :documentation "Result fluent")
+   (unprocessed-results
+    :reader unprocessed-results
+    :documentation "Weak hash table from input designators to
+    results. Only the input designator is weak."
+    :initform (make-hash-table :weakness :key :synchronized t))))
 
 (defmethod initialize-instance :after ((process-module process-module) &key)
   (with-slots (name result) process-module
@@ -58,7 +63,7 @@
             (value (slot-value pm 'status)) :waiting
             (value (slot-value pm 'cancel)) nil)
       (let ((teardown nil))
-        (with-slots (input cancel status result) pm
+        (with-slots (input cancel status result unprocessed-results) pm
           (unwind-protect
                (block pm-body
                  (loop do
@@ -90,10 +95,11 @@
                                                   input-value ()
                                                   "Input value is NIL when calling process module. This should never happen.")
                                                  (on-process-module-started pm input-value)
-                                                 (setf result-value (call-next-method)))
-                                            (setf (value input) nil)
+                                                 (setf result-value (multiple-value-list (call-next-method))))
                                             (when result-value
-                                              (setf (value result) result-value))
+                                              (setf (value result) result-value)
+                                              (setf (gethash input-value unprocessed-results) result-value))
+                                            (setf (value input) nil)
                                             (on-process-module-finished pm input-value (value result))))))
                                   (plan-failure (e)
                                     (declare (ignore e))
@@ -136,7 +142,7 @@
              (wait-for (not (eq status :running)))
              (when (eq (value status) :failed)
                (error (value result)))
-             (value result))
+             (apply #'values (value result)))
         (pm-cancel pm)))))
 
 (defmethod pm-cancel ((pm process-module))
@@ -154,7 +160,6 @@
   (not (running-fluent process-module)))
 
 (defmethod monitor-process-module ((process-module process-module) &key designators)
-  (declare (ignore designators))
   ;; Since the actual pm-execute call already blocks and rethrows
   ;; errors, we only wait for the process module to finish in case it
   ;; is running.
@@ -170,4 +175,29 @@
   ;; either check if a condition has been handled in pm-execute and
   ;; rethrow it in case it has not been handled or we need to rethrow
   ;; errors in any case. Not sure what's right here...
-  (wait-for (finished-fluent process-module)))
+  (flet ((get-and-remove-first-matching-result (designators)
+           "Iterates over `designators' until one is present in the
+           process module's slot UNPROCESSED-RESULT, removes the value
+           and returns it. If no designator could be found, returns
+           NIL."
+           (with-slots (unprocessed-results) process-module
+             (dolist (designator designators)
+               (let ((result (gethash designator unprocessed-results)))
+                 (when result
+                   (remhash designator unprocessed-results)
+                   (return result))))))
+         (get-and-remove-first-result ()
+           "Returns the first result stored in the results hash table."
+           (with-slots (unprocessed-results) process-module
+             (loop for key being the hash-keys in unprocessed-results
+                   using (hash-value value)
+                   do (remhash key unprocessed-results)
+                      (return value)))))
+    (loop do
+      (wait-for (finished-fluent process-module))
+      (let ((result (if designators
+                        (get-and-remove-first-matching-result designators)
+                        (get-and-remove-first-result))))
+        (when result
+          (return (apply #'values result))))
+      (wait-for (pulsed (finished-fluent process-module))))))
