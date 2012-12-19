@@ -156,7 +156,8 @@
     (camera-frame ?robot ?cam-frame)
     (desig-location-prop ?desig ?obj-pose)
     (assert (object-pose ?w ?robot ?robot-pose))
-    (not (contact ?w ?robot ?_))
+    (forall (contact ?w ?robot ?object)
+            (attached ?w ?robot ?_ ?object))
     (head-pointing-at ?w ?robot ?obj-pose)
     (desig-prop ?desig (obj ?obj))
     (-> (btr:object ?w ?obj)
@@ -189,16 +190,16 @@
     (desig-prop ?action (to open))
     (desig-prop ?action (handle ?_)))
 
-  ;; (<- (location-valid
-  ;;      ?desig ?pose
-  ;;      (desig-check-to-see ?desig ?pose))
-  ;;   (desig-prop ?desig (to see))
-  ;;   (desig-prop ?desig (obj ?obj)))
+  (<- (location-valid
+       ?desig ?pose
+       (desig-check-to-see ?desig ?pose))
+    (desig-prop ?desig (to see))
+    (desig-prop ?desig (obj ?obj)))
 
-  ;; (<- (location-valid
-  ;;      ?desig ?pose
-  ;;      (desig-check-to-reach ?desig ?pose))
-  ;;   (reachability-designator ?desig))
+  (<- (location-valid
+       ?desig ?pose
+       (desig-check-to-reach ?desig ?pose))
+    (reachability-designator ?desig))
 
   (<- (btr-desig-solution-valid ?desig ?solution)
     (btr-desig-solution-valid ?desig ?solution ?_))
