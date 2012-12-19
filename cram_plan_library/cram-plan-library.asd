@@ -52,17 +52,18 @@
                                                "achieve-object-manipulation"
                                                "achieve-ptu"
                                                "utilities"))
-             (:file "achieve-ptu" :depends-on ("package" "goal-declarations"))
+             (:file "achieve-ptu"
+              :depends-on ("package" "goal-declarations" "with-designators"))
              (:file "at-location" :depends-on ("package"))
-             (:file "perceive-object" :depends-on ("package"
-                                                   "goal-declarations"
-                                                   "at-location"
-                                                   "utilities"))
+             (:file "with-designators" :depends-on ("package"))
+             (:file "perceive-object"
+              :depends-on ("package" "goal-declarations" "at-location" "utilities" "with-designators"))
              (:file "perceive-state" :depends-on ("package" "goal-declarations"))
              (:file "achieve-object-manipulation"
               :depends-on ("package"
                            "goal-declarations"
                            "at-location"
-                           "utilities"))
+                           "utilities"
+                           "with-designators"))
              (:file "perform" :depends-on ("package" "goal-declarations"))
              (:file "utilities" :depends-on ("package"))))))

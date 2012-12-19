@@ -152,7 +152,7 @@ designator."
        ;; debugger.
        (reference evaluated-location)
        (with-task-tree-node (:path-part `(goal-context (at-location (?loc)))
-                             :name ,(format nil "AT-LOCATION")
+                             :name "AT-LOCATION"
                              :sexp ,sexp
                              :lambda-list (evaluated-location)
                              :parameters (list evaluated-location))
