@@ -99,8 +99,7 @@
     (lisp-fun optimal-handle-assignment ?obj ?available-arms
               nil ?min-handles ?optimal-assignment)
     (length ?optimal-assignment ?assignment-count)
-    (or (> ?assignment-count 0)
-        (fail)))
+    (> ?assignment-count 0))
 
   (<- (action-desig ?desig (container-opened ?handle :right))
     (trajectory-desig? ?desig)
