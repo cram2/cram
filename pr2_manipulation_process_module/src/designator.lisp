@@ -80,23 +80,23 @@
               :constraint-aware t
               ?handle-evaluations))
 
-  (<- (best-grasp ?obj ?obj-handles ?available-arms ?obstacles
+  (<- (best-grasp ?obj ?available-arms ?obstacles
                   ?arm-handle-assignments)
-    (reachable-handles ?obj ?available-arms ?reachable-handles)
     (desig-prop ?obj (type ?object-type))
     (cram-manipulation-knowledge:object-type-grasp ?object-type ?_ ?sides)
-    (lisp-fun list-length ?sides ?min-handles)
-    (optimal-arm-handle-assignments ?reachable-handles ?min-handles
-                                    ?available-arms ?arm-handle-assignments))
+    (reachable-handles ?obj ?sides ?reachable-handles)
+    (length ?sides ?min-handles)
+    (optimal-arm-handle-assignments ?obj ?reachable-handles ?min-handles
+                                    ?sides ?arm-handle-assignments))
 
-  (<- (optimal-arm-handle-assignments ?reachable-handles ?min-handles
+  (<- (optimal-arm-handle-assignments ?obj ?reachable-handles ?min-handles
                                       ?available-arms ?optimal-assignment)
     (lisp-fun optimal-handle-assignment
-              ?available-arms ?reachable-handles ?min-handles
+              ?obj ?available-arms ?reachable-handles ?min-handles
               :max-handles ?min-handles ?optimal-assignment)
-    ;; TODO(moesenle): throwing a lisp error from inside prolog is
-    ;; pretty bad. Don't do that.
-    (lisp-pred fail-on-no-nearest-handle ?optimal-assignment))
+    (length ?optimal-assignment ?assignment-count)
+    (or (> ?assignment-count 0)
+        (fail)))
 
   (<- (action-desig ?desig (container-opened ?handle :right))
     (trajectory-desig? ?desig)
@@ -152,14 +152,22 @@
   (<- (action-desig ?desig (grasp-handles ?current-obj ?arm-handle-assignments ?obstacles))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to grasp))
+    (format "STEP 1~%")
     (desig-prop ?desig (obj ?obj))
+    (format "STEP 2~%")
     (newest-effective-designator ?obj ?current-obj)
+    (format "STEP 3~%")
     (handled-obj-desig? ?current-obj)
+    (format "STEP 4~%")
     (handles ?current-obj ?obj-handles)
+    (format "STEP 5~%")
     (obstacles ?desig ?obstacles)
+    (format "STEP 6~%")
     (setof ?arm (cram-manipulation-knowledge:available-arms ?current-obj (?arm))
            ?arms)
-    (best-grasp ?current-obj ?obj-handles ?arms ?obstacles ?arm-handle-assignments))
+    (format "STEP 7~%")
+    (best-grasp ?current-obj ?arms ?obstacles ?arm-handle-assignments)
+    (format "STEP 8~%"))
 
   (<- (action-desig ?desig (put-down ?current-obj ?loc ?arms ?obstacles))
     (trajectory-desig? ?desig)
