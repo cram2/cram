@@ -400,7 +400,7 @@ the handle to grasp with it as `cdr' element."
                      collect (loop for x in staged-lists
                                   collect x)))
              (unnested-lists (loop for x in permutated-lists
-                                   collect (nconc-all x)))
+                                   collect (reduce #'append x)))
              (unified-lists (loop for x in unnested-lists
                                   collect (remove-duplicates
                                            x
@@ -417,8 +417,8 @@ the handle to grasp with it as `cdr' element."
                                                              (length entity) i)
                                                             collect entity))
                      collect lists-fitting-length)))
-        (remove-duplicates (nconc-all
-                            (nconc-all
+        (remove-duplicates (reduce #'append
+                            (reduce #'append
                              (loop for fitted-list in fitted-lists
                                    collect (comb-lists fitted-list))))
                            :test #'rotatable-lists-equal-p)))))
@@ -489,8 +489,3 @@ solution."
           when (> (length list) 1)
             collect (loop for y in (comb-lists list-rest)
                           collect (cons x y)))))
-
-(defun nconc-all (list)
-  (if (not list)
-      nil
-      (nconc (first list) (nconc-all (rest list)))))
