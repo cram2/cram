@@ -334,11 +334,6 @@ as saved in the respective handle variable is returned. If it is not,
           (dist-in-question
            side-in-question))))
 
-(defun fail-on-no-nearest-handle (arm-handle)
-  (unless arm-handle
-    (cpl:fail 'manipulation-pose-unreachable))
-  t)
-
 (defun optimal-handle-assignment (obj avail-arms avail-handles min-handles
                                   &key max-handles)
   "Finds the assignment solution of arms to handles on a handled
@@ -350,7 +345,9 @@ and the minimum amount of handles to be used. The optional parameter
 most that many handles/arms. The function returns a list of cons
 cells, containing the identifier of the respective arm as `car' and
 the handle to grasp with it as `cdr' element."
-  (let* ((assigned-entities
+  (let* ((avail-handles (or avail-handles
+                            (desig-prop-values obj 'handle)))
+         (assigned-entities
            (entity-assignment
             (list
              (make-assignable-entity-list
@@ -455,13 +452,18 @@ the handle to grasp with it as `cdr' element."
   (remove-if validation-function list))
 
 (defun validation-function-ik-constraint-aware (obj assignment)
-  "This validation function checks whether the given assignment `assignment' is executable with respect to constrait-aware ik solutions for all gripper/handle combinations."
+  "This validation function checks whether the given assignment
+`assignment' is executable with respect to constrait-aware ik
+solutions for all gripper/handle combinations."
   (let ((cost (cost-function-ik-constraint-aware obj assignment)))
     (cond (cost nil)
           (t T))))
 
 (defun cost-function-ik-constraint-aware (obj assignment)
-  "This function determines the overall cost of the assignment `assignment' with respect to the generated ik solutions (constraint aware) and the cartesian distance between all points of this ik solution."
+  "This function determines the overall cost of the assignment
+`assignment' with respect to the generated ik solutions (constraint
+aware) and the cartesian distance between all points of this ik
+solution."
   (let* ((sides (first assignment))
          (handles (second assignment))
          (distances (loop for i from 0 to (- (length sides) 1)
