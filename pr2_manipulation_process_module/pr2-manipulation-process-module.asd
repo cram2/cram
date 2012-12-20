@@ -60,7 +60,8 @@
   ((:module "src"
             :components
             ((:file "package")
-             (:file "handled-objects" :depends-on ("package"))
+             (:file "utils" :depends-on ("package"))
+             (:file "handled-objects" :depends-on ("package" "utils"))
              (:file "motion-library" :depends-on ("package"))
              (:file "controller-manager" :depends-on ("package"))
              (:file "kinematics" :depends-on ("package"))
