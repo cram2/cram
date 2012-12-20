@@ -1,0 +1,17 @@
+<package>
+  <description brief="location_designator_projection">
+
+     location_designator_projection
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/location_designator_projection</url>
+  <depend package="cram_designators"/>
+  <depend package="cram_language"/>
+  <depend package="cram_projection"/>
+
+</package>
+
+
