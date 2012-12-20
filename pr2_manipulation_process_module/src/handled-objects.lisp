@@ -85,33 +85,6 @@ objects)."
                      :side side
                      :gripper-open-pos (+ radius 0.02)
                      :gripper-close-pos radius)))
-    ;; (roslisp:ros-info (pr2-manipulation-process-module)
-    ;;                   "Going into pregrasp for ~a arm(s)" pair-count)
-    ;; (cpl:par-loop (arm-handle-pair arms-handles-pairs)
-    ;;   (pregrasp-handled-object-with-relative-location
-    ;;    obj (car arm-handle-pair) (cdr arm-handle-pair)
-    ;;    :constraint-aware constraint-aware))
-    ;; (roslisp:ros-info (pr2-manipulation-process-module)
-    ;;                   "Opening gripper(s) for ~a arm(s)" pair-count)
-    ;; (cpl:par-loop (arm-handle-pair arms-handles-pairs)
-    ;;   (let* ((handle (cdr arm-handle-pair))
-    ;;          (radius (or (desig-prop-value handle 'radius)
-    ;;                      0.0)))
-    ;;     (open-gripper (car arm-handle-pair)
-    ;;                   :position (+ radius 0.02))))
-    ;; (roslisp:ros-info (pr2-manipulation-process-module)
-    ;;                   "Going into grasp for ~a arm(s)" pair-count)
-    ;; (cpl:par-loop (arm-handle-pair arms-handles-pairs)
-    ;;   (grasp-handled-object-with-relative-location
-    ;;    obj (car arm-handle-pair) (cdr arm-handle-pair)))
-    ;; (roslisp:ros-info (pr2-manipulation-process-module)
-    ;;                   "Closing gripper(s) for ~a arm(s)" pair-count)
-    ;; (cpl:par-loop (arm-handle-pair arms-handles-pairs)
-    ;;   (let* ((handle (cdr arm-handle-pair))
-    ;;          (radius (or (desig-prop-value handle 'radius)
-    ;;                      0.0)))
-    ;;     (close-gripper (car arm-handle-pair)
-    ;;                    :position radius)))
     (loop for (arm . handle) in arms-handles-pairs
           for radius = (or (desig-prop-value handle 'radius) 0.0)
           do (check-valid-gripper-state arm
