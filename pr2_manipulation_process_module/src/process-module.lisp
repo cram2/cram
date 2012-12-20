@@ -121,7 +121,27 @@
                     obj arms)
   (force-ll arms)
   (cond ((not arms)
-         (shrug-arms))
+         (when obstacles
+           (clear-collision-objects)
+           (sem-map-coll-env:publish-semantic-map-collision-objects)
+           (dolist (obstacle (cut:force-ll obstacles))
+             (register-collision-object obstacle)))
+         (cpl:par-loop (arm arms)
+           (let ((orientation (calculate-carry-orientation
+                               obj arm
+                               (list *top-grasp*
+                                     (cl-transforms:make-identity-rotation))))
+                 (carry-pose (ecase arm
+                               (:right *carry-pose-right*)
+                               (:left *carry-pose-left*))))
+             (if orientation
+                 (execute-move-arm-pose
+                  arm
+                  (tf:copy-pose-stamped carry-pose :orientation orientation)
+                  :allowed-collision-objects (list "\"all\""))
+                 (execute-move-arm-pose
+                  arm carry-pose
+                  :allowed-collision-objects (list "\"all\""))))))
         ((eql (length arms) 1)
          (park-grasped-object-with-one-arm obj (first arms) obstacles))
         ((eql (length arms) 2)
