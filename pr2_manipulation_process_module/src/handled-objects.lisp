@@ -118,12 +118,16 @@ objects)."
                                         :min-position
                                         (- radius 0.01))
              (with-vars-strictly-bound (?link-name)
-                 (lazy-car (prolog `(cram-manipulation-knowledge:end-effector-link ,arm ?link-name)))
+                 (lazy-car
+                  (prolog
+                   `(cram-manipulation-knowledge:end-effector-link
+                     ,arm ?link-name)))
                (plan-knowledge:on-event
-                (make-instance 'plan-knowledge:object-attached
-                               :object obj
-                               :link ?link-name
-                               :side arm))))))
+                (make-instance
+                    'plan-knowledge:object-attached
+                 :object obj
+                 :link ?link-name
+                 :side arm))))))
 
 (defun taxi-handled-object (obj side handle
                             &key (relative-gripper-pose
