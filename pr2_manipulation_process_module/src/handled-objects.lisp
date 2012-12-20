@@ -463,7 +463,7 @@ solution."
         (t
          (list-rotate-left
           (append (rest list) (list (first list)))
-          :rotations (- rotations 1)))))
+          :rotations (1- rotations)))))
 
 (defun rotatable-lists-equal-p (list1 list2)
   (let* ((rotations
@@ -473,7 +473,7 @@ solution."
                                            collect (list-rotate-left
                                                     set :rotations x))
                  collect list2-rotated))
-         (rotated-sets (loop for x from 0 to (- (length (first rotations)) 1)
+         (rotated-sets (loop for x from 0 below (length (first rotations))
                              collect (loop for set in rotations
                                            collect (nth x set)))))
     (not (equal (position T (mapcar (lambda (x)
