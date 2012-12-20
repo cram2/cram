@@ -91,9 +91,13 @@
 
   (<- (optimal-arm-handle-assignments ?obj ?reachable-handles ?min-handles
                                       ?available-arms ?optimal-assignment)
-    (lisp-fun optimal-handle-assignment
-              ?obj ?available-arms ?reachable-handles ?min-handles
-              :max-handles ?min-handles ?optimal-assignment)
+    ;; NOTE(winkler): We're not using the reachable handles here
+    ;; anymore. Instead, the available handles on the object are tried
+    ;; and evaluated in optimal-handle-assignment. This has to be
+    ;; refactored. Until then, the parameter stays here for signature
+    ;; purposes.
+    (lisp-fun optimal-handle-assignment ?obj ?available-arms
+              nil ?min-handles ?optimal-assignment)
     (length ?optimal-assignment ?assignment-count)
     (or (> ?assignment-count 0)
         (fail)))
@@ -149,25 +153,19 @@
   ;; all grasping because the predicate 'best-grasp' can be
   ;; used as a hook for grasp planning or any other manipulation
   ;; reasoning process that chooses the correct arm/grasp setup
-  (<- (action-desig ?desig (grasp-handles ?current-obj ?arm-handle-assignments ?obstacles))
+  (<- (action-desig ?desig (grasp-handles ?current-obj
+                                          ?arm-handle-assignments
+                                          ?obstacles))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to grasp))
-    (format "STEP 1~%")
     (desig-prop ?desig (obj ?obj))
-    (format "STEP 2~%")
     (newest-effective-designator ?obj ?current-obj)
-    (format "STEP 3~%")
     (handled-obj-desig? ?current-obj)
-    (format "STEP 4~%")
     (handles ?current-obj ?obj-handles)
-    (format "STEP 5~%")
     (obstacles ?desig ?obstacles)
-    (format "STEP 6~%")
     (setof ?arm (cram-manipulation-knowledge:available-arms ?current-obj (?arm))
            ?arms)
-    (format "STEP 7~%")
-    (best-grasp ?current-obj ?arms ?obstacles ?arm-handle-assignments)
-    (format "STEP 8~%"))
+    (best-grasp ?current-obj ?arms ?obstacles ?arm-handle-assignments))
 
   (<- (action-desig ?desig (put-down ?current-obj ?loc ?arms ?obstacles))
     (trajectory-desig? ?desig)
