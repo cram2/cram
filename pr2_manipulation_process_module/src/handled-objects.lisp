@@ -482,6 +482,9 @@ solution."
                                     rotated-sets)) nil))))
 
 (defun comb-lists (list)
+  "Creates a list of results similar to a cross-product, except that
+each block of combinations is grouped by the current element of the
+respective outermost list. `list' is a list of lists to be combined."
   (let ((list-first (first list))
         (list-rest (rest list)))
     (loop for x in list-first
