@@ -27,6 +27,8 @@
 
 (in-package :pr2-manip-pm)
 
+(defstruct assignable-entity-list entities min-assignments max-assignments)
+
 (defparameter *handle-pregrasp-offset-pose*
   (tf:make-pose
    (tf:make-3d-vector 0.20 0.0 0.0)
@@ -339,111 +341,42 @@ as saved in the respective handle variable is returned. If it is not,
 
 (defun optimal-handle-assignment (obj avail-arms avail-handles min-handles
                                   &key max-handles)
-  "Finds the assignment solution of arms to handles on a handles
-object based in the available arms list `avail-arms', the reachable
+  "Finds the assignment solution of arms to handles on a handled
+object based on the available arms list `avail-arms', the reachable
 handles list `avail-handles' (which is a handle-evaluation including
 the `cost' to reach the respective handle with each gripper in reach)
 and the minimum amount of handles to be used. The optional parameter
 `max-handles' can be set to limit the solutions to those which use at
 most that many handles/arms. The function returns a list of cons
-cells, containint the identifier of the respective arm as `car' and
+cells, containing the identifier of the respective arm as `car' and
 the handle to grasp with it as `cdr' element."
-  (format t "_________________ obj ~a ~a ~a ~a" avail-arms avail-handles min-handles max-handles)
-  (desig-allowed-contacts obj "r_wrist_roll_link")
-  (desig-allowed-contacts obj "l_wrist_roll_link")
-  (roslisp:ros-info (pr2-manipulation-process-module)
-                    "Calculating optimal arm/handle combination for grasp (arms: ~a, min-handles: ~a)." avail-arms min-handles)
-  (when (and (>= (length avail-arms) min-handles)
-             (>= (length avail-handles) min-handles))
-    (let* ((cheapest-assignment nil)
-           (current-lowest-cost nil)
-           (assignment-tree (assign-handles-tree avail-arms avail-handles 0))
-           (assignment-lists (assign-handles-tree->list assignment-tree)))
-;      (format t "!!!!!!!!!!!!!!!!!!!~%~%~a~%" assignment-lists)
-      (loop for assignment-list in assignment-lists
-            for assignment = (car assignment-list)
-            for assign-count = (length assignment)
-            for obj-value = (cdr assignment-list)
-            when (and (or (not max-handles)
-                          (<= assign-count max-handles))
-                      (or (not current-lowest-cost)
-                          (< obj-value current-lowest-cost)))
-              do (setf cheapest-assignment assignment)
-                 (setf current-lowest-cost obj-value))
-      (format t "CA: ~a~%" cheapest-assignment)
-      cheapest-assignment)))
-
-(defun assign-handles-tree->list (assignment-tree)
-  "This function onverts a handle-assignment tree into an appropriate
-list which contains all paths of the tree, plus the respective cost
-value of the last link (which represents the cosy for the whole
-path). A list of lists of these assignments is returned."
-  (let ((assignment-lists nil))
-    (loop for branch in assignment-tree
-          for current-assignment = (cdr (assoc :assignment branch))
-          for current-arm-handle = (cons (first current-assignment)
-                                         (second current-assignment))
-          for current-obj-value = (cdr (assoc :obj-value branch))
-          for next-assignments-tree = (cdr (assoc :next-assignments branch))
-          for next-assignments-list = (assign-handles-tree->list
-                                       next-assignments-tree)
-          do (cond (next-assignments-tree
-                    (push
-                     (first
-                      (mapcar (lambda (x)
-                                (let ((xcar (car x))
-                                      (xcdr (cdr x)))
-                                  (cons (push current-arm-handle xcar) xcdr)))
-                              next-assignments-list))
-                     assignment-lists))
-                   (t
-                    (push (cons (list current-arm-handle) current-obj-value)
-                          assignment-lists))))
-    assignment-lists))
-
-(defun assign-handles-tree (avail-arms avail-handles current-objective-value)
-  "Recursive function that builds a tree of all possible grasp
-solutions using the available arms `avail-arms' on the available
-handles `avail-handles'. The `current-objective-value' keeps track of
-the objective value calculated for the current path up to the current
-parent node. It is initially zero."
-  (let ((assignments nil))
-    (when (> (length avail-arms) 0)
-      (loop for handle in avail-handles
-            do (loop for arm in avail-arms
-                     for handle-reachable-by-arm = (eq
-                                                    (not
-                                                     (position
-                                                      arm
-                                                      (cdr handle)
-                                                      :test
-                                                      (lambda
-                                                          (test-arm test-he)
-                                                        (eq test-arm
-                                                            (car test-he)))))
-                                                    nil)
-                     for handle-objective-value = (or
-                                                   (cdr
-                                                    (assoc
-                                                     "without-offset"
-                                                     (cdr (assoc arm
-                                                                 (cdr handle)))
-                                                     :test 'equal))
-                                                   0)
-                     for combined-objective-value = (+ current-objective-value
-                                                       handle-objective-value)
-                     when handle-reachable-by-arm
-                       do (push
-                           (list
-                            (cons :assignment (cons arm handle))
-                            (cons :obj-value combined-objective-value)
-                            (cons :next-assignments
-                                  (assign-handles-tree
-                                   (remove arm avail-arms)
-                                   (remove handle avail-handles)
-                                   combined-objective-value)))
-                           assignments))))
-    assignments))
+  (let* ((assigned-entities
+           (entity-assignment
+            (list
+             (make-assignable-entity-list
+              :entities avail-arms)
+             (make-assignable-entity-list
+              :entities avail-handles
+              :min-assignments min-handles
+              :max-assignments max-handles))))
+         (valid-assignments (assignment-valid
+                             assigned-entities
+                             :validation-function
+                             (lambda (x)
+                               (validation-function-ik-constraint-aware
+                                obj x))))
+         (sorted-valid-assignments (sort
+                                    valid-assignments
+                                    (lambda (x y)
+                                      (< (cost-function-ik-constraint-aware
+                                          obj x)
+                                         (cost-function-ik-constraint-aware
+                                          obj y)))))
+         (cons-list (when sorted-valid-assignments
+                      (mapcar #'cons
+                              (first (first sorted-valid-assignments))
+                              (second (first sorted-valid-assignments))))))
+    cons-list))
 
 (defun permutation (list)
   (if (null list) '(())
@@ -516,22 +449,35 @@ parent node. It is initially zero."
                                    collect (comb-lists fitted-list))))
                            :test #'rotatable-lists-equal-p)))))
 
-(defun check-assignment-validity (list &key validation-function)
+(defun assignment-valid (list &key validation-function)
   (assert validation-function ()
           "No validation-function was specified, but is necessary.")
   (remove-if validation-function list))
 
-(defun validation-function-ik-constraint-aware (assignment)
+(defun validation-function-ik-constraint-aware (obj assignment)
   "This validation function checks whether the given assignment `assignment' is executable with respect to constrait-aware ik solutions for all gripper/handle combinations."
-  (declare (ignore (assignment)))
-  ;; TODO(winkler): Implement this function.
-  nil)
+  (let ((cost (cost-function-ik-constraint-aware obj assignment)))
+    (cond (cost nil)
+          (t T))))
 
-(defun cost-function-ik-constraint-aware (assignment)
+(defun cost-function-ik-constraint-aware (obj assignment)
   "This function determines the overall cost of the assignment `assignment' with respect to the generated ik solutions (constraint aware) and the cartesian distance between all points of this ik solution."
-  (declare (ignore (assignment)))
-  ;; TODO(winkler): Implement this function.
-  0)
+  (let* ((sides (first assignment))
+         (handles (second assignment))
+         (distances (loop for i from 0 to (- (length sides) 1)
+                          for distance = (arm-handle-distances
+                                          obj
+                                          (nth i handles)
+                                          (list (nth i sides))
+                                          :pregrasp-offset
+                                          *handle-pregrasp-offset-pose*
+                                          :grasp-offset
+                                          *handle-grasp-offset-pose*)
+                          collect distance))
+         (dist-w-offset (cdr (first (cdr (first (first distances))))))
+         (dist-wo-offset (cdr (second (cdr (first (first distances)))))))
+    (cond ((and dist-w-offset dist-wo-offset)
+           (+ dist-w-offset dist-wo-offset)))))
 
 (defun list-rotate-left (list &key (rotations 1))
   (cond ((= rotations 1)
@@ -564,7 +510,7 @@ parent node. It is initially zero."
             collect (list x)
           when (> (length list) 1)
             collect (loop for y in (comb-lists list-rest)
-                          collect (cons x y))))))
+                          collect (cons x y)))))
 
 (defun nconc-all (list)
   (if (not list)
