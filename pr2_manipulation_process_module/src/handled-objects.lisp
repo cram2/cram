@@ -424,8 +424,7 @@ the handle to grasp with it as `cdr' element."
                            :test #'rotatable-lists-equal-p)))))
 
 (defun assignment-valid (list &key validation-function)
-  (assert validation-function ()
-          "No validation-function was specified, but is necessary.")
+  (declare (type function validation-function))
   (remove-if validation-function list))
 
 (defun validation-function-ik-constraint-aware (obj assignment)
