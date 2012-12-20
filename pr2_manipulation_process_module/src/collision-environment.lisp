@@ -69,7 +69,7 @@
         (map 'vector (lambda (shape pose)
                        (incf i)
                        (roslisp:make-msg
-                        "motion_planning_msgs/AllowedContactSpecification"
+                        "arm_navigation_msgs/AllowedContactSpecification"
                         name (format nil "~a-~a" id i)
                         shape shape
                         (frame_id header pose_stamped) frame-id
