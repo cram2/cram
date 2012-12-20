@@ -78,17 +78,13 @@
   (roslisp:ros-info (pr2-manip process-module)
                     "Executing pregrasp for side ~a~%" side)
   (execute-move-arm-pose side pregrasp-pose)
-  (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
   (roslisp:ros-info (pr2-manip process-module) "Opening gripper")
   (open-gripper side :max-effort 50.0 :position gripper-open-pos)
-  (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
   (roslisp:ros-info (pr2-manip process-module)
                     "Executing grasp for side ~a~%" side)
   (execute-arm-trajectory side (ik->trajectory grasp-solution))
-  (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
   (roslisp:ros-info (pr2-manip process-module) "Closing gripper")
   (close-gripper side :max-effort 50.0 :position gripper-close-pos)
-  (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))
   (check-valid-gripper-state side :safety-pose pregrasp-pose
                                   :min-position gripper-close-pos))
 
