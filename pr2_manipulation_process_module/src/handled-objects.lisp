@@ -442,7 +442,7 @@ aware) and the cartesian distance between all points of this ik
 solution."
   (let* ((sides (first assignment))
          (handles (second assignment))
-         (distances (loop for i from 0 to (- (length sides) 1)
+         (distances (loop for i from 0 below (length sides)
                           for distance = (arm-handle-distances
                                           obj
                                           (nth i handles)
