@@ -49,12 +49,11 @@ grasp.")
     (register-collision-object obstacle))
   (when obj-as-obstacle
     (register-collision-object obj))
-  (grab-handled-object obj arms-handles-pairs :constraint-aware t)
-  (loop for (arm handle) in arms-handles-pairs
-        do (attach-collision-object arm obj)))
+  (grab-handled-object obj arms-handles-pairs :constraint-aware t))
 
 (defun grab-handled-object (obj arms-handles-pairs
                             &key constraint-aware)
+  (declare (ignore constraint-aware))
   "Grasps an object `obj' on its designated handles with the chosen
 robot arm sides, both specified in `arms-handles-pairs'. The grippers
 will go into a pregrasp pose (relatively defined by
@@ -67,33 +66,50 @@ objects)."
   (let ((pair-count (length arms-handles-pairs)))
     (assert (> pair-count 0) ()
             "No arm/handle pairs specified in `grab-handled-object'.")
-    (roslisp:ros-info (pr2-manipulation-process-module)
-                      "Going into pregrasp for ~a arm(s)" pair-count)
-    (cpl:par-loop (arm-handle-pair arms-handles-pairs)
-      (pregrasp-handled-object-with-relative-location
-       obj (car arm-handle-pair) (cdr arm-handle-pair)
-       :constraint-aware constraint-aware))
-    (roslisp:ros-info (pr2-manipulation-process-module)
-                      "Opening gripper(s) for ~a arm(s)" pair-count)
     (cpl:par-loop (arm-handle-pair arms-handles-pairs)
       (let* ((handle (cdr arm-handle-pair))
              (radius (or (desig-prop-value handle 'radius)
-                         0.0)))
-        (open-gripper (car arm-handle-pair)
-                      :position (+ radius 0.02))))
-    (roslisp:ros-info (pr2-manipulation-process-module)
-                      "Going into grasp for ~a arm(s)" pair-count)
-    (cpl:par-loop (arm-handle-pair arms-handles-pairs)
-      (grasp-handled-object-with-relative-location
-       obj (car arm-handle-pair) (cdr arm-handle-pair)))
-    (roslisp:ros-info (pr2-manipulation-process-module)
-                      "Closing gripper(s) for ~a arm(s)" pair-count)
-    (cpl:par-loop (arm-handle-pair arms-handles-pairs)
-      (let* ((handle (cdr arm-handle-pair))
-             (radius (or (desig-prop-value handle 'radius)
-                         0.0)))
-        (close-gripper (car arm-handle-pair)
-                       :position radius)))
+                         0.0))
+             (side (car arm-handle-pair))
+             (pregrasp-pose (pregrasp-pose-for-handle
+                             obj handle))
+             (grasp-pose (grasp-pose-for-handle
+                          obj handle))
+             (grasp-solution (first (get-constraint-aware-ik
+                                     side grasp-pose
+                                     :allowed-collision-objects (list obj)))))
+      (execute-grasp :pregrasp-pose pregrasp-pose
+                     :grasp-solution grasp-solution
+                     :side side
+                     :gripper-open-pos (+ radius 0.02)
+                     :gripper-close-pos radius)))
+    ;; (roslisp:ros-info (pr2-manipulation-process-module)
+    ;;                   "Going into pregrasp for ~a arm(s)" pair-count)
+    ;; (cpl:par-loop (arm-handle-pair arms-handles-pairs)
+    ;;   (pregrasp-handled-object-with-relative-location
+    ;;    obj (car arm-handle-pair) (cdr arm-handle-pair)
+    ;;    :constraint-aware constraint-aware))
+    ;; (roslisp:ros-info (pr2-manipulation-process-module)
+    ;;                   "Opening gripper(s) for ~a arm(s)" pair-count)
+    ;; (cpl:par-loop (arm-handle-pair arms-handles-pairs)
+    ;;   (let* ((handle (cdr arm-handle-pair))
+    ;;          (radius (or (desig-prop-value handle 'radius)
+    ;;                      0.0)))
+    ;;     (open-gripper (car arm-handle-pair)
+    ;;                   :position (+ radius 0.02))))
+    ;; (roslisp:ros-info (pr2-manipulation-process-module)
+    ;;                   "Going into grasp for ~a arm(s)" pair-count)
+    ;; (cpl:par-loop (arm-handle-pair arms-handles-pairs)
+    ;;   (grasp-handled-object-with-relative-location
+    ;;    obj (car arm-handle-pair) (cdr arm-handle-pair)))
+    ;; (roslisp:ros-info (pr2-manipulation-process-module)
+    ;;                   "Closing gripper(s) for ~a arm(s)" pair-count)
+    ;; (cpl:par-loop (arm-handle-pair arms-handles-pairs)
+    ;;   (let* ((handle (cdr arm-handle-pair))
+    ;;          (radius (or (desig-prop-value handle 'radius)
+    ;;                      0.0)))
+    ;;     (close-gripper (car arm-handle-pair)
+    ;;                    :position radius)))
     (loop for (arm . handle) in arms-handles-pairs
           for radius = (or (desig-prop-value handle 'radius) 0.0)
           do (check-valid-gripper-state arm
@@ -102,11 +118,10 @@ objects)."
              (with-vars-strictly-bound (?link-name)
                  (lazy-car (prolog `(cram-manipulation-knowledge:end-effector-link ,arm ?link-name)))
                (plan-knowledge:on-event
-                (make-instance
-                    'plan-knowledge:object-attached
-                  :object obj
-                  :link ?link-name
-                  :side arm))))))
+                (make-instance 'plan-knowledge:object-attached
+                               :object obj
+                               :link ?link-name
+                               :side arm))))))
 
 (defun taxi-handled-object (obj side handle
                             &key (relative-gripper-pose
@@ -142,6 +157,27 @@ gripper pose defaults to an identity pose."
       (unless move-trajectory
         (cpl:fail 'cram-plan-failures:manipulation-failed))
       (nth-value 1 (execute-arm-trajectory side move-trajectory)))))
+
+(defun grasp-pose-for-handle (obj handle)
+  (relative-pose-for-handle obj handle :relative-pose *handle-grasp-offset-pose*))
+
+(defun pregrasp-pose-for-handle (obj handle)
+  (relative-pose-for-handle obj handle :relative-pose *handle-pregrasp-offset-pose*))
+
+(defun relative-pose-for-handle (obj handle &key relative-pose)
+  (tf:wait-for-transform *tf*
+                         :timeout 5.0
+                         :time (roslisp:ros-time)
+                         :source-frame "map"
+                         :target-frame "torso_lift_link")
+  (let* ((absolute-pose-map
+           (object-handle-absolute
+            obj handle
+            :handle-offset-pose relative-pose))
+         (absolute-pose (tf:transform-pose *tf*
+                                           :pose absolute-pose-map
+                                           :target-frame "torso_lift_link")))
+    absolute-pose))
 
 (defun grasp-handled-object-with-relative-location (obj side handle
                                                     &key constraint-aware)
@@ -301,7 +337,7 @@ as saved in the respective handle variable is returned. If it is not,
     (cpl:fail 'manipulation-pose-unreachable))
   t)
 
-(defun optimal-handle-assignment (avail-arms avail-handles min-handles
+(defun optimal-handle-assignment (obj avail-arms avail-handles min-handles
                                   &key max-handles)
   "Finds the assignment solution of arms to handles on a handles
 object based in the available arms list `avail-arms', the reachable
@@ -312,14 +348,18 @@ and the minimum amount of handles to be used. The optional parameter
 most that many handles/arms. The function returns a list of cons
 cells, containint the identifier of the respective arm as `car' and
 the handle to grasp with it as `cdr' element."
+  (format t "_________________ obj ~a ~a ~a ~a" avail-arms avail-handles min-handles max-handles)
+  (desig-allowed-contacts obj "r_wrist_roll_link")
+  (desig-allowed-contacts obj "l_wrist_roll_link")
   (roslisp:ros-info (pr2-manipulation-process-module)
-                    "Calculating optimal arm/handle combination for grasp.")
+                    "Calculating optimal arm/handle combination for grasp (arms: ~a, min-handles: ~a)." avail-arms min-handles)
   (when (and (>= (length avail-arms) min-handles)
              (>= (length avail-handles) min-handles))
     (let* ((cheapest-assignment nil)
            (current-lowest-cost nil)
            (assignment-tree (assign-handles-tree avail-arms avail-handles 0))
            (assignment-lists (assign-handles-tree->list assignment-tree)))
+;      (format t "!!!!!!!!!!!!!!!!!!!~%~%~a~%" assignment-lists)
       (loop for assignment-list in assignment-lists
             for assignment = (car assignment-list)
             for assign-count = (length assignment)
@@ -330,6 +370,7 @@ the handle to grasp with it as `cdr' element."
                           (< obj-value current-lowest-cost)))
               do (setf cheapest-assignment assignment)
                  (setf current-lowest-cost obj-value))
+      (format t "CA: ~a~%" cheapest-assignment)
       cheapest-assignment)))
 
 (defun assign-handles-tree->list (assignment-tree)
@@ -403,3 +444,129 @@ parent node. It is initially zero."
                                    combined-objective-value)))
                            assignments))))
     assignments))
+
+(defun permutation (list)
+  (if (null list) '(())
+      (mapcan (lambda (x)
+                (mapcar (lambda (y) (cons x y))
+                        (permutation (remove x list :count 1))))
+              list)))
+
+(defun entity-assignment (assignment-entity-lists)
+  (let* ((smallest-min-assignments nil)
+         (biggest-max-assignments nil)
+         (all-lists-in-range T))
+    (loop for assignment-entity-list in assignment-entity-lists
+          for entity-list = (assignable-entity-list-entities
+                             assignment-entity-list)
+          for min-assignments = (or (assignable-entity-list-min-assignments
+                                     assignment-entity-list)
+                                    0)
+          for max-assignments = (or (assignable-entity-list-max-assignments
+                                     assignment-entity-list)
+                                    (length entity-list))
+          when (or (and smallest-min-assignments
+                        (> min-assignments smallest-min-assignments))
+                   (not smallest-min-assignments))
+            do (setf smallest-min-assignments min-assignments)
+          when (or (and biggest-max-assignments
+                        (< max-assignments biggest-max-assignments))
+                   (not biggest-max-assignments))
+            do (setf biggest-max-assignments max-assignments))
+    (loop for assignment-entity-list in assignment-entity-lists
+          for entity-list = (assignable-entity-list-entities
+                             assignment-entity-list)
+          for list-length = (length entity-list)
+          when (< list-length smallest-min-assignments)
+            do (setf all-lists-in-range nil)
+          when (< list-length biggest-max-assignments)
+            do (setf biggest-max-assignments list-length))
+    (when all-lists-in-range
+      (let* ((permutated-lists
+               (loop for assignment-entity-list in assignment-entity-lists
+                     for entity-list = (assignable-entity-list-entities
+                                        assignment-entity-list)
+                     for permutated-list = (permutation entity-list)
+                     for staged-lists = (loop for x in permutated-list
+                                              collect (loop for n on x
+                                                            collect n))
+                     collect (loop for x in staged-lists
+                                  collect x)))
+             (unnested-lists (loop for x in permutated-lists
+                                   collect (nconc-all x)))
+             (unified-lists (loop for x in unnested-lists
+                                  collect (remove-duplicates
+                                           x
+                                           :test #'equal)))
+             (fitted-lists
+               (loop for i from smallest-min-assignments
+                       to biggest-max-assignments
+                     for lists-fitting-length = (loop for list
+                                                      in unified-lists
+                                                      collect
+                                                      (loop for entity in list
+                                                            when
+                                                            (=
+                                                             (length entity) i)
+                                                            collect entity))
+                     collect lists-fitting-length)))
+        (remove-duplicates (nconc-all
+                            (nconc-all
+                             (loop for fitted-list in fitted-lists
+                                   collect (comb-lists fitted-list))))
+                           :test #'rotatable-lists-equal-p)))))
+
+(defun check-assignment-validity (list &key validation-function)
+  (assert validation-function ()
+          "No validation-function was specified, but is necessary.")
+  (remove-if validation-function list))
+
+(defun validation-function-ik-constraint-aware (assignment)
+  "This validation function checks whether the given assignment `assignment' is executable with respect to constrait-aware ik solutions for all gripper/handle combinations."
+  (declare (ignore (assignment)))
+  ;; TODO(winkler): Implement this function.
+  nil)
+
+(defun cost-function-ik-constraint-aware (assignment)
+  "This function determines the overall cost of the assignment `assignment' with respect to the generated ik solutions (constraint aware) and the cartesian distance between all points of this ik solution."
+  (declare (ignore (assignment)))
+  ;; TODO(winkler): Implement this function.
+  0)
+
+(defun list-rotate-left (list &key (rotations 1))
+  (cond ((= rotations 1)
+         (append (rest list) (list (first list))))
+        (t
+         (list-rotate-left
+          (append (rest list) (list (first list)))
+          :rotations (- rotations 1)))))
+
+(defun rotatable-lists-equal-p (list1 list2)
+  (let* ((rotations
+           (loop for set in list2
+                 for list2-rotated = (loop for x
+                                             from 1 to (length set)
+                                           collect (list-rotate-left
+                                                    set :rotations x))
+                 collect list2-rotated))
+         (rotated-sets (loop for x from 0 to (- (length (first rotations)) 1)
+                             collect (loop for set in rotations
+                                           collect (nth x set)))))
+    (not (equal (position T (mapcar (lambda (x)
+                                      (equal x list1))
+                                    rotated-sets)) nil))))
+
+(defun comb-lists (list)
+  (let ((list-first (first list))
+        (list-rest (rest list)))
+    (loop for x in list-first
+          when (= (length list) 1)
+            collect (list x)
+          when (> (length list) 1)
+            collect (loop for y in (comb-lists list-rest)
+                          collect (cons x y))))))
+
+(defun nconc-all (list)
+  (if (not list)
+      nil
+      (nconc (first list) (nconc-all (rest list)))))
