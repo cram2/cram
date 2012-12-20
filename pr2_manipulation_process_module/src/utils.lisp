@@ -28,6 +28,7 @@
 (in-package :pr2-manip-pm)
 
 (defun list-rotate-left (list &key (rotations 1))
+  "Rotates a list `list' left `rotations' times."
   (cond ((= rotations 1)
          (append (rest list) (list (first list))))
         (t
@@ -36,6 +37,9 @@
           :rotations (1- rotations)))))
 
 (defun rotatable-lists-equal-p (list1 list2)
+  "Checks if two double nested lists are equal. The contents of the
+second list `list2' are rotated in each manner possible to see if the
+contents are in any way equal to what `list1' is."
   (let* ((rotations
            (loop for set in list2
                  for list2-rotated = (loop for x
@@ -64,10 +68,13 @@ respective outermost list. `list' is a list of lists to be combined."
                           collect (cons x y)))))
 
 (defun assignment-valid (list &key validation-function)
+  "Removes all objects from the list `list' that satisfy the function
+`validation-function'."
   (declare (type function validation-function))
   (remove-if validation-function list))
 
 (defun permutation (list)
+  "Creates all permutations of the items in list `list'."
   (let ((result nil))
     (alexandria:map-permutations (lambda (permutation)
                                    (push permutation result))
@@ -75,6 +82,11 @@ respective outermost list. `list' is a list of lists to be combined."
     result))
 
 (defun entity-assignment (assignment-entity-lists)
+  "Creates all valid assignments from the `assignment-entity-lists'
+lists. Minimum and maximum assignments of each entity type can be
+given in the list (which consists of structs of type
+`assignable-entity-list'). A list of all possible combinations that
+satisfy these constraints is returned."
   (let* ((smallest-min-assignments nil)
          (biggest-max-assignments nil)
          (all-lists-in-range T))
