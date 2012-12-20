@@ -354,11 +354,11 @@ the handle to grasp with it as `cdr' element."
     cons-list))
 
 (defun permutation (list)
-  (if (null list) '(())
-      (mapcan (lambda (x)
-                (mapcar (lambda (y) (cons x y))
-                        (permutation (remove x list :count 1))))
-              list)))
+  (let ((result nil))
+    (alexandria:map-permutations (lambda (permutation)
+                                   (push permutation result))
+                                 list)
+    result))
 
 (defun entity-assignment (assignment-entity-lists)
   (let* ((smallest-min-assignments nil)
