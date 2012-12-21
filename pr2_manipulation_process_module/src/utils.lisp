@@ -54,7 +54,7 @@ contents are in any way equal to what `list1' is."
                                       (equal x list1))
                                     rotated-sets)) nil))))
 
-(defun comb-lists (list)
+(defun combine-lists-grouped (list)
   "Creates a list of results similar to a cross-product, except that
 each block of combinations is grouped by the current element of the
 respective outermost list. `list' is a list of lists to be combined."
@@ -64,7 +64,7 @@ respective outermost list. `list' is a list of lists to be combined."
           when (= (length list) 1)
             collect (list x)
           when (> (length list) 1)
-            collect (loop for y in (comb-lists list-rest)
+            collect (loop for y in (combine-lists-grouped list-rest)
                           collect (cons x y)))))
 
 (defun assignment-valid (list &key validation-function)
@@ -147,5 +147,5 @@ satisfy these constraints is returned."
         (remove-duplicates (reduce #'append
                             (reduce #'append
                              (loop for fitted-list in fitted-lists
-                                   collect (comb-lists fitted-list))))
+                                   collect (combine-lists-grouped fitted-list))))
                            :test #'rotatable-lists-equal-p)))))
