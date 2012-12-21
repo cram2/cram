@@ -334,12 +334,11 @@ the handle to grasp with it as `cdr' element."
               :entities avail-handles
               :min-assignments min-handles
               :max-assignments max-handles))))
-         (valid-assignments (assignment-valid
-                             assigned-entities
-                             :validation-function
+         (valid-assignments (remove-if
                              (lambda (x)
-                               (validation-function-ik-constraint-aware
-                                obj x))))
+                               (not (validation-function-ik-constraint-aware
+                                     obj x)))
+                             assigned-entities))
          (sorted-valid-assignments (sort
                                     valid-assignments
                                     (lambda (x y)
@@ -357,9 +356,7 @@ the handle to grasp with it as `cdr' element."
   "This validation function checks whether the given assignment
 `assignment' is executable with respect to constrait-aware ik
 solutions for all gripper/handle combinations."
-  (let ((cost (cost-function-ik-constraint-aware obj assignment)))
-    (cond (cost nil)
-          (t T))))
+  (cost-function-ik-constraint-aware obj assignment))
 
 (defun cost-function-ik-constraint-aware (obj assignment)
   "This function determines the overall cost of the assignment
