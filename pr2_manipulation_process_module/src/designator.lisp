@@ -83,11 +83,16 @@
   (<- (best-grasp ?obj ?available-arms ?obstacles
                   ?arm-handle-assignments)
     (desig-prop ?obj (type ?object-type))
+    ;; TODO(winkler): The ?sides inferred through manipulation
+    ;; knowledge always only yield one side in case of for example the
+    ;; mug (by default, :right). This is not necessarily true. This is
+    ;; for now switched back to ?available-arms for practicability
+    ;; reasons, but has to be fixed in the future.
     (cram-manipulation-knowledge:object-type-grasp ?object-type ?_ ?sides)
     (reachable-handles ?obj ?sides ?reachable-handles)
     (length ?sides ?min-handles)
     (optimal-arm-handle-assignments ?obj ?reachable-handles ?min-handles
-                                    ?sides ?arm-handle-assignments))
+                                    ?available-arms ?arm-handle-assignments))
 
   (<- (optimal-arm-handle-assignments ?obj ?reachable-handles ?min-handles
                                       ?available-arms ?optimal-assignment)
