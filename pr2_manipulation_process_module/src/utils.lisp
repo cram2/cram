@@ -67,12 +67,6 @@ respective outermost list. `list' is a list of lists to be combined."
             collect (loop for y in (combine-lists-grouped list-rest)
                           collect (cons x y)))))
 
-(defun assignment-valid (list &key validation-function)
-  "Removes all objects from the list `list' that satisfy the function
-`validation-function'."
-  (declare (type function validation-function))
-  (remove-if validation-function list))
-
 (defun permutation (list)
   "Creates all permutations of the items in list `list'."
   (let ((result nil))
