@@ -48,7 +48,6 @@
                  cram-roslisp-common
                  cram-plan-knowledge
                  triangulate_point_cloud-srv
-                 vision_srvs-srv
                  cl-semantic-map-utils
                  cram-manipulation-knowledge
                  designators)
@@ -84,7 +83,6 @@
                (:file "visibility-reasoning" :depends-on ("package" "gl-scenes"))
                (:file "debug-window" :depends-on ("package"))
                (:file "household-objects" :depends-on ("package" "objects" "utils"))
-               (:file "cop-objects" :depends-on ("package" "objects" "utils"))
                (:file "pose-generators" :depends-on ("package" "utils" "aabb" "world-facts"))
                (:file "reachability" :depends-on ("package" "robot-model-utils"))
                (:file "articulated-objects" :depends-on ("package" "semantic-map"))
