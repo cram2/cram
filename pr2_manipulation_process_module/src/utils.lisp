@@ -81,26 +81,20 @@ lists. Minimum and maximum assignments of each entity type can be
 given in the list (which consists of structs of type
 `assignable-entity-list'). A list of all possible combinations that
 satisfy these constraints is returned."
-  (let* ((smallest-min-assignments nil)
-         (biggest-max-assignments nil)
+  (let* ((assignment-sizes
+           (loop for assignment-entity-list in assignment-entity-lists
+                 for entity-list = (assignable-entity-list-entities
+                                    assignment-entity-list)
+                 maximizing (or (assignable-entity-list-min-assignments
+                                 assignment-entity-list)
+                                0) into min-assignments
+                 minimizing (or (assignable-entity-list-max-assignments
+                                 assignment-entity-list)
+                                (length entity-list)) into max-assignments
+                 finally (return (list min-assignments max-assignments))))
+         (smallest-min-assignments (first assignment-sizes))
+         (biggest-max-assignments (second assignment-sizes))
          (all-lists-in-range T))
-    (loop for assignment-entity-list in assignment-entity-lists
-          for entity-list = (assignable-entity-list-entities
-                             assignment-entity-list)
-          for min-assignments = (or (assignable-entity-list-min-assignments
-                                     assignment-entity-list)
-                                    0)
-          for max-assignments = (or (assignable-entity-list-max-assignments
-                                     assignment-entity-list)
-                                    (length entity-list))
-          when (or (and smallest-min-assignments
-                        (> min-assignments smallest-min-assignments))
-                   (not smallest-min-assignments))
-            do (setf smallest-min-assignments min-assignments)
-          when (or (and biggest-max-assignments
-                        (< max-assignments biggest-max-assignments))
-                   (not biggest-max-assignments))
-            do (setf biggest-max-assignments max-assignments))
     (loop for assignment-entity-list in assignment-entity-lists
           for entity-list = (assignable-entity-list-entities
                              assignment-entity-list)
