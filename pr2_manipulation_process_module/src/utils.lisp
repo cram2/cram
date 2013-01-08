@@ -27,6 +27,9 @@
 
 (in-package :pr2-manip-pm)
 
+(defstruct assignable-entity-list
+  entities min-assignments max-assignments)
+
 (defun list-rotate-left (list &key (rotations 1))
   "Rotates a list `list' left `rotations' times."
   (cond ((= rotations 1)
