@@ -27,9 +27,6 @@
 
 (in-package :pr2-manip-pm)
 
-(defstruct assignable-entity-list
-  entities min-assignments max-assignments)
-
 (defparameter *handle-pregrasp-offset-pose*
   (tf:make-pose
    (tf:make-3d-vector 0.20 0.0 0.0)
