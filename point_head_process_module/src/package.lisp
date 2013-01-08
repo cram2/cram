@@ -39,7 +39,7 @@
         #:cpl-impl)
   (:export #:point-head-process-module)
   (:shadowing-import-from #:cpl-impl #:fail)
-  (:shadowing-import-from #:cram-designators #:name)
+  (:shadowing-import-from #:cram-process-modules #:name)
   (:import-from #:cram-plan-knowledge
                 matching-process-module available-process-module)
   (:desig-properties #:to #:see #:follow #:pose #:location #:obj))
