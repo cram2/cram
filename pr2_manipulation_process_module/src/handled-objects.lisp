@@ -121,7 +121,7 @@ gripper pose defaults to an identity pose."
                            :handle-offset-pose relative-gripper-pose))
        (absolute-pose (tf:transform-pose *tf*
                                          :pose absolute-pose-map
-                                         :target-frame "torso_lift_link"))
+                                         :target-frame "/map"))
        (seed-state (calc-seed-state-elbow-up side))
        (move-ik (cond (constraint-aware
                        (get-constraint-aware-ik side absolute-pose
@@ -146,14 +146,14 @@ gripper pose defaults to an identity pose."
                          :timeout 5.0
                          :time (roslisp:ros-time)
                          :source-frame "map"
-                         :target-frame "torso_lift_link")
+                         :target-frame "/map")
   (let* ((absolute-pose-map
            (object-handle-absolute
             obj handle
             :handle-offset-pose relative-pose))
          (absolute-pose (tf:transform-pose *tf*
                                            :pose absolute-pose-map
-                                           :target-frame "torso_lift_link")))
+                                           :target-frame "/map")))
     absolute-pose))
 
 (defun grasp-handled-object-with-relative-location (obj side handle
@@ -186,14 +186,21 @@ applied."
          (relative-handle-pose (cl-transforms:transform-pose
                                 (tf:pose->transform
                                  (reference relative-handle-loc))
-                                handle-offset-pose)))
-    (tf:pose->pose-stamped
-     (tf:frame-id absolute-object-pose-stamped)
-     (tf:stamp absolute-object-pose-stamped)
-     (cl-transforms:transform-pose
-      (tf:pose->transform
-       absolute-object-pose-stamped)
-      relative-handle-pose))))
+                                handle-offset-pose))
+         (relative-handle-pose-turned
+           (cl-transforms:transform-pose
+            (tf:make-transform
+             (tf:make-3d-vector 0 0 0)
+             (tf:euler->quaternion :az pi))
+            relative-handle-pose))
+         (pose-stamped (tf:pose->pose-stamped
+                        (tf:frame-id absolute-object-pose-stamped)
+                        (tf:stamp absolute-object-pose-stamped)
+                        (cl-transforms:transform-pose
+                         (tf:pose->transform
+                          absolute-object-pose-stamped)
+                         relative-handle-pose-turned))))
+    pose-stamped))
 
 (defun handle-distances (obj arms &key
                                     (pregrasp-offset (tf:make-identity-pose))
