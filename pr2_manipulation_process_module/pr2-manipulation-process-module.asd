@@ -55,7 +55,8 @@
                pr2_gripper_sensor_msgs-msg
                arm_navigation_msgs-srv
                pr2_mechanism_msgs-srv
-               pr2-manipulation-knowledge)
+               pr2-manipulation-knowledge
+               realtime_tf_relay_msgs-msg)
   :components
   ((:module "src"
             :components
@@ -71,4 +72,5 @@
               :depends-on ("package" "kinematics" "collision-environment" "controller-manager" "motion-library" "grasping" "sensors"))
              (:file "events" :depends-on ("package" "collision-environment"))
              (:file "designator" :depends-on ("package" "process-module"))
-             (:file "action-handlers" :depends-on ("package" "process-module"))))))
+             (:file "action-handlers" :depends-on ("package" "process-module"))
+             (:file "feature-controllers" :depends-on ("package"))))))
