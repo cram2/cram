@@ -28,6 +28,9 @@
 
 (in-package :pr2-manip-pm)
 
+(define-condition add-tf-relay-error (simple-error) ())
+(define-condition remove-tf-relay-error (simple-error) ())
+
 (defvar *add-tf-relay-action* nil)
 (defvar *remove-tf-relay-action* nil)
 
@@ -48,7 +51,13 @@
                 (parent_frame relay) parent-frame
                 (topic_name relay) topic-name
                 (frequency relay) frequency)))
-    (actionlib:call-goal *add-tf-relay-action* goal)))
+    (multiple-value-bind (msg status)
+        (actionlib:call-goal *add-tf-relay-action* goal)
+      (declare (ignore msg))
+      (unless (eq status :succeeded)
+        (error 'add-tf-relay-error
+               :format-control "Adding of tf-relay failed. Parent-frame: ~a, child-frame: ~a, topic-name: ~a"
+               :format-arguments (list parent-frame child-frame topic-name))))))
 
 (defun remove-tf-relay (&key (parent-frame "ignore-frame") (child-frame "ignored-frame")
                              topic-name (frequency 50.0))
@@ -58,7 +67,13 @@
                 (parent_frame relay) parent-frame
                 (topic_name relay) topic-name
                 (frequency relay) frequency)))
-    (actionlib:call-goal *remove-tf-relay-action* goal)))
+    (multiple-value-bind (msg status)
+        (actionlib:call-goal *remove-tf-relay-action* goal)
+      (declare (ignore msg))
+      (unless (eq status :succeeded)
+        (error 'remove-tf-relay-error
+               :format-control "Removing of tf-relay failed. Topic-name: ~a"
+               :format-arguments (list topic-name))))))
 
 (defun set-up-tf-relays (&key (namespace "/left_arm_feature_controller")
                               (map-frame "/base_link")
@@ -101,3 +116,5 @@
   (remove-tf-relay :topic-name (concatenate 'string namespace "/base_pose"))
   (remove-tf-relay :topic-name (concatenate 'string namespace "/tool_offset"))
   (remove-tf-relay :topic-name (concatenate 'string namespace "/object_offset")))
+
+;;; TODO(Georg): add functionality to 'blindly' shutdown all relays
