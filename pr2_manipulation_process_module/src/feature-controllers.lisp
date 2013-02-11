@@ -59,3 +59,33 @@
                 (topic_name relay) topic-name
                 (frequency relay) frequency)))
     (actionlib:call-goal *remove-tf-relay-action* goal)))
+
+(defun set-up-tf-relays (&key (namespace "/left_arm_feature_controller"))
+  (declare (type string namespace))
+  ;; offset from /base_link to /torso_lift_link 
+  ;; will always be needed like this
+  (add-tf-relay :parent-frame "/base_link" ; always like this
+                :child-frame "/torso_lift_link" ; always like this
+                :topic-name (concatenate 'string namespace "/arm_offset")) ; always like this
+  ;; offset from 'where-objects are denoted in' to /base_link
+  ;; hook to fill in localization and map-resolved poses...
+  (add-tf-relay :parent-frame "/base_link" ; variable
+                :child-frame "/base_link" ; always like this
+                :topic-name (concatenate 'string namespace "/base_pose")) ; always like this
+  ;; offset from /l_gripper_tool_frame to 'where my tool is'
+  ;; hook to fill in  object calibration...
+  (add-tf-relay :parent-frame "/l_gripper_tool_frame" ; always like this (IF w/o nullspace of arm)
+                :child-frame "/l_gripper_tool_frame" ; variable
+                :topic-name (concatenate 'string namespace "/tool_offset")) ; always like this
+  ;; offset from 'where-objects are denoted in' to 'where object-features are defined in'
+  ;; hook for object-perception...
+  (add-tf-relay :parent-frame "/base_link" ; variable
+                :child-frame "/torso_lift_link" ; variable
+                :topic-name (concatenate 'string namespace "/object_offset"))) ;always like this
+
+(defun shutdown-tf-relays (&key (namespace "/left_arm_feature_controller"))
+  (declare (type string namespace))
+  (remove-tf-relay :topic-name (concatenate 'string namespace "/arm_offset"))
+  (remove-tf-relay :topic-name (concatenate 'string namespace "/base_pose"))
+  (remove-tf-relay :topic-name (concatenate 'string namespace "/tool_offset"))
+  (remove-tf-relay :topic-name (concatenate 'string namespace "/object_offset")))
