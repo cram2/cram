@@ -2,11 +2,25 @@
   <!-- LOAD VELOCITY-RESOLVED ARM CONTROLLERS IN STOPPED STATE -->
   <include file="$(find ias_mechanism_controllers)/launch/pr2_multi_vel_load.launch"/>
 
+
   <!-- START UP RELAY FOR TF FRAMES -->
   <node name="tf_relay" type="realtime_tf_relay" pkg="realtime_tf_relay" output="screen"/>
 
+
   <!-- START UP FEATURE CONTROLLERS WITH TOPIC REMAPS -->
-  
+  <node name="left_arm_feature_controller" type="constraint_controller" pkg="feature_constraints_standalone">
+    <param name="~tool_frame" value="l_gripper_tool_frame"/>
+    <param name="~base_frame" value="torso_lift_link"/>
+    <param name="~joint_limit_avoidance" value="false"/>
+    <remap from="~qdot" to="/l_arm_vel/command"/>
+<!--
+    <remap from="/left_arm_feature_controller/tool_offset" to="l_tool_pose"/>
+    <remap from="/left_arm_feature_controller/object_offset" to="object_pose"/>
+    <remap from="/left_arm_feature_controller/arm_offset" to="arm_base_pose"/>
+    <remap from="/left_arm_feature_controller/base_pose" to="robot_base_pose"/>
+-->
+  </node>
+
   <!-- TODO: SOMEHOW GET RID OF THIS -->
   <!-- GET RELEVANT FRAMES INTO TF -->
 
