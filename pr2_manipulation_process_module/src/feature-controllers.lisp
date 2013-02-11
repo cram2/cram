@@ -30,9 +30,11 @@
 
 (define-condition add-tf-relay-error (simple-error) ())
 (define-condition remove-tf-relay-error (simple-error) ())
+(define-condition remove-all-tf-relays-error (simple-error) ())
 
 (defvar *add-tf-relay-action* nil)
 (defvar *remove-tf-relay-action* nil)
+(defvar *remove-all-tf-relays-action* nil)
 
 (defun init-feature-controllers () 
   (setf *add-tf-relay-action* (actionlib:make-action-client
@@ -40,7 +42,10 @@
                                "realtime_tf_relay_msgs/AddTfRelayAction"))
   (setf *remove-tf-relay-action* (actionlib:make-action-client
                                   "/tf_relay/removeRelay"
-                                  "realtime_tf_relay_msgs/RemoveTfRelayAction")))
+                                  "realtime_tf_relay_msgs/RemoveTfRelayAction"))
+  (setf *remove-all-tf-relays-action* (actionlib:make-action-client
+                                       "/tf_relay/removeAllRelays"
+                                       "realtime_tf_relay_msgs/RemoveAllRelaysAction")))
 
 (register-ros-init-function init-feature-controllers)
 
@@ -74,6 +79,17 @@
         (error 'remove-tf-relay-error
                :format-control "Removing of tf-relay failed. Topic-name: ~a"
                :format-arguments (list topic-name))))))
+
+(defun remove-all-tf-relays ()
+  (let ((goal (actionlib:make-action-goal
+                  *remove-all-tf-relays-action*)))
+    (multiple-value-bind (msg status)
+        (actionlib:call-goal *remove-all-tf-relays-action* goal)
+      (declare (ignore msg))
+      (unless (eq status :succeeded)
+        (error 'remove-all-tf-relays-error
+               :format-control "Removing of all tf-relays failed."
+               :format-arguments nil)))))
 
 (defun set-up-tf-relays (&key (namespace "/left_arm_feature_controller")
                               (map-frame "/base_link")
@@ -116,5 +132,3 @@
   (remove-tf-relay :topic-name (concatenate 'string namespace "/base_pose"))
   (remove-tf-relay :topic-name (concatenate 'string namespace "/tool_offset"))
   (remove-tf-relay :topic-name (concatenate 'string namespace "/object_offset")))
-
-;;; TODO(Georg): add functionality to 'blindly' shutdown all relays
