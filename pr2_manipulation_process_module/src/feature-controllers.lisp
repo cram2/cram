@@ -60,28 +60,40 @@
                 (frequency relay) frequency)))
     (actionlib:call-goal *remove-tf-relay-action* goal)))
 
-(defun set-up-tf-relays (&key (namespace "/left_arm_feature_controller"))
-  (declare (type string namespace))
-  ;; offset from /base_link to /torso_lift_link 
-  ;; will always be needed like this
-  (add-tf-relay :parent-frame "/base_link" ; always like this
-                :child-frame "/torso_lift_link" ; always like this
-                :topic-name (concatenate 'string namespace "/arm_offset")) ; always like this
-  ;; offset from 'where-objects are denoted in' to /base_link
+(defun set-up-tf-relays (&key (namespace "/left_arm_feature_controller")
+                              (map-frame "/base_link")
+                              (robot-base-frame "/base_link")
+                              (arm-base-frame "/torso_lift_link")
+                              (arm-tool-frame "/l_gripper_tool_frame")
+                              (tool-frame "/l_gripper_tool_frame")
+                              (object-frame "/torso_lift_link"))
+  (declare (type string namespace)
+           (type string map-frame)
+           (type string robot-base-frame)
+           (type string arm-base-frame)
+           (type string arm-tool-frame)
+           (type string tool-frame)
+           (type string object-frame))
+  ;; offset between the two links that were used to calculate the robot kinematics
+  ;; NOTE: needs to be equal to 'base_frame' and 'tool_frame' in the feature-controller launch-file 
+  (add-tf-relay :parent-frame robot-base-frame
+                :child-frame arm-base-frame
+                :topic-name (concatenate 'string namespace "/arm_offset"))
+  ;; offset from 'where-objects are denoted in' to robot-base-frame
   ;; hook to fill in localization and map-resolved poses...
-  (add-tf-relay :parent-frame "/base_link" ; variable
-                :child-frame "/base_link" ; always like this
-                :topic-name (concatenate 'string namespace "/base_pose")) ; always like this
-  ;; offset from /l_gripper_tool_frame to 'where my tool is'
-  ;; hook to fill in  object calibration...
-  (add-tf-relay :parent-frame "/l_gripper_tool_frame" ; always like this (IF w/o nullspace of arm)
-                :child-frame "/l_gripper_tool_frame" ; variable
-                :topic-name (concatenate 'string namespace "/tool_offset")) ; always like this
+  (add-tf-relay :parent-frame map-frame
+                :child-frame robot-base-frame
+                :topic-name (concatenate 'string namespace "/base_pose"))
+  ;; offset from end of arm to tool that is used
+  ;; hook to fill in tool calibration...
+  (add-tf-relay :parent-frame arm-tool-frame
+                :child-frame tool-frame
+                :topic-name (concatenate 'string namespace "/tool_offset"))
   ;; offset from 'where-objects are denoted in' to 'where object-features are defined in'
   ;; hook for object-perception...
-  (add-tf-relay :parent-frame "/base_link" ; variable
-                :child-frame "/torso_lift_link" ; variable
-                :topic-name (concatenate 'string namespace "/object_offset"))) ;always like this
+  (add-tf-relay :parent-frame map-frame
+                :child-frame object-frame
+                :topic-name (concatenate 'string namespace "/object_offset")))
 
 (defun shutdown-tf-relays (&key (namespace "/left_arm_feature_controller"))
   (declare (type string namespace))
