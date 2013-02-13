@@ -56,7 +56,9 @@
                arm_navigation_msgs-srv
                pr2_mechanism_msgs-srv
                pr2-manipulation-knowledge
-               realtime_tf_relay_msgs-msg)
+               realtime_tf_relay_msgs-msg
+               constraint_msgs-msg
+               cram-feature-constraints)
   :components
   ((:module "src"
             :components
