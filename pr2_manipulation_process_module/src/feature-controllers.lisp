@@ -27,3 +27,28 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
 (in-package :pr2-manip-pm)
+
+(defvar *left-feature-constraints-config-pub* nil)
+(defvar *left-feature-constraints-command-pub* nil)
+
+(defun init-feature-constraints-controller ()
+  (setf *left-feature-constraints-command-pub*
+        (roslisp:advertise
+         "/left_arm_feature_controller/constraint_command"
+         "constraint_msgs/ConstraintCommand"))
+  (setf *left-feature-constraints-config-pub*
+        (roslisp:advertise
+         "/left_arm_feature_controller/constraint_config"
+         "constraint_msgs/ConstraintConfig")))
+
+(defun send-constraints-config (constraints)
+  ;; TODO(Georg): differentiate arms
+  (roslisp:publish
+   *left-feature-constraints-config-pub*
+   (cram-feature-constraints:feature-constraints->config-msg constraints)))
+
+(defun send-constraints-command (constraints)
+  ;; TODO(Georg): differentiate arms
+  (roslisp:publish
+   *left-feature-constraints-command-pub*
+   (cram-feature-constraints:feature-constraints->command-msg constraints)))
