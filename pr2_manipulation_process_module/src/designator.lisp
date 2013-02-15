@@ -176,19 +176,24 @@
     (flatten ?arms-used-list ?arms-used)
     (missing ?arms-used ?possible-arms ?available-arms))
   
-  (<- (action-desig ?desig (grasp-handles ?current-obj
-                                          ?arm-handle-assignments
-                                          ?obstacles))
+  (<- (action-desig ?desig (grasp ?current-obj ?grasp-assignments ?obstacles))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to grasp))
     (desig-prop ?desig (obj ?obj))
     (newest-effective-designator ?obj ?current-obj)
-    (handled-obj-desig? ?current-obj)
-    (handles ?current-obj ?obj-handles)
     (obstacles ?desig ?obstacles)
-    (setof ?arm (cram-manipulation-knowledge:available-arms ?current-obj (?arm))
-           ?arms)
-    (best-grasp ?current-obj ?arms ?obstacles ?arm-handle-assignments))
+    (handles ?current-obj ?handles)
+    (available-arms ?current-obj ?available-arms)
+    (optimal-handle-grasp ?current-obj ?available-arms ?grasp-assignments))
+
+  (<- (action-desig ?desig (grasp ?current-obj ?grasp-assignments ?obstacles))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to grasp))
+    (desig-prop ?desig (obj ?obj))
+    (newest-effective-designator ?obj ?current-obj)
+    (obstacles ?desig ?obstacles)
+    (available-arms ?current-obj ?available-arms)
+    (optimal-grasp ?current-obj ?available-arms ?grasp-assignments))
 
   (<- (action-desig ?desig (put-down ?current-obj ?loc ?arms ?obstacles))
     (trajectory-desig? ?desig)
