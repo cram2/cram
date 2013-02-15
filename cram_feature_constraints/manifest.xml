@@ -1,0 +1,19 @@
+<package>
+  <description brief="cram_feature_constraints">
+
+     cram_feature_constraints
+
+  </description>
+  <author>Georg Bartels</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+
+  <depend package="roslisp"/>
+  <depend package="cram_designators"/>
+  <depend package="constraint_msgs"/>
+  <depend package="cl_transforms"/>
+  <depend package="geometry_msgs"/>
+
+</package>
+
+
