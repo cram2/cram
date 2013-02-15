@@ -30,7 +30,15 @@
 (defun make-message (type-str slots)
   (apply #'roslisp::make-message-fn type-str slots))
 
+(defun missing (list1 list2 &key (test #'eql))
+  (loop for item in list2
+        when (not (find item list1 :test test))
+          collect item))
+
 (def-fact-group pr2-manipulation-designators (action-desig)
+
+  (<- (missing ?list-current ?list-full ?list-missing)
+    (lisp-fun missing ?list-current ?list-full ?list-missing))
 
   (<- (ros-message ?type ?slots ?msg)
     (lisp-fun make-message ?type ?slots ?msg))
