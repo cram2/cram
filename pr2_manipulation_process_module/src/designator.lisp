@@ -37,6 +37,9 @@
 
 (def-fact-group pr2-manipulation-designators (action-desig)
 
+  (<- (flatten ?list-of-lists ?list)
+    (lisp-fun alexandria:flatten ?list-of-lists ?list))
+
   (<- (missing ?list-current ?list-full ?list-missing)
     (lisp-fun missing ?list-current ?list-full ?list-missing))
 
