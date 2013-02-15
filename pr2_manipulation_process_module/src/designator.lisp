@@ -83,8 +83,8 @@
 
   (<- (reachable-handles ?obj-desig ?arms ?handle-evaluations)
     (handles ?obj-desig ?handles)
-    (symbol-value *handle-pregrasp-offset-pose* ?pregrasp-offset)
-    (symbol-value *handle-grasp-offset-pose* ?grasp-offset)
+    (symbol-value *pregrasp-offset-pose* ?pregrasp-offset)
+    (symbol-value *grasp-offset-pose* ?grasp-offset)
     (lisp-fun handle-distances ?obj-desig ?arms
               :pregrasp-offset ?pregrasp-offset
               :grasp-offset ?grasp-offset
