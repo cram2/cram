@@ -25,7 +25,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-manip-pm)
+(in-package :pr2-manipulation-process-module)
 
 (defun make-message (type-str slots)
   (apply #'roslisp::make-message-fn type-str slots))

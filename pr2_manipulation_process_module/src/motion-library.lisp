@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-manip-pm)
+(in-package :pr2-manipulation-process-module)
 
 (defparameter *carry-pose-right* (tf:make-pose-stamped
                                   "/base_footprint" 0.0
@@ -75,15 +75,15 @@
                         side (gripper-open-pos 0.08) (gripper-close-pos 0.0))
   (assert (and pregrasp-pose grasp-solution) ()
           "Unspecified parameter in execute-grasp.")
-  (roslisp:ros-info (pr2-manip process-module)
+  (roslisp:ros-info (pr2-manipulation-process-module)
                     "Executing pregrasp for side ~a~%" side)
   (execute-move-arm-pose side pregrasp-pose)
-  (roslisp:ros-info (pr2-manip process-module) "Opening gripper")
+  (roslisp:ros-info (pr2-manipulation-process-module) "Opening gripper")
   (open-gripper side :max-effort 50.0 :position gripper-open-pos)
-  (roslisp:ros-info (pr2-manip process-module)
+  (roslisp:ros-info (pr2-manipulation-process-module)
                     "Executing grasp for side ~a~%" side)
   (execute-arm-trajectory side (ik->trajectory grasp-solution))
-  (roslisp:ros-info (pr2-manip process-module) "Closing gripper")
+  (roslisp:ros-info (pr2-manipulation-process-module) "Closing gripper")
   (close-gripper side :max-effort 50.0 :position gripper-close-pos)
   (check-valid-gripper-state side :safety-pose pregrasp-pose
                                   :min-position gripper-close-pos))
@@ -135,7 +135,7 @@ supporting plane"
                              :right distance))))
 
 (defun put-down-grasped-object-with-single-arm (obj location side obstacles)
-  (roslisp:ros-info (pr2-manip process-module) "Putting down object single-handedly.") 
+  (roslisp:ros-info (pr2-manipulation-process-module) "Putting down object single-handedly.") 
   (assert (holds `(object-in-hand ,obj ,side))() 
           "Object ~a needs to be in the gripper" obj)
   (clear-collision-objects)
@@ -177,7 +177,7 @@ supporting plane"
      side (ik->trajectory (lazy-car unhand-solution)))))
 
 (defun put-down-grasped-object-with-both-arms (obj location)
-  (roslisp:ros-info (pr2-manip process-module) "Putting down the grasped object with both arms.")
+  (roslisp:ros-info (pr2-manipulation-process-module) "Putting down the grasped object with both arms.")
   ;; TODO(Georg): Talk to Lorenz about this, and how to get it running
   ;; (assert (and (rete-holds `(object-in-hand ,obj ,side))) ()
   ;;         "Object ~a needs to be in the gripper" obj)
@@ -491,7 +491,7 @@ supporting plane"
     (clear-collision-objects)
     (open-gripper side)
     (cond ((and safety-ik safety-pose)
-           (roslisp:ros-error (pr2-manip-pm check-valid-gripper-state)
+           (roslisp:ros-error (pr2-manipulation-process-module check-valid-gripper-state)
                               "Only one of `safety-ik' and `safety-pose' can be specified."))
           (safety-ik
            (execute-arm-trajectory side (ik->trajectory safety-ik)))
@@ -499,7 +499,7 @@ supporting plane"
            (execute-move-arm-pose side safety-pose))
           (t
            (roslisp:ros-error
-            (pr2-manip-pm check-valid-gripper-state)
+            (pr2-manipulation-process-module check-valid-gripper-state)
             "Neither `safety-ik' nor `safety-pose' specified. Not moving gripper to a safe pose.")))
     (cpl:fail 'object-lost)))
 

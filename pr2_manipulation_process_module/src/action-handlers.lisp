@@ -25,7 +25,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-manip-pm)
+(in-package :pr2-manipulation-process-module)
 
 (defmacro def-action-handler (name args &body body)
   (alexandria:with-gensyms (action-sym params)
@@ -43,7 +43,7 @@
     (update-object-designator-pose handle new-object-pose)))
 
 (def-action-handler park (obj arms &optional obstacles)
-  (roslisp:ros-info (pr2-manip process-module) "Park arms ~a ~a"
+  (roslisp:ros-info (pr2-manipulation-process-module) "Park arms ~a ~a"
                     obj arms)
   (force-ll arms)
   (cond ((not arms)
@@ -101,7 +101,7 @@
   (assert (> (length arms-handles) 0) ()
           "No arms/handles combinations have been specified in
           `grasp-handles'.")
-  (roslisp:ros-info (pr2-manip-pm grasp-handles)
+  (roslisp:ros-info (pr2-manipulation-process-module grasp-handles)
                     "Calling grasp-handled-object-constraint-aware
                       with ~a arms." (length arms-handles))
   (grab-handled-object-constraint-aware obj arms-handles obstacles
