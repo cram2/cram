@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-manip-pm)
+(in-package :pr2-manipulation-process-module)
 
 (defmethod plan-knowledge:on-event
     attach-object ((event plan-knowledge:object-attached))

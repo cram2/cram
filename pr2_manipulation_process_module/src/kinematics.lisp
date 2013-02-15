@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-manip-pm)
+(in-package :pr2-manipulation-process-module)
 
 (defparameter *ik-left-ns* "/pr2_left_arm_kinematics")
 (defparameter *ik-right-ns* "/pr2_right_arm_kinematics")

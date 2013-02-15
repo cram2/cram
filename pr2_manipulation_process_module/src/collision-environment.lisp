@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-manip-pm)
+(in-package :pr2-manipulation-process-module)
 
 (defvar *collision-object-pub* nil)
 (defvar *attached-object-pub* nil)
@@ -122,7 +122,7 @@ designator."
       (setf (gethash effective-designator *known-collision-objects*) message)
       (roslisp:publish *collision-object-pub* message)
       (roslisp:ros-info
-       (pr2-manip-pm collision-environment) "Added collision object to environment server."))))
+       (pr2-manipulation-process-module collision-environment) "Added collision object to environment server."))))
 
 (defun remove-collision-object (desig)
   (let ((collision-object (find-desig-collision-object desig)))
