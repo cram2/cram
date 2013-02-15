@@ -168,6 +168,14 @@
   ;; all grasping because the predicate 'best-grasp' can be
   ;; used as a hook for grasp planning or any other manipulation
   ;; reasoning process that chooses the correct arm/grasp setup
+  (<- (available-arms ?obj ?available-arms)
+    (available-arms ?obj ?available-arms (:left :right)))
+
+  (<- (available-arms ?obj ?available-arms ?possible-arms)
+    (setof ?arms-object (object-in-hand ?_ ?arms-object) ?arms-used-list)
+    (flatten ?arms-used-list ?arms-used)
+    (missing ?arms-used ?possible-arms ?available-arms))
+  
   (<- (action-desig ?desig (grasp-handles ?current-obj
                                           ?arm-handle-assignments
                                           ?obstacles))
