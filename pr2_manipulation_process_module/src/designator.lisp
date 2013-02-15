@@ -81,42 +81,6 @@
     (loc-desig? ?obj-loc)
     (desig-prop ?obj-loc (in gripper)))
 
-  (<- (reachable-handles ?obj-desig ?arms ?handle-evaluations)
-    (handles ?obj-desig ?handles)
-    (symbol-value *pregrasp-offset-pose* ?pregrasp-offset)
-    (symbol-value *grasp-offset-pose* ?grasp-offset)
-    (lisp-fun handle-distances ?obj-desig ?arms
-              :pregrasp-offset ?pregrasp-offset
-              :grasp-offset ?grasp-offset
-              :constraint-aware t
-              ?handle-evaluations))
-
-  (<- (best-grasp ?obj ?available-arms ?obstacles
-                  ?arm-handle-assignments)
-    (desig-prop ?obj (type ?object-type))
-    ;; TODO(winkler): The ?sides inferred through manipulation
-    ;; knowledge always only yield one side in case of for example the
-    ;; mug (by default, :right). This is not necessarily true. This is
-    ;; for now switched back to ?available-arms for practicability
-    ;; reasons, but has to be fixed in the future.
-    (cram-manipulation-knowledge:object-type-grasp ?object-type ?_ ?sides)
-    (reachable-handles ?obj ?sides ?reachable-handles)
-    (length ?sides ?min-handles)
-    (optimal-arm-handle-assignments ?obj ?reachable-handles ?min-handles
-                                    ?available-arms ?arm-handle-assignments))
-
-  (<- (optimal-arm-handle-assignments ?obj ?reachable-handles ?min-handles
-                                      ?available-arms ?optimal-assignment)
-    ;; NOTE(winkler): We're not using the reachable handles here
-    ;; anymore. Instead, the available handles on the object are tried
-    ;; and evaluated in optimal-handle-assignment. This has to be
-    ;; refactored. Until then, the parameter stays here for signature
-    ;; purposes.
-    (lisp-fun optimal-handle-assignment ?obj ?available-arms
-              nil ?min-handles ?optimal-assignment)
-    (length ?optimal-assignment ?assignment-count)
-    (> ?assignment-count 0))
-
   (<- (action-desig ?desig (container-opened ?handle :right))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to open))
