@@ -27,14 +27,14 @@
 
 (in-package :pr2-manipulation-process-module)
 
-(defparameter *handle-pregrasp-offset-pose*
+(defparameter *pregrasp-offset-pose*
   (tf:make-pose
    (tf:make-3d-vector 0.20 0.0 0.0)
    (tf:euler->quaternion :az pi :ax (/ pi 2)))
   "Specifies the gripper pose relative to the respective handle
 coordinate system (including it's origin and rotation) when going into
 pregrasp.")
-(defparameter *handle-grasp-offset-pose*
+(defparameter *grasp-offset-pose*
   (tf:make-pose
    (tf:make-3d-vector 0.135 0.0 0.0)
    (tf:euler->quaternion :az pi :ax (/ pi 2)))
@@ -57,9 +57,9 @@ grasp.")
   "Grasps an object `obj' on its designated handles with the chosen
 robot arm sides, both specified in `arms-handles-pairs'. The grippers
 will go into a pregrasp pose (relatively defined by
-`*handle-pregrasp-offset-pose*' w.r.t. the absolute position of the
+`*pregrasp-offset-pose*' w.r.t. the absolute position of the
 handle), will open and move into a grasp pose (relatively defined by
-`*handle-grasp-offset-pose*' w.r.t. the absolute position of the
+`*grasp-offset-pose*' w.r.t. the absolute position of the
 handle). Afterwards, the grippers are closed (until they reach the
 opening position defined by the `radius' property of the handle
 objects)."
@@ -136,10 +136,10 @@ gripper pose defaults to an identity pose."
       (nth-value 1 (execute-arm-trajectory side move-trajectory)))))
 
 (defun grasp-pose-for-handle (obj handle)
-  (relative-pose-for-handle obj handle :relative-pose *handle-grasp-offset-pose*))
+  (relative-pose-for-handle obj handle :relative-pose *grasp-offset-pose*))
 
 (defun pregrasp-pose-for-handle (obj handle)
-  (relative-pose-for-handle obj handle :relative-pose *handle-pregrasp-offset-pose*))
+  (relative-pose-for-handle obj handle :relative-pose *pregrasp-offset-pose*))
 
 (defun relative-pose-for-handle (obj handle &key relative-pose)
   (tf:wait-for-transform *tf*
@@ -161,7 +161,7 @@ gripper pose defaults to an identity pose."
   "Moves the gripper side `side' into the grasp position with respect
 to the object's `obj' handle `handle'."
   (taxi-handled-object
-   obj side handle :relative-gripper-pose *handle-grasp-offset-pose*
+   obj side handle :relative-gripper-pose *grasp-offset-pose*
                    :constraint-aware constraint-aware))
 
 (defun pregrasp-handled-object-with-relative-location (obj side handle
@@ -169,7 +169,7 @@ to the object's `obj' handle `handle'."
   "Moves the gripper side `side' into the pregrasp position with
 respect to the object's `obj' handle `handle'."
   (taxi-handled-object
-   obj side handle :relative-gripper-pose *handle-pregrasp-offset-pose*
+   obj side handle :relative-gripper-pose *pregrasp-offset-pose*
                    :constraint-aware constraint-aware))
 
 (defun object-handle-absolute (obj handle
@@ -375,9 +375,9 @@ solution."
                                           (nth i handles)
                                           (list (nth i sides))
                                           :pregrasp-offset
-                                          *handle-pregrasp-offset-pose*
+                                          *pregrasp-offset-pose*
                                           :grasp-offset
-                                          *handle-grasp-offset-pose*)
+                                          *grasp-offset-pose*)
                           collect distance))
          (dist-w-offset (cdr (first (cdr (first (first distances))))))
          (dist-wo-offset (cdr (second (cdr (first (first distances)))))))
