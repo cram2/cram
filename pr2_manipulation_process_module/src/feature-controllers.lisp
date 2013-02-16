@@ -54,7 +54,8 @@
 
 (register-ros-init-function init-feature-constraints-controller)
 
-(defun feature-constraints-controller-state-callback (msg)
+(defmethod feature-constraints-controller-state-callback
+    ((msg (eql 'constraint_msgs-msg:ConstraintState)))
   (roslisp:with-fields (weights) msg
     (let ((max-weight (loop for i from 0 below (length weights)
                             for weight = (elt weights i)
