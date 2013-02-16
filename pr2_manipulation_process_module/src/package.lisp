@@ -41,7 +41,7 @@
   (:import-from alexandria ignore-some-conditions)
   (:import-from #:cram-plan-knowledge
                 matching-process-module available-process-module)
-  (:export pr2-manipulation-process-module)
+  (:export pr2-manipulation-process-module wait-for-controller)
   (:desig-properties #:trajectory #:type #:to #:open #:obj #:side #:close
                      #:grasp #:put-down #:pose #:parked #:lift
                      #:carry #:at #:orientation #:in #:gripper #:both-grippers
