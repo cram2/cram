@@ -32,9 +32,7 @@
 (defvar *left-feature-constraints-command-pub* nil)
 
 (defvar *controller-state-subscriber* nil)
-(defvar *controller-state-active-fluent*
-  (cram-language:make-fluent :name :feature-controller-state-fluent
-                             :allow-tracing nil))
+(defvar *controller-state-active-fluent* nil)
 
 (defun init-feature-constraints-controller ()
   (setf *left-feature-constraints-command-pub*
@@ -45,6 +43,9 @@
         (roslisp:advertise
          "/left_arm_feature_controller/constraint_config"
          "constraint_msgs/ConstraintConfig"))
+  (setf *controller-state-active-fluent*
+        (cram-language:make-fluent :name :feature-controller-state-fluent
+                                   :allow-tracing nil))
   (setf *controller-state-subscriber*
         (roslisp:subscribe
          "/left_arm_feature_controller/constraint_state"
