@@ -27,6 +27,11 @@
 
 (in-package :pr2-manipulation-process-module)
 
+(defclass grasp-assignment ()
+  ((pose :accessor pose :initform nil :initarg :pose)
+   (side :accessor side :initform nil :initarg :side)
+   (close-radius :accessor close-radius :initform nil :initarg :close-radius)))
+
 (define-condition move-arm-no-ik-solution (manipulation-failure) ())
 (define-condition move-arm-ik-link-in-collision (manipulation-failure) ())
 

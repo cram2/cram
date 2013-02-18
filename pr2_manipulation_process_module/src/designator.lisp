@@ -159,6 +159,31 @@
     (available-arms ?current-obj ?available-arms)
     (optimal-grasp ?current-obj ?available-arms ?grasp-assignments))
 
+  (<- (optimal-handle-grasp ?object-desig ?available-arms ?grasp-assignments)
+    (current-designator ?object-desig ?current-object)
+    (handles ?current-object ?handles)
+    (min-handles ?current-object ?min-handles)
+    (setof ?absolute-handle (absolute-handle ?current-object ?absolute-handle)
+           ?absolute-handles)
+    (lisp-fun optimal-arm-handle-assignment
+              ?available-arms
+              ?absolute-handles
+              ?min-handles
+              ?grasp-assignments)
+    (length ?grasp-assignments ?assignment-count)
+    (> ?assignment-count 0))
+
+  (<- (optimal-grasp ?object-desig ?available-arms ?grasp-assignments)
+    (current-designator ?object-desig ?current-object)
+    (desig-prop ?current-object (at ?loc))
+    (desig-prop ?loc (pose ?pose))
+    (lisp-fun optimal-arm-pose-assignment
+              ?available-arms
+              ?pose
+              ?grasp-assignments)
+    (length ?grasp-assignments ?assignment-count)
+    (> ?assignment-count 0))
+
   (<- (action-desig ?desig (put-down ?current-obj ?loc ?arms ?obstacles))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to put-down))
