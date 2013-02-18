@@ -50,6 +50,12 @@
     (findall ?o (desig-prop ?desig (obstacle ?o))
              ?obstacles))
 
+  (<- (absolute-handle ?object-desig ?absolute-handle)
+    (current-designator ?object-desig ?current-object)
+    (handles ?current-object ?handles)
+    (member ?handle ?handles)
+    (lisp-fun absolute-handle ?current-object ?handle ?absolute-handle))
+
   (<- (handles ?desig ?handles)
     (findall ?h (desig-prop ?desig (handle ?h))
              ?handles))
