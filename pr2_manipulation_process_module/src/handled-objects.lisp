@@ -109,12 +109,14 @@ applied."
             (lambda (assign-1 assign-2)
               (< (cost-function-grasp-handle-ik-constraint-aware assign-1)
                  (cost-function-grasp-handle-ik-constraint-aware assign-2)))))
-         (assignments (when sorted-valid-assignments
-                        (let ((pose (first (first sorted-valid-assignments)))
-                              (arm (second (first sorted-valid-assignments))))
-                          (make-instance 'grasp-assignment
-                                         :pose pose
-                                         :side arm)))))
+         (assignments (mapcar (lambda (arm handle-obj)
+                                (make-instance
+                                 'grasp-assignment
+                                 :pose (reference
+                                        (desig-prop-value handle-obj 'at))
+                                 :side arm))
+                              (first (first sorted-valid-assignments))
+                              (second (first sorted-valid-assignments)))))
     (unless assignments
       (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))
     assignments))
@@ -260,13 +262,12 @@ could reach the handle, `NIL' is returned."
             (lambda (assign-1 assign-2)
               (< (cost-function-grasp-ik-constraint-aware assign-1)
                  (cost-function-grasp-ik-constraint-aware assign-2)))))
-         (assignments (when sorted-valid-assignments
-                      (mapcar (lambda (arm pose)
+         (assignments (mapcar (lambda (arm pose)
                                 (make-instance 'grasp-assignment
                                                :pose pose
                                                :side arm))
                               (first (first sorted-valid-assignments))
-                              (second (first sorted-valid-assignments))))))
+                              (second (first sorted-valid-assignments)))))
     (unless assignments
       (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))
     assignments))
