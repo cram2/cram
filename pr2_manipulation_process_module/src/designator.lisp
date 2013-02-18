@@ -43,6 +43,11 @@
   (<- (missing ?list-current ?list-full ?list-missing)
     (lisp-fun missing ?list-current ?list-full ?list-missing))
 
+  (<- (min-handles ?object-desig ?min-handles)
+    (current-designator ?object-desig ?current-object)
+    (or (desig-prop ?current-object (min-handles ?min-handles))
+        (equal ?min-handles 1)))
+
   (<- (ros-message ?type ?slots ?msg)
     (lisp-fun make-message ?type ?slots ?msg))
 
@@ -142,7 +147,8 @@
     (available-arms ?obj ?available-arms (:left :right)))
 
   (<- (available-arms ?obj ?available-arms ?possible-arms)
-    (setof ?arms-object (object-in-hand ?_ ?arms-object) ?arms-used-list)
+    (or (setof ?arms-object (object-in-hand ?_ ?arms-object) ?arms-used-list)
+        (equal ?arms-used-list ()))
     (flatten ?arms-used-list ?arms-used)
     (missing ?arms-used ?possible-arms ?available-arms))
   
