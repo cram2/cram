@@ -319,4 +319,37 @@ could reach the handle, `NIL' is returned."
                                           :euclidean-target-link target-link)
           when distance
             collect (cons arm distance))))
+      (format t "IK solution cost: ~a~%" costme)
       costme)))
+
+(defun pose-pointing-away-from-base (object-pose)
+  (tf:wait-for-transform *tf* :source-frame "/base_link" :target-frame "/map"
+                         :time (roslisp:ros-time))
+  (tf:wait-for-transform
+   *tf*
+   :source-frame (tf:frame-id object-pose)
+   :target-frame "/map"
+   :time (roslisp:ros-time))
+  (let* ((base-transform-map (tf:lookup-transform
+                              *tf*
+                              :time 0.0
+                              :source-frame "/base_link"
+                              :target-frame "/map"))
+         (base-pose-map (tf:make-pose-stamped
+                         (tf:frame-id base-transform-map)
+                         (tf:stamp base-transform-map)
+                         (tf:translation base-transform-map)
+                         (tf:rotation base-transform-map)))
+         (object-pose-map (tf:transform-pose
+                           *tf*
+                           :pose object-pose
+                           :target-frame "/map"))
+         (origin1 (tf:origin base-pose-map))
+         (origin2 (tf:origin object-pose-map))
+         (p1 (tf:make-3d-vector (tf:x origin1) (tf:y origin1) 0.0))
+         (p2 (tf:make-3d-vector (tf:x origin2) (tf:y origin2) 0.0))
+         (angle (* (signum (- (tf:y p2) (tf:y p1)))
+                   (acos (/ (- (tf:x p2) (tf:x p1)) (tf:v-dist p1 p2))))))
+    (tf:make-pose-stamped "/map" 0.0
+                          (tf:origin object-pose-map)
+                          (tf:euler->quaternion :az angle))))
