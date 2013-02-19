@@ -77,16 +77,16 @@
           "Unspecified parameter in execute-grasp.")
   (roslisp:ros-info (pr2-manipulation-process-module)
                     "Executing pregrasp for side ~a~%" side)
-  (execute-move-arm-pose side pregrasp-pose)
-  (roslisp:ros-info (pr2-manipulation-process-module) "Opening gripper")
-  (open-gripper side :max-effort 50.0 :position gripper-open-pos)
-  (roslisp:ros-info (pr2-manipulation-process-module)
-                    "Executing grasp for side ~a~%" side)
-  (execute-arm-trajectory side (ik->trajectory grasp-solution))
-  (roslisp:ros-info (pr2-manipulation-process-module) "Closing gripper")
-  (close-gripper side :max-effort 50.0 :position gripper-close-pos)
-  (check-valid-gripper-state side :safety-pose pregrasp-pose
-                                  :min-position gripper-close-pos))
+  (let ((pregrasp-ik (first (get-ik side pregrasp-pose))))
+    (when pregrasp-ik
+      (execute-arm-trajectory side (ik->trajectory pregrasp-ik))
+      (roslisp:ros-info (pr2-manipulation-process-module) "Opening gripper")
+      (open-gripper side :max-effort 50.0 :position gripper-open-pos)
+      (roslisp:ros-info (pr2-manipulation-process-module)
+                        "Executing grasp for side ~a~%" side)
+      (execute-arm-trajectory side (ik->trajectory grasp-solution))
+      (roslisp:ros-info (pr2-manipulation-process-module) "Closing gripper")
+      (close-gripper side :max-effort 50.0 :position gripper-close-pos))))
 
 (defun get-lifting-grasped-object-arm-trajectory (side distance)
   "Returns the lifting trajectory for the `side' robot arm in order to
