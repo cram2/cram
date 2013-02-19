@@ -106,19 +106,13 @@
       (let* ((pose (slot-value grasp-assignment 'pose))
              (side (slot-value grasp-assignment 'side))
              (pregrasp-pose (relative-grasp-pose
-                             pose (tf:make-pose
-                                   (tf:make-3d-vector
-                                    -0.25 0.0 0.0)
-                                   (tf:make-identity-rotation))))
+                             pose *pregrasp-offset*))
              (pregrasp-pose-tll
                (tf:transform-pose *tf*
                                   :pose pregrasp-pose
                                   :target-frame "/torso_lift_link"))
              (grasp-pose (relative-grasp-pose
-                          pose (tf:make-pose
-                                (tf:make-3d-vector
-                                 -0.1 0.0 0.0)
-                                (tf:make-identity-rotation))))
+                          pose *grasp-offset*))
              (grasp-pose-tll
                (tf:transform-pose *tf*
                                   :pose grasp-pose

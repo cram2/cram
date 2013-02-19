@@ -42,6 +42,17 @@ pregrasp.")
 coordinate system (including it's origin and rotation) when going into
 grasp.")
 
+(defparameter *pregrasp-offset*
+  (tf:make-pose
+   (tf:make-3d-vector
+    -0.25 0.0 0.0)
+   (tf:make-identity-rotation)))
+(defparameter *grasp-offset*
+  (tf:make-pose
+   (tf:make-3d-vector
+    -0.1 0.0 0.0)
+   (tf:make-identity-rotation)))
+
 (defun relative-pose-for-handle (obj handle &key relative-pose)
   (tf:wait-for-transform *tf*
                          :timeout 5.0
@@ -214,35 +225,6 @@ could reach the handle, `NIL' is returned."
       (cond (ik (execute-arm-trajectory side (ik->trajectory ik)))
             (t (error 'manipulation-pose-unreachable))))))
 
-(defun move-to-object-relative-grasp-pose (object
-                                           arm-pose-combinations
-                                           obstacles
-                                           &key
-                                             (pose-offset
-                                              (tf:make-identity-pose)))
-  (declare (ignore obstacles object))
-  (tf:wait-for-transform *tf*
-                         :timeout 5.0
-                         :time (roslisp:ros-time)
-                         :source-frame "/map"
-                         :target-frame "/torso_lift_link")
-  (cpl:par-loop (arm-pose-combination arm-pose-combinations)
-    (let* ((side (car arm-pose-combination))
-           (pose (cdr arm-pose-combination))
-           (grasp-pose (tf:pose->pose-stamped
-                           (tf:frame-id pose)
-                           (tf:stamp pose)
-                           (cl-transforms:transform-pose
-                            (cl-transforms:pose->transform pose)
-                            pose-offset)))
-           (grasp-pose-tll (tf:transform-pose
-                               *tf*
-                               :pose grasp-pose
-                               :target-frame "/torso_lift_link"))
-           (ik (first (get-ik side grasp-pose-tll))))
-      (cond (ik (execute-arm-trajectory side (ik->trajectory ik)))
-            (t (error 'manipulation-pose-unreachable))))))
-
 (defun optimal-arm-pose-assignment (avail-arms obj-pose)
   (let* ((assigned-entities
            (entity-assignment
@@ -280,13 +262,12 @@ could reach the handle, `NIL' is returned."
                                             (arms-pose-distances
                                              (list arm) pose
                                              :arms-offset-pose
-                                             (tf:make-pose
-                                              (tf:make-3d-vector
-                                               -0.25 0.0 0.0)
-                                              (tf:make-identity-rotation)))))
+                                             *pregrasp-offset*)))
         for distance-grasp = (cdr (assoc arm
                                          (arms-pose-distances
-                                          (list arm) pose)))
+                                          (list arm) pose
+                                          :arms-offset-pose
+                                          *grasp-offset*)))
         when (not (and distance-pregrasp distance-grasp))
           do (return-from cost-function-grasp-ik-constraint-aware nil)
         summing (+ distance-pregrasp distance-grasp) into total-cost
