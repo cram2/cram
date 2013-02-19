@@ -97,15 +97,48 @@
          (lift-grasped-object-with-both-arms distance))
         (t (error 'simple-error :format-control "No arms for lifting inferred."))))
 
-(def-action-handler grasp-handles (obj arms-handles obstacles)
-  (assert (> (length arms-handles) 0) ()
-          "No arms/handles combinations have been specified in
-          `grasp-handles'.")
-  (roslisp:ros-info (pr2-manipulation-process-module grasp-handles)
-                    "Calling grasp-handled-object-constraint-aware
-                      with ~a arms." (length arms-handles))
-  (grab-handled-object-constraint-aware obj arms-handles obstacles
-                                        :obj-as-obstacle t))
+(def-action-handler grasp (obj-desig grasp-assignments obstacles)
+  (declare (ignore obstacles))
+  (let ((pair-count (length grasp-assignments)))
+    (assert (> pair-count 0) ()
+            "No arm/pose pairs specified during grasping.")
+    (cpl:par-loop (grasp-assignment grasp-assignments)
+      (let* ((pose (slot-value grasp-assignment 'pose))
+             (side (slot-value grasp-assignment 'side))
+             (pregrasp-pose (cl-transforms:transform-pose
+                             (tf:pose->transform pose)
+                             *pregrasp-offset-pose*))
+             (pregrasp-pose-stamped
+               (tf:pose->pose-stamped "/map" 0.0 pregrasp-pose))
+             (grasp-pose (cl-transforms:transform-pose
+                          (tf:pose->transform pose)
+                          *grasp-offset-pose*))
+             (grasp-pose-stamped
+               (tf:pose->pose-stamped "/map" 0.0 grasp-pose))
+             (grasp-solution
+               (first (get-ik;(get-constraint-aware-ik
+                       side grasp-pose-stamped))))
+                       ;; :allowed-collision-objects (list obj-desig)))))
+        (unless grasp-solution
+          (cpl:fail 'manipulation-pose-unreachable))
+        (execute-grasp :pregrasp-pose pregrasp-pose-stamped
+                       :grasp-solution grasp-solution
+                       :side side
+                       :gripper-open-pos 0.08
+                       :gripper-close-pos 0.02)))
+    (loop for grasp-assignment in grasp-assignments
+          for side = (slot-value grasp-assignment 'side)
+          do (with-vars-strictly-bound (?link-name)
+                 (lazy-car
+                  (prolog
+                   `(cram-manipulation-knowledge:end-effector-link
+                     ,side ?link-name)))
+               (plan-knowledge:on-event
+                (make-instance
+                    'plan-knowledge:object-attached
+                 :object obj-desig
+                 :link ?link-name
+                 :side side))))))
 
 (def-action-handler put-down (object-designator location arms obstacles)
   "Delegates the type of the put down action which suppose to be executed
