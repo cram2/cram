@@ -190,7 +190,7 @@ could reach the handle, `NIL' is returned."
                                            &key
                                              (pose-offset
                                               (tf:make-identity-pose)))
-  (declare (ignore obstacles))
+  (declare (ignore obstacles object))
   (tf:wait-for-transform *tf*
                          :timeout 5.0
                          :time (roslisp:ros-time)
