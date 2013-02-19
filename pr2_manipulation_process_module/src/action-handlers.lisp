@@ -108,24 +108,28 @@
              (pregrasp-pose (relative-grasp-pose
                              pose (tf:make-pose
                                    (tf:make-3d-vector
-                                    -0.2 0.0 0.0)
+                                    -0.25 0.0 0.0)
                                    (tf:make-identity-rotation))))
-             (pregrasp-pose-stamped
-               (tf:pose->pose-stamped "/map" 0.0 pregrasp-pose))
+             (pregrasp-pose-tll
+               (tf:transform-pose *tf*
+                                  :pose pregrasp-pose
+                                  :target-frame "/torso_lift_link"))
              (grasp-pose (relative-grasp-pose
                           pose (tf:make-pose
                                 (tf:make-3d-vector
                                  -0.1 0.0 0.0)
                                 (tf:make-identity-rotation))))
-             (grasp-pose-stamped
-               (tf:pose->pose-stamped "/map" 0.0 grasp-pose))
+             (grasp-pose-tll
+               (tf:transform-pose *tf*
+                                  :pose grasp-pose
+                                  :target-frame "/torso_lift_link"))
              (grasp-solution
                (first (get-ik;(get-constraint-aware-ik
-                       side grasp-pose-stamped))))
+                       side grasp-pose-tll))))
                        ;; :allowed-collision-objects (list obj-desig)))))
         (unless grasp-solution
           (cpl:fail 'manipulation-pose-unreachable))
-        (execute-grasp :pregrasp-pose pregrasp-pose-stamped
+        (execute-grasp :pregrasp-pose pregrasp-pose-tll
                        :grasp-solution grasp-solution
                        :side side
                        :gripper-open-pos 0.08
