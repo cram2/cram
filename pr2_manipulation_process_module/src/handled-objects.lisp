@@ -195,36 +195,6 @@ could reach the handle, `NIL' is returned."
           when distance
             collect (cons arm distance))))
 
-(defun move-to-handle-relative-grasp-pose (object
-                                           arm-handle-combinations
-                                           obstacles
-                                           &key
-                                             (pose-offset
-                                              (tf:make-identity-pose)))
-  (declare (ignore obstacles object))
-  (tf:wait-for-transform *tf*
-                         :timeout 5.0
-                         :time (roslisp:ros-time)
-                         :source-frame "/map"
-                         :target-frame "/torso_lift_link")
-  (cpl:par-loop (arm-handle-combination arm-handle-combinations)
-    (let* ((handle (cdr arm-handle-combination))
-           (handle-pose (reference (desig-prop-value handle 'at)))
-           (side (car arm-handle-combination))
-           (grasp-pose (tf:pose->pose-stamped
-                           (tf:frame-id handle-pose)
-                           (tf:stamp handle-pose)
-                           (cl-transforms:transform-pose
-                            (cl-transforms:pose->transform handle-pose)
-                            pose-offset)))
-           (grasp-pose-tll (tf:transform-pose
-                               *tf*
-                               :pose grasp-pose
-                               :target-frame "/torso_lift_link"))
-           (ik (first (get-ik side grasp-pose-tll))))
-      (cond (ik (execute-arm-trajectory side (ik->trajectory ik)))
-            (t (error 'manipulation-pose-unreachable))))))
-
 (defun optimal-arm-pose-assignment (avail-arms obj-pose)
   (let* ((assigned-entities
            (entity-assignment
