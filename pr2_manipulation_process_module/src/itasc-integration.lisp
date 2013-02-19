@@ -29,10 +29,15 @@
 
 (defvar *itasc-action-parser* nil)
 
+(defvar *itasc-init-service* nil)
+
 (defun init-itasc-integration ()
   (setf *itasc-action-parser* (actionlib:make-action-client
                                "/itasc_dummy_server"
-                               "task_msgs/ItascConstrainedMotionAction")))
+                               "task_msgs/ItascConstrainedMotionAction"))
+  (setf *itasc-init-service* (roslisp:make-service-client
+                              "/InitSceneService"
+                              "task_msgs/InitScene")))
 
 (register-ros-init-function init-itasc-integration)
 

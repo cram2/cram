@@ -26,6 +26,13 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
 (in-package :pr2-manip-pm)
+;; Conversion functions to create the parts of the InitScene service-request
+(defun make-itasc-robot-msg (itasc-robot)
+  (when itasc-robot
+    (roslisp:make-msg
+     "task_msgs/Robot"
+     :name (robot-name itasc-robot)
+     :type (robot-type itasc-robot))))
 
 ;; Conversion functions to create the 'objects' part of the goal message
 (defun make-itasc-object-msg (itasc-object)
