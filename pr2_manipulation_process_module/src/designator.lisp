@@ -188,7 +188,8 @@
   (<- (optimal-grasp ?object-desig ?available-arms ?grasp-assignments)
     (current-designator ?object-desig ?current-object)
     (desig-prop ?current-object (at ?loc))
-    (desig-prop ?loc (pose ?pose))
+    (desig-prop ?loc (pose ?pose-prior))
+    (lisp-fun pose-pointing-away-from-base ?pose-prior ?pose)
     (lisp-fun optimal-arm-pose-assignment
               ?available-arms
               ?pose
