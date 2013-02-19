@@ -77,6 +77,7 @@
           "Unspecified parameter in execute-grasp.")
   (roslisp:ros-info (pr2-manipulation-process-module)
                     "Executing pregrasp for side ~a~%" side)
+  (format t "~a~%" pregrasp-pose)
   (let ((pregrasp-ik (first (get-ik side pregrasp-pose))))
     (when pregrasp-ik
       (execute-arm-trajectory side (ik->trajectory pregrasp-ik))
@@ -606,13 +607,13 @@ interfere with one another when manipulation is one."
   (tf:wait-for-transform *tf*
                          :timeout 5.0
                          :time (roslisp:ros-time)
-                         :source-frame "/map"
+                         :source-frame (tf:frame-id pose)
                          :target-frame "/torso_lift_link")
   (let* ((grasp-pose (tf:pose->pose-stamped
                       (tf:frame-id pose)
                       (tf:stamp pose)
                       (cl-transforms:transform-pose
-                       (cl-transforms:pose->transform pose)
+                       (tf:pose->transform pose)
                        pose-offset)))
          (grasp-pose-tll (tf:transform-pose
                           *tf*
