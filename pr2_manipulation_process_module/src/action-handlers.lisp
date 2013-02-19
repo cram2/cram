@@ -105,14 +105,18 @@
     (cpl:par-loop (grasp-assignment grasp-assignments)
       (let* ((pose (slot-value grasp-assignment 'pose))
              (side (slot-value grasp-assignment 'side))
-             (pregrasp-pose (cl-transforms:transform-pose
-                             (tf:pose->transform pose)
-                             *pregrasp-offset-pose*))
+             (pregrasp-pose (relative-grasp-pose
+                             pose (tf:make-pose
+                                   (tf:make-3d-vector
+                                    -0.2 0.0 0.0)
+                                   (tf:make-identity-rotation))))
              (pregrasp-pose-stamped
                (tf:pose->pose-stamped "/map" 0.0 pregrasp-pose))
-             (grasp-pose (cl-transforms:transform-pose
-                          (tf:pose->transform pose)
-                          *grasp-offset-pose*))
+             (grasp-pose (relative-grasp-pose
+                          pose (tf:make-pose
+                                (tf:make-3d-vector
+                                 -0.1 0.0 0.0)
+                                (tf:make-identity-rotation))))
              (grasp-pose-stamped
                (tf:pose->pose-stamped "/map" 0.0 grasp-pose))
              (grasp-solution

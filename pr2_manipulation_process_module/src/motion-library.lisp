@@ -601,3 +601,21 @@ interfere with one another when manipulation is one."
       (cram-language::par
         (execute-arm-trajectory :right (ik->trajectory ik-right))
         (execute-arm-trajectory :left (ik->trajectory ik-left))))))
+
+(defun relative-grasp-pose (pose pose-offset)
+  (tf:wait-for-transform *tf*
+                         :timeout 5.0
+                         :time (roslisp:ros-time)
+                         :source-frame "/map"
+                         :target-frame "/torso_lift_link")
+  (let* ((grasp-pose (tf:pose->pose-stamped
+                      (tf:frame-id pose)
+                      (tf:stamp pose)
+                      (cl-transforms:transform-pose
+                       (cl-transforms:pose->transform pose)
+                       pose-offset)))
+         (grasp-pose-tll (tf:transform-pose
+                          *tf*
+                          :pose grasp-pose
+                          :target-frame "/torso_lift_link")))
+    grasp-pose-tll))
