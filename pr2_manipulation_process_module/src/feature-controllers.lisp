@@ -83,3 +83,97 @@
   (roslisp:publish
    *left-feature-constraints-command-pub*
    (cram-feature-constraints:feature-constraints->command-msg constraints)))
+
+(defun grasp-ketchup-bottle ()
+  ;; start up tf-relays -- a bit hacky because we circumvent time travel problems
+;  (set-up-tf-relays)
+  (let* ((ketchup-main-axis
+           (make-instance
+            'cram-feature-constraints:geometric-feature
+            :name "main axis ketchup bottle"
+            :frame-id "/ketchup_frame"
+            :feature-type 'cram-feature-constraints:line
+            :feature-position (cl-transforms:make-3d-vector 0.0 0.0 0.0)
+            :feature-direction (cl-transforms:make-3d-vector 0.0 0.0 0.1)
+            :contact-direction (cl-transforms:make-3d-vector 0.1 0.0 0.0)))
+         ;; using pointing-3d removes the need for this 'virtual feature'
+         (ketchup-plane
+           (make-instance
+            'cram-feature-constraints:geometric-feature
+            :name "plane through ketchup bottle"
+            :frame-id "/ketchup_frame"
+            :feature-type 'cram-feature-constraints:plane
+            :feature-position (cl-transforms:make-3d-vector 0.0 0.0 0.0)
+            :feature-direction (cl-transforms:make-3d-vector 0.0 0.0 0.1)
+            :contact-direction (cl-transforms:make-3d-vector 0.1 0.0 0.0)))
+         (gripper-plane
+           (make-instance
+            'cram-feature-constraints:geometric-feature
+            :name "left gripper plane"
+            :frame-id "/l_gripper_tool_frame"
+            :feature-type 'cram-feature-constraints:plane
+            :feature-position (cl-transforms:make-3d-vector 0.0 0.0 0.0)
+            :feature-direction (cl-transforms:make-3d-vector 0.0 0.0 0.1)
+            :contact-direction (cl-transforms:make-3d-vector 0.1 0.0 0.0)))
+         (gripper-main-axis
+           (make-instance
+            'cram-feature-constraints:geometric-feature
+            :name "left gripper main axis"
+            :frame-id "/l_gripper_tool_frame"
+            :feature-type 'cram-feature-constraints:line
+            :feature-position (cl-transforms:make-3d-vector 0.0 0.0 0.0)
+            :feature-direction (cl-transforms:make-3d-vector 0.1 0.0 0.0)
+            :contact-direction (cl-transforms:make-3d-vector 0.0 0.1 0.0)))
+         (gripper-vertical-constraint
+           (make-instance
+            'cram-feature-constraints:feature-constraint
+            :name "gripper vertical constraint"
+            :feature-function "perpendicular"
+            :tool-feature gripper-plane
+            :world-feature ketchup-main-axis
+            :lower-boundary 0.95
+            :upper-boundary 1.0
+            :weight 1.0
+            :maximum-velocity 0.1
+            :minimum-velocity -0.1))
+         (gripper-pointing-at-ketchup
+           (make-instance
+            'cram-feature-constraints:feature-constraint
+            :name "gripper pointing at ketchup"
+            :feature-function "pointing_at"
+            :tool-feature gripper-main-axis
+            :world-feature ketchup-plane
+            :lower-boundary -0.1
+            :upper-boundary 0.1
+            :weight 1.0
+            :maximum-velocity 0.1
+            :minimum-velocity -0.1))
+         (gripper-height-constraint
+           (make-instance
+            'cram-feature-constraints:feature-constraint
+            :name "gripper height constraint"
+            :feature-function "height"
+            :tool-feature gripper-plane
+            :world-feature ketchup-plane
+            :lower-boundary -0.05
+            :upper-boundary 0.05
+            :weight 1.0
+            :maximum-velocity 0.1
+            :minimum-velocity -0.1))
+         (gripper-distance-constraint
+          (make-instance
+            'cram-feature-constraints:feature-constraint
+            :name "gripper height constraint"
+            :feature-function "distance"
+            :tool-feature gripper-plane
+            :world-feature ketchup-plane
+            :lower-boundary 0.01
+            :upper-boundary 0.02
+            :weight 1.0
+            :maximum-velocity 0.1
+            :minimum-velocity -0.1)))
+         (list
+           gripper-vertical-constraint
+           gripper-pointing-at-ketchup
+           gripper-height-constraint
+           gripper-distance-constraint)))

@@ -23,7 +23,7 @@
 
   <!-- START UP FEATURE VISUALIZATION -->
   <node name="left_feature_viz" pkg="stuff" type="feature_viz.py" output="screen">
-    <param name="~base_frame" value="/torso_lift_link"/>
+    <param name="~base_frame" value="/ketchup_frame"/>
     <remap from="constraint_config" to="/left_arm_feature_controller/constraint_config"/>
   </node>
 
