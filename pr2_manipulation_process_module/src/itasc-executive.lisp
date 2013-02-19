@@ -52,7 +52,7 @@
   (clear-itasc-robot-list)
   (add-itasc-robot
    :robot-name "Rubens"
-   :robot-type "PR2"
+   :robot-type "pr2Robot"
    :kinematic-chains
    (list (make-robot-kinematic-chain
           :chain-name "left arm"
@@ -73,7 +73,7 @@
    :frames (list "base_link" "left_gripper" "right_gripper"))
   (add-itasc-robot
    :robot-name "James"
-   :robot-type "PR2")
+   :robot-type "pr2Robot")
   :frames (list "base_link" "gripper"))
 
 (defun fill-itasc-tasks ()
@@ -141,6 +141,14 @@
                                          :referred-joint "yaw"
                                          :value 0.0))
                   :priority 1)))
+
+(defun init-itasc-parser ()
+  (when (roslisp:wait-for-service
+         *itasc-init-service* 0.2)
+    (roslisp:call-service
+     *itasc-init-service*
+     :robot (make-itasc-robot-msg
+             (find-itasc-robot "Rubens")))))
 
 (defun make-cylindrical-coordinate-system ()
   (make-chain-joint-list
