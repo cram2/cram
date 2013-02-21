@@ -124,8 +124,10 @@
     (loop for i from 0 below (length (first data))
           collect (loop for data-seq in data
                         for value = (elt data-seq i)
-                        summing (* (exp (- i)) value) into exp-sum
-                        finally (return (/ exp-sum (length data)))))))
+                        for exp-weight = (exp (- i))
+                        summing (* exp-weight value) into exp-sum
+                        summing exp-weight into weight
+                        finally (return (/ exp-sum weight))))))
 
 (defun filter-fingertip-pressure (data data-zero-point)
   ;; NOTE(winkler): The `filtering' here takes place by taking the
