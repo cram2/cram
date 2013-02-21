@@ -130,11 +130,13 @@
                         finally (return (/ exp-sum weight))))))
 
 (defun filter-fingertip-pressure (data data-zero-point)
-  ;; NOTE(winkler): The `filtering' here takes place by taking the
-  ;; minimum value of each I2C sensor array element over
-  ;; `*pressure-fingertip-average-samples*'. The zero-ing function
-  ;; must be called from time to time when nothing is grasped to make
-  ;; sure that the zero-point is unaffected by time drift.
+  ;; NOTE(winkler): The `filtering' here takes place by weighting the
+  ;; individual elements of the pressure history exponentially. This
+  ;; way, `flickering' is reduced. To make this real-time capable, the
+  ;; value of samples `*pressure-fingertip-average-samples*' must not
+  ;; be too high, i.e. 8 is a good measure. The zero-ing function must
+  ;; be called from time to time when nothing is grasped to make sure
+  ;; that the zero-point is unaffected by time drift.
   (let ((pressure (fingertip-pressure data)))
     (map 'list (lambda (value zero-point)
                  (max (- value zero-point) 0))
