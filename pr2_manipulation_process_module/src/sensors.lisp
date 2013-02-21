@@ -34,7 +34,7 @@
 (defvar *pressure-fingertip-r-fluent* nil)
 (defvar *pressure-fingertip-r-result* nil)
 
-(defparameter *pressure-fingertip-average-samples* 100
+(defparameter *pressure-fingertip-average-samples* 8
   "Number of samples that are to be collected for the moving average
   filter for fingertip pressure sensors.")
 (defvar *pressure-fingertip-l-l-data* nil)
@@ -124,8 +124,8 @@
     (loop for i from 0 below (length (first data))
           collect (loop for data-seq in data
                         for value = (elt data-seq i)
-                        minimizing value into min
-                        finally (return min)))))
+                        summing (* (exp (- i)) value) into exp-sum
+                        finally (return (/ exp-sum (length data)))))))
 
 (defun filter-fingertip-pressure (data data-zero-point)
   ;; NOTE(winkler): The `filtering' here takes place by taking the
