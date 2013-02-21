@@ -64,8 +64,17 @@
                            #'pressure-fingertip-r-callback)))
 
 (defun zero-fingertip-pressure (side)
-     (setf *pressure-fingertip-l-l-zero* (pressure-fingertip side :left))
-     (setf *pressure-fingertip-l-r-zero* (pressure-fingertip side :right)))
+  (case side
+    (:left
+     (setf *pressure-fingertip-l-l-zero*
+           (fingertip-pressure *pressure-fingertip-l-l-data*))
+     (setf *pressure-fingertip-l-r-zero*
+           (fingertip-pressure *pressure-fingertip-l-r-data*)))
+    (:right
+     (setf *pressure-fingertip-r-l-zero*
+           (fingertip-pressure *pressure-fingertip-r-l-data*))
+     (setf *pressure-fingertip-r-r-zero*
+           (fingertip-pressure *pressure-fingertip-r-r-data*)))))
 
 (defun pressure-fingertip-l-callback (msg)
   (setf *pressure-fingertip-l-result* msg)
@@ -110,23 +119,21 @@
               (filter-fingertip-pressure *pressure-fingertip-r-r-data*
                                          *pressure-fingertip-r-r-zero*))))))
 
+(defun fingertip-pressure (data)
+  (when data
+    (loop for i from 0 below (length (first data))
+          collect (loop for data-seq in data
+                        for value = (elt data-seq i)
+                        minimizing value into min
+                        finally (return min)))))
+
 (defun filter-fingertip-pressure (data data-zero-point)
   ;; NOTE(winkler): The `filtering' here takes place by taking the
   ;; minimum value of each I2C sensor array element over
   ;; `*pressure-fingertip-average-samples*'. The zero-ing function
   ;; must be called from time to time when nothing is grasped to make
   ;; sure that the zero-point is unaffected by time drift.
-  (let* ((data-zero-point (or data-zero-point
-                              (make-list (length data)
-                                         :initial-element 0)))
-         (data-zero-offsetted
-           (map 'list (lambda (data-seq)
-                        (map 'list (lambda (value value-zero)
-                                     (max (- value value-zero) 0))
-                             data-seq data-zero-point))
-                data)))
-    (loop for i from 0 below (length data-zero-point)
-          collect (loop for data-seq in data-zero-offsetted
-                        for value = (nth i data-seq)
-                        minimizing value into min
-                        finally (return min)))))
+  (let ((pressure (fingertip-pressure data)))
+    (map 'list (lambda (value zero-point)
+                 (max (- value zero-point) 0))
+         pressure data-zero-point)))
