@@ -76,86 +76,86 @@
      (setf *pressure-fingertip-r-r-zero*
            (fingertip-pressure *pressure-fingertip-r-r-data*)))))
 
-(defun pressure-fingertip-l-callback (msg)
-  (setf *pressure-fingertip-l-result* msg)
-  (roslisp:with-fields (l_finger_tip r_finger_tip) msg
-    (setf *pressure-fingertip-l-l-data*
-          (append *pressure-fingertip-l-l-data* `(,l_finger_tip)))
-    (setf *pressure-fingertip-l-r-data*
-          (append *pressure-fingertip-l-r-data* `(,r_finger_tip)))
-    (when (> (length *pressure-fingertip-l-l-data*)
-             *pressure-fingertip-average-samples*)
-      (pop *pressure-fingertip-l-l-data*)
-      (pop *pressure-fingertip-l-r-data*))
-    (cpl:pulse *pressure-fingertip-l-fluent*)))
+	(defun pressure-fingertip-l-callback (msg)
+	  (setf *pressure-fingertip-l-result* msg)
+	  (roslisp:with-fields (l_finger_tip r_finger_tip) msg
+	    (setf *pressure-fingertip-l-l-data*
+		  (append *pressure-fingertip-l-l-data* `(,l_finger_tip)))
+	    (setf *pressure-fingertip-l-r-data*
+		  (append *pressure-fingertip-l-r-data* `(,r_finger_tip)))
+	    (when (> (length *pressure-fingertip-l-l-data*)
+		     *pressure-fingertip-average-samples*)
+	      (pop *pressure-fingertip-l-l-data*)
+	      (pop *pressure-fingertip-l-r-data*))
+	    (cpl:pulse *pressure-fingertip-l-fluent*)))
 
-(defun pressure-fingertip-r-callback (msg)
-  (setf *pressure-fingertip-r-result* msg)
-  (roslisp:with-fields (l_finger_tip r_finger_tip) msg
-    (setf *pressure-fingertip-r-l-data*
-          (append *pressure-fingertip-r-l-data* `(,l_finger_tip)))
-    (setf *pressure-fingertip-r-r-data*
-          (append *pressure-fingertip-r-r-data* `(,r_finger_tip)))
-    (when (> (length *pressure-fingertip-r-l-data*)
-             *pressure-fingertip-average-samples*)
-      (pop *pressure-fingertip-r-l-data*)
-      (pop *pressure-fingertip-r-r-data*))
-    (cpl:pulse *pressure-fingertip-r-fluent*)))
+	(defun pressure-fingertip-r-callback (msg)
+	  (setf *pressure-fingertip-r-result* msg)
+	  (roslisp:with-fields (l_finger_tip r_finger_tip) msg
+	    (setf *pressure-fingertip-r-l-data*
+		  (append *pressure-fingertip-r-l-data* `(,l_finger_tip)))
+	    (setf *pressure-fingertip-r-r-data*
+		  (append *pressure-fingertip-r-r-data* `(,r_finger_tip)))
+	    (when (> (length *pressure-fingertip-r-l-data*)
+		     *pressure-fingertip-average-samples*)
+	      (pop *pressure-fingertip-r-l-data*)
+	      (pop *pressure-fingertip-r-r-data*))
+	    (cpl:pulse *pressure-fingertip-r-fluent*)))
 
-(defun pressure-fingertip (side finger)
-  (case side
-    (:left (case finger
-             (:left *pressure-fingertip-l-result*
-              (filter-fingertip-pressure *pressure-fingertip-l-l-data*
-                                         *pressure-fingertip-l-l-zero*))
-             (:right
-              (filter-fingertip-pressure *pressure-fingertip-l-r-data*
-                                         *pressure-fingertip-l-r-zero*))))
-    (:right (case finger
-             (:left *pressure-fingertip-l-result*
-              (filter-fingertip-pressure *pressure-fingertip-r-l-data*
-                                         *pressure-fingertip-r-l-zero*))
-             (:right
-              (filter-fingertip-pressure *pressure-fingertip-r-r-data*
-                                         *pressure-fingertip-r-r-zero*))))))
+	(defun pressure-fingertip (side finger)
+	  (case side
+	    (:left (case finger
+		     (:left *pressure-fingertip-l-result*
+		      (filter-fingertip-pressure *pressure-fingertip-l-l-data*
+						 *pressure-fingertip-l-l-zero*))
+		     (:right
+		      (filter-fingertip-pressure *pressure-fingertip-l-r-data*
+						 *pressure-fingertip-l-r-zero*))))
+	    (:right (case finger
+		     (:left *pressure-fingertip-l-result*
+		      (filter-fingertip-pressure *pressure-fingertip-r-l-data*
+						 *pressure-fingertip-r-l-zero*))
+		     (:right
+		      (filter-fingertip-pressure *pressure-fingertip-r-r-data*
+						 *pressure-fingertip-r-r-zero*))))))
 
-(defun fingertip-pressure (data)
-  (when data
-    (loop for i from 0 below (length (first data))
-          collect (loop for data-seq in data
-                        for value = (elt data-seq i)
-                        for exp-weight = (exp (- i))
-                        summing (* exp-weight value) into exp-sum
-                        summing exp-weight into weight
-                        finally (return (/ exp-sum weight))))))
+	(defun fingertip-pressure (data)
+	  (when data
+	    (loop for i from 0 below (length (first data))
+		  collect (loop for data-seq in data
+				for value = (elt data-seq i)
+				for exp-weight = (exp (- i))
+				summing (* exp-weight value) into exp-sum
+				summing exp-weight into weight
+				finally (return (/ exp-sum weight))))))
 
-(defun filter-fingertip-pressure (data data-zero-point)
-  ;; NOTE(winkler): The `filtering' here takes place by weighting the
-  ;; individual elements of the pressure history exponentially. This
-  ;; way, `flickering' is reduced. To make this real-time capable, the
-  ;; value of samples `*pressure-fingertip-average-samples*' must not
-  ;; be too high, i.e. 8 is a good measure. The zero-ing function must
-  ;; be called from time to time when nothing is grasped to make sure
-  ;; that the zero-point is unaffected by time drift.
-  (let ((pressure (fingertip-pressure data)))
-    (map 'list (lambda (value zero-point)
-                 (max (- value zero-point) 0))
-         pressure data-zero-point)))
+	(defun filter-fingertip-pressure (data data-zero-point)
+	  ;; NOTE(winkler): The `filtering' here takes place by weighting the
+	  ;; individual elements of the pressure history exponentially. This
+	  ;; way, `flickering' is reduced. To make this real-time capable, the
+	  ;; value of samples `*pressure-fingertip-average-samples*' must not
+	  ;; be too high, i.e. 8 is a good measure. The zero-ing function must
+	  ;; be called from time to time when nothing is grasped to make sure
+	  ;; that the zero-point is unaffected by time drift.
+	  (let ((pressure (fingertip-pressure data)))
+	    (map 'list (lambda (value zero-point)
+			 (max (- value zero-point) 0))
+		 pressure data-zero-point)))
 
-(defun fingertip-palm-side-average-pressure (side &optional finger)
-  (cond (finger
-         (let ((pressure (pressure-fingertip side finger)))
-           (loop for i from 6 below (length pressure)
-                 for value = (elt pressure i)
-                 summing value into sum
-                 finally (return (/ sum (- (length pressure) 6))))))
-        (t (/ (+ (fingertip-palm-side-average-pressure side :left)
-                 (fingertip-palm-side-average-pressure side :right))
-              2))))
+	(defun fingertip-palm-side-average-pressure (side &optional finger)
+	  (cond (finger
+		 (let ((pressure (pressure-fingertip side finger)))
+		   (loop for i from 6 below (length pressure)
+			 for value = (elt pressure i)
+			 summing value into sum
+			 finally (return (/ sum (- (length pressure) 6))))))
+		(t (/ (+ (fingertip-palm-side-average-pressure side :left)
+			 (fingertip-palm-side-average-pressure side :right))
+		      2))))
 
-(defun fingertip-top-side-average-pressure (side finger)
-  (let ((pressure (pressure-fingertip side finger)))
-    (loop for i from 2 to 3
-          for value = (elt pressure i)
-          summing value into sum
-          finally (return (/ sum 2)))))
+	(defun fingertip-top-side-average-pressure (side finger)
+	  (let ((pressure (pressure-fingertip side finger)))
+	    (loop for i from 2 to 3
+		  for value = (elt pressure i)
+		  summing value into sum
+		  finally (return (/ sum 2)))))
