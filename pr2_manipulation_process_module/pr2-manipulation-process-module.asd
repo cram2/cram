@@ -61,13 +61,14 @@
             :components
             ((:file "package")
              (:file "utils" :depends-on ("package"))
-             (:file "handled-objects" :depends-on ("package" "utils"))
+             (:file "grasping" :depends-on ("package" "utils"))
+             (:file "sensors" :depends-on ("package" "utils"))
              (:file "motion-library" :depends-on ("package"))
              (:file "controller-manager" :depends-on ("package"))
              (:file "kinematics" :depends-on ("package"))
              (:file "collision-environment" :depends-on ("package"))
              (:file "process-module"
-              :depends-on ("package" "kinematics" "collision-environment" "controller-manager" "motion-library" "handled-objects"))
+              :depends-on ("package" "kinematics" "collision-environment" "controller-manager" "motion-library" "grasping" "sensors"))
              (:file "events" :depends-on ("package" "collision-environment"))
              (:file "designator" :depends-on ("package" "process-module"))
              (:file "action-handlers" :depends-on ("package" "process-module"))))))
