@@ -139,3 +139,21 @@
     (map 'list (lambda (value zero-point)
                  (max (- value zero-point) 0))
          pressure data-zero-point)))
+
+(defun fingertip-palm-side-average-pressure (side &optional finger)
+  (cond (finger
+         (let ((pressure (pressure-fingertip side finger)))
+           (loop for i from 6 below (length pressure)
+                 for value = (elt pressure i)
+                 summing value into sum
+                 finally (return (/ sum (- (length pressure) 6))))))
+        (t (/ (+ (fingertip-palm-side-average-pressure side :left)
+                 (fingertip-palm-side-average-pressure side :right))
+              2))))
+
+(defun fingertip-top-side-average-pressure (side finger)
+  (let ((pressure (pressure-fingertip side finger)))
+    (loop for i from 2 to 3
+          for value = (elt pressure i)
+          summing value into sum
+          finally (return (/ sum 2)))))
