@@ -42,6 +42,9 @@ pregrasp.")
 coordinate system (including it's origin and rotation) when going into
 grasp.")
 
+;; These are for testing purposes at the moment. Handles must be
+;; rotated, but the "normal" graspable objects are to be grasped using
+;; their natural pose (plus a bit of a distance offset).
 (defparameter *pregrasp-offset*
   (tf:make-pose
    (tf:make-3d-vector
@@ -50,7 +53,7 @@ grasp.")
 (defparameter *grasp-offset*
   (tf:make-pose
    (tf:make-3d-vector
-    -0.1 0.0 0.0)
+    -0.15 0.0 0.0)
    (tf:make-identity-rotation)))
 
 (defun relative-pose-for-handle (obj handle &key relative-pose)
@@ -132,37 +135,6 @@ applied."
       (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))
     assignments))
 
-(defun cost-function-grasp-handle-ik-constraint-aware (assignment)
-  "This function determines the overall cost of the assignment
-`assignment' with respect to the generated ik solutions (constraint
-aware) and the cartesian distance between all points of this ik
-solution. Physically speaking, this measures the distances the
-individual arms have to travel when executing this grasp
-configuration."
-  ;; NOTE(winkler): The calculation of distances here is not flawless
-  ;; actually. When determining the total distance, the pregrasp-pose
-  ;; and the grasp-pose distance from the *current* pose is taken into
-  ;; account. In reality, we only need the pregrasp->grasp distance in
-  ;; the second step. This is a heuristic that works for now but could
-  ;; be more sophisticated.
-  (loop for (arm . handle) in (mapcar #'cons
-                                      (first assignment)
-                                      (second assignment))
-        for handle-pose = (reference (desig-prop-value handle 'at))
-        for distance-pregrasp = (cdr (assoc arm
-                                            (arms-handle-distances
-                                             (list arm) handle-pose
-                                             :arms-offset-pose
-                                             *pregrasp-offset-pose*)))
-        for distance-grasp = (cdr (assoc arm (arms-handle-distances
-                                              (list arm) handle-pose
-                                              :arms-offset-pose
-                                              *grasp-offset-pose*)))
-        when (not (and distance-pregrasp distance-grasp))
-          do (return-from cost-function-grasp-handle-ik-constraint-aware nil)
-        summing (+ distance-pregrasp distance-grasp) into total-cost
-        finally (return total-cost)))
-
 (defun arms-handle-distances (arms handle-pose &key
                                            constraint-aware
                                            (arms-offset-pose
@@ -224,7 +196,50 @@ could reach the handle, `NIL' is returned."
       (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))
     assignments))
 
+(defun cost-function-grasp-handle-ik-constraint-aware (assignment)
+  "This function determines the overall cost of the assignment
+`assignment' with respect to the generated ik solutions (constraint
+aware) and the cartesian distance between all points of this ik
+solution. Physically speaking, this measures the distances the
+individual arms have to travel when executing this grasp
+configuration."
+  (let ((assignment-poses
+          (mapcar (lambda (handle)
+                    (reference (desig-prop-value handle 'at)))
+                  (second assignment))))
+    (cost-function-grasp-ik-constraint-aware
+     (list (first assignment) assignment-poses))))
+  ;; (loop for (arm . handle) in (mapcar #'cons
+  ;;                                     (first assignment)
+  ;;                                     (second assignment))
+  ;;       for handle-pose = (reference (desig-prop-value handle 'at))
+  ;;       for distance-pregrasp = (cdr (assoc arm
+  ;;                                           (arms-handle-distances
+  ;;                                            (list arm) handle-pose
+  ;;                                            :arms-offset-pose
+  ;;                                            *pregrasp-offset-pose*)))
+  ;;       for distance-grasp = (cdr (assoc arm (arms-handle-distances
+  ;;                                             (list arm) handle-pose
+  ;;                                             :arms-offset-pose
+  ;;                                             *grasp-offset-pose*)))
+  ;;       when (not (and distance-pregrasp distance-grasp))
+  ;;         do (return-from cost-function-grasp-handle-ik-constraint-aware nil)
+  ;;       summing (+ distance-pregrasp distance-grasp) into total-cost
+  ;;       finally (return total-cost)))
+
 (defun cost-function-grasp-ik-constraint-aware (assignment)
+  "This function determines the overall cost of the assignment
+`assignment' with respect to the generated ik solutions (constraint
+aware) and the cartesian distance between all points of this ik
+solution. Physically speaking, this measures the distances the
+individual arms have to travel when executing this grasp
+configuration."
+  ;; NOTE(winkler): The calculation of distances here is not flawless
+  ;; actually. When determining the total distance, the pregrasp-pose
+  ;; and the grasp-pose distance from the *current* pose is taken into
+  ;; account. In reality, we only need the pregrasp->grasp distance in
+  ;; the second step. This is a heuristic that works for now but could
+  ;; be more sophisticated.
   (let ((costme (loop for (arm . pose) in (mapcar #'cons
                                     (first assignment)
                                     (second assignment))
@@ -270,37 +285,41 @@ could reach the handle, `NIL' is returned."
                                           :euclidean-target-link target-link)
           when distance
             collect (cons arm distance))))
-      (format t "IK solution cost: ~a~%" costme)
+      (roslisp:ros-info (pr2-manipulation-process-module grasping)
+                        "IK solution cost: ~a~%" costme)
       costme)))
 
 (defun pose-pointing-away-from-base (object-pose)
-  (tf:wait-for-transform *tf* :source-frame "/base_link" :target-frame "/map"
-                         :time (roslisp:ros-time))
-  (tf:wait-for-transform
-   *tf*
-   :source-frame (tf:frame-id object-pose)
-   :target-frame "/map"
-   :time (roslisp:ros-time))
-  (let* ((base-transform-map (tf:lookup-transform
-                              *tf*
-                              :time 0.0
-                              :source-frame "/base_link"
-                              :target-frame "/map"))
-         (base-pose-map (tf:make-pose-stamped
-                         (tf:frame-id base-transform-map)
-                         (tf:stamp base-transform-map)
-                         (tf:translation base-transform-map)
-                         (tf:rotation base-transform-map)))
-         (object-pose-map (tf:transform-pose
-                           *tf*
-                           :pose object-pose
-                           :target-frame "/map"))
-         (origin1 (tf:origin base-pose-map))
-         (origin2 (tf:origin object-pose-map))
-         (p1 (tf:make-3d-vector (tf:x origin1) (tf:y origin1) 0.0))
-         (p2 (tf:make-3d-vector (tf:x origin2) (tf:y origin2) 0.0))
-         (angle (* (signum (- (tf:y p2) (tf:y p1)))
-                   (acos (/ (- (tf:x p2) (tf:x p1)) (tf:v-dist p1 p2))))))
-    (tf:make-pose-stamped "/map" 0.0
-                          (tf:origin object-pose-map)
-                          (tf:euler->quaternion :az angle))))
+  (let ((ref-frame "/base_link")
+        (fin-frame "/map"))
+    (tf:wait-for-transform *tf* :source-frame ref-frame
+                                :target-frame fin-frame
+                                :time (roslisp:ros-time))
+    (tf:wait-for-transform
+     *tf*
+     :source-frame (tf:frame-id object-pose)
+     :target-frame fin-frame
+     :time (roslisp:ros-time))
+    (let* ((base-transform-map (tf:lookup-transform
+                                *tf*
+                                :time 0.0
+                                :source-frame ref-frame
+                                :target-frame fin-frame))
+           (base-pose-map (tf:make-pose-stamped
+                           (tf:frame-id base-transform-map)
+                           (tf:stamp base-transform-map)
+                           (tf:translation base-transform-map)
+                           (tf:rotation base-transform-map)))
+           (object-pose-map (tf:transform-pose
+                             *tf*
+                             :pose object-pose
+                             :target-frame fin-frame))
+           (origin1 (tf:origin base-pose-map))
+           (origin2 (tf:origin object-pose-map))
+           (p1 (tf:make-3d-vector (tf:x origin1) (tf:y origin1) 0.0))
+           (p2 (tf:make-3d-vector (tf:x origin2) (tf:y origin2) 0.0))
+           (angle (* (signum (- (tf:y p2) (tf:y p1)))
+                     (acos (/ (- (tf:x p2) (tf:x p1)) (tf:v-dist p1 p2))))))
+      (tf:make-pose-stamped fin-frame 0.0
+                            (tf:origin object-pose-map)
+                            (tf:euler->quaternion :az angle)))))

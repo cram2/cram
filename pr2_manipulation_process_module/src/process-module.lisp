@@ -84,6 +84,8 @@
                            "/joint_states" "sensor_msgs/JointState"
                            (lambda (msg)
                              (setf *joint-state* msg))))
+  ;; Initialize fingertip sensor handling
+  (initialize-fingertip-sensors)
   ;; Initialize the planning scene to make get_ik and friends work.
   (when (roslisp:wait-for-service "/environment_server/set_planning_scene_diff" 0.2)
     (roslisp:call-service
@@ -275,7 +277,8 @@ by `planners' until one succeeds."
            (make-instance 'object-detached
              :object ?carried-object
              :link ?gripper-link
-             :side side)))))))
+             :side side))))))
+  (zero-fingertip-pressure side))
 
 (defclass manipulated-perceived-object (desig:object-designator-data) ())
 
