@@ -59,3 +59,12 @@
   (actionlib:call-goal
    *itasc-action-parser*
    action-goal))
+
+(defun init-itasc-parser (robot-name)
+  (declare (type string robot-name))
+  (when (roslisp:wait-for-service
+         *itasc-init-service* 0.2)
+    (roslisp:call-service
+     *itasc-init-service*
+     :robot (make-itasc-robot-msg
+             (find-itasc-robot robot-name)))))

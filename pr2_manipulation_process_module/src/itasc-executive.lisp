@@ -142,14 +142,6 @@
                                          :value 0.0))
                   :priority 1)))
 
-(defun init-itasc-parser ()
-  (when (roslisp:wait-for-service
-         *itasc-init-service* 0.2)
-    (roslisp:call-service
-     *itasc-init-service*
-     :robot (make-itasc-robot-msg
-             (find-itasc-robot "Rubens")))))
-
 (defun make-cylindrical-coordinate-system ()
   (make-chain-joint-list
    :joint-names (list "phi" "radius" "height")
