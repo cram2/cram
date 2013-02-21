@@ -80,7 +80,8 @@
                      (cond (task
                             (make-itasc-task-msg task))
                            (t (cpl-impl:fail 'manipulation-failed
-                                             :format-control "Could not find task in database.")))))
+                                             :format-control "Could not find task in database: ~a."
+                                             :format-arguments (list task-name))))))
                  task-names-list))))
 
 (defun make-itasc-task-msg (task)
