@@ -36,41 +36,37 @@
 (defun fill-itasc-object-database ()
   (clear-itasc-object-list)
   (add-itasc-object
-   :object-name "cupboard1"
-   :object-type "cupboard"
-   :frames (list "drawer-handle" "base_link"))
+   :object-name "cupboard"
+   :object-type "iTasc::FixedObject"
+   :frames (list "cupboard_base" "upper_drawer"))
   (add-itasc-object
-   :object-name "cupboard-top1"
-   :object-type "cupboard-top"
-   :frames (list "cupboard-top1"))
-  (add-itasc-object
-   :object-name "drawer1"
-   :object-type "drawer"
-   :frames (list "drawer1")))
-
+   :object-name "upper_drawer"
+   :object-type "iTaSC::FixedObject"
+   :frames (list "upper_drawer" "drawer_handle")))
+  
 (defun fill-robot-database ()
   (clear-itasc-robot-list)
   (add-itasc-robot
    :robot-name "Rubens"
-   :robot-type "pr2Robot"
+   :robot-type "iTaSC::pr2Robot"
    :kinematic-chains
    (list (make-robot-kinematic-chain
           :chain-name "left arm"
           :robot-joint-weights
           (make-robot-joint-weight-standard-list
-           :joint-names (list "joint0" "joint1" "joint2")))
+           :joint-names (list "l_shoulder_pan_joint" "l_shoulder_lift_joint" "l_upper_arm_roll_joint" "l_elbow_flex_joint" "l_forearm_roll_joint" "l_wrist_flex_joint" "l_wrist_roll_joint")))
          (make-robot-kinematic-chain
           :chain-name "right arm"
           :robot-joint-weights
           (make-robot-joint-weight-standard-list
-           :joint-names (list "joint4" "joint5" "joint6")))
+           :joint-names (list "r_shoulder_pan_joint" "r_shoulder_lift_joint" "r_upper_arm_roll_joint" "r_elbow_flex_joint" "r_forearm_roll_joint" "r_wrist_flex_joint" "r_wrist_roll_joint")))
          (make-robot-kinematic-chain
           :chain-name "torso"
           :robot-joint-weights
           (make-robot-joint-weight-list
-           :joint-names (list "torso-joint")
+           :joint-names (list "torso_lift_joint")
            :weights (list 0.0))))
-   :frames (list "base_link" "left_gripper" "right_gripper"))
+   :frames (list "base_link" "base_footprint" "l_gripper_tool_frame" "r_gripper_tool_frame"))
   (add-itasc-robot
    :robot-name "James"
    :robot-type "pr2Robot")
@@ -87,8 +83,8 @@
                                        (make-cylindrical-coordinate-system)
                                        (make-rpy-representation))
                         :object1 (make-object-frame
-                                  :object-name "cupboard-top1"
-                                  :frame-name "cupboard-top1")
+                                  :object-name "cupboard"
+                                  :frame-name "cupboard_base")
                         :object2 (make-object-frame
                                   :object-name "Rubens"
                                   :frame-name "base_link"))
@@ -99,6 +95,47 @@
                                          :referred-joint "radius"
                                          :operator :greater_operator
                                          :value 0.5))
+                  :priority 1))
+  (add-itasc-task
+   (make-instance 'itasc-task
+                  :name "right gripper into bunny pose"
+                  :output-type :feature_constraints
+                  :vkc (make-vkc
+                        :chain-joints (append
+                                       (make-cartesian-coordinate-system)
+                                       (make-rpy-representation))
+                        :object1 (make-object-frame
+                                  :object-name "Rubens"
+                                  :frame-name "base_link")
+                        :object2 (make-object-frame
+                                  :object-name "Rubens"
+                                  :frame-name "r_gripper_tool_frame"))
+                  :joint-constraints nil
+                  :feature-constraints (list
+                                        (make-constraint
+                                         :constraint-name "go to the front"
+                                         :referred-joint "x"
+                                         :value 0.45)
+                                        (make-constraint
+                                         :constraint-name "go left"
+                                         :referred-joint "y"
+                                         :value -0.04)
+                                        (make-constraint
+                                         :constraint-name "go up"
+                                         :referred-joint "z"
+                                         :value 1.0)
+                                        (make-constraint
+                                         :constraint-name "roll"
+                                         :referred-joint "roll"
+                                         :value 0.0)
+                                        (make-constraint
+                                         :constraint-name "pitch"
+                                         :referred-joint "pitch"
+                                         :value 0.0)
+                                        (make-constraint
+                                         :constraint-name "yaw"
+                                         :referred-joint "yaw"
+                                         :value 0.0))
                   :priority 1))
   (add-itasc-task
    (make-instance 'itasc-task
@@ -113,21 +150,21 @@
                                   :frame-name "base_link")
                         :object2 (make-object-frame
                                   :object-name "Rubens"
-                                  :frame-name "left_gripper"))
+                                  :frame-name "l_gripper_tool_frame"))
                   :joint-constraints nil
                   :feature-constraints (list
                                         (make-constraint
                                          :constraint-name "go to the front"
                                          :referred-joint "x"
-                                         :value 0.5)
+                                         :value 0.45)
                                         (make-constraint
                                          :constraint-name "go left"
                                          :referred-joint "y"
-                                         :value 0.2)
+                                         :value 0.04)
                                         (make-constraint
                                          :constraint-name "go up"
                                          :referred-joint "z"
-                                         :value 1.2)
+                                         :value 1.0)
                                         (make-constraint
                                          :constraint-name "roll"
                                          :referred-joint "roll"
@@ -162,7 +199,7 @@
   (let ((bunny-action (create-itasc-action
                        :tasks (assemble-tasks-msg-vector
                                (list
-                                "robot base avoid cupboard"
+                                "right gripper into bunny pose"
                                 "left gripper into bunny pose"))
                        :robot-joint-weights (make-robot-joint-weights-msg-vector
                                              (assemble-robot-joint-weights
@@ -171,5 +208,5 @@
                                                                  "left arm"
                                                                  "right arm")))
                        :objects (assemble-itasc-object-msg-vector 
-                                 (list "cupboard-top1")))))
+                                 (list "cupboard" "upper_drawer")))))
     (perform-itasc-motion bunny-action)))
