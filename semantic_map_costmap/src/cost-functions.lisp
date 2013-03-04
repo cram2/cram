@@ -295,7 +295,52 @@
       (make-instance 'map-costmap-generator
                      :generator-function #'generator))))
 
-(defun make-semantic-map-costmap (objects &key (invert nil) (padding 0.0))
+(defun make-semantic-visibility-costmap (objects pose &key invert)
+  (flet ((point-visible-on-ground (point pose-from objects)
+           (declare (ignore point pose-from objects))
+           ;; TODO(winkler): Check all spots on the ground to see if
+           ;; there is something visible seen from `pose-from'.
+           nil)
+         (point-visible-on-object (point pose-from object)
+           (declare (ignore point pose-from object))
+           ;; TODO(winkler): Check to see if there is a visible spot
+           ;; `directly above' `object'.
+           T))
+    (flet ((point-visible (point pose-from objects)
+             (or (point-visible-on-ground point pose-from objects)
+                 (loop for object in objects
+                       maximize (when (point-visible-on-object
+                                       point pose-from object) 1)
+                         into vis-on-obj
+                       finally (return (= vis-on-obj 1))))))
+      (flet ((invert-matrix (matrix)
+               (declare (type cma:double-matrix matrix))
+               (dotimes (row (cma:height matrix) matrix)
+                 (dotimes (column (cma:width matrix))
+                   (if (eql (aref matrix row column) 0.0d0)
+                       (setf (aref matrix row column) 1.0d0)
+                       (setf (aref matrix row column) 0.0d0)))))
+             (generator (costmap-metadata matrix)
+               (declare (type cma:double-matrix matrix))
+               (with-slots (origin-x origin-y width height resolution)
+                   costmap-metadata
+                 (loop for y from origin-y to width by resolution
+                       do (loop for x from origin-x to height by resolution
+                                for x-index = (map-coordinate->array-index
+                                               x resolution origin-x)
+                                for y-index = (map-coordinate->array-index
+                                               y resolution origin-y)
+                                do (when (point-visible (tf:make-3d-vector
+                                                         x y 0.0d0) pose objects)
+                                     (setf (aref matrix x-index y-index)
+                                           1.0d0)))))))
+        (make-instance
+         'map-costmap-generator
+         :generator-function (if invert
+                                 (alexandria:compose #'invert-matrix #'generator)
+                                 #'generator))))))
+
+(defun make-semantic-map-costmap (objects &key invert (padding 0.0))
   "Generates a semantic-map costmap for all `objects'. `objects' is a
 list of SEM-MAP-UTILS:SEMANTIC-MAP-GEOMs"
   (let ((costmap-generators (mapcar (lambda (object)
