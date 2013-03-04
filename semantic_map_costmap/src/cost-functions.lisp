@@ -123,7 +123,7 @@
                                                        pt->obj-transform pt)))
             1.0))))))
 
-(defun make-semantic-map-object-costmap-generator  (object &key (padding 0.0))
+(defun make-semantic-map-object-costmap-generator (object &key (padding 0.0))
   (declare (type sem-map-utils:semantic-map-geom object))
   (let* ((transform (cl-transforms:pose->transform (sem-map-utils:pose object)))
          (dimensions (cl-transforms:v+
@@ -143,18 +143,18 @@
                  ;; For performance reasons, we first check if the point is
                  ;; inside the object's bounding box in map and then check if it
                  ;; really is inside the object.
-                 (let ((min-index-x (1- (map-coordinate->array-index
-                                         (cl-transforms:x obj-min)
-                                         resolution origin-x)))
-                       (max-index-x (1+ (map-coordinate->array-index
+                 (let ((min-index-x (map-coordinate->array-index
+                                     (cl-transforms:x obj-min)
+                                     resolution origin-x))
+                       (max-index-x (map-coordinate->array-index
                                          (cl-transforms:x obj-max)
-                                         resolution origin-x)))
-                       (min-index-y (1- (map-coordinate->array-index
-                                         (cl-transforms:y obj-min)
-                                         resolution origin-y)))
-                       (max-index-y (1+ (map-coordinate->array-index
+                                         resolution origin-x))
+                       (min-index-y (map-coordinate->array-index
+                                     (cl-transforms:y obj-min)
+                                     resolution origin-y))
+                       (max-index-y (map-coordinate->array-index
                                          (cl-transforms:y obj-max)
-                                         resolution origin-y))))
+                                         resolution origin-y)))
                    (loop for y-index from min-index-y to max-index-y
                          for y from (- (cl-transforms:y obj-min) resolution)
                            by resolution do
@@ -170,6 +170,130 @@
                                          (setf (aref result y-index x-index) 1.0d0))))))
                result))
         #'generator-function))))
+
+(defun make-semantic-object-center-generator (object)
+  (declare (type sem-map-utils:semantic-map-geom object))
+  (let* ((padding 0.5)
+         (transform (cl-transforms:pose->transform (sem-map-utils:pose object)))
+         (dimensions (cl-transforms:v+
+                      (sem-map-utils:dimensions object)
+                      (cl-transforms:make-3d-vector padding padding padding)))
+         (obj-pose (sem-map-utils:pose object))
+         (pt->obj-transform (cl-transforms:transform-inv transform))
+         (z-value (cl-transforms:z (cl-transforms:translation transform))))
+    (destructuring-bind ((obj-min obj-max)
+                         (local-min local-max))
+        (list (2d-object-bb dimensions transform)
+              (2d-object-bb dimensions))
+      (flet ((generator-function (costmap-metadata result)
+               (with-slots (origin-x origin-y resolution) costmap-metadata
+                 (let ((min-index-x (map-coordinate->array-index
+                                         (cl-transforms:x obj-min)
+                                         resolution origin-x))
+                       (max-index-x (map-coordinate->array-index
+                                         (cl-transforms:x obj-max)
+                                         resolution origin-x))
+                       (min-index-y (map-coordinate->array-index
+                                         (cl-transforms:y obj-min)
+                                         resolution origin-y))
+                       (max-index-y (map-coordinate->array-index
+                                         (cl-transforms:y obj-max)
+                                         resolution origin-y)))
+                   (let* ((mean 0.7d0)
+                          (x-min (tf:x obj-min))
+                          (x-max (tf:x obj-max))
+                          (y-min (tf:y obj-min))
+                          (y-max (tf:y obj-max))
+                          (x-len (- x-max x-min))
+                          (y-len (- y-max y-min))
+                          (x-dominant (> x-len y-len))
+                          (poses
+                            (cond (x-dominant
+                                   (list
+                                    (tf:make-pose
+                                     (tf:make-3d-vector
+                                      (+ (tf:x (tf:origin obj-pose))
+                                         (/ y-len 2))
+                                      (+ (tf:y (tf:origin obj-pose))
+                                         (/ y-len 2))
+                                      0.0d0)
+                                     (tf:make-identity-rotation))))
+                                  (t (list
+                                      (tf:make-pose
+                                       (tf:make-3d-vector
+                                        (+ x-min
+                                           (/ x-len 2))
+                                        (+ y-min
+                                           (/ x-len 2))
+                                        0.0d0)
+                                       (tf:make-identity-rotation))
+                                      (tf:make-pose
+                                       (tf:make-3d-vector
+                                        (+ x-min
+                                           (/ x-len 2))
+                                        (- y-max
+                                           (/ x-len 2))
+                                        0.0d0)
+                                       (tf:make-identity-rotation))))))
+                          (meancovs (mapcar
+                                     (lambda (pose)
+                                       (location-costmap::2d-pose-covariance
+                                        (list pose) mean))
+                                     poses))
+                          (gaussians (mapcar (lambda (mean-cov)
+                                               (make-gauss-cost-function
+                                                (first mean-cov)
+                                                (second mean-cov)))
+                                             meancovs)))
+                     (loop for y-index from min-index-y to max-index-y
+                           for y from (- (cl-transforms:y obj-min) resolution)
+                             by resolution do
+                               (loop for x-index from min-index-x to max-index-x
+                                     for x from (- (cl-transforms:x
+                                                    obj-min) resolution)
+                                       by resolution do
+                                         (when (inside-aabb
+                                                local-min local-max
+                                                (cl-transforms:transform-point
+                                                 pt->obj-transform
+                                                 (cl-transforms:make-3d-vector
+                                                  x y z-value)))
+                                           (setf
+                                            (aref result
+                                                  y-index
+                                                  x-index)
+                                            (loop for gauss in gaussians
+                                                  maximizing
+                                                  (cond (x-dominant
+                                                         (cond ((or
+                                                                 (< x (+ x-min (/ y-len 2)))
+                                                                 (> x (- x-max (/ y-len 2))))
+                                                                (funcall gauss x y))
+                                                         (t (funcall gauss (+ x-min
+                                                                              (/ y-len 2))
+                                                                     y))))
+                                                        (t
+                                                         (cond ((or
+                                                                 (< y (+ y-min (/ x-len 2)))
+                                                                 (> y (- y-max (/ x-len 2))))
+                                                                (funcall gauss x y))
+                                                         (t (funcall gauss x
+                                                                     (+ y-min
+                                                                        (/ x-len 2)))))))))))))))
+               result))
+        #'generator-function))))
+
+(defun make-semantic-object-center-costmap (objects)
+  (let ((costmap-generators
+          (mapcar (lambda (object)
+                    (make-semantic-object-center-generator object))
+                  (cut:force-ll objects))))
+    (flet ((generator (costmap-metadata matrix)
+             (declare (type cma:double-matrix matrix))
+             (dolist (generator costmap-generators matrix)
+               (setf matrix (funcall generator costmap-metadata matrix)))))
+      (make-instance 'map-costmap-generator
+                     :generator-function #'generator))))
 
 (defun make-semantic-map-costmap (objects &key (invert nil) (padding 0.0))
   "Generates a semantic-map costmap for all `objects'. `objects' is a
