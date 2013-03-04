@@ -35,4 +35,4 @@
           #:designators-ros #:cram-roslisp-common
           #:desig #:semantic-map-cache)
   (:export #:desig-z-value #:supporting-z-value)
-  (:desig-properties #:on #:in #:name #:to #:see #:reach #:type))
+  (:desig-properties #:on #:in #:name #:to #:see #:reach #:type #:near #:center))

@@ -39,6 +39,9 @@
 (defmethod costmap-generator-name->score ((name (eql 'semantic-map-free-space)))
   11)
 
+(defmethod costmap-generator-name->score ((name (eql 'center-of-object)))
+  12)
+
 (def-fact-group semantic-map-costmap (desig-costmap
                                       desig-z-value)
 
@@ -58,7 +61,8 @@
     (semantic-map-desig-objects ?desig ?objects)
     (desig-prop ?desig (on ?_))
     (costmap ?cm)
-    (costmap-add-function semantic-map-objects (make-semantic-map-costmap ?objects)
+    (costmap-add-function semantic-map-objects
+                          (make-semantic-map-costmap ?objects)
                           ?cm)
     (costmap-add-cached-height-generator
      (make-semantic-map-height-function ?objects :on)
@@ -68,11 +72,20 @@
     (semantic-map-desig-objects ?desig ?objects)
     (desig-prop ?desig (in ?_))
     (costmap ?cm)
-    (costmap-add-function semantic-map-objects (make-semantic-map-costmap ?objects)
+    (costmap-add-function semantic-map-objects
+                          (make-semantic-map-costmap ?objects)
                           ?cm)
     (costmap-add-cached-height-generator
      (make-semantic-map-height-function ?objects :in)
-     ?cm))  
+     ?cm))
+  
+  (<- (desig-costmap ?desig ?cm)
+    (desig-prop ?desig (near center))
+    (costmap ?cm)
+    (semantic-map-desig-objects ?desig ?objects)
+    (costmap-add-function center-of-object
+                          (make-semantic-object-center-costmap ?objects)
+                          ?cm))
 
   (<- (desig-costmap ?desig ?cm)
     (or (desig-prop ?desig (to see))
