@@ -34,6 +34,8 @@
 (defvar *controller-state-subscriber* nil)
 (defvar *controller-state-active-fluent* nil)
 
+(defvar *tf-broadcaster* nil)
+
 (defun init-feature-constraints-controller ()
   (setf *left-feature-constraints-command-pub*
         (roslisp:advertise
@@ -50,12 +52,14 @@
         (roslisp:subscribe
          "/left_arm_feature_controller/constraint_state"
          "constraint_msgs/ConstraintState"
-         #'feature-constraints-controller-state-callback)))
+         #'feature-constraints-controller-state-callback))
+  (setf *tf-broadcaster*
+        (cl-tf:make-transform-broadcaster)))
 
 (register-ros-init-function init-feature-constraints-controller)
 
-(defmethod feature-constraints-controller-state-callback
-    ((msg (eql 'constraint_msgs-msg:ConstraintState)))
+(defun feature-constraints-controller-state-callback (msg)
+  ;(declare (type 'constraint_msgs-msg:<ConstraintState> msg))
   (roslisp:with-fields (weights) msg
     (let ((max-weight (loop for i from 0 below (length weights)
                             for weight = (elt weights i)
@@ -84,10 +88,37 @@
    *left-feature-constraints-command-pub*
    (cram-feature-constraints:feature-constraints->command-msg constraints)))
 
+(defun setup-feature-controllers (object-desigs)
+  (declare (ignore object-desigs))
+  ;setup tf-threads
+  ;setup tf-relays
+  ;switch controllers
+  ;return list of threads
+  )
+
+(defun start-velocity-resolved-controllers (side)
+  (declare (ignore side)))
+
+(defun shutdown-velocity-resolved-controllers (side)
+  (declare (ignore side)))
+
+(defun turn-down-feature-controllers (thread-list)
+  (declare (ignore thread-list)))
+
 (defun grasp-ketchup-bottle ()
-  ;; start up tf-relays -- a bit hacky because we circumvent time travel problems
-;  (set-up-tf-relays)
-  (let* ((ketchup-main-axis
+  (let* ((object-stamped-transform
+           (cl-tf:make-stamped-transform "/base_link"
+                                         "/ketchup_frame"
+                                         (roslisp:ros-time)
+                                         (cl-transforms:make-3d-vector 0.6 0.0 0.8)
+                                         (cl-transforms:make-identity-rotation)))
+         ;; start threads to broadcaster tool and object transforms
+         (tf-object-thread
+           (cl-tf:send-static-transform *tf-broadcaster*
+                                        object-stamped-transform
+                                        :interval 0.02))
+         ;; start up tf-relays
+         (ketchup-main-axis
            (make-instance
             'cram-feature-constraints:geometric-feature
             :name "main axis ketchup bottle"
@@ -105,6 +136,15 @@
             :feature-type 'cram-feature-constraints:plane
             :feature-position (cl-transforms:make-3d-vector 0.0 0.0 0.0)
             :feature-direction (cl-transforms:make-3d-vector 0.0 0.0 0.1)
+            :contact-direction (cl-transforms:make-3d-vector 0.1 0.0 0.0)))
+         (ketchup-left-right-plane
+           (make-instance
+            'cram-feature-constraints:geometric-feature
+            :name "left-right-plane"
+            :frame-id "/ketchup_frame"
+            :feature-type 'cram-feature-constraints:plane
+            :feature-position (cl-transforms:make-3d-vector 0.0 0.0 0.0)
+            :feature-direction (cl-transforms:make-3d-vector 0.0 0.1 0.0)
             :contact-direction (cl-transforms:make-3d-vector 0.1 0.0 0.0)))
          (gripper-plane
            (make-instance
@@ -163,17 +203,39 @@
          (gripper-distance-constraint
           (make-instance
             'cram-feature-constraints:feature-constraint
-            :name "gripper height constraint"
+            :name "gripper distance constraint"
             :feature-function "distance"
             :tool-feature gripper-plane
             :world-feature ketchup-plane
-            :lower-boundary 0.01
-            :upper-boundary 0.02
+            :lower-boundary 0.1
+            :upper-boundary 0.2
+            :weight 1.0
+            :maximum-velocity 0.1
+            :minimum-velocity -0.1))
+         (gripper-left-of-constraint
+          (make-instance
+            'cram-feature-constraints:feature-constraint
+            :name "gripper left constraint"
+            :feature-function "height"
+            :tool-feature gripper-plane
+            :world-feature ketchup-left-right-plane
+            :lower-boundary 0.02
+            :upper-boundary 2.00
             :weight 1.0
             :maximum-velocity 0.1
             :minimum-velocity -0.1)))
-         (list
-           gripper-vertical-constraint
-           gripper-pointing-at-ketchup
-           gripper-height-constraint
-           gripper-distance-constraint)))
+    (let ((constraint-list (list
+                            gripper-vertical-constraint
+                            gripper-pointing-at-ketchup
+                            gripper-height-constraint
+                            gripper-distance-constraint
+                            gripper-left-of-constraint)))
+      (set-up-tf-relays :object-frame "/ketchup_frame")
+      (send-constraints-config constraint-list)
+      (send-constraints-command constraint-list)
+      (switch-controller (list "l_arm_vel") (list "l_arm_controller"))
+      ;(wait-for-controller)
+      ;(switch-controller (list "l_arm_controller") (list "l_arm_vel"))
+      ;(shutdown-tf-relays)
+      ;(sb-thread:terminate-thread tf-object-thread)
+      tf-object-thread)))
