@@ -8,7 +8,7 @@
 
 
   <!-- START UP FEATURE CONTROLLERS WITH TOPIC REMAPS -->
-  <node name="left_arm_feature_controller" type="constraint_controller" pkg="feature_constraints_standalone">
+  <node name="left_arm_feature_controller" type="constraint_controller" pkg="feature_constraints_standalone" output="screen">
     <param name="~tool_frame" value="l_gripper_tool_frame"/>
     <param name="~base_frame" value="torso_lift_link"/>
     <param name="~joint_limit_avoidance" value="false"/>
@@ -22,13 +22,9 @@
   </node>
 
   <!-- START UP FEATURE VISUALIZATION -->
-  <node name="left_feature_viz" pkg="stuff" type="feature_viz.py" output="screen">
+  <!--node name="left_feature_viz" pkg="stuff" type="feature_viz.py" output="screen">
     <param name="~base_frame" value="/ketchup_frame"/>
     <remap from="constraint_config" to="/left_arm_feature_controller/constraint_config"/>
-  </node>
+  </node-->
 
-  <!-- TODO: SOMEHOW GET RID OF THIS -->
-  <!-- GET RELEVANT FRAMES INTO TF -->
-
-  
 </launch>
