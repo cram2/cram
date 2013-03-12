@@ -47,6 +47,7 @@
   (with-slots (object color) obj
     (let ((*collision-shape-color-overwrite* color)
           (*disable-texture-rendering* t))
+      (gl:color (first color) (second color) (third color))
       (draw context object))))
 
 (defmethod draw ((context gl-context) (drawables drawable-list))
@@ -98,22 +99,32 @@
                                               (make-instance 'camera
                                                 :pose camera-centered
                                                 :width width :height height))))
-                   (camera (make-instance 'camera :pose camera-pose :width width :height height))
-                   (object-buffer (car (render-to-framebuffer rendering-context object camera)))
+                   (camera (make-instance 'camera
+                                          :pose camera-pose
+                                          :width width :height height))
+                   (object-buffer (car (render-to-framebuffer
+                                        rendering-context object camera)))
                    (obj-ref-color nil)
                    (object-proxies (loop with objects = (objects reasoning-world)
                                          with step = (if objects
-                                                         (coerce (/ (length objects)) 'single-float)
+                                                         (coerce
+                                                          (/ (length objects))
+                                                          'single-float)
                                                          1)
                                          for obj in objects
                                          for i from step by step
-                                         for obj-proxy = (make-instance 'flat-color-object-proxy
-                                                           :object obj :color `(,i ,i ,i 1))
-                                         when (eq object obj) do (setf obj-ref-color i)
-                                           collecting obj-proxy))
-                   (scene-buffer (car (render-to-framebuffer rendering-context
-                                                             (make-drawable-list :drawables object-proxies)
-                                                             camera))))
+                                         for obj-proxy = (make-instance
+                                                          'flat-color-object-proxy
+                                                          :object obj
+                                                          :color `(,i ,i ,i 1))
+                                         when (eq object obj)
+                                           do (setf obj-ref-color i)
+                                         collecting obj-proxy))
+                   (scene-buffer (car (render-to-framebuffer
+                                       rendering-context
+                                       (make-drawable-list
+                                        :drawables object-proxies)
+                                       camera))))
               (declare (type (simple-array single-float *)
                              object-total-buffer
                              object-buffer scene-buffer))
@@ -126,26 +137,45 @@
                     with occluding-object-colors = nil
                     ;; threshold since colors are float values and not
                     ;; always exactly what they should be
-                    with object-color-threashold = (/ (* 2 (length (objects reasoning-world))))
+                    with object-color-threshold = (/ (* 2
+                                                        (length
+                                                         (objects
+                                                          reasoning-world))))
                     when (> (aref object-total-buffer i) 0.0)
                       do (incf object-total-pixels)
                     if (< (abs (- (aref scene-buffer i) obj-ref-color))
-                          object-color-threashold)
+                          object-color-threshold)
                       do (incf object-visible-pixels)
                     else do (when (and (> (aref scene-buffer i) 0)
                                        (> (aref object-buffer i) 0))
-                              (pushnew (aref scene-buffer i) occluding-object-colors))
+                              (pushnew (aref scene-buffer i)
+                                       occluding-object-colors))
                     finally (return (make-object-visibility
-                                     :percentage (cond ((> object-visible-pixels object-total-pixels) 1.0)
-                                                       ((> object-total-pixels 0) (coerce (/ object-visible-pixels
-                                                                                             object-total-pixels)
-                                                                                          'single-float))
+                                     :percentage (cond ((> object-visible-pixels
+                                                           object-total-pixels)
+                                                        1.0)
+                                                       ((> object-total-pixels
+                                                           0)
+                                                        (coerce
+                                                         (/ object-visible-pixels
+                                                            object-total-pixels)
+                                                         'single-float))
                                                        (t 0.0))
-                                     :occluding-objects (mapcar #'proxied-object
-                                                                (remove-if-not (lambda (o)
-                                                                                 (member (car (slot-value o 'color))
-                                                                                         occluding-object-colors))
-                                                                               object-proxies))))))))))))
+                                     :occluding-objects
+                                     (mapcar
+                                      #'proxied-object
+                                      (remove-if-not
+                                       (lambda (o)
+                                         (block block-check
+                                         (loop for col-occ in occluding-object-colors
+                                               with col-pr = (car (slot-value
+                                                                   o 'color))
+                                               when (< (abs (- col-occ
+                                                               col-pr))
+                                                       object-color-threshold)
+                                                 do (return-from block-check
+                                                      T))))
+                                       object-proxies))))))))))))
 
 (defun object-visible-p (world camera-pose object &optional(threshold 0.9))
   "Returns T if at least `threshold' of the object is visible"
