@@ -44,7 +44,9 @@
                (update-object-designator-location
                 current-event-object
                 (extend-designator-properties
-                 at `((pose ,(object-pose-in-frame object (event-link event))))))))
+                 at `((pose ,(object-pose-in-frame
+                              object
+                              (event-link event))))))))
             (t
              (attach-object robot object (event-link event) :loose nil)
              (update-object-designator-location
