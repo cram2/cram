@@ -41,5 +41,5 @@
 (def-fact-group perception-action-designator (action-desig)
 
   (<- (action-desig ?designator ?object)
-    (desig-prop ?desig (to perceive))
-    (desig-prop ?desig (obj ?object))))
+    (desig-prop ?designator (to perceive))
+    (desig-prop ?designator (obj ?object))))
