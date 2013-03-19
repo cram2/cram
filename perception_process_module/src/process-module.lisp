@@ -29,7 +29,8 @@
 
 (defvar *perception-role* nil)
 
-(defmacro def-object-search-function (function-name role (props desig perceived-object)
+(defmacro def-object-search-function (function-name role
+                                      (props desig perceived-object)
                                       &body body)
   (check-type function-name symbol)
   (check-type role symbol)
@@ -42,7 +43,8 @@
      (defun ,function-name (,desig ,perceived-object)
        ,@body)
 
-     (def-fact-group ,(intern (concatenate 'string (symbol-name function-name) "-FACTS"))
+     (def-fact-group
+         ,(intern (concatenate 'string (symbol-name function-name) "-FACTS"))
          (object-search-function object-search-function-order)
        
        (<- (object-search-function ?desig ,role ?fun)
@@ -56,20 +58,22 @@
 
 (defun execute-object-search-functions (desig &key perceived-object (role *perception-role*))
   "Executes the matching search functions that fit the properties of
-   `desig' until one succeeds. `role' specifies the role under which
-   the search function should be found. If `role' is set to NIL, all
-   matching search functins are used. The order in which the search
-   functions are executed is determined by the number of designator
-   properties that are matched. Functions that are more specific,
-   i.e. match more pros are executed first. `perceived-object' is an
-   optional instance that previously matched the object."
+`desig' until one succeeds. `role' specifies the role under which the
+search function should be found. If `role' is set to NIL, all matching
+search functins are used. The order in which the search functions are
+executed is determined by the number of designator properties that are
+matched. Functions that are more specific, i.e. match more pros are
+executed first. `perceived-object' is an optional instance that
+previously matched the object."
   (let ((obj-search-functions (force-ll
                                (lazy-mapcar
                                 (lambda (bdg)
                                   (with-vars-bound (?role ?fun ?order) bdg
                                     (list ?fun ?role ?order)))
-                                (prolog `(and (object-search-function ,desig ?role ?fun)
-                                              (object-search-function-order ?fun ?order))
+                                (prolog `(and (object-search-function
+                                               ,desig ?role ?fun)
+                                              (object-search-function-order
+                                               ?fun ?order))
                                         (when role
                                           (add-bdg '?role role nil)))))))
     (some (lambda (fun) (funcall (first fun) desig perceived-object))
@@ -81,31 +85,33 @@
          :data-object obj))
 
 (defun emit-perception-event (designator)
-  (cram-plan-knowledge:on-event (make-instance 'cram-plan-knowledge:object-perceived-event
-                                  :perception-source :perception-process-module
-                                  :object-designator designator))
+  (cram-plan-knowledge:on-event (make-instance
+                                 'cram-plan-knowledge:object-perceived-event
+                                 :perception-source :perception-process-module
+                                 :object-designator designator))
   designator)
 
 (defun find-with-parent-desig (desig)
   "Takes the perceived-object of the parent designator as a bias for
-   perception."
+perception."
   (let* ((parent-desig (current-desig desig))
          (perceived-object (reference (newest-effective-designator parent-desig))))
     (or
      (when perceived-object
-       
        (let ((perceived-objects
-               (execute-object-search-functions parent-desig :perceived-object perceived-object)))
+               (execute-object-search-functions
+                parent-desig :perceived-object perceived-object)))
          (when perceived-objects
            (car (mapcar (lambda (perceived-object)
                           (emit-perception-event
-                           (perceived-object->designator parent-desig perceived-object)))
+                           (perceived-object->designator
+                            parent-desig perceived-object)))
                         perceived-objects)))))
      (find-with-new-desig desig))))
 
 (defun find-with-new-desig (desig)
   "Takes a parent-less designator. A search is performed a new
-   designator is generated for every object that has been found."
+designator is generated for every object that has been found."
   (let ((perceived-objects (execute-object-search-functions desig)))
     ;; Sort perceived objects according to probability
     (mapcar (lambda (perceived-object)
@@ -113,9 +119,9 @@
                (perceived-object->designator desig perceived-object)))
             perceived-objects)))
 
-(defparameter *known-roles* '(semantic-map handle-detector popcorn-detector)
+(defparameter *known-roles* '(semantic-map handle-detector popcorn-detector naive-perception)
   "Ordered list of known roles for designator resolution. They are
-  processed in the order specified in this list")
+processed in the order specified in this list")
 
 (def-process-module perception (input)
   (assert (typep input 'action-designator))
@@ -126,14 +132,13 @@
              (some (lambda (role)
                      (let ((*perception-role* role))
                        (if newest-effective
-                           ;; Designator that has alrady been equated to
-                           ;; one with bound to a perceived-object
+                           ;; Designator that has already been equated
+                           ;; to one with bound to a perceived-object
                            (find-with-parent-desig newest-effective)
                            (find-with-new-desig object-designator))))
                    *known-roles*)))
       (unless result
         (fail 'object-not-found :object-desig object-designator))
-      (ros-info (perception process-module) "Found objects: ~a" result)
       result)))
 
 (defun make-handled-object-designator (&key object-type
@@ -162,7 +167,9 @@ purposes."
             `(handle
               ,(make-designator
                 'object
-                `((at ,(make-designator 'location `((pose ,(first handle-desc)))))
+                `((at ,(make-designator
+                        'location
+                        `((pose ,(first handle-desc)))))
                   (radius ,(second handle-desc))
                   (type handle)))))
           handles))
