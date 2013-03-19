@@ -30,30 +30,33 @@
 (in-package :cram-feature-constraints)
 
 (defun hold-left-arm-before-chest ()
-  (let* ((chest-plane (make-instance
-                       'geometric-feature
-                       :name "plane in front of chest"
-                       :frame-id "/torso_lift_link"
-                       :feature-type 'plane
-                       :feature-position (cl-transforms:make-3d-vector 0.2 0.0 0.0)
-                       :feature-direction (cl-transforms:make-3d-vector 1.0 0.0 0.0)
-                       :contact-direction (cl-transforms:make-3d-vector 0.0 1.0 0.0)))
-         (belly-plane (make-instance
-                       'geometric-feature
-                       :name "plane through belly"
-                       :frame-id "/torso_lift_link"
-                       :feature-type 'plane
-                       :feature-position (cl-transforms:make-3d-vector 0.2 0.0 -0.1)
-                       :feature-direction (cl-transforms:make-3d-vector 0.0 0.0 1.0)
-                       :contact-direction (cl-transforms:make-3d-vector 1.0 0.0 0.0)))
-         (center-chest-plane (make-instance
-                       'geometric-feature
-                       :name "plane through center of chest"
-                       :frame-id "/torso_lift_link"
-                       :feature-type 'plane
-                       :feature-position (cl-transforms:make-3d-vector 0.2 0.0 0.0)
-                       :feature-direction (cl-transforms:make-3d-vector 0.0 1.0 0.0)
-                       :contact-direction (cl-transforms:make-3d-vector 1.0 0.0 0.0)))
+  (let* ((chest-plane
+           (make-instance
+            'geometric-feature
+            :name "plane in front of chest"
+            :frame-id "/torso_lift_link"
+            :feature-type 'plane
+            :feature-position (cl-transforms:make-3d-vector 0.2 0.0 0.0)
+            :feature-direction (cl-transforms:make-3d-vector 1.0 0.0 0.0)
+            :contact-direction (cl-transforms:make-3d-vector 0.0 1.0 0.0)))
+         (belly-plane
+           (make-instance
+            'geometric-feature
+            :name "plane through belly"
+            :frame-id "/torso_lift_link"
+            :feature-type 'plane
+            :feature-position (cl-transforms:make-3d-vector 0.2 0.0 -0.1)
+            :feature-direction (cl-transforms:make-3d-vector 0.0 0.0 1.0)
+            :contact-direction (cl-transforms:make-3d-vector 1.0 0.0 0.0)))
+         (center-chest-plane
+           (make-instance
+            'geometric-feature
+            :name "plane through center of chest"
+            :frame-id "/torso_lift_link"
+            :feature-type 'plane
+            :feature-position (cl-transforms:make-3d-vector 0.2 0.0 0.0)
+            :feature-direction (cl-transforms:make-3d-vector 0.0 1.0 0.0)
+            :contact-direction (cl-transforms:make-3d-vector 1.0 0.0 0.0)))
          (left-gripper-plane 
            (make-instance
             'geometric-feature
