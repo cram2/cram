@@ -48,13 +48,13 @@ grasp.")
 (defparameter *pregrasp-offset*
   (tf:make-pose
    (tf:make-3d-vector
-    -0.25 0.0 0.0)
-   (tf:make-identity-rotation)))
+    -0.35 0.0 0.0)
+   (tf:euler->quaternion :ax (/ pi 2))))
 (defparameter *grasp-offset*
   (tf:make-pose
    (tf:make-3d-vector
     -0.15 0.0 0.0)
-   (tf:make-identity-rotation)))
+   (tf:euler->quaternion :ax (/ pi 2))))
 
 (defun relative-pose-for-handle (obj handle &key relative-pose)
   (tf:wait-for-transform *tf*
@@ -267,24 +267,35 @@ configuration."
            (cl-transforms:transform-pose
             (cl-transforms:pose->transform pose)
             offset-pose)))
-    (let ((costme (loop for arm in arms
-          for target-link = (ecase arm
-                              (:left "l_wrist_roll_link")
-                              (:right "r_wrist_roll_link"))
-          for pose-offsetted = (apply-pose-offset
-                                pose
-                                arms-offset-pose)
-          for pose-stamped = (tf:make-pose-stamped
-                              "/map"
-                              0.0
-                              (tf:origin pose-offsetted)
-                              (tf:orientation pose-offsetted))
-          for distance = (reaching-length pose-stamped arm
-                                          :constraint-aware constraint-aware
-                                          :calc-euclidean-distance t
-                                          :euclidean-target-link target-link)
-          when distance
-            collect (cons arm distance))))
+    (let ((costme
+            (loop for arm in arms
+                  for target-link = (ecase arm
+                                      (:left "l_wrist_roll_link")
+                                      (:right "r_wrist_roll_link"))
+                  for pose-offsetted = (apply-pose-offset
+                                        pose
+                                        arms-offset-pose)
+                  for pose-stamped = (tf:make-pose-stamped
+                                      "/map"
+                                      0.0
+                                      (tf:origin pose-offsetted)
+                                      (tf:orientation pose-offsetted))
+                  for pose-stamped-tll = (tf:transform-pose
+                                          *tf*
+                                          :pose pose-stamped
+                                          :target-frame "/torso_lift_link")
+                  for publ = (roslisp:publish
+                              (roslisp:advertise
+                               "/testpublisher2"
+                               "geometry_msgs/PoseStamped")
+                              (tf:pose-stamped->msg pose-stamped-tll))
+                  for distance = (reaching-length
+                                  pose-stamped-tll arm
+                                  :constraint-aware constraint-aware
+                                  :calc-euclidean-distance t
+                                  :euclidean-target-link target-link)
+                  when distance
+                    collect (cons arm distance))))
       (roslisp:ros-info (pr2-manipulation-process-module grasping)
                         "IK solution cost: ~a~%" costme)
       costme)))
