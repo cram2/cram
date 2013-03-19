@@ -59,7 +59,6 @@
                      (when obj-loc-desig
                        (setf obj-loc-desig (next-solution obj-loc-desig))
                        (when obj-loc-desig
-                         (format t "trying at new location: ~a~%" (reference obj-loc-desig))
                          (retry))))))
               (achieve `(looking-at ,obj-loc-desig))
               (perform perceive-action)
@@ -69,10 +68,16 @@
   "Tries to find the object described by ?obj-desig and equates the
 resulting designator with `?obj-desig'. If several objects match, the
 first one is bound."
-  (let ((new-desig (car (perceive-object 'all ?obj-desig))))
-    (unless (desig-equal ?obj-desig new-desig)
-      (equate ?obj-desig new-desig))
-    new-desig))
+  ;; NOTE(winkler): This is a dirty hack. Sometimes, the perceived
+  ;; objects don't come out as a list. We're forcing it here for
+  ;; now. Have to check where this error originates from since they
+  ;; should always be a list after perceive-object 'all.
+  (let ((perceived-objects
+          (alexandria:flatten (list (perceive-object 'all ?obj-desig)))))
+    (let ((new-desig (car perceived-objects)))
+      (unless (desig-equal ?obj-desig new-desig)
+        (equate ?obj-desig new-desig))
+      new-desig)))
 
 (def-goal (perceive-object the ?obj-desig)
   "Tries to find _the_ object described by ?obj-desig and equates
@@ -87,7 +92,8 @@ found."
     (car new-desigs)))
 
 (def-goal (perceive-object currently-visible ?obj-desig)
-  (with-designators ((perceive-action (action `((to perceive) (obj ,?obj-desig)))))
+  (with-designators ((perceive-action (action `((to perceive)
+                                                (obj ,?obj-desig)))))
     (with-failure-handling ((object-not-found (f)
                               (declare (ignore f))
                               (return nil)))
