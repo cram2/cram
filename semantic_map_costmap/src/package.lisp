@@ -34,6 +34,7 @@
   (:use #:common-lisp #:crs #:location-costmap
         #:designators-ros #:cram-roslisp-common
         #:desig #:semantic-map-cache)
-  (:export #:desig-z-value #:supporting-z-value)
+  (:export #:desig-z-value #:supporting-z-value
+           semantic-map-objects)
   (:desig-properties #:on #:in #:name #:to #:see #:reach #:type
                      #:near #:center))

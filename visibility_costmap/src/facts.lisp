@@ -30,13 +30,16 @@
 (defmethod costmap-generator-name->score ((name (eql 'occlusion-distribution)))
   8)
 
+(defmethod costmap-generator-name->score ((name (eql 'visibility-distribution)))
+  9)
+
 (def-fact-group visibility-costmap (desig-costmap
                                     desig-z-value)
 
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (occluded-by ?obj-name))
     (costmap ?cm)
-    (semantic-map-objects ?objects)
+    (semantic-map-costmap:semantic-map-objects ?objects)
     (costmap-add-function occlusion-distribution
                           (make-semantic-visibility-costmap
                            ?objects
@@ -47,8 +50,8 @@
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (visible-for robot))
     (costmap ?cm)
-    (semantic-map-objects ?objects)
-    (costmap-add-function table-distribution
+    (semantic-map-costmap:semantic-map-objects ?objects)
+    (costmap-add-function visibility-distribution
                           (make-semantic-visibility-costmap
                            ?objects
                            :robot T)
@@ -57,8 +60,8 @@
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (invisible-for robot))
     (costmap ?cm)
-    (semantic-map-objects ?objects)
-    (costmap-add-function table-distribution
+    (semantic-map-costmap:semantic-map-objects ?objects)
+    (costmap-add-function visibility-distribution
                           (make-semantic-visibility-costmap
                            ?objects
                            :robot T
@@ -68,8 +71,8 @@
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (visible-from ?pose))
     (costmap ?cm)
-    (semantic-map-objects ?objects)
-    (costmap-add-function table-distribution
+    (semantic-map-costmap:semantic-map-objects ?objects)
+    (costmap-add-function visibility-distribution
                           (make-semantic-visibility-costmap
                            ?objects
                            :pose ?pose)
@@ -78,8 +81,8 @@
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (invisible-from ?pose))
     (costmap ?cm)
-    (semantic-map-objects ?objects)
-    (costmap-add-function table-distribution
+    (semantic-map-costmap:semantic-map-objects ?objects)
+    (costmap-add-function visibility-distribution
                           (make-semantic-visibility-costmap
                            ?objects
                            :pose ?pose
