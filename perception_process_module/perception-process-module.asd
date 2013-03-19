@@ -38,6 +38,7 @@
                process-modules
                cram-utilities
                cram-plan-knowledge
+               cram-manipulation-knowledge
                designators
                designators-ros
                cljlo
@@ -53,7 +54,8 @@
                cl-semantic-map-utils
                handle_detection-msg
                ias_perception_actions-msg
-               cram-projection)
+               cram-projection
+               bullet-reasoning)
   :components
   ((:module "src"
             :components
@@ -64,16 +66,20 @@
              (:file "action-designator" :depends-on ("package"))
              (:file "process-module"
                     :depends-on ("object-belief" "package"))
-             (:module "cop"
-                      :depends-on ("object-belief" "process-module" "package")
-                      :components
-                      ((:file "cop-designator")
-                       (:file "ros-connection" :depends-on ("cop-designator"))
-                       (:file "cop-search-handlers" :depends-on ("cop-designator"))))
+             ;; (:module "cop"
+             ;;          :depends-on ("object-belief" "process-module" "package")
+             ;;          :components
+             ;;          ((:file "cop-designator")
+             ;;           (:file "ros-connection" :depends-on ("cop-designator"))
+             ;;           (:file "cop-search-handlers" :depends-on ("cop-designator"))))
              (:module "handle-detector"
                       :depends-on ("object-belief" "process-module" "package")
                       :components
                       ((:file "handle-search-handler")))
+             (:module "naive-perception"
+                      :depends-on ("object-belief" "process-module" "package")
+                      :components
+                      ((:file "naive-perception-handler")))
              (:module "popcorn-detectors"
                       :depends-on ("object-belief" "process-module" "package")
                       :components
