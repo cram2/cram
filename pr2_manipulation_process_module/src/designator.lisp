@@ -186,16 +186,49 @@
     (> ?assignment-count 0))
 
   (<- (optimal-grasp ?object-desig ?available-arms ?grasp-assignments)
-    (current-designator ?object-desig ?current-object)
-    (desig-prop ?current-object (at ?loc))
-    (desig-prop ?loc (pose ?pose-prior))
-    (lisp-fun pose-pointing-away-from-base ?pose-prior ?pose)
+    (current-designator ?object-desig ?current-desig)
+    (desig-prop ?current-desig (at ?loc))
+    (desig-prop ?loc (pose ?pose))
     (lisp-fun optimal-arm-pose-assignment
               ?available-arms
               ?pose
               ?grasp-assignments)
     (length ?grasp-assignments ?assignment-count)
     (> ?assignment-count 0))
+  
+  (<- (grasped-object-handle ?obj ?handle)
+    (handles ?obj ?handles)
+    (member ?handles ?handle)
+    (object-in-hand ?handle))
+  
+  (<- (grasped-object-part ?obj ?part)
+    (or (grasped-object-handle ?obj ?part)
+        (equal ?obj ?part)))
+  
+  (<- (action-desig ?desig (pull ?current-obj ?arms
+                                 ?direction ?distance
+                                 ?obstacles))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to pull))
+    (desig-prop ?desig (obj ?obj))
+    (desig-prop ?desig (distance ?distance))
+    (desig-prop ?desig (direction ?direction))
+    (current-designator ?obj ?current-obj)
+    (grasped-object-part ?obj ?grasped)
+    (holding-arms ?current-obj ?arms)
+    (obstacles ?desig ?obstacles))
+
+  (<- (action-desig ?desig (push ?current-obj ?arms
+                                 ?direction ?distance
+                                 ?obstacles))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to push))
+    (desig-prop ?desig (obj ?obj))
+    (desig-prop ?desig (distance ?distance))
+    (desig-prop ?desig (direction ?direction))
+    (current-designator ?obj ?current-obj)
+    (holding-arms ?current-obj ?arms)
+    (obstacles ?desig ?obstacles))
 
   (<- (action-desig ?desig (put-down ?current-obj ?loc ?arms ?obstacles))
     (trajectory-desig? ?desig)
@@ -217,7 +250,9 @@
         (desig-prop ?designator (to park))
         (desig-prop ?designator (pose open))        
         (desig-prop ?designator (to lift))
-        (desig-prop ?designator (to carry))))
+        (desig-prop ?designator (to carry))
+        (desig-prop ?designator (to pull))
+        (desig-prop ?designator (to push))))
 
   (<- (available-process-module pr2-manipulation-process-module)
     (symbol-value cram-projection:*projection-environment* nil)))
