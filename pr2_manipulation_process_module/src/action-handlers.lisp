@@ -97,37 +97,64 @@
          (lift-grasped-object-with-both-arms distance))
         (t (error 'simple-error :format-control "No arms for lifting inferred."))))
 
+(def-action-handler pull (obj-desig arms direction distance obstacles)
+  (declare (ignore obj-desig obstacles))
+  (cpl:par-loop (arm (force-ll arms))
+    (let* ((rel-ik (relative-linear-translation->ik
+                    arm
+                    :x (* (tf:x direction) distance)
+                    :y (* (tf:y direction) distance)
+                    :z (* (tf:z direction) distance))))
+      (when rel-ik
+        (execute-arm-trajectory arm (ik->trajectory rel-ik))))))
+
+(def-action-handler push (obj-desig arms direction distance obstacles)
+  (declare (ignore obj-desig obstacles))
+  (cpl:par-loop (arm (force-ll arms))
+    (let* ((rel-ik (relative-linear-translation->ik
+                   arm
+                   :x (* (tf:x direction) distance)
+                   :y (* (tf:y direction) distance)
+                   :z (* (tf:z direction) distance))))
+      (when rel-ik
+        (execute-arm-trajectory arm (ik->trajectory rel-ik))))))
+
 (def-action-handler grasp (obj-desig grasp-assignments obstacles)
   (declare (ignore obstacles))
   (let ((pair-count (length grasp-assignments)))
     (assert (> pair-count 0) ()
             "No arm/pose pairs specified during grasping.")
     (cpl:par-loop (grasp-assignment grasp-assignments)
-      (let* ((pose (slot-value grasp-assignment 'pose))
-             (side (slot-value grasp-assignment 'side))
-             (pregrasp-pose (relative-grasp-pose
-                             pose *pregrasp-offset*))
-             (pregrasp-pose-tll
-               (tf:transform-pose *tf*
-                                  :pose pregrasp-pose
-                                  :target-frame "/torso_lift_link"))
-             (grasp-pose (relative-grasp-pose
-                          pose *grasp-offset*))
-             (grasp-pose-tll
-               (tf:transform-pose *tf*
-                                  :pose grasp-pose
-                                  :target-frame "/torso_lift_link"))
-             (grasp-solution
-               (first (get-ik;(get-constraint-aware-ik
-                       side grasp-pose-tll))))
-                       ;; :allowed-collision-objects (list obj-desig)))))
-        (unless grasp-solution
-          (cpl:fail 'manipulation-pose-unreachable))
-        (execute-grasp :pregrasp-pose pregrasp-pose-tll
-                       :grasp-solution grasp-solution
-                       :side side
-                       :gripper-open-pos 0.08
-                       :gripper-close-pos 0.02)))
+      (let ((pose (slot-value grasp-assignment 'pose)))
+        (tf:wait-for-transform
+         *tf*
+         :source-frame (tf:frame-id pose)
+         :target-frame "/torso_lift_link"
+         :time (roslisp:ros-time))
+        (let* ((side (slot-value grasp-assignment 'side))
+               (pregrasp-pose (relative-grasp-pose
+                               pose *pregrasp-offset*))
+               (pregrasp-pose-tll
+                 (tf:transform-pose *tf*
+                                    :pose pregrasp-pose
+                                    :target-frame "/torso_lift_link"))
+               (grasp-pose (relative-grasp-pose
+                            pose *grasp-offset*))
+               (grasp-pose-tll
+                 (tf:transform-pose *tf*
+                                    :pose grasp-pose
+                                    :target-frame "/torso_lift_link"))
+               (grasp-solution
+                 (first (get-ik;(get-constraint-aware-ik
+                         side grasp-pose-tll))))
+          ;; :allowed-collision-objects (list obj-desig)))))
+          (unless grasp-solution
+            (cpl:fail 'manipulation-pose-unreachable))
+          (execute-grasp :pregrasp-pose pregrasp-pose-tll
+                         :grasp-solution grasp-solution
+                         :side side
+                         :gripper-open-pos 0.1
+                         :gripper-close-pos 0.01))))
     (loop for grasp-assignment in grasp-assignments
           for side = (slot-value grasp-assignment 'side)
           do (with-vars-strictly-bound (?link-name)
