@@ -88,30 +88,11 @@
                           ?cm))
 
   (<- (desig-costmap ?desig ?cm)
-    (desig-prop ?desig (visible-from ?pose))
-    (costmap ?cm)
-    (semantic-map-desig-objects ?desig ?objects)
-    (costmap-add-function table-distribution
-                          (make-semantic-visibility-costmap ?objects
-                                                            ?pose)
-                          ?cm))
-
-  (<- (desig-costmap ?desig ?cm)
-    (desig-prop ?desig (invisible-from ?pose))
-    (costmap ?cm)
-    (semantic-map-desig-objects ?desig ?objects)
-    (costmap-add-function table-distribution
-                          (make-semantic-visibility-costmap ?objects
-                                                            ?pose
-                                                            :invert T)
-                          ?cm))
-
-  (<- (desig-costmap ?desig ?cm)
     (or (desig-prop ?desig (to see))
         (desig-prop ?desig (to reach)))
     (costmap ?cm)
     (semantic-map-objects ?objects)
-    (costmap-padding ?padding)    
+    (costmap-padding ?padding)
     (costmap-add-function semantic-map-free-space
                           (make-semantic-map-costmap
                            ?objects :invert t :padding ?padding)
