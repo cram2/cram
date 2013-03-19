@@ -97,6 +97,7 @@
            #:desig-location-prop
            #:equated-desigs
            #:desig
+           #:name
            #:trajectory-desig?)
   (:desig-properties #:obj #:location #:object #:pose #:of #:at
-                     #:type #:trajectory #:action))
+                     #:type #:trajectory #:action #:name))
