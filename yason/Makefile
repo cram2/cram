@@ -1,7 +1,7 @@
 
 all: installed
 
-checkedout: Makefile yason.patch
+checkedout: Makefile
 	make clean
 	git clone git://github.com/hanshuebner/yason.git
 	touch checkedout
