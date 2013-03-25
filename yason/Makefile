@@ -3,14 +3,13 @@ all: installed
 
 checkedout: Makefile yason.patch
 	make clean
-	svn co svn://bknr.net/svn/trunk/libraries/yason/
+	git clone git://github.com/hanshuebner/yason.git
 	touch checkedout
 
 installed: checkedout
 	mkdir -p asdf
 	touch rospack_nosubdirs
 	ln -s ../yason/yason.asd asdf/
-	cd yason && patch -p0 < ../yason.patch
 	touch installed
 
 clean:
