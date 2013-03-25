@@ -6,6 +6,9 @@ http://www.cliki.net/YASON
   <author>Hans Hübner</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
+
+  <depend package="trivial_gray_streams" />
+
 </package>
 
 
