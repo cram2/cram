@@ -11,7 +11,6 @@
   
   <depend package="roslisp"/>
   <depend package="bullet_reasoning"/>
-  <depend package="roslisp"/>
   <depend package="cram_language" />
   <depend package="cram_roslisp_common" />
   <depend package="designators_ros" />
