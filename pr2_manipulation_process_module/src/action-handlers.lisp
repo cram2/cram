@@ -46,7 +46,14 @@
   (roslisp:ros-info (pr2-manipulation-process-module) "Park arms ~a ~a"
                     obj arms)
   (force-ll arms)
-  (cond ((not arms)
+  (cond ((and (not arms) (not obj))
+         (cpl:par-loop (arm arms)
+           (let ((carry-pose (ecase arm
+                               (:right *carry-pose-right*)
+                               (:left *carry-pose-left*))))
+             (execute-arm-trajectory
+              arm (ik->trajectory (get-ik arm carry-pose))))))
+        ((and arms (not obj))
          (when obstacles
            (clear-collision-objects)
            (sem-map-coll-env:publish-semantic-map-collision-objects)
