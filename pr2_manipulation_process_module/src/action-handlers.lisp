@@ -48,11 +48,12 @@
   (force-ll arms)
   (cond ((and (not arms) (not obj))
          (cpl:par-loop (arm arms)
-           (let ((carry-pose (ecase arm
-                               (:right *carry-pose-right*)
-                               (:left *carry-pose-left*))))
-             (execute-arm-trajectory
-              arm (ik->trajectory (get-ik arm carry-pose))))))
+           (when arm
+             (let ((carry-pose (ecase arm
+                                 (:right *carry-pose-right*)
+                                 (:left *carry-pose-left*))))
+               (execute-arm-trajectory
+                arm (ik->trajectory (get-ik arm carry-pose)))))))
         ((and arms (not obj))
          (when obstacles
            (clear-collision-objects)
@@ -60,21 +61,22 @@
            (dolist (obstacle (cut:force-ll obstacles))
              (register-collision-object obstacle)))
          (cpl:par-loop (arm arms)
-           (let ((orientation (calculate-carry-orientation
-                               obj arm
-                               (list *top-grasp*
-                                     (cl-transforms:make-identity-rotation))))
-                 (carry-pose (ecase arm
-                               (:right *carry-pose-right*)
-                               (:left *carry-pose-left*))))
-             (if orientation
-                 (execute-move-arm-pose
-                  arm
-                  (tf:copy-pose-stamped carry-pose :orientation orientation)
-                  :allowed-collision-objects (list "\"all\""))
-                 (execute-move-arm-pose
-                  arm carry-pose
-                  :allowed-collision-objects (list "\"all\""))))))
+           (when arm
+             (let ((orientation (calculate-carry-orientation
+                                 obj arm
+                                 (list *top-grasp*
+                                       (cl-transforms:make-identity-rotation))))
+                   (carry-pose (ecase arm
+                                 (:right *carry-pose-right*)
+                                 (:left *carry-pose-left*))))
+               (if orientation
+                   (execute-move-arm-pose
+                    arm
+                    (tf:copy-pose-stamped carry-pose :orientation orientation)
+                    :allowed-collision-objects (list "\"all\""))
+                   (execute-move-arm-pose
+                    arm carry-pose
+                    :allowed-collision-objects (list "\"all\"")))))))
         ((eql (length arms) 1)
          (park-grasped-object-with-one-arm obj (first arms) obstacles))
         ((eql (length arms) 2)
