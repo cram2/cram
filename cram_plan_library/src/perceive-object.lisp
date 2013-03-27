@@ -88,7 +88,8 @@ found."
       (error 'ambiguous-perception
              :format-control "Found ~a objects that match ~a."
              :format-arguments (list (length new-desigs) (description ?obj-desig))))
-    (equate ?obj-desig (car new-desigs))
+    (unless (desig-equal ?obj-desig (car new-desigs))
+      (equate ?obj-desig (car new-desigs)))
     (car new-desigs)))
 
 (def-goal (perceive-object currently-visible ?obj-desig)
