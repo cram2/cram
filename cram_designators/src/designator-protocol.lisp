@@ -190,7 +190,7 @@ class (derived from class DESIGNATOR), e.g. OBJECT-DESIGNATOR."
       (first-desig (parent desig))))
 
 (defmethod current-desig ((desig designator))
-  "gets the last know successor in chain, being the most current"
+  "gets the last known successor in chain, being the most current"
   (if (null (successor desig))
       desig
       (current-desig (successor desig))))
