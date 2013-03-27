@@ -48,7 +48,7 @@ grasp.")
 (defparameter *pregrasp-offset*
   (tf:make-pose
    (tf:make-3d-vector
-    -0.35 0.0 0.0)
+    -0.25 0.0 0.0)
    (tf:euler->quaternion :ax (/ pi 2))))
 (defparameter *grasp-offset*
   (tf:make-pose
