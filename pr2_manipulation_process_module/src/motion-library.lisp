@@ -173,12 +173,8 @@ supporting plane"
              (unhand-solution (get-ik;constraint-aware-ik
                                side unhand-pose-stamped)))
         ;;:allowed-collision-objects (list "\"all\""))))
-        (format t "Put-down-pose: ~a~%" put-down-pose-tll) 
-        (format t "Unhand-pose-stamped: ~a~%" unhand-pose-stamped)
-        (format t "Put-down-solution: ~a~%" put-down-solution)
-        (format t "Unhand-solution: ~a~%" unhand-solution)
         (roslisp:publish
-         (roslisp:advertise "/testpublisher2" "geometry_msgs/PoseStamped")
+         (roslisp:advertise "/putdownpose" "geometry_msgs/PoseStamped")
          (tf:pose-stamped->msg put-down-pose))
         (when (or (not put-down-solution) (not unhand-solution))
           (cpl:fail 'manipulation-pose-unreachable))
