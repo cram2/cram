@@ -166,17 +166,20 @@
                          :gripper-close-pos 0.01))))
     (loop for grasp-assignment in grasp-assignments
           for side = (slot-value grasp-assignment 'side)
-          do (with-vars-strictly-bound (?link-name)
-                 (lazy-car
-                  (prolog
-                   `(cram-manipulation-knowledge:end-effector-link
-                     ,side ?link-name)))
-               (plan-knowledge:on-event
-                (make-instance
-                    'plan-knowledge:object-attached
-                 :object obj-desig
-                 :link ?link-name
-                 :side side))))))
+          if (> (get-gripper-state side) 0.005)
+            do (with-vars-strictly-bound (?link-name)
+                   (lazy-car
+                    (prolog
+                     `(cram-manipulation-knowledge:end-effector-link
+                       ,side ?link-name)))
+                 (plan-knowledge:on-event
+                  (make-instance
+                     'plan-knowledge:object-attached
+                   :object obj-desig
+                   :link ?link-name
+                   :side side)))
+          else
+            do (cpl:fail 'cram-plan-failures:object-lost))))
 
 (def-action-handler put-down (object-designator location arms obstacles)
   "Delegates the type of the put down action which suppose to be executed
