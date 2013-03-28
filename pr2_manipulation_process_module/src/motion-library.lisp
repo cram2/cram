@@ -136,7 +136,7 @@ supporting plane"
                              :right distance))))
 
 (defun put-down-grasped-object-with-single-arm (obj location side obstacles)
-  (roslisp:ros-info (pr2-manipulation-process-module) "Putting down object single-handedly.") 
+  (roslisp:ros-info (pr2-manipulation-process-module) "Putting down object single-handedly.")
   (assert (holds `(object-in-hand ,obj ,side))() 
           "Object ~a needs to be in the gripper" obj)
   (clear-collision-objects)
@@ -156,26 +156,48 @@ supporting plane"
          (unhand-pose-stamped (tf:make-pose-stamped
                                (tf:frame-id put-down-pose) (tf:stamp put-down-pose)
                                (cl-transforms:origin unhand-pose)
-                               (cl-transforms:orientation unhand-pose)))
-         (put-down-solution (get-constraint-aware-ik side put-down-pose))
-         (unhand-solution (get-constraint-aware-ik
-                           side unhand-pose-stamped
-                           :allowed-collision-objects (list "\"all\""))))
-    (when (or (not put-down-solution) (not unhand-solution))
-      (cpl:fail 'manipulation-pose-unreachable))
-    (execute-move-arm-pose side pre-put-down-pose)
-    (execute-arm-trajectory side (ik->trajectory (lazy-car put-down-solution)))
-    (open-gripper side)
-    (plan-knowledge:on-event
-     (make-instance
-         'plan-knowledge:object-detached
-       :side side
-       :object obj
-       :link (ecase side
-               (:right "r_gripper_r_finger_tip_link")
-               (:left "l_gripper_r_finger_tip_link"))))
-    (execute-arm-trajectory
-     side (ik->trajectory (lazy-car unhand-solution)))))
+                               (cl-transforms:orientation unhand-pose))))
+    (let ((current-time (roslisp:ros-time)))
+      (tf:wait-for-transform *tf* :time current-time
+                             :source-frame (tf:frame-id put-down-pose)
+                             :target-frame "/torso_lift_link")
+      (let* ((put-down-pose-tll (tf:transform-pose
+                                 *tf*
+                                 :pose (tf:copy-pose-stamped
+                                        put-down-pose
+                                        :stamp current-time)
+                                 :target-frame "/torso_lift_link"))
+             (put-down-solution (get-ik side put-down-pose-tll
+                                        :seed-state (calc-seed-state-elbow-up
+                                                     side)))
+             (unhand-solution (get-ik;constraint-aware-ik
+                               side unhand-pose-stamped)))
+        ;;:allowed-collision-objects (list "\"all\""))))
+        (format t "Put-down-pose: ~a~%" put-down-pose-tll) 
+        (format t "Unhand-pose-stamped: ~a~%" unhand-pose-stamped)
+        (format t "Put-down-solution: ~a~%" put-down-solution)
+        (format t "Unhand-solution: ~a~%" unhand-solution)
+        (roslisp:publish
+         (roslisp:advertise "/testpublisher2" "geometry_msgs/PoseStamped")
+         (tf:pose-stamped->msg put-down-pose))
+        (when (or (not put-down-solution) (not unhand-solution))
+          (cpl:fail 'manipulation-pose-unreachable))
+        ;; (execute-move-arm-pose side pre-put-down-pose)
+        (let ((ik (first (get-ik side pre-put-down-pose))))
+          (cond (ik (execute-arm-trajectory side (ik->trajectory ik)))
+                (t (cpl:fail 'cram-plan-failures:manipulation-failed))))
+        (execute-arm-trajectory side (ik->trajectory (lazy-car put-down-solution)))
+        (open-gripper side)
+        (plan-knowledge:on-event
+         (make-instance
+          'plan-knowledge:object-detached
+          :side side
+          :object obj
+          :link (ecase side
+                  (:right "r_gripper_r_finger_tip_link")
+                  (:left "l_gripper_r_finger_tip_link"))))
+        (execute-arm-trajectory
+         side (ik->trajectory (lazy-car unhand-solution)))))))
 
 (defun put-down-grasped-object-with-both-arms (obj location)
   (roslisp:ros-info (pr2-manipulation-process-module) "Putting down the grasped object with both arms.")
