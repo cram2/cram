@@ -11,6 +11,7 @@
   <depend package="alexandria" />
   <depend package="cram_utilities" />
   <depend package="cram_reasoning" />
+  <depend package="cram_language" />
   <depend package="trivial_garbage" />
   <depend package="lisp_unit" />
 </package>

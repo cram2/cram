@@ -35,15 +35,20 @@
 (register-designator-class action action-designator)
 
 (defmethod reference ((desig action-designator) &optional (role *default-role*))
-  (with-slots (solutions) desig
-    (unless (slot-boundp desig 'solutions)
-      (setf solutions (resolve-designator desig role)))
-    (or (slot-value desig 'data)
-        (setf (slot-value desig 'data) (lazy-car solutions))
-        (error 'designator-error
-               :format-control "Cannot resolve action designator ~a."
-               :format-arguments (list desig)
-               :designator desig))))
+  (cpl:with-task-tree-node
+      (:path-part `(reference (designator action))
+       :name "RESOLVE-ACTION-DESIGNATOR"
+       :lambda-list (desig role)
+       :parameters (list desig role))
+    (with-slots (solutions) desig
+      (unless (slot-boundp desig 'solutions)
+        (setf solutions (resolve-designator desig role)))
+      (or (slot-value desig 'data)
+          (setf (slot-value desig 'data) (lazy-car solutions))
+          (error 'designator-error
+                 :format-control "Cannot resolve action designator ~a."
+                 :format-arguments (list desig)
+                 :designator desig)))))
 
 (defmethod resolve-designator ((desig action-designator) (role t))
   (lazy-mapcan (lambda (bdg)
