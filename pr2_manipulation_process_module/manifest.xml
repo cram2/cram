@@ -33,8 +33,6 @@
 
   <!-- dependencies needed for feature_controller -->
   <depend package="ias_mechanism_controllers" />
-  <depend package="realtime_tf_relay" />
-  <depend package="realtime_tf_relay_msgs" />
   <depend package="feature_constraints_standalone" />
   <depend package="constraint_msgs" />
   <depend package="cram_feature_constraints" />

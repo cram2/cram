@@ -2,11 +2,9 @@
   <!-- LOAD VELOCITY-RESOLVED ARM CONTROLLERS IN STOPPED STATE -->
   <include file="$(find ias_mechanism_controllers)/launch/pr2_multi_vel_load.launch"/>
 
-
-  <!-- START UP RELAY FOR TF FRAMES -->
-  <node name="tf_relay" type="realtime_tf_relay" pkg="realtime_tf_relay" output="screen"/>
-
-
+  <!-- LOAD FILTER PARAMETERS FOR CONSTRAINT VELOCITY ESTIMATION -->
+  <rosparam command="load" file="$(find feature_constraints_standalone)/launch/constraint_velocity_filter_chain_params.yaml"/>
+  
   <!-- START UP FEATURE CONTROLLERS WITH TOPIC REMAPS -->
   <node name="left_arm_feature_controller" type="constraint_controller" pkg="feature_constraints_standalone" output="screen">
     <param name="~tool_frame" value="l_gripper_tool_frame"/>

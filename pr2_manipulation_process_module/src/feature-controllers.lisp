@@ -230,7 +230,6 @@
                             gripper-height-constraint
                             gripper-distance-constraint
                             gripper-left-of-constraint)))
-      (set-up-tf-relays :object-frame "/ketchup_frame")
       (send-constraints-config constraint-list)
       (send-constraints-command constraint-list)
       (switch-controller (list "l_arm_vel") (list "l_arm_controller"))
