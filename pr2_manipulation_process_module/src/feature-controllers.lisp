@@ -44,7 +44,8 @@
   (setf *left-feature-constraints-config-pub*
         (roslisp:advertise
          "/left_arm_feature_controller/constraint_config"
-         "constraint_msgs/ConstraintConfig"))
+         "constraint_msgs/ConstraintConfig"
+         :latch t))
   (setf *controller-state-active-fluent*
         (cram-language:make-fluent :name :feature-controller-state-fluent
                                    :allow-tracing nil))
@@ -88,14 +89,6 @@
    *left-feature-constraints-command-pub*
    (cram-feature-constraints:feature-constraints->command-msg constraints)))
 
-(defun setup-feature-controllers (object-desigs)
-  (declare (ignore object-desigs))
-  ;setup tf-threads
-  ;setup tf-relays
-  ;switch controllers
-  ;return list of threads
-  )
-
 (defun start-velocity-resolved-controllers (side)
   (declare (ignore side)))
 
@@ -117,7 +110,7 @@
            (cl-tf:send-static-transform *tf-broadcaster*
                                         object-stamped-transform
                                         :interval 0.02))
-         ;; start up tf-relays
+         ;; model the features on the objects
          (ketchup-main-axis
            (make-instance
             'cram-feature-constraints:geometric-feature
@@ -164,6 +157,7 @@
             :feature-position (cl-transforms:make-3d-vector 0.0 0.0 0.0)
             :feature-direction (cl-transforms:make-3d-vector 0.1 0.0 0.0)
             :contact-direction (cl-transforms:make-3d-vector 0.0 0.1 0.0)))
+         ; now model the constraints
          (gripper-vertical-constraint
            (make-instance
             'cram-feature-constraints:feature-constraint
@@ -172,10 +166,10 @@
             :tool-feature gripper-plane
             :world-feature ketchup-main-axis
             :lower-boundary 0.95
-            :upper-boundary 1.0
+            :upper-boundary 1.5
             :weight 1.0
-            :maximum-velocity 0.1
-            :minimum-velocity -0.1))
+            :maximum-velocity 0.2
+            :minimum-velocity -0.2))
          (gripper-pointing-at-ketchup
            (make-instance
             'cram-feature-constraints:feature-constraint
@@ -183,11 +177,11 @@
             :feature-function "pointing_at"
             :tool-feature gripper-main-axis
             :world-feature ketchup-plane
-            :lower-boundary -0.1
-            :upper-boundary 0.1
+            :lower-boundary -0.05
+            :upper-boundary 0.05
             :weight 1.0
-            :maximum-velocity 0.1
-            :minimum-velocity -0.1))
+            :maximum-velocity 0.2
+            :minimum-velocity -0.2))
          (gripper-height-constraint
            (make-instance
             'cram-feature-constraints:feature-constraint
@@ -231,10 +225,9 @@
                             gripper-distance-constraint
                             gripper-left-of-constraint)))
       (send-constraints-config constraint-list)
+      (sleep 0.5)
       (send-constraints-command constraint-list)
       (switch-controller (list "l_arm_vel") (list "l_arm_controller"))
-      ;(wait-for-controller)
-      ;(switch-controller (list "l_arm_controller") (list "l_arm_vel"))
-      ;(shutdown-tf-relays)
-      ;(sb-thread:terminate-thread tf-object-thread)
-      tf-object-thread)))
+      (wait-for-controller)
+      (switch-controller (list "l_arm_controller") (list "l_arm_vel"))
+      (sb-thread:terminate-thread tf-object-thread))))

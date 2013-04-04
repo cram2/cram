@@ -6,17 +6,13 @@
   <rosparam command="load" file="$(find feature_constraints_standalone)/launch/constraint_velocity_filter_chain_params.yaml"/>
   
   <!-- START UP FEATURE CONTROLLERS WITH TOPIC REMAPS -->
-  <node name="left_arm_feature_controller" type="constraint_controller" pkg="feature_constraints_standalone" output="screen">
-    <param name="~tool_frame" value="l_gripper_tool_frame"/>
-    <param name="~base_frame" value="torso_lift_link"/>
-    <param name="~joint_limit_avoidance" value="false"/>
+  <node name="left_arm_feature_controller" launch-prefix="xterm -e gdb -args" type="constraint_controller" pkg="feature_constraints_standalone" output="screen">
+    <param name="~tool_frame" value="l_gripper_tool_frame"/> <!-- refactor into 'arm_tool_frame' -->
+    <param name="~robot_base_frame" value="base_link"/>
+    <param name="~map_frame" value="base_link"/>
+    <param name="~base_frame" value="torso_lift_link"/> <!-- refactor into 'arm_base_frame' -->
+    <param name="~joint_limit_avoidance" value="true"/>
     <remap from="~qdot" to="/l_arm_vel/command"/>
-<!--
-    <remap from="/left_arm_feature_controller/tool_offset" to="l_tool_pose"/>
-    <remap from="/left_arm_feature_controller/object_offset" to="object_pose"/>
-    <remap from="/left_arm_feature_controller/arm_offset" to="arm_base_pose"/>
-    <remap from="/left_arm_feature_controller/base_pose" to="robot_base_pose"/>
--->
   </node>
 
   <!-- START UP FEATURE VISUALIZATION -->
