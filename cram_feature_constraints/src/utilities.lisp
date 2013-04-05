@@ -29,6 +29,8 @@
 (in-package :cram-feature-constraints)
 
 (defun make-point-feature (name frame-id position)
+  (declare (type string name frame-id)
+           (type cl-transforms:3d-vector position))
   (make-instance
    'geometric-feature
    :name name
@@ -37,6 +39,8 @@
    :feature-position position))
 
 (defun make-line-feature (name frame-id position direction)
+  (declare (type string name frame-id)
+           (type cl-transforms:3d-vector position direction))
   (make-instance
    'geometric-feature
    :name name
@@ -46,6 +50,8 @@
    :feature-direction direction))
 
 (defun make-plane-feature (name frame-id position normal)
+  (declare (type string name frame-id)
+           (type cl-transforms:3d-vector position normal))
   (make-instance
    'geometric-feature
    :name name
