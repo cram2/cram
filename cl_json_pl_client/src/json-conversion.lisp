@@ -159,7 +159,7 @@
 (defun prolog->json (exp &key (prologify t))
   "Converts a lisp-prolog expression into its json representation."
   (let ((strm (make-string-output-stream)))
-    (json:encode (gethash "term" (jsonify-exp exp :prologify prologify)) strm)
+    (yason:encode (gethash "term" (jsonify-exp exp :prologify prologify)) strm)
     (get-output-stream-string strm)))
 
 (defun json->prolog (exp &key (lispify nil) (package *package*))
