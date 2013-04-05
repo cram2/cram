@@ -33,9 +33,12 @@
   ((name :reader name :initarg :name)
    (frame-id :reader frame-id :initarg :frame-id)
    (feature-type :reader feature-type :initarg :feature-type)
-   (feature-position :reader feature-position :initarg :feature-position)
-   (feature-direction :reader feature-direction :initarg :feature-direction)
-   (contact-direction :reader contact-direction :initarg :contact-direction)))
+   (feature-position :reader feature-position :initarg :feature-position
+                     :initform (cl-transforms:make-identity-vector))
+   (feature-direction :reader feature-direction :initarg :feature-direction
+                      :initform (cl-transforms:make-identity-vector))
+   (contact-direction :reader contact-direction :initarg :contact-direction
+                      :initform (cl-transforms:make-identity-vector))))
 
 (defclass feature-constraint ()
   ((name :reader name :initarg :name)
@@ -44,6 +47,6 @@
    (world-feature :reader world-feature :initarg :world-feature)
    (lower-boundary :reader lower-boundary :initarg :lower-boundary)
    (upper-boundary :reader upper-boundary :initarg :upper-boundary)
-   (weight :reader weight :initarg :weight)
+   (weight :reader weight :initarg :weight :initform 1.0)
    (maximum-velocity :reader maximum-velocity :initarg :maximum-velocity)
    (minimum-velocity :reader minimum-velocity :initarg :minimum-velocity)))
