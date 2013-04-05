@@ -35,4 +35,6 @@
   (:export point line plane
            feature-constraints->config-msg
            feature-constraints->command-msg
-           hold-left-arm-before-chest))
+           hold-left-arm-before-chest
+           feature-constraint
+           geometric-feature))
