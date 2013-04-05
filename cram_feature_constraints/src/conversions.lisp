@@ -50,8 +50,6 @@
                       (contact-direction feature))))
 
 (defun feature-constraint->single-config-msg (constraint)
-  ;; TODO(Georg): refactor this with a better naming and working low-level 
-  ;;   to get rid off unintuitive naming
   (declare (type feature-constraint constraint))
   (roslisp:make-msg
    "constraint_msgs/constraint"
