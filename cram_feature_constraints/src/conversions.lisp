@@ -92,18 +92,6 @@
      min_vel (map 'vector #'identity
                   min_vels))))
 
-(defun feature-constraint->single-command-msg (constraint)
-  ;; TODO(Georg): refactor this with a better naming and working low-level
-  ;;   to get rid of unintuitive naming
-  (declare (type feature-constraint constraint))
-  (roslisp:make-msg
-   "constraint_msgs/singleconstraintcommand"
-   pos_lo (lower-boundary constraint)
-   pos_hi (upper-boundary constraint)
-   weight (weight constraint)
-   max_vel (maximum-velocity constraint)
-   min_vel (minimum-velocity constraint)))
-
 (defun 3d-vector->vector3-msg (point)
   (declare (type cl-transforms:3d-vector point))
   (roslisp:make-msg
