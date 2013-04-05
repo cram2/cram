@@ -1,4 +1,3 @@
-;;;
 ;;; Copyright (c) 2013, Georg Bartels <georg.bartels@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;; 
@@ -10,9 +9,10 @@
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
-;;;     * Neither the name of Willow Garage, Inc. nor the names of its
-;;;       contributors may be used to endorse or promote products derived from
-;;;       this software without specific prior written permission.
+;;;     * Neither the name of the Intelligent Autonomous Systems Group/
+;;;       Technische Universitaet Muenchen nor the names of its contributors 
+;;;       may be used to endorse or promote products derived from this software 
+;;;       without specific prior written permission.
 ;;; 
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -25,19 +25,31 @@
 ;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
-;;;
 
-(in-package :cl-user)
+(in-package :cram-feature-constraints)
 
-(desig-props:def-desig-package cram-feature-constraints
-  (:use #:roslisp
-        #:common-lisp)
-  (:export point line plane
-           feature-constraints->config-msg
-           feature-constraints->command-msg
-           hold-left-arm-before-chest
-           feature-constraint
-           geometric-feature
-           make-point-feature
-           make-line-feature
-           make-plane-feature))
+(defun make-point-feature (name frame-id position)
+  (make-instance
+   'geometric-feature
+   :name name
+   :frame-id frame-id
+   :feature-type 'point
+   :feature-position position))
+
+(defun make-line-feature (name frame-id position direction)
+  (make-instance
+   'geometric-feature
+   :name name
+   :frame-id frame-id
+   :feature-type 'line
+   :feature-position position
+   :feature-direction direction))
+
+(defun make-plane-feature (name frame-id position normal)
+  (make-instance
+   'geometric-feature
+   :name name
+   :frame-id frame-id
+   :feature-type 'plane
+   :feature-position position
+   :feature-direction normal))
