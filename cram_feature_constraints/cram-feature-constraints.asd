@@ -42,6 +42,7 @@
     :components
     ((:file "package")
      (:file "features" :depends-on ("package"))
+     (:file "utilities" :depends-on ("package" "features"))
      (:file "conversions" :depends-on ("package" "features"))
      (:file "cram-feature-constraints" :depends-on ("package"))
      (:file "cram-feature-constraints-tests" :depends-on ("package" "features" "conversions"))))))
