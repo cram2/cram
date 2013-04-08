@@ -212,18 +212,25 @@ by `planners' until one succeeds."
                                              "Move arm returned with ~a"
                                              val)
                            (when (eql val 1)
-                             (let ((goal-in-arm (tf:transform-pose
-                                                 *tf* :pose pose
-                                                 :target-frame (ecase side
-                                                                 (:left "l_wrist_roll_link")
-                                                                 (:right "r_wrist_roll_link")))))
-                               (when (or (> (cl-transforms:v-norm (cl-transforms:origin goal-in-arm))
-                                            0.015)
-                                         (> (cl-transforms:normalize-angle
-                                             (nth-value 1 (cl-transforms:quaternion->axis-angle
-                                                           (cl-transforms:orientation goal-in-arm))))
-                                            0.03))
-                                 (error 'manipulation-failed)))
+                             (let ((target-frame (ecase side
+                                                   (:left "l_wrist_roll_link")
+                                                   (:right "r_wrist_roll_link"))))
+                               (tf:wait-for-transform
+                                *tf* :time (tf:stamp pose)
+                                :source-frame (tf:frame-id pose)
+                                :target-frame target-frame)
+                               (let ((goal-in-arm
+                                       (tf:transform-pose
+                                        *tf* :pose pose
+                                             :target-frame target-frame)))
+                                 (when (or (> (cl-transforms:v-norm
+                                               (cl-transforms:origin goal-in-arm))
+                                              0.015)
+                                           (> (cl-transforms:normalize-angle
+                                               (nth-value 1 (cl-transforms:quaternion->axis-angle
+                                                             (cl-transforms:orientation goal-in-arm))))
+                                              0.03))
+                                   (error 'manipulation-failed))))
                              (return-from execute-move-arm-pose t))))
                        planners :initial-value nil)
            (-31 (error 'manipulation-pose-unreachable :result (list side pose)))
