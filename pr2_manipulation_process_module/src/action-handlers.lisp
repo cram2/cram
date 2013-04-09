@@ -160,7 +160,7 @@
           (unless grasp-solution
             (cpl:fail 'manipulation-pose-unreachable))
           (execute-grasp :pregrasp-pose pregrasp-pose-tll
-                         :grasp-solution grasp-solution
+                         :grasp-pose grasp-pose-tll
                          :side side
                          :gripper-open-pos 0.1
                          :gripper-close-pos 0.01))))
