@@ -38,6 +38,13 @@
            hold-left-arm-before-chest
            feature-constraint
            geometric-feature
+           tool-feature
+           world-feature
+           frame-id
            make-point-feature
            make-line-feature
-           make-plane-feature))
+           make-plane-feature
+           make-perpendicular-constraint
+           make-pointing-at-constraint
+           make-height-constraint
+           make-distance-constraint))
