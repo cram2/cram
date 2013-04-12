@@ -74,4 +74,6 @@
              (:file "events" :depends-on ("package" "collision-environment"))
              (:file "designator" :depends-on ("package" "process-module"))
              (:file "action-handlers" :depends-on ("package" "process-module"))
-             (:file "feature-controllers" :depends-on ("package"))))))
+             (:file "feature-controllers" :depends-on ("package"))
+             (:file "feature-controller-tests" 
+              :depends-on ("package" "feature-controllers" "controller-manager" "process-module" ))))))
