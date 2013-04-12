@@ -61,3 +61,95 @@
    :feature-type 'plane
    :feature-position position
    :feature-direction normal))
+
+(defun make-perpendicular-constraint (name tool-feature world-feature
+                                      lower-boundary upper-boundary 
+                                      &key (weight 1.0) 
+                                        (max-vel 0.2) (min-vel -0.2))
+;TODO(Georg): There must be a cooler and more elegant way of doing this.
+; Basically all orientation-constraints share the same vel-boundaries
+; and just differ in the function they pass to make-instance. This function,
+; though, is part of the name of the functions... PCL mentions multimethods. 
+; Read that chapter and see if it applies.
+  (declare (type string name)
+           (type geometric-feature tool-feature world-feature))
+  (make-instance
+   'feature-constraint
+   :name name
+   :feature-function "perpendicular"
+   :tool-feature tool-feature
+   :world-feature world-feature
+   :lower-boundary lower-boundary
+   :upper-boundary upper-boundary
+   :weight weight
+   :maximum-velocity max-vel
+   :minimum-velocity min-vel))
+
+(defun make-pointing-at-constraint (name tool-feature world-feature
+                                      lower-boundary upper-boundary 
+                                      &key (weight 1.0) 
+                                        (max-vel 0.2) (min-vel -0.2))
+;TODO(Georg): There must be a cooler and more elegant way of doing this.
+; Basically all orientation-constraints share the same vel-boundaries
+; and just differ in the function they pass to make-instance. This function,
+; though, is part of the name of the functions... PCL mentions multimethods. 
+; Read that chapter and see if it applies.
+  (declare (type string name)
+           (type geometric-feature tool-feature world-feature))
+  (make-instance
+   'feature-constraint
+   :name name
+   :feature-function "pointing_at"
+   :tool-feature tool-feature
+   :world-feature world-feature
+   :lower-boundary lower-boundary
+   :upper-boundary upper-boundary
+   :weight weight
+   :maximum-velocity max-vel
+   :minimum-velocity min-vel))
+
+(defun make-height-constraint (name tool-feature world-feature
+                               lower-boundary upper-boundary 
+                               &key (weight 1.0) 
+                                 (max-vel 0.1) (min-vel -0.1))
+;TODO(Georg): There must be a cooler and more elegant way of doing this.
+; Basically all orientation-constraints share the same vel-boundaries
+; and just differ in the function they pass to make-instance. This function,
+; though, is part of the name of the functions... PCL mentions multimethods. 
+; Read that chapter and see if it applies.
+  (declare (type string name)
+           (type geometric-feature tool-feature world-feature))
+  (make-instance
+   'feature-constraint
+   :name name
+   :feature-function "height"
+   :tool-feature tool-feature
+   :world-feature world-feature
+   :lower-boundary lower-boundary
+   :upper-boundary upper-boundary
+   :weight weight
+   :maximum-velocity max-vel
+   :minimum-velocity min-vel))
+
+(defun make-distance-constraint (name tool-feature world-feature
+                                 lower-boundary upper-boundary 
+                                 &key (weight 1.0) 
+                                   (max-vel 0.1) (min-vel -0.1))
+;TODO(Georg): There must be a cooler and more elegant way of doing this.
+; Basically all orientation-constraints share the same vel-boundaries
+; and just differ in the function they pass to make-instance. This function,
+; though, is part of the name of the functions... PCL mentions multimethods. 
+; Read that chapter and see if it applies.
+  (declare (type string name)
+           (type geometric-feature tool-feature world-feature))
+  (make-instance
+   'feature-constraint
+   :name name
+   :feature-function "distance"
+   :tool-feature tool-feature
+   :world-feature world-feature
+   :lower-boundary lower-boundary
+   :upper-boundary upper-boundary
+   :weight weight
+   :maximum-velocity max-vel
+   :minimum-velocity min-vel))
