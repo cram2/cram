@@ -335,16 +335,17 @@
             :weight 1.0
             :maximum-velocity 0.1
             :minimum-velocity -0.1)))
-    (let ((constraint-list (list
-                            gripper-vertical-constraint
-                            gripper-pointing-at-ketchup
-                            gripper-height-constraint
-                            gripper-distance-constraint
-                            gripper-left-of-constraint)))
-      (send-constraints-config constraint-list)
+    (let ((constraint-list 
+            (list
+             gripper-vertical-constraint
+             gripper-pointing-at-ketchup
+             gripper-height-constraint
+             gripper-distance-constraint
+             gripper-left-of-constraint)))
+      (send-constraints-config constraint-list :left)
       (sleep 0.5)
-      (send-constraints-command constraint-list)
+      (send-constraints-command constraint-list :left)
       (switch-controller (list "l_arm_vel") (list "l_arm_controller"))
-      (wait-for-controller)
+      (wait-for-feature-controller :left)
       (switch-controller (list "l_arm_controller") (list "l_arm_vel"))
       (sb-thread:terminate-thread tf-object-thread))))
