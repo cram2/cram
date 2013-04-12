@@ -139,9 +139,29 @@
      (cram-feature-constraints:feature-constraints->command-msg constraints))))
 
 (defun start-velocity-resolved-controllers (side)
-  (declare (ignore side)))
+  "Makes the pr2_controller_manager start the controller plugin for the velocity-resolved arm controller on side 'side', and stop the standard position-resolved controller plugin on the same arm."
+  (let ((pre (ecase side
+               (:left "l")
+               (:right "r"))))
+    (switch-controller `(,(concatenate 'string pre "_arm_vel"))
+                       `(,(concatenate 'string pre "_arm_controller")))))
 
 (defun shutdown-velocity-resolved-controllers (side)
+  "Makes the pr2_controller_manager stop the controller plugin for the velocity-resolved arm controller on side 'side', and start the standard position-resolved controller plugin on the same arm."
+  (let ((pre (ecase side
+               (:left "l")
+               (:right "r"))))
+    (switch-controller `(,(concatenate 'string pre "_arm_controller"))
+                       `(,(concatenate 'string pre "_arm_vel")))))
+
+(defun stop-velocity-resolved-controllers (side)
+  "Stops the velocity-resolved controllers of arm 'side' by sending them a zero-velocity command. Should be used as a quasi-safety-stop because this stop will not consider maximum velocities limits of the arm."
+  ;TODO(Georg): Implement me.
+  (declare (ignore side)))
+
+(defun stop-feature-controller (side)
+  "Gets the current dimensions feature constraints controller or arm 'side', and sets the weights of all constraints to zero to deactive the controller."
+  ;TODO(Georg): Implement me.
   (declare (ignore side)))
 
 (defun turn-down-feature-controllers (thread-list)
