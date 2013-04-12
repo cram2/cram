@@ -30,9 +30,13 @@
 
 (defvar *left-feature-constraints-config-pub* nil)
 (defvar *left-feature-constraints-command-pub* nil)
+(defvar *left-feature-controller-state-subscriber* nil)
+(defvar *right-feature-constraints-config-pub* nil)
+(defvar *right-feature-constraints-command-pub* nil)
+(defvar *right-feature-controller-state-subscriber* nil)
 
-(defvar *controller-state-subscriber* nil)
-(defvar *controller-state-active-fluent* nil)
+(defvar *left-feature-controller-state-active-fluent* nil)
+(defvar *right-feature-controller-state-active-fluent* nil)
 
 (defvar *tf-broadcaster* nil)
 
@@ -46,20 +50,38 @@
          "/left_arm_feature_controller/constraint_config"
          "constraint_msgs/ConstraintConfig"
          :latch t))
-  (setf *controller-state-active-fluent*
-        (cram-language:make-fluent :name :feature-controller-state-fluent
+  (setf *left-feature-controller-state-active-fluent*
+        (cram-language:make-fluent :name :left-feature-controller-state-fluent
                                    :allow-tracing nil))
-  (setf *controller-state-subscriber*
+  (setf *left-feature-controller-state-subscriber*
         (roslisp:subscribe
          "/left_arm_feature_controller/constraint_state"
          "constraint_msgs/ConstraintState"
-         #'feature-constraints-controller-state-callback))
+         #'left-feature-constraints-controller-state-callback))
+  (setf *right-feature-constraints-command-pub*
+        (roslisp:advertise
+         "/right_arm_feature_controller/constraint_command"
+         "constraint_msgs/ConstraintCommand"))
+  (setf *right-feature-constraints-config-pub*
+        (roslisp:advertise
+         "/right_arm_feature_controller/constraint_config"
+         "constraint_msgs/ConstraintConfig"
+         :latch t))
+  (setf *right-feature-controller-state-active-fluent*
+        (cram-language:make-fluent :name :right-feature-controller-state-fluent
+                                   :allow-tracing nil))
+  (setf *right-feature-controller-state-subscriber*
+        (roslisp:subscribe
+         "/right_arm_feature_controller/constraint_state"
+         "constraint_msgs/ConstraintState"
+         #'right-feature-constraints-controller-state-callback))
   (setf *tf-broadcaster*
         (cl-tf:make-transform-broadcaster)))
 
 (register-ros-init-function init-feature-constraints-controller)
 
-(defun feature-constraints-controller-state-callback (msg)
+(defun left-feature-constraints-controller-state-callback (msg)
+  "Checks whether all weight entries in 'msg' are smaller than 1.0. If yes a pulse on the fluent for the feature constraints controller of the left arm is sent."
   ;(declare (type 'constraint_msgs-msg:<ConstraintState> msg))
   (roslisp:with-fields (weights) msg
     (let ((max-weight (loop for i from 0 below (length weights)
@@ -69,25 +91,51 @@
       (cond ((< max-weight 1.0)
              ;; All weights are < 1.0, meaning that all constraints are
              ;; satisfied.
-             (setf (cram-language:value *controller-state-active-fluent*) T)
-             (cram-language:pulse *controller-state-active-fluent*))
+             (setf (cram-language:value *left-feature-controller-state-active-fluent*) T)
+             (cram-language:pulse *left-feature-controller-state-active-fluent*))
             (t (setf (cram-language:value
-                      *controller-state-active-fluent*) nil))))))
+                      *left-feature-controller-state-active-fluent*) nil))))))
 
-(defun wait-for-controller (&optional (timeout nil))
-  (cram-language:wait-for *controller-state-active-fluent* :timeout timeout))
+(defun right-feature-constraints-controller-state-callback (msg)
+  "Checks whether all weight entries in 'msg' are smaller than 1.0. If yes a pulse on the fluent for the feature constraints controller of the right arm is sent."
+  ;(declare (type 'constraint_msgs-msg:<ConstraintState> msg))
+  (roslisp:with-fields (weights) msg
+    (let ((max-weight (loop for i from 0 below (length weights)
+                            for weight = (elt weights i)
+                            maximizing weight into max-weight
+                            finally (return max-weight))))
+      (cond ((< max-weight 1.0)
+             ;; All weights are < 1.0, meaning that all constraints are
+             ;; satisfied.
+             (setf (cram-language:value *right-feature-controller-state-active-fluent*) T)
+             (cram-language:pulse *right-feature-controller-state-active-fluent*))
+            (t (setf (cram-language:value
+                      *right-feature-controller-state-active-fluent*) nil))))))
 
-(defun send-constraints-config (constraints)
-  ;; TODO(Georg): differentiate arms
-  (roslisp:publish
-   *left-feature-constraints-config-pub*
-   (cram-feature-constraints:feature-constraints->config-msg constraints)))
+(defun wait-for-feature-controller (side &optional (timeout nil))
+  "Waits 'timeout' seconds for the fluent watching the feature constraints controller of arm 'side' to become true. Returns nil if a timeout occured, otherwise returns something non-nil."
+  (let ((fluent (ecase side
+                  (:left *left-feature-controller-state-active-fluent*)
+                  (:right *right-feature-controller-state-active-fluent*))))
+    (cram-language:wait-for fluent :timeout timeout)))
 
-(defun send-constraints-command (constraints)
-  ;; TODO(Georg): differentiate arms
-  (roslisp:publish
-   *left-feature-constraints-command-pub*
-   (cram-feature-constraints:feature-constraints->command-msg constraints)))
+(defun send-constraints-config (constraints side)
+  "Takes a list of constraints 'constraints' and sends the resulting configuration-msg to the feature constraints controller of arm 'side' to prepare it for a subsequent command."
+  (let ((publisher (ecase side
+                     (:left *left-feature-constraints-config-pub*)
+                     (:right *right-feature-constraints-config-pub*))))
+    (roslisp:publish
+     publisher
+     (cram-feature-constraints:feature-constraints->config-msg constraints))))
+
+(defun send-constraints-command (constraints side)
+  "Takes a list of constraints 'constraints' and sends the resulting command-msg to the feature constraints controller of arm 'side' to start the controller."
+  (let ((publisher (ecase side
+                     (:left *left-feature-constraints-command-pub*)
+                     (:right *right-feature-constraints-command-pub*))))
+    (roslisp:publish
+     publisher
+     (cram-feature-constraints:feature-constraints->command-msg constraints))))
 
 (defun start-velocity-resolved-controllers (side)
   (declare (ignore side)))
