@@ -164,9 +164,57 @@
   ;TODO(Georg): Implement me.
   (declare (ignore side)))
 
-(defun turn-down-feature-controllers (thread-list)
-  (declare (ignore thread-list)))
+(defun execute-constraints-motion (constraints side &optional (shutdown-controllers-afterwards nil))
+  "Takes a set of 'constraints' and configures, starts, waits-for-finish, and stops the feature constraints controller of arm 'side' with said constraints."
+  (declare (type list constraints))
+  (multiple-value-bind (undefined-features unknown-frames)
+      (get-unknown-frame-ids-of-features constraints)
+    (declare (ignore undefined-features)
+             (type list unknown-frames))
+    (when unknown-frames
+      (error 
+       'simple-error
+       :format-control "Can't execute constraint-based motion. The TF-queries for the following frame-ids timed out: ~a."
+       :format-arguments unknown-frames))
+    (send-constraints-config constraints side)
+    (sleep 0.5)
+    (send-constraints-command constraints side)
+    (start-velocity-resolved-controllers side)
+    (wait-for-feature-controller side)
+    (when shutdown-controllers-afterwards
+      (shutdown-velocity-resolved-controllers side))))
 
+(defun get-unknown-frame-ids-of-features (constraints &optional (source-frame "/base_link") (timeout 1.0) (time (roslisp:ros-time)))
+  "Takes a list of 'constraints' and checks whether any of the contained geometric features have frame-ids for which a TF query at 'time' from 'source-frame' timed out after 'timeout' seconds. Returns a list of the features with such frame-ids and a list of the unknown frame-ids. If all features are well-defined nil and nil are returned."
+  (declare (type list constraints)
+           (type string source-frame))
+  (let* ((features 
+           (remove-duplicates
+            (concatenate
+             'list
+             (mapcar #'cram-feature-constraints:tool-feature constraints)
+             (mapcar #'cram-feature-constraints:world-feature constraints))))
+         (frame-ids
+           (mapcar #'cram-feature-constraints:frame-id
+                   (remove-duplicates features
+                                      :test #'string-equal
+                                      :key #'cram-feature-constraints:frame-id)))
+         (unknown-frame-ids
+           (remove-if #'(lambda (frame)
+                          (cl-tf:wait-for-transform
+                           *tf* :timeout timeout :time time
+                                :source-frame source-frame :target-frame frame))
+                      frame-ids))
+         (undefined-features
+           (remove-if-not
+            #'(lambda (feature)
+                (some (lambda (frame-id)
+                        (string-equal frame-id 
+                                      (cram-feature-constraints:frame-id feature)))
+                      unknown-frame-ids))
+            features)))
+    (values undefined-features unknown-frame-ids)))
+         
 (defun grasp-ketchup-bottle ()
   (let* ((object-stamped-transform
            (cl-tf:make-stamped-transform "/base_link"
