@@ -28,7 +28,7 @@
 
 (in-package :cram-feature-constraints)
 
-(defun make-point-feature (name frame-id position)
+(defun make-point-feature (name frame-id &key (position (cl-transforms:make-identity-vector)))
   (declare (type string name frame-id)
            (type cl-transforms:3d-vector position))
   (make-instance
@@ -38,7 +38,8 @@
    :feature-type 'point
    :feature-position position))
 
-(defun make-line-feature (name frame-id position direction)
+(defun make-line-feature (name frame-id &key (position (cl-transforms:make-identity-vector))
+                                          (direction (cl-transforms:make-identity-vector)))
   (declare (type string name frame-id)
            (type cl-transforms:3d-vector position direction))
   (make-instance
@@ -49,7 +50,8 @@
    :feature-position position
    :feature-direction direction))
 
-(defun make-plane-feature (name frame-id position normal)
+(defun make-plane-feature (name frame-id &key (position (cl-transforms:make-identity-vector))
+                                           (normal (cl-transforms:make-identity-vector)))
   (declare (type string name frame-id)
            (type cl-transforms:3d-vector position normal))
   (make-instance
