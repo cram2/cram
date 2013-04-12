@@ -83,7 +83,6 @@
 
 (defun left-feature-constraints-controller-state-callback (msg)
   "Checks whether all weight entries in 'msg' are smaller than 1.0. If yes a pulse on the fluent for the feature constraints controller of the left arm is sent."
-  ;(declare (type 'constraint_msgs-msg:<ConstraintState> msg))
   (roslisp:with-fields (weights) msg
     (let ((max-weight (loop for i from 0 below (length weights)
                             for weight = (elt weights i)
@@ -99,7 +98,6 @@
 
 (defun right-feature-constraints-controller-state-callback (msg)
   "Checks whether all weight entries in 'msg' are smaller than 1.0. If yes a pulse on the fluent for the feature constraints controller of the right arm is sent."
-  ;(declare (type 'constraint_msgs-msg:<ConstraintState> msg))
   (roslisp:with-fields (weights) msg
     (let ((max-weight (loop for i from 0 below (length weights)
                             for weight = (elt weights i)
