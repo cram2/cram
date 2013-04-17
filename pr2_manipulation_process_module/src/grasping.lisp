@@ -55,6 +55,16 @@ grasp.")
    (tf:make-3d-vector
     -0.15 0.0 0.0)
    (tf:euler->quaternion :ax (/ pi 2))))
+(defparameter *pre-putdown-offset*
+  (tf:make-pose
+   (tf:make-3d-vector
+    0.0 0.2 0.0)
+   (tf:euler->quaternion :ax (/ pi 2))))
+(defparameter *putdown-offset*
+  (tf:make-pose
+   (tf:make-3d-vector
+    0.0 0.0 0.0)
+   (tf:euler->quaternion :ax (/ pi 2))))
 
 (defun relative-pose-for-handle (obj handle &key relative-pose)
   (tf:wait-for-transform *tf*
@@ -134,6 +144,13 @@ applied."
     (unless assignments
       (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))
     assignments))
+
+(defun cons-to-grasp-assignments (cons-cells)
+  (mapcar (lambda (cons-cell)
+            (make-instance 'grasp-assignment
+                           :pose (cdr cons-cell)
+                           :side (car cons-cell)))
+          cons-cells))
 
 (defun arms-handle-distances (arms handle-pose &key
                                            constraint-aware
