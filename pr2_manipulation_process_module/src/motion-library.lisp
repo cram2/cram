@@ -71,20 +71,38 @@
 
 (defparameter *max-graspable-size* (cl-transforms:make-3d-vector 0.15 0.15 0.30))
 
-(defun execute-grasp (&key pregrasp-pose grasp-pose
+(defun execute-grasp (&key pregrasp-pose grasp-solution
                         side (gripper-open-pos 0.08) (gripper-close-pos 0.0))
-  (assert (and pregrasp-pose grasp-pose) ()
+  (assert (and pregrasp-pose grasp-solution) ()
           "Unspecified parameter in execute-grasp.")
   (roslisp:ros-info (pr2-manipulation-process-module)
                     "Executing pregrasp for side ~a~%" side)
-  (execute-move-arm-pose side pregrasp-pose);
+  (execute-move-arm-pose side pregrasp-pose)
   (roslisp:ros-info (pr2-manipulation-process-module) "Opening gripper")
   (open-gripper side :max-effort 50.0 :position gripper-open-pos)
   (roslisp:ros-info (pr2-manipulation-process-module)
                     "Executing grasp for side ~a~%" side)
-  (execute-move-arm-pose side grasp-pose)
+  (execute-arm-trajectory side (ik->trajectory grasp-solution))
   (roslisp:ros-info (pr2-manipulation-process-module) "Closing gripper")
   (close-gripper side :max-effort 50.0 :position gripper-close-pos))
+
+(defun execute-putdown (&key pre-putdown-pose putdown-solution unhand-solution
+                          side (gripper-open-pos 0.08) allowed-collision-objects)
+  (assert (and pre-putdown-pose putdown-solution unhand-solution) ()
+          "Unspecified parameter in execute-putdown.")
+  (roslisp:ros-info (pr2-manipulation-process-module)
+                    "Executing pre-putdown for side ~a~%" side)
+  (roslisp:publish (roslisp:advertise "/preputdownpose"
+                                      "geometry_msgs/PoseStamped")
+                   (tf:pose-stamped->msg pre-putdown-pose))
+  (execute-move-arm-pose side pre-putdown-pose
+                         :allowed-collision-objects allowed-collision-objects)
+  (roslisp:ros-info (pr2-manipulation-process-module)
+                    "Executing putdown for side ~a~%" side)
+  (execute-arm-trajectory side (ik->trajectory putdown-solution))
+  (roslisp:ros-info (pr2-manipulation-process-module) "Opening gripper")
+  (open-gripper side :max-effort 50.0 :position gripper-open-pos)
+  (execute-arm-trajectory side (ik->trajectory unhand-solution)))
 
 (defun get-lifting-grasped-object-arm-trajectory (side distance)
   "Returns the lifting trajectory for the `side' robot arm in order to
@@ -170,16 +188,19 @@ supporting plane"
              (unhand-solution (get-ik;constraint-aware-ik
                                side unhand-pose-stamped)))
         ;;:allowed-collision-objects (list "\"all\""))))
-        (roslisp:publish
-         (roslisp:advertise "/putdownpose" "geometry_msgs/PoseStamped")
-         (tf:pose-stamped->msg put-down-pose))
-        (when (or (not put-down-solution) (not unhand-solution))
-          (cpl:fail 'manipulation-pose-unreachable))
+        ;(execute-move-arm-pose side pre-put-down-pose)
+        ;; (format t "::: ~a~%" put-down-solution)
+        ;; (roslisp:publish
+        ;;  (roslisp:advertise "/putdownpose" "geometry_msgs/PoseStamped")
+        ;;  (tf:pose-stamped->msg put-down-pose))
+        ;; (when (or (not put-down-solution) (not unhand-solution))
+        ;;   (cpl:fail 'manipulation-pose-unreachable))
         ;; (execute-move-arm-pose side pre-put-down-pose)
-        (let ((ik (first (get-ik side pre-put-down-pose))))
-          (cond (ik (execute-arm-trajectory side (ik->trajectory ik)))
-                (t (cpl:fail 'cram-plan-failures:manipulation-failed))))
-        (execute-arm-trajectory side (ik->trajectory (lazy-car put-down-solution)))
+        ;; (execute-move-arm-pose side put-down-pose-tll)
+        ;(let ((ik (first (get-ik side pre-put-down-pose))))
+        ;  (cond (ik (execute-arm-trajectory side (ik->trajectory ik)))
+        ;        (t (cpl:fail 'cram-plan-failures:manipulation-failed))))
+        ;(execute-arm-trajectory side (ik->trajectory (lazy-car put-down-solution)))
         (open-gripper side)
         (plan-knowledge:on-event
          (make-instance
@@ -189,8 +210,9 @@ supporting plane"
           :link (ecase side
                   (:right "r_gripper_r_finger_tip_link")
                   (:left "l_gripper_r_finger_tip_link"))))
-        (execute-arm-trajectory
-         side (ik->trajectory (lazy-car unhand-solution)))))))
+;        (execute-arm-trajectory
+;         side (ik->trajectory (lazy-car unhand-solution)))
+        ))))
 
 (defun put-down-grasped-object-with-both-arms (obj location)
   (roslisp:ros-info (pr2-manipulation-process-module) "Putting down the grasped object with both arms.")
@@ -384,7 +406,6 @@ supporting plane"
          (grasp-ik (lazy-car (get-ik side grasp-pose)))
          (open-ik (lazy-car (get-ik side open-pose)))
          (arm-away-ik (lazy-car (get-ik side arm-away-pose))))
-    (format t "pre-grasp-pose ~a~%" pre-grasp-pose)
     (unless pre-grasp-ik
       (error 'manipulation-pose-unreachable
              :format-control "Pre-grasp pose for handle not reachable: ~a"

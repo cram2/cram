@@ -35,6 +35,11 @@
         when (not (find item list1 :test test))
           collect item))
 
+(defun arm-for-pose (pose)
+  (let ((frame (tf:frame-id pose)))
+    (cond ((string= frame "/r_wrist_roll_link") :right)
+          ((string= frame "/l_wrist_roll_link") :left))))
+
 (def-fact-group pr2-manipulation-designators (action-desig)
 
   (<- (flatten ?list-of-lists ?list)
@@ -152,6 +157,9 @@
     (flatten ?arms-used-list ?arms-used)
     (missing ?arms-used ?possible-arms ?available-arms))
   
+  (<- (arm-for-pose ?pose ?arm)
+    (lisp-fun arm-for-pose ?pose ?arm))
+  
   (<- (action-desig ?desig (grasp ?current-obj ?grasp-assignments ?obstacles))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to grasp))
@@ -204,6 +212,22 @@
   (<- (grasped-object-part ?obj ?part)
     (or (grasped-object-handle ?obj ?part)
         (equal ?obj ?part)))
+
+  (<- (action-desig ?desig (put-down ?current-obj ?loc ?grasp-assignments ?obstacles))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to put-down))
+    (desig-prop ?desig (obj ?obj))
+    (current-designator ?obj ?current-obj)
+    (obstacles ?desig ?obstacles)
+    (desig-prop ?desig (at ?loc))
+    (desig-prop ?current-obj (desig-props:at ?objloc))
+    (desig-prop ?objloc (desig-props:in desig-props:gripper))
+    (setof ?posearm (and (desig-prop ?objloc (desig-props:pose ?objpose))
+                         (arm-for-pose ?objpose ?arm)
+                         (member ?arm (:left :right))
+                         (equal ?posearm (?arm . ?objpose)))
+           ?poses)
+    (lisp-fun cons-to-grasp-assignments ?poses ?grasp-assignments))
   
   (<- (action-desig ?desig (pull ?current-obj ?arms
                                  ?direction ?distance
@@ -228,15 +252,6 @@
     (desig-prop ?desig (direction ?direction))
     (current-designator ?obj ?current-obj)
     (holding-arms ?current-obj ?arms)
-    (obstacles ?desig ?obstacles))
-
-  (<- (action-desig ?desig (put-down ?current-obj ?loc ?arms ?obstacles))
-    (trajectory-desig? ?desig)
-    (desig-prop ?desig (to put-down))
-    (desig-prop ?desig (obj ?obj))
-    (current-designator ?obj ?current-obj)
-    (holding-arms ?current-obj ?arms)
-    (desig-prop ?desig (at ?loc))
     (obstacles ?desig ?obstacles)))
 
 (def-fact-group manipulation-process-module (matching-process-module available-process-module)

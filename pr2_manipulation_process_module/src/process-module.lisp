@@ -212,16 +212,18 @@ by `planners' until one succeeds."
                                              "Move arm returned with ~a"
                                              val)
                            (when (eql val 1)
-                             (let ((target-frame (ecase side
+                             (let ((curr-time (roslisp:ros-time))
+                                   (target-frame (ecase side
                                                    (:left "l_wrist_roll_link")
                                                    (:right "r_wrist_roll_link"))))
                                (tf:wait-for-transform
-                                *tf* :time (tf:stamp pose)
+                                *tf* :time curr-time
                                 :source-frame (tf:frame-id pose)
                                 :target-frame target-frame)
                                (let ((goal-in-arm
                                        (tf:transform-pose
-                                        *tf* :pose pose
+                                        *tf* :pose (tf:copy-pose-stamped
+                                                    pose :stamp curr-time)
                                              :target-frame target-frame)))
                                  (when (or (> (cl-transforms:v-norm
                                                (cl-transforms:origin goal-in-arm))
@@ -230,7 +232,17 @@ by `planners' until one succeeds."
                                                (nth-value 1 (cl-transforms:quaternion->axis-angle
                                                              (cl-transforms:orientation goal-in-arm))))
                                               0.03))
-                                   (error 'manipulation-failed))))
+                                   (error 'manipulation-failed
+                                          :result (list (cons 'deviation-translation
+                                                              (cl-transforms:v-norm
+                                                               (cl-transforms:origin goal-in-arm)))
+                                                        (cons 'deviation-rotation
+                                                              (cl-transforms:normalize-angle
+                                                               (nth-value
+                                                                1
+                                                                (cl-transforms:quaternion->axis-angle
+                                                                 (cl-transforms:orientation
+                                                                  goal-in-arm))))))))))
                              (return-from execute-move-arm-pose t))))
                        planners :initial-value nil)
            (-31 (error 'manipulation-pose-unreachable :result (list side pose)))
