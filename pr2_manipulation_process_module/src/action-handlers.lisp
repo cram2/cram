@@ -1,3 +1,4 @@
+
 ;;; Copyright (c) 2013, Jan Winkler <winkler@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
@@ -187,7 +188,6 @@
   (declare (ignore obstacles))
   "Delegates the type of the put down action which suppose to be executed
 for the currently type of grasped object."
-  (clear-collision-objects)
   (roslisp:call-service "/collider_node/reset" "std_srvs/Empty")
   (let ((pair-count (length grasp-assignments)))
     (assert (> pair-count 0) ()
