@@ -220,7 +220,6 @@
                                         joint_state (get-robot-state))))
                       (block pose-check
                         (loop for pose in poses
-                              for test = (format t "~a~%" pose)
                               for current-plan-segment = (plan-segment
                                                           service
                                                           robot-state
