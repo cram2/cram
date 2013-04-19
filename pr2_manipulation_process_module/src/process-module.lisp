@@ -142,6 +142,103 @@
             :trajectory (remove-trajectory-joints #("torso_lift_joint") trajectory)))
       (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))))
 
+(defun pose-path-valid-p (side poses &key
+                               (planners '(:ompl))
+                               allowed-collision-objects)
+  (flet ((plan-segment (service state-start pose)
+           (let ((pose-msg (tf:pose-stamped->msg pose)))
+             (roslisp:with-fields (header
+                                   (position (position pose))
+                                   (orientation (orientation pose)))
+                 pose-msg
+               (cond
+                 ((roslisp:wait-for-service service 5.0)
+                  (roslisp:call-service 
+                   service
+                   'arm_navigation_msgs-srv:getmotionplan
+                   :motion_plan_request
+                   (roslisp:make-message
+                    "arm_navigation_msgs/MotionPlanRequest"
+                    start_state state-start
+                    group_name (ecase side
+                                 (:right "right_arm")
+                                 (:left "left_arm"))
+                    num_planning_attempts 1
+                    planner_id ""
+                    allowed_planning_time 5.0
+                    expected_path_duration 5.0
+                    goal_constraints
+                    (roslisp:make-message
+                     "arm_navigation_msgs/Constraints"
+                     position_constraints
+                     (vector
+                      (roslisp:make-msg
+                       "arm_navigation_msgs/PositionConstraint"
+                       header header
+                       link_name (ecase side
+                                   (:left "l_wrist_roll_link")
+                                   (:right "r_wrist_roll_link"))
+                       position position
+                       (type constraint_region_shape)
+                       (roslisp-msg-protocol:symbol-code
+                        'arm_navigation_msgs-msg:shape
+                        :box)
+                       (dimensions constraint_region_shape) #(0.01 0.01 0.01)
+                       (w constraint_region_orientation) 1.0
+                       weight 1.0))
+                     orientation_constraints
+                     (vector
+                      (roslisp:make-msg
+                       "arm_navigation_msgs/OrientationConstraint"
+                       header header
+                       link_name (ecase side
+                                   (:left "l_wrist_roll_link")
+                                   (:right "r_wrist_roll_link"))
+                       orientation orientation
+                       absolute_roll_tolerance 0.01
+                       absolute_pitch_tolerance 0.01
+                       absolute_yaw_tolerance 0.01
+                       weight 1.0))))))
+                 (t (return-from plan-segment nil)))))))
+    (let ((planning-scene-diff-service
+            "/environment_server/set_planning_scene_diff"))
+      (roslisp:wait-for-service planning-scene-diff-service 5.0)
+      (roslisp:call-service
+       planning-scene-diff-service
+       'arm_navigation_msgs-srv:setplanningscenediff
+       :operations (make-collision-operations
+                    side (cons "\"attached\"" allowed-collision-objects))))
+    (when (reduce (lambda (result planner)
+                    (declare (ignore result))
+                    (let ((service
+                            (ecase planner
+                              (:chomp "/chomp_planner_longrange/plan_path")
+                              (:ompl "/ompl_planning/plan_kinematic_path")
+                              (:stomp "/stomp_motion_planner/plan_path")))
+                          (robot-state (roslisp:make-message
+                                        "arm_navigation_msgs/RobotState"
+                                        joint_state (get-robot-state))))
+                      (block pose-check
+                        (loop for pose in poses
+                              for test = (format t "~a~%" pose)
+                              for current-plan-segment = (plan-segment
+                                                          service
+                                                          robot-state
+                                                          pose)
+                              do (roslisp:with-fields ((val (val
+                                                             error_code)))
+                                     current-plan-segment
+                                   (cond ((eql val 1)
+                                          (roslisp:with-fields (robot_state)
+                                              current-plan-segment
+                                            (setf robot-state robot_state)))
+                                         (t (setf robot-state nil)
+                                            (return-from pose-check))))))
+                      (when robot-state
+                        (return-from pose-path-valid-p t))))
+                  planners :initial-value nil)
+      t))))
+
 (defun execute-move-arm-pose (side pose &key
                                           (planners '(:chomp :ompl))
                                           allowed-collision-objects)
