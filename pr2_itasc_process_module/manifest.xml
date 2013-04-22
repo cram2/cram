@@ -6,11 +6,9 @@
   </description>
   <author>Georg Bartels</author>
   <license>BSD</license>
-  <review status="unreviewed" notes=""/>
 
   <depend package="roslisp"/>
   <depend package="cram_roslisp_common"/>
-  <depend package="cram_utilities"/>
   <depend package="cram_process_modules"/>
   <depend package="task_msgs"/>
 </package>

@@ -30,7 +30,10 @@
   :author "Georg Bartels"
   :license "BSD"
   
-  :depends-on (task_msgs-msg
+  :depends-on (actionlib
+               cram-roslisp-common
+               process-modules
+               task_msgs-msg
                task_msgs-srv)
   :components
   ((:module "src"
