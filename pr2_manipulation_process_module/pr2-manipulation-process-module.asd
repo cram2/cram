@@ -79,9 +79,4 @@
              (:file "action-handlers" :depends-on ("package" "process-module"))
              (:file "feature-controllers" :depends-on ("package"))
              (:file "feature-controller-tests" 
-              :depends-on ("package" "feature-controllers" "controller-manager" "process-module" ))
-             ;; necessary for integration with KU Leuven
-             (:file "itasc-integration" :depends-on ("package"))
-             (:file "itasc-database" :depends-on ("package"))
-             (:file "itasc-conversions" :depends-on ("package" "itasc-database"))
-             (:file "itasc-executive" :depends-on ("package" "itasc-database" "itasc-integration" "itasc-conversions"))))))
+              :depends-on ("package" "feature-controllers" "controller-manager" "process-module" ))))))
