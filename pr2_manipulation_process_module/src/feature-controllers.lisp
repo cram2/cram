@@ -175,7 +175,6 @@
        :format-control "Can't execute constraint-based motion. The TF-queries for the following frame-ids timed out: ~a."
        :format-arguments unknown-frames))
     (send-constraints-config constraints side)
-    (sleep 0.5)
     (send-constraints-command constraints side)
     (start-velocity-resolved-controllers side)
     (wait-for-feature-controller side)
