@@ -30,7 +30,8 @@
   :author "Georg Bartels"
   :license "BSD"
   
-  :depends-on ()
+  :depends-on (task_msgs-msg
+               task_msgs-srv)
   :components
   ((:module "src"
             :components

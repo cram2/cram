@@ -35,6 +35,4 @@
   <depend package="feature_constraints_standalone" />
   <depend package="constraint_msgs" />
   <depend package="cram_feature_constraints" />
-  <!-- necessary for integration with KU Leuven -->
-  <depend package="task_msgs" />
 </package>

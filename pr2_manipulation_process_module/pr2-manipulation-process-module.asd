@@ -57,9 +57,6 @@
                pr2-manipulation-knowledge
                constraint_msgs-msg
                cram-feature-constraints
-               ;;necessary for integration with KU Leuven
-               task_msgs-msg
-               task_msgs-srv
                realtime_tf_relay_msgs-msg)
   :components
   ((:module "src"
