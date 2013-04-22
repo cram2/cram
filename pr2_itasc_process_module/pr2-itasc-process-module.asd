@@ -35,4 +35,7 @@
   ((:module "src"
             :components
             ((:file "package")
-             (:file "some-file" :depends-on ("package"))))))
+             (:file "itasc-integration" :depends-on ("package"))
+             (:file "itasc-database" :depends-on ("package"))
+             (:file "itasc-conversions" :depends-on ("package" "itasc-database"))
+             (:file "itasc-executive" :depends-on ("package" "itasc-database" "itasc-integration" "itasc-conversions"))))))
