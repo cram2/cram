@@ -56,8 +56,7 @@
                pr2_mechanism_msgs-srv
                pr2-manipulation-knowledge
                constraint_msgs-msg
-               cram-feature-constraints
-               realtime_tf_relay_msgs-msg)
+               cram-feature-constraints)
   :components
   ((:module "src"
             :components
