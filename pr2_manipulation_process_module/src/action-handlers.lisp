@@ -145,20 +145,18 @@
         (let* ((side (slot-value grasp-assignment 'side))
                (pregrasp-pose (relative-grasp-pose
                                pose *pregrasp-offset*))
-               (pregrasp-pose-tll
-                 (tf:transform-pose *tf*
-                                    :pose pregrasp-pose
-                                    :target-frame "/torso_lift_link"))
+               (pregrasp-pose-tll (tf:transform-pose
+                                   *tf*
+                                   :pose pregrasp-pose
+                                   :target-frame "/torso_lift_link"))
                (grasp-pose (relative-grasp-pose
                             pose *grasp-offset*))
-               (grasp-pose-tll
-                 (tf:transform-pose *tf*
-                                    :pose grasp-pose
-                                    :target-frame "/torso_lift_link"))
+               (grasp-pose-tll (tf:transform-pose
+                                *tf*
+                                :pose grasp-pose
+                                :target-frame "/torso_lift_link"))
                (grasp-solution
-                 (first (get-ik;(get-constraint-aware-ik
-                         side grasp-pose-tll))))
-          ;; :allowed-collision-objects (list obj-desig)))))
+                 (first (get-ik side grasp-pose-tll))))
           (unless grasp-solution
             (cpl:fail 'manipulation-pose-unreachable))
           (execute-grasp :pregrasp-pose pregrasp-pose-tll
@@ -207,7 +205,7 @@ for the currently type of grasped object."
                 (tf:make-identity-rotation))
                (cl-transforms:transform-pose
                 (tf:make-transform
-                 (tf:make-identity-vector)
+                 (tf:make-3d-vector 0.0 0.0 0.03)
                  (tf:euler->quaternion :ax pi))
                 (tf:make-pose-stamped
                  "/map"
@@ -243,7 +241,13 @@ for the currently type of grasped object."
                                              (roslisp:make-message
                                               "arm_navigation_msgs/Shape"
                                               (type) 2
-                                              (dimensions) (vector 0.1 (* 3 (abs (tf:z (tf:origin pose)))))))
+                                              (dimensions) (vector
+                                                            0.1
+                                                            (* 3
+                                                               (abs
+                                                                (tf:z
+                                                                 (tf:origin
+                                                                  pose)))))))
                             (poses object) (vector
                                             (tf:pose->msg
                                              (cl-transforms:transform-pose
@@ -259,78 +263,108 @@ for the currently type of grasped object."
                    "/attached_collision_object"
                    "arm_navigation_msgs/AttachedCollisionObject")
                   msg)))
-      (cpl:par-loop (arm-pose arm-poses)
-        (let ((arm (car arm-pose))
-              (pose (cdr arm-pose)))
-          (tf:wait-for-transform
-           *tf*
-           :source-frame (tf:frame-id pose)
-           :target-frame "/torso_lift_link"
-           :time (roslisp:ros-time))
-          (let* ((pre-putdown-pose (relative-grasp-pose
-                                    pose *pre-putdown-offset*))
-                 (pre-putdown-pose-tll
-                   (tf:transform-pose *tf*
-                                      :pose pre-putdown-pose
-                                      :target-frame "/torso_lift_link"))
-                 (putdown-pose (relative-grasp-pose
-                                pose *putdown-offset*))
-                 (putdown-pose-tll
-                   (tf:transform-pose *tf*
-                                      :pose putdown-pose
-                                      :target-frame "/torso_lift_link"))
-                 (putdown-solution
-                   (first (get-ik arm putdown-pose-tll)))
-                 (unhand-pose (relative-grasp-pose pose *grasp-offset*))
-                 (unhand-pose-tll
-                   (tf:transform-pose *tf*
-                                      :pose unhand-pose
-                                      :target-frame "/torso_lift_link"))
-                 (unhand-solution (first (get-ik arm unhand-pose-tll))))
-            (roslisp:publish (roslisp:advertise "/preputdownpose"
-                                                "geometry_msgs/PoseStamped")
-                             (tf:pose-stamped->msg pre-putdown-pose-tll))
-            (unless (and putdown-solution unhand-solution)
-              (cpl:fail 'manipulation-pose-unreachable))
-            (execute-putdown :pre-putdown-pose pre-putdown-pose-tll
-                             :putdown-solution putdown-solution
-                             :unhand-solution unhand-solution
-                             :side arm
-                             :gripper-open-pos 0.1))))
-      ;; Remove the attached collision objects
-      (loop for grasp in grasp-assignments
-            for arm = (slot-value grasp 'side)
-            for pose = (slot-value grasp 'pose)
-            do (let* ((arm-link (ecase arm
-                                  (:left "l_wrist_roll_link")
-                                  (:right "r_wrist_roll_link")))
-                      (object-id (concatenate 'string "attached_object_" arm-link))
-                      (msg (roslisp:make-message
-                            "arm_navigation_msgs/AttachedCollisionObject"
-                            (stamp header object) (roslisp:ros-time)
-                            (frame_id header object) (tf:frame-id pose)
-                            (link_name) arm-link
-                            (id object) object-id
-                            (padding object) 0.1
-                            (operation operation object) 1)))
-                 (roslisp:publish
-                  (roslisp:advertise
-                   "/attached_collision_object"
-                   "arm_navigation_msgs/AttachedCollisionObject")
-                  msg)))
-      (loop for grasp-assignment in grasp-assignments
-            for arm = (slot-value grasp-assignment 'side)
-            do (with-vars-strictly-bound (?link-name)
-                   (lazy-car
-                    (prolog
-                     `(cram-manipulation-knowledge:end-effector-link
-                       ,arm ?link-name)))
-                 (plan-knowledge:on-event
-                  (make-instance
-                   'plan-knowledge:object-detached
-                   :object object-designator
-                   :link ?link-name
-                   :side arm)))))))
+      ;; Generate all poses during put-down for each arm involved and
+      ;; validate their planabilitu using the planner
+      (tf:wait-for-transform
+       *tf* :source-frame (tf:frame-id putdown-pose)
+       :target-frame "/torso_lift_link")
+      (let ((putdown-specs
+              (loop for (arm . pose) in arm-poses
+                    for pre-putdown-pose = (relative-grasp-pose
+                                            pose *pre-putdown-offset*)
+                    for pre-putdown-pose-tll = (tf:transform-pose
+                                                *tf*
+                                                :pose pre-putdown-pose
+                                                :target-frame "/torso_lift_link")
+                    for putdown-pose = (relative-grasp-pose
+                                        pose *putdown-offset*)
+                    for putdown-pose-tll = (tf:transform-pose
+                                            *tf*
+                                            :pose putdown-pose
+                                            :target-frame "/torso_lift_link")
+                    for unhand-pose = (relative-grasp-pose pose *grasp-offset*)
+                    for unhand-pose-tll = (tf:transform-pose
+                                           *tf*
+                                           :pose unhand-pose
+                                           :target-frame "/torso_lift_link")
+                    for unhand-solution = (first (get-ik arm unhand-pose-tll))
+                    if (pose-path-valid-p
+                        arm `(,putdown-pose-tll))
+                      collect `(,arm
+                                ,pre-putdown-pose-tll
+                                ,putdown-pose-tll
+                                ,unhand-pose-tll)
+                    else
+                      do (cpl:fail 'manipulation-pose-unreachable))))
+        ;; If this point is reached, no `(cpl:fail
+        ;; 'manipulation-pose-unreachable)' occured. This means that
+        ;; all poses during the putdown process are reachable and
+        ;; executable collision-free (according to the planner). In
+        ;; case a `(cpl:fail 'manipulation-failed)' happened, reach it
+        ;; through as manipulation-pose-unreachable. This is the case
+        ;; if the planned path fails to be executed although the
+        ;; pre-planning worked fine.
+        (unwind-protect
+             (cram-language:with-failure-handling
+                 ((cram-plan-failures:manipulation-failed (f)
+                    (declare (ignore f))
+                    (roslisp:ros-warn
+                     (put down) "Put-down failed when executing the trajectory.")
+                    (cpl:fail 'manipulation-pose-unreachable)))
+               (cpl:par-loop (putdown-spec putdown-specs)
+                 (let* ((arm (first putdown-spec))
+                        (pre-putdown-pose (second putdown-spec))
+                        (putdown-pose (third putdown-spec))
+                        (unhand-pose (fourth putdown-spec))
+                        (putdown-solution (first (get-ik arm putdown-pose)))
+                        (unhand-solution (first (get-ik arm unhand-pose))))
+                   (roslisp:publish (roslisp:advertise "/preputdownpose"
+                                                       "geometry_msgs/PoseStamped")
+                                    (tf:pose-stamped->msg pre-putdown-pose))
+                   ;; Just in case, check for the validity of the generated
+                   ;; ik solutions for putdown- and unhand-poses.
+                   (unless (and putdown-solution unhand-solution)
+                     (cpl:fail 'manipulation-pose-unreachable))
+                   (execute-putdown :pre-putdown-pose pre-putdown-pose
+                                    :putdown-solution putdown-solution
+                                    :unhand-solution unhand-solution
+                                    :side arm
+                                    :gripper-open-pos 0.1))))
+          ;; Remove the attached collision objects
+          (loop for grasp in grasp-assignments
+                for arm = (slot-value grasp 'side)
+                for pose = (slot-value grasp 'pose)
+                do (let* ((arm-link (ecase arm
+                                      (:left "l_wrist_roll_link")
+                                      (:right "r_wrist_roll_link")))
+                          (object-id (concatenate 'string
+                                                  "attached_object_"
+                                                  arm-link))
+                          (msg (roslisp:make-message
+                                "arm_navigation_msgs/AttachedCollisionObject"
+                                (stamp header object) (roslisp:ros-time)
+                                (frame_id header object) (tf:frame-id pose)
+                                (link_name) arm-link
+                                (id object) object-id
+                                (operation operation object) 1)))
+                     (roslisp:publish
+                      (roslisp:advertise
+                       "/attached_collision_object"
+                       "arm_navigation_msgs/AttachedCollisionObject")
+                      msg)))
+          (loop for grasp-assignment in grasp-assignments
+                for arm = (slot-value grasp-assignment 'side)
+                do (with-vars-strictly-bound (?link-name)
+                       (lazy-car
+                        (prolog
+                         `(cram-manipulation-knowledge:end-effector-link
+                           ,arm ?link-name)))
+                     (plan-knowledge:on-event
+                      (make-instance
+                       'plan-knowledge:object-detached
+                       :object object-designator
+                       :link ?link-name
+                       :side arm)))))))))
 
 (defun calculate-putdown-arm-pose (obj-pose rel-arm-pose)
   (let* ((inv-rel-trafo (tf:make-transform

@@ -641,21 +641,20 @@ interfere with one another when manipulation is one."
 
 (defun relative-grasp-pose (pose pose-offset)
   (let ((stamp (roslisp:ros-time)))
-    (tf:wait-for-transform *tf*
-                           :time stamp
-                           :source-frame (tf:frame-id pose)
-                           :target-frame "/torso_lift_link")
-  (let* ((grasp-pose (tf:pose->pose-stamped
-                      (tf:frame-id pose)
-                      stamp
-                      (cl-transforms:transform-pose
-                       (tf:pose->transform pose)
-                       pose-offset)))
-         (grasp-pose-tll (tf:transform-pose
-                          *tf*
-                          :pose grasp-pose
-                          :target-frame "/torso_lift_link")))
-    grasp-pose-tll)))
+    (tf:wait-for-transform
+     *tf*
+     :source-frame (tf:frame-id pose)
+     :target-frame "/torso_lift_link"
+     :time stamp)
+    (tf:transform-pose
+     *tf*
+     :pose (tf:pose->pose-stamped
+            (tf:frame-id pose)
+            stamp
+            (cl-transforms:transform-pose
+             (tf:pose->transform pose)
+             pose-offset))
+     :target-frame "/torso_lift_link")))
 
 (defun relative-linear-translation->ik (arm &key (x 0.0) (y 0.0) (z 0.0))
   (let* ((wrist-transform (tf:lookup-transform

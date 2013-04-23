@@ -146,13 +146,22 @@
                                (planners '(:ompl))
                                allowed-collision-objects)
   (flet ((plan-segment (service state-start pose)
-           (let ((pose-msg (tf:pose-stamped->msg pose)))
+           (let* ((pose-now (tf:copy-pose-stamped
+                             pose
+                             :stamp (roslisp:ros-time)))
+                  (pose-msg (tf:pose-stamped->msg pose-now)))
              (roslisp:with-fields (header
                                    (position (position pose))
                                    (orientation (orientation pose)))
                  pose-msg
                (cond
                  ((roslisp:wait-for-service service 5.0)
+                  ;; We wait for one second here due to the fact that
+                  ;; OMPL dies on us when requesting planned
+                  ;; trajectories too quickly. Once CHOMP can use pose
+                  ;; goal constraints, it should be used instead of
+                  ;; OMPL. This (sleep) can then be removed.
+                  (sleep 1.0)
                   (roslisp:call-service 
                    service
                    'arm_navigation_msgs-srv:getmotionplan
@@ -216,8 +225,8 @@
                               (:ompl "/ompl_planning/plan_kinematic_path")
                               (:stomp "/stomp_motion_planner/plan_path")))
                           (robot-state (roslisp:make-message
-                                        "arm_navigation_msgs/RobotState"
-                                        joint_state (get-robot-state))))
+                                        "arm_navigation_msgs/RobotState")))
+                                        ;joint_state (get-robot-state))))
                       (block pose-check
                         (loop for pose in poses
                               for current-plan-segment = (plan-segment
@@ -236,7 +245,7 @@
                       (when robot-state
                         (return-from pose-path-valid-p t))))
                   planners :initial-value nil)
-      t))))
+      t)))
 
 (defun execute-move-arm-pose (side pose &key
                                           (planners '(:chomp :ompl))
