@@ -31,8 +31,6 @@
   <depend package="pr2_mechanism_msgs" />
   <depend package="pr2_manipulation_knowledge" />
   <!-- dependencies needed for feature_controller -->
-  <depend package="ias_mechanism_controllers" />
-  <depend package="feature_constraints_standalone" />
   <depend package="constraint_msgs" />
   <depend package="cram_feature_constraints" />
 </package>
