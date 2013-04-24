@@ -38,26 +38,35 @@
                        (carry-trajectory
                         (action `((type trajectory) (to carry) (obj ,?obj))))
                        (pick-up-loc
-                        (location `((to execute) (action ,grasp-trajectory)
-                                    (action ,lift-trajectory)))))
+                        (location `((to reach) (obj ,?obj)))))
       (with-failure-handling
           ((manipulation-pose-unreachable (f)
              (declare (ignore f))
              (ros-warn
               (achieve plan-lib)
-              "Got unreachable grasp pose. Trying alternatives")
+              "Got unreachable grasp pose. Re-perceiving object.")
              (do-retry alternative-poses-cnt
-               (retry-with-updated-location
-                pick-up-loc (next-different-location-solution pick-up-loc)))))
+               (retry))))
         (ros-info (achieve plan-lib) "Calling perceive")
         (setf ?obj (perceive-object 'a ?obj))
         (ros-info (achieve plan-lib) "Perceive done")
-        (ros-info (achieve plan-lib) "Grasping")
-        (at-location (pick-up-loc)
-          (achieve `(looking-at ,(reference (make-designator
-                                             'location `((of ,?obj))))))
-          (perform grasp-trajectory)
-          (monitor-action grasp-trajectory)))
+        (with-retry-counters ((alternative-grasp-pose-cnt 3))
+          (with-failure-handling
+              ((manipulation-pose-unreachable (f)
+                 (declare (ignore f))
+                 (ros-warn
+                  (achieve plan-lib)
+                  "Couldn't reach object. Trying from different pose.")
+                 (do-retry alternative-grasp-pose-cnt
+                   (retry-with-updated-location
+                    pick-up-loc (next-different-location-solution
+                                 pick-up-loc)))))
+            (ros-info (achieve plan-lib) "Grasping")
+            (at-location (pick-up-loc)
+              (achieve `(looking-at ,(reference (make-designator
+                                                 'location `((of ,?obj))))))
+              (perform grasp-trajectory)
+              (monitor-action grasp-trajectory)))))
       (with-failure-handling
           ((manipulation-pose-unreachable (f)
              (declare (ignore f))
