@@ -237,8 +237,12 @@
     (current-designator ?obj ?current-obj)
     (holding-arms ?current-obj ?arms)
     (desig-prop ?desig (at ?loc))
-    (obstacles ?desig ?obstacles)))
+    (obstacles ?desig ?obstacles))
 
+  (<- (action-desig ?desig (execute-constraint-motion))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to flip))))
+      
 (def-fact-group manipulation-process-module (matching-process-module available-process-module)
 
   (<- (matching-process-module ?designator pr2-manipulation-process-module)
@@ -252,7 +256,8 @@
         (desig-prop ?designator (to lift))
         (desig-prop ?designator (to carry))
         (desig-prop ?designator (to pull))
-        (desig-prop ?designator (to push))))
+        (desig-prop ?designator (to push))
+        (desig-prop ?designator (to flip))))
 
   (<- (available-process-module pr2-manipulation-process-module)
     (symbol-value cram-projection:*projection-environment* nil)))
