@@ -190,3 +190,9 @@ for the currently type of grasped object."
          (put-down-grasped-object-with-both-arms object-designator location))
         (t (put-down-grasped-object-with-single-arm
             object-designator location (first arms) obstacles))))
+
+(def-action-handler execute-constraint-motion ()
+  ;; squetched interface: tool-designator, object-designator, list of lists of constraints
+  ;; intended behaviour: publish reference frames of both objects in tf; execute motions
+  (roslisp:ros-warn 
+   (pr2-mpm) "Action handler to execute constraint motions not implemented, yet."))
