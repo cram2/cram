@@ -62,6 +62,7 @@
             :components
             ((:file "package")
              (:file "utils" :depends-on ("package"))
+             (:file "knowrob_utils" :depends-on ("package"))
              (:file "grasping" :depends-on ("package" "utils"))
              (:file "sensors" :depends-on ("package" "utils"))
              (:file "motion-library" :depends-on ("package"))
@@ -71,7 +72,7 @@
              (:file "process-module"
               :depends-on ("package" "kinematics" "collision-environment" "controller-manager" "motion-library" "grasping" "sensors"))
              (:file "events" :depends-on ("package" "collision-environment"))
-             (:file "designator" :depends-on ("package" "process-module"))
+             (:file "designator" :depends-on ("package" "knowrob_utils" "process-module"))
              (:file "action-handlers" :depends-on ("package" "process-module"))
              (:file "feature-controllers" :depends-on ("package"))
              (:file "feature-controller-tests" 
