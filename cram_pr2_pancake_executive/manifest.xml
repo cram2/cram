@@ -8,6 +8,7 @@
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>https://github.com/cram-code/cram_pr2</url>
+  <depend package="cram_language"/>
 
 </package>
 
