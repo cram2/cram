@@ -28,4 +28,12 @@
 
 (desig-props:def-desig-package cram-pr2-popcorn-executive
   (:nicknames :pr2-pancake-ex)
-  (:use #:cpl))
+  (:use #:cpl
+        #:cram-plan-library
+        #:roslisp
+        #:cram-utilities
+        #:cram-plan-failures
+        #:cram-plan-knowledge)
+  (:export #:object-flipped)
+  (:desig-properties #:to #:flip #:type #:trajectory #:object-acted-on
+                      #:object-acted-with #:see #:obj))

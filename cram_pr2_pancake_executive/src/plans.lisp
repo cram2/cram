@@ -27,3 +27,31 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
 (in-package :pr2-pancake-ex)
+
+(def-goal (achieve (object-flipped ?obj ?tool-left ?tool-right))
+  (ros-info (achieve plan-lib) "(achieve (object-flipped))")
+  (with-designators 
+      ((flipping-trajectory
+        (action `((type trajectory)
+                  (to flip)
+                  (obj-acted-on ,?obj)
+                  (obj-acted-with ,?tool-left)
+                  (obj-acted-with ,?tool-right))))
+       (head-trajectory
+        (action `((type trajectory)
+                  (to see)
+                  (obj ,?obj)))))
+    ;; TODO(Georg): find out whether we need to use 'monitor-action'
+    (with-failure-handling
+        ((object-not-found (f)
+           (declare (ignore f))
+           (retry)))
+      (ros-info (achieve plan-lib) "Pointing head at object.")
+      (perform head-trajectory)
+      (ros-info (achieve plan-lib) "Perceiving object.")
+      (perceive-object 'currently-visible ?obj)
+      (let ((perceived-desigs (perceive-object 'currently-visible ?obj)))
+        (desig:equate (lazy-car perceived-desigs)
+                            ?obj)
+        (ros-info (achieve plan-lib) "Performing flip action.")
+        (perform flipping-trajectory)))))
