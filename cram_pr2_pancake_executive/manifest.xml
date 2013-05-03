@@ -1,0 +1,14 @@
+<package>
+  <description brief="cram_pr2_pancake_executive">
+
+     Package holding the CRAM executive code to make pancakes with the PR2.
+
+  </description>
+  <author>Georg Bartels</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>https://github.com/cram-code/cram_pr2</url>
+
+</package>
+
+
