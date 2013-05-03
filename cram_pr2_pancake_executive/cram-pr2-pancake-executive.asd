@@ -36,9 +36,14 @@
                roslisp
                cram-utilities
                cram-plan-failures
-               cram-plan-knowledge)
+               cram-plan-knowledge
+               process-modules
+               pr2-manipulation-process-module
+               point-head-process-module
+               cram-environment-representation)
   :components
   ((:module "src"
             :components
             ((:file "package")
-             (:file "plans" :depends-on ("package"))))))
+             (:file "plans" :depends-on ("package"))
+             (:file "top-level-plans" :depends-on ("package" "plans"))))))

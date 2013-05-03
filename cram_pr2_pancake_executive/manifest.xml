@@ -15,6 +15,10 @@
   <depend package="cram_utilities"/>
   <depend package="cram_plan_failures"/>
   <depend package="cram_plan_knowledge"/>
+  <depend package="cram_process_modules"/>
+  <depend package="pr2_manipulation_process_module"/>
+  <depend package="point_head_process_module"/>
+  <depend package="cram_environment_representation"/>
 
 </package>
 
