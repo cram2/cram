@@ -26,16 +26,17 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(desig-props:def-desig-package cram-pr2-popcorn-executive
-  (:nicknames :pr2-pancake-ex)
-  (:use #:cpl
-        #:cram-plan-library
-        #:roslisp
-        #:cram-utilities
-        #:cram-plan-failures
-        #:cram-plan-knowledge
-        #:cram-designators)
-  (:export #:object-flipped)
-  (:desig-properties #:to #:flip #:type #:trajectory #:object-acted-on
-                      #:object-acted-with #:see #:obj #:pancake
-                      #:spatula))
+(in-package :pr2-pancake-ex)
+
+(def-top-level-cram-function flip-pancake ()
+  (cpm:with-process-modules-running
+      (pr2-manip-pm:pr2-manipulation-process-module)
+       ;; (point-head-process-module:point-head-process-module)
+    (with-designators
+        ((pancake (object '((type pancake))))
+         ;; TODO(Georg): add the calibrated transforms of the spatulas
+         ;; w.r.t. to both grippers; find out how to assert them in the
+         ;; in the belief state
+         (left-spatula (object '((type spatula))))
+         (right-spatula (object '((type spatula)))))
+      (achieve `(object-flipped ,pancake ,left-spatula ,right-spatula)))))
