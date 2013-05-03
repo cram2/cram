@@ -101,7 +101,9 @@
            #:link #:event-link #:side #:event-side
            #:holds #:opening-distance
            #:matching-process-module #:available-process-module
-           #:matching-process-module-names)
+           #:matching-process-module-names
+           ;; cooking goals
+           #:object-flipped)
   (:import-from #:cpl-impl
                 #:make-fluent
                 #:value
