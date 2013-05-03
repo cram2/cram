@@ -9,6 +9,12 @@
   <review status="unreviewed" notes=""/>
   <url>https://github.com/cram-code/cram_pr2</url>
   <depend package="cram_language"/>
+  <depend package="cram_plan_library"/>
+  <depend package="cram_designators"/>
+  <depend package="roslisp"/>
+  <depend package="cram_utilities"/>
+  <depend package="cram_plan_failures"/>
+  <depend package="cram_plan_knowledge"/>
 
 </package>
 

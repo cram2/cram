@@ -30,7 +30,13 @@
   :author "Georg Bartels"
   :license "BSD"
   
-  :depends-on (cram-language)
+  :depends-on (cram-language
+               cram-plan-library
+               designators
+               roslisp
+               cram-utilities
+               cram-plan-failures
+               cram-plan-knowledge)
   :components
   ((:module "src"
             :components
