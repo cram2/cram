@@ -29,6 +29,8 @@
 (in-package :pr2-pancake-ex)
 
 (def-goal (achieve (object-flipped ?obj ?tool-left ?tool-right))
+  ;; TODO(Georg): implement the correct prolog-pattern for object-flipped in
+  ;; cram_environment_representation
   (ros-info (achieve plan-lib) "(achieve (object-flipped))")
   (with-designators 
       ((flipping-trajectory
@@ -41,17 +43,17 @@
         (action `((type trajectory)
                   (to see)
                   (obj ,?obj)))))
-    ;; TODO(Georg): find out whether we need to use 'monitor-action'
     (with-failure-handling
         ((object-not-found (f)
            (declare (ignore f))
            (retry)))
       (ros-info (achieve plan-lib) "Pointing head at object.")
-      (perform head-trajectory)
+      ;(perform head-trajectory)
       (ros-info (achieve plan-lib) "Perceiving object.")
-      (perceive-object 'currently-visible ?obj)
-      (let ((perceived-desigs (perceive-object 'currently-visible ?obj)))
-        (desig:equate (lazy-car perceived-desigs)
-                            ?obj)
-        (ros-info (achieve plan-lib) "Performing flip action.")
-        (perform flipping-trajectory)))))
+      ;; (perceive-object 'currently-visible ?obj)
+      ;; (let ((perceived-desigs (perceive-object 'currently-visible ?obj)))
+      ;;   (desig:equate (lazy-car perceived-desigs)
+      ;;                       ?obj)
+      ;;   (ros-info (achieve plan-lib) "Performing flip action.")
+      ;;   (perform flipping-trajectory))
+      (perform flipping-trajectory))))
