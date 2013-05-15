@@ -34,7 +34,7 @@
   (ros-info (achieve plan-lib) "(achieve (object-flipped))")
   (with-designators 
       ((flipping-trajectory
-        (action `((type trajectory)
+        (action `((type constraints)
                   (to flip)
                   (obj-acted-on ,?obj)
                   (obj-acted-with ,?tool-left)

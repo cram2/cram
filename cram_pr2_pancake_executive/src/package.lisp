@@ -36,6 +36,6 @@
         #:cram-plan-knowledge
         #:cram-designators)
   (:export #:object-flipped)
-  (:desig-properties #:to #:flip #:type #:trajectory #:object-acted-on
+  (:desig-properties #:to #:flip #:type #:constraints #:object-acted-on
                       #:object-acted-with #:see #:obj #:pancake
                       #:spatula))
