@@ -33,11 +33,17 @@
       (pr2-manip-pm:pr2-manipulation-process-module)
        ;; (point-head-process-module:point-head-process-module)
     (with-designators
-        ((pancake (object '((type pancake))))
+        ((pancake-loc (location `((on oven)
+                                  (pose ,(cl-tf:make-pose-stamped 
+                                          "base_link" 0.0 
+                                          (cl-transforms:make-3d-vector 0.6 0.0 0.8)
+                                          (cl-transforms:make-identity-rotation))))))
+         (pancake (object `((type pancake)
+                            (knowrob-name ,"Pancake_PjkWnkr1")
+                            (at ,pancake-loc))))
          ;; TODO(Georg): add the calibrated transforms of the spatulas
          ;; w.r.t. to both grippers; find out how to assert them in the
          ;; in the belief state
-         ;; TODO(Georg): extend description of pancake to be on table or so
          (left-spatula-loc (location
                             `((in gripper)
                               (pose ,(cl-tf:make-pose-stamped 
@@ -51,9 +57,11 @@
                                       (cl-transforms:make-identity-vector)
                                       (cl-transforms:make-identity-rotation))))))
          (left-spatula (object `((type spatula)
-                                 (at ,left-spatula-loc))))
+                                 (at ,left-spatula-loc)
+                                 (knowrob-name ,"left-spatula#1212"))))
          (right-spatula (object `((type spatula)
-                                  (at ,right-spatula-loc)))))
+                                  (at ,right-spatula-loc)
+                                  (knowrob-name ,"right-spatula#1212")))))
       (equate left-spatula (make-effective-designator
                             left-spatula
                             :new-properties nil
