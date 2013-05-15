@@ -54,4 +54,12 @@
                                  (at ,left-spatula-loc))))
          (right-spatula (object `((type spatula)
                                   (at ,right-spatula-loc)))))
+      (equate left-spatula (make-effective-designator
+                            left-spatula
+                            :new-properties nil
+                            :data-object nil))
+      (equate right-spatula (make-effective-designator
+                            right-spatula
+                            :new-properties nil
+                            :data-object nil))
       (achieve `(object-flipped ,pancake ,left-spatula ,right-spatula)))))
