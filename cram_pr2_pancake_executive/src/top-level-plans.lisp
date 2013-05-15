@@ -37,6 +37,7 @@
          ;; TODO(Georg): add the calibrated transforms of the spatulas
          ;; w.r.t. to both grippers; find out how to assert them in the
          ;; in the belief state
+         ;; TODO(Georg): extend description of pancake to be on table or so
          (left-spatula-loc (location
                             `((in gripper)
                               (pose ,(cl-tf:make-pose-stamped 
