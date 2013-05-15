@@ -37,6 +37,20 @@
          ;; TODO(Georg): add the calibrated transforms of the spatulas
          ;; w.r.t. to both grippers; find out how to assert them in the
          ;; in the belief state
-         (left-spatula (object '((type spatula))))
-         (right-spatula (object '((type spatula)))))
+         (left-spatula-loc (location
+                            `((in gripper)
+                              (pose ,(cl-tf:make-pose-stamped 
+                                      "l_wrist_roll_link" 0.0 
+                                      (cl-transforms:make-identity-vector)
+                                      (cl-transforms:make-identity-rotation))))))
+         (right-spatula-loc (location
+                            `((in gripper)
+                              (pose ,(cl-tf:make-pose-stamped 
+                                      "r_wrist_roll_link" 0.0 
+                                      (cl-transforms:make-identity-vector)
+                                      (cl-transforms:make-identity-rotation))))))
+         (left-spatula (object `((type spatula)
+                                 (at ,left-spatula-loc))))
+         (right-spatula (object `((type spatula)
+                                  (at ,right-spatula-loc)))))
       (achieve `(object-flipped ,pancake ,left-spatula ,right-spatula)))))

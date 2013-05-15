@@ -38,4 +38,4 @@
   (:export #:object-flipped)
   (:desig-properties #:to #:flip #:type #:constraints #:object-acted-on
                       #:object-acted-with #:see #:obj #:pancake
-                      #:spatula))
+                      #:spatula #:in #:gripper #:pose #:at))

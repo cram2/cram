@@ -19,6 +19,8 @@
   <depend package="pr2_manipulation_process_module"/>
   <depend package="point_head_process_module"/>
   <depend package="cram_environment_representation"/>
+  <depend package="cl_tf"/>
+  <depend package="cl_transforms"/>
 
 </package>
 
