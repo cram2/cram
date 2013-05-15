@@ -48,4 +48,5 @@
                      #:z-offset #:distance #:obstacle #:handle #:name
                      #:goal #:navigation #:grasped-by #:radius #:pot #:shape
                      #:collision-part #:cylinder #:length #:min-handles #:park
-                     #:distance #:direction #:pull #:push #:flip #:constraints))
+                     #:distance #:direction #:pull #:push #:flip #:constraints
+                     #:obj-acted-on #:obj-acted-with #:pancake #:spatula))

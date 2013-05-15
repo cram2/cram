@@ -239,9 +239,14 @@
     (desig-prop ?desig (at ?loc))
     (obstacles ?desig ?obstacles))
 
-  (<- (action-desig ?desig (execute-constraint-motion ?motion-phases))
+  (<- (action-desig ?desig (execute-constraint-motion ?motion-phases ?pancake ?spatulas))
     (constraints-desig? ?desig)
     (desig-prop ?desig (to flip))
+    (desig-prop ?desig (obj-acted-on ?pancake))
+    (desig-prop ?pancake (type pancake))
+    (findall ?spatula (and (desig-prop ?desig (obj-acted-with ?spatula))
+                           (desig-prop ?spatula (type spatula)))
+             ?spatulas)
     (json-prolog:json-prolog 
      ("plan_subevents" "http://ias.cs.tum.edu/kb/pancake-making-constr.owl#FlippingAPancake" ?motion-phases))))
       
