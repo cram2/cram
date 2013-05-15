@@ -40,7 +40,9 @@
                process-modules
                pr2-manipulation-process-module
                point-head-process-module
-               cram-environment-representation)
+               cram-environment-representation
+               cl-tf
+               cl-transforms)
   :components
   ((:module "src"
             :components
