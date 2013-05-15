@@ -91,7 +91,11 @@
 (def-fact-group manipulation-designator (action-desig)
   (<- (trajectory-desig? ?desig)
     (lisp-pred typep ?desig action-designator)
-    (desig-prop ?desig (type trajectory))))
+    (desig-prop ?desig (type trajectory)))
+
+  (<- (constraints-desig? ?desig)
+      (lisp-pred typep ?desig action-designator)
+      (desig-prop ?desig (type constraints))))
 
 (macrolet ((def-desig-accessor (slot &optional (predicate-name nil))
              (let* ((predicate-name (or predicate-name slot))
