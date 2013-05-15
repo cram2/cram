@@ -38,4 +38,5 @@
   (:export #:object-flipped)
   (:desig-properties #:to #:flip #:type #:constraints #:obj-acted-on
                       #:obj-acted-with #:see #:obj #:pancake
-                      #:spatula #:in #:gripper #:pose #:at))
+                      #:spatula #:in #:gripper #:pose #:at #:knowrob-name
+                      #:on #:oven))
