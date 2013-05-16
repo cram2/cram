@@ -39,7 +39,7 @@
                                           (cl-transforms:make-3d-vector 0.6 0.0 0.8)
                                           (cl-transforms:make-identity-rotation))))))
          (pancake (object `((type pancake)
-                            (knowrob-name ,"Pancake_PjkWnkr1")
+                            (knowrob-name ,"http://ias.cs.tum.edu/kb/spatula-features.owl#Pancake_PjkWnkr1")
                             (at ,pancake-loc))))
          ;; TODO(Georg): add the calibrated transforms of the spatulas
          ;; w.r.t. to both grippers; find out how to assert them in the
@@ -47,21 +47,21 @@
          (left-spatula-loc (location
                             `((in gripper)
                               (pose ,(cl-tf:make-pose-stamped 
-                                      "l_wrist_roll_link" 0.0 
-                                      (cl-transforms:make-identity-vector)
+                                      "l_gripper_tool_frame" 0.0 
+                                      (cl-transforms:make-3d-vector 0.0 0.0 0.0)
                                       (cl-transforms:make-identity-rotation))))))
          (right-spatula-loc (location
                             `((in gripper)
                               (pose ,(cl-tf:make-pose-stamped 
-                                      "r_wrist_roll_link" 0.0 
-                                      (cl-transforms:make-identity-vector)
+                                      "r_gripper_tool_frame" 0.0
+                                      (cl-transforms:make-3d-vector -0.01 0.0 0.0)
                                       (cl-transforms:make-identity-rotation))))))
          (left-spatula (object `((type spatula)
                                  (at ,left-spatula-loc)
-                                 (knowrob-name ,"left-spatula#1212"))))
+                                 (knowrob-name ,"http://ias.cs.tum.edu/kb/spatula-features.owl#Spatula_LvaYsvy6"))))
          (right-spatula (object `((type spatula)
                                   (at ,right-spatula-loc)
-                                  (knowrob-name ,"right-spatula#1212")))))
+                                  (knowrob-name ,"http://ias.cs.tum.edu/kb/spatula-features.owl#Spatula_Rkpqmqf1")))))
       (equate left-spatula (make-effective-designator
                             left-spatula
                             :new-properties nil
