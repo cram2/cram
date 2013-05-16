@@ -28,22 +28,6 @@
 
 (in-package :pr2-manipulation-process-module)
 
-(defun get-knowrob-global-id-symbol (knowrob-namespace knowrob-symbol)
-  "Queries knowrob for the global knowrob-id of 'knowrob-symbol' with 'knowrob-namespace', both represented as strings. The output is returned as a symbol."
-  (declare (type string knowrob-namespace knowrob-symbol))
-  (let* ((combined-name (concatenate 'string 
-                                     knowrob-namespace ":" knowrob-symbol))
-         (query-string (concatenate 'string
-                                    "rdf_global_id(" combined-name ", C)"))
-         
-         (bindings (json-prolog:prolog-simple query-string)))
-    (unless bindings
-      (error
-       'simple-error
-       :format-control "No bindings returned when asking for global knowrob id. Namespace: ~a, symbol: ~a."
-       :format-arguments '(knowrob-namespace knowrob-symbol)))
-    (var-value '?c (lazy-car bindings))))
-
 (defun knowrob-symbol->string (knowrob-symbol &optional (remove-quotes t))
   "Takes a 'knowrob-symbol' as typically returned when asking knowrob through json-prolog-client and returns the equivalent string. If remove-quotes is not NIL, the first and last character of the name of the symbol will be removed."
   (declare (type symbol knowrob-symbol))
@@ -56,26 +40,3 @@
     (if remove-quotes
         (subseq long-symbol-name 1 (- (length long-symbol-name) 1))
         long-symbol-name)))
-
-(defun get-knowrob-motion-phases (namespace action-symbol)
-  "Queries knowrob for motion phases of action 'action-symbol' situated in knowrob namespace 'namespace'. Returns the actual prolog bindings."
-  (json-prolog:prolog 
-   `("plan_subevents" ,(knowrob-symbol->string 
-                        (get-knowrob-global-id-symbol
-                         namespace
-                         action-symbol))
-                      ?p)))
-
-(defun get-knowrob-motion-constraint-infos (motion-phase)
-  (let ((phase
-          (cond
-            ((symbolp motion-phase) (knowrob-symbol->string motion-phase))
-            ((stringp motion-phase) motion-phase)
-            (t (error 'simple-error
-                      :format-control "Input parameter 'motion-phase' was neither of type string nor a symbol."
-                      :format-arguments '(motion-phase))))))
-    (json-prolog:prolog
-     `(and
-       ("motion_constraint" ,phase ?c)
-       ("constraint_properties" ?c ?type ?toolFeature ?worldFeature
-                                ?weight ?lower ?upper ?minVel ?maxVel)))))
