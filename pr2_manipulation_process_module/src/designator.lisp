@@ -239,7 +239,7 @@
     (desig-prop ?desig (at ?loc))
     (obstacles ?desig ?obstacles))
 
-  (<- (action-desig ?desig (execute-constraint-motion ?motion-phases ?pancake ?spatulas))
+  (<- (action-desig ?desig (constraint-motion-handler ?motion-phases ?pancake ?spatulas))
     (constraints-desig? ?desig)
     (desig-prop ?desig (to flip))
     (desig-prop ?desig (obj-acted-on ?pancake))
