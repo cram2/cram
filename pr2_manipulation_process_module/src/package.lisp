@@ -49,4 +49,4 @@
                      #:goal #:navigation #:grasped-by #:radius #:pot #:shape
                      #:collision-part #:cylinder #:length #:min-handles #:park
                      #:distance #:direction #:pull #:push #:flip #:constraints
-                     #:obj-acted-on #:obj-acted-with #:pancake #:spatula))
+                     #:obj-acted-on #:obj-acted-with #:pancake #:spatula #:knowrob-name))
