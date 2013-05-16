@@ -73,7 +73,7 @@
               :depends-on ("package" "kinematics" "collision-environment" "controller-manager" "motion-library" "grasping" "sensors"))
              (:file "events" :depends-on ("package" "collision-environment"))
              (:file "designator" :depends-on ("package" "knowrob_utils" "process-module"))
-             (:file "action-handlers" :depends-on ("package" "process-module"))
+             (:file "action-handlers" :depends-on ("package" "process-module" "feature-controllers"))
              (:file "feature-controllers" :depends-on ("package"))
              (:file "feature-controller-tests" 
               :depends-on ("package" "feature-controllers" "controller-manager" "process-module" ))))))
