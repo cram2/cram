@@ -191,11 +191,68 @@ for the currently type of grasped object."
         (t (put-down-grasped-object-with-single-arm
             object-designator location (first arms) obstacles))))
 
-(def-action-handler execute-constraint-motion (constraint-phases world-object-desig tool-object-desigs)
-  ;; squetched interface: tool-designator, object-designator, list of lists of constraints
-  ;; intended behaviour: publish reference frames of both objects in tf; execute motions
-  (roslisp:ros-warn 
-   (pr2-mpm) "Action handler to execute constraint motions not implemented, yet.")
-  (format t "world-object: ~a~%" world-object-desig)
-  (format t "tool-objects: ~a~%" (force-ll tool-object-desigs))
-  constraint-phases)
+(def-action-handler constraint-motion-handler (constraint-phases world-object-desig tool-object-desigs)
+  ;; first assemble all object designators and publish their transforms on tf
+  ;; (let ((tf-thread (publish-obj-desig-locations-in-tf (cons world-object-desig (force-ll tool-object-desigs)))))
+  ;;   ;; now do sth
+  ;;   tf-thread))
+   ;; do sth for the first phase
+  (let* ((object-name (desig-prop-value world-object-desig 'desig-props:knowrob-name))
+         (tool-names (mapcar #'(lambda (desig)
+                                 (desig-prop-value desig 'desig-props:knowrob-name))
+                             (force-ll tool-object-desigs)))
+         (constraints (query-knowrob-phase-constraints
+                        (first constraint-phases)
+                        (first tool-names))))
+    (format t "constraints: ~a~%" constraints)
+    (mapcar #'(lambda (constraint)
+                (query-knowrob-motion-constraint constraint
+                                                 (first tool-names)
+                                                 object-name))
+            constraints)))
+    
+;;; aux function to be moved
+
+(defun publish-obj-desig-locations-in-tf (desigs)
+  (flet ((broadcast-tf-transforms-in-thread (broadcaster transforms &key (interval 1.0))
+           (sb-thread:make-thread
+            #'(lambda ()
+                (roslisp:loop-at-most-every interval
+                  (unless (eq (roslisp:node-status) :running)
+                    (return))
+                  (mapcan #'(lambda (transform)
+                              (let ((m (roslisp:modify-message-copy (cl-tf::transform->msg transform)
+                                                            (:stamp :header) (roslisp:ros-time))))
+                                (roslisp:publish-msg broadcaster :transforms (vector m))))
+                          transforms)))))
+         (extract-stamped-transform (desig)
+           (let* ((current-desig (current-desig desig))
+                  (pose (desig-prop-value (desig-prop-value current-desig 'desig-props:at) 'desig-props:pose))
+                  (name (desig-prop-value current-desig 'desig-props:knowrob-name)))
+             (unless (eql (type-of pose) 'cl-tf:pose-stamped)
+               (error 'simple-error 
+                      :format-control "Pose '~a' was of not type pose-stamped.~%"
+                      :format-arguments (list pose)))
+             (unless name
+               (error 'simple-error 
+                      :format-control "Name was nil.~%"))
+             (cl-tf:make-stamped-transform (cl-tf:frame-id pose)
+                                           name
+                                           (cl-tf:stamp pose)
+                                           (cl-transforms:origin pose)
+                                           (cl-transforms:orientation pose)))))
+    (let ((transforms-to-broadcast (mapcar #'extract-stamped-transform desigs)))
+      (unless transforms-to-broadcast
+        (error 'simple-error 
+               :format-control "List with transforms to broadcast via tf was empty.~%"))
+      (broadcast-tf-transforms-in-thread *tf-broadcaster* transforms-to-broadcast :interval 0.02))))
+
+(defun arm-from-pose (pose)
+  (declare (type cl-tf:pose-stamped))
+  (let ((frame (cl-tf:frame-id pose)))
+    (cond ((string= frame "/r_gripper_tool_frame") :right)
+          ((string= frame "/l_gripper_tool_frame") :left)
+          (t (error 'simple-error 
+                    :format-control "Frame-id '~a' of pose '~a' could not be related to either of the arms.~%"
+                    :format-arguments (list frame pose))))))
+           
