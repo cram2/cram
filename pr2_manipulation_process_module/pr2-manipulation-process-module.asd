@@ -63,6 +63,7 @@
             ((:file "package")
              (:file "utils" :depends-on ("package"))
              (:file "knowrob_utils" :depends-on ("package"))
+             (:file "tf-utils" :depends-on ("package"))
              (:file "grasping" :depends-on ("package" "utils"))
              (:file "sensors" :depends-on ("package" "utils"))
              (:file "motion-library" :depends-on ("package"))
@@ -73,7 +74,7 @@
               :depends-on ("package" "kinematics" "collision-environment" "controller-manager" "motion-library" "grasping" "sensors"))
              (:file "events" :depends-on ("package" "collision-environment"))
              (:file "designator" :depends-on ("package" "knowrob_utils" "process-module"))
-             (:file "action-handlers" :depends-on ("package" "process-module" "feature-controllers"))
-             (:file "feature-controllers" :depends-on ("package"))
+             (:file "action-handlers" :depends-on ("package" "process-module" "feature-controllers" "tf-utils"))
+             (:file "feature-controllers" :depends-on ("package" "controller-manager"))
              (:file "feature-controller-tests" 
-              :depends-on ("package" "feature-controllers" "controller-manager" "process-module" ))))))
+              :depends-on ("package" "feature-controllers" "controller-manager" "process-module" "tf-utils"))))))
