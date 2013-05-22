@@ -231,6 +231,25 @@ by `planners' until one succeeds."
            (t (error 'manipulation-failed :result (list side pose))))
       (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))))
 
+(defun move-spine (position)
+  (let ((spine-lift-trajectory
+          (roslisp:make-msg
+           "trajectory_msgs/JointTrajectory"
+           (stamp header) (roslisp:ros-time)
+           joint_names #("torso_lift_joint")
+           points (vector
+                   (roslisp:make-message
+                    "trajectory_msgs/JointTrajectoryPoint"
+                    positions (vector position)
+                    velocities #(0)
+                    accelerations #(0)
+                    time_from_start 5.0)))))
+    (roslisp:ros-info (pr2-manip process-module)
+                      "Moving spine to position ~a." position)
+    (execute-torso-command spine-lift-trajectory)
+    (roslisp:ros-info (pr2-manip process-module)
+                      "Moving spine complete.")))
+
 (defun compliant-close-gripper (side)
   ;; (roslisp:call-service
   ;;  (ecase side
