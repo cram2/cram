@@ -31,43 +31,67 @@
 (def-top-level-cram-function flip-pancake ()
   (cpm:with-process-modules-running
       (pr2-manip-pm:pr2-manipulation-process-module)
-       ;; (point-head-process-module:point-head-process-module)
-    (with-designators
-        ((pancake-loc (location `((on oven)
-                                  (pose ,(cl-tf:make-pose-stamped 
-                                          "base_link" 0.0 
-                                          (cl-transforms:make-3d-vector 0.6 0.0 0.8)
-                                          (cl-transforms:make-identity-rotation))))))
-         (pancake (object `((type pancake)
-                            (knowrob-name ,"http://ias.cs.tum.edu/kb/spatula-features.owl#Pancake_PjkWnkr1")
-                            (at ,pancake-loc))))
-         ;; TODO(Georg): add the calibrated transforms of the spatulas
-         ;; w.r.t. to both grippers; find out how to assert them in the
-         ;; in the belief state
-         (left-spatula-loc (location
-                            `((in gripper)
-                              (pose ,(cl-tf:make-pose-stamped 
-                                      "l_gripper_tool_frame" 0.0 
-                                      (cl-transforms:make-3d-vector 0.0 0.0 0.0)
-                                      (cl-transforms:make-identity-rotation))))))
-         (right-spatula-loc (location
-                            `((in gripper)
-                              (pose ,(cl-tf:make-pose-stamped 
-                                      "r_gripper_tool_frame" 0.0
-                                      (cl-transforms:make-3d-vector -0.01 0.0 0.0)
-                                      (cl-transforms:make-identity-rotation))))))
-         (left-spatula (object `((type spatula)
-                                 (at ,left-spatula-loc)
-                                 (knowrob-name ,"http://ias.cs.tum.edu/kb/spatula-features.owl#Spatula_LvaYsvy6"))))
-         (right-spatula (object `((type spatula)
-                                  (at ,right-spatula-loc)
-                                  (knowrob-name ,"http://ias.cs.tum.edu/kb/spatula-features.owl#Spatula_Rkpqmqf1")))))
-      (equate left-spatula (make-effective-designator
-                            left-spatula
-                            :new-properties nil
-                            :data-object nil))
-      (equate right-spatula (make-effective-designator
-                            right-spatula
-                            :new-properties nil
-                            :data-object nil))
-      (achieve `(object-flipped ,pancake ,left-spatula ,right-spatula)))))
+    ;; (point-head-process-module:point-head-process-module)
+    (let* ((left-spatula-transform
+             ;; combine two transforms
+             (cl-transforms:transform*
+              ;; from gripper to spatula handle
+              (cl-transforms:make-transform
+               (cl-transforms:make-3d-vector 0.0 0.0 0.0)
+               (cl-transforms:euler->quaternion :ax 1.57))
+              ;; from spatula handle to spatula blade
+              (cl-transforms:make-transform
+               (cl-transforms:make-3d-vector 0.245 0.0 -0.015)
+               (cl-transforms:euler->quaternion :ay 2.1))))
+           (left-spatula-calibration
+             (cl-tf:pose->pose-stamped
+              "l_gripper_tool_frame" 0.0
+              (cl-transforms:transform->pose left-spatula-transform)))
+           (right-spatula-transform
+             ;; combine two transforms
+             (cl-transforms:transform*
+              ;; from gripper to spatula handle
+              (cl-transforms:make-transform
+               (cl-transforms:make-3d-vector -0.01 0.0 0.0)
+               (cl-transforms:euler->quaternion :ax 1.57 :ay 0.05))
+              ;; from spatula handle to spatula blade
+              (cl-transforms:make-transform
+               (cl-transforms:make-3d-vector 0.245 0.0 -0.015)
+               (cl-transforms:euler->quaternion :ay 2.1))))
+           (right-spatula-calibration
+             (cl-tf:pose->pose-stamped
+              "r_gripper_tool_frame" 0.0
+              (cl-transforms:transform->pose right-spatula-transform))))
+      (with-designators
+          ((pancake-loc (location `((on oven)
+                                    (pose ,(cl-tf:make-pose-stamped 
+                                            "base_link" 0.0 
+                                            (cl-transforms:make-3d-vector 0.598 -0.002 0.757)
+                                            (cl-transforms:make-identity-rotation))))))
+           (pancake (object `((type pancake)
+                              (knowrob-name ,"http://ias.cs.tum.edu/kb/spatula-features.owl#Pancake_PjkWnkr1")
+                              (at ,pancake-loc))))
+           (left-spatula-loc (location
+                              `((in gripper)
+                                (pose ,left-spatula-calibration))))
+           (right-spatula-loc (location
+                               `((in gripper)
+                                 (pose ,right-spatula-calibration))))
+           (left-spatula (object `((type spatula)
+                                   (at ,left-spatula-loc)
+                                   (knowrob-name ,"http://ias.cs.tum.edu/kb/spatula-features.owl#Spatula_LvaYsvy6"))))
+           (right-spatula (object `((type spatula)
+                                    (at ,right-spatula-loc)
+                                    (knowrob-name ,"http://ias.cs.tum.edu/kb/spatula-features.owl#Spatula_Rkpqmqf1")))))
+        (equate left-spatula (make-effective-designator
+                              left-spatula
+                              :new-properties nil
+                              :data-object nil))
+        (equate right-spatula (make-effective-designator
+                               right-spatula
+                               :new-properties nil
+                               :data-object nil))
+        (pr2-manip-pm::move-spine 0.31)
+        (pr2-manip-pm::joint-move-to-nice-config)
+        (achieve `(object-flipped ,pancake ,left-spatula ,right-spatula))
+        (pr2-manip-pm::joint-move-to-nice-config)))))
