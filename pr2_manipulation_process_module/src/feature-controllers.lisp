@@ -38,8 +38,6 @@
 (defvar *left-feature-controller-state-active-fluent* nil)
 (defvar *right-feature-controller-state-active-fluent* nil)
 
-(defvar *tf-broadcaster* nil)
-
 (defun init-feature-constraints-controller ()
   "Initializes all relevant ROS communication channels to command feature constraints to the feature constraint controllers of the left and right arm of the PR2. As usual, will be called during 'cram-roslisp-common:startup-ros' because it should be registered as an init-function."
   (setf *left-feature-constraints-command-pub*
@@ -75,9 +73,7 @@
         (roslisp:subscribe
          "/right_arm_feature_controller/constraint_state"
          "constraint_msgs/ConstraintState"
-         #'right-feature-constraints-controller-state-callback))
-  (setf *tf-broadcaster*
-        (cl-tf:make-transform-broadcaster)))
+         #'right-feature-constraints-controller-state-callback)))
 
 (register-ros-init-function init-feature-constraints-controller)
 
