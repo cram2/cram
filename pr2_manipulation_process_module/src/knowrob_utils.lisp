@@ -55,6 +55,30 @@
   (let ((numbers (mapcar #'knowrob-symbol->number knowrob-symbol-list)))
     (cl-transforms:make-3d-vector (first numbers) (second numbers) (third numbers))))
 
+(defun query-knowrob-constraints-action (motion-phases object-name tool-names)
+  (declare (type list motion-phases))
+  (mapcar #'(lambda (phase)
+              ;; for every tool do...
+              (mapcar #'(lambda (tool-name)
+                          ;; query knowrob for all constraint-ids of this phase
+                          (let ((constraints
+                                  (query-knowrob-phase-constraints
+                                   phase
+                                   tool-name)))
+                            ;; query knowrob for properties of all constraints of this phase
+                            ;; and construct the cram-structures.
+                            ;; AND: cons the tool-name in front of it, so that it is easy
+                            ;; to know which arm should execute this set of constraints
+                            (cons tool-name
+                                  (mapcar #'(lambda (constraint)
+                                              (query-knowrob-motion-constraint
+                                               constraint
+                                               tool-name
+                                               object-name))
+                                          constraints))))
+                      tool-names))
+          motion-phases))
+
 (defun query-knowrob-phase-constraints (phase tool)
   (let ((phase-name (etypecase phase
                       (string phase)
@@ -186,3 +210,34 @@
                'simple-error
                :format-control "Provided knowrob constraint type does not match known constraint types: ~a~%"
                :format-arguments (list type))))))
+
+(defun extract-knowrob-name (desig)
+  (declare (type desig:object-designator desig))
+  (desig-prop-value desig 'desig-props:knowrob-name))
+
+(defun arm-from-knowrob-name (knowrob-name desigs)
+  ;; find first desig in list having given knowrob-name
+  (let ((desig (find knowrob-name (force-ll desigs)
+                     :key #'extract-knowrob-name)))
+    (unless desig
+      (error 'simple-error 
+             :format-control "None of the desigs given had a knowrob-name of '~a'. Desigs: ~a~%"
+             :format-arguments (list knowrob-name desigs)))
+    ;; extract the pose of the desig
+    (let ((pose (desig-prop-value 
+                 (desig-prop-value (current-desig desig) 
+                                   'desig-props:at) 
+                 'desig-props:pose)))
+      (unless pose
+        (error 'simple-error 
+               :format-control "Designator '%a' did not contain a pose.~a~%"
+               :format-arguments (list desig)))
+      ;; now extract the frame of the pose and make the decision
+      (let ((frame (cl-tf:frame-id pose)))
+        (cond ((or (string= frame "r_gripper_tool_frame")
+                   (string= frame "/r_gripper_tool_frame")) :right)
+              ((or (string= frame "l_gripper_tool_frame")
+                   (string= frame "/l_gripper_tool_frame")) :left)
+              (t (error 'simple-error 
+                        :format-control "Frame-id '~a' of pose '~a' could not be related to either of the arms.~%"
+                        :format-arguments (list frame pose))))))))
