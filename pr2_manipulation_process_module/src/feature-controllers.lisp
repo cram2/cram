@@ -166,7 +166,7 @@
   "Takes a set of 'constraints' and configures, starts, waits-for-finish, and stops the feature constraints controller of arm 'side' with said constraints."
   (declare (type list constraints))
   (multiple-value-bind (undefined-features unknown-frames)
-      (get-unknown-frame-ids-of-features constraints)
+      (get-unknown-frame-ids-of-features constraints :timeout 3.0 :time 0.0)
     (declare (ignore undefined-features)
              (type list unknown-frames))
     (when unknown-frames
@@ -181,7 +181,7 @@
     (when shutdown-controllers-afterwards
       (shutdown-velocity-resolved-controllers side))))
 
-(defun get-unknown-frame-ids-of-features (constraints &optional (source-frame "/base_link") (timeout 1.0) (time (roslisp:ros-time)))
+(defun get-unknown-frame-ids-of-features (constraints &key (source-frame "/base_link") (timeout 1.0) (time (roslisp:ros-time)))
   "Takes a list of 'constraints' and checks whether any of the contained geometric features have frame-ids for which a TF query at 'time' from 'source-frame' timed out after 'timeout' seconds. Returns a list of the features with such frame-ids and a list of the unknown frame-ids. If all features are well-defined nil and nil are returned."
   (declare (type list constraints)
            (type string source-frame))
