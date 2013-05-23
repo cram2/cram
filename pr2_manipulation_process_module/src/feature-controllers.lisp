@@ -173,6 +173,7 @@
     (send-constraints-config constraints side)
     (send-constraints-command constraints side)
     (start-velocity-resolved-controllers side)
+    (sleep 0.3) ;;another hack screaming for an action interface
     (wait-for-feature-controller side)
     (when shutdown-controllers-afterwards
       (shutdown-velocity-resolved-controllers side))))
