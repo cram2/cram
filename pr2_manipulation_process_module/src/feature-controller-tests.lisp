@@ -232,7 +232,7 @@
         (right-joint-goal '(-1.05 -0.01 -0.61 -0.44 5.6 -0.86 0.16))
         (left-joint-names '("l_shoulder_pan_joint" "l_shoulder_lift_joint" "l_upper_arm_roll_joint" "l_elbow_flex_joint" "l_forearm_roll_joint" "l_wrist_flex_joint" "l_wrist_roll_joint"))
         (right-joint-names '("r_shoulder_pan_joint" "r_shoulder_lift_joint" "r_upper_arm_roll_joint" "r_elbow_flex_joint" "r_forearm_roll_joint" "r_wrist_flex_joint" "r_wrist_roll_joint"))
-        (trajectory-duration 3.0))
+        (trajectory-duration 5.0))
     (let ((left-trajectory (roslisp:make-message
                             "trajectory_msgs/JointTrajectory"
                             (stamp header) (roslisp:ros-time)

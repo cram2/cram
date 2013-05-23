@@ -12,7 +12,7 @@
     <param name="~robot_base_frame" value="base_link"/>
     <param name="~map_frame" value="base_link"/>
     <param name="~base_frame" value="torso_lift_link"/> <!-- refactor into 'arm_base_frame' -->
-    <param name="~joint_limit_avoidance" value="true"/>
+    <param name="~joint_limit_avoidance" value="false"/>
     <remap from="~qdot" to="/l_arm_vel/command"/>
   </node>
 
@@ -21,7 +21,7 @@
     <param name="~robot_base_frame" value="base_link"/>
     <param name="~map_frame" value="base_link"/>
     <param name="~base_frame" value="torso_lift_link"/> <!-- refactor into 'arm_base_frame' -->
-    <param name="~joint_limit_avoidance" value="true"/>
+    <param name="~joint_limit_avoidance" value="false"/>
     <remap from="~qdot" to="/r_arm_vel/command"/>
   </node>
 
