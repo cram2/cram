@@ -48,7 +48,7 @@
            (declare (ignore f))
            (retry)))
       (ros-info (achieve plan-lib) "Pointing head at object.")
-      ;(perform head-trajectory)
+      (perform head-trajectory)
       (ros-info (achieve plan-lib) "Perceiving object.")
       ;; (perceive-object 'currently-visible ?obj)
       ;; (let ((perceived-desigs (perceive-object 'currently-visible ?obj)))
