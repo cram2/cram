@@ -30,8 +30,8 @@
 
 (def-top-level-cram-function flip-pancake ()
   (cpm:with-process-modules-running
-      (pr2-manip-pm:pr2-manipulation-process-module)
-    ;; (point-head-process-module:point-head-process-module)
+      (pr2-manip-pm:pr2-manipulation-process-module
+       point-head-process-module:point-head-process-module)
     (let* ((left-spatula-transform
              ;; combine two transforms
              (cl-transforms:transform*
