@@ -72,12 +72,15 @@
 (defparameter *max-graspable-size* (cl-transforms:make-3d-vector 0.15 0.15 0.30))
 
 (defun execute-grasp (&key pregrasp-pose grasp-solution
-                        side (gripper-open-pos 0.08) (gripper-close-pos 0.0))
+                        side (gripper-open-pos 0.08) (gripper-close-pos 0.0) allowed-collision-objects)
   (assert (and pregrasp-pose grasp-solution) ()
           "Unspecified parameter in execute-grasp.")
   (roslisp:ros-info (pr2-manipulation-process-module)
                     "Executing pregrasp for side ~a~%" side)
-  (execute-move-arm-pose side pregrasp-pose)
+  (execute-move-arm-pose side pregrasp-pose
+                         :allowed-collision-objects
+                         allowed-collision-objects
+                         :planners `(:ompl))
   (roslisp:ros-info (pr2-manipulation-process-module) "Opening gripper")
   (open-gripper side :max-effort 50.0 :position gripper-open-pos)
   (roslisp:ros-info (pr2-manipulation-process-module)
@@ -86,21 +89,27 @@
   (roslisp:ros-info (pr2-manipulation-process-module) "Closing gripper")
   (close-gripper side :max-effort 50.0 :position gripper-close-pos))
 
-(defun execute-putdown (&key pre-putdown-pose putdown-solution unhand-solution
-                          side (gripper-open-pos 0.08) allowed-collision-objects)
-  (assert (and pre-putdown-pose putdown-solution unhand-solution) ()
-          "Unspecified parameter in execute-putdown.")
+(defun execute-putdown (&key pre-putdown-pose putdown-solution
+                          unhand-solution
+                          putdown-trajectory side
+                          (gripper-open-pos 0.08)
+                          allowed-collision-objects)
+  ;; (assert (and pre-putdown-pose putdown-solution unhand-solution
+  ;;              putdown-trajectory) ()
+  ;;         "Unspecified parameter in execute-putdown.")
   (roslisp:ros-info (pr2-manipulation-process-module)
                     "Executing pre-putdown for side ~a~%" side)
   (roslisp:publish (roslisp:advertise "/preputdownpose"
                                       "geometry_msgs/PoseStamped")
                    (tf:pose-stamped->msg pre-putdown-pose))
   (execute-move-arm-pose side pre-putdown-pose
-                         :allowed-collision-objects allowed-collision-objects)
+                         :allowed-collision-objects
+                         allowed-collision-objects)
   (roslisp:ros-info (pr2-manipulation-process-module)
                     "Executing putdown for side ~a~%" side)
   (execute-arm-trajectory side (ik->trajectory putdown-solution))
-  (roslisp:ros-info (pr2-manipulation-process-module) "Opening gripper")
+  (roslisp:ros-info (pr2-manipulation-process-module)
+                    "Opening gripper")
   (open-gripper side :max-effort 50.0 :position gripper-open-pos)
   (execute-arm-trajectory side (ik->trajectory unhand-solution)))
 
@@ -640,21 +649,31 @@ interfere with one another when manipulation is one."
         (execute-arm-trajectory :left (ik->trajectory ik-left))))))
 
 (defun relative-grasp-pose (pose pose-offset)
-  (let ((stamp (roslisp:ros-time)))
-    (tf:wait-for-transform
-     *tf*
-     :source-frame (tf:frame-id pose)
-     :target-frame "/torso_lift_link"
-     :time stamp)
-    (tf:transform-pose
-     *tf*
-     :pose (tf:pose->pose-stamped
-            (tf:frame-id pose)
-            stamp
-            (cl-transforms:transform-pose
-             (tf:pose->transform pose)
-             pose-offset))
-     :target-frame "/torso_lift_link")))
+  (let* ((stamp (roslisp:ros-time))
+         (target-frame "/torso_lift_link"))
+    ;; NOTE(winkler): Right now, we check whether a transformation can
+    ;; actually be done at the current time. This has to be checked
+    ;; because sometimes the upcoming wait-for-transform waits forever
+    ;; (for yet unknown reasons). This is a preliminary fix, though.
+    (let ((pose-offsetted (tf:pose->pose-stamped
+                           (tf:frame-id pose)
+                           stamp
+                           (cl-transforms:transform-pose
+                            (cl-transforms:pose->transform pose)
+                            pose-offset))))
+      (unless (tf:wait-for-transform
+               *tf*
+               :source-frame (tf:frame-id pose)
+               :target-frame target-frame
+               :time stamp
+               :timeout 5.0)
+        (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))
+      (cond ((string= (tf:frame-id pose) target-frame)
+             (tf:transform-pose
+              *tf*
+              :pose pose-offsetted
+              :target-frame target-frame))
+            (t pose-offsetted)))))
 
 (defun relative-linear-translation->ik (arm &key (x 0.0) (y 0.0) (z 0.0))
   (let* ((wrist-transform (tf:lookup-transform
