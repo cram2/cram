@@ -164,7 +164,7 @@
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to grasp))
     (desig-prop ?desig (obj ?obj))
-    (newest-effective-designator ?obj ?current-obj)
+    (current-designator ?obj ?current-obj)
     (obstacles ?desig ?obstacles)
     (handles ?current-obj ?handles)
     (available-arms ?current-obj ?available-arms)
