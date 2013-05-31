@@ -48,4 +48,4 @@
                      #:z-offset #:distance #:obstacle #:handle #:name
                      #:goal #:navigation #:grasped-by #:radius #:pot #:shape
                      #:collision-part #:cylinder #:length #:min-handles #:park
-                     #:distance #:direction #:pull #:push))
+                     #:distance #:direction #:pull #:push #:location))
