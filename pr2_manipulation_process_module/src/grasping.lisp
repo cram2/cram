@@ -58,13 +58,13 @@ grasp.")
 (defparameter *pre-putdown-offset*
   (tf:make-pose
    (tf:make-3d-vector
-    0.0 0.2 0.0)
+    0.0 -0.2 0.0)
    (tf:euler->quaternion :ax (/ pi -2))))
 (defparameter *putdown-offset*
   (tf:make-pose
    (tf:make-3d-vector
     0.0 0.0 0.0)
-   (tf:euler->quaternion :ax (/ pi 2))))
+   (tf:euler->quaternion :ax (/ pi -2))))
 
 (defun relative-pose-for-handle (obj handle &key relative-pose)
   (tf:wait-for-transform *tf*
@@ -350,4 +350,4 @@ configuration."
                      (acos (/ (- (tf:x p2) (tf:x p1)) (tf:v-dist p1 p2))))))
       (tf:make-pose-stamped fin-frame 0.0
                             (tf:origin object-pose-map)
-                            (tf:euler->quaternion :az angle)))))
+                            (tf:euler->quaternion :az (+ angle (/ pi 2)))))))
