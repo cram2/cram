@@ -30,8 +30,8 @@
 (defun make-semantic-visibility-costmap (objects &key pose robot
                                                    occluding-object invert)
   (declare (ignore objects))
-  (let ((min-dist 0.7)
-        (max-dist 1.5)
+  (let ((min-dist 0.8)
+        (max-dist 1.3)
         (from-pose (cond (robot
                           (cut:var-value
                            '?pose

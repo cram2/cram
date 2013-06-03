@@ -112,8 +112,11 @@ designator."
                          (wait-for (make-fluent :value nil)))))
                 (seq
                   (wait-for navigation-done)
-                  (assert (location-designator-reached
-                           (current-robot-location) loc-var))
+                  (unless (location-designator-reached
+                           (current-robot-location) loc-var)
+                    (cpl:fail 'cram-plan-failures:location-not-reached-failure))
+                  ;; (assert (location-designator-reached
+                  ;;          (current-robot-location) loc-var))
                   (pursue
                     ;; We are ignoring the designator-updated and
                     ;; location-changed fluents inside the body of the
