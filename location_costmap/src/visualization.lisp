@@ -94,9 +94,10 @@
 
 (defun publish-location-costmap (map &key (frame-id "/map") (threshold 0.0005) (z *z-padding*))
   (when *location-costmap-publisher*
-    (publish *location-costmap-publisher* (location-costmap->collision-map
-                                           map :frame-id frame-id :threshold threshold
-                                           :z z))))
+    (publish *location-costmap-publisher*
+             (location-costmap->collision-map
+              map :frame-id frame-id :threshold threshold
+                  :z z))))
 
 (let ((current-index 0))
   
