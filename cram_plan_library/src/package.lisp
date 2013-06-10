@@ -65,7 +65,9 @@
            #:object-picked-up
            #:object-in-hand-failure
            #:object-not-found-failure
-           #:with-designators)
+           #:with-designators
+           #:a
+           #:an)
   (:desig-properties #:to #:see #:obj #:of #:reach #:type #:trajectory
                      #:pose #:open #:side #:grasp #:lift #:carry :reach
                      #:location #:at #:parked #:pose #:close #:gripper
