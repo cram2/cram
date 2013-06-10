@@ -5,6 +5,7 @@
 #include <math.h>
 
 #include <ros/ros.h>
+#include <urdf/model.h>
 #include <tf/transform_listener.h>
 #include <tf_conversions/tf_kdl.h>
 #include <tf/transform_datatypes.h>
