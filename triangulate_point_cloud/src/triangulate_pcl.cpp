@@ -38,6 +38,7 @@
 #include <pcl/point_types.h>
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/surface/mls.h>
+#include <pcl/surface/impl/mls.hpp>
 #include <pcl/surface/convex_hull.h>
 
 #include <sensor_msgs/point_cloud_conversion.h>
@@ -60,20 +61,19 @@ void reconstructMesh(const PointCloud<PointXYZ>::ConstPtr &cloud,
   tree->setInputCloud(cloud);
 
   PointCloud<PointXYZ>::Ptr mls_points(new PointCloud<PointXYZ>);
-  PointCloud<Normal>::Ptr mls_normals(new PointCloud<Normal>);
-  MovingLeastSquares<PointXYZ, Normal> mls;
+  PointCloud<PointNormal>::Ptr mls_normals(new PointCloud<PointNormal>);
+  MovingLeastSquares<PointXYZ, PointNormal> mls;
 
   mls.setInputCloud(cloud);
   mls.setIndices(indices);
   mls.setPolynomialFit(true);
   mls.setSearchMethod(tree);
   mls.setSearchRadius(0.03);
-
-  mls.setOutputNormals (mls_normals);
-  mls.reconstruct (*mls_points);
-
+  
+  mls.process(*mls_normals);
+  
   ConvexHull<PointXYZ> ch;
-
+  
   ch.setInputCloud(mls_points);
   ch.reconstruct(output_cloud, triangles);
 }
