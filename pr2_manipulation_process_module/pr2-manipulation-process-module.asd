@@ -55,7 +55,8 @@
                pr2_gripper_sensor_msgs-msg
                arm_navigation_msgs-srv
                pr2_mechanism_msgs-srv
-               pr2-manipulation-knowledge)
+               pr2-manipulation-knowledge
+               cram-moveit)
   :components
   ((:module "src"
             :components

@@ -30,5 +30,6 @@
   <depend package="arm_navigation_msgs" />
   <depend package="pr2_mechanism_msgs" />
   <depend package="pr2_manipulation_knowledge" />
+  <depend package="cram_moveit" />
 
 </package>
