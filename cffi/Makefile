@@ -1,6 +1,6 @@
 
 TARBALL=cffi-20110810.tar.gz
-TARBALL_URL=http://code.in.tum.de/files/$(TARBALL)
+TARBALL_URL=http://ai.uni-bremen.de/public/$(TARBALL)
 
 DIR_BASENAME=cffi-dev
 
