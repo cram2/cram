@@ -1,11 +1,12 @@
 
 SPLIT_SEQ_ARCHIVE=split-sequence.tar.gz
+SPLIT_SEQ_URL=http://code.in.tum.de/files/$(SPLIT_SEQ_ARCHIVE)
 
 all: installed
 
 downloaded: Makefile
 	make clean
-	wget http://code.in.tum.de/files/$(SPLIT_SEQ_ARCHIVE)
+	$(shell echo $$ROS_ROOT)/core/rosbuild/bin/download_checkmd5.py $(SPLIT_SEQ_URL) $(SPLIT_SEQ_ARCHIVE)
 	touch downloaded
 
 installed: downloaded
