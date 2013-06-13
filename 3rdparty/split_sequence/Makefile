@@ -1,6 +1,6 @@
 
 SPLIT_SEQ_ARCHIVE=split-sequence.tar.gz
-SPLIT_SEQ_URL=http://code.in.tum.de/files/$(SPLIT_SEQ_ARCHIVE)
+SPLIT_SEQ_URL=http://ai.uni-bremen.de/public/$(SPLIT_SEQ_ARCHIVE)
 
 all: installed
 
