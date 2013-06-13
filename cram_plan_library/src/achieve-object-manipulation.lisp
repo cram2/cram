@@ -116,10 +116,7 @@
                             (action `((type trajectory) (to park) (obj ,obj))))
                            (put-down-loc
                             (location `((to reach)
-                                        (location ,?loc)))
-                            ;; (location `((to execute)
-                            ;;             (action ,put-down-trajectory)))
-                            ))
+                                        (location ,?loc)))))
           (with-failure-handling
               ((manipulation-failure (f)
                  (declare (ignore f))
