@@ -1,5 +1,5 @@
 TARBALL=synchronization-tools-20110210.tar.bz2
-TARBALL_URL=http://code.in.tum.de/files/$(TARBALL)
+TARBALL_URL=http://ai.uni-bremen.de/public/$(TARBALL)
 
 all: installed
 
