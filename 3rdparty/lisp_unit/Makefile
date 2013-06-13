@@ -6,7 +6,7 @@ all: installed
 
 downloaded: Makefile
 	make clean
-	`rospack find rosbuild`/bin/download_checkmd5.py $(TARBALL_URL) $(TARBALL)
+	$(shell echo $$ROS_ROOT)/core/rosbuild/bin/download_checkmd5.py $(TARBALL_URL) $(TARBALL)
 	touch rospack_nosubdirs
 	touch downloaded
 
