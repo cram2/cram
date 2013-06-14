@@ -60,7 +60,7 @@
     (findall ?o (desig-prop ?desig (obstacle ?o))
              ?obstacles))
 
-  (<- (absolute-handle ?object-desig ?absolute-handle)
+  (<- (absolute-handle ?object-desig ?handle ?absolute-handle)
     (current-designator ?object-desig ?current-object)
     (handles ?current-object ?handles)
     (member ?handle ?handles)
@@ -97,10 +97,16 @@
     (loc-desig? ?obj-loc)
     (desig-prop ?obj-loc (in gripper)))
 
-  (<- (action-desig ?desig (container-opened ?handle :right))
+  (<- (action-desig ?desig (container-opened ?current-obj ?grasp-assignments
+                                             ?angle))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to open))
-    (desig-prop ?desig (handle ?handle)))
+    (desig-prop ?desig (obj ?obj))
+    (current-designator ?obj ?current-obj)
+    (handles ?current-obj ?handles)
+    (desig-prop ?desig (angle ?angle))
+    (available-arms ?current-obj ?available-arms)
+    (optimal-handle-grasp ?current-obj ?available-arms ?grasp-assignments))
 
   (<- (action-desig ?desig (container-closed ?handle :right))
     (trajectory-desig? ?desig)
@@ -183,7 +189,9 @@
     (current-designator ?object-desig ?current-object)
     (handles ?current-object ?handles)
     (min-handles ?current-object ?min-handles)
-    (setof ?absolute-handle (absolute-handle ?current-object ?absolute-handle)
+    (setof (?handle . ?absolute-handle) (absolute-handle ?current-object
+                                                         ?handle
+                                                         ?absolute-handle)
            ?absolute-handles)
     (lisp-fun optimal-arm-handle-assignment
               ?available-arms
