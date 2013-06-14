@@ -49,12 +49,12 @@ grasp.")
   (tf:make-pose
    (tf:make-3d-vector
     -0.25 0.0 0.0)
-   (tf:euler->quaternion :ax (/ pi 2))))
+   (tf:euler->quaternion :ax (/ pi -2))))
 (defparameter *grasp-offset*
   (tf:make-pose
    (tf:make-3d-vector
-    -0.15 0.0 0.0)
-   (tf:euler->quaternion :ax (/ pi 2))))
+    -0.18 0.0 0.0)
+   (tf:euler->quaternion :ax (/ pi -2))))
 (defparameter *pre-putdown-offset*
   (tf:make-pose
    (tf:make-3d-vector
@@ -90,7 +90,9 @@ location designator. The optional parameter `handle-offset-pose' is
 applied to the handle pose before the absolute object pose is
 applied."
   (let* ((absolute-object-loc (desig-prop-value obj 'at))
-         (absolute-object-pose-stamped (reference absolute-object-loc))
+         (absolute-object-pose-stamped (desig-prop-value
+                                        absolute-object-loc
+                                        'desig-props:pose))
          (relative-handle-loc (desig-prop-value handle 'at))
          (relative-handle-pose (cl-transforms:transform-pose
                                 (tf:pose->transform
@@ -133,12 +135,13 @@ applied."
             (lambda (assign-1 assign-2)
               (< (cost-function-grasp-handle-ik-constraint-aware assign-1)
                  (cost-function-grasp-handle-ik-constraint-aware assign-2)))))
-         (assignments (mapcar (lambda (arm handle-obj)
+         (assignments (mapcar (lambda (arm handle-pair)
                                 (make-instance
                                  'grasp-assignment
                                  :pose (reference
-                                        (desig-prop-value handle-obj 'at))
-                                 :side arm))
+                                        (desig-prop-value (cdr handle-pair) 'at))
+                                 :side arm
+                                 :handle-pair handle-pair))
                               (first (first sorted-valid-assignments))
                               (second (first sorted-valid-assignments)))))
     (unless assignments
@@ -179,7 +182,7 @@ could reach the handle, `NIL' is returned."
                                      (tf:orientation handle-pose-offsetted))
           for distance = (reaching-length handle-pose-stamped arm
                                           :constraint-aware constraint-aware
-                                          :calc-euclidean-distance t
+                                          :calc-euclidean-distance nil
                                           :euclidean-target-link target-link)
           when distance
             collect (cons arm distance))))
@@ -221,8 +224,8 @@ solution. Physically speaking, this measures the distances the
 individual arms have to travel when executing this grasp
 configuration."
   (let ((assignment-poses
-          (mapcar (lambda (handle)
-                    (reference (desig-prop-value handle 'at)))
+          (mapcar (lambda (handle-pair)
+                    (reference (desig-prop-value (cdr handle-pair) 'at)))
                   (second assignment))))
     (cost-function-grasp-ik-constraint-aware
      (list (first assignment) assignment-poses))))
@@ -351,3 +354,37 @@ configuration."
       (tf:make-pose-stamped fin-frame 0.0
                             (tf:origin object-pose-map)
                             (tf:euler->quaternion :az (+ angle (/ pi 2)))))))
+
+(defun open-angle (object handle angle-deg)
+  (let* ((angle-rad (* (/ angle-deg 180.0) pi))
+         (object-pose (reference (desig-prop-value object 'desig-props:at)))
+         (joint (desig-prop-value handle 'desig-props:joint))
+         (joint-pose (reference (desig-prop-value joint 'desig-props:at)))
+         (joint-axis (desig-prop-value joint 'desig-props:joint-axis))
+         (handle-pose (reference (desig-prop-value handle 'desig-props:at))))
+    (let* ((roll (* (tf:x joint-axis) angle-rad))
+           (pitch (* (tf:y joint-axis) angle-rad))
+           (yaw (* (tf:z joint-axis) angle-rad))
+           (rot-q (tf:euler->quaternion :ax roll :ay pitch :az yaw)))
+      (let* ((zeroed-handle-pose (tf:make-pose
+                                  (tf:v- (tf:origin handle-pose)
+                                         (tf:origin joint-pose))
+                                  (tf:orientation handle-pose)))
+             (rotated-handle-pose (cl-transforms:transform-pose
+                                   (tf:make-transform
+                                    (tf:make-identity-vector)
+                                    rot-q)
+                                   zeroed-handle-pose))
+             (relative-handle-pose (cl-transforms:transform-pose
+                                    (tf:make-transform
+                                     (tf:origin joint-pose)
+                                     (tf:make-identity-rotation))
+                                    rotated-handle-pose))
+             (absolute-handle-pose (cl-transforms:transform-pose
+                                    (cl-transforms:pose->transform
+                                     object-pose)
+                                    relative-handle-pose)))
+        (tf:pose->pose-stamped
+         (tf:frame-id object-pose)
+         (roslisp:ros-time)
+         absolute-handle-pose)))))

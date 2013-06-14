@@ -32,10 +32,31 @@
     `(defmethod call-action ((,action-sym (eql ',name)) &rest ,params)
        (destructuring-bind ,args ,params ,@body))))
 
-(def-action-handler container-opened (handle side)
-  (let* ((handle-pose (designator-pose (newest-effective-designator handle)))
-         (new-object-pose (open-drawer handle-pose side)))
-    (update-object-designator-pose handle new-object-pose)))
+(def-action-handler container-opened (object grasp-assignments opening-measure)
+  (call-action 'grasp object grasp-assignments nil)
+  (let* ((grasp-assignment (first grasp-assignments))
+         (handle-pair (slot-value grasp-assignment 'handle-pair))
+         (handle-relative (car handle-pair))
+         (handle-absolute (cdr handle-pair))
+         (side (slot-value grasp-assignment 'side))
+         (opening-step 5.0)
+         (steps (loop for i from opening-step to opening-measure
+                        by opening-step
+                      collect (open-angle object handle-relative (- i)))))
+    (declare (ignore handle-absolute))
+    (loop for step in steps
+          ;; TODO(winkler): Refactor this to send a series of poses in
+          ;; ONE movement description to MoveIt! instead. This way,
+          ;; the motion planner can also tell us whether the opening
+          ;; will work or not. Also: Do this _BEFORE_ grasping the
+          ;; handle.
+          for pose-grasp = (relative-grasp-pose
+                            step *grasp-offset*)
+          do (roslisp:publish
+              (roslisp:advertise
+               "/dbg" "geometry_msgs/PoseStamped")
+              (tf:pose-stamped->msg pose-grasp))
+             (execute-move-arm-pose side pose-grasp))))
 
 (def-action-handler container-closed (handle side)
   (let* ((handle-pose (designator-pose (newest-effective-designator handle)))
@@ -130,46 +151,49 @@
 
 (def-action-handler grasp (obj-desig grasp-assignments obstacles)
   (declare (ignore obstacles))
-  (roslisp:call-service "/collider_node/reset" "std_srvs/Empty")
   (let ((pair-count (length grasp-assignments)))
     (assert (> pair-count 0) ()
-            "No arm/pose pairs specified during grasping.")
+            "No arm/pose pairs specified for grasping.")
     (cpl:par-loop (grasp-assignment grasp-assignments)
       (let ((pose (slot-value grasp-assignment 'pose)))
-        (tf:wait-for-transform
-         *tf*
-         :source-frame (tf:frame-id pose)
-         :target-frame "/torso_lift_link"
-         :time (roslisp:ros-time))
-        (let* ((side (slot-value grasp-assignment 'side))
-               (pregrasp-pose (relative-grasp-pose
-                               pose *pregrasp-offset*))
-               (pregrasp-pose-tll (tf:transform-pose
-                                   *tf*
-                                   :pose pregrasp-pose
-                                   :target-frame "/torso_lift_link"))
-               (grasp-pose (relative-grasp-pose
-                            pose *grasp-offset*))
-               (grasp-pose-tll (tf:transform-pose
-                                *tf*
-                                :pose grasp-pose
-                                :target-frame "/torso_lift_link"))
-               (grasp-solution
-                 (first (get-ik side grasp-pose-tll))))
-          (unless grasp-solution
-            (cpl:fail 'manipulation-pose-unreachable))
-          (cpl:with-failure-handling
-              ((cram-plan-failures:manipulation-failed (f)
-                 (declare (ignore f))
-                 (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable)))
-            (execute-grasp :pregrasp-pose pregrasp-pose-tll
-                           :grasp-solution grasp-solution
-                           :side side
-                           :gripper-open-pos 0.1
-                           :gripper-close-pos 0.01)))))
+        (cond ((tf:wait-for-transform
+                *tf*
+                :source-frame (tf:frame-id pose)
+                :target-frame "/torso_lift_link"
+                :timeout 5.0
+                :time (tf:stamp pose))
+               (let* ((side (slot-value grasp-assignment 'side))
+                      (pregrasp-pose (relative-grasp-pose
+                                      pose *pregrasp-offset*))
+                      (pregrasp-pose-tll (tf:transform-pose
+                                          *tf*
+                                          :pose pregrasp-pose
+                                          :target-frame "/torso_lift_link"))
+                      (grasp-pose (relative-grasp-pose
+                                   pose *grasp-offset*))
+                      (grasp-pose-tll (tf:transform-pose
+                                       *tf*
+                                       :pose grasp-pose
+                                       :target-frame "/torso_lift_link"))
+                      (close-radius (or (slot-value grasp-assignment
+                                                    'close-radius)
+                                        0.015)))
+                 (cpl:with-failure-handling
+                     ((cram-plan-failures:manipulation-failed (f)
+                        (declare (ignore f))
+                        (cpl:fail
+                         'cram-plan-failures:manipulation-pose-unreachable)))
+                   (execute-grasp :pregrasp-pose pregrasp-pose-tll
+                                  :grasp-pose grasp-pose-tll
+                                  :side side
+                                  :gripper-close-pos close-radius))))
+              (t (cpl:error 'manipulation-failed)))))
     (loop for grasp-assignment in grasp-assignments
           for side = (slot-value grasp-assignment 'side)
-          if (> (get-gripper-state side) 0.005)
+          for grasped-object = (or (car (slot-value grasp-assignment
+                                                    'handle-pair))
+                                   obj-desig)
+          if t;(> (get-gripper-state side) 0.005)
             do (with-vars-strictly-bound (?link-name)
                    (lazy-car
                     (prolog
@@ -178,7 +202,7 @@
                  (plan-knowledge:on-event
                   (make-instance
                      'plan-knowledge:object-attached
-                   :object obj-desig
+                   :object grasped-object
                    :link ?link-name
                    :side side)))
           else

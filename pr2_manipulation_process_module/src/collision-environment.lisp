@@ -37,7 +37,7 @@
   (setf *collision-object-pub*
         (roslisp:advertise "/collision_object" "arm_navigation_msgs/CollisionObject" :latch t))
   (setf *attached-object-pub*
-        (roslisp:advertise "/attached_collision_object" "arm_navigation_msgs/AttachedCollisionObject" :latch t)))
+        (roslisp:advertise "/attached_collision_object" "moveit_msgs/AttachedCollisionObject" :latch t)))
 
 (register-ros-init-function init-collision-environment)
 
