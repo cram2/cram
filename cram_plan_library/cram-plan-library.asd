@@ -50,6 +50,7 @@
              (:file "achieve-loc" :depends-on ("package"
                                                "goal-declarations"
                                                "achieve-object-manipulation"
+                                               "achieve-container-manipulation"
                                                "achieve-ptu"
                                                "utilities"))
              (:file "achieve-ptu"
@@ -59,6 +60,7 @@
              (:file "perceive-object"
               :depends-on ("package" "goal-declarations" "at-location" "utilities" "with-designators"))
              (:file "perceive-state" :depends-on ("package" "goal-declarations"))
+             (:file "achieve-container-manipulation" :depends-on ("achieve-object-manipulation"))
              (:file "achieve-object-manipulation"
               :depends-on ("package"
                            "goal-declarations"

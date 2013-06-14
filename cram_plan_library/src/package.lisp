@@ -45,6 +45,7 @@
            #:loc
            #:object-in-hand
            #:object-placed-at
+           #:container-opened
            #:perceive-object-in-gripper
            #:arms-parked
            #:arms-at
@@ -73,4 +74,4 @@
                      #:location #:at #:parked #:pose #:close #:gripper
                      #:follow #:pick-up #:put-down #:height #:orientation
                      #:in #:perceive #:obstacle #:cluster #:execute
-                     #:action #:goal #:navigation #:park #:on))
+                     #:action #:goal #:navigation #:park #:on #:angle))
