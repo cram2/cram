@@ -42,8 +42,10 @@
         long-symbol-name)))
 
 (defun knowrob-symbol->number (knowrob-symbol)
-  (declare (type symbol knowrob-symbol))
-  (read-from-string (knowrob-symbol->string knowrob-symbol)))
+  "Takes a knowrob-symbol which is assumed to represent a number and returns the extracted value of the number. If the input is already a number it will be returned directly. If the input is neither a number or a knowrob-symbol representing a number, an error will be thrown." 
+  (etypecase knowrob-symbol
+    (number knowrob-symbol)
+    (symbol (read-from-string (knowrob-symbol->string knowrob-symbol)))))
 
 (defun knowrob-symbol-list->vector-3d (knowrob-symbol-list)
   (declare (type list knowrob-symbol-list))
@@ -61,10 +63,9 @@
               ;; for every tool do...
               (mapcar #'(lambda (tool-name)
                           ;; query knowrob for all constraint-ids of this phase
-                          (let ((constraints
-                                  (query-knowrob-phase-constraints
-                                   phase
-                                   tool-name)))
+                          (let 
+                              ((constraints
+                                 (query-knowrob-phase-constraints phase tool-name)))
                             ;; query knowrob for properties of all constraints of this phase
                             ;; and construct the cram-structures.
                             ;; AND: cons the tool-name in front of it, so that it is easy
@@ -100,7 +101,7 @@
          (bindings (json-prolog:prolog
                     `("constraint_properties" ,constraint-name ?type ?tool_feature
                                               ?world_feature ?weight ?lower ?upper
-                                              ?min_vel ?max_vel)
+                                              ?max_vel)
                     :package 'pr2-manip-pm)))
     (let ((type-symbol (var-value '?type (lazy-car bindings)))
           (tool-feature-symbol (var-value '?tool_feature (lazy-car bindings)))
@@ -108,7 +109,6 @@
           (weight-symbol (var-value '?weight (lazy-car bindings)))
           (lower-symbol (var-value '?lower (lazy-car bindings)))
           (upper-symbol (var-value '?upper (lazy-car bindings)))
-          (min-vel-symbol (var-value '?min_vel (lazy-car bindings)))
           (max-vel-symbol (var-value '?max_vel (lazy-car bindings))))
       (ecase (knowrob-constraint-type->cram-constraint-type type-symbol)
         (:distance-constraint
@@ -119,8 +119,7 @@
           (knowrob-symbol->number lower-symbol)
           (knowrob-symbol->number upper-symbol)
           :weight (knowrob-symbol->number weight-symbol)
-          :max-vel (knowrob-symbol->number max-vel-symbol)
-          :min-vel (knowrob-symbol->number min-vel-symbol)))
+          :max-vel (knowrob-symbol->number max-vel-symbol)))
         (:height-constraint
          (cram-feature-constraints:make-height-constraint
           constraint-name
@@ -129,8 +128,7 @@
           (knowrob-symbol->number lower-symbol)
           (knowrob-symbol->number upper-symbol)
           :weight (knowrob-symbol->number weight-symbol)
-          :max-vel (knowrob-symbol->number max-vel-symbol)
-          :min-vel (knowrob-symbol->number min-vel-symbol)))
+          :max-vel (knowrob-symbol->number max-vel-symbol)))
         (:perpendicular-constraint
          (cram-feature-constraints:make-perpendicular-constraint
           constraint-name
@@ -139,8 +137,7 @@
           (knowrob-symbol->number lower-symbol)
           (knowrob-symbol->number upper-symbol)
           :weight (knowrob-symbol->number weight-symbol)
-          :max-vel (knowrob-symbol->number max-vel-symbol)
-          :min-vel (knowrob-symbol->number min-vel-symbol)))
+          :max-vel (knowrob-symbol->number max-vel-symbol)))
         (:pointing-at-constraint
          (cram-feature-constraints:make-pointing-at-constraint
           constraint-name
@@ -149,8 +146,7 @@
           (knowrob-symbol->number lower-symbol)
           (knowrob-symbol->number upper-symbol)
           :weight (knowrob-symbol->number weight-symbol)
-          :max-vel (knowrob-symbol->number max-vel-symbol)
-          :min-vel (knowrob-symbol->number min-vel-symbol)))))))
+          :max-vel (knowrob-symbol->number max-vel-symbol)))))))
                                               
 (defun query-knowrob-constraint-feature (feature frame-id)
   ;; query knowrob for information about the feature
