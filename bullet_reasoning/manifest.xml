@@ -23,5 +23,5 @@
   <depend package="cl_semantic_map_utils" />
   <depend package="arm_navigation_msgs" />
   <depend package="cram_designators" />
-
+  <depend package="location_costmap" />
 </package>
