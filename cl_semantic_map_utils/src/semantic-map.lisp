@@ -306,31 +306,37 @@
   `(let ((*cached-semantic-map* ,cache))
      ,@body))
 
-(defun init-semantic-map-cache ()
-  (unless (or (not (json-prolog:check-connection)) *cached-semantic-map*)
-    (setf *cached-semantic-map*
-          (make-instance 'semantic-map
-            :parts (alexandria:alist-hash-table
-                    (mapcar (lambda (elem)
-                              (cons (name elem) elem))
-                            (force-ll
-                             (lazy-mapcan
-                              (lambda (bdgs)
-                                (with-vars-bound (?type ?n ?o) bdgs
-                                  (unless (or (is-var ?type) (is-var ?o))
-                                    (list (make-semantic-map-part
-                                           (remove #\' (symbol-name ?type))
-                                           (remove #\' (symbol-name ?n))
-                                           (remove #\' (symbol-name ?o))
-                                           nil)))))
-                              (json-prolog:prolog
-                               '(and ("rootObjects" ?objs)
-                                 ("member" ?o ?objs)
-                                 ("objectType" ?o ?tp)
-                                 ("rdf_atom_no_ns" ?tp ?type)
-                                 ("rdf_atom_no_ns" ?o ?n))
-                               :package :sem-map-utils))))
-                    :test 'equal)))))
+(defun init-semantic-map-cache (&optional map-name)
+  (let ((map-name (or map-name
+                      (with-vars-bound (?map-name)
+                          (lazy-car
+                           (crs:prolog `(sem-map-utils::map-name ?map-name)))
+                        ?map-name))))
+    (unless (or (not (json-prolog:check-connection)) *cached-semantic-map*)
+      (setf *cached-semantic-map*
+            (make-instance 'semantic-map
+                           :parts (alexandria:alist-hash-table
+                                   (mapcar (lambda (elem)
+                                             (cons (name elem) elem))
+                                           (force-ll
+                                            (lazy-mapcan
+                                             (lambda (bdgs)
+                                               (with-vars-bound (?type ?n ?o) bdgs
+                                                 (unless (or (is-var ?type) (is-var ?o))
+                                                   (list (make-semantic-map-part
+                                                          (remove #\' (symbol-name ?type))
+                                                          (remove #\' (symbol-name ?n))
+                                                          (remove #\' (symbol-name ?o))
+                                                          nil)))))
+                                             (json-prolog:prolog
+                                              `(and ,(cond (map-name `("readMap" ,map-name ?objs))
+                                                           (t `("readMap" ?objs)))
+                                                    ("member" ?o ?objs)
+                                                    ("objectType" ?o ?tp)
+                                                    ("rdf_atom_no_ns" ?tp ?type)
+                                                    ("rdf_atom_no_ns" ?o ?n))
+                                              :package :sem-map-utils))))
+                                   :test 'equal))))))
 
 (defun get-semantic-map ()
   (init-semantic-map-cache)
