@@ -31,6 +31,7 @@
 (desig-props:def-desig-package semantic-map-utils
   (:nicknames #:sem-map-utils #:cl-semantic-map-utils)
   (:use #:common-lisp #:json-prolog #:cut)
+  (:import-from crs def-fact-group <-)
   (:export semantic-map semantic-map-part semantic-map-geom
            semantic-map-joint semantic-map-parts
            semantic-map-part-names get-semantic-map
