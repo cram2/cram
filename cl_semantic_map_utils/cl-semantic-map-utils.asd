@@ -36,7 +36,8 @@
   :depends-on (cl-json-pl-client
                cram-roslisp-common
                cl-transforms
-               designators)
+               designators
+               cram-reasoning)
   :components
   ((:module "src"
     :components

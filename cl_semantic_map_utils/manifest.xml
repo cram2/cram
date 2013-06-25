@@ -12,5 +12,6 @@
   <depend package="cram_roslisp_common" />
   <depend package="cl_transforms" />
   <depend package="cram_designators" />
+  <depend package="cram_reasoning" />
 
 </package>
