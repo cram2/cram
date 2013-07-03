@@ -44,7 +44,6 @@
                pr2_msgs-srv
                kinematics_msgs-srv
                arm_navigation_msgs-msg
-               vision_srvs-srv
                trivial-garbage
                std_srvs-srv
                alexandria

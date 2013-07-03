@@ -20,7 +20,6 @@
   <depend package="pr2_controllers_msgs" />
   <depend package="kinematics_msgs" />
   <depend package="arm_navigation_msgs" />
-  <depend package="vision_srvs" />
   <depend package="trivial_garbage" />
   <depend package="std_srvs" />
   <depend package="alexandria" />
