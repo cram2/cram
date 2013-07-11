@@ -118,19 +118,25 @@
   "Takes a list of constraints 'constraints' and sends the resulting configuration-msg to the feature constraints controller of arm 'side' to prepare it for a subsequent command."
   (let ((publisher (ecase side
                      (:left *left-feature-constraints-config-pub*)
-                     (:right *right-feature-constraints-config-pub*))))
+                     (:right *right-feature-constraints-config-pub*)))
+        (controller-id (ecase side
+                         (:left "pr2_left_arm_feature_controller")
+                         (:right "pr2_right_arm_feature_controller"))))
     (roslisp:publish
      publisher
-     (cram-feature-constraints:feature-constraints->config-msg constraints))))
+     (cram-fccl:feature-constraints->config-msg constraints controller-id))))
 
 (defun send-constraints-command (constraints side)
   "Takes a list of constraints 'constraints' and sends the resulting command-msg to the feature constraints controller of arm 'side' to start the controller."
   (let ((publisher (ecase side
                      (:left *left-feature-constraints-command-pub*)
-                     (:right *right-feature-constraints-command-pub*))))
+                     (:right *right-feature-constraints-command-pub*)))
+        (controller-id (ecase side
+                         (:left "pr2_left_arm_feature_controller")
+                         (:right "pr2_right_arm_feature_controller"))))
     (roslisp:publish
      publisher
-     (cram-feature-constraints:feature-constraints->command-msg constraints))))
+     (cram-fccl:feature-constraints->command-msg constraints controller-id))))
 
 (defun start-velocity-resolved-controllers (side)
   "Makes the pr2_controller_manager start the controller plugin for the velocity-resolved arm controller on side 'side', and stop the standard position-resolved controller plugin on the same arm."

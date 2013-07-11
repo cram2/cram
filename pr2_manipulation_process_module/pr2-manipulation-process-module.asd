@@ -55,7 +55,8 @@
                pr2_mechanism_msgs-srv
                pr2-manipulation-knowledge
                constraint_msgs-msg
-               cram-feature-constraints)
+               cram-feature-constraints
+               cram-fccl)
   :components
   ((:module "src"
             :components

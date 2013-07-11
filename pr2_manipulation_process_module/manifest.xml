@@ -32,4 +32,5 @@
   <!-- dependencies needed for feature_controller -->
   <depend package="constraint_msgs" />
   <depend package="cram_feature_constraints" />
+  <depend package="cram_fccl"/>
 </package>
