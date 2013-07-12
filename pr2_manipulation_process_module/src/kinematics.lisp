@@ -368,161 +368,6 @@ points."
               points-1 points-2 (or times-from-start
                                     (make-list (length points-1) :initial-element nil))))))))
 
-(defun get-ik (side pose &key
-               (tool (cl-transforms:make-pose
-                      (cl-transforms:make-3d-vector 0 0 0)
-                      (cl-transforms:make-quaternion 0 0 0 1)))
-               (max-tries 1)
-               seed-state)
-  "Calls the IK service. `tool' specifies an offset from the
-wrist_roll_link to the actual pose we want to calculate a solution
-for. `max-retries' indicates how many seed states should be tried for
-finding a solution."
-  (let ((seeds (append
-                (when seed-state (list seed-state))
-                (make-seed-states
-                 side (remove "torso_lift_joint"
-                              (get-joint-names side)
-                              :test #'equal)))))
-    (lazy-list ((seeds (if max-tries
-                           (lazy-take max-tries seeds)
-                           seeds)))
-      (when seeds
-        (let ((result (cpl-impl:without-scheduling
-                        (roslisp:call-service
-                         (concatenate
-                          'string
-                          (ecase side
-                            (:right *ik-right-ns*)
-                            (:left *ik-left-ns*))
-                          "/get_ik")
-                         'kinematics_msgs-srv:getpositionik
-                       
-                         :ik_request
-                         (roslisp:make-msg
-                          "kinematics_msgs/PositionIKRequest"
-                          :ik_link_name (ecase side
-                                          (:right "r_wrist_roll_link")
-                                          (:left "l_wrist_roll_link"))
-                          :pose_stamped (tf:pose-stamped->msg
-                                         (tool-goal-pose->wrist-goal-pose pose :tool tool))
-                          :ik_seed_state (roslisp:make-msg
-                                          "arm_navigation_msgs/RobotState"
-                                          joint_state (lazy-car seeds)))
-                         :timeout 1.0))))
-          (roslisp:with-fields ((error-code (val error_code)))
-              result
-            (if (eql error-code 1)
-                (cont result (lazy-cdr seeds))
-                (next (lazy-cdr seeds)))))))))
-
-(defun get-fk-current-state (arm
-                             &key target-links
-                               (frame-id "torso_lift_link"))
-  (roslisp:with-fields (name position)
-      (get-robot-state)
-    (get-fk name position arm
-            :target-links target-links
-            :frame-id frame-id)))
-
-(defun get-fk (names positions arm
-               &key target-links (frame-id "torso_lift_link"))
-  "Return the FK solution for the links `target-links' for a given
-joint space configuration described by `names' and `positions'. All
-joints not specified in these vectors are taken from the current robot
-state by the `get_fk' service. The optional parameter `frame-id'
-specifies the frame in which the solution is calculated. The return
-value is a pose-stamped containing the resulting forward kinematics
-solution. If no target links are given, all available links will be
-used."
-  (assert (eq (length names) (length positions)) ()
-          "The list lengths for joint names and positions differ.")
-  (let* ((target-links-used (cond ((eq (length target-links) 0)
-                                   (available-fk-links))
-                                  (t target-links)))
-         (header (roslisp:make-message "std_msgs/Header"
-                                       :stamp (roslisp:ros-time)
-                                       :frame_id frame-id)))
-    (multiple-value-bind (jts-names jts-positions jts-velocities
-                          jts-accels)
-        (resulting-fk-state names positions)
-      (roslisp:with-fields (pose_stamped fk_link_names error_code)
-        (roslisp:call-service
-         (concatenate
-          'string
-          (ecase arm
-            (:right *ik-right-ns*)
-            (:left *ik-left-ns*))
-          "/get_fk")
-         'kinematics_msgs-srv:getpositionfk
-         :header header
-         :fk_link_names target-links-used
-         :robot_state (roslisp:make-message
-                       "arm_navigation_msgs/RobotState"
-                       (stamp header joint_state) (roslisp:ros-time)
-                       (name joint_state) jts-names
-                       (position joint_state) jts-positions
-                       (velocity joint_state) jts-velocities
-                       (effort joint_state) jts-accels))
-        (declare (ignore error_code))
-        (let ((name-pose-pairs nil))
-          (loop for i from 0 to (- (length fk_link_names) 1)
-                do (setf name-pose-pairs
-                         (append name-pose-pairs
-                                 (list (cons (elt fk_link_names i)
-                                             (tf:msg->pose-stamped
-                                              (elt pose_stamped i)))))))
-          name-pose-pairs)))))
-
-(defun get-constraint-aware-ik (side pose &key
-                                            (tool (cl-transforms:make-pose
-                                                   (cl-transforms:make-3d-vector 0 0 0)
-                                                   (cl-transforms:make-quaternion 0 0 0 1)))
-                                            allowed-collision-objects
-                                            (max-tries 1)
-                                            seed-state)
-  (declare (ignore allowed-collision-objects))
-  "Similar to GET-IK but uses the constraint-aware IK
-service. `allowed-collision-objects' is a sequence of collision-object
-names for which collisions are allowed."
-  (let ((seeds (append
-                (when seed-state (list seed-state))
-                (make-seed-states
-                 side (remove "torso_lift_joint"
-                              (get-joint-names side)
-                              :test #'equal)))))
-    (lazy-list ((seeds (if max-tries
-                           (lazy-take max-tries seeds)
-                           seeds)))
-      (when seeds
-        (let ((result (cpl-impl:without-scheduling
-                        (roslisp:call-service
-                         (concatenate
-                          'string
-                          (ecase side
-                            (:right *ik-right-ns*)
-                            (:left *ik-left-ns*))
-                          "/get_constraint_aware_ik")
-                         'kinematics_msgs-srv:getconstraintawarepositionik
-                         :ik_request
-                         (roslisp:make-msg
-                          "kinematics_msgs/PositionIKRequest"
-                          :ik_link_name (ecase side
-                                          (:right "r_wrist_roll_link")
-                                          (:left "l_wrist_roll_link"))
-                          :pose_stamped (tf:pose-stamped->msg
-                                         (tool-goal-pose->wrist-goal-pose
-                                          pose :tool tool))
-                          :ik_seed_state (roslisp:make-msg
-                                          "arm_navigation_msgs/RobotState"
-                                          joint_state (lazy-car seeds)))
-                         :timeout 30.0))))
-          (roslisp:with-fields ((error-code (val error_code)))
-              result
-            (if (eql error-code 1)
-                (cont result (lazy-cdr seeds))
-                (next (lazy-cdr seeds)))))))))
-
 (defun get-point-cluster-grasps (side obj)
   "Returns the (lazy) list of grasps calculated by the
   /plan_point_cluster_grasps service. Poses are relative to
@@ -730,14 +575,10 @@ and a side orientation otherwise."
 (defun get-gripper-state (side)
   "Returns the position of the gripper. 0 indicates a completely
 closed gripper."
-  (roslisp:with-fields (name position) (get-robot-state)
-    (let ((idx (position (ecase side
-                           (:right "r_gripper_joint")
-                           (:left "l_gripper_joint"))
-                         name :test #'equal)))
-      (unless idx
-        (error 'simple-error :format-control "Invalid robot state. Couldn't find gripper joint"))
-      (elt position idx))))
+  (let ((joint-name (ecase side
+                      (:right "r_gripper_joint")
+                      (:left "l_gripper_joint"))))
+    (cram-moveit:get-joint-value joint-name)))
 
 (defun get-gripper-links (side)
   "Returns the names of the gripper's links."
@@ -811,19 +652,25 @@ here. If no target links are given, all available links will be used."
     distance-name-pairs))
 
 (defun available-fk-links-for-arm (arm)
-  (roslisp:with-fields (kinematic_solver_info)
-      (roslisp:call-service
-       (concatenate
-        'string
-        (ecase arm
-          (:right *ik-right-ns*)
-          (:left *ik-left-ns*))
-        "/get_fk_solver_info")
-       'kinematics_msgs-srv:getkinematicsolverinfo)
-    (roslisp:with-fields (joint_names limits link_names)
-        kinematic_solver_info
-      (declare (ignore joint_names limits))
-      link_names)))
+  (case arm
+    (:left (list "l_shoulder_pan_link"
+                 "l_shoulder_lift_link"
+                 "l_upper_arm_roll_link"
+                 "l_upper_arm_link"
+                 "l_elbow_flex_link"
+                 "l_forearm_roll_link"
+                 "l_forearm_link"
+                 "l_wrist_flex_link"
+                 "l_wrist_roll_link"))
+    (:right (list "r_shoulder_pan_link"
+                  "r_shoulder_lift_link"
+                  "r_upper_arm_roll_link"
+                  "r_upper_arm_link"
+                  "r_elbow_flex_link"
+                  "r_forearm_roll_link"
+                  "r_forearm_link"
+                  "r_wrist_flex_link"
+                  "r_wrist_roll_link"))))
 
 (defun available-fk-links ()
   "Returns the usable forward kinematics links as returned by the
@@ -916,7 +763,8 @@ used during the calculation."
 
 (defun reaching-length (pose side &key constraint-aware
                                     calc-euclidean-distance
-                                    euclidean-target-link)
+                                    euclidean-target-link
+                                    allowed-collision-objects)
   "Calculates the squared sum of all joint angle differences between
 the current state of the robot and the joint state it would have after
 reaching pose `pose` through calculating a trajectory via inverse
@@ -929,71 +777,30 @@ service can be used by setting the parameter `constraint-aware' to
 distance is used. Otherwise, the (unweighted) quadratic joint-space
 integral is calculated. Both methods may not be mixed as their scale
 is fundamentally different."
-  ;; NOTE(winkler): We transform the pose into `torso_lift_link' here
-  ;; due to the fact that the (constraint aware) get_ik solver service
-  ;; doesn't work with links outside the kinematic chain of the
-  ;; robot. It first has to be transformed into the root link of the
-  ;; chain, which here is `torso_lift_link'. Also, we wait for the
-  ;; transform to make sure it is available.
-  (tf:wait-for-transform *tf*
-                         :timeout 5.0
-                         :time (roslisp:ros-time)
-                         :source-frame "/map"
-                         :target-frame euclidean-target-link)
-  (let* ((pose-in-tl (tf:transform-pose *tf*
-                                        :pose pose
-                                        :target-frame "torso_lift_link"))
-         (obj-value 0)
-         (ik (cond (constraint-aware
-                    (get-constraint-aware-ik side pose-in-tl))
-                   (t
-                    (get-ik side pose-in-tl)))))
-    (when ik
-      (let ((traj (ik->trajectory (first ik)))
-            (state (get-robot-state)))
-        (roslisp:with-fields ((names-traj joint_names)
-                              (points-traj points)) traj
-          (dotimes (traj-point-n (length points-traj))
-            (let ((current-traj-positions (get-positions-from-trajectory
-                                           traj
-                                           :index traj-point-n)))
-              (cond ((= traj-point-n 0)
-                     (roslisp:with-fields ((names-state name)
-                                           (positions-state position))
-                         state
-                       (incf obj-value
-                             (cond (calc-euclidean-distance
-                                    (euclidean-distance-for-link
-                                     names-state
-                                     positions-state
-                                     names-traj
-                                     current-traj-positions
-                                     side
-                                     euclidean-target-link))
-                                   (t
-                                    (joint-state-distance
-                                     names-state
-                                     positions-state
-                                     names-traj
-                                     current-traj-positions))))))
-                    (t
-                     (let ((last-traj-positions
-                             (get-positions-from-trajectory
-                              traj
-                              :index (- traj-point-n 1))))
-                       (incf obj-value
-                             (cond (calc-euclidean-distance
-                                    (euclidean-distance-for-link
-                                     names-traj
-                                     last-traj-positions
-                                     names-traj
-                                     current-traj-positions
-                                     side
-                                     euclidean-target-link))
-                                   (t
-                                    (joint-state-distance
-                                     names-traj
-                                     last-traj-positions
-                                     names-traj
-                                     current-traj-positions)))))))))
-          obj-value)))))
+  (when (tf:wait-for-transform
+         *tf*
+         :time (tf:stamp pose)
+         :timeout 5.0
+         :source-frame (tf:frame-id pose)
+         :target-frame "torso_lift_link")
+    (let* ((wrist-frame (ecase side
+                          (:left "l_wrist_roll_link")
+                          (:right "r_wrist_roll_link")))
+           (arm-group (ecase side
+                        (:left "left_arm")
+                        (:right "right_arm")))
+           (pose-in-tll (tf:transform-pose
+                         *tf*
+                         :pose pose
+                         :target-frame "torso_lift_link")))
+      (multiple-value-bind (state-0 traj-0)
+        (moveit:plan-link-movement wrist-frame arm-group pose-in-tll
+                                   :touch-links
+                                   (links-for-arm-side side)
+                                   :allowed-collision-objects
+                                   allowed-collision-objects)
+      (declare (ignore traj-0))
+      (roslisp:publish (roslisp:advertise "/dbg" "geometry_msgs/PoseStamped")
+                       (tf:pose-stamped->msg pose-in-tll))
+      (when state-0
+        (moveit:pose-distance wrist-frame pose))))))
