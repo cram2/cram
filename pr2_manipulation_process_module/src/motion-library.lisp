@@ -71,50 +71,143 @@
 
 (defparameter *max-graspable-size* (cl-transforms:make-3d-vector 0.15 0.15 0.30))
 
-(defun execute-grasp (&key pregrasp-pose grasp-pose
+(defun execute-grasp (&key object-name
+                        object-pose
+                        pregrasp-pose
+                        grasp-pose
                         side (gripper-open-pos 0.08)
                         (gripper-close-pos 0.0)
                         allowed-collision-objects)
-  (assert (and pregrasp-pose grasp-pose) ()
-          "Unspecified parameter in execute-grasp.")
-  (roslisp:ros-info (pr2-manipulation-process-module)
-                    "Executing pregrasp for side ~a~%" side)
-  (execute-move-arm-pose side pregrasp-pose
-                         :allowed-collision-objects
-                         allowed-collision-objects)
-  (roslisp:ros-info (pr2-manipulation-process-module) "Opening gripper")
-  (open-gripper side :max-effort 50.0 :position gripper-open-pos)
-  (roslisp:ros-info (pr2-manipulation-process-module)
-                    "Executing grasp for side ~a~%" side)
-  (execute-move-arm-pose side grasp-pose
-                         :allowed-collision-objects
-                         allowed-collision-objects)
-  (roslisp:ros-info (pr2-manipulation-process-module) "Closing gripper")
-  (close-gripper side :max-effort 50.0 :position gripper-close-pos))
+  (declare (ignore object-pose))
+  (let ((link-frame (ecase side
+                      (:left "l_wrist_roll_link")
+                      (:right "r_wrist_roll_link")))
+        (allowed-collision-objects (append
+                                    allowed-collision-objects
+                                    (list object-name))))
+    (roslisp:ros-info (pr2-manipulation-process-module)
+                      "Executing pregrasp for side ~a~%" side)
+    (cpl:with-failure-handling
+        ((manipulation-failed (f)
+           (declare (ignore f))
+           (roslisp:ros-error (pr2-manipulation-process-module)
+                              "Failed to go into pregrasp pose for side ~a."
+                              side))
+         (moveit::pose-not-transformable-into-link (f)
+           (declare (ignore f))
+           (cpl:retry)))
+      (execute-move-arm-pose side pregrasp-pose
+                             :allowed-collision-objects
+                             allowed-collision-objects))
+    (roslisp:ros-info (pr2-manipulation-process-module) "Opening gripper")
+    (open-gripper side :max-effort 50.0 :position gripper-open-pos)
+    (unless object-name
+      (roslisp:ros-warn () "You didn't specify an object name to
+    grasp. This might cause the grasping to fail because of a
+    misleading collision environment configuration."))
+    (when object-name
+      (moveit:remove-collision-object object-name))
+    (roslisp:ros-info (pr2-manipulation-process-module)
+                      "Executing grasp for side ~a~%" side)
+    (cpl:with-failure-handling
+        ((manipulation-failed (f)
+           (declare (ignore f))
+           (roslisp:ros-error (pr2-manipulation-process-module)
+                              "Failed to go into grasp pose for side ~a."
+                              side))
+         (moveit::pose-not-transformable-into-link (f)
+           (declare (ignore f))
+           (cpl:retry)))
+      (execute-move-arm-pose side grasp-pose
+                             :allowed-collision-objects
+                             allowed-collision-objects)
+      (when object-name
+        (moveit:add-collision-object object-name)
+        (moveit:attach-collision-object-to-link
+         object-name link-frame)))
+    (roslisp:ros-info (pr2-manipulation-process-module) "Closing gripper")
+    (close-gripper side :max-effort 50.0 :position gripper-close-pos)
+    (when (< (get-gripper-state side) 0.01);;gripper-close-pos)
+      (cpl:with-failure-handling
+          ((manipulation-failed (f)
+             (declare (ignore f))
+             (roslisp:ros-error
+              (pr2-manipulation-process-module)
+              "Failed to go into fallback pose for side ~a. Retrying."
+              side))
+           (moveit::pose-not-transformable-into-link (f)
+             (declare (ignore f))
+             (cpl:retry)))
+        (roslisp:ros-warn
+         (pr2-manip-pm)
+         "Missed the object. Going into fallback pose for side ~a."
+         side)
+        (execute-move-arm-pose side pregrasp-pose
+                               :allowed-collision-objects
+                               allowed-collision-objects)
+        (moveit:detach-collision-object-from-link
+         object-name link-frame)
+        (error 'cram-plan-failures:object-lost)))))
 
-(defun execute-putdown (&key pre-putdown-pose putdown-solution
-                          unhand-solution
-                          putdown-trajectory side
+(defun execute-putdown (&key object-name
+                          pre-putdown-pose putdown-pose
+                          unhand-pose side
                           (gripper-open-pos 0.08)
                           allowed-collision-objects)
-  ;; (assert (and pre-putdown-pose putdown-solution unhand-solution
-  ;;              putdown-trajectory) ()
-  ;;         "Unspecified parameter in execute-putdown.")
-  (roslisp:ros-info (pr2-manipulation-process-module)
-                    "Executing pre-putdown for side ~a~%" side)
-  (roslisp:publish (roslisp:advertise "/preputdownpose"
-                                      "geometry_msgs/PoseStamped")
-                   (tf:pose-stamped->msg pre-putdown-pose))
-  (execute-move-arm-pose side pre-putdown-pose
-                         :allowed-collision-objects
-                         allowed-collision-objects)
-  (roslisp:ros-info (pr2-manipulation-process-module)
-                    "Executing putdown for side ~a~%" side)
-  (execute-arm-trajectory side (ik->trajectory putdown-solution))
-  (roslisp:ros-info (pr2-manipulation-process-module)
-                    "Opening gripper")
-  (open-gripper side :max-effort 50.0 :position gripper-open-pos)
-  (execute-arm-trajectory side (ik->trajectory unhand-solution)))
+  (let ((allowed-collision-objects (append
+                                    allowed-collision-objects
+                                    (list object-name))))
+    (roslisp:ros-info (pr2-manipulation-process-module)
+                      "Executing pre-putdown for side ~a~%" side)
+    (roslisp:publish (roslisp:advertise "/preputdownpose"
+                                        "geometry_msgs/PoseStamped")
+                     (tf:pose-stamped->msg pre-putdown-pose))
+    (cpl:with-failure-handling
+        ((manipulation-failed (f)
+           (declare (ignore f))
+           (roslisp:ros-error (pr2-manipulation-process-module)
+                              "Failed to go into preputdown pose for side ~a."
+                              side))
+         (moveit::pose-not-transformable-into-link (f)
+           (declare (ignore f))
+           (cpl:retry)))
+      (execute-move-arm-pose
+       side pre-putdown-pose
+       :allowed-collision-objects allowed-collision-objects))
+    (roslisp:ros-info (pr2-manipulation-process-module)
+                      "Executing putdown for side ~a~%" side)
+    (cpl:with-failure-handling
+        ((manipulation-failed (f)
+           (declare (ignore f))
+           (roslisp:ros-error (pr2-manipulation-process-module)
+                              "Failed to go into putdown pose for side ~a."
+                              side))
+         (moveit::pose-not-transformable-into-link (f)
+           (declare (ignore f))
+           (cpl:retry)))
+      (execute-move-arm-pose
+       side putdown-pose
+       :allowed-collision-objects allowed-collision-objects))
+    (roslisp:ros-info (pr2-manipulation-process-module)
+                      "Opening gripper")
+    (open-gripper side :max-effort 50.0 :position gripper-open-pos)
+    (moveit:detach-collision-object-from-link
+     object-name (ecase side
+                       (:left "l_wrist_roll_link")
+                       (:right "r_wrist_roll_link")))
+    (roslisp:ros-info (pr2-manipulation-process-module)
+                      "Executing unhand for side ~a~%" side)
+    (cpl:with-failure-handling
+        ((manipulation-failed (f)
+           (declare (ignore f))
+           (roslisp:ros-error (pr2-manipulation-process-module)
+                              "Failed to go into unhand pose for side ~a."
+                              side))
+         (moveit::pose-not-transformable-into-link (f)
+           (declare (ignore f))
+           (cpl:retry)))
+      (execute-move-arm-pose
+       side unhand-pose :allowed-collision-objects allowed-collision-objects))))
 
 (defun get-lifting-grasped-object-arm-trajectory (side distance)
   "Returns the lifting trajectory for the `side' robot arm in order to
@@ -141,10 +234,37 @@ lift the grasped object at the `distance' from the supporting plane."
 (defun lift-grasped-object-with-one-arm (side distance)
   "Executes a lifting motion with the `side' arm which grasped the
 object in order to lift it at `distance' form the supporting plane"
-  (execute-arm-trajectory
-   side
-   ;; Computes the lifting trajectory for the `side' arm
-   (get-lifting-grasped-object-arm-trajectory side distance)))
+  (let* ((frame-id (ecase side
+                     (:right "r_wrist_roll_link")
+                     (:left "l_wrist_roll_link")))
+         (time (roslisp:ros-time))
+         (current-arm-pose (progn
+                             (tf:wait-for-transform
+                              *tf* :source-frame frame-id
+                                   :target-frame "torso_lift_link")
+                             (tf:transform-pose
+                              *tf*
+                              :pose (tf:pose->pose-stamped
+                                     frame-id time
+                                     (tf:make-identity-pose))
+                              :target-frame "torso_lift_link")))
+         (raised-arm-pose (tf:pose->pose-stamped
+                           "/torso_lift_link"
+                           time
+                           (cl-transforms:transform-pose
+                            (tf:make-transform
+                             (tf:make-3d-vector 0 0 distance)
+                             (tf:make-identity-rotation))
+                            current-arm-pose))))
+    (format t "~a~%" raised-arm-pose)
+    (roslisp:publish
+     (roslisp:advertise "/dbg" "geometry_msgs/PoseStamped")
+     (tf:pose-stamped->msg raised-arm-pose))
+    (execute-move-arm-pose side raised-arm-pose :ignore-collisions t)))
+  ;; (execute-arm-trajectory
+  ;;  side
+  ;;  ;; Computes the lifting trajectory for the `side' arm
+  ;;  (get-lifting-grasped-object-arm-trajectory side distance)))
 
 (defun lift-grasped-object-with-both-arms (distance)
   "Executes a parallel lifting motion with both arms in order to lift
@@ -199,20 +319,6 @@ supporting plane"
                                                      side)))
              (unhand-solution (get-ik;constraint-aware-ik
                                side unhand-pose-stamped)))
-        ;;:allowed-collision-objects (list "\"all\""))))
-        ;(execute-move-arm-pose side pre-put-down-pose)
-        ;; (format t "::: ~a~%" put-down-solution)
-        ;; (roslisp:publish
-        ;;  (roslisp:advertise "/putdownpose" "geometry_msgs/PoseStamped")
-        ;;  (tf:pose-stamped->msg put-down-pose))
-        ;; (when (or (not put-down-solution) (not unhand-solution))
-        ;;   (cpl:fail 'manipulation-pose-unreachable))
-        ;; (execute-move-arm-pose side pre-put-down-pose)
-        ;; (execute-move-arm-pose side put-down-pose-tll)
-        ;(let ((ik (first (get-ik side pre-put-down-pose))))
-        ;  (cond (ik (execute-arm-trajectory side (ik->trajectory ik)))
-        ;        (t (cpl:fail 'cram-plan-failures:manipulation-failed))))
-        ;(execute-arm-trajectory side (ik->trajectory (lazy-car put-down-solution)))
         (open-gripper side)
         (plan-knowledge:on-event
          (make-instance
@@ -222,8 +328,6 @@ supporting plane"
           :link (ecase side
                   (:right "r_gripper_r_finger_tip_link")
                   (:left "l_gripper_r_finger_tip_link"))))
-;        (execute-arm-trajectory
-;         side (ik->trajectory (lazy-car unhand-solution)))
         ))))
 
 (defun put-down-grasped-object-with-both-arms (obj location)
