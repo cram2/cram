@@ -40,7 +40,8 @@
                cram-reasoning
                cram-utilities
                cram-roslisp-common
-               visualization_msgs-msg)
+               visualization_msgs-msg
+               cram-moveit)
   :components
   ((:module "src"
     :components
