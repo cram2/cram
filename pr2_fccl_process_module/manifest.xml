@@ -7,7 +7,7 @@
   <author>Georg Bartels</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
-
+  <depend package="cram_designators"/> <!-- contains cram-designator-properties package -->
 </package>
 
 
