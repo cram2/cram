@@ -1,0 +1,13 @@
+<package>
+  <description brief="pr2_fccl_process_module">
+
+     Process module controlling the PR2 using the feature constraints controller library (FCCL). Initially, this only holds arm control. The functionality shall be extended towards spine, head and base motions.
+
+  </description>
+  <author>Georg Bartels</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+
+</package>
+
+
