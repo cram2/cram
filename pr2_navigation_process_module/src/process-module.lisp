@@ -107,14 +107,15 @@
 
 (defun call-nav-action (client desig)
   (let* ((goal-pose (reference desig))
-         (goal-pose-in-fixed-frame (when (tf:wait-for-transform
-                                          *tf* :time (tf:stamp goal-pose)
-                                               :target-frame designators-ros:*fixed-frame*
-                                               :source-frame (tf:frame-id goal-pose)
-                                               :timeout 1.0)
-                                     (tf:transform-pose
-                                      *tf* :pose goal-pose
-                                           :target-frame designators-ros:*fixed-frame*))))
+         (goal-pose-in-fixed-frame
+           (when (tf:wait-for-transform
+                  *tf* :time (tf:stamp goal-pose)
+                       :target-frame designators-ros:*fixed-frame*
+                       :source-frame (tf:frame-id goal-pose)
+                       :timeout 1.0)
+             (tf:transform-pose
+              *tf* :pose goal-pose
+                   :target-frame designators-ros:*fixed-frame*))))
     (unless goal-pose-in-fixed-frame
       (error 'tf:tf-lookup-error :frame (tf:frame-id goal-pose)))
     (multiple-value-bind (result status)
