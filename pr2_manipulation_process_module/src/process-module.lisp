@@ -30,7 +30,8 @@
 (defclass grasp-assignment ()
   ((pose :accessor pose :initform nil :initarg :pose)
    (side :accessor side :initform nil :initarg :side)
-   (close-radius :accessor close-radius :initform nil :initarg :close-radius)))
+   (close-radius :accessor close-radius :initform nil :initarg :close-radius)
+   (handle-pair :accessor handle-pair :initform nil :initarg :handle-pair)))
 
 (define-condition move-arm-no-ik-solution (manipulation-failure) ())
 (define-condition move-arm-ik-link-in-collision (manipulation-failure) ())
@@ -44,75 +45,80 @@
 (defvar *trajectory-action-right* nil)
 (defvar *trajectory-action-both* nil)
 (defvar *trajectory-action-torso* nil)
-(defvar *move-arm-right* nil)
-(defvar *move-arm-left* nil)
 
 (defvar *joint-state-sub* nil)
 
 (defun init-pr2-manipulation-process-module ()
-  (setf *gripper-action-left* (actionlib:make-action-client
-                               "/l_gripper_controller/gripper_action"
-                               "pr2_controllers_msgs/Pr2GripperCommandAction"))
-  (setf *gripper-action-right* (actionlib:make-action-client
-                                "/r_gripper_controller/gripper_action"
-                                "pr2_controllers_msgs/Pr2GripperCommandAction"))
-  (setf *gripper-grab-action-left* (actionlib:make-action-client
-                                    "/l_gripper_sensor_controller/grab"
-                                    "pr2_gripper_sensor_msgs/PR2GripperGrabAction"))
-  (setf *gripper-grab-action-right* (actionlib:make-action-client
-                                     "/r_gripper_sensor_controller/grab"
-                                     "pr2_gripper_sensor_msgs/PR2GripperGrabAction"))
-  (setf *trajectory-action-left* (actionlib:make-action-client
-                                  "/l_arm_controller/joint_trajectory_generator"
-                                  "pr2_controllers_msgs/JointTrajectoryAction"))
-  (setf *trajectory-action-right* (actionlib:make-action-client
-                                   "/r_arm_controller/joint_trajectory_generator"
-                                   "pr2_controllers_msgs/JointTrajectoryAction"))
-  (setf *trajectory-action-both* (actionlib:make-action-client
-                                  "/both_arms_controller/joint_trajectory_action"
-                                  "pr2_controllers_msgs/JointTrajectoryAction"))
-  (setf *trajectory-action-torso* (actionlib:make-action-client
-                                   "/torso_controller/joint_trajectory_action"
-                                   "pr2_controllers_msgs/JointTrajectoryAction"))
-  (setf *move-arm-right* (actionlib:make-action-client
-                          "/move_right_arm"
-                          "arm_navigation_msgs/MoveArmAction"))
-  (setf *move-arm-left* (actionlib:make-action-client
-                         "/move_left_arm"
-                         "arm_navigation_msgs/MoveArmAction"))
-  (setf *joint-state-sub* (roslisp:subscribe
-                           "/joint_states" "sensor_msgs/JointState"
-                           (lambda (msg)
-                             (setf *joint-state* msg))))
-  ;; Initialize fingertip sensor handling
-  (initialize-fingertip-sensors)
-  ;; Initialize the planning scene to make get_ik and friends work.
-  (when (roslisp:wait-for-service "/environment_server/set_planning_scene_diff" 0.2)
-    (roslisp:call-service
-     "/environment_server/set_planning_scene_diff"
-     "arm_navigation_msgs/SetPlanningSceneDiff")))
+  (setf *gripper-action-left*
+        (actionlib:make-action-client
+         "/l_gripper_controller/gripper_action"
+         "pr2_controllers_msgs/Pr2GripperCommandAction"))
+  (setf *gripper-action-right*
+        (actionlib:make-action-client
+         "/r_gripper_controller/gripper_action"
+         "pr2_controllers_msgs/Pr2GripperCommandAction"))
+  (setf *gripper-grab-action-left*
+        (actionlib:make-action-client
+         "/l_gripper_sensor_controller/grab"
+         "pr2_gripper_sensor_msgs/PR2GripperGrabAction"))
+  (setf *gripper-grab-action-right*
+        (actionlib:make-action-client
+         "/r_gripper_sensor_controller/grab"
+         "pr2_gripper_sensor_msgs/PR2GripperGrabAction"))
+  (setf *trajectory-action-left*
+        (actionlib:make-action-client
+         "/l_arm_controller/joint_trajectory_generator"
+         "pr2_controllers_msgs/JointTrajectoryAction"))
+  (setf *trajectory-action-right*
+        (actionlib:make-action-client
+         "/r_arm_controller/joint_trajectory_generator"
+         "pr2_controllers_msgs/JointTrajectoryAction"))
+  (setf *trajectory-action-both*
+        (actionlib:make-action-client
+         "/both_arms_controller/joint_trajectory_action"
+         "pr2_controllers_msgs/JointTrajectoryAction"))
+  (setf *trajectory-action-torso*
+        (actionlib:make-action-client
+         "/torso_controller/joint_trajectory_action"
+         "pr2_controllers_msgs/JointTrajectoryAction"))
+  (setf *joint-state-sub*
+        (roslisp:subscribe
+         "/joint_states" "sensor_msgs/JointState"
+         (lambda (msg)
+           (setf *joint-state* msg))))
+  (set-robot-planning-state))
+  ;; ;; Initialize the planning scene to make get_ik and friends work.
+  ;; (when (roslisp:wait-for-service
+  ;;        "/environment_server/set_planning_scene_diff" 0.2)
+  ;;   (roslisp:call-service
+  ;;    "/environment_server/set_planning_scene_diff"
+  ;;    "arm_navigation_msgs/SetPlanningSceneDiff")))
 
 (register-ros-init-function init-pr2-manipulation-process-module)
 
 (defgeneric call-action (action &rest params))
 
 (defmethod call-action ((action-sym t) &rest params)
-  (roslisp:ros-info (pr2-manip process-module)
-                    "Unimplemented operation `~a' with parameters ~a. Doing nothing."
-                    action-sym params)
+  (roslisp:ros-info
+   (pr2-manip process-module)
+   "Unimplemented operation `~a' with parameters ~a. Doing nothing."
+   action-sym params)
   (sleep 0.5))
 
 (defmethod call-action :around (action-sym &rest params)
-  (roslisp:ros-info (pr2-manip process-module) "Executing manipulation action ~a ~a."
+  (roslisp:ros-info (pr2-manip process-module)
+                    "Executing manipulation action ~a ~a."
                     action-sym params)
   (prog1 (call-next-method)
-    (roslisp:ros-info (pr2-manip process-module) "Manipulation action done.")))
+    (roslisp:ros-info (pr2-manip process-module)
+                      "Manipulation action done.")))
 
 (defun execute-goal (server goal)
   (multiple-value-bind (result status)
       (actionlib:call-goal server goal)
     (unless (eq status :succeeded)
-      (cpl-impl:fail 'manipulation-failed :format-control "Manipulation failed"))
+      (cpl-impl:fail 'manipulation-failed
+                     :format-control "Manipulation failed"))
     result))
 
 (defun execute-torso-command (trajectory)
@@ -120,248 +126,103 @@
    *trajectory-action-torso*
    (actionlib:make-action-goal
        *trajectory-action-torso*
-     :trajectory (remove-trajectory-joints #("torso_lift_joint") trajectory :invert t))))
+     :trajectory (remove-trajectory-joints
+                  #("torso_lift_joint") trajectory :invert t))))
 
-(defun execute-arm-trajectory (side trajectory)
-  (let ((action (ecase side
-                  (:left
-                   (switch-controller #("l_arm_controller") #("both_arms_controller"))
-                   *trajectory-action-left*)
-                  (:right
-                   (switch-controller #("r_arm_controller") #("both_arms_controller"))
-                   *trajectory-action-right*)
-                  (:both
-                   (switch-controller
-                    #("both_arms_controller") #("l_arm_controller" "r_arm_controller"))
-                   *trajectory-action-both*))))
-    (unwind-protect
-         (actionlib:call-goal
-          action
-          (actionlib:make-action-goal
-              action
-            :trajectory (remove-trajectory-joints #("torso_lift_joint") trajectory)))
-      (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))))
+(defun links-for-arm-side (side)
+  (ecase side
+    (:left (list "l_shoulder_pan_link"
+                 "l_shoulder_lift_link"
+                 "l_upper_arm_roll_link"
+                 "l_upper_arm_link"
+                 "l_elbow_flex_link"
+                 "l_forearm_roll_link"
+                 "l_forearm_link"
+                 "l_wrist_flex_link"
+                 "l_wrist_roll_link"
+                 "l_gripper_led_frame"
+                 "l_gripper_motor_accelerometer_link"
+                 "l_gripper_tool_frame"
+                 "l_gripper_r_finger_link"
+                 "l_gripper_r_finger_tip_link"
+                 "l_gripper_l_finger_tip_frame"
+                 "l_gripper_l_finger_link"
+                 "l_gripper_l_finger_tip_link"
+                 "l_gripper_motor_slider_link"
+                 "l_gripper_motor_screw_link"
+                 "l_gripper_palm_link"))
+    (:right (list "r_gripper_palm_link"
+                  "r_shoulder_pan_link"
+                  "r_shoulder_lift_link"
+                  "r_upper_arm_roll_link"
+                  "r_upper_arm_link"
+                  "r_elbow_flex_link"
+                  "r_forearm_roll_link"
+                  "r_forearm_link"
+                  "r_wrist_flex_link"
+                  "r_wrist_roll_link"
+                  "r_gripper_led_frame"
+                  "r_gripper_motor_accelerometer_link"
+                  "r_gripper_tool_frame"
+                  "r_gripper_r_finger_link"
+                  "r_gripper_r_finger_tip_link"
+                  "r_gripper_l_finger_tip_frame"
+                  "r_gripper_l_finger_link"
+                  "r_gripper_l_finger_tip_link"
+                  "r_gripper_motor_slider_link"
+                  "r_gripper_motor_screw_link"))))
 
-(defun pose-path-valid-p (side poses &key
-                               (planners '(:chomp))
-                               allowed-collision-objects)
-  (flet ((plan-segment (service state-start pose)
-           (let* ((pose-now (tf:copy-pose-stamped
-                             pose
-                             :stamp (roslisp:ros-time)))
-                  (ik (lazy-car (get-ik side pose-now))))
-             (unless ik
-               (return-from pose-path-valid-p nil))
-             (roslisp:with-fields (solution) ik
-               (roslisp:with-fields (joint_state) solution
-                 (roslisp:with-fields ((ik-names name) (ik-positions position)) joint_state
-                   (cond
-                     ((roslisp:wait-for-service service 5.0)
-                      (roslisp:call-service 
-                       service
-                       'arm_navigation_msgs-srv:getmotionplan
-                       :motion_plan_request
-                       (roslisp:make-message
-                        "arm_navigation_msgs/MotionPlanRequest"
-                        start_state state-start
-                        group_name (ecase side
-                                     (:right "right_arm")
-                                     (:left "left_arm"))
-                        num_planning_attempts 1
-                        planner_id ""
-                        allowed_planning_time 5.0
-                        expected_path_duration 5.0
-                        goal_constraints
-                        (roslisp:make-message
-                         "arm_navigation_msgs/Constraints"
-                         joint_constraints
-                         (map 'vector (lambda (name position)
-                                        (roslisp:make-msg
-                                         "arm_navigation_msgs/JointConstraint"
-                                         joint_name name
-                                         position position
-                                         tolerance_above 0.03
-                                         tolerance_below 0.03
-                                         weight 1.0))
-                              ik-names ik-positions)))))
-                 (t (return-from plan-segment nil)))))))))
-    (let ((planning-scene-diff-service
-            "/environment_server/set_planning_scene_diff"))
-      (roslisp:wait-for-service planning-scene-diff-service 5.0)
-      (roslisp:call-service
-       planning-scene-diff-service
-       'arm_navigation_msgs-srv:setplanningscenediff
-       :operations (make-collision-operations
-                    side (cons "\"attached\"" allowed-collision-objects))))
-    (when (reduce
-           (lambda (result planner)
-             (declare (ignore result))
-             (let ((service
-                     (ecase planner
-                       (:chomp "/chomp_planner_longrange/plan_path")
-                       (:ompl "/ompl_planning/plan_kinematic_path")
-                       (:stomp "/stomp_motion_planner/plan_path")))
-                   (robot-state (roslisp:make-message
-                                 "arm_navigation_msgs/RobotState")))
-                                        ;joint_state (get-robot-state))))
-               (block pose-check
-                 (let ((trajectories
-                         (loop for pose in poses
-                               for current-plan-segment = (plan-segment
-                                                           service
-                                                           robot-state
-                                                           pose)
-                               collect (roslisp:with-fields
-                                           ((val (val error_code)))
-                                           current-plan-segment
-                                         (cond ((eql val 1)
-                                                (roslisp:with-fields
-                                                    (robot_state
-                                                     trajectory)
-                                                    current-plan-segment
-                                                  (setf robot-state robot_state)
-                                                  trajectory))
-                                               (t (setf robot-state nil)
-                                                  (return-from pose-check
-                                                    nil)))))))
-                   (when robot-state
-                     (return-from pose-path-valid-p
-                       (values t trajectories)))))))
-           planners :initial-value nil)
-      (values t nil))))
-
-(defun execute-move-arm-pose (side pose &key
-                                          (planners '(:ompl :chomp))
-                                          allowed-collision-objects)
-  "Executes move arm. It goes through the list of planners specified
-by `planners' until one succeeds."
-  (flet ((execute-action (planner)
-           (let ((action (ecase side
-                           (:left *move-arm-left*)
-                           (:right *move-arm-right*)))
-                 (pose-msg (tf:pose-stamped->msg pose)))
-             (roslisp:with-fields (header
-                                   (position (position pose))
-                                   (orientation (orientation pose)))
-                 pose-msg
-               (roslisp:with-fields ((val (val error_code)))
-                   (actionlib:call-goal
-                    action
-                    (actionlib:make-action-goal
-                        action
-                      planner_service_name (ecase planner
-                                             (:chomp "/chomp_planner_longrange/plan_path")
-                                             (:ompl "/ompl_planning/plan_kinematic_path")
-                                             (:stomp "/stomp_motion_planner/plan_path"))
-                      (group_name motion_plan_request) (ecase side
-                                                         (:right "right_arm")
-                                                         (:left "left_arm"))
-                      (num_planning_attempts motion_plan_request) 1
-                      (planner_id motion_plan_request) ""
-                      (allowed_planning_time motion_plan_request) 5.0
-                      (expected_path_duration motion_plan_request) 5.0
-                      (position_constraints goal_constraints motion_plan_request)
-                      (vector
-                       (roslisp:make-msg
-                        "arm_navigation_msgs/PositionConstraint"
-                        header header
-                        link_name (ecase side
-                                    (:left "l_wrist_roll_link")
-                                    (:right "r_wrist_roll_link"))
-                        position position
-                        (type constraint_region_shape) (roslisp-msg-protocol:symbol-code
-                                                        'arm_navigation_msgs-msg:shape
-                                                        :box)
-                        (dimensions constraint_region_shape) #(0.01 0.01 0.01)
-                        (w constraint_region_orientation) 1.0
-                        weight 1.0))
-                      (orientation_constraints goal_constraints motion_plan_request)
-                      (vector
-                       (roslisp:make-msg
-                        "arm_navigation_msgs/OrientationConstraint"
-                        header header
-                        link_name (ecase side
-                                    (:left "l_wrist_roll_link")
-                                    (:right "r_wrist_roll_link"))
-                        orientation orientation
-                        absolute_roll_tolerance 0.01
-                        absolute_pitch_tolerance 0.01
-                        absolute_yaw_tolerance 0.01
-                        weight 1.0))
-                      operations (make-collision-operations side (cons "\"attached\"" allowed-collision-objects))
-                      disable_collision_monitoring t)
-                    :result-timeout 4.0)
-                 val)))))
-    (unwind-protect
-         (case (reduce (lambda (result planner)
-                         (declare (ignore result))
-                         (let ((val (execute-action planner)))
-                           (roslisp:ros-info (pr2-manip process-module)
-                                             "Move arm returned with ~a"
-                                             val)
-                           (when (eql val 1)
-                             (let ((curr-time (roslisp:ros-time))
-                                   (target-frame (ecase side
-                                                   (:left "l_wrist_roll_link")
-                                                   (:right "r_wrist_roll_link"))))
-                               (unless (tf:wait-for-transform
-                                        *tf* :time curr-time
-                                             :source-frame (tf:frame-id pose)
-                                             :target-frame target-frame
-                                             :timeout 5.0)
-                                 (roslisp:ros-error () "Failed while waiting for transform.")
-                                 (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))
-                               (let ((goal-in-arm
-                                       (tf:transform-pose
-                                        *tf* :pose (tf:copy-pose-stamped
-                                                    pose :stamp curr-time)
-                                             :target-frame target-frame)))
-                                 ;; Canceled out this check (not working, fix later)
-                                 (when (and nil (or (> (cl-transforms:v-norm
-                                               (cl-transforms:origin goal-in-arm))
-                                              0.1) ;; Was 0.015
-                                           (> (cl-transforms:normalize-angle
-                                               (nth-value 1 (cl-transforms:quaternion->axis-angle
-                                                             (cl-transforms:orientation goal-in-arm))))
-                                              0.1))) ;; Was 0.03
-                                   (roslisp:ros-error () "Distance tolerance override: ~a." goal-in-arm)
-                                   (error 'manipulation-failed
-                                          :result (list (cons 'deviation-translation
-                                                              (cl-transforms:v-norm
-                                                               (cl-transforms:origin goal-in-arm)))
-                                                        (cons 'deviation-rotation
-                                                              (cl-transforms:normalize-angle
-                                                               (nth-value
-                                                                1
-                                                                (cl-transforms:quaternion->axis-angle
-                                                                 (cl-transforms:orientation
-                                                                  goal-in-arm))))))))))
-                             (return-from execute-move-arm-pose t))))
-                       planners :initial-value nil)
-           (-31 (roslisp:ros-error
-                 () "Pose unreachable.")
-            (error 'manipulation-pose-unreachable :result (list side pose)))
-           (-33 (roslisp:ros-error
-                 () "Pose occupied.")
-            (error 'manipulation-pose-occupied :result (list side pose)))
-           (t (roslisp:ros-error
-                 () "Manipulation failed.")
-            (error 'manipulation-failed :result (list side pose))))
-      (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))))
-
-(defun compliant-close-gripper (side)
-  ;; (roslisp:call-service
-  ;;  (ecase side
-  ;;   (:right "/r_reactive_grasp/compliant_close")
-  ;;   (:left "/l_reactive_grasp/compliant_close"))
-  ;;  'std_srvs-srv:Empty)
-  (let ((action (ecase side
-                  (:right *gripper-grab-action-right*)
-                  (:left *gripper-grab-action-left*))))
-    (execute-goal
-     action
-     (actionlib:make-action-goal action
-       (hardness_gain command) 0.03))))
+(defun execute-move-arm-pose (side pose-stamped
+                              &key allowed-collision-objects
+                                ignore-collisions)
+  (let* ((link-name (ecase side
+                      (:left "l_wrist_roll_link")
+                      (:right "r_wrist_roll_link")))
+         (planning-group (ecase side
+                           (:left "left_arm")
+                           (:right "right_arm"))))
+    (cpl:with-failure-handling
+        ((moveit:no-ik-solution (f)
+           (declare (ignore f))
+           (roslisp:ros-error (move arm) "No IK solution found.")
+           (error 'manipulation-pose-unreachable
+                  :result (list side pose-stamped)))
+         (moveit:planning-failed (f)
+           (declare (ignore f))
+           (roslisp:ros-error (move arm) "Planning failed.")
+           (error 'manipulation-pose-unreachable
+                  :result (list side pose-stamped)))
+         (moveit:goal-violates-path-constraints (f)
+           (declare (ignore f))
+           (roslisp:ros-error (move arm) "Goal violates path constraints.")
+           (error 'manipulation-pose-unreachable
+                  :result (list side pose-stamped)))
+         (moveit:invalid-goal-constraints (f)
+           (declare (ignore f))
+           (roslisp:ros-error (move arm) "Invalid goal constraints.")
+           (error 'manipulation-pose-unreachable
+                  :result (list side pose-stamped)))
+         (moveit:timed-out (f)
+           (declare (ignore f))
+           (roslisp:ros-error (move arm) "Timeout.")
+           (error 'manipulation-pose-unreachable
+                  :result (list side pose-stamped)))
+         (moveit:goal-in-collision (f)
+           (declare (ignore f))
+           (roslisp:ros-error (move arm) "Goal in collision.")
+           (error 'manipulation-pose-occupied
+                  :result (list side pose-stamped))))
+      (cond ((moveit:move-link-pose
+              link-name
+              planning-group pose-stamped
+              :ignore-collisions ignore-collisions
+              :allowed-collision-objects allowed-collision-objects
+              :touch-links (when allowed-collision-objects
+                             (links-for-arm-side side)))
+             (plan-knowledge:on-event
+              (make-instance 'plan-knowledge:robot-state-changed)))
+            (t (error 'manipulation-failed
+                      :result (list side pose-stamped)))))))
 
 (defun close-gripper (side &key (max-effort 100.0) (position 0.0))
   (let ((client (ecase side
@@ -373,7 +234,8 @@ by `planners' until one succeeds."
                    (position command) position
                    (max_effort command) max-effort)
           :result-timeout 1.0)
-      (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))))
+      (plan-knowledge:on-event (make-instance
+                                'plan-knowledge:robot-state-changed)))))
 
 (defun open-gripper (side &key (max-effort 100.0) (position 0.085))
   (let ((client (ecase side
@@ -395,8 +257,7 @@ by `planners' until one succeeds."
            (make-instance 'object-detached
              :object ?carried-object
              :link ?gripper-link
-             :side side))))))
-  (zero-fingertip-pressure side))
+             :side side)))))))
 
 (defclass manipulated-perceived-object (desig:object-designator-data) ())
 
@@ -515,3 +376,21 @@ that has to be grasped with two grippers."
              (values left-grasp-pose right-grasp-pose)))
           (t (error 'manipulation-failed
                     :format-control "Invalid objects for dual-arm manipulation specified.")))))
+
+(defun set-robot-planning-state ()
+  (let ((joint-names (list "r_shoulder_pan_joint"
+                           "r_shoulder_lift_joint"
+                           "r_upper_arm_roll_joint"
+                           "r_elbow_flex_joint"
+                           "r_forearm_roll_joint"
+                           "r_wrist_flex_joint"
+                           "r_wrist_roll_joint"
+                           "l_shoulder_pan_joint"
+                           "l_shoulder_lift_joint"
+                           "l_upper_arm_roll_joint"
+                           "l_elbow_flex_joint"
+                           "l_forearm_roll_joint"
+                           "l_wrist_flex_joint"
+                           "l_wrist_roll_joint"
+                           "torso_lift_joint")))
+    (moveit::copy-physical-joint-states joint-names)))
