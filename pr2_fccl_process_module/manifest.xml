@@ -8,6 +8,11 @@
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <depend package="cram_designators"/> <!-- contains cram-designator-properties package -->
+  <depend package="cram_roslisp_common"/> <!-- containts ros-register-ros-init-function -->
+  <depend package="cram_fccl"/> <!-- bridge to talk to the controllers -->
+  <depend package="cram_language"/> <!-- provids the fluents apparatus -->
+  <depend package="constraint_msgs"/> <!-- BIG BREAK OF ABSTRACTION -->
+
 </package>
 
 
