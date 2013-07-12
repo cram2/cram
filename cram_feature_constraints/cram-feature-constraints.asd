@@ -33,15 +33,10 @@
   :description "CRAM's internal representation of feature constraints which are used for constraint-based motion control."
 
   :depends-on (roslisp
-               designators
-               constraint_msgs-msg
-               cl-transforms
-               geometry_msgs-msg)
+               cl-transforms)
   :components
   ((:module "src"
     :components
     ((:file "package")
      (:file "features" :depends-on ("package"))
-     (:file "utilities" :depends-on ("package" "features"))
-     (:file "conversions" :depends-on ("package" "features"))
-     (:file "cram-feature-constraints-tests" :depends-on ("package" "features" "conversions"))))))
+     (:file "utilities" :depends-on ("package" "features"))))))
