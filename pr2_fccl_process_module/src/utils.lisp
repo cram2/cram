@@ -26,20 +26,17 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem pr2-fccl-process-module
-  :author "Georg Bartels <georg.bartels@cs.uni-bremen.de>"
-  :license "BSD"
-  :description "PR2 process module using the feature constraints controller library to move the robot."
+(in-package :pr2-fccl-process-module)
 
-  :depends-on (:designators ; provides macro def-desig-package in package cram-designator-properties
-               :cram-roslisp-common ; provides register-ros-init-function
-               :cram-fccl ; bridge to talk to the controllers
-               :cram-language ; provides the fluents apparatus
-               :constraint_msgs-msg ; for the state-msg BIG BREAK OF ABSTRACTION
-               )
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "utils" :depends-on ("package"))
-     (:file "single-arm-controllers" :depends-on ("package" "utils"))))))
+(defun fccl-controller-finished-p (msg current-movement-id)
+  "Checks whether all weight entries in 'msg' are smaller than 1.0 AND whether the movement-id in 'msg' corresponds to 'current-movement-id'. If yes T is return, else nil."
+  (when msg
+    (roslisp:with-fields (weights movement_id) msg
+      (when (eql movement_id current-movement-id)
+        ;; calculate maximum weight over all constraints
+        (let ((max-weight (loop for i from 0 below (length weights)
+                                for weight = (elt weights i)
+                                maximizing weight into max-weight
+                                finally (return max-weight))))
+          ;; return T if max-weight is greater then 1.0, else 'when' returns nil.
+          (when (< max-weight 1.0) t))))))
