@@ -29,18 +29,20 @@
 
 (in-package :cl-user)
 
-(desig-props:def-desig-package cram-feature-constraints
+(defpackage :cram-feature-constraints
   (:use #:roslisp
         #:common-lisp)
   (:export point line plane
-           feature-constraints->config-msg
-           feature-constraints->command-msg
            hold-left-arm-before-chest
            feature-constraint
            geometric-feature
            tool-feature
            world-feature
            frame-id
+           feature-position feature-direction contact-direction
+           feature-function feature-type lower-boundary
+           upper-boundary name minimum-velocity maximum-velocity
+           weight
            make-point-feature
            make-line-feature
            make-plane-feature
