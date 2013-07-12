@@ -59,8 +59,8 @@
                      :pose (pl-matrix->pose ?pose)
                      :dimensions (apply #'make-3d-vector ?dim))))
                (json-prolog:prolog
-                `(and ("objectPose" ,name ?pose)
-                      ("objectDimensions" ,name ?w ?d ?h)
+                `(and ("current_object_pose" ,name ?pose)
+                      ("map_object_dimensions" ,name ?w ?d ?h)
                       (= '(?d ?w ?h) ?dim))
                 :package :sem-map-coll-env)))
 
@@ -74,8 +74,8 @@
                     (apply #'make-3d-vector ?dim)
                     :top nil)))
                (json-prolog:prolog
-                `(and ("objectPose" ,name ?pose)
-                      ("objectDimensions" ,name ?w ?d ?h)
+                `(and ("current_object_pose" ,name ?pose)
+                      ("map_object_dimensions" ,name ?w ?d ?h)
                       (= '(?d ?w ?h) ?dim))
                 :package :sem-map-coll-env)))
 
@@ -91,8 +91,8 @@
                      :front nil)
                     (query-physical-parts name))))
                (json-prolog:prolog
-                `(and ("objectPose" ,name ?pose)
-                      ("objectDimensions" ,name ?w ?d ?h)
+                `(and ("current_object_pose" ,name ?pose)
+                      ("map_object_dimensions" ,name ?w ?d ?h)
                       (= '(?d ?w ?h) ?dim))
                 :package :sem-map-coll-env)))
 
@@ -108,8 +108,8 @@
                      :front nil)
                     (query-physical-parts name))))
                (json-prolog:prolog
-                `(and ("objectPose" ,name ?pose)
-                      ("objectDimensions" ,name ?w ?d ?h)
+                `(and ("current_object_pose" ,name ?pose)
+                      ("map_object_dimensions" ,name ?w ?d ?h)
                       (= '(?d ?w ?h) ?dim))
                 :package :sem-map-coll-env)))
 
@@ -125,8 +125,8 @@
                      :front nil)
                     (query-physical-parts name))))
                (json-prolog:prolog
-                `(and ("objectPose" ,name ?pose)
-                      ("objectDimensions" ,name ?w ?d ?h)
+                `(and ("current_object_pose" ,name ?pose)
+                      ("map_object_dimensions" ,name ?w ?d ?h)
                       (= '(?d ?w ?h) ?dim))
                 :package :sem-map-coll-env)))
 
@@ -142,8 +142,8 @@
                      :front nil)
                     (query-physical-parts name))))
                (json-prolog:prolog
-                `(and ("objectPose" ,name ?pose)
-                      ("objectDimensions" ,name ?w ?d ?h)
+                `(and ("current_object_pose" ,name ?pose)
+                      ("map_object_dimensions" ,name ?w ?d ?h)
                       (= '(?d ?w ?h) ?dim))
                 :package :sem-map-coll-env)))
 
@@ -158,8 +158,8 @@
                      :pose (pl-matrix->pose ?pose)
                      :dimensions (apply #'make-3d-vector ?dim))))
                (json-prolog:prolog
-                `(and ("objectPose" ,name ?pose)
-                      ("objectDimensions" ,name ?w ?d ?h)
+                `(and ("current_object_pose" ,name ?pose)
+                      ("map_object_dimensions" ,name ?w ?d ?h)
                       (= '(?d ?w ?h) ?dim))
                 :package :sem-map-coll-env)))
 
@@ -254,16 +254,22 @@
                   (make-identity-rotation)))
           :dimensions (make-3d-vector x y *board-thickness*)))))))
 
-(defun query-sem-map ()
-  (lazy-mapcan (lambda (bdg)
-                 (with-vars-bound (?o ?type)
-                     bdg
-                   (get-sem-map-objs ?type (obj-name-sym->string ?o))))
-               (json-prolog:prolog '(and ("rootObjects" ?objs)
-                                     ("member" ?o ?objs)
-                                     ("objectType" ?o ?tp)
-                                     ("rdf_atom_no_ns" ?tp ?type))
-                                   :package :sem-map-coll-env)))
+(defun query-sem-map (&optional map-name)
+  (let ((map-name (or map-name
+                      (with-vars-bound (?map-name)
+                          (lazy-car
+                           (crs:prolog `(sem-map-utils::map-name ?map-name)))
+                        ?map-name))))
+    (lazy-mapcan (lambda (bdg)
+                   (with-vars-bound (?o ?type)
+                       bdg
+                     (get-sem-map-objs ?type (obj-name-sym->string ?o))))
+                 (json-prolog:prolog
+                  `(and ("map_root_objects" ,map-name ?objs)
+                        ("member" ?o ?objs)
+                        ("map_object_type" ?o ?tp)
+                        ("rdf_atom_no_ns" ?tp ?type))
+                  :package :sem-map-coll-env))))
 
 (defun query-physical-parts (name)
   (lazy-mapcan (lambda (bdg)
@@ -273,7 +279,7 @@
                                      ("rdf_has" ,name
                                                 "http://ias.cs.tum.edu/kb/knowrob.owl#properPhysicalParts"
                                                 ?sub)
-                                     ("objectType" ?sub ?tp)
+                                     ("map_object_type" ?sub ?tp)
                                      ("rdf_atom_no_ns" ?tp ?type))
                                    :package :sem-map-coll-env)))
 
