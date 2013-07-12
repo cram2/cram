@@ -183,34 +183,34 @@
         (with-vars-bound (?pose ?dim ?labels)
             (lazy-car
              (json-prolog:prolog
-              `(and ("objectPose" ,owlname ?pose)
-                    ("objectDimensions" ,owlname ?w ?d ?h)
-                    ("findall" ?l ("objectLabel" ,owlname ?l) ?labels)
+              `(and ("current_object_pose" ,owlname ?pose)
+                    ("map_object_dimensions" ,owlname ?w ?d ?h)
+                    ("findall" ?l ("map_object_label" ,owlname ?l) ?labels)
                     (= '(?d ?w ?h) ?dim))
               :package :sem-map-utils))
           (let ((aliases (unless (is-var ?labels)
                            ?labels)))
             (if (or (is-var ?pose) (is-var ?dim))
                 (make-instance 'semantic-map-part
-                  :type type :name name :owl-name owlname
-                  :aliases (mapcar (lambda (label)
-                                     (remove #\' (symbol-name label)))
-                                   aliases)
-                  :parent parent)
+                               :type type :name name :owl-name owlname
+                               :aliases (mapcar (lambda (label)
+                                                  (remove #\' (symbol-name label)))
+                                                aliases)
+                               :parent parent)
                 (make-instance 'semantic-map-geom
-                  :type type
-                  :name name
-                  :owl-name owlname
-                  :pose (cl-transforms:transform->pose
-                         (cl-transforms:matrix->transform
-                          (make-array
-                           '(4 4) :displaced-to (make-array
-                                                 16 :initial-contents ?pose))))
-                  :dimensions (apply #'cl-transforms:make-3d-vector ?dim)
-                  :aliases (mapcar (lambda (label)
-                                     (remove #\' (symbol-name label)))
-                                   aliases)
-                  :parent parent)))))))
+                               :type type
+                               :name name
+                               :owl-name owlname
+                               :pose (cl-transforms:transform->pose
+                                      (cl-transforms:matrix->transform
+                                       (make-array
+                                        '(4 4) :displaced-to (make-array
+                                                              16 :initial-contents ?pose))))
+                               :dimensions (apply #'cl-transforms:make-3d-vector ?dim)
+                               :aliases (mapcar (lambda (label)
+                                                  (remove #\' (symbol-name label)))
+                                                aliases)
+                               :parent parent)))))))
 
 (defgeneric update-pose (obj new-pose &key relative recursive)
   (:documentation "Updates the pose of `obj' using `new-pose'. When
@@ -263,7 +263,7 @@
             (json-prolog:prolog
              `(and
                ("rdf_has" ,(owl-name part) "http://ias.cs.tum.edu/kb/knowrob.owl#properPhysicalParts" ?sub)
-               ("objectType" ?sub ?tp)
+               ("map_object_type" ?sub ?tp)
                ("rdf_atom_no_ns" ?tp ?type)
                ("rdf_atom_no_ns" ?sub ?name))
              :package :sem-map-utils))))))
@@ -313,30 +313,32 @@
                            (crs:prolog `(sem-map-utils::map-name ?map-name)))
                         ?map-name))))
     (unless (or (not (json-prolog:check-connection)) *cached-semantic-map*)
-      (setf *cached-semantic-map*
-            (make-instance 'semantic-map
-                           :parts (alexandria:alist-hash-table
-                                   (mapcar (lambda (elem)
-                                             (cons (name elem) elem))
-                                           (force-ll
-                                            (lazy-mapcan
-                                             (lambda (bdgs)
-                                               (with-vars-bound (?type ?n ?o) bdgs
-                                                 (unless (or (is-var ?type) (is-var ?o))
-                                                   (list (make-semantic-map-part
-                                                          (remove #\' (symbol-name ?type))
-                                                          (remove #\' (symbol-name ?n))
-                                                          (remove #\' (symbol-name ?o))
-                                                          nil)))))
-                                             (json-prolog:prolog
-                                              `(and ,(cond (map-name `("readMap" ,map-name ?objs))
-                                                           (t `("readMap" ?objs)))
-                                                    ("member" ?o ?objs)
-                                                    ("objectType" ?o ?tp)
-                                                    ("rdf_atom_no_ns" ?tp ?type)
-                                                    ("rdf_atom_no_ns" ?o ?n))
-                                              :package :sem-map-utils))))
-                                   :test 'equal))))))
+      (setf
+       *cached-semantic-map*
+       (make-instance
+        'semantic-map
+        :parts (alexandria:alist-hash-table
+                (mapcar
+                 (lambda (elem)
+                   (cons (name elem) elem))
+                 (force-ll
+                  (lazy-mapcan
+                   (lambda (bdgs)
+                     (with-vars-bound (?type ?n ?o) bdgs
+                       (unless (or (is-var ?type) (is-var ?o))
+                         (list (make-semantic-map-part
+                                (remove #\' (symbol-name ?type))
+                                (remove #\' (symbol-name ?n))
+                                (remove #\' (symbol-name ?o))
+                                nil)))))
+                   (json-prolog:prolog
+                    `(and ("map_root_objects" ,map-name ?objs)
+                          ("member" ?o ?objs)
+                          ("map_object_type" ?o ?tp)
+                          ("rdf_atom_no_ns" ?tp ?type)
+                          ("rdf_atom_no_ns" ?o ?n))
+                    :package :sem-map-utils))))
+                :test 'equal))))))
 
 (defun get-semantic-map ()
   (init-semantic-map-cache)
@@ -450,7 +452,7 @@ of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns
           ("atom_number" ?direction_x_ ?directionx)
           ("atom_number" ?direction_y_ ?directiony)
           ("atom_number" ?direction_z_ ?directionz)
-          ("findall" ?l ("objectLabel" ,owl-name ?l) ?labels))
+          ("findall" ?l ("map_object_label" ,owl-name ?l) ?labels))
         :package :sem-map-utils))
     (make-instance 'semantic-map-prismatic-joint
       :type "PrismaticJoint"
@@ -487,7 +489,7 @@ of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns
                          ("rdf_atom_no_ns" ?c_ ?c))
                      ?connected)
           ("atom_number" ?min_ ?min) ("atom_number" ?max_ ?max)
-          ("findall" ?l ("objectLabel" ,owl-name ?l) ?labels))
+          ("findall" ?l ("map_object_label" ,owl-name ?l) ?labels))
         :package :sem-map-utils))
     (make-instance 'semantic-map-joint
       :type "HingedJoint"
