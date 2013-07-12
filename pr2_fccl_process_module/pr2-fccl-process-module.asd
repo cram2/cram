@@ -35,7 +35,6 @@
                :cram-roslisp-common ; provides register-ros-init-function
                :cram-fccl ; bridge to talk to the controllers
                :cram-language ; provides the fluents apparatus
-               :constraint_msgs-msg ; for the state-msg BIG BREAK OF ABSTRACTION
                )
   :components
   ((:module "src"
