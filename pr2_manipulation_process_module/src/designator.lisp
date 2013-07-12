@@ -194,6 +194,7 @@
                                                          ?absolute-handle)
            ?absolute-handles)
     (lisp-fun optimal-arm-handle-assignment
+              ?current-object
               ?available-arms
               ?absolute-handles
               ?min-handles
@@ -206,6 +207,7 @@
     (desig-prop ?current-desig (at ?loc))
     (desig-prop ?loc (pose ?pose))
     (lisp-fun optimal-arm-pose-assignment
+              ?current-object
               ?available-arms
               ?pose
               ?grasp-assignments)

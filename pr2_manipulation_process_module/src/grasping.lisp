@@ -58,13 +58,18 @@ grasp.")
 (defparameter *pre-putdown-offset*
   (tf:make-pose
    (tf:make-3d-vector
-    0.0 -0.2 0.0)
-   (tf:euler->quaternion :ax (/ pi -2))))
+    0.0 0.0 0.2)
+   (tf:euler->quaternion)))
 (defparameter *putdown-offset*
   (tf:make-pose
    (tf:make-3d-vector
     0.0 0.0 0.0)
-   (tf:euler->quaternion :ax (/ pi -2))))
+   (tf:euler->quaternion)))
+(defparameter *unhand-offset*
+  (tf:make-pose
+   (tf:make-3d-vector
+    -0.10 0.0 0.0)
+   (tf:euler->quaternion)))
 
 (defun relative-pose-for-handle (obj handle &key relative-pose)
   (tf:wait-for-transform *tf*
@@ -90,9 +95,10 @@ location designator. The optional parameter `handle-offset-pose' is
 applied to the handle pose before the absolute object pose is
 applied."
   (let* ((absolute-object-loc (desig-prop-value obj 'at))
-         (absolute-object-pose-stamped (desig-prop-value
-                                        absolute-object-loc
-                                        'desig-props:pose))
+         (absolute-object-pose-stamped (pose-pointing-away-from-base
+                                        (desig-prop-value
+                                         absolute-object-loc
+                                         'desig-props:pose)))
          (relative-handle-loc (desig-prop-value handle 'at))
          (relative-handle-pose (cl-transforms:transform-pose
                                 (tf:pose->transform
@@ -113,7 +119,7 @@ applied."
                                    when (not (eql (car desc-elem) 'at))
                                      collect desc-elem))))
 
-(defun optimal-arm-handle-assignment (avail-arms avail-handles min-handles
+(defun optimal-arm-handle-assignment (obj avail-arms avail-handles min-handles
                                       &key max-handles)
   (let* ((assigned-entities
            (entity-assignment
@@ -127,14 +133,20 @@ applied."
          (valid-assignments
            (remove-if
             (lambda (assign)
-              (not (cost-function-grasp-handle-ik-constraint-aware assign)))
+              (not (cost-function-grasp-handle-ik-constraint-aware obj assign)))
             assigned-entities))
          (sorted-valid-assignments
            (sort
             valid-assignments
             (lambda (assign-1 assign-2)
-              (< (cost-function-grasp-handle-ik-constraint-aware assign-1)
-                 (cost-function-grasp-handle-ik-constraint-aware assign-2)))))
+              (let ((cost1 (cost-function-grasp-handle-ik-constraint-aware
+                            obj assign-1))
+                    (cost2 (cost-function-grasp-handle-ik-constraint-aware
+                            obj assign-2)))
+                (cond ((and cost1 cost2)
+                       (< cost1 cost2))
+                      (cost1 cost1)
+                      (cost2 cost2))))))
          (assignments (mapcar (lambda (arm handle-pair)
                                 (make-instance
                                  'grasp-assignment
@@ -155,10 +167,12 @@ applied."
                            :side (car cons-cell)))
           cons-cells))
 
-(defun arms-handle-distances (arms handle-pose &key
-                                           constraint-aware
-                                           (arms-offset-pose
-                                            (tf:make-identity-pose)))
+(defun arms-handle-distances (arms handle-pose
+                              &key
+                                allowed-collision-objects
+                                constraint-aware
+                                (arms-offset-pose
+                                 (tf:make-identity-pose)))
   "Calculates the distances for each arm given in the `arms' list with
 respect to the handle `handle'. Only arms that can actually reach the
 handle are included. The resulting list consists of entries of the
@@ -183,12 +197,15 @@ could reach the handle, `NIL' is returned."
           for distance = (reaching-length handle-pose-stamped arm
                                           :constraint-aware constraint-aware
                                           :calc-euclidean-distance nil
-                                          :euclidean-target-link target-link)
+                                          :euclidean-target-link target-link
+                                          :allowed-collision-objects
+                                          allowed-collision-objects)
           when distance
             collect (cons arm distance))))
 
-(defun optimal-arm-pose-assignment (avail-arms obj-pose)
-  (let* ((assigned-entities
+(defun optimal-arm-pose-assignment (obj avail-arms obj-pose)
+  (let* ((object-name (desig-prop-value obj 'desig-props:name))
+         (assigned-entities
            (entity-assignment
             (list
              (make-assignable-entity-list
@@ -198,14 +215,20 @@ could reach the handle, `NIL' is returned."
          (valid-assignments
            (remove-if
             (lambda (assign)
-              (not (cost-function-grasp-ik-constraint-aware assign)))
+              (not (cost-function-grasp-ik-constraint-aware
+                    obj assign
+                    :allowed-collision-objects (list object-name))))
             assigned-entities))
          (sorted-valid-assignments
            (sort
             valid-assignments
             (lambda (assign-1 assign-2)
-              (< (cost-function-grasp-ik-constraint-aware assign-1)
-                 (cost-function-grasp-ik-constraint-aware assign-2)))))
+              (< (cost-function-grasp-ik-constraint-aware
+                  obj assign-1
+                  :allowed-collision-objects (list object-name))
+                 (cost-function-grasp-ik-constraint-aware
+                  obj assign-2
+                  :allowed-collision-objects (list object-name))))))
          (assignments (mapcar (lambda (arm pose)
                                 (make-instance 'grasp-assignment
                                                :pose pose
@@ -216,7 +239,9 @@ could reach the handle, `NIL' is returned."
       (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))
     assignments))
 
-(defun cost-function-grasp-handle-ik-constraint-aware (assignment)
+(defun cost-function-grasp-handle-ik-constraint-aware (obj assignment
+                                                       &key
+                                                         allowed-collision-objects)
   "This function determines the overall cost of the assignment
 `assignment' with respect to the generated ik solutions (constraint
 aware) and the cartesian distance between all points of this ik
@@ -228,26 +253,12 @@ configuration."
                     (reference (desig-prop-value (cdr handle-pair) 'at)))
                   (second assignment))))
     (cost-function-grasp-ik-constraint-aware
-     (list (first assignment) assignment-poses))))
-  ;; (loop for (arm . handle) in (mapcar #'cons
-  ;;                                     (first assignment)
-  ;;                                     (second assignment))
-  ;;       for handle-pose = (reference (desig-prop-value handle 'at))
-  ;;       for distance-pregrasp = (cdr (assoc arm
-  ;;                                           (arms-handle-distances
-  ;;                                            (list arm) handle-pose
-  ;;                                            :arms-offset-pose
-  ;;                                            *pregrasp-offset-pose*)))
-  ;;       for distance-grasp = (cdr (assoc arm (arms-handle-distances
-  ;;                                             (list arm) handle-pose
-  ;;                                             :arms-offset-pose
-  ;;                                             *grasp-offset-pose*)))
-  ;;       when (not (and distance-pregrasp distance-grasp))
-  ;;         do (return-from cost-function-grasp-handle-ik-constraint-aware nil)
-  ;;       summing (+ distance-pregrasp distance-grasp) into total-cost
-  ;;       finally (return total-cost)))
+     obj (list (first assignment) assignment-poses)
+     :allowed-collision-objects allowed-collision-objects)))
 
-(defun cost-function-grasp-ik-constraint-aware (assignment)
+(defun cost-function-grasp-ik-constraint-aware (obj assignment
+                                                &key
+                                                  allowed-collision-objects)
   "This function determines the overall cost of the assignment
 `assignment' with respect to the generated ik solutions (constraint
 aware) and the cartesian distance between all points of this ik
@@ -268,21 +279,31 @@ configuration."
                                              (list arm) pose
                                              :arms-offset-pose
                                              *pregrasp-offset*)))
-        for distance-grasp = (cdr (assoc arm
-                                         (arms-pose-distances
-                                          (list arm) pose
-                                          :arms-offset-pose
-                                          *grasp-offset*)))
+        for distance-grasp = (when distance-pregrasp
+                               (moveit:remove-collision-object
+                                (desig-prop-value obj 'desig-props:name))
+                               (prog1
+                                   (cdr (assoc arm
+                                               (arms-pose-distances
+                                                (list arm) pose
+                                                :arms-offset-pose
+                                                *grasp-offset*
+                                                :allowed-collision-objects
+                                                allowed-collision-objects)))
+                                 (moveit:add-collision-object
+                                  (desig-prop-value obj 'desig-props:name))))
         when (not (and distance-pregrasp distance-grasp))
           do (return-from cost-function-grasp-ik-constraint-aware nil)
         summing (+ distance-pregrasp distance-grasp) into total-cost
         finally (return total-cost))))
     costme))
 
-(defun arms-pose-distances (arms pose &key
-                                        (constraint-aware nil)
-                                        (arms-offset-pose
-                                         (tf:make-identity-pose)))
+(defun arms-pose-distances (arms pose
+                            &key
+                              allowed-collision-objects
+                              (constraint-aware nil)
+                              (arms-offset-pose
+                               (tf:make-identity-pose)))
   (flet ((apply-pose-offset (pose offset-pose)
            (cl-transforms:transform-pose
             (cl-transforms:pose->transform pose)
@@ -300,20 +321,18 @@ configuration."
                                       0.0
                                       (tf:origin pose-offsetted)
                                       (tf:orientation pose-offsetted))
-                  for pose-stamped-tll = (tf:transform-pose
-                                          *tf*
-                                          :pose pose-stamped
-                                          :target-frame "/torso_lift_link")
                   for publ = (roslisp:publish
                               (roslisp:advertise
                                "/testpublisher2"
                                "geometry_msgs/PoseStamped")
-                              (tf:pose-stamped->msg pose-stamped-tll))
+                              (tf:pose-stamped->msg pose-stamped));;-tll))
                   for distance = (reaching-length
-                                  pose-stamped-tll arm
+                                  pose-stamped arm
                                   :constraint-aware constraint-aware
                                   :calc-euclidean-distance t
-                                  :euclidean-target-link target-link)
+                                  :euclidean-target-link target-link
+                                  :allowed-collision-objects
+                                  allowed-collision-objects)
                   when distance
                     collect (cons arm distance))))
       (roslisp:ros-info (pr2-manipulation-process-module grasping)
@@ -349,8 +368,9 @@ configuration."
            (origin2 (tf:origin object-pose-map))
            (p1 (tf:make-3d-vector (tf:x origin1) (tf:y origin1) 0.0))
            (p2 (tf:make-3d-vector (tf:x origin2) (tf:y origin2) 0.0))
-           (angle (* (signum (- (tf:y p2) (tf:y p1)))
-                     (acos (/ (- (tf:x p2) (tf:x p1)) (tf:v-dist p1 p2))))))
+           (angle (+ (* (signum (- (tf:y p2) (tf:y p1)))
+                        (acos (/ (- (tf:x p2) (tf:x p1)) (tf:v-dist p1 p2))))
+                     (/ pi -2))))
       (tf:make-pose-stamped fin-frame 0.0
                             (tf:origin object-pose-map)
                             (tf:euler->quaternion :az (+ angle (/ pi 2)))))))
