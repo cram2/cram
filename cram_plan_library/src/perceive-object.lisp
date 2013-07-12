@@ -100,3 +100,6 @@ found."
                               (return nil)))
       (perform perceive-action)
       (monitor-action perceive-action))))
+
+(def-goal (examine ?obj-desig ?properties)
+  (perform (an action `((to examine) (obj ,?obj-desig)))))
