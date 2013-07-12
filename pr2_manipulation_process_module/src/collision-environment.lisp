@@ -34,10 +34,11 @@
 (defvar *known-collision-objects* (tg:make-weak-hash-table :weakness :key))
 
 (defun init-collision-environment ()
-  (setf *collision-object-pub*
-        (roslisp:advertise "/collision_object" "arm_navigation_msgs/CollisionObject" :latch t))
-  (setf *attached-object-pub*
-        (roslisp:advertise "/attached_collision_object" "moveit_msgs/AttachedCollisionObject" :latch t)))
+;  (setf *collision-object-pub*
+;        (roslisp:advertise "/collision_object" "arm_navigation_msgs/CollisionObject" :latch t))
+;  (setf *attached-object-pub*
+;        (roslisp:advertise "/attached_collision_object" "moveit_msgs/AttachedCollisionObject" :latch t)))
+)
 
 (register-ros-init-function init-collision-environment)
 
@@ -98,9 +99,7 @@
 
 (defun register-collision-object (designator &key (padding 0))
   "Registers the object referenced by `designator' in the collision
-environment. To actually add the object to the collision environment,
-at least one `collision-part' has to be specified in the object
-designator."
+environment."
   (declare (type object-designator designator))
   (let* ((effective-designator (newest-effective-designator designator))
          (shape (cram-manipulation-knowledge:get-shape-message
@@ -128,22 +127,10 @@ designator."
   (let ((collision-object (find-desig-collision-object desig)))
     (when collision-object
       (roslisp:with-fields (id) collision-object
-        (roslisp:publish *collision-object-pub*
-                         (roslisp:make-msg
-                          "arm_navigation_msgs/CollisionObject"
-                          (frame_id header) "/base_footprint"
-                          (stamp header) (roslisp:ros-time)
-                          id id
-                          (operation operation) 1))))))
+        (moveit:remove-collision-object id)))))
 
 (defun clear-collision-objects ()
-  (roslisp:publish *collision-object-pub*
-                   (roslisp:make-msg
-                    "arm_navigation_msgs/CollisionObject"
-                    (frame_id header) "/base_footprint"
-                    (stamp header) (roslisp:ros-time)
-                    id "all"
-                    (operation operation) 1)))
+  (moveit:clear-collision-objects))
 
 (defun attach-collision-object (side desig)
   (let ((collision-object (find-desig-collision-object desig)))
