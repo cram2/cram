@@ -16,6 +16,7 @@
   <depend package="visualization_msgs"/>
   <depend package="cram_utilities"/>
   <depend package="cram_roslisp_common"/>
+  <depend package="cram_moveit"/>
 
 </package>
 

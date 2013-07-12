@@ -58,7 +58,26 @@
     (init-semantic-map-obj-cache))
   (loop for objs being the hash-values of *semantic-map-obj-cache* do
     (dolist (obj objs)
-      (roslisp:publish *collision-object-publisher* (collision-object->msg obj)))))
+      (with-slots (pose dimensions) obj
+        (tf:wait-for-transform *tf* :source-frame "map"
+                                    :target-frame "odom_combined")
+        (let ((obj-name (make-collision-obj-name obj))
+              (pose-stamped (tf:transform-pose
+                             *tf*
+                             :pose (tf:pose->pose-stamped
+                                    "/map" 0.0 pose)
+                             :target-frame "/odom_combined")))
+          (moveit:register-collision-object
+           obj-name
+           :primitive-shapes (list (roslisp:make-msg
+                                    "shape_msgs/SolidPrimitive"
+                                    type 1
+                                    dimensions (vector
+                                                (x dimensions)
+                                                (y dimensions)
+                                                (z dimensions))))
+           :pose-stamped pose-stamped)
+          (moveit:add-collision-object obj-name))))))
 
 (defun remove-semantic-map-collision-objects ()
   (unless (> (hash-table-count *semantic-map-obj-cache*) 0)
@@ -118,21 +137,49 @@
 
 (defun collision-object->msg (obj &optional (frame-id "/map"))
   (declare (type sem-map-obj obj))
+  (declare (ignore frame-id))
   (with-slots (pose dimensions) obj
-    (roslisp:make-msg
-     "arm_navigation_msgs/CollisionObject"
-     (frame_id header) frame-id
-     (stamp header) (roslisp:ros-time)
-     id (make-collision-obj-name obj)
-     (operation operation) 0
-     shapes (vector (roslisp:make-msg
-                     "arm_navigation_msgs/Shape"
-                     type 1
-                     dimensions (vector
-                                 (x dimensions)
-                                 (y dimensions)
-                                 (z dimensions))))
-     poses (vector (tf:pose->msg pose)))))
+    (moveit:register-collision-object
+     (make-collision-obj-name obj)
+     :primitive-shapes (list (roslisp:make-msg
+                              "arm_navigation_msgs/Shape"
+                              type 1
+                              dimensions (vector
+                                          (x dimensions)
+                                          (y dimensions)
+                                          (z dimensions))))
+     :pose-stamped pose)))
+    ;; (roslisp:make-msg
+    ;;  "arm_navigation_msgs/CollisionObject"
+    ;;  (frame_id header) frame-id
+    ;;  (stamp header) (roslisp:ros-time)
+    ;;  id (make-collision-obj-name obj)
+    ;;  (operation operation) 0
+    ;;  shapes (vector (roslisp:make-msg
+    ;;                  "arm_navigation_msgs/Shape"
+    ;;                  type 1
+    ;;                  dimensions (vector
+    ;;                              (x dimensions)
+    ;;                              (y dimensions)
+    ;;                              (z dimensions))))
+    ;;  poses (vector (tf:pose->msg pose))))))
+
+  ;; (declare (type sem-map-obj obj))
+  ;; (with-slots (pose dimensions) obj
+  ;;   (roslisp:make-msg
+  ;;    "arm_navigation_msgs/CollisionObject"
+  ;;    (frame_id header) frame-id
+  ;;    (stamp header) (roslisp:ros-time)
+  ;;    id (make-collision-obj-name obj)
+  ;;    (operation operation) 0
+  ;;    shapes (vector (roslisp:make-msg
+  ;;                    "arm_navigation_msgs/Shape"
+  ;;                    type 1
+  ;;                    dimensions (vector
+  ;;                                (x dimensions)
+  ;;                                (y dimensions)
+  ;;                                (z dimensions))))
+  ;;    poses (vector (tf:pose->msg pose)))))
 
 (defun make-collision-obj-name (obj)
   (with-slots (name index) obj
