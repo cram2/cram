@@ -74,4 +74,5 @@
                      #:location #:at #:parked #:pose #:close #:gripper
                      #:follow #:pick-up #:put-down #:height #:orientation
                      #:in #:perceive #:obstacle #:cluster #:execute
-                     #:action #:goal #:navigation #:park #:on #:angle))
+                     #:action #:goal #:navigation #:park #:on #:angle
+                     #:examine))
