@@ -30,7 +30,8 @@
 (def-goal (achieve (object-in-hand ?obj))
   (ros-info (achieve plan-lib) "(achieve (object-in-hand))")
   (with-retry-counters ((alternative-poses-cnt 3)
-                        (carry-retry-count 3))
+                        (carry-retry-count 3)
+                        (misgrasp-retry-count 3))
     (with-designators ((grasp-trajectory
                         (action `((type trajectory) (to grasp) (obj ,?obj))))
                        (lift-trajectory
@@ -46,6 +47,13 @@
               (achieve plan-lib)
               "Got unreachable grasp pose. Re-perceiving object.")
              (do-retry alternative-poses-cnt
+               (retry)))
+           (object-lost (f)
+             (declare (ignore f))
+             (ros-warn
+              (achieve plan-lib)
+              "Grasp didn't succeed, we probably didn't perceive it right. Re-grasping.")
+             (do-retry misgrasp-retry-count
                (retry))))
         (ros-info (achieve plan-lib) "Calling perceive")
         (setf ?obj (perceive-object 'a ?obj))
