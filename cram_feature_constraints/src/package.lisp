@@ -43,10 +43,14 @@
            feature-function feature-type lower-boundary
            upper-boundary name minimum-velocity maximum-velocity
            weight
+           feature-constraint-state
+           current-weights
+           movement-id
            make-point-feature
            make-line-feature
            make-plane-feature
            make-perpendicular-constraint
            make-pointing-at-constraint
            make-height-constraint
-           make-distance-constraint))
+           make-distance-constraint
+           make-constraint-state))
