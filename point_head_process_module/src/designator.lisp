@@ -92,8 +92,8 @@
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to see))
     (desig-prop ?desig (obj ?obj))
-    (obj-desig-location ?obj ?pose)
-    (lisp-fun make-action-goal ?pose ?act))  
+    (desig-location-prop ?obj ?pose)
+    (lisp-fun make-action-goal ?pose ?act))
     
   (<- (action-desig ?desig (follow ?act))
     (trajectory-desig? ?desig)

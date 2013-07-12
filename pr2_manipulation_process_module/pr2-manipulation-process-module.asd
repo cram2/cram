@@ -1,4 +1,3 @@
-;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
@@ -45,7 +44,6 @@
                pr2_msgs-srv
                kinematics_msgs-srv
                arm_navigation_msgs-msg
-               vision_srvs-srv
                trivial-garbage
                std_srvs-srv
                alexandria
@@ -56,12 +54,17 @@
                arm_navigation_msgs-srv
                pr2_mechanism_msgs-srv
                pr2-manipulation-knowledge
-               cram-moveit)
+               cram-moveit
+               constraint_msgs-msg
+               cram-feature-constraints
+               cram-fccl)
   :components
   ((:module "src"
             :components
             ((:file "package")
              (:file "utils" :depends-on ("package"))
+             (:file "knowrob_utils" :depends-on ("package"))
+             (:file "tf-utils" :depends-on ("package"))
              (:file "grasping" :depends-on ("package" "utils"))
              (:file "sensors" :depends-on ("package" "utils"))
              (:file "motion-library" :depends-on ("package"))
@@ -71,5 +74,8 @@
              (:file "process-module"
               :depends-on ("package" "kinematics" "collision-environment" "controller-manager" "motion-library" "grasping" "sensors"))
              (:file "events" :depends-on ("package" "collision-environment"))
-             (:file "designator" :depends-on ("package" "process-module"))
-             (:file "action-handlers" :depends-on ("package" "process-module"))))))
+             (:file "designator" :depends-on ("package" "knowrob_utils" "process-module"))
+             (:file "action-handlers" :depends-on ("package" "process-module" "feature-controllers" "tf-utils"))
+             (:file "feature-controllers" :depends-on ("package" "controller-manager"))
+             (:file "feature-controller-tests" 
+              :depends-on ("package" "feature-controllers" "controller-manager" "process-module" "tf-utils"))))))

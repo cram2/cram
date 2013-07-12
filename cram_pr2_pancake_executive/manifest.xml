@@ -1,0 +1,27 @@
+<package>
+  <description brief="cram_pr2_pancake_executive">
+
+     Package holding the CRAM executive code to make pancakes with the PR2.
+
+  </description>
+  <author>Georg Bartels</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>https://github.com/cram-code/cram_pr2</url>
+  <depend package="cram_language"/>
+  <depend package="cram_plan_library"/>
+  <depend package="cram_designators"/>
+  <depend package="roslisp"/>
+  <depend package="cram_utilities"/>
+  <depend package="cram_plan_failures"/>
+  <depend package="cram_plan_knowledge"/>
+  <depend package="cram_process_modules"/>
+  <depend package="pr2_manipulation_process_module"/>
+  <depend package="point_head_process_module"/>
+  <depend package="cram_environment_representation"/>
+  <depend package="cl_tf"/>
+  <depend package="cl_transforms"/>
+
+</package>
+
+
