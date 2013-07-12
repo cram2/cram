@@ -28,11 +28,16 @@
 
 (in-package :pr2-fccl-process-module)
 
-(defun fccl-controller-finished-p (msg current-movement-id)
-  "Checks whether all weight entries in 'msg' are smaller than 1.0 AND whether the movement-id in 'msg' corresponds to 'current-movement-id'. If yes T is return, else nil."
-  (when msg
-    (roslisp:with-fields (weights movement_id) msg
-      (when (eql movement_id current-movement-id)
+(defun fccl-controller-finished-p (constraints-state current-movement-id)
+  "Checks whether all weight entries in 'constraints-state' are smaller than 1.0 AND whether the movement-id in 'msg' corresponds to 'current-movement-id'. If yes T is return, else nil."
+  (when (and constraints-state current-movement-id)
+    (assert (typep constraints-state 'cram-feature-constraints:feature-constraint-state))
+    (assert (numberp current-movement-id))
+    ;; extract the current information from the state object
+    (let ((weights (cram-feature-constraints:current-weights constraints-state))
+          (movement-id (cram-feature-constraints:movement-id constraints-state)))
+      ;; check if the movement-ids match
+      (when (eql movement-id current-movement-id)
         ;; calculate maximum weight over all constraints
         (let ((max-weight (loop for i from 0 below (length weights)
                                 for weight = (elt weights i)
