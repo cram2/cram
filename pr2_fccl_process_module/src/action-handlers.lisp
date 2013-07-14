@@ -28,22 +28,9 @@
 
 (in-package :pr2-fccl-process-module)
 
-;;; PROVIDES FUNCTIONALITIES USED BY SEVERAL CONTROLLER INTERFACES
+;;; PROVIDES ALL THE ACTION-HANDLERS THAT GET CALLED AFTER REFERENCED OF
+;;; THE ACTION DESIGNATORS
 
-(defun fccl-controller-finished-p (constraints-state current-movement-id)
-  "Checks whether all weight entries in 'constraints-state' are smaller than 1.0 AND whether the movement-id in 'msg' corresponds to 'current-movement-id'. If yes T is return, else nil."
-  (when (and constraints-state current-movement-id)
-    (assert (typep constraints-state 'feature-constraint-state))
-    (assert (numberp current-movement-id))
-    ;; extract the current information from the state object
-    (let ((weights (current-weights constraints-state))
-          (movement-id (movement-id constraints-state)))
-      ;; check if the movement-ids match
-      (when (eql movement-id current-movement-id)
-        ;; calculate maximum weight over all constraints
-        (let ((max-weight (loop for i from 0 below (length weights)
-                                for weight = (elt weights i)
-                                maximizing weight into max-weight
-                                finally (return max-weight))))
-          ;; return T if max-weight is greater then 1.0, else 'when' returns nil.
-          (when (< max-weight 1.0) t))))))
+(def-action-handler single-arm-constraint-motion ()
+  "Executes a series of fccl-motions on a single arm of the PR2."
+  (format t "[PR2-FCCL-PROCESS-MODULE SINGLE-ARM-CONSTRAINT-MOTION] Not yet implemented.~%"))

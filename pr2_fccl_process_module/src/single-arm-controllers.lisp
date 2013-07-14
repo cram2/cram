@@ -28,26 +28,28 @@
 
 (in-package :pr2-fccl-process-module)
 
+;;; GLUE-CODE TO EXECUTE SINGLE-ARM MOTIONS USING THE FCCL-CONTROLLERS
+
 (defvar *left-arm-controller-interface* nil "Holds a fccl-publisher-interface to talk to the left arm.")
 (defvar *right-arm-controller-interface* nil "Holds a fccl-publisher-interface to talk to the right arm.")
 
 (defun init-fccl-arm-controllers ()
   "Initializes the left and right arm fccl-publisher-interfaces for the PR2."
-  (cram-fccl:ensure-fccl-initialized)
+  (ensure-fccl-initialized)
   (setf *left-arm-controller-interface*
-        (cram-fccl:add-fccl-controller-interface
+        (add-fccl-controller-interface
          "/left_arm_feature_controller/constraint_config"
          "/left_arm_feature_controller/constraint_command"
          "/left_arm_feature_controller/constraint_state"
          "pr2_left_arm_feature_controller"))
   (setf *right-arm-controller-interface*
-        (cram-fccl:add-fccl-controller-interface
+        (add-fccl-controller-interface
          "/right_arm_feature_controller/constraint_config"
          "/right_arm_feature_controller/constraint_command"
          "/right_arm_feature_controller/constraint_state"
          "pr2_right_arm_feature_controller")))
 
-(cram-roslisp-common:register-ros-init-function init-fccl-arm-controllers)
+(register-ros-init-function init-fccl-arm-controllers)
 
 (defun execute-several-motion-phases (motion-phases side)
   "Executes a series of 'movement-phases' on the 'side' arm. Every movement-phase is represented by a set of constraints."
@@ -64,10 +66,9 @@
                      (:left *left-arm-controller-interface*)
                      (:right *right-arm-controller-interface*))))
     ;; start execution
-    (cram-fccl:execute-constraints-motion constraints interface)
+    (execute-constraints-motion constraints interface)
     ;; wait for fluent to signal finish
-    (cram-language:wait-for 
-     (cram-language:fl-funcall 
-      #'fccl-controller-finished-p 
-      (cram-fccl:get-constraints-state-fluent interface) 
-      (cram-fccl:movement-id interface)))))
+    (wait-for (fl-funcall 
+               #'fccl-controller-finished-p 
+               (get-constraints-state-fluent interface) 
+               (movement-id interface)))))

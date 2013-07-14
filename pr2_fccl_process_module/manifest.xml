@@ -7,11 +7,17 @@
   <author>Georg Bartels</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
-  <depend package="cram_designators"/> <!-- contains cram-designator-properties package -->
-  <depend package="cram_roslisp_common"/> <!-- containts ros-register-ros-init-function -->
-  <depend package="cram_fccl"/> <!-- bridge to talk to the controllers -->
-  <depend package="cram_language"/> <!-- provids the fluents apparatus -->
+  <depend package="cram_designators"/>
+  <depend package="cram_roslisp_common"/>
+  <depend package="cram_fccl"/>
+  <depend package="cram_language"/>
+  <depend package="cram_process_modules"/>
+  <depend package="alexandria"/>
+  <depend package="cram_reasoning"/>
+  <depend package="cram_plan_knowledge"/>
+  <depend package="cram_feature_constraints"/>
 
+  <rosdep name="sbcl"/>
 </package>
 
 
