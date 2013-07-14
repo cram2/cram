@@ -28,6 +28,39 @@
 
 (in-package :cl-user)
 
+;;; PACKAGE DEFINITION WITH METHOD EXPORTS AND USED DESIGNATOR PROPERTIES.
+
 (desig-props:def-desig-package pr2-fccl-process-module
   (:nicknames :pr2-fccl-pm)
-  (:use #:common-lisp))
+  (:use #:common-lisp)
+  (:import-from #:cram-plan-knowledge
+                matching-process-module
+                available-process-module
+                projection-running)
+  (:import-from #:cram-reasoning
+                def-fact-group
+                <-
+                not)
+  (:import-from #:cram-designators
+                action-desig
+                constraints-desig?
+                reference)
+  (:import-from #:cram-process-modules
+                def-process-module)
+  (:import-from #:cram-fccl
+                ensure-fccl-initialized
+                add-fccl-controller-interface
+                execute-constraints-motion
+                get-constraints-state-fluent
+                movement-id)
+  (:import-from #:cram-roslisp-common
+                register-ros-init-function)
+  (:import-from #:cram-language
+                wait-for
+                fl-funcall)
+  (:import-from #:cram-feature-constraints
+                feature-constraint-state
+                current-weights
+                movement-id)
+                
+)

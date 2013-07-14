@@ -28,22 +28,30 @@
 
 (in-package :pr2-fccl-process-module)
 
-;;; PROVIDES FUNCTIONALITIES USED BY SEVERAL CONTROLLER INTERFACES
+;;; BASIC DEFINITION OF THE PROCESS MODULE AND ITS MECHANICS
 
-(defun fccl-controller-finished-p (constraints-state current-movement-id)
-  "Checks whether all weight entries in 'constraints-state' are smaller than 1.0 AND whether the movement-id in 'msg' corresponds to 'current-movement-id'. If yes T is return, else nil."
-  (when (and constraints-state current-movement-id)
-    (assert (typep constraints-state 'feature-constraint-state))
-    (assert (numberp current-movement-id))
-    ;; extract the current information from the state object
-    (let ((weights (current-weights constraints-state))
-          (movement-id (movement-id constraints-state)))
-      ;; check if the movement-ids match
-      (when (eql movement-id current-movement-id)
-        ;; calculate maximum weight over all constraints
-        (let ((max-weight (loop for i from 0 below (length weights)
-                                for weight = (elt weights i)
-                                maximizing weight into max-weight
-                                finally (return max-weight))))
-          ;; return T if max-weight is greater then 1.0, else 'when' returns nil.
-          (when (< max-weight 1.0) t))))))
+(def-process-module pr2-fccl-process-module (desig)
+  "Does three things: (a) Defines the PR2-FCCL-PROCESS-MODULE. (b) References the action designator to identify the correct action-handler. (c) Calls 'call-action' which calls the corresponding action-handler."
+  (apply #'call-action (reference desig)))
+
+(defgeneric call-action (action &rest params)
+  (:documentation "Calls the appropriate 'action' action-handler and passes 'params' along."))
+
+(defmethod call-action ((action-sym t) &rest params)
+  ;; Fallback case of call-action in case non of the action-handlers matched the result of '(reference desig)'.
+  (format t "[PR2-FCCL-PM PROCESS-MODULE] Unimplemented operation `~a' with parameters ~a. Doing nothing.~%"
+          action-sym params)
+  (sleep 0.5))
+
+(defmethod call-action :around (action-sym &rest params)
+  ;; Adds some printouts to the other actual call-action-method to inform the user.
+  (format t "[PR2-FCCL-PM PROCESS-MODULE] Executing manipulation action ~a ~a.~%"
+          action-sym params)
+  (prog1 (call-next-method)
+    (format t "[PR2-FCCL-PM PROCESS-MODULE] Manipulation action done.~%")))
+
+(defmacro def-action-handler (name args &body body)
+  "Generates a new 'call-action' method for every action-handler defined."
+  (alexandria:with-gensyms (action-sym params)
+    `(defmethod call-action ((,action-sym (eql ',name)) &rest ,params)
+       (destructuring-bind ,args ,params ,@body))))
