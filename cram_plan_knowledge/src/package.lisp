@@ -100,7 +100,7 @@
            #:perception-source #:object #:event-object
            #:link #:event-link #:side #:event-side
            #:holds #:opening-distance
-           #:matching-process-module #:available-process-module
+           #:matching-process-module #:available-process-module #:projection-running
            #:matching-process-module-names
            ;; cooking goals
            #:object-flipped)
