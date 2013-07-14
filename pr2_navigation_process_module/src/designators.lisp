@@ -41,4 +41,4 @@
     (desig-prop ?designator (type navigation)))
 
   (<- (available-process-module pr2-navigation-process-module)
-    (symbol-value cram-projection:*projection-environment* nil)))
+    (not (projection-running ?_))))
