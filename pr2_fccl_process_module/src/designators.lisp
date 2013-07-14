@@ -28,22 +28,23 @@
 
 (in-package :pr2-fccl-process-module)
 
-;;; PROVIDES FUNCTIONALITIES USED BY SEVERAL CONTROLLER INTERFACES
+;;; DEFINES ALL THE NECESSARY PROLOG PATTERNS TO INFER WHICH ACTION
+;;; DESIGNATORS IT CAN RESOLVE AND WHICH ACTION-HANDLERS IT USES FOR THAT.
 
-(defun fccl-controller-finished-p (constraints-state current-movement-id)
-  "Checks whether all weight entries in 'constraints-state' are smaller than 1.0 AND whether the movement-id in 'msg' corresponds to 'current-movement-id'. If yes T is return, else nil."
-  (when (and constraints-state current-movement-id)
-    (assert (typep constraints-state 'feature-constraint-state))
-    (assert (numberp current-movement-id))
-    ;; extract the current information from the state object
-    (let ((weights (current-weights constraints-state))
-          (movement-id (movement-id constraints-state)))
-      ;; check if the movement-ids match
-      (when (eql movement-id current-movement-id)
-        ;; calculate maximum weight over all constraints
-        (let ((max-weight (loop for i from 0 below (length weights)
-                                for weight = (elt weights i)
-                                maximizing weight into max-weight
-                                finally (return max-weight))))
-          ;; return T if max-weight is greater then 1.0, else 'when' returns nil.
-          (when (< max-weight 1.0) t))))))
+;;; Enumerate all fitting action-designators for this process module
+(def-fact-group pr2-fccl-manipulation-designators (action-desig)
+  
+  (<- (action-desig ?desig (single-arm-constraint-motion))
+    (constraints-desig? ?desig)))
+
+;;; Implement our version of the two basic predicates every process module HAS
+;;; to implement by default:
+;;; 'matching-process-module' and 'available-process-module'
+(def-fact-group pr2-fccl-process-module 
+    (matching-process-module available-process-module)
+  
+  (<- (matching-process-module ?designator pr2-fccl-process-module)
+    (constraints-desig? ?designator))
+  
+  (<- (available-process-module pr2-fccl-process-module)
+    (not (projection-running ?_))))

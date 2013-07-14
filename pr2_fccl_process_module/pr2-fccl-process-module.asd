@@ -31,14 +31,22 @@
   :license "BSD"
   :description "PR2 process module using the feature constraints controller library to move the robot."
 
-  :depends-on (:designators ; provides macro def-desig-package in package cram-designator-properties
+  :depends-on (:designators ; provides package cram-designator-properties, and holds basic designator fact-groups
                :cram-roslisp-common ; provides register-ros-init-function
                :cram-fccl ; bridge to talk to the controllers
                :cram-language ; provides the fluents apparatus
+               :process-modules ; provides process module protocol, e.g. def-process-module
+               :alexandria ; provides with-gensyms
+               :cram-reasoning ; provides CRAM-prolog
+               :cram-plan-knowledge ; provides predicates matching-process-module, available-process-module, and projection-running
+               :cram-feature-constraints ; provides the CRAM-internal representation of feature constraints
                )
   :components
   ((:module "src"
     :components
     ((:file "package")
+     (:file "process-module" :depends-on ("package"))
+     (:file "designators" :depends-on ("package" "process-module")) ; depends on 'process-module' to obtain symbol 'pr2-fccl-process-module'
      (:file "utils" :depends-on ("package"))
-     (:file "single-arm-controllers" :depends-on ("package" "utils"))))))
+     (:file "single-arm-controllers" :depends-on ("package" "utils"))
+     (:file "action-handlers" :depends-on ("package" "process-module" "single-arm-controllers"))))))
