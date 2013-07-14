@@ -48,6 +48,9 @@
     (fail))
 
   (<- (available-process-module ?process-name)
+    (fail))
+  
+  (<- (projection-running ?projection-process-module-name)
     (fail)))
 
 (defun matching-process-module-names (action-designator)
