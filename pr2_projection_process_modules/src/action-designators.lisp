@@ -42,7 +42,7 @@
    (sem-map-utils:get-connecting-joint-limits
     (pr2-manipulation-knowledge:get-semantic-map) part-name)))
 
-(def-fact-group process-modules (matching-process-module available-process-module)
+(def-fact-group process-modules (matching-process-module available-process-module projection-running)
 
   (<- (matching-process-module ?designator projection-ptu)
     (trajectory-desig? ?designator)
@@ -71,7 +71,19 @@
     (symbol-value *projection-environment* pr2-bullet-projection-environment))
 
   (<- (available-process-module projection-navigation)
-    (symbol-value *projection-environment* pr2-bullet-projection-environment)))
+    (symbol-value *projection-environment* pr2-bullet-projection-environment))
+
+  (<- (cram-plan-knowledge:projection-running projection-ptu)
+    (available-process-module projection-ptu))
+
+  (<- (cram-plan-knowledge:projection-running projection-perception)
+    (available-process-module projection-perception))
+
+  (<- (cram-plan-knowledge:projection-running projection-manipulation)
+    (available-process-module projection-manipulation))
+  
+  (<- (cram-plan-knowledge:projection-running projection-navigation)
+    (available-process-module projection-navigation)))
 
 (def-fact-group ptu-designators (action-desig-projection)
 
