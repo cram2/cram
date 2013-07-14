@@ -39,5 +39,5 @@
         #:cram-plan-failures)
   (:export #:pr2-navigation-process-module #:*navigation-enabled*)
   (:import-from #:cram-plan-knowledge
-                matching-process-module available-process-module)
+                matching-process-module available-process-module projection-running)
   (:desig-properties #:type #:navigation #:goal #:to))
