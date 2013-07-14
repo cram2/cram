@@ -303,4 +303,4 @@
               (desig-prop ?designator (to push))))))
 
   (<- (available-process-module pr2-manipulation-process-module)
-    (symbol-value cram-projection:*projection-environment* nil)))
+    (not (projection-running ?_))))
