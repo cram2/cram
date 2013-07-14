@@ -41,5 +41,5 @@
   (:shadowing-import-from #:cpl-impl #:fail)
   (:shadowing-import-from #:cram-process-modules #:name)
   (:import-from #:cram-plan-knowledge
-                matching-process-module available-process-module)
+                matching-process-module available-process-module projection-running)
   (:desig-properties #:to #:see #:follow #:pose #:location #:obj))

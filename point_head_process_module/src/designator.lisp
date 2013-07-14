@@ -124,4 +124,4 @@
         (desig-prop ?designator (to follow))))
 
   (<- (available-process-module point-head-process-module)
-    (symbol-value cram-projection:*projection-environment* nil)))
+    (not (projection-running ?_))))
