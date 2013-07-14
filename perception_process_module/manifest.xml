@@ -30,7 +30,6 @@
   <depend package="handle_detection" />
   <depend package="ias_perception_actions" />
   <depend package="semantic_map_cache" />
-  <depend package="cram_projection" />
   <depend package="bullet_reasoning" />
 
 </package>

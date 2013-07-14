@@ -54,7 +54,6 @@
                cl-semantic-map-utils
                handle_detection-msg
                ias_perception_actions-msg
-               cram-projection
                bullet-reasoning)
   :components
   ((:module "src"
