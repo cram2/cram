@@ -175,7 +175,12 @@
 (defun execute-move-arm-pose (side pose-stamped
                               &key allowed-collision-objects
                                 ignore-collisions)
-  (let* ((link-name (ecase side
+  (let* ((allowed-collision-objects
+           (cond (ignore-collisions
+                  (append allowed-collision-objects
+                          (links-for-arm-side side)))
+                 (t allowed-collision-objects)))
+         (link-name (ecase side
                       (:left "l_wrist_roll_link")
                       (:right "r_wrist_roll_link")))
          (planning-group (ecase side
