@@ -61,7 +61,7 @@
       (with-slots (pose dimensions) obj
         (tf:wait-for-transform *tf* :source-frame "map"
                                     :target-frame "odom_combined")
-        (let ((obj-name (make-collision-obj-name obj))
+        (let ((obj-name (string-upcase (make-collision-obj-name obj)))
               (pose-stamped (tf:transform-pose
                              *tf*
                              :pose (tf:pose->pose-stamped
@@ -149,37 +149,6 @@
                                           (y dimensions)
                                           (z dimensions))))
      :pose-stamped pose)))
-    ;; (roslisp:make-msg
-    ;;  "arm_navigation_msgs/CollisionObject"
-    ;;  (frame_id header) frame-id
-    ;;  (stamp header) (roslisp:ros-time)
-    ;;  id (make-collision-obj-name obj)
-    ;;  (operation operation) 0
-    ;;  shapes (vector (roslisp:make-msg
-    ;;                  "arm_navigation_msgs/Shape"
-    ;;                  type 1
-    ;;                  dimensions (vector
-    ;;                              (x dimensions)
-    ;;                              (y dimensions)
-    ;;                              (z dimensions))))
-    ;;  poses (vector (tf:pose->msg pose))))))
-
-  ;; (declare (type sem-map-obj obj))
-  ;; (with-slots (pose dimensions) obj
-  ;;   (roslisp:make-msg
-  ;;    "arm_navigation_msgs/CollisionObject"
-  ;;    (frame_id header) frame-id
-  ;;    (stamp header) (roslisp:ros-time)
-  ;;    id (make-collision-obj-name obj)
-  ;;    (operation operation) 0
-  ;;    shapes (vector (roslisp:make-msg
-  ;;                    "arm_navigation_msgs/Shape"
-  ;;                    type 1
-  ;;                    dimensions (vector
-  ;;                                (x dimensions)
-  ;;                                (y dimensions)
-  ;;                                (z dimensions))))
-  ;;    poses (vector (tf:pose->msg pose)))))
 
 (defun make-collision-obj-name (obj)
   (with-slots (name index) obj
