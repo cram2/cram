@@ -272,16 +272,18 @@
                   :package :sem-map-coll-env))))
 
 (defun query-physical-parts (name)
-  (lazy-mapcan (lambda (bdg)
-                 (with-vars-bound (?sub ?type) bdg
-                   (get-sem-map-objs ?type (obj-name-sym->string ?sub))))
-               (json-prolog:prolog `(and
-                                     ("rdf_has" ,name
-                                                "http://ias.cs.tum.edu/kb/knowrob.owl#properPhysicalParts"
-                                                ?sub)
-                                     ("map_object_type" ?sub ?tp)
-                                     ("rdf_atom_no_ns" ?tp ?type))
-                                   :package :sem-map-coll-env)))
+  (lazy-mapcan
+   (lambda (bdg)
+     (with-vars-bound (?sub ?type) bdg
+       (get-sem-map-objs ?type (obj-name-sym->string ?sub))))
+   (json-prolog:prolog
+    `(and
+      ("rdf_has" ,name
+                 "http://ias.cs.tum.edu/kb/knowrob.owl#properPhysicalParts"
+                 ?sub)
+      ("map_object_type" ?sub ?tp)
+      ("rdf_atom_no_ns" ?tp ?type))
+    :package :sem-map-coll-env)))
 
 (defun obj-name-sym->string (name-sym)
   (remove #\' (symbol-name name-sym)))
@@ -292,3 +294,12 @@
     (make-array
      '(4 4) :displaced-to (make-array
                            16 :initial-contents matrix)))))
+
+(defun collision-environment-names ()
+  (let ((obj-names nil))
+    (loop for objs being the hash-values of *semantic-map-obj-cache* do
+      (dolist (obj objs)
+        (with-slots (pose dimensions) obj
+          (let ((obj-name (make-collision-obj-name obj)))
+            (push obj-name obj-names)))))
+    obj-names))
