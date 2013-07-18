@@ -30,9 +30,9 @@
 
 (defun make-object-bounding-box-costmap-generator (object)
   (let* ((bounding-box (aabb object))
-         (dimensions-x/2 (/ (cl-transforms:x (bt:bounding-box-dimensions bounding-box))
+         (dimensions-x/2 (/ (cl-transforms:x (bullet:bounding-box-dimensions bounding-box))
                             2))
-         (dimensions-y/2 (/ (cl-transforms:y (bt:bounding-box-dimensions bounding-box))
+         (dimensions-y/2 (/ (cl-transforms:y (bullet:bounding-box-dimensions bounding-box))
                             2)))
     (lambda (x y)
       (if (and

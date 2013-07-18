@@ -29,7 +29,7 @@
 ;;;
 
 (defpackage cl-bullet
-    (:nicknames :bullet :bt)
+    (:nicknames :bullet)
   (:use #:common-lisp #:cffi #:cffi-ros-utils)
   (:export
    ;; dynamics world

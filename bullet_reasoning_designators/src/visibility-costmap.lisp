@@ -244,7 +244,7 @@ square depth image of size `pixels' and the index of the depth image."
                                        (objects world))))
     (visibility-costmap
      (btr:make-drawable-list :drawables objects-to-render)
-     (bt:pose object) camera-minimal-height camera-maximal-height
+     (bullet:pose object) camera-minimal-height camera-maximal-height
      size resolution)))
 
 (defun visibility-costmap (drawable pose camera-minimal-height camera-maximal-height size resolution)

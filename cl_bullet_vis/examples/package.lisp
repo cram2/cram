@@ -30,5 +30,5 @@
 
 (defpackage bullet-visualization-examples
     (:nicknames :bt-vis-ex)
-  (:use #:common-lisp #:bt #:bt-vis)
+  (:use #:common-lisp #:bullet #:bt-vis)
   (:export))

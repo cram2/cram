@@ -28,7 +28,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :bt)
+(in-package :bullet)
 
 (define-foreign-ros-library bullet-cl "libbullet_cl.so" "cl_bullet")
 

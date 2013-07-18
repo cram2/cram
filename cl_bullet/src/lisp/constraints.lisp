@@ -28,7 +28,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :bt)
+(in-package :bullet)
 
 (defclass constraint (foreign-class)
   ((body-1 :initarg :body-1 :reader body-1)

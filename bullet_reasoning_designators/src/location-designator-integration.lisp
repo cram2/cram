@@ -129,10 +129,10 @@ that `designator' tries to reach."
         ((let ((cached-function
                  (or (gethash designator *designator-ik-check-cache*)
                      (setf (gethash designator *designator-ik-check-cache*)
-                           (let* ((state (bt:get-state *current-bullet-world*))
+                           (let* ((state (bullet:get-state *current-bullet-world*))
                                   (world (bullet:restore-world-state
                                           state (make-instance 'btr:bt-reasoning-world
-                                                  :gravity-vector (bt:gravity-vector state))))
+                                                  :gravity-vector (bullet:gravity-vector state))))
                                   (robot (btr:object world (get-robot-name))))
                              (make-ik-check-function
                               robot (pose-side-properties designator)))))))

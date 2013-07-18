@@ -28,7 +28,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :bt)
+(in-package :bullet)
 
 (defclass contact-point ()
   ((point-in-1 :initarg :point-in-1 :reader point-in-1)

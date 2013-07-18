@@ -140,7 +140,7 @@
      :location
      `((:pose ,(pose->pose-stamped
                 designators-ros:*fixed-frame* (cut:current-timestamp)
-                (bt:pose object)))))))
+                (cl-bullet:pose object)))))))
 
 (defun make-object-location-in-gripper (object gripper-link)
   "Returns a new location designator that indicates a location in the
