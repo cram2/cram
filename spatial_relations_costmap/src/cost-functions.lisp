@@ -36,17 +36,17 @@
 
 ;; used for near and far-from desig-props
 (defun get-aabb-min-length (object)
-  (let ((dims (bt:bounding-box-dimensions (aabb object))))
+  (let ((dims (cl-bullet:bounding-box-dimensions (aabb object))))
     (min (cl-transforms:x dims) (cl-transforms:y dims))))
 
 ;; used for near and far-from desig-props
 (defun get-aabb-circle-diameter (object)
-  (cl-transforms:x (bt:bounding-box-dimensions (aabb object))))
+  (cl-transforms:x (bullet:bounding-box-dimensions (aabb object))))
 
 ;; used for near and far-from desig-props
 ;; we assume the radius of the oval is the max of its two radia
 (defun get-aabb-oval-diameter (object)
-  (let ((dims (bt:bounding-box-dimensions (aabb object))))
+  (let ((dims (bullet:bounding-box-dimensions (aabb object))))
     (max (cl-transforms:x dims) (cl-transforms:y dims))))
 
 ;; used for near desig-prop
@@ -208,10 +208,10 @@ The function returns one of the following keys: :front, :back, :left, :right."
           (dolist (bounding-box aabbs (if invert 1.0d0 0.0d0))
             (let* ((bb-center (cl-bullet:bounding-box-center bounding-box))
                    (dimensions-x/2
-                     (+ (/ (cl-transforms:x (bt:bounding-box-dimensions bounding-box)) 2)
+                     (+ (/ (cl-transforms:x (bullet:bounding-box-dimensions bounding-box)) 2)
                         padding))
                    (dimensions-y/2
-                     (+ (/ (cl-transforms:y (bt:bounding-box-dimensions bounding-box)) 2)
+                     (+ (/ (cl-transforms:y (bullet:bounding-box-dimensions bounding-box)) 2)
                         padding)))
               (when (and
                      (< x (+ (cl-transforms:x bb-center) dimensions-x/2))

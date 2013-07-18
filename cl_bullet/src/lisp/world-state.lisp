@@ -28,7 +28,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :bt)
+(in-package :bullet)
 
 (defgeneric get-state (obj)
   (:documentation "Returns a state object that allows to completely

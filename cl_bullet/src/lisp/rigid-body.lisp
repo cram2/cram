@@ -28,7 +28,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :bt)
+(in-package :bullet)
 
 (defstruct bounding-box
   (center (cl-transforms:make-3d-vector 0 0 0))

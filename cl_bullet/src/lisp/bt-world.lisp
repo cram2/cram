@@ -28,7 +28,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :bt)
+(in-package :bullet)
 
 (defgeneric gravity-vector (world))
 (defgeneric (setf gravity-vector) (new-value world))

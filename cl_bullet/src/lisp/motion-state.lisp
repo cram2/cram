@@ -28,7 +28,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :bt)
+(in-package :bullet)
 
 (defgeneric pose (obj)
   (:documentation "Returns the pose of `obj'"))

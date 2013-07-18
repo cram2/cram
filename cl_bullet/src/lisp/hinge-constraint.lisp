@@ -28,7 +28,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :bt)
+(in-package :bullet)
 
 (defclass hinge-constraint (constraint)
   ((frame-in-1 :initform (cl-transforms:make-transform

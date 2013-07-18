@@ -28,7 +28,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :bt)
+(in-package :bullet)
 
 (defclass point-2-point-constraint (constraint)
   ((point-in-1 :initform (cl-transforms:make-3d-vector 0 0 0)

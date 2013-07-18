@@ -32,7 +32,7 @@
 
 (defpackage cl-bullet-vis
     (:nicknames :bt-vis)
-  (:use #:common-lisp #:bt)
+  (:use #:common-lisp #:bullet)
   (:import-from #:physics-utils
                 event-queue post-event get-next-event)
   (:export bullet-world-window world camera-transform
