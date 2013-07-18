@@ -39,7 +39,7 @@
   ((cram-roslisp-common:*transformer* (make-instance 'cl-tf:transformer))
    ;; TODO: use custom tf topic "tf_sim"
    ;; For that first change tf2_ros/TransformListener to accept custom topic names
-   ;; (*current-bullet-world* (bt:copy-world *current-bullet-world*))
+   ;; (*current-bullet-world* (cl-bullet:copy-world *current-bullet-world*))
    (*current-timeline* (btr:timeline-init *current-bullet-world*))
    (desig:*default-role* 'projection-role)
    (*projection-clock* (make-instance 'partially-ordered-clock))
