@@ -158,5 +158,8 @@ designator."
                              :name "AT-LOCATION"
                              :sexp ,sexp
                              :lambda-list (evaluated-location)
-                             :parameters (list evaluated-location))
+                             :parameters (list evaluated-location)
+                             :log-parameters
+                             (list (cons "location" ,location)
+                                   (cons "pose-stamped" evaluated-location)))
          (%execute-at-location evaluated-location #'at-location-body)))))

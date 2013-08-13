@@ -45,16 +45,22 @@ given a name, a designator class and the designator properties.")
    (default-designator-create-function name class properties)))
 
 (defmacro with-designators (&whole sexp defs &body body)
-  `(with-task-tree-node (:path-part `(goal-context `(with-designators))
-                         :name "WITH-DESIGNATORS"
-                         :sexp ,sexp
-                         :lambda-list nil
-                         :parameters nil)
-     (let* ,(mapcar (lambda (def)
-                      (destructuring-bind (name (type props)) def
-                        `(,name (create-designator ',name ',type ,props))))
-             defs)
-       ,@body)))
+  `(let ((log-params
+           ',(mapcar (lambda (def)
+                       (destructuring-bind (name (type props)) def
+                         `(,name ,(write-to-string (list type props)))))
+                     defs)))
+     (with-task-tree-node (:path-part `(goal-context `(with-designators))
+                           :name "WITH-DESIGNATORS"
+                           :sexp ,sexp
+                           :lambda-list nil
+                           :parameters nil
+                           :log-parameters log-params)
+       (let* ,(mapcar (lambda (def)
+                        (destructuring-bind (name (type props)) def
+                          `(,name (create-designator ',name ',type ,props))))
+               defs)
+         ,@body))))
 
 (defun register-designator-create-function (function)
   "Registers a new designator create function. `function' needs to be
