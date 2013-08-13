@@ -28,19 +28,40 @@
 
 (in-package :plan-lib)
 
+(defgeneric hook-before-performing-action-designator (description))
+(defmethod hook-before-performing-action-designator (description))
+
+(defgeneric hook-after-performing-action-designator (id success))
+(defmethod hook-after-performing-action-designator (id success))
+
 (def-goal (perform ?action-designator)
-  (let ((matching-process-modules (matching-process-module-names ?action-designator)))
+  (let ((matching-process-modules
+          (matching-process-module-names ?action-designator)))
     (unless matching-process-modules
-      (fail "No process modules found for executing designator ~a" ?action-designator))
+      (fail "No process modules found for executing designator ~a"
+            ?action-designator))
     ;; Rethrow the first error in the composite-failure. This is
     ;; necessary to keep the high-level plans working. For instance,
     ;; if perception fails, plans expect an OBJECT-NOT-FOUND failure,
     ;; not a COMPOSITE-FAILURE.
-    (with-failure-handling
-        ((composite-failure (failure)
-           (fail (car (composite-failures failure)))))
-      (try-each-in-order (module matching-process-modules)
-        (perform-on-process-module module ?action-designator)))))
+    (let ((result nil)
+          (log-id (hook-before-performing-action-designator
+                   (list
+                    (list 'description
+                          (write-to-string
+                           (desig:description ?action-designator)))
+                    (list 'matching-process-modules
+                          (write-to-string
+                           matching-process-modules))))))
+      (with-failure-handling
+          ((composite-failure (failure)
+             (fail (car (composite-failures failure)))))
+        (unwind-protect
+             (setf result
+                   (try-each-in-order (module matching-process-modules)
+                     (perform-on-process-module module ?action-designator)))
+          (hook-after-performing-action-designator
+           log-id result))))))
 
 (def-goal (perform-on-process-module ?module ?action-designator)
   (pm-execute ?module ?action-designator))
