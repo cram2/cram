@@ -670,9 +670,11 @@ supporting plane"
                       (:left *carry-pose-left*))))
     (if orientation
         (execute-move-arm-pose side (tf:copy-pose-stamped carry-pose :orientation orientation)
-                               :allowed-collision-objects (list "\"all\""))
+                               :allowed-collision-objects
+                               (list (desig-prop-value obj 'desig-props:name)))
         (execute-move-arm-pose side carry-pose
-                               :allowed-collision-objects (list "\"all\"")))))
+                               :allowed-collision-objects
+                               (list (desig-prop-value obj 'desig-props:name))))))
 
 (defun park-grasped-object-with-two-arms (obj side &optional obstacles)
   "Moves the object which was grasped with two arms into a position in
