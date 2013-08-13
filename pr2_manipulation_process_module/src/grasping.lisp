@@ -121,6 +121,8 @@ applied."
 
 (defun optimal-arm-handle-assignment (obj avail-arms avail-handles min-handles
                                       &key max-handles)
+  (dolist (arm avail-arms)
+    (open-gripper arm))
   (let* ((assigned-entities
            (entity-assignment
             (list
@@ -204,6 +206,8 @@ could reach the handle, `NIL' is returned."
             collect (cons arm distance))))
 
 (defun optimal-arm-pose-assignment (obj avail-arms obj-pose)
+  (dolist (arm avail-arms)
+    (open-gripper arm))
   (let* ((object-name (desig-prop-value obj 'desig-props:name))
          (assigned-entities
            (entity-assignment
