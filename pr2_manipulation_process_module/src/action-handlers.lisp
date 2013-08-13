@@ -149,6 +149,12 @@
       (when rel-ik
         (execute-arm-trajectory arm (ik->trajectory rel-ik))))))
 
+(defgeneric hook-before-grasp ())
+(defmethod hook-before-grasp ())
+
+(defgeneric hook-after-grasp (log-id success))
+(defmethod hook-after-grasp (log-id success))
+
 (def-action-handler grasp (obj-desig grasp-assignments obstacles)
   (declare (ignore obstacles))
   (let ((pair-count (length grasp-assignments)))
@@ -181,19 +187,23 @@
                       (close-radius (or (slot-value grasp-assignment
                                                     'close-radius)
                                         0.0)))
-                 (cpl:with-failure-handling
-                     ((cram-plan-failures:manipulation-failed (f)
-                        (declare (ignore f))
-                        (cpl:fail
-                         'cram-plan-failures:manipulation-pose-unreachable)))
-                   (execute-grasp :object-name (desig-prop-value
-                                                obj-desig
-                                                'desig-props:name)
-                                  :object-pose obj-pose
-                                  :pregrasp-pose pregrasp-pose-tll
-                                  :grasp-pose grasp-pose-tll
-                                  :side side
-                                  :gripper-close-pos close-radius))))
+                 (let ((log-id (hook-before-grasp)))
+                   (cpl:with-failure-handling
+                       ((cram-plan-failures:manipulation-failed (f)
+                          (declare (ignore f))
+                          (hook-after-grasp log-id nil)
+                          (cpl:fail
+                           'cram-plan-failures:manipulation-pose-unreachable)))
+                     (prog1
+                         (execute-grasp :object-name (desig-prop-value
+                                                      obj-desig
+                                                      'desig-props:name)
+                                        :object-pose obj-pose
+                                        :pregrasp-pose pregrasp-pose-tll
+                                        :grasp-pose grasp-pose-tll
+                                        :side side
+                                        :gripper-close-pos close-radius)
+                       (hook-after-grasp log-id t))))))
               (t (cpl:error 'manipulation-failed)))))
     (loop for grasp-assignment in grasp-assignments
           for side = (slot-value grasp-assignment 'side)
