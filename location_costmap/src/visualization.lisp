@@ -56,19 +56,22 @@
       (dotimes (row (array-dimension map-array 0))
         (dotimes (col (array-dimension map-array 1))
           (when (> (aref map-array row col) threshold)
-            (push (make-message "arm_navigation_msgs/OrientedBoundingBox"
-                                (x center) (+ (* col resolution) origin-x)
-                                (y center) (+ (* row resolution) origin-y)
-                                (z center) (+ z (/ (aref map-array row col) max-val))
-                                (x extents) resolution
-                                (y extents) resolution
-                                (z extents) resolution
-                                (x axis) 1.0
-                                (y axis) 0.0
-                                (z axis) 0.0
-                                angle 0.0)
-                  boxes))))
-      (make-message "arm_navigation_msgs/CollisionMap"
+            (let ((pose (tf:make-pose
+                         (tf:make-3d-vector
+                          (+ (* col resolution) origin-x)
+                          (+ (* row resolution) origin-y)
+                          (+ z (/ (aref map-array row col) max-val)))
+                         (tf:axis-angle->quaternion
+                          (tf:make-3d-vector 1.0 0.0 0.0) 0.0))))
+              (push (make-message "moveit_msgs/OrientedBoundingBox"
+                                  (x position pose) (tf:x (tf:origin pose))
+                                  (y position pose) (tf:y (tf:origin pose))
+                                  (z position pose) (tf:y (tf:origin pose))
+                                  (x extents) resolution
+                                  (y extents) resolution
+                                  (z extents) resolution)
+                    boxes)))))
+      (make-message "moveit_msgs/CollisionMap"
                     (frame_id header) frame-id
                     (stamp header) (ros-time)
                     boxes (map 'vector #'identity boxes)))))
