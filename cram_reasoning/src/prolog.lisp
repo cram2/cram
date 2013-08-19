@@ -185,6 +185,16 @@ form (renamed-fact new-binds)"
          (%filter-bindings (cdr form) extended-bdgs
                            (%filter-bindings (car form) extended-bdgs initial-bdgs)))))
 
+(defgeneric hook-before-proving-prolog (query binds))
+(defmethod hook-before-proving-prolog (query binds))
+
+(defgeneric hook-after-proving-prolog (id success))
+(defmethod hook-after-proving-prolog (id success))
+
 (defun prolog (query &optional (binds nil))
-  (lazy-mapcar (rcurry (curry #'filter-bindings query) binds)
-               (prove-all (list query) binds)))
+  (let ((log-id (hook-before-proving-prolog query binds)))
+    (let ((result
+            (lazy-mapcar (rcurry (curry #'filter-bindings query) binds)
+                         (prove-all (list query) binds))))
+      (hook-after-proving-prolog log-id (not (eql result nil)))
+      result)))

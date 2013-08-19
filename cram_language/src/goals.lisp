@@ -41,12 +41,24 @@
   (with-gensyms (bdgs-var block-name)
     (let* ((body `(with-tags ,@body))
            (goal-fun `(lambda (,bdgs-var)
-                        (with-task-tree-node (:path-part `(goal (,',name ,@',pattern))
-                                              :name ,(format nil "GOAL-~a" name)
-                                              :sexp (,name ,pattern ,body)
-                                              :lambda-list ,(cut:vars-in pattern)
-                                              :parameters (mapcar (alexandria:rcurry #'cut:var-value ,bdgs-var)
-                                                                  ',(cut:vars-in pattern)))
+                        (with-task-tree-node
+                            (:path-part `(goal (,',name ,@',pattern))
+                             :name ,(format nil "GOAL-~a" name)
+                             :sexp (,name ,pattern ,body)
+                             :log-parameters
+                             (list (list 'name ',name)
+                                   (list 'pattern
+                                         ,(write-to-string
+                                           (cond ((equal (car pattern)
+                                                         'achieve)
+                                                  (car (car pattern)))
+                                                 (t (car pattern)))))
+                                   (list 'declarations
+                                         ,(write-to-string declarations)))
+                             :lambda-list ,(cut:vars-in pattern)
+                             :parameters (mapcar (alexandria:rcurry
+                                                  #'cut:var-value ,bdgs-var)
+                                                 ',(cut:vars-in pattern)))
                           ,@declarations
                           (block ,block-name
                             (flet ((succeed (&rest result)
