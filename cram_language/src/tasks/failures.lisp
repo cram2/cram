@@ -61,6 +61,9 @@
   (:documentation "Hook that is executed whenever a condition is
   signaled using FAIL."))
 
+(defgeneric hook-on-fail (condition))
+(defmethod hook-on-fail (condition))
+
 (defun %fail (datum args)
   (let ((current-task *current-task*)
         (condition (coerce-to-condition datum args 'simple-plan-failure)))
@@ -69,6 +72,8 @@
       (:display "~S: ~_\"~A\"" condition condition)
       (:tags :fail))
     (on-fail condition)
+    (when (symbolp datum)
+      (hook-on-fail datum))
     (cond
       ;; The main thread will perform JOIN-TASK on the TOPLEVEL-TASK,
       ;; signal the condition for that case.

@@ -92,24 +92,42 @@
           (otherwise (assert nil)))))
     (format stream "~:@_")))
 
-(defmacro with-task-tree-node ((&key (path-part (error "Path parameter is required."))
-                                     (name "WITH-TASK-TREE-NODE")
-                                     sexp lambda-list parameters)
+(defgeneric hook-before-task-execution (name log-parameters))
+(defgeneric hook-after-task-execution (id))
+
+(defmethod hook-before-task-execution (name log-parameters)
+  (declare (ignore name log-parameters)))
+
+(defmethod hook-after-task-execution (id)
+  (declare (ignore id)))
+
+(defmacro with-task-tree-node ((&key
+                                  (path-part
+                                   (error "Path parameter is required."))
+                                  (name "WITH-TASK-TREE-NODE")
+                                  sexp lambda-list parameters
+                                  log-parameters)
                                &body body)
   "Executes a body under a specific path. Sexp, lambda-list and parameters are optional."
   (with-gensyms (task)
     `(let* ((*current-path* (cons ,path-part *current-path*))
             (*current-task-tree-node* (ensure-tree-node *current-path*)))
        (declare (special *current-path* *current-task-tree-node*))
-       (join-task
-        (sb-thread:with-mutex ((task-tree-node-lock *current-task-tree-node*))
-          (let ((,task (make-task :name ',(gensym (format nil "[~a]-" name))
-                                  :sexp ',(or sexp body)
-                                  :function (lambda ,lambda-list
-                                              ,@body)
-                                  :parameters ,parameters)))
-            (execute ,task)
-            ,task))))))
+       (let ((log-id
+               (hook-before-task-execution ,name ,log-parameters)))
+         (unwind-protect
+              (join-task
+               (sb-thread:with-mutex ((task-tree-node-lock
+                                       *current-task-tree-node*))
+                 (let ((,task (make-task
+                               :name ',(gensym (format nil "[~a]-" name))
+                               :sexp ',(or sexp body)
+                               :function (lambda ,lambda-list
+                                           ,@body)
+                               :parameters ,parameters)))
+                   (execute ,task)
+                   ,task)))
+           (hook-after-task-execution log-id))))))
 
 (defmacro replaceable-function (name lambda-list parameters path-part
                                 &body body)
@@ -117,8 +135,8 @@
    it is necessary to also pass parameters to the replaceable code
    parts. For that, replaceable functions can be defined. They are not
    real functions, i.e. they do change any symbol-function or change
-   the lexical environment. 'name' is used to mark such functions in the
-   code-sexp. More specifically, the sexp is built like follows:
+   the lexical environment. 'name' is used to mark such functions in
+   the code-sexp. More specifically, the sexp is built like follows:
    `(replaceable-function ,name ,lambda-list ,@body).
    The 'parameters' parameter contains the values to call the function with."
   `(with-task-tree-node (:path-part ,path-part
