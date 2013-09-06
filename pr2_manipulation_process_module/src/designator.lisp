@@ -108,6 +108,10 @@
     (available-arms ?current-obj ?available-arms)
     (optimal-handle-grasp ?current-obj ?available-arms ?grasp-assignments))
 
+  (<- (action-desig ?desig (debug))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to debug)))
+  
   (<- (action-desig ?desig (container-closed ?handle :right))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to close))
@@ -283,7 +287,7 @@
              ?spatulas)
     (json-prolog:json-prolog 
      ("plan_subevents" "http://ias.cs.tum.edu/kb/pancake-making-constr.owl#FlippingAPancake" ?motion-phases))))
-      
+
 (def-fact-group manipulation-process-module (matching-process-module available-process-module)
 
   (<- (matching-process-module ?designator pr2-manipulation-process-module)
@@ -300,7 +304,8 @@
               (desig-prop ?designator (to lift))
               (desig-prop ?designator (to carry))
               (desig-prop ?designator (to pull))
-              (desig-prop ?designator (to push))))))
+              (desig-prop ?designator (to push))
+              (desig-prop ?designator (to debug))))))
 
   (<- (available-process-module pr2-manipulation-process-module)
     (not (projection-running ?_))))
