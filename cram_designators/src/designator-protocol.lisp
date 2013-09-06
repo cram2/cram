@@ -126,9 +126,13 @@
     (when *designator-pprint-description*
       (write (description object) :stream stream))))
 
+(defgeneric hook-equate-designators (desig-child desig-parent))
+(defmethod hook-equate-designators (desig-child desig-parent))
+
 (defmethod equate ((parent designator) (successor designator))
   (assert (not (desig-equal parent successor)) ()
           "Cannot equate designators that are already equal.")
+  (hook-equate-designators successor parent)
   (let ((youngest-parent (current-desig parent))
         (first-parent (first-desig parent)))
     (when (parent successor)
