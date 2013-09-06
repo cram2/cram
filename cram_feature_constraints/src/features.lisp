@@ -47,6 +47,10 @@
    (world-feature :reader world-feature :initarg :world-feature)
    (lower-boundary :reader lower-boundary :initarg :lower-boundary)
    (upper-boundary :reader upper-boundary :initarg :upper-boundary)
-   (weight :reader weight :initarg :weight :initform 1.0)
-   (maximum-velocity :reader maximum-velocity :initarg :maximum-velocity)
-   (minimum-velocity :reader minimum-velocity :initarg :minimum-velocity)))
+   (weight :reader weight :initarg :weight :initform 1.0) ;; get rid of this
+   (maximum-velocity :reader maximum-velocity :initarg :maximum-velocity) ;; possibly get rid of this or change it into sth symbolic from Moritz ;)
+   (minimum-velocity :reader minimum-velocity :initarg :minimum-velocity))) ;; get rid of this
+
+(defclass feature-constraint-state () ;; this is ugly because it does not contain the constraints. but it will do for now.
+  ((current-weights :reader current-weights :initarg :current-weights)
+   (movement-id :reader movement-id :initarg :movement-id)))
