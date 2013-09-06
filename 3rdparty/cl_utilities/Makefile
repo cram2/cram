@@ -1,12 +1,12 @@
 
 CL_UTILS_ARCHIVE=cl-utilities-1.2.4.tar.gz
-CL_UTILS_URL=http://code.in.tum.de/files/$(CL_UTILS_ARCHIVE)
+CL_UTILS_URL=http://ai.uni-bremen.de/public/$(CL_UTILS_ARCHIVE)
 
 all: installed
 
 downloaded: Makefile
 	make clean
-	wget $(CL_UTILS_URL)
+	$(shell echo $$ROS_ROOT)/core/rosbuild/bin/download_checkmd5.py $(CL_UTILS_URL) $(CL_UTILS_ARCHIVE)
 	touch downloaded
 
 installed: downloaded
