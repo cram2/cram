@@ -36,7 +36,7 @@
     (obj-desig? ?object))
 
   (<- (available-process-module perception)
-    (symbol-value cram-projection:*projection-environment* nil)))
+    (not (projection-running ?_))))
 
 (def-fact-group perception-action-designator (action-desig)
 

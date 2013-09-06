@@ -87,7 +87,7 @@
   (:import-from #:cram-process-modules
                 #:def-process-module)
   (:import-from #:cram-plan-knowledge
-                matching-process-module available-process-module)
+                matching-process-module available-process-module projection-running)
   (:desig-properties #:cluster #:type #:object #:on #:to #:perceive #:obj
                      #:part-of #:at #:name #:pose #:handle #:lid #:small-bowl
                      #:pot #:big-plate #:radius))

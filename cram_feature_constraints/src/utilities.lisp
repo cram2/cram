@@ -153,3 +153,11 @@
    :weight weight
    :maximum-velocity max-vel
    :minimum-velocity min-vel))
+
+(defun make-constraint-state (current-weights movement-id)
+  (declare (type number movement-id)
+           (type vector))
+  (make-instance
+   'feature-constraint-state
+   :current-weights current-weights
+   :movement-id movement-id))
