@@ -31,12 +31,12 @@
 (defparameter *carry-pose-right* (tf:make-pose-stamped
                                   "/base_footprint" 0.0
                                   (cl-transforms:make-3d-vector
-                                   0.2 -0.55 1.00)
+                                   0.2 -0.55 1.30)
                                   (cl-transforms:euler->quaternion :ay (/ pi 2))))
 (defparameter *carry-pose-left* (tf:make-pose-stamped
                                  "/base_footprint" 0.0
                                  (cl-transforms:make-3d-vector
-                                  0.2 0.55 1.00)
+                                  0.2 0.55 1.30)
                                  (cl-transforms:euler->quaternion :ay (/ pi 2))))
 
 (defparameter *top-grasp* (cl-transforms:euler->quaternion :ay (/ pi 2)))
@@ -163,12 +163,19 @@
                                         "geometry_msgs/PoseStamped")
                      (tf:pose-stamped->msg pre-putdown-pose))
     (cpl:with-failure-handling
-        ((manipulation-failed (f)
+        ((manipulation-pose-unreachable (f)
+           (declare (ignore f))
+           (roslisp:ros-error (pr2-manipulation-process-module)
+                              "Failed to go into preputdown pose for side ~a."
+                              side)
+           (cpl:fail
+            'cram-plan-failures:manipulation-failed))
+         (manipulation-failed (f)
            (declare (ignore f))
            (roslisp:ros-error (pr2-manipulation-process-module)
                               "Failed to go into preputdown pose for side ~a."
                               side))
-         (moveit::pose-not-transformable-into-link (f)
+         (moveit:pose-not-transformable-into-link (f)
            (declare (ignore f))
            (cpl:retry)))
       (execute-move-arm-pose
@@ -177,17 +184,22 @@
     (roslisp:ros-info (pr2-manipulation-process-module)
                       "Executing putdown for side ~a~%" side)
     (cpl:with-failure-handling
-        ((manipulation-failed (f)
+        ((manipulation-pose-unreachable (f)
            (declare (ignore f))
            (roslisp:ros-error (pr2-manipulation-process-module)
                               "Failed to go into putdown pose for side ~a."
                               side))
-         (moveit::pose-not-transformable-into-link (f)
+         (manipulation-failed (f)
+           (declare (ignore f))
+           (roslisp:ros-error (pr2-manipulation-process-module)
+                              "Failed to go into putdown pose for side ~a."
+                              side))
+         (moveit:pose-not-transformable-into-link (f)
            (declare (ignore f))
            (cpl:retry)))
       (execute-move-arm-pose
        side putdown-pose
-       :allowed-collision-objects allowed-collision-objects))
+       :ignore-collisions t))
     (roslisp:ros-info (pr2-manipulation-process-module)
                       "Opening gripper")
     (open-gripper side :max-effort 50.0 :position gripper-open-pos)
@@ -207,7 +219,7 @@
            (declare (ignore f))
            (cpl:retry)))
       (execute-move-arm-pose
-       side unhand-pose :allowed-collision-objects allowed-collision-objects))))
+       side unhand-pose :ignore-collisions t))))
 
 (defun get-lifting-grasped-object-arm-trajectory (side distance)
   "Returns the lifting trajectory for the `side' robot arm in order to

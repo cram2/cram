@@ -59,17 +59,17 @@ grasp.")
   (tf:make-pose
    (tf:make-3d-vector
     0.0 0.0 0.2)
-   (tf:euler->quaternion)))
+   (tf:euler->quaternion))) ;; Is there a rotation around X missing here?
 (defparameter *putdown-offset*
   (tf:make-pose
    (tf:make-3d-vector
     0.0 0.0 0.0)
-   (tf:euler->quaternion)))
+   (tf:euler->quaternion))) ;; Is there a rotation around X missing here?
 (defparameter *unhand-offset*
   (tf:make-pose
    (tf:make-3d-vector
     -0.10 0.0 0.0)
-   (tf:euler->quaternion)))
+   (tf:euler->quaternion))) ;; Is there a rotation around X missing here?
 
 (defun relative-pose-for-handle (obj handle &key relative-pose)
   (tf:wait-for-transform *tf*
