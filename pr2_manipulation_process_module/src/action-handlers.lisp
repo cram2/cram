@@ -58,6 +58,9 @@
               (tf:pose-stamped->msg pose-grasp))
              (execute-move-arm-pose side pose-grasp))))
 
+(def-action-handler debug ()
+  (roslisp:ros-info () "Debug handler called.~%"))
+
 (def-action-handler container-closed (handle side)
   (let* ((handle-pose (designator-pose (newest-effective-designator handle)))
          (new-object-pose (close-drawer handle-pose side)))
@@ -149,14 +152,15 @@
       (when rel-ik
         (execute-arm-trajectory arm (ik->trajectory rel-ik))))))
 
-(defgeneric hook-before-grasp ())
-(defmethod hook-before-grasp ())
+(defgeneric hook-before-grasp (obj-desig))
+(defmethod hook-before-grasp (obj-desig))
 
 (defgeneric hook-after-grasp (log-id success))
 (defmethod hook-after-grasp (log-id success))
 
 (def-action-handler grasp (obj-desig grasp-assignments obstacles)
   (declare (ignore obstacles))
+  (roslisp:ros-info () "Beginning grasp action handler")
   (let ((pair-count (length grasp-assignments)))
     (assert (> pair-count 0) ()
             "No arm/pose pairs specified for grasping.")
@@ -187,7 +191,7 @@
                       (close-radius (or (slot-value grasp-assignment
                                                     'close-radius)
                                         0.0)))
-                 (let ((log-id (hook-before-grasp)))
+                 (let ((log-id (hook-before-grasp obj-desig)))
                    (cpl:with-failure-handling
                        ((cram-plan-failures:manipulation-failed (f)
                           (declare (ignore f))
@@ -222,6 +226,48 @@
                  :link ?link-name
                  :side side))))))
 
+(defun pose-pointing-away-from-base (object-pose)
+  (let ((ref-frame "/base_link")
+        (fin-frame "/map"))
+    (tf:wait-for-transform *tf* :source-frame ref-frame
+                                :target-frame fin-frame
+                                :time (roslisp:ros-time))
+    (tf:wait-for-transform
+     *tf*
+     :source-frame (tf:frame-id object-pose)
+     :target-frame fin-frame
+     :time (roslisp:ros-time))
+    (let* ((base-transform-map (tf:lookup-transform
+                                *tf*
+                                :time 0.0
+                                :source-frame ref-frame
+                                :target-frame fin-frame))
+           (base-pose-map (tf:make-pose-stamped
+                           (tf:frame-id base-transform-map)
+                           (tf:stamp base-transform-map)
+                           (tf:translation base-transform-map)
+                           (tf:rotation base-transform-map)))
+           (object-pose-map (tf:transform-pose
+                             *tf*
+                             :pose object-pose
+                             :target-frame fin-frame))
+           (origin1 (tf:origin base-pose-map))
+           (origin2 (tf:origin object-pose-map))
+           (p1 (tf:make-3d-vector (tf:x origin1) (tf:y origin1) 0.0))
+           (p2 (tf:make-3d-vector (tf:x origin2) (tf:y origin2) 0.0))
+           (angle (+ (* (signum (- (tf:y p2) (tf:y p1)))
+                        (acos (/ (- (tf:x p2) (tf:x p1)) (tf:v-dist p1 p2))))
+                     (/ pi -2))))
+      (tf:make-pose-stamped fin-frame 0.0
+                            (tf:origin object-pose-map)
+                            (tf:euler->quaternion :az (+ angle (/ pi 2)))))))
+
+(defgeneric hook-before-putdown (obj-desig loc-desig))
+(defmethod hook-before-putdown (obj-desig loc-desig))
+
+(defgeneric hook-after-putdown (log-id success))
+(defmethod hook-after-putdown (log-id success))
+
 (def-action-handler put-down (object-designator
                               location grasp-assignments obstacles)
   (declare (ignore obstacles))
@@ -232,10 +278,11 @@ for the currently type of grasped object."
     (assert (> pair-count 0) ()
             "No arm/pose pairs specified during put-down.")
     ;; NOTE(winkler): The actual reasoning concerning object-in-hand
-    ;; information and used grippers per grasped object part have been
+    ;; information and used grippers per grasped object part has been
     ;; done in the designator.lisp prolog patterns already. Here, we
     ;; just execute whatever result the reasoning yielded.
-    (let* ((putdown-pose (reference location)))
+    (let* ((putdown-pose (pose-pointing-away-from-base
+                          (reference location))))
       (cond ((tf:wait-for-transform
               *tf*
               :timeout 5.0
@@ -295,13 +342,39 @@ for the currently type of grasped object."
                         (roslisp:advertise
                          "/dbg" "geometry_msgs/PoseStamped")
                         (tf:pose-stamped->msg pre-putdown-pose))
-                       (execute-putdown
-                        :side side
-                        :object-name (desig-prop-value object-designator
-                                                       'desig-props:name)
-                        :pre-putdown-pose pre-putdown-pose
-                        :putdown-pose putdown-pose
-                        :unhand-pose unhand-pose)))))))))))
+                       (let ((log-id (hook-before-putdown object-designator
+                                                          location)))
+                         (cpl:with-failure-handling
+                             ((cram-plan-failures:manipulation-failed (f)
+                                (declare (ignore f))
+                                (hook-after-putdown log-id nil)
+                                (cpl:fail
+                                 'cram-plan-failures:manipulation-pose-unreachable)))
+                           (execute-putdown
+                            :side side
+                            :object-name (desig-prop-value object-designator
+                                                           'desig-props:name)
+                            :pre-putdown-pose pre-putdown-pose
+                            :putdown-pose putdown-pose
+                            :unhand-pose unhand-pose)
+                           (hook-after-putdown log-id t))))))))
+             (loop for grasp-assignment in grasp-assignments
+                   for side = (slot-value grasp-assignment 'side)
+                   for grasped-object = (or (car (slot-value grasp-assignment
+                                                             'handle-pair))
+                                            object-designator)
+                   do (with-vars-strictly-bound (?link-name)
+                          (lazy-car
+                           (prolog
+                            `(cram-manipulation-knowledge:end-effector-link
+                              ,side ?link-name)))
+                        (plan-knowledge:on-event
+                         (make-instance
+                          'plan-knowledge:object-attached
+                          :object object-designator
+                          :link ?link-name
+                          :side side)))))
+            (t (cpl:error 'manipulation-failed))))))
 
 (defun calculate-putdown-arm-pose (obj-pose rel-arm-pose)
   (let* ((inv-rel-trafo (tf:make-transform
