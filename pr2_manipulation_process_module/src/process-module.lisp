@@ -172,6 +172,12 @@
                   "r_gripper_motor_slider_link"
                   "r_gripper_motor_screw_link"))))
 
+(defgeneric hook-before-move-arm (side pose-stamped planning-group ignore-collisions))
+(defmethod hook-before-move-arm (side pose-stamped planning-group ignore-collisions))
+
+(defgeneric hook-after-move-arm (log-id success))
+(defmethod hook-after-move-arm (log-id success))
+
 (defun execute-move-arm-pose (side pose-stamped
                               &key allowed-collision-objects
                                 ignore-collisions)
@@ -186,48 +192,60 @@
          (planning-group (ecase side
                            (:left "left_arm")
                            (:right "right_arm"))))
-    (cpl:with-failure-handling
-        ((moveit:no-ik-solution (f)
-           (declare (ignore f))
-           (roslisp:ros-error (move arm) "No IK solution found.")
-           (error 'manipulation-pose-unreachable
-                  :result (list side pose-stamped)))
-         (moveit:planning-failed (f)
-           (declare (ignore f))
-           (roslisp:ros-error (move arm) "Planning failed.")
-           (error 'manipulation-pose-unreachable
-                  :result (list side pose-stamped)))
-         (moveit:goal-violates-path-constraints (f)
-           (declare (ignore f))
-           (roslisp:ros-error (move arm) "Goal violates path constraints.")
-           (error 'manipulation-pose-unreachable
-                  :result (list side pose-stamped)))
-         (moveit:invalid-goal-constraints (f)
-           (declare (ignore f))
-           (roslisp:ros-error (move arm) "Invalid goal constraints.")
-           (error 'manipulation-pose-unreachable
-                  :result (list side pose-stamped)))
-         (moveit:timed-out (f)
-           (declare (ignore f))
-           (roslisp:ros-error (move arm) "Timeout.")
-           (error 'manipulation-pose-unreachable
-                  :result (list side pose-stamped)))
-         (moveit:goal-in-collision (f)
-           (declare (ignore f))
-           (roslisp:ros-error (move arm) "Goal in collision.")
-           (error 'manipulation-pose-occupied
-                  :result (list side pose-stamped))))
-      (cond ((moveit:move-link-pose
-              link-name
-              planning-group pose-stamped
-              :ignore-collisions ignore-collisions
-              :allowed-collision-objects allowed-collision-objects
-              :touch-links (when allowed-collision-objects
-                             (links-for-arm-side side)))
-             (plan-knowledge:on-event
-              (make-instance 'plan-knowledge:robot-state-changed)))
-            (t (error 'manipulation-failed
-                      :result (list side pose-stamped)))))))
+    (let ((log-id (hook-before-move-arm link-name
+                                        pose-stamped
+                                        planning-group
+                                        ignore-collisions)))
+      (cpl:with-failure-handling
+          ((moveit:no-ik-solution (f)
+             (declare (ignore f))
+             (roslisp:ros-error (move arm) "No IK solution found.")
+             (hook-after-move-arm log-id nil)
+             (error 'manipulation-pose-unreachable
+                    :result (list side pose-stamped)))
+           (moveit:planning-failed (f)
+             (declare (ignore f))
+             (roslisp:ros-error (move arm) "Planning failed.")
+             (hook-after-move-arm log-id nil)
+             (error 'manipulation-pose-unreachable
+                    :result (list side pose-stamped)))
+           (moveit:goal-violates-path-constraints (f)
+             (declare (ignore f))
+             (roslisp:ros-error (move arm) "Goal violates path constraints.")
+             (hook-after-move-arm log-id nil)
+             (error 'manipulation-pose-unreachable
+                    :result (list side pose-stamped)))
+           (moveit:invalid-goal-constraints (f)
+             (declare (ignore f))
+             (roslisp:ros-error (move arm) "Invalid goal constraints.")
+             (hook-after-move-arm log-id nil)
+             (error 'manipulation-pose-unreachable
+                    :result (list side pose-stamped)))
+           (moveit:timed-out (f)
+             (declare (ignore f))
+             (roslisp:ros-error (move arm) "Timeout.")
+             (hook-after-move-arm log-id nil)
+             (error 'manipulation-pose-unreachable
+                    :result (list side pose-stamped)))
+           (moveit:goal-in-collision (f)
+             (declare (ignore f))
+             (roslisp:ros-error (move arm) "Goal in collision.")
+             (hook-after-move-arm log-id nil)
+             (error 'manipulation-pose-occupied
+                    :result (list side pose-stamped))))
+        (cond ((moveit:move-link-pose
+                link-name
+                planning-group pose-stamped
+                :ignore-collisions ignore-collisions
+                :allowed-collision-objects allowed-collision-objects
+                :touch-links (when allowed-collision-objects
+                               (links-for-arm-side side)))
+               (hook-after-move-arm log-id t)
+               (plan-knowledge:on-event
+                (make-instance 'plan-knowledge:robot-state-changed)))
+              (t (hook-after-move-arm log-id nil)
+                 (error 'manipulation-failed
+                        :result (list side pose-stamped))))))))
 
 (defun move-spine (position)
   (let ((spine-lift-trajectory
