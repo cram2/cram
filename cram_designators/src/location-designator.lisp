@@ -143,21 +143,16 @@ either :ACCEPT, :REJECT, :MAYBE-REJECT or :UNKNOWN."
 (register-designator-class location location-designator)
 
 (defmethod reference ((desig location-designator) &optional (role *default-role*))
-  (cpl:with-task-tree-node
-      (:path-part `(reference (designator location))
-       :name "RESOLVE-LOCATION-DESIGNATOR"
-       :lambda-list (desig role)
-       :parameters (list desig role))
-    (with-slots (data current-solution) desig
-      (unless current-solution
-        (setf data (resolve-designator desig role))
-        (unless (and data (lazy-car data))
-          (error 'designator-error
-                 :format-control "Unable to resolve designator `~a'"
-                 :format-arguments (list desig)
-                 :designator desig))
-        (setf current-solution (lazy-car data)))
-      current-solution)))
+  (with-slots (data current-solution) desig
+    (unless current-solution
+      (setf data (resolve-designator desig role))
+      (unless (and data (lazy-car data))
+        (error 'designator-error
+               :format-control "Unable to resolve designator `~a'"
+               :format-arguments (list desig)
+               :designator desig))
+      (setf current-solution (lazy-car data)))
+    current-solution))
 
 (defmethod next-solution ((desig location-designator))
   ;; Make sure that we initialized the designator properly

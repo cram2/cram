@@ -13,7 +13,6 @@
   :depends-on (:alexandria
                :cram-utilities
                :cram-reasoning
-               :cram-language
                :trivial-garbage)
   :components
   ((:module "src"
