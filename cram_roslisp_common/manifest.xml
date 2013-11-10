@@ -8,7 +8,7 @@
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cram_roslisp_common</url>
-  <depend package="roslisp_runtime"/>
+  <depend package="sbcl"/>
   <depend package="cram_utilities"/>
   <depend package="cl_tf"/>
 
