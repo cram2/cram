@@ -10,7 +10,7 @@
   <url>http://ros.org/wiki/cffi_ros_utils</url>
   <depend package="cffi"/>
   <depend package="split_sequence"/>
-  <depend package="sbcl"/>
+  <rosdep name="sbcl"/>
 
 </package>
 
