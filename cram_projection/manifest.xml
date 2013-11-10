@@ -11,7 +11,7 @@
   <depend package="alexandria" />
   <depend package="cram_language" />
   <depend package="cram_process_modules" />
-  <depend package="roslisp_runtime" />
+  <rosdep name="sbcl" />
   <depend package="cram_utilities" />
   <depend package="lisp_unit" />
   <depend package="cram_execution_trace" />

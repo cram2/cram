@@ -7,6 +7,5 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cram_core</url>
   <depend stack="ros" />
-  <depend stack="roslisp_support" /> <!-- sbcl -->
 
 </stack>

@@ -8,7 +8,7 @@
   <license>BSD</license>
   <url>http://ros.org/wiki/cram_math</url>
   <review status="unreviewed" notes=""/>
-  <depend package="sbcl"/>
+  <rosdep name="sbcl"/>
   <depend package="alexandria"/>
   <depend package="gsll"/>
 </package>

@@ -8,7 +8,7 @@
   <license>BSD</license>
   <url>http://ros.org/wiki/cram_execution_trace</url>
   <review status="unreviewed" notes=""/>
-  <depend package="sbcl"/>
+  <rosdep name="sbcl"/>
   <depend package="cl_store"/>
   <depend package="cram_utilities"/>
   <depend package="cram_test_utilities"/>  
