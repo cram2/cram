@@ -34,10 +34,12 @@
 (defvar *ros-cleanup-functions* (make-hash-table :test 'eq))
 
 (defmacro register-ros-init-function (name)
+  (cut:deprecate "Use of deprecated form CRAM-ROSLISP-COMMON:REGISTER-ROS-INIT-FUNCTION. Please use ROSLISP-UTILITIES:REGISTER-ROS-INIT-FUNCTION.")
   `(setf (gethash ',name *ros-init-functions*)
          (symbol-function ',name)))
 
 (defmacro register-ros-cleanup-function (name)
+  (cut:deprecate "Use of deprecated form CRAM-ROSLISP-COMMON:REGISTER-ROS-CLEANUP-FUNCTION. Please use ROSLISP-UTILITIES:REGISTER-ROS-CLEANUP-FUNCTION.")
   `(setf (gethash ',name *ros-cleanup-functions*)
          (symbol-function ',name)))
 
@@ -45,6 +47,7 @@
                     (master-uri (make-uri "localhost" 11311) master-uri?)
                     (name "cram_hl")
                     (anonymous t))
+  (cut:deprecate "Use of deprecated form CRAM-ROSLISP-COMMON:STARTUP-ROS. Please use ROSLISP-UTILITIES:STARTUP-ROS.")
   (if master-uri?
       (start-ros-node name :anonymous anonymous :master-uri master-uri)
       (start-ros-node name :anonymous anonymous))
@@ -53,6 +56,7 @@
     (funcall f)))
 
 (defun shutdown-ros ()
+  (cut:deprecate "Use of deprecated form CRAM-ROSLISP-COMMON:SHUTDOWN-ROS. Please use ROSLISP-UTILITIES:SHUTDOWN-ROS.")
   (loop for f being the hash-values of *ros-cleanup-functions* do
     (ros-info (rosnode) "ROS cleanup ~a." f)
     (funcall f))

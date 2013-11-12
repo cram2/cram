@@ -34,6 +34,7 @@
   "Returns a lispified symbol correstonding to the string
   `str'. Lispification inserts - signs between camel-cased words and
   makes all characters uppercase."
+  (cut:deprecate "Use of deprecated form CRAM-ROSLISP-COMMON:LISPIFY-ROS-NAME. Please use ROSLISP-UTILITIES:LISPIFY-ROS-NAME.")
   (labels ((char-ucase-p (c)
              (find c "ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
            (char-lcase-p (c)
@@ -52,6 +53,7 @@
       (intern (string-upcase (get-output-stream-string s)) package))))
 
 (defun rosify-lisp-name (sym)
+  (cut:deprecate "Use of deprecated form CRAM-ROSLISP-COMMON:ROSIFY-LISP-NAME. Please use ROSLISP-UTILITIES:ROSIFY-LISP-NAME.")
   (with-output-to-string (strm)
     (loop for ch across (symbol-name sym)
           with upcase = t
