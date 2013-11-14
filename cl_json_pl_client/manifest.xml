@@ -8,7 +8,7 @@
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cl_json_pl_client</url>
-  <depend package="roslisp_runtime"/>
+  <rosdep name="sbcl"/>
   <depend package="json_prolog"/>
   <depend package="yason"/>
   <depend package="cram_utilities"/>
