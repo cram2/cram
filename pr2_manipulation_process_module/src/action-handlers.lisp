@@ -71,13 +71,13 @@
                     obj arms)
   (force-ll arms)
   (cond ((and (not arms) (not obj))
-         (cpl:par-loop (arm arms)
-           (when arm
-             (let ((carry-pose (ecase arm
-                                 (:right *carry-pose-right*)
-                                 (:left *carry-pose-left*))))
-               (execute-arm-trajectory
-                arm (ik->trajectory (get-ik arm carry-pose)))))))
+         (let ((arms '(:left :right)))
+           (cpl:par-loop (arm arms)
+             (when arm
+               (let ((carry-pose (ecase arm
+                                   (:right *carry-pose-right*)
+                                   (:left *carry-pose-left*))))
+                 (execute-move-arm-pose arm carry-pose))))))
         ((and arms (not obj))
          (when obstacles
            (clear-collision-objects)
