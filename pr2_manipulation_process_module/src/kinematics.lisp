@@ -368,43 +368,6 @@ points."
               points-1 points-2 (or times-from-start
                                     (make-list (length points-1) :initial-element nil))))))))
 
-(defun get-point-cluster-grasps (side obj)
-  "Returns the (lazy) list of grasps calculated by the
-  /plan_point_cluster_grasps service. Poses are relative to
-  base_footprint."
-  (let ((obj-tf-inv (cl-transforms:transform-inv
-                     (cl-transforms:reference-transform
-                      (tf:transform-pose
-                       *tf* :pose (designator-pose obj)
-                            :target-frame "/base_footprint")))))
-    (roslisp:with-fields ((error-code (value error_code))
-                          (grasps grasps))
-      (cpl-impl:without-scheduling
-          (roslisp:call-service
-           "/plan_point_cluster_grasp" 'object_manipulation_msgs-srv:graspplanning
-           :arm_name (ecase side
-                       (:left "left_arm")
-                       (:right "right_arm"))
-           :target (designator->graspable-object obj "/base_footprint")))
-      (unless (= error-code 0)
-        (error 'manipulation-failed
-               :format-control "Couldn't find valid grasps"))
-      (lazy-mapcar
-       (lambda (g)
-         (cl-transforms:transform->pose
-          (cl-transforms:transform*
-           obj-tf-inv
-           (cl-transforms:reference-transform (tf:msg->pose (car g))))))
-       (let ((result (sort (map 'list
-                                (lambda (grasp)
-                                  (roslisp:with-fields (grasp_pose success_probability)
-                                      grasp
-                                    (cons grasp_pose success_probability)))
-                                grasps)
-                           #'> :key #'cdr)))
-         (prog1 result
-           (roslisp:ros-info (pr2-manip process-module) "found ~a grasps~%" (length result))))))))
-
 (defun calculate-tool-pose (grasp tool-length)
   (cl-transforms:transform->pose
    (cl-transforms:transform*
