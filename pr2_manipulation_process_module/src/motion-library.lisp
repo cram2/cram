@@ -77,7 +77,8 @@
                         grasp-pose
                         side (gripper-open-pos 0.08)
                         (gripper-close-pos 0.0)
-                        allowed-collision-objects)
+                        allowed-collision-objects
+                        safe-pose)
   (declare (ignore object-pose))
   (let ((link-frame (ecase side
                       (:left "l_wrist_roll_link")
@@ -114,17 +115,15 @@
            (declare (ignore f))
            (roslisp:ros-error (pr2-manipulation-process-module)
                               "Failed to go into grasp pose for side ~a."
-                              side))
+                              side)
+           (when object-name
+             (moveit:add-collision-object object-name)))
          (moveit::pose-not-transformable-into-link (f)
            (declare (ignore f))
            (cpl:retry)))
       (execute-move-arm-pose side grasp-pose
                              :allowed-collision-objects
-                             allowed-collision-objects)
-      (when object-name
-        (moveit:add-collision-object object-name)
-        (moveit:attach-collision-object-to-link
-         object-name link-frame)))
+                             allowed-collision-objects))
     (roslisp:ros-info (pr2-manipulation-process-module) "Closing gripper")
     (close-gripper side :max-effort 50.0 :position gripper-close-pos)
     (when (< (get-gripper-state side) 0.01);;gripper-close-pos)
@@ -134,20 +133,34 @@
              (roslisp:ros-error
               (pr2-manipulation-process-module)
               "Failed to go into fallback pose for side ~a. Retrying."
-              side))
+              side)
+             (cpl:retry))
            (moveit::pose-not-transformable-into-link (f)
              (declare (ignore f))
+             (roslisp:ros-warn
+              (pr2-manipulation-process-module)
+              "TF error. Retrying.")
              (cpl:retry)))
         (roslisp:ros-warn
-         (pr2-manip-pm)
-         "Missed the object. Going into fallback pose for side ~a."
+         (pr2-manipulation-process-module)
+         "Missed the object. Going into fallback pose for side ~a and retrying."
          side)
+        (open-gripper side)
         (execute-move-arm-pose side pregrasp-pose
                                :allowed-collision-objects
                                allowed-collision-objects)
-        (moveit:detach-collision-object-from-link
-         object-name link-frame)
-        (error 'cram-plan-failures:object-lost)))))
+        ;; (moveit:detach-collision-object-from-link
+        ;;  object-name link-frame)
+        (moveit:add-collision-object object-name)
+        (when safe-pose
+          (execute-move-arm-pose side safe-pose
+                                 :allowed-collision-objects
+                                 allowed-collision-objects))
+        (error 'cram-plan-failures:object-lost)))
+    (when object-name
+      (moveit:add-collision-object object-name)
+      (moveit:attach-collision-object-to-link
+       object-name link-frame))))
 
 (defun execute-putdown (&key object-name
                           pre-putdown-pose putdown-pose

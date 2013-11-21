@@ -206,7 +206,10 @@
                                         :pregrasp-pose pregrasp-pose-tll
                                         :grasp-pose grasp-pose-tll
                                         :side side
-                                        :gripper-close-pos close-radius)
+                                        :gripper-close-pos close-radius
+                                        :safe-pose (case side
+                                                     (left *left-safe-pose*)
+                                                     (right *right-safe-pose*)))
                        (hook-after-grasp log-id t))))))
               (t (cpl:error 'manipulation-failed)))))
     (loop for grasp-assignment in grasp-assignments
@@ -295,7 +298,7 @@ for the currently type of grasped object."
                       time
                       (cl-transforms:transform-pose
                        (tf:make-transform
-                        (tf:make-3d-vector 0.0 0.0 0.0)
+                        (tf:make-3d-vector 0.0 0.0 0.1)
                         (tf:make-identity-rotation))
                        (tf:transform-pose
                         *tf* :pose (tf:copy-pose-stamped
