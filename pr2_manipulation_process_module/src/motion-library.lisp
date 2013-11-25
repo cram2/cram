@@ -234,8 +234,8 @@
       (execute-move-arm-pose
        side unhand-pose :ignore-collisions t))))
 
-(defun get-lifting-grasped-object-arm-trajectory (side distance)
-  "Returns the lifting trajectory for the `side' robot arm in order to
+(defun get-lifting-grasped-object-arm-pose (side distance)
+  "Returns the lifting pose for the `side' robot arm in order to
 lift the grasped object at the `distance' from the supporting plane."
   (let* ((wrist-transform (tf:lookup-transform
                            *tf*
@@ -249,12 +249,24 @@ lift the grasped object at the `distance' from the supporting plane."
                        (tf:stamp wrist-transform)
                        (cl-transforms:v+ (cl-transforms:translation wrist-transform)
                                          (cl-transforms:make-3d-vector 0 0 distance))
-                       (cl-transforms:rotation wrist-transform)))
-         (lifted-pose-ik (get-ik side lifted-pose)))
-    (unless lifted-pose-ik
-      (error 'manipulation-pose-unreachable
-             :format-control "Lifted pose for " side " arm unreachable !"))
-    (ik->trajectory (lazy-car lifted-pose-ik))))
+                       (cl-transforms:rotation wrist-transform))))
+    lifted-pose))
+
+(defun lift-grasped-object-with-both-arms (distance)
+  "Executes a parallel lifting motion with both arms in order to lift
+the object which is grasped with both arms at `distance' form the
+supporting plane"
+  (cpl-impl:par
+    ;; NOTE(winkler): This is likely to only work good with one
+    ;; arm. Two arms that need to be synched in parallel motion need
+    ;; to take into account that they constraint their respective
+    ;; motion, according to the object to be lifted. This means that
+    ;; the function `get-lifting-grasped-object-arm-pose' needs to be
+    ;; reworked (or duplicated - one for one arm, one for both arms).
+    (execute-move-arm-pose :left (get-lifting-grasped-object-arm-pose
+                                  :left distance))
+    (execute-move-arm-pose :right (get-lifting-grasped-object-arm-pose
+                                   :right distance))))
 
 (defun lift-grasped-object-with-one-arm (side distance)
   "Executes a lifting motion with the `side' arm which grasped the
@@ -286,26 +298,6 @@ object in order to lift it at `distance' form the supporting plane"
      (roslisp:advertise "/dbg" "geometry_msgs/PoseStamped")
      (tf:pose-stamped->msg raised-arm-pose))
     (execute-move-arm-pose side raised-arm-pose :ignore-collisions t)))
-  ;; (execute-arm-trajectory
-  ;;  side
-  ;;  ;; Computes the lifting trajectory for the `side' arm
-  ;;  (get-lifting-grasped-object-arm-trajectory side distance)))
-
-(defun lift-grasped-object-with-both-arms (distance)
-  "Executes a parallel lifting motion with both arms in order to lift
-the object which is grasped with both arms at `distance' form the
-supporting plane"
-  (cpl-impl:par
-    (execute-arm-trajectory :left
-                            ;; Compute the lifting trajectory for the
-                            ;; `left' arm.
-                            (get-lifting-grasped-object-arm-trajectory
-                             :left distance))
-    (execute-arm-trajectory :right
-                            ;; Compute the lifting trajectory for the
-                            ;; `right' arm.
-                            (get-lifting-grasped-object-arm-trajectory
-                             :right distance))))
 
 (defun put-down-grasped-object-with-single-arm (obj location side obstacles)
   (roslisp:ros-info (pr2-manipulation-process-module) "Putting down object single-handedly.")
