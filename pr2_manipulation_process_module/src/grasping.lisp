@@ -343,42 +343,6 @@ configuration."
                         "IK solution cost: ~a~%" costme)
       costme)))
 
-(defun pose-pointing-away-from-base (object-pose)
-  (let ((ref-frame "/base_link")
-        (fin-frame "/map"))
-    (tf:wait-for-transform *tf* :source-frame ref-frame
-                                :target-frame fin-frame
-                                :time (roslisp:ros-time))
-    (tf:wait-for-transform
-     *tf*
-     :source-frame (tf:frame-id object-pose)
-     :target-frame fin-frame
-     :time (roslisp:ros-time))
-    (let* ((base-transform-map (tf:lookup-transform
-                                *tf*
-                                :time 0.0
-                                :source-frame ref-frame
-                                :target-frame fin-frame))
-           (base-pose-map (tf:make-pose-stamped
-                           (tf:frame-id base-transform-map)
-                           (tf:stamp base-transform-map)
-                           (tf:translation base-transform-map)
-                           (tf:rotation base-transform-map)))
-           (object-pose-map (tf:transform-pose
-                             *tf*
-                             :pose object-pose
-                             :target-frame fin-frame))
-           (origin1 (tf:origin base-pose-map))
-           (origin2 (tf:origin object-pose-map))
-           (p1 (tf:make-3d-vector (tf:x origin1) (tf:y origin1) 0.0))
-           (p2 (tf:make-3d-vector (tf:x origin2) (tf:y origin2) 0.0))
-           (angle (+ (* (signum (- (tf:y p2) (tf:y p1)))
-                        (acos (/ (- (tf:x p2) (tf:x p1)) (tf:v-dist p1 p2))))
-                     (/ pi -2))))
-      (tf:make-pose-stamped fin-frame 0.0
-                            (tf:origin object-pose-map)
-                            (tf:euler->quaternion :az (+ angle (/ pi 2)))))))
-
 (defun open-angle (object handle angle-deg)
   (let* ((angle-rad (* (/ angle-deg 180.0) pi))
          (object-pose (reference (desig-prop-value object 'desig-props:at)))
