@@ -201,9 +201,9 @@ extern "C"
 
   btCollisionShape *newConvexHullShape(const double *points, int num_points)
   {
-    double *scaled_points = new double[num_points*3];
+    btScalar *scaled_points = new btScalar[num_points*3];
     for(int i=0; i<num_points*3; i++)
-      scaled_points[i] = points[i] * bulletWorldScalingFactor;
+      scaled_points[i] = static_cast<btScalar>(points[i] * bulletWorldScalingFactor);
     return new btConvexHullShape(scaled_points, num_points, sizeof(double) * 3);
     delete scaled_points;
   }
