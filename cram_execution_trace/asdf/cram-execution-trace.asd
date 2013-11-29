@@ -1,1 +1,0 @@
-../cram-execution-trace.asd
