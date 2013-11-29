@@ -19,7 +19,27 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   
-  <!--run_depend>TODO</run_depend-->
+  <run_depend>alexandria</run_depend>
+  <run_depend>babel</run_depend>
+  <run_depend>cffi</run_depend>
+  <run_depend>cl_store</run_depend>
+  <run_depend>cl_utilities</run_depend>
+  <run_depend>cram_designators</run_depend>
+  <run_depend>cram_execution_trace</run_depend>
+  <run_depend>cram_language</run_depend>
+  <run_depend>cram_math</run_depend>
+  <run_depend>cram_process_modules</run_depend>
+  <run_depend>cram_projection</run_depend>
+  <run_depend>cram_reasoning</run_depend>
+  <run_depend>cram_test_utilities</run_depend>
+  <run_depend>cram_utilities</run_depend>
+  <run_depend>gsd</run_depend>
+  <run_depend>gsll</run_depend>
+  <run_depend>lisp_unit</run_depend>
+  <run_depend>split_sequence</run_depend>
+  <run_depend>synchronization_tools</run_depend>
+  <run_depend>trivial_features</run_depend>
+  <run_depend>trivial_garbage</run_depend>
 
   <export>
     <metapackage/>
