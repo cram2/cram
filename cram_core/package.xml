@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package>
+  <name>cram_core</name>
+  <version>0.1.0</version>
+  <description>
+     A set of libraries for implementing AI enabled robot control programs.
+  </description>
+
+  <maintainer email="moesenle@cs.tum.edu">Lorenz Moesenlechner</maintainer>
+  <maintainer email="georg.bartels@cs.uni-bremen.de">Georg Bartels</maintainer>
+
+  <author email="moesenle@cs.tum.edu">Lorenz Moesenlechner</author>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <export>
+    <metapackage/>
+  </export>
+</package>
