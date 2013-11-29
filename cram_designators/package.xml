@@ -1,6 +1,6 @@
 <package>
   <name>cram_designators</name>
-  <version>0.0.0</version>
+  <version>0.1.0</version>
   <description>
       cram_designators defines the protocol for designators and provides an
       implementation for location, object and action designators.
