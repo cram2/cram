@@ -1,0 +1,241 @@
+;; Regression test MATRIX-PRODUCT for GSLL, automatically generated
+;;
+;; Copyright 2009, 2010 Liam M. Healy
+;; Distributed under the terms of the GNU General Public License
+;;
+;; This program is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+(in-package :gsl)
+
+(LISP-UNIT:DEFINE-TEST MATRIX-PRODUCT
+  (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
+   (LIST
+    #2A((74519.41 -16747.695 61311.69)
+	(27307.273 -6133.5903 -25711.75)
+	(-29088.719 83072.016 -11019.719)))
+   (MULTIPLE-VALUE-LIST
+    (LET ((M1
+	   (GRID:MAKE-FOREIGN-ARRAY
+	    'SINGLE-FLOAT :INITIAL-CONTENTS
+	    '((-34.5 8.24 3.29)
+	      (-8.93 34.12 -6.15)
+	      (49.27 -13.49 32.5))))
+	  (M2
+	   (GRID:MAKE-FOREIGN-ARRAY
+	    'SINGLE-FLOAT :INITIAL-CONTENTS
+	    '((42.73 -17.24 43.31)
+	      (-16.12 -8.25 21.44)
+	      (-49.08 -39.66 -49.46))))
+	  (M3
+	   (GRID:MAKE-FOREIGN-ARRAY
+	    'SINGLE-FLOAT :INITIAL-CONTENTS
+	    '((19.68 -5.55 -8.82)
+	      (25.37 -30.58 31.67)
+	      (29.36 -33.24 -27.03))))
+	  (S1 -41.67)
+	  (S2 42.0))
+      (GRID:COPY-TO (MATRIX-PRODUCT M1 M2 M3 S1 S2)))))
+  (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
+   (LIST
+    #2A((74519.41329d0 -16747.696061999995d0 61311.694176d0)
+	(27307.276670999996d0 -6133.589574d0 -25711.752344999997d0)
+	(-29088.718053000033d0 83072.022741d0 -11019.721527000016d0)))
+   (MULTIPLE-VALUE-LIST
+    (LET ((M1
+	   (GRID:MAKE-FOREIGN-ARRAY
+	    'DOUBLE-FLOAT :INITIAL-CONTENTS
+	    '((-34.5d0 8.24d0 3.29d0)
+	      (-8.93d0 34.12d0 -6.15d0)
+	      (49.27d0 -13.49d0 32.5d0))))
+	  (M2
+	   (GRID:MAKE-FOREIGN-ARRAY
+	    'DOUBLE-FLOAT :INITIAL-CONTENTS
+	    '((42.73d0 -17.24d0 43.31d0)
+	      (-16.12d0 -8.25d0 21.44d0)
+	      (-49.08d0 -39.66d0 -49.46d0))))
+	  (M3
+	   (GRID:MAKE-FOREIGN-ARRAY
+	    'DOUBLE-FLOAT :INITIAL-CONTENTS
+	    '((19.68d0 -5.55d0 -8.82d0)
+	      (25.37d0 -30.58d0 31.67d0)
+	      (29.36d0 -33.24d0 -27.03d0))))
+	  (S1 -41.67d0)
+	  (S2 42.0d0))
+      (GRID:COPY-TO (MATRIX-PRODUCT M1 M2 M3 S1 S2)))))
+  #+fsbv
+  (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
+   (LIST
+    #2A((#C(140927.64 -143005.16) #C(72986.305 -201162.86)
+	   #C(65956.16 9034.215))
+	(#C(-102500.125 118033.82) #C(-147775.0 58489.473)
+	   #C(-9582.236 190719.98))
+	(#C(-16551.412 336505.22) #C(-7668.242 385798.25)
+	   #C(45313.527 140641.6))))
+   (MULTIPLE-VALUE-LIST
+    (LET ((M1
+	   (GRID:MAKE-FOREIGN-ARRAY
+	    '(COMPLEX SINGLE-FLOAT)
+	    :INITIAL-CONTENTS
+	    '((#C(-34.5 8.24) #C(3.29 -8.93) #C(34.12 -6.15))
+	      (#C(-8.93 34.12) #C(-6.15 49.27) #C(-13.49 32.5))
+	      (#C(49.27 -13.49) #C(32.5 42.73) #C(-17.24 43.31)))))
+	  (M2
+	   (GRID:MAKE-FOREIGN-ARRAY
+	    '(COMPLEX SINGLE-FLOAT)
+	    :INITIAL-CONTENTS
+	    '((#C(42.73 -17.24) #C(43.31 -16.12) #C(-8.25 21.44))
+	      (#C(-16.12 -8.25) #C(21.44 -49.08) #C(-39.66 -49.46))
+	      (#C(-49.08 -39.66) #C(-49.46 19.68) #C(-5.55 -8.82)))))
+	  (M3
+	   (GRID:MAKE-FOREIGN-ARRAY
+	    '(COMPLEX SINGLE-FLOAT)
+	    :INITIAL-CONTENTS
+	    '((#C(19.68 -5.55) #C(-8.82 25.37) #C(-30.58 31.67))
+	      (#C(25.37 -30.58) #C(31.67 29.36) #C(-33.24 -27.03))
+	      (#C(29.36 -33.24) #C(-27.03 -41.67) #C(42.0 -20.81)))))
+	  (S1 #C(-41.67 42.0))
+	  (S2 #C(42.0 -20.81)))
+      (GRID:COPY-TO (MATRIX-PRODUCT M1 M2 M3 S1 S2)))))
+  #+fsbv
+  (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
+   (LIST
+    #2A((#C(140927.638311d0 -143005.14965699997d0)
+	   #C(72986.314354d0 -201162.870342d0)
+	   #C(65956.156396d0 9034.212785d0))
+	(#C(-102500.143082d0 118033.81826900001d0)
+	   #C(-147775.01365700003d0 58489.469011999994d0)
+	   #C(-9582.23530800004d0 190719.98257199998d0))
+	(#C(-16551.43698600002d0 336505.21680500003d0)
+	   #C(-7668.248943000013d0 385798.22976300004d0)
+	   #C(45313.51313299998d0 140641.59851399998d0))))
+   (MULTIPLE-VALUE-LIST
+    (LET ((M1
+	   (GRID:MAKE-FOREIGN-ARRAY
+	    '(COMPLEX DOUBLE-FLOAT)
+	    :INITIAL-CONTENTS
+	    '((#C(-34.5d0 8.24d0) #C(3.29d0 -8.93d0) #C(34.12d0 -6.15d0))
+	      (#C(-8.93d0 34.12d0) #C(-6.15d0 49.27d0) #C(-13.49d0 32.5d0))
+	      (#C(49.27d0 -13.49d0) #C(32.5d0 42.73d0) #C(-17.24d0 43.31d0)))))
+	  (M2
+	   (GRID:MAKE-FOREIGN-ARRAY
+	    '(COMPLEX DOUBLE-FLOAT)
+	    :INITIAL-CONTENTS
+	    '((#C(42.73d0 -17.24d0) #C(43.31d0 -16.12d0) #C(-8.25d0 21.44d0))
+	      (#C(-16.12d0 -8.25d0) #C(21.44d0 -49.08d0) #C(-39.66d0 -49.46d0))
+	      (#C(-49.08d0 -39.66d0) #C(-49.46d0 19.68d0) #C(-5.55d0 -8.82d0)))))
+	  (M3
+	   (GRID:MAKE-FOREIGN-ARRAY
+	    '(COMPLEX DOUBLE-FLOAT)
+	    :INITIAL-CONTENTS
+	    '((#C(19.68d0 -5.55d0) #C(-8.82d0 25.37d0) #C(-30.58d0 31.67d0))
+	      (#C(25.37d0 -30.58d0) #C(31.67d0 29.36d0) #C(-33.24d0 -27.03d0))
+	      (#C(29.36d0 -33.24d0) #C(-27.03d0 -41.67d0) #C(42.0d0 -20.81d0)))))
+	  (S1 #C(-41.67d0 42.0d0))
+	  (S2 #C(42.0d0 -20.81d0)))
+      (GRID:COPY-TO (MATRIX-PRODUCT M1 M2 M3 S1 S2)))))
+  (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
+   (LIST #(72971.1 60998.137 -184676.98))
+   (MULTIPLE-VALUE-LIST
+    (LET ((M1
+	   (GRID:MAKE-FOREIGN-ARRAY
+	    'SINGLE-FLOAT :INITIAL-CONTENTS
+	    '((-34.5 8.24 3.29)
+	      (-8.93 34.12 -6.15)
+	      (49.27 -13.49 32.5))))
+	  (V1
+	   (GRID:MAKE-FOREIGN-ARRAY
+	    'SINGLE-FLOAT :INITIAL-CONTENTS
+	    '(42.73 -17.24 43.31)))
+	  (V2
+	   (GRID:MAKE-FOREIGN-ARRAY
+	    'SINGLE-FLOAT :INITIAL-CONTENTS
+	    '(-16.12 -8.25 21.44)))
+	  (S1 -49.08)
+	  (S2 -39.66))
+      (GRID:COPY-TO (MATRIX-PRODUCT M1 V1 V2 S1 S2)))))
+  (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
+   (LIST
+    #(72971.10171599999d0 60998.13393599999d0
+      -184676.981676d0))
+   (MULTIPLE-VALUE-LIST
+    (LET ((M1
+	   (GRID:MAKE-FOREIGN-ARRAY
+	    'DOUBLE-FLOAT :INITIAL-CONTENTS
+	    '((-34.5d0 8.24d0 3.29d0)
+	      (-8.93d0 34.12d0 -6.15d0)
+	      (49.27d0 -13.49d0 32.5d0))))
+	  (V1
+	   (GRID:MAKE-FOREIGN-ARRAY
+	    'DOUBLE-FLOAT :INITIAL-CONTENTS
+	    '(42.73d0 -17.24d0 43.31d0)))
+	  (V2
+	   (GRID:MAKE-FOREIGN-ARRAY
+	    'DOUBLE-FLOAT :INITIAL-CONTENTS
+	    '(-16.12d0 -8.25d0 21.44d0)))
+	  (S1 -49.08d0)
+	  (S2 -39.66d0))
+      (GRID:COPY-TO (MATRIX-PRODUCT M1 V1 V2 S1 S2)))))
+  #+fsbv
+  (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
+   (LIST
+    #(#C(124163.57 -3332.2988) #C(119793.48 -166378.0)
+      #C(-189845.23 -81764.12)))
+   (MULTIPLE-VALUE-LIST
+    (LET ((M1
+	   (GRID:MAKE-FOREIGN-ARRAY
+	    '(COMPLEX SINGLE-FLOAT)
+	    :INITIAL-CONTENTS
+	    '((#C(-34.5 8.24) #C(3.29 -8.93) #C(34.12 -6.15))
+	      (#C(-8.93 34.12) #C(-6.15 49.27) #C(-13.49 32.5))
+	      (#C(49.27 -13.49) #C(32.5 42.73) #C(-17.24 43.31)))))
+	  (V1
+	   (GRID:MAKE-FOREIGN-ARRAY
+	    '(COMPLEX SINGLE-FLOAT)
+	    :INITIAL-CONTENTS
+	    '(#C(42.73 -17.24) #C(43.31 -16.12) #C(-8.25 21.44))))
+	  (V2
+	   (GRID:MAKE-FOREIGN-ARRAY
+	    '(COMPLEX SINGLE-FLOAT)
+	    :INITIAL-CONTENTS
+	    '(#C(-16.12 -8.25) #C(21.44 -49.08) #C(-39.66 -49.46))))
+	  (S1 #C(-49.08 -39.66))
+	  (S2 #C(-39.66 -49.46)))
+      (GRID:COPY-TO (MATRIX-PRODUCT M1 V1 V2 S1 S2)))))
+  #+fsbv
+  (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
+   (LIST
+    #(#C(124163.58013199999d0 -3332.2974459999896d0)
+      #C(119793.47618999999d0 -166378.00423d0)
+      #C(-189845.21679399998d0 -81764.10481799999d0)))
+   (MULTIPLE-VALUE-LIST
+    (LET ((M1
+	   (GRID:MAKE-FOREIGN-ARRAY
+	    '(COMPLEX DOUBLE-FLOAT)
+	    :INITIAL-CONTENTS
+	    '((#C(-34.5d0 8.24d0) #C(3.29d0 -8.93d0) #C(34.12d0 -6.15d0))
+	      (#C(-8.93d0 34.12d0) #C(-6.15d0 49.27d0) #C(-13.49d0 32.5d0))
+	      (#C(49.27d0 -13.49d0) #C(32.5d0 42.73d0) #C(-17.24d0 43.31d0)))))
+	  (V1
+	   (GRID:MAKE-FOREIGN-ARRAY
+	    '(COMPLEX DOUBLE-FLOAT)
+	    :INITIAL-CONTENTS
+	    '(#C(42.73d0 -17.24d0) #C(43.31d0 -16.12d0) #C(-8.25d0 21.44d0))))
+	  (V2
+	   (GRID:MAKE-FOREIGN-ARRAY
+	    '(COMPLEX DOUBLE-FLOAT)
+	    :INITIAL-CONTENTS
+	    '(#C(-16.12d0 -8.25d0) #C(21.44d0 -49.08d0) #C(-39.66d0 -49.46d0))))
+	  (S1 #C(-49.08d0 -39.66d0))
+	  (S2 #C(-39.66d0 -49.46d0)))
+      (GRID:COPY-TO (MATRIX-PRODUCT M1 V1 V2 S1 S2))))))

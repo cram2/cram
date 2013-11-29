@@ -1,0 +1,350 @@
+<!-- -*- mode: HTML; time-stamp-line-limit: -18; -*- -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+  <head>
+    <title>GSLL, the GNU Scientific Library for Lisp
+</title>
+    <meta name="generator" content="muse.el">
+    <meta http-equiv="Content-Type"
+          content="text/html; charset=iso-8859-1">
+    <link rev="made" href="mailto:lhealy@common-lisp.net">
+    <link rel="stylesheet" type="text/css" href="site.css">
+  </head>
+  <body>
+    <div id="banner">
+      <h1>GNU Scientific Library for Lisp</h1>
+      <h2><a href="index.html">GSLL</a> &nbsp;
+    </div>
+    <div id="sidebar">
+    <ul>
+      <li><a href="#about">About</a></li>
+      <li><a href="#examples">Examples</a></li>
+      <li><a href="#require">Requirements</a></li>
+      <li><a href="#getit">Download</a></li>
+      <li><a href="#documentation">Documentation</a></li>
+      <li><a href="#status">Status</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <!-- Insertion Mark -->
+    </div>
+    <div id="content">
+    <!-- Page published by Emacs Muse begins here -->
+<h2>About</h2>
+<a name="about"/>
+<p class="first">
+
+
+<p>The GNU Scientific Library for Lisp (GSLL) allows you to use
+the <a href="http://www.gnu.org/software/gsl/">GNU Scientific Library
+(GSL)</a> from <a href="http://www.lisp.org">Common Lisp</a>.  This
+library provides a full range of common mathematical operations useful
+to scientific and engineering applications.  The design of the GSLL
+interface is such that access to most of the GSL library is possible
+in a Lisp-natural way; the intent is that the user not be hampered by
+the restrictions of the C language in which GSL has been written.
+GSLL thus provides interactive use of GSL for getting quick answers,
+even for someone not intending to program in Lisp.
+</p>
+
+<p>Topics include: polynomials, special functions, vectors and
+matrices, permutations, sorting, linear algebra including BLAS,
+eigensystems, fast Fourier transforms (FFT), quadrature, random numbers,
+quasi-random sequences, random distributions, statistics, histograms,
+N-tuples, Monte Carlo integration, simulated annealing, ordinary
+differential equations, interpolation, numerical integration,
+numerical differentiation, Chebyshev approximation, series
+acceleration, discrete Hankel transforms, root-finding, minimization,
+least-squares fitting, IEEE floating-point, discrete wavelet
+transforms, basis splines, physical constants.  See
+<a href="missing-features.text">missing-features.text</a>
+on the status of some incomplete topics.
+</p>
+
+<h2>Examples</h2>
+<a name="examples"/>
+ <p>The <a href="http://www.gnu.org/software/gsl/manual/html_node/Elliptic-Functions-_0028Jacobi_0029.html">Jacobian elliptic functions</a> <i>sn</i>, <i>cn</i>, and
+ <i>dn</i> are special functions (Chapter 7):</p> 
+<pre>
+(jacobian-elliptic-functions 0.2d0 0.81d0)
+0.19762082367187703d0
+0.9802785369736752d0
+0.9840560289645665d0
+</pre>
+<p>which returns as multiple values the three function values.  The
+functions are defined only if the second argument <i>m</i> is not
+greater than 1, so an error is signalled if this parameter is out of
+range:
+<pre>
+(jacobian-elliptic-functions 0.61802d0 1.5d0)
+Input domain error |m| > 1.0 in elljac.c at line 46
+   [Condition of type INPUT-DOMAIN]
+</pre>
+<p>This is an ordinary Lisp error which may be handled with standard
+definitions available in Lisp.  To take the
+<a href="file:///usr/share/doc/gsl-ref-html/Level-1-GSL-BLAS-Interface.html">
+complex conjugate scalar product</a> of two complex vectors of length 3:
+<pre>
+(cdot #2m(#c(-34.5d0 8.24d0) #c(3.29d0 -8.93d0) #c(34.12d0 -6.15d0))
+      #2m(#c(49.27d0 -13.49d0) #c(32.5d0 42.73d0) #c(-17.24d0 43.31d0)))
+#C(-2940.2118d0 1861.9380999999998d0)
+</pre>
+<p>There are over 1500 examples available from within GSLL with the
+function <code>examples</code>.  There is also a suite of over
+4000 tests; many of the examples also serve as tests, and most others
+are ported from GSL's tests. 
+
+<h2>Requirements</h2>
+<a name="require"/>
+<p>
+GSLL should work in any Common Lisp implementation and platform
+combination for which the following are supported:</p>
+<ul>
+<li><a href="http://www.gnu.org/software/gsl/">GSL</a>
+</li>
+<li><a href="http://common-lisp.net/project/cffi/">CFFI</a> and cffi-grovel,
+  version 0.10.5 or newer; callbacks and <code>foreign-funcall</code> 
+  must be supported.
+</li>
+<li><a href="http://www.cliki.net/trivial-garbage">trivial-garbage</a>
+<li><a href="http://repo.or.cz/w/gsd.git">GSD</a>, the <i>Grid Structured Data</i>; in particular,
+  the <code>foreign-array</code> and <code>grid</code> systems, which
+  uses
+  <ul>
+  <li><a href="http://common-lisp.net/project/alexandria/">Alexandria</a>,</li>
+  <li><a href="http://www.cliki.net/SPLIT-SEQUENCE">split-sequence</a>,</li>
+  <li><a href="http://gitorious.org/iolib/static-vectors">static-vectors</a>
+    <i>(Optional)</i>, provides direct access to foreign arrays from
+    Lisp on some implementations.</li>
+  </ul>  
+<li><a href="http://www.cliki.net/asdf">ASDF</a></li>
+<li><a href="http://repo.or.cz/w/lisp-unit.git">lisp-unit</a>, <i>(Optional)</i> necessary 
+   to run <code>gsll-tests</code>
+</li>
+<li><a href="http://repo.or.cz/w/fsbv.git">FSBV</a>, <i>(Optional)</i> necessary 
+   for functions using complex scalars or simulated annealing
+</li>
+<li>
+  <a href="http://common-lisp.net/project/iterate/">iterate</a>
+  and
+  <a href="http://common-lisp.net/project/asdf-system-connections/">asdf-system-connnections</a>,
+  <i>(Optional)</i> 
+  provides a convenient way to iterate over elements or indices of
+  vectors or matrices.
+</ul>
+
+<p>GSLL has been tested with
+  <a href="http://sbcl.sourceforge.net/">SBCL</a>
+  and
+  <a href="http://trac.clozure.com/openmcl">CCL</a>
+  on Debian amd64, and
+  <a href="http://sbcl.sourceforge.net/">SBCL</a>
+  and
+  <a href="http://clisp.cons.org/">CLISP</a> on Debian i386.  There
+  are some known failures; see <a href="status.text">status.text</a>.
+</p>
+
+<h2>Download and Install</h2>
+ <h3>Download</h3>
+  <ul>
+    <li><code>git clone git://repo.or.cz/gsll.git</code></li>
+    <li><code>git clone git://repo.or.cz/gsd.git</code></li>
+    <li><code>darcs get http://www.common-lisp.net/project/cffi/darcs/cffi/</code></li>
+    <li><code>darcs get http://common-lisp.net/~loliveira/darcs/trivial-garbage</code></li>
+    <li><code>git clone git://common-lisp.net/projects/alexandria/alexandria.git</code></li>
+    <li><code>wget http://ftp.linux.org.uk/pub/lisp/experimental/cclan/split-sequence.tar.gz -O - | tar zxv </code></li
+    <li><code>git clone git://repo.or.cz/lisp-unit.git</code></li>
+    <li><code>git clone git://gitorious.org/iolib/static-vectors.git</code></li>
+    <li><code>git clone git://repo.or.cz/fsbv.git</code></li>
+  </ul>
+<p>The <a href="http://repo.or.cz/w/gsll.git"> repository web page</a>
+can be used to browse or retrieve a compressed tarball (click the most
+recent "snapshot" link).  You will need to make a link of all
+the <code>.asd</code> files in the downloaded repositories to some
+directory known to ASDF.  Then make sure that 
+the C packages <code>libgsl0-dev</code> and <code>libffi-dev</code>
+(if using FSBV) are installed.
+Then in Lisp, load the system:
+  <ul>
+    <li><code>(asdf:operate 'asdf:load-op :gsll)</code></li>
+  </ul>
+ <h3>License</h3>
+<p>
+This software is distributed under
+the <a href="http://www.gnu.org/licenses/gpl.html">GPL</a>
+<!--and <a href="http://www.gnu.org/copyleft/fdl.html">FDL</a>
+	-->
+; see
+the file COPYING.  There is absolutely no warranty.</p>
+
+<h2>Documentation</h2>
+<a name="documentation"/>
+ <h3>General Advice</h3>
+ <p>The following techniques for using the API are advised:</p>
+ <ul>
+ <li>Find the appropriate function(s) in the <a
+ href="http://www.gnu.org/software/gsl/manual/">GSL
+ documentation</a>.</li>
+ <li>Use the GSLL function <code>gsl-lookup</code>
+  to find the equivalent GSLL function, for example
+<pre>
+(gsl-lookup "gsl_sf_elljac_e")
+JACOBIAN-ELLIPTIC-FUNCTIONS
+T
+</pre>
+   <p>
+     to find that the Lisp function name is <code>#'jacobian-elliptic-functions</code>.  
+  </li>
+ <li>Look at the documentation for that Lisp function, e.g.
+   <pre>(documentation #'jacobian-elliptic-functions 'function)
+"The Jacobian elliptic functions sn(u|m),
+  cn(u|m), dn(u|m) computed by descending Landen transformations."
+   </pre>
+   <p>
+   to get an explanation of the arguments etc.
+ </li>
+ <li>Use the function <code>(examples)</code> without an argument to
+ get a list of example categories.  Then use the function with a
+ category name as the argument to get a list of examples under that
+ category, for example
+   <code>(examples 'higher-moments)</code>.  The result will be a list
+   of forms, each providing an example of usage in the relevant topic.
+   If the
+ <a href="http://www.gnu.org/software/gsl/manual/">GSL
+ documentation</a> provides an example, there will usually be the same
+ or similar example provided in GSLL. <i>Note:</i> Some of the
+ examples are intentionally designed to signal an error, because the
+ examples also serve as a regression (unit) test suite for GSLL.</li>
+ </ul>
+ <p>
+   Some examples are not yet present in, or are too complicated for, the
+ function <code>#'examples</code>.  In this case, you need to look in
+ the relevant source file; they are in either a separate file of
+ examples, or at the end of the file of definitions.
+ It is advisable to look at the examples first for calculations that
+ require more complex setup (generally, the later chapters in the GSL
+ manual).
+
+ <h3>Arrays</h3>
+<p>
+GSLL has many functions that work on vectors (one-dimensional arrays)
+and matrices (two-dimensional arrays).  Foreign arrays are defined and
+manipulated using the GSD collection which defines generic operations
+on array-like objects; see the GSD documentation for more information.
+GSLL supports all array element types that are supported by CFFI, the
+CL implementation, GSL, and the platform.  This list is available in
+the variable <code>grid:*array-element-types*</code>.
+<p>
+
+<h3>Passing functions</h3>
+ <p>
+ Functions that are passed to GSL functions (known as <i>callbacks</i>
+ in C) are specified with a
+ <a href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_f.htm#function_designator">function
+ designator</a> for the CL function, that is, either the function
+ object itself or a symbol denoting the function.
+ There is usually an option <code>scalarsp</code> for functions
+ that take or return arrays that, if true, will
+ send the user function the argument element by element, and expect
+ the return values to be the individual elements. 
+ </p>
+
+ <h3>GSL objects</h3>
+<p>
+There are a number of GSL objects other than arrays that can be
+created: 
+<pre>
+acceleration interpolation levin levin-truncated spline
+nonlinear-ffit nonlinear-fdffit
+one-dimensional-root-solver-f one-dimensional-root-solver-fdf
+multi-dimensional-minimizer-f multi-dimensional-minimizer-fdf
+fit-workspace one-dimensional-minimizer
+multi-dimensional-root-solver-f multi-dimensional-root-solver-fdf
+histogram histogram2d histogram-pdf histogram2d-pdf
+basis-spline chebyshev hankel wavelet wavelet-workspace
+random-number-generator quasi-random-number-generator discrete-random
+polynomial-complex-workspace integration-workspace
+qaws-table qawo-table
+eigen-symm eigen-symmv eigen-herm eigen-hermv
+eigen-nonsymm eigen-nonsymmv eigen-gensymm eigen-gensymmv
+eigen-gen eigen-genv
+monte-carlo-plain monte-carlo-miser monte-carlo-vegas
+ode-stepper ode-evolution standard-control y-control
+yp-control scaled-control
+fft-real-wavetable-double-float fft-real-wavetable-single-float
+fft-real-workspace-double-float fft-real-workspace-single-float
+fft-complex-wavetable-double-float fft-complex-wavetable-single-float
+fft-complex-workspace-double-float fft-complex-workspace-single-float
+fft-half-complex-wavetable-double-float fft-half-complex-wavetable-single-float
+</pre>
+<p>
+An instance may be created with a function whose name is "make-"
+followed by the class name, e.g. <code>make-histogram</code>.  The
+arguments that the function takes depends on the class.
+</p>
+
+ <h3>Additional definitions</h3>
+<p>
+Some definitions are provided because of their usefulness, even though
+GSL doesn't have them.  
+<ul>
+  <li><code>invert-matrix</code> finds the inverse of a matrix and uses
+  GSL's LU decomposition functions.</li>
+  <li>IEEE floating point number analysis.</li>
+  <li><code>fft-frequency-vector</code> returns a vector where the sample
+  frequencies are contained. If you perform an FFT on a vector of a given size
+  and :sample-size, this vector will contain the sample frequencies in order.
+  If the :shifted keyword is T, then the frequencies are ordered in ascending
+  order.</li>
+  <li><code>fft-shift</code> returns a copy of a vector where the zero
+  frequency has been shifted to the center; the frequency components will be
+  sorted according to their frequency, in ascending order. Optionally, a
+  :stride can be provided.</li>
+  <li><code>fft-inverse-shift</code> performs the inverse action of fft-shift;
+  the zero and positive frequency components are shifted to the beginning,
+  so that the resulting vector is suitable for an inverse FFT. Optionally, a
+  :stride can be provided.</li>
+</ul>
+
+<h2>Status</h2>
+<a name="status"/>
+<p>
+GSLL is largely complete and usable, with functioning interfaces to
+most of GSL.  Some functionality is not yet ported; see
+<a href="missing-features.text">missing-features.text</a>
+for more details.  Known bugs are documented in
+<a href="status.text">status.text</a>.  Work is ongoing to both
+remedy those deficiencies and to simplify the user interface by
+changing more required arguments into optional or key arguments with
+useful default values.  Typically, these arguments bind GSL objects
+and arrays used internally or for function return.
+
+<h2>Contact</h2>
+<a name="contact"/>
+<p>There is a <a
+ href="http://common-lisp.net/cgi-bin/mailman/listinfo/gsll-devel">mailing
+ list</a> for all aspects of this project, including bug reports.  In
+ addition, I am frequently on #lisp IRC channel as LiamH.
+</p>
+</div>
+<!-- Page published by Emacs Muse ends here -->
+<div class="footer">
+<hr>
+<address><a href="mailto:gsll-devel@common-lisp.net">Liam Healy</a></address>
+<!-- Created: Feb 25 2005 -->
+<!-- hhmts start -->
+<small>
+Time-stamp: <2010-07-22 15:38:19EDT index.html>
+</small>
+<!-- hhmts end -->
+ </div>
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+var pageTracker = _gat._getTracker("UA-3669275-1");
+pageTracker._initData();
+pageTracker._trackPageview();
+</script>
+  </body>
+</html>
