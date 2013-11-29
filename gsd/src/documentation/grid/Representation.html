@@ -1,0 +1,66 @@
+<html lang="en">
+<head>
+<title>Representation - Grid Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Grid Manual">
+<meta name="generator" content="makeinfo 4.11">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="prev" href="Operations.html#Operations" title="Operations">
+<link rel="next" href="Installation.html#Installation" title="Installation">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010 Liam Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Representation"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="Installation.html#Installation">Installation</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Operations.html#Operations">Operations</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="index.html#Top">Top</a>
+<hr>
+</div>
+
+<h2 class="chapter">3 Representation</h2>
+
+<p><a name="index-representation-15"></a>
+
+<h3 class="section">3.1 System <samp><span class="command">grid</span></samp></h3>
+
+<p>In the <samp><span class="command">grid</span></samp> system, there are two forms of grids defined.  The
+first is a regular CL array.  For example, an ordinary vector
+<pre class="example">     #(1.0d0 2.0d0 3.0d0)
+</pre>
+   <p>is considered a grid.  The other form of grid is a stack of arrays or
+lists each, except for the last, of whose elements is another array or
+list.  The last one must have a scalar (such as a number) for all its
+elements.  For example,
+<pre class="example">     <code>(make-grid '((array 3) (list 3) double-float) :initial-element 1.0d0)</code>
+</pre>
+   <p>will make a grid that consists of an array (vector) of length 3 each of whose
+elements is a list of length 3 of double floats, initialized to the
+value 1.0.
+
+   <p>Any grid other than an ordinary CL array will be an instance of a
+subclass of <code>grid</code>.
+
+<h3 class="section">3.2 System <samp><span class="command">foreign-array</span></samp></h3>
+
+<p>The system <samp><span class="command">foreign-array</span></samp> defines classes and types of C arrays
+(specifically, any row-major foreign arrays) using
+<a href="http://common-lisp.net/project/cffi/"><samp><span class="command">CFFI</span></samp></a>.
+
+   </body></html>
+
