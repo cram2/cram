@@ -1,1 +1,0 @@
-../designators-test.asd
