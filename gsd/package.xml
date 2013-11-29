@@ -1,0 +1,26 @@
+<package>
+  <name>gsd</name>
+  <version>0.0.0</version>
+  <description>
+      3rd party library: GSD
+  </description>
+
+  <author>Liam Healy</author>
+
+  <maintainer email="moesenle@cs.tum.edu">Lorenz Moesenlechner</maintainer>
+  <maintainer email="georg.bartels@cs.uni-bremen.de">Georg Bartels</maintainer>
+
+  <license>GPL</license>
+
+  <url type="website">http://repo.or.cz/w/gsd.git</url>
+  <url type="bugtracker">https://github.com/cram-code/cram_core/issues</url>
+  <url type="repository">https://github.com/cram-code/cram_core</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>sbcl</build_depend>
+  <build_depend>split_sequence</build_depend>
+
+  <run_depend>sbcl</run_depend>
+  <run_depend>split_sequence</run_depend>
+</package>
