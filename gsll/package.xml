@@ -1,0 +1,34 @@
+<package>
+  <name>gsll</name>
+  <version>0.0.0</version>
+  <description>
+      3rd party library: GSLL a GSL wrapper for common lisp
+  </description>
+
+  <author></author>
+
+  <maintainer email="moesenle@cs.tum.edu">Lorenz Moesenlechner</maintainer>
+  <maintainer email="georg.bartels@cs.uni-bremen.de">Georg Bartels</maintainer>
+
+  <license>GPL</license>
+
+  <url type="website">http://common-lisp.net/project/gsll/</url>
+  <url type="bugtracker">https://github.com/cram-code/cram_core/issues</url>
+  <url type="repository">https://github.com/cram-code/cram_core</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>sbcl</build_depend>
+  <build_depend>libgsl</build_depend>
+  <build_depend>gsd</build_depend>
+  <build_depend>trivial_garbage</build_depend>
+  <build_depend>cl_utilities</build_depend>
+  <build_depend>cffi</build_depend>
+
+  <run_depend>sbcl</run_depend>
+  <run_depend>libgsl</run_depend>
+  <run_depend>gsd</run_depend>
+  <run_depend>trivial_garbage</run_depend>
+  <run_depend>cl_utilities</run_depend>
+  <run_depend>cffi</run_depend>
+</package>
