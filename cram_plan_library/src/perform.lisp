@@ -28,8 +28,8 @@
 
 (in-package :plan-lib)
 
-(defgeneric hook-before-performing-action-designator (description))
-(defmethod hook-before-performing-action-designator (description))
+(defgeneric hook-before-performing-action-designator (designator matching-process-modules))
+(defmethod hook-before-performing-action-designator (designator matching-process-modules))
 
 (defgeneric hook-after-performing-action-designator (id success))
 (defmethod hook-after-performing-action-designator (id success))
@@ -46,13 +46,8 @@
     ;; not a COMPOSITE-FAILURE.
     (let ((result nil)
           (log-id (hook-before-performing-action-designator
-                   (list
-                    (list 'description
-                          (write-to-string
-                           (desig:description ?action-designator)))
-                    (list 'matching-process-modules
-                          (write-to-string
-                           matching-process-modules))))))
+                   ?action-designator
+                   matching-process-modules)))
       (with-failure-handling
           ((composite-failure (failure)
              (fail (car (composite-failures failure)))))
