@@ -1,0 +1,36 @@
+<package>
+  <name>cram_designators</name>
+  <version>0.1.0</version>
+  <description>
+      cram_designators defines the protocol for designators and provides an
+      implementation for location, object and action designators.
+  </description>
+
+  <author email="moesenle@cs.tum.edu">Lorenz Moesenlechner</author>
+
+  <maintainer email="moesenle@cs.tum.edu">Lorenz Moesenlechner</maintainer>
+  <maintainer email="georg.bartels@cs.uni-bremen.de">Georg Bartels</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://ros.org/wiki/cram_designators</url>
+  <url type="bugtracker">https://github.com/cram-code/cram_core/issues</url>
+  <url type="repository">https://github.com/cram-code/cram_core</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>sbcl</build_depend>
+  <build_depend>alexandria</build_depend>
+  <build_depend>cram_utilities</build_depend>
+  <build_depend>cram_reasoning</build_depend>
+  <build_depend>trivial_garbage</build_depend>
+  <build_depend>lisp_unit</build_depend>
+
+  <run_depend>sbcl</run_depend>
+  <run_depend>alexandria</run_depend>
+  <run_depend>cram_utilities</run_depend>
+  <run_depend>cram_reasoning</run_depend>
+  <run_depend>trivial_garbage</run_depend>
+  <run_depend>lisp_unit</run_depend>
+
+</package>
