@@ -1,5 +1,5 @@
 <package>
-  <name>cram_3rdparty_pkgs</name>
+  <name>cram_3rdparty</name>
   <version>0.1.0</version>
   <description>
     Various 3rd party Common LISP packages for the CRAM framework.
@@ -12,9 +12,9 @@
 
   <license>BSD</license>
 
-  <url type="website">http://ros.org/wiki/cram_3rdparty_pkgs</url>
-  <url type="bugtracker">https://github.com/cram-code/cram_3rd_pkgs/issues</url>
-  <url type="repository">https://github.com/cram-code/cram_3rd_pkgs</url>
+  <url type="website">http://ros.org/wiki/cram_3rdparty</url>
+  <url type="bugtracker">https://github.com/cram-code/cram_3rdparty/issues</url>
+  <url type="repository">https://github.com/cram-code/cram_3rdparty</url>
 
   <buildtool_depend>catkin</buildtool_depend>
   
