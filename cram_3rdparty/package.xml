@@ -23,15 +23,6 @@
   <run_depend>cffi</run_depend>
   <run_depend>cl_store</run_depend>
   <run_depend>cl_utilities</run_depend>
-  <run_depend>cram_designators</run_depend>
-  <run_depend>cram_execution_trace</run_depend>
-  <run_depend>cram_language</run_depend>
-  <run_depend>cram_math</run_depend>
-  <run_depend>cram_process_modules</run_depend>
-  <run_depend>cram_projection</run_depend>
-  <run_depend>cram_reasoning</run_depend>
-  <run_depend>cram_test_utilities</run_depend>
-  <run_depend>cram_utilities</run_depend>
   <run_depend>fiveam</run_depend>
   <run_depend>gsd</run_depend>
   <run_depend>gsll</run_depend>
