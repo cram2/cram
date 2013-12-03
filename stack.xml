@@ -13,7 +13,6 @@
   <depend stack="point_cloud_perception" /> <!-- point_cloud_converter, pcl, pcl_ros -->
   <depend stack="ros" /> <!-- std_msgs, roslisp, rospy, std_srvs -->
   <depend stack="roslisp_common" /> <!-- actionlib_lisp, cl_transforms, cl_tf -->
-  <depend stack="roslisp_support" /> <!-- roslisp_runtime -->
   <depend stack="visualization_common" /> <!-- visualization_msgs -->
 
 </stack>
