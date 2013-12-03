@@ -1,4 +1,4 @@
-cram_3rdparty_pkgs
-==================
+cram_3rdparty
+=============
 
 Various common lisp 3rd party libraries used by the CRAM framework.
