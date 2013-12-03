@@ -1,1 +1,0 @@
-../cram-math-test.asd
