@@ -38,5 +38,4 @@
    ;; misc-utils
    #:hangs
    #:symbol-set-equal
-   #:permute #:permute-all)
-  (:shadowing-import-from :cram-language-implementation #:fail))
+   #:permute #:permute-all))
