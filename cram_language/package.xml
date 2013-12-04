@@ -24,15 +24,15 @@
   <build_depend>alexandria</build_depend>
   <build_depend>trivial_garbage</build_depend>
   <build_depend>cram_utilities</build_depend>
-  <build_depend>cram_test_utilities</build_depend>
   <build_depend>synchronization_tools</build_depend>
 
   <run_depend>sbcl</run_depend>
   <run_depend>alexandria</run_depend>
   <run_depend>trivial_garbage</run_depend>
   <run_depend>cram_utilities</run_depend>
-  <run_depend>cram_test_utilities</run_depend>
   <run_depend>synchronization_tools</run_depend>
+
+  <test_depend>cram_test_utilities</test_depend>
 </package>
 
 
