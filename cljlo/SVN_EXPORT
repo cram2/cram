@@ -1,5 +1,0 @@
-Refactored cljlo.
-
-Jlo objects are now clos instances of type JLO. They are garbage
-collected and provide a simple interface to pose and covariance entries.
-
