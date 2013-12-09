@@ -36,7 +36,7 @@
                         bdg
                       (list (subseq (symbol-name var) 1)
                             (let ((strm (make-string-output-stream)))
-                              (json:encode (jsonify-exp val) strm)
+                              (yason:encode (jsonify-exp val) strm)
                               (get-output-stream-string strm)))))
                   bdgs)))
 
