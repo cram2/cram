@@ -55,39 +55,38 @@
   clouds are known."))
 
 (defgeneric get-shape-message (object-designator-data)
-  (:documentation "Returns an instance of arm_navigation_msgs/Shape
-  representing the object referenced by OBJECT-DESIGNATOR-DATA or NIL
-  if no shape can be generated.")
+  (:documentation "Returns an instance of shape_msgs/SolidPrimitive or
+  shape_msgs/Mesh representing the object referenced by OBJECT-DESIGNATOR-DATA
+  or NIL if no shape can be generated.")
   (:method ((data t))
     nil)
 
   (:method ((data object-shape-data-mixin))
     (with-slots (shape-type dimensions) data 
       (roslisp:make-message
-       "arm_navigation_msgs/Shape"
+       "shape_msgs/SolidPrimitive"
        :type (roslisp-msg-protocol:symbol-code
-              'arm_navigation_msgs-msg:shape shape-type)
+              'shape_msgs-msg:solidprimitive shape-type)
        :dimensions (vector
                     (cl-transforms:x dimensions)
                     (cl-transforms:y dimensions)
                     (cl-transforms:z dimensions)))))
   
   (:method ((data object-mesh-data-mixin))
+    ;; Here `data' has the slots VERTICES and FACES, where FACES is a #((3 6 2) (6 4 1) ...),
+    ;; where the numbers are indices of vertices from the VERTICES sequence.
+    ;; The length of the inner lists can vary, but the assert makes sure it's 1x3 sized.
+    ;; The Mesh message wants a vector of triangles, who are of type MeshTriangle,
+    ;; which is actually a 1x3 vector of indices corresponding to entries in VERTICES
     (with-slots (vertices faces) data
       (roslisp:make-message
-       "arm_navigation_msgs/Shape"
-       :type (roslisp-msg-protocol:symbol-code
-              'arm_navigation_msgs-msg:shape :mesh)
-       :triangles (car
-                   (reduce (lambda (result triangle)
-                             (destructuring-bind (vector . index)
-                                 result
-                               (assert (eql (list-length triangle) 3))
-                               (loop for point in triangle
-                                     for i from index
-                                     do (setf (aref vector i) point)
-                                     finally (return (cons vector i)))))
-                           faces :initial-value (cons (make-array (* 3 (length faces))) 0)))
+       "shape_msgs/Mesh"
+       :triangles (map 'vector (lambda (face)
+                                 (assert (eql (list-length face) 3))
+                                 (roslisp:make-msg
+                                  "shape_msgs/MeshTriangle"
+                                  :vertex-indices (make-array 3 :initial-contents face)))
+                       faces)
        :vertices (map 'vector (lambda (point)
                                 (roslisp:make-msg
                                  "geometry_msgs/Point"
@@ -101,11 +100,10 @@
       (multiple-value-bind (size center)
           (physics-utils:calculate-aabb points)
         (roslisp:make-msg
-         "arm_navigation_msgs/Shape"
+         "shape_msgs/SolidPrimitive"
          :type (roslisp-msg-protocol:symbol-code
-                'arm_navigation_msgs-msg:shape :box)
+                'shape_msgs-msg:solidprimitive :box)
          :dimensions (vector
                       (- (cl-transforms:x size) (cl-transforms:x center))
                       (- (cl-transforms:y size) (cl-transforms:y center))
                       (- (cl-transforms:z size) (cl-transforms:z center))))))))
-
