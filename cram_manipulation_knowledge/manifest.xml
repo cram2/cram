@@ -13,6 +13,6 @@
   <depend package="cram_designators" />
   <depend package="cram_physics_utils" />
   <depend package="cl_transforms" />
-  <depend package="arm_navigation_msgs" />
+  <depend package="shape_msgs" />
   <depend package="roslisp" />
 </package>
