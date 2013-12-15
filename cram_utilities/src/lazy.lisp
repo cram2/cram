@@ -66,11 +66,14 @@
   (lambda (body-function) (funcall body-function)))
 
 (defmacro with-lazy-list-dynamic-environment (variable-definition-forms &body body)
-  `(flet ((run-in-environment (body-function)
-            (let ,variable-definition-forms
-              (funcall body-function))))
-     (let ((*lazy-list-dynamic-environment* #'run-in-environment))
-       ,@body)))
+  (let ((variable-names (loop for definition in variable-definition-forms
+                              collecting (car definition))))
+    `(flet ((run-in-environment (body-function)
+              (let ,variable-definition-forms
+                (declare (special ,@variable-names))
+                (funcall body-function))))
+       (let ((*lazy-list-dynamic-environment* #'run-in-environment))
+         ,@body))))
 
 (defmacro lazy-list ((&rest params) &body body)
   "Creates a new lazy list.
