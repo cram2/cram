@@ -129,12 +129,12 @@
                  (setf (value status) :running)
                  (setf (value cancel) nil)
                  (let ((input-value (value input)))
-                   (setf (value input) nil)
                    (sb-thread:with-mutex (queue-lock)
                      (if input-queue
                          (setf (cdr (last input-queue)) (list input-value))
                          (setf input-queue (list input-value))))
-                   (pulse notification-fluent)))
+                   (pulse notification-fluent)
+                   (setf (value input) nil)))
                (whenever ((pulsed notification-fluent
                                   :handle-missed-pulses :always))
                  (let ((input-value
