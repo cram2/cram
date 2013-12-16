@@ -19,10 +19,17 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #uncomment if you have defined services
 #rosbuild_gensrv()
 
+find_package(Bullet)
+
 rosbuild_add_library(bullet_cl
   src/dynamics_world.cpp src/rigid_body.cpp
   src/motion_state.cpp src/collision_shapes.cpp
   src/constraints.cpp src/debug_draw.cpp)
+
+if (BULLET_FOUND)
+   include_directories(${BULLET_INCLUDE_DIRS})
+   target_link_libraries(bullet_cl ${BULLET_LIBRARIES})
+endif (BULLET_FOUND)
 
 #target_link_libraries(${PROJECT_NAME} another_library)
 #rosbuild_add_boost_directories()
