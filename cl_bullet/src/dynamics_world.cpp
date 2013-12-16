@@ -193,14 +193,14 @@ extern "C"
     return handle->dispatcher->getManifoldByIndexInternal(index);
   }
 
-  btCollisionObject *manifoldGetBody0(btPersistentManifold *manifold)
+  const btCollisionObject *manifoldGetBody0(btPersistentManifold *manifold)
   {
-    return reinterpret_cast<btCollisionObject *>(manifold->getBody0());
+    return manifold->getBody0();
   }
 
-  btCollisionObject *manifoldGetBody1(btPersistentManifold *manifold)
+  const btCollisionObject *manifoldGetBody1(btPersistentManifold *manifold)
   {
-    return reinterpret_cast<btCollisionObject *>(manifold->getBody1());
+    return manifold->getBody1();
   }
 
   int manifoldGetNumContactPoints(btPersistentManifold *manifold)
