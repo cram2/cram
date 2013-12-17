@@ -33,7 +33,7 @@
 #include <boost/foreach.hpp>
 
 #include <ros/ros.h>
-
+#include <pcl_conversions/pcl_conversions.h>
 #include <pcl/io/vtk_io.h>
 #include <pcl/point_types.h>
 #include <pcl/kdtree/kdtree_flann.h>
@@ -119,7 +119,7 @@ bool onTriangulatePcl(TriangulatePCL::Request &req, TriangulatePCL::Response &re
   sensor_msgs::convertPointCloudToPointCloud2(req.points, cloud_raw);
   PointCloud<PointXYZ>::Ptr cloud(new PointCloud<PointXYZ>);
   PointCloud<PointXYZ> out_cloud;
-  fromROSMsg(cloud_raw, *cloud);
+  pcl::fromROSMsg(cloud_raw, *cloud);
 
   std::vector<Vertices> triangles;
 
