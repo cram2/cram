@@ -10,7 +10,8 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 #set(ROS_BUILD_TYPE RelWithDebInfo)
 
 rosbuild_init()
-
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(BULLET bullet)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
@@ -18,12 +19,16 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #rosbuild_genmsg()
 #uncomment if you have defined services
 #rosbuild_gensrv()
+#find_package(PkgConfig REQUIRED)
+#pkg_check_modules(BULLET bullet)
+include_directories(${BULLET_INCLUDE_DIRS})
 
 rosbuild_add_library(bullet_cl
   src/dynamics_world.cpp src/rigid_body.cpp
   src/motion_state.cpp src/collision_shapes.cpp
   src/constraints.cpp src/debug_draw.cpp)
 
+target_link_libraries(bullet_cl ${BULLET_LIBRARIES})
 #target_link_libraries(${PROJECT_NAME} another_library)
 #rosbuild_add_boost_directories()
 #rosbuild_link_boost(${PROJECT_NAME} thread)

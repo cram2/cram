@@ -1,11 +1,16 @@
 <launch>
-  <include file="$(find pr2_description_lowres)/robots/upload_pr2.launch" />
-  <group ns="reasoning">
+  <!--<include file="$(find pr2_description_lowres)/robots/upload_pr2.launch" />-->
+
+<param name="robot_description_lowres" command="$(find xacro)/xacro.py '$(find pr2_description_lowres)/robots/pr2.urdf.xacro'" />
+
+<group ns="reasoning">
     <remap from="robot_description" to="robot_description_lowres" />
     <include file="$(find pr2_arm_kinematics)/launch/pr2_ik_larm_node.launch" />
     <include file="$(find pr2_arm_kinematics)/launch/pr2_ik_rarm_node.launch" />
   </group>
 
+
   <node name="triangulate_point_cloud" pkg="triangulate_point_cloud"
         type="triangulate_pcl" />
+<param name="robot_description_lowres" command="$(find xacro)/xacro.py '$(find pr2_description_lowres)/robots/pr2.urdf.xacro'" />
 </launch>
