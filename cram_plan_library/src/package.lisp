@@ -66,6 +66,8 @@
            #:object-picked-up
            #:object-in-hand-failure
            #:object-not-found-failure
+           #:with-policy
+           #:define-policy
            #:with-designators
            #:a
            #:an)
