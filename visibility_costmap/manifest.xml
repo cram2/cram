@@ -1,0 +1,22 @@
+<package>
+  <description brief="visibility_costmap">
+
+     visibility_costmap
+
+  </description>
+  <author>Jan Winkler</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/visibility_costmap</url>
+  
+  <depend package="roslisp"/>
+  <depend package="bullet_reasoning"/>
+  <depend package="cram_language" />
+  <depend package="cram_roslisp_common" />
+  <depend package="designators_ros" />
+  <depend package="bullet_reasoning" />
+  <depend package="semantic_map_costmap" />
+
+</package>
+
+
