@@ -37,7 +37,7 @@
 
 (defun location-costmap-vis-init ()
   (setf *location-costmap-publisher*
-        (advertise "/kipla/location_costmap" "arm_navigation_msgs/CollisionMap"))
+        (advertise "/kipla/location_costmap" "visualization_msgs/MarkerArray"))
   (setf *occupancy-grid-publisher*
         (advertise "/kipla/location_occupancy_grid" "nav_msgs/OccupancyGrid"))  
   (setf *marker-publisher*
@@ -45,7 +45,7 @@
 
 (register-ros-init-function location-costmap-vis-init)
 
-(defun location-costmap->collision-map (map &key (frame-id "/map") (threshold 0.0005) (z *z-padding*))
+(defun location-costmap->marker-array (map &key (frame-id "/map") (threshold 0.0005) (z *z-padding*))
   (with-slots (origin-x origin-y resolution) map
     (let* ((map-array (get-cost-map map))
            (boxes nil)
@@ -53,28 +53,38 @@
                           maximizing (loop for x from 0 below (array-dimension map-array 1)
                                            maximizing (aref map-array y x)))))
       (declare (type cma:double-matrix map-array))
-      (dotimes (row (array-dimension map-array 0))
-        (dotimes (col (array-dimension map-array 1))
-          (when (> (aref map-array row col) threshold)
-            (let ((pose (tf:make-pose
-                         (tf:make-3d-vector
-                          (+ (* col resolution) origin-x)
-                          (+ (* row resolution) origin-y)
-                          (+ z (/ (aref map-array row col) max-val)))
-                         (tf:axis-angle->quaternion
-                          (tf:make-3d-vector 1.0 0.0 0.0) 0.0))))
-              (push (make-message "moveit_msgs/OrientedBoundingBox"
-                                  (x position pose) (tf:x (tf:origin pose))
-                                  (y position pose) (tf:y (tf:origin pose))
-                                  (z position pose) (tf:y (tf:origin pose))
-                                  (x extents) resolution
-                                  (y extents) resolution
-                                  (z extents) resolution)
-                    boxes)))))
-      (make-message "moveit_msgs/CollisionMap"
-                    (frame_id header) frame-id
-                    (stamp header) (ros-time)
-                    boxes (map 'vector #'identity boxes)))))
+      (let ((index 0))
+        (dotimes (row (array-dimension map-array 0))
+          (dotimes (col (array-dimension map-array 1))
+            (when (> (aref map-array row col) threshold)
+              (let ((pose (tf:make-pose
+                           (tf:make-3d-vector
+                            (+ (* col resolution) origin-x)
+                            (+ (* row resolution) origin-y)
+                            (+ z (/ (aref map-array row col) max-val)))
+                           (tf:axis-angle->quaternion
+                            (tf:make-3d-vector 1.0 0.0 0.0) 0.0))))
+                (push (make-message "visualization_msgs/Marker"
+                                    (frame_id header) frame-id
+                                    (stamp header) (ros-time)
+                                    (ns) ""
+                                    (id) index
+                                    (type) (roslisp-msg-protocol:symbol-code
+                                            'visualization_msgs-msg:marker :cube)
+                                    (action) (roslisp-msg-protocol:symbol-code
+                                              'visualization_msgs-msg:marker :add)
+                                    (pose) pose
+                                    (x scale) resolution
+                                    (y scale) resolution
+                                    (z scale) resolution
+                                    (r color) 0.0
+                                    (g color) 0.0
+                                    (b color) 1.0
+                                    (a color) 1.0)
+                      boxes)
+                (incf index))))))
+      (make-message "visualization_msgs/MarkerArray"
+                    (markers) (map 'vector #'identity boxes)))))
 
 (defun occupancy-grid->grid-cells-msg (grid &key (frame-id "/map") (z *z-padding*))
   (with-slots (origin-x origin-y width height resolution) grid
@@ -98,7 +108,7 @@
 (defun publish-location-costmap (map &key (frame-id "/map") (threshold 0.0005) (z *z-padding*))
   (when *location-costmap-publisher*
     (publish *location-costmap-publisher*
-             (location-costmap->collision-map
+             (location-costmap->marker-array
               map :frame-id frame-id :threshold threshold
                   :z z))))
 
