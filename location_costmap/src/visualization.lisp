@@ -89,8 +89,10 @@ respectively."
 (defun location-costmap->marker-array (map &key
                                              (frame-id "/map")
                                              (threshold 0.0005) (z *z-padding*)
-                                             hsv-colormap intensity-colormap
-                                             (base-color (vector 0 0 1)))
+                                             hsv-colormap
+                                             (intensity-colormap t)
+                                             (base-color (vector 0 0 1))
+                                             (elevate-costmap t))
   (with-slots (origin-x origin-y resolution) map
     (let* ((map-array (get-cost-map map))
            (boxes nil)
@@ -107,7 +109,9 @@ respectively."
                            (tf:make-3d-vector
                             (+ (* col resolution) origin-x)
                             (+ (* row resolution) origin-y)
-                            (+ z (/ (aref map-array row col) max-val)))
+                            (+ z (or (when elevate-costmap
+                                       (/ (aref map-array row col) max-val))
+                                     0.0)))
                            (tf:axis-angle->quaternion
                             (tf:make-3d-vector 1.0 0.0 0.0) 0.0)))
                     (color (cond (hsv-colormap
