@@ -45,12 +45,58 @@
 
 (register-ros-init-function location-costmap-vis-init)
 
-(defun location-costmap->marker-array (map &key (frame-id "/map") (threshold 0.0005) (z *z-padding*))
+(defun hsv->rgb (h s v)
+  "Converts a given set of HSV values `h', `s', `v' into RGB
+coordinates. The return value is of type vector (three entries, `r',
+`g'. `b'). The output RGB values are in the range [0, 1], and the
+input HSV values are in the ranges h = [0, 360], and s, v = [0, 1],
+respectively."
+  (let* ((c (* v s)) ;; Chroma
+         (h-prime (/ h 60.0))
+         (x (- 1 (abs (- (mod h-prime 2) 1))))
+         (m (- v c))
+         (pre (cond ((and (<= 0 h-prime) (< h-prime 1)) (vector c x 0))
+                    ((and (<= 1 h-prime) (< h-prime 2)) (vector x c 0))
+                    ((and (<= 2 h-prime) (< h-prime 3)) (vector 0 c x))
+                    ((and (<= 3 h-prime) (< h-prime 4)) (vector 0 x c))
+                    ((and (<= 4 h-prime) (< h-prime 5)) (vector x 0 c))
+                    ((and (<= 5 h-prime) (< h-prime 6)) (vector c 0 x))
+                    (t (vector 0 0 0)))))
+    (map 'vector (lambda (value) (+ value m)) pre)))
+
+(defun rgb->hsv (r g b)
+  "Converts a given set of RGB values `r', `g', `b' into HSV
+coordinates. The return value is of type vector (three entries, `h',
+`s'. `v'). The input RGB values are in the range [0, 1], and the
+output HSV values are in the ranges h = [0, 360], and s, v = [0, 1],
+respectively."
+  (let* ((c-max (max r g b))
+         (c-min (min r g b))
+         (delta (- c-max c-min)))
+    (cond ((> delta 0)
+           (let ((h (cond ((= c-max r)
+                           (* 60 (mod (/ (- g b) delta) 6)))
+                          ((= c-max g)
+                           (* 60 (+ (/ (- b r) delta) 2)))
+                          ((= c-max b)
+                           (* 60 (+ (/ (- r g) delta) 4)))))
+                 (s (cond ((= delta 0) 0)
+                          (t (/ delta c-max))))
+                 (v c-max))
+             (vector h s v)))
+          (t (vector 0 0 c-max)))))
+
+(defun location-costmap->marker-array (map &key
+                                             (frame-id "/map")
+                                             (threshold 0.0005) (z *z-padding*)
+                                             hsv-colormap intensity-colormap
+                                             (base-color (vector 0 0 1)))
   (with-slots (origin-x origin-y resolution) map
     (let* ((map-array (get-cost-map map))
            (boxes nil)
            (max-val (loop for y from 0 below (array-dimension map-array 0)
-                          maximizing (loop for x from 0 below (array-dimension map-array 1)
+                          maximizing (loop for x from 0 below (array-dimension
+                                                               map-array 1)
                                            maximizing (aref map-array y x)))))
       (declare (type cma:double-matrix map-array))
       (let ((index 0))
@@ -63,23 +109,44 @@
                             (+ (* row resolution) origin-y)
                             (+ z (/ (aref map-array row col) max-val)))
                            (tf:axis-angle->quaternion
-                            (tf:make-3d-vector 1.0 0.0 0.0) 0.0))))
+                            (tf:make-3d-vector 1.0 0.0 0.0) 0.0)))
+                    (color (cond (hsv-colormap
+                                  (hsv->rgb (* 360 (/ (aref map-array row col)
+                                                      max-val))
+                                             0.5 0.5))
+                                 (intensity-colormap
+                                  (let* ((hsv-color (rgb->hsv
+                                                     (elt base-color 0)
+                                                     (elt base-color 1)
+                                                     (elt base-color 2)))
+                                         (mod-hsv
+                                           (vector (elt hsv-color 0)
+                                                   (elt hsv-color 1)
+                                                   (/ (aref map-array row col)
+                                                      max-val))))
+                                    (hsv->rgb 
+                                     (elt mod-hsv 0)
+                                     (elt mod-hsv 1)
+                                     (elt mod-hsv 2))))
+                                 (t base-color))))
                 (push (make-message "visualization_msgs/Marker"
                                     (frame_id header) frame-id
                                     (stamp header) (ros-time)
                                     (ns) ""
                                     (id) index
                                     (type) (roslisp-msg-protocol:symbol-code
-                                            'visualization_msgs-msg:marker :cube)
+                                            'visualization_msgs-msg:marker
+                                            :cube)
                                     (action) (roslisp-msg-protocol:symbol-code
-                                              'visualization_msgs-msg:marker :add)
-                                    (pose) pose
+                                              'visualization_msgs-msg:marker
+                                              :add)
+                                    (pose) (tf:pose->msg pose)
                                     (x scale) resolution
                                     (y scale) resolution
                                     (z scale) resolution
-                                    (r color) 0.0
-                                    (g color) 0.0
-                                    (b color) 1.0
+                                    (r color) (elt color 0)
+                                    (g color) (elt color 1)
+                                    (b color) (elt color 2)
                                     (a color) 1.0)
                       boxes)
                 (incf index))))))
