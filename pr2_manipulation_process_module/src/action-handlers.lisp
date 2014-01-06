@@ -207,9 +207,9 @@
                                         :grasp-pose grasp-pose-tll
                                         :side side
                                         :gripper-close-pos close-radius
-                                        :safe-pose (case side
-                                                     (left *left-safe-pose*)
-                                                     (right *right-safe-pose*)))
+                                        :safe-pose (ecase side
+                                                     (:left *left-safe-pose*)
+                                                     (:right *right-safe-pose*)))
                        (hook-after-grasp log-id t))))))
               (t (cpl:error 'manipulation-failed)))))
     (loop for grasp-assignment in grasp-assignments
@@ -298,7 +298,7 @@ for the currently type of grasped object."
                       time
                       (cl-transforms:transform-pose
                        (tf:make-transform
-                        (tf:make-3d-vector 0.0 0.0 0.1)
+                        (tf:make-3d-vector 0.0 0.0 0.05)
                         (tf:make-identity-rotation))
                        (tf:transform-pose
                         *tf* :pose (tf:copy-pose-stamped
@@ -353,14 +353,32 @@ for the currently type of grasped object."
                                 (hook-after-putdown log-id nil)
                                 (cpl:fail
                                  'cram-plan-failures:manipulation-pose-unreachable)))
-                           (execute-putdown
-                            :side side
-                            :object-name (desig-prop-value object-designator
-                                                           'desig-props:name)
-                            :pre-putdown-pose pre-putdown-pose
-                            :putdown-pose putdown-pose
-                            :unhand-pose unhand-pose)
-                           (hook-after-putdown log-id t))))))))
+                           (let ((link-name (ecase side
+                                              (:left "l_wrist_roll_link")
+                                              (:right "r_wrist_roll_link")))
+                                 (planning-group (ecase side
+                                                   (:left "left_arm")
+                                                   (:right "right_arm"))))
+                             (roslisp:ros-info () "Checking reachability for put-down.")
+                             (cond ((moveit:plan-link-movement
+                                          link-name planning-group
+                                          unhand-pose
+                                          :ignore-collisions t
+                                          :allowed-collision-objects
+                                          (list (desig-prop-value
+                                                 object-designator
+                                                 'desig-props:name)))
+                                    (execute-putdown
+                                     :side side
+                                     :object-name (desig-prop-value
+                                                   object-designator
+                                                   'desig-props:name)
+                                     :pre-putdown-pose pre-putdown-pose
+                                     :putdown-pose putdown-pose
+                                     :unhand-pose unhand-pose)
+                                    (hook-after-putdown log-id t))
+                                   (t (cpl:fail
+                                       'manipulation-pose-unreachable)))))))))))
              (loop for grasp-assignment in grasp-assignments
                    for side = (slot-value grasp-assignment 'side)
                    for grasped-object = (or (car (slot-value grasp-assignment

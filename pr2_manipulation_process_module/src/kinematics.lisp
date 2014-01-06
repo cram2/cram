@@ -761,7 +761,8 @@ is fundamentally different."
                                    :touch-links
                                    (links-for-arm-side side)
                                    :allowed-collision-objects
-                                   allowed-collision-objects)
+                                   allowed-collision-objects
+                                   :destination-validity-only t)
       (declare (ignore traj-0))
       (roslisp:publish (roslisp:advertise "/dbg" "geometry_msgs/PoseStamped")
                        (tf:pose-stamped->msg pose-in-tll))
