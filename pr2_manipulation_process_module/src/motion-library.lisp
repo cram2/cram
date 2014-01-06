@@ -93,7 +93,8 @@
            (declare (ignore f))
            (roslisp:ros-error (pr2-manipulation-process-module)
                               "Failed to go into pregrasp pose for side ~a."
-                              side))
+                              side)
+	   (cpl:fail 'manipulation-pose-unreachable))
          (moveit::pose-not-transformable-into-link (f)
            (declare (ignore f))
            (cpl:retry)))
@@ -117,7 +118,8 @@
                               "Failed to go into grasp pose for side ~a."
                               side)
            (when object-name
-             (moveit:add-collision-object object-name)))
+             (moveit:add-collision-object object-name))
+	   (cpl:fail 'manipulation-pose-unreachable))
          (moveit::pose-not-transformable-into-link (f)
            (declare (ignore f))
            (cpl:retry)))
@@ -135,7 +137,7 @@
               "Failed to go into fallback pose for side ~a. Retrying."
               side)
              (cpl:retry))
-           (moveit::pose-not-transformable-into-link (f)
+           (moveit:pose-not-transformable-into-link (f)
              (declare (ignore f))
              (roslisp:ros-warn
               (pr2-manipulation-process-module)
@@ -143,8 +145,7 @@
              (cpl:retry)))
         (roslisp:ros-warn
          (pr2-manipulation-process-module)
-         "Missed the object. Going into fallback pose for side ~a and retrying."
-         side)
+         "Missed the object. Going into fallback pose for side ~a." side)
         (open-gripper side)
         (execute-move-arm-pose side pregrasp-pose
                                :allowed-collision-objects
@@ -212,7 +213,8 @@
            (cpl:retry)))
       (execute-move-arm-pose
        side putdown-pose
-       :ignore-collisions t))
+       :ignore-collisions t
+       :allowed-collision-objects allowed-collision-objects))
     (roslisp:ros-info (pr2-manipulation-process-module)
                       "Opening gripper")
     (open-gripper side :max-effort 50.0 :position gripper-open-pos)
@@ -232,7 +234,7 @@
            (declare (ignore f))
            (cpl:retry)))
       (execute-move-arm-pose
-       side unhand-pose :ignore-collisions t))))
+       side unhand-pose))))
 
 (defun get-lifting-grasped-object-arm-pose (side distance)
   "Returns the lifting pose for the `side' robot arm in order to
@@ -285,14 +287,18 @@ object in order to lift it at `distance' form the supporting plane"
                                      frame-id time
                                      (tf:make-identity-pose))
                               :target-frame "torso_lift_link")))
-         (raised-arm-pose (tf:pose->pose-stamped
-                           "/torso_lift_link"
-                           time
-                           (cl-transforms:transform-pose
-                            (tf:make-transform
-                             (tf:make-3d-vector 0 0 distance)
-                             (tf:make-identity-rotation))
-                            current-arm-pose))))
+         (raised-arm-pose (progn
+                            (tf:wait-for-transform
+                             *tf* :source-frame frame-id
+                                  :target-frame "torso_lift_link")
+                            (tf:pose->pose-stamped
+                             "/torso_lift_link"
+                             time
+                             (cl-transforms:transform-pose
+                              (tf:make-transform
+                               (tf:make-3d-vector 0 0 distance)
+                               (tf:make-identity-rotation))
+                              current-arm-pose)))))
     (format t "~a~%" raised-arm-pose)
     (roslisp:publish
      (roslisp:advertise "/dbg" "geometry_msgs/PoseStamped")
