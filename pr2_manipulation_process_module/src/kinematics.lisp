@@ -756,15 +756,15 @@ is fundamentally different."
                          *tf*
                          :pose pose
                          :target-frame "torso_lift_link")))
-      (multiple-value-bind (state-0 traj-0)
-        (moveit:plan-link-movement wrist-frame arm-group pose-in-tll
-                                   :touch-links
-                                   (links-for-arm-side side)
-                                   :allowed-collision-objects
-                                   allowed-collision-objects
-                                   :destination-validity-only t)
-      (declare (ignore traj-0))
-      (roslisp:publish (roslisp:advertise "/dbg" "geometry_msgs/PoseStamped")
-                       (tf:pose-stamped->msg pose-in-tll))
-      (when state-0
-        (moveit:pose-distance wrist-frame pose))))))
+      (let ((state-0 (moveit:plan-link-movement
+                      wrist-frame arm-group pose-in-tll
+                      :touch-links
+                      (links-for-arm-side side)
+                      :allowed-collision-objects
+                      allowed-collision-objects
+                      :destination-validity-only t)))
+        (roslisp:publish
+         (roslisp:advertise "/dbg" "geometry_msgs/PoseStamped")
+         (tf:pose-stamped->msg pose-in-tll))
+        (when state-0
+          (moveit:pose-distance wrist-frame pose))))))
