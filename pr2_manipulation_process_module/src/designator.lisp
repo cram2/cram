@@ -275,7 +275,7 @@
     (current-designator ?obj ?current-obj)
     (holding-arms ?current-obj ?arms)
     (desig-prop ?desig (at ?loc))
-    (obstacles ?desig ?obstacles))
+    (obstacles ?desig ?obstacles)))
 
 (def-fact-group manipulation-process-module (matching-process-module available-process-module)
 
