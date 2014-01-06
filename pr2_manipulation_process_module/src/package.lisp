@@ -50,6 +50,4 @@
                      #:collision-part #:cylinder #:length #:min-handles #:park
                      #:distance #:direction #:pull #:push #:location #:angle
                      #:joint #:joint-axis #:lower-bound #:upper-bound #:open
-                     #:shape #:dimensions #:flip #:constraints
-                     #:obj-acted-on #:obj-acted-with #:pancake #:spatula
-                     #:knowrob-name #:debug))
+                     #:shape #:dimensions #:debug))

@@ -403,38 +403,3 @@ for the currently type of grasped object."
                                         "geometry_msgs/PoseStamped")
                      (tf:pose-stamped->msg arm-pose-stamped))
     arm-pose-stamped))
-     
-(def-action-handler constraint-motion-handler (motion-phases world-object-desig tool-object-desigs)
-  ;; first assemble all the object designators lists
-  (let* ((tool-desigs (force-ll tool-object-desigs))
-         (all-object-desigs (cons world-object-desig tool-desigs)))
-  ;; then publish the transforms of the object designators on tf
-  (with-tf-publishing (all-object-desigs)
-    ;; then assemble all the constraint descriptions from knowrob
-    (let* ((object-name (extract-knowrob-name world-object-desig))
-           (tool-names (mapcar #'extract-knowrob-name tool-desigs))
-           (constraint-phases (query-knowrob-constraints-action
-                               motion-phases object-name tool-names)))
-      ;; now execute the motion-phases, one by one
-      ;; note: we have to descriminate between the arms
-      (mapcan #'(lambda (phase)
-                  (flet ((execute-arm-constraints (arm-constraints tools)
-                           ;; a function to execute a list containing the cons of
-                           ;; one 'side' and a list of constraints as returned from the knowrob queries
-                           (let ((side (arm-from-knowrob-name
-                                        (first arm-constraints)
-                                        tools))
-                                 (constraints (rest arm-constraints)))
-                             (execute-constraints-motion constraints side))))
-                    (cond
-                      ((= (length phase) 1)
-                       (execute-arm-constraints (first phase) tool-desigs))
-                      ((= (length phase) 2)
-                       (cpl-impl:par 
-                         (execute-arm-constraints (first phase) tool-desigs)
-                         (execute-arm-constraints (second phase) tool-desigs)))
-                      (t (error 'simple-error 
-                              :format-control "Only one or two sets of constraints valid for one motion phase. Given list had '%a' elements.~%"
-                              :format-arguments (list (length phase)))))))
-              constraint-phases)
-      constraint-phases))))
