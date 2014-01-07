@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package>
+  <name>cram_tutorials</name>
+  <version>0.0.1</version>
+  <description>The cram_tutorials package conatins a set of tutorials and examples for CRAM </description>
+
+  <maintainer email="bbrieber@tzi.de">Benjamin Brieber</maintainer>
+
+
+  <license>MIT</license>
+
+    <buildtool_depend>catkin</buildtool_depend>
+  
+
+  <export>
+    <metapackage/>
+  </export>
+</package>

@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<package>
+  <name>cram_beginner_tutorial</name>
+  <version>0.0.2</version>
+  <description>The cram_beginnner_tutorial package</description>
+
+  <maintainer email="bbrieber@tzi.de">Benjamin Brieber</maintainer>
+
+  <license>BSD</license>
+
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>cram_language</build_depend>
+  <build_depend>sbcl</build_depend>
+  <build_depend>turtlesim</build_depend>
+  <build_depend>cl_transforms</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>actionlib_lisp</build_depend>
+  <build_depend>turtle_actionlib</build_depend>
+  <build_depend>cram_process_modules</build_depend>
+  <build_depend>cram_reasoning</build_depend>
+  <build_depend>cram_designators</build_depend>
+  <run_depend>cram_process_modules</run_depend>
+  <run_depend>cram_reasoning</run_depend>
+  <run_depend>cram_designators</run_depend>
+  <run_depend>actionlib_lisp</run_depend>
+  <run_depend>turtle_actionlib</run_depend>
+  <run_depend>turtlesim</run_depend>
+  <run_depend>cl_transforms</run_depend>
+  <run_depend>geometry_msgs</run_depend>  
+  <run_depend>cram_language</run_depend>
+  <run_depend>sbcl</run_depend>
+
+  <export>
+  </export>
+</package>
