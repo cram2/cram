@@ -51,6 +51,11 @@
   position."
   (roslisp:ros-info (perceive plan-lib) "OBJECT-PICKED `~a'" object-designator))
 
+(declare-goal object-put (object-designator location-designator)
+  "Tries to put down the object `object-designator' to the location
+  `location-designator'."
+  (roslisp:ros-info (perceive plan-lib) "OBJECT-PUT `~a'" object-designator))
+
 (declare-goal perceive-state (occasion)
   "Tries to prove that `occasion' holds. Returns a list of bindings
   that fulfill `occasion' or NIL if the occasion cannot be proven."
