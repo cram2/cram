@@ -47,9 +47,12 @@
                (ros-warn
                 (achieve plan-lib) "Failed to reperceive object from near.")
                (do-retry near-reperceive-retry-count
-                 (ros-warn
-                  (achieve plan-lib) "Retrying.")
-                 (retry)))
+                 (setf obj-look-location (next-different-location-solution
+                                          obj-look-location))
+                 (when obj-look-location
+                   (ros-warn
+                    (achieve plan-lib) "Retrying with new look location.")
+                   (retry))))
              (manipulation-pose-unreachable (f)
                (declare (ignore f))
                (ros-warn (achieve plan-lib) "Failed to grasp object.")
@@ -61,8 +64,6 @@
                (cpl:fail 'manipulation-pose-unreachable)))
           (ros-info () "Looking at object: ~a~%" obj-look-location)
           (achieve `(looking-at ,(reference obj-look-location)))
-          (setf obj-look-location (next-different-location-solution
-                                   obj-look-location))
           (setf ?obj (first (perceive-object 'currently-visible ?obj)))
           (when (not ?obj)
             (setf ?obj obj-orig)
@@ -86,7 +87,8 @@
                    (retry))))
             (when (not (desig-equal obj-orig ?obj))
               (equate obj-orig ?obj))
-            (perform grasp-action))))
+            (perform grasp-action)
+            (monitor-action grasp-action))))
       (ros-warn (achieve plan-lib) "Grasped object.")
       (with-failure-handling
           ((manipulation-pose-unreachable (f)
@@ -96,7 +98,8 @@
                (ros-warn (achieve plan-lib) "Retrying.")
                (retry))
              (return)))
-        (perform lift-action))
+        (perform lift-action)
+        (monitor-action lift-action))
       (ros-warn (achieve plan-lib) "Lifted object.")
       (with-failure-handling
           ((manipulation-pose-unreachable (f)
@@ -106,7 +109,8 @@
                (ros-warn (achieve plan-lib) "Retrying.")
                (retry))
              (return)))
-        (perform carry-action))
+        (perform carry-action)
+        (monitor-action carry-action))
       (ros-warn (achieve plan-lib) "Went into carry pose.")))
   ?obj)
 
@@ -158,6 +162,31 @@
             (achieve `(object-picked ,?obj)))))))
   ?obj)
 
+(def-goal (achieve (object-put ?obj ?loc))
+  (ros-info (achieve plan-lib) "(achieve (object-put))")
+  (let ((obj (current-desig ?obj)))
+    (assert
+     (holds `(object-in-hand ,obj)) ()
+     "The object `~a' needs to be in the hand before being able to place it."
+     obj)
+    (with-designators ((put-down-action
+                        (action `((type trajectory) (to put-down)
+                                  (obj ,obj) (at ,?loc))))
+                       (park-action
+                        (action `((type trajectory) (to park) (obj ,obj)))))
+      (with-failure-handling
+          ((manipulation-failure (f)
+             (declare (ignore f))
+             (ros-warn
+              (achieve plan-lib)
+              "Got unreachable putdown pose.")
+             (cpl:fail 'manipulation-pose-unreachable)))
+        (achieve `(looking-at ,(reference ?loc)))
+        (perform put-down-action)
+        (monitor-action put-down-action))
+      (perform park-action)
+      (monitor-action park-action))))
+
 (def-goal (achieve (object-placed-at ?obj ?loc))
   (ros-info (achieve plan-lib) "(achieve (object-placed-at))")
   (let ((obj (current-desig ?obj)))
@@ -183,33 +212,77 @@
              (declare (ignore f))
              (ros-warn
               (achieve plan-lib)
-              "Got unreachable putdown pose. Trying different put-down location")
+              "Got unreachable putdown pose. Trying different put-down
+              location")
              (do-retry goal-pose-retries
                (retry-with-updated-location ?loc (next-solution ?loc)))))
-        (with-designators ((put-down-trajectory
-                            (action `((type trajectory) (to put-down)
-                                      (obj ,obj) (at ,?loc))))
-                           (park-trajectory
-                            (action `((type trajectory) (to park) (obj ,obj))))
-                           (put-down-loc
-                            (location `((to reach)
-                                        (location ,?loc)))))
-          (with-failure-handling
-              ((manipulation-failure (f)
-                 (declare (ignore f))
-                 (ros-warn
-                  (achieve plan-lib)
-                  "Got unreachable putdown pose. Trying alternatives")
-                 (do-retry manipulation-retries
-                   (retry-with-updated-location
-                    put-down-loc
-                    (next-different-location-solution put-down-loc)))))
-            (at-location (put-down-loc)
-              (achieve `(looking-at ,(reference ?loc)))
-              (perform put-down-trajectory)
-              (monitor-action put-down-trajectory)))
-          (perform park-trajectory)
-          (monitor-action park-trajectory))))))
+        (with-designators ((put-down-loc (location `((to reach)
+                                                     (location ,?loc)))))
+          (at-location (put-down-loc) 
+            (with-failure-handling
+                ((manipulation-failure (f)
+                   (declare (ignore f))
+                   (ros-warn
+                    (achieve plan-lib)
+                    "Got unreachable putdown pose. Trying alternatives")
+                   (do-retry manipulation-retries
+                     (retry-with-updated-location
+                      put-down-loc
+                      (next-different-location-solution put-down-loc)))))
+              (achieve `(object-put ,?obj ,put-down-loc)))))))))
+
+;; (def-goal (achieve (object-placed-at ?obj ?loc))
+;;   (ros-info (achieve plan-lib) "(achieve (object-placed-at))")
+;;   (let ((obj (current-desig ?obj)))
+;;     (assert
+;;      (holds `(object-in-hand ,obj)) ()
+;;      "The object `~a' needs to be in the hand before being able to place it."
+;;      obj)
+;;     (with-retry-counters ((goal-pose-retries 3)
+;;                           (manipulation-retries 3))
+;;       (with-failure-handling
+;;           ((designator-error (condition)
+;;              (when (eq (desig-prop-value (designator condition) 'to) 'execute)
+;;                ;; When we couldn't resolve `put-down-loc' the
+;;                ;; destination pose is probably not reachable. In that
+;;                ;; case, we try to find a new solution for `?loc' and
+;;                ;; retry.
+;;                (ros-warn
+;;                 (achieve plan-lib)
+;;                 "Unable to resolve put-down location designator.")
+;;                (do-retry goal-pose-retries
+;;                  (retry-with-updated-location ?loc (next-solution ?loc)))))
+;;            (manipulation-failure (f)
+;;              (declare (ignore f))
+;;              (ros-warn
+;;               (achieve plan-lib)
+;;               "Got unreachable putdown pose. Trying different put-down location")
+;;              (do-retry goal-pose-retries
+;;                (retry-with-updated-location ?loc (next-solution ?loc)))))
+;;         (with-designators ((put-down-trajectory
+;;                             (action `((type trajectory) (to put-down)
+;;                                       (obj ,obj) (at ,?loc))))
+;;                            (park-trajectory
+;;                             (action `((type trajectory) (to park) (obj ,obj))))
+;;                            (put-down-loc
+;;                             (location `((to reach)
+;;                                         (location ,?loc)))))
+;;           (with-failure-handling
+;;               ((manipulation-failure (f)
+;;                  (declare (ignore f))
+;;                  (ros-warn
+;;                   (achieve plan-lib)
+;;                   "Got unreachable putdown pose. Trying alternatives")
+;;                  (do-retry manipulation-retries
+;;                    (retry-with-updated-location
+;;                     put-down-loc
+;;                     (next-different-location-solution put-down-loc)))))
+;;             (at-location (put-down-loc)
+;;               (achieve `(looking-at ,(reference ?loc)))
+;;               (perform put-down-trajectory)
+;;               (monitor-action put-down-trajectory)))
+;;           (perform park-trajectory)
+;;           (monitor-action park-trajectory))))))
 
 (def-goal (achieve (arms-parked))
   (with-designators ((parking (action `((type trajectory) (to park)))))
