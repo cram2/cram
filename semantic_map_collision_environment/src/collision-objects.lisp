@@ -294,12 +294,3 @@
     (make-array
      '(4 4) :displaced-to (make-array
                            16 :initial-contents matrix)))))
-
-(defun collision-environment-names ()
-  (let ((obj-names nil))
-    (loop for objs being the hash-values of *semantic-map-obj-cache* do
-      (dolist (obj objs)
-        (with-slots (pose dimensions) obj
-          (let ((obj-name (make-collision-obj-name obj)))
-            (push obj-name obj-names)))))
-    obj-names))

@@ -153,3 +153,12 @@
 (defun make-collision-obj-name (obj)
   (with-slots (name index) obj
     (format nil "~a-~a" name index)))
+
+(defun collision-environment-names ()
+  (let ((obj-names nil))
+    (loop for objs being the hash-values of *semantic-map-obj-cache* do
+      (dolist (obj objs)
+        (with-slots (pose dimensions) obj
+          (let ((obj-name (make-collision-obj-name obj)))
+            (push obj-name obj-names)))))
+    obj-names))
