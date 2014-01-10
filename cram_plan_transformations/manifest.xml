@@ -9,6 +9,10 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cram_plan_transformations</url>
   <depend package="cram_reasoning"/>
+  <depend package="cram_language"/
+  <depend package="cram_designators"/>
+  <depend package="cram_plan_library"/>
+  <depend package="cram_plan_knowledge"/>
   <depend package="cram_utilities"/>
   <depend package="alexandria"/>
 
