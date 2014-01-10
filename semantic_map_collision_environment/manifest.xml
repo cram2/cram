@@ -8,7 +8,7 @@
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/semantic_map_collision_environment</url>
-  <depend package="arm_navigation_msgs"/>
+  <!-- <depend package="arm_navigation_msgs"/> -->
   <rosdep name="sbcl"/>
   <depend package="cl_semantic_map_utils"/>
   <depend package="cl_json_pl_client"/>
