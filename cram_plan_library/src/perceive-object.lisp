@@ -102,4 +102,8 @@ found."
       (monitor-action perceive-action))))
 
 (def-goal (examine ?obj-desig ?properties)
-  (perform (an action `((to examine) (obj ,?obj-desig)))))
+  (with-designators
+      ((examine-action (action `((desig-props:to desig-props:examine)
+                                 (desig-props:obj ,?obj-desig)
+                                 (desig-props:properties ,?properties)))))
+    (perform examine-action)))
