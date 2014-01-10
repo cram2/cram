@@ -39,7 +39,7 @@
   (setf *marker-publisher*
         (roslisp:advertise "~semantic_map_markers" "visualization_msgs/Marker"))
   (setf *collision-object-publisher*
-        (roslisp:advertise "/collision_object" "arm_navigation_msgs/CollisionObject")))
+        (roslisp:advertise "/collision_object" "moveit_msgs/CollisionObject")))
 
 (register-ros-init-function init-semantic-map-collision-environment)
 
@@ -62,25 +62,20 @@
         (tf:wait-for-transform *tf* :source-frame "odom_combined"
                                     :target-frame "map")
         (let ((obj-name (string-upcase (make-collision-obj-name obj)))
-              (pose-stamped (tf:transform-pose
-                             *tf*
-                             :pose (tf:pose->pose-stamped
-                                    "odom_combined" 0.0 pose)
-                             :target-frame "map")))
-          (let ((obj-name (string-upcase (make-collision-obj-name obj)))
-                (pose-stamped (tf:pose->pose-stamped "/map" 0.0 pose)))
-            (unless (string= obj-name "HTTP://IAS.CS.TUM.EDU/KB/KNOWROB.OWL#DRAWER_FRIDGE_UPPER-0")
-              (moveit:register-collision-object
-               obj-name
-               :primitive-shapes (list (roslisp:make-msg
-                                        "shape_msgs/SolidPrimitive"
-                                        type 1
-                                        dimensions (vector
-                                                    (x dimensions)
-                                                    (y dimensions)
-                                                    (z dimensions))))
-               :pose-stamped pose-stamped)
-              (moveit:add-collision-object obj-name))))))))
+              (pose-stamped (tf:pose->pose-stamped "/map" 0.0 pose)))
+          (unless (string= obj-name "HTTP://IAS.CS.TUM.EDU/KB/KNOWROB.OWL#DRAWER_FRIDGE_UPPER-0")
+            (cram-moveit:register-collision-object
+             obj-name
+             :primitive-shapes (list (roslisp:make-msg
+                                      "shape_msgs/SolidPrimitive"
+                                      :type (roslisp-msg-protocol:symbol-code
+                                             'shape_msgs-msg:solidprimitive :box)
+                                      :dimensions (vector
+                                                   (x dimensions)
+                                                   (y dimensions)
+                                                   (z dimensions))))
+             :pose-stamped pose-stamped)
+            (cram-moveit:add-collision-object obj-name)))))))
 
 (defun remove-semantic-map-collision-objects ()
   (unless (> (hash-table-count *semantic-map-obj-cache*) 0)
@@ -90,7 +85,7 @@
       (roslisp:publish
        *collision-object-publisher*
        (roslisp:make-msg
-        "arm_navigation_msgs/CollisionObject"
+        "moveit_msgs/CollisionObject" ; TODO test
         (stamp header) (roslisp:ros-time)
 ;;        (frame_id header) "odom_combined"
         (frame_id header) "map"
@@ -143,15 +138,16 @@
   (declare (type sem-map-obj obj))
   (declare (ignore frame-id))
   (with-slots (pose dimensions) obj
-    (moveit:register-collision-object
+    (cram-moveit:register-collision-object
      (make-collision-obj-name obj)
      :primitive-shapes (list (roslisp:make-msg
-                              "arm_navigation_msgs/Shape"
-                              type 1
-                              dimensions (vector
-                                          (x dimensions)
-                                          (y dimensions)
-                                          (z dimensions))))
+                              "shape_msgs/SolidPrimitive"
+                              :type (roslisp-msg-protocol:symbol-code
+                                     'shape_msgs-msg:solidprimitive :box)
+                              :dimensions (vector
+                                           (x dimensions)
+                                           (y dimensions)
+                                           (z dimensions))))
      :pose-stamped pose)))
 
 (defun make-collision-obj-name (obj)
