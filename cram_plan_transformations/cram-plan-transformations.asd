@@ -6,6 +6,10 @@
   :description "ToDo"
 
   :depends-on (cram-reasoning
+               cram-language
+               designators
+               cram-plan-library
+               cram-plan-knowledge
                cram-utilities
                alexandria)
   :components
