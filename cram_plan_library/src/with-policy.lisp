@@ -37,48 +37,62 @@
 
 (defvar *policies* nil "List of defined policies")
 
+(define-condition policy-not-found () ())
+
+(defmacro make-policy (name parameters &rest properties)
+  (let ((prop-check (rest (find :check properties
+                                 :test (lambda (x y)
+                                         (eql x (first y))))))
+         (prop-clean-up (rest (find :clean-up properties
+                                    :test (lambda (x y)
+                                            (eql x (first y))))))
+         (prop-recover (rest (find :recover properties
+                                   :test (lambda (x y)
+                                           (eql x (first y)))))))
+     `(make-instance 'policy :name ',name
+                             :parameters ',parameters
+                             :check (when ',prop-check
+                                      (lambda ,parameters ,@prop-check))
+                             :recover (when ',prop-recover
+                                        (lambda ,parameters ,@prop-recover))
+                             :clean-up (when ',prop-clean-up
+                                         (lambda ,parameters ,@prop-clean-up)))))
+
 (defmacro define-policy (name parameters &rest properties)
   `(progn
      (setf *policies*
            (remove ',name *policies*
                    :test (lambda (x y)
                            (eql x (name y)))))
-     (let ((prop-check (rest (find :check ',properties
-                                   :test (lambda (x y)
-                                           (eql x (first y))))))
-           (prop-clean-up (rest (find :clean-up ',properties
-                                     :test (lambda (x y)
-                                             (eql x (first y))))))
-           (prop-recover (rest (find :recover ',properties
-                                     :test (lambda (x y)
-                                             (eql x (first y)))))))
-       (let ((policy-create
-               (make-instance 'policy :name ',name
-                                      :parameters ',parameters
-                                      :check prop-check
-                                      :recover prop-recover
-                                      :clean-up prop-clean-up)))
-         (push policy-create *policies*)
-         policy-create))))
+     (let ((new-policy (make-policy ,name ,parameters ,@properties)))
+       (push new-policy *policies*)
+       new-policy)))
 
-(define-condition policy-not-found () ())
-
-(defmacro with-policy (policy-name policy-parameters &body body)
+(defun named-policy (policy-name)
   (let ((policy (find policy-name *policies*
                       :test (lambda (x y) (eql x (name y))))))
-    `(cond (,policy
-            (unwind-protect
-                 (pursue
-                   (progn (let (,@(mapcar (lambda (var val)
-                                            `(,var ,val))
-                                          `,(parameters policy)
-                                          policy-parameters))
-                            (loop while (not (progn ,@(check policy))))
-                            ,@(recover policy)))
-                   (progn ,@body))
+    (cond (policy policy)
+          (t (fail 'policy-not-found)))))
+
+(defmacro with-policy (policy policy-parameters &body body)
+  (let ((parameters `(parameters ,policy))
+        (check `(check ,policy))
+        (clean-up `(clean-up ,policy))
+        (recover `(recover ,policy)))
+    `(unwind-protect
+          (pursue
+            (when ,check
               (let (,@(mapcar (lambda (var val)
                                 `(,var ,val))
-                              `,(parameters policy)
+                              parameters
                               policy-parameters))
-                ,@(clean-up policy))))
-           (t (fail 'policy-not-found)))))
+                (loop while (not (funcall ,check ',policy-parameters)))
+                (when ,recover
+                  (funcall ,recover ',policy-parameters))))
+            (progn ,@body))
+       (when ,clean-up
+         (let (,@(mapcar (lambda (var val)
+                           `(,var ,val))
+                         parameters
+                         policy-parameters))
+           (funcall ,clean-up ',policy-parameters))))))
