@@ -31,10 +31,13 @@
 (defpackage semantic-map-collision-environment
   (:nicknames :sem-map-coll-env)
   (:use #:common-lisp #:cl-transforms #:cut
-        #:cram-roslisp-common)
+        #:roslisp-utilities #:cram-roslisp-common)
   (:export init-semantic-map-obj-cache collision-environment-names
            invalidate-semantic-map-obj-cache
            publish-semantic-map-collision-objects
            publish-semantic-map-markers
            remove-semantic-map-collision-objects
-           update-sem-map-obj-pose))
+           update-sem-map-obj-pose)
+  (:shadowing-import-from :roslisp-utilities #:startup-ros #:shutdown-ros
+                          #:register-ros-init-function #:register-ros-cleanup-function
+                          #:rosify-lisp-name #:lispify-ros-name))
