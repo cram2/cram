@@ -66,11 +66,17 @@
            #:object-picked-up
            #:object-in-hand-failure
            #:object-not-found-failure
-           #:with-policy
-           #:define-policy
+           ;; designator generation
            #:with-designators
            #:a
-           #:an)
+           #:an
+           ;; policies
+           #:with-policy
+           #:with-named-policy
+           #:make-policy
+           #:named-policy
+           #:define-policy
+           #:policy-not-found)
   (:desig-properties #:to #:see #:obj #:of #:reach #:type #:trajectory
                      #:pose #:open #:side #:grasp #:lift #:carry :reach
                      #:location #:at #:parked #:pose #:close #:gripper
