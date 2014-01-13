@@ -76,7 +76,11 @@
            #:make-policy
            #:named-policy
            #:define-policy
-           #:policy-not-found)
+           #:policy-not-found
+           #:policy-condition
+           #:policy-failure
+           #:policy-init-failed
+           #:policy-check-condition-met)
   (:desig-properties #:to #:see #:obj #:of #:reach #:type #:trajectory
                      #:pose #:open #:side #:grasp #:lift #:carry :reach
                      #:location #:at #:parked #:pose #:close #:gripper
