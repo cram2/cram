@@ -32,6 +32,8 @@
 ;; respective function doc strings):
 ;;
 ;; (define-policy my-policy (max-num match-num)
+;;   (:init (format t "Initializing policy~%")
+;;          t)
 ;;   (:check (format t "Checking if random number from 0
 ;;                      to ~a equals ~a~%" max-num match-num)
 ;;           (let ((rnd (random max-num)))
@@ -51,6 +53,7 @@
 (defclass policy ()
   ((name :reader name :initarg :name)
    (parameters :reader parameters :initarg :parameters)
+   (init :reader init :initarg :init)
    (check :reader check :initarg :check)
    (recover :reader recover :initarg :recover)
    (clean-up :reader clean-up :initarg :clean-up)))
@@ -58,9 +61,10 @@
 (defvar *policies* nil "List of defined policies")
 
 (define-condition policy-not-found () ())
+(define-condition policy-init-failed () ())
 
 (defmacro make-policy (name parameters &rest properties)
-  "Generated a policy based on the information supplied. `name'
+  "Generates a policy based on the information supplied. `name'
 specifies an internal name for the policy, to be used with
 `named-policy', or `with-named-policy'. `parameters' is a list of
 parameter symbols to be used by code inside the policy. Every time, a
@@ -72,6 +76,7 @@ example would look like this:
 
 > (make-policy
     policy-1 (param-1 param-2)
+    (:init (do-initialization-here))
     (:check (do-checking-here))
     (:recover (do-recovering-here))
     (:clean-up (do-cleaning-up-here)))
@@ -80,6 +85,12 @@ This returns a policy object to be used with `with-policy'. For
 further information about when each function block is executed, see
 `with-policy'. The semantics of the `properties' variable are like
 this:
+
+- Forms given via `:init' are executed exactly once, when the policy
+  is initialized for usage. In case this function returns `nil',
+  execution of the `body' code is not started, none of the other
+  policy code blocks are executed, and a failure of type
+  `policy-init-failed' is thrown.
 
 - A function given under the label `:check' is executed every time
   `with-policy' checks if the policy condition is met or not. If this
@@ -91,23 +102,18 @@ this:
   wrapped body of `with-policy' code stopped execution of the current
   code block, the `:clean-up' function block is executed to perform
   clean-up procedures."
-  (let ((prop-check (rest (find :check properties
-                                 :test (lambda (x y)
-                                         (eql x (first y))))))
-         (prop-clean-up (rest (find :clean-up properties
-                                    :test (lambda (x y)
-                                            (eql x (first y))))))
-         (prop-recover (rest (find :recover properties
-                                   :test (lambda (x y)
-                                           (eql x (first y)))))))
-     `(make-instance 'policy :name ',name
-                             :parameters ',parameters
-                             :check (when ',prop-check
-                                      (lambda ,parameters ,@prop-check))
-                             :recover (when ',prop-recover
-                                        (lambda ,parameters ,@prop-recover))
-                             :clean-up (when ',prop-clean-up
-                                         (lambda ,parameters ,@prop-clean-up)))))
+  (let ((block-identifiers `(:init :check :recover :clean-up)))
+    `(make-instance 'policy
+                    :name ',name
+                    :parameters ',parameters
+                    ,@(loop for identifier in block-identifiers
+                            for prop = (rest (find
+                                              identifier properties
+                                              :test (lambda (x y)
+                                                      (eql x (first y)))))
+                            collect identifier
+                            collect (when prop
+                                      `(lambda ,parameters ,@prop))))))
 
 (defmacro define-policy (name parameters &rest properties)
   "This macro implicitly calls `make-policy', and pushes the generated
@@ -117,6 +123,7 @@ same as for `make-policy':
 
 > (define-policy
     policy-1 (param-1 param-2)
+    (:init (do-initialization-here))
     (:check (do-checking-here))
     (:recover (do-recovering-here))
     (:clean-up (do-cleaning-up-here)))"
@@ -155,25 +162,61 @@ same semantics as `with-policy'. Usage:
   "Wraps the code given as `body' into a `pursue' construct together
 with monitoring code supplied by the policy `policy', and given the
 parameters `policy-parameters'. The `policy-parameters' allow for
-custom parameterization of policies. The `:check' code block of the
-policy is executed in a loop in parallel to the `body' code. If the
-`:check' code returns `t', the policy condition is met and the
-`:recover' code block is executed. The execution of both, the policy,
-and the `body' code is the stopped, and the `:clean-up' policy code is
-executed. If the policy condition is never met, `body' finishes and
-returns normally. Usage:
+custom parameterization of policies. First, the policy is initialized
+via the optional `:init' code block. In case this block returns `nil',
+execution of the `body' code or other policy-related code blocks is
+not started. An exception of type `policy-init-failed' is
+thrown. Otherwise, the `:check' code block of the policy is executed
+in a loop in parallel to the `body' code. If the `:check' code returns
+`t', the policy condition is met and the `:recover' code block is
+executed. The execution of both, the policy, and the `body' code is
+the stopped, and the `:clean-up' policy code is executed. If the
+policy condition is never met, `body' finishes and returns
+normally.
+
+To clarify the order of code execution here:
+
+- Initialization of policy is executed (`:init')
+
+- `pursue' code form is started, with up to two forms inside:
+  - The policy `:check' code block (if present)
+  - The `body' code
+
+- `:check' is evaluated continuously, in parallel to the normal
+  execution of `body'. If it returns `nil', nothing happens. In any
+  other case (i.e. return value is unequal to `nil'), the execution of
+  the `body' code is interrupted, and `:check' is not performed again
+  anymore. The policy code block given in `:recover' is executed (if
+  present). This means (explicitly) that the `:recover' code is
+  performed *after* the `body' code got interrupted.
+
+- If `:check' always returns `nil' until the `body' code execution
+  finishes, `:recover' is never executed.
+
+- In either case (with or without `:recover'), the policy `:clean-up'
+  code is performed (if present).
+
+Usage:
 
 > (with-policy policy-object (param-value-1 param-value-2)
     (body-code))"
-  (let ((check `(check ,policy))
+  (let ((init `(init ,policy))
+        (check `(check ,policy))
         (clean-up `(clean-up ,policy))
         (recover `(recover ,policy)))
-    `(unwind-protect
-          (pursue
-            (when ,check
-              (loop while (not (funcall ,check ,@policy-parameters)))
-              (when ,recover
-                (funcall ,recover ,@policy-parameters)))
-            (progn ,@body))
-       (when ,clean-up
-         (funcall ,clean-up ,@policy-parameters)))))
+    `(progn
+       (when ,init
+         (unless (funcall ,init ,@policy-parameters)
+           (cpl:fail 'policy-init-failed)))
+       (let ((flag-do-recovery nil))
+         (unwind-protect
+              (pursue
+                (when ,check
+                  (loop while (not (funcall ,check ,@policy-parameters)))
+                  (setf flag-do-recovery t))
+                (progn ,@body))
+           (progn
+             (when (and ,recover flag-do-recovery)
+               (funcall ,recover ,@policy-parameters))
+             (when ,clean-up
+               (funcall ,clean-up ,@policy-parameters))))))))
