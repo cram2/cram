@@ -53,6 +53,7 @@
 (defclass policy ()
   ((name :reader name :initarg :name)
    (parameters :reader parameters :initarg :parameters)
+   (description :reader description :initarg :description)
    (init :reader init :initarg :init)
    (check :reader check :initarg :check)
    (recover :reader recover :initarg :recover)
@@ -79,7 +80,8 @@ example would look like this:
     (:init (do-initialization-here))
     (:check (do-checking-here))
     (:recover (do-recovering-here))
-    (:clean-up (do-cleaning-up-here)))
+    (:clean-up (do-cleaning-up-here))
+    (:description \"The description string\")
 
 This returns a policy object to be used with `with-policy'. For
 further information about when each function block is executed, see
@@ -101,11 +103,19 @@ this:
 - Either when the policy (due to a met policy condition), or the
   wrapped body of `with-policy' code stopped execution of the current
   code block, the `:clean-up' function block is executed to perform
-  clean-up procedures."
-  (let ((block-identifiers `(:init :check :recover :clean-up)))
+  clean-up procedures.
+
+- An optional `:description' string can be given to identify the
+  meaning of the policy."
+  (let* ((block-identifiers `(:init :check :recover :clean-up)))
     `(make-instance 'policy
                     :name ',name
                     :parameters ',parameters
+                    :description ',(second
+                                    (find ':description
+                                          properties
+                                          :test (lambda (x y)
+                                                  (eql x (first y)))))
                     ,@(loop for identifier in block-identifiers
                             for prop = (rest (find
                                               identifier properties
