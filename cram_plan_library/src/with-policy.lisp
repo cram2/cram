@@ -257,3 +257,41 @@ Usage:
                (cpl:fail 'policy-check-condition-met
                          :name ,name
                          :parameters ',policy-parameters))))))))
+
+(defmacro with-policies (policies-and-parameters-list &body body)
+  "Allows for running a given `body' code segment wrapped in a list of
+policies (together with individual parameters for each of them). The
+`policies-and-parameters-list' parameter describes a list of policy/parameter-list pairs.
+
+The usage is as follows:
+
+> (with-policies
+      ((my-policy-object (3 1))
+       (my-policy-object (100 4))
+       (my-other-policy-object (\"Test\")))
+    (body-code))"
+  (let* ((current (first policies-and-parameters-list))
+         (the-rest (rest policies-and-parameters-list))
+         (current-policy (first current))
+         (current-parameters (second current)))
+    (cond (the-rest
+           `(with-policy ,current-policy ,current-parameters
+              (with-policies ,the-rest ,@body)))
+          (t `(with-policy ,current-policy ,current-parameters ,@body)))))
+
+(defmacro with-named-policies (policies-and-parameters-list &body body)
+  "The semantics of `with-named-policies' are the same as for `with-policies', except that instead of policy-objects, policy names are used:
+
+> (with-named-policies
+      (('my-policy (3 1))
+       ('my-policy (100 4))
+       ('my-other-policy (\"Test\")))
+    (body-code))"
+  (let* ((current (first policies-and-parameters-list))
+         (the-rest (rest policies-and-parameters-list))
+         (current-policy (first current))
+         (current-parameters (second current)))
+    (cond (the-rest
+           `(with-named-policy ,current-policy ,current-parameters
+              (with-named-policies ,the-rest ,@body)))
+          (t `(with-named-policy ,current-policy ,current-parameters ,@body)))))
