@@ -62,8 +62,26 @@
 
 (defvar *policies* nil "List of defined policies")
 
-(define-condition policy-not-found () ())
-(define-condition policy-init-failed () ())
+(define-condition policy-condition ()
+  ((name :initarg :name :reader policy-name)))
+(define-condition policy-not-found (policy-condition) ()
+  (:report
+   (lambda (condition stream)
+     (format stream "Policy ~a not found.~%"
+             (policy-name condition)))))
+(define-condition policy-failure (policy-condition)
+  ((parameters :initarg :parameters :reader policy-parameters)))
+(define-condition policy-init-failed (policy-failure) ()
+  (:report
+   (lambda (condition stream)
+     (format stream "Initialization of policy ~a failed.~%Parameters: ~a~%"
+             (policy-name condition) (policy-parameters condition)))))
+(define-condition policy-check-condition-met (policy-failure) ()
+  (:report
+   (lambda (condition stream)
+     (format stream
+             "Policy check condition met for policy ~a.~%Parameters: ~a.~%"
+             (policy-name condition) (policy-parameters condition)))))
 
 (defmacro make-policy (name parameters &rest properties)
   "Generates a policy based on the information supplied. `name'
@@ -156,7 +174,8 @@ defined policies. If the policy by this name is not in the list, the
   (let ((policy (find policy-name *policies*
                       :test (lambda (x y) (eql x (name y))))))
     (cond (policy policy)
-          (t (fail 'policy-not-found)))))
+          (t (fail 'policy-not-found
+                   :name policy-name)))))
 
 (defmacro with-named-policy (policy-name policy-parameters &body body)
   "Performs the same as `with-policy', but accepts a policy name
@@ -214,11 +233,14 @@ Usage:
   (let ((init `(init ,policy))
         (check `(check ,policy))
         (clean-up `(clean-up ,policy))
-        (recover `(recover ,policy)))
+        (recover `(recover ,policy))
+        (name `(name ,policy)))
     `(progn
        (when ,init
          (unless (funcall ,init ,@policy-parameters)
-           (cpl:fail 'policy-init-failed)))
+           (fail 'policy-init-failed
+                 :name ,name
+                 :parameters ',policy-parameters)))
        (let ((flag-do-recovery nil))
          (unwind-protect
               (pursue
@@ -230,4 +252,8 @@ Usage:
              (when (and ,recover flag-do-recovery)
                (funcall ,recover ,@policy-parameters))
              (when ,clean-up
-               (funcall ,clean-up ,@policy-parameters))))))))
+               (funcall ,clean-up ,@policy-parameters))
+             (when flag-do-recovery
+               (cpl:fail 'policy-check-condition-met
+                         :name ,name
+                         :parameters ',policy-parameters))))))))
