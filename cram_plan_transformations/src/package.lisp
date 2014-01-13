@@ -1,4 +1,4 @@
 ;; TODO license
 
 (defpackage cram-plan-transformations
-  (:use #:crs))
+  (:use :common-lisp :alexandria :crs))
