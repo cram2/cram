@@ -28,6 +28,26 @@
 
 (in-package :cram-plan-library)
 
+;; Example on how to use policies (for function semantics, see the
+;; respective function doc strings):
+;;
+;; (define-policy my-policy (max-num match-num)
+;;   (:check (format t "Checking if random number from 0
+;;                      to ~a equals ~a~%" max-num match-num)
+;;           (let ((rnd (random max-num)))
+;;             (format t "Got number ~a~%" rnd)
+;;             (cond ((eql rnd match-num)
+;;                    (format t "Match~%")
+;;                    t)
+;;                   (t (sleep 1)))))
+;;   (:recover (format t "Running recovery mechanisms~%"))
+;;   (:clean-up (format t "Running clean-up~%")))
+;;
+;; (top-level
+;;   (with-named-policy 'my-policy (10 5)
+;;     (loop do (format t "Main loop cycle.~%")
+;;              (sleep 2))))
+
 (defclass policy ()
   ((name :reader name :initarg :name)
    (parameters :reader parameters :initarg :parameters)
@@ -40,6 +60,37 @@
 (define-condition policy-not-found () ())
 
 (defmacro make-policy (name parameters &rest properties)
+  "Generated a policy based on the information supplied. `name'
+specifies an internal name for the policy, to be used with
+`named-policy', or `with-named-policy'. `parameters' is a list of
+parameter symbols to be used by code inside the policy. Every time, a
+piece of code inside the policy is executed, these parameters (with
+assigned values from the `with-policy', or `with-named-policy' call)
+are passed to the code segments. The `properties' variable holds a
+list of labelled code segments for execution during certain phases. An
+example would look like this:
+
+> (make-policy
+    policy-1 (param-1 param-2)
+    (:check (do-checking-here))
+    (:recover (do-recovering-here))
+    (:clean-up (do-cleaning-up-here)))
+
+This returns a policy object to be used with `with-policy'. For
+further information about when each function block is executed, see
+`with-policy'. The semantics of the `properties' variable are like
+this:
+
+- A function given under the label `:check' is executed every time
+  `with-policy' checks if the policy condition is met or not. If this
+  function returns `t', the condition is met, the `:recover' function
+  block is executed, and the execution of both, the policy, and the
+  wrapped body code of `with-policy' is stopped.
+
+- Either when the policy (due to a met policy condition), or the
+  wrapped body of `with-policy' code stopped execution of the current
+  code block, the `:clean-up' function block is executed to perform
+  clean-up procedures."
   (let ((prop-check (rest (find :check properties
                                  :test (lambda (x y)
                                          (eql x (first y))))))
@@ -59,6 +110,16 @@
                                          (lambda ,parameters ,@prop-clean-up)))))
 
 (defmacro define-policy (name parameters &rest properties)
+  "This macro implicitly calls `make-policy', and pushes the generated
+policy onto the list of defined policies, thus making it accessible to
+`named-policy' and `with-named-policy' by its name. The usage is the
+same as for `make-policy':
+
+> (define-policy
+    policy-1 (param-1 param-2)
+    (:check (do-checking-here))
+    (:recover (do-recovering-here))
+    (:clean-up (do-cleaning-up-here)))"
   `(progn
      (setf *policies*
            (remove ',name *policies*
@@ -69,30 +130,50 @@
        new-policy)))
 
 (defun named-policy (policy-name)
+  "Returns the policy by the name `policy-name' from the list of
+defined policies. If the policy by this name is not in the list, the
+`policy-not-found' condition is signalled. Usage:
+
+> (named-policy 'policy-name)"
   (let ((policy (find policy-name *policies*
                       :test (lambda (x y) (eql x (name y))))))
     (cond (policy policy)
           (t (fail 'policy-not-found)))))
 
+(defmacro with-named-policy (policy-name policy-parameters &body body)
+  "Performs the same as `with-policy', but accepts a policy name
+instead of the policy object itself. This calls an implicit
+`named-policy' to acquire the policy object. Otherwise, it has the
+same semantics as `with-policy'. Usage:
+
+> (with-named-policy 'policy-name (param-value-1 param-value-2)
+    (body-code))"
+  (let ((policy `(named-policy ,policy-name)))
+    `(with-policy ,policy ,policy-parameters ,@body)))
+
 (defmacro with-policy (policy policy-parameters &body body)
-  (let ((parameters `(parameters ,policy))
-        (check `(check ,policy))
+  "Wraps the code given as `body' into a `pursue' construct together
+with monitoring code supplied by the policy `policy', and given the
+parameters `policy-parameters'. The `policy-parameters' allow for
+custom parameterization of policies. The `:check' code block of the
+policy is executed in a loop in parallel to the `body' code. If the
+`:check' code returns `t', the policy condition is met and the
+`:recover' code block is executed. The execution of both, the policy,
+and the `body' code is the stopped, and the `:clean-up' policy code is
+executed. If the policy condition is never met, `body' finishes and
+returns normally. Usage:
+
+> (with-policy policy-object (param-value-1 param-value-2)
+    (body-code))"
+  (let ((check `(check ,policy))
         (clean-up `(clean-up ,policy))
         (recover `(recover ,policy)))
     `(unwind-protect
           (pursue
             (when ,check
-              (let (,@(mapcar (lambda (var val)
-                                `(,var ,val))
-                              parameters
-                              policy-parameters))
-                (loop while (not (funcall ,check ',policy-parameters)))
-                (when ,recover
-                  (funcall ,recover ',policy-parameters))))
+              (loop while (not (funcall ,check ,@policy-parameters)))
+              (when ,recover
+                (funcall ,recover ,@policy-parameters)))
             (progn ,@body))
        (when ,clean-up
-         (let (,@(mapcar (lambda (var val)
-                           `(,var ,val))
-                         parameters
-                         policy-parameters))
-           (funcall ,clean-up ',policy-parameters))))))
+         (funcall ,clean-up ,@policy-parameters)))))
