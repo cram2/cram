@@ -32,6 +32,7 @@
 ;; respective function doc strings):
 ;;
 ;; (define-policy my-policy (max-num match-num)
+;;   (:description "This is an example policy.")
 ;;   (:init (format t "Initializing policy~%")
 ;;          t)
 ;;   (:check (format t "Checking if random number from 0
