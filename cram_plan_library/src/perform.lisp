@@ -36,7 +36,11 @@
 
 (def-goal (perform ?action-designator)
   (let ((matching-process-modules
-          (matching-process-module-names ?action-designator)))
+          (remove-if
+           (lambda (matching-process-module)
+             (eql nil (cram-process-modules:get-running-process-module
+                       matching-process-module)))
+          (matching-process-module-names ?action-designator))))
     (unless matching-process-modules
       (fail "No process modules found for executing designator ~a"
             ?action-designator))
