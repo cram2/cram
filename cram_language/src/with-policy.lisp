@@ -32,7 +32,7 @@
 ;; respective function doc strings):
 ;;
 ;; (define-policy my-policy (max-num match-num)
-;;   (:description "This is an example policy.")
+;;   "This is an example policy."
 ;;   (:init (format t "Initializing policy~%")
 ;;          t)
 ;;   (:check (format t "Checking if random number from 0
@@ -83,7 +83,7 @@
              "Policy check condition met for policy ~a.~%Parameters: ~a.~%"
              (policy-name condition) (policy-parameters condition)))))
 
-(defmacro make-policy (name parameters &rest properties)
+(defmacro make-policy (name parameters &rest doc-and-properties)
   "Generates a policy based on the information supplied. `name'
 specifies an internal name for the policy, to be used with
 `named-policy', or `with-named-policy'. `parameters' is a list of
@@ -94,13 +94,12 @@ are passed to the code segments. The `properties' variable holds a
 list of labelled code segments for execution during certain phases. An
 example would look like this:
 
-> (make-policy
-    policy-1 (param-1 param-2)
+> (make-policy policy-1 (param-1 param-2)
+    \"The documentation string for this policy\"
     (:init (do-initialization-here))
     (:check (do-checking-here))
     (:recover (do-recovering-here))
-    (:clean-up (do-cleaning-up-here))
-    (:description \"The description string\")
+    (:clean-up (do-cleaning-up-here)))
 
 This returns a policy object to be used with `with-policy'. For
 further information about when each function block is executed, see
@@ -122,27 +121,24 @@ this:
 - Either when the policy (due to a met policy condition), or the
   wrapped body of `with-policy' code stopped execution of the current
   code block, the `:clean-up' function block is executed to perform
-  clean-up procedures.
+  clean-up procedures."
 
-- An optional `:description' string can be given to identify the
-  meaning of the policy."
-  (let* ((block-identifiers `(:init :check :recover :clean-up)))
-    `(make-instance 'policy
-                    :name ',name
-                    :parameters ',parameters
-                    :description ',(second
-                                    (find ':description
-                                          properties
-                                          :test (lambda (x y)
-                                                  (eql x (first y)))))
-                    ,@(loop for identifier in block-identifiers
-                            for prop = (rest (find
-                                              identifier properties
-                                              :test (lambda (x y)
-                                                      (eql x (first y)))))
-                            collect identifier
-                            collect (when prop
-                                      `(lambda ,parameters ,@prop))))))
+  (multiple-value-bind (properties declarations doc-string)
+      (alexandria:parse-body doc-and-properties :documentation t)
+    (declare (ignore declarations))
+    (let* ((block-identifiers `(:init :check :recover :clean-up)))
+      `(make-instance 'policy
+                      :name ',name
+                      :parameters ',parameters
+                      :description ,doc-string
+                      ,@(loop for identifier in block-identifiers
+                              for prop = (rest (find
+                                                identifier properties
+                                                :test (lambda (x y)
+                                                        (eql x (first y)))))
+                              collect identifier
+                              collect (when prop
+                                        `(lambda ,parameters ,@prop)))))))
 
 (defmacro define-policy (name parameters &rest properties)
   "This macro implicitly calls `make-policy', and pushes the generated
@@ -150,8 +146,8 @@ policy onto the list of defined policies, thus making it accessible to
 `named-policy' and `with-named-policy' by its name. The usage is the
 same as for `make-policy':
 
-> (define-policy
-    policy-1 (param-1 param-2)
+> (define-policy policy-1 (param-1 param-2)
+    \"The documentation string for this policy\"
     (:init (do-initialization-here))
     (:check (do-checking-here))
     (:recover (do-recovering-here))
