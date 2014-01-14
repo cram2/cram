@@ -178,11 +178,11 @@
     `(progv (car ,symbols-and-values-cons) (cdr ,symbols-and-values-cons)
        ,@body)))
 
-(defgeneric hook-before-named-top-level (name))
-(defmethod hook-before-named-top-level (name))
+(define-hook on-preparing-named-top-level (name)
+  (:documentation ""))
 
-(defgeneric hook-after-named-top-level (id))
-(defmethod hook-after-named-top-level (id))
+(define-hook on-finishing-named-top-level (id)
+  (:documentation ""))
 
 (defmacro named-top-level ((&key (name nil)) &body body)
   "Creates a new task, executes body in it and waits until it is finished. All
@@ -204,27 +204,29 @@
              (error "top-level calls cannot be nested."))
            (clear-tasks *task-tree*) ; Note: this leaves the tree structure and
                                      ; code replacements intact.
+           (let ((log-id (first (on-preparing-named-top-level ',name))))
              (single-form-progv (on-top-level-setup-hook ',name *task-tree*)
                (unwind-protect
                     (let ((,task (make-instance 'toplevel-task
-                                 :name ',task-name
-                                 :thread-fun (lambda () ,@body))))
-                    (with-failure-handling
-                        ((plan-failure (e)
-                           (error e))
-                         (error (e)
-                           (error e)))
-                      (unwind-protect-case ()
-                          (join-task ,task)
-                        (:abort
-                         ;; As TOP-LEVEL will be used from within a normal
-                         ;; thread rather than task, we have to make sure that
-                         ;; the task and all its children will get evaporated
-                         ;; in case the thread is killed.
-                         (evaporate ,task
-                                    :sync t
-                                    :reason ,(format nil "~A aborted." name))))))
-                 (on-top-level-cleanup-hook ',name)))))))
+                                   :name ',task-name
+                                   :thread-fun (lambda () ,@body))))
+                      (with-failure-handling
+                          ((plan-failure (e)
+                             (error e))
+                           (error (e)
+                             (error e)))
+                        (unwind-protect-case ()
+                                             (join-task ,task)
+                          (:abort
+                           ;; As TOP-LEVEL will be used from within a normal
+                           ;; thread rather than task, we have to make sure that
+                           ;; the task and all its children will get evaporated
+                           ;; in case the thread is killed.
+                           (evaporate ,task
+                             :sync t
+                             :reason ,(format nil "~A aborted." name))))))
+                 (on-top-level-cleanup-hook ',name)))
+             (on-finishing-named-top-level log-id))))))
 
 (defmacro top-level (&body body)
   "Anonymous top-level, e.g. for interactive use. See NAMED-TOP-LEVEL for
