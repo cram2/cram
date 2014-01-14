@@ -24,6 +24,8 @@
      (:file "task-interface" :depends-on ("packages" "utils"))
      (:file "fluent-interface" :depends-on ("packages"))
      (:file "logging" :depends-on ("packages" "task-interface"))
+     ;; WITH-POLICY, implementation
+     (:file "with-policy" :depends-on ("packages"))
      ;; TASKS, implementation
      (:module "tasks"
       :depends-on ("packages" "task-interface" "fluent-interface" "utils" "logging")
@@ -50,7 +52,7 @@
        (:file "interface"))
       :serial t)
      ;; CRAM, The Language
-     (:file "language" :depends-on ("packages" "walker" "tasks" "fluents" "logging"))
+     (:file "language" :depends-on ("packages" "walker" "tasks" "fluents" "logging" "with-policy"))
      (:file "plans" :depends-on ("packages" "tasks"))
      (:file "goals" :depends-on ("packages" "tasks"))
      (:file "fluent-operators" :depends-on ("packages" "fluents"))
