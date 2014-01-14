@@ -122,7 +122,6 @@ this:
   wrapped body of `with-policy' code stopped execution of the current
   code block, the `:clean-up' function block is executed to perform
   clean-up procedures."
-
   (multiple-value-bind (properties declarations doc-string)
       (alexandria:parse-body doc-and-properties :documentation t)
     (declare (ignore declarations))
@@ -159,6 +158,8 @@ same as for `make-policy':
                            (eql x (name y)))))
      (let ((new-policy (make-policy ,name ,parameters ,@properties)))
        (push new-policy *policies*)
+       (defvar ,name new-policy)
+       (setf ,name new-policy)
        new-policy)))
 
 (defun named-policy (policy-name)
