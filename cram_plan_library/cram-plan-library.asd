@@ -57,7 +57,6 @@
               :depends-on ("package" "goal-declarations" "with-designators"))
              (:file "at-location" :depends-on ("package"))
              (:file "with-designators" :depends-on ("package"))
-             (:file "with-policy" :depends-on ("package"))
              (:file "perceive-object"
               :depends-on ("package" "goal-declarations" "at-location" "utilities" "with-designators"))
              (:file "perceive-state" :depends-on ("package" "goal-declarations"))
@@ -67,7 +66,6 @@
                            "goal-declarations"
                            "at-location"
                            "utilities"
-                           "with-designators"
-                           "with-policy"))
+                           "with-designators"))
              (:file "perform" :depends-on ("package" "goal-declarations"))
              (:file "utilities" :depends-on ("package"))))))
