@@ -92,14 +92,8 @@
           (otherwise (assert nil)))))
     (format stream "~:@_")))
 
-(defgeneric hook-before-task-execution (name log-parameters))
-(defgeneric hook-after-task-execution (id))
-
-(defmethod hook-before-task-execution (name log-parameters)
-  (declare (ignore name log-parameters)))
-
-(defmethod hook-after-task-execution (id)
-  (declare (ignore id)))
+(define-hook on-preparing-task-execution (name log-parameters))
+(define-hook on-finishing-task-execution (id))
 
 (defmacro with-task-tree-node ((&key
                                   (path-part
@@ -113,8 +107,8 @@
     `(let* ((*current-path* (cons ,path-part *current-path*))
             (*current-task-tree-node* (ensure-tree-node *current-path*)))
        (declare (special *current-path* *current-task-tree-node*))
-       (let ((log-id
-               (hook-before-task-execution ,name ,log-parameters)))
+       (let ((log-id (first (on-preparing-task-execution
+                             ,name ,log-parameters))))
          (unwind-protect
               (join-task
                (sb-thread:with-mutex ((task-tree-node-lock
@@ -127,7 +121,7 @@
                                :parameters ,parameters)))
                    (execute ,task)
                    ,task)))
-           (hook-after-task-execution log-id))))))
+           (on-finishing-task-execution log-id))))))
 
 (defmacro replaceable-function (name lambda-list parameters path-part
                                 &body body)
