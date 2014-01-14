@@ -106,6 +106,8 @@
            ;; policies
            #:with-policy
            #:with-named-policy
+           #:with-policies
+           #:with-named-policies
            #:make-policy
            #:named-policy
            #:define-policy
