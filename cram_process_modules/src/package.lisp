@@ -34,6 +34,9 @@
   (:use #:cpl
         #:cram-designators
         #:alexandria)
+  (:import-from #:cram-reasoning def-fact-group <- prolog)
+  (:shadowing-import-from #:cram-reasoning fail)
+  (:import-from #:cram-utilities lazy-mapcar force-ll var-value and)
   (:nicknames :cpm)
   (:export process-module name input feedback result
            status cancel priority caller pm-run pm-execute
@@ -49,4 +52,6 @@
            with-process-module-registered-running
            def-asynchronous-process-module asynchronous-process-module
            on-input on-cancel on-run synchronization-fluent
-           finish-process-module fail-process-module monitor-process-module))
+           finish-process-module fail-process-module monitor-process-module
+           matching-process-module available-process-module projection-running
+           matching-process-module-names))

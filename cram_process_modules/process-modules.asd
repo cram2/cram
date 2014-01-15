@@ -23,5 +23,6 @@
             ((:file "package")
              (:file "process-module-protocol" :depends-on ("package"))
              (:file "process-module" :depends-on ("package" "process-module-protocol"))
+             (:file "facts" :depends-on ("package"))
              (:file "asynchronous-process-module"
                     :depends-on ("package" "process-module-protocol"))))))
