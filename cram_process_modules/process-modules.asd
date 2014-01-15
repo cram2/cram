@@ -15,7 +15,7 @@
                      particular useful for implementing projection
                      mechanisms since they represent the continous
                      processes in the world."
-  :depends-on (:alexandria :cram-language :designators)
+  :depends-on (:alexandria :cram-language :designators :cram-reasoning :cram-utilities)
 
   :components
   ((:module "src"
