@@ -30,7 +30,8 @@
 
 ;;; This file contains a (empty) definitions of Prolog predicates to
 ;;; reason about which process modules should and can be used to
-;;; execute a specific action designator
+;;; execute a specific action designator. Important: Each process module
+;;; should implement its version of the predicates!
 ;;;
 ;;; The predicate MATCHING-PROCESS-MODULE allows for inferring which
 ;;; process modules are suitable for executing an action designator,
@@ -41,6 +42,12 @@
 ;;; modules that are currently available. When projecting, it should
 ;;; only hold for the projection process modules of the current
 ;;; projection environment.
+;;;
+;;; The predicate PROJECTION-RUNNING allows to infer whether a specific
+;;; projection process module is currently running. Regular process
+;;; modules can use this predicate to decide whether they should make
+;;; themselves available for plan execution. Basically, PROJECTION-RUNNING
+;;; can act as a flag to hot-swap projection- and regular-process-modules.
 
 (def-fact-group process-modules (matching-process-module available-process-module)
 
@@ -54,6 +61,8 @@
     (fail)))
 
 (defun matching-process-module-names (action-designator)
+  "Returns a list of process-module names which are available and claim they match the
+ given designator `action-designator'."
   (force-ll
    (lazy-mapcar (lambda (bindings)
                   (var-value '?process-module-name bindings))
