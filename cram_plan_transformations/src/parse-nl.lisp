@@ -1,8 +1,8 @@
-;; todo
+;;; todo license
 
 (in-package :cram-plan-transformations)
 
-;; STEP 0.5
+;;; STEP 0.5
 (defun transform-into-alist (a-tree &optional an-alist)
   "Transforms a tree into an association list. `a-tree' is something like
    `((action-role flip-1      action-verb)
@@ -24,10 +24,11 @@
                   (member 'is-a tripple))
               (transform-into-alist
                (cdr a-tree)
-               (mapcar #'(lambda (x)
+               (mapcar #'(lambda (x) ; maybe it could stop at the first occurrence
                          (if (eql (cdr x) (second tripple))
                              (cons (car x) (third tripple))
                              x)) an-alist)))))))
 
-;; STEP 1
-(defun transform-into-action-definition (an-alist))
+;;; STEP 1
+(defun transform-into-action-definition (an-alist)
+  )
