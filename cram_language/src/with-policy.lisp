@@ -244,15 +244,14 @@ Usage:
                   (loop while (not (funcall ,check ,@policy-parameters)))
                   (setf flag-do-recovery t))
                 (progn ,@body))
-           (progn
-             (when (and ,recover flag-do-recovery)
-               (funcall ,recover ,@policy-parameters))
-             (when ,clean-up
-               (funcall ,clean-up ,@policy-parameters))
-             (when flag-do-recovery
-               (cpl:fail 'policy-check-condition-met
-                         :name ,name
-                         :parameters ',policy-parameters))))))))
+           (when (and ,recover flag-do-recovery)
+             (funcall ,recover ,@policy-parameters))
+           (when ,clean-up
+             (funcall ,clean-up ,@policy-parameters))
+           (when flag-do-recovery
+             (cpl:fail 'policy-check-condition-met
+                       :name ,name
+                       :parameters ',policy-parameters)))))))
 
 (defmacro with-policies (policies-and-parameters-list &body body)
   "Allows for running a given `body' code segment wrapped in a list of
