@@ -38,12 +38,12 @@ isA(pancake-3-1, pancake.n.01)
 ;; TODO define owl stuff for flip and pancake.n.01 (just hardcode)
 
 ;; acion desig from the data structure
-(cram-language-implementation:top-level (cram-designators:with-designators
-     ((pancake-desig (cram-designator-properties:object `((name some-nice-owl-pancake)
-                                                          (type pancake))))
-      (flip-desig (cram-designator-properties:action `((name some-nice-owl-connected-name)
-                                                       (action-verb flip)
-                                                       (theme ,pancake-desig)))))))
+;; (cram-language-implementation:top-level (cram-designators:with-designators
+;;      ((pancake-desig (cram-designator-properties:object `((name some-nice-owl-pancake)
+;;                                                           (type pancake))))
+;;       (flip-desig (cram-designator-properties:action `((name some-nice-owl-connected-name)
+;;                                                        (action-verb flip)
+;;                                                        (theme ,pancake-desig)))))))
 ;; use AN object and THE object in designators... o_O
 
 
@@ -72,6 +72,10 @@ isA(spatula.n.01_senseID, spatula.n.01)
    (instrument (an object
                  (name some-nice-owl-spatula)
                  (type spatula.n.01))))
+
+;; ask Andrei: if it's pouring ask "i want a circular pancake" what's the height and tilt: a range not a number
+
+;; if info in action definition is inconsistent, we need to choose one
 
 ;; action desig
 (cram-language-implementation:top-level (cram-designators:with-designators
@@ -125,7 +129,8 @@ isA(spatula.n.01_senseID, spatula.n.01)
 ;;;; STEP 4: convert it into a working plan
 
 ;; original Jan & Georg plan
-(cram-language-implementation:top-level (cram-designators:with-designators
+(cram-language-implementation:top-level
+ (cram-designators:with-designators
     ((on-table (location `((on Cupboard)
                            (name "kitchen_island"))))
      (oven (object `((type oven)
@@ -140,7 +145,8 @@ isA(spatula.n.01_senseID, spatula.n.01)
   (cram-plan-knowledge:achieve `(object-flipped ,pancake ,spatula-1 ,spatula-2))))
 
 ;; simplified for now with 1 spatula
-(cram-language-implementation:top-level (cram-designators:with-designators
+(cram-language-implementation:top-level
+ (cram-designators:with-designators
     ((on-table (location `((on Cupboard)
                            (name "kitchen_island"))))
      (oven (object `((type oven)

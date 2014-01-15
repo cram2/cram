@@ -16,6 +16,6 @@
   ((:module "src"
            :components
            ((:file "package")
-            (:file "parse-nl")))))
+            (:file "parse-nl" :depends-on ("package"))))))
 
   
