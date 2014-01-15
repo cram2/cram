@@ -28,28 +28,28 @@
 
 (in-package :cpl)
 
-;; Example on how to use policies (for function semantics, see the
-;; respective function doc strings):
-;;
-;; (define-policy my-policy (max-num match-num)
-;;   "This is an example policy."
-;;   (:init (format t "Initializing policy~%")
-;;          t)
-;;   (:check (format t "Checking if random number from 0
-;;                      to ~a equals ~a~%" max-num match-num)
-;;           (let ((rnd (random max-num)))
-;;             (format t "Got number ~a~%" rnd)
-;;             (cond ((eql rnd match-num)
-;;                    (format t "Match~%")
-;;                    t)
-;;                   (t (sleep 1)))))
-;;   (:recover (format t "Running recovery mechanisms~%"))
-;;   (:clean-up (format t "Running clean-up~%")))
-;;
-;; (top-level
-;;   (with-named-policy 'my-policy (10 5)
-;;     (loop do (format t "Main loop cycle.~%")
-;;              (sleep 2))))
+;;; Example on how to use policies (for function semantics, see the
+;;; respective function doc strings):
+;;;
+;;; (define-policy my-policy (max-num match-num)
+;;;   "This is an example policy."
+;;;   (:init (format t "Initializing policy~%")
+;;;          t)
+;;;   (:check (format t "Checking if random number from 0
+;;;                      to ~a equals ~a~%" max-num match-num)
+;;;           (let ((rnd (random max-num)))
+;;;             (format t "Got number ~a~%" rnd)
+;;;             (cond ((eql rnd match-num)
+;;;                    (format t "Match~%")
+;;;                    t)
+;;;                   (t (sleep 1)))))
+;;;   (:recover (format t "Running recovery mechanisms~%"))
+;;;   (:clean-up (format t "Running clean-up~%")))
+;;;
+;;; (top-level
+;;;   (with-named-policy 'my-policy (10 5)
+;;;     (loop do (format t "Main loop cycle.~%")
+;;;              (sleep 2))))
 
 (defclass policy ()
   ((name :reader name :initarg :name)
