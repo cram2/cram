@@ -28,28 +28,28 @@
 
 (in-package :cpl)
 
-;; Example on how to use policies (for function semantics, see the
-;; respective function doc strings):
-;;
-;; (define-policy my-policy (max-num match-num)
-;;   "This is an example policy."
-;;   (:init (format t "Initializing policy~%")
-;;          t)
-;;   (:check (format t "Checking if random number from 0
-;;                      to ~a equals ~a~%" max-num match-num)
-;;           (let ((rnd (random max-num)))
-;;             (format t "Got number ~a~%" rnd)
-;;             (cond ((eql rnd match-num)
-;;                    (format t "Match~%")
-;;                    t)
-;;                   (t (sleep 1)))))
-;;   (:recover (format t "Running recovery mechanisms~%"))
-;;   (:clean-up (format t "Running clean-up~%")))
-;;
-;; (top-level
-;;   (with-named-policy 'my-policy (10 5)
-;;     (loop do (format t "Main loop cycle.~%")
-;;              (sleep 2))))
+;;; Example on how to use policies (for function semantics, see the
+;;; respective function doc strings):
+;;;
+;;; (define-policy my-policy (max-num match-num)
+;;;   "This is an example policy."
+;;;   (:init (format t "Initializing policy~%")
+;;;          t)
+;;;   (:check (format t "Checking if random number from 0
+;;;                      to ~a equals ~a~%" max-num match-num)
+;;;           (let ((rnd (random max-num)))
+;;;             (format t "Got number ~a~%" rnd)
+;;;             (cond ((eql rnd match-num)
+;;;                    (format t "Match~%")
+;;;                    t)
+;;;                   (t (sleep 1)))))
+;;;   (:recover (format t "Running recovery mechanisms~%"))
+;;;   (:clean-up (format t "Running clean-up~%")))
+;;;
+;;; (top-level
+;;;   (with-named-policy 'my-policy (10 5)
+;;;     (loop do (format t "Main loop cycle.~%")
+;;;              (sleep 2))))
 
 (defclass policy ()
   ((name :reader name :initarg :name)
@@ -158,8 +158,7 @@ same as for `make-policy':
                            (eql x (name y)))))
      (let ((new-policy (make-policy ,name ,parameters ,@properties)))
        (push new-policy *policies*)
-       (defvar ,name new-policy)
-       (setf ,name new-policy)
+       (defparameter ,name new-policy)
        new-policy)))
 
 (defun named-policy (policy-name)
@@ -245,15 +244,14 @@ Usage:
                   (loop while (not (funcall ,check ,@policy-parameters)))
                   (setf flag-do-recovery t))
                 (progn ,@body))
-           (progn
-             (when (and ,recover flag-do-recovery)
-               (funcall ,recover ,@policy-parameters))
-             (when ,clean-up
-               (funcall ,clean-up ,@policy-parameters))
-             (when flag-do-recovery
-               (cpl:fail 'policy-check-condition-met
-                         :name ,name
-                         :parameters ',policy-parameters))))))))
+           (when (and ,recover flag-do-recovery)
+             (funcall ,recover ,@policy-parameters))
+           (when ,clean-up
+             (funcall ,clean-up ,@policy-parameters))
+           (when flag-do-recovery
+             (cpl:fail 'policy-check-condition-met
+                       :name ,name
+                       :parameters ',policy-parameters)))))))
 
 (defmacro with-policies (policies-and-parameters-list &body body)
   "Allows for running a given `body' code segment wrapped in a list of
