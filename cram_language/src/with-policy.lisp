@@ -158,8 +158,7 @@ same as for `make-policy':
                            (eql x (name y)))))
      (let ((new-policy (make-policy ,name ,parameters ,@properties)))
        (push new-policy *policies*)
-       (defvar ,name new-policy)
-       (setf ,name new-policy)
+       (defparameter ,name new-policy)
        new-policy)))
 
 (defun named-policy (policy-name)
