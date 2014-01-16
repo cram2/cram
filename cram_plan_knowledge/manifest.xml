@@ -15,7 +15,6 @@
   <depend package="alexandria"/>
   <depend package="cram_designators"/>
   <depend package="designators_ros"/>  
-  <depend package="cram_process_modules"/>
 
 </package>
 
