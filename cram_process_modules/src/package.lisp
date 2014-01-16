@@ -36,7 +36,7 @@
         #:alexandria)
   (:import-from #:cram-reasoning def-fact-group <- prolog)
   (:shadowing-import-from #:cram-reasoning fail)
-  (:import-from #:cram-utilities lazy-mapcar force-ll var-value and)
+  (:import-from #:cram-utilities lazy-mapcar force-ll var-value)
   (:nicknames :cpm)
   (:export process-module name input feedback result
            status cancel priority caller pm-run pm-execute
