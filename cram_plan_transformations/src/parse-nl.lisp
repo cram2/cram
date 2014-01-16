@@ -32,7 +32,13 @@
 ;;; STEP 1
 (defun get-owl-name (wordnet-name)
   (gensym "owl-bla"))
-(defun transform-into-goal (a-plist)
+
+(defun transform-into-goal-description (a-plist)
+  "`a-plist' is something like `((THEME PANCAKE.N.01) (ACTION-VERB FLIP.V.08)).
+   The result is something like:
+   (A GOAL
+    ((THEME (A OBJECT (NAME #:|owl-bla1268|) (TYPE PANCAKE)))
+     (ACTION-VERB (A ACTION (NAME #:|owl-bla1269|) (TYPE FLIP)))))"
   (flet ((extract-the-actual-name (name-with-id-stuff)
            "e.g. flip.v.08 -> flip"
            (let* ((a-string (symbol-name name-with-id-stuff))
@@ -40,9 +46,10 @@
                   (a-substring (subseq a-string 0 index)))
              (intern a-substring))))
     (let ((wordnet-action-role-to-class '(action-verb action theme object instrument object)))
-             `(a goal ,(mapcar #'(lambda (x)
-                                   `(,(car x)
-                                     (a ,(getf wordnet-action-role-to-class (car x))
-                                       (name ,(get-owl-name (car (cdr x))))
-                                       (type ,(extract-the-actual-name (car (cdr x)))))))
-                               a-plist)))))
+      `(a goal ,(mapcar #'(lambda (x)
+                            `(,(car x)
+                              (a ,(getf wordnet-action-role-to-class (car x))
+                                (name ,(get-owl-name (car (cdr x))))
+                                (type ,(extract-the-actual-name (car (cdr x)))))))
+                        a-plist)))))
+
