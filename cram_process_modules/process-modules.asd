@@ -15,7 +15,7 @@
                      particular useful for implementing projection
                      mechanisms since they represent the continous
                      processes in the world."
-  :depends-on (:alexandria :cram-language :designators)
+  :depends-on (:alexandria :cram-language :designators :cram-reasoning :cram-utilities)
 
   :components
   ((:module "src"
@@ -23,5 +23,6 @@
             ((:file "package")
              (:file "process-module-protocol" :depends-on ("package"))
              (:file "process-module" :depends-on ("package" "process-module-protocol"))
+             (:file "facts" :depends-on ("package"))
              (:file "asynchronous-process-module"
                     :depends-on ("package" "process-module-protocol"))))))
