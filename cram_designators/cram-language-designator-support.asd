@@ -45,4 +45,5 @@
     :components
     ((:module "cram-language-designator-support" 
       :components
-              ((:file "package")))))))
+              ((:file "package")
+               (:file "with-designators" :depends-on ("package"))))))))
