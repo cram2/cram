@@ -33,12 +33,11 @@
 (defun get-owl-name (wordnet-name)
   (gensym "owl-bla"))
 
-(defun transform-into-goal-description (a-plist)
+(defun transform-into-description (a-plist)
   "`a-plist' is something like `((THEME PANCAKE.N.01) (ACTION-VERB FLIP.V.08)).
    The result is something like:
-   (A GOAL
-    ((THEME (A OBJECT (NAME #:|owl-bla1268|) (TYPE PANCAKE)))
-     (ACTION-VERB (A ACTION (NAME #:|owl-bla1269|) (TYPE FLIP)))))"
+   ((THEME (A OBJECT (NAME #:|owl-bla1268|) (TYPE PANCAKE)))
+    (ACTION-VERB (A ACTION (NAME #:|owl-bla1269|) (TYPE FLIP))))"
   (flet ((extract-the-actual-name (name-with-id-stuff)
            "e.g. flip.v.08 -> flip"
            (let* ((a-string (symbol-name name-with-id-stuff))
@@ -46,10 +45,38 @@
                   (a-substring (subseq a-string 0 index)))
              (intern a-substring))))
     (let ((wordnet-action-role-to-class '(action-verb action theme object instrument object)))
-      `(a goal ,(mapcar #'(lambda (x)
-                            `(,(car x)
-                              (a ,(getf wordnet-action-role-to-class (car x))
-                                (name ,(get-owl-name (car (cdr x))))
-                                (type ,(extract-the-actual-name (car (cdr x)))))))
-                        a-plist)))))
+      (mapcar #'(lambda (x)
+                  `(,(car x)
+                    (a ,(getf wordnet-action-role-to-class (car x))
+                      (name ,(get-owl-name (car (cdr x))))
+                      (type ,(extract-the-actual-name (car (cdr x)))))))
+              a-plist))))
 
+(defun build-goal (a-tree)
+  `(a goal ,(transform-into-description (transform-into-plist a-tree))))
+
+;;; STEP 2
+(def-fact-group cram-plan-transformations ()
+  (<- (add-items-to-goal-description ?description ?items-tree ?new-description)
+    (lisp-fun transform-into-plist ?items-tree ?items-plist)
+    (lisp-fun transform-into-description ?items-plist ?items-description)
+    (equal ?description (a goal ?rest))
+    (lisp-fun append ?rest ?items-description ?augmented-rest)
+    (equal (a goal ?augmented-rest) ?new-description)))
+;; TODO maybe a proper data structure for goals would be better...
+
+(defun add-items-to-goal-description (description items-tree)
+  "`description' is something like
+   (A GOAL
+    ((THEME (A OBJECT (NAME #:|owl-bla1268|) (TYPE PANCAKE)))
+     (ACTION-VERB (A ACTION (NAME #:|owl-bla1269|) (TYPE FLIP)))))
+   `items-tree' is something like
+   `((action-role skolem-instrument    instrument)
+     (has-sense   skolem-instrument    spatula.n.01_senseID)
+     (is-a        spatula.n.01_senseID spatula.n.01))"    
+  (let ((prolog-description-lazy (prolog `(add-items-to-goal-description
+                                           ,description ,items-tree ?new-desc))))
+    (cdr (car (car prolog-description-lazy)))))
+
+;;; STEP 4: compare goal description to general plan and do something :D
+;;; either use create-designator or compare the two and transform the plan as a list

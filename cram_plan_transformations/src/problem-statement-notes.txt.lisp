@@ -22,7 +22,7 @@ isA(pancake-3-1, pancake.n.01)
   (is-a        pancake-3-1 pancake.n.01))
 
 ;; Better data structure
-`((action-verb . flip.v.08) (theme . pancake.n.01))
+`((action-verb flip.v.08) (theme pancake.n.01))
 
 ;; action definition from the lisp data structure
 `(a goal
@@ -51,6 +51,9 @@ isA(spatula.n.01_senseID, spatula.n.01)
 `((action-role skolem-instrument    instrument)
   (has-sense   skolem-instrument    spatula.n.01_senseID)
   (is-a        spatula.n.01_senseID spatula.n.01))
+
+;; Plist
+`((instrument spatula.n.01))
 
 ;; goal definition:
 `(a goal
