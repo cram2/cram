@@ -45,7 +45,7 @@
            #:make-designator #:first-desig #:current-desig
            #:current-designator
            #:make-effective-designator
-           #:newest-effective-designator #:with-desig-props #:with-designators
+           #:newest-effective-designator #:with-desig-props
            #:designator-solutions #:desig-prop-value
            #:designator-solutions-equal
            #:desig-prop-values #:*designator-pprint-description*
