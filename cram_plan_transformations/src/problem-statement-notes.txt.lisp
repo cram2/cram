@@ -47,7 +47,7 @@ hasSense(Skolem-Instrument, spatula.n.01_senseID)
 isA(spatula.n.01_senseID, spatula.n.01)
 |#
 
-;; List data structure:
+;; Lisp data structure:
 `((action-role skolem-instrument    instrument)
   (has-sense   skolem-instrument    spatula.n.01_senseID)
   (is-a        spatula.n.01_senseID spatula.n.01))
