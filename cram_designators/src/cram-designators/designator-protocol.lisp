@@ -212,7 +212,7 @@ class (derived from class DESIGNATOR), e.g. OBJECT-DESIGNATOR."
   "Returns a new designator that has the same type as `parent'. If
 `new-properties' is NIL, uses the properties of `parent'. The DATA
 slot is bound to `data-object'. It sets the slot EFFECTIVE to T and
-returns the new equated designator that is not equated yet."
+returns the newly created designator that is not equated yet."
   (let ((new-designator (make-designator
                          (class-of parent)
                          (or new-properties (properties parent)))))
