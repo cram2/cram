@@ -14,5 +14,5 @@ foreach(dir
       PATTERN ".git" EXCLUDE)
 endforeach()
 
-install (FILES designators.asd designators-test.asd
+install (FILES designators.asd designators-test.asd cram-language-designator-support.asd
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
