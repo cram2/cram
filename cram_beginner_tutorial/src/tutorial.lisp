@@ -1,14 +1,22 @@
+;;;; This tutorial implements some basic functionality to control a turtle
+;;;; in turtlesim using CRAM.
+
 (in-package :tut)
 
-(defvar *color-value* (make-fluent :name :color-value) "current color of turtle")
+;;; ROS infrastructure for monitoring the color of the ground
+;;; of turtlesim and the pose of the turtle and for commanding
+;;; its velocity.
+
+(defvar *color-value* (make-fluent :name :color-value) "current color under turtle")
 (defvar *turtle-pose* (make-fluent :name :turtle-pose) "current pose of turtle")
 
-(defvar *color-sub* nil "color subscription client")
-(defvar *pose-sub* nil "pose subscription client")
-(defvar *cmd-vel-pub* nil "command velocity subscription client")
+(defvar *color-sub* nil "color ROS subscriber")
+(defvar *pose-sub* nil "pose ROS subscriber")
+(defvar *cmd-vel-pub* nil "velocity commands ROS publisher")
 
 (defun init-ros-turtle (name)
-  "subscribes to topics for a turtle and binds callbacks. `name' specifies the name of the turtle."
+  "subscribes to topics for a turtle and binds callbacks.
+`name' specifies the name of the turtle."
   (setf *color-sub* (subscribe (format nil "~a/color_sensor" name)
                                "turtlesim/Color"
                                #'color-cb))
@@ -19,21 +27,28 @@
                                  "geometry_msgs/Twist")))
 
 (defun color-cb (msg)
-  "Callback for color values"
+  "Callback for color values. Called by the color topic subscriber."
   (setf (value *color-value*) msg))
 
 (defun pose-cb (msg)
-  "Callback for pose values"
+  "Callback for pose values. Called by the pose topic subscriber."
   (setf (value *turtle-pose*) msg))
 
 (defun send-vel-cmd (lin ang)
-  "function to send velocity commands"
+  "Function to send velocity commands"
   (publish *cmd-vel-pub* (make-message "geometry_msgs/Twist"
-                                      (linear) (make-msg "geometry_msgs/Vector3" (x) lin)
-                                      (angular) (make-msg "geometry_msgs/Vector3" (z) ang) )))
+                                       :linear (make-msg "geometry_msgs/Vector3"
+                                                         :x lin)
+                                       :angular (make-msg "geometry_msgs/Vector3"
+                                                          :z ang))))
+
+;;; CRAM function MOVE to send the turtle to a specified coordinate
+;;; in turtlesim and stop it when the coordinate has been reached
+;;; (CRAM's function PURSUE is used for that) and its utility functions
 
 (defun pose-msg->transform (msg)
-  "returns a transform proxy that allows to transform into the frame given by x, y, and theta of msg."
+  "Returns a transform proxy that allows to transform into the frame
+given by x, y, and theta of msg."
   (with-fields (x y theta) msg
     (cl-transforms:make-transform
      (cl-transforms:make-3d-vector x y 0)
@@ -42,7 +57,7 @@
       theta))))
 
 (defun relative-angle-to (goal pose)
-  "Given a pose as 3d-pose msg and a goal as 3d vector, 
+  "Given a pose as 3d-pose msg and a goal as 3d vector,
   calculate the angle by which the pose has to be turned to point toward the goal."
   (let ((diff-pose (cl-transforms:transform-point
                      (cl-transforms:transform-inv
@@ -72,47 +87,49 @@
            (wait-for reached-fl)
            (loop do
              (send-vel-cmd
-               1.5
-               (calculate-angular-cmd goal))
+              1.5
+              (calculate-angular-cmd goal))
              (wait-duration 0.1)))
       (send-vel-cmd 0 0))))
 
+;;; CRAM process modules for the turtle to move in geometric shaped trajectories
+
 (defstruct turtle-shape
-  "represents an object in continuous space matching a symbolic description"
+  "Represents a geometric object in continuous space matching a symbolic description"
   radius
   edges)
 
-
 (cram-reasoning:def-fact-group shape-actions (action-desig)
-
   ;; for each kind of shape, call make-turtle-shape with the right number of edges
 
   ;; triangle
-  (<- (action-desig ?desig (shape ?act))
+  (<- (action-desig ?desig (shape ?action))
     (desig-prop ?desig (type shape))
     (desig-prop ?desig (shape triangle))
-    (lisp-fun make-turtle-shape :radius 1 :edges 3  ?act))
+    (lisp-fun make-turtle-shape :radius 1 :edges 3  ?action))
 
   ;; square
-  (<- (action-desig ?desig (shape ?act))
+  (<- (action-desig ?desig (shape ?action))
     (desig-prop ?desig (type shape))
     (desig-prop ?desig (shape square))
-    (lisp-fun make-turtle-shape :radius 1 :edges 4  ?act))
+    (lisp-fun make-turtle-shape :radius 1 :edges 4  ?action))
 
   ;; pentagon
-  (<- (action-desig ?desig (shape ?act))
+  (<- (action-desig ?desig (shape ?action))
     (desig-prop ?desig (type shape))
     (desig-prop ?desig (shape pentagon))
-    (lisp-fun make-turtle-shape :radius 1 :edges 5  ?act))
+    (lisp-fun make-turtle-shape :radius 1 :edges 5  ?action))
 
   ;; hexagon
-  (<- (action-desig ?desig (shape ?act))
+  (<- (action-desig ?desig (shape ?action))
     (desig-prop ?desig (type shape))
     (desig-prop ?desig (shape hexagon))
-    (lisp-fun make-turtle-shape :radius 1 :edges 6  ?act)))
+    (lisp-fun make-turtle-shape :radius 1 :edges 6  ?action)))
 
 (cram-process-modules:def-process-module turtle-actuators (action-designator)
-  (roslisp:ros-info (turtle-process-modules) "Turtle navigation invoked with action designator `~a'." action-designator)
+  (roslisp:ros-info (turtle-process-modules)
+                    "Turtle navigation invoked with action designator `~a'."
+                    action-designator)
   (destructuring-bind (cmd action-goal) (reference action-designator)
     (ecase cmd
       (shape
@@ -126,11 +143,8 @@
        (turtle-actuators turtle-navigation)
      ,@body))
 
-
-         
-                   
 (def-fact-group turtle-actuators (matching-process-module
-                                         available-process-module)
+                                  available-process-module)
 
   (<- (matching-process-module ?designator turtle-actuators)
     (or (desig-prop ?designator (type shape))))
@@ -138,14 +152,10 @@
   (<- (available-process-module turtle-actuators)
     (symbol-value cram-projection:*projection-environment* nil)))
 
-
-
-
 (defun start-tutorial ()
-                (let ((turtle_name "turtle_1"))
-                  (start-ros-node turtle_name)
-                  (init-ros-turtle turtle_name)
-))
+  (let ((turtle_name "turtle_1"))
+    (start-ros-node turtle_name)
+    (init-ros-turtle turtle_name)))
 
 
 ;;;;;;;;REPL:

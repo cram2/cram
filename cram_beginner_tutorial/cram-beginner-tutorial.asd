@@ -1,6 +1,18 @@
 (defsystem cram-beginner-tutorial
-  :depends-on (roslisp cram-language turtlesim-msg cl-transforms geometry_msgs-msg designators cram-reasoning actionlib actionlib_tutorials-msg process-modules cram-plan-library cram-plan-failures
-        cram-plan-knowledge turtle_actionlib-msg)
+  :depends-on (roslisp
+               cram-language
+               turtlesim-msg
+               cl-transforms
+               geometry_msgs-msg
+               designators
+               cram-reasoning
+               actionlib
+               actionlib_tutorials-msg
+               process-modules
+               cram-plan-library
+               cram-plan-failures
+               cram-plan-knowledge
+               turtle_actionlib-msg)
   :components
   ((:module "src"
             :components
