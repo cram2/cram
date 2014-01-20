@@ -44,27 +44,39 @@
  CURRENTLY-VISIBLE: Returns all objects that match `designator' and
                     can be detected without moving the ptu or the
                     robot."
-  (roslisp:ros-info (perceive plan-lib) "PERCEIVE-OBJECT ~a `~a'" indicator designator))
+  (roslisp:ros-info (perceive plan-lib) "PERCEIVE-OBJECT ~a `~a'"
+  indicator designator))
 
 (declare-goal object-picked (object-designator)
   "Tries to pick up the object `object-designator' from the current
   position."
-  (roslisp:ros-info (perceive plan-lib) "OBJECT-PICKED `~a'" object-designator))
+  (roslisp:ros-info (perceive plan-lib) "OBJECT-PICKED `~a'"
+  object-designator))
 
 (declare-goal object-put (object-designator location-designator)
   "Tries to put down the object `object-designator' to the location
-  `location-designator'."
-  (roslisp:ros-info (perceive plan-lib) "OBJECT-PUT `~a'" object-designator))
+`location-designator'."
+  (roslisp:ros-info (perceive plan-lib) "OBJECT-PUT `~a'"
+  object-designator))
+
+(declare-goal object-flipped (object-designator
+                              tool-object-designator-1
+                              tool-object-designator-2
+                              flipping-parameters)
+  "Tries to flip an object `object-designator' using the instrumental
+tools `tool-object-designator-1' and `tool-object-designator-2'."
+  (declare (ignore tool-object-designator-1 tool-object-designator-2))
+  (roslisp:ros-info (flip plan-lib) "OBJECT-FLIPPED `~a'" object-designator))
 
 (declare-goal perceive-state (occasion)
   "Tries to prove that `occasion' holds. Returns a list of bindings
-  that fulfill `occasion' or NIL if the occasion cannot be proven."
+that fulfill `occasion' or NIL if the occasion cannot be proven."
   (roslisp:ros-info (perceive plan-lib) "PERCEIVE-STATE `~a'" occasion))
 
 (declare-goal examine (object-designator properties)
   "Examines `object-designator' using `property'. Examining means that
-  a new, extended designator is returned. Examination tries to find
-  the values of `properties' and add them to `object-designator'"
+a new, extended designator is returned. Examination tries to find the
+values of `properties' and add them to `object-designator'"
   (roslisp:ros-info (perceive plan-lib) "EXAMINE `~a' ~a"
                     object-designator properties))
 
