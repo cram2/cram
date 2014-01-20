@@ -32,6 +32,7 @@
   (with-retry-counters ((carry-retry-count 1)
                         (lift-retry-count 1)
                         (misgrasp-retry-count 1)
+                        (grasp-failed-retry-count 2)
                         (near-reperceive-retry-count 3))
     (with-designators ((grasp-action
                         (action `((type trajectory) (to grasp) (obj ,?obj))))
@@ -70,7 +71,10 @@
             (cpl:fail 'object-not-found))
           (achieve `(looking-at ,(reference
                                   (make-designator 'location `((of ,?obj))))))
-          (ros-warn (achieve plan-lib) "Found object.")
+          (ros-info (achieve plan-lib) "Found object.")
+          (when (not (desig-equal obj-orig ?obj))
+            (equate obj-orig ?obj))
+          (format t "This is the object: ~a~%" ?obj)
           (with-failure-handling
               ((object-lost (f)
                  (declare (ignore f))
@@ -84,12 +88,19 @@
                    (achieve `(looking-at
                               ,(reference
                                 (make-designator 'location `((of ,?obj))))))
-                   (retry))))
-            (when (not (desig-equal obj-orig ?obj))
-              (equate obj-orig ?obj))
+                   (retry)))
+               (manipulation-failed (f)
+                 (declare (ignore f))
+                 (do-retry grasp-failed-retry-count
+                   (ros-warn (achieve plan-lib)
+                             "Grasp failed. Retrying to grasp.")
+                   (retry))
+                 (fail 'manipulation-pose-unreachable)))
             (perform grasp-action)
-            (monitor-action grasp-action))))
-      (ros-warn (achieve plan-lib) "Grasped object.")
+            (monitor-action grasp-action)
+            (when (not (desig-equal obj-orig ?obj))
+              (equate obj-orig ?obj)))))
+      (ros-info (achieve plan-lib) "Grasped object.")
       (with-failure-handling
           ((manipulation-pose-unreachable (f)
              (declare (ignore f))
@@ -100,7 +111,7 @@
              (return)))
         (perform lift-action)
         (monitor-action lift-action))
-      (ros-warn (achieve plan-lib) "Lifted object.")
+      (ros-info (achieve plan-lib) "Lifted object.")
       (with-failure-handling
           ((manipulation-pose-unreachable (f)
              (declare (ignore f))
@@ -111,7 +122,7 @@
              (return)))
         (perform carry-action)
         (monitor-action carry-action))
-      (ros-warn (achieve plan-lib) "Went into carry pose.")))
+      (ros-info (achieve plan-lib) "Went into carry pose.")))
   ?obj)
 
 (def-goal (achieve (object-in-hand ?obj))
@@ -136,10 +147,10 @@
             ((object-not-found (f)
                (declare (ignore f))
                (ros-warn
-                (achiebe plan-lib)
+                (achieve plan-lib)
                 "Failed to perceive object in the first place.")
                (do-retry initial-perception-retry-count
-                 (ros-warn (achiebe plan-lib) "Retrying.")
+                 (ros-warn (achieve plan-lib) "Retrying.")
                  (retry))))
           (ros-info (achieve plan-lib) "Perceiving object")
           (setf ?obj (perceive-object 'a ?obj)))
@@ -288,3 +299,49 @@
   (with-designators ((parking (action `((type trajectory) (to park)))))
     (perform parking)
     (monitor-action parking)))
+
+(def-goal (achieve (object-flipped (?obj ?tool-1 ?tool-2 ?flipping-parameters)))
+  (with-retry-counters ((find-object-retry-count 3))
+    (achieve `(object-in-hand ,?tool-1))
+    (achieve `(object-in-hand ,?tool-2))
+    (with-failure-handling
+        ((object-not-found (f)
+           (declare (ignore f))
+           (ros-warn
+            (achieve plan-lib)
+            "Failed to perceive the object to flip.")
+           (do-retry find-object-retry-count
+             (ros-warn (achieve plan-lib) "Retrying.")
+             (retry))))
+      (ros-info (achieve plan-lib) "Perceiving object")
+      (setf ?obj (perceive-object 'a ?obj)))
+    (with-designators
+        ((reach-object-location (location `((to reach)
+                                            (obj ,?obj)
+                                            ;; TODO(winkler): Replace
+                                            ;; these fixed side
+                                            ;; prameters by the
+                                            ;; prolog-resolved sides
+                                            ;; in which ?tool-1 and
+                                            ;; ?tool-2 are held.
+                                            (sides (:left :right)))))
+         (obj-look-location (location `((of ,?obj)))))
+      (at-location (reach-object-location)
+        ;; TODO(winkler): Add a variant of `looking-at' that accepts
+        ;; an object-designator as a parameter
+        (achieve `(looking-at ,(reference obj-look-location)))
+        (let* ((parameterization (description ?flipping-parameters))
+               (new-description `((to flip)
+                                  (obj ,?obj)
+                                  (tools (,?tool-1 ,?tool-2))))
+               (appended-description
+                 (append (loop for param in parameterization
+                               when (not (find param new-description
+                                               :test (lambda (x y)
+                                                       (eql (car x)
+                                                            (car y)))))
+                                 collect param)
+                         new-description)))
+          (with-designators
+              ((flip-action (action appended-description)))
+            (perform flip-action)))))))
