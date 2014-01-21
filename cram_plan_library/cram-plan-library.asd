@@ -67,5 +67,6 @@
                            "at-location"
                            "utilities"
                            "with-designators"))
+             (:file "facts" :depends-on ("package" "goal-declarations" "utilities" "perceive-object"))
              (:file "perform" :depends-on ("package" "goal-declarations"))
              (:file "utilities" :depends-on ("package"))))))
