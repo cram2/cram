@@ -152,4 +152,50 @@ isA(spatula.n.01_senseID, spatula.n.01)
                         (at ,on-oven)))))
   (cram-plan-knowledge:achieve `(object-flipped ,pancake ,spatula))))
 
-
+;; the flipping plan itself
+(def-goal (achieve (object-flipped (?obj ?tool-1 ?tool-2 ?flipping-parameters)))
+  "grasp inside flipping-params"
+  (with-retry-counters ((find-object-retry-count 3))
+    (achieve `(object-in-hand ,?tool-1))
+    (achieve `(object-in-hand ,?tool-2))
+    (with-failure-handling
+        ((object-not-found (f)
+           (declare (ignore f))
+           (ros-warn
+            (achieve plan-lib)
+            "Failed to perceive the object to flip.")
+           (do-retry find-object-retry-count
+             (ros-warn (achieve plan-lib) "Retrying.")
+             (retry))))
+      (ros-info (achieve plan-lib) "Perceiving object")
+      (setf ?obj (perceive-object 'a ?obj)))
+    (with-designators
+        ((reach-object-location (location `((to reach)
+                                            (obj ,?obj)
+                                            ;; TODO(winkler): Replace
+                                            ;; these fixed side
+                                            ;; prameters by the
+                                            ;; prolog-resolved sides
+                                            ;; in which ?tool-1 and
+                                            ;; ?tool-2 are held.
+                                            (sides (:left :right)))))
+         (obj-look-location (location `((of ,?obj)))))
+      (at-location (reach-object-location)
+        ;; TODO(winkler): Add a variant of `looking-at' that accepts
+        ;; an object-designator as a parameter
+        (achieve `(looking-at ,(reference obj-look-location)))
+        (let* ((parameterization (description ?flipping-parameters))
+               (new-description `((to flip)
+                                  (obj ,?obj)
+                                  (tools (,?tool-1 ,?tool-2))))
+               (appended-description
+                 (append (loop for param in parameterization
+                               when (not (find param new-description
+                                               :test (lambda (x y)
+                                                       (eql (car x)
+                                                            (car y)))))
+                                 collect param)
+                         new-description)))
+          (with-designators
+              ((flip-action (action appended-description)))
+            (perform flip-action)))))))
