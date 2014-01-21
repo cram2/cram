@@ -103,7 +103,7 @@
            #:remove-update-callback
            #:get-update-callback
            #:def-cpl-parameter
-           ;; policies
+           ;; with-policy
            #:with-policy
            #:with-named-policy
            #:with-policies
@@ -116,6 +116,8 @@
            #:policy-failure
            #:policy-init-failed
            #:policy-check-condition-met
+           ;; policies
+           #:timeout-policy
            ;; task interface
            #:*current-task*
            #:*task-pprint-verbosity*
