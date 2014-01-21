@@ -134,7 +134,8 @@ this:
                               for prop = (rest (find
                                                 identifier properties
                                                 :test (lambda (x y)
-                                                        (eql x (first y)))))
+                                                        (common-lisp:eql
+                                                         x (first y)))))
                               collect identifier
                               collect (when prop
                                         `(lambda ,parameters ,@prop)))))))
@@ -155,7 +156,7 @@ same as for `make-policy':
      (setf *policies*
            (remove ',name *policies*
                    :test (lambda (x y)
-                           (eql x (name y)))))
+                           (common-lisp:eql x (name y)))))
      (let ((new-policy (make-policy ,name ,parameters ,@properties)))
        (push new-policy *policies*)
        (defparameter ,name new-policy)
@@ -168,7 +169,8 @@ defined policies. If the policy by this name is not in the list, the
 
 > (named-policy 'policy-name)"
   (let ((policy (find policy-name *policies*
-                      :test (lambda (x y) (eql x (name y))))))
+                      :test (lambda (x y) (common-lisp:eql
+                                           x (name y))))))
     (cond (policy policy)
           (t (fail 'policy-not-found
                    :name policy-name)))))
