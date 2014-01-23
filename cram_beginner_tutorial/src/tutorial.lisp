@@ -92,7 +92,7 @@ given by x, y, and theta of msg."
              (wait-duration 0.1)))
       (send-vel-cmd 0 0))))
 
-;;; CRAM process modules for the turtle to move in geometric shaped trajectories
+;;; CRAM process modules for the turtle to move in geometric shape trajectories
 
 (defstruct turtle-shape
   "Represents a geometric object in continuous space matching a symbolic description"
@@ -147,15 +147,26 @@ given by x, y, and theta of msg."
                                   available-process-module)
 
   (<- (matching-process-module ?designator turtle-actuators)
-    (or (desig-prop ?designator (type shape))))
+    (desig-prop ?designator (type shape)))
 
   (<- (available-process-module turtle-actuators)
     (symbol-value cram-projection:*projection-environment* nil)))
 
 (defun start-tutorial ()
+  "First make sure roscore, the turtlesim and the actionlib server are running:
+$ roscore
+$ rosrun turtlesim turtlesim_node
+$ rosrun turtle_actionlib shape_server"
   (let ((turtle_name "turtle_1"))
     (start-ros-node turtle_name)
-    (init-ros-turtle turtle_name)))
+    (init-ros-turtle turtle_name)
+    (with-turtle-process-modules
+      (cpm:process-module-alias :manipulation 'turtle-actuators)
+      (top-level
+        (with-designators
+           ((trajectory (action '((type shape) (shape hexagon))))
+            (loc (location '((type navigation) (vpos top) (hpos center)))))
+          (cpm:pm-execute :manipulation trajectory))))))
 
 
 ;;;;;;;;REPL:

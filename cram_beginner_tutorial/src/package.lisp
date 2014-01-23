@@ -15,11 +15,11 @@
 (:desig-properties
 ;;;action properties
     #:action
-    #:shape 
-    #:radius 
-    #:triangle 
+    #:shape
+    #:radius
+    #:triangle
     #:square
-    #:pentagon  
+    #:pentagon
     #:hexagon
 ;;;location Properties
     #:location
