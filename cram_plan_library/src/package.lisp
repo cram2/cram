@@ -58,10 +58,6 @@
            #:examine
            #:obstacles-found
            #:robot
-           #:maybe-run-process-modules
-           #:run-process-modules
-           #:start-process-modules
-           #:stop-process-modules
            ;; rete and occasions
            #:object-picked-up
            #:object-in-hand-failure
