@@ -42,6 +42,7 @@
            with-rendering-lock
            get-texture-handle camera-transform light-position
            gl-context pixmap-gl-context
+           bullet-world-gl-context ; <- used in tests
            bullet-world-pixmap-renderer *background-color*
            collision-shape-color *collision-shape-color-overwrite*
            colored-shape-mixin colored-static-plane-shape
