@@ -43,7 +43,8 @@
 
 #include <sensor_msgs/point_cloud_conversion.h>
 #include <triangulate_point_cloud/TriangulatePCL.h>
-#include <arm_navigation_msgs/Shape.h>
+#include <shape_msgs/Mesh.h>
+#include <shape_msgs/MeshTriangle.h>
 #include <geometry_msgs/Point.h>
 
 
@@ -89,38 +90,39 @@ void toPoint(const T &in, geometry_msgs::Point &out)
 template<typename T>
 void polygonMeshToShapeMsg(const PointCloud<T> &points,
   const std::vector<Vertices> &triangles,
-  arm_navigation_msgs::Shape &shape)
+  shape_msgs::Mesh &mesh)
 {
-  shape.type = arm_navigation_msgs::Shape::MESH;
-  shape.vertices.resize(points.points.size());
+  mesh.vertices.resize(points.points.size());
   for(size_t i=0; i<points.points.size(); i++)
-    toPoint(points.points[i], shape.vertices[i]);
+    toPoint(points.points[i], mesh.vertices[i]);
 
   ROS_INFO("Found %ld polygons", triangles.size());
-  BOOST_FOREACH(const pcl::Vertices polygon, triangles)
+  BOOST_FOREACH(const Vertices polygon, triangles)
   {
     if(polygon.vertices.size() < 3)
     {
       ROS_WARN("Not enough points in polygon. Ignoring it.");
       continue;
     }
-      
-    shape.triangles.push_back(polygon.vertices[0]);
-    shape.triangles.push_back(polygon.vertices[1]);
-    shape.triangles.push_back(polygon.vertices[2]);
+
+    shape_msgs::MeshTriangle triangle = shape_msgs::MeshTriangle();
+    boost::array<uint32_t, 3> xyz = {{polygon.vertices[0], polygon.vertices[1], polygon.vertices[2]}};
+    triangle.vertex_indices = xyz;
+
+    mesh.triangles.push_back(shape_msgs::MeshTriangle());
   }
 }
 
 bool onTriangulatePcl(TriangulatePCL::Request &req, TriangulatePCL::Response &res)
 {
   ROS_INFO("Service request received");
-  
+
   sensor_msgs::PointCloud2 cloud_raw;
   sensor_msgs::convertPointCloudToPointCloud2(req.points, cloud_raw);
   PointCloud<PointXYZ>::Ptr cloud(new PointCloud<PointXYZ>);
-  PointCloud<PointXYZ> out_cloud;
   pcl::fromROSMsg(cloud_raw, *cloud);
 
+  PointCloud<PointXYZ> out_cloud;
   std::vector<Vertices> triangles;
 
   ROS_INFO("Triangulating");
@@ -131,8 +133,30 @@ bool onTriangulatePcl(TriangulatePCL::Request &req, TriangulatePCL::Response &re
   polygonMeshToShapeMsg(out_cloud, triangles, res.mesh);
 
   ROS_INFO("Service processing done");
-  
+
   return true;
+}
+
+void test()
+{
+  pcl::PointCloud<pcl::PointXYZ> pcl_cloud;
+  pcl::PCDReader reader;
+
+  if (reader.read("test_data/ism_test_cat.pcd", pcl_cloud) < 0)
+  {
+	PCL_ERROR ("Couldn't read file test_data/ism_test_cat.pcd \n");
+	return;
+  }
+
+  sensor_msgs::PointCloud2 sensor_cloud2;
+  pcl::toROSMsg(pcl_cloud, sensor_cloud2);
+  sensor_msgs::PointCloud sensor_cloud1;
+  sensor_msgs::convertPointCloud2ToPointCloud(sensor_cloud2, sensor_cloud1);
+
+  TriangulatePCL::Request req;
+  req.points = sensor_cloud1;
+  TriangulatePCL::Response res;
+  onTriangulatePcl(req, res);
 }
 
 int main(int argc, char *argv[])
@@ -140,6 +164,8 @@ int main(int argc, char *argv[])
   ros::init(argc, argv, "triangulate_point_cloud");
   ros::NodeHandle nh("~");
   
+//  test();
+
   ros::ServiceServer service = nh.advertiseService("triangulate", &onTriangulatePcl);
   ROS_INFO("Triangulation service running");
   ros::spin();

@@ -11,7 +11,7 @@
   <depend package="roscpp"/>
   <depend package="pcl_conversions"/>
   <depend package="pcl_ros"/>
-  <depend package="arm_navigation_msgs"/>
+  <depend package="shape_msgs"/>
   <depend package="sensor_msgs"/>
 
 </package>
