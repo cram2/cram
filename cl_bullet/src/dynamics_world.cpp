@@ -195,12 +195,12 @@ extern "C"
 
   const btCollisionObject *manifoldGetBody0(btPersistentManifold *manifold)
   {
-    return manifold->getBody0();
+    return reinterpret_cast<const btCollisionObject *>(manifold->getBody0());
   }
 
   const btCollisionObject *manifoldGetBody1(btPersistentManifold *manifold)
   {
-    return manifold->getBody1();
+    return reinterpret_cast<const btCollisionObject *>(manifold->getBody1());
   }
 
   int manifoldGetNumContactPoints(btPersistentManifold *manifold)
