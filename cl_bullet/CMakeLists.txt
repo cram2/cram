@@ -10,7 +10,8 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 #set(ROS_BUILD_TYPE RelWithDebInfo)
 
 rosbuild_init()
-
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(BULLET bullet)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
@@ -18,6 +19,9 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #rosbuild_genmsg()
 #uncomment if you have defined services
 #rosbuild_gensrv()
+#find_package(PkgConfig REQUIRED)
+#pkg_check_modules(BULLET bullet)
+include_directories(${BULLET_INCLUDE_DIRS})
 
 find_package(Bullet)
 
