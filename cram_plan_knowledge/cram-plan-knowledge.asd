@@ -36,7 +36,6 @@
                cram-language
                cram-utilities
                cram-execution-trace
-               process-modules
                alexandria
                designators
                designators-ros)
@@ -49,5 +48,4 @@
              (:file "time" :depends-on ("package"))
              (:file "event-protocol" :depends-on ("package"))
              (:file "default-plan-events" :depends-on ("package" "event-protocol"))
-             (:file "belief-state" :depends-on ("package" "default-plan-events"))
-             (:file "process-modules" :depends-on ("package"))))))
+             (:file "belief-state" :depends-on ("package" "default-plan-events"))))))

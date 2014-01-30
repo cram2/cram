@@ -38,7 +38,7 @@
                cl-transforms
                designators
                roslisp
-               arm_navigation_msgs-msg)
+               shape_msgs-msg)
   :components
   ((:module "src"
     :components

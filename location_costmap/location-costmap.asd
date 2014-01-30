@@ -32,10 +32,10 @@
                cram-language
                cram-math
                cram-utilities
+               roslisp-utilities
                cram-roslisp-common
                cram-manipulation-knowledge
                nav_msgs-msg
-               arm_navigation_msgs-msg
                visualization_msgs-msg
                trivial-garbage
                designators-ros)
