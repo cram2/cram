@@ -122,11 +122,12 @@
     (trajectory-desig? ?desig)
     (desig-prop ?desig (pose open)))
 
-  (<- (action-desig ?desig (park nil ?grippers))
+  (<- (action-desig ?desig (park ?obj ?arms))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to park))
     (desig-prop ?desig (obj ?obj))
-    (gripper-arms-in-desig ?obj ?grippers))
+    (current-designator ?obj ?current-obj)
+    (holding-arms ?current-obj ?arms))
 
   (<- (action-desig ?desig (park nil nil))
     (trajectory-desig? ?desig)
