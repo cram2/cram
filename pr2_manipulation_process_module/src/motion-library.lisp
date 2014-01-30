@@ -10,9 +10,9 @@
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
 ;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Bremen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
-;;;       without specific prior written permission.
+;;;       Universitaet Bremen nor the names of its contributors may be used to
+;;;       endorse or promote products derived from this software without
+;;;       specific prior written permission.
 ;;; 
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -69,16 +69,18 @@
 (defparameter *pre-put-down-distance* 0.07
   "Distance above the goal before putting down the object")
 
-(defparameter *max-graspable-size* (cl-transforms:make-3d-vector 0.15 0.15 0.30))
+(defparameter *max-graspable-size*
+  (cl-transforms:make-3d-vector 0.15 0.15 0.30))
 
 (defun execute-grasp (&key object-name
                         object-pose
                         pregrasp-pose
                         grasp-pose
-                        side (gripper-open-pos 0.08)
+                        side (gripper-open-pos 0.2)
                         (gripper-close-pos 0.0)
                         allowed-collision-objects
-                        safe-pose)
+                        safe-pose
+                        (gripper-effort 25.0))
   (declare (ignore object-pose))
   (let ((link-frame (ecase side
                       (:left "l_wrist_roll_link")
@@ -86,35 +88,42 @@
         (allowed-collision-objects (append
                                     allowed-collision-objects
                                     (list object-name))))
-    (roslisp:ros-info (pr2-manipulation-process-module)
-                      "Executing pregrasp for side ~a~%" side)
+    (ros-info (pr2 grasp) "Executing pregrasp for side ~a~%" side)
     (cpl:with-failure-handling
         ((manipulation-failed (f)
            (declare (ignore f))
-           (roslisp:ros-error (pr2-manipulation-process-module)
+           (ros-error (pr2 grasp)
                               "Failed to go into pregrasp pose for side ~a."
                               side)
-	   (cpl:fail 'manipulation-pose-unreachable))
-         (moveit::pose-not-transformable-into-link (f)
+           (when safe-pose
+             (execute-move-arm-pose side safe-pose))
+           (cpl:fail 'manipulation-pose-unreachable))
+         (manipulation-pose-unreachable (f)
+           (declare (ignore f))
+           (ros-error (pr2 grasp)
+                              "Failed to go into pregrasp pose for side ~a."
+                              side)
+           (when safe-pose
+             (execute-move-arm-pose side safe-pose)))
+         (moveit:pose-not-transformable-into-link (f)
            (declare (ignore f))
            (cpl:retry)))
-      (execute-move-arm-pose side pregrasp-pose
-                             :allowed-collision-objects
-                             allowed-collision-objects))
-    (roslisp:ros-info (pr2-manipulation-process-module) "Opening gripper")
-    (open-gripper side :max-effort 50.0 :position gripper-open-pos)
+      (execute-move-arm-pose side pregrasp-pose))
+       ;; :allowed-collision-objects allowed-collision-objects))
+       ;; NOTE(winkler): Removed the allowed collision objects from
+       ;; the pregrasp motion call for now.
+    (ros-info (pr2 grasp) "Opening gripper")
+    (open-gripper side :max-effort gripper-effort :position gripper-open-pos)
     (unless object-name
-      (roslisp:ros-warn () "You didn't specify an object name to
+      (ros-warn (pr2 grasp) "You didn't specify an object name to
     grasp. This might cause the grasping to fail because of a
     misleading collision environment configuration."))
-    (when object-name
-      (moveit:remove-collision-object object-name))
-    (roslisp:ros-info (pr2-manipulation-process-module)
-                      "Executing grasp for side ~a~%" side)
+    (when object-name (moveit:remove-collision-object object-name))
+    (ros-info (pr2 grasp) "Executing grasp for side ~a~%" side)
     (cpl:with-failure-handling
         ((manipulation-failed (f)
            (declare (ignore f))
-           (roslisp:ros-error (pr2-manipulation-process-module)
+           (ros-error (pr2 grasp)
                               "Failed to go into grasp pose for side ~a."
                               side)
            (when object-name
@@ -123,41 +132,41 @@
          (moveit::pose-not-transformable-into-link (f)
            (declare (ignore f))
            (cpl:retry)))
-      (execute-move-arm-pose side grasp-pose
-                             :allowed-collision-objects
-                             allowed-collision-objects))
-    (roslisp:ros-info (pr2-manipulation-process-module) "Closing gripper")
-    (close-gripper side :max-effort 50.0 :position gripper-close-pos)
+      (execute-move-arm-pose side grasp-pose))
+       ;; :allowed-collision-objects allowed-collision-objects))
+       ;; NOTE(winkler): See above. The PR2 was throwing the object
+       ;; off the table when going from pregrasp to grasp pose.
+    (ros-info (pr2 grasp) "Closing gripper")
+    (close-gripper side :max-effort gripper-effort :position gripper-close-pos)
+    (sleep 2)
     (when (< (get-gripper-state side) 0.01);;gripper-close-pos)
       (cpl:with-failure-handling
           ((manipulation-failed (f)
              (declare (ignore f))
-             (roslisp:ros-error
-              (pr2-manipulation-process-module)
+             (ros-error
+              (pr2 grasp)
               "Failed to go into fallback pose for side ~a. Retrying."
               side)
              (cpl:retry))
            (moveit:pose-not-transformable-into-link (f)
              (declare (ignore f))
-             (roslisp:ros-warn
-              (pr2-manipulation-process-module)
+             (ros-warn
+              (pr2 grasp)
               "TF error. Retrying.")
              (cpl:retry)))
-        (roslisp:ros-warn
-         (pr2-manipulation-process-module)
+        (ros-warn
+         (pr2 grasp)
          "Missed the object. Going into fallback pose for side ~a." side)
         (open-gripper side)
         (execute-move-arm-pose side pregrasp-pose
                                :allowed-collision-objects
                                allowed-collision-objects)
-        ;; (moveit:detach-collision-object-from-link
-        ;;  object-name link-frame)
         (moveit:add-collision-object object-name)
         (when safe-pose
           (execute-move-arm-pose side safe-pose
                                  :allowed-collision-objects
                                  allowed-collision-objects))
-        (error 'cram-plan-failures:object-lost)))
+        (cpl:fail 'cram-plan-failures:object-lost)))
     (when object-name
       (moveit:add-collision-object object-name)
       (moveit:attach-collision-object-to-link
@@ -166,46 +175,40 @@
 (defun execute-putdown (&key object-name
                           pre-putdown-pose putdown-pose
                           unhand-pose side
-                          (gripper-open-pos 0.08)
+                          (gripper-open-pos 0.2)
                           allowed-collision-objects)
   (let ((allowed-collision-objects (append
                                     allowed-collision-objects
                                     (list object-name))))
-    (roslisp:ros-info (pr2-manipulation-process-module)
-                      "Executing pre-putdown for side ~a~%" side)
-    (roslisp:publish (roslisp:advertise "/preputdownpose"
-                                        "geometry_msgs/PoseStamped")
-                     (tf:pose-stamped->msg pre-putdown-pose))
+    (ros-info
+     (pr2 putdown) "Executing pre-putdown for side ~a~%" side)
+    (publish-pose pre-putdown-pose "/preputdownpose")
     (cpl:with-failure-handling
         ((manipulation-pose-unreachable (f)
            (declare (ignore f))
-           (roslisp:ros-error (pr2-manipulation-process-module)
-                              "Failed to go into preputdown pose for side ~a."
-                              side)
-           (cpl:fail
-            'cram-plan-failures:manipulation-failed))
+           (ros-error
+            (pr2 putdown) "Failed to go into preputdown pose for side ~a." side)
+           (cpl:fail 'cram-plan-failures:manipulation-failed))
          (manipulation-failed (f)
            (declare (ignore f))
-           (roslisp:ros-error (pr2-manipulation-process-module)
-                              "Failed to go into preputdown pose for side ~a."
-                              side))
+           (ros-error
+            (pr2 putdown) "Failed to go into preputdown pose for side ~a." side))
          (moveit:pose-not-transformable-into-link (f)
            (declare (ignore f))
            (cpl:retry)))
       (execute-move-arm-pose
        side pre-putdown-pose
        :allowed-collision-objects allowed-collision-objects))
-    (roslisp:ros-info (pr2-manipulation-process-module)
-                      "Executing putdown for side ~a~%" side)
+    (ros-info (pr2 putdown) "Executing putdown for side ~a~%" side)
     (cpl:with-failure-handling
         ((manipulation-pose-unreachable (f)
            (declare (ignore f))
-           (roslisp:ros-error (pr2-manipulation-process-module)
+           (ros-error (pr2 putdown)
                               "Failed to go into putdown pose for side ~a."
                               side))
          (manipulation-failed (f)
            (declare (ignore f))
-           (roslisp:ros-error (pr2-manipulation-process-module)
+           (ros-error (pr2 putdown)
                               "Failed to go into putdown pose for side ~a."
                               side))
          (moveit:pose-not-transformable-into-link (f)
@@ -215,26 +218,30 @@
        side putdown-pose
        :ignore-collisions t
        :allowed-collision-objects allowed-collision-objects))
-    (roslisp:ros-info (pr2-manipulation-process-module)
-                      "Opening gripper")
+    (ros-info (pr2 putdown) "Opening gripper")
     (open-gripper side :max-effort 50.0 :position gripper-open-pos)
     (moveit:detach-collision-object-from-link
      object-name (ecase side
-                       (:left "l_wrist_roll_link")
-                       (:right "r_wrist_roll_link")))
-    (roslisp:ros-info (pr2-manipulation-process-module)
-                      "Executing unhand for side ~a~%" side)
+                   (:left "l_wrist_roll_link")
+                   (:right "r_wrist_roll_link")))
+    (ros-info (pr2 putdown) "Executing unhand for side ~a~%" side)
     (cpl:with-failure-handling
-        ((manipulation-failed (f)
+        ((manipulation-pose-unreachable (f)
            (declare (ignore f))
-           (roslisp:ros-error (pr2-manipulation-process-module)
-                              "Failed to go into unhand pose for side ~a."
-                              side))
+           (ros-error
+            (pr2 putdown)
+            "Failed to go into unhand pose for side ~a. Retrying." side)
+           (cpl:retry))
+         (manipulation-failed (f)
+           (declare (ignore f))
+           (ros-error
+            (pr2 putdown)
+            "Failed to go into unhand pose for side ~a. Retrying." side)
+           (cpl:retry))
          (moveit::pose-not-transformable-into-link (f)
            (declare (ignore f))
            (cpl:retry)))
-      (execute-move-arm-pose
-       side unhand-pose))))
+      (execute-move-arm-pose side unhand-pose))))
 
 (defun get-lifting-grasped-object-arm-pose (side distance)
   "Returns the lifting pose for the `side' robot arm in order to
@@ -249,8 +256,9 @@ lift the grasped object at the `distance' from the supporting plane."
          (lifted-pose (tf:make-pose-stamped
                        (tf:frame-id wrist-transform)
                        (tf:stamp wrist-transform)
-                       (cl-transforms:v+ (cl-transforms:translation wrist-transform)
-                                         (cl-transforms:make-3d-vector 0 0 distance))
+                       (cl-transforms:v+
+                        (cl-transforms:translation wrist-transform)
+                        (cl-transforms:make-3d-vector 0 0 distance))
                        (cl-transforms:rotation wrist-transform))))
     lifted-pose))
 
@@ -276,21 +284,21 @@ object in order to lift it at `distance' form the supporting plane"
   (let* ((frame-id (ecase side
                      (:right "r_wrist_roll_link")
                      (:left "l_wrist_roll_link")))
-         (time (roslisp:ros-time))
-         (current-arm-pose (progn
-                             (tf:wait-for-transform
-                              *tf* :source-frame frame-id
-                                   :target-frame "torso_lift_link")
+         (time (ros-time))
+         (current-arm-pose (when (tf:wait-for-transform
+                                  *tf* :source-frame frame-id
+                                       :time time
+                                       :target-frame "torso_lift_link")
                              (tf:transform-pose
                               *tf*
                               :pose (tf:pose->pose-stamped
                                      frame-id time
                                      (tf:make-identity-pose))
                               :target-frame "torso_lift_link")))
-         (raised-arm-pose (progn
-                            (tf:wait-for-transform
-                             *tf* :source-frame frame-id
-                                  :target-frame "torso_lift_link")
+         (raised-arm-pose (when (tf:wait-for-transform
+                                 *tf* :source-frame frame-id
+                                      :time time
+                                      :target-frame "torso_lift_link")
                             (tf:pose->pose-stamped
                              "/torso_lift_link"
                              time
@@ -299,10 +307,9 @@ object in order to lift it at `distance' form the supporting plane"
                                (tf:make-3d-vector 0 0 distance)
                                (tf:make-identity-rotation))
                               current-arm-pose)))))
-    (format t "~a~%" raised-arm-pose)
-    (roslisp:publish
-     (roslisp:advertise "/dbg" "geometry_msgs/PoseStamped")
-     (tf:pose-stamped->msg raised-arm-pose))
+    (unless (and current-arm-pose raised-arm-pose)
+      (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))
+    (publish-pose raised-arm-pose "/dbg")
     (execute-move-arm-pose side raised-arm-pose :ignore-collisions t)))
 
 (defun open-drawer (pose side &optional (distance *grasp-distance*))
@@ -486,15 +493,16 @@ object in order to lift it at `distance' form the supporting plane"
     (clear-collision-objects)
     (open-gripper side)
     (cond ((and safety-ik safety-pose)
-           (roslisp:ros-error (pr2-manipulation-process-module check-valid-gripper-state)
-                              "Only one of `safety-ik' and `safety-pose' can be specified."))
+           (ros-error
+            (pr2 manip-pm)
+            "Only one of `safety-ik' and `safety-pose' can be specified."))
           (safety-ik
            (execute-arm-trajectory side (ik->trajectory safety-ik)))
           (safety-pose
            (execute-move-arm-pose side safety-pose))
           (t
-           (roslisp:ros-error
-            (pr2-manipulation-process-module check-valid-gripper-state)
+           (ros-error
+            (pr2 manip-pm)
             "Neither `safety-ik' nor `safety-pose' specified. Not moving gripper to a safe pose.")))
     (cpl:fail 'object-lost)))
 
@@ -578,7 +586,7 @@ directly in front of `torso_lift_link'."
       (execute-arm-trajectory :right (ik->trajectory (first r-ik))))))
 
 (defun relative-grasp-pose (pose pose-offset)
-  (let* ((stamp (roslisp:ros-time))
+  (let* ((stamp (ros-time))
          (target-frame "/torso_lift_link"))
     ;; NOTE(winkler): Right now, we check whether a transformation can
     ;; actually be done at the current time. This has to be checked

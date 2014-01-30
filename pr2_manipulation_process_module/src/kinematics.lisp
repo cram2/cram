@@ -126,19 +126,21 @@ are used for each joint."
      (apply
       #'lazy-cross-product
       (reverse
-       (loop for name across names collecting
-                                   (if (seq-member name joint-names)
-                                       (cons
-                                        (gethash name current)
-                                        (loop for i from 0 below steps collecting
-                                                                       (+ (gethash name lower-limits)
-                                                                          (* (- steps i 1)
-                                                                             (/ (- (gethash name upper-limits)
-                                                                                   (gethash name lower-limits))
-                                                                                (- steps 1))))))
-                                       (list (gethash name current)))))))))
+       (loop for name across names
+             collecting (if (seq-member name joint-names)
+                            (cons
+                             (gethash name current)
+                             (loop for i from 0 below steps
+                                   collecting (+ (gethash name lower-limits)
+                                                 (* (- steps i 1)
+                                                    (/ (- (gethash
+                                                           name upper-limits)
+                                                          (gethash
+                                                           name lower-limits))
+                                                       (- steps 1))))))
+                            (list (gethash name current)))))))))
 
-(defun ik->trajectory (ik-result &key (duration 5.0) (stamp (roslisp:ros-time)))
+(defun ik->trajectory (ik-result &key (duration 5.0) (stamp (ros-time)))
   (declare (type (or kinematics_msgs-srv:getpositionik-response
                      kinematics_msgs-srv:getconstraintawarepositionik-response)))
   "Converts the result of an IK call (type
@@ -730,13 +732,13 @@ used during the calculation."
                                     allowed-collision-objects)
   "Calculates the squared sum of all joint angle differences between
 the current state of the robot and the joint state it would have after
-reaching pose `pose` through calculating a trajectory via inverse
-kinematics solution for side `side`. All intermediate trajectory
+reaching pose `pose' through calculating a trajectory via inverse
+kinematics solution for side `side'. All intermediate trajectory
 points between the starting joint-state and the final trajectory point
-are taken into account. NIL is returned when no inverse kinematics
+are taken into account. `nil' is returned when no inverse kinematics
 solution could be found. Optionally, the constraint aware IK solver
 service can be used by setting the parameter `constraint-aware' to
-`T'. When `calc-euclidean-distance' is set to `T', the euclidean
+`t'. When `calc-euclidean-distance' is set to `t', the euclidean
 distance is used. Otherwise, the (unweighted) quadratic joint-space
 integral is calculated. Both methods may not be mixed as their scale
 is fundamentally different."
@@ -756,15 +758,13 @@ is fundamentally different."
                          *tf*
                          :pose pose
                          :target-frame "torso_lift_link")))
-      (multiple-value-bind (state-0 traj-0)
-        (moveit:plan-link-movement wrist-frame arm-group pose-in-tll
-                                   :touch-links
-                                   (links-for-arm-side side)
-                                   :allowed-collision-objects
-                                   allowed-collision-objects
-                                   :destination-validity-only t)
-      (declare (ignore traj-0))
-      (roslisp:publish (roslisp:advertise "/dbg" "geometry_msgs/PoseStamped")
-                       (tf:pose-stamped->msg pose-in-tll))
-      (when state-0
-        (moveit:pose-distance wrist-frame pose))))))
+      (let ((state-0 (moveit:plan-link-movement
+                      wrist-frame arm-group pose-in-tll
+                      :touch-links
+                      (links-for-arm-side side)
+                      :allowed-collision-objects
+                      allowed-collision-objects
+                      :destination-validity-only t)))
+        (publish-pose pose-in-tll "/dbg")
+        (when state-0
+          (moveit:pose-distance wrist-frame pose))))))

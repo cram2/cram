@@ -62,7 +62,10 @@
              :format-control "Could not transform ~a into base_link. Invalid time stamp."
              :format-arguments (list pose-stamped)))
     (let* ((transformed-pose-stamped (tf:transform-pose *tf* :pose pose-stamped :target-frame "/base_link"))
-           (point-stamped-msg (pose-stamped->point-stamped-msg transformed-pose-stamped)))
+           (point-stamped-msg (pose-stamped->point-stamped-msg
+                               (tf:copy-pose-stamped
+                                transformed-pose-stamped
+                                :stamp (roslisp:ros-time)))))
       (roslisp:make-message
        "pr2_controllers_msgs/PointHeadGoal"
        max_velocity 10

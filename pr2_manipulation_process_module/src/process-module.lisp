@@ -49,11 +49,11 @@
 (defvar *joint-state-sub* nil)
 
 (defvar *left-safe-pose* (tf:make-pose-stamped
-                          "base_link" (roslisp:ros-time)
+                          "base_link" (ros-time)
                           (tf:make-3d-vector 0.3 0.5 1.3)
                           (tf:euler->quaternion :ax pi)))
 (defvar *right-safe-pose* (tf:make-pose-stamped
-                           "base_link" (roslisp:ros-time)
+                           "base_link" (ros-time)
                            (tf:make-3d-vector 0.3 -0.5 1.3)
                            (tf:euler->quaternion :ax pi)))
 
@@ -108,19 +108,17 @@
 (defgeneric call-action (action &rest params))
 
 (defmethod call-action ((action-sym t) &rest params)
-  (roslisp:ros-info
-   (pr2-manip process-module)
+  (ros-info (pr2 manip-pm)
    "Unimplemented operation `~a' with parameters ~a. Doing nothing."
    action-sym params)
   (sleep 0.5))
 
 (defmethod call-action :around (action-sym &rest params)
-  (roslisp:ros-info (pr2-manip process-module)
+  (ros-info (pr2 manip-pm)
                     "Executing manipulation action ~a ~a."
                     action-sym params)
   (prog1 (call-next-method)
-    (roslisp:ros-info (pr2-manip process-module)
-                      "Manipulation action done.")))
+    (ros-info (pr2 manip-pm) "Manipulation action done.")))
 
 (defun execute-goal (server goal)
   (multiple-value-bind (result status)
@@ -190,6 +188,7 @@
 (defun execute-move-arm-pose (side pose-stamped
                               &key allowed-collision-objects
                                 ignore-collisions)
+  (ros-info (pr2 manip-pm) "Executing arm movement")
   (let* ((allowed-collision-objects
            (cond (ignore-collisions
                   (append allowed-collision-objects
@@ -208,37 +207,37 @@
       (cpl:with-failure-handling
           ((moveit:no-ik-solution (f)
              (declare (ignore f))
-             (roslisp:ros-error (move arm) "No IK solution found.")
+             (ros-error (move arm) "No IK solution found.")
              (hook-after-move-arm log-id nil)
              (error 'manipulation-pose-unreachable
                     :result (list side pose-stamped)))
            (moveit:planning-failed (f)
              (declare (ignore f))
-             (roslisp:ros-error (move arm) "Planning failed.")
+             (ros-error (move arm) "Planning failed.")
              (hook-after-move-arm log-id nil)
              (error 'manipulation-pose-unreachable
                     :result (list side pose-stamped)))
            (moveit:goal-violates-path-constraints (f)
              (declare (ignore f))
-             (roslisp:ros-error (move arm) "Goal violates path constraints.")
+             (ros-error (move arm) "Goal violates path constraints.")
              (hook-after-move-arm log-id nil)
              (error 'manipulation-pose-unreachable
                     :result (list side pose-stamped)))
            (moveit:invalid-goal-constraints (f)
              (declare (ignore f))
-             (roslisp:ros-error (move arm) "Invalid goal constraints.")
+             (ros-error (move arm) "Invalid goal constraints.")
              (hook-after-move-arm log-id nil)
              (error 'manipulation-pose-unreachable
                     :result (list side pose-stamped)))
            (moveit:timed-out (f)
              (declare (ignore f))
-             (roslisp:ros-error (move arm) "Timeout.")
+             (ros-error (move arm) "Timeout.")
              (hook-after-move-arm log-id nil)
              (error 'manipulation-pose-unreachable
                     :result (list side pose-stamped)))
            (moveit:goal-in-collision (f)
              (declare (ignore f))
-             (roslisp:ros-error (move arm) "Goal in collision.")
+             (ros-error (move arm) "Goal in collision.")
              (hook-after-move-arm log-id nil)
              (error 'manipulation-pose-occupied
                     :result (list side pose-stamped))))
@@ -260,7 +259,7 @@
   (let ((spine-lift-trajectory
           (roslisp:make-msg
            "trajectory_msgs/JointTrajectory"
-           (stamp header) (roslisp:ros-time)
+           (stamp header) (ros-time)
            joint_names #("torso_lift_joint")
            points (vector
                    (roslisp:make-message
@@ -269,11 +268,10 @@
                     velocities #(0)
                     accelerations #(0)
                     time_from_start 5.0)))))
-    (roslisp:ros-info (pr2-manip process-module)
+    (ros-info (pr2 manip-pm)
                       "Moving spine to position ~a." position)
     (execute-torso-command spine-lift-trajectory)
-    (roslisp:ros-info (pr2-manip process-module)
-                      "Moving spine complete.")))
+    (ros-info (pr2 manip-pm) "Moving spine complete.")))
 
 (defun close-gripper (side &key (max-effort 100.0) (position 0.0))
   (let ((client (ecase side
