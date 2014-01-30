@@ -33,4 +33,4 @@
 (defun ros-time-init ()
   (cut:set-timestamp-function #'ros-time))
 
-(register-ros-init-function ros-time-init)
+(roslisp-utilities:register-ros-init-function ros-time-init)

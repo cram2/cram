@@ -37,11 +37,12 @@
 
 (defun init-semantic-map-collision-environment ()
   (setf *marker-publisher*
-        (roslisp:advertise "~semantic_map_markers" "visualization_msgs/Marker"))
-  (setf *collision-object-publisher*
-        (roslisp:advertise "/collision_object" "moveit_msgs/CollisionObject")))
+        (roslisp:advertise "~semantic_map_markers" "visualization_msgs/Marker")))
+  ;(setf *collision-object-publisher*
+  ;      (roslisp:advertise "/collision_object" "moveit_msgs/CollisionObject")))
 
-(register-ros-init-function init-semantic-map-collision-environment)
+(roslisp-utilities:register-ros-init-function
+ init-semantic-map-collision-environment)
 
 (defun init-semantic-map-obj-cache ()
   (lazy-dolist (obj (query-sem-map))
