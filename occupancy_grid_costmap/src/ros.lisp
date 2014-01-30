@@ -36,4 +36,4 @@
 (defun map-callback (message)
   (setf *current-map* message))
 
-(register-ros-init-function init-occupancy-grid-costmap)
+(roslisp-utilities:register-ros-init-function init-occupancy-grid-costmap)
