@@ -33,15 +33,6 @@
 
 (defvar *known-collision-objects* (tg:make-weak-hash-table :weakness :key))
 
-(defun init-collision-environment ()
-;  (setf *collision-object-pub*
-;        (roslisp:advertise "/collision_object" "arm_navigation_msgs/CollisionObject" :latch t))
-;  (setf *attached-object-pub*
-;        (roslisp:advertise "/attached_collision_object" "moveit_msgs/AttachedCollisionObject" :latch t)))
-)
-
-(register-ros-init-function init-collision-environment)
-
 (defun get-collision-object-name (desig)
   "returns the name of a known collision object or NIL"
   (let ((obj (find-desig-collision-object desig)))
