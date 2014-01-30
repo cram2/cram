@@ -34,6 +34,7 @@
   :depends-on (actionlib
                process-modules
                designators
+               roslisp-utilities
                cram-reasoning
                cram-roslisp-common
                cram-plan-failures
