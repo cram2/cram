@@ -38,8 +38,6 @@
         #:cram-plan-knowledge
         #:cram-plan-failures
         #:alexandria)
-  (:import-from #:cram-reasoning #:<- #:def-fact-group
-                #:lisp-fun #:lisp-pred)
   (:nicknames :plan-lib)
   (:export #:achieve
            #:perform
@@ -67,9 +65,7 @@
            ;; designator generation
            #:with-designators
            #:a
-           #:an
-           ;; prolog facts
-           #:currently-visible-objects)
+           #:an)
   (:desig-properties #:to #:see #:obj #:of #:reach #:type #:trajectory
                      #:pose #:open #:side #:grasp #:lift #:carry :reach
                      #:location #:at #:parked #:pose #:close #:gripper
