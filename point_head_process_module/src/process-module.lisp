@@ -33,10 +33,11 @@
 (defvar *point-head-thread* nil)
 
 (defun init-point-head-action ()
-  (setf *action-client* (actionlib:make-action-client "/head_traj_controller/point_head_action"
-                                                      "pr2_controllers_msgs/PointHeadAction")))
+  (setf *action-client* (actionlib:make-action-client
+                         "/head_traj_controller/point_head_action"
+                         "pr2_controllers_msgs/PointHeadAction")))
 
-(register-ros-init-function init-point-head-action)
+(roslisp-utilities:register-ros-init-function init-point-head-action)
 
 (def-process-module point-head-process-module (goal)
   (unwind-protect
