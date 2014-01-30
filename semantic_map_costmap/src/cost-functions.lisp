@@ -147,14 +147,14 @@
                                      (cl-transforms:x obj-min)
                                      resolution origin-x))
                        (max-index-x (map-coordinate->array-index
-                                         (cl-transforms:x obj-max)
-                                         resolution origin-x))
+                                     (cl-transforms:x obj-max)
+                                     resolution origin-x))
                        (min-index-y (map-coordinate->array-index
                                      (cl-transforms:y obj-min)
                                      resolution origin-y))
                        (max-index-y (map-coordinate->array-index
-                                         (cl-transforms:y obj-max)
-                                         resolution origin-y)))
+                                     (cl-transforms:y obj-max)
+                                     resolution origin-y)))
                    (loop for y-index from min-index-y to max-index-y
                          for y from (- (cl-transforms:y obj-min) resolution)
                            by resolution do
