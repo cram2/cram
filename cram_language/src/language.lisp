@@ -225,8 +225,9 @@
                            (evaporate ,task
                              :sync t
                              :reason ,(format nil "~A aborted." name))))))
-                 (on-top-level-cleanup-hook ',name)))
-             (on-finishing-named-top-level log-id))))))
+                 (progn
+                   (on-finishing-named-top-level log-id)
+                   (on-top-level-cleanup-hook ',name)))))))))
 
 (defmacro top-level (&body body)
   "Anonymous top-level, e.g. for interactive use. See NAMED-TOP-LEVEL for
