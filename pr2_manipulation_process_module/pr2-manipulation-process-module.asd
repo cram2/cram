@@ -36,7 +36,6 @@
                cram-roslisp-common
                cram-reasoning
                cram-plan-failures
-               cram-plan-knowledge
                cram-pr2-knowledge
                pr2_controllers_msgs-msg
                pr2_msgs-msg
