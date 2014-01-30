@@ -48,12 +48,12 @@ grasp.")
 (defparameter *pregrasp-offset*
   (tf:make-pose
    (tf:make-3d-vector
-    -0.25 0.0 0.0)
+    -0.31 0.0 0.0)
    (tf:euler->quaternion :ax (/ pi -2))))
 (defparameter *grasp-offset*
   (tf:make-pose
    (tf:make-3d-vector
-    -0.18 0.0 0.0)
+    -0.19 0.0 0.0)
    (tf:euler->quaternion :ax (/ pi -2))))
 (defparameter *pre-putdown-offset*
   (tf:make-pose
@@ -74,7 +74,7 @@ grasp.")
 (defun relative-pose-for-handle (obj handle &key relative-pose)
   (tf:wait-for-transform *tf*
                          :timeout 5.0
-                         :time (roslisp:ros-time)
+                         :time (ros-time)
                          :source-frame "map"
                          :target-frame "/map")
   (let* ((absolute-pose-map
@@ -120,47 +120,59 @@ applied."
                                      collect desc-elem))))
 
 (defun optimal-arm-handle-assignment (obj avail-arms avail-handles min-handles
-                                      &key max-handles)
+                                      &key (max-handles
+                                            (or (desig-prop-value
+                                                 obj 'desig-props:max-handles)
+                                                nil)))
+  (ros-info (pr2 manip-pm) "Opening grippers")
   (dolist (arm avail-arms)
     (open-gripper arm))
-  (let* ((assigned-entities
-           (entity-assignment
-            (list
-             (make-assignable-entity-list
-              :entities avail-arms)
-             (make-assignable-entity-list
-              :entities avail-handles
-              :min-assignments min-handles
-              :max-assignments max-handles))))
-         (valid-assignments
-           (remove-if
-            (lambda (assign)
-              (not (cost-function-grasp-handle-ik-constraint-aware obj assign)))
-            assigned-entities))
-         (sorted-valid-assignments
-           (sort
-            valid-assignments
-            (lambda (assign-1 assign-2)
-              (let ((cost1 (cost-function-grasp-handle-ik-constraint-aware
-                            obj assign-1))
-                    (cost2 (cost-function-grasp-handle-ik-constraint-aware
-                            obj assign-2)))
-                (cond ((and cost1 cost2)
-                       (< cost1 cost2))
-                      (cost1 cost1)
-                      (cost2 cost2))))))
-         (assignments (mapcar (lambda (arm handle-pair)
-                                (make-instance
-                                 'grasp-assignment
-                                 :pose (reference
-                                        (desig-prop-value (cdr handle-pair) 'at))
-                                 :side arm
-                                 :handle-pair handle-pair))
-                              (first (first sorted-valid-assignments))
-                              (second (first sorted-valid-assignments)))))
-    (unless assignments
-      (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))
-    assignments))
+  (ros-info (pr2 manip-pm) "Calculating optimal grasp")
+  (let ((assigned-entities
+          (entity-assignment
+           (list
+            (make-assignable-entity-list
+             :entities avail-arms)
+            (make-assignable-entity-list
+             :entities avail-handles
+             :min-assignments min-handles
+             :max-assignments max-handles)))))
+    (ros-info (pr2 manip-pm) "Entities assigned")
+    (let ((valid-assignments
+            (remove-if
+             (lambda (assign)
+               (not (cost-function-grasp-handle-ik-constraint-aware obj assign)))
+             assigned-entities)))
+      (ros-info (pr2 manip-pm) "Entities validated")
+      (let ((sorted-valid-assignments
+              (sort
+               valid-assignments
+               (lambda (assign-1 assign-2)
+                 (let ((cost1 (cost-function-grasp-handle-ik-constraint-aware
+                               obj assign-1))
+                       (cost2 (cost-function-grasp-handle-ik-constraint-aware
+                               obj assign-2)))
+                   (cond ((and cost1 cost2)
+                          (< cost1 cost2))
+                         (cost1 cost1)
+                         (cost2 cost2)))))))
+        (ros-info (pr2 manip-pm) "Entities sorted")
+        (let ((assignments (mapcar (lambda (arm handle-pair)
+                                     (make-instance
+                                      'grasp-assignment
+                                      :pose (reference
+                                             (desig-prop-value
+                                              (cdr handle-pair) 'at))
+                                      :side arm
+                                      :handle-pair handle-pair))
+                                   (first (first sorted-valid-assignments))
+                                   (second (first sorted-valid-assignments)))))
+          (ros-info
+           (pr2 manip-pm) "Assignment complete. Count = ~a" (length assignments))
+          (unless assignments
+            (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))
+          (ros-info (pr2 manip-pm) "Optimal grasp calculation complete")
+          assignments)))))
 
 (defun cons-to-grasp-assignments (cons-cells)
   (mapcar (lambda (cons-cell)
@@ -318,18 +330,12 @@ configuration."
                                       (:left "l_wrist_roll_link")
                                       (:right "r_wrist_roll_link"))
                   for pose-offsetted = (apply-pose-offset
-                                        pose
-                                        arms-offset-pose)
+                                        pose arms-offset-pose)
                   for pose-stamped = (tf:make-pose-stamped
-                                      "/map"
-                                      0.0
+                                      "/map" 0.0
                                       (tf:origin pose-offsetted)
                                       (tf:orientation pose-offsetted))
-                  for publ = (roslisp:publish
-                              (roslisp:advertise
-                               "/testpublisher2"
-                               "geometry_msgs/PoseStamped")
-                              (tf:pose-stamped->msg pose-stamped));;-tll))
+                  for publ = (publish-pose pose-stamped "/testpublisher2")
                   for distance = (reaching-length
                                   pose-stamped arm
                                   :constraint-aware constraint-aware
@@ -339,8 +345,8 @@ configuration."
                                   allowed-collision-objects)
                   when distance
                     collect (cons arm distance))))
-      (roslisp:ros-info (pr2-manipulation-process-module grasping)
-                        "IK solution cost: ~a~%" costme)
+      (ros-info (pr2 manip-pm) "IK solution cost (~a): ~a~%"
+                        (car costme) (cdr costme))
       costme)))
 
 (defun open-angle (object handle angle-deg)
@@ -374,5 +380,5 @@ configuration."
                                     relative-handle-pose)))
         (tf:pose->pose-stamped
          (tf:frame-id object-pose)
-         (roslisp:ros-time)
+         (ros-time)
          absolute-handle-pose)))))
