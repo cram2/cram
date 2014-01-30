@@ -120,7 +120,7 @@ environment."
     (when shape
       (setf (gethash effective-designator *known-collision-objects*) message)
       (roslisp:publish *collision-object-pub* message)
-      (roslisp:ros-info
+      (ros-info
        (pr2-manipulation-process-module collision-environment) "Added collision object to environment server."))))
 
 (defun remove-collision-object (desig)
@@ -215,7 +215,7 @@ environment."
    "/laser_tilt_controller/set_periodic_cmd" "pr2_msgs/SetPeriodicCmd"
    :command (roslisp:make-msg
              "pr2_msgs/PeriodicCmd"
-             (stamp header) (roslisp:ros-time)
+             (stamp header) (ros-time)
              profile "linear"
              period 3
              amplitude 0.75
