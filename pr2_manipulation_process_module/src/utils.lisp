@@ -152,7 +152,9 @@ satisfy these constraints is returned."
                :timeout 0.4
                :time (cond (ros-time (ros-time))
                            (t (tf:stamp pose-stamped))))
-        do (sleep 0.1)))
+        do (sleep 0.1))
+  (cond (ros-time (tf:copy-pose-stamped pose-stamped :stamp (ros-time)))
+        (t pose-stamped)))
 
 (defun publish-pose (pose topic)
   (let* ((pose-stamped
@@ -163,10 +165,10 @@ satisfy these constraints is returned."
                (cond ((or (string= (tf:frame-id pose) "map")
                           (string= (tf:frame-id pose) "/map"))
                       pose)
-                     (t (ensure-pose-stamped-transformable
-                         pose "/map" :ros-time t)
-                        (tf:transform-pose
-                         *tf* :pose pose :target-frame "/map")))
+                     (t (tf:transform-pose
+                         *tf* :pose (ensure-pose-stamped-transformable
+                                     pose "/map" :ros-time t)
+                              :target-frame "/map")))
                :stamp 0.0))))
          (pose-stamped-msg (tf:pose-stamped->msg pose-stamped)))
     (roslisp:publish
