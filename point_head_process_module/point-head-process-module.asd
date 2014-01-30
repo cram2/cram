@@ -38,6 +38,7 @@
                cram-reasoning
                cram-roslisp-common
                cram-plan-knowledge
+               roslisp-utilities
                alexandria
                pr2_controllers_msgs-msg)
   :components
