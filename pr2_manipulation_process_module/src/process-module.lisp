@@ -96,14 +96,9 @@
          (lambda (msg)
            (setf *joint-state* msg))))
   (set-robot-planning-state))
-  ;; ;; Initialize the planning scene to make get_ik and friends work.
-  ;; (when (roslisp:wait-for-service
-  ;;        "/environment_server/set_planning_scene_diff" 0.2)
-  ;;   (roslisp:call-service
-  ;;    "/environment_server/set_planning_scene_diff"
-  ;;    "arm_navigation_msgs/SetPlanningSceneDiff")))
 
-(register-ros-init-function init-pr2-manipulation-process-module)
+(roslisp-utilities:register-ros-init-function
+ init-pr2-manipulation-process-module)
 
 (defgeneric call-action (action &rest params))
 
