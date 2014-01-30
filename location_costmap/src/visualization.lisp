@@ -90,7 +90,7 @@ respectively."
                                              (frame-id "/map")
                                              (threshold 0.0005) (z *z-padding*)
                                              hsv-colormap
-                                             (intensity-colormap t)
+                                             (intensity-colormap nil)
                                              (base-color (vector 0 0 1))
                                              (elevate-costmap t))
   (with-slots (origin-x origin-y resolution) map
@@ -151,7 +151,7 @@ respectively."
                                     (r color) (elt color 0)
                                     (g color) (elt color 1)
                                     (b color) (elt color 2)
-                                    (a color) 1.0)
+                                    (a color) 0.9)
                       boxes)
                 (incf index))))))
       (make-message "visualization_msgs/MarkerArray"
@@ -183,9 +183,8 @@ respectively."
               map :frame-id frame-id :threshold threshold
                   :z z))))
 
-(let ((current-index 0))
-  
-  (defun publish-point (point &key id)
+(defun publish-point (point &key id)
+  (let ((current-index 0))
     (when *marker-publisher*
       (publish *marker-publisher*
                (make-message "visualization_msgs/Marker"
@@ -193,8 +192,10 @@ respectively."
                              (frame_id header) "/map"
                              ns "kipla_locations"
                              id (or id (incf current-index))
-                             type (symbol-code 'visualization_msgs-msg:<marker> :sphere)
-                             action (symbol-code 'visualization_msgs-msg:<marker> :add)
+                             type (symbol-code
+                                   'visualization_msgs-msg:<marker> :sphere)
+                             action (symbol-code
+                                     'visualization_msgs-msg:<marker> :add)
                              (x position pose) (cl-transforms:x point)
                              (y position pose) (cl-transforms:y point)
                              (z position pose) (cl-transforms:z point)
@@ -205,36 +206,40 @@ respectively."
                              (r color) (random 1.0)
                              (g color) (random 1.0)
                              (b color) (random 1.0)
-                             (a color) 1.0))))
+                             (a color) 0.9)))))
 
-  (defun publish-pose (pose &key id)
-    (let ((point (cl-transforms:origin pose))
-          (rot (cl-transforms:orientation pose)))
-      (when *marker-publisher*
-        (publish *marker-publisher*
-                 (make-message "visualization_msgs/Marker"
-                               (stamp header) (ros-time)
-                               (frame_id header) (typecase pose
-                                                   (tf:pose-stamped (tf:frame-id pose))
-                                                   (t "/map"))
-                               ns "kipla_locations"
-                               id (or id (incf current-index))
-                               type (symbol-code 'visualization_msgs-msg:<marker> :arrow)
-                               action (symbol-code 'visualization_msgs-msg:<marker> :add)
-                               (x position pose) (cl-transforms:x point)
-                               (y position pose) (cl-transforms:y point)
-                               (z position pose) (cl-transforms:z point)
-                               (x orientation pose) (cl-transforms:x rot)
-                               (y orientation pose) (cl-transforms:y rot)
-                               (z orientation pose) (cl-transforms:z rot)
-                               (w orientation pose) (cl-transforms:w rot)
-                               (x scale) 0.15
-                               (y scale) 0.15
-                               (z scale) 0.15
-                               (r color) 1.0
-                               (g color) 0.0
-                               (b color) 0.0
-                               (a color) 1.0))))))
+(defun publish-pose (pose &key id)
+  (let ((point (cl-transforms:origin pose))
+        (rot (cl-transforms:orientation pose))
+        (current-index 0))
+    (when *marker-publisher*
+      (publish *marker-publisher*
+               (make-message "visualization_msgs/Marker"
+                             (stamp header) (ros-time)
+                             (frame_id header)
+                             (typecase pose
+                               (tf:pose-stamped (tf:frame-id pose))
+                               (t "/map"))
+                             ns "kipla_locations"
+                             id (or id (incf current-index))
+                             type (symbol-code
+                                   'visualization_msgs-msg:<marker> :arrow)
+                             action (symbol-code
+                                     'visualization_msgs-msg:<marker> :add)
+                             (x position pose) (cl-transforms:x point)
+                             (y position pose) (cl-transforms:y point)
+                             (z position pose) (cl-transforms:z point)
+                             (x orientation pose) (cl-transforms:x rot)
+                             (y orientation pose) (cl-transforms:y rot)
+                             (z orientation pose) (cl-transforms:z rot)
+                             (w orientation pose) (cl-transforms:w rot)
+                             (x scale) 0.15
+                             (y scale) 0.15
+                             (z scale) 0.15
+                             (r color) 1.0
+                             (g color) 0.0
+                             (b color) 0.0
+                             (a color) 1.0)))))
 
 ;; (defun publish-location-desig-cost-function (desig)
 ;;   (reference desig)
