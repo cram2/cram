@@ -40,7 +40,7 @@
                cram-roslisp-common
                cram-manipulation-knowledge
                designators-ros
-               kinematics_msgs-srv)
+               iai_kinematics_msgs-srv)
   :components
   ((:module "src"
     :components
