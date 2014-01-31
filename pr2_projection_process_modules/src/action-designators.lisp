@@ -73,16 +73,16 @@
   (<- (available-process-module projection-navigation)
     (symbol-value *projection-environment* pr2-bullet-projection-environment))
 
-  (<- (cram-plan-knowledge:projection-running projection-ptu)
+  (<- (cram-process-modules:projection-running projection-ptu)
     (available-process-module projection-ptu))
 
-  (<- (cram-plan-knowledge:projection-running projection-perception)
+  (<- (cram-process-modules:projection-running projection-perception)
     (available-process-module projection-perception))
 
-  (<- (cram-plan-knowledge:projection-running projection-manipulation)
+  (<- (cram-process-modules:projection-running projection-manipulation)
     (available-process-module projection-manipulation))
-  
-  (<- (cram-plan-knowledge:projection-running projection-navigation)
+
+  (<- (cram-process-modules:projection-running projection-navigation)
     (available-process-module projection-navigation)))
 
 (def-fact-group ptu-designators (action-desig-projection)

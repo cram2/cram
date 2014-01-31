@@ -31,18 +31,18 @@
 (defsystem bullet-reasoning
     :author "Lorenz Moesenlechner"
     :license "BSD"
-    
+
     :depends-on (alexandria
                  cram-reasoning
                  cl-bullet cl-bullet-vis
                  cl-json-pl-client
                  cl-urdf
                  cl-tf
-                 kinematics_msgs-msg
-                 kinematics_msgs-srv
-                 kdl_arm_kinematics-srv
+                 ;; kinematics_msgs-msg
+                 ;; kinematics_msgs-srv
+                 iai_kinematics_msgs-srv
                  household_objects_database_msgs-srv
-                 arm_navigation_msgs-msg
+                 ;; arm_navigation_msgs-msg
                  location-costmap
                  designators
                  cram-roslisp-common

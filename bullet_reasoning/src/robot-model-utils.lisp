@@ -245,7 +245,7 @@ joint positions as seeds."
   (or (cdr (assoc ik-namespace *ik-solver-info-cache* :test #'equal))
       (let ((solver-info (roslisp:call-service
                           (concatenate 'string ik-namespace "/get_ik_solver_info")
-                          'kinematics_msgs-srv:getkinematicsolverinfo)))
+                          'iai_kinematics_msgs-srv:getkinematicsolverinfo)))
         (push (cons ik-namespace solver-info) *ik-solver-info-cache*)
         solver-info)))
 
@@ -295,21 +295,21 @@ joint positions as seeds."
              (get-persistent-ik-service ik-namespace)
              :ik_request
              (roslisp:make-msg
-              "kinematics_msgs/PositionIKRequest"
+              "iai_kinematics_msgs/PositionIKRequest"
               ;; we assume that the last joint in JOINT-NAMES is the end
               ;; of the chain which is what we want for ik_link_name.
               :ik_link_name (elt link-names 0)
               :pose_stamped (tf:pose-stamped->msg
                              (calculate-tool-pose pose :tool tool-frame))
               :ik_seed_state (roslisp:make-msg
-                              "arm_navigation_msgs/RobotState"
+                              "iai_kinematics_msgs/RobotState"
                               joint_state
                               (or seed-state
                                   (make-robot-joint-state-msg
                                    robot :joint-names joint-names))))
              :timeout 1.0)
           (when (eql error-code (roslisp-msg-protocol:symbol-code
-                                 'arm_navigation_msgs-msg:ArmNavigationErrorCodes
+                                 "iai_kinematics_msgs-msg:ArmNavigationErrorCodes"
                                  :success))
             (list solution)))))))
 

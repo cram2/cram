@@ -45,7 +45,7 @@
         #:projection-process-modules)
   (:import-from #:cram-manipulation-knowledge
                 arm available-arms required-arms)
-  (:import-from #:cram-plan-knowledge
+  (:import-from #:cram-process-modules
                 matching-process-module available-process-module projection-running)
   (:import-from #:cram-projection *projection-environment*)
   (:export projection-role required-sides)
