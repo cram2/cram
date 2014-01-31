@@ -31,13 +31,13 @@
 (in-package :robot-mask)
 
 (defun get-mask (robot camera)
-  (bt-vis:with-bullet-window-context *debug-window*
+  (bt-vis:with-gl-context *debug-window*
     (gl:with-pushed-attrib (:enable-bit)
       (gl:disable :lighting)
       (let* ((robot-proxy (make-instance
                            'flat-color-object-proxy
                            :object robot :color '(1.0 1.0 1.0 1.0)))
-             (scene (car (render-to-framebuffer robot-proxy camera :mirror t)))
+             (scene (car (render-to-framebuffer *debug-window* robot-proxy camera :mirror t)))
              (result (make-array (* (width camera) (height camera)) :element-type 'fixnum :initial-element 0)))
         (dotimes (i (* (width camera) (height camera)) result)
           (setf (aref result i) (truncate (aref scene (* i 3)))))))))
@@ -46,7 +46,7 @@
   (let ((tf (make-instance 'tf:transformer)))
     (map 'nil (lambda (trans) (tf:set-transform tf trans))
          (tf:tf-message->transforms msg))
-    (set-robot-state-from-tf tf robot fixed-frame)))
+    (set-robot-state-from-tf tf robot :reference-frame fixed-frame)))
 
 (defun main ()
   (with-ros-node ("robot_mask" :spin t)
