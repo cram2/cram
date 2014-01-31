@@ -54,6 +54,8 @@
 (defun invalidate-semantic-map-obj-cache ()
   (setf *semantic-map-obj-cache* (make-hash-table :test 'equal)))
 
+(define-hook on-publishing-collision-object (obj obj-name))
+
 (defun publish-semantic-map-collision-objects ()
   (unless (> (hash-table-count *semantic-map-obj-cache*) 0)
     (init-semantic-map-obj-cache))
@@ -79,7 +81,8 @@
                                                   (y dimensions)
                                                   (z dimensions))))
              :pose-stamped pose-stamped)
-            (moveit:add-collision-object obj-name)))))))
+            (moveit:add-collision-object obj-name)
+            (on-publishing-collision-object obj obj-name)))))))
 
 (defun remove-semantic-map-collision-objects ()
   (unless (> (hash-table-count *semantic-map-obj-cache*) 0)
