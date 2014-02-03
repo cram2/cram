@@ -1,4 +1,4 @@
-<-- this stuff is outdated. Use instead: roslaunch iai_maps kitchen_with_state_publisher.launch -->
+<-- this stuff is outdated. Use instead: roslaunch iai_maps iai_maps.launch -->
 
 <launch>
   <param name="kitchen_description" 
