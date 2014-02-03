@@ -312,6 +312,7 @@
                           (lazy-car
                            (crs:prolog `(semantic-map-name ?map-name)))
                         ?map-name))))
+    (assert map-name () "No semantic map name defined! Define the prolog predicate `semantic-map-name'!")
     (unless (or (not (json-prolog:check-connection)) *cached-semantic-map*)
       (setf
        *cached-semantic-map*
