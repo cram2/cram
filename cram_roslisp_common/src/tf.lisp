@@ -35,4 +35,4 @@
 (defun ros-tf-init ()
   (setf *tf* (make-instance 'cl-tf:transform-listener)))
 
-(register-ros-init-function ros-tf-init)
+(roslisp-utilities:register-ros-init-function ros-tf-init)
