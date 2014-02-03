@@ -11,9 +11,8 @@
   <depend package="cram_designators" />
   <depend package="location_costmap"/>
   <depend package="nav_msgs"/>
+  <depend package="roslisp_utilities"/>
   <depend package="cram_roslisp_common"/>
   <rosdep name="sbcl"/>
 
 </package>
-
-

@@ -28,11 +28,12 @@
 
 (in-package :plan-lib)
 
-(defgeneric hook-before-performing-action-designator (designator matching-process-modules))
-(defmethod hook-before-performing-action-designator (designator matching-process-modules))
+(define-hook on-preparing-performing-action-designator (action-designator
+                                                        matching-process-modules)
+  (:documentation "Gets triggered right before an action designator gets resolved, but after its matching process modules were identified."))
 
-(defgeneric hook-after-performing-action-designator (id success))
-(defmethod hook-after-performing-action-designator (id success))
+(define-hook on-finishing-performing-action-designator (id success)
+  (:documentation "Gets triggered right after an action designator was resolved."))
 
 (def-goal (perform ?action-designator)
   (let ((matching-process-modules
@@ -49,9 +50,10 @@
     ;; if perception fails, plans expect an OBJECT-NOT-FOUND failure,
     ;; not a COMPOSITE-FAILURE.
     (let ((result nil)
-          (log-id (hook-before-performing-action-designator
-                   ?action-designator
-                   matching-process-modules)))
+          (log-id (first
+                   (on-preparing-performing-action-designator
+                    ?action-designator
+                    matching-process-modules))))
       (with-failure-handling
           ((composite-failure (failure)
              (fail (car (composite-failures failure)))))
@@ -59,7 +61,7 @@
              (setf result
                    (try-each-in-order (module matching-process-modules)
                      (perform-on-process-module module ?action-designator)))
-          (hook-after-performing-action-designator
+          (on-finishing-performing-action-designator
            log-id result))))))
 
 (def-goal (perform-on-process-module ?module ?action-designator)

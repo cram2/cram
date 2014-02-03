@@ -37,11 +37,12 @@
 
 (defun init-semantic-map-collision-environment ()
   (setf *marker-publisher*
-        (roslisp:advertise "~semantic_map_markers" "visualization_msgs/Marker"))
-  (setf *collision-object-publisher*
-        (roslisp:advertise "/collision_object" "moveit_msgs/CollisionObject")))
+        (roslisp:advertise "~semantic_map_markers" "visualization_msgs/Marker")))
+  ;(setf *collision-object-publisher*
+  ;      (roslisp:advertise "/collision_object" "moveit_msgs/CollisionObject")))
 
-(register-ros-init-function init-semantic-map-collision-environment)
+(roslisp-utilities:register-ros-init-function
+ init-semantic-map-collision-environment)
 
 (defun init-semantic-map-obj-cache ()
   (lazy-dolist (obj (query-sem-map))
@@ -53,6 +54,8 @@
 (defun invalidate-semantic-map-obj-cache ()
   (setf *semantic-map-obj-cache* (make-hash-table :test 'equal)))
 
+(define-hook on-publishing-collision-object (obj obj-name))
+
 (defun publish-semantic-map-collision-objects ()
   (unless (> (hash-table-count *semantic-map-obj-cache*) 0)
     (init-semantic-map-obj-cache))
@@ -61,21 +64,25 @@
       (with-slots (pose dimensions) obj
         (tf:wait-for-transform *tf* :source-frame "odom_combined"
                                     :target-frame "map")
-        (let ((obj-name (string-upcase (make-collision-obj-name obj)))
-              (pose-stamped (tf:pose->pose-stamped "/map" 0.0 pose)))
+        (let* ((obj-name (string-upcase (make-collision-obj-name obj)))
+               (pose-stamped (tf:pose->pose-stamped "map" 0.0 pose))
+               (pose-stamped (tf:transform-pose
+                              *tf*
+                              :pose pose-stamped
+                              :target-frame "odom_combined")))
           (unless (string= obj-name "HTTP://IAS.CS.TUM.EDU/KB/KNOWROB.OWL#DRAWER_FRIDGE_UPPER-0")
-            (cram-moveit:register-collision-object
+            (moveit:register-collision-object
              obj-name
              :primitive-shapes (list (roslisp:make-msg
                                       "shape_msgs/SolidPrimitive"
-                                      :type (roslisp-msg-protocol:symbol-code
-                                             'shape_msgs-msg:solidprimitive :box)
-                                      :dimensions (vector
-                                                   (x dimensions)
-                                                   (y dimensions)
-                                                   (z dimensions))))
+                                      type 1
+                                      dimensions (vector
+                                                  (x dimensions)
+                                                  (y dimensions)
+                                                  (z dimensions))))
              :pose-stamped pose-stamped)
-            (cram-moveit:add-collision-object obj-name)))))))
+            (moveit:add-collision-object obj-name)
+            (on-publishing-collision-object obj obj-name)))))))
 
 (defun remove-semantic-map-collision-objects ()
   (unless (> (hash-table-count *semantic-map-obj-cache*) 0)
