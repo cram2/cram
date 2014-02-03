@@ -48,8 +48,10 @@
 ;;   (<- (costmap-in-reach-distance 1.0))
 ;;   (<- (costmap-reach-minimal-distance 0.1)))
 
-(def-fact-group semantic-map-data ()
-  (<- (semantic-map-obj btr::sem-map))
+(def-fact-group semantic-map-data (semantic-map-name)
+  (<- (cl-semantic-map-utils::semantic-map-name
+       "http://ias.cs.tum.edu/kb/ias_semantic_map.owl#SemanticEnvironmentMap_PM580j"))
+  (<- (semantic-map-obj my-kitchen))
   (<- (kitchen-island-z 0.8399999737739563d0)))
 
 ;; TODO change after near and far is refactored
