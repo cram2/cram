@@ -258,7 +258,7 @@
   (let ((map-name (or map-name
                       (with-vars-bound (?map-name)
                           (lazy-car
-                           (crs:prolog `(sem-map-utils::map-name ?map-name)))
+                           (crs:prolog `(semantic-map-name ?map-name)))
                         ?map-name))))
     (lazy-mapcan (lambda (bdg)
                    (with-vars-bound (?o ?type)
