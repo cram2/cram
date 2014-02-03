@@ -101,7 +101,7 @@
   (<- (potential-field-costmap ?designator ?object ?relation ?costmap)
     ;; TODO GET RID OF THIS!
     ;; Todo new mechanism for switching between sampling functions...
-    (lisp-fun set location-costmap::*use-priority-sampling* t ?_)
+    ;; (lisp-fun set location-costmap::*use-priority-sampling* t ?_)
     ;;
     (desig-location-prop ?object ?reference-pose)
     (lisp-fun get-y-of-pose ?reference-pose ?y-of-pose)

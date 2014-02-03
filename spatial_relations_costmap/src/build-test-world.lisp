@@ -61,7 +61,7 @@
                (assert (object ?w static-plane floor ((0 0 0) (0 0 0 1))
                                :normal (0 0 1) :constant 0))
                (debug-window ?w)
-               (assert (object ?w semantic-map sem-map ((1.4 2.8 0) (0 0 0.9994 -0.0342))
+               (assert (object ?w btr::semantic-map my-kitchen ((-3.45 -4.35 0) (0 0 1 0))
                                :urdf ,kitchen-urdf))
                (robot ?robot)
                (assert (object ?w urdf ?robot ((0 0 0) (0 0 0 1)) :urdf ,urdf))
@@ -69,8 +69,7 @@
                (assert (joint-state ?w ?robot ?joint-states))
                (assert (joint-state ?w ?robot (("torso_lift_joint" 0.33)))))))))))
 
-
-
+;; (setf sem-map (var-value '?sem-map (lazy-car (prolog `(%object ?w my-kitchen ?sem-map) *bdgs*))))
 
 ;; ;; desig for a glass near a plate
 ;; (setf des (desig:make-designator 'desig-props:location '((desig-props:right-of plate-1) (desig-props:behind plate-1) (desig-props:near plate-1) (desig-props:for mug-1) (desig-props:on counter-top) (desig-props:name kitchen-island))))
@@ -163,20 +162,20 @@
   
   (loop for i from 1 to *num-of-sets-on-table*
         for plate-coord = 0.86 then (+ plate-coord 0.027)
-        for fork-coord = 0.8 then (+ fork-coord 0.04)
+        for fork-coord = 1.4 then (+ fork-coord 0.05)
         for knife-coord = (+ fork-coord (* (+ *num-of-sets-on-table* 1) 0.04))
         do (move-object (new-symbol-with-id "PLATE" i)
-                        `((0.88 1 ,plate-coord) (0 0 0 1)))
+                        `((1.45 0.8 ,plate-coord) (0 0 0 1)))
            (move-object (new-symbol-with-id "FORK" i)
-                        `((,fork-coord 0.7 0.862) (0 0 1 1)))
+                        `((,fork-coord 0.5 0.865) (0 0 1 1)))
            (move-object (new-symbol-with-id "KNIFE" i)
-                        `((,knife-coord 0.7 0.857) (0 0 1 1))))
+                        `((,knife-coord 0.5 0.857) (0 0 1 1))))
 
-  (move-object 'mug-1 '((0.8 1.48 0.9119799601336841d0) (0 0 0 1))) 
-  (move-object 'mug-2 '((0.78 1.32 0.9119799601336841d0) (0 0 0 1)))
-  (move-object 'mug-3 '((0.9 1.4 0.9119799601336841d0) (0 0 0 1)))
-  (move-object 'mug-4 '((1 1.29 0.9119799601336841d0) (0 0 0 1)))
-  (move-object 'mug-5 '((0.98 1.47 0.9119799601336841d0) (0 0 0 1))))
+  (move-object 'mug-1 '((1.5 1.08 0.9119799601336841d0) (0 0 0 1))) 
+  (move-object 'mug-2 '((1.65 1.02 0.9119799601336841d0) (0 0 0 1)))
+  (move-object 'mug-3 '((1.35 1.11 0.9119799601336841d0) (0 0 0 1)))
+  (move-object 'mug-4 '((1.55 1.19 0.9119799601336841d0) (0 0 0 1)))
+  (move-object 'mug-5 '((1.5 1.17 0.9119799601336841d0) (0 0 0 1))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;; ONLY DESIGS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -196,10 +195,10 @@
           (when (> number-of-plates 3)
             (prolog `(assign-object-pos-on plate-4 ,des-for-plate-4))))))))
 
-(defun make-plate-desig (plate-id &optional (counter-name 'kitchen-island)
+(defun make-plate-desig (plate-id &optional (counter-name "kitchen_island")
                                     (plate-num *num-of-sets-on-table*))
   (let ((plate-name (new-symbol-with-id "PLATE" plate-id)))
-    (make-designator 'location `((on counter-top) (name ,counter-name)
+    (make-designator 'location `((on "Cupboard") (name ,counter-name)
                                  (for ,plate-name) (context table-setting) 
                                  (object-count ,plate-num)))))
 
@@ -220,7 +219,7 @@
                                             ,(string-case object-type
                                                ("PLATE" (make-plate-desig i))
                                                (t (make-object-near-plate-desig object-type i))))))))
-  
+
 (defun set-table-without-robot ()
   (spawn-stuff)
   (put-stuff-away)
@@ -256,7 +255,7 @@
 (cpl-impl:def-cram-function find-object-on-counter (object-type counter-name)
   "Returns an object designator."
   (cram-plan-library:with-designators
-      ((on-counter (desig-props:location `((desig-props:on counter-top)
+      ((on-counter (desig-props:location `((desig-props:on "Cupboard")
                                            (desig-props:name ,counter-name))))
        (the-object (desig-props:object `((desig-props:type ,object-type)
                                          (desig-props:at ,on-counter)))))
@@ -265,7 +264,7 @@
 
 (cpl-impl:def-cram-function put-plate-on-table (plate-obj-desig)
   (cram-plan-library:with-designators
-      ((on-kitchen-island (location `((on counter-top) (name kitchen-island)
+      ((on-kitchen-island (location `((on cupboard) (name "kitchen_island")
                                       (for ,plate-obj-desig) (context table-setting) 
                                       (object-count 4)))))
     (plan-knowledge:achieve `(plan-knowledge:loc ,plate-obj-desig ,on-kitchen-island))))
@@ -273,7 +272,7 @@
 (cpl-impl:def-cram-function put-plate-from-counter-on-table ()
   (sb-ext:gc :full t)
   (format t "Put a PLATE from counter on table~%")
-  (let ((plate (find-object-on-counter 'btr:plate "CounterTop205")))
+  (let ((plate (find-object-on-counter 'btr:plate "kitchen_sink_block")))
     (sb-ext:gc :full t)
     (put-plate-on-table plate)
     plate))
@@ -284,14 +283,14 @@
       ((put-down-location (location `(,@(loop for property in spatial-relations
                                               collecting `(,property ,plate-obj))
                                       (near ,plate-obj) (for ,object-to-put)
-                                      (on counter-top)))))
+                                      (on "Cupboard")))))
     (plan-knowledge:achieve `(plan-knowledge:loc ,object-to-put ,put-down-location))))
 
 (cpl-impl:def-cram-function put-object-from-counter-near-plate (object-type plate-obj)
   (format t "Put ~a from counter on table near ~a~%"
           object-type (desig-prop-value plate-obj 'name))
   (sb-ext:gc :full t)
-  (let ((obj (find-object-on-counter object-type "CounterTop205")))
+  (let ((obj (find-object-on-counter object-type "kitchen_sink_block")))
     (sb-ext:gc :full t)
     (put-object-near-plate obj plate-obj
                            (ecase object-type
