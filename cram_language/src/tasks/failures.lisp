@@ -72,8 +72,6 @@
       (:display "~S: ~_\"~A\"" condition condition)
       (:tags :fail))
     (on-fail condition)
-    (when (symbolp datum)
-      (hook-on-fail datum))
     (cond
       ;; The main thread will perform JOIN-TASK on the TOPLEVEL-TASK,
       ;; signal the condition for that case.
