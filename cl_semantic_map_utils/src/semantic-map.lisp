@@ -310,7 +310,7 @@
   (let ((map-name (or map-name
                       (with-vars-bound (?map-name)
                           (lazy-car
-                           (crs:prolog `(sem-map-utils::map-name ?map-name)))
+                           (crs:prolog `(semantic-map-name ?map-name)))
                         ?map-name))))
     (unless (or (not (json-prolog:check-connection)) *cached-semantic-map*)
       (setf
