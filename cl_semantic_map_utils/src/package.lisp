@@ -45,5 +45,5 @@
            designator->semantic-map-objects get-connecting-joint
            get-articulated-position get-top-level-object
            update-articulated-object-poses
-           get-connecting-joint-limits)
+           get-connecting-joint-limits semantic-map-name)
   (:desig-properties name type part-of on in))
