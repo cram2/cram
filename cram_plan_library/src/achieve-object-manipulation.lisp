@@ -74,7 +74,6 @@
           (ros-info (achieve plan-lib) "Found object.")
           (when (not (desig-equal obj-orig ?obj))
             (equate obj-orig ?obj))
-          (format t "This is the object: ~a~%" ?obj)
           (with-failure-handling
               ((object-lost (f)
                  (declare (ignore f))
