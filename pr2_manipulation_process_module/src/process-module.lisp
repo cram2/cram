@@ -31,7 +31,8 @@
   ((pose :accessor pose :initform nil :initarg :pose)
    (side :accessor side :initform nil :initarg :side)
    (close-radius :accessor close-radius :initform nil :initarg :close-radius)
-   (handle-pair :accessor handle-pair :initform nil :initarg :handle-pair)))
+   (handle-pair :accessor handle-pair :initform nil :initarg :handle-pair)
+   (ik-cost :accessor ik-cost :initform nil :initarg :ik-cost)))
 
 (define-condition move-arm-no-ik-solution (manipulation-failure) ())
 (define-condition move-arm-ik-link-in-collision (manipulation-failure) ())

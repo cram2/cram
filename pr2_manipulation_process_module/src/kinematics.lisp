@@ -742,29 +742,21 @@ service can be used by setting the parameter `constraint-aware' to
 distance is used. Otherwise, the (unweighted) quadratic joint-space
 integral is calculated. Both methods may not be mixed as their scale
 is fundamentally different."
-  (when (tf:wait-for-transform
-         *tf*
-         :time (tf:stamp pose)
-         :timeout 5.0
-         :source-frame (tf:frame-id pose)
-         :target-frame "torso_lift_link")
-    (let* ((wrist-frame (ecase side
-                          (:left "l_wrist_roll_link")
-                          (:right "r_wrist_roll_link")))
-           (arm-group (ecase side
-                        (:left "left_arm")
-                        (:right "right_arm")))
-           (pose-in-tll (tf:transform-pose
-                         *tf*
-                         :pose pose
-                         :target-frame "torso_lift_link")))
-      (let ((state-0 (moveit:plan-link-movement
-                      wrist-frame arm-group pose-in-tll
-                      :touch-links
-                      (links-for-arm-side side)
-                      :allowed-collision-objects
-                      allowed-collision-objects
-                      :destination-validity-only t)))
-        (publish-pose pose-in-tll "/dbg")
-        (when state-0
-          (moveit:pose-distance wrist-frame pose))))))
+  (let* ((wrist-frame (ecase side
+                        (:left "l_wrist_roll_link")
+                        (:right "r_wrist_roll_link")))
+         (arm-group (ecase side
+                      (:left "left_arm")
+                      (:right "right_arm")))
+         (pose-in-tll
+           (moveit:ensure-pose-stamped-transformed
+            pose "/torso_lift_link" :ros-time t)))
+    (let ((state-0 (moveit:plan-link-movement
+                    wrist-frame arm-group pose-in-tll
+                    :touch-links
+                    (links-for-arm-side side)
+                    :allowed-collision-objects
+                    allowed-collision-objects
+                    :destination-validity-only t)))
+      (when state-0
+        (moveit:pose-distance wrist-frame pose)))))
