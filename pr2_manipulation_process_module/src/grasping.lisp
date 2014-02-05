@@ -59,17 +59,17 @@ grasp.")
   (tf:make-pose
    (tf:make-3d-vector
     0.0 0.0 0.2)
-   (tf:euler->quaternion))) ;; Is there a rotation around X missing here?
+   (tf:euler->quaternion)))
 (defparameter *putdown-offset*
   (tf:make-pose
    (tf:make-3d-vector
     0.0 0.0 0.0)
-   (tf:euler->quaternion))) ;; Is there a rotation around X missing here?
+   (tf:euler->quaternion)))
 (defparameter *unhand-offset*
   (tf:make-pose
    (tf:make-3d-vector
     -0.10 0.0 0.0)
-   (tf:euler->quaternion))) ;; Is there a rotation around X missing here?
+   (tf:euler->quaternion)))
 
 (defun relative-pose-for-handle (obj handle &key relative-pose)
   (tf:wait-for-transform *tf*
@@ -124,55 +124,88 @@ applied."
                                             (or (desig-prop-value
                                                  obj 'desig-props:max-handles)
                                                 nil)))
+  (declare (ignore max-handles))
+  (assert (= min-handles 1)
+          () "Sorry, not more than one handle at a time right now.")
   (ros-info (pr2 manip-pm) "Opening grippers")
   (dolist (arm avail-arms)
     (open-gripper arm))
-  (ros-info (pr2 manip-pm) "Calculating optimal grasp")
-  (let ((assigned-entities
-          (entity-assignment
-           (list
-            (make-assignable-entity-list
-             :entities avail-arms)
-            (make-assignable-entity-list
-             :entities avail-handles
-             :min-assignments min-handles
-             :max-assignments max-handles)))))
-    (ros-info (pr2 manip-pm) "Entities assigned")
-    (let ((valid-assignments
-            (remove-if
-             (lambda (assign)
-               (not (cost-function-grasp-handle-ik-constraint-aware obj assign)))
-             assigned-entities)))
-      (ros-info (pr2 manip-pm) "Entities validated")
-      (let ((sorted-valid-assignments
-              (sort
-               valid-assignments
-               (lambda (assign-1 assign-2)
-                 (let ((cost1 (cost-function-grasp-handle-ik-constraint-aware
-                               obj assign-1))
-                       (cost2 (cost-function-grasp-handle-ik-constraint-aware
-                               obj assign-2)))
-                   (cond ((and cost1 cost2)
-                          (< cost1 cost2))
-                         (cost1 cost1)
-                         (cost2 cost2)))))))
-        (ros-info (pr2 manip-pm) "Entities sorted")
-        (let ((assignments (mapcar (lambda (arm handle-pair)
-                                     (make-instance
-                                      'grasp-assignment
-                                      :pose (reference
-                                             (desig-prop-value
-                                              (cdr handle-pair) 'at))
-                                      :side arm
-                                      :handle-pair handle-pair))
-                                   (first (first sorted-valid-assignments))
-                                   (second (first sorted-valid-assignments)))))
-          (ros-info
-           (pr2 manip-pm) "Assignment complete. Count = ~a" (length assignments))
-          (unless assignments
-            (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))
-          (ros-info (pr2 manip-pm) "Optimal grasp calculation complete")
-          assignments)))))
+  (ros-info (pr2 manip-pm) "Calculating optimal grasp: ~a arms, ~a handles (min ~a)" (length avail-arms) (length avail-handles) min-handles)
+  (let* ((assignments
+           (alexandria:flatten
+            (loop for i from 0 below (length avail-arms)
+                  for arm = (nth i avail-arms)
+                  collect (loop for j from 0 below (length avail-handles)
+                                for handle = (nth i avail-handles)
+                                for cost = (cost-function-grasp-handle-ik-constraint-aware
+                                            obj (list (list (nth i avail-arms))
+                                                      (list (nth j avail-handles))))
+                                when cost
+                                  collect (make-instance
+                                           'grasp-assignment
+                                           :handle-pair handle
+                                           :side arm
+                                           :ik-cost cost
+                                           :pose (reference
+                                                  (desig-prop-value
+                                                   (cdr handle) 'at)))))))
+         (sorted-assignments (sort assignments #'< :key #'ik-cost)))
+    (list (first sorted-assignments))))
+
+;; (defun optimal-arm-handle-assignment (obj avail-arms avail-handles min-handles
+;;                                       &key (max-handles
+;;                                             (or (desig-prop-value
+;;                                                  obj 'desig-props:max-handles)
+;;                                                 nil)))
+;;   (ros-info (pr2 manip-pm) "Opening grippers")
+;;   (dolist (arm avail-arms)
+;;     (open-gripper arm))
+;;   (ros-info (pr2 manip-pm) "Calculating optimal grasp: ~a arms, ~a handles (min ~a, max ~a)" (length avail-arms) (length avail-handles) min-handles max-handles)
+;;   (let ((assigned-entities
+;;           (entity-assignment
+;;            (list
+;;             (make-assignable-entity-list
+;;              :entities avail-arms)
+;;             (make-assignable-entity-list
+;;              :entities avail-handles
+;;              :min-assignments min-handles
+;;              :max-assignments max-handles)))))
+;;     (ros-info (pr2 manip-pm) "Entities assigned")
+;;     (let ((valid-assignments
+;;             (remove-if
+;;              (lambda (assign)
+;;                (not (cost-function-grasp-handle-ik-constraint-aware obj assign)))
+;;              assigned-entities)))
+;;       (ros-info (pr2 manip-pm) "Entities validated")
+;;       (let ((sorted-valid-assignments
+;;               (sort
+;;                valid-assignments
+;;                (lambda (assign-1 assign-2)
+;;                  (let ((cost1 (cost-function-grasp-handle-ik-constraint-aware
+;;                                obj assign-1))
+;;                        (cost2 (cost-function-grasp-handle-ik-constraint-aware
+;;                                obj assign-2)))
+;;                    (cond ((and cost1 cost2)
+;;                           (< cost1 cost2))
+;;                          (cost1 cost1)
+;;                          (cost2 cost2)))))))
+;;         (ros-info (pr2 manip-pm) "Entities sorted")
+;;         (let ((assignments (mapcar (lambda (arm handle-pair)
+;;                                      (make-instance
+;;                                       'grasp-assignment
+;;                                       :pose (reference
+;;                                              (desig-prop-value
+;;                                               (cdr handle-pair) 'at))
+;;                                       :side arm
+;;                                       :handle-pair handle-pair))
+;;                                    (first (first sorted-valid-assignments))
+;;                                    (second (first sorted-valid-assignments)))))
+;;           (ros-info
+;;            (pr2 manip-pm) "Assignment complete. Count = ~a" (length assignments))
+;;           (unless assignments
+;;             (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))
+;;           (ros-info (pr2 manip-pm) "Optimal grasp calculation complete")
+;;           assignments)))))
 
 (defun cons-to-grasp-assignments (cons-cells)
   (mapcar (lambda (cons-cell)
@@ -345,8 +378,10 @@ configuration."
                                   allowed-collision-objects)
                   when distance
                     collect (cons arm distance))))
-      (ros-info (pr2 manip-pm) "IK solution cost (~a): ~a~%"
-                        (car costme) (cdr costme))
+      (when costme
+        (ros-info (pr2 manip-pm) "Set of IK costs:")
+        (loop for (arm . cost) in costme
+              do (ros-info (pr2 manip-pm) "Arm = ~a, Cost = ~a" arm cost)))
       costme)))
 
 (defun open-angle (object handle angle-deg)

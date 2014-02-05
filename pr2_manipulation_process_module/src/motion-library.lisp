@@ -285,7 +285,7 @@ object in order to lift it at `distance' form the supporting plane"
                      (:right "r_wrist_roll_link")
                      (:left "l_wrist_roll_link")))
          (raised-arm-pose
-           (ensure-pose-stamped-transformed
+           (moveit:ensure-pose-stamped-transformed
             (tf:make-pose-stamped frame-id (ros-time)
                                   (tf:make-3d-vector 0 0 distance)
                                   (tf:make-identity-rotation))
