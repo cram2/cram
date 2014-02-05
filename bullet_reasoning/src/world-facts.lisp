@@ -195,6 +195,15 @@
     (lisp-fun link-contacts ?robot-model ?link-contacts)
     (member (?obj . ?link) ?link-contacts))
 
+  (<- (robot-not-in-collision-with-environment ?world ?robot-name)
+    (bullet-world ?world)
+    (%object ?world ?robot-name ?robot)
+    (lisp-type ?robot robot-object)
+    (forall (contact ?world ?robot-name ?object-name)
+            (or (attached ?world ?robot-name ?_ ?object-name)
+                (and (not (household-object-type ?world ?object-name ?_))
+                     (not (semantic-map ?world ?object-name))))))
+
   (<- (stable ?world ?obj-name)
     (bullet-world ?world)
     (copied-world ?world ?copy)

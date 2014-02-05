@@ -65,6 +65,7 @@
            find-objects-below bullet-world object
            retract step simulate-realtime object-pose object-bottom-pose
            position orientation poses-equal contact stable
+           robot-not-in-collision-with-environment
            link-contacts supported-by above below visible
            occluding-objects occluding-object valid-grasp grasp side reachable
            def-grasp def-tool object-grasp
