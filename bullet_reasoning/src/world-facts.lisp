@@ -64,13 +64,16 @@
     (object ?world ?name)
     (pose ?world ?p . ?pose)
     (assert (object-pose ?world ?name ?p)))
-  
+
   (<- (assert ?world (object ?object-type ?name ?pose . ?args))
     (not (object ?world ?name))
     (lisp-fun apply add-object
-              ?world ?object-type
-              ?name ?pose ?args
-              ?_))
+              ?world ?object-type ?name ?pose ?args ?_)
+    (lisp-fun getf ?args :no-robot-collision ?key-present)
+    (-> (== ?key-present NIL)
+        (true)
+        (and (slot-value ?world objects-no-collision-with-robot ?objects-list)
+             (slot-value ?world objects-no-collision-with-robot (?name ?objects-list)))))
 
   (<- (assert (object ?world ?object-type ?name ?pose . ?args))
     (assert ?world (object ?object-type ?name ?pose . ?args)))
@@ -201,8 +204,8 @@
     (lisp-type ?robot robot-object)
     (forall (contact ?world ?robot-name ?object-name)
             (or (attached ?world ?robot-name ?_ ?object-name)
-                (and (not (household-object-type ?world ?object-name ?_))
-                     (not (semantic-map ?world ?object-name))))))
+                (and (slot-value ?world objects-no-collision-with-robot ?objects)
+                     (member ?object-name ?objects)))))
 
   (<- (stable ?world ?obj-name)
     (bullet-world ?world)

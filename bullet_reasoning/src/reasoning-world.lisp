@@ -33,7 +33,11 @@
 (setf *bullet-world-scaling-factor* 30.0d0)
 
 (defclass bt-reasoning-world (bt-world)
-  ((objects :initform (make-hash-table :test 'equal))))
+  ((objects :initform (make-hash-table :test 'equal))
+   (objects-no-collision-with-robot :reader objects-no-collision-with-robot
+                                    :initform `()
+                                    :documentation "A list of objects to exclude
+from collision checking in the robot-not-in-collision-with-environment predicate.")))
 
 (defgeneric invalidate-object (object)
   (:documentation "Invalidates an object. This method is called after
@@ -56,7 +60,11 @@
 
 (defclass bt-reasoning-world-state (world-state)
   ((objects :reader objects :initarg :objects
-            :documentation "alist of objects")))
+            :documentation "alist of objects")
+   (objects-no-collision-with-robot :reader objects-no-collision-with-robot
+                                    :initarg :objects-no-collision-with-robot
+                                    :documentation "A copy of the corresponding
+list from bt-reasoning-world to keep in the current world state.")))
 
 (defmethod get-state ((world bt-reasoning-world))
   (with-world-locked world
@@ -64,7 +72,9 @@
       (change-class state 'bt-reasoning-world-state
                     :objects (loop for name being the hash-keys of (slot-value world 'objects)
                                    using (hash-value object)
-                                   collecting (cons name object))))))
+                                   collecting (cons name object))
+                    :objects-no-collision-with-robot
+                    (slot-value world 'objects-no-collision-with-robot)))))
 
 (defmethod restore-state ((world-state bt-reasoning-world-state)
                           (world bt-reasoning-world))
@@ -72,7 +82,9 @@
     (prog1
         (call-next-method)
       (with-world-locked world
-        (with-slots (objects) world
+        (with-slots (objects-no-collision-with-robot objects) world
+          (setf objects-no-collision-with-robot
+                (objects-no-collision-with-robot world-state))
           (clrhash objects)
           (loop for (name . obj) in (objects world-state) do
             (let ((obj (if (eq world (world obj))
