@@ -163,17 +163,17 @@
         (publish-pose pose "/dhdhdh")
         (let* ((side (slot-value grasp-assignment 'side))
                (pregrasp-pose-tll
-                 (ensure-pose-stamped-transformed
+                 (moveit:ensure-pose-stamped-transformed
                   (relative-grasp-pose pose *pregrasp-offset*)
                   "/torso_lift_link"))
                (grasp-pose-tll
-                 (ensure-pose-stamped-transformed
+                 (moveit:ensure-pose-stamped-transformed
                   (relative-grasp-pose pose *grasp-offset*)
                   "/torso_lift_link"))
                (close-radius (or (slot-value grasp-assignment
                                              'close-radius)
                                  0.0)))
-          (let ((log-id (on-begin-grasp obj-desig)))
+          (let ((log-id (first (on-begin-grasp obj-desig))))
             (cpl:with-failure-handling
                 ((cram-plan-failures:manipulation-failed (f)
                    (declare (ignore f))
@@ -304,7 +304,7 @@
 for the currently type of grasped object."
   (assert (> (length grasp-assignments) 0) ()
           "No arm/pose pairs specified during put-down.")
-  (let* ((log-id (on-begin-putdown object-designator location))
+  (let* ((log-id (first (on-begin-putdown object-designator location)))
          (putdown-pose-pure (make-putdown-pose location))
          (putdown-orientations 1)) ;; Try different orientations
     ;; when placing the object
