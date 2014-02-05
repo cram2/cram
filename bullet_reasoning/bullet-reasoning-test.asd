@@ -36,4 +36,5 @@
     :components
     ((:file "package")
      (:file "bounding-box-tests" :depends-on ("package"))
-     (:file "timeline" :depends-on ("package"))))))
+     (:file "timeline" :depends-on ("package"))
+     (:file "copy-world-tests" :depends-on ("package"))))))
