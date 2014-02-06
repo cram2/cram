@@ -158,7 +158,7 @@
                    :ref-obj-pose ?ref-obj-pose
                    ?orientation-function)
          (orientation-samples ?sample-num)
-         (orientation-samples-step ?samples-step) 
+         (orientation-samples-step ?samples-step)
          (costmap-add-orientation-generator
           (make-orientation-generator ?orientation-function
                                       :samples ?sample-num
@@ -170,11 +170,11 @@
   (<- (slot-costmap ?designator ?supp-object ?context ?object-type ?object-count
                     ?costmap)
     (lisp-fun sem-map-utils:name ?supp-object ?supp-object-name)
-    (paddings-list ?supp-obj-name ?context ?paddings-list)
-    (preferred-supporting-object-side ?supp-obj-name ?context ?preferred-side) 
+    (paddings-list ?supp-object-name ?context ?paddings-list)
+    (preferred-supporting-object-side ?supp-object-name ?context ?preferred-side)
     (max-slot-size ?object-type ?context ?max-slot-size)
     (min-slot-size ?object-type ?context ?min-slot-size)
-    (position-deviation-threshold ?object-type ?context ?pos-dev-threshold) 
+    (position-deviation-threshold ?object-type ?context ?pos-dev-threshold)
     ;;
     (costmap ?costmap)
     (costmap-add-function

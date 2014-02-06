@@ -241,7 +241,7 @@
    the centers of those slots and all the points that are not further from the center than
    `position-deviation-threshold'.
    _____________
-   |_x_|_x_|_x_|  <- example for object-count = 5 
+   |_x_|_x_|_x_|  <- example for object-count = 5
    |__x__|__x__|     the supporting object is divided into 5 slots. 'x' - center of slot
 
    The resulting slot sizes are restricted by `max-slot-size' and `min-slot-size', i.e.
@@ -266,7 +266,7 @@
                  ((eql longer-side-axis #'cl-transforms:y)
                   (setf resulting-points (cons (list coord-on-other-axis next-coord)
                                                resulting-points))))
-               (setf next-coord (- next-coord distance)))))) 
+               (setf next-coord (- next-coord distance))))))
     (let* ((supp-obj-dims (cl-transforms:v-
                            (sem-map-utils:dimensions supp-object)
                            (cl-transforms:make-3d-vector (+ (third paddings-list)
@@ -284,7 +284,7 @@
            (longer-side-axis #'cl-transforms:x)
            (shorter-side-axis #'cl-transforms:y)
            (longer-side-length nil)
-           (max-possible-object-count nil)) 
+           (max-possible-object-count nil))
       (when (> (cl-transforms:y supp-obj-dims) (cl-transforms:x supp-obj-dims))
         (setf longer-side-axis #'cl-transforms:y)
         (setf shorter-side-axis #'cl-transforms:x))

@@ -48,9 +48,9 @@
 
 (defun start-ros-and-bullet ()
   (setf *bdgs* nil)
-  (cram-roslisp-common:startup-ros :anonymous nil)
-  (let* ((urdf (cl-urdf:parse-urdf (roslisp:get-param "robot_description_lowres")))
-         (kitchen-urdf (cl-urdf:parse-urdf (roslisp:get-param "kitchen_description"))))
+  (roslisp-utilities:startup-ros :anonymous nil)
+  (let ((urdf (cl-urdf:parse-urdf (roslisp:get-param "robot_description_lowres")))
+        (kitchen-urdf (cl-urdf:parse-urdf (roslisp:get-param "kitchen_description"))))
     (setf *bdgs*
           (car
            (force-ll
@@ -58,9 +58,9 @@
              `(and
                (clear-bullet-world)
                (bullet-world ?w)
-               (assert (object ?w static-plane floor ((0 0 0) (0 0 0 1))
-                               :normal (0 0 1) :constant 0))
                (debug-window ?w)
+               (assert (object ?w btr::static-plane floor ((0 0 0) (0 0 0 1))
+                               :normal (0 0 1) :constant 0 :no-robot-collision t))
                (assert (object ?w btr::semantic-map my-kitchen ((-3.45 -4.35 0) (0 0 1 0))
                                :urdf ,kitchen-urdf))
                (robot ?robot)
@@ -199,7 +199,7 @@
                                     (plate-num *num-of-sets-on-table*))
   (let ((plate-name (new-symbol-with-id "PLATE" plate-id)))
     (make-designator 'location `((on "Cupboard") (name ,counter-name)
-                                 (for ,plate-name) (context table-setting) 
+                                 (for ,plate-name) (context table-setting)
                                  (object-count ,plate-num)))))
 
 (defun make-object-near-plate-desig (object-type object-id &optional (plate-id object-id))

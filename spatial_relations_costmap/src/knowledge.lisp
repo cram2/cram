@@ -29,9 +29,9 @@
 (in-package :spatial-relations-costmap)
 
 (def-fact-group costmap-metadata ()
-  (<- (costmap-size 7 7))
-  (<- (costmap-origin -3.5 -3.5))
-  (<- (costmap-resolution 0.01))
+  (<- (costmap-size 10 10))
+  (<- (costmap-origin -5 -5))
+  (<- (costmap-resolution 0.05))
 
   (<- (costmap-padding 0.38))
   (<- (costmap-manipulation-padding 0.38))
@@ -129,10 +129,11 @@
         (household-object-type ?world ?obj-name fork)))
 
   ;; table setting related
-  (<- (paddings-list kitchen-island table-setting (-0.04d0 0.01d0 0.03d0 0.8d0)))
-  (<- (paddings-list "CounterTop208" table-setting (-0.04d0 0.01d0 0.03d0 0.8d0)))
-  (<- (preferred-supporting-object-side kitchen-island table-setting :-))
-  (<- (preferred-supporting-object-side "CounterTop208" table-setting :-))
+  ;; (<- (paddings-list "kitchen_island" table-setting (-0.04d0 0.01d0 0.03d0 0.8d0)))
+  (<- (paddings-list "kitchen_island" table-setting (0 0 0 0)))
+  (<- (paddings-list "kitchen_sink_block" table-setting (-0.04d0 0.01d0 0.03d0 10.8d0)))
+  (<- (preferred-supporting-object-side "kitchen_island" table-setting :-))
+  (<- (preferred-supporting-object-side "kitchen_sink_block" table-setting :-))
   (<- (max-slot-size btr::plate table-setting 0.8d0))
   (<- (min-slot-size btr::plate table-setting 0.5d0))
   (<- (position-deviation-threshold btr::plate table-setting 0.03d0)))
