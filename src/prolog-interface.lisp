@@ -48,30 +48,30 @@
          request))
 
 (defun prolog-result->bdgs (query-id result &key (lispify nil) (package *package*))
-  (unless (json_prolog-srv:ok result)
+  (unless (json_prolog_msgs-srv:ok result)
     (error 'simple-error
            :format-control "Prolog query failed: ~a."
-           :format-arguments (list (json_prolog-srv:message result))))
+           :format-arguments (list (json_prolog_msgs-srv:message result))))
   (lazy-list ()
     (cond (*finish-marker*
            (call-prolog-service (concatenate 'string *service-namespace* "/finish")
-                                'json_prolog-srv:PrologFinish
+                                'json_prolog_msgs-srv:PrologFinish
                                 :id query-id)
            nil)
           (t
            (let ((next-value
                    (call-prolog-service (concatenate 'string *service-namespace* "/next_solution")
-                                'json_prolog-srv:PrologNextSolution
+                                'json_prolog_msgs-srv:PrologNextSolution
                                 :id query-id)))
-             (ecase (car (rassoc (json_prolog-srv:status next-value)
-                                 (symbol-codes 'json_prolog-srv:<prolognextsolution-response>)))
+             (ecase (car (rassoc (json_prolog_msgs-srv:status next-value)
+                                 (symbol-codes 'json_prolog_msgs-srv:<prolognextsolution-response>)))
                (:no_solution nil)
                (:wrong_id (error 'simple-error
                                  :format-control "We seem to have lost our query. ID invalid."))
                (:query_failed (error 'simple-error
                                      :format-control "Prolog query failed: ~a"
-                                     :format-arguments (list (json_prolog-srv:solution next-value))))
-               (:ok (cont (json-bdgs->prolog-bdgs (json_prolog-srv:solution next-value)
+                                     :format-arguments (list (json_prolog_msgs-srv:solution next-value))))
+               (:ok (cont (json-bdgs->prolog-bdgs (json_prolog_msgs-srv:solution next-value)
                                                   :lispify lispify
                                                   :package package)))))))))
 
@@ -87,7 +87,7 @@
     (prolog-result->bdgs
      query-id
      (call-prolog-service (concatenate 'string *service-namespace* "/query")
-                          'json_prolog-srv:PrologQuery
+                          'json_prolog_msgs-srv:PrologQuery
                           :id query-id
                           :query (prolog->json exp :prologify prologify))
      :lispify lispify :package package)))
@@ -104,7 +104,7 @@ evaluates it."
     (prolog-result->bdgs
      query-id
      (call-prolog-service (concatenate 'string *service-namespace* "/simple_query")
-                          'json_prolog-srv:PrologQuery
+                          'json_prolog_msgs-srv:PrologQuery
                           :id query-id
                           :query query-str)
      :lispify lispify :package package)))

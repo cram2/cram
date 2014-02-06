@@ -7,7 +7,7 @@
   <author>Lorenz Moesenlechner</author>
   <license>BSD</license>
   <rosdep name="sbcl"/>
-  <depend package="json_prolog"/>
+  <depend package="json_prolog_msgs"/>
   <depend package="yason"/>
   <depend package="cram_utilities"/>
   <depend package="cram_reasoning"/>
