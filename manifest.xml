@@ -1,0 +1,16 @@
+<package>
+  <description brief="cram_json_prolog"/>
+
+     cram_json_prolog
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <license>BSD</license>
+  <rosdep name="sbcl"/>
+  <depend package="json_prolog"/>
+  <depend package="yason"/>
+  <depend package="cram_utilities"/>
+  <depend package="cram_reasoning"/>
+  <depend package="alexandria"/>
+
+</package>
