@@ -9,7 +9,7 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cl_json_pl_client</url>
   <rosdep name="sbcl"/>
-  <depend package="json_prolog"/>
+  <depend package="json_prolog_msgs"/>
   <depend package="yason"/>
   <depend package="cram_utilities"/>
   <depend package="cram_reasoning"/>
