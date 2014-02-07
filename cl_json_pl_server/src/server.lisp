@@ -30,6 +30,7 @@
 (in-package :json-prolog)
 
 (defun prolog-bdgs->json (bdgs)
+  (cut:deprecate "Use of deprecated form CL-JSON-PL-SERVER:PROLOG-BDGS->JSON (CRAM-HIGHLEVEL). Please use CRAM-JSON-PROLOG::PROLOG-BDGS->JSON (CRAM-BRIDGE).")
   (format nil "{~{~{\"~a\": ~a~}~^,~}} "
           (mapcar (lambda (bdg)
                     (destructuring-bind (var . val)
@@ -41,6 +42,7 @@
                   bdgs)))
 
 (defun start-prolog-server (ns &key (package *package*))
+  (cut:deprecate "Use of deprecated form CL-JSON-PL-SERVER:START-PROLOG-SERVER (CRAM-HIGHLEVEL). Please use CRAM-JSON-PROLOG::START-PROLOG-SERVER (CRAM-BRIDGE).")
   (let ((open-queries (make-hash-table :test 'equal)))
     (init-type-atoms)
     (flet ((query (request)
@@ -53,11 +55,11 @@
                    (setf (gethash id open-queries)
                          (cram-reasoning:prolog
                           (json->prolog query)))
-                   (make-response 'json_prolog-srv:PrologQuery
+                   (make-response 'json_prolog_msgs-srv:PrologQuery
                                   :ok t
                                   :message ""))
                (error (e)
-                 (make-response 'json_prolog-srv:PrologQuery
+                 (make-response 'json_prolog_msgs-srv:PrologQuery
                                 :ok nil
                                 :message (format nil "Got error: ~a" e)))))
            (simple-query (request)
@@ -72,11 +74,11 @@
                           (let ((*read-eval* nil)
                                 (*package* package))
                             (replace-complex-types (read-from-string query)))))
-                   (make-response 'json_prolog-srv:PrologQuery
+                   (make-response 'json_prolog_msgs-srv:PrologQuery
                                   :ok t
                                   :message ""))
                (error (e)
-                 (make-response 'json_prolog-srv:PrologQuery
+                 (make-response 'json_prolog_msgs-srv:PrologQuery
                                 :ok nil
                                 :message (format nil "Got error: ~a" e)))))
            (next-solution (request)
@@ -85,19 +87,19 @@
                (multiple-value-bind (bdgs found?)
                    (gethash id open-queries)
                  (cond ((not found?)
-                        (make-response 'json_prolog-srv:PrologNextSolution
-                                       :status (symbol-code 'json_prolog-srv:<prolognextsolution-response>
+                        (make-response 'json_prolog_msgs-srv:PrologNextSolution
+                                       :status (symbol-code 'json_prolog_msgs-srv:<prolognextsolution-response>
                                                            :wrong_id)))
                        ((not bdgs)
                         (prog1
-                            (make-response 'json_prolog-srv:PrologNextSolution
-                                           :status (symbol-code 'json_prolog-srv:<prolognextsolution-response>
+                            (make-response 'json_prolog_msgs-srv:PrologNextSolution
+                                           :status (symbol-code 'json_prolog_msgs-srv:<prolognextsolution-response>
                                                                 :no_solution))
                           (remhash id open-queries)))
                        (t
                         (prog1
-                            (make-response 'json_prolog-srv:PrologNextSolution
-                                           :status (symbol-code 'json_prolog-srv:<prolognextsolution-response>
+                            (make-response 'json_prolog_msgs-srv:PrologNextSolution
+                                           :status (symbol-code 'json_prolog_msgs-srv:<prolognextsolution-response>
                                                                :ok)
                                            :solution (prolog-bdgs->json (lazy-car bdgs)))
                           (setf (gethash id open-queries)
@@ -106,12 +108,12 @@
              (with-fields ((id id))
                  request
                (remhash id open-queries)
-               (make-response 'json_prolog-srv:PrologFinish))))
+               (make-response 'json_prolog_msgs-srv:PrologFinish))))
       (register-service-fn (concatenate 'string ns "/query")
-                           #'query 'json_prolog-srv:PrologQuery)
+                           #'query 'json_prolog_msgs-srv:PrologQuery)
       (register-service-fn (concatenate 'string ns "/simple_query")
-                           #'simple-query 'json_prolog-srv:PrologQuery)
+                           #'simple-query 'json_prolog_msgs-srv:PrologQuery)
       (register-service-fn (concatenate 'string ns "/next_solution")
-                           #'next-solution 'json_prolog-srv:PrologNextSolution)
+                           #'next-solution 'json_prolog_msgs-srv:PrologNextSolution)
       (register-service-fn (concatenate 'string ns "/finish")
-                           #'finish 'json_prolog-srv:PrologFinish))))
+                           #'finish 'json_prolog_msgs-srv:PrologFinish))))
