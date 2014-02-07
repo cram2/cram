@@ -40,7 +40,7 @@
 
   :depends-on (:cram-utilities
                :cram-reasoning
-               :json_prolog-srv
+               :json_prolog_msgs-srv
                :yason :roslisp
                :alexandria)
 
