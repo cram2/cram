@@ -76,7 +76,7 @@
   (<- (object-type-shape plate :circle))
   (<- (object-type-shape fork :rectangle))
   (<- (object-type-shape knife :rectangle))
-  ;;  
+  ;;
   (<- (object-shape ?world ?object-name ?shape)
     (household-object-type ?world ?object-name ?object-type)
     (object-type-shape ?object-type ?shape))
@@ -136,4 +136,4 @@
   (<- (preferred-supporting-object-side "kitchen_sink_block" table-setting :-))
   (<- (max-slot-size btr::plate table-setting 0.8d0))
   (<- (min-slot-size btr::plate table-setting 0.5d0))
-  (<- (position-deviation-threshold btr::plate table-setting 0.03d0)))
+  (<- (position-deviation-threshold btr::plate table-setting 0.08d0)))
