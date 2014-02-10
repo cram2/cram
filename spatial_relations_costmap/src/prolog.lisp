@@ -183,7 +183,7 @@
                               ?object-count ?max-slot-size ?min-slot-size
                               ?pos-dev-threshold)
      ?costmap))
-  
+
   ;; uses make-objects-bounding-box-costmap-generator
   (<- (collision-invert-costmap ?desig ?padding ?cm)
     (bullet-world ?world)
@@ -256,7 +256,7 @@
   ;; collision avoidance costmap for the spatial relations desigs
   ;; Disabled.
   (<- (desig-costmap ?desig ?cm)
-    nil
+    (fail)
     (or
      (desig-prop ?desig (left-of ?_))
      (desig-prop ?desig (right-of ?_))
@@ -280,12 +280,12 @@
   ;;   (context table-setting) (for plate) (object-count 4))
   (<- (desig-costmap ?designator ?costmap)
     (desig-prop ?designator (on ?_))
-    (desig-prop ?designator (name ?supp-obj-name)) 
+    (desig-prop ?designator (name ?supp-obj-name))
     (desig-prop ?designator (context table-setting))
     (desig-prop ?designator (for ?for-object))
     (desig-prop ?designator (object-count ?object-count))
     (bullet-world ?world)
-    (object-instance-name ?for-object ?object-name) 
+    (object-instance-name ?for-object ?object-name)
     (household-object-type ?world ?object-name ?object-type)
     (lisp-fun sem-map-utils:designator->semantic-map-objects
               ?designator ?supp-objects)
@@ -297,7 +297,7 @@
   (<- (desig-solution-not-in-collision ?desig ?object-to-check ?pose)
     (bullet-world ?world)
     (with-copied-world ?world
-      (object-instance-name ?object-to-check ?object-name) 
+      (object-instance-name ?object-to-check ?object-name)
       (assert (object-pose ?world ?object-name ?pose))
       (forall (contact ?world ?object-name ?other-object-name)
               (not (object-type ?world ?other-object-name btr::household-object))))))
@@ -340,15 +340,15 @@
     (%object-size-without-handles ?world ?obj ?shape ?size))
   ;;
   (<- (%object-size-without-handles ?world ?obj ?shape ?size)
-    (== ?shape :circle) 
+    (== ?shape :circle)
     (lisp-fun get-aabb-circle-diameter ?obj ?size))
   ;;
   (<- (%object-size-without-handles ?world ?obj ?shape ?size)
-    (== ?shape :rectangle)       
+    (== ?shape :rectangle)
     (lisp-fun get-aabb-min-length ?obj ?size))
   ;;
   (<- (%object-size-without-handles ?world ?obj ?shape ?size)
-    (== ?shape :oval)       
+    (== ?shape :oval)
     (lisp-fun get-aabb-oval-diameter ?obj ?size))
   ;;
   (<- (%object-size-without-handles ?world ?obj ?shape ?size)
