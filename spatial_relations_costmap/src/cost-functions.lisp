@@ -37,17 +37,20 @@
 ;; used for near and far-from desig-props
 (defun get-aabb-min-length (object)
   (let* ((dims (bt:bounding-box-dimensions (aabb object))))
-    (min (cl-transforms:x dims) (cl-transforms:y dims))))
+    (min (cl-transforms:x dims) (cl-transforms:y dims))
+    0.15))
 
 ;; used for near and far-from desig-props
 (defun get-aabb-circle-diameter (object)
-  (cl-transforms:x (bt:bounding-box-dimensions (aabb object))))
+  (cl-transforms:x (bt:bounding-box-dimensions (aabb object)))
+  0.15)
 
 ;; used for near and far-from desig-props
 ;; we assume the radius of the oval is the max of its two radia
 (defun get-aabb-oval-diameter (object)
   (let ((dims (bt:bounding-box-dimensions (aabb object))))
-    (max (cl-transforms:x dims) (cl-transforms:y dims))))
+    (max (cl-transforms:x dims) (cl-transforms:y dims))
+    0.15))
 
 ;; used for near desig-prop
 ;; the radius of the costmap is the distance from the center of the ref-obj
