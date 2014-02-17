@@ -29,9 +29,9 @@
 (in-package :spatial-relations-costmap)
 
 (def-fact-group costmap-metadata ()
-  (<- (costmap-size 10 10))
-  (<- (costmap-origin -5 -5))
-  (<- (costmap-resolution 0.05))
+  (<- (costmap-size 12 12))
+  (<- (costmap-origin -6 -6))
+  (<- (costmap-resolution 0.03))
 
   (<- (costmap-padding 0.38))
   (<- (costmap-manipulation-padding 0.38))
