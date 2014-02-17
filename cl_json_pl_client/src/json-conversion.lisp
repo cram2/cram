@@ -36,18 +36,22 @@
   WITH-TYPE-ATOMS")
 
 (defmacro with-type-atoms (&body body)
+  (cut:deprecate "Use of deprecated form CL-JSON-PL-CLIENT:WITH-TYPE-ATOMS (CRAM-HIGHLEVEL). Please use the equivalent in CRAM-JSON-PROLOG (CRAM-BRIDGE).")
   `(let ((*complex-type-atoms* nil))
      ,@body))
 
 (defun init-type-atoms ()
+  (cut:deprecate "Use of deprecated form CL-JSON-PL-CLIENT:INIT-TYPE-ATOMS (CRAM-HIGHLEVEL). Please use the equivalent in CRAM-JSON-PROLOG (CRAM-BRIDGE).")
   (when (eq *complex-type-atoms* :undefined)
     (setf *complex-type-atoms* nil)))
 
 (defun clear-type-atoms ()
+  (cut:deprecate "Use of deprecated form CL-JSON-PL-CLIENT:CLEAR-TYPE-ATOMS (CRAM-HIGHLEVEL). Please use the equivalent in CRAM-JSON-PROLOG (CRAM-BRIDGE).")
   (unless (eq *complex-type-atoms* :undefined)
     (setf *complex-type-atoms* nil)))
 
 (defun prologify (s)
+  (cut:deprecate "Use of deprecated form CL-JSON-PL-CLIENT:PROLOGIFY (CRAM-HIGHLEVEL). Please use the equivalent in CRAM-JSON-PROLOG (CRAM-BRIDGE).")
   (flet ((contains-lower-case-char (symbol)
            (and 
             (find-if (lambda (ch)
@@ -61,9 +65,11 @@
         (string-downcase (substitute #\_ #\- (copy-seq (string s)))))))
 
 (defun lispify (s)
+  (cut:deprecate "Use of deprecated form CL-JSON-PL-CLIENT:LISPIFY (CRAM-HIGHLEVEL). Please use the equivalent in CRAM-JSON-PROLOG (CRAM-BRIDGE).")
   (string-upcase (string s)))
 
 (defun replace-all (new old str)
+  (cut:deprecate "Use of deprecated form CL-JSON-PL-CLIENT:REPLACE-ALL (CRAM-HIGHLEVEL). Please use the equivalent in CRAM-JSON-PROLOG (CRAM-BRIDGE).")
   (with-output-to-string (out)
     (let ((pos (search old str)))
       (cond (pos
@@ -74,12 +80,15 @@
       out)))
 
 (defun escape-quotes (str)
+  (cut:deprecate "Use of deprecated form CL-JSON-PL-CLIENT:ESCAPE-QUOTES (CRAM-HIGHLEVEL). Please use the equivalent in CRAM-JSON-PROLOG (CRAM-BRIDGE).")
   (replace-all "\\'" "'" str))
 
 (defun unescape-string (str)
+  (cut:deprecate "Use of deprecated form CL-JSON-PL-CLIENT:UNESCAPE-STRING (CRAM-HIGHLEVEL). Please use the equivalent in CRAM-JSON-PROLOG (CRAM-BRIDGE).")
   (remove "\\" (copy-seq str)))
 
 (defun jsonify-complex-type (exp &key prologify)
+  (cut:deprecate "Use of deprecated form CL-JSON-PL-CLIENT:JSONIFY-COMPLEX-TYPE (CRAM-HIGHLEVEL). Please use the equivalent in CRAM-JSON-PROLOG (CRAM-BRIDGE).")
   (jsonify-exp
    (let ((id (gensym (symbol-name (type-of exp)))))
      (if (eq *complex-type-atoms* :undefined)
@@ -89,6 +98,7 @@
    :prologify prologify))
 
 (defun prologify-complex-type (exp)
+  (cut:deprecate "Use of deprecated form CL-JSON-PL-CLIENT:PROLOGIFY-COMPLEX-TYPE (CRAM-HIGHLEVEL). Please use the equivalent in CRAM-JSON-PROLOG (CRAM-BRIDGE).")
   (let ((atom-name (typecase exp
                      (string exp)
                      (symbol (symbol-name exp)))))
@@ -101,6 +111,7 @@
          exp))))
 
 (defun replace-complex-types (exp)
+  (cut:deprecate "Use of deprecated form CL-JSON-PL-CLIENT:REPLACE-COMPLEX-TYPES (CRAM-HIGHLEVEL). Please use the equivalent in CRAM-JSON-PROLOG (CRAM-BRIDGE).")
   (mapcar (lambda (e)
             (typecase e
               (list (replace-complex-types e))
@@ -110,6 +121,7 @@
           exp))
 
 (defun jsonify-exp (exp &key prologify)
+  (cut:deprecate "Use of deprecated form CL-JSON-PL-CLIENT:JSONIFY-EXP (CRAM-HIGHLEVEL). Please use the equivalent in CRAM-JSON-PROLOG (CRAM-BRIDGE).")
   "Recursively walks exp and converts every lisp-expression
              into an expression that leads to the correct json
              expression when passed to JSON:ENCODE."
@@ -157,12 +169,14 @@
       (t (jsonify-complex-type exp :prologify prologify)))))
 
 (defun prolog->json (exp &key (prologify t))
+  (cut:deprecate "Use of deprecated form CL-JSON-PL-CLIENT:PROLOG->JSON (CRAM-HIGHLEVEL). Please use the equivalent in CRAM-JSON-PROLOG (CRAM-BRIDGE).")
   "Converts a lisp-prolog expression into its json representation."
   (let ((strm (make-string-output-stream)))
     (yason:encode (gethash "term" (jsonify-exp exp :prologify prologify)) strm)
     (get-output-stream-string strm)))
 
 (defun json->prolog (exp &key (lispify nil) (package *package*))
+  (cut:deprecate "Use of deprecated form CL-JSON-PL-CLIENT:JSON-PROLOG (CRAM-HIGHLEVEL). Please use the equivalent in CRAM-JSON-PROLOG (CRAM-BRIDGE).")
   "Converts a json encoded string into its lisp prolog
   representation."
   (flet ((map-operators (str)
@@ -188,6 +202,7 @@
                    (var (intern (concatenate 'string "?" var) package)))))))))
 
 (defun json-bdgs->prolog-bdgs (bdgs-str &key (lispify nil) (package *package*))
+  (cut:deprecate "Use of deprecated form CL-JSON-PL-CLIENT:JSON-BDGS->PROLOG->BDGS (CRAM-HIGHLEVEL). Please use the equivalent in CRAM-JSON-PROLOG (CRAM-BRIDGE).")
   (loop for var being the hash-keys in (yason:parse bdgs-str)
         using (hash-value bdg)
         collecting (cons (intern (concatenate 'string "?" var) package)
