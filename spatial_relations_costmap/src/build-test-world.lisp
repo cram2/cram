@@ -181,7 +181,7 @@
 
 (defun put-plates-on-table-with-far (&optional (number-of-plates *num-of-sets-on-table*))
   (spawn-stuff)
-  (cram-plan-library:with-designators
+  (cram-language-designator-support:with-designators
       ((des-for-plate-2 (location `((right-of plate-1) (far-from plate-1)
                                     (for plate-2))))
        (des-for-plate-4 (location `((left-of plate-3) (far-from plate-3)
@@ -254,7 +254,7 @@
 
 (cpl-impl:def-cram-function find-object-on-counter (object-type counter-name)
   "Returns an object designator."
-  (cram-plan-library:with-designators
+  (cram-language-designator-support:with-designators
       ((on-counter (desig-props:location `((desig-props:on "Cupboard")
                                            (desig-props:name ,counter-name))))
        (the-object (desig-props:object `((desig-props:type ,object-type)
@@ -264,7 +264,7 @@
     (plan-lib:perceive-object 'cram-plan-library:a the-object)))
 
 (cpl-impl:def-cram-function put-plate-on-table (plate-obj-desig)
-  (cram-plan-library:with-designators
+  (cram-language-designator-support:with-designators
       ((on-kitchen-island (location `((on cupboard) (name "kitchen_island")
                                       (for ,plate-obj-desig) (context table-setting) 
                                       (object-count 4)))))
@@ -281,7 +281,7 @@
 
 (cpl-impl:def-cram-function put-object-near-plate (object-to-put plate-obj
                                                    spatial-relations)
-  (cram-plan-library:with-designators
+  (cram-language-designator-support:with-designators
       ((put-down-location (location `(,@(loop for property in spatial-relations
                                               collecting `(,property ,plate-obj))
                                       (near ,plate-obj) (for ,object-to-put)
