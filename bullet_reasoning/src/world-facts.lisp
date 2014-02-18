@@ -199,13 +199,16 @@
     (member (?obj . ?link) ?link-contacts))
 
   (<- (robot-not-in-collision-with-environment ?world ?robot-name)
-    (bullet-world ?world)
-    (%object ?world ?robot-name ?robot)
-    (lisp-type ?robot robot-object)
-    (forall (contact ?world ?robot-name ?object-name)
-            (or (attached ?world ?robot-name ?_ ?object-name)
-                (and (slot-value ?world objects-no-collision-with-robot ?objects)
-                     (member ?object-name ?objects)))))
+    ;; Unfortunately collision detection doesn't work properly with
+    ;; the current version of bullet. This will stay commented out for a while.
+    ;; (bullet-world ?world)
+    ;; (%object ?world ?robot-name ?robot)
+    ;; (lisp-type ?robot robot-object)
+    ;; (forall (contact ?world ?robot-name ?object-name)
+    ;;         (or (attached ?world ?robot-name ?_ ?object-name)
+    ;;             (and (slot-value ?world objects-no-collision-with-robot ?objects)
+    ;;                  (member ?object-name ?objects))))
+    )
 
   (<- (stable ?world ?obj-name)
     (bullet-world ?world)

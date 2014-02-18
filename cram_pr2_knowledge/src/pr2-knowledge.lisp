@@ -204,7 +204,7 @@
              (end-effector-link ?arm ?link)
              (not (attached ?_ ?robot ?link ?_))))))
 
-(defmethod side->ik-namespace ((side symbol))
+(defmethod side->ik-group-name ((side symbol))
   (ecase side
-    (:right "reasoning/pr2_right_arm_kinematics")
-    (:left "reasoning/pr2_left_arm_kinematics")))
+    (:right "right_arm")
+    (:left "left_arm")))

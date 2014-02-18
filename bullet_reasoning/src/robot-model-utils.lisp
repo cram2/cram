@@ -33,9 +33,8 @@
 (defvar *ik-solver-info-cache* nil
   "An alist of namespace names to GetKinematicSolverInfo messages.")
 
-(defvar *persistent-ik-services* nil
-  "An alist that maps from ROS namespaces to persistent service
-  handles.")
+(defvar *persistent-ik-service* nil
+  "IK persistent service handle.")
 
 (defun set-robot-state-from-tf (tf robot &key (reference-frame "/map") timestamp)
   (let* ((root-link (cl-urdf:name (cl-urdf:root-link (urdf robot))))
@@ -162,7 +161,7 @@ sensor_msgs/JointStates message."
   (let ((reference-transform-inv (cl-transforms:transform-inv
                                   (cl-transforms:reference-transform
                                    (link-pose robot base-frame)))))
-    (dolist (link (link-names robot) tf)
+    (dolist (link (link-names robot) tf) ;; todo: check if tf result is actually needed
       (unless (equal link base-frame)
         (let ((transform (cl-transforms:transform*
                           reference-transform-inv
@@ -241,77 +240,102 @@ joint positions as seeds."
      (cl-transforms:translation goal-trans)
      (cl-transforms:rotation goal-trans))))
 
-(defun get-ik-solver-info (ik-namespace)
-  (or (cdr (assoc ik-namespace *ik-solver-info-cache* :test #'equal))
-      (let ((solver-info (roslisp:call-service
-                          (concatenate 'string ik-namespace "/get_ik_solver_info")
-                          'iai_kinematics_msgs-srv:getkinematicsolverinfo)))
-        (push (cons ik-namespace solver-info) *ik-solver-info-cache*)
-        solver-info)))
+;; (defun get-ik-solver-info (group-name)
+;;   (or (cdr (assoc group-name *ik-solver-info-cache* :test #'equal))
+;;       (let ((solver-info (roslisp:call-service
+;;                           (concatenate 'string ik-namespace "/get_ik_solver_info")
+;;                           'iai_kinematics_msgs-srv:getkinematicsolverinfo)))
+;;         (push (cons group-name solver-info) *ik-solver-info-cache*)
+;;         solver-info)))
 
-(defun get-persistent-ik-service (ik-namespace)
-  (let ((service (cdr (assoc ik-namespace *persistent-ik-services*
-                             :test #'equal))))
-    (unless (and service (roslisp:persistent-service-ok service))
-      (setf service (make-instance 'roslisp:persistent-service
-                      :service-name (concatenate
-                                     'string ik-namespace "/get_ik")
-                      :service-type "kinematics_msgs/GetPositionIK"))
-      (setf *persistent-ik-services*
-            (cons (cons ik-namespace service)
-                  (remove ik-namespace *persistent-ik-services*
-                          :key #'car :test #'equal))))
-    service))
+(defun get-persistent-ik-service ()
+  (unless (and *persistent-ik-service*
+               (roslisp:persistent-service-ok *persistent-ik-service*))
+    (setf *persistent-ik-service* (make-instance 'roslisp:persistent-service
+                                    :service-name "moveit/compute_ik"
+                                    :service-type "moveit_msgs/GetPositionIK")))
+  *persistent-ik-service*)
 
-(defun get-ik (robot pose-stamped
-               &key 
+(defun strip-joint-state! (joint-state arm)
+  "This hack is called 'oh I hate moveit' and will stay here until moveit
+acquires a nicer ROS API which will never happen because Ioan got bought by
+Google, or until somebody writes a nice ROS API wrapper around the moveit
+C++ API which has a very low probability happening because ain't nobody's got
+time for that :(..."
+  (let* ((arm-joints `(("left_arm" "l_shoulder_pan_joint"
+                                   "l_shoulder_lift_joint"
+                                   "l_upper_arm_roll_joint"
+                                   "l_elbow_flex_joint"
+                                   "l_forearm_roll_joint"
+                                   "l_wrist_flex_joint"
+                                   "l_wrist_roll_joint")
+                       ("right_arm"  "r_shoulder_pan_joint"
+                                     "r_shoulder_lift_joint"
+                                     "r_upper_arm_roll_joint"
+                                     "r_elbow_flex_joint"
+                                     "r_forearm_roll_joint"
+                                     "r_wrist_flex_joint"
+                                     "r_wrist_roll_joint")))
+         (joints (slot-value joint-state 'sensor_msgs-msg::name))
+         (indeces (mapcar #'(lambda (item) (position item joints :test #'equal))
+                          (cdr (assoc arm arm-joints :test #'equal)))))
+    (mapc #'(lambda (a-slot)
+                (setf (slot-value joint-state a-slot)
+                      (map 'vector #'(lambda (a-position)
+                                       (elt (slot-value joint-state a-slot) a-position))
+                           indeces)))
+            `(sensor_msgs-msg::name sensor_msgs-msg::position))))
+
+(defun get-ik (robot
+               pose-stamped
+               &key
                  (tool-frame (cl-transforms:make-pose
                               (cl-transforms:make-3d-vector 0 0 0)
                               (cl-transforms:make-quaternion 0 0 0 1)))
-                 (ik-namespace (error "Namespace of IK service has to be specified"))
+                 (group-name (error "Plan group of IK service has to be specified"))
                  (fixed-frame "map")
                  (robot-base-frame "base_footprint")
                  seed-state)
-  (let ((tf (make-instance 'tf:transformer))
+  (let ((tf (make-instance 'tf:transformer)) ; create an empty tf transformer
         (time (roslisp:ros-time)))
+    ;; tell the tf transformer the current configuration of robot's joints
     (set-tf-from-robot-state tf robot
                              :base-frame robot-base-frame
                              :time time)
+    ;; tell the tf transformer where the robot currently is in the global
+    ;; fixed coordinate system
     (tf:set-transform tf (tf:transform->stamped-transform
                           fixed-frame robot-base-frame time
                           (cl-transforms:pose->transform (pose robot))))
-    (roslisp:with-fields ((joint-names (joint_names kinematic_solver_info))
-                          (link-names (link_names kinematic_solver_info)))
-        (get-ik-solver-info ik-namespace)
-      (let* ((ik-base-frame (cl-urdf:name
-                             (cl-urdf:parent
-                              (gethash (elt joint-names 0)
-                                       (cl-urdf:joints (urdf robot))))))
-             (pose (tf:transform-pose tf :pose (tf:copy-pose-stamped pose-stamped :stamp 0)
-                                         :target-frame ik-base-frame)))
-        (roslisp:with-fields ((solution (joint_state solution))
-                              (error-code (val error_code)))
-            (roslisp:call-persistent-service
-             (get-persistent-ik-service ik-namespace)
-             :ik_request
-             (roslisp:make-msg
-              "iai_kinematics_msgs/PositionIKRequest"
-              ;; we assume that the last joint in JOINT-NAMES is the end
-              ;; of the chain which is what we want for ik_link_name.
-              :ik_link_name (elt link-names 0)
-              :pose_stamped (tf:pose-stamped->msg
-                             (calculate-tool-pose pose :tool tool-frame))
-              :ik_seed_state (roslisp:make-msg
-                              "iai_kinematics_msgs/RobotState"
-                              joint_state
-                              (or seed-state
-                                  (make-robot-joint-state-msg
-                                   robot :joint-names joint-names))))
-             :timeout 1.0)
-          (when (eql error-code (roslisp-msg-protocol:symbol-code
-                                 "iai_kinematics_msgs-msg:ArmNavigationErrorCodes"
-                                 :success))
-            (list solution)))))))
+    (let* ((ik-base-frame "torso_lift_link")
+           (pose (tf:transform-pose tf :pose (tf:copy-pose-stamped pose-stamped :stamp 0)
+                                       :target-frame ik-base-frame)))
+      (roslisp:with-fields ((solution (joint_state solution))
+                            (error-code (val error_code)))
+          (roslisp:call-persistent-service
+           (get-persistent-ik-service)
+           :ik_request
+           (roslisp:make-msg
+            "moveit_msgs/PositionIKRequest"
+            ;; we assume that the last joint in JOINT-NAMES is the end
+            ;; of the chain which is what we want for ik_link_name.
+            ;; :ik_link_name (elt link-names 0)  <- moveit per default takes
+            ;;                                      the last link in the chain
+            :pose_stamped (tf:pose-stamped->msg
+                           (calculate-tool-pose pose :tool tool-frame))
+            ;; something is wrong with the seed state atm, so this will stay
+            ;; disabled for now
+            ;; :robot_state (roslisp:make-msg
+            ;;               "moveit_msgs/RobotState"
+            ;;               :joint_state (or seed-state
+            ;;                                (make-robot-joint-state-msg robot)))
+            :group_name group-name
+            :timeout 1.0))
+        (when (eql error-code (roslisp-msg-protocol:symbol-code
+                               'moveit_msgs-msg:moveiterrorcodes
+                               :success))
+          (strip-joint-state! solution group-name)
+          (list solution))))))
 
 (defun calculate-pan-tilt (robot pan-link tilt-link pose)
   "Calculates values for the pan and tilt joints so that they pose on
