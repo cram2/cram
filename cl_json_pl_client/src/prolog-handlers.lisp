@@ -31,6 +31,7 @@
 (in-package :json-prolog)
 
 (defun rename-prolog-vars (vars)
+  (cut:deprecate "Use of deprecated form CL-JSON-PL-CLIENT:RENAME-PROLOG-VARS (CRAM-HIGHLEVEL). Please use the equivalent in CRAM-JSON-PROLOG (CRAM-BRIDGE).")
   "Renames variables and creates valid names for prolog. Returns an
 alist of the form ((new-var . old-var) ...)"
   (mapcar (lambda (var)
