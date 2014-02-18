@@ -49,7 +49,7 @@
 (defun start-ros-and-bullet ()
   (setf *bdgs* nil)
   (roslisp-utilities:startup-ros :anonymous nil)
-  (let ((urdf (cl-urdf:parse-urdf (roslisp:get-param "/moveit/robot_description")))
+  (let ((urdf (cl-urdf:parse-urdf (roslisp:get-param "robot_description")))
         (kitchen-urdf (cl-urdf:parse-urdf (roslisp:get-param "kitchen_description"))))
     (setf *bdgs*
           (car
