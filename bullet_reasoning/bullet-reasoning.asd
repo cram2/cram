@@ -35,7 +35,7 @@
     :depends-on (alexandria
                  cram-reasoning
                  cl-bullet cl-bullet-vis
-                 cl-json-pl-client
+                 cram-json-prolog
                  cl-urdf
                  cl-tf
                  roslisp

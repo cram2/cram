@@ -13,7 +13,7 @@
   <depend package="cram_manipulation_knowledge" />
   <depend package="cl_bullet" />
   <depend package="cl_bullet_vis" />
-  <depend package="cl_json_pl_client" />
+  <depend package="cram_json_prolog" />
   <depend package="cl_urdf" />
   <depend package="cl_tf" />
   <!-- <depend package="kinematics_msgs" /> -->
