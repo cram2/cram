@@ -36,6 +36,7 @@
                cram-reasoning
                process-modules
                designators
+               cram-language-designator-support
                cram-roslisp-common
                cram-plan-knowledge
                cram-plan-failures
@@ -54,18 +55,16 @@
                                                "achieve-ptu"
                                                "utilities"))
              (:file "achieve-ptu"
-              :depends-on ("package" "goal-declarations" "with-designators"))
+              :depends-on ("package" "goal-declarations"))
              (:file "at-location" :depends-on ("package"))
-             (:file "with-designators" :depends-on ("package"))
              (:file "perceive-object"
-              :depends-on ("package" "goal-declarations" "at-location" "utilities" "with-designators"))
+              :depends-on ("package" "goal-declarations" "at-location" "utilities"))
              (:file "perceive-state" :depends-on ("package" "goal-declarations"))
              (:file "achieve-container-manipulation" :depends-on ("achieve-object-manipulation"))
              (:file "achieve-object-manipulation"
               :depends-on ("package"
                            "goal-declarations"
                            "at-location"
-                           "utilities"
-                           "with-designators"))
+                           "utilities"))
              (:file "perform" :depends-on ("package" "goal-declarations"))
              (:file "utilities" :depends-on ("package"))))))

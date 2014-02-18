@@ -36,7 +36,7 @@
                 cram-plan-knowledge
                 cram-execution-trace
                 cram-plan-library
-                cl-json-pl-server
+                cram-json-prolog
                 execution_trace_server-srv)
    :components
    ((:module "src"

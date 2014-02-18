@@ -14,7 +14,7 @@
   <depend package="cram_plan_library"/>
   <depend package="cram_roslisp_common"/>
   <depend package="cram_utilities"/>
-  <depend package="cl_json_pl_server"/>
+  <depend package="cram_json_prolog"/>
 
 </package>
 
