@@ -32,7 +32,7 @@
   
   :depends-on (designators
                cl-semantic-map-utils
-               cl-json-pl-client
+               cram-json-prolog
                cram-reasoning
                cram-projection)
   :components
