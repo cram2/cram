@@ -30,7 +30,7 @@
 
 (define-test test-copy-world-for-objects-not-in-collision
   (handler-case
-      (let ((urdf (cl-urdf:parse-urdf (roslisp:get-param "robot_description_lowres")))
+      (let ((urdf (cl-urdf:parse-urdf (roslisp:get-param "robot_description")))
             (first-world (copy-world *current-bullet-world*)))
         (with-current-bullet-world first-world
           (assert-false

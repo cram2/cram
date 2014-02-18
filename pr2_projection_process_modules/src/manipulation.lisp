@@ -164,7 +164,7 @@
                robot-object
                (tf:copy-pose-stamped
                 ?parking-pose :orientation (get-link-orientation-in-robot link))
-               :ik-namespace (side->ik-namespace side)
+               :group-name (side->ik-group-name side)
                :seed-state (make-joint-state-message ?joint-states)))))
       (unless ik-solution
         (cpl-impl:fail 'cram-plan-failures:manipulation-pose-unreachable))

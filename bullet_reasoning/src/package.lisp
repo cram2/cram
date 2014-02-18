@@ -77,7 +77,7 @@
            init-ros-object-database clear-bullet-world
            ros-household-object execute open close reach-ik-solution
            attached attached-objects object-attached attach-object detach-object
-           side->ik-namespace household-object-dimensions get-ik
+           side->ik-group-name household-object-dimensions get-ik
            make-joint-state-message open-object close-object
            set-articulated-object-joint-position
            with-world copied-world with-copied-world
