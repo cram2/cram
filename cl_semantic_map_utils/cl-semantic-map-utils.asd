@@ -33,7 +33,7 @@
   :license "BSD"
   :description "Utilities to work with semantic maps in lisp"
   
-  :depends-on (cl-json-pl-client
+  :depends-on (cram-json-prolog
                cram-roslisp-common
                cl-transforms
                designators
