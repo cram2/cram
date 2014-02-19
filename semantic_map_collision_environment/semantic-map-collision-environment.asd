@@ -34,7 +34,7 @@
   :description "Use semantic map to set static collision objects in collision environment"
   
   :depends-on (roslisp
-               cl-json-pl-client
+               cram-json-prolog
                cl-tf
                cram-reasoning
                cram-utilities
