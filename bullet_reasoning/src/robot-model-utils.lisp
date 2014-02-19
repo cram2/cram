@@ -252,7 +252,7 @@ joint positions as seeds."
   (unless (and *persistent-ik-service*
                (roslisp:persistent-service-ok *persistent-ik-service*))
     (setf *persistent-ik-service* (make-instance 'roslisp:persistent-service
-                                    :service-name "moveit/compute_ik"
+                                    :service-name "compute_ik"
                                     :service-type "moveit_msgs/GetPositionIK")))
   *persistent-ik-service*)
 
