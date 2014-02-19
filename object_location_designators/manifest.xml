@@ -10,7 +10,7 @@
   <url>http://ros.org/wiki/object_location_designators</url>
   <depend package="cram_designators"/>
   <depend package="cl_semantic_map_utils"/>
-  <depend package="cl_json_pl_client"/>
+  <depend package="cram_json_prolog"/>
   <depend package="cram_reasoning"/>
   <depend package="cram_projection"/>
 
