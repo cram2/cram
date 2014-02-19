@@ -1,19 +1,19 @@
 ;;; Copyright (c) 2012, Gayane Kazhoyan <kazhoyan@in.tum.de>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
 ;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
+;;;       Technische Universitaet Muenchen nor the names of its contributors
+;;;       may be used to endorse or promote products derived from this software
 ;;;       without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -48,9 +48,9 @@
 
 (defun start-ros-and-bullet ()
   (setf *bdgs* nil)
-  (cram-roslisp-common:startup-ros :anonymous nil)
-  (let* ((urdf (cl-urdf:parse-urdf (roslisp:get-param "robot_description_lowres")))
-         (kitchen-urdf (cl-urdf:parse-urdf (roslisp:get-param "kitchen_description"))))
+  (roslisp-utilities:startup-ros :anonymous nil)
+  (let ((urdf (cl-urdf:parse-urdf (roslisp:get-param "robot_description")))
+        (kitchen-urdf (cl-urdf:parse-urdf (roslisp:get-param "kitchen_description"))))
     (setf *bdgs*
           (car
            (force-ll
@@ -58,10 +58,10 @@
              `(and
                (clear-bullet-world)
                (bullet-world ?w)
-               (assert (object ?w static-plane floor ((0 0 0) (0 0 0 1))
-                               :normal (0 0 1) :constant 0))
                (debug-window ?w)
-               (assert (object ?w semantic-map sem-map ((1.4 2.8 0) (0 0 0.9994 -0.0342))
+               (assert (object ?w btr::static-plane floor ((0 0 0) (0 0 0 1))
+                               :normal (0 0 1) :constant 0 :no-robot-collision t))
+               (assert (object ?w btr::semantic-map my-kitchen ((-3.45 -4.35 0) (0 0 1 0))
                                :urdf ,kitchen-urdf))
                (robot ?robot)
                (assert (object ?w urdf ?robot ((0 0 0) (0 0 0 1)) :urdf ,urdf))
@@ -69,8 +69,7 @@
                (assert (joint-state ?w ?robot ?joint-states))
                (assert (joint-state ?w ?robot (("torso_lift_joint" 0.33)))))))))))
 
-
-
+;; (setf sem-map (var-value '?sem-map (lazy-car (prolog `(%object ?w my-kitchen ?sem-map) *bdgs*))))
 
 ;; ;; desig for a glass near a plate
 ;; (setf des (desig:make-designator 'desig-props:location '((desig-props:right-of plate-1) (desig-props:behind plate-1) (desig-props:near plate-1) (desig-props:for mug-1) (desig-props:on counter-top) (desig-props:name kitchen-island))))
@@ -133,7 +132,7 @@
                 (assert (object ?w mesh pot-1 ((2.0 0 0) (0 0 0 1))
                                 :mesh pot :mass 0.2 :color (0.1 0.2 0.3)))
                 (assert (object ?w mesh bowl-1 ((2.0 0 0) (0 0 0 1))
-                                :mesh bowl :mass 0.2 :color (0 0.3 0))) 
+                                :mesh bowl :mass 0.2 :color (0 0.3 0)))
                 (assert (object ?w mesh bowl-2 ((2.0 0 0) (0 0 0 1))
                                 :mesh bowl :mass 0.2 :color (0 0.3 0)))
                 (assert (object ?w mesh bowl-3 ((2.0 0 0) (0 0 0 1))
@@ -153,36 +152,36 @@
             ((-1.9 1.3 0.8911207699875103d0) (0 0 0 1))
             ((-2.0 2.36 0.8911207699875103d0) (0 0 0 1))
             ((-1.95 1.16 0.8911207699875103d0) (0 0 0 1))))
-  
+
   ;; (simulate *current-bullet-world* 50)
   )
 
 (defun put-stuff-on-counter ()
   (spawn-stuff)
   (put-stuff-away)
-  
+
   (loop for i from 1 to *num-of-sets-on-table*
         for plate-coord = 0.86 then (+ plate-coord 0.027)
-        for fork-coord = 0.8 then (+ fork-coord 0.04)
+        for fork-coord = 1.4 then (+ fork-coord 0.05)
         for knife-coord = (+ fork-coord (* (+ *num-of-sets-on-table* 1) 0.04))
         do (move-object (new-symbol-with-id "PLATE" i)
-                        `((0.88 1 ,plate-coord) (0 0 0 1)))
+                        `((1.45 0.8 ,plate-coord) (0 0 0 1)))
            (move-object (new-symbol-with-id "FORK" i)
-                        `((,fork-coord 0.7 0.862) (0 0 1 1)))
+                        `((,fork-coord 0.5 0.865) (0 0 1 1)))
            (move-object (new-symbol-with-id "KNIFE" i)
-                        `((,knife-coord 0.7 0.857) (0 0 1 1))))
+                        `((,knife-coord 0.5 0.857) (0 0 1 1))))
 
-  (move-object 'mug-1 '((0.8 1.48 0.9119799601336841d0) (0 0 0 1))) 
-  (move-object 'mug-2 '((0.78 1.32 0.9119799601336841d0) (0 0 0 1)))
-  (move-object 'mug-3 '((0.9 1.4 0.9119799601336841d0) (0 0 0 1)))
-  (move-object 'mug-4 '((1 1.29 0.9119799601336841d0) (0 0 0 1)))
-  (move-object 'mug-5 '((0.98 1.47 0.9119799601336841d0) (0 0 0 1))))
+  (move-object 'mug-1 '((1.5 1.08 0.9119799601336841d0) (0 0 0 1)))
+  (move-object 'mug-2 '((1.65 1.02 0.9119799601336841d0) (0 0 0 1)))
+  (move-object 'mug-3 '((1.35 1.11 0.9119799601336841d0) (0 0 0 1)))
+  (move-object 'mug-4 '((1.55 1.19 0.9119799601336841d0) (0 0 0 1)))
+  (move-object 'mug-5 '((1.5 1.17 0.9119799601336841d0) (0 0 0 1))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;; ONLY DESIGS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun put-plates-on-table-with-far (&optional (number-of-plates *num-of-sets-on-table*))
   (spawn-stuff)
-  (cram-plan-library:with-designators
+  (cram-language-designator-support:with-designators
       ((des-for-plate-2 (location `((right-of plate-1) (far-from plate-1)
                                     (for plate-2))))
        (des-for-plate-4 (location `((left-of plate-3) (far-from plate-3)
@@ -196,11 +195,11 @@
           (when (> number-of-plates 3)
             (prolog `(assign-object-pos-on plate-4 ,des-for-plate-4))))))))
 
-(defun make-plate-desig (plate-id &optional (counter-name 'kitchen-island)
+(defun make-plate-desig (plate-id &optional (counter-name "kitchen_island")
                                     (plate-num *num-of-sets-on-table*))
   (let ((plate-name (new-symbol-with-id "PLATE" plate-id)))
-    (make-designator 'location `((on counter-top) (name ,counter-name)
-                                 (for ,plate-name) (context table-setting) 
+    (make-designator 'location `((on "Cupboard") (name ,counter-name)
+                                 (for ,plate-name) (context table-setting)
                                  (object-count ,plate-num)))))
 
 (defun make-object-near-plate-desig (object-type object-id &optional (plate-id object-id))
@@ -220,7 +219,7 @@
                                             ,(string-case object-type
                                                ("PLATE" (make-plate-desig i))
                                                (t (make-object-near-plate-desig object-type i))))))))
-  
+
 (defun set-table-without-robot ()
   (spawn-stuff)
   (put-stuff-away)
@@ -228,14 +227,14 @@
    (loop for object-type being the hash-keys of *items*
          do (assign-multiple-obj-pos object-type))))
 
-(def-fact-group build-test-world ()  
+(def-fact-group build-test-world ()
   (<- (assign-object-pos ?obj-name ?desig)
     (once
      (bound ?obj-name)
      (bound ?desig)
      (bullet-world ?w)
      (desig-solutions ?desig ?solutions)
-     (take 1 ?solutions ?8-solutions) 
+     (take 1 ?solutions ?8-solutions)
      (btr::generate ?poses-on (btr::obj-poses-on ?obj-name ?8-solutions ?w))
      (member ?solution ?poses-on)
      (assert (object-pose ?w ?obj-name ?solution))))
@@ -255,43 +254,45 @@
 
 (cpl-impl:def-cram-function find-object-on-counter (object-type counter-name)
   "Returns an object designator."
-  (cram-plan-library:with-designators
-      ((on-counter (desig-props:location `((desig-props:on counter-top)
+  (cram-language-designator-support:with-designators
+      ((on-counter (desig-props:location `((desig-props:on "Cupboard")
                                            (desig-props:name ,counter-name))))
        (the-object (desig-props:object `((desig-props:type ,object-type)
                                          (desig-props:at ,on-counter)))))
     (reference on-counter)
+    (format t "trying to perceive an object ~a~%" the-object)
     (plan-lib:perceive-object 'cram-plan-library:a the-object)))
 
 (cpl-impl:def-cram-function put-plate-on-table (plate-obj-desig)
-  (cram-plan-library:with-designators
-      ((on-kitchen-island (location `((on counter-top) (name kitchen-island)
+  (cram-language-designator-support:with-designators
+      ((on-kitchen-island (location `((on cupboard) (name "kitchen_island")
                                       (for ,plate-obj-desig) (context table-setting) 
                                       (object-count 4)))))
+    (format t "now trying to achieve the location of plate on kitchen-island~%")
     (plan-knowledge:achieve `(plan-knowledge:loc ,plate-obj-desig ,on-kitchen-island))))
 
 (cpl-impl:def-cram-function put-plate-from-counter-on-table ()
   (sb-ext:gc :full t)
   (format t "Put a PLATE from counter on table~%")
-  (let ((plate (find-object-on-counter 'btr:plate "CounterTop205")))
+  (let ((plate (find-object-on-counter 'btr:plate "kitchen_sink_block")))
     (sb-ext:gc :full t)
     (put-plate-on-table plate)
     plate))
 
 (cpl-impl:def-cram-function put-object-near-plate (object-to-put plate-obj
                                                    spatial-relations)
-  (cram-plan-library:with-designators
+  (cram-language-designator-support:with-designators
       ((put-down-location (location `(,@(loop for property in spatial-relations
                                               collecting `(,property ,plate-obj))
                                       (near ,plate-obj) (for ,object-to-put)
-                                      (on counter-top)))))
+                                      (on "Cupboard")))))
     (plan-knowledge:achieve `(plan-knowledge:loc ,object-to-put ,put-down-location))))
 
 (cpl-impl:def-cram-function put-object-from-counter-near-plate (object-type plate-obj)
   (format t "Put ~a from counter on table near ~a~%"
           object-type (desig-prop-value plate-obj 'name))
   (sb-ext:gc :full t)
-  (let ((obj (find-object-on-counter object-type "CounterTop205")))
+  (let ((obj (find-object-on-counter object-type "kitchen_sink_block")))
     (sb-ext:gc :full t)
     (put-object-near-plate obj plate-obj
                            (ecase object-type
@@ -301,7 +302,7 @@
     (sb-ext:gc :full t)))
 
 (cpl-impl:def-top-level-cram-function put-stuff-on-table ()
-  (cram-projection:with-projection-environment 
+  (cram-projection:with-projection-environment
       projection-process-modules::pr2-bullet-projection-environment
   (loop for i from 1 to *num-of-sets-on-table* do
     (let ((plate (put-plate-from-counter-on-table)))
@@ -313,6 +314,8 @@
   (put-stuff-on-counter)
   (put-stuff-on-table))
 
+(defun teleport-a-plate ()
+  (prolog `(and (assert (object-pose ?_ plate-1 ((-1.2 1.14 0.85747016972d0) (0 0 0 1)))))))
 
 (defun bring-robot-to-table ()
   (put-stuff-away)

@@ -29,11 +29,13 @@
 (defsystem bullet-reasoning-test
   :author "Lorenz Moesenlechner"
   :license "BSD"
-  
+
   :depends-on (bullet-reasoning lisp-unit)
   :components
   ((:module "test"
     :components
     ((:file "package")
      (:file "bounding-box-tests" :depends-on ("package"))
-     (:file "timeline" :depends-on ("package"))))))
+     (:file "timeline" :depends-on ("package"))
+     (:file "copy-world-tests" :depends-on ("package"))
+     (:file "moveit-test" :depends-on ("package"))))))

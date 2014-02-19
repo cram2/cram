@@ -31,12 +31,23 @@
 (def-fact-group visibility ()
 
   (<- (visible ?world ?robot ?object)
+    (bound ?object)
     (bullet-world ?world)
     (robot ?robot)
-    (camera-frame ?robot ?camera-frame)
-    (link-pose ?robot ?camera-frame ?camera-pose)
-    (visible-from ?world ?camera-pose ?object))
-  
+    (once (camera-frame ?robot ?camera-frame)
+          (link-pose ?robot ?camera-frame ?camera-pose)
+          (visible-from ?world ?camera-pose ?object)))
+
+  (<- (visible ?world ?robot ?object)
+    (not (bound ?object))
+    (bullet-world ?world)
+    (robot ?robot)
+    (setof ?obj (and (camera-frame ?robot ?camera-frame)
+                     (link-pose ?robot ?camera-frame ?camera-pose)
+                     (visible-from ?world ?camera-pose ?obj))
+           ?objects)
+    (member ?object ?objects))
+
   (<- (visible-from ?world ?camera-pose ?obj-name)
     (bound ?camera-pose)
     (bullet-world ?world)

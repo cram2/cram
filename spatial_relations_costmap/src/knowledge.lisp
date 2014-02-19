@@ -29,9 +29,9 @@
 (in-package :spatial-relations-costmap)
 
 (def-fact-group costmap-metadata ()
-  (<- (costmap-size 7 7))
-  (<- (costmap-origin -3.5 -3.5))
-  (<- (costmap-resolution 0.01))
+  (<- (costmap-size 12 12))
+  (<- (costmap-origin -6 -6))
+  (<- (costmap-resolution 0.03))
 
   (<- (costmap-padding 0.38))
   (<- (costmap-manipulation-padding 0.38))
@@ -48,8 +48,10 @@
 ;;   (<- (costmap-in-reach-distance 1.0))
 ;;   (<- (costmap-reach-minimal-distance 0.1)))
 
-(def-fact-group semantic-map-data ()
-  (<- (semantic-map-obj btr::sem-map))
+(def-fact-group semantic-map-data (semantic-map-name)
+  (<- (cl-semantic-map-utils::semantic-map-name
+       "http://ias.cs.tum.edu/kb/ias_semantic_map.owl#SemanticEnvironmentMap_PM580j"))
+  (<- (semantic-map-obj my-kitchen))
   (<- (kitchen-island-z 0.8399999737739563d0)))
 
 ;; TODO change after near and far is refactored
@@ -74,7 +76,7 @@
   (<- (object-type-shape plate :circle))
   (<- (object-type-shape fork :rectangle))
   (<- (object-type-shape knife :rectangle))
-  ;;  
+  ;;
   (<- (object-shape ?world ?object-name ?shape)
     (household-object-type ?world ?object-name ?object-type)
     (object-type-shape ?object-type ?shape))
@@ -127,10 +129,11 @@
         (household-object-type ?world ?obj-name fork)))
 
   ;; table setting related
-  (<- (paddings-list kitchen-island table-setting (-0.04d0 0.01d0 0.03d0 0.8d0)))
-  (<- (paddings-list "CounterTop208" table-setting (-0.04d0 0.01d0 0.03d0 0.8d0)))
-  (<- (preferred-supporting-object-side kitchen-island table-setting :-))
-  (<- (preferred-supporting-object-side "CounterTop208" table-setting :-))
+  ;; (<- (paddings-list "kitchen_island" table-setting (-0.04d0 0.01d0 0.03d0 0.8d0)))
+  (<- (paddings-list "kitchen_island" table-setting (0 0 0 0)))
+  (<- (paddings-list "kitchen_sink_block" table-setting (-0.04d0 0.01d0 0.03d0 10.8d0)))
+  (<- (preferred-supporting-object-side "kitchen_island" table-setting :-))
+  (<- (preferred-supporting-object-side "kitchen_sink_block" table-setting :-))
   (<- (max-slot-size btr::plate table-setting 0.8d0))
   (<- (min-slot-size btr::plate table-setting 0.5d0))
-  (<- (position-deviation-threshold btr::plate table-setting 0.03d0)))
+  (<- (position-deviation-threshold btr::plate table-setting 0.08d0)))

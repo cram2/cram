@@ -101,7 +101,7 @@
   (<- (potential-field-costmap ?designator ?object ?relation ?costmap)
     ;; TODO GET RID OF THIS!
     ;; Todo new mechanism for switching between sampling functions...
-    (lisp-fun set location-costmap::*use-priority-sampling* t ?_)
+    ;; (lisp-fun set location-costmap::*use-priority-sampling* t ?_)
     ;;
     (desig-location-prop ?object ?reference-pose)
     (lisp-fun get-y-of-pose ?reference-pose ?y-of-pose)
@@ -158,7 +158,7 @@
                    :ref-obj-pose ?ref-obj-pose
                    ?orientation-function)
          (orientation-samples ?sample-num)
-         (orientation-samples-step ?samples-step) 
+         (orientation-samples-step ?samples-step)
          (costmap-add-orientation-generator
           (make-orientation-generator ?orientation-function
                                       :samples ?sample-num
@@ -170,11 +170,11 @@
   (<- (slot-costmap ?designator ?supp-object ?context ?object-type ?object-count
                     ?costmap)
     (lisp-fun sem-map-utils:name ?supp-object ?supp-object-name)
-    (paddings-list ?supp-obj-name ?context ?paddings-list)
-    (preferred-supporting-object-side ?supp-obj-name ?context ?preferred-side) 
+    (paddings-list ?supp-object-name ?context ?paddings-list)
+    (preferred-supporting-object-side ?supp-object-name ?context ?preferred-side)
     (max-slot-size ?object-type ?context ?max-slot-size)
     (min-slot-size ?object-type ?context ?min-slot-size)
-    (position-deviation-threshold ?object-type ?context ?pos-dev-threshold) 
+    (position-deviation-threshold ?object-type ?context ?pos-dev-threshold)
     ;;
     (costmap ?costmap)
     (costmap-add-function
@@ -183,7 +183,7 @@
                               ?object-count ?max-slot-size ?min-slot-size
                               ?pos-dev-threshold)
      ?costmap))
-  
+
   ;; uses make-objects-bounding-box-costmap-generator
   (<- (collision-invert-costmap ?desig ?padding ?cm)
     (bullet-world ?world)
@@ -256,7 +256,7 @@
   ;; collision avoidance costmap for the spatial relations desigs
   ;; Disabled.
   (<- (desig-costmap ?desig ?cm)
-    nil
+    (fail)
     (or
      (desig-prop ?desig (left-of ?_))
      (desig-prop ?desig (right-of ?_))
@@ -280,12 +280,12 @@
   ;;   (context table-setting) (for plate) (object-count 4))
   (<- (desig-costmap ?designator ?costmap)
     (desig-prop ?designator (on ?_))
-    (desig-prop ?designator (name ?supp-obj-name)) 
+    (desig-prop ?designator (name ?supp-obj-name))
     (desig-prop ?designator (context table-setting))
     (desig-prop ?designator (for ?for-object))
     (desig-prop ?designator (object-count ?object-count))
     (bullet-world ?world)
-    (object-instance-name ?for-object ?object-name) 
+    (object-instance-name ?for-object ?object-name)
     (household-object-type ?world ?object-name ?object-type)
     (lisp-fun sem-map-utils:designator->semantic-map-objects
               ?designator ?supp-objects)
@@ -297,7 +297,7 @@
   (<- (desig-solution-not-in-collision ?desig ?object-to-check ?pose)
     (bullet-world ?world)
     (with-copied-world ?world
-      (object-instance-name ?object-to-check ?object-name) 
+      (object-instance-name ?object-to-check ?object-name)
       (assert (object-pose ?world ?object-name ?pose))
       (forall (contact ?world ?object-name ?other-object-name)
               (not (object-type ?world ?other-object-name btr::household-object))))))
@@ -340,15 +340,15 @@
     (%object-size-without-handles ?world ?obj ?shape ?size))
   ;;
   (<- (%object-size-without-handles ?world ?obj ?shape ?size)
-    (== ?shape :circle) 
+    (== ?shape :circle)
     (lisp-fun get-aabb-circle-diameter ?obj ?size))
   ;;
   (<- (%object-size-without-handles ?world ?obj ?shape ?size)
-    (== ?shape :rectangle)       
+    (== ?shape :rectangle)
     (lisp-fun get-aabb-min-length ?obj ?size))
   ;;
   (<- (%object-size-without-handles ?world ?obj ?shape ?size)
-    (== ?shape :oval)       
+    (== ?shape :oval)
     (lisp-fun get-aabb-oval-diameter ?obj ?size))
   ;;
   (<- (%object-size-without-handles ?world ?obj ?shape ?size)
