@@ -65,6 +65,7 @@
            find-objects-below bullet-world object
            retract step simulate-realtime object-pose object-bottom-pose
            position orientation poses-equal contact stable
+           robot-not-in-collision-with-environment
            link-contacts supported-by above below visible
            occluding-objects occluding-object valid-grasp grasp side reachable
            def-grasp def-tool object-grasp
@@ -76,7 +77,7 @@
            init-ros-object-database clear-bullet-world
            ros-household-object execute open close reach-ik-solution
            attached attached-objects object-attached attach-object detach-object
-           side->ik-namespace household-object-dimensions get-ik
+           side->ik-group-name household-object-dimensions get-ik
            make-joint-state-message open-object close-object
            set-articulated-object-joint-position
            with-world copied-world with-copied-world

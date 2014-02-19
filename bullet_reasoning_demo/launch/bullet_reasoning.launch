@@ -1,16 +1,25 @@
 <launch>
-  <!--<include file="$(find pr2_description_lowres)/robots/upload_pr2.launch" />-->
 
-<param name="robot_description_lowres" command="$(find xacro)/xacro.py '$(find pr2_description_lowres)/robots/pr2.urdf.xacro'" />
+<include file="$(find iai_maps)/launch/iai_maps.launch" />
 
-<!-- <group ns="reasoning"> -->
-<!--     <remap from="robot_description" to="robot_description_lowres" /> -->
-<!--     <include file="$(find pr2_arm_kinematics)/launch/pr2_ik_larm_node.launch" /> -->
-<!--     <include file="$(find pr2_arm_kinematics)/launch/pr2_ik_rarm_node.launch" /> -->
-<!--   </group> -->
+<!-- <param name="robot_description_lowres" -->
+<!--        command="$(find xacro)/xacro.py  -->
+<!--                 '$(find pr2_description_lowres)/robots/pr2.urdf.xacro'"/> --> 
+<!-- we can't use the lowres description ATM, as we don't have a corresponding srdf for it -->
 
+<param name="robot_description"
+       command="$(find xacro)/xacro.py
+                '$(find pr2_description)/robots/pr2.urdf.xacro'"/>
+<param name="robot_description_semantic"
+       textfile="$(find pr2_moveit_config)/config/pr2.srdf" />
 
-  <node name="triangulate_point_cloud" pkg="triangulate_point_cloud"
-        type="triangulate_pcl" />
-<param name="robot_description_lowres" command="$(find xacro)/xacro.py '$(find pr2_description_lowres)/robots/pr2.urdf.xacro'" />
+<group ns="moveit">
+  <remap from="robot_description" to="/robot_description" />
+  <remap from="robot_description_semantic" to="/robot_description_semantic" />
+  <include file="$(find bullet_reasoning_demo)/launch/moveit.launch" />
+</group>
+
+<node name="triangulate_point_cloud" pkg="triangulate_point_cloud"
+      type="triangulate_pcl" />
+
 </launch>

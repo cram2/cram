@@ -37,17 +37,20 @@
 ;; used for near and far-from desig-props
 (defun get-aabb-min-length (object)
   (let* ((dims (bt:bounding-box-dimensions (aabb object))))
-    (min (cl-transforms:x dims) (cl-transforms:y dims))))
+    (min (cl-transforms:x dims) (cl-transforms:y dims))
+    0.15))
 
 ;; used for near and far-from desig-props
 (defun get-aabb-circle-diameter (object)
-  (cl-transforms:x (bt:bounding-box-dimensions (aabb object))))
+  (cl-transforms:x (bt:bounding-box-dimensions (aabb object)))
+  0.15)
 
 ;; used for near and far-from desig-props
 ;; we assume the radius of the oval is the max of its two radia
 (defun get-aabb-oval-diameter (object)
   (let ((dims (bt:bounding-box-dimensions (aabb object))))
-    (max (cl-transforms:x dims) (cl-transforms:y dims))))
+    (max (cl-transforms:x dims) (cl-transforms:y dims))
+    0.15))
 
 ;; used for near desig-prop
 ;; the radius of the costmap is the distance from the center of the ref-obj
@@ -241,7 +244,7 @@
    the centers of those slots and all the points that are not further from the center than
    `position-deviation-threshold'.
    _____________
-   |_x_|_x_|_x_|  <- example for object-count = 5 
+   |_x_|_x_|_x_|  <- example for object-count = 5
    |__x__|__x__|     the supporting object is divided into 5 slots. 'x' - center of slot
 
    The resulting slot sizes are restricted by `max-slot-size' and `min-slot-size', i.e.
@@ -266,7 +269,7 @@
                  ((eql longer-side-axis #'cl-transforms:y)
                   (setf resulting-points (cons (list coord-on-other-axis next-coord)
                                                resulting-points))))
-               (setf next-coord (- next-coord distance)))))) 
+               (setf next-coord (- next-coord distance))))))
     (let* ((supp-obj-dims (cl-transforms:v-
                            (sem-map-utils:dimensions supp-object)
                            (cl-transforms:make-3d-vector (+ (third paddings-list)
@@ -284,7 +287,7 @@
            (longer-side-axis #'cl-transforms:x)
            (shorter-side-axis #'cl-transforms:y)
            (longer-side-length nil)
-           (max-possible-object-count nil)) 
+           (max-possible-object-count nil))
       (when (> (cl-transforms:y supp-obj-dims) (cl-transforms:x supp-obj-dims))
         (setf longer-side-axis #'cl-transforms:y)
         (setf shorter-side-axis #'cl-transforms:x))

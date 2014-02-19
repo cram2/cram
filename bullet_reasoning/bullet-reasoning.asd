@@ -35,14 +35,14 @@
     :depends-on (alexandria
                  cram-reasoning
                  cl-bullet cl-bullet-vis
-                 cl-json-pl-client
+                 cram-json-prolog
                  cl-urdf
                  cl-tf
-                 ;; kinematics_msgs-msg
-                 ;; kinematics_msgs-srv
-                 iai_kinematics_msgs-srv
+                 roslisp
+                 moveit_msgs-srv
+                 moveit_msgs-msg
+                 sensor_msgs-msg
                  household_objects_database_msgs-srv
-                 ;; arm_navigation_msgs-msg
                  location-costmap
                  designators
                  cram-roslisp-common
