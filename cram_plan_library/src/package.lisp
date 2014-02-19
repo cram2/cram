@@ -45,6 +45,8 @@
            #:loc
            #:object-in-hand
            #:object-placed-at
+           #:object-picked
+           #:object-put
            #:container-opened
            #:perceive-object-in-gripper
            #:arms-parked
