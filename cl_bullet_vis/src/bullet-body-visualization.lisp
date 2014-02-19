@@ -49,4 +49,6 @@
      (cl-transforms:x (bounding-box-dimensions bounding-box))
      (cl-transforms:y (bounding-box-dimensions bounding-box))
      (cl-transforms:z (bounding-box-dimensions bounding-box)))
-    (glut:wire-cube 1)))
+    (gl:with-pushed-attrib (:current-bit)
+      (gl:color 1 0 1)
+      (glut:wire-cube 1))))
