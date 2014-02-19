@@ -69,7 +69,8 @@ designator."
         (robot-location-changed-fluent (make-fluent :allow-tracing nil))
         (result-values nil)
         (pulse-thread nil)
-        (at-location-task *current-task*))
+        (at-location-task *current-task*)
+        (max-time 10)) ;; Seconds
     (flet ((set-current-location ()
              (unless (and pulse-thread
                           (sb-thread:thread-alive-p pulse-thread))
@@ -111,7 +112,9 @@ designator."
                          ;; log until AT-LOCATION terminates.
                          (wait-for (make-fluent :value nil)))))
                 (seq
-                  (wait-for navigation-done)
+                  (pursue
+                    (wait-for navigation-done)
+                    (sleep* max-time))
                   (unless (location-designator-reached
                            (current-robot-location) loc-var)
                     (cpl:fail 'cram-plan-failures:location-not-reached-failure))
@@ -133,13 +136,15 @@ designator."
                     ;; uses a condition variable to be notified on
                     ;; fluent changes and then call VALUE which causes
                     ;; re-calculation of the fluent's value.
-                    (wait-for (fl-funcall (lambda (location-changed designator-updated)
-                                            (declare (ignore location-changed
-                                                             designator-updated))
-                                            (not (location-designator-reached
-                                                  (current-robot-location) loc-var)))
-                                          (pulsed robot-location-changed-fluent)
-                                          (pulsed designator-updated)))
+                    (wait-for
+                     (fl-funcall
+                      (lambda (location-changed designator-updated)
+                        (declare (ignore location-changed
+                                         designator-updated))
+                        (not (location-designator-reached
+                              (current-robot-location) loc-var)))
+                      (pulsed robot-location-changed-fluent)
+                      (pulsed designator-updated)))
                     (seq
                       (setf result-values (multiple-value-list (funcall function)))
                       (setf terminated t)))))
@@ -160,6 +165,5 @@ designator."
                              :lambda-list (evaluated-location)
                              :parameters (list evaluated-location)
                              :log-parameters
-                             (list (cons "location" ,location)
-                                   (cons "pose-stamped" evaluated-location)))
+                             (list (list 'goal-location ,location)))
          (%execute-at-location evaluated-location #'at-location-body)))))
