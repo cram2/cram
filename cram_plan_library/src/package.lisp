@@ -31,6 +31,7 @@
   (:documentation "Library of plans for pick-and-place tasks.")
   (:use #:cpl
         #:cram-designators
+        #:cram-language-designator-support
         #:cram-utilities
         #:cram-process-modules
         #:roslisp
@@ -63,11 +64,7 @@
            ;; rete and occasions
            #:object-picked-up
            #:object-in-hand-failure
-           #:object-not-found-failure
-           ;; designator generation
-           #:with-designators
-           #:a
-           #:an)
+           #:object-not-found-failure)
   (:desig-properties #:to #:see #:obj #:of #:reach #:type #:trajectory
                      #:pose #:open #:side #:grasp #:lift #:carry :reach
                      #:location #:at #:parked #:pose #:close #:gripper

@@ -9,9 +9,13 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cl_json_pl_server</url>
   <rosdep name="sbcl"/>
-  <depend package="cram_reasoning"/>
   <depend package="cl_json_pl_client"/>
-
+  <depend package="cram_reasoning"/>
+  <depend package="json_prolog_msgs"/>
+  <depend package="yason"/>
+  <depend package="roslisp"/>
+  <depend package="alexandria"/>
+  <depend package="cram_utilities"/>
 </package>
 
 
