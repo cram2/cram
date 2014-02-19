@@ -33,7 +33,7 @@
                         (lift-retry-count 2)
                         (misgrasp-retry-count 1)
                         (grasp-failed-retry-count 1)
-                        (near-reperceive-retry-count 0))
+                        (near-reperceive-retry-count 1))
     (with-designators ((grasp-action
                         (action `((type trajectory) (to grasp) (obj ,?obj))))
                        (lift-action
@@ -46,9 +46,9 @@
             ((object-not-found (f)
                (declare (ignore f))
                (ros-warn
-                (achieve plan-lib) "Failed to reperceive object from near.")
+                (achieve plan-lib) "Failed to perceive object from near.")
                (do-retry near-reperceive-retry-count
-                 (setf obj-look-location (next-different-location-solution
+                 (setf obj-look-location (next-solution
                                           obj-look-location))
                  (when obj-look-location
                    (ros-warn
@@ -107,7 +107,14 @@
              (do-retry lift-retry-count
                (ros-warn (achieve plan-lib) "Retrying.")
                (retry))
-             (return)))
+             (return))
+           (manipulation-failed (f)
+             (declare (ignore f))
+             (ros-warn (achieve plan-lib) "Lift failed.")
+             (do-retry lift-retry-count
+               (ros-warn (achieve plan-lib) "Retrying.")
+               (retry))
+             (fail 'manipulation-pose-unreachable)))
         (perform lift-action)
         (monitor-action lift-action))
       (ros-info (achieve plan-lib) "Lifted object.")
@@ -165,11 +172,11 @@
 		  (achieve plan-lib)
 		  "Trying from different pose.")
                  (retry-with-updated-location
-                  pick-up-loc (next-different-location-solution
+                  pick-up-loc (next-solution
                                pick-up-loc)))))
           (ros-info (achieve plan-lib) "Grasping")
           (at-location (pick-up-loc)
-            (achieve `(object-picked ,?obj)))))))
+            (achieve `(cram-plan-library:object-picked ,?obj)))))))
   ?obj)
 
 (def-goal (achieve (object-put ?obj ?loc))
@@ -194,8 +201,19 @@
         (achieve `(looking-at ,(reference ?loc)))
         (perform put-down-action)
         (monitor-action put-down-action))
-      (perform park-action)
-      (monitor-action park-action))))
+      (with-failure-handling
+          ((manipulation-failure (f)
+             (declare (ignore f))
+             (ros-warn (achieve plan-lib)
+                       "Unable to park. Trying again.")
+             (retry))
+           (manipulation-pose-unreachable (f)
+             (declare (ignore f))
+             (ros-warn (achieve plan-lib)
+                       "Unable to park. Trying again.")
+             (retry)))
+        (perform park-action)
+        (monitor-action park-action)))))
 
 (def-goal (achieve (object-placed-at ?obj ?loc))
   (ros-info (achieve plan-lib) "(achieve (object-placed-at))")
@@ -235,13 +253,13 @@
                  (declare (ignore f))
                  (ros-warn
                   (achieve plan-lib)
-                  "Got unreachable putdown pose. Trying alternatives")
+                  "Got unreachable putdown pose. Trying alternatives.")
                  (do-retry manipulation-retries
                    (retry-with-updated-location
                     put-down-loc
                     (next-different-location-solution put-down-loc)))))
             (at-location (put-down-loc) 
-              (achieve `(object-put ,?obj ,?loc)))))))))
+              (achieve `(cram-plan-library:object-put ,?obj ,?loc)))))))))
 
 ;; (def-goal (achieve (object-placed-at ?obj ?loc))
 ;;   (ros-info (achieve plan-lib) "(achieve (object-placed-at))")
