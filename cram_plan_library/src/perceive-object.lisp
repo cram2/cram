@@ -41,11 +41,11 @@
           ((object-not-found (e)
              (declare (ignore e))
              (ros-warn (perceive plan-lib) "Object not found failure.")
-             (setf loc (next-different-location-solution loc))
+             (setf loc (next-solution loc))
              (when (and (< loc-retry-cnt 3)
                         (and loc (reference loc)))
                (incf loc-retry-cnt)
-               (ros-info (perceive plan-lib) "Retrying at different location ~a." (reference loc))
+               (ros-info (perceive plan-lib) "Retrying at location ~a." (reference loc))
                (retry))
              (ros-warn (perceive plan-lib) "Failing at object-not-found failure.")))
         (at-location (loc)
@@ -60,7 +60,7 @@
                        (setf obj-loc-desig (next-solution obj-loc-desig))
                        (when obj-loc-desig
                          (retry))))))
-              (achieve `(looking-at ,obj-loc-desig))
+              (achieve `(looking-at ,(reference obj-loc-desig)))
               (perform perceive-action)
               (monitor-action perceive-action))))))))
 
