@@ -39,7 +39,7 @@
   :description "A json_prolog server for cram-reasoning."
 
   :depends-on (:cram-utilities
-               :json_prolog-srv
+               :json_prolog_msgs-srv
                :yason
                :roslisp
                :alexandria
