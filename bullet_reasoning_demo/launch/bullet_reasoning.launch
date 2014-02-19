@@ -2,9 +2,9 @@
 
 <include file="$(find iai_maps)/launch/iai_maps.launch" />
 
-<!-- <param name="robot_description_lowres" -->
-<!--        command="$(find xacro)/xacro.py -->
-<!--                 '$(find pr2_description_lowres)/robots/pr2.urdf.xacro'"/> --> 
+<param name="robot_description_lowres"
+       command="$(find xacro)/xacro.py
+                '$(find pr2_description_lowres)/robots/pr2.urdf.xacro'"/>
 <!-- we have to use both lowres and highres descriptions ATM, as we don't have a
  corresponding srdf for the lowres, but highres is too heavy for a lightweight
  reasoning engine -->
