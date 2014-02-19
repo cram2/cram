@@ -135,21 +135,27 @@ applied."
            (alexandria:flatten
             (loop for i from 0 below (length avail-arms)
                   for arm = (nth i avail-arms)
-                  collect (loop for j from 0 below (length avail-handles)
-                                for handle = (nth i avail-handles)
-                                for cost = (cost-function-grasp-handle-ik-constraint-aware
-                                            obj (list (list (nth i avail-arms))
-                                                      (list (nth j avail-handles))))
-                                when cost
-                                  collect (make-instance
-                                           'grasp-assignment
-                                           :handle-pair handle
-                                           :side arm
-                                           :ik-cost cost
-                                           :pose (reference
-                                                  (desig-prop-value
-                                                   (cdr handle) 'at)))))))
+                  for sublist = (loop for j from 0 below (length avail-handles)
+                                      for handle = (nth i avail-handles)
+                                      for cost = (cost-function-grasp-handle-ik-constraint-aware
+                                                  obj (list (list (nth i avail-arms))
+                                                            (list (nth j avail-handles))))
+                                      when cost
+                                        collect (make-instance
+                                                 'grasp-assignment
+                                                 :handle-pair handle
+                                                 :side arm
+                                                 :ik-cost cost
+                                                 :pose (reference
+                                                        (desig-prop-value
+                                                         (cdr handle) 'at))))
+                  when sublist
+                    collect sublist)))
          (sorted-assignments (sort assignments #'< :key #'ik-cost)))
+    (ros-info (pr2 manip-pm) "Done calculating. Got ~a/~a result(s)."
+              (length assignments) (length sorted-assignments))
+    (unless sorted-assignments
+      (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))
     (list (first sorted-assignments))))
 
 ;; (defun optimal-arm-handle-assignment (obj avail-arms avail-handles min-handles
