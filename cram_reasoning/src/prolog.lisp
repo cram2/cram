@@ -48,7 +48,7 @@
            (error "Found segvar that is not in car of a cons-cell while unifying ~a and ~a"
                   lhs rhs))
           ((or (and (atom lhs) (atom rhs)
-                    (eql lhs rhs))
+                    (equal lhs rhs))
                (is-unnamed-var lhs)
                (is-unnamed-var rhs))
            (values bdgs t))
