@@ -3,9 +3,11 @@
 <include file="$(find iai_maps)/launch/iai_maps.launch" />
 
 <!-- <param name="robot_description_lowres" -->
-<!--        command="$(find xacro)/xacro.py  -->
+<!--        command="$(find xacro)/xacro.py -->
 <!--                 '$(find pr2_description_lowres)/robots/pr2.urdf.xacro'"/> --> 
-<!-- we can't use the lowres description ATM, as we don't have a corresponding srdf for it -->
+<!-- we have to use both lowres and highres descriptions ATM, as we don't have a
+ corresponding srdf for the lowres, but highres is too heavy for a lightweight
+ reasoning engine -->
 
 <param name="robot_description"
        command="$(find xacro)/xacro.py
@@ -13,11 +15,11 @@
 <param name="robot_description_semantic"
        textfile="$(find pr2_moveit_config)/config/pr2.srdf" />
 
-<group ns="moveit">
+<!-- <group ns="moveit"> -->
   <remap from="robot_description" to="/robot_description" />
   <remap from="robot_description_semantic" to="/robot_description_semantic" />
   <include file="$(find bullet_reasoning_demo)/launch/moveit.launch" />
-</group>
+<!-- </group> -->
 
 <node name="triangulate_point_cloud" pkg="triangulate_point_cloud"
       type="triangulate_pcl" />
