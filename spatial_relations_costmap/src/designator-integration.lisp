@@ -35,11 +35,11 @@
   narrower. At the smaller angles the solutions have the highest values, so we put a
   threshold on the solution values.")
 
-(register-location-validation-function
- 6 collision-pose-validator
- "If a location was generated for a household object, then it is checked if the
-  generated pose causes collisions of that object with other household objects,
-  in which case the pose is rejected.")
+;; (register-location-validation-function
+;;  6 collision-pose-validator
+;;  "If a location was generated for a household object, then it is checked if the
+;;   generated pose causes collisions of that object with other household objects,
+;;   in which case the pose is rejected.")
 
 (defun potential-field-costmap-pose-validator (desig pose)
   "If desig-props:for is specified it means we generated a costmap for a specific object.
