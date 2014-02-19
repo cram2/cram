@@ -36,7 +36,7 @@
                cram-roslisp-common
                cram-projection
                cl-transforms
-               cl-json-pl-client
+               cram-json-prolog
                cl-semantic-map-utils
                location-costmap
                alexandria

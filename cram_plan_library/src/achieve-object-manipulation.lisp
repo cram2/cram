@@ -314,6 +314,9 @@
 ;;           (perform park-trajectory)
 ;;           (monitor-action park-trajectory))))))
 
+;; ToDo(gaya): The goal gives a warning because prolog cannot prove the occasion
+;; (holds arms-parked) - it is not defined. So, either define the predicate
+;; arms-parked or get rid of the warning some other way.
 (def-goal (achieve (arms-parked))
   (with-designators ((parking (action `((type trajectory) (to park)))))
     (perform parking)
