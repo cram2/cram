@@ -74,27 +74,31 @@
   can either be a 3d-vector or a number."
   (declare (type 3d-model model))
   (declare (type (or real cl-transforms:3d-vector) scale))
-  (flet ((scale-vector (v s)
-           (cl-transforms:make-3d-vector
-            (* (cl-transforms:x v) (cl-transforms:x s))
-            (* (cl-transforms:y v) (cl-transforms:y s))
-            (* (cl-transforms:z v) (cl-transforms:z s)))))
-    (let ((scale (etypecase scale
-                   (cl-transforms:3d-vector scale)
-                   (number (cl-transforms:make-3d-vector
-                            scale scale scale)))))
-      (make-3d-model
-       :vertices (map 'vector
-                      (lambda (v) (scale-vector v scale))
-                      (3d-model-vertices model))
-       :faces (map 'vector
-                   (lambda (f)
-                     (make-face
-                      :points (mapcar (lambda (v)
-                                        (scale-vector v scale))
-                                      (face-points f))
-                      :normals (face-normals f)))
-                   (3d-model-faces model))))))
+  (let ((scale (etypecase scale
+                 (cl-transforms:3d-vector scale)
+                 (number (cl-transforms:make-3d-vector
+                          scale scale scale)))))
+    (if (and (= (cl-transforms:x scale) 1)
+             (= (cl-transforms:y scale) 1)
+             (= (cl-transforms:z scale) 1))
+        model
+        (flet ((scale-vector (v s)
+                 (cl-transforms:make-3d-vector
+                  (* (cl-transforms:x v) (cl-transforms:x s))
+                  (* (cl-transforms:y v) (cl-transforms:y s))
+                  (* (cl-transforms:z v) (cl-transforms:z s)))))
+          (make-3d-model
+           :vertices (map 'vector
+                          (lambda (v) (scale-vector v scale))
+                          (3d-model-vertices model))
+           :faces (map 'vector
+                       (lambda (f)
+                         (make-face
+                          :points (mapcar (lambda (v)
+                                            (scale-vector v scale))
+                                          (face-points f))
+                          :normals (face-normals f)))
+                       (3d-model-faces model)))))))
 
 (defun resize-3d-model (model size)
   "Returns a new model that fits into the aabb given by `size'. `size'
