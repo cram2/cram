@@ -215,7 +215,8 @@
            (declare (ignore f))
            (cpl:retry)))
       (execute-move-arm-pose side putdown-pose
-       :allowed-collision-objects allowed-collision-objects))
+       :allowed-collision-objects allowed-collision-objects
+       :ignore-collisions t))
     (ros-info (pr2 putdown) "Opening gripper")
     (open-gripper side :max-effort 50.0 :position gripper-open-pos)
     (moveit:detach-collision-object-from-link
@@ -236,12 +237,14 @@
             (pr2 putdown)
             "Failed to go into unhand pose for side ~a. Retrying." side)
            (cpl:retry))
-         (moveit::pose-not-transformable-into-link (f)
+         (moveit:pose-not-transformable-into-link (f)
            (declare (ignore f))
            (cpl:retry)))
       (execute-move-arm-pose
        side unhand-pose
-       :allowed-collision-objects allowed-collision-objects))))
+       :allowed-collision-objects allowed-collision-objects
+       :ignore-collisions t)
+      (ros-info (pr2 manip-pm) "Putdown complete."))))
 
 (defun get-lifting-grasped-object-arm-pose (side distance)
   "Returns the lifting pose for the `side' robot arm in order to
