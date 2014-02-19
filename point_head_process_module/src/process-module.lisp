@@ -39,34 +39,43 @@
 
 (roslisp-utilities:register-ros-init-function init-point-head-action)
 
+(cut:define-hook on-begin-move-head (pose-stamped))
+(cut:define-hook on-finish-move-head (id success))
+
 (def-process-module point-head-process-module (goal)
-  (unwind-protect
-       (handler-case
-           (destructuring-bind (cmd action-goal) (reference goal)
-             (maybe-shutdown-thread)
-             (ecase cmd
-               (point
-                (actionlib:send-goal-and-wait
-                 *action-client* action-goal
-                 :result-timeout 1.0
-                 :exec-timeout 3.0))
-               (follow
-                (actionlib:send-goal-and-wait
-                 *action-client* action-goal
-                 :result-timeout 1.0
-                 :exec-timeout 3.0)
-                ;; (setf *point-head-thread*
-                ;;       (sb-thread:make-thread
-                ;;        (curry #'follow-pose-thread-fun action-goal)))
-                )))
-         ;; Ugly hack. We shouldn't catch errors here but find a way to
-         ;; resolve all designators.
-         (designator-error (e)
-           (declare (ignore e))
-           (roslisp:ros-warn (point-head process-module) "Cannot resolve designator ~a. Ignoring."
-                             goal)))
-    (roslisp:wait-duration 1.0)
-    (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed))))
+  (let ((log-id (first (on-begin-move-head (reference goal))))
+        (success nil))
+    (unwind-protect
+         (handler-case
+             (destructuring-bind (cmd action-goal) (reference goal)
+               (maybe-shutdown-thread)
+               (ecase cmd
+                 (point
+                  (actionlib:send-goal-and-wait
+                   *action-client* action-goal
+                   :result-timeout 1.0
+                   :exec-timeout 3.0))
+                 (follow
+                  (actionlib:send-goal-and-wait
+                   *action-client* action-goal
+                   :result-timeout 1.0
+                   :exec-timeout 3.0)
+                  ;; (setf *point-head-thread*
+                  ;;       (sb-thread:make-thread
+                  ;;        (curry #'follow-pose-thread-fun action-goal)))
+                  ))
+               (setf success t))
+           ;; Ugly hack. We shouldn't catch errors here but find a way to
+           ;; resolve all designators.
+           (designator-error (e)
+             (declare (ignore e))
+             (roslisp:ros-warn
+              (point-head process-module)
+              "Cannot resolve designator ~a. Ignoring." goal)))
+      (roslisp:wait-duration 1.0)
+      (on-finish-move-head log-id success)
+      (plan-knowledge:on-event
+       (make-instance 'plan-knowledge:robot-state-changed)))))
 
 (defun maybe-shutdown-thread ()
   (when (and *point-head-thread*
