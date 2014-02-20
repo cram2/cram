@@ -48,8 +48,8 @@
                (ros-warn
                 (achieve plan-lib) "Failed to perceive object from near.")
                (do-retry near-reperceive-retry-count
-                 (setf obj-look-location (next-solution
-                                          obj-look-location))
+                 (setf obj-look-location
+                       (next-different-location-solution obj-look-location))
                  (when obj-look-location
                    (ros-warn
                     (achieve plan-lib) "Retrying with new look location.")
@@ -168,12 +168,9 @@
                 (achieve plan-lib)
                 "Couldn't reach object.")
                (do-retry alt-grasp-poses-cnt
-		 (ros-warn
-		  (achieve plan-lib)
-		  "Trying from different pose.")
+                 (ros-warn (achieve plan-lib) "Trying from different pose.")
                  (retry-with-updated-location
-                  pick-up-loc (next-solution
-                               pick-up-loc)))))
+                  pick-up-loc (next-different-location-solution pick-up-loc)))))
           (ros-info (achieve plan-lib) "Grasping")
           (at-location (pick-up-loc)
             (achieve `(cram-plan-library:object-picked ,?obj)))))))
@@ -197,6 +194,18 @@
              (ros-warn
               (achieve plan-lib)
               "Got unreachable putdown pose.")
+             (cpl:fail 'manipulation-pose-unreachable))
+           (manipulation-failed (f)
+             (declare (ignore f))
+             (ros-warn
+              (achieve plan-lib)
+              "Got unreachable putdown pose.")
+             (cpl:fail 'manipulation-pose-unreachable))
+           (moveit:planning-failed (f)
+             (declare (ignore f))
+             (ros-warn
+              (achieve plan-lib)
+              "Got unreachable putdown pose.")
              (cpl:fail 'manipulation-pose-unreachable)))
         (achieve `(looking-at ,(reference ?loc)))
         (perform put-down-action)
@@ -207,7 +216,17 @@
              (ros-warn (achieve plan-lib)
                        "Unable to park. Trying again.")
              (retry))
+           (manipulation-failed (f)
+             (declare (ignore f))
+             (ros-warn (achieve plan-lib)
+                       "Unable to park. Trying again.")
+             (retry))
            (manipulation-pose-unreachable (f)
+             (declare (ignore f))
+             (ros-warn (achieve plan-lib)
+                       "Unable to park. Trying again.")
+             (retry))
+           (moveit:planning-failed (f)
              (declare (ignore f))
              (ros-warn (achieve plan-lib)
                        "Unable to park. Trying again.")
