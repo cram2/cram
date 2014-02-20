@@ -204,7 +204,7 @@ extern "C"
     btScalar *scaled_points = new btScalar[num_points*3];
     for(int i=0; i<num_points*3; i++)
       scaled_points[i] = static_cast<btScalar>(points[i] * bulletWorldScalingFactor);
-    return new btConvexHullShape(scaled_points, num_points, sizeof(double) * 3);
+    return new btConvexHullShape(scaled_points, num_points);
     delete scaled_points;
   }
 
