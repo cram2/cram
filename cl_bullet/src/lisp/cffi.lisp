@@ -372,16 +372,20 @@
   (flet ((points->foreign (native-vector points)
            (let ((points (etypecase points
                            (list
-                              (make-array (length points)
-                                          :initial-contents points))
-                           (array points))))
+                            (make-array (length points)
+                                        :initial-contents points))
+                           (array
+                            points))))
              (loop for i below (* (length points) 3) by 3
                    for p across points
                    do (with-slots (cl-transforms:x cl-transforms:y cl-transforms:z)
                           p
-                        (setf (mem-aref native-vector :double i) (coerce (cl-transforms:x p) 'double-float))
-                        (setf (mem-aref native-vector :double (+ i 1)) (coerce (cl-transforms:y p) 'double-float))
-                        (setf (mem-aref native-vector :double (+ i 2)) (coerce (cl-transforms:z p) 'double-float)))))
+                        (setf (mem-aref native-vector :double i)
+                              (coerce (cl-transforms:x p) 'double-float))
+                        (setf (mem-aref native-vector :double (+ i 1))
+                              (coerce (cl-transforms:y p) 'double-float))
+                        (setf (mem-aref native-vector :double (+ i 2))
+                              (coerce (cl-transforms:z p) 'double-float)))))
            points))
     (with-foreign-object (native-points :double (* 3 (length points)))
       (points->foreign native-points points)
@@ -397,10 +401,11 @@
 (defcfun ("convexHullGetNumPoints" convex-hull-get-num-points) :int
   (shape :pointer))
 
-(defun cffi-get-point (shape)
-  (with-foreign-object (vec :double 2)
+(defun cffi-get-point (shape index)
+  (with-foreign-object (vec :double 3)
     (foreign-funcall "getPoint"
                      :pointer shape
+                     :int index
                      :pointer vec)
     (translate-from-foreign vec (make-instance 'bt-3d-vector))))
 
