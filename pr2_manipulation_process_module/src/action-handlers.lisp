@@ -81,6 +81,16 @@
                  (cpl:with-failure-handling
                      ((cram-plan-failures:manipulation-pose-unreachable (f)
                         (declare (ignore f))
+                        (roslisp:ros-warn
+                         (pr2 manip-pm)
+                         "Park failed. Retrying with collisions ignored.")
+                        (setf ignore-collisions t)
+                        (cpl:retry))
+                      (cram-plan-failures:manipulation-failed (f)
+                        (declare (ignore f))
+                        (roslisp:ros-warn
+                         (pr2 manip-pm)
+                         "Park failed. Retrying with collisions ignored.")
                         (setf ignore-collisions t)
                         (cpl:retry))
                       (moveit:planning-failed (f)
@@ -319,7 +329,10 @@ for the currently type of grasped object."
                 (declare (ignore f))
                 (when (< current-orientation putdown-orientations)
                   (incf current-orientation)
-                  (cpl:retry))))
+                  (cpl:retry)))
+              (moveit:planning-failed (f)
+                (declare (ignore f))
+                (cpl:fail manipulation-pose-unreachable)))
            (let* ((orientation-offset (* 2 pi (/ current-orientation
                                                  putdown-orientations)))
                   (putdown-pose (orient-pose putdown-pose-pure
