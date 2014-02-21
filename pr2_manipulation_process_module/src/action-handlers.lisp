@@ -332,7 +332,7 @@ for the currently type of grasped object."
                   (cpl:retry)))
               (moveit:planning-failed (f)
                 (declare (ignore f))
-                (cpl:fail manipulation-pose-unreachable)))
+                (cpl:fail 'manipulation-pose-unreachable)))
            (let* ((orientation-offset (* 2 pi (/ current-orientation
                                                  putdown-orientations)))
                   (putdown-pose (orient-pose putdown-pose-pure
