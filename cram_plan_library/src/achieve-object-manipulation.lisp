@@ -200,12 +200,6 @@
              (ros-warn
               (achieve plan-lib)
               "Got unreachable putdown pose.")
-             (cpl:fail 'manipulation-pose-unreachable))
-           (moveit:planning-failed (f)
-             (declare (ignore f))
-             (ros-warn
-              (achieve plan-lib)
-              "Got unreachable putdown pose.")
              (cpl:fail 'manipulation-pose-unreachable)))
         (achieve `(looking-at ,(reference ?loc)))
         (perform put-down-action)
