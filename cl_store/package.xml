@@ -1,7 +1,7 @@
 <package>
   <name>cl_store</name>
   <version>0.1.0</version>
-  <!-- external-version>0.8.10</external-version>
+  <!-- external-version>0.8.10</external-version-->
   <description>
       3rd party library: CL-STORE
   </description>
