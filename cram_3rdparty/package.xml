@@ -31,6 +31,8 @@
   <run_depend>synchronization_tools</run_depend>
   <run_depend>trivial_features</run_depend>
   <run_depend>trivial_garbage</run_depend>
+  <run_depend>trivial_gray_streams</run_depend>
+  <run_depend>yason</run_depend>
 
   <export>
     <metapackage/>
