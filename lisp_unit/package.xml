@@ -1,6 +1,7 @@
 <package>
   <name>lisp_unit</name>
-  <version>0.7.0</version>
+  <version>0.1.0</version>
+  <!--external-version>0.7.0</external-version-->
   <description>
       3rd party library: A unit testing framework for common lisp.
   </description>
