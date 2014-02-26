@@ -6,8 +6,7 @@
   ((:module "src"
             :components
             ((:file "package")
-             (:file "ros-node" :depends-on ("package"))
-             (:file "time" :depends-on ("package" "ros-node"))
+             (:file "time" :depends-on ("package"))
              (:file "lispification" :depends-on ("package"))
-             (:file "tf" :depends-on ("package" "ros-node"))
+             (:file "tf" :depends-on ("package"))
              (:file "sbcl-hotpatches")))))
