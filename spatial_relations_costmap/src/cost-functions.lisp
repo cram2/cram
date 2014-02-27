@@ -36,21 +36,18 @@
 
 ;; used for near and far-from desig-props
 (defun get-aabb-min-length (object)
-  (let* ((dims (bt:bounding-box-dimensions (aabb object))))
-    (min (cl-transforms:x dims) (cl-transforms:y dims))
-    0.15))
+  (let ((dims (bt:bounding-box-dimensions (aabb object))))
+    (min (cl-transforms:x dims) (cl-transforms:y dims))))
 
 ;; used for near and far-from desig-props
 (defun get-aabb-circle-diameter (object)
-  (cl-transforms:x (bt:bounding-box-dimensions (aabb object)))
-  0.15)
+  (cl-transforms:x (bt:bounding-box-dimensions (aabb object))))
 
 ;; used for near and far-from desig-props
 ;; we assume the radius of the oval is the max of its two radia
 (defun get-aabb-oval-diameter (object)
   (let ((dims (bt:bounding-box-dimensions (aabb object))))
-    (max (cl-transforms:x dims) (cl-transforms:y dims))
-    0.15))
+    (max (cl-transforms:x dims) (cl-transforms:y dims))))
 
 ;; used for near desig-prop
 ;; the radius of the costmap is the distance from the center of the ref-obj
@@ -86,7 +83,18 @@
 ;; used in potential-field-costmap prolog pred
 (defun get-sem-map-part (sem-map urdf-name)
   (let ((owl-name (sem-map-utils:urdf-name->obj-name urdf-name)))
+    (format t "owl name: ~a~%" owl-name)
     (sem-map-utils:semantic-map-part (semantic-map sem-map) owl-name)))
+
+(defun get-rigid-body-aabb-top-z (rigid-body)
+  (when rigid-body
+    (let ((body-aabb (aabb rigid-body)))
+      (+ (cl-transforms:z (cl-bullet:bounding-box-center body-aabb))
+         (/ (cl-transforms:z (cl-bullet:bounding-box-dimensions body-aabb)) 2)))))
+
+(defun get-link-rigid-body (articulated-object-name link-name)
+  (let ((articulated-object (object *current-bullet-world* articulated-object-name)))
+    (gethash link-name (links articulated-object))))
 
 ;; used in potential-field-costmap
 ;; TODO: maybe include bb into deciding not just the pose and ratio
@@ -179,8 +187,7 @@
                 0.0d0)
             0.0d0)))))
 
-(defun make-objects-bounding-box-costmap-generator (objs &key (invert nil)
-                                                           (padding 0.0d0))
+(defun make-aabbs-costmap-generator (objs &key (invert nil) (padding 0.0d0))
   "This costmap generator is used for collision avoidance.
    Returns a lambda function which for each (x y) gives 1.0 if one of the objects in
    `objs' covers (x y) with its bounding box, and 0.0 if (x y) is free of objects.
@@ -250,7 +257,7 @@
    The resulting slot sizes are restricted by `max-slot-size' and `min-slot-size', i.e.
    everything which is out of the boundaries gets truncated to the max or min.
    `preferred-supporting-object-size' is either :+ (for positive direction of axis) or :-.
-   `paddings-list' is of format '(padd-left padd-right padd-front padd-back).
+   `paddings-list' is of format '(padd-x+ padd-x- padd-y+ padd-y-).
    The `supp-object' is supposed to be rectangular with y axis pointing to the left
    and x - to the back."
   (declare (type sem-map-utils::semantic-map-part supp-object)
@@ -270,62 +277,71 @@
                   (setf resulting-points (cons (list coord-on-other-axis next-coord)
                                                resulting-points))))
                (setf next-coord (- next-coord distance))))))
-    (let* ((supp-obj-dims (cl-transforms:v-
-                           (sem-map-utils:dimensions supp-object)
-                           (cl-transforms:make-3d-vector (+ (third paddings-list)
-                                                            (fourth paddings-list))
-                                                         (+ (first paddings-list)
-                                                            (second paddings-list)) 
-                                                         0.0d0)))
-           ;; we need the inverse transform of the origin of the center of padded region
-           (transform-for-padding (cl-transforms:make-transform
-                                   (cl-transforms:make-3d-vector
-                                    (/ (- (fourth paddings-list) (third paddings-list)) 2)
-                                    (/ (- (first paddings-list) (second paddings-list)) 2)
-                                    0)
-                                   (cl-transforms:make-identity-rotation)))
+    (let* ((supp-obj-dims-in-sem-map-coords (sem-map-utils:dimensions supp-object))
+           (padded-supp-obj-dims-in-sem-map-coords
+             (cl-transforms:v-
+              supp-obj-dims-in-sem-map-coords
+              (cl-transforms:make-3d-vector (+ (first paddings-list) (second paddings-list))
+                                            (+ (third paddings-list) (fourth paddings-list))
+                                            0.0d0)))
+           ;; inverse transform of the origin of the center of the padded region:
+           (padding-center->zero-in-sem-map-coords
+             (cl-transforms:make-transform
+              (cl-transforms:make-3d-vector
+               (/ (- (first paddings-list) (second paddings-list)) 2)
+               (/ (- (third paddings-list) (fourth paddings-list)) 2)
+               0) ; it's the inverse, therefore (- first second)
+              (cl-transforms:make-identity-rotation)))
+           ;; set initial values for the axis and the switch if needed
            (longer-side-axis #'cl-transforms:x)
            (shorter-side-axis #'cl-transforms:y)
            (longer-side-length nil)
            (max-possible-object-count nil))
-      (when (> (cl-transforms:y supp-obj-dims) (cl-transforms:x supp-obj-dims))
+      (when (> (cl-transforms:y padded-supp-obj-dims-in-sem-map-coords)
+               (cl-transforms:x padded-supp-obj-dims-in-sem-map-coords))
         (setf longer-side-axis #'cl-transforms:y)
         (setf shorter-side-axis #'cl-transforms:x))
-      (setf longer-side-length (funcall longer-side-axis supp-obj-dims))
+      (setf longer-side-length
+            (funcall longer-side-axis padded-supp-obj-dims-in-sem-map-coords))
       (setf max-possible-object-count (* (floor longer-side-length min-slot-size) 2))
       (when (> object-count max-possible-object-count)
         (setf object-count max-possible-object-count))
       (let* ((object-count-on-preferred-side (ceiling object-count 2))
-            (object-count-on-other-side (floor object-count 2))
-            (coord-on-other-axis (/ (funcall shorter-side-axis supp-obj-dims) 4.0))
-            (distance (/ longer-side-length object-count-on-preferred-side)))
+             (object-count-on-other-side (floor object-count 2))
+             (coord-on-other-axis
+               (/ (funcall shorter-side-axis padded-supp-obj-dims-in-sem-map-coords)
+                  4.0))
+             (distance (/ longer-side-length object-count-on-preferred-side)))
         (when (> distance max-slot-size)
           (setf distance max-slot-size))
         (ecase preferred-supporting-object-side
           (:+ nil)
           (:- (setf coord-on-other-axis (- coord-on-other-axis))))
         (let* ((placement-points
-                 (concatenate 'list
-                              (calculate-points distance object-count-on-preferred-side
-                                                longer-side-axis coord-on-other-axis)
-                              (calculate-points distance object-count-on-other-side
-                                                longer-side-axis (- coord-on-other-axis))))
+                 (concatenate
+                  'list
+                  (calculate-points distance object-count-on-preferred-side
+                                    longer-side-axis coord-on-other-axis)
+                  (calculate-points distance object-count-on-other-side
+                                    longer-side-axis (- coord-on-other-axis))))
                (supp-obj-pose (sem-map-utils:pose supp-object))
                (transform (cl-transforms:pose->transform supp-obj-pose))
                (world->supp-trans (cl-transforms:transform-inv transform)))
           (lambda (x y)
             (let* ((point (cl-transforms:transform-point
-                           transform-for-padding
-                           (cl-transforms:transform-point world->supp-trans
-                                                          (cl-transforms:make-3d-vector x y 0))))
-                   (min-dist (reduce #'min (mapcar (lambda (x-and-y)
-                                                     (sqrt (+ (expt (- (cl-transforms:x point)
-                                                                       (first x-and-y))
-                                                                    2)
-                                                              (expt (- (cl-transforms:y point)
-                                                                       (second x-and-y))
-                                                                    2))))
-                                                   placement-points)))) 
+                           padding-center->zero-in-sem-map-coords
+                           (cl-transforms:transform-point
+                            world->supp-trans
+                            (cl-transforms:make-3d-vector x y 0))))
+                   (min-dist
+                     (reduce #'min (mapcar
+                                    (lambda (x-and-y)
+                                      (sqrt
+                                       (+ (expt (- (cl-transforms:x point)
+                                                   (first x-and-y)) 2)
+                                          (expt (- (cl-transforms:y point)
+                                                   (second x-and-y)) 2))))
+                                    placement-points))))
               (if (<= min-dist position-deviation-threshold)
                   1.0
                   0.0))))))))
