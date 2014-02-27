@@ -27,41 +27,25 @@
 
 (in-package :pr2-manipulation-process-module)
 
+(defgeneric call-action (action &rest params))
+
+(defmethod call-action ((action-sym t) &rest params)
+  (ros-info (pr2 manip-pm)
+   "Unimplemented operation `~a' with parameters ~a. Doing nothing."
+   action-sym params)
+  (sleep 0.5))
+
+(defmethod call-action :around (action-sym &rest params)
+  (ros-info (pr2 manip-pm)
+                    "Executing manipulation action ~a ~a."
+                    action-sym params)
+  (prog1 (call-next-method)
+    (ros-info (pr2 manip-pm) "Manipulation action done.")))
+
 (defmacro def-action-handler (name args &body body)
   (alexandria:with-gensyms (action-sym params)
     `(defmethod call-action ((,action-sym (eql ',name)) &rest ,params)
        (destructuring-bind ,args ,params ,@body))))
-
-(def-action-handler container-opened (object grasp-assignments opening-measure)
-  (call-action 'grasp object grasp-assignments nil)
-  (let* ((grasp-assignment (first grasp-assignments))
-         (handle-pair (slot-value grasp-assignment 'handle-pair))
-         (handle-relative (car handle-pair))
-         (handle-absolute (cdr handle-pair))
-         (side (slot-value grasp-assignment 'side))
-         (opening-step 5.0)
-         (steps (loop for i from opening-step to opening-measure
-                        by opening-step
-                      collect (open-angle object handle-relative (- i)))))
-    (declare (ignore handle-absolute))
-    (loop for step in steps
-          ;; TODO(winkler): Refactor this to send a series of poses in
-          ;; ONE movement description to MoveIt! instead. This way,
-          ;; the motion planner can also tell us whether the opening
-          ;; will work or not. Also: Do this _BEFORE_ grasping the
-          ;; handle.
-          for pose-grasp = (relative-grasp-pose
-                            step *grasp-offset*)
-          do (publish-pose pose-grasp "/dbg")
-             (execute-move-arm-pose side pose-grasp))))
-
-(def-action-handler debug ()
-  (ros-info (pr2 debug) "Debug handler called.~%"))
-
-(def-action-handler container-closed (handle side)
-  (let* ((handle-pose (designator-pose (newest-effective-designator handle)))
-         (new-object-pose (close-drawer handle-pose side)))
-    (update-object-designator-pose handle new-object-pose)))
 
 (def-action-handler park (obj arms &optional obstacles)
   (declare (ignore obstacles))
@@ -133,30 +117,10 @@
          (lift-grasped-object-with-both-arms distance))
         (t (error 'simple-error :format-control "No arms for lifting inferred."))))
 
-(def-action-handler pull (obj-desig arms direction distance obstacles)
-  (declare (ignore obj-desig obstacles))
-  (cpl:par-loop (arm (force-ll arms))
-    (let* ((rel-ik (relative-linear-translation->ik
-                    arm
-                    :x (* (tf:x direction) distance)
-                    :y (* (tf:y direction) distance)
-                    :z (* (tf:z direction) distance))))
-      (when rel-ik
-        (execute-arm-trajectory arm (ik->trajectory rel-ik))))))
-
-(def-action-handler push (obj-desig arms direction distance obstacles)
-  (declare (ignore obj-desig obstacles))
-  (cpl:par-loop (arm (force-ll arms))
-    (let* ((rel-ik (relative-linear-translation->ik
-                   arm
-                   :x (* (tf:x direction) distance)
-                   :y (* (tf:y direction) distance)
-                   :z (* (tf:z direction) distance))))
-      (when rel-ik
-        (execute-arm-trajectory arm (ik->trajectory rel-ik))))))
-
 (define-hook on-begin-grasp (obj-desig))
 (define-hook on-finish-grasp (log-id success))
+(define-hook on-grasp-decisions-complete
+    (object-name pregrasp-pose grasp-pose side object-pose))
 
 (def-action-handler grasp (obj-desig grasp-assignments obstacles)
   (declare (ignore obstacles))
@@ -167,13 +131,7 @@
     (cpl:par-loop (grasp-assignment grasp-assignments)
       (let* ((obj-pose (reference (desig-prop-value
                                    obj-desig 'desig-props:at)))
-             (pose-genuine (slot-value grasp-assignment 'pose))
-             (pose (tf:make-pose-stamped
-                    (tf:frame-id pose-genuine)
-                    (tf:stamp pose-genuine)
-                    (tf:v+ (tf:origin pose-genuine)
-                           (tf:make-3d-vector 0.0 0.0 0.0))
-                    (tf:orientation pose-genuine))))
+             (pose (slot-value grasp-assignment 'pose)))
         (publish-pose pose "/dhdhdh")
         (let* ((side (slot-value grasp-assignment 'side))
                (pregrasp-pose-tll
@@ -197,11 +155,11 @@
                      (on-finish-grasp log-id nil)))
                  (cram-plan-failures:manipulation-pose-unreachable (f)
                    (declare (ignore f))
-                   (unwind-protect
-                        (cpl:fail
-                         'cram-plan-failures:manipulation-pose-unreachable)
-                     (on-finish-grasp log-id nil))))
-              (prog1
+                   (on-finish-grasp log-id nil)))
+              (prog2
+                  (on-grasp-decisions-complete
+                   (desig-prop-value obj-desig 'desig-props:name)
+                   pregrasp-pose-tll grasp-pose-tll side obj-pose)
                   (execute-grasp :object-name (desig-prop-value
                                                obj-desig
                                                'desig-props:name)
