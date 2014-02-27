@@ -219,11 +219,6 @@
              (declare (ignore f))
              (ros-warn (achieve plan-lib)
                        "Unable to park. Trying again.")
-             (retry))
-           (moveit:planning-failed (f)
-             (declare (ignore f))
-             (ros-warn (achieve plan-lib)
-                       "Unable to park. Trying again.")
              (retry)))
         (perform park-action)
         (monitor-action park-action)))))
@@ -271,7 +266,7 @@
                    (retry-with-updated-location
                     put-down-loc
                     (next-different-location-solution put-down-loc)))))
-            (at-location (put-down-loc) 
+            (at-location (put-down-loc)
               (achieve `(cram-plan-library:object-put ,?obj ,?loc)))))))))
 
 ;; (def-goal (achieve (object-placed-at ?obj ?loc))
