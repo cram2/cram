@@ -97,26 +97,6 @@
     (loc-desig? ?obj-loc)
     (desig-prop ?obj-loc (in gripper)))
 
-  (<- (action-desig ?desig (container-opened ?current-obj ?grasp-assignments
-                                             ?angle))
-    (trajectory-desig? ?desig)
-    (desig-prop ?desig (to open))
-    (desig-prop ?desig (obj ?obj))
-    (current-designator ?obj ?current-obj)
-    (handles ?current-obj ?handles)
-    (desig-prop ?desig (angle ?angle))
-    (available-arms ?current-obj ?available-arms)
-    (optimal-handle-grasp ?current-obj ?available-arms ?grasp-assignments))
-
-  (<- (action-desig ?desig (debug))
-    (trajectory-desig? ?desig)
-    (desig-prop ?desig (to debug)))
-  
-  (<- (action-desig ?desig (container-closed ?handle :right))
-    (trajectory-desig? ?desig)
-    (desig-prop ?desig (to close))
-    (desig-prop ?desig (handle ?handle)))
-
   ;; On the PR2 we don't need an open pose
   (<- (action-desig ?desig (noop ?desig))
     (trajectory-desig? ?desig)
