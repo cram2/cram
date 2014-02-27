@@ -20,7 +20,7 @@
   <build_depend>alexandria</build_depend>
   <build_depend>cram_utilities</build_depend>
   <build_depend>cram_roslisp_common</build_depend>
-  <build_depend>cl_transform</build_depend>
+  <build_depend>cl_transforms</build_depend>
   <build_depend>cram_math</build_depend>
   <build_depend>cram_language</build_depend>
   <build_depend>cram_reasoning</build_depend>
@@ -34,7 +34,7 @@
   <run_depend>alexandria</run_depend>
   <run_depend>cram_utilities</run_depend>
   <run_depend>cram_roslisp_common</run_depend>
-  <run_depend>cl_transform</run_depend>
+  <run_depend>cl_transforms</run_depend>
   <run_depend>cram_math</run_depend>
   <run_depend>cram_language</run_depend>
   <run_depend>cram_reasoning</run_depend>
