@@ -47,7 +47,6 @@
                  designators
                  cram-roslisp-common
                  cram-plan-knowledge
-                 triangulate_point_cloud-srv
                  cl-semantic-map-utils
                  cram-manipulation-knowledge
                  designators)
