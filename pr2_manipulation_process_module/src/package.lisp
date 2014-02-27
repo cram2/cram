@@ -40,7 +40,8 @@
         #:cram-plan-knowledge)
   (:import-from alexandria ignore-some-conditions)
   (:import-from roslisp ros-info ros-warn ros-error ros-time)
-  (:export pr2-manipulation-process-module wait-for-controller)
+  (:export pr2-manipulation-process-module
+           wait-for-controller)
   (:desig-properties #:trajectory #:type #:to #:open #:obj #:side #:close
                      #:grasp #:put-down #:pose #:parked #:lift
                      #:carry #:at #:orientation #:in #:gripper #:both-grippers
