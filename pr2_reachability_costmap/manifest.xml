@@ -10,7 +10,6 @@
   <url>http://ros.org/wiki/pr2_reachability_costmap</url>
   <depend package="kinematics_msgs" />
   <depend package="location_costmap" />
-  <depend package="roslisp_runtime" />
   <depend package="cl_transforms" />
   <depend package="cl_tf" />
   <depend package="cram_utilities" />
