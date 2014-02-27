@@ -341,8 +341,3 @@ list of SEM-MAP-UTILS:SEMANTIC-MAP-GEOMs"
     (loop for obj in (cut:force-ll objects)
           when (point-on-object obj (cl-transforms:make-3d-vector x y 0))
             collecting (float (obj-z-value obj type-tag) 0.0d0))))
-
-(defun make-constant-height-function (height)
-  (lambda (x y)
-    (declare (ignore x y))
-    (list height)))
