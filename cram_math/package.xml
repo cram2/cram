@@ -1,6 +1,6 @@
 <package>
   <name>cram_math</name>
-  <version>0.1.0</version>
+  <version>0.1.1</version>
   <description>
     Math utilities. This includes functions for sampling from
     arbitrary probability distributions and utilities to work with
@@ -14,6 +14,7 @@
 
   <license>BSD</license>
 
+  <url type="website">http://cram-project.org</url>
   <url type="website">http://ros.org/wiki/cram_math</url>
   <url type="bugtracker">https://github.com/cram-code/cram_core/issues</url>
   <url type="repository">https://github.com/cram-code/cram_core</url>
