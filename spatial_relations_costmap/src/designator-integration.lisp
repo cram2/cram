@@ -35,11 +35,11 @@
   narrower. At the smaller angles the solutions have the highest values, so we put a
   threshold on the solution values.")
 
-;; (register-location-validation-function
-;;  6 collision-pose-validator
-;;  "If a location was generated for a household object, then it is checked if the
-;;   generated pose causes collisions of that object with other household objects,
-;;   in which case the pose is rejected.")
+(register-location-validation-function
+ 6 collision-pose-validator
+ "If a location was generated for a household object, then it is checked if the
+  generated pose causes collisions of that object with other household objects,
+  in which case the pose is rejected.")
 
 (defun potential-field-costmap-pose-validator (desig pose)
   "If desig-props:for is specified it means we generated a costmap for a specific object.
@@ -75,7 +75,7 @@
   "Checks if desig has a property FOR. If so, checks if the object described by FOR is
    a household object. If so, uses the prolog predicate desig-solution-not-in-collision."
   (when (typep pose 'cl-transforms:pose)
-    (let ((for-prop-value (desig-prop-value desig 'for))) 
+    (let ((for-prop-value (desig-prop-value desig 'for)))
       (if (and for-prop-value
                (prolog `(and
                          (object-instance-name ,for-prop-value ?object-name)

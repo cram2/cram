@@ -34,7 +34,7 @@
   (<- (costmap-resolution 0.03))
 
   (<- (costmap-padding 0.38))
-  (<- (costmap-manipulation-padding 0.38))
+  (<- (costmap-manipulation-padding 0.3))
   (<- (costmap-in-reach-distance 1.0))
   (<- (costmap-reach-minimal-distance 0.2)))
 
@@ -129,11 +129,10 @@
         (household-object-type ?world ?obj-name fork)))
 
   ;; table setting related
-  ;; (<- (paddings-list "kitchen_island" table-setting (-0.04d0 0.01d0 0.03d0 0.8d0)))
-  (<- (paddings-list "kitchen_island" table-setting (0 0 0 0)))
-  (<- (paddings-list "kitchen_sink_block" table-setting (-0.04d0 0.01d0 0.03d0 10.8d0)))
+  (<- (paddings-list "kitchen_island" table-setting (0.03d0 0.03d0 0.03d0 0.8d0)))
+  (<- (paddings-list "kitchen_sink_block" table-setting (0.03d0 0.03d0 0.03d0 0.03d0)))
   (<- (preferred-supporting-object-side "kitchen_island" table-setting :-))
-  (<- (preferred-supporting-object-side "kitchen_sink_block" table-setting :-))
+  (<- (preferred-supporting-object-side "kitchen_sink_block" table-setting :+))
   (<- (max-slot-size btr::plate table-setting 0.8d0))
   (<- (min-slot-size btr::plate table-setting 0.5d0))
   (<- (position-deviation-threshold btr::plate table-setting 0.08d0)))
