@@ -3,10 +3,10 @@
 
 (defun compute-ik-client (position-ik-request)
   (roslisp:with-ros-node ("moveit-test-client")
-    (if (not (roslisp:wait-for-service "moveit/compute_ik" 10))
+    (if (not (roslisp:wait-for-service "compute_ik" 10))
         (roslisp:ros-warn (bullet-reasoning-tests)
                           "Timed out waiting for service moveit/compute_ik")
-        (roslisp:call-service "moveit/compute_ik"
+        (roslisp:call-service "compute_ik"
                               "moveit_msgs/GetPositionIK"
                               :ik_request position-ik-request))))
 
