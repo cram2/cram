@@ -1,0 +1,27 @@
+<package>
+  <name>cffi_ros_utils</name>
+  <version>0.1.0</version>
+  <description>
+    ROS related CFFI interface
+  </description>
+
+  <author email="moesenle@cs.tum.edu">Lorenz Moesenlechner</author>
+
+  <maintainer email="moesenle@cs.tum.edu">Lorenz Moesenlechner</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://ros.org/wiki/cffi_ros_utils</url>
+  <url type="bugtracker">https://github.com/cram-code/cram_highlevel/issues</url>
+  <url type="repository">https://github.com/cram-code/cram_highlevel</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>cffi</build_depend>
+  <build_depend>split_sequence</build_depend>
+  <build_depend>sbcl</build_depend>
+
+  <run_depend>cffi</run_depend>
+  <run_depend>split_sequence</run_depend>
+  <run_depend>sbcl</run_depend>
+</package>
