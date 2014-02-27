@@ -1,0 +1,37 @@
+<package>
+  <name>semantic_map_costmap</name>
+  <version>0.1.0</version>
+  <description>
+    Semantic Map Costmap package
+  </description>
+
+  <author email="moesenle@cs.tum.edu">Lorenz Moesenlechner</author>
+
+  <maintainer email="moesenle@cs.tum.edu">Lorenz Moesenlechner</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://ros.org/wiki/semantic_map_costmap</url>
+  <url type="bugtracker">https://github.com/cram-code/cram_highlevel/issues</url>
+  <url type="repository">https://github.com/cram-code/cram_highlevel</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>cram_json_prolog</build_depend>
+  <build_depend>cl_transforms</build_depend>
+  <build_depend>cl_semantic_map_utils</build_depend>
+  <build_depend>cram_roslisp_common</build_depend>
+  <build_depend>cram_projection</build_depend>
+  <build_depend>location_costmap</build_depend>
+  <build_depend>alexandria</build_depend>
+  <build_depend>semantic_map_cache</build_depend>
+
+  <run_depend>cram_json_prolog</run_depend>
+  <run_depend>cl_transforms</run_depend>
+  <run_depend>cl_semantic_map_utils</run_depend>
+  <run_depend>cram_roslisp_common</run_depend>
+  <run_depend>cram_projection</run_depend>
+  <run_depend>location_costmap</run_depend>
+  <run_depend>alexandria</run_depend>
+  <run_depend>semantic_map_cache</run_depend>
+</package>
