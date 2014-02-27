@@ -1,0 +1,35 @@
+<package>
+  <name>cram_plan_transformations</name>
+  <version>0.1.0</version>
+  <description>
+    CRAM Plan Transformations package
+  </description>
+
+  <author email="moesenle@cs.tum.edu">Lorenz Moesenlechner</author>
+
+  <maintainer email="moesenle@cs.tum.edu">Lorenz Moesenlechner</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://ros.org/wiki/cram_plan_transformations</url>
+  <url type="bugtracker">https://github.com/cram-code/cram_highlevel/issues</url>
+  <url type="repository">https://github.com/cram-code/cram_highlevel</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>cram_reasoning</build_depend>
+  <build_depend>cram_language</build_depend>
+  <build_depend>cram_designators</build_depend>
+  <build_depend>cram_plan_library</build_depend>
+  <build_depend>cram_plan_knowledge</build_depend>
+  <build_depend>cram_utilities</build_depend>
+  <build_depend>alexandria</build_depend>
+
+  <run_depend>cram_reasoning</run_depend>
+  <run_depend>cram_language</run_depend>
+  <run_depend>cram_designators</run_depend>
+  <run_depend>cram_plan_library</run_depend>
+  <run_depend>cram_plan_knowledge</run_depend>
+  <run_depend>cram_utilities</run_depend>
+  <run_depend>alexandria</run_depend>
+</package>
