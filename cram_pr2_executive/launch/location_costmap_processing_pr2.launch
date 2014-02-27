@@ -1,6 +1,0 @@
-
-<launch>
-  <include file="$(find table_costmap)/launch/table_costmap_pr2.launch"/>
-  <include file="$(find ias_map_annotations)/launch/table_annotations.launch"/>
-  <param name="/table_costmap/publish_occupancy_grid" value="false"/>
-</launch>
