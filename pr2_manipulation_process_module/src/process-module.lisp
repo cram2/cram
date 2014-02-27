@@ -101,21 +101,6 @@
 (roslisp-utilities:register-ros-init-function
  init-pr2-manipulation-process-module)
 
-(defgeneric call-action (action &rest params))
-
-(defmethod call-action ((action-sym t) &rest params)
-  (ros-info (pr2 manip-pm)
-   "Unimplemented operation `~a' with parameters ~a. Doing nothing."
-   action-sym params)
-  (sleep 0.5))
-
-(defmethod call-action :around (action-sym &rest params)
-  (ros-info (pr2 manip-pm)
-                    "Executing manipulation action ~a ~a."
-                    action-sym params)
-  (prog1 (call-next-method)
-    (ros-info (pr2 manip-pm) "Manipulation action done.")))
-
 (defun execute-goal (server goal)
   (multiple-value-bind (result status)
       (actionlib:call-goal server goal)
@@ -123,14 +108,6 @@
       (cpl-impl:fail 'manipulation-failed
                      :format-control "Manipulation failed"))
     result))
-
-(defun execute-torso-command (trajectory)
-  (actionlib:call-goal
-   *trajectory-action-torso*
-   (actionlib:make-action-goal
-       *trajectory-action-torso*
-     :trajectory (remove-trajectory-joints
-                  #("torso_lift_joint") trajectory :invert t))))
 
 (defun links-for-arm-side (side)
   (ecase side
@@ -250,24 +227,6 @@
               (t (hook-after-move-arm log-id nil)
                  (error 'manipulation-failed
                         :result (list side pose-stamped))))))))
-
-(defun move-spine (position)
-  (let ((spine-lift-trajectory
-          (roslisp:make-msg
-           "trajectory_msgs/JointTrajectory"
-           (stamp header) (ros-time)
-           joint_names #("torso_lift_joint")
-           points (vector
-                   (roslisp:make-message
-                    "trajectory_msgs/JointTrajectoryPoint"
-                    positions (vector position)
-                    velocities #(0)
-                    accelerations #(0)
-                    time_from_start 5.0)))))
-    (ros-info (pr2 manip-pm)
-                      "Moving spine to position ~a." position)
-    (execute-torso-command spine-lift-trajectory)
-    (ros-info (pr2 manip-pm) "Moving spine complete.")))
 
 (defun close-gripper (side &key (max-effort 100.0) (position 0.0))
   (let ((client (ecase side
