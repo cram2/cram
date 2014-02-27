@@ -1,6 +1,6 @@
 <package>
   <name>cram_language</name>
-  <version>0.1.0</version>
+  <version>0.1.1</version>
   <description>
     The CRAM plan language is the core of the CRAM framework. It
     provides the basic functionality to write flexible and robust
@@ -14,6 +14,7 @@
 
   <license>BSD</license>
 
+  <url type="website">http://cram-project.org</url>
   <url type="website">http://ros.org/wiki/cram_language</url>
   <url type="bugtracker">https://github.com/cram-code/cram_core/issues</url>
   <url type="repository">https://github.com/cram-code/cram_core</url>

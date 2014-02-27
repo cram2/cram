@@ -1,6 +1,6 @@
 <package>
   <name>cram_reasoning</name>
-  <version>0.1.0</version>
+  <version>0.1.1</version>
   <description>
     This package implements a simple interpreter for a Prolog-like
     language and an implementation of the RETE algorithm.
@@ -13,6 +13,7 @@
 
   <license>BSD</license>
 
+  <url type="website">http://cram-project.org</url>
   <url type="website">http://ros.org/wiki/cram_reasoning</url>
   <url type="bugtracker">https://github.com/cram-code/cram_core/issues</url>
   <url type="repository">https://github.com/cram-code/cram_core</url>

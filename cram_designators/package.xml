@@ -1,6 +1,6 @@
 <package>
   <name>cram_designators</name>
-  <version>0.1.0</version>
+  <version>0.1.1</version>
   <description>
       cram_designators defines the protocol for designators and provides an
       implementation for location, object and action designators.
@@ -13,6 +13,7 @@
 
   <license>BSD</license>
 
+  <url type="website">http://cram-project.org</url>
   <url type="website">http://ros.org/wiki/cram_designators</url>
   <url type="bugtracker">https://github.com/cram-code/cram_core/issues</url>
   <url type="repository">https://github.com/cram-code/cram_core</url>

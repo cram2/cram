@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>cram_core</name>
-  <version>0.1.0</version>
+  <version>0.1.1</version>
   <description>
      A set of libraries for implementing AI enabled robot control programs.
   </description>
@@ -13,6 +13,7 @@
 
   <license>BSD</license>
 
+  <url type="website">http://cram-project.org</url>
   <url type="website">http://ros.org/wiki/cram_core</url>
   <url type="bugtracker">https://github.com/cram-code/cram_core/issues</url>
   <url type="repository">https://github.com/cram-code/cram_core</url>
