@@ -40,7 +40,7 @@
         (setf (gethash name *persistent-ik-services*)
               (make-instance 'roslisp:persistent-service
                 :service-name name
-                :service-type "kinematics_msgs/GetPositionIK")))))
+                :service-type "iai_kinematics_msgs/GetPositionIK")))))
 
 (defun get-ik-solver-info (namespace)
   (or (gethash namespace *ik-solver-info*)
@@ -48,7 +48,7 @@
             (roslisp:with-fields (kinematic_solver_info)
                 (roslisp:call-service
                  (concatenate 'string namespace "/get_ik_solver_info")
-                 "kinematics_msgs/GetKinematicSolverInfo")
+                 "iai_kinematics_msgs/GetKinematicSolverInfo")
               kinematic_solver_info))))
 
 (defun get-ik-solver-joints (namespace)
@@ -82,7 +82,7 @@
         (roslisp:call-persistent-service
          (get-persistent-service (concatenate 'string service-namespace "/get_ik"))
          (roslisp:make-request
-          "kinematics_msgs/GetPositionIK"
+          "iai_kinematics_msgs/GetPositionIK"
           (:ik_link_name :ik_request) ik-link
           (:pose_stamped :ik_request) (tf:pose-stamped->msg
                                        (tf:pose->pose-stamped ik-base-frame 0.0 pose))
