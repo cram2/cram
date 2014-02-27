@@ -164,22 +164,21 @@
 
   (<- (desig-check-articulated-object-manipulation
        ?action-designator ?robot-pose)
-    ;; (bullet-world ?world)
-    ;; (robot ?robot)
-    ;; (desig-prop ?action-designator (to open))
-    ;; (desig-prop ?action-designator (handle ?handle))
-    ;; (lisp-fun newest-effective-designator ?handle ?current-handle)
-    ;; (-> (lisp-pred identity ?current-handle)
-    ;;     (desig-prop ?current-handle (name ?handle-name))
-    ;;     ;; Note(moesenle): This is not clean, it helps with debugging
-    ;;     ;; though.
-    ;;     (desig-prop ?handle (name ?handle-name)))
-    ;; (semantic-map ?world ?semantic-map)
-    ;; (assert (object-pose ?world ?robot ?robot-pose))
-    ;; (with-copied-world ?world
-    ;;   (btr:execute ?world (btr:open ?semantic-map ?handle-name))
-    ;;   (not (contact ?world ?robot ?semantic-map))))
-    )
+    (bullet-world ?world)
+    (robot ?robot)
+    (desig-prop ?action-designator (to open))
+    (desig-prop ?action-designator (handle ?handle))
+    (lisp-fun newest-effective-designator ?handle ?current-handle)
+    (-> (lisp-pred identity ?current-handle)
+        (desig-prop ?current-handle (name ?handle-name))
+        ;; Note(moesenle): This is not clean, it helps with debugging
+        ;; though.
+        (desig-prop ?handle (name ?handle-name)))
+    (semantic-map ?world ?semantic-map)
+    (assert (object-pose ?world ?robot ?robot-pose))
+    (with-copied-world ?world
+      (btr:execute ?world (btr:open ?semantic-map ?handle-name))
+      (not (contact ?world ?robot ?semantic-map))))
 
   (<- (location-valid
        ?desig ?pose
