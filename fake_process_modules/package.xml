@@ -1,0 +1,25 @@
+<package>
+  <name>fake_process_module</name>
+  <version>0.1.0</version>
+  <description>
+    Fake process module implementation
+  </description>
+
+  <author email="moesenle@cs.tum.edu">Lorenz Moesenlechner</author>
+
+  <maintainer email="moesenle@cs.tum.edu">Lorenz Moesenlechner</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://ros.org/wiki/fake_process_module</url>
+  <url type="bugtracker">https://github.com/cram-code/cram_highlevel/issues</url>
+  <url type="repository">https://github.com/cram-code/cram_highlevel</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>cram_process_modules</build_depend>
+  <build_depend>cram_designators</build_depend>
+
+  <run_depend>cram_process_modules</run_depend>
+  <run_depend>cram_designators</run_depend>
+</package>
