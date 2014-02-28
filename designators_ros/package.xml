@@ -1,0 +1,32 @@
+<package>
+  <name>designators_ros</name>
+  <version>0.1.0</version>
+  <description>
+    This package supplies application specific functionalities for
+    designators with in the ROS system.
+  </description>
+
+  <author email="moesenle@cs.tum.edu">Lorenz Moesenlechner</author>
+
+  <maintainer email="moesenle@cs.tum.edu">Lorenz Moesenlechner</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://ros.org/wiki/designators_ros</url>
+  <url type="bugtracker">https://github.com/cram-code/cram_highlevel/issues</url>
+  <url type="repository">https://github.com/cram-code/cram_highlevel</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>cram_designators</build_depend>
+  <build_depend>cl_tf</build_depend>
+  <build_depend>cram_utilities</build_depend>
+  <build_depend>cram_reasoning</build_depend>
+  <build_depend>cram_roslisp_common</build_depend>
+
+  <run_depend>cram_designators</run_depend>
+  <run_depend>cl_tf</run_depend>
+  <run_depend>cram_utilities</run_depend>
+  <run_depend>cram_reasoning</run_depend>
+  <run_depend>cram_roslisp_common</run_depend>
+</package>

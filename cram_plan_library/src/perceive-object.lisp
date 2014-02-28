@@ -32,22 +32,21 @@
 (define-condition ambiguous-perception (simple-plan-failure) ())
 
 (def-goal (perceive-object all ?obj-desig)
-  (with-designators ((obj-loc-desig (location `((of ,?obj-desig))))
-                     (loc (location `((to see) (obj ,?obj-desig)
-                                      (location ,obj-loc-desig))))
-                     (perceive-action (action `((to perceive) (obj ,?obj-desig)))))
-    (let ((loc-retry-cnt 0))
+  (with-retry-counters ((movement-retries 3))
+    (with-designators ((obj-loc-desig (location `((of ,?obj-desig))))
+                       (loc (location `((to see) (obj ,?obj-desig)
+                                        (location ,obj-loc-desig))))
+                       (perceive-action (action `((to perceive)
+                                                  (obj ,?obj-desig)))))
       (with-failure-handling
           ((object-not-found (e)
              (declare (ignore e))
              (ros-warn (perceive plan-lib) "Object not found failure.")
-             (setf loc (next-solution loc))
-             (when (and (< loc-retry-cnt 3)
-                        (and loc (reference loc)))
-               (incf loc-retry-cnt)
-               (ros-info (perceive plan-lib) "Retrying at location ~a." (reference loc))
-               (retry))
-             (ros-warn (perceive plan-lib) "Failing at object-not-found failure.")))
+             (do-retry movement-retries
+               (ros-info
+                (perceive plan-lib) "Retrying at different base location.")
+               (retry-with-updated-location
+                loc (next-different-location-solution loc)))))
         (at-location (loc)
           (let ((obj-loc-retry-cnt 0))
             (with-failure-handling
@@ -57,7 +56,8 @@
                    (when (< obj-loc-retry-cnt 3)
                      (incf obj-loc-retry-cnt)
                      (when obj-loc-desig
-                       (setf obj-loc-desig (next-solution obj-loc-desig))
+                       (setf obj-loc-desig
+                             (next-different-location-solution obj-loc-desig))
                        (when obj-loc-desig
                          (retry))))))
               (achieve `(looking-at ,(reference obj-loc-desig)))
