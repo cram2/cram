@@ -1,1 +1,0 @@
-../src/experiments/pick-and-place-data/pick-and-place-data.asd
