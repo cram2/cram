@@ -11,7 +11,7 @@
   <maintainer email="moesenle@cs.tum.edu">Lorenz Moesenlechner</maintainer>
   <maintainer email="georg.bartels@cs.uni-bremen.de">Georg Bartels</maintainer>
 
-  <license></license>
+  <license>Public Domain</license>
 
   <url type="website">http://www.cliki.net/SPLIT-SEQUENCE</url>
   <url type="bugtracker">https://github.com/cram-code/cram_core/issues</url>
