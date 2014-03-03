@@ -13,5 +13,4 @@
   <rosdep name="sbcl" />
   <depend package="cl_transforms" />
   <depend package="cram_physics_utils" />
-  <depend package="cram_physics_utils" />
 </package>
