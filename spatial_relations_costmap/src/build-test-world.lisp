@@ -28,6 +28,9 @@
 
 (in-package :spatial-relations-costmap)
 
+(disable-location-validation-function 'btr-desig::validate-designator-solution)
+(disable-location-validation-function 'btr-desig::check-ik-solution)
+
 ;; run bullet launch files (bullet_reasoning_demo)
 ;; ros-load-system btr-demo
 
@@ -50,7 +53,8 @@
   (setf *bdgs* nil)
   (roslisp-utilities:startup-ros :anonymous nil)
   (let ((urdf (cl-urdf:parse-urdf (roslisp:get-param "robot_description_lowres")))
-        (kitchen-urdf (cl-urdf:parse-urdf (roslisp:get-param "kitchen_description"))))
+        (kitchen-urdf (cl-urdf:parse-urdf (roslisp:get-param "kitchen_description")))
+        (pi-rotation '(0 0 1 0)))
     (setf *bdgs*
           (car
            (force-ll
@@ -61,7 +65,7 @@
                (debug-window ?w)
                (assert (object ?w btr::static-plane floor ((0 0 0) (0 0 0 1))
                                :normal (0 0 1) :constant 0 :no-robot-collision t))
-               (assert (object ?w btr::semantic-map my-kitchen ((-3.45 -4.35 0) (0 0 1 0))
+               (assert (object ?w btr::semantic-map my-kitchen ((-3.45 -4.35 0) ,pi-rotation)
                                :urdf ,kitchen-urdf))
                (robot ?robot)
                (assert (object ?w urdf ?robot ((0 0 0) (0 0 0 1)) :urdf ,urdf))
@@ -181,19 +185,20 @@
 
 (defun put-plates-on-table-with-far (&optional (number-of-plates *num-of-sets-on-table*))
   (spawn-stuff)
-  (cram-language-designator-support:with-designators
-      ((des-for-plate-2 (location `((right-of plate-1) (far-from plate-1)
-                                    (for plate-2))))
-       (des-for-plate-4 (location `((left-of plate-3) (far-from plate-3)
-                                    (for plate-4)))))
-    (when (> number-of-plates 0)
-      (prolog `(assert (object-pose ?_ plate-1 ((-2.2 2.14 0.85747d0) (0 0 0 1)))))
-      (when (> number-of-plates 1)
-        (prolog `(assert (object-pose ?_ plate-3 ((-1.75 2.14 0.85747d0) (0 0 0 1)))))
-        (when (> number-of-plates 2)
-          (prolog `(assign-object-pos-on plate-2 ,des-for-plate-2))
-          (when (> number-of-plates 3)
-            (prolog `(assign-object-pos-on plate-4 ,des-for-plate-4))))))))
+  (cpl-impl:top-level
+    (cram-language-designator-support:with-designators
+       ((des-for-plate-2 (location `((right-of plate-1) (far-from plate-1)
+                                                        (for plate-2))))
+        (des-for-plate-4 (location `((left-of plate-3) (far-from plate-3)
+                                                       (for plate-4)))))
+     (when (> number-of-plates 0)
+       (prolog `(assert (object-pose ?_ plate-1 ((-1.5 1.84 0.85747d0) (0 0 0 1)))))
+       (when (> number-of-plates 1)
+         (prolog `(assert (object-pose ?_ plate-3 ((-1.0 1.84 0.85747d0) (0 0 0 1)))))
+         (when (> number-of-plates 2)
+           (prolog `(assign-object-pos-on plate-2 ,des-for-plate-2))
+           (when (> number-of-plates 3)
+             (prolog `(assign-object-pos-on plate-4 ,des-for-plate-4)))))))))
 
 (defun make-plate-desig (plate-id &optional (counter-name "kitchen_island")
                                     (plate-num *num-of-sets-on-table*))
@@ -265,7 +270,7 @@
 
 (cpl-impl:def-cram-function put-plate-on-table (plate-obj-desig)
   (cram-language-designator-support:with-designators
-      ((on-kitchen-island (location `((on cupboard) (name "kitchen_island")
+      ((on-kitchen-island (location `((on "Cupboard") (name "kitchen_island")
                                       (for ,plate-obj-desig) (context table-setting) 
                                       (object-count 4)))))
     (format t "now trying to achieve the location of plate on kitchen-island~%")

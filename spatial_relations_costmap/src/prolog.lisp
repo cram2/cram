@@ -47,6 +47,7 @@
                     ?for-obj-size ?for-padding ?costmap)
     (costmap ?costmap)
     ;;
+    (format "in near~%")
     (near-costmap-gauss-std ?std)
     (instance-of gaussian-generator ?gaussian-generator-id)
     (costmap-add-function
@@ -71,7 +72,9 @@
     (costmap-add-function
      ?range-generator-id-2
      (make-range-cost-function ?ref-obj-pose ?min-radius :invert t)
-     ?costmap))
+     ?costmap)
+    ;;
+    )
 
   (<- (far-from-costmap ?designator ?ref-obj-pose ?ref-obj-size ?ref-padding
                         ?for-obj-size ?for-padding ?costmap)
@@ -96,6 +99,24 @@
      (make-range-cost-function ?ref-obj-pose ?min-radius :invert t)
      ?costmap))
 
+  (<- (height-generator ?world ?ref-obj-name ?for-obj-name ?costmap)
+    (bullet-world ?world)
+    (object ?world ?ref-obj-name)
+    (supporting-rigid-body ?world ?ref-obj-name ?rigid-body)
+    (lisp-fun get-rigid-body-aabb-top-z ?rigid-body ?z)
+    (format "z: ~a~%" ?z)
+    (%object ?world ?for-obj-name ?for-object-instance)
+    (format "inst ~a~%" ?for-object-instance)
+    (lisp-fun aabb ?for-object-instance ?aabb)
+    (lisp-fun cl-bullet:bounding-box-dimensions ?aabb ?dimensions)
+    (lisp-fun cl-transforms:z ?dimensions ?height)
+    (lisp-fun / ?height 2 ?offset)
+    (lisp-fun + ?z ?offset ?new-z)
+    (costmap ?costmap)
+    (costmap-add-height-generator
+     (make-constant-height-function ?new-z)
+     ?costmap))
+
   ;; uses make-potential-field-cost-function to resolve the designator
   ;; TODO height generator is based only on semantic map (no stacking up allowed)
   (<- (potential-field-costmap ?designator ?object ?relation ?costmap)
@@ -109,14 +130,15 @@
     (costmap ?costmap)
     ;;
     (btr:bullet-world ?world)
-    (supported-by-link-obj ?world ?object ?link-obj)
-    (lisp-fun sem-map-utils:pose ?link-obj ?supp-obj-pose)
-    (lisp-fun sem-map-utils:dimensions ?link-obj ?supp-obj-dims)
+    (supporting-rigid-body ?world ?object ?rigid-body)
+    (lisp-fun cl-bullet:pose ?rigid-body ?supp-obj-pose)
+    (lisp-fun aabb ?rigid-body ?aabb)
+    (lisp-fun cl-bullet:bounding-box-dimensions ?aabb ?supp-obj-dims)
     ;; costmap to exclude everything which is outside of supp. object boundaries
-    (lisp-fun list ?link-obj ?link-obj-list)
+    (lisp-fun list ?rigid-body ?rigid-bodies)
     (costmap-add-function
      supporting-object
-     (semantic-map-costmap::make-semantic-map-costmap ?link-obj-list)
+     (make-aabbs-costmap-generator ?rigid-bodies)
      ?costmap)
     ;; the actual potential field costmap
     ;; The axis of the potential field depends on to which side of supporting object
@@ -130,27 +152,33 @@
                                          ?supp-obj-pose ?pred)
      ?costmap)
     ;; the height generator
+    (lisp-fun get-rigid-body-aabb-top-z ?rigid-body ?z)
     (costmap-add-height-generator
-     (semantic-map-costmap::make-semantic-map-height-function ?link-obj-list :on)
+     (make-constant-height-function ?z)
      ?costmap)
     ;; orientation generator
     (orientation-costmap ?designator ?object ?costmap))
 
   ;; uses make-orientation-generator with supporting-obj-aligned-direction
   (<- (orientation-costmap ?designator ?ref-obj-name ?costmap)
+    (format "doing orientation~%")
     (desig-prop ?designator (for ?object))
+    (format "object: ~a~%" ?object)
     (object-instance-name ?object ?obj-name)
+    (format "object instance: ~a~%" ?obj-name)
     (bullet-world ?world)
     (object ?world ?obj-name)
     (costmap ?costmap)
     (-> (orientation-matters ?obj-name)
         (and
-         (supported-by-link-obj ?world ?ref-obj-name ?link-obj)
-         (lisp-fun sem-map-utils:pose ?link-obj ?supp-obj-pose)
-         (lisp-fun sem-map-utils:dimensions ?link-obj ?supp-obj-dims)
-         ;; TODO(moesenle) make this more generic, i.e. not specific
-         ;; for the kitchen island.
-         (kitchen-island-z ?supp-obj-z)
+         (format "hi~%")
+         (supporting-rigid-body ?world ?ref-obj-name ?rigid-body)
+         (format "rig: ~a~%" ?rigid-body)
+         (lisp-fun cl-bullet:pose ?rigid-body ?supp-obj-pose)
+         (lisp-fun aabb ?rigid-body ?aabb)
+         (lisp-fun cl-bullet:bounding-box-dimensions ?aabb ?supp-obj-dims)
+         (lisp-fun get-rigid-body-aabb-top-z ?rigid-body ?supp-obj-z)
+         (format "z: ~a~%" ?supp-obj-z)
          (desig-location-prop ?ref-obj-name ?ref-obj-pose)
          (lisp-fun alexandria:rcurry supporting-obj-alligned-direction
                    ?supp-obj-pose ?supp-obj-dims ?supp-obj-z
@@ -184,7 +212,7 @@
                               ?pos-dev-threshold)
      ?costmap))
 
-  ;; uses make-objects-bounding-box-costmap-generator
+  ;; uses make-aabbs-costmap-generator
   (<- (collision-invert-costmap ?desig ?padding ?cm)
     (bullet-world ?world)
     (findall ?obj (and (household-object-type ?world ?name ?_)
@@ -192,8 +220,7 @@
     (costmap ?cm)
     (costmap-add-function
      collision
-     (make-objects-bounding-box-costmap-generator ?objs :invert t
-                                                        :padding ?padding)
+     (make-aabbs-costmap-generator ?objs :invert t :padding ?padding)
      ?cm))
 
   ;; left-of for bullet objects using potential field cost-function
@@ -247,11 +274,18 @@
     (object-size-without-handles ?world ?for-obj-name ?for-obj-size)
     (padding-size ?world ?for-obj-name ?for-padding)
     ;;
+    ;; height
+    (format "height~%")
+    (height-generator ?world ?ref-obj-name ?for-obj-name ?costmap)
+    (format "near~%")
+    ;;
     (-> (desig-prop ?designator (near ?ref-obj))
         (near-costmap ?designator ?ref-obj-pose ?ref-obj-size ?ref-padding
                       ?for-obj-size ?for-padding ?costmap)
         (far-from-costmap ?designator ?ref-obj-pose ?ref-obj-size ?ref-padding
-                      ?for-obj-size ?for-padding ?costmap)))
+                      ?for-obj-size ?for-padding ?costmap))
+    
+    )
 
   ;; collision avoidance costmap for the spatial relations desigs
   ;; Disabled.
@@ -277,7 +311,7 @@
 
   ;; for plates on table
   ;; '((on counter-top) (name kitchen-island)
-  ;;   (context table-setting) (for plate) (object-count 4))
+  ;;   (context table-setting) (for plate-1) (object-count 4))
   (<- (desig-costmap ?designator ?costmap)
     (desig-prop ?designator (on ?_))
     (desig-prop ?designator (name ?supp-obj-name))
@@ -290,17 +324,34 @@
     (lisp-fun sem-map-utils:designator->semantic-map-objects
               ?designator ?supp-objects)
     (member ?supp-object ?supp-objects)
+    (format "supp object: ~a~%" ?supp-object)
     (slot-costmap ?designator ?supp-object table-setting ?object-type ?object-count
                   ?costmap))
 
-  ;; TODO: a smarter mechanism is needed. Collision with shelves is still possible
   (<- (desig-solution-not-in-collision ?desig ?object-to-check ?pose)
     (bullet-world ?world)
+    (format "object to check: ~a~%" ?object-to-check)
+    (format "pose: ~a~%" ?pose)
     (with-copied-world ?world
       (object-instance-name ?object-to-check ?object-name)
       (assert (object-pose ?world ?object-name ?pose))
-      (forall (contact ?world ?object-name ?other-object-name)
-              (not (object-type ?world ?other-object-name btr::household-object))))))
+      (format "after assert~%")
+      (forall ;; (contact ?world ?object-name ?other-object-name ?link)
+       (contact ?world ?object-name ?other-object-name)
+              (and
+               (format "contact with ~a~%" ?other-object-name)
+               (object-type ?world ?other-object-name ?type)
+               (format "other-object-name: ~a~%type: ~a~%link: ~a~%~%"
+                       ?other-object-name ?type ?link)
+               (or
+               ;; ToDo The following doesn't work because collisions are only detected
+               ;; with an object called my-semantic-map, not the links of it.
+               ;; (and (lisp-fun sem-map-utils:designator->semantic-map-objects
+               ;;                ?desig ?supp-objects)
+               ;;      (member ?other-object-name ?supp-objects))
+                (object-type ?world ?other-object-name btr::semantic-map-object)
+                (and (robot ?other-object-name)
+                     (attached ?world ?other-object-name ?_ ?object-name))))))))
 
 
 (def-fact-group relations-lookup-table ()
@@ -358,8 +409,21 @@
     (object-handle-size ?world ?obj-name ?handle-size)
     (lisp-fun - ?obj-size ?handle-size ?size))
 
+  (<- (supporting-rigid-body ?world ?ref-obj-name ?rigid-body)
+    (bullet-world ?world)
+    (object ?world ?ref-obj-name)
+    (supported-by ?world ?ref-obj-name ?supporting-object-name
+                  ?supporting-object-link-name)
+    (lisp-fun get-link-rigid-body ?supporting-object-name
+              ?supporting-object-link-name ?rigid-body))
+
+
+
+  
   (<- (supported-by-link-obj ?world ?obj-name ?link-obj)
+    (format "inside supported-by-link~%")
     (supported-by ?world ?obj-name ?supp-obj-name ?supp-obj-link-name)
+    (format "~a is supported by ~a~%" ?obj-name ?supp-obj-link-name)
     (%object ?world ?supp-obj-name ?supp-obj)
     (lisp-fun get-sem-map-part ?supp-obj ?supp-obj-link-name ?link-obj)
     (lisp-pred identity ?link-obj)))
