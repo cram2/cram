@@ -224,3 +224,7 @@ corner."
     (make-instance 'map-costmap-generator
       :generator-function #'generator)))
 
+(defun make-constant-height-function (height)
+  (lambda (x y)
+    (declare (ignore x y))
+    (list height)))
