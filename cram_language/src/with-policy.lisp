@@ -61,6 +61,7 @@
    (clean-up :reader clean-up :initarg :clean-up)))
 
 (defvar *policies* nil "List of defined policies")
+(defparameter *policy-check-consolidation-duration* 0.01)
 
 (define-condition policy-condition ()
   ((name :initarg :name :reader policy-name)))
@@ -224,7 +225,24 @@ To clarify the order of code execution here:
 - In either case (with or without `:recover'), the policy `:clean-up'
   code is performed (if present).
 
-Usage:
+In each of the phases, `policy-setf' and `policy-get' are
+available. They can be used to store variables associated with given
+symbols for the course of action of the current policy.
+
+Example:
+
+> (define-policy var-test-policy ()
+    \"Variable Test Policy\"
+    (:init (policy-setf 'some-var 10)
+           t)
+    (:check (policy-setf 'some-other-var
+                         (+ (policy-get 'some-var) 2))
+            nil)
+    (:clean-up (format t \"Variables: ~a ~a~%\"
+                       (policy-get 'some-var)
+                       (policy-get 'some-other-var))))
+
+Usage of `with-policy':
 
 > (with-policy policy-object (param-value-1 param-value-2)
     (body-code))"
@@ -233,27 +251,37 @@ Usage:
         (clean-up `(clean-up ,policy))
         (recover `(recover ,policy))
         (name `(name ,policy)))
-    `(progn
-       (when ,init
-         (unless (funcall ,init ,@policy-parameters)
-           (fail 'policy-init-failed
-                 :name ,name
-                 :parameters ',policy-parameters)))
-       (let ((flag-do-recovery nil))
-         (unwind-protect
-              (pursue
-                (when ,check
-                  (loop while (not (funcall ,check ,@policy-parameters)))
-                  (setf flag-do-recovery t))
-                (progn ,@body))
-           (when (and ,recover flag-do-recovery)
-             (funcall ,recover ,@policy-parameters))
-           (when ,clean-up
-             (funcall ,clean-up ,@policy-parameters))
-           (when flag-do-recovery
-             (cpl:fail 'policy-check-condition-met
-                       :name ,name
-                       :parameters ',policy-parameters)))))))
+    `(let ((policy-symbol-storage nil))
+       (flet ((policy-setf (symbol value)
+                (setf *policy-symbol-storage*
+                      (remove symbol *policy-symbol-storage*
+                              :test (lambda (x y)
+                                      (eql x (car y)))))
+                (push (cons symbol value) *policy-symbol-storage*))
+              (policy-get (symbol)
+                (let ((asc (assoc symbol *policy-symbol-storage*)))
+                  (cdr asc))))
+         (when ,init
+           (unless (funcall ,init ,@policy-parameters)
+             (fail 'policy-init-failed
+                   :name ,name
+                   :parameters ',policy-parameters)))
+         (let ((flag-do-recovery nil))
+           (unwind-protect
+                (pursue
+                  (when ,check
+                    (loop while (not (funcall ,check ,@policy-parameters))
+                          do (sleep* *policy-check-consolidation-duration*))
+                    (setf flag-do-recovery t))
+                  (progn ,@body))
+             (when (and ,recover flag-do-recovery)
+               (funcall ,recover ,@policy-parameters))
+             (when ,clean-up
+               (funcall ,clean-up ,@policy-parameters))
+             (when flag-do-recovery
+               (cpl:fail 'policy-check-condition-met
+                         :name ,name
+                         :parameters ',policy-parameters))))))))
 
 (defmacro with-policies (policies-and-parameters-list &body body)
   "Allows for running a given `body' code segment wrapped in a list of
