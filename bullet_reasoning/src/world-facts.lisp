@@ -68,12 +68,7 @@
   (<- (assert ?world (object ?object-type ?name ?pose . ?args))
     (not (object ?world ?name))
     (lisp-fun apply add-object
-              ?world ?object-type ?name ?pose ?args ?_)
-    (lisp-fun getf ?args :no-robot-collision ?key-present)
-    (-> (== ?key-present NIL)
-        (true)
-        (and (slot-value ?world disabled-collision-objects ?objects-list)
-             (slot-value ?world disabled-collision-objects (?name ?objects-list)))))
+              ?world ?object-type ?name ?pose ?args ?_))
 
   (<- (assert (object ?world ?object-type ?name ?pose . ?args))
     (assert ?world (object ?object-type ?name ?pose . ?args)))
