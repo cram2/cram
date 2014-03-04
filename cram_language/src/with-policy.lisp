@@ -139,7 +139,28 @@ this:
                                                          x (first y)))))
                               collect identifier
                               collect (when prop
-                                        `(lambda ,parameters ,@prop)))))))
+                                        `(lambda ,(append `(policy-symbol-storage) parameters)
+                                           (flet ((policy-setf (symbol value)
+                                                    (setf
+                                                     (cpl:value policy-symbol-storage)
+                                                     (remove
+                                                      symbol
+                                                      (cpl:value policy-symbol-storage)
+                                                      :test (lambda (x y)
+                                                              (eql
+                                                               x (car y)))))
+                                                    (push
+                                                     (cons symbol value)
+                                                     (cpl:value policy-symbol-storage)))
+                                                  (policy-get (symbol)
+                                                    (let ((asc
+                                                            (assoc
+                                                             symbol
+                                                             (cpl:value policy-symbol-storage))))
+                                                      (cdr asc))))
+                                             (declare (ignorable policy-setf
+                                                                 policy-get))
+                                             ,@prop))))))))
 
 (defmacro define-policy (name parameters &rest properties)
   "This macro implicitly calls `make-policy', and pushes the generated
@@ -251,18 +272,10 @@ Usage of `with-policy':
         (clean-up `(clean-up ,policy))
         (recover `(recover ,policy))
         (name `(name ,policy)))
-    `(let ((policy-symbol-storage nil))
-       (flet ((policy-setf (symbol value)
-                (setf *policy-symbol-storage*
-                      (remove symbol *policy-symbol-storage*
-                              :test (lambda (x y)
-                                      (eql x (car y)))))
-                (push (cons symbol value) *policy-symbol-storage*))
-              (policy-get (symbol)
-                (let ((asc (assoc symbol *policy-symbol-storage*)))
-                  (cdr asc))))
+    `(progn
+       (let ((policy-symbol-storage (make-fluent)))
          (when ,init
-           (unless (funcall ,init ,@policy-parameters)
+           (unless (funcall ,init policy-symbol-storage ,@policy-parameters)
              (fail 'policy-init-failed
                    :name ,name
                    :parameters ',policy-parameters)))
@@ -270,14 +283,14 @@ Usage of `with-policy':
            (unwind-protect
                 (pursue
                   (when ,check
-                    (loop while (not (funcall ,check ,@policy-parameters))
+                    (loop while (not (funcall ,check policy-symbol-storage ,@policy-parameters))
                           do (sleep* *policy-check-consolidation-duration*))
                     (setf flag-do-recovery t))
                   (progn ,@body))
              (when (and ,recover flag-do-recovery)
-               (funcall ,recover ,@policy-parameters))
+               (funcall ,recover policy-symbol-storage ,@policy-parameters))
              (when ,clean-up
-               (funcall ,clean-up ,@policy-parameters))
+               (funcall ,clean-up policy-symbol-storage ,@policy-parameters))
              (when flag-do-recovery
                (cpl:fail 'policy-check-condition-met
                          :name ,name
