@@ -139,7 +139,7 @@
     (bullet-world ?w)
     (robot ?robot)
     (assert (object-pose ?w ?robot ?robot-pose))
-    (robot-not-in-collision-with-environment ?w ?robot)
+    (object-not-in-collision ?w ?robot)
     (forall (designator-reach-pose ?desig ?robot-pose ?pose ?side)
             (or
              (and
@@ -155,7 +155,7 @@
     (camera-frame ?robot ?cam-frame)
     (desig-location-prop ?desig ?obj-pose)
     (assert (object-pose ?w ?robot ?robot-pose))
-    (robot-not-in-collision-with-environment ?w ?robot)
+    (object-not-in-collision ?w ?robot)
     (head-pointing-at ?w ?robot ?obj-pose)
     (desig-prop ?desig (obj ?obj))
     (-> (btr:object ?w ?obj)
