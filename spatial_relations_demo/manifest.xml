@@ -1,0 +1,29 @@
+<package>
+  <description brief="spatial_relations_demo">
+
+     spatial_relations_demo
+
+  </description>
+  <author>Gayane Kazhoyan</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/spatial_relations_demo</url>
+  <rosdep name="sbcl"/>
+  <depend package="spatial_relations_costmap"/>
+  <depend package="cram_roslisp_common"/>
+  <depend package="cram_designators"/>
+  <depend package="location_costmap"/>
+  <depend package="semantic_map_costmap"/>
+  <depend package="bullet_reasoning"/>
+  <depend package="cram_pr2_knowledge"/>
+  <depend package="cram_environment_representation"/>
+  <depend package="pr2_projection_process_modules"/>
+  <depend package="occupancy_grid_costmap"/>
+  <depend package="cram_plan_knowledge"/>
+  <depend package="bullet_reasoning_designators"/>
+  <depend package="pr2_manipulation_knowledge"/>
+  <depend package="object_location_designators"/>
+
+</package>
+
+
