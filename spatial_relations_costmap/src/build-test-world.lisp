@@ -28,7 +28,7 @@
 
 (in-package :spatial-relations-costmap)
 
-(disable-location-validation-function 'btr-desig::validate-designator-solution)
+;; (disable-location-validation-function 'btr-desig::validate-designator-solution)
 (disable-location-validation-function 'btr-desig::check-ik-solution)
 
 ;; run bullet launch files (bullet_reasoning_demo)
@@ -38,7 +38,7 @@
 ;; TODO: declares everywhere!
 
 (defvar *bdgs* nil)
-(defparameter *num-of-sets-on-table* 4)
+(defparameter *num-of-sets-on-table* 1)
 
 (defvar *items* (make-hash-table :test 'equal)
   "TYPE -> color")
@@ -63,11 +63,11 @@
                (clear-bullet-world)
                (bullet-world ?w)
                (debug-window ?w)
-               (assert (object ?w btr::static-plane floor ((0 0 0) (0 0 0 1))
-                               :normal (0 0 1) :constant 0 :no-robot-collision t))
+               (robot ?robot)
+               (assert (object ?w btr::static-plane floor ((0 0 0.001) (0 0 0 1))
+                               :normal (0 0 1) :constant 0 :disable-collisions-with (?robot)))
                (assert (object ?w btr::semantic-map my-kitchen ((-3.45 -4.35 0) ,pi-rotation)
                                :urdf ,kitchen-urdf))
-               (robot ?robot)
                (assert (object ?w urdf ?robot ((0 0 0) (0 0 0 1)) :urdf ,urdf))
                (robot-arms-parking-joint-states ?joint-states)
                (assert (joint-state ?w ?robot ?joint-states))
@@ -166,6 +166,7 @@
 
   (loop for i from 1 to *num-of-sets-on-table*
         for plate-coord = 0.86 then (+ plate-coord 0.027)
+        ;; for plate-coord = 0.96 then (+ plate-coord 0.027)
         for fork-coord = 1.4 then (+ fork-coord 0.05)
         for knife-coord = (+ fork-coord (* (+ *num-of-sets-on-table* 1) 0.04))
         do (move-object (new-symbol-with-id "PLATE" i)
@@ -284,6 +285,14 @@
     (put-plate-on-table plate)
     plate))
 
+(cpl-impl:def-cram-function put-object-from-counter-on-table (obj-type)
+  (sb-ext:gc :full t)
+  (format t "Put a PLATE from counter on table~%")
+  (let ((object (find-object-on-counter obj-type "kitchen_sink_block")))
+    (sb-ext:gc :full t)
+    (put-plate-on-table object)
+    object))
+
 (cpl-impl:def-cram-function put-object-near-plate (object-to-put plate-obj
                                                    spatial-relations)
   (cram-language-designator-support:with-designators
@@ -330,3 +339,34 @@
             (assert (object-pose ?_ plate-3 ((-2.2 1.34 0.85747016972d0) (0 0 0 1))))
             (assert (object-pose ?_ plate-4 ((-1.75 1.34 2.85747016972d0) (0 0 0 1))))))
   (put-stuff-on-table))
+
+(defun mug-pick-and-place ()
+  (prolog `(and (bullet-world ?w)
+                (assert (object ?w mesh mug-pp ((2 0 0) (0 0 0 1))
+                                :mesh btr::mug :mass 0.2 :color (0.8 0.3 0)))))
+  (move-object 'mug-pp '((1.5 1.08 0.9119799601336841d0) (0 0 0 1)))
+
+  (cpl-impl:top-level
+    (cram-projection:with-projection-environment
+        projection-process-modules::pr2-bullet-projection-environment
+      (let ((mug (put-object-from-counter-on-table 'btr::mug)))
+        mug))))
+
+(defun pick-and-place (type)
+  (let ((obj-id (gensym)))
+    (format t "id: ~a~%" obj-id)
+    (prolog `(and (bullet-world ?w)
+                  (robot ?robot)
+                  
+                (assert (object ?w mesh ,obj-id
+                                ((2 0 0) (0 0 0 1))
+                                :mesh ,type :mass 0.2 :color (0.8 0.3 0)
+                                :disable-collisions-with (?robot)
+                                ))))
+  (move-object obj-id '((1.3 0.8 1.0) (0 0 0 1)))
+
+  (cpl-impl:top-level
+    (cram-projection:with-projection-environment
+        projection-process-modules::pr2-bullet-projection-environment
+      (let ((obj (put-object-from-counter-on-table type)))
+        obj)))))
