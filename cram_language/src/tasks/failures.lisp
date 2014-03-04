@@ -57,12 +57,9 @@
                                :format-control datum
                                :format-arguments arguments))))
 
-(define-hook on-fail (condition)
+(define-hook on-fail (datum)
   (:documentation "Hook that is executed whenever a condition is
   signaled using FAIL."))
-
-(defgeneric hook-on-fail (condition))
-(defmethod hook-on-fail (condition))
 
 (defun %fail (datum args)
   (let ((current-task *current-task*)
@@ -71,7 +68,7 @@
       (:context "FAIL")
       (:display "~S: ~_\"~A\"" condition condition)
       (:tags :fail))
-    (on-fail condition)
+    (on-fail datum)
     (cond
       ;; The main thread will perform JOIN-TASK on the TOPLEVEL-TASK,
       ;; signal the condition for that case.
