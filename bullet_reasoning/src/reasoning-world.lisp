@@ -58,6 +58,20 @@ collisions with the environment.")))
     (with-world-locked world
       (gethash name (slot-value world 'objects)))))
 
+(defgeneric disable-collisions (world for-object with-objects)
+  (:documentation "Collisions between object-1 and object-2 should be ignored
+in _particular_ predicates in the `world' from now on.")
+  (:method ((world bt-reasoning-world) for-object with-objects)
+    (flet ((pushnew-pairs (object-1 object-2)
+             (pushnew (list object-1 object-2)
+                      (slot-value world 'disabled-collision-objects)
+                      :test #'(lambda(x y)
+                                (or (and (eq (car x) (car y))
+                                         (eq (second x) (second y)))
+                                    (and (eq (car x) (second y))
+                                         (eq (second x) (car y))))))))
+      (mapc (alexandria:curry #'pushnew-pairs for-object) with-objects))))
+
 (defclass bt-reasoning-world-state (world-state)
   ((objects :reader objects :initarg :objects
             :documentation "alist of objects")
