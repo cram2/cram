@@ -72,8 +72,8 @@
     (lisp-fun getf ?args :no-robot-collision ?key-present)
     (-> (== ?key-present NIL)
         (true)
-        (and (slot-value ?world objects-no-collision-with-robot ?objects-list)
-             (slot-value ?world objects-no-collision-with-robot (?name ?objects-list)))))
+        (and (slot-value ?world disabled-collision-objects ?objects-list)
+             (slot-value ?world disabled-collision-objects (?name ?objects-list)))))
 
   (<- (assert (object ?world ?object-type ?name ?pose . ?args))
     (assert ?world (object ?object-type ?name ?pose . ?args)))
@@ -198,17 +198,14 @@
     (lisp-fun link-contacts ?robot-model ?link-contacts)
     (member (?obj . ?link) ?link-contacts))
 
-  (<- (robot-not-in-collision-with-environment ?world ?robot-name)
-    ;; Unfortunately collision detection doesn't work properly with
-    ;; the current version of bullet. This will stay commented out for a while.
-    ;; (bullet-world ?world)
-    ;; (%object ?world ?robot-name ?robot)
-    ;; (lisp-type ?robot robot-object)
-    ;; (forall (contact ?world ?robot-name ?object-name)
-    ;;         (or (attached ?world ?robot-name ?_ ?object-name)
-    ;;             (and (slot-value ?world objects-no-collision-with-robot ?objects)
-    ;;                  (member ?object-name ?objects))))
-    )
+  (<- (object-not-in-collision ?world ?object-name)
+    (bullet-world ?world)
+    (forall (contact ?world ?object-name ?other-object-name)
+            (or (attached ?world ?object-name ?_ ?other-object-name)
+                (and (slot-value ?world disabled-collision-objects ?objects)
+                     (or (member (?object-name . ?other-object-name) ?objects)
+                         (member (?other-object-name . ?object-name) ?objects))))))
+
 
   (<- (stable ?world ?obj-name)
     (bullet-world ?world)
