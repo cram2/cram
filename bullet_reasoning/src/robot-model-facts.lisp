@@ -35,15 +35,15 @@
     (%object ?world ?robot-name ?robot)
     (lisp-fun link-names ?robot ?links)
     (member ?link ?links))
-  
+
   (<- (link-pose ?robot-name ?name ?pose)
     (link-pose ?_ ?robot-name ?name ?pose))
-  
+
   (<- (link-pose ?w ?robot-name ?name ?pose)
     (bullet-world ?w)
     (%object ?w ?robot-name ?robot)
     (%link-pose ?robot ?name ?pose))
-  
+
   (<- (%link-pose ?robot ?name ?pose)
     (bound ?robot)
     (bound ?name)
@@ -88,6 +88,26 @@
 
   (<- (assert (joint-state ?world ?robot-name ?joint-states))
     (assert ?world (joint-state ?robot-name ?joint-states)))
+
+  (<- (ik-solution-not-in-collision ?world ?robot-name ?ik-solution)
+    (format "in ik-sol coll without grasp~%")
+    (bullet-world ?world)
+    (with-copied-world ?world
+      (assert (joint-state ?world ?robot-name ?ik-solution))
+      (object-not-in-collision ?world ?robot-name)))
+
+  ;; this predicate discards contacts with the robot's end-effectors
+  ;; as we are grasping an object
+  (<- (ik-solution-not-in-collision ?world ?robot-name ?ik-solution :grasping)
+    (bullet-world ?world)
+    (with-copied-world ?world
+      (assert (joint-state ?world ?robot-name ?ik-solution))
+      (forall (contact ?world ?robot-name ?object-name ?link)
+              (or (attached ?world ?robot-name ?_ ?object-name)
+                  (and (slot-value ?world disabled-collision-objects ?objects)
+                       (or (member (?robot-name . ?object-name) ?objects)
+                           (member (?object-name . ?robot-name) ?objects)))
+                  (gripper-link ?_ ?link)))))
 
   (<- (attached ?world ?robot ?link-name ?object)
     (bullet-world ?world)
