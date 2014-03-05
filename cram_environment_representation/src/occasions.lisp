@@ -56,6 +56,12 @@
   (<- (looking-at ?location)
     (fail))
 
+  (<- (object-picked ?object)
+    (fail))
+
+  (<- (arms-parked)
+    (fail))
+
   (<- (holds ?occasion)
     (call ?occasion)))
 
