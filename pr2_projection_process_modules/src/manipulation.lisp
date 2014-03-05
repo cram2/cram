@@ -199,6 +199,7 @@
      (make-instance 'cram-plan-knowledge:robot-state-changed))))
 
 (defun execute-lift (designator)
+  (format t "inside EXECUTE-LIFT ~a~%~%~%~%" designator)
   (or
    (execute-action-trajectory-points designator)
    (cpl-impl:fail 'cram-plan-failures:manipulation-pose-unreachable)))
