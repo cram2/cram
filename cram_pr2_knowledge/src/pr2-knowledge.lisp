@@ -130,12 +130,17 @@
   (<- (grasp :side))
   (<- (grasp :front))
 
+  (<- (side :right))
+  (<- (side :left))
+
+  (<- (arm ?arm)
+    (side ?arm))
+
   (<- (object-type-grasp mug ?grasp (?side))
     (grasp ?grasp)
     (side ?side))
 
-  (<- (object-type-grasp mondamin :side (?side))
-    (side ?side))
+  (<- (object-type-grasp mondamin :side (:right)))
 
   (<- (object-type-grasp plate :side (:left :right)))
 
@@ -185,11 +190,6 @@
     (or (desig:desig-prop ?current-object-designator (type knife))
         (desig:desig-prop ?current-object-designator (type fork))))
 
-  (<- (side :right))
-  (<- (side :left))
-
-  (<- (arm ?arm)
-    (side ?arm))
 
   (<- (required-arms ?object-designator ?arms)
     (desig-prop ?object-designator (type ?object-type))
