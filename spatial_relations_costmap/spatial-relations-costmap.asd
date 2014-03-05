@@ -52,5 +52,4 @@
      (:file "designator-integration" :depends-on ("package"))
      (:file "cost-functions" :depends-on ("package"))
      (:file "prolog" :depends-on ("package"))
-     (:file "build-test-world" :depends-on ("package"))
      (:file "knowledge" :depends-on ("package"))))))
