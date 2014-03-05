@@ -106,6 +106,10 @@
     (desig-prop ?designator (obj ?object-designator))))
 
 (def-fact-group manipulation-designators (action-desig-projection)
+
+  (<- (action-desig-projection ?desig (test))
+    (format "Trying to find a function for desig ~a~%~%~%~%" ?desig)
+    (fail))
   
   (<- (action-desig-projection
        ?desig (execute-container-opened ?desig ?obj ?distance))
@@ -159,6 +163,7 @@
     (desig-prop ?desig (at ?_)))
 
   (<- (required-sides ?designator ?sides)
+    (format "inside REQUIRED-SIDES~%")
     (setof ?side (cram-manipulation-knowledge:trajectory-point
                   ?designator ?_ ?side)
            ?sides))
