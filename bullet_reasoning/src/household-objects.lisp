@@ -37,7 +37,8 @@
                              (weisswurst "package://bullet_reasoning/resource/ww.stl" nil)
                              (bowl "package://bullet_reasoning/resource/bowl.stl" nil)
                              (fork "package://bullet_reasoning/resource/fork.stl" nil)
-                             (knife "package://bullet_reasoning/resource/knife.stl" nil)))
+                             (knife "package://bullet_reasoning/resource/knife.stl" nil)
+                             (spatula "package://bullet_reasoning/resource/spatula.stl" nil)))
 
 (defclass household-object (object)
   ((types :reader household-object-types :initarg :types)))
