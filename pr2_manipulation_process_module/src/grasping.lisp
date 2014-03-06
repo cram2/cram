@@ -181,7 +181,7 @@ configuration."
           (mapcar (lambda (handle-pair)
                     (reference (desig-prop-value (cdr handle-pair) 'at)))
                   (second assignment))))
-    (cost-function-grasp-ik-constraint-aware
+    (cost-function-ik-pose
      obj (list (first assignment) assignment-poses)
      :allowed-collision-objects allowed-collision-objects)))
 
