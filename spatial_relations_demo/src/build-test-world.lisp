@@ -28,7 +28,7 @@
 
 (in-package :spatial-relations-costmap)
 
-;; (disable-location-validation-function 'btr-desig::validate-designator-solution)
+(disable-location-validation-function 'btr-desig::validate-designator-solution)
 (disable-location-validation-function 'btr-desig::check-ik-solution)
 
 ;; run bullet launch files (bullet_reasoning_demo)
@@ -38,7 +38,7 @@
 ;; TODO: declares everywhere!
 
 (defvar *bdgs* nil)
-(defparameter *num-of-sets-on-table* 1)
+(defparameter *num-of-sets-on-table* 2)
 
 (defvar *items* (make-hash-table :test 'equal)
   "TYPE -> color")
@@ -71,7 +71,9 @@
                (assert (object ?w urdf ?robot ((0 0 0) (0 0 0 1)) :urdf ,urdf))
                (robot-arms-parking-joint-states ?joint-states)
                (assert (joint-state ?w ?robot ?joint-states))
-               (assert (joint-state ?w ?robot (("torso_lift_joint" 0.33)))))))))))
+               (assert (joint-state ?w ?robot (("torso_lift_joint" 0.33))))
+               (assert (object ?w btr::cylinder oven-1 ((-1.0 1.26 0.8883) (0 0 0 1))
+                               :mass 0.2 :color (0 0 0) :size (0.3 0.3 0.07))))))))))
 
 ;; (setf sem-map (var-value '?sem-map (lazy-car (prolog `(%object ?w my-kitchen ?sem-map) *bdgs*))))
 
@@ -167,7 +169,7 @@
   (loop for i from 1 to *num-of-sets-on-table*
         for plate-coord = 0.86 then (+ plate-coord 0.027)
         ;; for plate-coord = 0.96 then (+ plate-coord 0.027)
-        for fork-coord = 1.4 then (+ fork-coord 0.05)
+        for fork-coord = 1.35 then (+ fork-coord 0.05)
         for knife-coord = (+ fork-coord (* (+ *num-of-sets-on-table* 1) 0.04))
         do (move-object (new-symbol-with-id "PLATE" i)
                         `((1.45 0.8 ,plate-coord) (0 0 0 1)))
@@ -177,8 +179,8 @@
                         `((,knife-coord 0.5 0.857) (0 0 1 1))))
 
   (move-object 'mug-1 '((1.5 1.08 0.9119799601336841d0) (0 0 0 1)))
-  (move-object 'mug-2 '((1.65 1.02 0.9119799601336841d0) (0 0 0 1)))
-  (move-object 'mug-3 '((1.35 1.11 0.9119799601336841d0) (0 0 0 1)))
+  (move-object 'mug-3 '((1.65 1.02 0.9119799601336841d0) (0 0 0 1)))
+  (move-object 'mug-2 '((1.35 1.11 0.9119799601336841d0) (0 0 0 1)))
   (move-object 'mug-4 '((1.55 1.19 0.9119799601336841d0) (0 0 0 1)))
   (move-object 'mug-5 '((1.5 1.17 0.9119799601336841d0) (0 0 0 1))))
 
@@ -271,9 +273,10 @@
 
 (cpl-impl:def-cram-function put-plate-on-table (plate-obj-desig)
   (cram-language-designator-support:with-designators
-      ((on-kitchen-island (location `((on "Cupboard") (name "kitchen_island")
+      ((on-kitchen-island (location `((on "Cupboard")
+                                      (name "kitchen_island")
                                       (for ,plate-obj-desig) (context table-setting) 
-                                      (object-count 4)))))
+                                      (object-count ,*num-of-sets-on-table*)))))
     (format t "now trying to achieve the location of plate on kitchen-island~%")
     (plan-knowledge:achieve `(plan-knowledge:loc ,plate-obj-desig ,on-kitchen-island))))
 
@@ -370,3 +373,19 @@
         projection-process-modules::pr2-bullet-projection-environment
       (let ((obj (put-object-from-counter-on-table type)))
         obj)))))
+
+
+
+(defun bla ()
+  (prolog `(and (bullet-world ?w) (assert (object ?w btr::mesh spatula-2
+                                                  ((1.5 1.08 0.9119799601336841d0) (0 0 0 1))
+                                                  :mesh btr::spatula :mass 0.2 :color (0 0 0)))))
+  (prolog `(and (bullet-world ?w) (assert (object ?w btr::mesh mondamin-1
+                                                  ((1.35 1.11 0.9119799601336841d0) (0 0 0 1))
+                                                  :mesh mondamin :mass 0.2 :color (0.5 0.1 0)))))
+  (move-object 'spatula-2 `((1.5 0.8 0.86) (0.0d0 0.0d0 0.19611613794814378d0 0.9805806751289282d0)))
+  (move-object 'mondamin-1 `((1.35 1.11 0.958) (0 0 0 1))))
+
+(defun bla-1 ()
+  (prolog `(assign-object-pos spatula-1 ,(make-designator 'desig-props:location
+                                                          `((left-of oven-1) (for mondamin-1))))))
