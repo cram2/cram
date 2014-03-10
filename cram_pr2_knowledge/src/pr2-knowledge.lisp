@@ -150,7 +150,7 @@
     (side ?side))
 
   (<- (object-type-grasp ?type :top (?side))
-    (member ?type (cutlery knife fork))
+    (member ?type (cutlery knife fork spatula))
     (side ?side))
 
   (<- (object-designator-grasp ?object-designator ?grasp ?sides)
