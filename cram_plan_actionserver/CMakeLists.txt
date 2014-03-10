@@ -16,3 +16,8 @@ generate_messages(
   DEPENDENCIES
   actionlib_msgs
 )
+
+catkin_package(
+  DEPENDS
+  message_runtime
+)
