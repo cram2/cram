@@ -343,42 +343,31 @@
             (assert (object-pose ?_ plate-4 ((-1.75 1.34 2.85747016972d0) (0 0 0 1))))))
   (put-stuff-on-table))
 
-(defun mug-pick-and-place ()
-  (prolog `(and (bullet-world ?w)
-                (assert (object ?w mesh mug-pp ((2 0 0) (0 0 0 1))
-                                :mesh btr::mug :mass 0.2 :color (0.8 0.3 0)))))
-  (move-object 'mug-pp '((1.5 1.08 0.9119799601336841d0) (0 0 0 1)))
-
-  (cpl-impl:top-level
-    (cram-projection:with-projection-environment
-        projection-process-modules::pr2-bullet-projection-environment
-      (let ((mug (put-object-from-counter-on-table 'btr::mug)))
-        mug))))
-
 (defun pick-and-place (type)
   (let ((obj-id (gensym)))
     (format t "id: ~a~%" obj-id)
     (prolog `(and (bullet-world ?w)
                   (robot ?robot)
-                  
-                (assert (object ?w mesh ,obj-id
-                                ((2 0 0) (0 0 0 1))
-                                :mesh ,type :mass 0.2 :color (0.8 0.3 0)
-                                :disable-collisions-with (?robot)
-                                ))))
-  (move-object obj-id '((1.3 0.8 1.0) (0 0 0 1)))
+                  (assert (object ?w mesh ,obj-id
+                                  ((2 0 0) (0 0 0 1))
+                                  :mesh ,type :mass 0.2 :color (0.8 0.3 0)
+                                  :disable-collisions-with (?robot)
+                                  ))))
+    (move-object obj-id '((1.3 0.8 1.0) (0 0 0 1)))
 
-  (cpl-impl:top-level
-    (cram-projection:with-projection-environment
-        projection-process-modules::pr2-bullet-projection-environment
-      (let ((obj (put-object-from-counter-on-table type)))
-        obj)))))
-
+    (cpl-impl:top-level
+      (cram-projection:with-projection-environment
+          projection-process-modules::pr2-bullet-projection-environment
+        (let ((obj (put-object-from-counter-on-table type)))
+          obj)))))
 
 
-(defun bla ()
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;; PANCAKES! ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun spawn-pancake-scenario ()
   (prolog `(and (bullet-world ?w) (assert (object ?w btr::mesh spatula-2
-                                                  ((1.5 1.08 0.9119799601336841d0) (0 0 0 1))
+                                                  ((1.4 1.08 0.9119799601336841d0) (0 0 0 1))
                                                   :mesh btr::spatula :mass 0.2 :color (0 0 0)))))
   (prolog `(and (bullet-world ?w) (assert (object ?w btr::mesh mondamin-1
                                                   ((1.35 1.11 0.9119799601336841d0) (0 0 0 1))
@@ -386,6 +375,28 @@
   (move-object 'spatula-2 `((1.5 0.8 0.86) (0.0d0 0.0d0 0.19611613794814378d0 0.9805806751289282d0)))
   (move-object 'mondamin-1 `((1.35 1.11 0.958) (0 0 0 1))))
 
-(defun bla-1 ()
-  (prolog `(assign-object-pos spatula-1 ,(make-designator 'desig-props:location
-                                                          `((left-of oven-1) (for mondamin-1))))))
+(defun execute-pancake-scenario ()
+  (spawn-pancake-scenario)
+  (cram-projection:with-projection-environment
+      projection-process-modules::pr2-bullet-projection-environment
+    (cpl-impl:top-level
+      (let ((mondamin-designator (find-object-on-counter 'btr::mondamin "kitchen_sink_block")))
+        (cram-language-designator-support:with-designators
+            ((on-kitchen-island (location `((on "Cupboard")
+                                            (name "kitchen_island")
+                                            (for ,mondamin-designator)
+                                            (right-of oven-1)
+                                            (near oven-1)
+                                            (behind oven-1)))))
+          (format t "now trying to achieve the location of mondamin on kitchen-island~%")
+          (plan-knowledge:achieve `(plan-knowledge:loc ,mondamin-designator ,on-kitchen-island)))
+        (let ((spatula-designator (find-object-on-counter 'btr::spatula "kitchen_sink_block")))
+          (cram-language-designator-support:with-designators
+              ((spatula-location (location `((on "Cupboard")
+                                             (name "kitchen_island")
+                                             (for ,spatula-designator)
+                                             (right-of oven-1)
+                                             (near oven-1)
+                                             (in-front-of oven-1)))))
+            (format t "now trying to achieve the location of spatula on kitchen-island~%")
+            (plan-knowledge:achieve `(plan-knowledge:loc ,spatula-designator ,spatula-location))))))))
