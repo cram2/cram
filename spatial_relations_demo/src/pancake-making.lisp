@@ -54,7 +54,7 @@
         (cram-language-designator-support:with-designators
             ((on-kitchen-island (location `((on "Cupboard")
                                             (name "kitchen_island")
-                                            (centered-with-padding -0.6)
+                                            (centered-with-padding 0.6)
                                             (for ,mondamin-designator)
                                             (right-of oven-1)
                                             (near oven-1)
@@ -65,7 +65,7 @@
           (cram-language-designator-support:with-designators
               ((spatula-location (location `((on "Cupboard")
                                              (name "kitchen_island")
-                                             (centered-with-padding -0.4)
+                                             (centered-with-padding 0.4)
                                              (for ,spatula-designator)
                                              (right-of oven-1)
                                              (near oven-1)
