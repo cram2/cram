@@ -277,7 +277,4 @@
     (lisp-fun add-debug-window ?world ?_))
 
   (<- (debug-costmap ?costmap)
-    (lisp-fun add-costmap-function-object ?costmap ?_))
-
-  (<- (debug-costmap ?costmap ?z)
-    (lisp-fun add-costmap-function-object ?costmap ?z ?_)))
+    (lisp-fun location-costmap:get-cost-map ?costmap ?_)))
