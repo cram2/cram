@@ -171,11 +171,10 @@
                result))
         #'generator-function))))
 
-(defun make-semantic-object-center-generator (object)
+(defun make-semantic-object-center-generator (object padding)
   (declare (type sem-map-utils:semantic-map-geom object))
-  (let* ((padding 0.5)
-         (transform (cl-transforms:pose->transform (sem-map-utils:pose object)))
-         (dimensions (cl-transforms:v+
+  (let* ((transform (cl-transforms:pose->transform (sem-map-utils:pose object)))
+         (dimensions (cl-transforms:v-
                       (sem-map-utils:dimensions object)
                       (cl-transforms:make-3d-vector padding padding padding)))
          (obj-pose (sem-map-utils:pose object))
@@ -283,10 +282,10 @@
                result))
         #'generator-function))))
 
-(defun make-semantic-object-center-costmap (objects)
+(defun make-semantic-object-center-costmap (objects padding)
   (let ((costmap-generators
           (mapcar (lambda (object)
-                    (make-semantic-object-center-generator object))
+                    (make-semantic-object-center-generator object padding))
                   (cut:force-ll objects))))
     (flet ((generator (costmap-metadata matrix)
              (declare (type cma:double-matrix matrix))
