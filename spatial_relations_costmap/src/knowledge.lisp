@@ -116,18 +116,6 @@
     (household-object-type ?world ?object-name ?object-type)
     (object-type-costmap-threshold ?object-type ?threshold))
 
-  ;; object orientation related
-  (<- (orientation-samples 4))
-  (<- (orientation-samples-step ?samples-step)
-    (lisp-fun symbol-value pi ?pi)
-    (lisp-fun / ?pi 18 ?samples-step))
-  ;;
-  (<- (orientation-matters ?obj-name)
-    (bullet-world ?world)
-    (object ?world ?obj-name)
-    (or (household-object-type ?world ?obj-name knife)
-        (household-object-type ?world ?obj-name fork)))
-
   ;; table setting related
   (<- (paddings-list "kitchen_island" table-setting (0.03d0 0.03d0 0.03d0 0.8d0)))
   (<- (paddings-list "kitchen_sink_block" table-setting (0.03d0 0.03d0 0.03d0 0.03d0)))
