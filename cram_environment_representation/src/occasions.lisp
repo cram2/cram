@@ -62,6 +62,9 @@
   (<- (arms-parked)
     (fail))
 
+  (<- (object-put ?object)
+    (fail))
+
   (<- (holds ?occasion)
     (call ?occasion)))
 
