@@ -47,7 +47,6 @@
                     ?for-obj-size ?for-padding ?costmap)
     (costmap ?costmap)
     ;;
-    (format "in near~%")
     (near-costmap-gauss-std ?std)
     (instance-of gaussian-generator ?gaussian-generator-id)
     (costmap-add-function
@@ -72,9 +71,7 @@
     (costmap-add-function
      ?range-generator-id-2
      (make-range-cost-function ?ref-obj-pose ?min-radius :invert t)
-     ?costmap)
-    ;;
-    )
+     ?costmap))
 
   (<- (far-from-costmap ?designator ?ref-obj-pose ?ref-obj-size ?ref-padding
                         ?for-obj-size ?for-padding ?costmap)
@@ -104,9 +101,7 @@
     (object ?world ?ref-obj-name)
     (supporting-rigid-body ?world ?ref-obj-name ?rigid-body)
     (lisp-fun get-rigid-body-aabb-top-z ?rigid-body ?z)
-    (format "z: ~a~%" ?z)
     (%object ?world ?for-obj-name ?for-object-instance)
-    (format "inst ~a~%" ?for-object-instance)
     (lisp-fun aabb ?for-object-instance ?aabb)
     (lisp-fun cl-bullet:bounding-box-dimensions ?aabb ?dimensions)
     (lisp-fun cl-transforms:z ?dimensions ?height)
@@ -155,44 +150,7 @@
     (lisp-fun get-rigid-body-aabb-top-z ?rigid-body ?z)
     (costmap-add-height-generator
      (make-constant-height-function ?z)
-     ?costmap)
-    ;; orientation generator
-    (orientation-costmap ?designator ?object ?costmap))
-
-  ;; uses make-orientation-generator with supporting-obj-aligned-direction
-  (<- (orientation-costmap ?designator ?ref-obj-name ?costmap)
-    (format "doing orientation~%")
-    (desig-prop ?designator (for ?object))
-    (format "object: ~a~%" ?object)
-    (object-instance-name ?object ?obj-name)
-    (format "object instance: ~a~%" ?obj-name)
-    (bullet-world ?world)
-    (object ?world ?obj-name)
-    (costmap ?costmap)
-    (-> (orientation-matters ?obj-name)
-        (and
-         (format "hi~%")
-         (supporting-rigid-body ?world ?ref-obj-name ?rigid-body)
-         (format "rig: ~a~%" ?rigid-body)
-         (lisp-fun cl-bullet:pose ?rigid-body ?supp-obj-pose)
-         (lisp-fun aabb ?rigid-body ?aabb)
-         (lisp-fun cl-bullet:bounding-box-dimensions ?aabb ?supp-obj-dims)
-         (lisp-fun get-rigid-body-aabb-top-z ?rigid-body ?supp-obj-z)
-         (format "z: ~a~%" ?supp-obj-z)
-         (desig-location-prop ?ref-obj-name ?ref-obj-pose)
-         (lisp-fun alexandria:rcurry supporting-obj-alligned-direction
-                   ?supp-obj-pose ?supp-obj-dims ?supp-obj-z
-                   :ref-obj-dependent t
-                   :ref-obj-pose ?ref-obj-pose
-                   ?orientation-function)
-         (orientation-samples ?sample-num)
-         (orientation-samples-step ?samples-step)
-         (costmap-add-orientation-generator
-          (make-orientation-generator ?orientation-function
-                                      :samples ?sample-num
-                                      :sample-step ?samples-step)
-          ?costmap))
-        (true)))
+     ?costmap))
 
   ;; uses make-slot-cost-function
   (<- (slot-costmap ?designator ?supp-object ?context ?object-type ?object-count
@@ -275,9 +233,7 @@
     (padding-size ?world ?for-obj-name ?for-padding)
     ;;
     ;; height
-    (format "height~%")
     (height-generator ?world ?ref-obj-name ?for-obj-name ?costmap)
-    (format "near~%")
     ;;
     (-> (desig-prop ?designator (near ?ref-obj))
         (near-costmap ?designator ?ref-obj-pose ?ref-obj-size ?ref-padding
@@ -324,25 +280,18 @@
     (lisp-fun sem-map-utils:designator->semantic-map-objects
               ?designator ?supp-objects)
     (member ?supp-object ?supp-objects)
-    (format "supp object: ~a~%" ?supp-object)
     (slot-costmap ?designator ?supp-object table-setting ?object-type ?object-count
                   ?costmap))
 
   (<- (desig-solution-not-in-collision ?desig ?object-to-check ?pose)
     (bullet-world ?world)
-    (format "object to check: ~a~%" ?object-to-check)
-    (format "pose: ~a~%" ?pose)
     (with-copied-world ?world
       (object-instance-name ?object-to-check ?object-name)
       (assert (object-pose ?world ?object-name ?pose))
-      (format "after assert~%")
       (forall ;; (contact ?world ?object-name ?other-object-name ?link)
        (contact ?world ?object-name ?other-object-name)
               (and
-               (format "contact with ~a~%" ?other-object-name)
                (object-type ?world ?other-object-name ?type)
-               (format "other-object-name: ~a~%type: ~a~%link: ~a~%~%"
-                       ?other-object-name ?type ?link)
                (or
                ;; ToDo The following doesn't work because collisions are only detected
                ;; with an object called my-semantic-map, not the links of it.
@@ -421,9 +370,7 @@
 
   
   (<- (supported-by-link-obj ?world ?obj-name ?link-obj)
-    (format "inside supported-by-link~%")
     (supported-by ?world ?obj-name ?supp-obj-name ?supp-obj-link-name)
-    (format "~a is supported by ~a~%" ?obj-name ?supp-obj-link-name)
     (%object ?world ?supp-obj-name ?supp-obj)
     (lisp-fun get-sem-map-part ?supp-obj ?supp-obj-link-name ?link-obj)
     (lisp-pred identity ?link-obj)))
