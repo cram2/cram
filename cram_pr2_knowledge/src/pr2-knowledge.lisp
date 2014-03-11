@@ -188,7 +188,8 @@
   (<- (orientation-matters ?object-designator)
     (lisp-fun desig:current-desig ?object-designator ?current-object-designator)
     (or (desig:desig-prop ?current-object-designator (type knife))
-        (desig:desig-prop ?current-object-designator (type fork))))
+        (desig:desig-prop ?current-object-designator (type fork))
+        (desig:desig-prop ?current-object-designator (type spatula))))
 
 
   (<- (required-arms ?object-designator ?arms)
