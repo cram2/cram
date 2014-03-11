@@ -80,11 +80,11 @@
      ?cm))
   
   (<- (desig-costmap ?desig ?cm)
-    (desig-prop ?desig (near center))
+    (desig-prop ?desig (centered-with-padding ?padding))
     (costmap ?cm)
     (semantic-map-desig-objects ?desig ?objects)
     (costmap-add-function center-of-object
-                          (make-semantic-object-center-costmap ?objects)
+                          (make-semantic-object-center-costmap ?objects ?padding)
                           ?cm))
 
   (<- (desig-costmap ?desig ?cm)
