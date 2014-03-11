@@ -31,7 +31,7 @@
 (disable-location-validation-function 'btr-desig::validate-designator-solution)
 (disable-location-validation-function 'btr-desig::check-ik-solution)
 
-;; roslaunch bullet_reasoning_demo bullet_reasoning.launch
+;; roslaunch spatial_relations_demo demo.launch
 (defvar *bdgs* nil)
 (defun start-ros-and-bullet ()
   (setf *bdgs* nil)
