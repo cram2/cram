@@ -26,18 +26,11 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :spatial-relations-costmap)
-
-(disable-location-validation-function 'btr-desig::validate-designator-solution)
-(disable-location-validation-function 'btr-desig::check-ik-solution)
-
-;; run bullet launch files (bullet_reasoning_demo)
-;; ros-load-system btr-demo
+(in-package :spatial-relations-demo)
 
 ;; TODO: comments
 ;; TODO: declares everywhere!
 
-(defvar *bdgs* nil)
 (defparameter *num-of-sets-on-table* 2)
 
 (defvar *items* (make-hash-table :test 'equal)
@@ -48,34 +41,6 @@
 (setf (gethash "MUG" *items*) '(0.8 0.3 0))
 
 ;; TODO collision detection for knives!!!
-
-(defun start-ros-and-bullet ()
-  (setf *bdgs* nil)
-  (roslisp-utilities:startup-ros :anonymous nil)
-  (let ((urdf (cl-urdf:parse-urdf (roslisp:get-param "robot_description_lowres")))
-        (kitchen-urdf (cl-urdf:parse-urdf (roslisp:get-param "kitchen_description")))
-        (pi-rotation '(0 0 1 0)))
-    (setf *bdgs*
-          (car
-           (force-ll
-            (prolog
-             `(and
-               (clear-bullet-world)
-               (bullet-world ?w)
-               (debug-window ?w)
-               (robot ?robot)
-               (assert (object ?w btr::static-plane floor ((0 0 0.001) (0 0 0 1))
-                               :normal (0 0 1) :constant 0 :disable-collisions-with (?robot)))
-               (assert (object ?w btr::semantic-map my-kitchen ((-3.45 -4.35 0) ,pi-rotation)
-                               :urdf ,kitchen-urdf))
-               (assert (object ?w urdf ?robot ((0 0 0) (0 0 0 1)) :urdf ,urdf))
-               (robot-arms-parking-joint-states ?joint-states)
-               (assert (joint-state ?w ?robot ?joint-states))
-               (assert (joint-state ?w ?robot (("torso_lift_joint" 0.33))))
-               (assert (object ?w btr::cylinder oven-1 ((-1.0 1.26 0.8883) (0 0 0 1))
-                               :mass 0.2 :color (0 0 0) :size (0.3 0.3 0.07))))))))))
-
-;; (setf sem-map (var-value '?sem-map (lazy-car (prolog `(%object ?w my-kitchen ?sem-map) *bdgs*))))
 
 ;; ;; desig for a glass near a plate
 ;; (setf des (desig:make-designator 'desig-props:location '((desig-props:right-of plate-1) (desig-props:behind plate-1) (desig-props:near plate-1) (desig-props:for mug-1) (desig-props:on counter-top) (desig-props:name kitchen-island))))
@@ -118,11 +83,6 @@
             `(and (bullet-world ?w)
                   ,@(loop for i from 1 to *num-of-sets-on-table*
                           collect `(retract (object ?w ,(new-symbol-with-id object-type i))))))))
-
-(defun move-object (object-name new-pose)
-  (prolog `(and
-            (bullet-world ?w)
-            (assert (object-pose ?w ,object-name ,new-pose)))))
 
 (defun put-stuff-away ()
   (loop for object-type being the hash-keys of *items*
@@ -235,41 +195,8 @@
    (loop for object-type being the hash-keys of *items*
          do (assign-multiple-obj-pos object-type))))
 
-(def-fact-group build-test-world ()
-  (<- (assign-object-pos ?obj-name ?desig)
-    (once
-     (bound ?obj-name)
-     (bound ?desig)
-     (bullet-world ?w)
-     (desig-solutions ?desig ?solutions)
-     (take 1 ?solutions ?8-solutions)
-     (btr::generate ?poses-on (btr::obj-poses-on ?obj-name ?8-solutions ?w))
-     (member ?solution ?poses-on)
-     (assert (object-pose ?w ?obj-name ?solution))))
-
-  (<- (assign-object-pos-on ?obj-name ?desig)
-    (once
-     (bound ?obj-name)
-     (bound ?desig)
-     (bullet-world ?w)
-     (desig-solutions ?desig ?solutions)
-     (take 8 ?solutions ?8-solutions)
-     (member ?solution ?8-solutions)
-     (assert (btr::object-pose-on ?w ?obj-name ?solution)))))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; PROJECTION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(cpl-impl:def-cram-function find-object-on-counter (object-type counter-name)
-  "Returns an object designator."
-  (cram-language-designator-support:with-designators
-      ((on-counter (desig-props:location `((desig-props:on "Cupboard")
-                                           (desig-props:name ,counter-name))))
-       (the-object (desig-props:object `((desig-props:type ,object-type)
-                                         (desig-props:at ,on-counter)))))
-    (reference on-counter)
-    (format t "trying to perceive an object ~a~%" the-object)
-    (plan-lib:perceive-object 'cram-plan-library:a the-object)))
 
 (cpl-impl:def-cram-function put-plate-on-table (plate-obj-desig)
   (cram-language-designator-support:with-designators
@@ -362,41 +289,3 @@
           obj)))))
 
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;; PANCAKES! ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defun spawn-pancake-scenario ()
-  (prolog `(and (bullet-world ?w) (assert (object ?w btr::mesh spatula-2
-                                                  ((1.4 1.08 0.9119799601336841d0) (0 0 0 1))
-                                                  :mesh btr::spatula :mass 0.2 :color (0 0 0)))))
-  (prolog `(and (bullet-world ?w) (assert (object ?w btr::mesh mondamin-1
-                                                  ((1.35 1.11 0.9119799601336841d0) (0 0 0 1))
-                                                  :mesh mondamin :mass 0.2 :color (0.5 0.1 0)))))
-  (move-object 'spatula-2 `((1.5 0.8 0.86) (0.0d0 0.0d0 0.19611613794814378d0 0.9805806751289282d0)))
-  (move-object 'mondamin-1 `((1.35 1.11 0.958) (0 0 0 1))))
-
-(defun execute-pancake-scenario ()
-  (spawn-pancake-scenario)
-  (cram-projection:with-projection-environment
-      projection-process-modules::pr2-bullet-projection-environment
-    (cpl-impl:top-level
-      (let ((mondamin-designator (find-object-on-counter 'btr::mondamin "kitchen_sink_block")))
-        (cram-language-designator-support:with-designators
-            ((on-kitchen-island (location `((on "Cupboard")
-                                            (name "kitchen_island")
-                                            (for ,mondamin-designator)
-                                            (right-of oven-1)
-                                            (near oven-1)
-                                            (behind oven-1)))))
-          (format t "now trying to achieve the location of mondamin on kitchen-island~%")
-          (plan-knowledge:achieve `(plan-knowledge:loc ,mondamin-designator ,on-kitchen-island)))
-        (let ((spatula-designator (find-object-on-counter 'btr::spatula "kitchen_sink_block")))
-          (cram-language-designator-support:with-designators
-              ((spatula-location (location `((on "Cupboard")
-                                             (name "kitchen_island")
-                                             (for ,spatula-designator)
-                                             (right-of oven-1)
-                                             (near oven-1)
-                                             (in-front-of oven-1)))))
-            (format t "now trying to achieve the location of spatula on kitchen-island~%")
-            (plan-knowledge:achieve `(plan-knowledge:loc ,spatula-designator ,spatula-location))))))))

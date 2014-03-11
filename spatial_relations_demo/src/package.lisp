@@ -1,4 +1,4 @@
-;;; Copyright (c) 2012, Gayane Kazhoyan <kazhoyan@in.tum.de>
+;;; Copyright (c) 2014, Gayane Kazhoyan <kazhoyan@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -26,29 +26,23 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem spatial-relations-demo
-  :author "eris"
-  :license "BSD"
-  :depends-on (spatial-relations-costmap
-               designators
-               cram-roslisp-common
-               location-costmap
-               cram-reasoning
-               roslisp
-               semantic-map-costmap
-               bullet-reasoning
-               cram-pr2-knowledge
-               cram-environment-representation
-               projection-process-modules
-               occupancy-grid-costmap
-               cram-plan-knowledge
-               bullet-reasoning-designators
-               pr2-manipulation-knowledge
-               object-location-designators)
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "utilities" :depends-on ("package"))
-     (:file "table-setting" :depends-on ("package" "utilities"))
-     (:file "pancake-making" :depends-on ("package" "utilities"))))))
+(in-package :cl-user)
+
+(desig-props:def-desig-package spatial-relations-demo
+    (:use #:desig
+          #:cram-roslisp-common
+          #:location-costmap
+          #:common-lisp
+          #:cram-reasoning
+          #:semantic-map-costmap
+          #:btr
+          #:cram-utilities
+          #:cram-environment-representation
+          #:cram-language-implementation)
+  (:shadowing-import-from #:btr object pose object-pose width height)
+  (:shadowing-import-from #:cram-reasoning fail)
+  (:desig-properties #:left-of #:right-of #:in-front-of #:behind
+                     #:for #:near #:far-from
+                     #:on #:name #:context #:object-count
+                     #:to #:see #:reach #:centered-with-padding))
+
