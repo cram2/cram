@@ -33,20 +33,21 @@
 
 (defun spawn-pancake-scenario ()
   (prolog `(and (bullet-world ?w)
-                (assert (object ?w btr::cylinder oven-1
+                (assert (object ?w btr::pancake-maker oven-1
                                 ((-0.9 1.36 0.8883) (0 0 0 1))
-                               :mass 0.2 :color (0 0 0) :size (0.3 0.3 0.07)))
-                (assert (object ?w btr::mesh spatula-2
+                               :mass 0.2 :color (0 0 0) :size (0.15 0.15 0.035)))
+                (assert (object ?w btr::mesh spatula-1
                                 ((1.4 1.08 0.9119799601336841d0) (0 0 0 1))
                                 :mesh btr::spatula :mass 0.2 :color (0 0 0)))
                 (assert (object ?w btr::mesh mondamin-1
                                 ((1.35 1.11 0.9119799601336841d0) (0 0 0 1))
                                 :mesh mondamin :mass 0.2 :color (0.5 0.1 0)))))
-  (move-object 'spatula-2 `((1.5 0.8 0.86) (0.0d0 0.0d0 0.19611613794814378d0 0.9805806751289282d0)))
+  (move-object 'spatula-1 `((1.5 0.8 0.86) (0.0d0 0.0d0 0.19611613794814378d0 0.9805806751289282d0)))
   (move-object 'mondamin-1 `((1.35 1.11 0.958) (0 0 0 1))))
 
 (defun execute-pancake-scenario ()
   (spawn-pancake-scenario)
+  (detach-all-objects (object *current-bullet-world* 'cram-pr2-knowledge::pr2))
   (cram-projection:with-projection-environment
       projection-process-modules::pr2-bullet-projection-environment
     (cpl-impl:top-level
@@ -68,8 +69,7 @@
                                              (centered-with-padding 0.4)
                                              (for ,spatula-designator)
                                              (right-of oven-1)
-                                             (near oven-1)
-                                             (in-front-of oven-1)))))
+                                             (near oven-1)))))
             (format t "now trying to achieve the location of spatula on kitchen-island~%")
             (plan-knowledge:achieve `(plan-knowledge:loc ,spatula-designator ,spatula-location))))))))
 
