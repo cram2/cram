@@ -231,7 +231,6 @@
     (object ?world ?for-obj-name)
     (object-size-without-handles ?world ?for-obj-name ?for-obj-size)
     (padding-size ?world ?for-obj-name ?for-padding)
-    ;;
     ;; height
     (height-generator ?world ?ref-obj-name ?for-obj-name ?costmap)
     ;;
@@ -239,9 +238,7 @@
         (near-costmap ?designator ?ref-obj-pose ?ref-obj-size ?ref-padding
                       ?for-obj-size ?for-padding ?costmap)
         (far-from-costmap ?designator ?ref-obj-pose ?ref-obj-size ?ref-padding
-                      ?for-obj-size ?for-padding ?costmap))
-    
-    )
+                      ?for-obj-size ?for-padding ?costmap)))
 
   ;; collision avoidance costmap for the spatial relations desigs
   ;; Disabled.
@@ -335,8 +332,6 @@
   (<- (object-size-without-handles ?world ?obj-name ?size)
     (object-shape ?world ?obj-name ?shape)
     (%object ?world ?obj-name ?obj)
-    (lisp-fun aabb ?obj ?aabb)
-    (lisp-fun bt:bounding-box-dimensions ?aabb ?dims)
     (%object-size-without-handles ?world ?obj ?shape ?size))
   ;;
   (<- (%object-size-without-handles ?world ?obj ?shape ?size)
