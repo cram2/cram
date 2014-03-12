@@ -31,7 +31,7 @@
 (def-fact-group costmap-metadata ()
   (<- (costmap-size 12 12))
   (<- (costmap-origin -6 -6))
-  (<- (costmap-resolution 0.03))
+  (<- (costmap-resolution 0.02))
 
   (<- (costmap-padding 0.38))
   (<- (costmap-manipulation-padding 0.3))
@@ -69,17 +69,28 @@
   (<- (shape :rectangle))
   (<- (shape :complex))
   ;;
-  (<- (object-type-shape pot :complex))
-  (<- (object-type-shape bowl :circle))
-  (<- (object-type-shape mondamin :oval))
-  (<- (object-type-shape mug :complex))
-  (<- (object-type-shape plate :circle))
-  (<- (object-type-shape fork :rectangle))
-  (<- (object-type-shape knife :rectangle))
+  (<- (%household-object-type-shape pot :complex))
+  (<- (%household-object-type-shape bowl :circle))
+  (<- (%household-object-type-shape mondamin :oval))
+  (<- (%household-object-type-shape mug :complex))
+  (<- (%household-object-type-shape plate :circle))
+  (<- (%household-object-type-shape fork :rectangle))
+  (<- (%household-object-type-shape knife :rectangle))
+  (<- (%household-object-type-shape pancake-maker :circle))
+  
+  (<- (household-object-type-shape ?type ?shape)
+    (setof ?a-type (%household-object-type-shape ?a-type ?_)
+           ?defined-type-shapes)
+    (-> (member ?type ?defined-type-shapes)
+        (%household-object-type-shape ?type ?shape)
+        (== ?shape :rectangle)))
   ;;
   (<- (object-shape ?world ?object-name ?shape)
     (household-object-type ?world ?object-name ?object-type)
-    (object-type-shape ?object-type ?shape))
+    (household-object-type-shape ?object-type ?shape))
+  (<- (object-shape ?world ?object-name ?shape)
+    (not (household-object-type ?world ?object-name ?_))
+    (== ?shape :rectangle))
   ;;
   (<- (object-type-handle-size pot 0.12d0)) ; both handles together
   (<- (object-type-handle-size mug 0.04d0))
@@ -99,8 +110,12 @@
   ;;
   (<- (padding-size ?world ?object-name ?padding)
     (household-object-type ?world ?object-name ?object-type)
-    (object-type-padding-size ?object-type ?padding))
-  
+    (setof ?a-type (object-type-padding-size ?a-type ?_)
+           ?defined-types-padding)
+    (-> (member ?object-type ?defined-types-padding)
+        (object-type-padding-size ?object-type ?padding)
+        (== ?padding 0.01d0)))
+
   ;; costmap threshold related
   ;; depends on how flexible you want the positioning to be,
   ;; e.g. in case of cluttered scenes etc.
