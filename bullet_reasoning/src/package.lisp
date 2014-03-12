@@ -43,10 +43,10 @@
            height fov-y z-near z-far pose gl-execute-with-camera
            camera-transform look-at-object-rotation
            with-rendering-to-framebuffer render-to-framebuffer
-           get-rendering-context
-           read-pixelbuffer read-depthbuffer to-png-image add-object
-           generic-cup mug plate mondamin mesh remove-object object
-           pot bowl object-type household-object-type name rigid-bodies
+           get-rendering-context read-pixelbuffer read-depthbuffer to-png-image
+           add-object generic-cup household-object mug plate mondamin mesh
+           remove-object object pot bowl pancake-maker
+           object-type household-object-type name rigid-bodies
            rigid-body-names rigid-body world make-object box
            static-plane sphere cylinder cone point-cloud cutlery fork knife
            bt-reasoning-world invalidate-object objects object %object
