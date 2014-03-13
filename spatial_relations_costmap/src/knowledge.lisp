@@ -28,32 +28,6 @@
 
 (in-package :spatial-relations-costmap)
 
-(def-fact-group costmap-metadata ()
-  (<- (costmap-size 12 12))
-  (<- (costmap-origin -6 -6))
-  (<- (costmap-resolution 0.02))
-
-  (<- (costmap-padding 0.38))
-  (<- (costmap-manipulation-padding 0.3))
-  (<- (costmap-in-reach-distance 1.0))
-  (<- (costmap-reach-minimal-distance 0.2)))
-
-;; (def-fact-group costmap-metadata ()
-;;   (<- (costmap-size 25 25))
-;;   (<- (costmap-origin -12.5 -12.5))
-;;   (<- (costmap-resolution 0.05))
-
-;;   (<- (costmap-padding 0.35))
-;;   (<- (costmap-manipulation-padding 0.35))
-;;   (<- (costmap-in-reach-distance 1.0))
-;;   (<- (costmap-reach-minimal-distance 0.1)))
-
-(def-fact-group semantic-map-data (semantic-map-name)
-  (<- (cl-semantic-map-utils::semantic-map-name
-       "http://ias.cs.tum.edu/kb/ias_semantic_map.owl#SemanticEnvironmentMap_PM580j"))
-  (<- (semantic-map-obj my-kitchen))
-  (<- (kitchen-island-z 0.8399999737739563d0)))
-
 ;; TODO change after near and far is refactored
 ;; TODO maybe remove collision costmap completely, but rather just disable and uncomment
 (def-fact-group costmap-params ()
