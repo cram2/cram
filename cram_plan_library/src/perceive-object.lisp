@@ -34,8 +34,7 @@
 (def-goal (perceive-object all ?obj-desig)
   (with-retry-counters ((movement-retries 3))
     (with-designators ((obj-loc-desig (location `((of ,?obj-desig))))
-                       (loc (location `((to see) (obj ,?obj-desig)
-                                        (location ,obj-loc-desig))))
+                       (loc (location `((to see) (obj ,?obj-desig))))
                        (perceive-action (action `((to perceive)
                                                   (obj ,?obj-desig)))))
       (with-failure-handling
@@ -45,21 +44,21 @@
              (do-retry movement-retries
                (ros-info
                 (perceive plan-lib) "Retrying at different base location.")
-               (retry-with-updated-location
-                loc (next-different-location-solution loc)))))
+               (setf loc (next-different-location-solution loc))
+               (when loc
+                 (retry)))))
         (at-location (loc)
-          (let ((obj-loc-retry-cnt 0))
+          (with-retry-counters ((perception-retries 3))
             (with-failure-handling
                 ((object-not-found (e)
                    (declare (ignore e))
                    (ros-warn (perceive plan-lib) "Object not found failure.")
-                   (when (< obj-loc-retry-cnt 3)
-                     (incf obj-loc-retry-cnt)
+                   (do-retry perception-retries
+                     (ros-info
+                      (perceive plan-lib) "Retrying at different look location.")
+                     (setf obj-loc-desig (next-solution obj-loc-desig))
                      (when obj-loc-desig
-                       (setf obj-loc-desig
-                             (next-different-location-solution obj-loc-desig))
-                       (when obj-loc-desig
-                         (retry))))))
+                       (retry)))))
               (achieve `(looking-at ,(reference obj-loc-desig)))
               (perform perceive-action)
               (monitor-action perceive-action))))))))
