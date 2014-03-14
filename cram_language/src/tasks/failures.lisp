@@ -123,9 +123,20 @@ invoking the retry function or by doing a non-local exit. Note that
 with-failure-handling implicitly creates an unnamed block,
 i.e. `return' can be used."
   (with-gensyms (wfh-block-name)
-    (let ((condition-handler-syms (loop for clause in clauses
-                                     collecting (cons (car clause)
-                                                      (gensym (symbol-name (car clause)))))))
+    (let* ((clauses
+             (loop for clause in clauses
+                   if (and (listp (car clause))
+                           (string= (symbol-name (caar clause)) "OR"))
+                     appending (loop for case-symbol in (rest (car clause))
+                                     collecting (append
+                                                 (list case-symbol)
+                                                 (cdr clause)))
+                   else
+                     collecting clause))
+           (condition-handler-syms
+             (loop for clause in clauses
+                   collecting (cons (car clause)
+                                    (gensym (symbol-name (car clause)))))))
       `(block nil
          (tagbody ,wfh-block-name
             (flet ((retry ()
