@@ -126,7 +126,7 @@ i.e. `return' can be used."
     (let* ((clauses
              (loop for clause in clauses
                    if (and (listp (car clause))
-                           (string= (symbol-name (caar clause)) "OR"))
+                           (eql (caar clause) 'or))
                      appending (loop for case-symbol in (rest (car clause))
                                      collecting (append
                                                  (list case-symbol)
@@ -154,7 +154,7 @@ i.e. `return' can be used."
                          (typecase (envelop-error condition)
                            ,@(mapcar (lambda (err-def)
                                        `(,(car err-def) (,(cdr err-def) (envelop-error condition))))
-                                condition-handler-syms))))
+                                     condition-handler-syms))))
                      ,@(mapcar (lambda (clause)
                                  `(,(car clause) #',(cdr (assoc (car clause) condition-handler-syms))))
                                clauses))
