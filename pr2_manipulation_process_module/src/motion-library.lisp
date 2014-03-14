@@ -214,10 +214,9 @@
          (moveit:pose-not-transformable-into-link (f)
            (declare (ignore f))
            (cpl:retry)))
-      (execute-move-arm-pose
-       side putdown-pose
-       :ignore-collisions t
-       :allowed-collision-objects allowed-collision-objects))
+      (execute-move-arm-pose side putdown-pose
+       :allowed-collision-objects allowed-collision-objects
+       :ignore-collisions t))
     (ros-info (pr2 putdown) "Opening gripper")
     (open-gripper side :max-effort 50.0 :position gripper-open-pos)
     (moveit:detach-collision-object-from-link
@@ -238,10 +237,14 @@
             (pr2 putdown)
             "Failed to go into unhand pose for side ~a. Retrying." side)
            (cpl:retry))
-         (moveit::pose-not-transformable-into-link (f)
+         (moveit:pose-not-transformable-into-link (f)
            (declare (ignore f))
            (cpl:retry)))
-      (execute-move-arm-pose side unhand-pose))))
+      (execute-move-arm-pose
+       side unhand-pose
+       :allowed-collision-objects allowed-collision-objects
+       :ignore-collisions t)
+      (ros-info (pr2 manip-pm) "Putdown complete."))))
 
 (defun get-lifting-grasped-object-arm-pose (side distance)
   "Returns the lifting pose for the `side' robot arm in order to
@@ -284,32 +287,14 @@ object in order to lift it at `distance' form the supporting plane"
   (let* ((frame-id (ecase side
                      (:right "r_wrist_roll_link")
                      (:left "l_wrist_roll_link")))
-         (time (ros-time))
-         (current-arm-pose (when (tf:wait-for-transform
-                                  *tf* :source-frame frame-id
-                                       :time time
-                                       :target-frame "torso_lift_link")
-                             (tf:transform-pose
-                              *tf*
-                              :pose (tf:pose->pose-stamped
-                                     frame-id time
-                                     (tf:make-identity-pose))
-                              :target-frame "torso_lift_link")))
-         (raised-arm-pose (when (tf:wait-for-transform
-                                 *tf* :source-frame frame-id
-                                      :time time
-                                      :target-frame "torso_lift_link")
-                            (tf:pose->pose-stamped
-                             "/torso_lift_link"
-                             time
-                             (cl-transforms:transform-pose
-                              (tf:make-transform
-                               (tf:make-3d-vector 0 0 distance)
-                               (tf:make-identity-rotation))
-                              current-arm-pose)))))
-    (unless (and current-arm-pose raised-arm-pose)
+         (raised-arm-pose
+           (moveit:ensure-pose-stamped-transformed
+            (tf:make-pose-stamped frame-id (ros-time)
+                                  (tf:make-3d-vector 0 0 distance)
+                                  (tf:make-identity-rotation))
+            "/torso_lift_link" :ros-time t)))
+    (unless raised-arm-pose
       (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))
-    (publish-pose raised-arm-pose "/dbg")
     (execute-move-arm-pose side raised-arm-pose :ignore-collisions t)))
 
 (defun open-drawer (pose side &optional (distance *grasp-distance*))
