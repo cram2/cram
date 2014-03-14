@@ -1,1 +1,0 @@
-foreign-array/foreign-array.asd
