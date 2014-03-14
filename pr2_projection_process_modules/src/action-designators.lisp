@@ -159,7 +159,6 @@
     (desig-prop ?desig (at ?_)))
 
   (<- (required-sides ?designator ?sides)
-    (format "inside REQUIRED-SIDES~%")
     (setof ?side (cram-manipulation-knowledge:trajectory-point
                   ?designator ?_ ?side)
            ?sides))
