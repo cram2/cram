@@ -52,7 +52,9 @@
     (location-designator (reference pose))))
 
 (defun make-action-goal (pose-stamped)
-  (let ((pose-stamped (ensure-pose-stamped pose-stamped)))
+  (let ((pose-stamped
+          (moveit:ensure-pose-stamped-transformed
+           pose-stamped "/base_link" :ros-time t)))
     (unless (tf:wait-for-transform
              *tf* :source-frame (tf:frame-id pose-stamped)
                   :target-frame "base_link"

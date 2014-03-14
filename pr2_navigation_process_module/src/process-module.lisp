@@ -64,7 +64,8 @@
   (when (roslisp:has-param "~navigation_process_module/yaw_goal_tolerance")
     (setf *yaw-goal-tolerance* (roslisp:get-param "~navigation_process_module/yaw_goal_tolerance"))))
 
-(register-ros-init-function init-pr2-navigation-process-module)
+(roslisp-utilities:register-ros-init-function
+ init-pr2-navigation-process-module)
 
 (defun make-action-goal (pose)
   (roslisp:make-message

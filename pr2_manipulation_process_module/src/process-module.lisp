@@ -31,7 +31,8 @@
   ((pose :accessor pose :initform nil :initarg :pose)
    (side :accessor side :initform nil :initarg :side)
    (close-radius :accessor close-radius :initform nil :initarg :close-radius)
-   (handle-pair :accessor handle-pair :initform nil :initarg :handle-pair)))
+   (handle-pair :accessor handle-pair :initform nil :initarg :handle-pair)
+   (ik-cost :accessor ik-cost :initform nil :initarg :ik-cost)))
 
 (define-condition move-arm-no-ik-solution (manipulation-failure) ())
 (define-condition move-arm-ik-link-in-collision (manipulation-failure) ())
@@ -96,29 +97,9 @@
          (lambda (msg)
            (setf *joint-state* msg))))
   (set-robot-planning-state))
-  ;; ;; Initialize the planning scene to make get_ik and friends work.
-  ;; (when (roslisp:wait-for-service
-  ;;        "/environment_server/set_planning_scene_diff" 0.2)
-  ;;   (roslisp:call-service
-  ;;    "/environment_server/set_planning_scene_diff"
-  ;;    "arm_navigation_msgs/SetPlanningSceneDiff")))
 
-(register-ros-init-function init-pr2-manipulation-process-module)
-
-(defgeneric call-action (action &rest params))
-
-(defmethod call-action ((action-sym t) &rest params)
-  (ros-info (pr2 manip-pm)
-   "Unimplemented operation `~a' with parameters ~a. Doing nothing."
-   action-sym params)
-  (sleep 0.5))
-
-(defmethod call-action :around (action-sym &rest params)
-  (ros-info (pr2 manip-pm)
-                    "Executing manipulation action ~a ~a."
-                    action-sym params)
-  (prog1 (call-next-method)
-    (ros-info (pr2 manip-pm) "Manipulation action done.")))
+(roslisp-utilities:register-ros-init-function
+ init-pr2-manipulation-process-module)
 
 (defun execute-goal (server goal)
   (multiple-value-bind (result status)
@@ -127,14 +108,6 @@
       (cpl-impl:fail 'manipulation-failed
                      :format-control "Manipulation failed"))
     result))
-
-(defun execute-torso-command (trajectory)
-  (actionlib:call-goal
-   *trajectory-action-torso*
-   (actionlib:make-action-goal
-       *trajectory-action-torso*
-     :trajectory (remove-trajectory-joints
-                  #("torso_lift_joint") trajectory :invert t))))
 
 (defun links-for-arm-side (side)
   (ecase side
@@ -179,11 +152,8 @@
                   "r_gripper_motor_slider_link"
                   "r_gripper_motor_screw_link"))))
 
-(defgeneric hook-before-move-arm (side pose-stamped planning-group ignore-collisions))
-(defmethod hook-before-move-arm (side pose-stamped planning-group ignore-collisions))
-
-(defgeneric hook-after-move-arm (log-id success))
-(defmethod hook-after-move-arm (log-id success))
+(define-hook on-prepare-move-arm (side pose-stamped planning-group ignore-collisions))
+(define-hook on-finish-move-arm (log-id success))
 
 (defun execute-move-arm-pose (side pose-stamped
                               &key allowed-collision-objects
@@ -200,45 +170,44 @@
          (planning-group (ecase side
                            (:left "left_arm")
                            (:right "right_arm"))))
-    (let ((log-id (hook-before-move-arm link-name
-                                        pose-stamped
-                                        planning-group
-                                        ignore-collisions)))
+    (let ((log-id (first (on-prepare-move-arm
+                          link-name pose-stamped
+                          planning-group ignore-collisions))))
       (cpl:with-failure-handling
           ((moveit:no-ik-solution (f)
              (declare (ignore f))
              (ros-error (move arm) "No IK solution found.")
-             (hook-after-move-arm log-id nil)
+             (on-finish-move-arm log-id nil)
              (error 'manipulation-pose-unreachable
                     :result (list side pose-stamped)))
            (moveit:planning-failed (f)
              (declare (ignore f))
              (ros-error (move arm) "Planning failed.")
-             (hook-after-move-arm log-id nil)
+             (on-finish-move-arm log-id nil)
              (error 'manipulation-pose-unreachable
                     :result (list side pose-stamped)))
            (moveit:goal-violates-path-constraints (f)
              (declare (ignore f))
              (ros-error (move arm) "Goal violates path constraints.")
-             (hook-after-move-arm log-id nil)
+             (on-finish-move-arm log-id nil)
              (error 'manipulation-pose-unreachable
                     :result (list side pose-stamped)))
            (moveit:invalid-goal-constraints (f)
              (declare (ignore f))
              (ros-error (move arm) "Invalid goal constraints.")
-             (hook-after-move-arm log-id nil)
+             (on-finish-move-arm log-id nil)
              (error 'manipulation-pose-unreachable
                     :result (list side pose-stamped)))
            (moveit:timed-out (f)
              (declare (ignore f))
              (ros-error (move arm) "Timeout.")
-             (hook-after-move-arm log-id nil)
+             (on-finish-move-arm log-id nil)
              (error 'manipulation-pose-unreachable
                     :result (list side pose-stamped)))
            (moveit:goal-in-collision (f)
              (declare (ignore f))
              (ros-error (move arm) "Goal in collision.")
-             (hook-after-move-arm log-id nil)
+             (on-finish-move-arm log-id nil)
              (error 'manipulation-pose-occupied
                     :result (list side pose-stamped))))
         (cond ((moveit:move-link-pose
@@ -248,30 +217,12 @@
                 :allowed-collision-objects allowed-collision-objects
                 :touch-links (when allowed-collision-objects
                                (links-for-arm-side side)))
-               (hook-after-move-arm log-id t)
+               (on-finish-move-arm log-id t)
                (plan-knowledge:on-event
                 (make-instance 'plan-knowledge:robot-state-changed)))
-              (t (hook-after-move-arm log-id nil)
+              (t (on-finish-move-arm log-id nil)
                  (error 'manipulation-failed
                         :result (list side pose-stamped))))))))
-
-(defun move-spine (position)
-  (let ((spine-lift-trajectory
-          (roslisp:make-msg
-           "trajectory_msgs/JointTrajectory"
-           (stamp header) (ros-time)
-           joint_names #("torso_lift_joint")
-           points (vector
-                   (roslisp:make-message
-                    "trajectory_msgs/JointTrajectoryPoint"
-                    positions (vector position)
-                    velocities #(0)
-                    accelerations #(0)
-                    time_from_start 5.0)))))
-    (ros-info (pr2 manip-pm)
-                      "Moving spine to position ~a." position)
-    (execute-torso-command spine-lift-trajectory)
-    (ros-info (pr2 manip-pm) "Moving spine complete.")))
 
 (defun close-gripper (side &key (max-effort 100.0) (position 0.0))
   (let ((client (ecase side
