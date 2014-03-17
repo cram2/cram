@@ -217,6 +217,7 @@
                 ?loc (next-different-location-solution ?loc)))))
         (with-designators ((put-down-loc (location `((to reach)
                                                      (location ,?loc)))))
+          (reset-counter manipulation-retries)
           (with-failure-handling
               ((manipulation-failure (f)
                  (declare (ignore f))
