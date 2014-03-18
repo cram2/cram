@@ -47,7 +47,7 @@
     `(defmethod call-action ((,action-sym (eql ',name)) &rest ,params)
        (destructuring-bind ,args ,params ,@body))))
 
-(def-action-handler park (obj arms &optional obstacles)
+(def-action-handler park (arms obj &optional obstacles)
   (declare (ignore obstacles))
   (ros-info (pr2 park) "Park arms ~a ~a" obj arms)
   (cond ((and obj arms)
@@ -59,7 +59,7 @@
                    (cond (object-name (list object-name))
                          (t nil))
                    (list "all"))))
-           (cpl:par-loop (arm (force-ll arms))
+           (dolist (arm (force-ll arms))
              (when arm
                (let ((ignore-collisions nil))
                  (cpl:with-failure-handling
@@ -97,11 +97,6 @@
                       :ignore-collisions ignore-collisions))))))))))
 
 (def-action-handler lift (arms distance)
-  ;; Note(Georg) Curious! We do not need the object designator
-  ;; for execution of this action?
-  ;; NOTE(winkler): No, we actually don't. The lifting is done by just
-  ;; recalculating the new position based on the old one and the fact
-  ;; that the gripper should stick to it's current orientation.
   (force-ll arms)
   (cond ((eql (length arms) 1)
          (lift-grasped-object-with-one-arm (first arms) distance))
@@ -122,72 +117,93 @@
 (define-hook on-grasp-decisions-complete
     (object-name pregrasp-pose grasp-pose side object-pose))
 
-(def-action-handler grasp (obj-desig grasp-assignments obstacles)
-  (declare (ignore obstacles))
-  (ros-info (pr2 grasp) "Beginning grasp action handler")
-  (let ((pair-count (length grasp-assignments)))
-    (assert (> pair-count 0) ()
-            "No arm/pose pairs specified for grasping.")
-    (cpl:par-loop (grasp-assignment grasp-assignments)
-      (let* ((obj-pose (reference (desig-prop-value
-                                   obj-desig 'desig-props:at)))
+(defun perform-grasp (obj lazy-grasp-assignment pregrasp-offset grasp-offset)
+  (unless (lazy-car lazy-grasp-assignment)
+    (cpl:fail 'manipulation-pose-unreachable))
+  (cpl:with-failure-handling
+      ((cram-plan-failures:manipulation-pose-unreachable (f)
+         (declare (ignore f))
+         (when lazy-grasp-assignment
+           (setf lazy-grasp-assignment (lazy-cdr lazy-grasp-assignment))
+           (cpl:retry))))
+          (ros-info (pr2 grasp) "Beginning grasp action handler")
+    (let ((grasp-assignment (var-value '?grasp-assignment
+                                       (lazy-car lazy-grasp-assignment))))
+      (let* ((obj-pose (reference (desig-prop-value obj 'desig-props:at)))
              (pose (slot-value grasp-assignment 'pose)))
-        (publish-pose pose "/dhdhdh")
         (let* ((side (slot-value grasp-assignment 'side))
                (pregrasp-pose-tll
                  (moveit:ensure-pose-stamped-transformed
-                  (relative-grasp-pose pose *pregrasp-offset*)
+                  (relative-grasp-pose pose pregrasp-offset)
                   "/torso_lift_link"))
                (grasp-pose-tll
                  (moveit:ensure-pose-stamped-transformed
-                  (relative-grasp-pose pose *grasp-offset*)
+                  (relative-grasp-pose pose grasp-offset)
                   "/torso_lift_link"))
                (close-radius (or (slot-value grasp-assignment
                                              'close-radius)
                                  0.0)))
-          (let ((log-id (first (on-begin-grasp obj-desig))))
+          (let ((log-id (first (on-begin-grasp obj))))
             (cpl:with-failure-handling
                 ((cram-plan-failures:manipulation-failed (f)
                    (declare (ignore f))
                    (unwind-protect
                         (cpl:fail
-                         'cram-plan-failures:manipulation-pose-unreachable)
+                           'cram-plan-failures:manipulation-pose-unreachable)
                      (on-finish-grasp log-id nil)))
                  (cram-plan-failures:manipulation-pose-unreachable (f)
                    (declare (ignore f))
                    (on-finish-grasp log-id nil)))
               (prog2
                   (on-grasp-decisions-complete
-                   (desig-prop-value obj-desig 'desig-props:name)
+                   (desig-prop-value obj 'desig-props:name)
                    pregrasp-pose-tll grasp-pose-tll side obj-pose)
-                  (execute-grasp :object-name (desig-prop-value
-                                               obj-desig
-                                               'desig-props:name)
-                                 :object-pose obj-pose
-                                 :pregrasp-pose pregrasp-pose-tll
-                                 :grasp-pose grasp-pose-tll
-                                 :side side
-                                 :gripper-close-pos close-radius
-                                 :safe-pose (ecase side
-                                              (:left *left-safe-pose*)
-                                              (:right *right-safe-pose*)))
-                (on-finish-grasp log-id t)))))))
-    (loop for grasp-assignment in grasp-assignments
-          for side = (slot-value grasp-assignment 'side)
-          for grasped-object = (or (car (slot-value grasp-assignment
-                                                    'handle-pair))
-                                   obj-desig)
-          do (with-vars-strictly-bound (?link-name)
-                   (lazy-car
-                    (prolog
-                     `(cram-manipulation-knowledge:end-effector-link
-                       ,side ?link-name)))
-               (plan-knowledge:on-event
-                (make-instance
-                 'plan-knowledge:object-attached
-                 :object obj-desig
-                 :link ?link-name
-                 :side side))))))
+                  (execute-grasp
+                   :object-name (desig-prop-value obj 'desig-props:name)
+                   :object-pose obj-pose
+                   :pregrasp-pose pregrasp-pose-tll
+                   :grasp-pose grasp-pose-tll
+                   :side side
+                   :gripper-close-pos close-radius
+                   :safe-pose (ecase side
+                                (:left *left-safe-pose*)
+                                (:right *right-safe-pose*)))
+                (on-finish-grasp log-id t))))))
+      (let ((side (slot-value grasp-assignment 'side))
+            (grasped-object (or (slot-value grasp-assignment
+                                            'handle-pair)
+                                obj)))
+        (declare (ignore grasped-object))
+        (with-vars-strictly-bound (?link-name)
+            (lazy-car
+             (prolog
+              `(cram-manipulation-knowledge:end-effector-link
+                ,side ?link-name)))
+          (plan-knowledge:on-event
+           (make-instance 'plan-knowledge:object-attached
+                          :object obj
+                          :link ?link-name
+                          :side side)))))))
+
+(defun perform-lazy-grasps (obj avail-arms pregrasp-offset grasp-offset)
+  (let* ((ga-prolog (crs:prolog `(grasp-handle-assignment ;; optimal-handle-grasp
+                                  ,obj
+                                  ,avail-arms
+                                  ,pregrasp-offset
+                                  ,grasp-offset
+                                  ?grasp-assignment))))
+    (ros-info (pr2 manip-pm) "Found grasp assignment(s).")
+    (perform-grasp obj ga-prolog pregrasp-offset grasp-offset)))
+
+(def-action-handler grasp-top-slide-down (obj-desig available-arms)
+  (ros-info (pr2 manip-pm) "Grasp-Type: Top-Slide-Down-Grasp")
+  (perform-lazy-grasps obj-desig available-arms
+                       *pregrasp-top-slide-down-offset* *grasp-offset*))
+
+(def-action-handler grasp (obj-desig available-arms)
+  (ros-info (pr2 manip-pm) "Grasp-Type: Push-Grasp")
+  (perform-lazy-grasps obj-desig available-arms
+                       *pregrasp-offset* *grasp-offset*))
 
 (defun pose-pointing-away-from-base (object-pose)
   (let ((ref-frame "/base_link")
@@ -274,6 +290,8 @@
   (declare (ignore obstacles))
   "Delegates the type of the put down action which suppose to be executed
 for the currently type of grasped object."
+  (unless (and object-designator location)
+    (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))
   (assert (> (length grasp-assignments) 0) ()
           "No arm/pose pairs specified during put-down.")
   (let* ((log-id (first (on-begin-putdown object-designator location)))

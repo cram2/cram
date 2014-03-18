@@ -89,29 +89,32 @@
                                     allowed-collision-objects
                                     (list object-name))))
     (ros-info (pr2 grasp) "Executing pregrasp for side ~a~%" side)
-    (cpl:with-failure-handling
-        ((manipulation-failed (f)
-           (declare (ignore f))
-           (ros-error (pr2 grasp)
-                              "Failed to go into pregrasp pose for side ~a."
-                              side)
-           (when safe-pose
-             (execute-move-arm-pose side safe-pose))
-           (cpl:fail 'manipulation-pose-unreachable))
-         (manipulation-pose-unreachable (f)
-           (declare (ignore f))
-           (ros-error (pr2 grasp)
-                              "Failed to go into pregrasp pose for side ~a."
-                              side)
-           (when safe-pose
-             (execute-move-arm-pose side safe-pose)))
-         (moveit:pose-not-transformable-into-link (f)
-           (declare (ignore f))
-           (cpl:retry)))
-      (execute-move-arm-pose side pregrasp-pose))
-       ;; :allowed-collision-objects allowed-collision-objects))
-       ;; NOTE(winkler): Removed the allowed collision objects from
-       ;; the pregrasp motion call for now.
+    (cpl:with-retry-counters ((pregrasp-retry 1))
+      (cpl:with-failure-handling
+          ((manipulation-failed (f)
+             (declare (ignore f))
+             (ros-error (pr2 grasp)
+                        "Failed to go into pregrasp pose for side ~a."
+                        side)
+             (cpl:do-retry pregrasp-retry)
+             (when safe-pose
+               (execute-move-arm-pose side safe-pose))
+             (cpl:fail 'manipulation-pose-unreachable))
+           (manipulation-pose-unreachable (f)
+             (declare (ignore f))
+             (ros-error (pr2 grasp)
+                        "Failed to go into pregrasp pose for side ~a."
+                        side)
+             (cpl:do-retry pregrasp-retry)
+             (when safe-pose
+               (execute-move-arm-pose side safe-pose)))
+           (moveit:planning-failed (f)
+             (declare (ignore f))
+             (cpl:retry))
+           (moveit:pose-not-transformable-into-link (f)
+             (declare (ignore f))
+             (cpl:retry)))
+        (execute-move-arm-pose side pregrasp-pose)))
     (ros-info (pr2 grasp) "Opening gripper")
     (open-gripper side :max-effort gripper-effort :position gripper-open-pos)
     (unless object-name
@@ -132,10 +135,7 @@
          (moveit::pose-not-transformable-into-link (f)
            (declare (ignore f))
            (cpl:retry)))
-      (execute-move-arm-pose side grasp-pose))
-       ;; :allowed-collision-objects allowed-collision-objects))
-       ;; NOTE(winkler): See above. The PR2 was throwing the object
-       ;; off the table when going from pregrasp to grasp pose.
+      (execute-move-arm-pose side grasp-pose :ignore-collisions t))
     (ros-info (pr2 grasp) "Closing gripper")
     (close-gripper side :max-effort gripper-effort :position gripper-close-pos)
     (sleep 2)
