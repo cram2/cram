@@ -102,14 +102,14 @@
     (trajectory-desig? ?desig)
     (desig-prop ?desig (pose open)))
 
-  (<- (action-desig ?desig (park ?obj ?arms))
+  (<- (action-desig ?desig (park ?arms ?obj))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to park))
     (desig-prop ?desig (obj ?obj))
     (current-designator ?obj ?current-obj)
     (holding-arms ?current-obj ?arms))
 
-  (<- (action-desig ?desig (park nil nil))
+  (<- (action-desig ?desig (park (:left :right) nil))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to park)))
 
@@ -123,7 +123,7 @@
         (true)
         (== ?distance 0.10)))
 
-  (<- (action-desig ?desig (park ?obj ?arms ?obstacles))
+  (<- (action-desig ?desig (park ?arms ?obj ?obstacles))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to carry))
     (desig-prop ?desig (obj ?obj))
@@ -141,7 +141,7 @@
   ;; reasoning process that chooses the correct arm/grasp setup
   (<- (available-arms ?obj ?available-arms)
     (available-arms ?obj ?available-arms (:left :right)))
-
+  
   (<- (available-arms ?obj ?available-arms ?possible-arms)
     (or (setof ?arms-object (object-in-hand ?_ ?arms-object) ?arms-used-list)
         (equal ?arms-used-list ()))
@@ -150,27 +150,30 @@
   
   (<- (arm-for-pose ?pose ?arm)
     (lisp-fun arm-for-pose ?pose ?arm))
+
+  (<- (action-desig ?desig (grasp-top-slide-down ?current-obj ?available-arms))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to grasp))
+    (desig-prop ?desig (obj ?obj))
+    (desig-prop ?desig (grasp-type top-slide-down))
+    (current-designator ?obj ?current-obj)
+    (handles ?current-obj ?handles)
+    (or (and (desig-prop ?desig (sides ?arms))
+             (available-arms ?current-obj ?available-arms ?arms))
+        (available-arms ?current-obj ?available-arms)))
   
-  (<- (action-desig ?desig (grasp ?current-obj ?grasp-assignments ?obstacles))
+  (<- (action-desig ?desig (grasp ?current-obj ?available-arms))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to grasp))
     (desig-prop ?desig (obj ?obj))
     (current-designator ?obj ?current-obj)
-    (obstacles ?desig ?obstacles)
     (handles ?current-obj ?handles)
-    (available-arms ?current-obj ?available-arms)
-    (optimal-handle-grasp ?current-obj ?available-arms ?grasp-assignments))
-
-  (<- (action-desig ?desig (grasp ?current-obj ?grasp-assignments ?obstacles))
-    (trajectory-desig? ?desig)
-    (desig-prop ?desig (to grasp))
-    (desig-prop ?desig (obj ?obj))
-    (newest-effective-designator ?obj ?current-obj)
-    (obstacles ?desig ?obstacles)
-    (available-arms ?current-obj ?available-arms)
-    (optimal-grasp ?current-obj ?available-arms ?grasp-assignments))
-
-  (<- (optimal-handle-grasp ?object-desig ?available-arms ?grasp-assignments)
+    (or (and (desig-prop ?desig (sides ?arms))
+             (available-arms ?current-obj ?available-arms ?arms))
+        (available-arms ?current-obj ?available-arms)))
+  
+  (<- (optimal-handle-grasp ?object-desig ?available-arms
+                            ?pregrasp-pose ?grasp-pose ?grasp-assignments)
     (current-designator ?object-desig ?current-object)
     (handles ?current-object ?handles)
     (min-handles ?current-object ?min-handles)
@@ -183,10 +186,39 @@
               ?available-arms
               ?absolute-handles
               ?min-handles
+              ?pregrasp-pose
+              ?grasp-pose
               ?grasp-assignments)
     (length ?grasp-assignments ?assignment-count)
     (> ?assignment-count 0))
-
+  
+  (<- (grasp-handle-assignment ?object ?arms ?pregrasp-offset ?grasp-offset
+                               ?grasp-assignment)
+    (current-designator ?object ?current-object)
+    (handles ?current-object ?handles)
+    (member ?handle ?handles)
+    (member ?arm ?arms)
+    (and (absolute-handle ?object ?handle ?absolute-handle)
+         (desig-prop ?absolute-handle (at ?location))
+         (lisp-fun reference ?location ?pose)
+         (lisp-pred open-gripper ?arm)
+         (lisp-fun cost-reach-pose ?current-object ?arm ?pose
+                   ?pregrasp-offset ?grasp-offset ?cost)
+         (lisp-fun make-grasp-assignment
+                   :side ?arm
+                   :pose ?pose
+                   :handle ?handle
+                   :cost ?cost
+                   ?grasp-assignment)))
+  
+  (<- (action-desig ?desig (grasp ?current-obj ?available-arms))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to grasp))
+    (desig-prop ?desig (obj ?obj))
+    (newest-effective-designator ?obj ?current-obj)
+    (available-arms ?current-obj ?available-arms)
+    (optimal-grasp ?current-obj ?available-arms ?grasp-assignments))
+  
   (<- (optimal-grasp ?object-desig ?available-arms ?grasp-assignments)
     (current-designator ?object-desig ?current-desig)
     (desig-prop ?current-desig (at ?loc))
@@ -224,6 +256,10 @@
            ?poses)
     (lisp-fun cons-to-grasp-assignments ?poses ?grasp-assignments))
   
+  (<- (action-desig ?desig (put-down nil nil nil nil))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to put-down)))
+  
   (<- (action-desig ?desig (pull ?current-obj ?arms
                                  ?direction ?distance
                                  ?obstacles))
@@ -236,7 +272,7 @@
     (grasped-object-part ?obj ?grasped)
     (holding-arms ?current-obj ?arms)
     (obstacles ?desig ?obstacles))
-
+  
   (<- (action-desig ?desig (push ?current-obj ?arms
                                  ?direction ?distance
                                  ?obstacles))
@@ -247,15 +283,6 @@
     (desig-prop ?desig (direction ?direction))
     (current-designator ?obj ?current-obj)
     (holding-arms ?current-obj ?arms)
-    (obstacles ?desig ?obstacles))
-
-  (<- (action-desig ?desig (put-down ?current-obj ?loc ?arms ?obstacles))
-    (trajectory-desig? ?desig)
-    (desig-prop ?desig (to put-down))
-    (desig-prop ?desig (obj ?obj))
-    (current-designator ?obj ?current-obj)
-    (holding-arms ?current-obj ?arms)
-    (desig-prop ?desig (at ?loc))
     (obstacles ?desig ?obstacles)))
 
 (def-fact-group manipulation-process-module (matching-process-module available-process-module)
