@@ -43,9 +43,13 @@
       (setf (gethash name *persistent-services*)
             (make-instance 'persistent-service
               :service-name name
-              :service-type type))))
-  (apply #'call-persistent-service (gethash name *persistent-services*)
-         request))
+              :service-type type)))
+    (handler-bind
+        ((roslisp::service-call-error
+           #'(lambda (e)
+               (declare (ignore e))
+               (invoke-restart 'roslisp:reconnect))))
+      (apply 'call-persistent-service service request))))
 
 (defun prolog-result->bdgs (query-id result &key (lispify nil) (package *package*))
   (unless (json_prolog_msgs-srv:ok result)
