@@ -104,6 +104,9 @@
       (%fail "Plan failure." nil)
       (%fail (car args) (cdr args))))
 
+(cut:define-hook on-with-failure-handling-begin (clauses))
+(cut:define-hook on-with-failure-handling-end (id))
+(cut:define-hook on-with-failure-handling-retry (id))
 
 (defmacro with-failure-handling (clauses &body body)
   "Macro that replaces handler-case in cram-language. This is
@@ -137,28 +140,38 @@ i.e. `return' can be used."
              (loop for clause in clauses
                    collecting (cons (car clause)
                                     (gensym (symbol-name (car clause)))))))
-      `(block nil
-         (tagbody ,wfh-block-name
-            (flet ((retry ()
-                     (go ,wfh-block-name)))
-              (declare (ignorable (function retry)))
-              (flet ,(mapcar (lambda (clause)
-                               (destructuring-bind (condition-name lambda-list &rest body)
-                                   clause
-                                 `(,(cdr (assoc condition-name condition-handler-syms)) ,lambda-list
-                                    ,@body)))
+      `(let ((log-id (first (on-with-failure-handling-begin
+                             (list ,@(mapcar (lambda (clause)
+                                               (write-to-string (car clause)))
+                                             clauses))))))
+         (unwind-protect
+              (block nil
+                (tagbody ,wfh-block-name
+                   (flet ((retry ()
+                            (on-with-failure-handling-retry log-id)
+                            (go ,wfh-block-name)))
+                     (declare (ignorable (function retry)))
+                     (flet ,(mapcar (lambda (clause)
+                                      (destructuring-bind (condition-name lambda-list &rest body)
+                                          clause
+                                        `(,(cdr (assoc condition-name condition-handler-syms))
+                                          ,lambda-list
+                                          ,@body)))
                              clauses)
-                (handler-bind
-                    ((common-lisp-error-envelope
-                       (lambda (condition)
-                         (typecase (envelop-error condition)
-                           ,@(mapcar (lambda (err-def)
-                                       `(,(car err-def) (,(cdr err-def) (envelop-error condition))))
+                       (handler-bind
+                           ((common-lisp-error-envelope
+                              (lambda (condition)
+                                (typecase (envelop-error condition)
+                                  ,@(mapcar (lambda (err-def)
+                                              `(,(car err-def)
+                                                (,(cdr err-def) (envelop-error condition))))
                                      condition-handler-syms))))
-                     ,@(mapcar (lambda (clause)
-                                 `(,(car clause) #',(cdr (assoc (car clause) condition-handler-syms))))
-                               clauses))
-                  (return (progn ,@body))))))))))
+                            ,@(mapcar (lambda (clause)
+                                        `(,(car clause) #',(cdr (assoc (car clause)
+                                                                       condition-handler-syms))))
+                                      clauses))
+                         (return (progn ,@body)))))))
+           (on-with-failure-handling-end log-id))))))
 
 (defmacro with-retry-counters (counter-definitions &body body)
   "Lexically binds all counters in `counter-definitions' to the intial
