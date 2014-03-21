@@ -158,8 +158,6 @@ this:
                                                              symbol
                                                              (cpl:value policy-symbol-storage))))
                                                       (cdr asc))))
-                                             (declare (ignorable policy-setf
-                                                                 policy-get))
                                              ,@prop))))))))
 
 (defmacro define-policy (name parameters &rest properties)
@@ -207,6 +205,9 @@ same semantics as `with-policy'. Usage:
     (body-code))"
   (let ((policy `(named-policy ,policy-name)))
     `(with-policy ,policy ,policy-parameters ,@body)))
+
+(cut:define-hook on-with-policy-begin (name parameters))
+(cut:define-hook on-with-policy-end (id success))
 
 (defmacro with-policy (policy policy-parameters &body body)
   "Wraps the code given as `body' into a `pursue' construct together
@@ -271,8 +272,13 @@ Usage of `with-policy':
         (check `(check ,policy))
         (clean-up `(clean-up ,policy))
         (recover `(recover ,policy))
-        (name `(name ,policy)))
-    `(progn
+        (name `(name ,policy))
+        (params `(parameters ,policy)))
+    `(let ((log-id (first (on-with-policy-begin
+                           name ,(mapcar (lambda (param value)
+                                           `(,param ,value))
+                                         params
+                                         policy-parameters)))))
        (let ((policy-symbol-storage (make-fluent)))
          (when ,init
            (unless (funcall ,init policy-symbol-storage ,@policy-parameters)
@@ -291,10 +297,12 @@ Usage of `with-policy':
                (funcall ,recover policy-symbol-storage ,@policy-parameters))
              (when ,clean-up
                (funcall ,clean-up policy-symbol-storage ,@policy-parameters))
-             (when flag-do-recovery
-               (cpl:fail 'policy-check-condition-met
-                         :name ,name
-                         :parameters ',policy-parameters))))))))
+             (unwind-protect
+                  (when flag-do-recovery
+                    (cpl:fail 'policy-check-condition-met
+                              :name ,name
+                              :parameters ',policy-parameters))
+               (on-with-policy-end log-id (not flag-do-recovery)))))))))
 
 (defmacro with-policies (policies-and-parameters-list &body body)
   "Allows for running a given `body' code segment wrapped in a list of
