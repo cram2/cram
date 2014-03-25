@@ -126,20 +126,14 @@ invoking the retry function or by doing a non-local exit. Note that
 with-failure-handling implicitly creates an unnamed block,
 i.e. `return' can be used."
   (with-gensyms (wfh-block-name)
-    (let* ((clauses
-             (loop for clause in clauses
-                   if (and (listp (car clause))
-                           (eql (caar clause) 'or))
-                     appending (loop for case-symbol in (rest (car clause))
-                                     collecting (append
-                                                 (list case-symbol)
-                                                 (cdr clause)))
-                   else
-                     collecting clause))
-           (condition-handler-syms
+    (let* ((condition-handler-syms
              (loop for clause in clauses
                    collecting (cons (car clause)
-                                    (gensym (symbol-name (car clause)))))))
+                                    (gensym (symbol-name
+                                             (if (and (listp (car clause))
+                                                      (eql (caar clause) 'or))
+                                                 'or
+                                                 (car clause))))))))
       `(let ((log-id (first (on-with-failure-handling-begin
                              (list ,@(mapcar (lambda (clause)
                                                (write-to-string (car clause)))
@@ -152,8 +146,8 @@ i.e. `return' can be used."
                             (go ,wfh-block-name)))
                      (declare (ignorable (function retry)))
                      (flet ,(mapcar (lambda (clause)
-                                      (destructuring-bind (condition-name lambda-list &rest body)
-                                          clause
+                                      (destructuring-bind
+                                          (condition-name lambda-list &rest body) clause
                                         `(,(cdr (assoc condition-name condition-handler-syms))
                                           ,lambda-list
                                           ,@body)))
@@ -167,8 +161,8 @@ i.e. `return' can be used."
                                                 (,(cdr err-def) (envelop-error condition))))
                                      condition-handler-syms))))
                             ,@(mapcar (lambda (clause)
-                                        `(,(car clause) #',(cdr (assoc (car clause)
-                                                                       condition-handler-syms))))
+                                        `(,(car clause)
+                                          #',(cdr (assoc (car clause) condition-handler-syms))))
                                       clauses))
                          (return (progn ,@body)))))))
            (on-with-failure-handling-end log-id))))))
