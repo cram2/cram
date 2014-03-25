@@ -35,61 +35,27 @@
   (:nicknames :crs)
   (:import-from #:alexandria
                 #:curry #:rcurry #:compose #:with-gensyms)
-  (:export #:lisp-fun
-           #:lisp-pred
-           #:bound
-           #:ground
-           #:member
-           #:take
-           #:string-concat
-           #:==
-           #:equal
-           #:format
-           #:warn
-           #:error
-           #:?_
-           #:true
-           #:cut
-           #:fail
-           #:and
-           #:or
-           #:not
-           #:->
-           #:*->
-           #:<
-           #:>
-           #:<=
-           #:>=
-           #:unify
-           #:unify-p
-           #:prolog
-           #:def-fact-group
-           #:<-
-           #:def-prolog-handler
-           #:*break-on-lisp-errors*
-           #:slot-value
-           #:get-slot-value
-           #:instance-of
-           #:lisp-type
-           #:call
-           #:once
-           #:findall
-           #:forall
-           #:bagof
-           #:setof
-           #:every
-           #:filter-bindings
-           #:query-var
-           #:symbol-value
-           #:set-symbol-value
-           ;; Rete
-           #:clear-alpha-network #:rete-assert #:rete-retract
-           #:with-facts-asserted #:object-id
-           #:rete-holds #:alpha-network-size
-           #:def-production #:register-production
-           #:clear-productions #:remove-production
-           #:with-productions #:remove-production-handler
-           #:register-production-handler
-           #:with-production-handlers
-           #:rete-prove))
+  (:export
+   ;; prolog handlers
+   #:and #:or #:not #:-> #:*-> #:cut #:lisp-fun #:lisp-pred #:bound #:ground
+   #:true #:fail #:once #:call #:findall #:bagof #:setof #:every #:forall
+   #:member #:take #:filter-bindings
+   ;; utilities
+   #:== #:equal #:length #:append #:sort #:reduce #:max
+   #:string-concat #:format #:warn #:error
+   #:slot-value #:get-slot-value #:instance-of #:lisp-type #:symbol-value
+   #:set-symbol-value
+   ;; rest
+   #:?_ #:< #:> #:<= #:>= #:unify #:unify-p #:prolog #:def-fact-group
+   #:<- #:def-prolog-handler #:*break-on-lisp-errors* #:query-var
+   ;; Rete
+   #:clear-alpha-network #:rete-assert #:rete-retract
+   #:with-facts-asserted #:object-id
+   #:rete-holds #:alpha-network-size
+   #:def-production #:register-production
+   #:clear-productions #:remove-production
+   #:with-productions #:remove-production-handler
+   #:register-production-handler
+   #:with-production-handlers
+   #:rete-prove))
 
