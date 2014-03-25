@@ -44,12 +44,20 @@
             (make-instance 'persistent-service
               :service-name name
               :service-type type)))
-    (handler-bind
-        ((roslisp::service-call-error
-           #'(lambda (e)
-               (declare (ignore e))
-               (invoke-restart 'roslisp:reconnect))))
-      (apply 'call-persistent-service (gethash name *persistent-services*) request))))
+    (let ((reconnect-tries 1))
+      (handler-bind
+          ((roslisp::service-call-error
+             #'(lambda (e)
+                 (declare (ignore e))
+                 (ros-warn (json-prolog) "Service call failed.")
+                 (when (> reconnect-tries 0)
+                   (ros-warn (json-prolog) "Retrying...")
+                   (invoke-restart 'roslisp:reconnect)
+                   (decf reconnect-tries)
+                   (apply 'call-persistent-service
+                          (gethash name *persistent-services*) request)))))
+        (apply 'call-persistent-service
+               (gethash name *persistent-services*) request)))))
 
 (defun prolog-result->bdgs (query-id result &key (lispify nil) (package *package*))
   (unless (json_prolog_msgs-srv:ok result)
