@@ -118,6 +118,7 @@
            #:policy-check-condition-met
            ;; policies
            #:timeout-policy
+           #:parameters
            ;; task interface
            #:*current-task*
            #:*task-pprint-verbosity*

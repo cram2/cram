@@ -57,12 +57,9 @@
                                :format-control datum
                                :format-arguments arguments))))
 
-(define-hook on-fail (condition)
+(define-hook on-fail (datum)
   (:documentation "Hook that is executed whenever a condition is
   signaled using FAIL."))
-
-(defgeneric hook-on-fail (condition))
-(defmethod hook-on-fail (condition))
 
 (defun %fail (datum args)
   (let ((current-task *current-task*)
@@ -71,9 +68,7 @@
       (:context "FAIL")
       (:display "~S: ~_\"~A\"" condition condition)
       (:tags :fail))
-    (on-fail condition)
-    (when (symbolp datum)
-      (hook-on-fail datum))
+    (on-fail datum)
     (cond
       ;; The main thread will perform JOIN-TASK on the TOPLEVEL-TASK,
       ;; signal the condition for that case.
@@ -109,6 +104,9 @@
       (%fail "Plan failure." nil)
       (%fail (car args) (cdr args))))
 
+(cut:define-hook on-with-failure-handling-begin (clauses))
+(cut:define-hook on-with-failure-handling-end (id))
+(cut:define-hook on-with-failure-handling-retry (id))
 
 (defmacro with-failure-handling (clauses &body body)
   "Macro that replaces handler-case in cram-language. This is
@@ -128,31 +126,52 @@ invoking the retry function or by doing a non-local exit. Note that
 with-failure-handling implicitly creates an unnamed block,
 i.e. `return' can be used."
   (with-gensyms (wfh-block-name)
-    (let ((condition-handler-syms (loop for clause in clauses
-                                     collecting (cons (car clause)
-                                                      (gensym (symbol-name (car clause)))))))
-      `(block nil
-         (tagbody ,wfh-block-name
-            (flet ((retry ()
-                     (go ,wfh-block-name)))
-              (declare (ignorable (function retry)))
-              (flet ,(mapcar (lambda (clause)
-                               (destructuring-bind (condition-name lambda-list &rest body)
-                                   clause
-                                 `(,(cdr (assoc condition-name condition-handler-syms)) ,lambda-list
-                                    ,@body)))
+    (let* ((clauses
+             (loop for clause in clauses
+                   if (and (listp (car clause))
+                           (eql (caar clause) 'or))
+                     appending (loop for case-symbol in (rest (car clause))
+                                     collecting (append
+                                                 (list case-symbol)
+                                                 (cdr clause)))
+                   else
+                     collecting clause))
+           (condition-handler-syms
+             (loop for clause in clauses
+                   collecting (cons (car clause)
+                                    (gensym (symbol-name (car clause)))))))
+      `(let ((log-id (first (on-with-failure-handling-begin
+                             (list ,@(mapcar (lambda (clause)
+                                               (write-to-string (car clause)))
+                                             clauses))))))
+         (unwind-protect
+              (block nil
+                (tagbody ,wfh-block-name
+                   (flet ((retry ()
+                            (on-with-failure-handling-retry log-id)
+                            (go ,wfh-block-name)))
+                     (declare (ignorable (function retry)))
+                     (flet ,(mapcar (lambda (clause)
+                                      (destructuring-bind (condition-name lambda-list &rest body)
+                                          clause
+                                        `(,(cdr (assoc condition-name condition-handler-syms))
+                                          ,lambda-list
+                                          ,@body)))
                              clauses)
-                (handler-bind
-                    ((common-lisp-error-envelope
-                       (lambda (condition)
-                         (typecase (envelop-error condition)
-                           ,@(mapcar (lambda (err-def)
-                                       `(,(car err-def) (,(cdr err-def) (envelop-error condition))))
-                                condition-handler-syms))))
-                     ,@(mapcar (lambda (clause)
-                                 `(,(car clause) #',(cdr (assoc (car clause) condition-handler-syms))))
-                               clauses))
-                  (return (progn ,@body))))))))))
+                       (handler-bind
+                           ((common-lisp-error-envelope
+                              (lambda (condition)
+                                (typecase (envelop-error condition)
+                                  ,@(mapcar (lambda (err-def)
+                                              `(,(car err-def)
+                                                (,(cdr err-def) (envelop-error condition))))
+                                     condition-handler-syms))))
+                            ,@(mapcar (lambda (clause)
+                                        `(,(car clause) #',(cdr (assoc (car clause)
+                                                                       condition-handler-syms))))
+                                      clauses))
+                         (return (progn ,@body)))))))
+           (on-with-failure-handling-end log-id))))))
 
 (defmacro with-retry-counters (counter-definitions &body body)
   "Lexically binds all counters in `counter-definitions' to the intial
