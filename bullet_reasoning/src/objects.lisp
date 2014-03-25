@@ -206,13 +206,15 @@
                                                *static-plane-texture*
                                                #\Space)))))))
 
-(defmethod add-object ((world bt-world) (type (eql 'sphere)) name pose &key mass radius)
+(defmethod add-object ((world bt-world) (type (eql 'sphere)) name pose
+                       &key mass radius color)
   (make-object world name
                (list
                 (make-instance
                  'rigid-body
                  :name name :mass mass :pose (ensure-pose pose)
-                 :collision-shape (make-instance 'sphere-shape :radius radius)))))
+                  :collision-shape (make-instance 'colored-sphere-shape
+                                     :radius radius :color color)))))
 
 (defmethod add-object ((world bt-world) (type (eql 'cylinder)) name pose &key mass size)
   (destructuring-bind (size-x size-y size-z) size
