@@ -33,7 +33,7 @@
 (def-fact-group costmap-params ()
   (<- (collision-costmap-padding-in-meters 0.01d0)) ; for collision costmap
   (<- (near-costmap-gauss-std 1.0d0)) ; reference object size dependent maybe TODO
-  (<- (costmap-width-in-obj-size-percentage-near 2.0d0)) ; for far-from and near costmaps
+  (<- (costmap-width-in-obj-size-percentage-near 1.0d0)) ; for far-from and near costmaps
   (<- (costmap-width-in-obj-size-percentage-far 0.5d0)))  ; (percents of objs size average)
 
 (def-fact-group spatial-relations-knowledge ()
