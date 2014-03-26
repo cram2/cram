@@ -99,14 +99,15 @@
   (<- (height-generator ?world ?ref-obj-name ?for-obj-name ?costmap)
     (bullet-world ?world)
     (object ?world ?ref-obj-name)
-    (supporting-rigid-body ?world ?ref-obj-name ?rigid-body)
-    (lisp-fun get-rigid-body-aabb-top-z ?rigid-body ?z)
+    (bagof ?z (and (supporting-rigid-body ?world ?ref-obj-name ?rigid-body)
+                   (lisp-fun get-rigid-body-aabb-top-z ?rigid-body ?z)) ?z-bag)
+    (max ?z-bag ?highest-z)
     (%object ?world ?for-obj-name ?for-object-instance)
     (lisp-fun aabb ?for-object-instance ?aabb)
     (lisp-fun cl-bullet:bounding-box-dimensions ?aabb ?dimensions)
     (lisp-fun cl-transforms:z ?dimensions ?height)
     (lisp-fun / ?height 2 ?offset)
-    (lisp-fun + ?z ?offset ?new-z)
+    (lisp-fun + ?highest-z ?offset ?new-z)
     (costmap ?costmap)
     (costmap-add-height-generator
      (make-constant-height-function ?new-z)
@@ -361,9 +362,6 @@
     (lisp-fun get-link-rigid-body ?supporting-object-name
               ?supporting-object-link-name ?rigid-body))
 
-
-
-  
   (<- (supported-by-link-obj ?world ?obj-name ?link-obj)
     (supported-by ?world ?obj-name ?supp-obj-name ?supp-obj-link-name)
     (%object ?world ?supp-obj-name ?supp-obj)
