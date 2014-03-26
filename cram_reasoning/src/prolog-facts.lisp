@@ -81,7 +81,17 @@
     (bound ?key)
     (lisp-fun copy-list ?list ?copy)
     (lisp-fun force-ll ?copy ?expanded-list)
-    (lisp-fun sort ?expanded-list ?pred :key ?key ?result)))
+    (lisp-fun sort ?expanded-list ?pred :key ?key ?result))
+
+  (<- (reduce ?function ?list ?result)
+    (bound ?list)
+    (lisp-fun copy-list ?list ?copy)
+    (lisp-fun force-ll ?copy ?expanded-list)
+    (lisp-fun reduce ?function ?expanded-list ?result)))
+
+(def-fact-group math-utils ()
+  (<- (max ?list ?result)
+    (reduce max ?list ?result)))
 
 (def-fact-group string-utils ()
   (<- (string-concat ?s1 ?s2 ?s3)
