@@ -32,6 +32,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; PANCAKES! ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun spawn-pancake-scenario ()
+  (btr::clear-current-costmap-function-object)
+  (detach-all-objects (object *current-bullet-world* 'cram-pr2-knowledge::pr2))  
   (prolog `(and (bullet-world ?w)
                 (robot ?robot)
                 (robot-arms-parking-joint-states ?joint-parking-state)
@@ -39,22 +41,37 @@
                 (assert (joint-state ?w ?robot (("torso_lift_joint" 0.33))))
                 (assert (object ?w btr::pancake-maker oven-1
                                 ((-0.9 1.36 0.8883) (0 0 0 1))
-                               :mass 0.2 :color (0 0 0) :size (0.15 0.15 0.035)))
+                               :mass 0.2 :color (0.15 0.15 0.15) :size (0.15 0.15 0.035)))
                 (assert (object ?w btr::mesh spatula-1
                                 ((1.4 1.08 0.9119799601336841d0) (0 0 0 1))
                                 :mesh btr::spatula :mass 0.2 :color (0 0 0)))
                 (assert (object ?w btr::mesh mondamin-1
                                 ((1.35 1.11 0.9119799601336841d0) (0 0 0 1))
-                                :mesh mondamin :mass 0.2 :color (0.5 0.1 0)))))
+                                :mesh mondamin :mass 0.2 :color (0.8 0.4 0.2)))))
   (move-object 'spatula-1 `((1.5 0.8 0.86) (0.0d0 0.0d0 -0.19611613794814378d0 0.9805806751289282d0)))
-  (move-object 'mondamin-1 `((1.35 1.11 0.958) (0 0 0 1))))
+  (move-object 'mondamin-1 `((1.35 1.11 0.958) (0 0 0 1)))
+  (move-object 'cram-pr2-knowledge::pr2 `((0 0 0) (0 0 0 1))))
 
 (defvar *position-scatter* nil)
+
+(defun spawn-spheres ()
+  (btr::set-object-pose (object *current-bullet-world* 'cram-pr2-knowledge::pr2)
+                        '((-0.2 1.3 0) (0 0 1 0)))
+  (dolist (pair *position-scatter*)
+    ;; (add-object *current-bullet-world* 'sphere (gensym) (first pair)
+    ;;             :radius 0.01 :mass 0.1 :color '(0 0 0))
+    (add-object *current-bullet-world* 'sphere (gensym)
+                (cl-transforms:make-pose
+                 (cl-transforms:make-3d-vector
+                  (cl-transforms:x (cl-transforms:origin (first pair)))
+                  (cl-transforms:y (cl-transforms:origin (first pair)))
+                  0.862)
+                 (cl-transforms:orientation (first pair)))
+                :radius 0.01 :mass 0.1 :color '(0 0 0))))
 
 (defun execute-pancake-scenario ()
   (sb-ext:gc :full t)
   (spawn-pancake-scenario)
-  (detach-all-objects (object *current-bullet-world* 'cram-pr2-knowledge::pr2))
   (cram-projection:with-projection-environment
       projection-process-modules::pr2-bullet-projection-environment
     (cpl-impl:top-level
@@ -69,7 +86,8 @@
                                            (right-of oven-1)
                                            (near oven-1)))))
           (format t "now trying to achieve the location of spatula on kitchen-island~%")
-          (plan-knowledge:achieve `(plan-knowledge:loc ,spatula-designator ,spatula-location)))
+          (plan-knowledge:achieve
+           `(plan-knowledge:loc ,spatula-designator ,spatula-location)))
         (sb-ext:gc :full t)
         (let ((mondamin-designator
                 (find-object-on-counter 'btr::mondamin "kitchen_sink_block")))
@@ -77,7 +95,7 @@
           (cram-language-designator-support:with-designators
               ((on-kitchen-island (location `((on "Cupboard")
                                               (name "kitchen_island")
-                                              (centered-with-padding 0.6)
+                                              (centered-with-padding 0.7)
                                               (for ,mondamin-designator)
                                               (right-of oven-1)
                                               (near oven-1)
@@ -91,7 +109,6 @@
                 (mondamin-location (obj-desig-location
                                     (newest-effective-designator mondamin-designator))))
             (push (list spatula-location mondamin-location) *position-scatter*)))))))
-
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; restricting area for the robot ;;;;;;;;;;;;;;;;;
