@@ -62,7 +62,7 @@
 
   (<- (assert ?world (object ?object-type ?name ?pose . ?_))
     (object ?world ?name)
-    (pose ?world ?p . ?pose)
+    (pose ?p . ?pose)
     (assert (object-pose ?world ?name ?p)))
 
   (<- (assert ?world (object ?object-type ?name ?pose . ?args))
