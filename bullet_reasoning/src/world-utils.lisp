@@ -108,13 +108,13 @@
               (contact-manifolds world))))))
 
 (defun poses-equal-p (pose-1 pose-2 dist-sigma ang-sigma)
-  (and (< (cl-transforms:v-dist (cl-transforms:origin pose-1)
-                                (cl-transforms:origin pose-2))
-          dist-sigma)
-       (< (cl-transforms:angle-between-quaternions
-           (cl-transforms:orientation pose-1)
-           (cl-transforms:orientation pose-2))
-          ang-sigma)))
+  (and (<= (cl-transforms:v-dist (cl-transforms:origin pose-1)
+                                 (cl-transforms:origin pose-2))
+           dist-sigma)
+       (<= (cl-transforms:angle-between-quaternions
+            (cl-transforms:orientation pose-1)
+            (cl-transforms:orientation pose-2))
+           ang-sigma)))
 
 (defun stable-p (obj)
   (when obj
