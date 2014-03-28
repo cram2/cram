@@ -32,8 +32,9 @@
 (defvar *location-costmap-publisher* nil)
 (defvar *marker-publisher* nil)
 (defvar *occupancy-grid-publisher* nil)
-
 (defvar *z-padding* 0.0)
+
+(defparameter *last-published-marker-index* nil)
 
 (defun location-costmap-vis-init ()
   (setf *location-costmap-publisher*
@@ -153,9 +154,10 @@ respectively."
                                     (b color) (elt color 2)
                                     (a color) 0.9)
                       boxes)
-                (incf index))))))
-      (make-message "visualization_msgs/MarkerArray"
-                    (markers) (map 'vector #'identity boxes)))))
+                (incf index)))))
+        (values (make-message "visualization_msgs/MarkerArray"
+                              (markers) (map 'vector #'identity boxes))
+                index)))))
 
 (defun occupancy-grid->grid-cells-msg (grid &key (frame-id "/map") (z *z-padding*))
   (with-slots (origin-x origin-y width height resolution) grid
@@ -176,12 +178,28 @@ respectively."
                                                            y (+ (* row resolution) resolution/2 origin-y)
                                                            z z))))))))
 
+(defun remove-markers-up-to-index (index)
+  (let ((removers
+          (loop for i from 0 to index
+                do (make-message "visualization_msgs/Marker"
+                                 (ns) ""
+                                 (id) index
+                                 (action) (roslisp-msg-protocol:symbol-code
+                                           'visualization_msgs-msg:marker
+                                           :delete)))))
+    (publish *location-costmap-publisher* removers)))
+
 (defun publish-location-costmap (map &key (frame-id "/map") (threshold 0.0005) (z *z-padding*))
   (when *location-costmap-publisher*
-    (publish *location-costmap-publisher*
-             (location-costmap->marker-array
-              map :frame-id frame-id :threshold threshold
-                  :z z))))
+    (multiple-value-bind (markers last-index)
+        (location-costmap->marker-array
+         map :frame-id frame-id :threshold threshold
+             :z z)
+      (when *last-published-marker-index*
+        (remove-markers-up-to-index *last-published-marker-index*))
+      (setf *last-published-marker-index* last-index)
+      (publish *location-costmap-publisher*
+               markers))))
 
 (defun publish-point (point &key id)
   (let ((current-index 0))
