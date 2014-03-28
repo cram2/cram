@@ -181,13 +181,18 @@ respectively."
 (defun remove-markers-up-to-index (index)
   (let ((removers
           (loop for i from 0 to index
-                do (make-message "visualization_msgs/Marker"
-                                 (ns) ""
-                                 (id) index
-                                 (action) (roslisp-msg-protocol:symbol-code
-                                           'visualization_msgs-msg:marker
-                                           :delete)))))
-    (publish *location-costmap-publisher* removers)))
+                collect (make-message "visualization_msgs/Marker"
+                                      (frame_id header) "/map"
+                                      (ns) ""
+                                      (id) i
+                                      (action) (roslisp-msg-protocol:symbol-code
+                                                'visualization_msgs-msg:marker
+                                                :delete)))))
+    (when removers
+      (publish *location-costmap-publisher* 
+               (make-message
+                "visualization_msgs/MarkerArray"
+                (markers) (map 'vector #'identity removers))))))
 
 (defun publish-location-costmap (map &key (frame-id "/map") (threshold 0.0005) (z *z-padding*))
   (when *location-costmap-publisher*
