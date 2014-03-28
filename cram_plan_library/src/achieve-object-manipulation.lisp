@@ -59,8 +59,6 @@
                (ros-warn (achieve plan-lib) "Retrying at new look location.")
                (retry-with-updated-location
                 obj-loc (next-different-location-solution obj-loc))))
-               ;;(next-different-location-solution obj-loc)
-               ;;(retry)))
            ((or object-lost manipulation-pose-unreachable manipulation-failed) (f)
              (declare (ignore f))
              (ros-warn (achieve plan-lib) "Failed to grasp object.")
