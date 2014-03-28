@@ -112,9 +112,7 @@ designator."
                          ;; log until AT-LOCATION terminates.
                          (wait-for (make-fluent :value nil)))))
                 (seq
-                  (pursue
-                    (wait-for navigation-done)
-                    (sleep* max-time))
+                  (wait-for navigation-done)
                   (unless (location-designator-reached
                            (current-robot-location) loc-var)
                     (cpl:fail 'cram-plan-failures:location-not-reached-failure))
