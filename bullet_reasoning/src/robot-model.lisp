@@ -172,12 +172,13 @@ of the object should _not_ be updated."
                                                   :key #'car))
                    (reset-collision-information obj (cdr (cdr attachment))))))))))
 
-(defgeneric detatch-all-objects (robot-object)
+(defgeneric detach-all-objects (robot-object)
   (:documentation "Removes all objects form the list of attached
   objects.")
   (:method ((robot-object robot-object))
     (dolist (attached-object (attached-objects robot-object))
-      (detach-object robot-object attached-object))))
+      (detach-object robot-object
+                     (object *current-bullet-world* (car attached-object))))))
 
 (defgeneric gc-attached-objects (robot-object)
   (:documentation "Removes all attached objects with an invalid world
