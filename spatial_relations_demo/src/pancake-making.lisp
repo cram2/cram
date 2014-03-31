@@ -28,7 +28,6 @@
 
 (in-package :spatial-relations-demo)
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; PANCAKES! ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun spawn-pancake-scenario ()
@@ -40,6 +39,9 @@
                 (assert (joint-state ?w ?robot ?joint-parking-state))
                 (assert (joint-state ?w ?robot (("torso_lift_joint" 0.33))))
                 (assert (object ?w btr::pancake-maker oven-1
+                                ((-1.0 -0.5 0.765) (0 0 0 1))
+                               :mass 0.2 :color (0.15 0.15 0.15) :size (0.15 0.15 0.035)))
+                (assert (object ?w btr::pancake-maker oven-2
                                 ((-0.9 1.36 0.8883) (0 0 0 1))
                                :mass 0.2 :color (0.15 0.15 0.15) :size (0.15 0.15 0.035)))
                 (assert (object ?w btr::mesh spatula-1
@@ -51,8 +53,6 @@
   (move-object 'spatula-1 `((1.5 0.8 0.86) (0.0d0 0.0d0 -0.19611613794814378d0 0.9805806751289282d0)))
   (move-object 'mondamin-1 `((1.35 1.11 0.958) (0 0 0 1)))
   (move-object 'cram-pr2-knowledge::pr2 `((0 0 0) (0 0 0 1))))
-
-(defvar *position-scatter* nil)
 
 (defun spawn-spheres ()
   (btr::set-object-pose (object *current-bullet-world* 'cram-pr2-knowledge::pr2)
@@ -80,8 +80,9 @@
         (sb-ext:gc :full t)
         (cram-language-designator-support:with-designators
             ((spatula-location (location `((on "Cupboard")
-                                           (name "kitchen_island")
-                                           (centered-with-padding 0.4)
+                                           ;; (name "kitchen_island")
+                                           (name "pancake_table")
+                                           (centered-with-padding 0.6)
                                            (for ,spatula-designator)
                                            (right-of oven-1)
                                            (near oven-1)))))
@@ -94,7 +95,8 @@
           (sb-ext:gc :full t)
           (cram-language-designator-support:with-designators
               ((on-kitchen-island (location `((on "Cupboard")
-                                              (name "kitchen_island")
+                                              ;; (name "kitchen_island")
+                                              (name "pancake_table")
                                               (centered-with-padding 0.7)
                                               (for ,mondamin-designator)
                                               (right-of oven-1)
@@ -103,12 +105,7 @@
             (format t "now trying to achieve the location of mondamin on kitchen-island~%")
             (plan-knowledge:achieve
              `(plan-knowledge:loc ,mondamin-designator ,on-kitchen-island))
-            (sb-ext:gc :full t))
-          (let ((spatula-location (obj-desig-location
-                                   (newest-effective-designator spatula-designator)))
-                (mondamin-location (obj-desig-location
-                                    (newest-effective-designator mondamin-designator))))
-            (push (list spatula-location mondamin-location) *position-scatter*)))))))
+            (sb-ext:gc :full t)))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; restricting area for the robot ;;;;;;;;;;;;;;;;;
