@@ -106,7 +106,7 @@
 
 (cut:define-hook on-with-failure-handling-begin (clauses))
 (cut:define-hook on-with-failure-handling-end (id))
-(cut:define-hook on-with-failure-handling-retry (id))
+(cut:define-hook on-with-failure-handling-handled (id))
 
 (defmacro with-failure-handling (clauses &body body)
   "Macro that replaces handler-case in cram-language. This is
@@ -141,30 +141,34 @@ i.e. `return' can be used."
          (unwind-protect
               (block nil
                 (tagbody ,wfh-block-name
-                   (flet ((retry ()
-                            (on-with-failure-handling-retry log-id)
-                            (go ,wfh-block-name)))
-                     (declare (ignorable (function retry)))
-                     (flet ,(mapcar (lambda (clause)
-                                      (destructuring-bind
-                                          (condition-name lambda-list &rest body) clause
-                                        `(,(cdr (assoc condition-name condition-handler-syms))
-                                          ,lambda-list
-                                          ,@body)))
-                             clauses)
-                       (handler-bind
-                           ((common-lisp-error-envelope
-                              (lambda (condition)
-                                (typecase (envelop-error condition)
-                                  ,@(mapcar (lambda (err-def)
-                                              `(,(car err-def)
-                                                (,(cdr err-def) (envelop-error condition))))
-                                     condition-handler-syms))))
-                            ,@(mapcar (lambda (clause)
-                                        `(,(car clause)
-                                          #',(cdr (assoc (car clause) condition-handler-syms))))
-                                      clauses))
-                         (return (progn ,@body)))))))
+                   (unwind-protect
+                        (flet ((retry ()
+                                 (go ,wfh-block-name)))
+                          (declare (ignorable (function retry)))
+                          (flet ,(mapcar (lambda (clause)
+                                           (destructuring-bind (condition-name lambda-list &rest body)
+                                               clause
+                                             `(,(cdr (assoc condition-name condition-handler-syms))
+                                               ,lambda-list
+                                               ,@body)))
+                                  clauses)
+                            (handler-bind
+                                ((common-lisp-error-envelope
+                                   (lambda (condition)
+                                     (typecase (envelop-error condition)
+                                       ,@(mapcar (lambda (err-def)
+                                                   `(,(car err-def)
+                                                     (,(cdr err-def) (envelop-error condition))))
+                                          condition-handler-syms))))
+                                 ,@(mapcar (lambda (clause)
+                                             `(,(car clause)
+                                               (lambda (f)
+                                                 (on-with-failure-handling-handled log-id)
+                                                 (funcall
+                                                  #',(cdr (assoc (car clause)
+                                                                 condition-handler-syms)) f))))
+                                           clauses))
+                              (return (progn ,@body))))))))
            (on-with-failure-handling-end log-id))))))
 
 (defmacro with-retry-counters (counter-definitions &body body)
