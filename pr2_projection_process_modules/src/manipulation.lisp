@@ -88,6 +88,10 @@
                            (crs:lisp-fun reach-pose-ik ?robot-instance ?point
                                          :side ?side ?ik-solutions))
                    (member ?ik-solution ?ik-solutions)
+                   ;; For now, ik-solution-not-in-collision is commented out,
+                   ;; as moveit has difficulties finding good ik solutions
+                   ;; without the seed state and collision environment information.
+                   ;; (ik-solution-not-in-collision ?world ?robot ?ik-solution :grasping)
                    (assert (joint-state ?world ?robot ?ik-solution))))))))
 
 (defun execute-container-opened (action-designator object-designator distance)
@@ -195,6 +199,7 @@
      (make-instance 'cram-plan-knowledge:robot-state-changed))))
 
 (defun execute-lift (designator)
+  (format t "inside EXECUTE-LIFT ~a~%~%~%~%" designator)
   (or
    (execute-action-trajectory-points designator)
    (cpl-impl:fail 'cram-plan-failures:manipulation-pose-unreachable)))

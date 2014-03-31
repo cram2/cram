@@ -106,7 +106,7 @@
     (desig-prop ?designator (obj ?object-designator))))
 
 (def-fact-group manipulation-designators (action-desig-projection)
-  
+
   (<- (action-desig-projection
        ?desig (execute-container-opened ?desig ?obj ?distance))
     (trajectory-desig? ?desig)

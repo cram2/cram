@@ -114,7 +114,7 @@
           (add-rigid-body world body))
         (setf (gethash (name body) (slot-value object 'rigid-bodies))
               body)))))
-  
+
 (defun make-object (world name &optional
                     bodies (add-to-world t))
   (make-instance 'object
@@ -166,6 +166,13 @@
              "."
              (ensure-string body-name)))))
 
+(defmethod add-object ((world bt-reasoning-world) type name pose
+                       &key disable-collisions-with)
+  (prog1
+      (call-next-method)
+    (when disable-collisions-with
+      (disable-collisions world name disable-collisions-with))))
+
 (defmethod add-object ((world bt-world) (type (eql 'box)) name pose &key mass size)
   (destructuring-bind (size-x size-y size-z) size
     (make-object world name
@@ -180,8 +187,8 @@
                                                     (/ size-y 2)
                                                     (/ size-z 2))))))))
 
-(defmethod add-object ((world bt-world) (type (eql 'static-plane)) name pose &key
-                       normal constant)
+(defmethod add-object ((world bt-world) (type (eql 'static-plane)) name pose
+                       &key normal constant)
   (destructuring-bind (normal-x normal-y normal-z) normal
     (make-object world name
                  (list
@@ -195,15 +202,19 @@
                                               normal-x normal-y normal-z)
                                      :constant constant
                                      :width 16 :height 16
-                                     :texture (texture-str->bitmap *static-plane-texture* #\Space)))))))
+                                     :texture (texture-str->bitmap
+                                               *static-plane-texture*
+                                               #\Space)))))))
 
-(defmethod add-object ((world bt-world) (type (eql 'sphere)) name pose &key mass radius)
+(defmethod add-object ((world bt-world) (type (eql 'sphere)) name pose
+                       &key mass radius color)
   (make-object world name
                (list
                 (make-instance
                  'rigid-body
                  :name name :mass mass :pose (ensure-pose pose)
-                 :collision-shape (make-instance 'sphere-shape :radius radius)))))
+                  :collision-shape (make-instance 'colored-sphere-shape
+                                     :radius radius :color color)))))
 
 (defmethod add-object ((world bt-world) (type (eql 'cylinder)) name pose &key mass size)
   (destructuring-bind (size-x size-y size-z) size
