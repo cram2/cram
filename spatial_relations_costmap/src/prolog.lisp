@@ -127,9 +127,6 @@
     ;;
     (btr:bullet-world ?world)
     (supporting-rigid-body ?world ?object ?rigid-body)
-    (lisp-fun cl-bullet:pose ?rigid-body ?supp-obj-pose)
-    (lisp-fun aabb ?rigid-body ?aabb)
-    (lisp-fun cl-bullet:bounding-box-dimensions ?aabb ?supp-obj-dims)
     ;; costmap to exclude everything which is outside of supp. object boundaries
     (lisp-fun list ?rigid-body ?rigid-bodies)
     (costmap-add-function
@@ -139,6 +136,11 @@
     ;; the actual potential field costmap
     ;; The axis of the potential field depends on to which side of supporting object
     ;; the reference object is the closest
+    (lisp-fun cl-bullet:pose ?rigid-body ?supp-obj-pose)
+    (lisp-fun btr::set-object-pose ?rigid-body ((0 0 0) (0 0 0 1)) ?_)
+    (lisp-fun aabb ?rigid-body ?aabb)
+    (lisp-fun cl-bullet:bounding-box-dimensions ?aabb ?supp-obj-dims)
+    (lisp-fun btr::set-object-pose ?rigid-body ?supp-obj-pose ?_)
     (lisp-fun get-closest-edge ?reference-pose ?supp-obj-pose ?supp-obj-dims ?edge)
     (relation-axis-and-pred ?edge ?relation ?axis ?pred)
     (instance-of field-generator ?field-generator-id)
