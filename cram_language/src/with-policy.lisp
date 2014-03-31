@@ -274,7 +274,7 @@ Usage of `with-policy':
         (recover `(recover ,policy))
         (name `(name ,policy))
         (params `(parameters ,policy)))
-    `(let ((log-id (first (on-with-policy-begin
+    `(let ((log-id (first (cpl-impl::on-with-policy-begin
                            name ,(mapcar (lambda (param value)
                                            `(,param ,value))
                                          params
@@ -302,7 +302,7 @@ Usage of `with-policy':
                     (cpl:fail 'policy-check-condition-met
                               :name ,name
                               :parameters ',policy-parameters))
-               (on-with-policy-end log-id (not flag-do-recovery)))))))))
+               (cpl-impl::on-with-policy-end log-id (not flag-do-recovery)))))))))
 
 (defmacro with-policies (policies-and-parameters-list &body body)
   "Allows for running a given `body' code segment wrapped in a list of
