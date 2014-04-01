@@ -192,6 +192,7 @@
 
   ;; height generators
   (<- (desig-costmap ?designator ?costmap)
+    (fail)
     (or
      (desig-prop ?designator (left-of ?ref-obj))
      (desig-prop ?designator (right-of ?ref-obj))
