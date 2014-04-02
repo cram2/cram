@@ -57,20 +57,30 @@
    (tf:make-3d-vector
     -0.10 0.0 0.0)
    (tf:euler->quaternion)))
+(defparameter *unhand-top-slide-down-offset*
+  (tf:make-pose
+   (tf:make-3d-vector
+    0.0 0.0 0.10)
+   (tf:euler->quaternion)))
 
 (defun absolute-handle (obj handle
                         &key (handle-offset-pose
-                              (tf:make-identity-pose)))
+                              (tf:make-identity-pose))
+                          (reorient t))
   "Transforms the relative handle location `handle' of object `obj'
 into the object's coordinate system and returns the appropriate
 location designator. The optional parameter `handle-offset-pose' is
 applied to the handle pose before the absolute object pose is
 applied."
   (let* ((absolute-object-loc (desig-prop-value obj 'at))
-         (absolute-object-pose-stamped (pose-pointing-away-from-base
-                                        (desig-prop-value
-                                         absolute-object-loc
-                                         'desig-props:pose)))
+         (absolute-object-pose-stamped (cond (reorient
+                                              (pose-pointing-away-from-base
+                                               (desig-prop-value
+                                                absolute-object-loc
+                                                'desig-props:pose)))
+                                             (t (desig-prop-value
+                                                 absolute-object-loc
+                                                 'desig-props:pose))))
          (relative-handle-loc (desig-prop-value handle 'at))
          (relative-handle-pose (cl-transforms:transform-pose
                                 (tf:pose->transform
