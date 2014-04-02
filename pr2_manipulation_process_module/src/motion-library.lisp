@@ -72,6 +72,8 @@
 (defparameter *max-graspable-size*
   (cl-transforms:make-3d-vector 0.15 0.15 0.30))
 
+(define-hook on-execute-grasp-with-effort (object-name))
+
 (defun execute-grasp (&key object-name
                         object-pose
                         pregrasp-pose
@@ -80,97 +82,85 @@
                         (gripper-close-pos 0.0)
                         allowed-collision-objects
                         safe-pose
-                        (gripper-effort 25.0))
+                        (gripper-effort 100.0))
   (declare (ignore object-pose))
-  (let ((link-frame (ecase side
-                      (:left "l_wrist_roll_link")
-                      (:right "r_wrist_roll_link")))
-        (allowed-collision-objects (append
-                                    allowed-collision-objects
-                                    (list object-name))))
-    (ros-info (pr2 grasp) "Executing pregrasp for side ~a~%" side)
-    (cpl:with-retry-counters ((pregrasp-retry 1))
-      (cpl:with-failure-handling
-          ((manipulation-failed (f)
-             (declare (ignore f))
-             (ros-error (pr2 grasp)
-                        "Failed to go into pregrasp pose for side ~a."
-                        side)
-             (cpl:do-retry pregrasp-retry)
-             (when safe-pose
-               (execute-move-arm-pose side safe-pose))
-             (cpl:fail 'manipulation-pose-unreachable))
-           (manipulation-pose-unreachable (f)
-             (declare (ignore f))
-             (ros-error (pr2 grasp)
-                        "Failed to go into pregrasp pose for side ~a."
-                        side)
-             (cpl:do-retry pregrasp-retry)
-             (when safe-pose
-               (execute-move-arm-pose side safe-pose)))
-           (moveit:planning-failed (f)
-             (declare (ignore f))
-             (cpl:retry))
-           (moveit:pose-not-transformable-into-link (f)
-             (declare (ignore f))
-             (cpl:retry)))
-        (execute-move-arm-pose side pregrasp-pose)))
-    (ros-info (pr2 grasp) "Opening gripper")
-    (open-gripper side :max-effort gripper-effort :position gripper-open-pos)
-    (unless object-name
-      (ros-warn (pr2 grasp) "You didn't specify an object name to
+  ;; Gather hook'ed information for the grasp
+  (let ((gripper-effort (or (first (on-execute-grasp-with-effort
+                                    object-name))
+                            gripper-effort)))
+    (let ((link-frame (ecase side
+                        (:left "l_wrist_roll_link")
+                        (:right "r_wrist_roll_link")))
+          (allowed-collision-objects (append
+                                      allowed-collision-objects
+                                      (list object-name))))
+      (ros-info (pr2 grasp) "Executing pregrasp for side ~a~%" side)
+      (cpl:with-retry-counters ((pregrasp-retry 1))
+        (cpl:with-failure-handling
+            ((manipulation-failure (f)
+               (declare (ignore f))
+               (ros-error (pr2 grasp)
+                          "Failed to go into pregrasp pose for side ~a."
+                          side)
+               (cpl:do-retry pregrasp-retry)
+               (when safe-pose
+                 (execute-move-arm-pose side safe-pose))
+               (cpl:fail 'manipulation-pose-unreachable)))
+          (execute-move-arm-pose side pregrasp-pose)))
+      (ros-info (pr2 grasp) "Opening gripper")
+      (open-gripper side :max-effort gripper-effort :position gripper-open-pos)
+      (unless object-name
+        (ros-warn (pr2 grasp) "You didn't specify an object name to
     grasp. This might cause the grasping to fail because of a
     misleading collision environment configuration."))
-    (when object-name (moveit:remove-collision-object object-name))
-    (ros-info (pr2 grasp) "Executing grasp for side ~a~%" side)
-    (cpl:with-failure-handling
-        ((manipulation-failed (f)
-           (declare (ignore f))
-           (ros-error (pr2 grasp)
-                              "Failed to go into grasp pose for side ~a."
-                              side)
-           (when object-name
-             (moveit:add-collision-object object-name))
-	   (cpl:fail 'manipulation-pose-unreachable))
-         (moveit::pose-not-transformable-into-link (f)
-           (declare (ignore f))
-           (cpl:retry)))
-      (execute-move-arm-pose side grasp-pose :ignore-collisions t))
-    (ros-info (pr2 grasp) "Closing gripper")
-    (close-gripper side :max-effort gripper-effort :position gripper-close-pos)
-    (sleep 2)
-    (when (< (get-gripper-state side) 0.01);;gripper-close-pos)
+      (when object-name (moveit:remove-collision-object object-name))
+      (ros-info (pr2 grasp) "Executing grasp for side ~a~%" side)
       (cpl:with-failure-handling
           ((manipulation-failed (f)
              (declare (ignore f))
              (ros-error
               (pr2 grasp)
-              "Failed to go into fallback pose for side ~a. Retrying."
+              "Failed to go into grasp pose for side ~a."
               side)
-             (cpl:retry))
-           (moveit:pose-not-transformable-into-link (f)
-             (declare (ignore f))
-             (ros-warn
-              (pr2 grasp)
-              "TF error. Retrying.")
-             (cpl:retry)))
-        (ros-warn
-         (pr2 grasp)
-         "Missed the object. Going into fallback pose for side ~a." side)
-        (open-gripper side)
-        (execute-move-arm-pose side pregrasp-pose
-                               :allowed-collision-objects
-                               allowed-collision-objects)
-        (moveit:add-collision-object object-name)
-        (when safe-pose
-          (execute-move-arm-pose side safe-pose
+             (when object-name
+               (moveit:add-collision-object object-name))
+             (cpl:fail 'manipulation-pose-unreachable)))
+        (execute-move-arm-pose side grasp-pose :ignore-collisions t))
+      (ros-info (pr2 grasp) "Closing gripper")
+      (close-gripper side :max-effort gripper-effort
+                          :position gripper-close-pos)
+      (when (< (get-gripper-state side) 0.01);;gripper-close-pos)
+        (cpl:with-failure-handling
+            ((manipulation-failed (f)
+               (declare (ignore f))
+               (ros-error
+                (pr2 grasp)
+                "Failed to go into fallback pose for side ~a. Retrying."
+                side)
+               (cpl:retry))
+             (moveit:pose-not-transformable-into-link (f)
+               (declare (ignore f))
+               (ros-warn
+                (pr2 grasp)
+                "TF error. Retrying.")
+               (cpl:retry)))
+          (ros-warn
+           (pr2 grasp)
+           "Missed the object. Going into fallback pose for side ~a." side)
+          (open-gripper side)
+          (execute-move-arm-pose side pregrasp-pose
                                  :allowed-collision-objects
-                                 allowed-collision-objects))
-        (cpl:fail 'cram-plan-failures:object-lost)))
-    (when object-name
-      (moveit:add-collision-object object-name)
-      (moveit:attach-collision-object-to-link
-       object-name link-frame))))
+                                 allowed-collision-objects)
+          (moveit:add-collision-object object-name)
+          (when safe-pose
+            (execute-move-arm-pose side safe-pose
+                                   :allowed-collision-objects
+                                   allowed-collision-objects))
+          (cpl:fail 'cram-plan-failures:object-lost)))
+      (when object-name
+        (moveit:add-collision-object object-name)
+        (moveit:attach-collision-object-to-link
+         object-name link-frame)))))
 
 (defun execute-putdown (&key object-name
                           pre-putdown-pose putdown-pose
