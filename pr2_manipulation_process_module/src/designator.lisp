@@ -60,11 +60,12 @@
     (findall ?o (desig-prop ?desig (obstacle ?o))
              ?obstacles))
 
-  (<- (absolute-handle ?object-desig ?handle ?absolute-handle)
+  (<- (absolute-handle ?object-desig ?handle ?reorient-object ?absolute-handle)
     (current-designator ?object-desig ?current-object)
     (handles ?current-object ?handles)
     (member ?handle ?handles)
-    (lisp-fun absolute-handle ?current-object ?handle ?absolute-handle))
+    (lisp-fun absolute-handle ?current-object ?handle :reorient ?reorient-object
+              ?absolute-handle))
 
   (<- (handles ?desig ?handles)
     (findall ?h (desig-prop ?desig (handle ?h))
@@ -150,30 +151,23 @@
   
   (<- (arm-for-pose ?pose ?arm)
     (lisp-fun arm-for-pose ?pose ?arm))
-
-  (<- (action-desig ?desig (grasp-top-slide-down ?current-obj ?available-arms))
-    (trajectory-desig? ?desig)
-    (desig-prop ?desig (to grasp))
-    (desig-prop ?desig (obj ?obj))
-    (desig-prop ?desig (grasp-type top-slide-down))
-    (current-designator ?obj ?current-obj)
-    (handles ?current-obj ?handles)
-    (or (and (desig-prop ?desig (sides ?arms))
-             (available-arms ?current-obj ?available-arms ?arms))
-        (available-arms ?current-obj ?available-arms)))
   
-  (<- (action-desig ?desig (grasp ?current-obj ?available-arms))
+  (<- (action-desig ?desig (grasp ?current-obj ?available-arms ?grasp-type))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to grasp))
     (desig-prop ?desig (obj ?obj))
     (current-designator ?obj ?current-obj)
+    (or (desig-prop ?obj (desig-props:grasp-type ?grasp-type))
+        (desig-prop ?desig (desig-props:grasp-type ?grasp-type))
+        (equal ?grasp-type nil))
     (handles ?current-obj ?handles)
-    (or (and (desig-prop ?desig (sides ?arms))
-             (available-arms ?current-obj ?available-arms ?arms))
+    (or (and (desig-prop ?current-obj (side ?arm))
+             (available-arms ?current-obj ?available-arms (?arm)))
         (available-arms ?current-obj ?available-arms)))
   
   (<- (optimal-handle-grasp ?object-desig ?available-arms
-                            ?pregrasp-pose ?grasp-pose ?grasp-assignments)
+                            ?pregrasp-pose ?grasp-pose
+                            ?grasp-assignments)
     (current-designator ?object-desig ?current-object)
     (handles ?current-object ?handles)
     (min-handles ?current-object ?min-handles)
@@ -193,17 +187,18 @@
     (> ?assignment-count 0))
   
   (<- (grasp-handle-assignment ?object ?arms ?pregrasp-offset ?grasp-offset
-                               ?grasp-assignment)
+                               ?reorient-object ?grasp-assignment)
     (current-designator ?object ?current-object)
     (handles ?current-object ?handles)
     (member ?handle ?handles)
     (member ?arm ?arms)
-    (and (absolute-handle ?object ?handle ?absolute-handle)
+    (and (absolute-handle ?object ?handle ?reorient-object ?absolute-handle)
          (desig-prop ?absolute-handle (at ?location))
          (lisp-fun reference ?location ?pose)
          (lisp-pred open-gripper ?arm)
          (lisp-fun cost-reach-pose ?current-object ?arm ?pose
                    ?pregrasp-offset ?grasp-offset ?cost)
+         (not (equal ?cost nil))
          (lisp-fun make-grasp-assignment
                    :side ?arm
                    :pose ?pose
@@ -211,6 +206,7 @@
                    :cost ?cost
                    ?grasp-assignment)))
   
+  ;; This one is old
   (<- (action-desig ?desig (grasp ?current-obj ?available-arms))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to grasp))
@@ -240,12 +236,14 @@
     (or (grasped-object-handle ?obj ?part)
         (equal ?obj ?part)))
 
-  (<- (action-desig ?desig (put-down ?current-obj ?loc ?grasp-assignments ?obstacles))
+  (<- (action-desig ?desig (put-down ?current-obj ?loc ?grasp-assignments ?grasp-type))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to put-down))
     (desig-prop ?desig (obj ?obj))
     (current-designator ?obj ?current-obj)
-    (obstacles ?desig ?obstacles)
+    (or (desig-prop ?obj (desig-props:grasp-type ?grasp-type))
+        (desig-prop ?desig (desig-props:grasp-type ?grasp-type))
+        (equal ?grasp-type nil))
     (desig-prop ?desig (at ?loc))
     (desig-prop ?current-obj (desig-props:at ?objloc))
     (desig-prop ?objloc (desig-props:in desig-props:gripper))
