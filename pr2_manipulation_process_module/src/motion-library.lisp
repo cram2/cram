@@ -73,6 +73,8 @@
   (cl-transforms:make-3d-vector 0.15 0.15 0.30))
 
 (define-hook on-execute-grasp-with-effort (object-name))
+(define-hook on-execute-grasp-gripper-closed
+    (object-name gripper-effort gripper-close-pos side pregrasp-pose safe-pose))
 
 (defun execute-grasp (&key object-name
                         object-pose
@@ -129,6 +131,8 @@
       (ros-info (pr2 grasp) "Closing gripper")
       (close-gripper side :max-effort gripper-effort
                           :position gripper-close-pos)
+      (on-execute-grasp-gripper-closed
+       object-name gripper-effort gripper-close-pos side pregrasp-pose safe-pose)
       (when (< (get-gripper-state side) 0.01);;gripper-close-pos)
         (cpl:with-failure-handling
             ((manipulation-failed (f)
