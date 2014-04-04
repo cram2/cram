@@ -56,13 +56,18 @@
 (disable-location-validation-function 'btr-desig::validate-designator-solution)
 (disable-location-validation-function 'btr-desig::check-ik-solution)
 
+(defun init (&optional (ip "192.168.100.194"))
+  (let ((uri (roslisp:make-uri ip 11311)))
+   (unless (and (equalp roslisp:*master-uri* uri)
+                (eq roslisp::*node-status* :running))
+       (roslisp-utilities:startup-ros :anonymous nil :master-uri uri))))
+
 ;; roslaunch spatial_relations_demo demo.launch
 (defvar *robot-urdf-lowres* nil)
 (defvar *kitchen-urdf* nil)
 (defun start-ros-and-bullet ()
   (setf *bdgs* nil)
-  (unless (eq roslisp::*node-status* :running)
-    (roslisp-utilities:startup-ros :anonymous nil))
+  (init "localhost")
   (unless *robot-urdf-lowres*
     (setf *robot-urdf-lowres*
           (cl-urdf:parse-urdf (roslisp:get-param "robot_description_lowres"))))
