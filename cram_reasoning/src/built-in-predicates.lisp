@@ -73,12 +73,12 @@
           ((error (lambda (e)
                     (unless *break-on-lisp-errors*
                       (warn 'simple-warning
-                            :format-control "An error occurred while executing the lisp function `~a': `~a'"
+                            :format-control "An error occurred while executing ~
+                                             the lisp function `~a': `~a'"
                             :format-arguments (list function e))
                       (return nil)))))
-        (let ((result (apply (symbol-function function)
+        (let ((result (apply (symbol-function (var-value function bdgs))
                              (mapcar (rcurry #'var-value bdgs) arguments))))
-          ;; (format t "result: ~a ~a bdgs: ~a~%" result result-var bdgs)
           (multiple-value-bind (new-bdgs matched?) (unify result-pat result bdgs)
             (when matched?
               (list new-bdgs))))))))
