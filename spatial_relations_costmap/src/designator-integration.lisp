@@ -85,5 +85,3 @@
               :reject)
           :accept))))
 
-(disable-location-validation-function 'potential-field-costmap-pose-validator)
-(disable-location-validation-function 'collision-pose-validator)

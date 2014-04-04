@@ -80,6 +80,12 @@
 (defun get-x-of-pose (pose)
   (cl-transforms:x (cl-transforms:origin pose)))
 
+(defun add-z-offset-to-pose (pose offset)
+  (cl-transforms:transform (cl-transforms:make-transform
+                            (cl-transforms:make-3d-vector 0 0 offset)
+                            (cl-transforms:make-identity-rotation))
+                           pose))
+
 ;; used in potential-field-costmap prolog pred
 (defun get-sem-map-part (sem-map urdf-name)
   (let ((owl-name (sem-map-utils:urdf-name->obj-name urdf-name)))
