@@ -75,6 +75,8 @@
 (define-hook on-execute-grasp-with-effort (object-name))
 (define-hook on-execute-grasp-gripper-closed
     (object-name gripper-effort gripper-close-pos side pregrasp-pose safe-pose))
+(define-hook on-execute-grasp-gripper-positioned-for-grasp
+    (object-name gripper-effort gripper-close-pos side pregrasp-pose safe-pose))
 
 (defun execute-grasp (&key object-name
                         object-pose
@@ -99,15 +101,16 @@
       (ros-info (pr2 grasp) "Executing pregrasp for side ~a~%" side)
       (cpl:with-retry-counters ((pregrasp-retry 1))
         (cpl:with-failure-handling
-            ((manipulation-failure (f)
+            ((cram-plan-failures::manipulation-failure (f)
                (declare (ignore f))
                (ros-error (pr2 grasp)
                           "Failed to go into pregrasp pose for side ~a."
                           side)
-               (cpl:do-retry pregrasp-retry)
+               (cpl:do-retry pregrasp-retry
+                 (execute-move-arm-pose side safe-pose)
+                 (cpl:retry))
                (when safe-pose
-                 (execute-move-arm-pose side safe-pose))
-               (cpl:fail 'manipulation-pose-unreachable)))
+                 (cpl:fail 'manipulation-pose-unreachable))))
           (execute-move-arm-pose side pregrasp-pose)))
       (ros-info (pr2 grasp) "Opening gripper")
       (open-gripper side :max-effort gripper-effort :position gripper-open-pos)
@@ -129,6 +132,8 @@
              (cpl:fail 'manipulation-pose-unreachable)))
         (execute-move-arm-pose side grasp-pose :ignore-collisions t))
       (ros-info (pr2 grasp) "Closing gripper")
+      (on-execute-grasp-gripper-positioned-for-grasp
+       object-name gripper-effort gripper-close-pos side pregrasp-pose safe-pose)
       (close-gripper side :max-effort gripper-effort
                           :position gripper-close-pos)
       (on-execute-grasp-gripper-closed
@@ -218,27 +223,23 @@
                    (:left "l_wrist_roll_link")
                    (:right "r_wrist_roll_link")))
     (ros-info (pr2 putdown) "Executing unhand for side ~a~%" side)
-    (cpl:with-failure-handling
-        ((manipulation-pose-unreachable (f)
-           (declare (ignore f))
-           (ros-error
-            (pr2 putdown)
-            "Failed to go into unhand pose for side ~a. Retrying." side)
-           (cpl:retry))
-         (manipulation-failed (f)
-           (declare (ignore f))
-           (ros-error
-            (pr2 putdown)
-            "Failed to go into unhand pose for side ~a. Retrying." side)
-           (cpl:retry))
-         (moveit:pose-not-transformable-into-link (f)
-           (declare (ignore f))
-           (cpl:retry)))
-      (execute-move-arm-pose
-       side unhand-pose
-       :allowed-collision-objects allowed-collision-objects
-       :ignore-collisions t)
-      (ros-info (pr2 manip-pm) "Putdown complete."))))
+    (let ((ignore-collisions nil))
+      (cpl:with-failure-handling
+          ((manipulation-failure (f)
+             (declare (ignore f))
+             (ros-error
+              (pr2 putdown)
+              "Failed to go into unhand pose for side ~a. Retrying while ignoring collisions." side)
+             (cpl:retry))
+           (moveit:pose-not-transformable-into-link (f)
+             (declare (ignore f))
+             (cpl:retry)))
+        (execute-move-arm-pose
+         side unhand-pose
+         :allowed-collision-objects (unless ignore-collisions
+                                      allowed-collision-objects)
+         :ignore-collisions ignore-collisions)))
+    (ros-info (pr2 manip-pm) "Putdown complete.")))
 
 (defun get-lifting-grasped-object-arm-pose (side distance)
   "Returns the lifting pose for the `side' robot arm in order to
