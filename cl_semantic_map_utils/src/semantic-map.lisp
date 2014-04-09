@@ -153,7 +153,7 @@
               using (hash-value part)
               when (equal (typecase name
                             (string name)
-                            (symbol (cram-roslisp-common:rosify-lisp-name name)))
+                            (symbol (roslisp-utilities:rosify-lisp-name name)))
                           p-name)
                 do (return part))
         (when recursive
@@ -164,7 +164,7 @@
   (:method ((part semantic-map-part) name &key recursive)
     (let ((name (typecase name
                   (string name)
-                  (symbol (cram-roslisp-common:rosify-lisp-name name)))))
+                  (symbol (roslisp-utilities:rosify-lisp-name name)))))
       (or
        (find name (sub-parts part)
              :key #'name
@@ -392,7 +392,7 @@
 of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns not only direct children."
   ;; Update the cache if not updated yet
   (let ((type (etypecase type
-                (symbol (cram-roslisp-common:rosify-lisp-name type))
+                (symbol (roslisp-utilities:rosify-lisp-name type))
                 (string type))))
     (lazy-mapcan (lambda (part)
                    (lazy-append
@@ -407,7 +407,7 @@ of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns
 of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns not only direct children."
   ;; Update the cache if not updated yet
   (let ((name (etypecase name
-                (symbol (cram-roslisp-common:rosify-lisp-name name))
+                (symbol (roslisp-utilities:rosify-lisp-name name))
                 (string name))))
     (lazy-mapcan (lambda (part)
                    (lazy-append
