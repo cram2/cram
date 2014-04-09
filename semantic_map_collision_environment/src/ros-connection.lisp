@@ -62,14 +62,14 @@
   (loop for objs being the hash-values of *semantic-map-obj-cache* do
     (dolist (obj objs)
       (with-slots (pose dimensions) obj
-        (tf:wait-for-transform *tf* :source-frame "odom_combined"
-                                    :target-frame "map")
         (let* ((obj-name (string-upcase (make-collision-obj-name obj)))
                (pose-stamped (tf:pose->pose-stamped "map" 0.0 pose))
-               (pose-stamped (tf:transform-pose
-                              *tf*
-                              :pose pose-stamped
-                              :target-frame "odom_combined")))
+               ;; NOTE(winkler): If this is too slow, use the
+               ;; ensure-transform-available function to acquire the
+               ;; transform once. Then, manually apply the transform
+               ;; to all objects in the list.
+               (pose-stamped (moveit:ensure-pose-stamped-transformed
+                              pose-stamped "odom_combined")))
           (unless (string= obj-name "HTTP://IAS.CS.TUM.EDU/KB/KNOWROB.OWL#DRAWER_FRIDGE_UPPER-0")
             (moveit:register-collision-object
              obj-name
@@ -81,7 +81,7 @@
                                                   (y dimensions)
                                                   (z dimensions))))
              :pose-stamped pose-stamped)
-            (moveit:add-collision-object obj-name)
+            (moveit:add-collision-object obj-name nil nil)
             (on-publishing-collision-object obj obj-name)))))))
 
 (defun remove-semantic-map-collision-objects ()
