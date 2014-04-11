@@ -33,6 +33,8 @@
 (defvar *debug-window* nil)
 (defvar *debug-window-lock* (sb-thread:make-mutex))
 (defvar *current-costmap-function* nil)
+(defparameter *costmap-z* 0.0)
+(defparameter *costmap-tilt* (cl-transforms:make-quaternion 0 0 0 1))
 
 (defun add-debug-window (world)
   (sb-thread:with-mutex (*debug-window-lock*)
@@ -100,8 +102,8 @@
                              (/ (location-costmap:grid-width costmap) 2))
                           (+ (location-costmap:origin-y costmap)
                              (/ (location-costmap:grid-height costmap) 2))
-                          z)
-                         (cl-transforms:make-quaternion 0 0 0 1))
+                          *costmap-z*)
+			 *costmap-tilt*)
                   :function #'costmap-function
                   :step-size (location-costmap:resolution costmap)))))
       (when *debug-window*
