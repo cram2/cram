@@ -91,6 +91,9 @@
 
 (defparameter *location-generator-max-retries* 200)
 
+(defparameter *print-location-validation-function-results* nil
+  "Enable this to get a text output by each rejected location designator solution.")
+
 (defun register-location-resolution-function (place priority function &optional documentation)
   "Internal function used by the macro REGISTER-LOCATION-GENERATOR."
   `(eval-when (:compile-toplevel :load-toplevel :execute)
@@ -201,6 +204,9 @@ either :ACCEPT, :REJECT, :MAYBE-REJECT or :UNKNOWN."
                (t
                 (let ((validation-result
                         (funcall (car validation-functions) designator solution)))
+                  (when *print-location-validation-function-results*
+                    (format t "validator ~a says: ~a~%"
+                            (car validation-functions) validation-result))
                   (case validation-result
                     (:accept
                      (validate
