@@ -1,6 +1,6 @@
 <package>
   <name>cram_reasoning</name>
-  <version>0.1.1</version>
+  <version>0.1.2</version>
   <description>
     This package implements a simple interpreter for a Prolog-like
     language and an implementation of the RETE algorithm.
