@@ -7,7 +7,7 @@
   :maintainer "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
   :licence "BSD"
   :description "Utilities for writing unit tests."
-  :depends-on (fiveam alexandria cram-language)
+  :depends-on (fiveam alexandria)
   :components
   ((:module "src"
             :components

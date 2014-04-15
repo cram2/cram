@@ -43,6 +43,31 @@
   (push 23 test-cpl-parameter)
   (is (equal '(23) test-cpl-parameter)))
 
+(defmacro hangs (&body body)
+  "Generates a pass if `body' hangs, and a failure if it returns."
+  `(handler-case
+       (let ((result
+              ;; Kludge: We must be pretty gratituous about this
+              ;; timeout value because in (HANGS (TOP-LEVEL ...)) the
+              ;; main thread will evaporate+wait until the toplevel
+              ;; task and all its subtasks shut down---however, this
+              ;; timeout could mistakenly interrupt that wait in case
+              ;; the DEADLINE fired.
+              (sb-ext:with-timeout 3.0
+                ;; NB. As HANGS will be used in the main thread, only,
+                ;; not in a task, this won't be mistaken for an
+                ;; entrance into a task's event loop.
+                (sb-sys:with-deadline (:seconds 0.5 :override t)
+                  ,@body))))
+         (5am:fail "~@<Expected ~S to hang, but it returned: ~S~@:>"
+                   ',body result))
+     (sb-ext:timeout ()
+       (cpl-impl::log-event
+         (:context "*** TIMEOUT ***")
+         (:tags :finish))
+       (pass))))
+
+
 (define-cram-test fl-funcall-vs-fl-apply
     "Basic workingness of FL-FUNCALL and FL-APPLY." ()
   (let ((knob (make-semaphore)))
