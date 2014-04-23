@@ -1,0 +1,38 @@
+<package>
+  <name>pr2_navigation_process_module</name>
+  <version>0.1.0</version>
+  <description>
+    PR2 Navigation Capabilities for the CRAM system
+  </description>
+
+  <author email="winkler@cs.uni-bremen.de">Jan Winkler</author>
+
+  <maintainer email="winkler@cs.uni-bremen.de">Jan Winkler</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://ros.org/wiki/pr2_navigation_process_module</url>
+  <url type="bugtracker">https://github.com/cram-code/cram_pr2/issues</url>
+  <url type="repository">https://github.com/cram-code/cram_pr2</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>cram_process_modules</build_depend>
+  <build_depend>cram_designators</build_depend>
+  <build_depend>cram_reasoning</build_depend>
+  <build_depend>roslisp_utilities</build_depend>
+  <build_depend>cram_roslisp_common</build_depend>
+  <build_depend>cram_plan_failures</build_depend>
+  <build_depend>cram_plan_knowledge</build_depend>
+  <build_depend>cram_moveit</build_depend>
+
+  <run_depend>cram_process_modules</run_depend>
+  <run_depend>cram_designators</run_depend>
+  <run_depend>cram_reasoning</run_depend>
+  <run_depend>roslisp_utilities</run_depend>
+  <run_depend>cram_roslisp_common</run_depend>
+  <run_depend>cram_plan_failures</run_depend>
+  <run_depend>cram_plan_knowledge</run_depend>
+  <run_depend>cram_moveit</run_depend>
+
+</package>
