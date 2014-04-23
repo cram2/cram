@@ -38,11 +38,6 @@
 (roslisp-utilities:register-ros-init-function
  init-pr2-navigation-process-module)
 
-(defun make-action-goal (pose)
-  (roslisp:make-message
-   "move_base_msgs/MoveBaseGoal"
-   target_pose (tf:pose-stamped->msg pose)))
-
 (defun execute-navigation (desig)
   (let* ((target-pose-odom-combined (moveit:ensure-pose-stamped-transformed
                                      (reference desig) "/odom_combined"))
