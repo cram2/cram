@@ -1,3 +1,4 @@
+;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
@@ -24,67 +25,113 @@
 ;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
+;;;
 
 (in-package :pr2-navigation-process-module)
 
 (defparameter *navigation-enabled* t)
 
-(defvar *base-twist-pub* nil)
+(defvar *move-base-client* nil)
+(defvar *navp-client* nil)
+
+(defvar *navp-min-angle* (* -135.0 (/ pi 180))
+  "When the angle to the goal is greater than *NAVP-MIN-ANGLE*, nav-p
+  controller might be used.")
+(defvar *navp-max-angle* (* 135.0 (/ pi 180))
+  "When the angle to the goal is smaller than *NAVP-MIN-ANGLE*, nav-p
+  controller might be used.")
+(defvar *navp-max-goal-distance* 2.0
+  "When the distance to goal is smaller than *NAVP-GOAL-MAX-DISTANCE*,
+  we might use nav-p controller.")
+(defvar *xy-goal-tolerance* 0.15)
+(defvar *yaw-goal-tolerance* 0.25)
 
 (defun init-pr2-navigation-process-module ()
-  (setf *base-twist-pub* (roslisp:advertise "/base_controller/command"
-                                            "geometry_msgs/Twist")))
+  (setf *move-base-client* (actionlib:make-action-client
+                            "/pr2_move_base"
+                            "move_base_msgs/MoveBaseAction"))
+  (setf *navp-client* (actionlib:make-action-client
+                       "/nav_pcontroller/move_base"
+                       "move_base_msgs/MoveBaseAction"))
+  (when (roslisp:has-param "~navigation_process_module/navp_min_angle")
+    (setf *navp-min-angle* (roslisp:get-param "~navigation_process_module/navp_min_angle")))
+  (when (roslisp:has-param "~navigation_process_module/navp_max_angle")
+    (setf *navp-max-angle* (roslisp:get-param "~navigation_process_module/navp_max_angle")))
+  (when (roslisp:has-param "~navigation_process_module/navp_max_goal_distance")
+    (setf *navp-max-goal-distance* (roslisp:get-param "~navigation_process_module/navp_max_goal_distance")))
+  (when (roslisp:has-param "~navigation_process_module/xy_goal_tolerance")
+    (setf *xy-goal-tolerance* (roslisp:get-param "~navigation_process_module/xy_goal_tolerance")))
+  (when (roslisp:has-param "~navigation_process_module/yaw_goal_tolerance")
+    (setf *yaw-goal-tolerance* (roslisp:get-param "~navigation_process_module/yaw_goal_tolerance"))))
 
 (roslisp-utilities:register-ros-init-function
  init-pr2-navigation-process-module)
 
-(defun execute-navigation (desig)
-  (let* ((target-pose-odom-combined (moveit:ensure-pose-stamped-transformed
-                                     (reference desig) "/odom_combined"))
-         (target-x (tf:x (tf:origin target-pose-odom-combined)))
-         (target-y (tf:y (tf:origin target-pose-odom-combined)))
-         (target-theta (tf:z (tf:orientation target-pose-odom-combined))))
-    (let (;(controller-x (make-p-controller target-x 1.0 :max 0.5))
-          ;(controller-y (make-p-controller target-y 1.0 :max 0.5))
-          ;(controller-theta (make-p-controller target-theta 1.0 :max 0.5))
-          (controller-complete
-            (make-controller
-             (lambda (x y theta)
-               (let* ((sin-th (sin theta))
-                      (cos-th (cos theta))
-                      (cossinsqsm (+ (* sin-th sin-th) (* cos-th cos-th)))
-                      (gains '(0.5 0.5 1.0))
-                      (diff-x (- target-x x))
-                      (diff-y (- target-y y))
-                      (diff-theta (- target-theta theta)))
-                 (list (* (first gains) (+ (/ (* cos-th diff-x) cossinsqsm)
-                                           (/ (* sin-th diff-y) cossinsqsm)))
-                       (* (second gains) (+ (- (/ (* sin-th diff-x) cossinsqsm))
-                                            (/ (* cos-th diff-y) cossinsqsm)))
-                       (* (third gains) diff-theta))))
-             3 3))
-          (plant (make-plant
-                  (lambda (dx dy dtheta)
-                    (let ((msg (roslisp:make-message
-                                "geometry_msgs/Twist"
-                                (x linear) dx
-                                (y linear) dy
-                                (z angular) dtheta)))
-                      (roslisp:publish *base-twist-pub* msg)))
-                  (lambda ()
-                    (let* ((trafo (moveit::tf-transformation "/base_footprint"))
-                           (x (tf:x (tf:translation trafo)))
-                           (y (tf:y (tf:translation trafo)))
-                           (theta (tf:z (tf:rotation trafo))))
-                      `(,x ,y ,theta)))
-                  3 3)))
-      (control plant `(,controller-complete) ;;`(,controller-x ,controller-y ,controller-theta)
-               (lambda (plant)
-                 (let ((plant-state (funcall (state-function plant))))
-                   (and (< (abs (- (first plant-state) target-x)) 0.02)
-                        (< (abs (- (second plant-state) target-y)) 0.02)
-                        (< (abs (- (third plant-state) target-theta)) 0.1))))
-               0.01))))
+
+(defun make-action-goal (pose)
+  (roslisp:make-message
+   "move_base_msgs/MoveBaseGoal"
+   target_pose (tf:pose-stamped->msg pose)))
+
+(defun use-navp? (goal-pose)
+  (let* ((pose-in-base (tf:transform-pose
+                        *tf* :pose goal-pose
+                        :target-frame "/base_footprint"))
+         (goal-dist (cl-transforms:v-norm
+                     (cl-transforms:origin pose-in-base)))
+         (goal-angle (atan
+                      (cl-transforms:y
+                       (cl-transforms:origin pose-in-base))
+                      (cl-transforms:x
+                       (cl-transforms:origin pose-in-base)))))
+    (and (< goal-dist *navp-max-goal-distance*)
+         (> goal-angle *navp-min-angle*)
+         (< goal-angle *navp-max-angle*))))
+
+(defun goal-reached? (goal-pose)
+  (let* ((pose-in-base (tf:transform-pose
+                        *tf* :pose goal-pose
+                        :target-frame "/base_footprint"))
+         (goal-dist (cl-transforms:v-norm
+                     (cl-transforms:origin pose-in-base)))
+         (goal-angle (second
+                      (multiple-value-list
+                          (cl-transforms:quaternion->axis-angle
+                           (cl-transforms:orientation pose-in-base))))))
+    (cond ((and (> goal-dist *xy-goal-tolerance*)
+                (> (abs goal-angle) *yaw-goal-tolerance*))
+           (roslisp:ros-warn
+            (pr2-nav process-module)
+            "Goal not reached. Linear distance: ~a, angular distance: ~a"
+            goal-dist goal-angle)
+           nil)
+          (t t))))
+
+(defun call-nav-action (client desig)
+  (let* ((goal-pose (reference desig))
+         (goal-pose-in-fixed-frame
+           (when (tf:wait-for-transform
+                  *tf* :time (tf:stamp goal-pose)
+                       :target-frame designators-ros:*fixed-frame*
+                       :source-frame (tf:frame-id goal-pose)
+                       :timeout 1.0)
+             (tf:transform-pose
+              *tf* :pose goal-pose
+                   :target-frame designators-ros:*fixed-frame*))))
+    (unless goal-pose-in-fixed-frame
+      (error 'tf:tf-lookup-error :frame (tf:frame-id goal-pose)))
+    (multiple-value-bind (result status)
+        (actionlib:send-goal-and-wait
+         client (make-action-goal goal-pose-in-fixed-frame)
+         :result-timeout 1.0)
+      (declare (ignore result status))
+      (roslisp:ros-info (pr2-nav process-module) "Nav action finished.")
+      (unless (and ;; (eq status :succeeded)
+               (goal-reached? (tf:copy-pose-stamped
+                               goal-pose-in-fixed-frame
+                               :stamp 0)))
+        (cpl:fail 'location-not-reached-failure
+                  :location desig)))))
 
 (def-process-module pr2-navigation-process-module (goal)
   (when *navigation-enabled*
@@ -92,6 +139,24 @@
          (progn
            (roslisp:ros-info (pr2-nav process-module)
                              "Using nav-pcontroller.")
-           (execute-navigation (reference goal)))
+           (call-nav-action *navp-client* (reference goal)))
+      ;; (cond ((use-navp? (reference goal))
+      ;;        (roslisp:ros-info (pr2-nav process-module)
+      ;;                          "Using nav-pcontroller.")
+      ;;        (call-nav-action *navp-client* goal))
+      ;;       (t
+      ;;        (block nil
+      ;;          (handler-bind ((location-not-reached-failure
+      ;;                          (lambda (e)
+      ;;                            (declare (ignore e))
+      ;;                            (roslisp:ros-info (pr2-nav process-module)
+      ;;                                              "Could not reach goal.")
+      ;;                            (when (use-navp? (reference goal))
+      ;;                              (roslisp:ros-info (pr2-nav process-module)
+      ;;                                                "Falling back to nav-pcontroller.")                               
+      ;;                              (return (call-nav-action *navp-client* goal))))))
+      ;;            (roslisp:ros-info (pr2-nav process-module)
+      ;;                              "Using move_base.")
+      ;;            (call-nav-action *move-base-client* goal)))))
       (roslisp:ros-info (pr2-nav process-module) "Navigation finished.")
       (cram-plan-knowledge:on-event (make-instance 'cram-plan-knowledge:robot-state-changed)))))
