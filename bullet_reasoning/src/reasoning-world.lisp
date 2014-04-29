@@ -34,10 +34,10 @@
 
 (defclass bt-reasoning-world (bt-world)
   ((objects :initform (make-hash-table :test 'equal))
-   (objects-no-collision-with-robot :reader objects-no-collision-with-robot
-                                    :initform `()
-                                    :documentation "A list of objects to exclude
-from collision checking in the robot-not-in-collision-with-environment predicate.")))
+   (disabled-collision-objects :initform '()
+                               :documentation "A list of objects to exclude
+from collision checking used in a number of Prolog predicates dealing with
+collisions with the environment.")))
 
 (defgeneric invalidate-object (object)
   (:documentation "Invalidates an object. This method is called after
@@ -58,12 +58,26 @@ from collision checking in the robot-not-in-collision-with-environment predicate
     (with-world-locked world
       (gethash name (slot-value world 'objects)))))
 
+(defgeneric disable-collisions (world for-object with-objects)
+  (:documentation "Collisions between object-1 and object-2 should be ignored
+in _particular_ predicates in the `world' from now on.")
+  (:method ((world bt-reasoning-world) for-object with-objects)
+    (flet ((pushnew-pairs (object-1 object-2)
+             (pushnew (list object-1 object-2)
+                      (slot-value world 'disabled-collision-objects)
+                      :test #'(lambda(x y)
+                                (or (and (eq (car x) (car y))
+                                         (eq (second x) (second y)))
+                                    (and (eq (car x) (second y))
+                                         (eq (second x) (car y))))))))
+      (mapc (alexandria:curry #'pushnew-pairs for-object) with-objects))))
+
 (defclass bt-reasoning-world-state (world-state)
   ((objects :reader objects :initarg :objects
             :documentation "alist of objects")
-   (objects-no-collision-with-robot :reader objects-no-collision-with-robot
-                                    :initarg :objects-no-collision-with-robot
-                                    :documentation "A copy of the corresponding
+   (disabled-collision-objects :reader disabled-collision-objects
+                               :initarg :disabled-collision-objects
+                               :documentation "A copy of the corresponding
 list from bt-reasoning-world to keep in the current world state.")))
 
 (defmethod get-state ((world bt-reasoning-world))
@@ -73,8 +87,8 @@ list from bt-reasoning-world to keep in the current world state.")))
                     :objects (loop for name being the hash-keys of (slot-value world 'objects)
                                    using (hash-value object)
                                    collecting (cons name object))
-                    :objects-no-collision-with-robot
-                    (slot-value world 'objects-no-collision-with-robot)))))
+                    :disabled-collision-objects
+                    (slot-value world 'disabled-collision-objects)))))
 
 (defmethod restore-state ((world-state bt-reasoning-world-state)
                           (world bt-reasoning-world))
@@ -82,9 +96,9 @@ list from bt-reasoning-world to keep in the current world state.")))
     (prog1
         (call-next-method)
       (with-world-locked world
-        (with-slots (objects-no-collision-with-robot objects) world
-          (setf objects-no-collision-with-robot
-                (objects-no-collision-with-robot world-state))
+        (with-slots (disabled-collision-objects objects) world
+          (setf disabled-collision-objects
+                (disabled-collision-objects world-state))
           (clrhash objects)
           (loop for (name . obj) in (objects world-state) do
             (let ((obj (if (eq world (world obj))

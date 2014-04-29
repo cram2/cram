@@ -28,39 +28,13 @@
 
 (in-package :spatial-relations-costmap)
 
-(def-fact-group costmap-metadata ()
-  (<- (costmap-size 12 12))
-  (<- (costmap-origin -6 -6))
-  (<- (costmap-resolution 0.03))
-
-  (<- (costmap-padding 0.38))
-  (<- (costmap-manipulation-padding 0.3))
-  (<- (costmap-in-reach-distance 1.0))
-  (<- (costmap-reach-minimal-distance 0.2)))
-
-;; (def-fact-group costmap-metadata ()
-;;   (<- (costmap-size 25 25))
-;;   (<- (costmap-origin -12.5 -12.5))
-;;   (<- (costmap-resolution 0.05))
-
-;;   (<- (costmap-padding 0.35))
-;;   (<- (costmap-manipulation-padding 0.35))
-;;   (<- (costmap-in-reach-distance 1.0))
-;;   (<- (costmap-reach-minimal-distance 0.1)))
-
-(def-fact-group semantic-map-data (semantic-map-name)
-  (<- (cl-semantic-map-utils::semantic-map-name
-       "http://ias.cs.tum.edu/kb/ias_semantic_map.owl#SemanticEnvironmentMap_PM580j"))
-  (<- (semantic-map-obj my-kitchen))
-  (<- (kitchen-island-z 0.8399999737739563d0)))
-
 ;; TODO change after near and far is refactored
 ;; TODO maybe remove collision costmap completely, but rather just disable and uncomment
 (def-fact-group costmap-params ()
   (<- (collision-costmap-padding-in-meters 0.01d0)) ; for collision costmap
   (<- (near-costmap-gauss-std 1.0d0)) ; reference object size dependent maybe TODO
   (<- (costmap-width-in-obj-size-percentage-near 1.0d0)) ; for far-from and near costmaps
-  (<- (costmap-width-in-obj-size-percentage-far 0.5d0)))  ; (percents of objs size average)
+  (<- (costmap-width-in-obj-size-percentage-far 1.0d0)))  ; (percents of objs size average)
 
 (def-fact-group spatial-relations-knowledge ()
   ;; object shape related
@@ -69,17 +43,29 @@
   (<- (shape :rectangle))
   (<- (shape :complex))
   ;;
-  (<- (object-type-shape pot :complex))
-  (<- (object-type-shape bowl :circle))
-  (<- (object-type-shape mondamin :oval))
-  (<- (object-type-shape mug :complex))
-  (<- (object-type-shape plate :circle))
-  (<- (object-type-shape fork :rectangle))
-  (<- (object-type-shape knife :rectangle))
+  (<- (%household-object-type-shape pot :complex))
+  (<- (%household-object-type-shape bowl :circle))
+  (<- (%household-object-type-shape mondamin :oval))
+  (<- (%household-object-type-shape mug :complex))
+  (<- (%household-object-type-shape plate :circle))
+  (<- (%household-object-type-shape fork :rectangle))
+  (<- (%household-object-type-shape knife :rectangle))
+  (<- (%household-object-type-shape pancake-maker :circle))
+  (<- (%household-object-type-shape spatula :rectangle))
+  
+  (<- (household-object-type-shape ?type ?shape)
+    (setof ?a-type (%household-object-type-shape ?a-type ?_)
+           ?defined-type-shapes)
+    (-> (member ?type ?defined-type-shapes)
+        (%household-object-type-shape ?type ?shape)
+        (== ?shape :rectangle)))
   ;;
   (<- (object-shape ?world ?object-name ?shape)
     (household-object-type ?world ?object-name ?object-type)
-    (object-type-shape ?object-type ?shape))
+    (household-object-type-shape ?object-type ?shape))
+  (<- (object-shape ?world ?object-name ?shape)
+    (not (household-object-type ?world ?object-name ?_))
+    (== ?shape :rectangle))
   ;;
   (<- (object-type-handle-size pot 0.12d0)) ; both handles together
   (<- (object-type-handle-size mug 0.04d0))
@@ -91,23 +77,29 @@
   ;; padding related
   (<- (object-type-padding-size pot 0.04d0))
   (<- (object-type-padding-size bowl 0.03d0))
-  (<- (object-type-padding-size mondamin 0.01d0))
+  (<- (object-type-padding-size mondamin 0.006d0))
   (<- (object-type-padding-size mug 0.01d0))
   (<- (object-type-padding-size plate 0.005d0))
   (<- (object-type-padding-size fork 0.005d0))
   (<- (object-type-padding-size knife 0.005d0))
+  (<- (object-type-padding-size pancake-maker 0.018d0))
+  (<- (object-type-padding-size spatula 0.01d0))
   ;;
   (<- (padding-size ?world ?object-name ?padding)
     (household-object-type ?world ?object-name ?object-type)
-    (object-type-padding-size ?object-type ?padding))
-  
+    (setof ?a-type (object-type-padding-size ?a-type ?_)
+           ?defined-types-padding)
+    (-> (member ?object-type ?defined-types-padding)
+        (object-type-padding-size ?object-type ?padding)
+        (== ?padding 0.01d0)))
+
   ;; costmap threshold related
   ;; depends on how flexible you want the positioning to be,
   ;; e.g. in case of cluttered scenes etc.
-  (<- (object-type-costmap-threshold pot 0.85d0))
-  (<- (object-type-costmap-threshold bowl 0.9d0))
-  (<- (object-type-costmap-threshold mondamin 0.9d0))
-  (<- (object-type-costmap-threshold mug 0.8d0)) ; 0.97d0))
+  ;; (<- (object-type-costmap-threshold pot 0.85d0))
+  ;; (<- (object-type-costmap-threshold bowl 0.9d0))
+  ;; (<- (object-type-costmap-threshold mondamin 0.9d0))
+  ;; (<- (object-type-costmap-threshold mug 0.8d0))
   (<- (object-type-costmap-threshold plate 0.8d0)) ; 0.999d0))
   (<- (object-type-costmap-threshold fork 0.8d0)) ; 0.99d0))
   (<- (object-type-costmap-threshold knife 0.8d0)) ; 0.99d0))
@@ -115,18 +107,6 @@
   (<- (object-costmap-threshold ?world ?object-name ?threshold)
     (household-object-type ?world ?object-name ?object-type)
     (object-type-costmap-threshold ?object-type ?threshold))
-
-  ;; object orientation related
-  (<- (orientation-samples 4))
-  (<- (orientation-samples-step ?samples-step)
-    (lisp-fun symbol-value pi ?pi)
-    (lisp-fun / ?pi 18 ?samples-step))
-  ;;
-  (<- (orientation-matters ?obj-name)
-    (bullet-world ?world)
-    (object ?world ?obj-name)
-    (or (household-object-type ?world ?obj-name knife)
-        (household-object-type ?world ?obj-name fork)))
 
   ;; table setting related
   (<- (paddings-list "kitchen_island" table-setting (0.03d0 0.03d0 0.03d0 0.8d0)))
