@@ -34,7 +34,7 @@
   (<- (collision-costmap-padding-in-meters 0.01d0)) ; for collision costmap
   (<- (near-costmap-gauss-std 1.0d0)) ; reference object size dependent maybe TODO
   (<- (costmap-width-in-obj-size-percentage-near 1.0d0)) ; for far-from and near costmaps
-  (<- (costmap-width-in-obj-size-percentage-far 0.5d0)))  ; (percents of objs size average)
+  (<- (costmap-width-in-obj-size-percentage-far 1.0d0)))  ; (percents of objs size average)
 
 (def-fact-group spatial-relations-knowledge ()
   ;; object shape related
@@ -77,12 +77,12 @@
   ;; padding related
   (<- (object-type-padding-size pot 0.04d0))
   (<- (object-type-padding-size bowl 0.03d0))
-  (<- (object-type-padding-size mondamin 0.01d0))
+  (<- (object-type-padding-size mondamin 0.006d0))
   (<- (object-type-padding-size mug 0.01d0))
   (<- (object-type-padding-size plate 0.005d0))
   (<- (object-type-padding-size fork 0.005d0))
   (<- (object-type-padding-size knife 0.005d0))
-  (<- (object-type-padding-size pancake-maker 0.02d0))
+  (<- (object-type-padding-size pancake-maker 0.018d0))
   (<- (object-type-padding-size spatula 0.01d0))
   ;;
   (<- (padding-size ?world ?object-name ?padding)
@@ -96,10 +96,10 @@
   ;; costmap threshold related
   ;; depends on how flexible you want the positioning to be,
   ;; e.g. in case of cluttered scenes etc.
-  (<- (object-type-costmap-threshold pot 0.85d0))
-  (<- (object-type-costmap-threshold bowl 0.9d0))
-  (<- (object-type-costmap-threshold mondamin 0.9d0))
-  (<- (object-type-costmap-threshold mug 0.8d0)) ; 0.97d0))
+  ;; (<- (object-type-costmap-threshold pot 0.85d0))
+  ;; (<- (object-type-costmap-threshold bowl 0.9d0))
+  ;; (<- (object-type-costmap-threshold mondamin 0.9d0))
+  ;; (<- (object-type-costmap-threshold mug 0.8d0))
   (<- (object-type-costmap-threshold plate 0.8d0)) ; 0.999d0))
   (<- (object-type-costmap-threshold fork 0.8d0)) ; 0.99d0))
   (<- (object-type-costmap-threshold knife 0.8d0)) ; 0.99d0))
