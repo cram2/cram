@@ -57,9 +57,8 @@
               (achieve plan-lib) "Failed to perceive object from near.")
              (do-retry near-reperceive-retry-count
                (ros-warn (achieve plan-lib) "Retrying.")
-               (do-retry near-reperceive-retry-count
-                 (retry-with-updated-location
-                  obj-loc (next-different-location-solution obj-loc))))))
+               (retry-with-updated-location
+                obj-loc (next-different-location-solution obj-loc)))))
         (ros-info (achieve plan-lib) "Looking at object location: ~a~%" obj-loc)
         (achieve `(looking-at ,(reference obj-loc)))
         (let ((perceived-object (first (perceive-object 'currently-visible
