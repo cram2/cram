@@ -37,4 +37,4 @@
   (:export #:desig-z-value #:supporting-z-value
            semantic-map-objects)
   (:desig-properties #:on #:in #:name #:to #:see #:reach #:type
-                     #:near #:center))
+                     #:centered-with-padding))
