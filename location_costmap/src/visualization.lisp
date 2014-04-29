@@ -105,56 +105,56 @@ respectively."
       (let ((index 0))
         (dotimes (row (array-dimension map-array 0))
           (dotimes (col (array-dimension map-array 1))
-            (when (> (aref map-array row col) threshold)
-              (let ((pose (tf:make-pose
-                           (tf:make-3d-vector
-                            (+ (* col resolution) origin-x)
-                            (+ (* row resolution) origin-y)
-                            (+ z (or (when elevate-costmap
-                                       (/ (aref map-array row col) max-val))
-                                     0.0)))
-                           (tf:axis-angle->quaternion
-                            (tf:make-3d-vector 1.0 0.0 0.0) 0.0)))
-                    (color (cond (hsv-colormap
-                                  (hsv->rgb (* 360 (/ (aref map-array row col)
-                                                      max-val))
-                                             0.5 0.5))
-                                 (intensity-colormap
-                                  (let* ((hsv-color (rgb->hsv
-                                                     (elt base-color 0)
-                                                     (elt base-color 1)
-                                                     (elt base-color 2)))
-                                         (mod-hsv
-                                           (vector (elt hsv-color 0)
-                                                   (elt hsv-color 1)
-                                                   (/ (aref map-array row col)
-                                                      max-val))))
-                                    (hsv->rgb 
-                                     (elt mod-hsv 0)
-                                     (elt mod-hsv 1)
-                                     (elt mod-hsv 2))))
-                                 (t base-color))))
-                (push (make-message "visualization_msgs/Marker"
-                                    (frame_id header) frame-id
-                                    (stamp header) (ros-time)
-                                    (ns) ""
-                                    (id) index
-                                    (type) (roslisp-msg-protocol:symbol-code
-                                            'visualization_msgs-msg:marker
-                                            :cube)
-                                    (action) (roslisp-msg-protocol:symbol-code
+            (let ((curr-val (aref map-array row col)))
+              (when (> curr-val threshold)
+                (let ((pose (tf:make-pose
+                             (tf:make-3d-vector
+                              (+ (* col resolution) origin-x)
+                              (+ (* row resolution) origin-y)
+                              (+ z (or (when elevate-costmap
+                                         (/ curr-val max-val))
+                                       0.0)))
+                             (tf:axis-angle->quaternion
+                              (tf:make-3d-vector 1.0 0.0 0.0) 0.0)))
+                      (color (cond (hsv-colormap
+                                    (hsv->rgb (* 360 (/ curr-val
+                                                        max-val))
+                                              0.5 0.5))
+                                   (intensity-colormap
+                                    (let* ((hsv-color (rgb->hsv
+                                                       (elt base-color 0)
+                                                       (elt base-color 1)
+                                                       (elt base-color 2)))
+                                           (mod-hsv
+                                             (vector (elt hsv-color 0)
+                                                     (elt hsv-color 1)
+                                                     (/ curr-val max-val))))
+                                      (hsv->rgb
+                                       (elt mod-hsv 0)
+                                       (elt mod-hsv 1)
+                                       (elt mod-hsv 2))))
+                                   (t base-color))))
+                  (push (make-message "visualization_msgs/Marker"
+                                      (frame_id header) frame-id
+                                      (stamp header) (ros-time)
+                                      (ns) ""
+                                      (id) index
+                                      (type) (roslisp-msg-protocol:symbol-code
                                               'visualization_msgs-msg:marker
-                                              :add)
-                                    (pose) (tf:pose->msg pose)
-                                    (x scale) resolution
-                                    (y scale) resolution
-                                    (z scale) resolution
-                                    (r color) (elt color 0)
-                                    (g color) (elt color 1)
-                                    (b color) (elt color 2)
-                                    (a color) 0.9)
-                      boxes)
-                (incf index)))))
+                                              :cube)
+                                      (action) (roslisp-msg-protocol:symbol-code
+                                                'visualization_msgs-msg:marker
+                                                :add)
+                                      (pose) (tf:pose->msg pose)
+                                      (x scale) resolution
+                                      (y scale) resolution
+                                      (z scale) resolution
+                                      (r color) (elt color 0)
+                                      (g color) (elt color 1)
+                                      (b color) (elt color 2)
+                                      (a color) 0.9)
+                        boxes)
+                  (incf index))))))
         (values (make-message "visualization_msgs/MarkerArray"
                               (markers) (map 'vector #'identity boxes))
                 index)))))
@@ -198,8 +198,10 @@ respectively."
   (when *location-costmap-publisher*
     (multiple-value-bind (markers last-index)
         (location-costmap->marker-array
-         map :frame-id frame-id :threshold threshold
-             :z z)
+         map :frame-id "/odom_combined";frame-id
+             :threshold threshold
+             :z z
+             :hsv-colormap t)
       (when *last-published-marker-index*
         (remove-markers-up-to-index *last-published-marker-index*))
       (setf *last-published-marker-index* last-index)

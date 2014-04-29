@@ -56,37 +56,39 @@
              (ros-warn
               (achieve plan-lib) "Failed to perceive object from near.")
              (do-retry near-reperceive-retry-count
-               (ros-warn (achieve plan-lib) "Retrying at new look location.")
-               (retry-with-updated-location
-                obj-loc (next-different-location-solution obj-loc))))
-           ((or object-lost manipulation-pose-unreachable manipulation-failed) (f)
-             (declare (ignore f))
-             (ros-warn (achieve plan-lib) "Failed to grasp object.")
-             (do-retry misgrasp-retry-count
                (ros-warn (achieve plan-lib) "Retrying.")
-               (retry))
-             (fail 'manipulation-pose-unreachable)))
-        (ros-info () "Looking at object location: ~a~%" obj-loc)
+               (do-retry near-reperceive-retry-count
+                 (retry-with-updated-location
+                  obj-loc (next-different-location-solution obj-loc))))))
+        (ros-info (achieve plan-lib) "Looking at object location: ~a~%" obj-loc)
         (achieve `(looking-at ,(reference obj-loc)))
         (let ((perceived-object (first (perceive-object 'currently-visible
                                                         ?obj))))
           (unless perceived-object
-            (ros-info () "Didn't find the object.")
+            (ros-info (achieve plan-lib) "Didn't find the object.")
             (fail 'object-not-found))
           (ros-info (achieve plan-lib) "Found the object.")
-          (achieve `(looking-at
-                     ,(reference
-                       (make-designator 'location
-                                        `((of ,perceived-object))))))
-          (when (not (desig-equal ?obj perceived-object))
-            (equate ?obj perceived-object))
-          (perform grasp-action)
-          (monitor-action grasp-action)
-          (when (not (desig-equal ?obj perceived-object))
-            (equate ?obj perceived-object))))
+          (with-failure-handling
+              ((manipulation-failure (f)
+                 (declare (ignore f))
+                 (ros-warn (achieve plan-lib) "Failed to grasp object.")
+                 (do-retry misgrasp-retry-count
+                   (ros-warn (achieve plan-lib) "Retrying.")
+                   (retry))
+                 (fail 'manipulation-pose-unreachable)))
+            (achieve `(looking-at
+                       ,(reference
+                         (make-designator 'location
+                                          `((of ,perceived-object))))))
+            (when (not (desig-equal ?obj perceived-object))
+              (equate ?obj perceived-object))
+            (perform grasp-action)
+            (monitor-action grasp-action)
+            (when (not (desig-equal ?obj perceived-object))
+              (equate ?obj perceived-object)))))
       (ros-info (achieve plan-lib) "Grasped object.")
       (with-failure-handling
-          (((or manipulation-pose-unreachable manipulation-failed) (f)
+          ((manipulation-failure (f)
              (declare (ignore f))
              (ros-warn (achieve plan-lib) "Lift failed.")
              (do-retry lift-retry-count
@@ -104,7 +106,7 @@
       (ros-info (achieve plan-lib) "Lifted object.")
       (reset-counter carry-retry-count)
       (with-failure-handling
-          (((or manipulation-pose-unreachable manipulation-failed) (f)
+          ((manipulation-failure (f)
              (declare (ignore f))
              (ros-warn (achieve plan-lib) "Carry failed.")
              (do-retry carry-retry-count
