@@ -198,7 +198,7 @@ respectively."
   (when *location-costmap-publisher*
     (multiple-value-bind (markers last-index)
         (location-costmap->marker-array
-         map :frame-id "/odom_combined";frame-id
+         map :frame-id frame-id
              :threshold threshold
              :z z
              :hsv-colormap t)
