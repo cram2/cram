@@ -80,6 +80,12 @@
 (defun get-x-of-pose (pose)
   (cl-transforms:x (cl-transforms:origin pose)))
 
+(defun add-z-offset-to-pose (pose offset)
+  (cl-transforms:transform (cl-transforms:make-transform
+                            (cl-transforms:make-3d-vector 0 0 offset)
+                            (cl-transforms:make-identity-rotation))
+                           pose))
+
 ;; used in potential-field-costmap prolog pred
 (defun get-sem-map-part (sem-map urdf-name)
   (let ((owl-name (sem-map-utils:urdf-name->obj-name urdf-name)))
@@ -96,17 +102,17 @@
   (let ((articulated-object (object *current-bullet-world* articulated-object-name)))
     (gethash link-name (links articulated-object))))
 
-;; used in potential-field-costmap
-;; TODO: maybe include bb into deciding not just the pose and ratio
+;;; used in potential-field-costmap
+;;; TODO: maybe include bb into deciding not just the pose and ratio
 (defun get-closest-edge (obj-pose supp-obj-pose supp-obj-dims)
   "The supp-obj is supposed to be rectangular and have 4 ( :P ) edges
-   with y axis pointing towards its left edge and x - to the back.
-   `obj-pose' should be in the world frame.
-   The function returns one of the following keys: :front, :back, :left, :right."
+with y axis (in table coordinate system) pointing towards its left edge
+and x - to the back. `obj-pose' should be in the world frame.
+The function returns one of the following keys: :front, :back, :left, :right."
   (declare (type cl-transforms:pose obj-pose supp-obj-pose)
            (type cl-transforms:3d-vector supp-obj-dims))
   (flet ((check-relation-p (dimensions/2 coords pred-1 pred-2 ratio-x ratio-y)
-           (< (* (funcall pred-1 (cl-transforms:x dimensions/2) 
+           (< (* (funcall pred-1 (cl-transforms:x dimensions/2)
                           (cl-transforms:x coords))
                  ratio-x)
               (* (funcall pred-2 (cl-transforms:y dimensions/2)

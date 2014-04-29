@@ -66,7 +66,7 @@
 
 (def-tool (cl-transforms:make-3d-vector 1 0 0) 0.20)
 
-(def-fact-group robot-metadata (end-effector-link)
+(def-fact-group robot-metadata (end-effector-link gripper-link)
   (<- (robot pr2))
   (<- (camera-frame pr2 "head_mount_kinect_rgb_optical_frame"))
   (<- (camera-frame pr2 "openni_rgb_optical_frame"))
@@ -77,6 +77,12 @@
   (<- (robot-pan-tilt-joints "head_pan_joint" "head_tilt_joint"))
   (<- (end-effector-link :left "l_wrist_roll_link"))
   (<- (end-effector-link :right "r_wrist_roll_link"))
+  (<- (gripper-link :left ?link)
+    (lisp-fun search "l_gripper" ?link ?pos)
+    (lisp-pred identity ?pos))
+  (<- (gripper-link :right ?link)
+    (lisp-fun search "r_gripper" ?link ?pos)
+    (lisp-pred identity ?pos))
 
   (<- (robot-arms-parking-joint-states ?joint-states)
     (symbol-value *right-parking-joint-states* ?right-joint-states)
@@ -124,12 +130,17 @@
   (<- (grasp :side))
   (<- (grasp :front))
 
+  (<- (side :right))
+  (<- (side :left))
+
+  (<- (arm ?arm)
+    (side ?arm))
+
   (<- (object-type-grasp mug ?grasp (?side))
     (grasp ?grasp)
     (side ?side))
 
-  (<- (object-type-grasp mondamin :side (?side))
-    (side ?side))
+  (<- (object-type-grasp mondamin :side (:right)))
 
   (<- (object-type-grasp plate :side (:left :right)))
 
@@ -139,7 +150,7 @@
     (side ?side))
 
   (<- (object-type-grasp ?type :top (?side))
-    (member ?type (cutlery knife fork))
+    (member ?type (cutlery knife fork spatula))
     (side ?side))
 
   (<- (object-designator-grasp ?object-designator ?grasp ?sides)
@@ -177,13 +188,9 @@
   (<- (orientation-matters ?object-designator)
     (lisp-fun desig:current-desig ?object-designator ?current-object-designator)
     (or (desig:desig-prop ?current-object-designator (type knife))
-        (desig:desig-prop ?current-object-designator (type fork))))
+        (desig:desig-prop ?current-object-designator (type fork))
+        (desig:desig-prop ?current-object-designator (type spatula))))
 
-  (<- (side :right))
-  (<- (side :left))
-
-  (<- (arm ?arm)
-    (side ?arm))
 
   (<- (required-arms ?object-designator ?arms)
     (desig-prop ?object-designator (type ?object-type))

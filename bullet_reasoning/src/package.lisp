@@ -43,10 +43,10 @@
            height fov-y z-near z-far pose gl-execute-with-camera
            camera-transform look-at-object-rotation
            with-rendering-to-framebuffer render-to-framebuffer
-           get-rendering-context
-           read-pixelbuffer read-depthbuffer to-png-image add-object
-           generic-cup mug plate mondamin mesh remove-object object
-           pot bowl object-type household-object-type name rigid-bodies
+           get-rendering-context read-pixelbuffer read-depthbuffer to-png-image
+           add-object generic-cup household-object mug plate mondamin mesh
+           remove-object object pot bowl pancake-maker
+           object-type household-object-type name rigid-bodies
            rigid-body-names rigid-body world make-object box
            static-plane sphere cylinder cone point-cloud cutlery fork knife
            bt-reasoning-world invalidate-object objects object %object
@@ -65,7 +65,7 @@
            find-objects-below bullet-world object
            retract step simulate-realtime object-pose object-bottom-pose
            position orientation poses-equal contact stable
-           robot-not-in-collision-with-environment
+           object-not-in-collision ik-solution-not-in-collision
            link-contacts supported-by above below visible
            occluding-objects occluding-object valid-grasp grasp side reachable
            def-grasp def-tool object-grasp
@@ -76,7 +76,8 @@
            calculate-object-tool-length set-robot-state-from-joints
            init-ros-object-database clear-bullet-world
            ros-household-object execute open close reach-ik-solution
-           attached attached-objects object-attached attach-object detach-object
+           attached attached-objects object-attached
+           attach-object detach-object detach-all-objects
            side->ik-group-name household-object-dimensions get-ik
            make-joint-state-message open-object close-object
            set-articulated-object-joint-position
@@ -93,4 +94,4 @@
            timeline-current-world-state timeline-lookup
            holds-in-world holds occurs at
            during throughout with-timeline)
-  (:desig-properties mug mondamin plate pot handle cutlery knife fork))
+  (:desig-properties mug mondamin plate pot handle cutlery knife fork spatula))
