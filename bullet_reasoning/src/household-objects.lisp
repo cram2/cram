@@ -180,3 +180,14 @@
                             :collision-shape (make-instance 'colored-cylinder-shape
                                                :half-extents (ensure-vector size)
                                                :color color)))))
+
+(defmethod add-object ((world bt-world) (type (eql 'pancake)) name pose
+                       &key mass (color '(0.5 0.5 0.5 1.0)) size)
+  (assert size)
+  (make-household-object world name (list type)
+                         (list
+                          (make-instance 'rigid-body
+                            :name name :mass mass :pose (ensure-pose pose)
+                            :collision-shape (make-instance 'colored-cylinder-shape
+                                               :half-extents (ensure-vector size)
+                                               :color color)))))
