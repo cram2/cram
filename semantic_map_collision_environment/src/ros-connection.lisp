@@ -59,18 +59,18 @@
 (defun publish-semantic-map-collision-objects ()
   (unless (> (hash-table-count *semantic-map-obj-cache*) 0)
     (init-semantic-map-obj-cache))
-  (loop for objs being the hash-values of *semantic-map-obj-cache* do
-    (dolist (obj objs)
-      (with-slots (pose dimensions) obj
-        (let* ((obj-name (string-upcase (make-collision-obj-name obj)))
-               (pose-stamped (tf:pose->pose-stamped "map" 0.0 pose))
-               ;; NOTE(winkler): If this is too slow, use the
-               ;; ensure-transform-available function to acquire the
-               ;; transform once. Then, manually apply the transform
-               ;; to all objects in the list.
-               (pose-stamped (moveit:ensure-pose-stamped-transformed
-                              pose-stamped "odom_combined")))
-          (unless (string= obj-name "HTTP://IAS.CS.TUM.EDU/KB/KNOWROB.OWL#DRAWER_FRIDGE_UPPER-0")
+  (let ((map-to-odom-combined (moveit:ensure-transform-available
+                               "/map" "/odom_combined")))
+    (loop for objs being the hash-values of *semantic-map-obj-cache* do
+      (dolist (obj objs)
+        (with-slots (pose dimensions) obj
+          (let* ((obj-name (string-upcase (make-collision-obj-name obj)))
+                 (pose-stamped (tf:pose->pose-stamped "map" 0.0 pose))
+                 (pose-stamped
+                   (tf:pose->pose-stamped
+                    "/odom_combined" (roslisp:ros-time)
+                    (cl-transforms:transform-pose
+                     map-to-odom-combined pose-stamped))))
             (moveit:register-collision-object
              obj-name
              :primitive-shapes (list (roslisp:make-msg

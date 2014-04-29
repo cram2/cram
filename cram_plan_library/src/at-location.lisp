@@ -69,8 +69,7 @@ designator."
         (robot-location-changed-fluent (make-fluent :allow-tracing nil))
         (result-values nil)
         (pulse-thread nil)
-        (at-location-task *current-task*)
-        (max-time 10)) ;; Seconds
+        (at-location-task *current-task*))
     (flet ((set-current-location ()
              (unless (and pulse-thread
                           (sb-thread:thread-alive-p pulse-thread))

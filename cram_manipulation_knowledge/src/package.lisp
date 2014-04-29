@@ -37,4 +37,4 @@
            object-designator-tool-length end-effector-link gripper-link orientation-matters
            get-grasp-names object-shape-data-mixin object-mesh-data-mixin
            shape-type dimensions vertices faces points
-           object-point-data-mixin get-shape-message))
+           object-point-data-mixin get-shape-message gripper-link))
