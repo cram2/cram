@@ -28,7 +28,7 @@
 
 (in-package :cram-manipulation-knowledge)
 
-(def-fact-group arms (arm required-arms available-arms end-effector-link)
+(def-fact-group arms (arm required-arms available-arms end-effector-link gripper-link)
   ;; Unifies ?side with the name of an arm that is present on the
   ;; current robot.
   (<- (arm ?arm)
@@ -46,4 +46,8 @@
 
   ;; Defines end-effector links for arms.
   (<- (end-effector-link ?arm ?link-name)
+    (fail))
+
+  ;; Defines links of the grippers of the robot
+  (<- (gripper-link ?arm ?link)
     (fail)))
