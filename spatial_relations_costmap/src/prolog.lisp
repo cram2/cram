@@ -301,21 +301,21 @@
   (<- (desig-solution-not-in-collision ?desig ?object-to-check ?pose)
     (bullet-world ?world)
     (with-copied-world ?world
+
       (object-instance-name ?object-to-check ?object-name)
-      (assert (object-pose ?world ?object-name ?pose))
-      (forall ;; (contact ?world ?object-name ?other-object-name ?link)
-       (contact ?world ?object-name ?other-object-name)
-              (and
-               (object-type ?world ?other-object-name ?type)
-               (or
-               ;; ToDo The following doesn't work because collisions are only detected
-               ;; with an object called my-semantic-map, not the links of it.
-               ;; (and (lisp-fun sem-map-utils:designator->semantic-map-objects
-               ;;                ?desig ?supp-objects)
-               ;;      (member ?other-object-name ?supp-objects))
-                (object-type ?world ?other-object-name btr::semantic-map-object)
-                (and (robot ?other-object-name)
-                     (attached ?world ?other-object-name ?_ ?object-name))))))))
+      (object ?world ?object-name)
+      (%object ?world ?object-name ?object-instance)
+
+      (lisp-fun aabb ?object-instance ?aabb)
+      (lisp-fun cl-bullet:bounding-box-dimensions ?aabb ?dimensions)
+      (lisp-fun cl-transforms:z ?dimensions ?height)
+      (lisp-fun / ?height 2 ?offset)
+
+      (lisp-fun add-z-offset-to-pose ?pose ?offset ?new-pose)
+
+      (assert (object-pose ?world ?object-name ?new-pose))
+      (forall (contact ?world ?object-name ?other-object-name)
+              (not (object-type ?world ?other-object-name btr::household-object))))))
 
 
 (def-fact-group relations-lookup-table ()
