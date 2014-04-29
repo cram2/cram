@@ -76,10 +76,10 @@
     (lisp-fun set-joint-state ?robot ?pan-joint ?pan-pos ?_)
     (lisp-fun set-joint-state ?robot ?tilt-joint ?tilt-pos ?_))
 
-  (<- (joint-state ?world ?robot-name ?state)
+  (<- (joint-state ?world ?robot-name ?joint-name ?state)
     (bullet-world ?world)
     (%object ?world ?robot-name ?robot)
-    (lisp-fun joint-state ?robot ?state))
+    (lisp-fun joint-state ?robot ?joint-name ?state))
 
   (<- (assert ?world (joint-state ?robot-name ?joint-states))
     (bullet-world ?world)
