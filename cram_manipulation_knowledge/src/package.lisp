@@ -34,7 +34,7 @@
            def-grasp def-tool get-grasp get-grasps calculate-bounding-box-tool-length
            get-tool-direction-vector get-tool-length get-tool-vector calculate-tool
            object-type-grasp object-designator-grasp object-type-tool-length
-           object-designator-tool-length end-effector-link orientation-matters
+           object-designator-tool-length end-effector-link gripper-link orientation-matters
            get-grasp-names object-shape-data-mixin object-mesh-data-mixin
            shape-type dimensions vertices faces points
            object-point-data-mixin get-shape-message))
