@@ -59,49 +59,6 @@
           when (equal joint-name n)
             do (return p))))
 
-(defun get-joint-names (side)
-  (roslisp:with-fields ((joint-names (joint_names kinematic_solver_info)))
-      (cpl-impl:without-scheduling
-        (roslisp:call-service
-         (concatenate
-          'string
-          (ecase side
-            (:right *ik-right-ns*)
-            (:left *ik-left-ns*))
-          "/get_ik_solver_info")
-         "kinematics_msgs/GetKinematicSolverInfo"))
-    joint-names))
-
-(defun get-arm-state (side)
-  "Returns the state of one arm specified by `side', i.e. joint-names,
-current joint-values, lower joint limits, and upper joint limits -each
-as a vector. "
-  (let ((current (make-hash-table :test 'equal))
-        (lower (make-hash-table :test 'equal))
-        (upper (make-hash-table :test 'equal))
-        (joint-state *joint-state*))
-    (roslisp:with-fields ((joint-names (joint_names kinematic_solver_info))
-                          (limits (limits kinematic_solver_info)))
-        (cpl-impl:without-scheduling
-          (roslisp:call-service
-           (concatenate
-            'string
-            (ecase side
-              (:right *ik-right-ns*)
-              (:left *ik-left-ns*))
-            "/get_ik_solver_info")
-           "kinematics_msgs/GetKinematicSolverInfo"))
-      (map nil (lambda (limit joint-name)
-                 (roslisp:with-fields ((min min_position)
-                                       (max max_position))
-                     limit
-                   (setf (gethash joint-name lower) min)
-                   (setf (gethash joint-name upper) max)
-                   (setf (gethash joint-name current)
-                         (get-joint-position joint-state joint-name))))
-           limits joint-names)
-      (values joint-names current lower upper))))
-
 (defun make-seed-states (side joint-names &optional (steps 3))
   "Creates a lazy list of seed states. `steps' indicates how many
 steps should be used for going from joint angle minimum to
@@ -251,86 +208,6 @@ parameter and returns the distance for each of these."
                             names-to positions-to arm
                             :target-links (vector target-link))
         :test 'equal)))
-
-(defun available-fk-links-for-arm (arm)
-  (case arm
-    (:left (list "l_shoulder_pan_link"
-                 "l_shoulder_lift_link"
-                 "l_upper_arm_roll_link"
-                 "l_upper_arm_link"
-                 "l_elbow_flex_link"
-                 "l_forearm_roll_link"
-                 "l_forearm_link"
-                 "l_wrist_flex_link"
-                 "l_wrist_roll_link"))
-    (:right (list "r_shoulder_pan_link"
-                  "r_shoulder_lift_link"
-                  "r_upper_arm_roll_link"
-                  "r_upper_arm_link"
-                  "r_elbow_flex_link"
-                  "r_forearm_roll_link"
-                  "r_forearm_link"
-                  "r_wrist_flex_link"
-                  "r_wrist_roll_link"))))
-
-(defun available-fk-links ()
-  "Returns the usable forward kinematics links as returned by the
-service `get_fk_solver_info'."
-  (concatenate 'vector
-               (available-fk-links-for-arm :left)
-               (available-fk-links-for-arm :right)))
-
-(defun available-fk-joints-for-arm (arm)
-  (roslisp:with-fields (kinematic_solver_info)
-      (roslisp:call-service
-       (concatenate
-        'string
-        (ecase arm
-          (:right *ik-right-ns*)
-          (:left *ik-left-ns*))
-        "/get_fk_solver_info")
-       'kinematics_msgs-srv:getkinematicsolverinfo)
-    (roslisp:with-fields (joint_names limits link_names)
-        kinematic_solver_info
-      (declare (ignore link_names limits))
-      joint_names)))
-
-(defun available-fk-joints ()
-  "Returns the usable forward kinematics joints as returned by the
-service `get_fk_solver_info'."
-  (concatenate 'vector
-               (available-fk-joints-for-arm :left)
-               (available-fk-joints-for-arm :right)))
-
-(defun resulting-fk-state (names positions)
-  "Forms the resulting set of possible forward kinematics joints and
-the joints given in the `names' vector. Returns a multiple bound value
-list consisting of all FK joint names, the given positions in
-`positions' (or 0 if the joint is not specified in `names') and two
-vectors holding the value `0' for each joint's velocity and
-acceleration."
-  (let ((jts-names nil)
-        (jts-positions nil)
-        (jts-velocities nil)
-        (jts-accels nil)
-        (avail-jts (available-fk-joints)))
-    (loop for joint across avail-jts
-          do (let* ((pos (position joint names :test 'equal))
-                    (val (cond (pos (elt positions pos))
-                               (t 0.0))))
-               (setf jts-names (concatenate 'vector
-                                            jts-names
-                                            (vector joint)))
-               (setf jts-positions (concatenate 'vector
-                                                jts-positions
-                                                (vector val)))
-               (setf jts-velocities (concatenate 'vector
-                                                 jts-velocities
-                                                 (vector 0)))
-               (setf jts-accels (concatenate 'vector
-                                             jts-accels
-                                             (vector 0)))))
-    (values jts-names jts-positions jts-velocities jts-accels)))
 
 (defun get-positions-from-trajectory (trajectory &key (index 0))
   "Extracts the positions field of a given trajectory-point index from
