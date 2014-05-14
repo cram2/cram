@@ -77,6 +77,8 @@
     (object-name gripper-effort gripper-close-pos side pregrasp-pose safe-pose))
 (define-hook on-execute-grasp-gripper-positioned-for-grasp
     (object-name gripper-effort gripper-close-pos side pregrasp-pose safe-pose))
+(define-hook on-execute-grasp-pregrasp-reached
+    (object-name gripper-effort gripper-close-pos side pregrasp-pose safe-pose))
 
 (defun execute-grasp (&key object-name
                         object-pose
@@ -119,6 +121,8 @@
     grasp. This might cause the grasping to fail because of a
     misleading collision environment configuration."))
       (when object-name (moveit:remove-collision-object object-name))
+      (on-execute-grasp-pregrasp-reached
+       object-name gripper-effort gripper-close-pos side pregrasp-pose safe-pose)
       (ros-info (pr2 grasp) "Executing grasp for side ~a~%" side)
       (cpl:with-failure-handling
           ((manipulation-failed (f)
@@ -131,9 +135,9 @@
                (moveit:add-collision-object object-name))
              (cpl:fail 'manipulation-pose-unreachable)))
         (execute-move-arm-pose side grasp-pose :ignore-collisions t))
-      (ros-info (pr2 grasp) "Closing gripper")
       (on-execute-grasp-gripper-positioned-for-grasp
        object-name gripper-effort gripper-close-pos side pregrasp-pose safe-pose)
+      (ros-info (pr2 grasp) "Closing gripper")
       (close-gripper side :max-effort gripper-effort
                           :position gripper-close-pos)
       (on-execute-grasp-gripper-closed
