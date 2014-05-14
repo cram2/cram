@@ -46,8 +46,6 @@
                std_srvs-srv
                alexandria
                semantic-map-collision-environment
-               object_manipulation_msgs-msg
-               object_manipulation_msgs-srv
                pr2_gripper_sensor_msgs-msg
                arm_navigation_msgs-srv
                pr2_mechanism_msgs-srv
