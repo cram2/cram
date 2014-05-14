@@ -67,26 +67,6 @@
         (actionlib:make-action-client
          "/r_gripper_controller/gripper_action"
          "pr2_controllers_msgs/Pr2GripperCommandAction"))
-  (setf *gripper-grab-action-left*
-        (actionlib:make-action-client
-         "/l_gripper_sensor_controller/grab"
-         "pr2_gripper_sensor_msgs/PR2GripperGrabAction"))
-  (setf *gripper-grab-action-right*
-        (actionlib:make-action-client
-         "/r_gripper_sensor_controller/grab"
-         "pr2_gripper_sensor_msgs/PR2GripperGrabAction"))
-  (setf *trajectory-action-left*
-        (actionlib:make-action-client
-         "/l_arm_controller/joint_trajectory_generator"
-         "pr2_controllers_msgs/JointTrajectoryAction"))
-  (setf *trajectory-action-right*
-        (actionlib:make-action-client
-         "/r_arm_controller/joint_trajectory_generator"
-         "pr2_controllers_msgs/JointTrajectoryAction"))
-  (setf *trajectory-action-both*
-        (actionlib:make-action-client
-         "/both_arms_controller/joint_trajectory_action"
-         "pr2_controllers_msgs/JointTrajectoryAction"))
   (setf *trajectory-action-torso*
         (actionlib:make-action-client
          "/torso_controller/joint_trajectory_action"
@@ -130,7 +110,9 @@
                  "l_gripper_l_finger_tip_link"
                  "l_gripper_motor_slider_link"
                  "l_gripper_motor_screw_link"
-                 "l_gripper_palm_link"))
+                 "l_gripper_palm_link"
+                 "l_force_torque_link"
+                 "l_force_torque_adapter_link"))
     (:right (list "r_gripper_palm_link"
                   "r_shoulder_pan_link"
                   "r_shoulder_lift_link"
@@ -215,8 +197,7 @@
                 planning-group pose-stamped
                 :ignore-collisions ignore-collisions
                 :allowed-collision-objects allowed-collision-objects
-                :touch-links (when allowed-collision-objects
-                               (links-for-arm-side side)))
+                :touch-links (links-for-arm-side side))
                (on-finish-move-arm log-id t)
                (plan-knowledge:on-event
                 (make-instance 'plan-knowledge:robot-state-changed)))

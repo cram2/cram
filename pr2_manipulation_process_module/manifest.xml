@@ -20,7 +20,6 @@
   <depend package="std_srvs" />
   <depend package="alexandria" />
   <depend package="semantic_map_collision_environment" />
-  <depend package="pr2_gripper_sensor_msgs" />
   <depend package="pr2_mechanism_msgs" />
   <depend package="pr2_manipulation_knowledge" />
   <depend package="cram_moveit" />
