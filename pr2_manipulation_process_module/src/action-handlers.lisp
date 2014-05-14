@@ -121,16 +121,6 @@
   (force-ll arms)
   (cond ((eql (length arms) 1)
          (lift-grasped-object-with-one-arm (first arms) distance))
-        ;; TODO(Georg): the next cases is actually deprecated because
-        ;; it still relies on the :both arms setup
-        
-        ;; NOTE(winkler): Apparently it is replaced by a `(par'
-        ;; solution already. Nevertheless, it should be extended to be
-        ;; more general and support `n' arms when lifting (although we
-        ;; only have :left and :right on the PR2). This current
-        ;; solution works great, though.
-        ((> (length arms) 1)
-         (lift-grasped-object-with-both-arms distance))
         (t (error 'simple-error :format-control "No arms for lifting inferred."))))
 
 (define-hook on-begin-grasp (obj-desig))
@@ -206,22 +196,6 @@
                 (perform-grasp object grasp-assignment pregrasp-offset grasp-offset)
                 (success))))
     (cpl:fail 'manipulation-pose-unreachable)))
-
-  ;;   (ros-info (pr2 grasp) "Beginning grasp action handler")
-  ;; (unless (lazy-car lazy-grasp-assignment)
-  ;;   (cpl:fail 'manipulation-pose-unreachable))
-  ;; (let ((obj (desig:newest-effective-designator object)))
-  ;;   (cpl:with-failure-handling
-  ;;       ((cram-plan-failures:manipulation-pose-unreachable (f)
-  ;;          (declare (ignore f))
-  ;;          (when lazy-grasp-assignment
-  ;;            (setf lazy-grasp-assignment (lazy-cdr lazy-grasp-assignment))
-  ;;            (cpl:retry))))
-  ;;     (let ((grasp-assignment (var-value '?grasp-assignment
-  ;;                                        (lazy-car lazy-grasp-assignment))))
-  ;;       (when (eql grasp-assignment '?grasp-assignment)
-  ;;         (cpl:fail 'manipulation-pose-unreachable))
-  ;;       (ros-info (pr2 grasp) "Trying out grasp")
         
 (defun perform-lazy-grasps (obj avail-arms pregrasp-offset grasp-offset &key reorient-object)
   (let* ((ga-prolog (crs:prolog `(grasp-handle-assignment ;; optimal-handle-grasp
@@ -439,24 +413,3 @@ for the currently type of grasped object."
                         :link ?link-name
                         :side side)))))
       (on-finish-putdown log-id success))))
-
-(defun calculate-putdown-arm-pose (obj-pose rel-arm-pose)
-  (let* ((inv-rel-trafo (tf:make-transform
-                         (tf:v- (tf:make-identity-vector)
-                                (tf:origin rel-arm-pose))
-                         (tf:q- (tf:make-identity-rotation)
-                                (tf:orientation rel-arm-pose))))
-         (arm-pose (cl-transforms:transform-pose
-                    (tf:make-transform (tf:origin obj-pose)
-                                       (tf:make-identity-rotation))
-                    (cl-transforms:transform-pose
-                     (tf:make-transform (tf:make-identity-vector)
-                                        (tf:orientation obj-pose))
-                     (tf:transform->pose inv-rel-trafo))))
-         (arm-pose-stamped (tf:pose->pose-stamped
-                            (tf:frame-id obj-pose)
-                            (ros-time)
-                            arm-pose)))
-    (publish-pose obj-pose "/objputdownpose")
-    (publish-pose arm-pose-stamped "/objputdownposearm")
-    arm-pose-stamped))
