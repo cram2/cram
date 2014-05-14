@@ -40,7 +40,6 @@
                pr2_controllers_msgs-msg
                pr2_msgs-msg
                pr2_msgs-srv
-               kinematics_msgs-srv
                trivial-garbage
                std_srvs-srv
                alexandria
