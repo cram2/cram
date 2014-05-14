@@ -56,9 +56,7 @@
           (moveit:ensure-pose-stamped-transformed
            pose-stamped "/base_link" :ros-time t)))
     (let* ((point-stamped-msg (pose-stamped->point-stamped-msg
-                               (tf:copy-pose-stamped
-                                pose-stamped
-                                :stamp (roslisp:ros-time)))))
+                               pose-stamped)))
       (roslisp:make-message
        "pr2_controllers_msgs/PointHeadGoal"
        max_velocity 10
