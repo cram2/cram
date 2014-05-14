@@ -32,10 +32,14 @@
     attach-object ((event plan-knowledge:object-attached))
   (with-slots ((object plan-knowledge:object)
                (side plan-knowledge:side)) event
-    (attach-collision-object side object)))
+    ;; TODO(winkler): Attaching objects does here. Currently done in
+    ;; the motion library.
+    ))
 
 (defmethod plan-knowledge:on-event
     detach-object ((event plan-knowledge:object-detached))
   (with-slots ((object plan-knowledge:object)
                (side plan-knowledge:side)) event
-    (attach-collision-object side object)))
+    ;; TODO(winkler): Detaching objects does here. Currently done in
+    ;; the motion library.
+    ))
