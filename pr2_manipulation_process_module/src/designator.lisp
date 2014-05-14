@@ -152,14 +152,14 @@
   (<- (arm-for-pose ?pose ?arm)
     (lisp-fun arm-for-pose ?pose ?arm))
   
-  (<- (action-desig ?desig (grasp ?current-obj ?available-arms ?grasp-type))
+  (<- (action-desig ?desig (grasp ?current-obj ?available-arms))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to grasp))
     (desig-prop ?desig (obj ?obj))
     (current-designator ?obj ?current-obj)
     (or (desig-prop ?obj (desig-props:grasp-type ?grasp-type))
         (desig-prop ?desig (desig-props:grasp-type ?grasp-type))
-        (equal ?grasp-type nil))
+        (equal ?grasp-type desig-props:push))
     (handles ?current-obj ?handles)
     (or (and (desig-prop ?current-obj (side ?arm))
              (available-arms ?current-obj ?available-arms (?arm)))
@@ -235,7 +235,14 @@
   (<- (grasped-object-part ?obj ?part)
     (or (grasped-object-handle ?obj ?part)
         (equal ?obj ?part)))
+  
+  (<- (grasp-type ?obj ?grasp-type)
+    (current-designator ?obj ?current)
+    (desig-prop ?current (desig-props:grasp-type ?grasp-type)))
 
+  (<- (grasp-type ?_ ?grasp-type)
+    (equal ?grasp-type desig-props:push))
+  
   (<- (action-desig ?desig (put-down ?current-obj ?loc ?grasp-assignments ?grasp-type))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to put-down))
