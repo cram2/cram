@@ -28,17 +28,6 @@
 
 (in-package :pr2-manipulation-process-module)
 
-(defparameter *ik-left-ns* "/pr2_left_arm_kinematics")
-(defparameter *ik-right-ns* "/pr2_right_arm_kinematics")
-
-(defvar *joint-state* nil)
-
-(defgeneric designator->graspable-object (designator reference-frame)
-  (:documentation "Returns an instance of type
-  `object_manipulation_msgs/GraspableObject' for the object designator
-  `designator'. `reference-frame' is the frame the graspable object
-  should be in."))
-
 (defun seq-member (item sequence)
   (some (lambda (s)
           (equal item s))
@@ -51,13 +40,6 @@
                        (lazy-mapcar (lambda (x) (cons e x)) cp))
                      (car sets)))
       (list nil)))
-
-(defun get-joint-position (state joint-name)
-  (roslisp:with-fields (name position) state
-    (loop for n across name
-          for p across position
-          when (equal joint-name n)
-            do (return p))))
 
 (defun make-seed-states (side joint-names &optional (steps 3))
   "Creates a lazy list of seed states. `steps' indicates how many
@@ -97,54 +79,6 @@ are used for each joint."
                                                        (- steps 1))))))
                             (list (gethash name current)))))))))
 
-(defun calculate-put-down-pose (obj location)
-  (let ((object-goal-transform (calc-goal-transform-for-picked-object obj location)))
-    (let* ((obj-loc (current-desig (desig-prop-value (current-desig obj) 'at)))
-           (obj-in-gripper (desig-prop-value obj-loc 'pose))
-           (goal-trans (cl-transforms:transform*
-                        object-goal-transform
-                        (cl-transforms:transform-inv
-                         (cl-transforms:reference-transform obj-in-gripper)))))
-      (tf:make-pose-stamped
-       "/base_footprint" (tf:stamp (reference (current-desig location)))
-       (cl-transforms:translation goal-trans)
-       (cl-transforms:rotation goal-trans)))))
-
-(defun grasp-orientation-valid (pose good bad)
-  "Returns T if `pose' has an orientation that is closer to an
-  orientation in `good' than to an orientation in `bad'. Returns NIL
-  otherwise."
-  (labels ((find-closest-angle (rot rotations &optional closest)
-             (let ((angle (and rotations
-                               (cl-transforms:angle-between-quaternions
-                                rot (car rotations)))))
-               (cond ((not rotations)
-                      closest)
-                     ((or (not closest) (< angle closest))
-                      (find-closest-angle rot (cdr rotations) angle))
-                     (t (find-closest-angle rot (cdr rotations) closest))))))
-    (let ((pose-in-base (tf:transform-pose
-                         *tf* :pose pose
-                              :target-frame "/base_footprint")))
-      (< (find-closest-angle (cl-transforms:orientation pose-in-base)
-                             good)
-         (find-closest-angle (cl-transforms:orientation pose-in-base)
-                             bad)))))
-
-(defun calculate-carry-orientation (obj side orientations)
-  "Returns a top orientation when object has been grasped from the top
-and a side orientation otherwise."
-  (declare (ignore orientations))
-  (when obj
-    (let* ((hand-orientation (cl-transforms:rotation
-                              (tf:lookup-transform
-                               *tf*  
-                               :source-frame (ecase side
-                                               (:right "r_wrist_roll_link")
-                                               (:left "l_wrist_roll_link"))
-                               :target-frame "/base_footprint"))))
-      hand-orientation)))
-
 (defun get-gripper-state (side)
   "Returns the position of the gripper. 0 indicates a completely
 closed gripper."
@@ -152,12 +86,6 @@ closed gripper."
                       (:right "r_gripper_joint")
                       (:left "l_gripper_joint"))))
     (cram-moveit:get-joint-value joint-name)))
-
-(defun get-gripper-links (side)
-  "Returns the names of the gripper's links."
-  (roslisp:get-param (ecase side
-                       (:right "/hand_description/right_arm/hand_touch_links")
-                       (:left "/hand_description/left_arm/hand_touch_links"))))
 
 (defun euclidean-distance-for-link (names-from positions-from names-to
                                     positions-to arm target-link)
@@ -175,16 +103,6 @@ parameter and returns the distance for each of these."
                             names-to positions-to arm
                             :target-links (vector target-link))
         :test 'equal)))
-
-(defun get-positions-from-trajectory (trajectory &key (index 0))
-  "Extracts the positions field of a given trajectory-point index from
-a given trajectory. The result is a sequence and consists of the joint
-angles in the same order as the names-field define in the same
-trajectory."
-  (roslisp:with-fields (points) trajectory
-    (let ((point (elt points index)))
-      (roslisp:with-fields (positions) point
-        positions))))
 
 (defun joint-state-distance (names-from positions-from names-to
                              positions-to)
