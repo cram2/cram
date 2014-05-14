@@ -145,15 +145,6 @@ and a side orientation otherwise."
                                :target-frame "/base_footprint"))))
       hand-orientation)))
 
-(defun get-robot-state ()
-  "Returns the current joint state of the robot"
-  (roslisp:with-fields ((joint-state (joint_state robot_state)))
-    (cpl-impl:without-scheduling
-        (roslisp:call-service
-         "/environment_server/get_robot_state"
-         "arm_navigation_msgs/GetRobotState"))
-    joint-state))
-
 (defun get-gripper-state (side)
   "Returns the position of the gripper. 0 indicates a completely
 closed gripper."
@@ -167,30 +158,6 @@ closed gripper."
   (roslisp:get-param (ecase side
                        (:right "/hand_description/right_arm/hand_touch_links")
                        (:left "/hand_description/left_arm/hand_touch_links"))))
-
-(defun make-collision-operations (side &optional allowed-collision-objects)
-  "Returns an instance of type
-`arm_navigation_msgs/OrderedCollisionOperations' and allows
-collisions beteen the gripper and
-`collision-objects'. `collision-objects' is a list of either strings
-or designators."
-  (roslisp:make-msg
-   "arm_navigation_msgs/OrderedCollisionOperations"
-   collision_operations
-   (map 'vector #'identity
-        (mapcan
-         (lambda (obj)
-           (mapcar (lambda (gripper-link)
-                     (roslisp:make-msg
-                      "arm_navigation_msgs/CollisionOperation"
-                      object1 gripper-link
-                      object2 (etypecase obj
-                                (string obj)
-                                (object-designator (get-collision-object-name obj)))
-                      operation 0
-                      penetration_distance 0.1))
-                   (get-gripper-links side)))
-         allowed-collision-objects))))
 
 (defun euclidean-distance-for-link (names-from positions-from names-to
                                     positions-to arm target-link)
