@@ -368,12 +368,18 @@ for the currently type of grasped object."
                               (declare (ignore f))
                               (cpl:fail
                                'cram-plan-failures:manipulation-pose-unreachable)))
-                         (let ((link-name (ecase side
-                                            (:left "l_wrist_roll_link")
-                                            (:right "r_wrist_roll_link")))
-                               (planning-group (ecase side
-                                                 (:left "left_arm")
-                                                 (:right "right_arm"))))
+                         (let ((link-name
+                                 (cut:var-value
+                                  '?link
+                                  (first
+                                   (crs:prolog
+                                    `(manipulator-link ,side ?link)))))
+                               (planning-group
+                                 (cut:var-value
+                                  '?group
+                                  (first
+                                   (crs:prolog
+                                    `(planning-group ,side ?group))))))
                            (cond ((moveit:plan-link-movements
                                    link-name planning-group
                                    `(,pre-putdown-pose

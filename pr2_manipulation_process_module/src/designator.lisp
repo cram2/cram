@@ -36,11 +36,19 @@
           collect item))
 
 (defun arm-for-pose (pose)
-  (let ((frame (tf:frame-id pose)))
-    (cond ((string= frame "/r_wrist_roll_link") :right)
-          ((string= frame "/l_wrist_roll_link") :left))))
+  (let* ((pose-frame (tf:frame-id pose))
+         (string-frame
+           (or (when (and (> (length pose-frame) 0)
+                          (string= (subseq pose-frame 0 1) "/"))
+                 (subseq pose-frame 1))
+               pose-frame)))
+    (cut:var-value
+     '?side
+     (first (crs:prolog `(manipulator-link ?side ,string-frame))))))
 
-(def-fact-group pr2-manipulation-designators (action-desig)
+(def-fact-group pr2-manipulation-designators (action-desig
+                                              available-arms
+                                              flatten)
 
   (<- (flatten ?list-of-lists ?list)
     (lisp-fun alexandria:flatten ?list-of-lists ?list))
