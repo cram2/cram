@@ -41,9 +41,9 @@
                                   manipulator-identity-orientation
                                   planning-group)
 
-  (<- (manipulator-link :left "l_gripper_palm_link"))
+  (<- (manipulator-link :left "l_wrist_roll_link"))
   
-  (<- (manipulator-link :right "r_gripper_palm_link"))
+  (<- (manipulator-link :right "r_wrist_roll_link"))
   
   (<- (planning-group :left "left_arm"))
   
