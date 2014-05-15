@@ -237,9 +237,11 @@ configuration."
             offset-pose)))
     (let ((costme
             (loop for arm in arms
-                  for target-link = (ecase arm
-                                      (:left "l_wrist_roll_link")
-                                      (:right "r_wrist_roll_link"))
+                  for target-link = (cut:var-value
+                                     '?link
+                                     (first
+                                      (crs:prolog
+                                       `(manipulator-link ,arm ?link))))
                   for pose-offsetted = (apply-pose-offset
                                         pose arms-offset-pose)
                   for pose-stamped = (tf:make-pose-stamped

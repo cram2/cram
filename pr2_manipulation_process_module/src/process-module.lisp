@@ -139,12 +139,16 @@
                   (append allowed-collision-objects
                           (links-for-arm-side side)))
                  (t allowed-collision-objects)))
-         (link-name (ecase side
-                      (:left "l_wrist_roll_link")
-                      (:right "r_wrist_roll_link")))
-         (planning-group (ecase side
-                           (:left "left_arm")
-                           (:right "right_arm"))))
+         (link-name (cut:var-value
+                     '?link
+                     (first
+                      (crs:prolog
+                       `(manipulator-link ,side ?link)))))
+         (planning-group (cut:var-value
+                          '?group
+                          (first
+                           (crs:prolog
+                            `(planning-group ,side ?group))))))
     (let ((log-id (first (on-prepare-move-arm
                           link-name pose-stamped
                           planning-group ignore-collisions))))
@@ -302,9 +306,11 @@ its' supporting plane."
                            (pose ,(tf:copy-pose-stamped
                                    (cl-tf:transform-pose
                                     *tf* :pose obj-pose
-                                         :target-frame (ecase side
-                                                         (:right "/r_wrist_roll_link")
-                                                         (:left "/l_wrist_roll_link")))
+                                         :target-frame (cut:var-value
+                                                        '?link
+                                                        (first
+                                                         (crs:prolog
+                                                          `(manipulator-link ,side ?link)))))
                                    :stamp 0.0))
                            (height ,height)
                            (orientation ,(cl-transforms:orientation obj-pose))))))

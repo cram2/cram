@@ -50,9 +50,12 @@
   (let ((gripper-effort (or (first (on-execute-grasp-with-effort
                                     object-name))
                             gripper-effort)))
-    (let ((link-frame (ecase side
-                        (:left "l_wrist_roll_link")
-                        (:right "r_wrist_roll_link")))
+    (let ((link-frame
+            (cut:var-value
+             '?link
+             (first
+              (crs:prolog
+               `(manipulator-link ,side ?link)))))
           (allowed-collision-objects (append
                                       allowed-collision-objects
                                       (list object-name))))
@@ -179,9 +182,11 @@
     (ros-info (pr2 putdown) "Opening gripper")
     (open-gripper side :max-effort 50.0 :position gripper-open-pos)
     (moveit:detach-collision-object-from-link
-     object-name (ecase side
-                   (:left "l_wrist_roll_link")
-                   (:right "r_wrist_roll_link")))
+     object-name (cut:var-value
+                  '?link
+                  (first
+                   (crs:prolog
+                    `(manipulator-link ,side ?link)))))
     (ros-info (pr2 putdown) "Executing unhand for side ~a~%" side)
     (let ((ignore-collisions nil))
       (cpl:with-failure-handling
@@ -204,9 +209,11 @@
 (defun lift-grasped-object-with-one-arm (side distance)
   "Executes a lifting motion with the `side' arm which grasped the
 object in order to lift it at `distance' form the supporting plane"
-  (let* ((frame-id (ecase side
-                     (:right "r_wrist_roll_link")
-                     (:left "l_wrist_roll_link")))
+  (let* ((frame-id (cut:var-value
+                    '?link
+                    (first
+                     (crs:prolog
+                      `(manipulator-link ,side ?link)))))
          (raised-arm-pose
            (moveit:ensure-pose-stamped-transformed
             (tf:make-pose-stamped frame-id (ros-time)
