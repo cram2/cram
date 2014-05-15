@@ -251,9 +251,6 @@ configuration."
                   for publ = (publish-pose pose-stamped "/testpublisher2")
                   for distance = (reaching-length
                                   pose-stamped arm
-                                  :constraint-aware constraint-aware
-                                  :calc-euclidean-distance t
-                                  :euclidean-target-link target-link
                                   :allowed-collision-objects
                                   allowed-collision-objects
                                   :highlight-links highlight-links)

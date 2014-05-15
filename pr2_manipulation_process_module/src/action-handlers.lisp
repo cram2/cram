@@ -303,11 +303,6 @@ for the currently type of grasped object."
          (unhand-offset (cond ((eql grasp-type 'desig-props:top-slide-down)
                                *unhand-top-slide-down-offset*)
                               (t *unhand-offset*))))
-    (format t "Made putdown pose: ~a~%" putdown-pose-pure)
-    (format t "From location: ~a~%" location)
-    (format t "Having preputdown pose: ~a~%" pre-putdown-offset)
-    (format t "Having putdown pose: ~a~%" putdown-offset)
-    (format t "Having unhand pose: ~a~%" unhand-offset)
     (unwind-protect
          (progn
            (cpl:with-failure-handling
@@ -320,9 +315,8 @@ for the currently type of grasped object."
                                                    putdown-orientations)))
                     (putdown-pose (orient-pose putdown-pose-pure
                                                orientation-offset)))
-               (format t "Resulting putdown pose: ~a~%" putdown-pose)
                (publish-pose putdown-pose "/putdownpose")
-               (cpl:par-loop (grasp-assignment grasp-assignments)
+               (let ((grasp-assignment (first grasp-assignments)))
                  (flet ((target-gripper-pose (object-in-gripper-pose
                                               target-object-pose)
                           (let* ((object-in-gripper
