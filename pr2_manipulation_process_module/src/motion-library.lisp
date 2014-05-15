@@ -237,16 +237,5 @@ object in order to lift it at `distance' form the supporting plane"
                            (cl-transforms:transform-pose
                             (cl-transforms:pose->transform pose)
                             pose-offset))))
-      (unless (tf:wait-for-transform
-               *tf*
-               :source-frame (tf:frame-id pose)
-               :target-frame target-frame
-               :time stamp
-               :timeout 5.0)
-        (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))
-      (cond ((string= (tf:frame-id pose) target-frame)
-             (tf:transform-pose
-              *tf*
-              :pose pose-offsetted
-              :target-frame target-frame))
-            (t pose-offsetted)))))
+      (moveit:ensure-pose-stamped-transformed
+       pose-offsetted target-frame :ros-time t))))
