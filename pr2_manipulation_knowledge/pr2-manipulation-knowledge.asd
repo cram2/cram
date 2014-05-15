@@ -40,4 +40,5 @@
     :components
     ((:file "package")
      (:file "semantic-map" :depends-on ("package"))
+     (:file "kinematics" :depends-on ("package"))
      (:file "pick-and-place" :depends-on ("package"))))))
