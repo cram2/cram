@@ -40,6 +40,9 @@
         #:cram-plan-knowledge
         #:cram-manipulation-knowledge)
   (:import-from alexandria ignore-some-conditions)
+  (:import-from pr2-manipulation-knowledge
+                manipulator-link
+                planning-group)
   (:import-from roslisp ros-info ros-warn ros-error ros-time)
   (:export pr2-manipulation-process-module
            wait-for-controller)
