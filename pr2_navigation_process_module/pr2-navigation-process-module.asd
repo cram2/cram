@@ -31,7 +31,7 @@
   :author "Lorenz Moesenlechner"
   :license "BSD"
 
-  :depends-on (actionlib
+  :depends-on (actionlib-lisp
                process-modules
                designators
                roslisp-utilities
@@ -39,6 +39,7 @@
                cram-roslisp-common
                cram-plan-failures
                cram-plan-knowledge
+               cram_moveit
                move_base_msgs-msg)
   :components
   ((:module "src"
