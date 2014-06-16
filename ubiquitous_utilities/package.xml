@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<package>
+  <name>ubiquitous_utilities</name>
+  <version>0.0.0</version>
+  <description>Utilities and external utility interfaces for global use in CRAM</description>
+
+  <license>BSD</license>
+  
+  <maintainer email="winkler@cs.uni-bremen.de">Jan Winkler</maintainer>
+  <author email="winkler@cs.uni-bremen.de">Jan Winkler</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+</package>
