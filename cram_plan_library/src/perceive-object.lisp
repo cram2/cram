@@ -38,7 +38,7 @@
                                                 (obj ,?obj-desig)))))
     (with-retry-counters ((movement-retries 3))
       (with-failure-handling
-          ((object-not-found (e)
+          (((or location-not-reached-failure object-not-found) (e)
              (declare (ignore e))
              (ros-warn (perceive plan-lib) "Object not found failure.")
              (do-retry movement-retries
