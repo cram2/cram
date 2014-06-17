@@ -30,21 +30,31 @@
 
 (defparameter *utility-functions* (make-hash-table))
 
-;;
-;; Generic utility functions
-;;
+(define-condition utility-function-unknown ()
+  ((requested-symbol :initform nil :initarg :requested-symbol :reader requested-symbol))
+  (:documentation "A utility function was requested for execution that was not registered before.")
+  (:report (lambda (condition stream)
+             (format stream "Tried to execute a non-registered utility function: ~a"
+                     (requested-symbol condition)))))
 
-(defun register-utility-function (symbol utility-function)
-  (setf (gethash symbol *utility-functions*) utility-function))
+;;;
+;;; Generic utility functions
+;;;
+
+(defun register-utility-function (symbol utility-function &key (overwrite t))
+  (let ((present (gethash symbol *utility-functions*)))
+    (when (or (not present) (and present overwrite))
+      (setf (gethash symbol *utility-functions*) utility-function))))
 
 (defun apply-utility-function (symbol &rest parameters)
-  (cond (parameters (apply (gethash symbol *utility-functions*)
-                           (first parameters) (rest parameters)))
-        (t (funcall (gethash symbol *utility-functions*)))))
+  (let ((fnc (gethash symbol *utility-functions*)))
+    (unless fnc (error 'utility-function-unknown :requested-symbol symbol))
+    (cond (parameters (apply fnc (first parameters) (rest parameters)))
+          (t (funcall fnc)))))
 
-;;
-;; Specialized utility functions
-;;
+;;;
+;;; Specialized utility functions
+;;;
 
 (defun register-pose-transform-function (transform-function)
   (register-utility-function :transform-pose transform-function))
