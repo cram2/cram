@@ -38,7 +38,8 @@
                nav_msgs-msg
                visualization_msgs-msg
                trivial-garbage
-               designators-ros)
+               designators-ros
+               ubiquitous-utilities)
   :components
   ((:module "src"
             :components
