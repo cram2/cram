@@ -59,19 +59,14 @@
 (defun publish-semantic-map-collision-objects ()
   (unless (> (hash-table-count *semantic-map-obj-cache*) 0)
     (init-semantic-map-obj-cache))
-  (let ((map-to-odom-combined (moveit:ensure-transform-available
-                               "/map" "/odom_combined")))
-    (loop for objs being the hash-values of *semantic-map-obj-cache* do
-      (dolist (obj objs)
-        (with-slots (pose dimensions) obj
-          (let* ((obj-name (string-upcase (make-collision-obj-name obj)))
-                 (pose-stamped (tf:pose->pose-stamped "map" 0.0 pose))
-                 (pose-stamped
-                   (tf:pose->pose-stamped
-                    "/odom_combined" (roslisp:ros-time)
-                    (cl-transforms:transform-pose
-                     map-to-odom-combined pose-stamped))))
-            (moveit:register-collision-object
+  (loop for objs being the hash-values of *semantic-map-obj-cache* do
+    (dolist (obj objs)
+      (with-slots (pose dimensions) obj
+        (let* ((obj-name (string-upcase (make-collision-obj-name obj)))
+               (pose-stamped (ubiquitous-utilities:transform-pose
+                              (tf:pose->pose-stamped "/map" 0.0 pose)
+                              "/odom_combined")))
+            (ubiquitous-utilities:register-collision-object
              obj-name
              :primitive-shapes (list (roslisp:make-msg
                                       "shape_msgs/SolidPrimitive"
@@ -81,8 +76,8 @@
                                                   (y dimensions)
                                                   (z dimensions))))
              :pose-stamped pose-stamped)
-            (moveit:add-collision-object obj-name nil nil)
-            (on-publishing-collision-object obj obj-name)))))))
+            (ubiquitous-utilities:add-collision-object obj-name nil nil)
+            (on-publishing-collision-object obj obj-name))))))
 
 (defun remove-semantic-map-collision-objects ()
   (unless (> (hash-table-count *semantic-map-obj-cache*) 0)
