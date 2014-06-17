@@ -28,8 +28,8 @@
 ;;;
 
 (desig-props:def-desig-package location-costmap
-    (:use :cl :crs :cut :roslisp-utilities :cram-roslisp-common :alexandria
-          :roslisp :designators-ros #:cram-designators)
+  (:use :cl :crs :cut :roslisp-utilities :cram-roslisp-common :alexandria
+        :roslisp :designators-ros #:cram-designators)
   (:export #:make-gauss-cost-function
            #:make-location-cost-function
            #:make-range-cost-function
