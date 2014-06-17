@@ -29,6 +29,7 @@
   <build_depend>visualization_msgs</build_depend>
   <build_depend>trivial_garbage</build_depend>
   <build_depend>lisp_unit</build_depend>
+  <build_depend>ubiquitous_utilities</build_depend>
   <build_depend>cram_manipulation_knowledge</build_depend>
 
   <run_depend>alexandria</run_depend>
@@ -43,5 +44,6 @@
   <run_depend>visualization_msgs</run_depend>
   <run_depend>trivial_garbage</run_depend>
   <run_depend>lisp_unit</run_depend>
+  <run_depend>ubiquitous_utilities</run_depend>
   <run_depend>cram_manipulation_knowledge</run_depend>
 </package>
