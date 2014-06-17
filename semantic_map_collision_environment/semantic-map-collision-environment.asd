@@ -42,7 +42,8 @@
                cram-roslisp-common
                visualization_msgs-msg
                cram-moveit
-               cl-semantic-map-utils)
+               cl-semantic-map-utils
+               ubiquitous-utilities)
   :components
   ((:module "src"
     :components
