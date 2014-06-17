@@ -49,5 +49,17 @@
 (defun register-pose-transform-function (transform-function)
   (register-utility-function :transform-pose transform-function))
 
-(defmacro transform-pose (&rest parameters)
-  `(funcall #'apply-utility-function :transform-pose ,@parameters))
+(defun transform-pose (pose target-frame)
+  (funcall #'apply-utility-function :transform-pose pose target-frame))
+
+(defun register-collision-object-registration-function (registration-function)
+  (register-utility-function :register-collision-object registration-function))
+
+(defmacro register-collision-object (&rest parameters)
+  `(funcall #'apply-utility-function :register-collision-object ,@parameters))
+
+(defun register-collision-object-adding-function (adding-function)
+  (register-utility-function :add-collision-object adding-function))
+
+(defmacro add-collision-object (&rest parameters)
+  `(funcall #'apply-utility-function :add-collision-object ,@parameters))

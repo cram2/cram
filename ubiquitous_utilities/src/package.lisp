@@ -36,4 +36,8 @@
    apply-utility-function
    ;; Specialized utility functions
    register-pose-transform-function
-   transform-pose))
+   transform-pose
+   register-collision-object-registration-function
+   register-collision-object
+   register-collision-object-adding-function
+   add-collision-object))
