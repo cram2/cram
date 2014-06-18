@@ -37,27 +37,34 @@
 (defun make-query-id ()
   (symbol-name (gensym (format nil "QUERY-~10,20$-" (ros-time)))))
 
+(define-hook on-prepare-prolog-prove (request))
+(define-hook on-finish-prolog-prove (id))
+
 (defun call-prolog-service (name type &rest request)
-  (let ((service (gethash name *persistent-services*)))
-    (unless (and service (persistent-service-ok service))
-      (setf (gethash name *persistent-services*)
-            (make-instance 'persistent-service
-              :service-name name
-              :service-type type)))
-    (let ((reconnect-tries 1))
-      (handler-bind
-          ((roslisp::service-call-error
-             #'(lambda (e)
-                 (declare (ignore e))
-                 (ros-warn (json-prolog) "Service call failed.")
-                 (when (> reconnect-tries 0)
-                   (ros-warn (json-prolog) "Retrying...")
-                   (invoke-restart 'roslisp:reconnect)
-                   (decf reconnect-tries)
-                   (apply 'call-persistent-service
-                          (gethash name *persistent-services*) request)))))
-        (apply 'call-persistent-service
-               (gethash name *persistent-services*) request)))))
+  (let ((log-id (first (on-prepare-prolog-prove request)))
+        (service (gethash name *persistent-services*)))
+    (unwind-protect
+         (progn
+           (unless (and service (persistent-service-ok service))
+             (setf (gethash name *persistent-services*)
+                   (make-instance 'persistent-service
+                                  :service-name name
+                                  :service-type type)))
+           (let ((reconnect-tries 1))
+             (handler-bind
+                 ((roslisp::service-call-error
+                    #'(lambda (e)
+                        (declare (ignore e))
+                        (ros-warn (json-prolog) "Service call failed.")
+                        (when (> reconnect-tries 0)
+                          (ros-warn (json-prolog) "Retrying...")
+                          (invoke-restart 'roslisp:reconnect)
+                          (decf reconnect-tries)
+                          (apply 'call-persistent-service
+                                 (gethash name *persistent-services*) request)))))
+               (apply 'call-persistent-service
+                      (gethash name *persistent-services*) request))))
+      (on-finish-prolog-prove log-id))))
 
 (defun prolog-result->bdgs (query-id result &key (lispify nil) (package *package*))
   (unless (json_prolog_msgs-srv:ok result)
