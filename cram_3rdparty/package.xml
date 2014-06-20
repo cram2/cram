@@ -1,6 +1,6 @@
 <package>
   <name>cram_3rdparty</name>
-  <version>0.1.1</version>
+  <version>0.1.2</version>
   <description>
     Various 3rd party Common LISP packages for the CRAM framework.
   </description>

@@ -1,6 +1,6 @@
 <package>
   <name>cl_utilities</name>
-  <version>0.1.1</version>
+  <version>0.1.2</version>
   <!--external-version>1.2.4</external-version-->
   <description>
     3rd party library: CL-UTILITIES
