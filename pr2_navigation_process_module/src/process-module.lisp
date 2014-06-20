@@ -67,6 +67,7 @@
 (roslisp-utilities:register-ros-init-function
  init-pr2-navigation-process-module)
 
+
 (defun make-action-goal (pose)
   (roslisp:make-message
    "move_base_msgs/MoveBaseGoal"

@@ -47,8 +47,6 @@
 (defvar *trajectory-action-both* nil)
 (defvar *trajectory-action-torso* nil)
 
-(defvar *joint-state-sub* nil)
-
 (defvar *left-safe-pose* (tf:make-pose-stamped
                           "base_link" (ros-time)
                           (tf:make-3d-vector 0.3 0.5 1.3)
@@ -67,35 +65,10 @@
         (actionlib:make-action-client
          "/r_gripper_controller/gripper_action"
          "pr2_controllers_msgs/Pr2GripperCommandAction"))
-  (setf *gripper-grab-action-left*
-        (actionlib:make-action-client
-         "/l_gripper_sensor_controller/grab"
-         "pr2_gripper_sensor_msgs/PR2GripperGrabAction"))
-  (setf *gripper-grab-action-right*
-        (actionlib:make-action-client
-         "/r_gripper_sensor_controller/grab"
-         "pr2_gripper_sensor_msgs/PR2GripperGrabAction"))
-  (setf *trajectory-action-left*
-        (actionlib:make-action-client
-         "/l_arm_controller/joint_trajectory_generator"
-         "pr2_controllers_msgs/JointTrajectoryAction"))
-  (setf *trajectory-action-right*
-        (actionlib:make-action-client
-         "/r_arm_controller/joint_trajectory_generator"
-         "pr2_controllers_msgs/JointTrajectoryAction"))
-  (setf *trajectory-action-both*
-        (actionlib:make-action-client
-         "/both_arms_controller/joint_trajectory_action"
-         "pr2_controllers_msgs/JointTrajectoryAction"))
   (setf *trajectory-action-torso*
         (actionlib:make-action-client
          "/torso_controller/joint_trajectory_action"
          "pr2_controllers_msgs/JointTrajectoryAction"))
-  (setf *joint-state-sub*
-        (roslisp:subscribe
-         "/joint_states" "sensor_msgs/JointState"
-         (lambda (msg)
-           (setf *joint-state* msg))))
   (set-robot-planning-state))
 
 (roslisp-utilities:register-ros-init-function
@@ -130,7 +103,9 @@
                  "l_gripper_l_finger_tip_link"
                  "l_gripper_motor_slider_link"
                  "l_gripper_motor_screw_link"
-                 "l_gripper_palm_link"))
+                 "l_gripper_palm_link"
+                 "l_force_torque_link"
+                 "l_force_torque_adapter_link"))
     (:right (list "r_gripper_palm_link"
                   "r_shoulder_pan_link"
                   "r_shoulder_lift_link"
@@ -164,12 +139,16 @@
                   (append allowed-collision-objects
                           (links-for-arm-side side)))
                  (t allowed-collision-objects)))
-         (link-name (ecase side
-                      (:left "l_wrist_roll_link")
-                      (:right "r_wrist_roll_link")))
-         (planning-group (ecase side
-                           (:left "left_arm")
-                           (:right "right_arm"))))
+         (link-name (cut:var-value
+                     '?link
+                     (first
+                      (crs:prolog
+                       `(manipulator-link ,side ?link)))))
+         (planning-group (cut:var-value
+                          '?group
+                          (first
+                           (crs:prolog
+                            `(planning-group ,side ?group))))))
     (let ((log-id (first (on-prepare-move-arm
                           link-name pose-stamped
                           planning-group ignore-collisions))))
@@ -215,8 +194,7 @@
                 planning-group pose-stamped
                 :ignore-collisions ignore-collisions
                 :allowed-collision-objects allowed-collision-objects
-                :touch-links (when allowed-collision-objects
-                               (links-for-arm-side side)))
+                :touch-links (links-for-arm-side side))
                (on-finish-move-arm log-id t)
                (plan-knowledge:on-event
                 (make-instance 'plan-knowledge:robot-state-changed)))
@@ -328,9 +306,11 @@ its' supporting plane."
                            (pose ,(tf:copy-pose-stamped
                                    (cl-tf:transform-pose
                                     *tf* :pose obj-pose
-                                         :target-frame (ecase side
-                                                         (:right "/r_wrist_roll_link")
-                                                         (:left "/l_wrist_roll_link")))
+                                         :target-frame (cut:var-value
+                                                        '?link
+                                                        (first
+                                                         (crs:prolog
+                                                          `(manipulator-link ,side ?link)))))
                                    :stamp 0.0))
                            (height ,height)
                            (orientation ,(cl-transforms:orientation obj-pose))))))
@@ -340,42 +320,6 @@ its' supporting plane."
      'object
      `((at ,new-loc-desig) . ,(remove 'at (description obj-desig) :key #'car))
      obj-desig)))
-
-(defun compute-both-arm-grasping-poses (obj)
-  "Computes and returns the two grasping poses for an object `obj'
-that has to be grasped with two grippers."
-  (let* ((object-type (desig-prop-value obj 'type))
-         (object-pose (desig:designator-pose obj))
-         (object-transform (cl-transforms:pose->transform object-pose)))
-    (cond ((eq object-type 'pot)
-           (let* (;; get grasping poses for the handles
-                  (left-grasp-pose (cl-transforms:transform-pose
-                                    object-transform
-                                    *pot-relative-left-handle-transform*))
-                  (right-grasp-pose (cl-transforms:transform-pose
-                                     object-transform
-                                     *pot-relative-right-handle-transform*))
-                  ;; make 'em stamped poses
-                  (left-grasp-stamped-pose (cl-tf:make-pose-stamped
-                                            (cl-tf:frame-id object-pose)
-                                            (cl-tf:stamp object-pose)
-                                            (cl-transforms:origin left-grasp-pose)
-                                            (cl-transforms:orientation left-grasp-pose)))
-                  (right-grasp-stamped-pose (cl-tf:make-pose-stamped
-                                             (cl-tf:frame-id object-pose)
-                                             (cl-tf:stamp object-pose)
-                                             (cl-transforms:origin right-grasp-pose)
-                                             (cl-transforms:orientation right-grasp-pose))))
-             ;; return the grasping poses
-             (values left-grasp-stamped-pose right-grasp-stamped-pose)))
-          ;; TODO(Georg): change these strings into symbols from the designator package
-          ((equal object-type "BigPlate")
-           ;; TODO(Georg): replace these identities with the actual values
-           (let ((left-grasp-pose (cl-transforms:make-identity-pose))
-                 (right-grasp-pose (cl-transforms:make-identity-pose)))
-             (values left-grasp-pose right-grasp-pose)))
-          (t (error 'manipulation-failed
-                    :format-control "Invalid objects for dual-arm manipulation specified.")))))
 
 (defun set-robot-planning-state ()
   (let ((joint-names (list "r_shoulder_pan_joint"

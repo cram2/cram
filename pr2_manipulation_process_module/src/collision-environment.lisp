@@ -47,29 +47,6 @@
                    (find-collision-object (parent curr))))))
     (find-collision-object (current-desig desig))))
 
-(defun desig-allowed-contacts (desig links &optional (penetration-depth 0.1))
-  "returns allowed contact specifications for `desig' if desig has
-  been added as a collision object. Returns NIL otherwise"
-  (let ((obj (find-desig-collision-object desig))
-        (i 0))
-    (when obj
-      (roslisp:with-fields ((id id)
-                            (frame-id (frame_id header))
-                            (shapes shapes)
-                            (poses poses))
-          obj
-        (map 'vector (lambda (shape pose)
-                       (incf i)
-                       (roslisp:make-msg
-                        "arm_navigation_msgs/AllowedContactSpecification"
-                        name (format nil "~a-~a" id i)
-                        shape shape
-                        (frame_id header pose_stamped) frame-id
-                        (pose pose_stamped) pose
-                        link_names (map 'vector #'identity links)
-                        penetration_depth (float penetration-depth 0.0d0)))
-             shapes poses)))))
-
 (defun desig-bounding-box (desig)
   "Returns the bounding box of the object that is bound to `desig' if
   the object is a point cloud. Otherwise, returns NIL. The result is
@@ -88,32 +65,6 @@
               (apply #'cl-transforms:make-3d-vector
                      (map 'list #'identity dimensions)))))))))
 
-(defun register-collision-object (designator &key (padding 0))
-  "Registers the object referenced by `designator' in the collision
-environment."
-  (declare (type object-designator designator))
-  (let* ((effective-designator (newest-effective-designator designator))
-         (shape (cram-manipulation-knowledge:get-shape-message
-                 (reference effective-designator)))
-         (object-pose (designator-pose effective-designator))
-         (name (desig-prop-value effective-designator 'name))
-         (message (roslisp:make-msg
-                   "arm_navigation_msgs/CollisionObject"
-                   (stamp header) (tf:stamp object-pose)
-                   (frame_id header) (tf:frame-id object-pose)
-                   id name
-                   padding padding
-                   (operation operation) (roslisp-msg-protocol:symbol-code
-                                          'arm_navigation_msgs-msg:collisionobjectoperation
-                                          :add)
-                   shapes (vector shape)
-                   poses (vector (tf:pose->msg object-pose)))))
-    (when shape
-      (setf (gethash effective-designator *known-collision-objects*) message)
-      (roslisp:publish *collision-object-pub* message)
-      (ros-info
-       (pr2-manipulation-process-module collision-environment) "Added collision object to environment server."))))
-
 (defun remove-collision-object (desig)
   (let ((collision-object (find-desig-collision-object desig)))
     (when collision-object
@@ -122,59 +73,6 @@ environment."
 
 (defun clear-collision-objects ()
   (moveit:clear-collision-objects))
-
-(defun attach-collision-object (side desig)
-  (let ((collision-object (find-desig-collision-object desig)))
-    (when collision-object
-      (let ((attach-object (roslisp:modify-message-copy
-                            collision-object
-                            (operation operation) (roslisp:symbol-code
-                                                   'arm_navigation_msgs-msg:CollisionObjectOperation
-                                                   :attach_and_remove_as_object))))
-        (roslisp:publish *attached-object-pub*
-                         (roslisp:make-msg
-                          "arm_navigation_msgs/AttachedCollisionObject"
-                          link_name (ecase side
-                                      (:right "r_gripper_r_finger_tip_link")
-                                      (:left "l_gripper_r_finger_tip_link"))
-                          touch_links (map 'vector #'identity
-                                           (ecase side
-                                             (:right (roslisp:get-param
-                                                      "/hand_description/right_arm/hand_touch_links"
-                                                      '("r_gripper_palm_link"
-                                                        "r_gripper_r_finger_link"
-                                                        "r_gripper_l_finger_link")))
-                                             (:left (roslisp:get-param
-                                                     "/hand_description/left_arm/hand_touch_links"
-                                                     '("l_gripper_palm_link"
-                                                       "l_gripper_r_finger_link"
-                                                       "l_gripper_l_finger_link")))))
-                          object attach-object))))))
-
-(defun detach-collision-object (side desig)
-  (let ((collision-object (find-desig-collision-object desig)))
-    (when collision-object
-      (let ((detach-object (roslisp:modify-message-copy
-                            collision-object
-                            (operation operation) (roslisp:symbol-code
-                                                   'arm_navigation_msgs-msg:CollisionObjectOperation
-                                                   :detach_and_add_as_object))))
-        (roslisp:publish *attached-object-pub*
-                         (roslisp:make-msg
-                          "arm_navigation_msgs/AttachedCollisionObject"
-                          link_name (ecase side
-                                      (:right "r_gripper_r_finger_tip_link")
-                                      (:left "l_gripper_r_finger_tip_link"))
-                          touch_links (ecase side
-                                        (:right (vector
-                                                 "r_gripper_palm_link"
-                                                 "r_gripper_r_finger_link"
-                                                 "r_gripper_l_finger_link"))
-                                        (:left (vector
-                                                "l_gripper_palm_link"
-                                                "l_gripper_r_finger_link"
-                                                "l_gripper_l_finger_link")))
-                          object detach-object))))))
 
 (defun point->msg (point &optional (msg-type "geometry_msgs/Point"))
   (declare (type cl-transforms:3d-vector point))

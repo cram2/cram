@@ -16,15 +16,10 @@
   <depend package="cram_plan_failures" />
   <depend package="cram_pr2_knowledge" />
   <depend package="pr2_controllers_msgs" />
-  <depend package="kinematics_msgs" />
-  <depend package="arm_navigation_msgs" />
   <depend package="trivial_garbage" />
   <depend package="std_srvs" />
   <depend package="alexandria" />
   <depend package="semantic_map_collision_environment" />
-  <depend package="object_manipulation_msgs" />
-  <depend package="pr2_gripper_sensor_msgs" />
-  <depend package="arm_navigation_msgs" />
   <depend package="pr2_mechanism_msgs" />
   <depend package="pr2_manipulation_knowledge" />
   <depend package="cram_moveit" />

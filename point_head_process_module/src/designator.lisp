@@ -55,19 +55,8 @@
   (let ((pose-stamped
           (moveit:ensure-pose-stamped-transformed
            pose-stamped "/base_link" :ros-time t)))
-    (unless (tf:wait-for-transform
-             *tf* :source-frame (tf:frame-id pose-stamped)
-                  :target-frame "base_link"
-                  :time (tf:stamp pose-stamped)
-                  :timeout 1.0)
-      (error 'simple-error
-             :format-control "Could not transform ~a into base_link. Invalid time stamp."
-             :format-arguments (list pose-stamped)))
-    (let* ((transformed-pose-stamped (tf:transform-pose *tf* :pose pose-stamped :target-frame "/base_link"))
-           (point-stamped-msg (pose-stamped->point-stamped-msg
-                               (tf:copy-pose-stamped
-                                transformed-pose-stamped
-                                :stamp (roslisp:ros-time)))))
+    (let* ((point-stamped-msg (pose-stamped->point-stamped-msg
+                               pose-stamped)))
       (roslisp:make-message
        "pr2_controllers_msgs/PointHeadGoal"
        max_velocity 10

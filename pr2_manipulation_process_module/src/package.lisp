@@ -37,12 +37,16 @@
         #:cram-roslisp-common
         #:cram-process-modules
         #:cram-plan-failures
-        #:cram-plan-knowledge)
+        #:cram-plan-knowledge
+        #:cram-manipulation-knowledge)
   (:import-from alexandria ignore-some-conditions)
+  (:import-from pr2-manipulation-knowledge
+                manipulator-link
+                planning-group)
   (:import-from roslisp ros-info ros-warn ros-error ros-time)
   (:export pr2-manipulation-process-module
            wait-for-controller)
-  (:desig-properties #:trajectory #:type #:to #:open #:obj #:side #:close
+  (:desig-properties #:trajectory #:type #:to #:open #:obj #:side #:sides #:close
                      #:grasp #:put-down #:pose #:parked #:lift
                      #:carry #:at #:orientation #:in #:gripper #:both-grippers
                      #:z-offset #:distance #:obstacle #:handle #:name
@@ -50,4 +54,5 @@
                      #:collision-part #:cylinder #:length #:min-handles #:park
                      #:distance #:direction #:pull #:push #:location #:angle
                      #:joint #:joint-axis #:lower-bound #:upper-bound #:open
-                     #:shape #:dimensions #:debug #:max-handles))
+                     #:shape #:dimensions #:debug #:max-handles #:grasp-type
+                     #:top-slide-down))
