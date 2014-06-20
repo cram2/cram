@@ -1,6 +1,6 @@
 <package>
   <name>gsll</name>
-  <version>0.1.1</version>
+  <version>0.1.2</version>
   <description>
       3rd party library: GSLL a GSL wrapper for common lisp
   </description>
