@@ -40,16 +40,10 @@
                pr2_controllers_msgs-msg
                pr2_msgs-msg
                pr2_msgs-srv
-               kinematics_msgs-srv
-               arm_navigation_msgs-msg
                trivial-garbage
                std_srvs-srv
                alexandria
                semantic-map-collision-environment
-               object_manipulation_msgs-msg
-               object_manipulation_msgs-srv
-               pr2_gripper_sensor_msgs-msg
-               arm_navigation_msgs-srv
                pr2_mechanism_msgs-srv
                pr2-manipulation-knowledge
                cram-moveit)

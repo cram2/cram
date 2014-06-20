@@ -36,11 +36,19 @@
           collect item))
 
 (defun arm-for-pose (pose)
-  (let ((frame (tf:frame-id pose)))
-    (cond ((string= frame "/r_wrist_roll_link") :right)
-          ((string= frame "/l_wrist_roll_link") :left))))
+  (let* ((pose-frame (tf:frame-id pose))
+         (string-frame
+           (or (when (and (> (length pose-frame) 0)
+                          (string= (subseq pose-frame 0 1) "/"))
+                 (subseq pose-frame 1))
+               pose-frame)))
+    (cut:var-value
+     '?side
+     (first (crs:prolog `(manipulator-link ?side ,string-frame))))))
 
-(def-fact-group pr2-manipulation-designators (action-desig)
+(def-fact-group pr2-manipulation-designators (action-desig
+                                              available-arms
+                                              flatten)
 
   (<- (flatten ?list-of-lists ?list)
     (lisp-fun alexandria:flatten ?list-of-lists ?list))
@@ -60,11 +68,12 @@
     (findall ?o (desig-prop ?desig (obstacle ?o))
              ?obstacles))
 
-  (<- (absolute-handle ?object-desig ?handle ?absolute-handle)
+  (<- (absolute-handle ?object-desig ?handle ?reorient-object ?absolute-handle)
     (current-designator ?object-desig ?current-object)
     (handles ?current-object ?handles)
     (member ?handle ?handles)
-    (lisp-fun absolute-handle ?current-object ?handle ?absolute-handle))
+    (lisp-fun absolute-handle ?current-object ?handle :reorient ?reorient-object
+              ?absolute-handle))
 
   (<- (handles ?desig ?handles)
     (findall ?h (desig-prop ?desig (handle ?h))
@@ -102,14 +111,14 @@
     (trajectory-desig? ?desig)
     (desig-prop ?desig (pose open)))
 
-  (<- (action-desig ?desig (park ?obj ?arms))
+  (<- (action-desig ?desig (park ?arms ?obj))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to park))
     (desig-prop ?desig (obj ?obj))
     (current-designator ?obj ?current-obj)
     (holding-arms ?current-obj ?arms))
 
-  (<- (action-desig ?desig (park nil nil))
+  (<- (action-desig ?desig (park (:left :right) nil))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to park)))
 
@@ -123,7 +132,7 @@
         (true)
         (== ?distance 0.10)))
 
-  (<- (action-desig ?desig (park ?obj ?arms ?obstacles))
+  (<- (action-desig ?desig (park ?arms ?obj ?obstacles))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to carry))
     (desig-prop ?desig (obj ?obj))
@@ -141,7 +150,7 @@
   ;; reasoning process that chooses the correct arm/grasp setup
   (<- (available-arms ?obj ?available-arms)
     (available-arms ?obj ?available-arms (:left :right)))
-
+  
   (<- (available-arms ?obj ?available-arms ?possible-arms)
     (or (setof ?arms-object (object-in-hand ?_ ?arms-object) ?arms-used-list)
         (equal ?arms-used-list ()))
@@ -151,26 +160,22 @@
   (<- (arm-for-pose ?pose ?arm)
     (lisp-fun arm-for-pose ?pose ?arm))
   
-  (<- (action-desig ?desig (grasp ?current-obj ?grasp-assignments ?obstacles))
+  (<- (action-desig ?desig (grasp ?current-obj ?available-arms))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to grasp))
     (desig-prop ?desig (obj ?obj))
     (current-designator ?obj ?current-obj)
-    (obstacles ?desig ?obstacles)
+    (or (desig-prop ?obj (desig-props:grasp-type ?grasp-type))
+        (desig-prop ?desig (desig-props:grasp-type ?grasp-type))
+        (equal ?grasp-type desig-props:push))
     (handles ?current-obj ?handles)
-    (available-arms ?current-obj ?available-arms)
-    (optimal-handle-grasp ?current-obj ?available-arms ?grasp-assignments))
-
-  (<- (action-desig ?desig (grasp ?current-obj ?grasp-assignments ?obstacles))
-    (trajectory-desig? ?desig)
-    (desig-prop ?desig (to grasp))
-    (desig-prop ?desig (obj ?obj))
-    (newest-effective-designator ?obj ?current-obj)
-    (obstacles ?desig ?obstacles)
-    (available-arms ?current-obj ?available-arms)
-    (optimal-grasp ?current-obj ?available-arms ?grasp-assignments))
-
-  (<- (optimal-handle-grasp ?object-desig ?available-arms ?grasp-assignments)
+    (or (and (desig-prop ?current-obj (side ?arm))
+             (available-arms ?current-obj ?available-arms (?arm)))
+        (available-arms ?current-obj ?available-arms)))
+  
+  (<- (optimal-handle-grasp ?object-desig ?available-arms
+                            ?pregrasp-pose ?grasp-pose
+                            ?grasp-assignments)
     (current-designator ?object-desig ?current-object)
     (handles ?current-object ?handles)
     (min-handles ?current-object ?min-handles)
@@ -183,10 +188,41 @@
               ?available-arms
               ?absolute-handles
               ?min-handles
+              ?pregrasp-pose
+              ?grasp-pose
               ?grasp-assignments)
     (length ?grasp-assignments ?assignment-count)
     (> ?assignment-count 0))
-
+  
+  (<- (grasp-handle-assignment ?object ?arms ?pregrasp-offset ?grasp-offset
+                               ?reorient-object ?grasp-assignment)
+    (current-designator ?object ?current-object)
+    (handles ?current-object ?handles)
+    (member ?handle ?handles)
+    (member ?arm ?arms)
+    (and (absolute-handle ?object ?handle ?reorient-object ?absolute-handle)
+         (desig-prop ?absolute-handle (at ?location))
+         (lisp-fun reference ?location ?pose)
+         (lisp-pred open-gripper ?arm)
+         (lisp-fun cost-reach-pose ?current-object ?arm ?pose
+                   ?pregrasp-offset ?grasp-offset ?cost)
+         (not (equal ?cost nil))
+         (lisp-fun make-grasp-assignment
+                   :side ?arm
+                   :pose ?pose
+                   :handle ?handle
+                   :cost ?cost
+                   ?grasp-assignment)))
+  
+  ;; This one is old
+  (<- (action-desig ?desig (grasp ?current-obj ?available-arms))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to grasp))
+    (desig-prop ?desig (obj ?obj))
+    (newest-effective-designator ?obj ?current-obj)
+    (available-arms ?current-obj ?available-arms)
+    (optimal-grasp ?current-obj ?available-arms ?grasp-assignments))
+  
   (<- (optimal-grasp ?object-desig ?available-arms ?grasp-assignments)
     (current-designator ?object-desig ?current-desig)
     (desig-prop ?current-desig (at ?loc))
@@ -207,13 +243,22 @@
   (<- (grasped-object-part ?obj ?part)
     (or (grasped-object-handle ?obj ?part)
         (equal ?obj ?part)))
+  
+  (<- (grasp-type ?obj ?grasp-type)
+    (current-designator ?obj ?current)
+    (desig-prop ?current (desig-props:grasp-type ?grasp-type)))
 
-  (<- (action-desig ?desig (put-down ?current-obj ?loc ?grasp-assignments ?obstacles))
+  (<- (grasp-type ?_ ?grasp-type)
+    (equal ?grasp-type desig-props:push))
+  
+  (<- (action-desig ?desig (put-down ?current-obj ?loc ?grasp-assignments ?grasp-type))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to put-down))
     (desig-prop ?desig (obj ?obj))
     (current-designator ?obj ?current-obj)
-    (obstacles ?desig ?obstacles)
+    (or (desig-prop ?obj (desig-props:grasp-type ?grasp-type))
+        (desig-prop ?desig (desig-props:grasp-type ?grasp-type))
+        (equal ?grasp-type nil))
     (desig-prop ?desig (at ?loc))
     (desig-prop ?current-obj (desig-props:at ?objloc))
     (desig-prop ?objloc (desig-props:in desig-props:gripper))
@@ -223,6 +268,10 @@
                          (equal ?posearm (?arm . ?objpose)))
            ?poses)
     (lisp-fun cons-to-grasp-assignments ?poses ?grasp-assignments))
+  
+  (<- (action-desig ?desig (put-down nil nil nil nil))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to put-down)))
   
   (<- (action-desig ?desig (pull ?current-obj ?arms
                                  ?direction ?distance
@@ -236,7 +285,7 @@
     (grasped-object-part ?obj ?grasped)
     (holding-arms ?current-obj ?arms)
     (obstacles ?desig ?obstacles))
-
+  
   (<- (action-desig ?desig (push ?current-obj ?arms
                                  ?direction ?distance
                                  ?obstacles))
@@ -247,15 +296,6 @@
     (desig-prop ?desig (direction ?direction))
     (current-designator ?obj ?current-obj)
     (holding-arms ?current-obj ?arms)
-    (obstacles ?desig ?obstacles))
-
-  (<- (action-desig ?desig (put-down ?current-obj ?loc ?arms ?obstacles))
-    (trajectory-desig? ?desig)
-    (desig-prop ?desig (to put-down))
-    (desig-prop ?desig (obj ?obj))
-    (current-designator ?obj ?current-obj)
-    (holding-arms ?current-obj ?arms)
-    (desig-prop ?desig (at ?loc))
     (obstacles ?desig ?obstacles)))
 
 (def-fact-group manipulation-process-module (matching-process-module available-process-module)

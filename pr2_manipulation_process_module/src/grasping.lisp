@@ -30,12 +30,17 @@
 (defparameter *pregrasp-offset*
   (tf:make-pose
    (tf:make-3d-vector
-    -0.31 0.0 0.0)
+    -0.29 0.0 0.0)
+   (tf:euler->quaternion :ax (/ pi -2))))
+(defparameter *pregrasp-top-slide-down-offset*
+  (tf:make-pose
+   (tf:make-3d-vector
+    -0.20 0.10 0.0)
    (tf:euler->quaternion :ax (/ pi -2))))
 (defparameter *grasp-offset*
   (tf:make-pose
    (tf:make-3d-vector
-    -0.19 0.0 0.0)
+    -0.20 0.0 0.0)
    (tf:euler->quaternion :ax (/ pi -2))))
 (defparameter *pre-putdown-offset*
   (tf:make-pose
@@ -52,20 +57,30 @@
    (tf:make-3d-vector
     -0.10 0.0 0.0)
    (tf:euler->quaternion)))
+(defparameter *unhand-top-slide-down-offset*
+  (tf:make-pose
+   (tf:make-3d-vector
+    0.0 0.0 0.10)
+   (tf:euler->quaternion)))
 
 (defun absolute-handle (obj handle
                         &key (handle-offset-pose
-                              (tf:make-identity-pose)))
+                              (tf:make-identity-pose))
+                          (reorient t))
   "Transforms the relative handle location `handle' of object `obj'
 into the object's coordinate system and returns the appropriate
 location designator. The optional parameter `handle-offset-pose' is
 applied to the handle pose before the absolute object pose is
 applied."
   (let* ((absolute-object-loc (desig-prop-value obj 'at))
-         (absolute-object-pose-stamped (pose-pointing-away-from-base
-                                        (desig-prop-value
-                                         absolute-object-loc
-                                         'desig-props:pose)))
+         (absolute-object-pose-stamped (cond (reorient
+                                              (pose-pointing-away-from-base
+                                               (desig-prop-value
+                                                absolute-object-loc
+                                                'desig-props:pose)))
+                                             (t (desig-prop-value
+                                                 absolute-object-loc
+                                                 'desig-props:pose))))
          (relative-handle-loc (desig-prop-value handle 'at))
          (relative-handle-pose (cl-transforms:transform-pose
                                 (tf:pose->transform
@@ -87,105 +102,74 @@ applied."
                                      collect desc-elem))))
 
 (defun optimal-arm-handle-assignment (obj avail-arms avail-handles min-handles
+                                      pregrasp-offset grasp-offset
                                       &key (max-handles
                                             (or (desig-prop-value
                                                  obj 'desig-props:max-handles)
                                                 nil)))
-  (declare (ignore max-handles))
-  (assert (= min-handles 1)
-          () "Sorry, not more than one handle at a time right now.")
+  (optimal-arm-pose-assignment (mapcar (lambda (handle)
+                                         (reference (desig-prop-value (cdr handle) 'at)))
+                                       avail-handles)
+                               avail-arms min-handles pregrasp-offset grasp-offset
+                               :obj obj :max-poses max-handles
+                               :handles avail-handles))
+
+(defun optimal-arm-pose-assignment (poses avail-arms min-arms
+                                    pregrasp-offset grasp-offset
+                                    &key obj (max-poses
+                                              (or (and obj
+                                                       (desig-prop-value
+                                                        obj 'desig-props:max-handles))
+                                                  nil))
+                                      handles)
+  (declare (ignore max-poses))
+  (assert (= min-arms 1) () "Sorry, not more than one handle at a time right now.")
   (ros-info (pr2 manip-pm) "Opening grippers")
   (dolist (arm avail-arms)
     (open-gripper arm))
-  (ros-info (pr2 manip-pm) "Calculating optimal grasp: ~a arms, ~a handles (min ~a)" (length avail-arms) (length avail-handles) min-handles)
+  (ros-info (pr2 manip-pm) "Calculating optimal grasp: ~a arms, ~a poses (min ~a)"
+            (length avail-arms) (length poses) min-arms)
   (let* ((assignments
-           (alexandria:flatten
-            (loop for i from 0 below (length avail-arms)
-                  for arm = (nth i avail-arms)
-                  for sublist = (loop for j from 0 below (length avail-handles)
-                                      for handle = (nth i avail-handles)
-                                      for cost = (cost-function-ik-handle
-                                                  obj (list (list (nth i avail-arms))
-                                                            (list (nth j avail-handles))))
-                                      when cost
-                                        collect (make-instance
-                                                 'grasp-assignment
-                                                 :handle-pair handle
-                                                 :side arm
-                                                 :ik-cost cost
-                                                 :pose (reference
-                                                        (desig-prop-value
-                                                         (cdr handle) 'at))))
-                  when sublist
-                    collect sublist)))
+           (loop for arm in avail-arms
+                 append (loop for i from 0 below (length poses)
+                              as pose = (nth i poses)
+                              as handle = (nth i handles)
+                              as cost = (cost-function-ik-pose
+                                         obj (list (list arm) (list pose))
+                                         pregrasp-offset grasp-offset)
+                              when cost
+                                collect (make-instance
+                                         'grasp-assignment
+                                         :side arm
+                                         :ik-cost cost
+                                         :pose pose
+                                         :handle-pair handle))))
          (sorted-assignments (sort assignments #'< :key #'ik-cost)))
-    (ros-info (pr2 manip-pm) "Done calculating. Got ~a/~a result(s)."
-              (length assignments) (length sorted-assignments))
-    (unless sorted-assignments
-      (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))
-    (list (first sorted-assignments))))
+    (ros-info (pr2 manip-pm) "Done calculating. Got ~a proper result(s)."
+              (length sorted-assignments))
+    sorted-assignments))
 
 (defun cons-to-grasp-assignments (cons-cells)
   (mapcar (lambda (cons-cell)
-            (make-instance 'grasp-assignment
-                           :pose (cdr cons-cell)
-                           :side (car cons-cell)))
+            (cons-to-grasp-assignment cons-cell))
           cons-cells))
 
-(defun optimal-arm-pose-assignment (obj avail-arms obj-pose)
-  (dolist (arm avail-arms)
-    (open-gripper arm))
-  (let* ((object-name (desig-prop-value obj 'desig-props:name))
-         (assigned-entities
-           (entity-assignment
-            (list
-             (make-assignable-entity-list
-              :entities avail-arms)
-             (make-assignable-entity-list
-              :entities (list obj-pose)))))
-         (valid-assignments
-           (remove-if
-            (lambda (assign)
-              (not (cost-function-ik-pose
-                    obj assign
-                    :allowed-collision-objects (list object-name))))
-            assigned-entities))
-         (sorted-valid-assignments
-           (sort
-            valid-assignments
-            (lambda (assign-1 assign-2)
-              (< (cost-function-ik-pose
-                  obj assign-1
-                  :allowed-collision-objects (list object-name))
-                 (cost-function-ik-pose
-                  obj assign-2
-                  :allowed-collision-objects (list object-name))))))
-         (assignments (mapcar (lambda (arm pose)
-                                (make-instance 'grasp-assignment
-                                               :pose pose
-                                               :side arm))
-                              (first (first sorted-valid-assignments))
-                              (second (first sorted-valid-assignments)))))
-    (unless assignments
-      (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))
-    assignments))
+(defun cons-to-grasp-assignment (cons-cell &key handle cost)
+  (make-instance 'grasp-assignment
+                 :pose (cdr cons-cell)
+                 :side (car cons-cell)
+                 :handle-pair handle
+                 :ik-cost cost))
 
-(defun cost-function-ik-handle (obj assignment &key allowed-collision-objects)
-  "This function determines the overall cost of the assignment
-`assignment' with respect to the generated ik solutions (constraint
-aware) and the cartesian distance between all points of this ik
-solution. Physically speaking, this measures the distances the
-individual arms have to travel when executing this grasp
-configuration."
-  (let ((assignment-poses
-          (mapcar (lambda (handle-pair)
-                    (reference (desig-prop-value (cdr handle-pair) 'at)))
-                  (second assignment))))
-    (cost-function-ik-pose
-     obj (list (first assignment) assignment-poses)
-     :allowed-collision-objects allowed-collision-objects)))
+(defun make-grasp-assignment (&key side pose handle cost)
+  (make-instance 'grasp-assignment
+                 :side side
+                 :pose pose
+                 :handle-pair handle
+                 :ik-cost cost))
 
-(defun cost-function-ik-pose (obj assignment &key allowed-collision-objects)
+(defun cost-function-ik-pose (obj assignment pregrasp-offset grasp-offset
+                              &key allowed-collision-objects)
   "This function determines the overall cost of the assignment
 `assignment' with respect to the generated ik solutions (constraint
 aware) and the cartesian distance between all points of this ik
@@ -198,39 +182,47 @@ configuration."
   ;; account. In reality, we only need the pregrasp->grasp distance in
   ;; the second step. This is a heuristic that works for now but could
   ;; be more sophisticated.
-  (let ((costme (loop for (arm . pose) in (mapcar #'cons
+  (loop for (arm . pose) in (mapcar #'cons
                                     (first assignment)
                                     (second assignment))
-        for distance-pregrasp = (cdr (assoc arm
-                                            (arms-pose-distances
-                                             (list arm) pose
-                                             :arms-offset-pose
-                                             *pregrasp-offset*
-                                             :highlight-links
-                                             (links-for-arm-side arm))))
-        for distance-grasp = (when distance-pregrasp
-                               (moveit:remove-collision-object
-                                (desig-prop-value obj 'desig-props:name))
-                               (prog1
-                                   (cdr (assoc arm
-                                               (arms-pose-distances
-                                                (list arm) pose
-                                                :arms-offset-pose
-                                                *grasp-offset*
-                                                :allowed-collision-objects
-                                                allowed-collision-objects
-                                                :highlight-links
-                                                (links-for-arm-side arm))))
-                                 (moveit:add-collision-object
-                                  (desig-prop-value obj 'desig-props:name))))
-        when (not (and distance-pregrasp distance-grasp))
-          do (roslisp:ros-info (pr2 manip-pm)
-                               "Pregrasp: ~a, Grasp: ~a"
-                               distance-pregrasp distance-grasp)
-             (return-from cost-function-ik-pose nil)
-        summing (+ distance-pregrasp distance-grasp) into total-cost
-        finally (return total-cost))))
-    costme))
+        as cost = (cost-reach-pose
+                   obj arm pose pregrasp-offset grasp-offset
+                   :allowed-collision-objects
+                   allowed-collision-objects)
+        when cost
+          summing cost into total-cost
+        finally (return total-cost)))
+
+(defun cost-reach-pose (obj arm pose pregrasp-offset grasp-offset
+                        &key allowed-collision-objects)
+  (let* ((distance-pregrasp (cdr (assoc arm
+                                        (arms-pose-distances
+                                         (list arm) pose
+                                         :arms-offset-pose
+                                         pregrasp-offset
+                                         :highlight-links
+                                         (links-for-arm-side arm)))))
+         (distance-grasp (when distance-pregrasp
+                           (moveit:remove-collision-object
+                            (desig-prop-value obj 'desig-props:name))
+                           (prog1
+                               (cdr (assoc arm
+                                           (arms-pose-distances
+                                            (list arm) pose
+                                            :arms-offset-pose
+                                            grasp-offset
+                                            :allowed-collision-objects
+                                            allowed-collision-objects
+                                            :highlight-links
+                                            (links-for-arm-side arm))))
+                             (moveit:add-collision-object
+                              (desig-prop-value
+                               obj 'desig-props:name))))))
+    (roslisp:ros-info (pr2 manip-pm)
+                      "Pregrasp: ~a, Grasp: ~a"
+                      distance-pregrasp distance-grasp)
+    (when distance-grasp
+      (+ distance-pregrasp distance-grasp))))
 
 (defun arms-pose-distances (arms pose
                             &key
@@ -245,9 +237,11 @@ configuration."
             offset-pose)))
     (let ((costme
             (loop for arm in arms
-                  for target-link = (ecase arm
-                                      (:left "l_wrist_roll_link")
-                                      (:right "r_wrist_roll_link"))
+                  for target-link = (cut:var-value
+                                     '?link
+                                     (first
+                                      (crs:prolog
+                                       `(manipulator-link ,arm ?link))))
                   for pose-offsetted = (apply-pose-offset
                                         pose arms-offset-pose)
                   for pose-stamped = (tf:make-pose-stamped
@@ -257,9 +251,6 @@ configuration."
                   for publ = (publish-pose pose-stamped "/testpublisher2")
                   for distance = (reaching-length
                                   pose-stamped arm
-                                  :constraint-aware constraint-aware
-                                  :calc-euclidean-distance t
-                                  :euclidean-target-link target-link
                                   :allowed-collision-objects
                                   allowed-collision-objects
                                   :highlight-links highlight-links)
