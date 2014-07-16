@@ -39,7 +39,7 @@
                cram-roslisp-common
                cram-plan-failures
                cram-plan-knowledge
-               cram_moveit
+               cram-moveit
                move_base_msgs-msg)
   :components
   ((:module "src"
