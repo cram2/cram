@@ -329,9 +329,9 @@ for the currently type of grasped object."
                                     (cl-transforms:transform-pose
                                      (tf:make-transform
                                       (tf:make-3d-vector
-                                       0 0 (or (abs (desig-prop-value
-                                                     object-designator
-                                                     'desig-props:z-offset))
+                                       0 0 (or ;(abs (desig-prop-value
+                                               ;      object-designator
+                                               ;      'desig-props:z-offset))
                                                0.0))
                                       (tf:make-identity-rotation))
                                      target-object-pose)))

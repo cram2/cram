@@ -50,12 +50,12 @@
 (defparameter *putdown-offset*
   (tf:make-pose
    (tf:make-3d-vector
-    0.0 0.0 0.0)
+    0.0 0.0 0.02)
    (tf:euler->quaternion)))
 (defparameter *unhand-offset*
   (tf:make-pose
    (tf:make-3d-vector
-    -0.10 0.0 0.0)
+    -0.10 0.0 0.02)
    (tf:euler->quaternion)))
 (defparameter *unhand-top-slide-down-offset*
   (tf:make-pose

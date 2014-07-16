@@ -36,7 +36,8 @@
 (define-hook on-execute-grasp-pregrasp-reached
     (object-name gripper-effort gripper-close-pos side pregrasp-pose safe-pose))
 
-(defun execute-grasp (&key object-name
+(defun execute-grasp (&key (mode :traditional);smooth)
+                        object-name
                         object-pose
                         pregrasp-pose
                         grasp-pose
@@ -45,6 +46,164 @@
                         allowed-collision-objects
                         safe-pose
                         (gripper-effort 100.0))
+  (let ((allowed-collision-objects (append
+                                    allowed-collision-objects
+                                    (list object-name))))
+    (cond ((eql mode :traditional)
+           (execute-grasp-traditional
+            :object-name object-name
+            :object-pose object-pose
+            :pregrasp-pose pregrasp-pose
+            :grasp-pose grasp-pose
+            :side side
+            :gripper-open-pos gripper-open-pos
+            :gripper-close-pos gripper-close-pos
+            :allowed-collision-objects allowed-collision-objects
+            :safe-pose safe-pose
+            :gripper-effort gripper-effort))
+          ((eql mode :smooth)
+           (execute-grasp-smooth
+            :object-name object-name
+            :object-pose object-pose
+            :pregrasp-pose pregrasp-pose
+            :grasp-pose grasp-pose
+            :side side
+            :gripper-open-pos gripper-open-pos
+            :gripper-close-pos gripper-close-pos
+            :allowed-collision-objects allowed-collision-objects
+            :safe-pose safe-pose
+            :gripper-effort gripper-effort))
+          (t (ros-error (pr2 grasp) "Invalid grasping motion executer: ~a" mode)))))
+
+(defun execute-grasp-smooth (&key object-name
+                               object-pose
+                               pregrasp-pose
+                               grasp-pose
+                               side (gripper-open-pos 0.2)
+                               (gripper-close-pos 0.0)
+                               allowed-collision-objects
+                               safe-pose
+                               (gripper-effort 100.0))
+  (declare (ignorable object-pose gripper-close-pos))
+  ;; Generate trajectories for grasp and pregrasp
+  (let* ((pregrasp-trajectory
+           (execute-move-arm-pose
+            side pregrasp-pose
+            :allowed-collision-objects allowed-collision-objects
+            :plan-only t))
+         (pregrasp-end-state (robot-trajectory-end-joint-state pregrasp-trajectory)))
+    (unless pregrasp-trajectory
+      (ros-warn (pr2 grasp) "Unable to assume pregrasp pose.")
+      (cpl:fail 'manipulation-pose-unreachable))
+    (let ((grasp-trajectory
+            (execute-move-arm-pose
+             side grasp-pose
+             :allowed-collision-objects allowed-collision-objects
+             :plan-only t
+             :start-state (roslisp:make-message
+                           "moveit_msgs/RobotState"
+                           :joint_state pregrasp-end-state))))
+      (unless grasp-trajectory
+        (ros-warn (pr2 grasp) "Unable to assume grasp pose.")
+        (cpl:fail 'manipulation-pose-unreachable))
+      (let ((merged-trajectory (merge-robot-trajectories pregrasp-trajectory grasp-trajectory)))
+        (ros-info (pr2 grasp) "Opening gripper")
+        (open-gripper side :max-effort gripper-effort :position gripper-open-pos)
+        (moveit:remove-collision-object object-name)
+        (unwind-protect
+             (moveit::execute-trajectory merged-trajectory)
+          (moveit:add-collision-object object-name))
+        (when (< (get-gripper-state side) 0.01)
+          (ros-warn
+           (pr2 grasp)
+           "Missed the object. Going into fallback pose for side ~a." side)
+          (open-gripper side)
+          (execute-move-arm-pose side pregrasp-pose
+                                 :allowed-collision-objects
+                                 allowed-collision-objects)
+          (moveit:add-collision-object object-name)
+          (when safe-pose
+            (execute-move-arm-pose side safe-pose
+                                   :allowed-collision-objects
+                                   allowed-collision-objects))
+          (cpl:fail 'cram-plan-failures:object-lost))))
+    (moveit:add-collision-object object-name)
+    (let ((link-frame
+            (cut:var-value
+             '?link
+             (first
+              (crs:prolog
+               `(manipulator-link ,side ?link))))))
+      (moveit:attach-collision-object-to-link
+       object-name link-frame))))
+
+(defun merge-robot-trajectories (&rest trajectories)
+  (when trajectories
+    (let ((first-trajectory (first trajectories))
+          (trajectory-gap-time 0.1))
+      (roslisp:with-fields (joint_trajectory) first-trajectory
+        (roslisp:with-fields (header joint_names) joint_trajectory
+          (roslisp:make-message
+           "moveit_msgs/RobotTrajectory"
+           :joint_trajectory
+           (roslisp:make-message
+            "trajectory_msgs/JointTrajectory"
+            :header header
+            :joint_names joint_names
+            :points
+            (map 'vector #'identity
+                 (let ((traj-end-time 0.0))
+                   (loop for trajectory in trajectories
+                         appending (prog1
+                                       (map 'list
+                                            (lambda (point-old)
+                                              (roslisp:with-fields (positions
+                                                                    velocities
+                                                                    accelerations
+                                                                    time_from_start) point-old
+                                                (roslisp:make-message
+                                                 "trajectory_msgs/JointTrajectoryPoint"
+                                                 :positions positions
+                                                 :velocities velocities
+                                                 :accelerations accelerations
+                                                 :time_from_start (+ time_from_start traj-end-time))))
+                                            (roslisp:with-fields (joint_trajectory) trajectory
+                                              (roslisp:with-fields (points) joint_trajectory
+                                                points)))
+                                     (roslisp:with-fields (joint_trajectory) trajectory
+                                       (roslisp:with-fields (points) joint_trajectory
+                                         (let ((last-pt (elt points (1- (length points)))))
+                                           (roslisp:with-fields (time_from_start) last-pt
+                                             (setf traj-end-time (+ time_from_start
+                                                                    trajectory-gap-time)))))))
+                           into aggr-points
+                         finally (return aggr-points)))))))))))
+
+(defun robot-trajectory-end-joint-state (robot-trajectory)
+  (when robot-trajectory
+    (roslisp:with-fields (joint_trajectory) robot-trajectory
+      (roslisp:with-fields (header joint_names points) joint_trajectory
+        (when points
+          (joint-trajectory-point->joint-state
+           header joint_names (elt points (1- (length points)))))))))
+
+(defun joint-trajectory-point->joint-state (header joint-names trajectory-point)
+  (roslisp:with-fields (positions) trajectory-point
+    (roslisp:make-message
+     "sensor_msgs/JointState"
+     :header header
+     :name joint-names
+     :position positions)))
+
+(defun execute-grasp-traditional (&key object-name
+                                    object-pose
+                                    pregrasp-pose
+                                    grasp-pose
+                                    side (gripper-open-pos 0.2)
+                                    (gripper-close-pos 0.0)
+                                    allowed-collision-objects
+                                    safe-pose
+                                    (gripper-effort 100.0))
   (declare (ignore object-pose))
   ;; Gather hook'ed information for the grasp
   (let ((gripper-effort (or (first (on-execute-grasp-with-effort
@@ -55,10 +214,7 @@
              '?link
              (first
               (crs:prolog
-               `(manipulator-link ,side ?link)))))
-          (allowed-collision-objects (append
-                                      allowed-collision-objects
-                                      (list object-name))))
+               `(manipulator-link ,side ?link))))))
       (ros-info (pr2 grasp) "Executing pregrasp for side ~a~%" side)
       (cpl:with-retry-counters ((pregrasp-retry 1))
         (cpl:with-failure-handling
@@ -90,8 +246,7 @@
               (pr2 grasp)
               "Failed to go into grasp pose for side ~a."
               side)
-             (when object-name
-               (moveit:add-collision-object object-name))
+             (when object-name (moveit:add-collision-object object-name))
              (cpl:fail 'manipulation-pose-unreachable)))
         (execute-move-arm-pose side grasp-pose :ignore-collisions t))
       (on-execute-grasp-gripper-positioned-for-grasp
@@ -178,7 +333,7 @@
            (cpl:retry)))
       (execute-move-arm-pose side putdown-pose
        :allowed-collision-objects allowed-collision-objects
-       :ignore-collisions t))
+       :collidable-objects `(,object-name)))
     (ros-info (pr2 putdown) "Opening gripper")
     (open-gripper side :max-effort 50.0 :position gripper-open-pos)
     (moveit:detach-collision-object-from-link
@@ -195,6 +350,7 @@
              (ros-error
               (pr2 putdown)
               "Failed to go into unhand pose for side ~a. Retrying while ignoring collisions." side)
+             (setf ignore-collisions t)
              (cpl:retry))
            (moveit:pose-not-transformable-into-link (f)
              (declare (ignore f))

@@ -68,8 +68,7 @@
   (setf *trajectory-action-torso*
         (actionlib:make-action-client
          "/torso_controller/joint_trajectory_action"
-         "pr2_controllers_msgs/JointTrajectoryAction"))
-  (set-robot-planning-state))
+         "pr2_controllers_msgs/JointTrajectoryAction")))
 
 (roslisp-utilities:register-ros-init-function
  init-pr2-manipulation-process-module)
@@ -132,7 +131,10 @@
 
 (defun execute-move-arm-pose (side pose-stamped
                               &key allowed-collision-objects
-                                ignore-collisions)
+                                ignore-collisions
+                                plan-only
+                                start-state
+                                collidable-objects)
   (ros-info (pr2 manip-pm) "Executing arm movement")
   (let* ((allowed-collision-objects
            (cond (ignore-collisions
@@ -189,15 +191,24 @@
              (on-finish-move-arm log-id nil)
              (error 'manipulation-pose-occupied
                     :result (list side pose-stamped))))
-        (cond ((moveit:move-link-pose
-                link-name
-                planning-group pose-stamped
-                :ignore-collisions ignore-collisions
-                :allowed-collision-objects allowed-collision-objects
-                :touch-links (links-for-arm-side side))
-               (on-finish-move-arm log-id t)
-               (plan-knowledge:on-event
-                (make-instance 'plan-knowledge:robot-state-changed)))
+        (cond ((let ((result
+                       (multiple-value-bind (start trajectory)
+                           (moveit:move-link-pose
+                            link-name
+                            planning-group pose-stamped
+                            :ignore-collisions ignore-collisions
+                            :allowed-collision-objects allowed-collision-objects
+                            :touch-links (links-for-arm-side side)
+                            :plan-only plan-only
+                            :start-state start-state
+                            :collidable-objects collidable-objects)
+                         (declare (ignorable start))
+                         (values trajectory start))))
+                 (on-finish-move-arm log-id t)
+                 (let ((bs-update (plan-knowledge:on-event
+                                   (make-instance 'plan-knowledge:robot-state-changed))))
+                   (cond (plan-only result)
+                         (t bs-update)))))
               (t (on-finish-move-arm log-id nil)
                  (error 'manipulation-failed
                         :result (list side pose-stamped))))))))
