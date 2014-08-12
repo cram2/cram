@@ -441,7 +441,7 @@ of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns
                           ?c_)
                          ("rdf_atom_no_ns" ?c_ ?c))
                      ?connected)
-          ("rdf_has" "http://ias.cs.tum.edu/kb/knowrob.owl#Slider46"
+          ("rdf_has" ,owl-name
                      "http://ias.cs.tum.edu/kb/knowrob.owl#direction" ?direction)
           ("rdf_has" ?direction "http://ias.cs.tum.edu/kb/knowrob.owl#vectorX"
                      ("literal" ("type" ?_ ?direction_x_)))
