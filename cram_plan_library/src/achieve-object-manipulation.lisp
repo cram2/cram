@@ -39,7 +39,7 @@
 (def-goal (achieve (object-picked ?obj))
   (ros-info (achieve plan-lib) "(achieve (object-picked))")
   (with-retry-counters ((lift-retry-count 2)
-                        (misgrasp-retry-count 1)
+                        (misgrasp-retry-count 0)
                         (near-reperceive-retry-count 1)
                         (carry-retry-count 10))
     (with-designators ((obj-loc
@@ -49,7 +49,9 @@
                        (lift-action
                         (action `((type trajectory) (to lift) (obj ,?obj))))
                        (carry-action
-                        (action `((type trajectory) (to carry) (obj ,?obj)))))
+                        (action `((type trajectory) (to carry) (obj ,?obj))))
+                       (perceive-scene-action (action `((to perceive)
+                                                        (obj scene)))))
       (with-failure-handling
           ((object-not-found (f)
              (declare (ignore f))
@@ -57,8 +59,9 @@
               (achieve plan-lib) "Failed to perceive object from near.")
              (do-retry near-reperceive-retry-count
                (ros-warn (achieve plan-lib) "Retrying.")
-               (retry-with-updated-location
-                obj-loc (next-different-location-solution obj-loc)))))
+               (retry))))
+               ;; (retry-with-updated-location
+               ;;  obj-loc (next-different-location-solution obj-loc)))))
         (ros-info (achieve plan-lib) "Looking at object location: ~a~%" obj-loc)
         (achieve `(looking-at ,(reference obj-loc)))
         (let ((perceived-object (first (perceive-object 'currently-visible
@@ -81,6 +84,7 @@
                                           `((of ,perceived-object))))))
             (when (not (desig-equal ?obj perceived-object))
               (equate ?obj perceived-object))
+            (perform perceive-scene-action)
             (perform grasp-action)
             (monitor-action grasp-action)
             (when (not (desig-equal ?obj perceived-object))
@@ -172,7 +176,9 @@
                         (action `((type trajectory) (to put-down)
                                   (obj ,obj) (at ,?loc))))
                        (park-action
-                        (action `((type trajectory) (to park) (obj ,obj)))))
+                        (action `((type trajectory) (to park) (obj ,obj))))
+                       (perceive-scene-action (action `((to perceive)
+                                                        (obj scene)))))
       (with-failure-handling
           (((or manipulation-failed manipulation-pose-unreachable) (f)
              (declare (ignore f))
@@ -182,6 +188,7 @@
              (fail 'manipulation-pose-unreachable)))
         (try-reference-location ?loc)
         (achieve `(looking-at ,(reference ?loc)))
+        (perform perceive-scene-action)
         (perform put-down-action)
         (monitor-action put-down-action))
       (with-retry-counters ((park-retry-counter 5))
