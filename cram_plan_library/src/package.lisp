@@ -71,4 +71,4 @@
                      #:follow #:pick-up #:put-down #:height #:orientation
                      #:in #:perceive #:obstacle #:cluster #:execute
                      #:action #:goal #:navigation #:park #:on #:angle
-                     #:examine #:properties))
+                     #:examine #:properties #:scene))
