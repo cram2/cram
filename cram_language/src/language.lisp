@@ -207,14 +207,14 @@
            (let ((log-id (first (on-preparing-named-top-level ',name))))
              (single-form-progv (on-top-level-setup-hook ',name *task-tree*)
                (unwind-protect
-                    (let ((,task (make-instance 'toplevel-task
-                                   :name ',task-name
-                                   :thread-fun (lambda () ,@body))))
-                      (with-failure-handling
-                          ((plan-failure (e)
-                             (error e))
-                           (error (e)
-                             (error e)))
+                    (with-failure-handling
+                        ((plan-failure (e)
+                           (error e))
+                         (error (e)
+                           (error e)))
+                      (let ((,task (make-instance 'toplevel-task
+                                                  :name ',task-name
+                                                  :thread-fun (lambda () ,@body))))
                         (unwind-protect-case ()
                                              (join-task ,task)
                           (:abort
@@ -391,17 +391,22 @@ reference it by its path relative to the PARTIAL-ORDER form."
       (loop for (sym constraining-task constrained-task) in orderings
          for constraining-name = (gensym "CONSTRAINING-TASK-")
          for constrained-name = (gensym "CONSTRAINED-TASK-")
-         unless (eq sym :order) do (error "Malformed ordering constraint.")
-         nconc `((,constraining-name ,constraining-task)
-                 (,constrained-name ,constrained-task)) into bindings
-         collect (list constraining-name constrained-name) into orders
-         finally (return (values bindings orders)))
+         unless (eq sym :order)
+           do (error "Malformed ordering constraint.")
+            nconc `((,constraining-name ,constraining-task)
+                    (,constrained-name ,constrained-task)) into bindings
+            collect (list constraining-name constrained-name) into orders
+            finally (return (values bindings orders)))
     `(let ,bindings
        ;;; This is not thread-unsafe because the tasks are supposed
        ;;; not to run yet. FIXME: this should probably be asserted.
        ,@(loop for (constraining constrained) in orders
-            collect `(push (task-dead ,constraining)
-                           (task-constraints ,constrained)))
+               collect `(push (if (eql (cpl-impl::class-name
+                                        (cpl-impl::class-of ,constraining))
+                                       'cpl:value-fluent)
+                                  (fl-pulsed ,constraining)
+                                  (task-dead ,constraining))
+                              (task-constraints ,constrained)))
        (par
          ,@steps))))
 
