@@ -102,11 +102,13 @@
          (goal-pose-in-fixed-frame
            (moveit:ensure-pose-stamped-transformed
             goal-pose designators-ros:*fixed-frame* :ros-time t)))
+    (roslisp:publish (roslisp:advertise "/ppp" "geometry_msgs/PoseStamped")
+                     (tf:pose-stamped->msg goal-pose-in-fixed-frame))
     (multiple-value-bind (result status)
         (actionlib-lisp:send-goal-and-wait
          client (make-action-goal goal-pose-in-fixed-frame)
          10.0 10.0)
-      (declare (ignore result status))
+      (declare (ignorable result status))
       (roslisp:ros-info (pr2-nav process-module) "Nav action finished.")
       (unless (goal-reached? (tf:copy-pose-stamped
                               goal-pose-in-fixed-frame

@@ -232,9 +232,7 @@
       (ros-info (pr2 grasp) "Opening gripper")
       (open-gripper side :max-effort gripper-effort :position gripper-open-pos)
       (unless object-name
-        (ros-warn (pr2 grasp) "You didn't specify an object name to
-    grasp. This might cause the grasping to fail because of a
-    misleading collision environment configuration."))
+        (ros-warn (pr2 grasp) "You didn't specify an object name to grasp. This might cause the grasping to fail because of a misleading collision environment configuration."))
       (when object-name (moveit:remove-collision-object object-name))
       (on-execute-grasp-pregrasp-reached
        object-name gripper-effort gripper-close-pos side pregrasp-pose safe-pose)
