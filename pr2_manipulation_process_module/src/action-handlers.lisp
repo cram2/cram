@@ -146,18 +146,12 @@
                            0.0))
          (grasped-object (or (slot-value grasp-assignment
                                          'handle-pair)
-                             obj))
-         (log-id (first (on-begin-grasp obj)))
-         (success nil))
+                             obj)))
     (declare (ignore grasped-object))
-    (unwind-protect
          (cpl:with-failure-handling
              ((cram-plan-failures:manipulation-failure (f)
                 (declare (ignore f))
-                (unwind-protect
-                     (cpl:fail
-                      'cram-plan-failures:manipulation-pose-unreachable)
-                  (on-finish-grasp log-id nil))))
+                (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable)))
            (publish-pose pregrasp-pose-tll "/dhdhdh")
            (prog2
                (on-grasp-decisions-complete
@@ -172,9 +166,7 @@
                 :gripper-close-pos close-radius
                 :safe-pose (ecase side
                              (:left *left-safe-pose*)
-                             (:right *right-safe-pose*)))
-             (setf success t)))
-      (on-finish-grasp log-id success))
+                             (:right *right-safe-pose*)))))
     (with-vars-strictly-bound (?link-name)
         (lazy-car
          (prolog
@@ -187,17 +179,25 @@
                       :side side)))))
 
 (defun perform-grasps (object lazy-grasp-assignment pregrasp-offset grasp-offset)
-  (unless (lazy-try-until grasp-assignment ?grasp-assignment lazy-grasp-assignment
-            (block next-grasp-assignment
-              (cpl:with-failure-handling
-                  ((cram-plan-failures:manipulation-pose-unreachable (f)
-                     (declare (ignore f))
-                     (return-from next-grasp-assignment)))
-                (perform-grasp object grasp-assignment pregrasp-offset grasp-offset)
-                (success))))
-    (cpl:fail 'manipulation-pose-unreachable)))
-        
-(defun perform-lazy-grasps (obj avail-arms pregrasp-offset grasp-offset &key reorient-object)
+  (let ((log-id (first (on-begin-grasp object)))
+        (success nil))
+    (unwind-protect
+         (unless (lazy-try-until
+                     grasp-assignment ?grasp-assignment lazy-grasp-assignment
+                   (block next-grasp-assignment
+                     (cpl:with-failure-handling
+                         ((cram-plan-failures:manipulation-pose-unreachable (f)
+                            (declare (ignore f))
+                            (return-from next-grasp-assignment)))
+                       (perform-grasp
+                        object grasp-assignment pregrasp-offset grasp-offset)
+                       (setf success t)
+                       (success))))
+           (cpl:fail 'manipulation-pose-unreachable))
+      (on-finish-grasp log-id success))))
+      
+(defun perform-lazy-grasps (obj avail-arms pregrasp-offset grasp-offset
+                            &key reorient-object)
   (let* ((ga-prolog (crs:prolog `(grasp-handle-assignment ;; optimal-handle-grasp
                                   ,obj
                                   ,avail-arms

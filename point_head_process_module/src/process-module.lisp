@@ -33,7 +33,7 @@
 (defvar *point-head-thread* nil)
 
 (defun init-point-head-action ()
-  (setf *action-client* (actionlib:make-action-client
+  (setf *action-client* (actionlib-lisp:make-simple-action-client
                          "/head_traj_controller/point_head_action"
                          "pr2_controllers_msgs/PointHeadAction")))
 
@@ -51,15 +51,13 @@
                (maybe-shutdown-thread)
                (ecase cmd
                  (point
-                  (actionlib:send-goal-and-wait
+                  (actionlib-lisp:send-goal-and-wait
                    *action-client* action-goal
-                   :result-timeout 1.0
-                   :exec-timeout 3.0))
+                   1.0 3.0))
                  (follow
-                  (actionlib:send-goal-and-wait
+                  (actionlib-lisp:send-goal-and-wait
                    *action-client* action-goal
-                   :result-timeout 1.0
-                   :exec-timeout 3.0)
+                   1.0 3.0)
                   ;; (setf *point-head-thread*
                   ;;       (sb-thread:make-thread
                   ;;        (curry #'follow-pose-thread-fun action-goal)))
@@ -87,7 +85,7 @@
   (top-level
     (roslisp-utils:loop-at-most-every 0.01
       (pursue
-        (actionlib:call-goal *action-client* goal)
+        ;(actionlib-lisp:call-goal *action-client* goal)
         (sleep 1)))))
 
 (defmethod pm-run :around ((pm point-head-process-module) &optional name)
