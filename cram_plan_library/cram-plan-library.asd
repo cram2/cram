@@ -41,6 +41,7 @@
                cram-plan-knowledge
                cram-plan-failures
                cram-projection
+               cram-utilities
                designators-ros
                alexandria
                ubiquitous-utilities)
