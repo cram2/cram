@@ -36,7 +36,7 @@
 (define-hook on-execute-grasp-pregrasp-reached
     (object-name gripper-effort gripper-close-pos side pregrasp-pose safe-pose))
 
-(defun execute-grasp (&key (mode :traditional);smooth)
+(defun execute-grasp (&key (mode :traditional);:smooth)
                         object-name
                         object-pose
                         pregrasp-pose

@@ -30,8 +30,12 @@
 (defclass grasp-assignment ()
   ((pose :accessor pose :initform nil :initarg :pose)
    (side :accessor side :initform nil :initarg :side)
+   (grasp-type :accessor grasp-type :initform nil :initarg :grasp-type)
    (close-radius :accessor close-radius :initform nil :initarg :close-radius)
    (handle-pair :accessor handle-pair :initform nil :initarg :handle-pair)
+   (pregrasp-offset :accessor pregrasp-offset :initform nil :initarg :pregrasp-offset)
+   (grasp-offset :accessor grasp-offset :initform nil :initarg :grasp-offset)
+   (gripper-offset :accessor gripper-offset :initform nil :initarg :gripper-offset)
    (ik-cost :accessor ik-cost :initform nil :initarg :ik-cost)))
 
 (define-condition move-arm-no-ik-solution (manipulation-failure) ())
