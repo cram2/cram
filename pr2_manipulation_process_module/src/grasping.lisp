@@ -161,12 +161,18 @@ applied."
                  :handle-pair handle
                  :ik-cost cost))
 
-(defun make-grasp-assignment (&key side pose handle cost)
+(defun make-grasp-assignment (&key side pose handle cost grasp-type
+                                pregrasp-offset grasp-offset
+                                gripper-offset)
   (make-instance 'grasp-assignment
                  :side side
                  :pose pose
+                 :grasp-type grasp-type
                  :handle-pair handle
-                 :ik-cost cost))
+                 :ik-cost cost
+                 :pregrasp-offset pregrasp-offset
+                 :grasp-offset grasp-offset
+                 :gripper-offset gripper-offset))
 
 (defun cost-function-ik-pose (obj assignment pregrasp-offset grasp-offset
                               &key allowed-collision-objects)

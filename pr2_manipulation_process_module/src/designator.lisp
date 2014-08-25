@@ -30,11 +30,6 @@
 (defun make-message (type-str slots)
   (apply #'roslisp::make-message-fn type-str slots))
 
-(defun missing (list1 list2 &key (test #'eql))
-  (loop for item in list2
-        when (not (find item list1 :test test))
-          collect item))
-
 (defun arm-for-pose (pose)
   (let* ((pose-frame (tf:frame-id pose))
          (string-frame
@@ -46,15 +41,13 @@
      '?side
      (first (crs:prolog `(manipulator-link ?side ,string-frame))))))
 
-(def-fact-group pr2-manipulation-designators (action-desig
-                                              available-arms
-                                              flatten)
+(defun gripper-offset (side)
+  (ecase side
+    (:left (tf:make-pose (tf:make-3d-vector -0.035 0.0 0.0)
+                         (tf:make-identity-rotation)))
+    (:right (tf:make-identity-pose))))
 
-  (<- (flatten ?list-of-lists ?list)
-    (lisp-fun alexandria:flatten ?list-of-lists ?list))
-
-  (<- (missing ?list-current ?list-full ?list-missing)
-    (lisp-fun missing ?list-current ?list-full ?list-missing))
+(def-fact-group pr2-manipulation-designators (action-desig)
 
   (<- (min-handles ?object-desig ?min-handles)
     (current-designator ?object-desig ?current-object)
@@ -140,38 +133,56 @@
     (holding-arms ?current-obj ?arms)
     (obstacles ?desig ?obstacles))
 
-  ;; rule added by Georg:
-  ;; right now, it is intended to be limited to grasping of
-  ;; handled objects, i.e. the ones produced by the gazebo
-  ;; perception process module.
-  ;; later, however, it could be used as the general rule for
-  ;; all grasping because the predicate 'best-grasp' can be
-  ;; used as a hook for grasp planning or any other manipulation
-  ;; reasoning process that chooses the correct arm/grasp setup
-  (<- (available-arms ?obj ?available-arms)
-    (available-arms ?obj ?available-arms (:left :right)))
-  
-  (<- (available-arms ?obj ?available-arms ?possible-arms)
-    (or (setof ?arms-object (object-in-hand ?_ ?arms-object) ?arms-used-list)
-        (equal ?arms-used-list ()))
-    (flatten ?arms-used-list ?arms-used)
-    (missing ?arms-used ?possible-arms ?available-arms))
+  (<- (free-arm ?free-arm)
+    (arm ?free-arm)
+    (not (object-in-hand ?_ ?free-arm)))
   
   (<- (arm-for-pose ?pose ?arm)
     (lisp-fun arm-for-pose ?pose ?arm))
   
-  (<- (action-desig ?desig (grasp ?current-obj ?available-arms))
+  (<- (action-desig ?desig (grasp ?current-obj))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to grasp))
     (desig-prop ?desig (obj ?obj))
-    (current-designator ?obj ?current-obj)
-    (or (desig-prop ?obj (desig-props:grasp-type ?grasp-type))
-        (desig-prop ?desig (desig-props:grasp-type ?grasp-type))
-        (equal ?grasp-type desig-props:push))
-    (handles ?current-obj ?handles)
-    (or (and (desig-prop ?current-obj (side ?arm))
-             (available-arms ?current-obj ?available-arms (?arm)))
-        (available-arms ?current-obj ?available-arms)))
+    (current-designator ?obj ?current-obj))
+  
+  (<- (grasp-offsets push ?pregrasp-offset ?grasp-offset)
+    (symbol-value *pregrasp-offset* ?pregrasp-offset)
+    (symbol-value *grasp-offset* ?grasp-offset))
+
+  (<- (grasp-offsets top-slide-down ?pregrasp-offset ?grasp-offset)
+    (symbol-value *pregrasp-top-slide-down-offset* ?pregrasp-offset)
+    (symbol-value *grasp-top-slide-down-offset* ?grasp-offset))
+  
+  (<- (reorient-object ?object t))
+  
+  (<- (gripper-offset ?side ?gripper-offset)
+    (lisp-fun gripper-offset ?side ?gripper-offset))
+  
+  (<- (grasp-assignment ?object ?grasp-assignment)
+    (grasp-type ?object ?grasp-type)
+    (grasp-offsets ?grasp-type ?pregrasp-offset ?grasp-offset)
+    (free-arm ?free-arm)
+    (desig-prop ?object (handle ?handle))
+    (gripper-offset ?free-arm ?gripper-offset)
+    (reorient-object ?object ?reorient-object)
+    (and (absolute-handle ?object ?handle ?reorient-object ?absolute-handle)
+         (desig-prop ?absolute-handle (at ?location))
+         (lisp-fun reference ?location ?pose)
+         (lisp-pred open-gripper ?free-arm)
+         (lisp-fun cost-reach-pose ?object ?free-arm ?pose
+                   ?pregrasp-offset ?grasp-offset ?cost)
+         (not (equal ?cost nil))
+         (lisp-fun make-grasp-assignment
+                   :side ?free-arm
+                   :grasp-type ?grasp-type
+                   :pose ?pose
+                   :handle ?handle
+                   :cost ?cost
+                   :pregrasp-offset ?pregrasp-offset
+                   :grasp-offset ?grasp-offset
+                   :gripper-offset ?gripper-offset
+                   ?grasp-assignment)))
   
   (<- (optimal-handle-grasp ?object-desig ?available-arms
                             ?pregrasp-pose ?grasp-pose
@@ -193,26 +204,6 @@
               ?grasp-assignments)
     (length ?grasp-assignments ?assignment-count)
     (> ?assignment-count 0))
-  
-  (<- (grasp-handle-assignment ?object ?arms ?pregrasp-offset ?grasp-offset
-                               ?reorient-object ?grasp-assignment)
-    (current-designator ?object ?current-object)
-    (handles ?current-object ?handles)
-    (member ?handle ?handles)
-    (member ?arm ?arms)
-    (and (absolute-handle ?object ?handle ?reorient-object ?absolute-handle)
-         (desig-prop ?absolute-handle (at ?location))
-         (lisp-fun reference ?location ?pose)
-         (lisp-pred open-gripper ?arm)
-         (lisp-fun cost-reach-pose ?current-object ?arm ?pose
-                   ?pregrasp-offset ?grasp-offset ?cost)
-         (not (equal ?cost nil))
-         (lisp-fun make-grasp-assignment
-                   :side ?arm
-                   :pose ?pose
-                   :handle ?handle
-                   :cost ?cost
-                   ?grasp-assignment)))
   
   ;; This one is old
   (<- (action-desig ?desig (grasp ?current-obj ?available-arms))

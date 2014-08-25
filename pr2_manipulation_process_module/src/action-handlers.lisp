@@ -128,18 +128,25 @@
 (define-hook on-grasp-decisions-complete
     (object-name pregrasp-pose grasp-pose side object-pose))
 
-(defun perform-grasp (object grasp-assignment pregrasp-offset grasp-offset)
-  (let* ((obj (desig:newest-effective-designator object))
+(defun perform-grasp (object grasp-assignment)
+  (let* ((pregrasp-offset (pregrasp-offset grasp-assignment))
+         (grasp-offset (grasp-offset grasp-assignment))
+         (pose (pose grasp-assignment))
+         (side (side grasp-assignment))
+         (obj (desig:newest-effective-designator object))
          (obj-pose (reference (desig-prop-value obj 'desig-props:at)))
-         (pose (slot-value grasp-assignment 'pose))
-         (side (slot-value grasp-assignment 'side))
+         (gripper-offset (gripper-offset side))
          (pregrasp-pose-tll
            (moveit:ensure-pose-stamped-transformed
-            (relative-grasp-pose pose pregrasp-offset)
+            (relative-grasp-pose
+             (relative-grasp-pose pose pregrasp-offset)
+             gripper-offset)
             "/torso_lift_link"))
          (grasp-pose-tll
            (moveit:ensure-pose-stamped-transformed
-            (relative-grasp-pose pose grasp-offset)
+            (relative-grasp-pose
+             (relative-grasp-pose pose grasp-offset)
+             gripper-offset)
             "/torso_lift_link"))
          (close-radius (or (slot-value grasp-assignment
                                        'close-radius)
@@ -148,25 +155,25 @@
                                          'handle-pair)
                              obj)))
     (declare (ignore grasped-object))
-         (cpl:with-failure-handling
-             ((cram-plan-failures:manipulation-failure (f)
-                (declare (ignore f))
-                (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable)))
-           (publish-pose pregrasp-pose-tll "/dhdhdh")
-           (prog2
-               (on-grasp-decisions-complete
-                (desig-prop-value obj 'desig-props:name)
-                pregrasp-pose-tll grasp-pose-tll side obj-pose)
-               (execute-grasp
-                :object-name (desig-prop-value obj 'desig-props:name)
-                :object-pose obj-pose
-                :pregrasp-pose pregrasp-pose-tll
-                :grasp-pose grasp-pose-tll
-                :side side
-                :gripper-close-pos close-radius
-                :safe-pose (ecase side
-                             (:left *left-safe-pose*)
-                             (:right *right-safe-pose*)))))
+    (cpl:with-failure-handling
+        ((cram-plan-failures:manipulation-failure (f)
+           (declare (ignore f))
+           (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable)))
+      (publish-pose pregrasp-pose-tll "/dhdhdh")
+      (prog2
+          (on-grasp-decisions-complete
+           (desig-prop-value obj 'desig-props:name)
+           pregrasp-pose-tll grasp-pose-tll side obj-pose)
+          (execute-grasp
+           :object-name (desig-prop-value obj 'desig-props:name)
+           :object-pose obj-pose
+           :pregrasp-pose pregrasp-pose-tll
+           :grasp-pose grasp-pose-tll
+           :side side
+           :gripper-close-pos close-radius
+           :safe-pose (ecase side
+                        (:left *left-safe-pose*)
+                        (:right *right-safe-pose*)))))
     (with-vars-strictly-bound (?link-name)
         (lazy-car
          (prolog
@@ -178,51 +185,25 @@
                       :link ?link-name
                       :side side)))))
 
-(defun perform-grasps (object lazy-grasp-assignment pregrasp-offset grasp-offset)
-  (let ((log-id (first (on-begin-grasp object)))
+(def-action-handler grasp (object)
+  (let ((grasp-assignments (crs:prolog `(grasp-assignment ,object ?grasp-assignment)))
+        (log-id (first (on-begin-grasp object)))
         (success nil))
     (unwind-protect
-         (unless (lazy-try-until
-                     grasp-assignment ?grasp-assignment lazy-grasp-assignment
+         (unless (lazy-try-until grasp-assignment ?grasp-assignment grasp-assignments
                    (block next-grasp-assignment
                      (cpl:with-failure-handling
                          ((cram-plan-failures:manipulation-pose-unreachable (f)
                             (declare (ignore f))
                             (return-from next-grasp-assignment)))
-                       (perform-grasp
-                        object grasp-assignment pregrasp-offset grasp-offset)
+                       (ros-info (pr2 manip-pm) "Executing grasp: ~a/~a"
+                                 (grasp-type grasp-assignment)
+                                 (side grasp-assignment))
+                       (perform-grasp object grasp-assignment)
                        (setf success t)
                        (success))))
            (cpl:fail 'manipulation-pose-unreachable))
       (on-finish-grasp log-id success))))
-      
-(defun perform-lazy-grasps (obj avail-arms pregrasp-offset grasp-offset
-                            &key reorient-object)
-  (let* ((ga-prolog (crs:prolog `(grasp-handle-assignment ;; optimal-handle-grasp
-                                  ,obj
-                                  ,avail-arms
-                                  ,pregrasp-offset
-                                  ,grasp-offset
-                                  ,reorient-object
-                                  ?grasp-assignment))))
-    (when (lazy-car ga-prolog)
-      (ros-info (pr2 manip-pm) "Found grasp assignment(s)."))
-    (perform-grasps obj ga-prolog pregrasp-offset grasp-offset)))
-
-(def-action-handler grasp (obj-desig available-arms)
-  (let ((grasp-types (crs:prolog `(grasp-type ,obj-desig ?grasp-type))))
-    (lazy-try-until grasp-type ?grasp-type grasp-types
-      (ros-info (pr2 manip-pm) "Executing grasp-type: ~a" grasp-type)
-      (cond ((eql grasp-type 'desig-props:top-slide-down)
-             (perform-lazy-grasps obj-desig available-arms
-                                  *pregrasp-top-slide-down-offset*
-                                  *grasp-offset*))
-            ((eql grasp-type 'desig-props:push)
-             (perform-lazy-grasps obj-desig available-arms
-                                  *pregrasp-offset*
-                                  *grasp-offset*
-                                  :reorient-object t)))
-      (success))))
 
 (defun pose-pointing-away-from-base (object-pose)
   (let ((ref-frame "/base_link")
