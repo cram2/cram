@@ -49,9 +49,7 @@
                        (lift-action
                         (action `((type trajectory) (to lift) (obj ,?obj))))
                        (carry-action
-                        (action `((type trajectory) (to carry) (obj ,?obj))))
-                       (perceive-scene-action (action `((to perceive)
-                                                        (obj scene)))))
+                        (action `((type trajectory) (to carry) (obj ,?obj)))))
       (with-failure-handling
           ((object-not-found (f)
              (declare (ignore f))
@@ -84,7 +82,6 @@
                                           `((of ,perceived-object))))))
             (when (not (desig-equal ?obj perceived-object))
               (equate ?obj perceived-object))
-            (perform perceive-scene-action)
             (perform grasp-action)
             (monitor-action grasp-action)
             (when (not (desig-equal ?obj perceived-object))
