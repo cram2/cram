@@ -47,13 +47,40 @@
                          (tf:make-identity-rotation)))
     (:right (tf:make-identity-pose))))
 
-(def-fact-group pr2-manipulation-designators (action-desig)
+(defun robot-object-distance (object)
+  (let ((obj-at (desig-prop-value object 'desig-props:at)))
+    (when obj-at
+      (let* ((obj-pose (reference obj-at))
+             (obj-pose-base-link
+               (moveit:ensure-pose-stamped-transformed
+                obj-pose
+                "/base_link"
+                :ros-time t))
+             (obj-pose-base-link-origin
+               (tf:origin obj-pose-base-link)))
+        (tf:v-dist
+         (tf:make-identity-vector)
+         (tf:make-3d-vector
+                 (tf:x obj-pose-base-link-origin)
+                 (tf:y obj-pose-base-link-origin)
+                 0.0))))))
 
+(def-fact-group pr2-manipulation-designators (action-desig)
+  
+  (<- (maximum-object-tilt nil ?max-tilt)
+    (symbol-value pi ?max-tilt))
+  
+  (<- (maximum-object-tilt ?object ?max-tilt)
+    (equal ?max-tilt 0.3))
+  
+  (<- (robot-object-distance ?object ?distance)
+    (lisp-fun robot-object-distance ?object ?distance))
+  
   (<- (min-handles ?object-desig ?min-handles)
     (current-designator ?object-desig ?current-object)
     (or (desig-prop ?current-object (min-handles ?min-handles))
         (equal ?min-handles 1)))
-
+  
   (<- (ros-message ?type ?slots ?msg)
     (lisp-fun make-message ?type ?slots ?msg))
 
@@ -144,7 +171,14 @@
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to grasp))
     (desig-prop ?desig (obj ?obj))
-    (current-designator ?obj ?current-obj))
+    (current-designator ?obj ?current-obj)
+    (robot-object-distance ?current-obj ?distance)
+    (<= ?distance 0.7))
+
+  (<- (action-desig ?desig (grasp-too-far ?current-obj))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (to grasp))
+    (desig-prop ?desig (obj ?obj)))
   
   (<- (grasp-offsets push ?pregrasp-offset ?grasp-offset)
     (symbol-value *pregrasp-offset* ?pregrasp-offset)
@@ -242,7 +276,7 @@
   (<- (grasp-type ?_ ?grasp-type)
     (equal ?grasp-type desig-props:push))
   
-  (<- (action-desig ?desig (put-down ?current-obj ?loc ?grasp-assignments ?grasp-type))
+  (<- (action-desig ?desig (put-down ?current-obj ?loc ?grasp-assignments ?grasp-type ?max-tilt))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to put-down))
     (desig-prop ?desig (obj ?obj))
@@ -252,6 +286,7 @@
         (equal ?grasp-type nil))
     (desig-prop ?desig (at ?loc))
     (desig-prop ?current-obj (desig-props:at ?objloc))
+    (maximum-object-tilt ?current-obj ?max-tilt)
     (desig-prop ?objloc (desig-props:in desig-props:gripper))
     (setof ?posearm (and (desig-prop ?objloc (desig-props:pose ?objpose))
                          (arm-for-pose ?objpose ?arm)

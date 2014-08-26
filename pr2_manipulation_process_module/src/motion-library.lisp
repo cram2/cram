@@ -73,7 +73,8 @@
             :allowed-collision-objects allowed-collision-objects
             :safe-pose safe-pose
             :gripper-effort gripper-effort))
-          (t (ros-error (pr2 grasp) "Invalid grasping motion executer: ~a" mode)))))
+          (t (ros-error (pr2 grasp)
+                        "Invalid grasping motion executer: ~a" mode)))))
 
 (defun execute-grasp-smooth (&key object-name
                                object-pose
@@ -83,7 +84,8 @@
                                (gripper-close-pos 0.0)
                                allowed-collision-objects
                                safe-pose
-                               (gripper-effort 100.0))
+                               (gripper-effort 100.0)
+                               max-tilt)
   (declare (ignorable object-pose gripper-close-pos))
   ;; Generate trajectories for grasp and pregrasp
   (let* ((pregrasp-trajectory
@@ -291,7 +293,8 @@
                           pre-putdown-pose putdown-pose
                           unhand-pose side
                           (gripper-open-pos 0.2)
-                          allowed-collision-objects)
+                          allowed-collision-objects
+                          max-tilt)
   (let ((allowed-collision-objects (append
                                     allowed-collision-objects
                                     (list object-name))))
@@ -313,7 +316,8 @@
            (cpl:retry)))
       (execute-move-arm-pose
        side pre-putdown-pose
-       :allowed-collision-objects allowed-collision-objects))
+       :allowed-collision-objects allowed-collision-objects
+       :max-tilt max-tilt))
     (ros-info (pr2 putdown) "Executing putdown for side ~a~%" side)
     (cpl:with-failure-handling
         ((manipulation-pose-unreachable (f)
@@ -331,7 +335,8 @@
            (cpl:retry)))
       (execute-move-arm-pose side putdown-pose
        :allowed-collision-objects allowed-collision-objects
-       :collidable-objects `(,object-name)))
+       :collidable-objects `(,object-name)
+       :max-tilt max-tilt))
     (ros-info (pr2 putdown) "Opening gripper")
     (open-gripper side :max-effort 50.0 :position gripper-open-pos)
     (moveit:detach-collision-object-from-link
@@ -379,17 +384,60 @@ object in order to lift it at `distance' form the supporting plane"
     (execute-move-arm-pose side raised-arm-pose :ignore-collisions t)))
 
 (defun relative-grasp-pose (pose pose-offset)
-  (let* ((stamp (ros-time))
-         (target-frame "/torso_lift_link"))
-    ;; NOTE(winkler): Right now, we check whether a transformation can
-    ;; actually be done at the current time. This has to be checked
-    ;; because sometimes the upcoming wait-for-transform waits forever
-    ;; (for yet unknown reasons). This is a preliminary fix, though.
-    (let ((pose-offsetted (tf:pose->pose-stamped
-                           (tf:frame-id pose)
-                           stamp
-                           (cl-transforms:transform-pose
-                            (cl-transforms:pose->transform pose)
-                            pose-offset))))
-      (moveit:ensure-pose-stamped-transformed
-       pose-offsetted target-frame :ros-time t))))
+  (tf:pose->pose-stamped
+   (tf:frame-id pose)
+   (ros-time)
+   (cl-transforms:transform-pose
+    (cl-transforms:pose->transform pose)
+    pose-offset)))
+
+(defun register-default-arm-poses ()
+  (setf *registered-arm-poses* nil)
+  (register-arm-pose-values
+   'park-up :left
+   (list "l_shoulder_pan_joint" "l_shoulder_lift_joint" "l_upper_arm_roll_joint"
+         "l_elbow_flex_joint" "l_forearm_roll_joint" "l_wrist_flex_joint"
+         "l_wrist_roll_joint")
+   (list 2.1349352742720713d0 -0.3515787802727127d0 0.4053726979454475d0
+         -1.935268076613257d0 -8.933192323000247d0 -0.9837825111704411d0
+         -2.8312057658851035d0))
+  (register-arm-pose-values
+   'park-up :right
+   (list "r_shoulder_pan_joint" "r_shoulder_lift_joint" "r_upper_arm_roll_joint"
+         "r_elbow_flex_joint" "r_forearm_roll_joint" "r_wrist_flex_joint"
+         "r_wrist_roll_joint")
+   (list -2.1355468854287043d0 -0.3526004879889815d0 -0.32790126674665676d0
+         -1.9663937795607156d0 21.50934421706672d0 -0.8279821032327457d0
+         34.06996833442799d0))
+  (register-arm-pose-values
+   'park-front :left
+   (list "l_shoulder_pan_joint" "l_shoulder_lift_joint" "l_upper_arm_roll_joint"
+         "l_elbow_flex_joint" "l_forearm_roll_joint" "l_wrist_flex_joint"
+         "l_wrist_roll_joint")
+   (list -0.030171038005611828d0 0.8129549311832104d0 0.03816014555840819d0
+         -2.123180459989076d0 -12.555576907844346d0 -0.9193458005029428d0
+         -3.1270229136422465d0))
+  (register-arm-pose-values
+   'park-front :right
+   (list "r_shoulder_pan_joint" "r_shoulder_lift_joint" "r_upper_arm_roll_joint"
+         "r_elbow_flex_joint" "r_forearm_roll_joint" "r_wrist_flex_joint"
+         "r_wrist_roll_joint")
+   (list -0.016868278870932896d0 0.9287588122741933d0 -0.020180354942845424d0
+         -2.122601377143542d0 18.86567449633915d0 -0.9526351593180957d0
+         34.50727649034902d0))
+  (register-arm-pose-values
+   'park-low :left
+   (list "l_shoulder_pan_joint" "l_shoulder_lift_joint" "l_upper_arm_roll_joint"
+         "l_elbow_flex_joint" "l_forearm_roll_joint" "l_wrist_flex_joint"
+         "l_wrist_roll_joint")
+   (list 1.6966908949230448d0 1.2937924741089306d0 2.1740864328052925d0
+         -1.880689518421667d0 -11.21641684493887d0 -1.0517869532861077d0
+         -3.2655553152393537d0))
+  (register-arm-pose-values
+   'park-low :right
+   (list "r_shoulder_pan_joint" "r_shoulder_lift_joint" "r_upper_arm_roll_joint"
+         "r_elbow_flex_joint" "r_forearm_roll_joint" "r_wrist_flex_joint"
+         "r_wrist_roll_joint")
+   (list -1.7367660559416027d0 1.2964083480861532d0 -2.168133254167471d0
+         -1.908340724295921d0 17.52072972473862d0 -1.109876396558022d0
+         34.60691191737709d0)))
