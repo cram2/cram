@@ -38,6 +38,12 @@
    (gripper-offset :accessor gripper-offset :initform nil :initarg :gripper-offset)
    (ik-cost :accessor ik-cost :initform nil :initarg :ik-cost)))
 
+(defclass arm-pose ()
+  ((joint-values :accessor joint-values :initform nil :initarg :joint-values)
+   (joint-names :accessor joint-names :initform nil :initarg :joint-names)
+   (arm-side :accessor arm-side :initform nil :initarg :arm-side)
+   (name :accessor name :initform nil :initarg :name)))
+
 (define-condition move-arm-no-ik-solution (manipulation-failure) ())
 (define-condition move-arm-ik-link-in-collision (manipulation-failure) ())
 
@@ -60,6 +66,8 @@
                            (tf:make-3d-vector 0.3 -0.5 1.3)
                            (tf:euler->quaternion :ax pi)))
 
+(defvar *registered-arm-poses* nil)
+
 (defun init-pr2-manipulation-process-module ()
   (setf *gripper-action-left*
         (actionlib:make-action-client
@@ -72,7 +80,8 @@
   (setf *trajectory-action-torso*
         (actionlib:make-action-client
          "/torso_controller/joint_trajectory_action"
-         "pr2_controllers_msgs/JointTrajectoryAction")))
+         "pr2_controllers_msgs/JointTrajectoryAction"))
+  (register-default-arm-poses))
 
 (roslisp-utilities:register-ros-init-function
  init-pr2-manipulation-process-module)
@@ -85,6 +94,58 @@
                      :format-control "Manipulation failed"))
     result))
 
+(defun register-arm-pose (arm-pose)
+  (push arm-pose *registered-arm-poses*))
+
+(defun register-arm-pose-values (name side joint-names joint-values)
+  (register-arm-pose (make-instance
+                      'arm-pose
+                      :arm-side side
+                      :joint-names joint-names
+                      :joint-values joint-values
+                      :name name)))
+
+(defun register-current-arm-pose (name side)
+  (let* ((joints (ecase side
+                   (:right (list "r_shoulder_pan_joint"
+                                 "r_shoulder_lift_joint"
+                                 "r_upper_arm_roll_joint"
+                                 "r_elbow_flex_joint"
+                                 "r_forearm_roll_joint"
+                                 "r_wrist_flex_joint"
+                                 "r_wrist_roll_joint"))
+                   (:left (list "l_shoulder_pan_joint"
+                                "l_shoulder_lift_joint"
+                                "l_upper_arm_roll_joint"
+                                "l_elbow_flex_joint"
+                                "l_forearm_roll_joint"
+                                "l_wrist_flex_joint"
+                                "l_wrist_roll_joint"))))
+         (joint-values (mapcar (lambda (joint)
+                                 (moveit:get-joint-value joint))
+                               joints)))
+    (register-arm-pose-values name side joints joint-values)))
+
+(defun registered-arm-pose (name side)
+  (find name *registered-arm-poses*
+        :test (lambda (name arm-pose)
+                (and (eql name (name arm-pose))
+                     (eql side (arm-side arm-pose))))))
+
+(defun assume-registered-arm-pose (name side
+                                   &key (wait-for-execution t))
+  (let ((arm-pose (registered-arm-pose name side)))
+    (cond (arm-pose
+           (moveit::move-joints (ecase side
+                                  (:left "left_arm")
+                                  (:right "right_arm"))
+                                (joint-names arm-pose)
+                                (joint-values arm-pose)
+                                :wait-for-execution wait-for-execution))
+          (t (ros-error (pr2 manip-pm)
+                        "Arm pose ~a not registered for side ~a."
+                        name side)))))
+                   
 (defun links-for-arm-side (side)
   (ecase side
     (:left (list "l_shoulder_pan_link"
@@ -138,7 +199,8 @@
                                 ignore-collisions
                                 plan-only
                                 start-state
-                                collidable-objects)
+                                collidable-objects
+                                max-tilt)
   (ros-info (pr2 manip-pm) "Executing arm movement")
   (let* ((allowed-collision-objects
            (cond (ignore-collisions
@@ -205,12 +267,15 @@
                             :touch-links (links-for-arm-side side)
                             :plan-only plan-only
                             :start-state start-state
-                            :collidable-objects collidable-objects)
+                            :collidable-objects collidable-objects
+                            :max-tilt max-tilt
+                            :reference-frame "base_link")
                          (declare (ignorable start))
                          (values trajectory start))))
                  (on-finish-move-arm log-id t)
                  (let ((bs-update (plan-knowledge:on-event
-                                   (make-instance 'plan-knowledge:robot-state-changed))))
+                                   (make-instance
+                                    'plan-knowledge:robot-state-changed))))
                    (cond (plan-only result)
                          (t bs-update)))))
               (t (on-finish-move-arm log-id nil)
