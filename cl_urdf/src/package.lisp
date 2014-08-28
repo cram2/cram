@@ -44,4 +44,5 @@
    link from-joint to-joints
    robot links joints root-link materials
    urdf-type-not-supported urdf-attribute-not-supported urdf-malformed
-   parse-urdf))
+   parse-urdf
+   generate-urdf))
