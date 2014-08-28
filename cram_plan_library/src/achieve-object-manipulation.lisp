@@ -88,7 +88,8 @@
               (equate ?obj perceived-object)))))
       (ros-info (achieve plan-lib) "Grasped object.")
       (with-failure-handling
-          ((manipulation-failure (f)
+          (((or manipulation-failure
+                manipulation-pose-unreachable) (f)
              (declare (ignore f))
              (ros-warn (achieve plan-lib) "Lift failed.")
              (do-retry lift-retry-count
