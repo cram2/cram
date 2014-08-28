@@ -103,7 +103,7 @@ seperated by a whitespcae."
  (let ((children nil))
    (when (texture material)
      (push (s-xml:make-xml-element :name ':|texture|
-                                   :attributes `((:|filename| . (namestring (texture material)))))
+                                   :attributes `((:|filename| . ,(namestring (texture material)))))
            children))
    (when (color material)
      (push (s-xml:make-xml-element :name ':|color|
@@ -149,7 +149,7 @@ seperated by a whitespcae."
                         (joint-link->xml-element (child joint) nil)
                         (origin->xml-element (origin joint))
                         (axis->xml-element (axis joint)))))
-    (when (limits joint)
+    (when (and (slot-boundp joint 'limits)  (limits joint))
       (push (limits->xml-element (limits joint)) children))
     (s-xml:make-xml-element :name ':|joint|
                             :attributes `((:|name| . ,(name joint))
