@@ -203,28 +203,26 @@ either :ACCEPT, :REJECT, :MAYBE-REJECT or :UNKNOWN."
                   (:unknown t)))
                (t
                 (let ((validation-result
-                        (funcall (car validation-functions) designator solution)))
+                        (funcall (car validation-functions)
+                                 designator solution)))
                   (when *print-location-validation-function-results*
-                    (format t "validator ~a says: ~a~%"
+                    (format t "Validator ~a says: ~a~%"
                             (car validation-functions) validation-result))
-                  (case validation-result
-                    (:accept
-                     (validate
-                      (cdr validation-functions) designator solution
-                      :accept))
-                    (:unknown
-                     (validate
-                      (cdr validation-functions) designator solution
-                      result))
-                    (:maybe-reject
-                     (validate
-                      (cdr validation-functions) designator solution
-                      (if (eq result :accept) :accept :maybe-reject)))))))))
-    (let ((validation-functions (location-resolution-function-list
-                                 (remove-if (lambda (validation-function)
-                                              (member validation-function *disabled-validation-functions*))
-                                            *location-validation-functions*
-                                            :key #'location-resolution-function-function))))
+                  (validate
+                   (cdr validation-functions) designator solution
+                   (case validation-result
+                     (:accept :accept)
+                     (:unknown result)
+                     (:maybe-reject (if (eq result :accept)
+                                        :accept
+                                        :maybe-reject)))))))))
+    (let ((validation-functions
+            (location-resolution-function-list
+             (remove-if (lambda (validation-function)
+                          (member validation-function
+                                  *disabled-validation-functions*))
+                        *location-validation-functions*
+                        :key #'location-resolution-function-function))))
       (block nil
         (restart-case
             (validate validation-functions designator solution)
