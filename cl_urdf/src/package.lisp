@@ -45,4 +45,5 @@
    robot links joints root-link materials
    urdf-type-not-supported urdf-attribute-not-supported urdf-malformed
    parse-urdf
-   generate-urdf))
+   generate-urdf-xml
+   generate-urdf-string))
