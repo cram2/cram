@@ -38,7 +38,7 @@ seperated by a whitespcae."
                                         (cl-transforms:y vector) 
                                         (cl-transforms:z vector))))))
 
-(defun generate-urdf (robot)
+(defun generate-urdf-xml (robot)
   "Creates a urdf descriptions in the xml-struct format of the given `robot'."
   (let ((links nil)
         (joints nil))
@@ -53,6 +53,13 @@ seperated by a whitespcae."
     (s-xml:make-xml-element :name ':|robot|
                             :attributes `((:|name| . ,(name robot)))
                             :children (concatenate 'list links joints))))
+
+(defun generate-urdf-string (robot)
+  "Creates a urdf descriptions as a string of the given `robot'."
+  (s-xml:print-xml-string (generate-urdf-xml robot) :input-type :xml-struct))
+
+
+;;; Functions for conversion from a robot part into a xml-element
 
 (defun link->xml-element (link)
   (let ((children nil))
@@ -101,7 +108,7 @@ seperated by a whitespcae."
                                          
 (defun material->xml-element (material)
  (let ((children nil))
-   (when (texture material)
+   (when (and (slot-boundp material 'texture) (texture material))
      (push (s-xml:make-xml-element :name ':|texture|
                                    :attributes `((:|filename| . ,(namestring (texture material)))))
            children))
@@ -111,7 +118,7 @@ seperated by a whitespcae."
                                                                   (color material)))))
            children))    
    (s-xml:make-xml-element :name ':|material|
-                           :attributes `((:|name| . ,(name material)))
+                           :attributes (when (slot-boundp material 'name) `((:|name| . ,(name material))))
                            :children children)))
 
 (defun collision->xml-element (collision)
