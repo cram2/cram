@@ -59,164 +59,204 @@
 
 (def-action-handler park (arms obj &optional obstacles)
   (declare (ignore obstacles))
-  (ros-info (pr2 park) "Park arms ~a" arms)
-  (cond
-    (obj
-     (let ((grasp-type (desig-prop-value obj 'desig-props:grasp-type)))
-       (cond
-         ((and obj arms)
-          (let* ((newest-effective (newest-effective-designator obj))
-                 (object-name (desig-prop-value newest-effective
-                                                'desig-props:name))
-                 (allowed-collision-objects
-                   (append
-                    (cond (object-name (list object-name))
-                          (t nil))
-                    (list "all"))))
-            (dolist (arm (force-ll arms))
-              (when arm
-                (let ((ignore-collisions nil))
-                  (cpl:with-failure-handling
-                      ((cram-plan-failures:manipulation-pose-unreachable (f)
-                         (declare (ignore f))
-                         (roslisp:ros-warn
-                          (pr2 manip-pm)
-                          "Park failed. Retrying with collisions ignored.")
-                         (setf ignore-collisions t)
-                         (cpl:retry))
-                       (cram-plan-failures:manipulation-failed (f)
-                         (declare (ignore f))
-                         (roslisp:ros-warn
-                          (pr2 manip-pm)
-                          "Park failed. Retrying with collisions ignored.")
-                         (setf ignore-collisions t)
-                         (cpl:retry))
-                       (moveit:planning-failed (f)
-                         (declare (ignore f))
-                         (cpl:fail
-                          'cram-plan-failures:manipulation-pose-unreachable)))
-                    (let ((carry-pose
-                            (ecase arm
-                              (:left (cond
-                                       ((eql grasp-type
-                                             'desig-props:top-slide-down)
-                                        (tf:make-pose-stamped
-                                         "base_link" (ros-time)
-                                         (tf:make-3d-vector 0.3 0.5 1.3)
-                                         (tf:euler->quaternion
-                                          :ax 0 :ay (/ pi -2))))
-                                       (t (tf:make-pose-stamped
-                                           "base_link" (ros-time)
-                                           (tf:make-3d-vector 0.3 0.5 1.3)
-                                           (tf:euler->quaternion :ax 0)))))
-                              (:right (cond
-                                        ((eql grasp-type
-                                              'desig-props:top-slide-down)
-                                         (tf:make-pose-stamped
-                                          "base_link" (ros-time)
-                                          (tf:make-3d-vector 0.3 -0.5 1.3)
-                                          (tf:euler->quaternion
-                                           :ax 0 :ay (/ pi -2))))
-                                        (t (tf:make-pose-stamped
-                                            "base_link" (ros-time)
-                                            (tf:make-3d-vector 0.3 -0.5 1.3)
-                                            (tf:euler->quaternion :ax 0))))))))
-                      (execute-move-arm-pose
-                       arm carry-pose
-                       :allowed-collision-objects allowed-collision-objects
-                       :ignore-collisions ignore-collisions)))))))))))
-    (t (dolist (arm arms)
-         (assume-registered-arm-pose 'park-low arm)))))
+  (let ((arms (force-ll arms)))
+    (ros-info (pr2 park) "Park arms ~a" arms)
+    (when (> (length arms) 1)
+      (let ((trajectories
+              (mapcar (lambda (arm)
+                        (let* ((frame-id
+                                 (ecase arm
+                                   (:left "l_wrist_roll_link")
+                                   (:right "r_wrist_roll_link")))
+                               (arm-in-tll
+                                 (moveit:ensure-pose-stamped-transformed
+                                  (tf:make-pose-stamped
+                                   frame-id (ros-time)
+                                   (tf:make-identity-vector)
+                                   (tf:make-identity-rotation))
+                                  "/torso_lift_link" :ros-time t))
+                               (raised
+                                 (tf:copy-pose-stamped
+                                  arm-in-tll
+                                  :origin
+                                  (tf:v+
+                                   (tf:origin arm-in-tll)
+                                   (tf:make-3d-vector -0.1 0 0.1)))))
+                          (execute-move-arm-pose
+                           arm raised :plan-only t
+                                      :allowed-collision-objects
+                                      `(,(desig-prop-value obj 'desig-props::name)))))
+                      arms)))
+        (moveit::execute-trajectories trajectories)))
+    (unless (> (length arms) 1)
+      (cond
+        (obj
+         (let ((grasp-type (desig-prop-value obj 'desig-props:grasp-type)))
+           (cond
+             ((and obj arms)
+              (let* ((newest-effective (newest-effective-designator obj))
+                     (object-name (desig-prop-value newest-effective
+                                                    'desig-props:name))
+                     (allowed-collision-objects
+                       (append
+                        (cond (object-name (list object-name))
+                              (t nil))
+                        (list "all"))))
+                (dolist (arm (force-ll arms))
+                  (when arm
+                    (let ((ignore-collisions nil))
+                      (cpl:with-failure-handling
+                          ((cram-plan-failures:manipulation-pose-unreachable (f)
+                             (declare (ignore f))
+                             (roslisp:ros-warn
+                              (pr2 manip-pm)
+                              "Park failed. Retrying with collisions ignored.")
+                             (setf ignore-collisions t)
+                             (cpl:retry))
+                           (cram-plan-failures:manipulation-failed (f)
+                             (declare (ignore f))
+                             (roslisp:ros-warn
+                              (pr2 manip-pm)
+                              "Park failed. Retrying with collisions ignored.")
+                             (setf ignore-collisions t)
+                             (cpl:retry))
+                           (moveit:planning-failed (f)
+                             (declare (ignore f))
+                             (cpl:fail
+                              'cram-plan-failures:manipulation-pose-unreachable)))
+                        (let ((carry-pose
+                                (ecase arm
+                                  (:left (cond
+                                           ((eql grasp-type
+                                                 'desig-props:top-slide-down)
+                                            (tf:make-pose-stamped
+                                             "base_link" (ros-time)
+                                             (tf:make-3d-vector 0.3 0.5 1.3)
+                                             (tf:euler->quaternion
+                                              :ax 0 :ay (/ pi -2))))
+                                           (t (tf:make-pose-stamped
+                                               "base_link" (ros-time)
+                                               (tf:make-3d-vector 0.3 0.5 1.3)
+                                               (tf:euler->quaternion :ax 0)))))
+                                  (:right (cond
+                                            ((eql grasp-type
+                                                  'desig-props:top-slide-down)
+                                             (tf:make-pose-stamped
+                                              "base_link" (ros-time)
+                                              (tf:make-3d-vector 0.3 -0.5 1.3)
+                                              (tf:euler->quaternion
+                                               :ax 0 :ay (/ pi -2))))
+                                            (t (tf:make-pose-stamped
+                                                "base_link" (ros-time)
+                                                (tf:make-3d-vector 0.3 -0.5 1.3)
+                                                (tf:euler->quaternion :ax 0))))))))
+                          (execute-move-arm-pose
+                           arm carry-pose
+                           :allowed-collision-objects allowed-collision-objects
+                           :ignore-collisions ignore-collisions)))))))))))
+        (t (dolist (arm arms)
+             (assume-registered-arm-pose 'park-low arm)))))))
 
-(def-action-handler lift (arms distance)
-  (force-ll arms)
-  (cond ((eql (length arms) 1)
-         (lift-grasped-object-with-one-arm (first arms) distance))
-        (t (error 'simple-error :format-control "No arms for lifting inferred."))))
+(def-action-handler lift (obj arms distance)
+  (let ((arms (force-ll arms))
+        (obj-name (desig-prop-value obj 'desig-props:name)))
+    (cond ((eql (length arms) 1)
+           (lift-grasped-object-with-one-arm (first arms) distance))
+          ((eql (length arms) 2)
+           (lift-grasped-object-with-two-arms obj-name arms distance))
+          (t (error 'simple-error :format-control "No arms for lifting inferred.")))))
 
-(define-hook on-begin-grasp (obj-desig))
-(define-hook on-finish-grasp (log-id success))
-(define-hook on-grasp-decisions-complete
+(define-hook cram-language::on-begin-grasp (obj-desig))
+(define-hook cram-language::on-finish-grasp (log-id success))
+(define-hook cram-language::on-grasp-decisions-complete
     (object-name pregrasp-pose grasp-pose side object-pose))
 
-(defun perform-grasp (object grasp-assignment)
-  (let* ((pregrasp-offset (pregrasp-offset grasp-assignment))
-         (grasp-offset (grasp-offset grasp-assignment))
-         (pose (pose grasp-assignment))
-         (side (side grasp-assignment))
-         (obj (desig:newest-effective-designator object))
+(defun perform-grasp (object assignments-list)
+  (let* ((obj (desig:newest-effective-designator object))
          (obj-pose (reference (desig-prop-value obj 'desig-props:at)))
-         (gripper-offset (gripper-offset side))
-         (pregrasp-pose-tll
-           (moveit:ensure-pose-stamped-transformed
-            (relative-grasp-pose
-             (relative-grasp-pose pose pregrasp-offset)
-             gripper-offset)
-            "/torso_lift_link"))
-         (grasp-pose-tll
-           (moveit:ensure-pose-stamped-transformed
-            (relative-grasp-pose
-             (relative-grasp-pose pose grasp-offset)
-             gripper-offset)
-            "/torso_lift_link"))
-         (close-radius (or (slot-value grasp-assignment
-                                       'close-radius)
-                           0.0))
-         (grasped-object (or (slot-value grasp-assignment
-                                         'handle-pair)
-                             obj)))
-    (declare (ignore grasped-object))
-    (cpl:with-failure-handling
-        ((cram-plan-failures:manipulation-failure (f)
-           (declare (ignore f))
-           (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable)))
-      (publish-pose pregrasp-pose-tll "/dhdhdh")
-      (prog2
-          (on-grasp-decisions-complete
-           (desig-prop-value obj 'desig-props:name)
-           pregrasp-pose-tll grasp-pose-tll side obj-pose)
-          (execute-grasp
-           :object-name (desig-prop-value obj 'desig-props:name)
-           :object-pose obj-pose
-           :pregrasp-pose pregrasp-pose-tll
-           :grasp-pose grasp-pose-tll
-           :side side
-           :gripper-close-pos close-radius
-           :safe-pose (ecase side
-                        (:left *left-safe-pose*)
-                        (:right *right-safe-pose*)))))
-    (with-vars-strictly-bound (?link-name)
-        (lazy-car
-         (prolog
-          `(cram-manipulation-knowledge:end-effector-link
-            ,side ?link-name)))
-      (plan-knowledge:on-event
-       (make-instance 'plan-knowledge:object-attached
-                      :object obj
-                      :link ?link-name
-                      :side side)))))
+         (obj-name (desig-prop-value obj 'desig-props:name)))
+    (labels ((grasp-parameters (assignment)
+               (let* ((pose (pose assignment))
+                      (side (side assignment))
+                      (gripper-offset (gripper-offset side))
+                      (pregrasp-pose
+                        (moveit:ensure-pose-stamped-transformed
+                         (relative-grasp-pose
+                          (relative-grasp-pose pose (pregrasp-offset assignment))
+                          gripper-offset)
+                         "/torso_lift_link"))
+                      (grasp-pose
+                        (moveit:ensure-pose-stamped-transformed
+                         (relative-grasp-pose
+                          (relative-grasp-pose pose (grasp-offset assignment))
+                          gripper-offset)
+                         "/torso_lift_link")))
+                 (list pregrasp-pose
+                       grasp-pose
+                       side
+                       (or (close-radius assignment) 0.0)
+                       (ecase side
+                         (:left *left-safe-pose*)
+                         (:right *right-safe-pose*))))))
+      (let ((params (mapcar #'grasp-parameters assignments-list)))
+        (cpl:with-failure-handling
+            ((cram-plan-failures:manipulation-failure (f)
+               (declare (ignore f))
+               (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable)))
+          ;; TODO(winkler): Fix this dirty hack. Here, only the first
+          ;; assignment is used. This is wrong.
+          (dolist (param-set params)
+            (publish-pose (second param-set) "/dhdhdh")
+            (cram-language::on-grasp-decisions-complete
+             obj-name (first param-set) (second param-set)
+             (third param-set) obj-pose))
+          (execute-grasps obj-name params))
+           ;;  (execute-grasp
+           ;;   :object-name obj-name
+           ;;   :object-pose obj-pose
+           ;;   :pregrasp-pose (first param-set)
+           ;;   :grasp-pose (second param-set)
+           ;;   :side (third param-set)
+           ;;   :gripper-close-pos (fourth param-set)
+           ;; :safe-pose (fifth params)))
+        (dolist (param-set params)
+          (with-vars-strictly-bound (?link-name)
+              (lazy-car
+               (prolog
+                `(cram-manipulation-knowledge:end-effector-link
+                  ,(third param-set) ?link-name)))
+            (plan-knowledge:on-event
+             (make-instance 'plan-knowledge:object-attached
+                            :object obj
+                            :link ?link-name
+                            :side (third param-set)))))))))
 
 (def-action-handler grasp (object)
-  (let ((grasp-assignments (crs:prolog `(grasp-assignment
-                                         ,object ?grasp-assignment)))
-        (log-id (first (on-begin-grasp object)))
+  (let ((grasp-assignments (crs:prolog `(grasp-assignments
+                                         ,object ?grasp-assignments)))
+        (log-id (first (cram-language::on-begin-grasp object)))
         (success nil))
     (unwind-protect
-         (unless (lazy-try-until grasp-assignment
-                     ?grasp-assignment grasp-assignments
-                   (block next-grasp-assignment
+         (unless (lazy-try-until assignments-list
+                     ?grasp-assignments grasp-assignments
+                   (block next-assignment-list
                      (cpl:with-failure-handling
                          ((cram-plan-failures:manipulation-pose-unreachable (f)
                             (declare (ignore f))
-                            (return-from next-grasp-assignment)))
-                       (ros-info (pr2 manip-pm) "Executing grasp: ~a/~a"
-                                 (grasp-type grasp-assignment)
-                                 (side grasp-assignment))
-                       (perform-grasp object grasp-assignment)
+                            (ros-warn (pr2 manip-pm)
+                                      "Try next grasp assignment")
+                            (return-from next-assignment-list)))
+                       (ros-info (pr2 manip-pm) "Executing grasp(s):~%")
+                       (dolist (assignment assignments-list)
+                         (ros-info (pr2 manip-pm) " - ~a/~a"
+                                   (grasp-type assignment)
+                                   (side assignment)))
+                       (perform-grasp object assignments-list)
+                       (ros-info (pr2 manip-pm) "Succeeded in grasping")
                        (setf success t)
                        (success))))
            (cpl:fail 'manipulation-pose-unreachable))
-      (on-finish-grasp log-id success))))
+      (cram-language::on-finish-grasp log-id success))))
 
 (def-action-handler grasp-too-far (object)
   (declare (ignore object))
@@ -248,8 +288,8 @@
                             (tf:origin object-pose-map)
                             (tf:euler->quaternion :az (+ angle (/ pi 2)))))))
 
-(define-hook on-begin-putdown (obj-desig loc-desig))
-(define-hook on-finish-putdown (log-id success))
+(define-hook cram-language::on-begin-putdown (obj-desig loc-desig))
+(define-hook cram-language::on-finish-putdown (log-id success))
 
 (defun make-putdown-pose (putdown-location)
   (let* ((putdown-pose (pose-pointing-away-from-base
@@ -277,21 +317,21 @@
               (tf:frame-id pose-stamped) (ros-time)
               (tf:origin pose-stamped) tran-orient)))))
 
-(define-hook on-put-down-reorientation-count (object-designator))
+(define-hook cram-language::on-put-down-reorientation-count (object-designator))
 
 (def-action-handler put-down (object-designator
                               location grasp-assignments grasp-type
-                              max-tilt)
+                              max-tilt holding-grippers)
   "Delegates the type of the put down action which suppose to be executed
 for the currently type of grasped object."
   (unless (and object-designator location)
     (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))
   (assert (> (length grasp-assignments) 0) ()
           "No arm/pose pairs specified during put-down.")
-  (let* ((log-id (first (on-begin-putdown object-designator location)))
+  (let* ((log-id (first (cram-language::on-begin-putdown object-designator location)))
          (success nil)
          (putdown-pose-pure (make-putdown-pose location))
-         (putdown-orientations (or (first (on-put-down-reorientation-count
+         (putdown-orientations (or (first (cram-language::on-put-down-reorientation-count
                                            object-designator))
                                    8)) ;; Try different orientations when placing the object
          (current-orientation 0)
@@ -330,10 +370,10 @@ for the currently type of grasped object."
                                     (cl-transforms:transform-pose
                                      (tf:make-transform
                                       (tf:make-3d-vector
-                                       0 0 (or (1- (abs (desig-prop-value
-                                                         object-designator
-                                                         'desig-props:z-offset)))
-                                               0.0))
+                                       0 0 (or ;(abs (desig-prop-value
+                                               ;      object-designator
+                                               ;      'desig-props:z-offset))
+                                               0.05))
                                       (tf:make-identity-rotation))
                                      target-object-pose)))
                                  (gripper-in-world
@@ -394,6 +434,9 @@ for the currently type of grasped object."
                                    :pre-putdown-pose pre-putdown-pose
                                    :putdown-pose putdown-hand-pose
                                    :unhand-pose unhand-pose
+                                   :safe-pose (ecase side
+                                                (:left *left-safe-pose*)
+                                                (:right *right-safe-pose*))
                                    :max-tilt max-tilt)
                                   (setf success t))
                                  (t
@@ -415,4 +458,4 @@ for the currently type of grasped object."
                         :object object-designator
                         :link ?link-name
                         :side side)))))
-      (on-finish-putdown log-id success))))
+      (cram-language::on-finish-putdown log-id success))))

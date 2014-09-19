@@ -39,11 +39,11 @@
 
 (roslisp-utilities:register-ros-init-function init-point-head-action)
 
-(cut:define-hook on-begin-move-head (pose-stamped))
-(cut:define-hook on-finish-move-head (id success))
+(cut:define-hook cram-language::on-begin-move-head (pose-stamped))
+(cut:define-hook cram-language::on-finish-move-head (id success))
 
 (def-process-module point-head-process-module (goal)
-  (let ((log-id (first (on-begin-move-head (reference goal))))
+  (let ((log-id (first (cram-language::on-begin-move-head (reference goal))))
         (success nil))
     (unwind-protect
          (handler-case
@@ -71,7 +71,7 @@
               (point-head process-module)
               "Cannot resolve designator ~a. Ignoring." goal)))
       (roslisp:wait-duration 1.0)
-      (on-finish-move-head log-id success)
+      (cram-language::on-finish-move-head log-id success)
       (plan-knowledge:on-event
        (make-instance 'plan-knowledge:robot-state-changed)))))
 
