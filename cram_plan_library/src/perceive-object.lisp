@@ -29,13 +29,13 @@
 
 (in-package :plan-lib)
 
-(cut:define-hook on-begin-find-objects ())
-(cut:define-hook on-finish-find-objects (id))
+(cut:define-hook cram-language::on-begin-find-objects ())
+(cut:define-hook cram-language::on-finish-find-objects (id))
 
 (define-condition ambiguous-perception (simple-plan-failure) ())
 
 (def-goal (perceive-object all ?obj-desig)
-  (let ((log-id (first (on-begin-find-objects))))
+  (let ((log-id (first (cram-language::on-begin-find-objects))))
     (unwind-protect
          (with-designators ((obj-loc-desig (location `((of ,?obj-desig))))
                             (loc (location `((to see) (obj ,?obj-desig))))
@@ -66,7 +66,7 @@
                      (achieve `(looking-at ,(reference obj-loc-desig)))
                      (perform perceive-action)
                      (monitor-action perceive-action)))))))
-      (on-finish-find-objects log-id))))
+      (cram-language::on-finish-find-objects log-id))))
 
 (def-goal (perceive-object a ?obj-desig)
   "Tries to find the object described by ?obj-desig and equates the
