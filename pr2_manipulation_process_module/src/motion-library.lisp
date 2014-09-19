@@ -115,10 +115,11 @@
         (unwind-protect
              (moveit::execute-trajectory merged-trajectory)
           (moveit:add-collision-object object-name))
-        (when (< (get-gripper-state side) 0.01)
+        (when (< (get-gripper-state side) 0.0025)
           (ros-warn
            (pr2 grasp)
-           "Missed the object. Going into fallback pose for side ~a." side)
+           "Missed the object (am at ~a). Going into fallback pose for side ~a."
+           (get-gripper-state side) side)
           (open-gripper side)
           (execute-move-arm-pose side pregrasp-pose
                                  :allowed-collision-objects
@@ -220,7 +221,8 @@
       (ros-info (pr2 grasp) "Executing pregrasp for side ~a~%" side)
       (cpl:with-retry-counters ((pregrasp-retry 1))
         (cpl:with-failure-handling
-            ((cram-plan-failures::manipulation-failure (f)
+            (((or cram-plan-failures::manipulation-failure
+                  moveit::moveit-failure) (f)
                (declare (ignore f))
                (ros-error (pr2 grasp)
                           "Failed to go into pregrasp pose for side ~a."
@@ -256,7 +258,7 @@
                           :position gripper-close-pos)
       (on-execute-grasp-gripper-closed
        object-name gripper-effort gripper-close-pos side pregrasp-pose safe-pose)
-      (when (< (get-gripper-state side) 0.01);;gripper-close-pos)
+      (when (< (get-gripper-state side) 0.0025);;gripper-close-pos)
         (cpl:with-failure-handling
             ((manipulation-failed (f)
                (declare (ignore f))
@@ -273,7 +275,8 @@
                (cpl:retry)))
           (ros-warn
            (pr2 grasp)
-           "Missed the object. Going into fallback pose for side ~a." side)
+           "Missed the object (am at ~a). Going into fallback pose for side ~a."
+           (get-gripper-state side) side)
           (open-gripper side)
           (execute-move-arm-pose side pregrasp-pose
                                  :allowed-collision-objects
@@ -289,12 +292,152 @@
         (moveit:attach-collision-object-to-link
          object-name link-frame)))))
 
+(defun execute-grasps (object-name param-sets)
+  (dolist (param-set param-sets)
+    (cond ((eql (third param-set) :left)
+           (publish-pose (first param-set) "/pgleft"))
+          ((eql (third param-set) :right)
+           (publish-pose (first param-set) "/pgright")))
+    (format t "HAVE ~a~%" (third param-set)))
+  (let ((pregrasp-trajectories
+          (mapcar
+           (lambda (param-set)
+             (cpl:with-failure-handling
+                 (((or cram-plan-failures::manipulation-failure
+                       moveit::moveit-failure) (f)
+                    (declare (ignore f))
+                    (ros-error
+                     (pr2 grasp)
+                     "Failed to gen pregrasp trajectory for ~a."
+                     (third param-set))))
+               (format t "Side: ~a~%Pose: ~a~%" (third param-set)
+                       (first param-set))
+               (execute-move-arm-pose
+                (third param-set)
+                (first param-set)
+                :plan-only t)))
+           param-sets)))
+    (moveit::execute-trajectories pregrasp-trajectories))
+  (dolist (param-set param-sets)
+    (open-gripper (third param-set)))
+  (moveit:remove-collision-object object-name)
+  (unwind-protect
+       (progn
+         (let ((grasp-trajectories
+                 (mapcar
+                  (lambda (param-set)
+                    (cpl:with-failure-handling
+                        (((or cram-plan-failures::manipulation-failure
+                              moveit::moveit-failure) (f)
+                           (declare (ignore f))
+                           (ros-error
+                            (pr2 grasp)
+                            "Failed to gen grasp trajectory for ~a."
+                            (third param-set))))
+                      (format t "Side: ~a~%Pose: ~a~%" (third param-set)
+                              (first param-set))
+                      (execute-move-arm-pose
+                       (third param-set)
+                       (second param-set)
+                       :plan-only t)))
+                  param-sets)))
+           (moveit::execute-trajectories grasp-trajectories))
+         (dolist (param-set param-sets)
+           (close-gripper (third param-set))))
+    (moveit:add-collision-object object-name)
+    (dolist (param-set param-sets)
+      (let ((link-frame
+              (cut:var-value
+               '?link
+               (first
+                (crs:prolog
+                 `(manipulator-link ,(third param-set)
+                                    ?link))))))
+        (moveit:attach-collision-object-to-link
+         object-name link-frame)))))
+
+
+    ;; (ros-info (pr2 grasp) "Executing pregrasp for side ~a~%" side)
+    ;; (cpl:with-retry-counters ((pregrasp-retry 1))
+    ;;   (cpl:with-failure-handling
+    ;;       (((or cram-plan-failures::manipulation-failure
+    ;;             moveit::moveit-failure) (f)
+    ;;          (declare (ignore f))
+    ;;          (ros-error (pr2 grasp)
+    ;;                     "Failed to go into pregrasp pose for side ~a."
+    ;;                     side)
+    ;;          (cpl:do-retry pregrasp-retry
+    ;;            (execute-move-arm-pose side safe-pose)
+    ;;            (cpl:retry))
+    ;;            (when safe-pose
+    ;;              (cpl:fail 'manipulation-pose-unreachable))))
+    ;;       (execute-move-arm-pose side pregrasp-pose)))
+    ;;   (ros-info (pr2 grasp) "Opening gripper")
+    ;;   (open-gripper side :max-effort gripper-effort :position gripper-open-pos)
+    ;;   (unless object-name
+    ;;     (ros-warn (pr2 grasp) "You didn't specify an object name to grasp. This might cause the grasping to fail because of a misleading collision environment configuration."))
+    ;;   (when object-name (moveit:remove-collision-object object-name))
+    ;;   (on-execute-grasp-pregrasp-reached
+    ;;    object-name gripper-effort gripper-close-pos side pregrasp-pose safe-pose)
+    ;;   (ros-info (pr2 grasp) "Executing grasp for side ~a~%" side)
+    ;;   (cpl:with-failure-handling
+    ;;       ((manipulation-failed (f)
+    ;;          (declare (ignore f))
+    ;;          (ros-error
+    ;;           (pr2 grasp)
+    ;;           "Failed to go into grasp pose for side ~a."
+    ;;           side)
+    ;;          (when object-name (moveit:add-collision-object object-name))
+    ;;          (cpl:fail 'manipulation-pose-unreachable)))
+    ;;     (execute-move-arm-pose side grasp-pose :ignore-collisions t))
+    ;;   (on-execute-grasp-gripper-positioned-for-grasp
+    ;;    object-name gripper-effort gripper-close-pos side pregrasp-pose safe-pose)
+    ;;   (ros-info (pr2 grasp) "Closing gripper")
+    ;;   (close-gripper side :max-effort gripper-effort
+    ;;                       :position gripper-close-pos)
+    ;;   (on-execute-grasp-gripper-closed
+    ;;    object-name gripper-effort gripper-close-pos side pregrasp-pose safe-pose)
+    ;;   (when (< (get-gripper-state side) 0.0025);;gripper-close-pos)
+    ;;     (cpl:with-failure-handling
+    ;;         ((manipulation-failed (f)
+    ;;            (declare (ignore f))
+    ;;            (ros-error
+    ;;             (pr2 grasp)
+    ;;             "Failed to go into fallback pose for side ~a. Retrying."
+    ;;             side)
+    ;;            (cpl:retry))
+    ;;          (moveit:pose-not-transformable-into-link (f)
+    ;;            (declare (ignore f))
+    ;;            (ros-warn
+    ;;             (pr2 grasp)
+    ;;             "TF error. Retrying.")
+    ;;            (cpl:retry)))
+    ;;       (ros-warn
+    ;;        (pr2 grasp)
+    ;;        "Missed the object (am at ~a). Going into fallback pose for side ~a."
+    ;;        (get-gripper-state side) side)
+    ;;       (open-gripper side)
+    ;;       (execute-move-arm-pose side pregrasp-pose
+    ;;                              :allowed-collision-objects
+    ;;                              allowed-collision-objects)
+    ;;       (moveit:add-collision-object object-name)
+    ;;       (when safe-pose
+    ;;         (execute-move-arm-pose side safe-pose
+    ;;                                :allowed-collision-objects
+    ;;                                allowed-collision-objects))
+    ;;       (cpl:fail 'cram-plan-failures:object-lost)))
+    ;;   (when object-name
+    ;;     (moveit:add-collision-object object-name)
+    ;;     (moveit:attach-collision-object-to-link
+    ;;      object-name link-frame))
+
 (defun execute-putdown (&key object-name
                           pre-putdown-pose putdown-pose
                           unhand-pose side
                           (gripper-open-pos 0.2)
                           allowed-collision-objects
-                          max-tilt)
+                          max-tilt
+                          safe-pose)
   (let ((allowed-collision-objects (append
                                     allowed-collision-objects
                                     (list object-name))))
@@ -320,16 +463,13 @@
        :max-tilt max-tilt))
     (ros-info (pr2 putdown) "Executing putdown for side ~a~%" side)
     (cpl:with-failure-handling
-        ((manipulation-pose-unreachable (f)
+        (((or manipulation-failed moveit::moveit-failure) (f)
            (declare (ignore f))
            (ros-error (pr2 putdown)
-                              "Failed to go into putdown pose for side ~a."
-                              side))
-         (manipulation-failed (f)
-           (declare (ignore f))
-           (ros-error (pr2 putdown)
-                              "Failed to go into putdown pose for side ~a."
-                              side))
+                      "Failed to go into putdown pose for side ~a."
+                      side)
+           (when safe-pose
+             (execute-move-arm-pose side safe-pose)))
          (moveit:pose-not-transformable-into-link (f)
            (declare (ignore f))
            (cpl:retry)))
@@ -373,15 +513,46 @@ object in order to lift it at `distance' form the supporting plane"
                     (first
                      (crs:prolog
                       `(manipulator-link ,side ?link)))))
+         (arm-in-tll (moveit:ensure-pose-stamped-transformed
+                      (tf:make-pose-stamped frame-id (ros-time)
+                                            (tf:make-identity-vector)
+                                            (tf:make-identity-rotation))
+                      "/torso_lift_link" :ros-time t))
          (raised-arm-pose
-           (moveit:ensure-pose-stamped-transformed
-            (tf:make-pose-stamped frame-id (ros-time)
-                                  (tf:make-3d-vector 0 0 distance)
-                                  (tf:make-identity-rotation))
-            "/torso_lift_link" :ros-time t)))
+           (tf:copy-pose-stamped
+            arm-in-tll
+            :origin (tf:v+ (tf:origin arm-in-tll)
+                           (tf:make-3d-vector 0 0 distance)))))
+            
     (unless raised-arm-pose
       (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))
     (execute-move-arm-pose side raised-arm-pose :ignore-collisions t)))
+
+(defun lift-grasped-object-with-two-arms (obj-name arms distance)
+  (let ((trajectories
+          (mapcar (lambda (arm)
+                    (let* ((frame-id
+                             (ecase arm
+                               (:left "l_wrist_roll_link")
+                               (:right "r_wrist_roll_link")))
+                           (arm-in-tll
+                             (moveit:ensure-pose-stamped-transformed
+                              (tf:make-pose-stamped
+                               frame-id (ros-time)
+                               (tf:make-identity-vector)
+                               (tf:make-identity-rotation))
+                              "/torso_lift_link" :ros-time t))
+                           (raised
+                             (tf:copy-pose-stamped
+                              arm-in-tll
+                              :origin
+                              (tf:v+ (tf:origin arm-in-tll)
+                                     (tf:make-3d-vector 0 0 distance)))))
+                      (execute-move-arm-pose
+                       arm raised :plan-only t
+                       :allowed-collision-objects `(,obj-name))))
+                  arms)))
+    (moveit::execute-trajectories trajectories)))
 
 (defun relative-grasp-pose (pose pose-offset)
   (tf:pose->pose-stamped
