@@ -92,8 +92,8 @@
           (otherwise (assert nil)))))
     (format stream "~:@_")))
 
-(define-hook on-preparing-task-execution (name log-parameters))
-(define-hook on-finishing-task-execution (id))
+(define-hook cram-language::on-preparing-task-execution (name log-parameters))
+(define-hook cram-language::on-finishing-task-execution (id))
 
 (defmacro with-task-tree-node ((&key
                                   (path-part
@@ -107,7 +107,7 @@
     `(let* ((*current-path* (cons ,path-part *current-path*))
             (*current-task-tree-node* (ensure-tree-node *current-path*)))
        (declare (special *current-path* *current-task-tree-node*))
-       (let ((log-id (first (on-preparing-task-execution
+       (let ((log-id (first (cram-language::on-preparing-task-execution
                              ,name ,log-parameters))))
          (unwind-protect
               (join-task
@@ -121,7 +121,7 @@
                                :parameters ,parameters)))
                    (execute ,task)
                    ,task)))
-           (on-finishing-task-execution log-id))))))
+           (cram-language::on-finishing-task-execution log-id))))))
 
 (defmacro replaceable-function (name lambda-list parameters path-part
                                 &body body)
