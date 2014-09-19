@@ -126,12 +126,12 @@
     (when *designator-pprint-description*
       (write (description object) :stream stream))))
 
-(define-hook on-equate-designators (successor parent))
+(define-hook cram-utilities::on-equate-designators (successor parent))
 
 (defmethod equate ((parent designator) (successor designator))
   (assert (not (desig-equal parent successor)) ()
           "Cannot equate designators that are already equal.")
-  (on-equate-designators successor parent)
+  (cram-utilities::on-equate-designators successor parent)
   (let ((youngest-parent (current-desig parent))
         (first-parent (first-desig parent)))
     (when (parent successor)

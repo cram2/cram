@@ -206,8 +206,8 @@ same semantics as `with-policy'. Usage:
   (let ((policy `(named-policy ,policy-name)))
     `(with-policy ,policy ,policy-parameters ,@body)))
 
-(cut:define-hook on-with-policy-begin (name parameters))
-(cut:define-hook on-with-policy-end (id success))
+(cut:define-hook cram-language::on-with-policy-begin (name parameters))
+(cut:define-hook cram-language::on-with-policy-end (id success))
 
 (defmacro with-policy (policy policy-parameters &body body)
   "Wraps the code given as `body' into a `pursue' construct together
@@ -274,7 +274,7 @@ Usage of `with-policy':
         (recover `(recover ,policy))
         (name `(name ,policy))
         (params `(parameters ,policy)))
-    `(let ((log-id (first (cpl::on-with-policy-begin
+    `(let ((log-id (first (cram-language::on-with-policy-begin
                            ,name ()))))
        (let ((policy-symbol-storage (make-fluent)))
          (when ,init
@@ -299,7 +299,7 @@ Usage of `with-policy':
                     (cpl:fail 'policy-check-condition-met
                               :name ,name
                               :parameters ',policy-parameters))
-               (cpl::on-with-policy-end log-id (not flag-do-recovery)))))))))
+               (cram-language::on-with-policy-end log-id (not flag-do-recovery)))))))))
 
 (defmacro with-policies (policies-and-parameters-list &body body)
   "Allows for running a given `body' code segment wrapped in a list of
