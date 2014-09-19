@@ -28,11 +28,12 @@
 
 (in-package :plan-lib)
 
-(define-hook on-preparing-performing-action-designator (action-designator
-                                                        matching-process-modules)
+(define-hook cram-language::on-preparing-performing-action-designator
+    (action-designator
+     matching-process-modules)
   (:documentation "Gets triggered right before an action designator gets resolved, but after its matching process modules were identified."))
 
-(define-hook on-finishing-performing-action-designator (id success)
+(define-hook cram-language::on-finishing-performing-action-designator (id success)
   (:documentation "Gets triggered right after an action designator was resolved."))
 
 (def-goal (perform ?action-designator)
@@ -51,18 +52,17 @@
     ;; not a COMPOSITE-FAILURE.
     (let ((result nil)
           (log-id (first
-                   (on-preparing-performing-action-designator
+                   (cram-language::on-preparing-performing-action-designator
                     ?action-designator
                     matching-process-modules))))
-      (with-failure-handling
-          ((composite-failure (failure)
-             (fail (car (composite-failures failure)))))
-        (unwind-protect
+      (unwind-protect
+           (with-failure-handling
+               ((composite-failure (failure)
+                  (fail (car (composite-failures failure)))))
              (setf result
                    (try-each-in-order (module matching-process-modules)
-                     (perform-on-process-module module ?action-designator)))
-          (on-finishing-performing-action-designator
-           log-id result))))))
+                     (perform-on-process-module module ?action-designator))))
+        (cram-language::on-finishing-performing-action-designator log-id result)))))
 
 (def-goal (perform-on-process-module ?module ?action-designator)
   (pm-execute ?module ?action-designator))

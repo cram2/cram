@@ -54,7 +54,7 @@
 (defun invalidate-semantic-map-obj-cache ()
   (setf *semantic-map-obj-cache* (make-hash-table :test 'equal)))
 
-(define-hook on-publishing-collision-object (obj obj-name))
+(define-hook cram-language::on-publishing-collision-object (obj obj-name))
 
 (defun publish-semantic-map-collision-objects ()
   (unless (> (hash-table-count *semantic-map-obj-cache*) 0)
@@ -77,7 +77,7 @@
                                                   (z dimensions))))
              :pose-stamped pose-stamped)
             (ubiquitous-utilities:add-collision-object obj-name nil nil)
-            (on-publishing-collision-object obj obj-name))))))
+            (cram-language::on-publishing-collision-object obj obj-name))))))
 
 (defun remove-semantic-map-collision-objects ()
   (unless (> (hash-table-count *semantic-map-obj-cache*) 0)
