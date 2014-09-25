@@ -136,7 +136,7 @@ seperated by a whitespcae."
                                           (inertia->xml-element nil))))
 
 (defun inertia->xml-element (inertia)
-  ;; TODO implement inertia in the parser
+  ;; inertia isn't implemented in the parser
   (declare (ignore inertia))
   (s-xml:make-xml-element :name ':|inertia|
                           :attributes `((:|ixx| . "100")
@@ -169,7 +169,7 @@ seperated by a whitespcae."
 
 (defun origin->xml-element (origin)
   (let ((translation (cl-transforms:translation origin))
-        (rotation (cl-transforms:quaternion->axis-angle (cl-transforms:rotation origin))))
+        (rotation (quaternion->euler (cl-transforms:rotation origin))))
     (s-xml:make-xml-element :name ':|origin|
                             :attributes `((:|xyz| . ,(write-3d-vector translation))
                                           (:|rpy| . ,(write-3d-vector rotation))))))
@@ -184,4 +184,22 @@ seperated by a whitespcae."
                                         (:|lower| . ,(write-to-string (lower limits)))
                                         (:|effort| . ,(write-to-string (effort limits)))
                                         (:|velocity| . ,(write-to-string (velocity limits))))))
-  
+
+(defun quaternion->euler (q)
+  (let ((qx (cl-transforms:x q))
+        (qy (cl-transforms:y q))
+        (qz (cl-transforms:z q))
+        (qw (cl-transforms:w q)))
+    (let ((r (atan2 (- (* 2 qy qw) (* 2 qx qz)) (- 1 (* 2 qy qy) (* 2 qz qz))))
+          (p (asin (+ (* 2 qy qw) (* 2 qz qw))))
+          (y (atan2 (- (* 2 qx qw) (* 2 qy qz)) (- 1 (* 2 qx qx) (* 2 qz qz)))))
+      (cl-transforms:make-3d-vector r p y))))
+
+(defun atan2 (y x)
+  (cond
+    ((> x 0) (atan (/ y x)))
+    ((and (>= y 0) (< x 0)) (+ (atan (/ y x)) pi))
+    ((and (< y 0) (< x 0)) (- (atan (/ y x)) pi))
+    ((and (> y 0) (= x 0)) (/ pi 2))
+    ((and (< y 0) (= x 0)) (/ pi -2))
+    ((and (= y 0) (= x 0)) nil)))
