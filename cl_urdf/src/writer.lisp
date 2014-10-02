@@ -80,7 +80,9 @@ seperated by a whitespcae."
   (let ((children (list (geometry->xml-element (geometry visual))
                         (origin->xml-element (origin visual)))))
     (when (material visual)
-      (push (material->xml-element (material visual)) children))
+      (let ((xml-material (material->xml-element (material visual))))
+        (when xml-material
+          (push xml-material children))))
     (s-xml:make-xml-element :name ':|visual|
                             :attributes nil
                             :children children)))
@@ -99,27 +101,30 @@ seperated by a whitespcae."
                           :attributes `((:|radius| . ,(write-to-string (radius geometry))))))
                  (mesh  (s-xml:make-xml-element 
                          :name ':|mesh|
-                         :attributes `((:|filename| . ,(namestring (filename geometry)))
-                                       (:|scale| . ,(write-to-string (if (scale geometry)
-                                                                         (scale geometry) 0)))))))))
+                         :attributes (let ((attributes `((:|filename| . ,(namestring (filename geometry))))))
+                                       (when (scale geometry)
+                                         (push `(:|scale| . ,(write-3d-vector (scale geometry)))
+                                               attributes))
+                                       attributes))))))
     (s-xml:make-xml-element :name ':|geometry|
                             :attributes nil
                             :children (list child))))
                                          
 (defun material->xml-element (material)
- (let ((children nil))
-   (when (and (slot-boundp material 'texture) (texture material))
-     (push (s-xml:make-xml-element :name ':|texture|
-                                   :attributes `((:|filename| . ,(namestring (texture material)))))
-           children))
-   (when (color material)
-     (push (s-xml:make-xml-element :name ':|color|
-                                 :attributes `((:|rgba| . ,(apply #'format nil "~a ~a ~a ~a" 
-                                                                  (color material)))))
-           children))    
-   (s-xml:make-xml-element :name ':|material|
-                           :attributes (when (slot-boundp material 'name) `((:|name| . ,(name material))))
-                           :children children)))
+  (when (slot-boundp material 'name)
+    (let ((children nil))
+      (when (and (slot-boundp material 'texture) (texture material))
+        (push (s-xml:make-xml-element :name ':|texture|
+                                      :attributes `((:|filename| . ,(namestring (texture material)))))
+              children))
+      (when (color material)
+        (push (s-xml:make-xml-element :name ':|color|
+                                      :attributes `((:|rgba| . ,(apply #'format nil "~a ~a ~a ~a" 
+                                                                       (color material)))))
+              children))    
+      (s-xml:make-xml-element :name ':|material|
+                              :attributes `((:|name| . ,(name material)))
+                              :children children))))
 
 (defun collision->xml-element (collision)
   (let ((children (list (geometry->xml-element (geometry collision))
