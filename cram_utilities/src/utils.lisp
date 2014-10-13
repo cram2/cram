@@ -145,3 +145,23 @@ removes deletes the file and the compiled file after loading it."
         (when compiled-file
           (delete-file compiled-file))))))
 
+(defmacro choose (tag &key body parameters generators &allow-other-keys)
+  `(:tag ,tag
+     (let ((generated-param-hash-table (make-hash-table)))
+       (labels ((generate-parameters ()
+                  ,@(loop for (variables generator) in generators
+                          collect
+                          `(let ((generated-values ,generator))
+                             ,@(loop for i from 0 below (length variables)
+                                     as variable = (nth i variables)
+                                     collect `(setf (gethash
+                                                     ',variable
+                                                     generated-param-hash-table)
+                                                    (nth ,i generated-values)))))))
+         (generate-parameters)
+         (let* ,(mapcar (lambda (parameter)
+                          `(,parameter (gethash
+                                        ',parameter
+                                        generated-param-hash-table)))
+                 parameters)
+           ,body)))))
