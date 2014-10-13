@@ -36,11 +36,13 @@
 
 (defun send-vel-cmd (lin ang)
   "Function to send velocity commands"
-  (publish *cmd-vel-pub* (make-message "geometry_msgs/Twist"
+  (if (equal nil *cmd-vel-pub*)
+    (roslisp:ros-error "cram-beginner-tutorial" "Cannot send velocity command because velocity publisher is nil. Are you sure you initialized the turtle?")
+    (publish *cmd-vel-pub* (make-message "geometry_msgs/Twist"
                                        :linear (make-msg "geometry_msgs/Vector3"
                                                          :x lin)
                                        :angular (make-msg "geometry_msgs/Vector3"
-                                                          :z ang))))
+                                                          :z ang)))))
 
 ;;; CRAM function MOVE to send the turtle to a specified coordinate
 ;;; in turtlesim and stop it when the coordinate has been reached
@@ -70,8 +72,10 @@ given by x, y, and theta of msg."
 (defun calculate-angular-cmd (goal &optional (ang-vel-factor 4))
   "Uses the current turtle pose and calculates the angular velocity
   command to turn towards the goal."
-  (* ang-vel-factor
-     (relative-angle-to goal (value *turtle-pose*))))
+  (if (or (equal nil *turtle-pose*) (equal nil (value *turtle-pose*)))
+    (roslisp:ros-error "cram-beginner-tutorial" "Cannot get current pose because turtle-pose is nil. Are you sure you initialized the turtle?")
+    (* ang-vel-factor
+       (relative-angle-to goal (value *turtle-pose*)))))
 
 (def-cram-function move-to (goal &optional (distance-threshold 0.1))
   (let ((reached-fl (< (fl-funcall #'cl-transforms:v-dist
