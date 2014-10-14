@@ -111,7 +111,7 @@
              (read-fields (s-xml:xml-element-attribute color-node :|rgba|))))
          (parse-texture (texture-node)
            (when texture-node
-             (physics-utils:parse-uri (s-xml:xml-element-attribute texture-node :|filename|)))))
+             (s-xml:xml-element-attribute texture-node :|filename|))))
     (or (gethash (s-xml:xml-element-attribute node :|name|) (materials robot))
         (make-instance
          'material
@@ -204,7 +204,7 @@
   (let ((scale (read-fields (s-xml:xml-element-attribute node :|scale|))))
     (make-instance
         'mesh
-      :filename (physics-utils:parse-uri (s-xml:xml-element-attribute node :|filename|))
+      :filename (s-xml:xml-element-attribute node :|filename|)
       :scale (case (list-length scale)
                (1 (first scale))
                (3 (apply #'cl-transforms:make-3d-vector scale)))
