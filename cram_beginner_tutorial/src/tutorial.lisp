@@ -167,7 +167,7 @@ $ rosrun turtle_actionlib shape_server"
     (with-turtle-process-modules
       (cpm:process-module-alias :manipulation 'turtle-actuators)
       (top-level
-        (with-designators
+        (cram-language-designator-support:with-designators
            ((trajectory (action '((type shape) (shape hexagon))))
             (loc (location '((type navigation) (vpos top) (hpos center)))))
           (cpm:pm-execute :manipulation trajectory))))))
