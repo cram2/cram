@@ -101,7 +101,7 @@ seperated by a whitespcae."
                           :attributes `((:|radius| . ,(write-to-string (radius geometry))))))
                  (mesh  (s-xml:make-xml-element 
                          :name ':|mesh|
-                         :attributes (let ((attributes `((:|filename| . ,(namestring (filename geometry))))))
+                         :attributes (let ((attributes `((:|filename| . ,(filename geometry)))))
                                        (when (scale geometry)
                                          (push `(:|scale| . ,(write-3d-vector (scale geometry)))
                                                attributes))
@@ -115,7 +115,7 @@ seperated by a whitespcae."
     (let ((children nil))
       (when (and (slot-boundp material 'texture) (texture material))
         (push (s-xml:make-xml-element :name ':|texture|
-                                      :attributes `((:|filename| . ,(namestring (texture material)))))
+                                      :attributes `((:|filename| . ,(texture material))))
               children))
       (when (color material)
         (push (s-xml:make-xml-element :name ':|color|
