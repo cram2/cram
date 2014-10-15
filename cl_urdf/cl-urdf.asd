@@ -29,15 +29,16 @@
 ;;;
 
 (defsystem cl-urdf
-    :author "Lorenz Moesenlechner"
-    :license "BSD"
-    
-    :depends-on (s-xml cl-transforms physics-utils)
+  :author "Lorenz Moesenlechner"
+  :license "BSD"
+  
+  :depends-on (s-xml cl-transforms physics-utils)
+  :components
+  ((:module "src"
     :components
-    ((:module "src"
-              :components
-              ((:file "package")
-               (:file "link" :depends-on ("package"))
-               (:file "joint" :depends-on ("package" "link"))
-               (:file "robot" :depends-on ("package" "link" "joint"))
-               (:file "parser" :depends-on ("package" "robot"))))))
+    ((:file "package")
+     (:file "link" :depends-on ("package"))
+     (:file "joint" :depends-on ("package" "link"))
+     (:file "robot" :depends-on ("package" "link" "joint"))
+     (:file "parser" :depends-on ("package" "robot"))
+     (:file "writer" :depends-on ("package" "robot"))))))
