@@ -131,7 +131,7 @@ given by x, y, and theta of msg."
   (<- (action-desig ?desig (shape ?action))
     (desig-prop ?desig (type shape))
     (desig-prop ?desig (shape hexagon))
-    (lisp-fun desig-prop-value ?desig radius ?radius)
+    (desig-prop-value ?desig radius ?radius)
     (lisp-fun make-turtle-shape :radius ?radius :edges 6  ?action)))
 
 (cram-process-modules:def-process-module turtle-actuators (action-designator)
@@ -172,7 +172,7 @@ $ rosrun turtle_actionlib shape_server"
       (with-turtle-process-modules
         (cpm:process-module-alias :manipulation 'turtle-actuators)
           (cram-language-designator-support:with-designators
-            ((trajectory (action '((type shape) (shape hexagon))))
+            ((trajectory (action '((type shape) (shape hexagon) (radius 1))))
               (loc (location '((type navigation) (vpos top) (hpos center)))))
             (cpm:pm-execute :manipulation trajectory))))))
 
