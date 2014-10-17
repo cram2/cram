@@ -110,28 +110,28 @@ given by x, y, and theta of msg."
   (<- (action-desig ?desig (shape ?action))
     (desig-prop ?desig (type shape))
     (desig-prop ?desig (shape triangle))
-    (lisp-fun desig-prop-value ?desig radius ?radius)
+    (desig-prop ?desig (radius ?radius))
     (lisp-fun make-turtle-shape :radius ?radius :edges 3  ?action))
 
   ;; square
   (<- (action-desig ?desig (shape ?action))
     (desig-prop ?desig (type shape))
     (desig-prop ?desig (shape square))
-    (lisp-fun desig-prop-value ?desig radius ?radius)
+    (desig-prop ?desig (radius ?radius))
     (lisp-fun make-turtle-shape :radius ?radius :edges 4  ?action))
 
   ;; pentagon
   (<- (action-desig ?desig (shape ?action))
     (desig-prop ?desig (type shape))
     (desig-prop ?desig (shape pentagon))
-    (lisp-fun desig-prop-value ?desig radius ?radius)
+    (desig-prop ?desig (radius ?radius))
     (lisp-fun make-turtle-shape :radius ?radius :edges 5  ?action))
 
   ;; hexagon
   (<- (action-desig ?desig (shape ?action))
     (desig-prop ?desig (type shape))
     (desig-prop ?desig (shape hexagon))
-    (desig-prop-value ?desig radius ?radius)
+    (desig-prop ?desig (radius ?radius))
     (lisp-fun make-turtle-shape :radius ?radius :edges 6  ?action)))
 
 (cram-process-modules:def-process-module turtle-actuators (action-designator)
