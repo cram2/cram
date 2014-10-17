@@ -110,25 +110,29 @@ given by x, y, and theta of msg."
   (<- (action-desig ?desig (shape ?action))
     (desig-prop ?desig (type shape))
     (desig-prop ?desig (shape triangle))
-    (lisp-fun make-turtle-shape :radius 1 :edges 3  ?action))
+    (lisp-fun desig-prop-value ?desig radius ?radius)
+    (lisp-fun make-turtle-shape :radius ?radius :edges 3  ?action))
 
   ;; square
   (<- (action-desig ?desig (shape ?action))
     (desig-prop ?desig (type shape))
     (desig-prop ?desig (shape square))
-    (lisp-fun make-turtle-shape :radius 1 :edges 4  ?action))
+    (lisp-fun desig-prop-value ?desig radius ?radius)
+    (lisp-fun make-turtle-shape :radius ?radius :edges 4  ?action))
 
   ;; pentagon
   (<- (action-desig ?desig (shape ?action))
     (desig-prop ?desig (type shape))
     (desig-prop ?desig (shape pentagon))
-    (lisp-fun make-turtle-shape :radius 1 :edges 5  ?action))
+    (lisp-fun desig-prop-value ?desig radius ?radius)
+    (lisp-fun make-turtle-shape :radius ?radius :edges 5  ?action))
 
   ;; hexagon
   (<- (action-desig ?desig (shape ?action))
     (desig-prop ?desig (type shape))
     (desig-prop ?desig (shape hexagon))
-    (lisp-fun make-turtle-shape :radius 1 :edges 6  ?action)))
+    (lisp-fun desig-prop-value ?desig radius ?radius)
+    (lisp-fun make-turtle-shape :radius ?radius :edges 6  ?action)))
 
 (cram-process-modules:def-process-module turtle-actuators (action-designator)
   (roslisp:ros-info (turtle-process-modules)
@@ -161,16 +165,16 @@ given by x, y, and theta of msg."
 $ roscore
 $ rosrun turtlesim turtlesim_node
 $ rosrun turtle_actionlib shape_server"
-  (let ((turtle_name "turtle_1"))
-    (start-ros-node turtle_name)
-    (init-ros-turtle turtle_name)
-    (with-turtle-process-modules
-      (cpm:process-module-alias :manipulation 'turtle-actuators)
-      (top-level
-        (cram-language-designator-support:with-designators
-           ((trajectory (action '((type shape) (shape hexagon))))
-            (loc (location '((type navigation) (vpos top) (hpos center)))))
-          (cpm:pm-execute :manipulation trajectory))))))
+  (let ((turtle-name "turtle1"))
+    (start-ros-node turtle-name)
+    (init-ros-turtle turtle-name)
+    (top-level
+      (with-turtle-process-modules
+        (cpm:process-module-alias :manipulation 'turtle-actuators)
+          (cram-language-designator-support:with-designators
+            ((trajectory (action '((type shape) (shape hexagon))))
+              (loc (location '((type navigation) (vpos top) (hpos center)))))
+            (cpm:pm-execute :manipulation trajectory))))))
 
 
 ;;;;;;;;REPL:
