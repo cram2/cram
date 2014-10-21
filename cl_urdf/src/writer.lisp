@@ -174,7 +174,7 @@ seperated by a whitespcae."
 
 (defun origin->xml-element (origin)
   (let ((translation (cl-transforms:translation origin))
-        (rotation (quaternion->euler (cl-transforms:rotation origin))))
+        (rotation (quaternion->rpy (cl-transforms:rotation origin))))
     (s-xml:make-xml-element :name ':|origin|
                             :attributes `((:|xyz| . ,(write-3d-vector translation))
                                           (:|rpy| . ,(write-3d-vector rotation))))))
@@ -190,7 +190,7 @@ seperated by a whitespcae."
                                         (:|effort| . ,(write-to-string (effort limits)))
                                         (:|velocity| . ,(write-to-string (velocity limits))))))
 
-(defun quaternion->euler (q)
+(defun quaternion->rpy (q)
   (let ((qx (cl-transforms:x q))
         (qy (cl-transforms:y q))
         (qz (cl-transforms:z q))
