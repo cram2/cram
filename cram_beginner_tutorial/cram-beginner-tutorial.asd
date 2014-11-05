@@ -1,6 +1,6 @@
 (defsystem cram-beginner-tutorial
   :depends-on (roslisp cram-language turtlesim-msg cl-transforms geometry_msgs-msg designators cram-reasoning 
-                 cram-language-designator-support actionlib actionlib_tutorials-msg process-modules turtle_actionlib-msg cl-tf)
+                 cram-language-designator-support actionlib actionlib_tutorials-msg process-modules turtle_actionlib-msg cl-tf cram-plan-library)
   :components
   ((:module "src"
             :components
@@ -10,5 +10,6 @@
              (:file "action-designators" :depends-on  ("package"))
              (:file "turtle-action-client" :depends-on  ("package"))
              (:file "location-designators" :depends-on  ("package"))
-             (:file "process-modules" :depends-on  ("package" "control-turtlesim" "simple-plans" "action-designators" "turtle-action-client" "location-designators"))))))
+             (:file "process-modules" :depends-on  ("package" "control-turtlesim" "simple-plans" "action-designators" "turtle-action-client" "location-designators"))
+             (:file "selecting-process-modules" :depends-on  ("package" "control-turtlesim" "simple-plans" "action-designators" "turtle-action-client" "location-designators" "process-modules"))))))
 
