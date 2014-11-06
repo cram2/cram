@@ -49,7 +49,8 @@
                  cram-plan-knowledge
                  cl-semantic-map-utils
                  cram-manipulation-knowledge
-                 designators)
+                 designators
+                 cram-moveit)
     :components
     ((:module "src"
               :components
