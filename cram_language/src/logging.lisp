@@ -315,3 +315,23 @@
    Corresponding LOG-EVENTs will being / cease to emit output."
   (setf *active-log-mask* (log-mask tags))
   (list-active-log-tags))
+
+
+;;;
+;;; Functionality added by Jan Winkler (supporting functions for
+;;; cram_beliefstate)
+;;;
+
+
+(defmacro log-block (begin-hook parameters end-hook &body body)
+  `(let ((log-id (first (funcall ,begin-hook ,@parameters)))
+         (result t)) ;; Implicit success
+     (labels ((log-succeed ()
+                (setf result t))
+              (log-fail ()
+                (setf result nil)))
+       (declare (ignorable (function log-succeed)))
+       (declare (ignorable (function log-fail)))
+       (unwind-protect
+            ,@body
+         (funcall ,end-hook log-id result)))))

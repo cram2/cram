@@ -57,7 +57,9 @@ given a name, a designator class and the designator properties.")
                            :sexp ,sexp
                            :lambda-list nil
                            :parameters nil
-                           :log-parameters log-params)
+                           :log-parameters log-params
+                           :log-pattern
+                           (list (cons 'definitions ',defs)))
        (let* ,(mapcar (lambda (def)
                         (destructuring-bind (name (type props)) def
                           `(,name

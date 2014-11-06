@@ -92,7 +92,7 @@
           (otherwise (assert nil)))))
     (format stream "~:@_")))
 
-(define-hook cram-language::on-preparing-task-execution (name log-parameters))
+(define-hook cram-language::on-preparing-task-execution (name log-parameters log-pattern))
 (define-hook cram-language::on-finishing-task-execution (id))
 
 (defmacro with-task-tree-node ((&key
@@ -100,7 +100,7 @@
                                    (error "Path parameter is required."))
                                   (name "WITH-TASK-TREE-NODE")
                                   sexp lambda-list parameters
-                                  log-parameters)
+                                  log-parameters log-pattern)
                                &body body)
   "Executes a body under a specific path. Sexp, lambda-list and parameters are optional."
   (with-gensyms (task)
@@ -108,7 +108,7 @@
             (*current-task-tree-node* (ensure-tree-node *current-path*)))
        (declare (special *current-path* *current-task-tree-node*))
        (let ((log-id (first (cram-language::on-preparing-task-execution
-                             ,name ,log-parameters))))
+                             ,name ,log-parameters ,log-pattern))))
          (unwind-protect
               (join-task
                (sb-thread:with-mutex ((task-tree-node-lock
