@@ -240,9 +240,9 @@
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to grasp))
     (desig-prop ?desig (obj ?obj))
-    (current-designator ?obj ?current-obj)
-    (robot-object-distance ?current-obj ?distance)
-    (<= ?distance 1.0))
+    (current-designator ?obj ?current-obj))
+    ;(robot-object-distance ?current-obj ?distance)
+    ;(<= ?distance 1.0))
 
   (<- (action-desig ?desig (grasp-too-far ?current-obj))
     (trajectory-desig? ?desig)
@@ -301,33 +301,6 @@
     (length ?grasp-assignments ?ga-length)
     (length ?arm-handle-combo ?ahc-length)
     (== ?ga-length ?ahc-length))
-
-
-    ;; (setof ?grasp-assignment
-    ;;        (and (member ?arm-handle-combo ?arm-handle-combos)
-    ;;             (format "HAVE: ~a~%" ?arm-handle-combo)
-    ;;             (member (?free-arm . ?handle) ?arm-handle-combo)
-    ;;             (gripper-offset ?free-arm ?gripper-offset)
-    ;;             (reorient-object ?object ?reorient-object)
-    ;;             (and (absolute-handle ?object ?handle ?reorient-object
-    ;;                                   ?absolute-handle)
-    ;;                  (desig-prop ?absolute-handle (at ?location))
-    ;;                  (lisp-fun reference ?location ?pose)
-    ;;                  (lisp-pred open-gripper ?free-arm)
-    ;;                  (lisp-fun cost-reach-pose ?object ?free-arm ?pose
-    ;;                            ?pregrasp-offset ?grasp-offset ?cost)
-    ;;                  (not (equal ?cost nil))
-    ;;                  (lisp-fun make-grasp-assignment
-    ;;                            :side ?free-arm
-    ;;                            :grasp-type ?grasp-type
-    ;;                            :pose ?pose
-    ;;                            :handle ?handle
-    ;;                            :cost ?cost
-    ;;                            :pregrasp-offset ?pregrasp-offset
-    ;;                            :grasp-offset ?grasp-offset
-    ;;                            :gripper-offset ?gripper-offset
-    ;;                            ?grasp-assignment)))
-    ;;        ?grasp-assignments))
   
   (<- (optimal-handle-grasp ?object-desig ?available-arms
                             ?pregrasp-pose ?grasp-pose
