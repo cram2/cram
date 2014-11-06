@@ -145,6 +145,11 @@ removes deletes the file and the compiled file after loading it."
         (when compiled-file
           (delete-file compiled-file))))))
 
+;; NOTE(winkler): This macro is a default implementation for the
+;; prediction-supporting `choose' macro. Once the prediction-package
+;; gets loaded, this macro gets overwritten with added
+;; functionality. The below implementation is here to support the
+;; signature.
 (defmacro choose (tag &key body parameters generators &allow-other-keys)
   `(:tag ,tag
      (let ((generated-param-hash-table (make-hash-table)))
