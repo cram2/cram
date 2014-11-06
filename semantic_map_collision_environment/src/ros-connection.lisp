@@ -63,10 +63,10 @@
     (dolist (obj objs)
       (with-slots (pose dimensions) obj
         (let* ((obj-name (string-upcase (make-collision-obj-name obj)))
-               (pose-stamped (ubiquitous-utilities:transform-pose
+               (pose-stamped (moveit:ensure-pose-stamped-transformed
                               (tf:pose->pose-stamped "/map" 0.0 pose)
                               "/odom_combined")))
-            (ubiquitous-utilities:register-collision-object
+            (moveit:register-collision-object
              obj-name
              :primitive-shapes (list (roslisp:make-msg
                                       "shape_msgs/SolidPrimitive"
@@ -76,7 +76,7 @@
                                                   (y dimensions)
                                                   (z dimensions))))
              :pose-stamped pose-stamped)
-            (ubiquitous-utilities:add-collision-object obj-name nil nil)
+            (moveit:add-collision-object obj-name nil nil)
             (cram-language::on-publishing-collision-object obj obj-name))))))
 
 (defun remove-semantic-map-collision-objects ()
