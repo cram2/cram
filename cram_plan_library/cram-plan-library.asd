@@ -44,7 +44,7 @@
                cram-utilities
                designators-ros
                alexandria
-               ubiquitous-utilities)
+               cram-moveit)
   :components
   ((:module "src"
             :components

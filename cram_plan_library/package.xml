@@ -27,8 +27,8 @@
   <build_depend>cram_plan_failures</build_depend>
   <build_depend>cram_projection</build_depend>
   <build_depend>alexandria</build_depend>
-  <build_depend>ubiquitous_utilities</build_depend>
   <build_depend>designators_ros</build_depend>
+  <build_depend>cram_moveit</build_depend>
 
   <run_depend>cram_language</run_depend>
   <run_depend>cram_utilities</run_depend>
@@ -40,6 +40,6 @@
   <run_depend>cram_plan_failures</run_depend>
   <run_depend>cram_projection</run_depend>
   <run_depend>alexandria</run_depend>
-  <run_depend>ubiquitous_utilities</run_depend>
   <run_depend>designators_ros</run_depend>
+  <run_depend>cram_moveit</run_depend>
 </package>
