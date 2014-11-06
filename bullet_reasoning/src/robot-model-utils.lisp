@@ -45,14 +45,11 @@
             (cl-transforms:transform->pose robot-transform))
       (loop for name being the hash-keys in  (slot-value robot 'links) do
         (let ((tf-name (if (eql (elt name 0) #\/) name (concatenate 'string "/" name))))
-          ;; NOTE(winkler): This is a HACK as no transform can be
-          ;; calculated for the right arm at the moment.
-          (unless (string= (subseq tf-name 0 3) "/r_")
-            (setf (link-pose robot name)
-                  (cl-transforms:transform->pose
-                   (cl-transforms:transform*
-                    robot-transform
-                    (moveit:ensure-transform-available tf-name root-link))))))))))
+          (setf (link-pose robot name)
+                (cl-transforms:transform->pose
+                 (cl-transforms:transform*
+                  robot-transform
+                  (moveit:ensure-transform-available tf-name root-link)))))))))
 
 (defgeneric set-robot-state-from-joints (joint-states robot)
   (:method ((joint-states sensor_msgs-msg:jointstate) (robot robot-object))
