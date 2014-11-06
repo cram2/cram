@@ -29,6 +29,8 @@
 
 (in-package :point-head-process-module)
 
+(defvar *action-client* nil)
+
 (defun pose-stamped->point-stamped-msg (ps)
   (roslisp:make-message
    "geometry_msgs/PointStamped"
