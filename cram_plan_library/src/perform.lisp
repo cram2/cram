@@ -50,19 +50,17 @@
     ;; necessary to keep the high-level plans working. For instance,
     ;; if perception fails, plans expect an OBJECT-NOT-FOUND failure,
     ;; not a COMPOSITE-FAILURE.
-    (let ((result nil)
-          (log-id (first
-                   (cram-language::on-preparing-performing-action-designator
-                    ?action-designator
-                    matching-process-modules))))
-      (unwind-protect
-           (with-failure-handling
-               ((composite-failure (failure)
-                  (fail (car (composite-failures failure)))))
-             (setf result
-                   (try-each-in-order (module matching-process-modules)
-                     (perform-on-process-module module ?action-designator))))
-        (cram-language::on-finishing-performing-action-designator log-id result)))))
+    (cpl-impl::log-block
+        #'cram-language::on-preparing-performing-action-designator
+        (?action-designator matching-process-modules)
+        #'cram-language::on-finishing-performing-action-designator
+      (with-failure-handling
+          ((composite-failure (failure)
+             (fail (car (composite-failures failure)))))
+        (setf result
+              (try-each-in-order (module matching-process-modules)
+                (perform-on-process-module module
+                                           ?action-designator)))))))
 
 (def-goal (perform-on-process-module ?module ?action-designator)
   (pm-execute ?module ?action-designator))
