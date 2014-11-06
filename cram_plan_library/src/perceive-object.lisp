@@ -110,4 +110,6 @@ found."
       ((examine-action (action `((desig-props:to desig-props:examine)
                                  (desig-props:obj ,?obj-desig)
                                  (desig-props:properties ,?properties)))))
-    (perform examine-action)))
+    ;; TODO(winkler): Right now, this is broken. Fixing it.
+    ;(perform examine-action)))
+    ))
