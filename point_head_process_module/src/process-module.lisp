@@ -29,7 +29,6 @@
 
 (in-package :point-head-process-module)
 
-(defvar *action-client* nil)
 (defvar *point-head-thread* nil)
 
 (defun init-point-head-action ()
@@ -85,6 +84,11 @@
   (top-level
     (roslisp-utils:loop-at-most-every 0.01
       (pursue
+        ;; This is commented out to make sure that we don't
+        ;; accidentally trigger this action through some side
+        ;; effect. The head following a pose is a neat feature and
+        ;; should be re-introduced, but doesn't work right now - so we
+        ;; leave its function infrastructure here and fix it later.
         ;(actionlib-lisp:call-goal *action-client* goal)
         (sleep 1)))))
 
