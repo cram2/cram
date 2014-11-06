@@ -326,7 +326,7 @@
                                                          :pose new-object-pose))))
 
 (def-process-module pr2-manipulation-process-module (desig)
-  (collision-environment-set-laser-period)
+  ;(collision-environment-set-laser-period)
   (apply #'call-action (reference desig)))
 
 (defun update-grasped-object-designator (obj grippers &key new-properties)
@@ -400,21 +400,3 @@ its' supporting plane."
      'object
      `((at ,new-loc-desig) . ,(remove 'at (description obj-desig) :key #'car))
      obj-desig)))
-
-(defun set-robot-planning-state ()
-  (let ((joint-names (list "r_shoulder_pan_joint"
-                           "r_shoulder_lift_joint"
-                           "r_upper_arm_roll_joint"
-                           "r_elbow_flex_joint"
-                           "r_forearm_roll_joint"
-                           "r_wrist_flex_joint"
-                           "r_wrist_roll_joint"
-                           "l_shoulder_pan_joint"
-                           "l_shoulder_lift_joint"
-                           "l_upper_arm_roll_joint"
-                           "l_elbow_flex_joint"
-                           "l_forearm_roll_joint"
-                           "l_wrist_flex_joint"
-                           "l_wrist_roll_joint"
-                           "torso_lift_joint")))
-    (moveit::copy-physical-joint-states joint-names)))
