@@ -40,6 +40,6 @@
     detach-object ((event plan-knowledge:object-detached))
   (with-slots ((object plan-knowledge:object)
                (side plan-knowledge:side)) event
-    ;; TODO(winkler): Detaching objects does here. Currently done in
+    ;; TODO(winkler): Detaching objects done here. Currently done in
     ;; the motion library.
     ))
