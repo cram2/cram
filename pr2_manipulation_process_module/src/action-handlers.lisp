@@ -211,14 +211,6 @@
              obj-name (first param-set) (second param-set)
              (third param-set) obj-pose))
           (execute-grasps obj-name params))
-           ;;  (execute-grasp
-           ;;   :object-name obj-name
-           ;;   :object-pose obj-pose
-           ;;   :pregrasp-pose (first param-set)
-           ;;   :grasp-pose (second param-set)
-           ;;   :side (third param-set)
-           ;;   :gripper-close-pos (fourth param-set)
-           ;; :safe-pose (fifth params)))
         (dolist (param-set params)
           (with-vars-strictly-bound (?link-name)
               (lazy-car
@@ -369,11 +361,12 @@ for the currently type of grasped object."
                                    (tf:pose->transform
                                     (cl-transforms:transform-pose
                                      (tf:make-transform
-                                      (tf:make-3d-vector
-                                       0 0 (or ;(abs (desig-prop-value
-                                               ;      object-designator
-                                               ;      'desig-props:z-offset))
-                                               0.05))
+                                      ;; Slight offset above the final
+                                      ;; pose to ensure collision
+                                      ;; detection doesn't spoil
+                                      ;; everything (imprecise models
+                                      ;; and everything).
+                                      (tf:make-3d-vector 0 0 0.025)
                                       (tf:make-identity-rotation))
                                      target-object-pose)))
                                  (gripper-in-world
