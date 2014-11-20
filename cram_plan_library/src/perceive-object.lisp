@@ -47,7 +47,7 @@
                (retry-with-updated-location
                 loc (next-different-location-solution loc)))))
         (at-location (loc)
-          (with-retry-counters ((perception-retries 0))
+          (with-retry-counters ((perception-retries 3))
             (with-failure-handling
                 ((object-not-found (e)
                    (declare (ignore e))
