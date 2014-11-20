@@ -279,7 +279,7 @@
    (json-prolog:prolog
     `(and
       ("rdf_has" ,name
-                 "http://ias.cs.tum.edu/kb/knowrob.owl#properPhysicalParts"
+                 "http://knowrob.org/kb/knowrob.owl#properPhysicalParts"
                  ?sub)
       ("map_object_type" ?sub ?tp)
       ("rdf_atom_no_ns" ?tp ?type))
