@@ -5,31 +5,24 @@
   (:use #:cpl
         #:roslisp
         #:cl-transforms
-        #:cram-reasoning
-        #:cram-designators
-        #:cram-plan-library
-        #:cram-plan-failures
-        #:cram-plan-knowledge)
+        #:cram-designators)
+  (:import-from #:cram-reasoning #:<-)
 
-(:shadowing-import-from :cpl #:fail #:< #:> #:+ #:- #:* #:/ #:= #:eq #:eql #:not)
-(:desig-properties
-;;;action properties
-    #:action
-    #:shape
-    #:radius
-    #:triangle
-    #:square
-    #:pentagon
-    #:hexagon
-;;;location Properties
-    #:location
-    #:navigation
-    #:turtle-position
-    #:goal
-    #:vpos
-    #:hpos
-    #:left
-    #:right
-    #:top
-    #:bottom
-    #:center))
+  (:desig-properties
+   ;; action properties
+   #:shape
+   #:navigation
+   #:goal
+   #:radius
+   #:triangle
+   #:square
+   #:pentagon
+   #:hexagon
+   ;; location Properties
+   #:vpos
+   #:hpos
+   #:left
+   #:right
+   #:top
+   #:bottom
+   #:center))
