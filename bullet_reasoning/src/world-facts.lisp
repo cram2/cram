@@ -32,6 +32,9 @@
   `(let ((*current-bullet-world* ,world))
      ,@body))
 
+(defmacro prolog-?w (&body clauses)
+  `(prolog `(and (bullet-world ?w) ,,@clauses)))
+
 (def-fact-group bullet-world-facts (assert retract)
 
   (<- (clear-bullet-world)
