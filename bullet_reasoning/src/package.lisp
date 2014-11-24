@@ -70,7 +70,7 @@
            occluding-objects occluding-object valid-grasp grasp side reachable
            def-grasp def-tool object-grasp
            point-reachable pose-reachable blocking debug-window
-           debug-costmap head-pointing-at with-current-bullet-world
+           debug-costmap head-pointing-at with-current-bullet-world prolog-?w ?w
            reach-pose-ik reach-object-ik point-reachable-p reach-point-ik
            object-reachable-p pose-reachable-p calculate-orientation-in-robot
            calculate-object-tool-length set-robot-state-from-joints
