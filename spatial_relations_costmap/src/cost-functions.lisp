@@ -351,3 +351,18 @@ The function returns one of the following keys: :front, :back, :left, :right."
               (if (<= min-dist position-deviation-threshold)
                   1.0
                   0.0))))))))
+
+
+(defun make-object-on-object-bb-height-generator (semantic-map-object for-object)
+  (let* ((semantic-map-object-height
+           (cl-transforms:z (sem-map-utils:dimensions semantic-map-object)))
+         (semantic-map-object-z
+           (cl-transforms:z (cl-transforms:origin (sem-map-utils:pose semantic-map-object))))
+         (for-object-height
+           (cl-transforms:z (cl-bullet:bounding-box-dimensions (aabb for-object))))
+         (for-object-z (+ semantic-map-object-z
+                          (/ semantic-map-object-height 2)
+                          (/ for-object-height 2))))
+    (lambda (x y)
+      (declare (ignore x y))
+      (list for-object-z))))
