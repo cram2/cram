@@ -218,7 +218,7 @@
     (bullet-world ?world)
     (object ?world ?ref-obj-name)
     (bagof ?z (and (supporting-rigid-body ?world ?ref-obj-name ?rigid-body)
-                            (lisp-fun get-rigid-body-aabb-top-z ?rigid-body ?z)) ?z-bag)
+                   (lisp-fun get-rigid-body-aabb-top-z ?rigid-body ?z)) ?z-bag)
     (max ?z-bag ?highest-z)
     (costmap ?costmap)
     (-> (desig-prop ?designator (for ?for-obj))
