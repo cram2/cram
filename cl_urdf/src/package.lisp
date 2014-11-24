@@ -31,7 +31,7 @@
 (in-package :cl-user)
 
 (defpackage cl-urdf
-    (:use #:common-lisp)
+  (:use #:common-lisp)
   (:export
    upper lower effort velocity joint-type
    joint type name axis origin parent child limits
@@ -44,4 +44,6 @@
    link from-joint to-joints
    robot links joints root-link materials
    urdf-type-not-supported urdf-attribute-not-supported urdf-malformed
-   parse-urdf))
+   parse-urdf
+   generate-urdf-xml
+   generate-urdf-string))

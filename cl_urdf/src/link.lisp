@@ -95,7 +95,7 @@
 
 (defmethod 3d-model :before ((mesh mesh))
   (unless (slot-boundp mesh '3d-model)
-    (let ((model (physics-utils:load-3d-model (filename mesh))))
+    (let ((model (physics-utils:load-3d-model (physics-utils:parse-uri (filename mesh)))))
       (cond ((scale mesh)
              (setf (slot-value mesh '3d-model)
                    (physics-utils:scale-3d-model model (scale mesh))))
