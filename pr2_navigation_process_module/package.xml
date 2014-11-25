@@ -1,0 +1,43 @@
+<package>
+  <name>pr2_navigation_process_module</name>
+  <version>1.0.0</version>
+  <description>
+
+     pr2_navigation_process_module
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <maintainer email="musterman@fictional.de">Add Maintainer here</maintainer>
+  <license>BSD</license>
+  <url>http://ros.org/wiki/pr2_navigation_process_module</url>
+
+  <!-- Dependencies which this package needs to build itself. -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- Dependencies needed to compile this package. -->
+  <build_depend>move_base_msgs</build_depend>
+  <build_depend>actionlib_lisp</build_depend>
+  <build_depend>cram_process_modules</build_depend>
+  <build_depend>cram_designators</build_depend>
+  <build_depend>cram_reasoning</build_depend>
+  <build_depend>roslisp_utilities</build_depend>
+  <build_depend>cram_roslisp_common</build_depend>
+  <build_depend>cram_plan_failures</build_depend>
+  <build_depend>cram_plan_knowledge</build_depend>
+  <build_depend>cram_moveit</build_depend>
+  
+  <!-- Dependencies needed after this package is compiled. -->
+  <run_depend>move_base_msgs</run_depend>
+  <run_depend>actionlib_lisp</run_depend>
+  <run_depend>cram_process_modules</run_depend>
+  <run_depend>cram_designators</run_depend>
+  <run_depend>cram_reasoning</run_depend>
+  <run_depend>roslisp_utilities</run_depend>
+  <run_depend>cram_roslisp_common</run_depend>
+  <run_depend>cram_plan_failures</run_depend>
+  <run_depend>cram_plan_knowledge</run_depend>
+  <run_depend>cram_moveit</run_depend>
+
+</package>
+
+
