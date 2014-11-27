@@ -27,7 +27,7 @@
   <build_depend>designators_ros</build_depend>
   
   <!-- Dependencies needed after this package is compiled. -->
-  <run_depend>iai_kinematic_msgs</run_depend>
+  <run_depend>iai_kinematics_msgs</run_depend>
   <run_depend>location_costmap</run_depend>
   <run_depend>cl_transforms</run_depend>
   <run_depend>cl_tf</run_depend>
