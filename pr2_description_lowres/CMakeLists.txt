@@ -1,37 +1,26 @@
-cmake_minimum_required(VERSION 2.4.6)
-include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+cmake_minimum_required(VERSION 2.8.3)
+project(pr2_description_lowres)
 
-# Set the build type.  Options are:
-#  Coverage       : w/ debug symbols, w/o optimization, w/ code-coverage
-#  Debug          : w/ debug symbols, w/o optimization
-#  Release        : w/o debug symbols, w/ optimization
-#  RelWithDebInfo : w/ debug symbols, w/ optimization
-#  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-#set(ROS_BUILD_TYPE RelWithDebInfo)
+find_package(PkgConfig REQUIRED)
 
-rosbuild_init()
+find_package(catkin REQUIRED COMPONENTS
+  urdf
+)
+
+find_package(ivcon REQUIRED)
+find_package(convex_decomposition REQUIRED)
+
+#pkg_check_modules(ivcon_PACKAGE_PATH ivcon)
+#pkg_check_modules(convex_decomposition_PACKAGE_PATH convex_decomposition)
 
 #set the default path for built executables to the "bin" directory
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-#uncomment if you have defined messages
-#rosbuild_genmsg()
-#uncomment if you have defined services
-#rosbuild_gensrv()
-
-#common commands for building c++ executables and libraries
-#rosbuild_add_library(${PROJECT_NAME} src/example.cpp)
-#target_link_libraries(${PROJECT_NAME} another_library)
-#rosbuild_add_boost_directories()
-#rosbuild_link_boost(${PROJECT_NAME} thread)
-#rosbuild_add_executable(example examples/example.cpp)
-#target_link_libraries(example ${PROJECT_NAME})
+catkin_package()
 
 # mesh file generations
-rosbuild_find_ros_package(ivcon)
-rosbuild_find_ros_package(convex_decomposition)
 
 # iterate through all the stl files to:
 #  1. convert to *.iv files
@@ -68,7 +57,7 @@ foreach(it ${pr2_stl_files})
     #create obj files for convex decomposition from stl files
     add_custom_command(
       OUTPUT ${basepath}/convex/${basename}.obj
-      COMMAND ${ivcon_PACKAGE_PATH}/bin/ivcon
+      COMMAND ivcon
       ARGS ${it} ${basepath}/convex/${basename}.obj
       DEPENDS ${it} ${basepath}/convex)
 
@@ -77,7 +66,7 @@ foreach(it ${pr2_stl_files})
     #convex decompose object files
     add_custom_command(
       OUTPUT ${basepath}/convex/${basename}_convex.obj
-      COMMAND ${convex_decomposition_PACKAGE_PATH}/convex_decomposition/bin/convex_decomposition
+      COMMAND convex_decomposition
       ARGS ${basepath}/convex/${basename}.obj -v12 -p10
       DEPENDS ${basepath}/convex/${basename}.obj ${basepath}/convex)
 
@@ -86,7 +75,7 @@ foreach(it ${pr2_stl_files})
     #convert obj files back to stlb, put in directory named convex
     add_custom_command(
       OUTPUT ${basepath}/convex/${basename}_convex.stlb
-      COMMAND ${ivcon_PACKAGE_PATH}/bin/ivcon
+      COMMAND ivcon
       ARGS ${basepath}/convex/${basename}_convex.obj ${basepath}/convex/${basename}_convex.stlb
       DEPENDS ${it} ${basepath}/convex ${basepath}/convex/${basename}_convex.obj)
 
@@ -95,7 +84,7 @@ foreach(it ${pr2_stl_files})
     #convert obj files back to stla, put in directory named convex
     add_custom_command(
       OUTPUT ${basepath}/convex/${basename}_convex.stla
-      COMMAND ${ivcon_PACKAGE_PATH}/bin/ivcon
+      COMMAND ivcon
       ARGS ${basepath}/convex/${basename}_convex.obj ${basepath}/convex/${basename}_convex.stla
       DEPENDS ${it} ${basepath}/convex ${basepath}/convex/${basename}_convex.obj)
 
@@ -104,12 +93,12 @@ foreach(it ${pr2_stl_files})
     #create iv files
     add_custom_command(
       OUTPUT ${basepath}/iv/${basename}.iv
-      COMMAND ${ivcon_PACKAGE_PATH}/bin/ivcon
+      COMMAND ivcon
       ARGS ${it} ${basepath}/iv/${basename}.iv
       DEPENDS ${basepath}/iv ${it})
     add_custom_command(
       OUTPUT ${basepath}/convex/${basename}_convex.iv
-      COMMAND ${ivcon_PACKAGE_PATH}/bin/ivcon
+      COMMAND ivcon
       ARGS ${basepath}/convex/${basename}_convex.obj ${basepath}/convex/${basename}_convex.iv
       DEPENDS ${it} ${basepath}/convex ${basepath}/convex/${basename}_convex.obj)
 
@@ -121,6 +110,4 @@ foreach(it ${pr2_stl_files})
 endforeach(it)
 
 add_custom_target(media_files ALL DEPENDS ${pr2urdf} ${pr2robot_expanded} ${prfrobot_expanded} ${prgrobot_expanded} ${pr2prototype1_expanded} ${pr2larm_expanded} ${pr2rarm_expanded} ${pr2lgripper_expanded} ${pr2rgripper_expanded} ${pr2_gen_files} )
-
-#TODO; stop bin and lib from being generated
 

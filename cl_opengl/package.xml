@@ -1,0 +1,25 @@
+<package>
+  <name>cl_opengl</name>
+  <version>1.0.0</version>
+  <description>
+
+     cl_opengl
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <maintainer email="musterman@fictional.de">Add Maintainer here</maintainer>
+  <license>BSD</license>
+  <url>http://ros.org/wiki/cl_opengl</url>
+
+  <!-- Dependencies which this package needs to build itself. -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- Dependencies needed to compile this package. -->
+  <build_depend>cffi</build_depend>
+
+  <!-- Dependencies needed after this package is compiled. -->
+  <run_depend>cffi</run_depend>
+
+</package>
+
+
