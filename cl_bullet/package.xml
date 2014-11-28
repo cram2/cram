@@ -1,0 +1,43 @@
+<package>
+  <name>cl_bullet</name>
+  <version>1.0.0</version>
+  <description>
+     cl_bullet: 
+     A Common Lisp wrapper of the bullet physics engine
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <maintainer email="musterman@fictional.de">Add Maintainer here</maintainer>
+  <license>BSD</license>
+  <url>http://ros.org/wiki/cl_bullet</url>
+
+  <!-- Dependencies which this package needs to build itself. -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- Dependencies needed to compile this package. -->
+  <build_depend>sbcl</build_depend>
+  <build_depend>bullet</build_depend>
+  <build_depend>cffi</build_depend>
+  <build_depend>cffi_ros_utils</build_depend>
+  <build_depend>trivial_garbage</build_depend>
+  <build_depend>split_sequence</build_depend>
+  <build_depend>cl_transforms</build_depend>
+  <build_depend>cram_utilities</build_depend>
+
+  <!-- Dependencies needed after this package is compiled. -->
+  <run_depend>sbcl</run_depend>
+  <run_depend>bullet</run_depend>
+  <run_depend>cffi</run_depend>
+  <run_depend>cffi_ros_utils</run_depend>
+  <run_depend>trivial_garbage</run_depend>
+  <run_depend>split_sequence</run_depend>
+  <run_depend>cl_transforms</run_depend>
+  <run_depend>cram_utilities</run_depend>
+
+  <export>
+    <cpp lflags="-Wl,-rpath,${LD_LIBRARY_PATH} -L${LD_LIBRARY_PATH} -lbullet_cl"/>
+  </export>
+
+</package>
+
+

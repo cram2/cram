@@ -1,0 +1,39 @@
+<package>
+  <name>cl_bullet_vis</name>
+  <version>1.0.0</version>
+  <description>
+
+     cl_bullet_vis
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <maintainer email="musterman@fictional.de">Add Maintainer here</maintainer>
+  <license>BSD</license>
+  <url>http://ros.org/wiki/cl_bullet_vis</url>
+
+  <!-- Dependencies which this package needs to build itself. -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- Dependencies needed to compile this package. -->
+  <build_depend>cl_bullet</build_depend>
+  <build_depend>cram_physics_utils</build_depend>
+  <build_depend>cl_opengl</build_depend>
+  <build_depend>cl_transforms</build_depend>
+  <build_depend>cl_glx</build_depend>
+  <build_depend>trivial_garbage</build_depend>
+  <build_depend>alexandria</build_depend>
+  <build_depend>lisp_unit</build_depend>
+
+  <!-- Dependencies needed after this package is compiled. -->
+  <run_depend>cl_bullet</run_depend>
+  <run_depend>cram_physics_utils</run_depend>
+  <run_depend>cl_opengl</run_depend>
+  <run_depend>cl_transforms</run_depend>
+  <run_depend>cl_glx</run_depend>
+  <run_depend>trivial_garbage</run_depend>
+  <run_depend>alexandria</run_depend>
+  <run_depend>lisp_unit</run_depend>
+
+</package>
+
+

@@ -1,0 +1,27 @@
+<package>
+  <name>cl_glx</name>
+  <version>1.0.0</version>
+  <description>
+
+     cl_glx
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <maintainer email="musterman@fictional.de">Add Maintainer here</maintainer>
+  <license>BSD</license>
+  <url>http://ros.org/wiki/cl_glx</url>
+
+  <!-- Dependencies which this package needs to build itself. -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- Dependencies needed to compile this package. -->
+  <build_depend>cffi</build_depend>
+  <build_depend>alexandria</build_depend>
+  <build_depend>trivial_garbage</build_depend>
+
+  <!-- Dependencies needed after this package is compiled. -->
+  <run_depend>cffi</run_depend>
+  <run_depend>alexandria</run_depend>
+  <run_depend>trivial_garbage</run_depend>
+
+</package>

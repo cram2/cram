@@ -1,0 +1,26 @@
+<package>
+  <name>cram_physics</name>
+  <version>1.0.0</version>
+  <description>cram_physics</description>
+  <author>Maintained by Lorenz Moesenlechner</author>
+  <maintainer email="musterman@fictional.de">Add Maintainer here.</maintainer>
+  <license>BSD</license>
+  <url>http://ros.org/wiki/cram_physics</url>
+
+  <!-- Dependencies which this package needs to build itself. -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <run_depend>bullet_reasoning</run_depend>
+  <run_depend>bullet_reasoning_designators</run_depend>
+  <run_depend>cl_bullet</run_depend>
+  <run_depend>cl_bullet_vis</run_depend>
+  <run_depend>cl_glx</run_depend>
+  <run_depend>cl_opengl</run_depend>
+  <run_depend>cl_urdf</run_depend>
+  <run_depend>cram_environment_representation</run_depend>
+  <run_depend>cram_pr2_knowledge</run_depend>
+  <run_depend>pr2_description_lowres</run_depend>
+  <run_depend>pr2_projection_process_modules</run_depend>
+  <run_depend>spatial_relations_costmap</run_depend>
+
+</package>

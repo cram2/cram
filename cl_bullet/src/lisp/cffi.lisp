@@ -30,7 +30,7 @@
 
 (in-package :bt)
 
-(define-foreign-ros-library bullet-cl "libbullet_cl.so")
+(define-foreign-ros-library bullet-cl "libbullet_cl.so" "cl_bullet")
 
 (use-foreign-library bullet-cl)
 
