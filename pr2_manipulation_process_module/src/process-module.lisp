@@ -66,8 +66,6 @@
                            (tf:make-3d-vector 0.3 -0.5 1.3)
                            (tf:euler->quaternion :ax pi)))
 
-(defvar *registered-arm-poses* nil)
-
 (defun init-pr2-manipulation-process-module ()
   (setf *gripper-action-left*
         (actionlib:make-action-client
@@ -269,7 +267,7 @@
                             :start-state start-state
                             :collidable-objects collidable-objects
                             :max-tilt max-tilt)
-                            ;:reference-frame "base_link")
+                                        ;:reference-frame "base_link")
                          (declare (ignorable start))
                          (values trajectory start))))
                  (cram-language::on-finish-move-arm log-id t)
@@ -282,7 +280,11 @@
                  (error 'manipulation-failed
                         :result (list side pose-stamped))))))))
 
+(define-hook cram-language::on-close-gripper (side max-effort position))
+(define-hook cram-language::on-open-gripper (side max-effort position))
+
 (defun close-gripper (side &key (max-effort 100.0) (position 0.0))
+  (cram-language::on-close-gripper side max-effort position)
   (let ((client (ecase side
                   (:right *gripper-action-right*)
                   (:left *gripper-action-left*))))
@@ -296,6 +298,7 @@
                                 'plan-knowledge:robot-state-changed)))))
 
 (defun open-gripper (side &key (max-effort 100.0) (position 0.085))
+  (cram-language::on-open-gripper side max-effort position)
   (let ((client (ecase side
                   (:right *gripper-action-right*)
                   (:left *gripper-action-left*))))
