@@ -236,7 +236,7 @@
   (<- (arm-for-pose ?pose ?arm)
     (lisp-fun arm-for-pose ?pose ?arm))
   
-  (<- (action-desig ?desig (grasp ?current-obj))
+  (<- (action-desig ?desig (grasp ?desig ?current-obj))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to grasp))
     (desig-prop ?desig (obj ?obj))
@@ -265,8 +265,9 @@
   (<- (grasp-assignments ?object ?grasp-assignments)
     (grasp-type ?object ?grasp-type)
     (grasp-offsets ?grasp-type ?pregrasp-offset ?grasp-offset)
-    (desig-prop ?object (desig-props::carry-handles
-                         ?carry-handles))
+    (or (desig-prop ?object (desig-props::carry-handles
+                             ?carry-handles))
+        (equal ?carry-handles 1))
     (setof ?count-arm (free-arm ?count-arm) ?free-arms)
     (length ?free-arms ?free-arm-count)
     (>= ?free-arm-count ?carry-handles)
@@ -360,7 +361,8 @@
   (<- (grasp-type ?_ ?grasp-type)
     (equal ?grasp-type desig-props:push))
   
-  (<- (action-desig ?desig (put-down ?current-obj ?loc ?grasp-assignments ?grasp-type ?max-tilt ?holding-grippers))
+  (<- (action-desig ?desig (put-down ?current-obj ?loc ?grasp-assignments
+                                     ?grasp-type ?max-tilt ?holding-grippers))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to put-down))
     (desig-prop ?desig (obj ?obj))
@@ -371,7 +373,8 @@
     (desig-prop ?desig (at ?loc))
     (desig-prop ?current-obj (desig-props:at ?objloc))
     (maximum-object-tilt ?current-obj ?max-tilt)
-    (desig-prop ?objloc (desig-props:in desig-props:gripper))
+    (current-designator ?objloc ?current-objloc)
+    (desig-prop ?current-objloc (desig-props:in desig-props:gripper))
     (setof ?gripper (object-in-hand ?current-obj ?gripper)
            ?holding-grippers)
     (setof ?posearm (and (desig-prop ?objloc (desig-props:pose ?objpose))
@@ -381,7 +384,7 @@
            ?poses)
     (lisp-fun cons-to-grasp-assignments ?poses ?grasp-assignments))
   
-  (<- (action-desig ?desig (put-down nil nil nil nil))
+  (<- (action-desig ?desig (put-down nil nil nil nil nil nil))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to put-down)))
   

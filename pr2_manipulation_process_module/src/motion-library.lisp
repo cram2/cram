@@ -28,6 +28,9 @@
 
 (in-package :pr2-manipulation-process-module)
 
+(defvar *registered-arm-poses* nil)
+
+
 (define-hook on-execute-grasp-with-effort (object-name))
 (define-hook on-execute-grasp-gripper-closed
     (object-name gripper-effort gripper-close-pos side pregrasp-pose safe-pose))
@@ -258,7 +261,7 @@
                           :position gripper-close-pos)
       (on-execute-grasp-gripper-closed
        object-name gripper-effort gripper-close-pos side pregrasp-pose safe-pose)
-      (when (< (get-gripper-state side) 0.0025);;gripper-close-pos)
+      (when (< (get-gripper-state side) 0.0075);;gripper-close-pos)
         (cpl:with-failure-handling
             ((manipulation-failed (f)
                (declare (ignore f))
@@ -293,12 +296,6 @@
          object-name link-frame)))))
 
 (defun execute-grasps (object-name param-sets)
-  (dolist (param-set param-sets)
-    (cond ((eql (third param-set) :left)
-           (publish-pose (first param-set) "/pgleft"))
-          ((eql (third param-set) :right)
-           (publish-pose (first param-set) "/pgright")))
-    (format t "HAVE ~a~%" (third param-set)))
   (let ((pregrasp-trajectories
           (mapcar
            (lambda (param-set)
@@ -309,17 +306,15 @@
                     (ros-error
                      (pr2 grasp)
                      "Failed to gen pregrasp trajectory for ~a."
-                     (third param-set))))
-               (format t "Side: ~a~%Pose: ~a~%" (third param-set)
-                       (first param-set))
+                     (first (arms param-set)))))
                (execute-move-arm-pose
-                (third param-set)
-                (first param-set)
+                (first (arms param-set))
+                (pregrasp-pose param-set)
                 :plan-only t)))
            param-sets)))
     (moveit::execute-trajectories pregrasp-trajectories))
   (dolist (param-set param-sets)
-    (open-gripper (third param-set)))
+    (open-gripper (first (arms param-set))))
   (moveit:remove-collision-object object-name)
   (unwind-protect
        (progn
@@ -333,17 +328,28 @@
                            (ros-error
                             (pr2 grasp)
                             "Failed to gen grasp trajectory for ~a."
-                            (third param-set))))
-                      (format t "Side: ~a~%Pose: ~a~%" (third param-set)
-                              (first param-set))
+                            (first (arms param-set)))))
                       (execute-move-arm-pose
-                       (third param-set)
-                       (second param-set)
-                       :plan-only t)))
+                       (first (arms param-set))
+                       (grasp-pose param-set)
+                       :plan-only t
+                       :ignore-collisions t)))
                   param-sets)))
            (moveit::execute-trajectories grasp-trajectories))
          (dolist (param-set param-sets)
-           (close-gripper (third param-set))))
+           (close-gripper (first (arms param-set)) :max-effort (effort param-set))
+           (when (< (get-gripper-state (first (arms param-set))) 0.0025)
+             (ros-warn
+              (pr2 grasp)
+              "Missed the object (am at ~a). Going into fallback pose for side ~a."
+              (get-gripper-state (first (arms param-set))) (first (arms param-set)))
+             (open-gripper (first (arms param-set)))
+             (execute-move-arm-pose (first (arms param-set)) (pregrasp-pose param-set)
+                                    :ignore-collisions t)
+             (moveit:add-collision-object object-name)
+             (when (safe-pose param-set)
+               (execute-move-arm-pose (first (arms param-set)) (safe-pose param-set)))
+             (cpl:fail 'cram-plan-failures:object-lost))))
     (moveit:add-collision-object object-name)
     (dolist (param-set param-sets)
       (let ((link-frame
@@ -351,7 +357,7 @@
                '?link
                (first
                 (crs:prolog
-                 `(manipulator-link ,(third param-set)
+                 `(manipulator-link ,(first (arms param-set))
                                     ?link))))))
         (moveit:attach-collision-object-to-link
          object-name link-frame)))))
@@ -401,6 +407,7 @@
       (execute-move-arm-pose side putdown-pose
        :allowed-collision-objects allowed-collision-objects
        :collidable-objects `(,object-name)
+       :ignore-collisions t
        :max-tilt max-tilt))
     (ros-info (pr2 putdown) "Opening gripper")
     (open-gripper side :max-effort 50.0 :position gripper-open-pos)

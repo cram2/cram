@@ -27,6 +27,15 @@
 
 (in-package :pr2-manipulation-process-module)
 
+(defclass grasp-parameters ()
+  ((grasp-pose :accessor grasp-pose :initform nil :initarg :grasp-pose)
+   (pregrasp-pose :accessor pregrasp-pose :initform nil :initarg :pregrasp-pose)
+   (arms :accessor arms :initform nil :initarg :arms)
+   (close-radius :accessor close-radius :initform nil :initarg :close-radius)
+   (safe-pose :accessor safe-pose :initform nil :initarg :safe-pose)
+   (effort :accessor effort :initform nil :initarg :effort)
+   (grasp-type :accessor grasp-type :initform nil :initarg :grasp-type)))
+
 (defgeneric call-action (action &rest params))
 
 (defmethod call-action ((action-sym t) &rest params)
@@ -169,15 +178,22 @@
 (define-hook cram-language::on-begin-grasp (obj-desig))
 (define-hook cram-language::on-finish-grasp (log-id success))
 (define-hook cram-language::on-grasp-decisions-complete
-    (object-name pregrasp-pose grasp-pose side object-pose))
+    (log-id object-name pregrasp-pose grasp-pose side object-pose))
 
-(defun perform-grasp (object assignments-list)
+(defun update-action-designator (action-desig new-properties)
+  (make-designator 'action (update-designator-properties
+                            new-properties
+                            (description action-desig))
+                   action-desig))
+
+(defun perform-grasp (action-desig object assignments-list &key log-id)
   (let* ((obj (desig:newest-effective-designator object))
          (obj-pose (reference (desig-prop-value obj 'desig-props:at)))
          (obj-name (desig-prop-value obj 'desig-props:name)))
     (labels ((grasp-parameters (assignment)
                (let* ((pose (pose assignment))
                       (side (side assignment))
+                      (grasp-type (grasp-type assignment))
                       (gripper-offset (gripper-offset side))
                       (pregrasp-pose
                         (moveit:ensure-pose-stamped-transformed
@@ -190,14 +206,20 @@
                          (relative-grasp-pose
                           (relative-grasp-pose pose (grasp-offset assignment))
                           gripper-offset)
-                         "/torso_lift_link")))
-                 (list pregrasp-pose
-                       grasp-pose
-                       side
-                       (or (close-radius assignment) 0.0)
-                       (ecase side
-                         (:left *left-safe-pose*)
-                         (:right *right-safe-pose*))))))
+                         "/torso_lift_link"))
+                      (effort 100))
+                 (make-instance
+                  'grasp-parameters
+                  :pregrasp-pose pregrasp-pose
+                  :grasp-pose grasp-pose
+                  :grasp-type grasp-type
+                  :arms `(,side)
+                  :close-radius (or (close-radius assignment)
+                                    0.0)
+                  :safe-pose (ecase side
+                               (:left *left-safe-pose*)
+                               (:right *right-safe-pose*))
+                  :effort effort))))
       (let ((params (mapcar #'grasp-parameters assignments-list)))
         (cpl:with-failure-handling
             ((cram-plan-failures:manipulation-failure (f)
@@ -206,24 +228,31 @@
           ;; TODO(winkler): Fix this dirty hack. Here, only the first
           ;; assignment is used. This is wrong.
           (dolist (param-set params)
-            (publish-pose (second param-set) "/dhdhdh")
+            (publish-pose (grasp-pose param-set) "/dhdhdh")
             (cram-language::on-grasp-decisions-complete
-             obj-name (first param-set) (second param-set)
-             (third param-set) obj-pose))
-          (execute-grasps obj-name params))
+             log-id
+             obj-name (pregrasp-pose param-set)
+             (grasp-pose param-set)
+             (map 'vector #'identity (arms param-set)) obj-pose))
+          (execute-grasps obj-name params)
+          (update-action-designator
+           action-desig
+           `((arm ,(first (arms (first params))))
+             (effort ,(effort (first params)))
+             (grasp-type ,(grasp-type (first params))))))
         (dolist (param-set params)
           (with-vars-strictly-bound (?link-name)
               (lazy-car
                (prolog
                 `(cram-manipulation-knowledge:end-effector-link
-                  ,(third param-set) ?link-name)))
+                  ,(first (arms param-set)) ?link-name)))
             (plan-knowledge:on-event
              (make-instance 'plan-knowledge:object-attached
                             :object obj
                             :link ?link-name
-                            :side (third param-set)))))))))
+                            :side (first (arms param-set))))))))))
 
-(def-action-handler grasp (object)
+(def-action-handler grasp (action-desig object)
   (let ((grasp-assignments (crs:prolog `(grasp-assignments
                                          ,object ?grasp-assignments)))
         (log-id (first (cram-language::on-begin-grasp object)))
@@ -243,7 +272,8 @@
                          (ros-info (pr2 manip-pm) " - ~a/~a"
                                    (grasp-type assignment)
                                    (side assignment)))
-                       (perform-grasp object assignments-list)
+                       (perform-grasp action-desig object assignments-list
+                                      :log-id log-id)
                        (ros-info (pr2 manip-pm) "Succeeded in grasping")
                        (setf success t)
                        (success))))
@@ -292,7 +322,7 @@
     (tf:copy-pose-stamped
      pose-in-tll :origin (tf:v+ (tf:origin pose-in-tll)
                                 ;; artificial offset for the putdown pose
-                                (tf:make-3d-vector 0.0 0.0 0.02)))))
+                                (tf:make-3d-vector 0.0 0.0 0.05)))))
 
 (defun orient-pose (pose-stamped z-rotation)
   (cond ((eql (coerce z-rotation 'short-float) (coerce 0 'short-float))
@@ -314,8 +344,8 @@
 (def-action-handler put-down (object-designator
                               location grasp-assignments grasp-type
                               max-tilt holding-grippers)
-  "Delegates the type of the put down action which suppose to be executed
-for the currently type of grasped object."
+  "Delegates the type of the put down action which suppose to be
+executed for the currently type of grasped object."
   (unless (and object-designator location)
     (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))
   (assert (> (length grasp-assignments) 0) ()
