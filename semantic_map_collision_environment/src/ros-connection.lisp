@@ -30,6 +30,7 @@
 
 (in-package :sem-map-coll-env)
 
+(defvar *tf2* nil)
 (defvar *marker-publisher* nil)
 (defvar *collision-object-publisher* nil)
 
@@ -37,9 +38,9 @@
 
 (defun init-semantic-map-collision-environment ()
   (setf *marker-publisher*
-        (roslisp:advertise "~semantic_map_markers" "visualization_msgs/Marker")))
-  ;(setf *collision-object-publisher*
-  ;      (roslisp:advertise "/collision_object" "moveit_msgs/CollisionObject")))
+        (roslisp:advertise "~semantic_map_markers"
+                           "visualization_msgs/Marker"))
+  (setf *tf2* (make-instance 'cl-tf2:buffer-client)))
 
 (roslisp-utilities:register-ros-init-function
  init-semantic-map-collision-environment)
