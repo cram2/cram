@@ -56,7 +56,7 @@
 (defun make-action-goal (pose-stamped)
   (let ((pose-stamped
           (cl-tf2:ensure-pose-stamped-transformed
-           pose-stamped "/base_link" :use-current-ros-time t)))
+           *tf2* pose-stamped "/base_link" :use-current-ros-time t)))
     (let* ((point-stamped-msg (pose-stamped->point-stamped-msg
                                pose-stamped)))
       (actionlib-lisp:make-action-goal-msg

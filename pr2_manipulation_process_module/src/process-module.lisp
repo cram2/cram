@@ -79,6 +79,7 @@
         (actionlib:make-action-client
          "/torso_controller/joint_trajectory_action"
          "pr2_controllers_msgs/JointTrajectoryAction"))
+  (setf *tf2* (make-instance 'cl-tf2:buffer-client))
   (register-default-arm-poses))
 
 (roslisp-utilities:register-ros-init-function

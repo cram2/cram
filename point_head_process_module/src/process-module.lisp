@@ -29,12 +29,14 @@
 
 (in-package :point-head-process-module)
 
+(defvar *tf2* nil)
 (defvar *point-head-thread* nil)
 
 (defun init-point-head-action ()
   (setf *action-client* (actionlib-lisp:make-simple-action-client
                          "/head_traj_controller/point_head_action"
-                         "pr2_controllers_msgs/PointHeadAction")))
+                         "pr2_controllers_msgs/PointHeadAction"))
+  (setf *tf2* (make-instance 'cl-tf2:buffer-client)))
 
 (roslisp-utilities:register-ros-init-function init-point-head-action)
 

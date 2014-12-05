@@ -31,6 +31,7 @@
 
 (defparameter *navigation-enabled* t)
 
+(defvar *tf2* nil)
 (defvar *navp-client* nil)
 
 (defvar *navp-min-angle* (* -135.0 (/ pi 180))
@@ -57,7 +58,8 @@
   (when (roslisp:has-param "~navigation_process_module/xy_goal_tolerance")
     (setf *xy-goal-tolerance* (roslisp:get-param "~navigation_process_module/xy_goal_tolerance")))
   (when (roslisp:has-param "~navigation_process_module/yaw_goal_tolerance")
-    (setf *yaw-goal-tolerance* (roslisp:get-param "~navigation_process_module/yaw_goal_tolerance"))))
+    (setf *yaw-goal-tolerance* (roslisp:get-param "~navigation_process_module/yaw_goal_tolerance")))
+  (setf *tf2* (make-instance 'cl-tf2:buffer-client)))
 
 (roslisp-utilities:register-ros-init-function init-pr2-navigation-process-module)
 
@@ -67,7 +69,7 @@
 
 (defun use-navp? (goal-pose)
   (let* ((pose-in-base (cl-tf2:ensure-pose-stamped-transformed
-                        goal-pose "/base_footprint"))
+                        *tf2* goal-pose "/base_footprint"))
          (goal-dist (cl-transforms:v-norm
                      (cl-transforms:origin pose-in-base)))
          (goal-angle (atan
@@ -81,7 +83,7 @@
 
 (defun goal-reached? (goal-pose)
   (let* ((pose-in-base (cl-tf2:ensure-pose-stamped-transformed
-                        goal-pose "/base_footprint"))
+                        *tf2* goal-pose "/base_footprint"))
          (goal-dist (cl-transforms:v-norm
                      (cl-transforms:origin pose-in-base)))
          (goal-angle (second
@@ -101,7 +103,7 @@
   (let* ((goal-pose (reference desig))
          (goal-pose-in-fixed-frame
            (cl-tf2:ensure-pose-stamped-transformed
-            goal-pose designators-ros:*fixed-frame* :use-current-ros-time t)))
+            *tf2* goal-pose designators-ros:*fixed-frame* :use-current-ros-time t)))
     (roslisp:publish (roslisp:advertise "/ppp" "geometry_msgs/PoseStamped")
                      (tf:pose-stamped->msg goal-pose-in-fixed-frame))
     (multiple-value-bind (result status)
