@@ -17,7 +17,6 @@
   <depend package="cram_plan_knowledge" />
   <depend package="roslisp_utilities" />
   <depend package="alexandria" />
-  <depend package="cram_moveit" />
 
 </package>
 

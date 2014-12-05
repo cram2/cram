@@ -40,7 +40,6 @@
                cram-plan-knowledge
                roslisp-utilities
                alexandria
-               cram-moveit
                pr2_controllers_msgs-msg)
   :components
   ((:module "src"
