@@ -446,6 +446,7 @@ object in order to lift it at `distance' form the supporting plane"
                      (crs:prolog
                       `(manipulator-link ,side ?link)))))
          (arm-in-tll (cl-tf2:ensure-pose-stamped-transformed
+                      *tf2*
                       (tf:make-pose-stamped frame-id (ros-time)
                                             (tf:make-identity-vector)
                                             (tf:make-identity-rotation))
@@ -469,6 +470,7 @@ object in order to lift it at `distance' form the supporting plane"
                                (:right "r_wrist_roll_link")))
                            (arm-in-tll
                              (cl-tf2:ensure-pose-stamped-transformed
+                              *tf2*
                               (tf:make-pose-stamped
                                frame-id (ros-time)
                                (tf:make-identity-vector)

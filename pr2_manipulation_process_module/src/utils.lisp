@@ -27,6 +27,8 @@
 
 (in-package :pr2-manipulation-process-module)
 
+(defvar *tf2* nil)
+
 (defstruct assignable-entity-list
   entities min-assignments max-assignments)
 
@@ -150,7 +152,7 @@ satisfy these constraints is returned."
                          (string= (tf:frame-id pose) "/map"))
                      pose)
                     (t (cl-tf2:ensure-pose-stamped-transformed
-                        pose "/map" :use-current-ros-time t))))))
+                        *tf2* pose "/map" :use-current-ros-time t))))))
          (pose-stamped-msg (tf:pose-stamped->msg pose-stamped)))
     (roslisp:publish
      (roslisp:advertise topic "geometry_msgs/PoseStamped")

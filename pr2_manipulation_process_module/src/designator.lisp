@@ -53,6 +53,7 @@
       (let* ((obj-pose (reference obj-at))
              (obj-pose-base-link
                (cl-tf2:ensure-pose-stamped-transformed
+                *tf2*
                 obj-pose
                 "/base_link"
                 :use-current-ros-time t))

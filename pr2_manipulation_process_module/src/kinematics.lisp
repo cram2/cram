@@ -82,7 +82,7 @@ is fundamentally different."
                        `(planning-group ,side ?group)))))
          (pose-in-tll
            (cl-tf2:ensure-pose-stamped-transformed
-            pose "/torso_lift_link" :use-current-ros-time t)))
+            *tf2* pose "/torso_lift_link" :use-current-ros-time t)))
     (let ((state-0 (moveit:plan-link-movement
                     wrist-frame arm-group pose-in-tll
                     :touch-links

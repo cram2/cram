@@ -79,6 +79,7 @@
                                    (:right "r_wrist_roll_link")))
                                (arm-in-tll
                                  (cl-tf2:ensure-pose-stamped-transformed
+                                  *tf2*
                                   (tf:make-pose-stamped
                                    frame-id (ros-time)
                                    (tf:make-identity-vector)
@@ -197,12 +198,14 @@
                       (gripper-offset (gripper-offset side))
                       (pregrasp-pose
                         (cl-tf2:ensure-pose-stamped-transformed
+                         *tf2*
                          (relative-grasp-pose
                           (relative-grasp-pose pose (pregrasp-offset assignment))
                           gripper-offset)
                          "/torso_lift_link"))
                       (grasp-pose
                         (cl-tf2:ensure-pose-stamped-transformed
+                         *tf2*
                          (relative-grasp-pose
                           (relative-grasp-pose pose (grasp-offset assignment))
                           gripper-offset)
@@ -288,7 +291,7 @@
         (fin-frame "/map"))
     (let* ((base-transform-map
              (cl-tf2:ensure-transform-available
-              ref-frame fin-frame))
+              *tf2* ref-frame fin-frame))
            (base-pose-map (tf:make-pose-stamped
                            (tf:frame-id base-transform-map)
                            (tf:stamp base-transform-map)
@@ -317,7 +320,7 @@
                         (reference putdown-location)))
          (pose-in-tll
            (cl-tf2:ensure-pose-stamped-transformed
-            putdown-pose "/torso_lift_link" :use-current-ros-time t)))
+            *tf2* putdown-pose "/torso_lift_link" :use-current-ros-time t)))
     (tf:copy-pose-stamped
      pose-in-tll :origin (tf:v+ (tf:origin pose-in-tll)
                                 ;; artificial offset for the putdown pose
