@@ -52,10 +52,10 @@
     (when obj-at
       (let* ((obj-pose (reference obj-at))
              (obj-pose-base-link
-               (moveit:ensure-pose-stamped-transformed
+               (cl-tf2:ensure-pose-stamped-transformed
                 obj-pose
                 "/base_link"
-                :ros-time t))
+                :use-current-ros-time t))
              (obj-pose-base-link-origin
                (tf:origin obj-pose-base-link)))
         (tf:v-dist
