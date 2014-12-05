@@ -78,12 +78,12 @@
                                    (:left "l_wrist_roll_link")
                                    (:right "r_wrist_roll_link")))
                                (arm-in-tll
-                                 (moveit:ensure-pose-stamped-transformed
+                                 (cl-tf2:ensure-pose-stamped-transformed
                                   (tf:make-pose-stamped
                                    frame-id (ros-time)
                                    (tf:make-identity-vector)
                                    (tf:make-identity-rotation))
-                                  "/torso_lift_link" :ros-time t))
+                                  "/torso_lift_link" :use-current-ros-time t))
                                (raised
                                  (tf:copy-pose-stamped
                                   arm-in-tll
@@ -196,13 +196,13 @@
                       (grasp-type (grasp-type assignment))
                       (gripper-offset (gripper-offset side))
                       (pregrasp-pose
-                        (moveit:ensure-pose-stamped-transformed
+                        (cl-tf2:ensure-pose-stamped-transformed
                          (relative-grasp-pose
                           (relative-grasp-pose pose (pregrasp-offset assignment))
                           gripper-offset)
                          "/torso_lift_link"))
                       (grasp-pose
-                        (moveit:ensure-pose-stamped-transformed
+                        (cl-tf2:ensure-pose-stamped-transformed
                          (relative-grasp-pose
                           (relative-grasp-pose pose (grasp-offset assignment))
                           gripper-offset)
@@ -228,7 +228,6 @@
           ;; TODO(winkler): Fix this dirty hack. Here, only the first
           ;; assignment is used. This is wrong.
           (dolist (param-set params)
-            (publish-pose (grasp-pose param-set) "/dhdhdh")
             (cram-language::on-grasp-decisions-complete
              log-id
              obj-name (pregrasp-pose param-set)
@@ -288,7 +287,7 @@
   (let ((ref-frame "/base_link")
         (fin-frame "/map"))
     (let* ((base-transform-map
-             (moveit:ensure-transform-available
+             (cl-tf2:ensure-transform-available
               ref-frame fin-frame))
            (base-pose-map (tf:make-pose-stamped
                            (tf:frame-id base-transform-map)
@@ -317,8 +316,8 @@
   (let* ((putdown-pose (pose-pointing-away-from-base
                         (reference putdown-location)))
          (pose-in-tll
-           (moveit:ensure-pose-stamped-transformed
-            putdown-pose "/torso_lift_link" :ros-time t)))
+           (cl-tf2:ensure-pose-stamped-transformed
+            putdown-pose "/torso_lift_link" :use-current-ros-time t)))
     (tf:copy-pose-stamped
      pose-in-tll :origin (tf:v+ (tf:origin pose-in-tll)
                                 ;; artificial offset for the putdown pose

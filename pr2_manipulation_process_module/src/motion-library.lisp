@@ -445,11 +445,11 @@ object in order to lift it at `distance' form the supporting plane"
                     (first
                      (crs:prolog
                       `(manipulator-link ,side ?link)))))
-         (arm-in-tll (moveit:ensure-pose-stamped-transformed
+         (arm-in-tll (cl-tf2:ensure-pose-stamped-transformed
                       (tf:make-pose-stamped frame-id (ros-time)
                                             (tf:make-identity-vector)
                                             (tf:make-identity-rotation))
-                      "/torso_lift_link" :ros-time t))
+                      "/torso_lift_link" :use-current-ros-time t))
          (raised-arm-pose
            (tf:copy-pose-stamped
             arm-in-tll
@@ -468,12 +468,12 @@ object in order to lift it at `distance' form the supporting plane"
                                (:left "l_wrist_roll_link")
                                (:right "r_wrist_roll_link")))
                            (arm-in-tll
-                             (moveit:ensure-pose-stamped-transformed
+                             (cl-tf2:ensure-pose-stamped-transformed
                               (tf:make-pose-stamped
                                frame-id (ros-time)
                                (tf:make-identity-vector)
                                (tf:make-identity-rotation))
-                              "/torso_lift_link" :ros-time t))
+                              "/torso_lift_link" :use-current-ros-time t))
                            (raised
                              (tf:copy-pose-stamped
                               arm-in-tll

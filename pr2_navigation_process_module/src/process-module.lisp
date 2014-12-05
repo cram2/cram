@@ -66,7 +66,7 @@
     target_pose (tf:pose-stamped->msg pose)))
 
 (defun use-navp? (goal-pose)
-  (let* ((pose-in-base (moveit:ensure-pose-stamped-transformed
+  (let* ((pose-in-base (cl-tf2:ensure-pose-stamped-transformed
                         goal-pose "/base_footprint"))
          (goal-dist (cl-transforms:v-norm
                      (cl-transforms:origin pose-in-base)))
@@ -80,7 +80,7 @@
          (< goal-angle *navp-max-angle*))))
 
 (defun goal-reached? (goal-pose)
-  (let* ((pose-in-base (moveit:ensure-pose-stamped-transformed
+  (let* ((pose-in-base (cl-tf2:ensure-pose-stamped-transformed
                         goal-pose "/base_footprint"))
          (goal-dist (cl-transforms:v-norm
                      (cl-transforms:origin pose-in-base)))
@@ -100,8 +100,8 @@
 (defun call-nav-action (client desig)
   (let* ((goal-pose (reference desig))
          (goal-pose-in-fixed-frame
-           (moveit:ensure-pose-stamped-transformed
-            goal-pose designators-ros:*fixed-frame* :ros-time t)))
+           (cl-tf2:ensure-pose-stamped-transformed
+            goal-pose designators-ros:*fixed-frame* :use-current-ros-time t)))
     (roslisp:publish (roslisp:advertise "/ppp" "geometry_msgs/PoseStamped")
                      (tf:pose-stamped->msg goal-pose-in-fixed-frame))
     (multiple-value-bind (result status)
