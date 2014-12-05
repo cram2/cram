@@ -292,7 +292,7 @@ time for that :(..."
                           (cl-transforms:pose->transform (pose robot))))
     (let* ((ik-base-frame "torso_lift_link")
            (pose (cl-tf2:ensure-pose-stamped-transformed
-                  pose-stamped ik-base-frame :ros-time t)))
+                  pose-stamped ik-base-frame :use-current-ros-time t)))
       (roslisp:with-fields ((solution (joint_state solution))
                             (error-code (val error_code)))
           (roslisp:call-persistent-service
