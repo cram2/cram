@@ -43,7 +43,7 @@
   ;; zero. This is an ugly hack that I feel bad about. Someone needs
   ;; to fix it in the future.
   (let ((robot-pose
-          (moveit:ensure-pose-stamped-transformed
+          (cl-tf2:ensure-pose-stamped-transformed
            (tf:make-pose-stamped
             designators-ros:*robot-base-frame* 0.0
             (cl-transforms:make-identity-vector)
