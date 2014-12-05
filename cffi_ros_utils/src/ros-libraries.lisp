@@ -34,15 +34,15 @@
   "Returns the list of library paths as exported by the ROS package
   with name `pkg-name' in its cpp tag. This function parses the lflags
   attribute and collects all library paths specified by -L."
-  (mapcar (lambda (seq)
-            (subseq seq 2))
+  (apply #'append (mapcar (lambda (seq)
+            (split-sequence:split-sequence #\: (subseq seq 2) :remove-empty-subseqs t))
           (delete-if-not
            (lambda (seq)
              (equal (subseq seq 0 2) "-L"))
            (split-sequence:split-sequence
-            #\Space
-            (car (ros-load:rospack "export" "--lang=cpp" "--attrib=lflags" pkg-name))
-            :remove-empty-subseqs t))))
+             #\Space
+             (car (ros-load:rospack "export" "--lang=cpp" "--attrib=lflags" pkg-name))
+             :remove-empty-subseqs t)))))
 
 (defun ros-include-paths (pkg-name)
   "Returns the list of include paths as exported by the ROS package
