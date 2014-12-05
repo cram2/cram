@@ -33,8 +33,14 @@
 (defparameter *costmap-valid-solution-threshold* 0.10)
 (defconstant +costmap-n-samples+ 1)
 
+(defvar *tf2* nil)
 (defvar *costmap-cache* (tg:make-weak-hash-table :test 'eq :weakness :key))
 (defvar *costmap-max-values (tg:make-weak-hash-table :test 'eq :weakness :key))
+
+(defun init-location-costmap ()
+  (setf *tf2* (make-instance 'cl-tf2:buffer-client)))
+
+(roslisp-utilities:register-ros-init-function init-location-costmap)
 
 (defun get-cached-costmap (desig)
   (let ((first-designator (first-desig desig)))
@@ -60,6 +66,7 @@
 (defun robot-current-pose-generator (desig)
   (declare (ignore desig))
   (list (cl-tf2:ensure-pose-stamped-transformed
+         *tf2*
          (tf:make-pose-stamped
           "/base_footprint" (roslisp:ros-time)
           (tf:make-identity-vector)
