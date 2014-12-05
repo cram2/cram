@@ -36,6 +36,7 @@
                cram-reasoning
                process-modules
                designators
+	       cl-tf2
                cram-language-designator-support
                cram-roslisp-common
                cram-plan-knowledge
@@ -43,8 +44,7 @@
                cram-projection
                cram-utilities
                designators-ros
-               alexandria
-               cram-moveit)
+               alexandria)
   :components
   ((:module "src"
             :components

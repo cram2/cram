@@ -59,7 +59,7 @@
 
 (defun robot-current-pose-generator (desig)
   (declare (ignore desig))
-  (list (moveit:ensure-pose-stamped-transformed
+  (list (cl-tf2:ensure-pose-stamped-transformed
          (tf:make-pose-stamped
           "/base_footprint" (roslisp:ros-time)
           (tf:make-identity-vector)
