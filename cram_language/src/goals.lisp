@@ -49,10 +49,7 @@
                              (list (list 'name ',name)
                                    (list 'pattern
                                          ,(write-to-string
-                                           (cond ((equal (car pattern)
-                                                         'achieve)
-                                                  (car (car pattern)))
-                                                 (t (car pattern)))))
+                                           (car pattern)))
                                    (list 'declarations
                                          ,(write-to-string declarations)))
                              :log-pattern
