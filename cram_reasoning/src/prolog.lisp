@@ -185,13 +185,13 @@ form (renamed-fact new-binds)"
          (%filter-bindings (cdr form) extended-bdgs
                            (%filter-bindings (car form) extended-bdgs initial-bdgs)))))
 
-(define-hook cram-utilities::on-prepare-prolog-prove (query binds))
-(define-hook cram-utilities::on-finish-prolog-prove (log-id success))
+(define-hook cram-language::on-prepare-prolog-prove (query binds))
+(define-hook cram-language::on-finish-prolog-prove (log-id success))
 
 (defun prolog (query &optional (binds nil))
-  (let ((log-id (first (cram-utilities::on-prepare-prolog-prove query binds))))
+  (let ((log-id (first (cram-language::on-prepare-prolog-prove query binds))))
     (let ((result
             (lazy-mapcar (rcurry (curry #'filter-bindings query) binds)
                          (prove-all (list query) binds))))
-      (cram-utilities::on-finish-prolog-prove log-id (not (eql result nil)))
+      (cram-language::on-finish-prolog-prove log-id (not (eql result nil)))
       result)))
