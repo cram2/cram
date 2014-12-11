@@ -200,35 +200,53 @@ configuration."
         finally (return total-cost)))
 
 (defun cost-reach-pose (obj arm pose pregrasp-offset grasp-offset
-                        &key allowed-collision-objects)
-  (let* ((distance-pregrasp (cdr (assoc arm
-                                        (arms-pose-distances
-                                         (list arm) pose
-                                         :arms-offset-pose
-                                         pregrasp-offset
-                                         :highlight-links
-                                         (links-for-arm-side arm)))))
+                        &key allowed-collision-objects
+                          only-reachable)
+  (let* ((distance-pregrasp
+           (or (and only-reachable
+                    (is-pose-reachable pose arm))
+               (cdr (assoc arm
+                           (arms-pose-distances
+                            (list arm) pose
+                            :arms-offset-pose
+                            pregrasp-offset
+                            :highlight-links
+                            (links-for-arm-side arm))))))
          (distance-grasp (when distance-pregrasp
-                           (moveit:remove-collision-object
-                            (desig-prop-value obj 'desig-props:name))
-                           (prog1
-                               (cdr (assoc arm
-                                           (arms-pose-distances
-                                            (list arm) pose
-                                            :arms-offset-pose
-                                            grasp-offset
-                                            :allowed-collision-objects
-                                            allowed-collision-objects
-                                            :highlight-links
-                                            (links-for-arm-side arm))))
-                             (moveit:add-collision-object
-                              (desig-prop-value
-                               obj 'desig-props:name))))))
+                           (or (and only-reachable
+                                    (is-pose-reachable pose arm))
+                               (moveit:remove-collision-object
+                                (desig-prop-value obj 'desig-props:name))
+                               (prog1
+                                   (cdr (assoc arm
+                                               (arms-pose-distances
+                                                (list arm) pose
+                                                :arms-offset-pose
+                                                grasp-offset
+                                                :allowed-collision-objects
+                                                allowed-collision-objects
+                                                :highlight-links
+                                                (links-for-arm-side arm))))
+                                 (moveit:add-collision-object
+                                  (desig-prop-value
+                                   obj 'desig-props:name)))))))
     (roslisp:ros-info (pr2 manip-pm)
                       "Pregrasp: ~a, Grasp: ~a"
                       distance-pregrasp distance-grasp)
     (when distance-grasp
       (+ distance-pregrasp distance-grasp))))
+
+(defun is-pose-reachable (pose arm)
+  (when (moveit:compute-ik
+         (cut:var-value
+          '?link
+          (first
+           (crs:prolog
+            `(manipulator-link ,arm ?link))))
+         (ecase arm
+           (:left "left_arm")
+           (:right "right_arm"))
+         pose)))
 
 (defun arms-pose-distances (arms pose
                             &key
