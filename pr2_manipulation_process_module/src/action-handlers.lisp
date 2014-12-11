@@ -270,6 +270,7 @@
                             :side (first (arms param-set))))))))))
 
 (def-action-handler grasp (action-desig object)
+  "Handles the grasping of any given `object'. Calculates proper grasping poses for the object, based on physical gripper characteristics, free grippers, object grasp points (handles), grasp type for this object, and position of the object relative to the robot's grippers. `action-desig' is the action designator instance that triggered this handler's execution, and is later updated with more precise grasping information based on the actual infered action."
   (let ((grasp-assignments (crs:prolog `(grasp-assignments
                                          ,object ?grasp-assignments)))
         (log-id (first (cram-language::on-begin-grasp object)))
@@ -296,10 +297,6 @@
                        (success))))
            (cpl:fail 'manipulation-pose-unreachable))
       (cram-language::on-finish-grasp log-id success))))
-
-(def-action-handler grasp-too-far (object)
-  (declare (ignore object))
-  (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))
 
 (defun pose-pointing-away-from-base (object-pose)
   (let ((ref-frame "/base_link")

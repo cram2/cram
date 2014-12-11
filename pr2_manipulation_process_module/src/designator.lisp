@@ -43,6 +43,8 @@
      (first (crs:prolog `(manipulator-link ?side ,string-frame))))))
 
 (defun gripper-offset-pose (side)
+  "Adds custom offsets to gripper poses based on their arm `side'. This is mainly intended for customly adapted robots that need special handling for gripper sides."
+  ;; TODO(winkler): Move this function into `userspace' in order to not interfer with other scenarios' robot (PR2) setups.
   (ecase side
     (:left (tf:make-pose (tf:make-3d-vector -0.035 0.0 0.0)
                          (tf:make-identity-rotation)))
@@ -144,6 +146,8 @@
       (list nil)))
 
 (defun sort-arms-handles-combos (combos)
+  "Sorts the arm/handle combinations held in `combos' by the sum of distances of each respective gripper to its assigned handle (ascending)."
+  ;; TODO(winkler): Implement this function.
   combos)
 
 (defun arms-handles-combo (arms handles &key sort-by-distance
@@ -267,14 +271,7 @@
     (desig-prop ?desig (to grasp))
     (desig-prop ?desig (obj ?obj))
     (current-designator ?obj ?current-obj))
-    ;(robot-object-distance ?current-obj ?distance)
-    ;(<= ?distance 1.0))
 
-  (<- (action-desig ?desig (grasp-too-far ?current-obj))
-    (trajectory-desig? ?desig)
-    (desig-prop ?desig (to grasp))
-    (desig-prop ?desig (obj ?obj)))
-  
   (<- (grasp-offsets push ?pregrasp-offset ?grasp-offset)
     (symbol-value *pregrasp-offset* ?pregrasp-offset)
     (symbol-value *grasp-offset* ?grasp-offset))
