@@ -330,7 +330,7 @@
                                                          :pose new-object-pose))))
 
 (def-process-module pr2-manipulation-process-module (desig)
-  ;(collision-environment-set-laser-period)
+  (collision-environment-set-laser-period)
   (apply #'call-action (reference desig)))
 
 (defun update-grasped-object-designator (obj grippers &key new-properties)
