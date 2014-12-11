@@ -265,6 +265,38 @@
   
   (<- (gripper-offset ?side ?gripper-offset)
     (lisp-fun gripper-offset-pose ?side ?gripper-offset))
+
+  (<- (grasp-assignment ?object ?grasp-assignment)
+    (grasp-type ?object ?grasp-type)
+    (grasp-offsets ?grasp-type ?pregrasp-offset ?grasp-offset)
+    (or (desig-prop ?object (desig-props::carry-handles
+                             ?carry-handles))
+        (equal ?carry-handles 1))
+    (free-arm ?free-arm)
+    (desig-prop ?object (handle ?handle))
+    (gripper-offset ?free-arm ?gripper-offset)
+    (reorient-object ?object ?reorient-object)
+    (absolute-handle ?object ?handle ?reorient-object
+                     ?absolute-handle)
+    (desig-prop ?absolute-handle (at ?location))
+    (lisp-fun reference ?location ?pose)
+    (lisp-fun get-gripper-state ?free-arm ?gripper-state)
+    (< ?gripper-state 0.08)
+    (lisp-pred open-gripper ?free-arm)
+    (lisp-fun cost-reach-pose ?object ?free-arm ?pose
+              ?pregrasp-offset ?grasp-offset
+              :only-reachable t ?cost)
+    (not (equal ?cost nil))
+    (lisp-fun make-grasp-assignment
+              :side ?free-arm
+              :grasp-type ?grasp-type
+              :pose ?pose
+              :handle ?handle
+              :cost ?cost
+              :pregrasp-offset ?pregrasp-offset
+              :grasp-offset ?grasp-offset
+              :gripper-offset ?gripper-offset
+              ?grasp-assignment))
   
   (<- (grasp-assignments ?object ?grasp-assignments)
     (grasp-type ?object ?grasp-type)
