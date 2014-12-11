@@ -208,7 +208,7 @@
                (let* ((pose (pose assignment))
                       (side (side assignment))
                       (grasp-type (grasp-type assignment))
-                      (gripper-offset (gripper-offset side))
+                      (gripper-offset (gripper-offset assignment))
                       (pregrasp-pose
                         (cl-tf2:ensure-pose-stamped-transformed
                          *tf2*
@@ -499,3 +499,24 @@ executed for the currently type of grasped object."
                         :link ?link-name
                         :side side)))))
       (cram-language::on-finish-putdown log-id success))))
+
+(defmethod display-object-handles ((object object-designator))
+  (let* ((relative-handles (desig-prop-values object 'desig-props::handle))
+         (absolute-handles
+           (mapcar (lambda (handle)
+                     (absolute-handle object handle))
+                   relative-handles))
+         (pose-msgs
+           (map 'vector
+                (lambda (handle)
+                  (let ((pose (reference (desig-prop-value handle 'desig-props::at))))
+                    (tf:pose->msg pose)))
+                absolute-handles)))
+    (let ((publisher (roslisp:advertise "/objecthandleposes" "geometry_msgs/PoseArray")))
+      (roslisp:publish publisher
+                       (roslisp:make-message
+                        "geometry_msgs/PoseArray"
+                        (frame_id header) (tf:frame-id
+                                           (reference (desig-prop-value
+                                                       (first absolute-handles) 'desig-props::at)))
+                        (poses) pose-msgs)))))
