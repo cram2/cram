@@ -136,13 +136,15 @@
                                  (nth i hacked-fixed-list))))
                    (cont result (1+ i))))))))))
 
-(def-fact-group pr2-manipulation-designators (action-desig)
+(def-fact-group pr2-manipulation-designators (action-desig cram-language::grasp-effort)
   
   (<- (maximum-object-tilt nil ?max-tilt)
     (symbol-value pi ?max-tilt))
   
   (<- (maximum-object-tilt ?object ?max-tilt)
     (equal ?max-tilt 0.3))
+  
+  (<- (cram-language::grasp-effort ?object 100))
   
   (<- (robot-object-distance ?object ?distance)
     (lisp-fun robot-object-distance ?object ?distance))
