@@ -37,11 +37,11 @@
 (defun make-query-id ()
   (symbol-name (gensym (format nil "QUERY-~10,20$-" (ros-time)))))
 
-(define-hook cram-utilities::on-prepare-prolog-prove (request))
-(define-hook cram-utilities::on-finish-prolog-prove (id))
+(define-hook cram-utilities::on-prepare-json-prolog-prove (request))
+(define-hook cram-utilities::on-finish-json-prolog-prove (id))
 
 (defun call-prolog-service (name type &rest request)
-  (let ((log-id (first (cram-utilities::on-prepare-prolog-prove request)))
+  (let ((log-id (first (cram-utilities::on-prepare-json-prolog-prove request)))
         (service (gethash name *persistent-services*)))
     (unwind-protect
          (progn
@@ -64,7 +64,7 @@
                                  (gethash name *persistent-services*) request)))))
                (apply 'call-persistent-service
                       (gethash name *persistent-services*) request))))
-      (cram-utilities::on-finish-prolog-prove log-id))))
+      (cram-utilities::on-finish-json-prolog-prove log-id))))
 
 (defun prolog-result->bdgs (query-id result &key (lispify nil) (package *package*))
   (unless (json_prolog_msgs-srv:ok result)
