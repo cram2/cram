@@ -66,10 +66,10 @@
            (poses-equal-in-frame-p (pose-1 pose-2 compare-frame)
              ;; Predicate to check equality of two poses w.r.t. a given frame."
              (when (and (transform-available-p
-                         compare-frame (cl-tf:frame-id pose-1)
+                         compare-frame (tf:frame-id pose-1)
                          :time (tf:stamp pose-1))
                         (transform-available-p
-                         compare-frame (cl-tf:frame-id pose-2)
+                         compare-frame (tf:frame-id pose-2)
                          :time (tf:stamp pose-2)))
                ;; assert: both poses can be transformed into 'compare-frame'
                (let ((pose-1-transformed 
