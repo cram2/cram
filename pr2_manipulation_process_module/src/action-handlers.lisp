@@ -187,6 +187,19 @@
                             (description action-desig))
                    action-desig))
 
+(defun min-object-grasp-effort (object)
+  (let ((efforts (crs:prolog `(cram-language::grasp-effort ,object ?effort))))
+    (cond (efforts
+           (apply
+            #'min
+            (force-ll
+             (lazy-mapcar
+              (lambda (bdgs)
+                (with-vars-bound (?effort) bdgs
+                  ?effort))
+              efforts))))
+          (t 100))))
+
 (defun perform-grasp (action-desig object assignments-list &key log-id)
   (let* ((obj (desig:newest-effective-designator object))
          (obj-pose (reference (desig-prop-value obj 'desig-props:at)))
@@ -210,7 +223,7 @@
                           (relative-grasp-pose pose (grasp-offset assignment))
                           gripper-offset)
                          "/torso_lift_link"))
-                      (effort 100))
+                      (effort (min-object-grasp-effort obj)))
                  (make-instance
                   'grasp-parameters
                   :pregrasp-pose pregrasp-pose
@@ -239,7 +252,9 @@
           (execute-grasps obj-name params)
           (update-action-designator
            action-desig
-           `((arm ,(first (arms (first params))))
+           `(,@(mapcar (lambda (arm)
+                         `(arm ,arm))
+                       (arms (first params)))
              (effort ,(effort (first params)))
              (grasp-type ,(grasp-type (first params))))))
         (dolist (param-set params)
