@@ -85,6 +85,31 @@
                   collect 0)
             lst))))
 
+(defun permute-grasp-combinations (arms handles &key (use-all-arms t))
+  (let ((permutations nil))
+    (cond ((not use-all-arms)
+           (loop for arm in arms
+                 append (permute-grasp-combinations
+                         `(,arm) handles)))
+          ((<= (length arms) (length handles))
+           (alexandria:map-permutations
+            (lambda (permutation)
+              (push permutation permutations))
+            handles
+            :length (length arms))
+           (mapcar (lambda (permutation)
+                     (mapcar #'cons arms permutation))
+                   permutations))
+          (t
+           (alexandria:map-permutations
+            (lambda (permutation)
+              (push permutation permutations))
+            arms
+            :length (length handles))
+           (mapcar (lambda (permutation)
+                     (mapcar #'cons permutation handles))
+                   permutations)))))
+
 (defun gripper-combinations (items n index)
   (labels ((bin->items (bin)
              (loop for i from 0 below (length bin)
@@ -118,23 +143,20 @@
               (apply #'combinations (cdr lists)))
       (list nil)))
 
-(defun arms-handles-combo (arms handles)
-  (let ((hacked-fixed-list
-          `((,(cons 1 0) ,(cons 0 3)))))
-            ;(,(cons 1 0) ,(cons 0 1)))))
-    (lazy-list ((i 0))
-      (when (< i (* (length arms) (length handles)))
-        (cond ((= (length arms) 1)
-               (cont `(,(cons (nth 0 arms)
-                              (nth i handles))) (1+ i)))
-              ((= (length arms) 2)
-               (when (< i (length hacked-fixed-list))
-                 (let ((result
-                         (mapcar (lambda (hfl-entry)
-                                   (cons (nth (car hfl-entry) arms)
-                                         (nth (cdr hfl-entry) handles)))
-                                 (nth i hacked-fixed-list))))
-                   (cont result (1+ i))))))))))
+(defun sort-arms-handles-combos (combos)
+  combos)
+
+(defun arms-handles-combo (arms handles &key sort-by-distance
+                                          (use-all-arms t))
+  "Generates a lazy list of permutations of available `arms' over `handles'. If the flag `sort-by-distance' is set, the lazy list is sorted according to the lowest overall distance of one arms/handles combo set."
+  (let* ((permuted-combos (permute-grasp-combinations
+                           arms handles
+                           :use-all-arms use-all-arms))
+         (maybe-sorted-combos
+           (or (and sort-by-distance
+                    (sort-arms-handles-combos permuted-combos))
+               permuted-combos)))
+    maybe-sorted-combos))
 
 (def-fact-group pr2-manipulation-designators (action-desig cram-language::grasp-effort)
   
@@ -265,30 +287,26 @@
   
   (<- (gripper-offset ?side ?gripper-offset)
     (lisp-fun gripper-offset-pose ?side ?gripper-offset))
-
-  (<- (grasp-assignment ?object ?grasp-assignment)
+  
+  (<- (combo-assignment ?object ?combo ?grasp-assignment)
     (grasp-type ?object ?grasp-type)
     (grasp-offsets ?grasp-type ?pregrasp-offset ?grasp-offset)
-    (or (desig-prop ?object (desig-props::carry-handles
-                             ?carry-handles))
-        (equal ?carry-handles 1))
-    (free-arm ?free-arm)
-    (desig-prop ?object (handle ?handle))
-    (gripper-offset ?free-arm ?gripper-offset)
+    (member (?arm . ?handle) ?combo)
+    (gripper-offset ?arm ?gripper-offset)
     (reorient-object ?object ?reorient-object)
     (absolute-handle ?object ?handle ?reorient-object
                      ?absolute-handle)
     (desig-prop ?absolute-handle (at ?location))
     (lisp-fun reference ?location ?pose)
-    (lisp-fun get-gripper-state ?free-arm ?gripper-state)
-    (< ?gripper-state 0.08)
-    (lisp-pred open-gripper ?free-arm)
-    (lisp-fun cost-reach-pose ?object ?free-arm ?pose
+    (lisp-fun get-gripper-state ?arm ?gripper-state)
+    (and (< ?gripper-state 0.08)
+         (lisp-pred open-gripper ?arm))
+    (lisp-fun cost-reach-pose ?object ?arm ?pose
               ?pregrasp-offset ?grasp-offset
               :only-reachable t ?cost)
     (not (equal ?cost nil))
     (lisp-fun make-grasp-assignment
-              :side ?free-arm
+              :side ?arm
               :grasp-type ?grasp-type
               :pose ?pose
               :handle ?handle
@@ -299,45 +317,18 @@
               ?grasp-assignment))
   
   (<- (grasp-assignments ?object ?grasp-assignments)
-    (grasp-type ?object ?grasp-type)
-    (grasp-offsets ?grasp-type ?pregrasp-offset ?grasp-offset)
-    (or (desig-prop ?object (desig-props::carry-handles
-                             ?carry-handles))
-        (equal ?carry-handles 1))
-    (setof ?count-arm (free-arm ?count-arm) ?free-arms)
-    (length ?free-arms ?free-arm-count)
-    (>= ?free-arm-count ?carry-handles)
-    (lisp-fun lazy-gripper-combinations ?free-arms ?carry-handles ?gc)
-    (member ?arms ?gc)
+    (or (and (desig-prop ?object (desig-props::carry-handles
+                                  ?carry-handles))
+             (equal ?use-all-arms t))
+        (and (equal ?carry-handles 1)
+             (equal ?use-all-arms nil)))
+    (setof ?free-arm (free-arm ?free-arm) ?free-arms)
     (setof ?handle (desig-prop ?object (handle ?handle)) ?handles)
-    (lisp-fun arms-handles-combo ?arms ?handles ?arm-handle-combos)
-    (member ?arm-handle-combo ?arm-handle-combos)
+    (lisp-fun arms-handles-combo ?free-arms ?handles ?combos)
+    (member ?combo ?combos)
     (setof ?grasp-assignment
-           (and (member (?free-arm . ?handle) ?arm-handle-combo)
-                (gripper-offset ?free-arm ?gripper-offset)
-                (reorient-object ?object ?reorient-object)
-                (and (absolute-handle ?object ?handle ?reorient-object
-                                      ?absolute-handle)
-                     (desig-prop ?absolute-handle (at ?location))
-                     (lisp-fun reference ?location ?pose)
-                     (lisp-pred open-gripper ?free-arm)
-                     (lisp-fun cost-reach-pose ?object ?free-arm ?pose
-                               ?pregrasp-offset ?grasp-offset ?cost)
-                     (not (equal ?cost nil))
-                     (lisp-fun make-grasp-assignment
-                               :side ?free-arm
-                               :grasp-type ?grasp-type
-                               :pose ?pose
-                               :handle ?handle
-                               :cost ?cost
-                               :pregrasp-offset ?pregrasp-offset
-                               :grasp-offset ?grasp-offset
-                               :gripper-offset ?gripper-offset
-                               ?grasp-assignment)))
-           ?grasp-assignments)
-    (length ?grasp-assignments ?ga-length)
-    (length ?arm-handle-combo ?ahc-length)
-    (== ?ga-length ?ahc-length))
+           (combo-assignments ?object ?combo ?grasp-assignment)
+           ?grasp-assignments))
   
   (<- (optimal-handle-grasp ?object-desig ?available-arms
                             ?pregrasp-pose ?grasp-pose
