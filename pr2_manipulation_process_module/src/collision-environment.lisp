@@ -106,6 +106,7 @@
              "pr2_msgs/PeriodicCmd"
              (stamp header) (ros-time)
              profile "linear"
+             ;period 0
              period 3
-             amplitude 0.75
+             amplitude 0;0.75
              offset 0.25)))
