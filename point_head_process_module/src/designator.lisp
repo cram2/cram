@@ -29,6 +29,7 @@
 
 (in-package :point-head-process-module)
 
+(defvar *tf2* nil)
 (defvar *action-client* nil)
 
 (defun pose-stamped->point-stamped-msg (ps)
