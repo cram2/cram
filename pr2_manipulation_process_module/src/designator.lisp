@@ -1,3 +1,4 @@
+
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
@@ -41,7 +42,7 @@
      '?side
      (first (crs:prolog `(manipulator-link ?side ,string-frame))))))
 
-(defun gripper-offset (side)
+(defun gripper-offset-pose (side)
   (ecase side
     (:left (tf:make-pose (tf:make-3d-vector -0.035 0.0 0.0)
                          (tf:make-identity-rotation)))
@@ -261,7 +262,7 @@
   (<- (reorient-object ?object t))
   
   (<- (gripper-offset ?side ?gripper-offset)
-    (lisp-fun gripper-offset ?side ?gripper-offset))
+    (lisp-fun gripper-offset-pose ?side ?gripper-offset))
   
   (<- (grasp-assignments ?object ?grasp-assignments)
     (grasp-type ?object ?grasp-type)
