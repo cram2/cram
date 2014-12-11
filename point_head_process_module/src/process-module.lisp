@@ -29,7 +29,6 @@
 
 (in-package :point-head-process-module)
 
-(defvar *tf2* nil)
 (defvar *point-head-thread* nil)
 
 (defun init-point-head-action ()
