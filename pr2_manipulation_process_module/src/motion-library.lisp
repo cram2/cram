@@ -488,7 +488,7 @@ object in order to lift it at `distance' form the supporting plane"
                   arms)))
     (moveit::execute-trajectories trajectories)))
 
-(defun relative-grasp-pose (pose pose-offset)
+(defun relative-pose (pose pose-offset)
   (tf:pose->pose-stamped
    (tf:frame-id pose)
    (ros-time)

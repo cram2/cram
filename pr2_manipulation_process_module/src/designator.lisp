@@ -143,6 +143,27 @@
                permuted-combos)))
     maybe-sorted-combos))
 
+(defun orient-pose (pose-stamped z-rotation)
+  (cond ((eql (coerce z-rotation 'short-float) (coerce 0 'short-float))
+         pose-stamped) ;; No rotation, just return the original pose
+        (t (let* ((orig-orient (tf:orientation pose-stamped))
+                  (tran-orient (tf:orientation
+                                (cl-transforms:transform-pose
+                                 (tf:make-transform
+                                  (tf:make-identity-vector)
+                                  (tf:euler->quaternion :az z-rotation))
+                                 (tf:make-pose
+                                  (tf:make-identity-vector) orig-orient)))))
+             (tf:make-pose-stamped
+              (tf:frame-id pose-stamped) (ros-time)
+              (tf:origin pose-stamped) tran-orient)))))
+
+(defun rotated-poses (pose &key segments)
+  (let ((segments (or segments 8)))
+    (loop for i from 0 below segments
+          as orientation-offset = (* 2 pi (/ i segments))
+          collect (orient-pose pose orientation-offset))))
+
 (def-fact-group pr2-manipulation-designators (action-desig cram-language::grasp-effort)
   
   (<- (maximum-object-tilt nil ?max-tilt)
@@ -324,8 +345,17 @@
   (<- (grasp-type ?_ ?grasp-type)
     (equal ?grasp-type desig-props:push))
   
-  (<- (action-desig ?desig (put-down ?current-obj ?loc ?grasp-assignments
-                                     ?grasp-type ?max-tilt ?holding-grippers))
+  (<- (object-poses-in-gripper ?object ?poses)
+    (desig-prop ?current-obj (desig-props:at ?objloc))
+    (current-designator ?objloc ?current-objloc)
+    (desig-prop ?current-objloc (desig-props:in desig-props:gripper))
+    (setof ?posearm (and (desig-prop ?objloc (desig-props:pose ?objpose))
+                         (arm-for-pose ?objpose ?arm)
+                         (member ?arm (:left :right))
+                         (equal ?posearm (?arm . ?objpose)))
+           ?poses))
+  
+  (<- (action-desig ?desig (put-down ?current-obj ?loc ?grasp-assignments))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to put-down))
     (desig-prop ?desig (obj ?obj))
@@ -333,23 +363,18 @@
     (or (desig-prop ?obj (desig-props:grasp-type ?grasp-type))
         (desig-prop ?desig (desig-props:grasp-type ?grasp-type))
         (equal ?grasp-type nil))
-    (desig-prop ?desig (at ?loc))
-    (desig-prop ?current-obj (desig-props:at ?objloc))
-    (maximum-object-tilt ?current-obj ?max-tilt)
-    (current-designator ?objloc ?current-objloc)
-    (desig-prop ?current-objloc (desig-props:in desig-props:gripper))
-    (setof ?gripper (object-in-hand ?current-obj ?gripper)
-           ?holding-grippers)
-    (setof ?posearm (and (desig-prop ?objloc (desig-props:pose ?objpose))
-                         (arm-for-pose ?objpose ?arm)
-                         (member ?arm (:left :right))
-                         (equal ?posearm (?arm . ?objpose)))
-           ?poses)
-    (lisp-fun cons-to-grasp-assignments ?poses ?grasp-assignments))
+    (object-poses-in-gripper ?object ?poses)
+    (lisp-fun cons-to-grasp-assignments ?poses ?grasp-type ?grasp-assignments))
   
   (<- (action-desig ?desig (put-down nil nil nil nil nil nil))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to put-down)))
+  
+  (<- (putdown-pose ?original-pose ?segments ?putdown-pose)
+    (lisp-fun rotated-poses ?original-pose
+              :segments ?segments
+              ?rotated-poses)
+    (member ?putdown-pose ?rotated-poses))
   
   (<- (action-desig ?desig (pull ?current-obj ?arms
                                  ?direction ?distance
