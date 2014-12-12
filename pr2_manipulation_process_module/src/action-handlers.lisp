@@ -353,39 +353,18 @@
                             (return-from next-putdown-pose)))
                        (publish-pose putdown-pose "/putdownpose")
                        (let ((grasp-assignment (first grasp-assignments)))
-                         (flet ((target-gripper-pose (object-in-gripper-pose
-                                                      target-object-pose)
-                                  (let* ((object-in-gripper
-                                           (tf:pose->transform
-                                            object-in-gripper-pose))
-                                         (gripper-in-object
-                                           (tf:transform-inv object-in-gripper))
-                                         (object-in-world
-                                           (tf:pose->transform
-                                            (cl-transforms:transform-pose
-                                             (tf:make-transform
-                                              ;; Slight offset above the final
-                                              ;; pose to ensure collision
-                                              ;; detection doesn't spoil
-                                              ;; everything (imprecise models
-                                              ;; and everything).
-                                              (tf:make-3d-vector 0 0 0.025)
-                                              (tf:make-identity-rotation))
-                                             target-object-pose)))
-                                         (gripper-in-world
-                                           (tf:transform*
-                                            object-in-world gripper-in-object)))
-                                    (tf:pose->pose-stamped
-                                     (tf:frame-id target-object-pose)
-                                     (ros-time)
-                                     (tf:transform->pose gripper-in-world)))))
-                           (flet ((gripper-grasp-pose (pose-offset)
-                                    (relative-pose
-                                     (target-gripper-pose
-                                      (slot-value grasp-assignment
-                                                  'pose)
-                                      putdown-pose)
-                                     pose-offset)))
+                         (labels ((gripper-putdown-pose (object-in-gripper-pose object-putdown-pose)
+                                    (let ((t-o-g (tf:pose->transform object-in-gripper-pose))
+                                          (t-o-w (tf:pose->transform object-putdown-pose)))
+                                      (tf:pose->pose-stamped
+                                       (tf:frame-id object-putdown-pose) 0.0
+                                       (tf:transform->pose (cl-transforms:transform* t-o-w (cl-transforms:transform-inv t-o-g)))))))
+                           (labels ((gripper-grasp-pose (pose-offset)
+                                      (relative-pose
+                                       (gripper-putdown-pose
+                                        (slot-value grasp-assignment 'pose)
+                                        putdown-pose)
+                                       pose-offset)))
                              (let* ((side (slot-value grasp-assignment 'side))
                                     (pre-putdown-pose (gripper-grasp-pose
                                                        pre-putdown-offset))

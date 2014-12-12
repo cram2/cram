@@ -204,85 +204,74 @@ configuration."
                         &key allowed-collision-objects
                           only-reachable)
   (let* ((distance-pregrasp
-           (or (and only-reachable
-                    (is-pose-reachable pose arm))
-               (cdr (assoc arm
-                           (arms-pose-distances
-                            (list arm) pose
-                            :arms-offset-pose
-                            pregrasp-offset
-                            :highlight-links
-                            (links-for-arm-side arm))))))
+           (cond (only-reachable (is-pose-reachable
+                                  pose arm
+                                  :arm-offset-pose pregrasp-offset))
+                 (t (cdr (assoc arm
+                                (arms-pose-distances
+                                 (list arm) pose
+                                 :arms-offset-pose
+                                 pregrasp-offset
+                                 :highlight-links
+                                 (links-for-arm-side arm)))))))
          (distance-grasp (when distance-pregrasp
-                           (or (and only-reachable
-                                    (is-pose-reachable pose arm))
-                               (moveit:remove-collision-object
-                                (desig-prop-value obj 'desig-props:name))
-                               (prog1
-                                   (cdr (assoc arm
-                                               (arms-pose-distances
-                                                (list arm) pose
-                                                :arms-offset-pose
-                                                grasp-offset
-                                                :allowed-collision-objects
-                                                allowed-collision-objects
-                                                :highlight-links
-                                                (links-for-arm-side arm))))
-                                 (moveit:add-collision-object
-                                  (desig-prop-value
-                                   obj 'desig-props:name)))))))
-    (roslisp:ros-info (pr2 manip-pm)
-                      "Pregrasp: ~a, Grasp: ~a"
+                           (moveit:remove-collision-object
+                            (desig-prop-value obj 'desig-props:name))
+                           (prog1
+                               (cond (only-reachable (is-pose-reachable
+                                                      pose arm
+                                                      :arm-offset-pose grasp-offset))
+                                     (t (cdr (assoc arm
+                                                    (arms-pose-distances
+                                                     (list arm) pose
+                                                     :arms-offset-pose
+                                                     grasp-offset
+                                                     :allowed-collision-objects
+                                                     allowed-collision-objects
+                                                     :highlight-links
+                                                     (links-for-arm-side arm))))))
+                             (moveit:add-collision-object
+                              (desig-prop-value
+                               obj 'desig-props:name))))))
+    (roslisp:ros-info (pr2 manip-pm) "Pregrasp: ~a, Grasp: ~a"
                       distance-pregrasp distance-grasp)
     (when distance-grasp
       (+ distance-pregrasp distance-grasp))))
 
-(defun is-pose-reachable (pose arm)
-  (when (moveit:compute-ik
-         (cut:var-value
-          '?link
-          (first
-           (crs:prolog
-            `(manipulator-link ,arm ?link))))
-         (ecase arm
-           (:left "left_arm")
-           (:right "right_arm"))
-         pose)))
+(defun is-pose-reachable (pose arm &key arm-offset-pose)
+  (let ((pose (cond (arm-offset-pose (relative-pose pose arm-offset-pose))
+                    (t pose))))
+    (roslisp:publish (roslisp:advertise "/testpose" "geometry_msgs/PoseStamped")
+                     (tf:pose-stamped->msg pose))
+    (cpl:with-failure-handling
+        ((moveit:no-ik-solution (f)
+           (declare (ignore f))
+           (return 0)))
+      (when (moveit:compute-ik
+             (cut:var-value
+              '?link
+              (first
+               (crs:prolog
+                `(manipulator-link ,arm ?link))))
+             (ecase arm
+               (:left "left_arm")
+               (:right "right_arm"))
+             pose)
+        1))))
 
 (defun arms-pose-distances (arms pose
                             &key
                               allowed-collision-objects
-                              (constraint-aware nil)
                               (arms-offset-pose
                                (tf:make-identity-pose))
                               highlight-links)
-  (flet ((apply-pose-offset (pose offset-pose)
-           (cl-transforms:transform-pose
-            (cl-transforms:pose->transform pose)
-            offset-pose)))
-    (let ((costme
-            (loop for arm in arms
-                  for target-link = (cut:var-value
-                                     '?link
-                                     (first
-                                      (crs:prolog
-                                       `(manipulator-link ,arm ?link))))
-                  for pose-offsetted = (apply-pose-offset
-                                        pose arms-offset-pose)
-                  for pose-stamped = (tf:make-pose-stamped
-                                      "/map" 0.0
-                                      (tf:origin pose-offsetted)
-                                      (tf:orientation pose-offsetted))
-                  for publ = (publish-pose pose-stamped "/testpublisher2")
-                  for distance = (reaching-length
-                                  pose-stamped arm
-                                  :allowed-collision-objects
-                                  allowed-collision-objects
-                                  :highlight-links highlight-links)
-                  when distance
-                    collect (cons arm distance))))
-      (when costme
-        (ros-info (pr2 manip-pm) "Set of IK costs:")
-        (loop for (arm . cost) in costme
-              do (ros-info (pr2 manip-pm) "Arm = ~a, Cost = ~a" arm cost)))
-      costme)))
+  (loop for arm in arms
+        for distance = (reaching-length
+                        (relative-pose pose arms-offset-pose) arm
+                        :allowed-collision-objects
+                        allowed-collision-objects
+                        :highlight-links highlight-links)
+        when distance
+          collect (progn
+                    (ros-info (pr2 manip-pm) "Arm = ~a, Cost = ~a" arm distance)
+                    (cons arm distance))))
