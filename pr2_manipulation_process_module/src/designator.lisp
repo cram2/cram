@@ -157,11 +157,18 @@
               (tf:frame-id pose-stamped) (ros-time)
               (tf:origin pose-stamped) tran-orient)))))
 
-(defun rotated-poses (pose &key segments)
+(defun elevate-pose (pose-stamped z-offset)
+  (tf:copy-pose-stamped
+   pose-stamped :origin (tf:v+ (tf:origin pose-stamped)
+                               (tf:make-3d-vector 0.0 0.0 z-offset))))
+
+(defun rotated-poses (pose &key segments (z-offset 0.0))
   (let ((segments (or segments 8)))
     (loop for i from 0 below segments
           as orientation-offset = (* 2 pi (/ i segments))
-          collect (orient-pose pose orientation-offset))))
+          collect (elevate-pose
+                   (orient-pose pose orientation-offset)
+                   z-offset))))
 
 (def-fact-group pr2-manipulation-designators (action-desig cram-language::grasp-effort)
   
@@ -372,6 +379,7 @@
   (<- (putdown-pose ?original-pose ?segments ?putdown-pose)
     (lisp-fun rotated-poses ?original-pose
               :segments ?segments
+              :z-offset 0.01
               ?rotated-poses)
     (member ?putdown-pose ?rotated-poses))
   
