@@ -50,25 +50,6 @@
                          (tf:make-identity-rotation)))
     (:right (tf:make-identity-pose))))
 
-(defun robot-object-distance (object)
-  (let ((obj-at (desig-prop-value object 'desig-props:at)))
-    (when obj-at
-      (let* ((obj-pose (reference obj-at))
-             (obj-pose-base-link
-               (cl-tf2:ensure-pose-stamped-transformed
-                *tf2*
-                obj-pose
-                "/base_link"
-                :use-current-ros-time t))
-             (obj-pose-base-link-origin
-               (tf:origin obj-pose-base-link)))
-        (tf:v-dist
-         (tf:make-identity-vector)
-         (tf:make-3d-vector
-                 (tf:x obj-pose-base-link-origin)
-                 (tf:y obj-pose-base-link-origin)
-                 0.0))))))
-
 (defun no-trailing-zeros (lst)
   (cond ((= 0 (car (last lst)))
          (no-trailing-zeros (subseq lst 0 (1- (length lst)))))
@@ -172,9 +153,6 @@
   
   (<- (cram-language::grasp-effort ?object 100))
   
-  (<- (robot-object-distance ?object ?distance)
-    (lisp-fun robot-object-distance ?object ?distance))
-  
   (<- (min-handles ?object-desig ?min-handles)
     (current-designator ?object-desig ?current-object)
     (or (desig-prop ?current-object (min-handles ?min-handles))
@@ -197,34 +175,26 @@
   (<- (handles ?desig ?handles)
     (findall ?h (desig-prop ?desig (handle ?h))
              ?handles))
-
-  (<- (gripper-arms-in-desig ?desig ?arms)
-    (current-designator ?desig ?current-desig)
-    (gripped-obj-desig? ?current-desig)
-    (desig-prop ?current-desig (at ?obj-loc))
-    (desig-prop ?obj-loc (gripper ?_))
-    (findall ?g (desig-prop ?obj-loc (gripper ?g))
-             ?arms))
-
+  
   (<- (gripper-arms-in-belief ?desig ?arms)
     (current-designator ?desig ?current-desig)
     (findall ?g (object-in-hand ?current-desig ?g)
              ?arms))
-
+  
   (<- (holding-arms ?desig ?arms)
     (current-designator ?desig ?current-desig)
     (gripper-arms-in-belief ?current-desig ?arms))
-
+  
   (<- (handled-obj-desig? ?designator)
     (obj-desig? ?designator)
     (desig-prop ?designator (handle ?_)))
-
+  
   (<- (gripped-obj-desig? ?designator)
     (obj-desig? ?designator)
     (desig-prop ?designator (at ?obj-loc))
     (loc-desig? ?obj-loc)
     (desig-prop ?obj-loc (in gripper)))
-
+  
   ;; On the PR2 we don't need an open pose
   (<- (action-desig ?desig (noop ?desig))
     (trajectory-desig? ?desig)
@@ -258,7 +228,7 @@
     (current-designator ?obj ?current-obj)
     (holding-arms ?current-obj ?arms)
     (obstacles ?desig ?obstacles))
-
+  
   (<- (free-arm ?free-arm)
     (arm ?free-arm)
     (not (object-in-hand ?_ ?free-arm)))
@@ -271,11 +241,11 @@
     (desig-prop ?desig (to grasp))
     (desig-prop ?desig (obj ?obj))
     (current-designator ?obj ?current-obj))
-
+  
   (<- (grasp-offsets push ?pregrasp-offset ?grasp-offset)
     (symbol-value *pregrasp-offset* ?pregrasp-offset)
     (symbol-value *grasp-offset* ?grasp-offset))
-
+  
   (<- (grasp-offsets top-slide-down ?pregrasp-offset ?grasp-offset)
     (symbol-value *pregrasp-top-slide-down-offset* ?pregrasp-offset)
     (symbol-value *grasp-top-slide-down-offset* ?grasp-offset))
@@ -284,6 +254,23 @@
   
   (<- (gripper-offset ?side ?gripper-offset)
     (lisp-fun gripper-offset-pose ?side ?gripper-offset))
+  
+  (<- (gripper-open? ?arm)
+    (lisp-fun get-gripper-state ?arm ?gripper-state)
+    (not (< ?gripper-state 0.08)))
+  
+  (<- (open-gripper ?arm)
+    (or (and (not (gripper-open? ?arm))
+             (lisp-pred open-gripper ?arm))
+        (crs:true)))
+  
+  (<- (object-pose-reachable ?object ?pose ?arm)
+    (grasp-type ?object ?grasp-type)
+    (grasp-offsets ?grasp-type ?pregrasp-offset ?grasp-offset)
+    (lisp-fun cost-reach-pose ?object ?arm ?pose
+              ?pregrasp-offset ?grasp-offset
+              :only-reachable t ?cost)
+    (not (equal ?cost nil)))
   
   (<- (combo-assignment ?object ?combo ?grasp-assignment)
     (grasp-type ?object ?grasp-type)
@@ -295,19 +282,13 @@
                      ?absolute-handle)
     (desig-prop ?absolute-handle (at ?location))
     (lisp-fun reference ?location ?pose)
-    (lisp-fun get-gripper-state ?arm ?gripper-state)
-    (and (< ?gripper-state 0.08)
-         (lisp-pred open-gripper ?arm))
-    (lisp-fun cost-reach-pose ?object ?arm ?pose
-              ?pregrasp-offset ?grasp-offset
-              :only-reachable t ?cost)
-    (not (equal ?cost nil))
+    (open-gripper ?arm)
+    (object-pose-reachable ?object ?pose ?arm)
     (lisp-fun make-grasp-assignment
               :side ?arm
               :grasp-type ?grasp-type
               :pose ?pose
               :handle ?handle
-              :cost ?cost
               :pregrasp-offset ?pregrasp-offset
               :grasp-offset ?grasp-offset
               :gripper-offset ?gripper-offset
@@ -326,48 +307,6 @@
     (setof ?grasp-assignment
            (combo-assignments ?object ?combo ?grasp-assignment)
            ?grasp-assignments))
-  
-  (<- (optimal-handle-grasp ?object-desig ?available-arms
-                            ?pregrasp-pose ?grasp-pose
-                            ?grasp-assignments)
-    (current-designator ?object-desig ?current-object)
-    (handles ?current-object ?handles)
-    (min-handles ?current-object ?min-handles)
-    (setof (?handle . ?absolute-handle) (absolute-handle ?current-object
-                                                         ?handle
-                                                         ?absolute-handle)
-           ?absolute-handles)
-    (lisp-fun optimal-arm-handle-assignment
-              ?current-object
-              ?available-arms
-              ?absolute-handles
-              ?min-handles
-              ?pregrasp-pose
-              ?grasp-pose
-              ?grasp-assignments)
-    (length ?grasp-assignments ?assignment-count)
-    (> ?assignment-count 0))
-  
-  ;; This one is old
-  (<- (action-desig ?desig (grasp ?current-obj ?available-arms))
-    (trajectory-desig? ?desig)
-    (desig-prop ?desig (to grasp))
-    (desig-prop ?desig (obj ?obj))
-    (newest-effective-designator ?obj ?current-obj)
-    (available-arms ?current-obj ?available-arms)
-    (optimal-grasp ?current-obj ?available-arms ?grasp-assignments))
-  
-  (<- (optimal-grasp ?object-desig ?available-arms ?grasp-assignments)
-    (current-designator ?object-desig ?current-desig)
-    (desig-prop ?current-desig (at ?loc))
-    (desig-prop ?loc (pose ?pose))
-    (lisp-fun optimal-arm-pose-assignment
-              ?current-object
-              ?available-arms
-              ?pose
-              ?grasp-assignments)
-    (length ?grasp-assignments ?assignment-count)
-    (> ?assignment-count 0))
   
   (<- (grasped-object-handle ?obj ?handle)
     (handles ?obj ?handles)
