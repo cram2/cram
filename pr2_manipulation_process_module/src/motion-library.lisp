@@ -306,15 +306,15 @@
                     (ros-error
                      (pr2 grasp)
                      "Failed to gen pregrasp trajectory for ~a."
-                     (first (arms param-set)))))
+                     (arm param-set))))
                (execute-move-arm-pose
-                (first (arms param-set))
+                (arm param-set)
                 (pregrasp-pose param-set)
                 :plan-only t)))
            param-sets)))
     (moveit::execute-trajectories pregrasp-trajectories))
   (dolist (param-set param-sets)
-    (open-gripper (first (arms param-set))))
+    (open-gripper (arm param-set)))
   (moveit:remove-collision-object object-name)
   (unwind-protect
        (progn
@@ -328,27 +328,27 @@
                            (ros-error
                             (pr2 grasp)
                             "Failed to gen grasp trajectory for ~a."
-                            (first (arms param-set)))))
+                            (arm param-set))))
                       (execute-move-arm-pose
-                       (first (arms param-set))
+                       (arm param-set)
                        (grasp-pose param-set)
                        :plan-only t
                        :ignore-collisions t)))
                   param-sets)))
            (moveit::execute-trajectories grasp-trajectories))
          (dolist (param-set param-sets)
-           (close-gripper (first (arms param-set)) :max-effort (effort param-set))
-           (when (< (get-gripper-state (first (arms param-set))) 0.0025)
+           (close-gripper (arm param-set) :max-effort (effort param-set))
+           (when (< (get-gripper-state (arm param-set)) 0.0025)
              (ros-warn
               (pr2 grasp)
               "Missed the object (am at ~a). Going into fallback pose for side ~a."
-              (get-gripper-state (first (arms param-set))) (first (arms param-set)))
-             (open-gripper (first (arms param-set)))
-             (execute-move-arm-pose (first (arms param-set)) (pregrasp-pose param-set)
+              (get-gripper-state (arm param-set)) (arm param-set))
+             (open-gripper (arm param-set))
+             (execute-move-arm-pose (arm param-set) (pregrasp-pose param-set)
                                     :ignore-collisions t)
              (moveit:add-collision-object object-name)
              (when (safe-pose param-set)
-               (execute-move-arm-pose (first (arms param-set)) (safe-pose param-set)))
+               (execute-move-arm-pose (arm param-set) (safe-pose param-set)))
              (cpl:fail 'cram-plan-failures:object-lost))))
     (moveit:add-collision-object object-name)
     (dolist (param-set param-sets)
@@ -357,7 +357,7 @@
                '?link
                (first
                 (crs:prolog
-                 `(manipulator-link ,(first (arms param-set))
+                 `(manipulator-link ,(arm param-set)
                                     ?link))))))
         (moveit:attach-collision-object-to-link
          object-name link-frame)))))
