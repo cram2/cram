@@ -130,7 +130,7 @@
   ;; TODO(winkler): Implement this function.
   combos)
 
-(defun arms-handles-combo (arms handles &key sort-by-distance
+(defun arms-handles-combos (arms handles &key sort-by-distance
                                           (use-all-arms t))
   "Generates a lazy list of permutations of available `arms' over `handles'. If the flag `sort-by-distance' is set, the lazy list is sorted according to the lowest overall distance of one arms/handles combo set."
   (let* ((permuted-combos (permute-grasp-combinations
@@ -200,8 +200,7 @@
               ?absolute-handle))
 
   (<- (handles ?desig ?handles)
-    (findall ?h (desig-prop ?desig (handle ?h))
-             ?handles))
+    (setof ?handle (desig-prop ?object (handle ?handle)) ?handles))
   
   (<- (gripper-arms-in-belief ?desig ?arms)
     (current-designator ?desig ?current-desig)
@@ -321,19 +320,25 @@
               :gripper-offset ?gripper-offset
               ?grasp-assignment))
   
-  (<- (grasp-assignments ?object ?grasp-assignments)
-    (crs:once
+  (<- (free-arms ?free-arms)
+    (setof ?free-arm (free-arm ?free-arm) ?free-arms))
+  
+  (<- (free-arms-handles-combos ?object ?combos)
+    (once
      (or (desig-prop ?object (desig-props::carry-handles
                               ?carry-handles))
          (equal ?carry-handles 1)))
-    (or (and (equal ?carry-handles 1)
-             (equal ?use-all-arms nil))
-        (and (not (equal ?carry-handles 1))
-             (equal ?use-all-arms t)))
-    (setof ?free-arm (free-arm ?free-arm) ?free-arms)
-    (setof ?handle (desig-prop ?object (handle ?handle)) ?handles)
+    (once
+     (or (and (equal ?carry-handles 1)
+              (equal ?use-all-arms nil))
+         (equal ?use-all-arms t)))
+    (free-arms ?free-arms)
+    (handles ?object ?handles)
     (lisp-fun arms-handles-combo ?free-arms ?handles
-              :use-all-arms ?use-all-arms ?combos)
+              :use-all-arms ?use-all-arms ?combos))
+  
+  (<- (grasp-assignments ?object ?grasp-assignments)
+    (free-arms-handles-combos ?object ?combos)
     (member ?combo ?combos)
     (setof ?grasp-assignment
            (combo-assignment ?object ?combo ?grasp-assignment)
