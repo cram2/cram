@@ -194,12 +194,11 @@
 
   (<- (absolute-handle ?object-desig ?handle ?reorient-object ?absolute-handle)
     (current-designator ?object-desig ?current-object)
-    (handles ?current-object ?handles)
-    (member ?handle ?handles)
-    (lisp-fun absolute-handle ?current-object ?handle :reorient ?reorient-object
+    (lisp-fun absolute-handle ?current-object ?handle
+              :reorient ?reorient-object
               ?absolute-handle))
 
-  (<- (handles ?desig ?handles)
+  (<- (handles ?object ?handles)
     (setof ?handle (desig-prop ?object (handle ?handle)) ?handles))
   
   (<- (gripper-arms-in-belief ?desig ?arms)
@@ -276,7 +275,7 @@
     (symbol-value *pregrasp-top-slide-down-offset* ?pregrasp-offset)
     (symbol-value *grasp-top-slide-down-offset* ?grasp-offset))
   
-  (<- (reorient-object ?object t))
+  (<- (reorient-object ?object nil))
   
   (<- (gripper-offset ?side ?gripper-offset)
     (lisp-fun gripper-offset-pose ?side ?gripper-offset))
@@ -334,7 +333,7 @@
          (equal ?use-all-arms t)))
     (free-arms ?free-arms)
     (handles ?object ?handles)
-    (lisp-fun arms-handles-combo ?free-arms ?handles
+    (lisp-fun arms-handles-combos ?free-arms ?handles
               :use-all-arms ?use-all-arms ?combos))
   
   (<- (grasp-assignments ?object ?grasp-assignments)
