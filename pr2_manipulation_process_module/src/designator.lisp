@@ -322,9 +322,10 @@
               ?grasp-assignment))
   
   (<- (grasp-assignments ?object ?grasp-assignments)
-    (or (desig-prop ?object (desig-props::carry-handles
-                             ?carry-handles))
-        (equal ?carry-handles 1))
+    (crs:once
+     (or (desig-prop ?object (desig-props::carry-handles
+                              ?carry-handles))
+         (equal ?carry-handles 1)))
     (or (and (equal ?carry-handles 1)
              (equal ?use-all-arms nil))
         (and (not (equal ?carry-handles 1))
