@@ -70,7 +70,6 @@
              (roslisp:ros-warn
               (point-head process-module)
               "Cannot resolve designator ~a. Ignoring." goal)))
-      (roslisp:wait-duration 1.0)
       (cram-language::on-finish-move-head log-id success)
       (plan-knowledge:on-event
        (make-instance 'plan-knowledge:robot-state-changed)))))
