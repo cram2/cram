@@ -295,63 +295,52 @@
         (moveit:attach-collision-object-to-link
          object-name link-frame)))))
 
-(defun execute-grasps (object-name param-sets)
-  (let ((pregrasp-trajectories
-          (mapcar
-           (lambda (param-set)
-             (cpl:with-failure-handling
-                 (((or cram-plan-failures::manipulation-failure
-                       moveit::moveit-failure) (f)
-                    (declare (ignore f))
-                    (ros-error
-                     (pr2 grasp)
-                     "Failed to gen pregrasp trajectory for ~a."
-                     (arm param-set))))
-               (execute-move-arm-pose
-                (arm param-set)
-                (pregrasp-pose param-set)
-                :plan-only t)))
-           param-sets)))
-    (moveit::execute-trajectories pregrasp-trajectories))
-  (dolist (param-set param-sets)
-    (open-gripper (arm param-set)))
-  (moveit:remove-collision-object object-name)
+(defun arm-pose->trajectory (arm pose)
+  (cpl:with-failure-handling
+      (((or cram-plan-failures::manipulation-failure
+            moveit::moveit-failure) (f)
+         (declare (ignore f))
+         (ros-error
+          (pr2 grasp)
+          "Failed to generate trajectory for ~a."
+          arm)))
+    (execute-move-arm-pose arm pose :plan-only t)))
+
+(defun parameter-set->pregrasp-trajectory (parameter-set)
+  (ros-info (pr2 grasp) "Generating pregrasp trajectory")
+  (arm-pose->trajectory
+   (arm parameter-set) (pregrasp-pose parameter-set)))
+
+(defun parameter-set->grasp-trajectory (parameter-set)
+  (ros-info (pr2 grasp) "Generating grasp trajectory")
+  (arm-pose->trajectory
+   (arm parameter-set) (grasp-pose parameter-set)))
+
+(defun execute-grasps (object-name parameter-sets)
+  (moveit:execute-trajectories
+   (mapcar #'parameter-set->pregrasp-trajectory parameter-sets))
+  (dolist (param-set parameter-sets)
+    ;; Gripper should already be open; only open if necessary
+    (when (< (get-gripper-state (arm param-set)) 0.08)
+      (open-gripper (arm param-set))))
   (unwind-protect
-       (progn
-         (let ((grasp-trajectories
-                 (mapcar
-                  (lambda (param-set)
-                    (cpl:with-failure-handling
-                        (((or cram-plan-failures::manipulation-failure
-                              moveit::moveit-failure) (f)
-                           (declare (ignore f))
-                           (ros-error
-                            (pr2 grasp)
-                            "Failed to gen grasp trajectory for ~a."
-                            (arm param-set))))
-                      (execute-move-arm-pose
-                       (arm param-set)
-                       (grasp-pose param-set)
-                       :plan-only t
-                       :ignore-collisions t)))
-                  param-sets)))
-           (moveit::execute-trajectories grasp-trajectories))
-         (dolist (param-set param-sets)
+       (moveit:without-collision-object object-name
+         (moveit:execute-trajectories
+          (mapcar #'parameter-set->grasp-trajectory parameter-sets))
+         (dolist (param-set parameter-sets)
            (close-gripper (arm param-set) :max-effort (effort param-set))
            (when (< (get-gripper-state (arm param-set)) 0.0025)
              (ros-warn
               (pr2 grasp)
-              "Missed the object (am at ~a). Going into fallback pose for side ~a."
-              (get-gripper-state (arm param-set)) (arm param-set))
+              "Missed the object. Going into fallback pose for side ~a."
+              (arm param-set))
              (open-gripper (arm param-set))
              (execute-move-arm-pose (arm param-set) (pregrasp-pose param-set)
                                     :ignore-collisions t)
-             (moveit:add-collision-object object-name)
              (when (safe-pose param-set)
                (execute-move-arm-pose (arm param-set) (safe-pose param-set)))
              (cpl:fail 'cram-plan-failures:object-lost))))
-    (moveit:add-collision-object object-name)
-    (dolist (param-set param-sets)
+    (dolist (param-set parameter-sets)
       (let ((link-frame
               (cut:var-value
                '?link
