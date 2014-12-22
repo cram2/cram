@@ -27,8 +27,6 @@
 
 (in-package :pr2-manipulation-process-module)
 
-(defvar *tf2* nil)
-
 (defstruct assignable-entity-list
   entities min-assignments max-assignments)
 
