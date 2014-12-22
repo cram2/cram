@@ -31,7 +31,6 @@
 
 (defparameter *navigation-enabled* t)
 
-(defvar *tf2* nil)
 (defvar *navp-client* nil)
 
 (defvar *navp-min-angle* (* -135.0 (/ pi 180))
@@ -58,8 +57,7 @@
   (when (roslisp:has-param "~navigation_process_module/xy_goal_tolerance")
     (setf *xy-goal-tolerance* (roslisp:get-param "~navigation_process_module/xy_goal_tolerance")))
   (when (roslisp:has-param "~navigation_process_module/yaw_goal_tolerance")
-    (setf *yaw-goal-tolerance* (roslisp:get-param "~navigation_process_module/yaw_goal_tolerance")))
-  (setf *tf2* (make-instance 'cl-tf2:buffer-client)))
+    (setf *yaw-goal-tolerance* (roslisp:get-param "~navigation_process_module/yaw_goal_tolerance"))))
 
 (roslisp-utilities:register-ros-init-function init-pr2-navigation-process-module)
 

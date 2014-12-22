@@ -34,8 +34,7 @@
 (defun init-point-head-action ()
   (setf *action-client* (actionlib-lisp:make-simple-action-client
                          "/head_traj_controller/point_head_action"
-                         "pr2_controllers_msgs/PointHeadAction"))
-  (setf *tf2* (make-instance 'cl-tf2:buffer-client)))
+                         "pr2_controllers_msgs/PointHeadAction")))
 
 (roslisp-utilities:register-ros-init-function init-point-head-action)
 
