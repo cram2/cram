@@ -36,13 +36,6 @@
 (defvar *persistent-ik-service* nil
   "IK persistent service handle.")
 
-(defvar *tf2* nil)
-
-(defun init-robot-model-utils ()
-  (setf *tf2* (make-instance 'cl-tf2:buffer-client)))
-
-(roslisp-utilities:register-ros-init-function init-robot-model-utils)
-
 (defun set-robot-state-from-tf (tf robot &key (reference-frame "/map") timestamp)
   (let* ((root-link (cl-urdf:name (cl-urdf:root-link (urdf robot))))
          (robot-transform
