@@ -38,4 +38,5 @@
            #:shutdown-ros
            #:lispify-ros-name
            #:rosify-lisp-name
-           #:*tf*))
+           #:*tf*
+           #:*tf2*))
