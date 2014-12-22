@@ -106,6 +106,7 @@
            #:costmap-padding #:costmap-manipulation-padding
            #:costmap-in-reach-distance #:costmap-reach-minimal-distance)
   (:import-from #:cram-math invalid-probability-distribution)
+  (:import-from cram-roslisp-common *tf2*)
   (:shadowing-import-from :roslisp-utilities #:startup-ros #:shutdown-ros
                           #:register-ros-init-function #:register-ros-cleanup-function
                           #:rosify-lisp-name #:lispify-ros-name)
