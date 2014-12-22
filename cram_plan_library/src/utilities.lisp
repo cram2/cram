@@ -28,13 +28,6 @@
 
 (in-package :plan-lib)
 
-(defvar *tf2* nil)
-
-(defun init-plan-library ()
-  (setf *tf2* (make-instance 'cl-tf2:buffer-client)))
-
-(roslisp-utilities:register-ros-init-function init-plan-library)
-
 (defun next-different-location-solution (designator &optional (threshold 0.05))
   "Returns a new designator solution that is at a different place than
   the current solution of `designator'."
