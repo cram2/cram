@@ -31,8 +31,10 @@
 (in-package :cram-roslisp-common)
 
 (defvar *tf* nil)
+(defvar *tf2* nil)
 
 (defun ros-tf-init ()
-  (setf *tf* (make-instance 'cl-tf:transform-listener)))
+  (setf *tf* (make-instance 'cl-tf:transform-listener))
+  (setf *tf2* (make-instance 'cl-tf2:buffer-client)))
 
 (roslisp-utilities:register-ros-init-function ros-tf-init)
