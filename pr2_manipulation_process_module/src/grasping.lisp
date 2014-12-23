@@ -214,7 +214,7 @@ configuration."
                                  pregrasp-offset
                                  :highlight-links
                                  (links-for-arm-side arm)))))))
-         (distance-grasp (when distance-pregrasp
+         (distance-grasp (when (and distance-pregrasp (> distance-pregrasp 0))
                            (moveit:remove-collision-object
                             (desig-prop-value obj 'desig-props:name))
                            (prog1
@@ -235,7 +235,7 @@ configuration."
                                obj 'desig-props:name))))))
     (roslisp:ros-info (pr2 manip-pm) "Pregrasp: ~a, Grasp: ~a"
                       distance-pregrasp distance-grasp)
-    (when distance-grasp
+    (when (and distance-grasp (> distance-grasp 0))
       (+ distance-pregrasp distance-grasp))))
 
 (defun is-pose-reachable (pose arm &key arm-offset-pose)
