@@ -276,7 +276,8 @@
                        (perform-grasps action-desig object assignments-list :log-id log-id)
                        (ros-info (pr2 manip-pm) "Successful grasp")
                        (setf success t)
-                       (success))))
+                       (success)
+                       t)))
            (cpl:fail 'manipulation-pose-unreachable))
       (cram-language::on-finish-grasp log-id success))))
 
@@ -349,6 +350,7 @@
                      (cpl:with-failure-handling
                          ((manipulation-failure (f)
                             (declare (ignore f))
+                            (ros-info (pr2 manip-pm) "Trying next putdown-pose.")
                             (return-from next-putdown-pose)))
                        (publish-pose putdown-pose "/putdownpose")
                        ;; TODO(winkler): This hack prevents proper
@@ -391,17 +393,16 @@
                                          `(planning-group ,side ?group))))))
                                (publish-pose putdown-hand-pose "/putdownhandpose")
                                (unless
-                                   (progn
-                                     (moveit:plan-link-movements
-                                      link-name planning-group
-                                      `(,pre-putdown-pose
-                                        ,putdown-hand-pose
-                                        ,unhand-pose)
-                                      :destination-validity-only t
-                                      :allowed-collision-objects
-                                      (list (desig-prop-value
-                                             object-designator
-                                             'desig-props:name)))
+                                   (when (moveit:plan-link-movements
+                                          link-name planning-group
+                                          `(,pre-putdown-pose
+                                            ,putdown-hand-pose
+                                            ,unhand-pose)
+                                          :destination-validity-only t
+                                          :allowed-collision-objects
+                                          (list (desig-prop-value
+                                                 object-designator
+                                                 'desig-props:name)))
                                      (execute-putdown
                                       :side side
                                       :object-name (desig-prop-value
@@ -413,9 +414,11 @@
                                       :safe-pose (ecase side
                                                    (:left *left-safe-pose*)
                                                    (:right *right-safe-pose*)))
-                                     (setf success t))
-                                 (cpl:fail 'manipulation-failure)))))))
-                   (cpl:fail 'manipulation-failure))
+                                     (setf success t)
+                                     (success)
+                                     t)
+                                 (cpl:fail 'manipulation-failure))))))))
+           (cpl:fail 'manipulation-failure)
            (loop for grasp-assignment in grasp-assignments
                  for side = (slot-value grasp-assignment 'side)
                  for grasped-object = (or (car (slot-value grasp-assignment

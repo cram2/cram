@@ -143,19 +143,17 @@
     maybe-sorted-combos))
 
 (defun orient-pose (pose-stamped z-rotation)
-  (cond ((eql (coerce z-rotation 'short-float) (coerce 0 'short-float))
-         pose-stamped) ;; No rotation, just return the original pose
-        (t (let* ((orig-orient (tf:orientation pose-stamped))
-                  (tran-orient (tf:orientation
-                                (cl-transforms:transform-pose
-                                 (tf:make-transform
-                                  (tf:make-identity-vector)
-                                  (tf:euler->quaternion :az z-rotation))
-                                 (tf:make-pose
-                                  (tf:make-identity-vector) orig-orient)))))
-             (tf:make-pose-stamped
-              (tf:frame-id pose-stamped) (ros-time)
-              (tf:origin pose-stamped) tran-orient)))))
+  (let* ((orig-orient (tf:orientation pose-stamped))
+         (tran-orient (tf:orientation
+                       (cl-transforms:transform-pose
+                        (tf:make-transform
+                         (tf:make-identity-vector)
+                         (tf:euler->quaternion :az z-rotation))
+                        (tf:make-pose
+                         (tf:make-identity-vector) orig-orient)))))
+    (tf:make-pose-stamped
+     (tf:frame-id pose-stamped) (ros-time)
+     (tf:origin pose-stamped) tran-orient)))
 
 (defun elevate-pose (pose-stamped z-offset)
   (tf:copy-pose-stamped
