@@ -27,23 +27,6 @@
 
 (in-package :pr2-manipulation-process-module)
 
-(defclass manipulation-parameters ()
-  ((arm :accessor arm :initform nil :initarg :arm)
-   (safe-pose :accessor safe-pose :initform nil :initarg :safe-pose)
-   (grasp-type :accessor grasp-type :initform nil :initarg :grasp-type)))
-
-(defclass grasp-parameters (manipulation-parameters)
-  ((grasp-pose :accessor grasp-pose :initform nil :initarg :grasp-pose)
-   (pregrasp-pose :accessor pregrasp-pose :initform nil :initarg :pregrasp-pose)
-   (effort :accessor effort :initform nil :initarg :effort)
-   (close-radius :accessor close-radius :initform nil :initarg :close-radius)))
-
-(defclass putdown-parameters (manipulation-parameters)
-  ((pre-putdown-pose :accessor pre-putdown-pose :initform nil :initarg :pre-putdown-pose)
-   (putdown-pose :accessor putdown-pose :initform nil :initarg :putdown-pose)
-   (unhand-pose :accessor unhand-pose :initform nil :initarg :unhand-pose)
-   (open-radius :accessor open-radius :initform nil :initarg :open-radius)))
-
 (defgeneric call-action (action &rest params))
 
 (defmethod call-action ((action-sym t) &rest params)
