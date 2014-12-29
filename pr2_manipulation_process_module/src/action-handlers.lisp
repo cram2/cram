@@ -301,7 +301,7 @@
 (define-hook cram-language::on-begin-putdown (obj-desig loc-desig))
 (define-hook cram-language::on-finish-putdown (log-id success))
 
-(defun make-putdown-pose (putdown-location)
+(defun make-putdown-pose (putdown-location &key (z-offset 0.0))
   (let* ((putdown-pose (pose-pointing-away-from-base
                         (reference putdown-location)))
          (pose-in-tll
@@ -309,12 +309,11 @@
             *tf2* putdown-pose "/torso_lift_link" :use-current-ros-time t)))
     (tf:copy-pose-stamped
      pose-in-tll :origin (tf:v+ (tf:origin pose-in-tll)
-                                ;; artificial offset for the putdown pose
-                                (tf:make-3d-vector 0.0 0.0 0.05)))))
+                                (tf:make-3d-vector 0.0 0.0 z-offset)))))
 
 (define-hook cram-language::on-put-down-reorientation-count (object-designator))
 
-(defun hand-poses-for-putdown (object-designator grasp-assignment putdown-pose)
+(defun hand-poses-for-putdown (grasp-assignment putdown-pose)
   (let* ((grasp-type (grasp-type grasp-assignment))
          (pre-putdown-offset *pre-putdown-offset*)
          (putdown-offset *putdown-offset*)
@@ -326,7 +325,8 @@
                      (t-o-w (tf:pose->transform object-putdown-pose)))
                  (tf:pose->pose-stamped
                   (tf:frame-id object-putdown-pose) 0.0
-                  (tf:transform->pose (cl-transforms:transform* t-o-w (cl-transforms:transform-inv t-o-g))))))
+                  (tf:transform->pose (cl-transforms:transform*
+                                       t-o-w (cl-transforms:transform-inv t-o-g))))))
              (gripper-grasp-pose (grasp-assignment pose-offset object-putdown-pose)
                (relative-pose
                 (gripper-putdown-pose
@@ -359,32 +359,28 @@
                  (crs:prolog
                   `(planning-group ,side ?group))))))
         (publish-pose putdown-hand-pose "/putdownhandpose")
-        (unless
-            (when (moveit:plan-link-movements
-                   link-name planning-group
-                   `(,pre-putdown-pose
-                     ,putdown-hand-pose
-                     ,unhand-pose)
-                   ;; :allowed-collision-objects
-                   ;; (list (desig-prop-value
-                   ;;        object-designator
-                   ;;        'desig-props:name))
-                   :destination-validity-only t)
-              (make-instance
-               'putdown-parameters
-               :grasp-type grasp-type
-               :arm side
-               :pre-putdown-pose pre-putdown-pose
-               :putdown-pose putdown-hand-pose
-               :unhand-pose unhand-pose))
-          (cpl:fail 'manipulation-failure))))))
+        (publish-pose pre-putdown-pose "/preputdownpose")
+        (publish-pose unhand-pose "/unhandpose")
+        (unless (moveit:plan-link-movements
+                 link-name planning-group
+                 `(,pre-putdown-pose
+                   ,putdown-hand-pose
+                   ,unhand-pose)
+                 :destination-validity-only t)
+          (cpl:fail 'manipulation-failure))
+        (make-instance
+         'putdown-parameters
+         :grasp-type grasp-type
+         :arm side
+         :pre-putdown-pose pre-putdown-pose
+         :putdown-pose putdown-hand-pose
+         :unhand-pose unhand-pose)))))
 
 (defun perform-putdowns (object-designator grasp-assignments putdown-pose)
   (let ((putdown-parameter-sets
           (mapcar (lambda (grasp-assignment)
-                    (hand-poses-for-putdown object-designator
-                                            grasp-assignment
-                                            putdown-pose))
+                    (hand-poses-for-putdown
+                     grasp-assignment putdown-pose))
                   grasp-assignments)))
     (execute-putdowns (desig-prop-value object-designator 'name)
                       putdown-parameter-sets)))
@@ -396,7 +392,16 @@
           "No arm/pose pairs specified during put-down.")
   (let* ((log-id (first (cram-language::on-begin-putdown object-designator location)))
          (success nil)
-         (putdown-pose-pure (make-putdown-pose location))
+         (putdown-pose-pure (make-putdown-pose
+                             location
+                             :z-offset (or (when (desig-prop-value
+                                                  object-designator
+                                                  'desig-props::plane-distance)
+                                             (+ (desig-prop-value
+                                                 object-designator
+                                                 'desig-props::plane-distance)
+                                                0.01)) ;; Add one centimeter for good measure
+                                           0.0)))
          (lazy-putdown-poses
            (crs:prolog
             `(putdown-pose
@@ -404,35 +409,35 @@
               ,(first (cram-language::on-put-down-reorientation-count
                        object-designator))
               ?putdown-pose))))
-      (unwind-protect
-           (unless (lazy-try-until putdown-pose ?putdown-pose lazy-putdown-poses
-                     (block next-putdown-pose
-                       (cpl:with-failure-handling
-                           ((manipulation-failure (f)
-                              (declare (ignore f))
-                              (ros-info (pr2 manip-pm) "Trying next putdown-pose.")
-                              (return-from next-putdown-pose)))
-                         (publish-pose putdown-pose "/putdownpose")
-                         (perform-putdowns object-designator grasp-assignments putdown-pose)
-                         (setf success t)
-                         (success))))
-             (cpl:fail 'manipulation-failure)
-             (dolist (grasp-assignment grasp-assignments)
-               (let ((side (side grasp-assignment))
-                     (grasped-object (or (car (handle-pair grasp-assignment))
-                                         object-designator)))
-                 (with-vars-strictly-bound (?link-name)
-                     (lazy-car
-                      (prolog
-                       `(cram-manipulation-knowledge:end-effector-link
-                         ,side ?link-name)))
-                   (plan-knowledge:on-event
-                    (make-instance
-                     'plan-knowledge:object-detached
-                     :object grasped-object
-                     :link ?link-name
-                     :side side))))))
-        (cram-language::on-finish-putdown log-id success))))
+    (unwind-protect
+         (unless (lazy-try-until putdown-pose ?putdown-pose lazy-putdown-poses
+                   (block next-putdown-pose
+                     (cpl:with-failure-handling
+                         ((manipulation-failure (f)
+                            (declare (ignore f))
+                            (ros-info (pr2 manip-pm) "Trying next putdown-pose.")
+                            (return-from next-putdown-pose)))
+                       (publish-pose putdown-pose "/putdownpose")
+                       (perform-putdowns object-designator grasp-assignments putdown-pose)
+                       (setf success t)
+                       (success))))
+           (cpl:fail 'manipulation-failure)
+           (dolist (grasp-assignment grasp-assignments)
+             (let ((side (side grasp-assignment))
+                   (grasped-object (or (car (handle-pair grasp-assignment))
+                                       object-designator)))
+               (with-vars-strictly-bound (?link-name)
+                   (lazy-car
+                    (prolog
+                     `(cram-manipulation-knowledge:end-effector-link
+                       ,side ?link-name)))
+                 (plan-knowledge:on-event
+                  (make-instance
+                   'plan-knowledge:object-detached
+                   :object grasped-object
+                   :link ?link-name
+                   :side side))))))
+      (cram-language::on-finish-putdown log-id success))))
 
 (defmethod display-object-handles ((object object-designator))
   (let* ((relative-handles (desig-prop-values object 'desig-props::handle))
