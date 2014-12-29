@@ -332,37 +332,55 @@
   (arm-pose->trajectory
    (arm parameter-set) (grasp-pose parameter-set)))
 
+(defmethod parameter-set->safe-trajectory ((parameter-set manipulation-parameters))
+  (ros-info (pr2 grasp) "Generating safe trajectory")
+  (arm-pose->trajectory
+   (arm parameter-set) (safe-pose parameter-set)))
+
 (defun execute-grasps (object-name parameter-sets)
-  (moveit:execute-trajectories
-   (mapcar #'parameter-set->pregrasp-trajectory parameter-sets))
-  (dolist (param-set parameter-sets)
-    ;; Gripper should already be open; only open if necessary
-    (when (< (get-gripper-state (arm param-set)) 0.08)
-      (open-gripper (arm param-set))))
-  (unwind-protect
-       (moveit:without-collision-object object-name
-         (moveit:execute-trajectories
-          (mapcar #'parameter-set->grasp-trajectory parameter-sets))
-         (dolist (param-set parameter-sets)
-           (close-gripper (arm param-set) :max-effort (effort param-set))
-           (when (< (get-gripper-state (arm param-set)) 0.0025)
-             (ros-warn
-              (pr2 grasp)
-              "Missed the object. Going into fallback pose for side ~a."
-              (arm param-set))
-             (open-gripper (arm param-set))
-             (execute-move-arm-pose (arm param-set) (pregrasp-pose param-set)
-                                    :ignore-collisions t)
-             (when (safe-pose param-set)
-               (execute-move-arm-pose (arm param-set) (safe-pose param-set)))
-             (cpl:fail 'cram-plan-failures:object-lost))))
-    (dolist (param-set parameter-sets)
+  (labels ((assume-safe-poses ()
+             (moveit:execute-trajectories
+              (mapcar #'parameter-set->safe-trajectory
+                      (cpl:mapcar-clean
+                       (lambda (parameter-set)
+                         (when (safe-pose parameter-set)
+                           parameter-set))
+                       parameter-sets))))
+           (assume-pregrasp-poses ()
+             (moveit:execute-trajectories
+              (mapcar #'parameter-set->pregrasp-trajectory parameter-sets)))
+           (assume-grasp-poses ()
+             (moveit:execute-trajectories
+              (mapcar #'parameter-set->grasp-trajectory parameter-sets)))
+           (open-gripper-if-necessary (arm)
+             (when (< (get-gripper-state arm) 0.08)
+               (open-gripper arm)))
+           (gripper-closed (arm)
+             (< (get-gripper-state arm) 0.0025)))
+    (assume-pregrasp-poses)
+    (dolist (parameter-set parameter-sets)
+      (open-gripper-if-necessary (arm parameter-set)))
+    (moveit:without-collision-object object-name
+      (assume-grasp-poses)
+      (cpl:par-loop (parameter-set parameter-sets)
+        (close-gripper (arm parameter-set) :max-effort (effort parameter-set)))
+      (unless (every #'not (mapcar
+                            (lambda (parameter-set)
+                              (gripper-closed (arm parameter-set)))
+                            parameter-sets))
+        (cpl:par-loop (parameter-set parameter-sets)
+          (when (gripper-closed (arm parameter-set))
+            (open-gripper (arm parameter-set))))
+        (assume-pregrasp-poses)
+        (assume-safe-poses)
+        (cpl:fail 'cram-plan-failures:object-lost)))
+    (dolist (parameter-set parameter-sets)
       (let ((link-frame
               (cut:var-value
                '?link
                (first
                 (crs:prolog
-                 `(manipulator-link ,(arm param-set)
+                 `(manipulator-link ,(arm parameter-set)
                                     ?link))))))
         (moveit:attach-collision-object-to-link
          object-name link-frame)))))
@@ -383,14 +401,42 @@
    (arm parameter-set) (unhand-pose parameter-set)))
 
 (defun execute-putdowns (object-name parameter-sets)
-  (moveit:execute-trajectories
-   (mapcar #'parameter-set->pre-putdown-trajectory parameter-sets))
-  (moveit:execute-trajectories
-   (mapcar #'parameter-set->putdown-trajectory parameter-sets))
-  (cram-language:par-loop (param-set parameter-sets)
-    (open-gripper (arm param-set)))
-  (moveit:execute-trajectories
-   (mapcar #'parameter-set->unhand-trajectory parameter-sets))
+  (labels ((assume-safe-poses ()
+             (moveit:execute-trajectories
+              (mapcar #'parameter-set->safe-trajectory
+                      (cpl:mapcar-clean
+                       (lambda (parameter-set)
+                         (when (safe-pose parameter-set)
+                           parameter-set))
+                       parameter-sets))))
+           (assume-pre-putdown-poses ()
+             (moveit:execute-trajectories
+              (mapcar #'parameter-set->pre-putdown-trajectory parameter-sets)))
+           (assume-putdown-poses ()
+             (moveit:execute-trajectories
+              (mapcar #'parameter-set->putdown-trajectory parameter-sets)))
+           (assume-unhand-poses ()
+             (moveit:execute-trajectories
+              (mapcar #'parameter-set->unhand-trajectory parameter-sets))))
+    (cpl:with-failure-handling
+        ((cram-plan-failures:manipulation-failure (f)
+           (declare (ignore f))
+           (assume-safe-poses)))
+      (assume-pre-putdown-poses)
+      (cpl:with-failure-handling
+          ((cram-plan-failures:manipulation-failure (f)
+             (declare (ignore f))
+             (assume-pre-putdown-poses)))
+        (assume-putdown-poses)
+        (cram-language:par-loop (param-set parameter-sets)
+          (open-gripper (arm param-set)))
+        (block unhand
+          (cpl:with-failure-handling
+              ((cram-plan-failures:manipulation-failure (f)
+                 (declare (ignore f))
+                 (assume-safe-poses)
+                 (return-from unhand)))
+            (assume-unhand-poses))))))
   (dolist (param-set parameter-sets)
     (let ((link-frame
             (cut:var-value
@@ -401,76 +447,6 @@
                                   ?link))))))
       (moveit:detach-collision-object-from-link
        object-name link-frame))))
-
-(defun execute-putdown (&key object-name
-                          pre-putdown-pose putdown-pose
-                          unhand-pose side
-                          (gripper-open-pos 0.2)
-                          allowed-collision-objects
-                          max-tilt
-                          safe-pose)
-  (let ((allowed-collision-objects (append
-                                    allowed-collision-objects
-                                    (list object-name))))
-    (ros-info (pr2 putdown) "Executing pre-putdown for side ~a~%" side)
-    (publish-pose pre-putdown-pose "/preputdownpose")
-    (cpl:with-failure-handling
-        ((manipulation-pose-unreachable (f)
-           (declare (ignore f))
-           (ros-error (pr2 putdown) "Failed to go into preputdown pose for side ~a." side)
-           (cpl:fail 'cram-plan-failures:manipulation-failed))
-         (manipulation-failed (f)
-           (declare (ignore f))
-           (ros-error (pr2 putdown) "Failed to go into preputdown pose for side ~a." side))
-         (moveit:pose-not-transformable-into-link (f)
-           (declare (ignore f))
-           (cpl:retry)))
-      (execute-move-arm-pose
-       side pre-putdown-pose
-       :allowed-collision-objects allowed-collision-objects
-       :max-tilt max-tilt))
-    (ros-info (pr2 putdown) "Executing putdown for side ~a~%" side)
-    (cpl:with-failure-handling
-        (((or manipulation-failed moveit::moveit-failure) (f)
-           (declare (ignore f))
-           (ros-error (pr2 putdown) "Failed to go into putdown pose for side ~a." side)
-           (when safe-pose
-             (execute-move-arm-pose side safe-pose)))
-         (moveit:pose-not-transformable-into-link (f)
-           (declare (ignore f))
-           (cpl:retry)))
-      (execute-move-arm-pose side putdown-pose
-       :allowed-collision-objects allowed-collision-objects
-       :collidable-objects `(,object-name)
-       :ignore-collisions t
-       :max-tilt max-tilt))
-    (ros-info (pr2 putdown) "Opening gripper")
-    (open-gripper side :max-effort 50.0 :position gripper-open-pos)
-    (moveit:detach-collision-object-from-link
-     object-name (cut:var-value
-                  '?link
-                  (first
-                   (crs:prolog
-                    `(manipulator-link ,side ?link)))))
-    (ros-info (pr2 putdown) "Executing unhand for side ~a~%" side)
-    (let ((ignore-collisions nil))
-      (cpl:with-failure-handling
-          ((manipulation-failure (f)
-             (declare (ignore f))
-             (ros-error
-              (pr2 putdown)
-              "Failed to go into unhand pose for side ~a. Retrying while ignoring collisions." side)
-             (setf ignore-collisions t)
-             (cpl:retry))
-           (moveit:pose-not-transformable-into-link (f)
-             (declare (ignore f))
-             (cpl:retry)))
-        (execute-move-arm-pose
-         side unhand-pose
-         :allowed-collision-objects (unless ignore-collisions
-                                      allowed-collision-objects)
-         :ignore-collisions ignore-collisions)))
-    (ros-info (pr2 manip-pm) "Putdown complete.")))
 
 (defun lift-grasped-object-with-one-arm (side distance)
   "Executes a lifting motion with the `side' arm which grasped the
