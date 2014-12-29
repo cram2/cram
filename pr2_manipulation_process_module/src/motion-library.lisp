@@ -384,7 +384,7 @@
                `(manipulator-link ,(arm param-set)
                                   ?link))))))
       (moveit:detach-collision-object-from-link
-       object-name link-frame)))))
+       object-name link-frame))))
 
 (defun execute-putdown (&key object-name
                           pre-putdown-pose putdown-pose
