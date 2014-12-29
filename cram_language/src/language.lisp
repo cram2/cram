@@ -123,7 +123,7 @@
 ;;; instead of a parameter to the setup-hook function, but the second way
 ;;; seems cleaner and doesn't expose this implementation detail (namlely
 ;;; *TASK-TREE*) to the user of the hook.
-(define-hook on-top-level-setup-hook (top-level-name task-tree)
+(define-hook cram-language::on-top-level-setup-hook (top-level-name task-tree)
   (:documentation "All defined hooks are executed before the top level task is
   created. The task-tree passed is the root of the task-tree used in this top
   level. Each method must return a cons cell with a list of symbols in the car
@@ -138,7 +138,7 @@
                             append (cdr r) into values
                             finally (return (cons symbols values))))))
 
-(define-hook on-top-level-cleanup-hook (top-level-name)
+(define-hook cram-language::on-top-level-cleanup-hook (top-level-name)
   (:documentation "All defined hooks are exected after the top level task has
   been joined. The call is made when the dynamic environment established by
   the return values of ON-TOP-LEVEL-SETUP-HOOK is still in effect. The call to
@@ -178,10 +178,10 @@
     `(progv (car ,symbols-and-values-cons) (cdr ,symbols-and-values-cons)
        ,@body)))
 
-(define-hook on-preparing-named-top-level (name)
+(define-hook cram-language::on-preparing-named-top-level (name)
   (:documentation ""))
 
-(define-hook on-finishing-named-top-level (id)
+(define-hook cram-language::on-finishing-named-top-level (id)
   (:documentation ""))
 
 (defmacro named-top-level ((&key (name nil)) &body body)
@@ -204,17 +204,17 @@
              (error "top-level calls cannot be nested."))
            (clear-tasks *task-tree*) ; Note: this leaves the tree structure and
                                      ; code replacements intact.
-           (let ((log-id (first (on-preparing-named-top-level ',name))))
-             (single-form-progv (on-top-level-setup-hook ',name *task-tree*)
+           (let ((log-id (first (cram-language::on-preparing-named-top-level ',name))))
+             (single-form-progv (cram-language::on-top-level-setup-hook ',name *task-tree*)
                (unwind-protect
-                    (let ((,task (make-instance 'toplevel-task
-                                   :name ',task-name
-                                   :thread-fun (lambda () ,@body))))
-                      (with-failure-handling
-                          ((plan-failure (e)
-                             (error e))
-                           (error (e)
-                             (error e)))
+                    (with-failure-handling
+                        ((plan-failure (e)
+                           (error e))
+                         (error (e)
+                           (error e)))
+                      (let ((,task (make-instance 'toplevel-task
+                                                  :name ',task-name
+                                                  :thread-fun (lambda () ,@body))))
                         (unwind-protect-case ()
                                              (join-task ,task)
                           (:abort
@@ -226,8 +226,8 @@
                              :sync t
                              :reason ,(format nil "~A aborted." name))))))
                  (progn
-                   (on-finishing-named-top-level log-id)
-                   (on-top-level-cleanup-hook ',name)))))))))
+                   (cram-language::on-finishing-named-top-level log-id)
+                   (cram-language::on-top-level-cleanup-hook ',name)))))))))
 
 (defmacro top-level (&body body)
   "Anonymous top-level, e.g. for interactive use. See NAMED-TOP-LEVEL for
@@ -264,6 +264,9 @@
   (declare (ignore body))
   (error "(:TAG ~S ..) used outside of WITH-TAGS." name))
 
+(define-hook cram-language::on-begin-execute-tag-task (name))
+(define-hook cram-language::on-finish-execute-tag-task (id))
+
 ;;; - Don't nest with-tags calls, since code walking will mess up the result.
 ;;; - Don't use with-tags within macrolet/symbol-macrolet/..., if those macros expand
 ;;;   to something containig (:tag ...) forms. They won't be picked up by the code
@@ -292,17 +295,20 @@
                         ;; executed several times. In those cases, we
                         ;; need to create a new task object and
                         ;; execute it.
-                        `(let ((,',tag-path (cond ((executed ,name)
-                                                   (let* ((last-path (task-path ,name))
-                                                          (iter-path (cons (path-next-iteration (car last-path))
-                                                                           (cdr last-path))))
-                                                     (setf ,name (make-task :name ',name
-                                                                            :path iter-path))
-                                                     iter-path))
-                                                  (t (cons `(tagged ,',name) ,',current-path)))))
-                           (execute-task-tree-node
-                            (register-task-code ',tag-body (lambda () ,@tag-body)
-                                                :path ,',tag-path)))))
+                        `(let* ((log-id (first (cram-language::on-begin-execute-tag-task ,name)))
+                                (,',tag-path (cond ((executed ,name)
+                                                    (let* ((last-path (task-path ,name))
+                                                           (iter-path (cons (path-next-iteration (car last-path))
+                                                                            (cdr last-path))))
+                                                      (setf ,name (make-task :name ',name
+                                                                             :path iter-path))
+                                                      iter-path))
+                                                   (t (cons `(tagged ,',name) ,',current-path)))))
+                           (unwind-protect
+                                (execute-task-tree-node
+                                 (register-task-code ',tag-body (lambda () ,@tag-body)
+                                                     :path ,',tag-path))
+                             (cram-language::on-finish-execute-tag-task log-id)))))
              ,@body))))))
 
 (def-plan-macro with-task-suspended ((task &key reason) &body body)
@@ -391,17 +397,22 @@ reference it by its path relative to the PARTIAL-ORDER form."
       (loop for (sym constraining-task constrained-task) in orderings
          for constraining-name = (gensym "CONSTRAINING-TASK-")
          for constrained-name = (gensym "CONSTRAINED-TASK-")
-         unless (eq sym :order) do (error "Malformed ordering constraint.")
-         nconc `((,constraining-name ,constraining-task)
-                 (,constrained-name ,constrained-task)) into bindings
-         collect (list constraining-name constrained-name) into orders
-         finally (return (values bindings orders)))
+         unless (eq sym :order)
+           do (error "Malformed ordering constraint.")
+            nconc `((,constraining-name ,constraining-task)
+                    (,constrained-name ,constrained-task)) into bindings
+            collect (list constraining-name constrained-name) into orders
+            finally (return (values bindings orders)))
     `(let ,bindings
        ;;; This is not thread-unsafe because the tasks are supposed
        ;;; not to run yet. FIXME: this should probably be asserted.
        ,@(loop for (constraining constrained) in orders
-            collect `(push (task-dead ,constraining)
-                           (task-constraints ,constrained)))
+               collect `(push (if (eql (cpl-impl::class-name
+                                        (cpl-impl::class-of ,constraining))
+                                       'cpl:value-fluent)
+                                  (fl-pulsed ,constraining)
+                                  (task-dead ,constraining))
+                              (task-constraints ,constrained)))
        (par
          ,@steps))))
 

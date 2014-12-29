@@ -116,6 +116,7 @@
       #:sanitize-filename
       #:style-warn
       #:compare
+      #:choose
       ;; time
       #:current-timestamp
       #:set-default-timestamp-function
