@@ -44,7 +44,7 @@ given a name, a designator class and the designator properties.")
          (return new-designator))))
    (default-designator-create-function name class properties)))
 
-(cut:define-hook on-with-designator (designator))
+(cut:define-hook cram-language::on-with-designator (designator))
 
 (defmacro with-designators (&whole sexp defs &body body)
   `(let ((log-params
@@ -57,13 +57,15 @@ given a name, a designator class and the designator properties.")
                            :sexp ,sexp
                            :lambda-list nil
                            :parameters nil
-                           :log-parameters log-params)
+                           :log-parameters log-params
+                           :log-pattern
+                           (list (cons 'definitions ',defs)))
        (let* ,(mapcar (lambda (def)
                         (destructuring-bind (name (type props)) def
                           `(,name
                             (let ((desig (create-designator
                                           ',name ',type ,props)))
-                              (on-with-designator desig)
+                              (cram-language::on-with-designator desig)
                               desig))))
                defs)
          ,@body))))

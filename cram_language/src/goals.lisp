@@ -49,12 +49,19 @@
                              (list (list 'name ',name)
                                    (list 'pattern
                                          ,(write-to-string
-                                           (cond ((equal (car pattern)
-                                                         'achieve)
-                                                  (car (car pattern)))
-                                                 (t (car pattern)))))
+                                           (car pattern)))
                                    (list 'declarations
                                          ,(write-to-string declarations)))
+                             :log-pattern
+                             (list (cons 'name ',name)
+                                   (cons 'pattern ',pattern)
+                                   (cons 'declarations ',declarations)
+                                   (cons 'body ',body)
+                                   (cons
+                                    'parameters
+                                    (mapcar (lambda (var)
+                                              (cons var (cut:var-value var ,bdgs-var)))
+                                            ',(cut:vars-in pattern))))
                              :lambda-list ,(cut:vars-in pattern)
                              :parameters (mapcar (alexandria:rcurry
                                                   #'cut:var-value ,bdgs-var)

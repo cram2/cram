@@ -206,8 +206,8 @@ same semantics as `with-policy'. Usage:
   (let ((policy `(named-policy ,policy-name)))
     `(with-policy ,policy ,policy-parameters ,@body)))
 
-(cut:define-hook on-with-policy-begin (name parameters))
-(cut:define-hook on-with-policy-end (id success))
+(cut:define-hook cram-language::on-with-policy-begin (name parameters))
+(cut:define-hook cram-language::on-with-policy-end (id success))
 
 (defmacro with-policy (policy policy-parameters &body body)
   "Wraps the code given as `body' into a `pursue' construct together
@@ -274,11 +274,8 @@ Usage of `with-policy':
         (recover `(recover ,policy))
         (name `(name ,policy))
         (params `(parameters ,policy)))
-    `(let ((log-id (first (on-with-policy-begin
-                           name ,(mapcar (lambda (param value)
-                                           `(,param ,value))
-                                         params
-                                         policy-parameters)))))
+    `(let ((log-id (first (cram-language::on-with-policy-begin
+                           ,name ()))))
        (let ((policy-symbol-storage (make-fluent)))
          (when ,init
            (unless (funcall ,init policy-symbol-storage ,@policy-parameters)
@@ -302,7 +299,7 @@ Usage of `with-policy':
                     (cpl:fail 'policy-check-condition-met
                               :name ,name
                               :parameters ',policy-parameters))
-               (on-with-policy-end log-id (not flag-do-recovery)))))))))
+               (cram-language::on-with-policy-end log-id (not flag-do-recovery)))))))))
 
 (defmacro with-policies (policies-and-parameters-list &body body)
   "Allows for running a given `body' code segment wrapped in a list of
@@ -316,14 +313,16 @@ The usage is as follows:
        (my-policy-object (100 4))
        (my-other-policy-object (\"Test\")))
     (body-code))"
-  (let* ((current (first policies-and-parameters-list))
-         (the-rest (rest policies-and-parameters-list))
-         (current-policy (first current))
-         (current-parameters (second current)))
-    (cond (the-rest
-           `(with-policy ,current-policy ,current-parameters
-              (with-policies ,the-rest ,@body)))
-          (t `(with-policy ,current-policy ,current-parameters ,@body)))))
+  (cond (policies-and-parameters-list
+         (let* ((current (first policies-and-parameters-list))
+                (the-rest (rest policies-and-parameters-list))
+                (current-policy (first current))
+                (current-parameters (second current)))
+           (cond (the-rest
+                  `(with-policy ,current-policy ,current-parameters
+                     (with-policies ,the-rest ,@body)))
+                 (t `(with-policy ,current-policy ,current-parameters ,@body)))))
+        (t `(progn ,@body))))
 
 (defmacro with-named-policies (policies-and-parameters-list &body body)
   "The semantics of `with-named-policies' are the same as for `with-policies', except that instead of policy-objects, policy names are used:
