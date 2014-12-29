@@ -257,7 +257,8 @@
     (not (object-in-hand ?_ ?free-arm)))
   
   (<- (arm-for-pose ?pose ?arm)
-    (lisp-fun arm-for-pose ?pose ?arm))
+    (lisp-fun arm-for-pose ?pose ?arm)
+    (not (equal ?arm nil)))
   
   (<- (action-desig ?desig (grasp ?desig ?current-obj))
     (trajectory-desig? ?desig)
