@@ -84,6 +84,7 @@
 #.(let ((cpl-symbols
          '(;; utils
            #:sleep*
+           #:mapcar-clean
            ;; walker
            #:plan-tree-node #:plan-tree-node-sexp #:plan-tree-node-parent
            #:plan-tree-node-children #:plan-tree-node-path
