@@ -306,12 +306,12 @@
           arm)))
     (execute-move-arm-pose arm pose :plan-only t)))
 
-(defun parameter-set->pregrasp-trajectory (parameter-set)
+(defmethod parameter-set->pregrasp-trajectory ((parameter-set grasp-parameters))
   (ros-info (pr2 grasp) "Generating pregrasp trajectory")
   (arm-pose->trajectory
    (arm parameter-set) (pregrasp-pose parameter-set)))
 
-(defun parameter-set->grasp-trajectory (parameter-set)
+(defmethod parameter-set->grasp-trajectory ((parameter-set grasp-parameters))
   (ros-info (pr2 grasp) "Generating grasp trajectory")
   (arm-pose->trajectory
    (arm parameter-set) (grasp-pose parameter-set)))
@@ -351,6 +351,41 @@
         (moveit:attach-collision-object-to-link
          object-name link-frame)))))
 
+(defmethod parameter-set->pre-putdown-trajectory ((parameter-set putdown-parameters))
+  (ros-info (pr2 grasp) "Generating pre-putdown trajectory")
+  (arm-pose->trajectory
+   (arm parameter-set) (pre-putdown-pose parameter-set)))
+
+(defmethod parameter-set->putdown-trajectory ((parameter-set putdown-parameters))
+  (ros-info (pr2 grasp) "Generating putdown trajectory")
+  (arm-pose->trajectory
+   (arm parameter-set) (putdown-pose parameter-set)))
+
+(defmethod parameter-set->unhand-trajectory ((parameter-set putdown-parameters))
+  (ros-info (pr2 grasp) "Generating unhand trajectory")
+  (arm-pose->trajectory
+   (arm parameter-set) (unhand-pose parameter-set)))
+
+(defun execute-putdowns (object-name parameter-sets)
+  (moveit:execute-trajectories
+   (mapcar #'parameter-set->pre-putdown-trajectory parameter-sets))
+  (moveit:execute-trajectories
+   (mapcar #'parameter-set->putdown-trajectory parameter-sets))
+  (cram-language:par-loop (param-set parameter-sets)
+    (open-gripper (arm param-set)))
+  (moveit:execute-trajectories
+   (mapcar #'parameter-set->unhand-trajectory parameter-sets))
+  (dolist (param-set parameter-sets)
+    (let ((link-frame
+            (cut:var-value
+             '?link
+             (first
+              (crs:prolog
+               `(manipulator-link ,(arm param-set)
+                                  ?link))))))
+      (moveit:detach-collision-object-from-link
+       object-name link-frame)))))
+
 (defun execute-putdown (&key object-name
                           pre-putdown-pose putdown-pose
                           unhand-pose side
@@ -361,19 +396,16 @@
   (let ((allowed-collision-objects (append
                                     allowed-collision-objects
                                     (list object-name))))
-    (ros-info
-     (pr2 putdown) "Executing pre-putdown for side ~a~%" side)
+    (ros-info (pr2 putdown) "Executing pre-putdown for side ~a~%" side)
     (publish-pose pre-putdown-pose "/preputdownpose")
     (cpl:with-failure-handling
         ((manipulation-pose-unreachable (f)
            (declare (ignore f))
-           (ros-error
-            (pr2 putdown) "Failed to go into preputdown pose for side ~a." side)
+           (ros-error (pr2 putdown) "Failed to go into preputdown pose for side ~a." side)
            (cpl:fail 'cram-plan-failures:manipulation-failed))
          (manipulation-failed (f)
            (declare (ignore f))
-           (ros-error
-            (pr2 putdown) "Failed to go into preputdown pose for side ~a." side))
+           (ros-error (pr2 putdown) "Failed to go into preputdown pose for side ~a." side))
          (moveit:pose-not-transformable-into-link (f)
            (declare (ignore f))
            (cpl:retry)))
@@ -385,9 +417,7 @@
     (cpl:with-failure-handling
         (((or manipulation-failed moveit::moveit-failure) (f)
            (declare (ignore f))
-           (ros-error (pr2 putdown)
-                      "Failed to go into putdown pose for side ~a."
-                      side)
+           (ros-error (pr2 putdown) "Failed to go into putdown pose for side ~a." side)
            (when safe-pose
              (execute-move-arm-pose side safe-pose)))
          (moveit:pose-not-transformable-into-link (f)

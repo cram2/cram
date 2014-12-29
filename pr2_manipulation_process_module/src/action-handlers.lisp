@@ -27,14 +27,22 @@
 
 (in-package :pr2-manipulation-process-module)
 
-(defclass grasp-parameters ()
+(defclass manipulation-parameters ()
+  ((arm :accessor arm :initform nil :initarg :arm)
+   (safe-pose :accessor safe-pose :initform nil :initarg :safe-pose)
+   (grasp-type :accessor grasp-type :initform nil :initarg :grasp-type)))
+
+(defclass grasp-parameters (manipulation-parameters)
   ((grasp-pose :accessor grasp-pose :initform nil :initarg :grasp-pose)
    (pregrasp-pose :accessor pregrasp-pose :initform nil :initarg :pregrasp-pose)
-   (arm :accessor arm :initform nil :initarg :arm)
-   (close-radius :accessor close-radius :initform nil :initarg :close-radius)
-   (safe-pose :accessor safe-pose :initform nil :initarg :safe-pose)
    (effort :accessor effort :initform nil :initarg :effort)
-   (grasp-type :accessor grasp-type :initform nil :initarg :grasp-type)))
+   (close-radius :accessor close-radius :initform nil :initarg :close-radius)))
+
+(defclass putdown-parameters (manipulation-parameters)
+  ((pre-putdown-pose :accessor pre-putdown-pose :initform nil :initarg :pre-putdown-pose)
+   (putdown-pose :accessor putdown-pose :initform nil :initarg :putdown-pose)
+   (unhand-pose :accessor unhand-pose :initform nil :initarg :unhand-pose)
+   (open-radius :accessor open-radius :initform nil :initarg :open-radius)))
 
 (defgeneric call-action (action &rest params))
 
@@ -323,9 +331,8 @@
 
 (define-hook cram-language::on-put-down-reorientation-count (object-designator))
 
-(defun perform-putdowns (object-designator grasp-assignments putdown-pose)
-  (let* ((grasp-assignment (first grasp-assignments))
-         (grasp-type (grasp-type (first grasp-assignments)))
+(defun hand-poses-for-putdown (object-designator grasp-assignment putdown-pose)
+  (let* ((grasp-type (grasp-type grasp-assignment))
          (pre-putdown-offset *pre-putdown-offset*)
          (putdown-offset *putdown-offset*)
          (unhand-offset (cond ((eql grasp-type 'desig-props:top-slide-down)
@@ -380,19 +387,24 @@
                    ;;        object-designator
                    ;;        'desig-props:name))
                    :destination-validity-only t)
-              (execute-putdown
-               :side side
-               :object-name (desig-prop-value
-                             object-designator
-                             'desig-props:name)
+              (make-instance
+               'putdown-parameters
+               :grasp-type grasp-type
+               :arm side
                :pre-putdown-pose pre-putdown-pose
                :putdown-pose putdown-hand-pose
-               :unhand-pose unhand-pose
-               :safe-pose (ecase side
-                            (:left *left-safe-pose*)
-                            (:right *right-safe-pose*)))
-              t)
+               :unhand-pose unhand-pose))
           (cpl:fail 'manipulation-failure))))))
+
+(defun perform-putdowns (object-designator grasp-assignments putdown-pose)
+  (let ((putdown-parameter-sets
+          (mapcar (lambda (grasp-assignment)
+                    (hand-poses-for-putdown object-designator
+                                            grasp-assignment
+                                            putdown-pose))
+                  grasp-assignments)))
+    (execute-putdowns (desig-prop-value object-designator 'name)
+                      putdown-parameter-sets)))
 
 (def-action-handler put-down (object-designator location grasp-assignments)
   (unless (and object-designator location)
@@ -418,32 +430,25 @@
                               (ros-info (pr2 manip-pm) "Trying next putdown-pose.")
                               (return-from next-putdown-pose)))
                          (publish-pose putdown-pose "/putdownpose")
-                         ;; TODO(winkler): This hack prevents proper
-                         ;; put-down with multiple arms. Since grasping
-                         ;; now works fine with multiple objects, this
-                         ;; needs to be fixed ASAP. Best would be to
-                         ;; split the code up into multiple,
-                         ;; semantically meaningful functions.
                          (perform-putdowns object-designator grasp-assignments putdown-pose)
                          (setf success t)
                          (success))))
              (cpl:fail 'manipulation-failure)
-             (loop for grasp-assignment in grasp-assignments
-                   for side = (slot-value grasp-assignment 'side)
-                   for grasped-object = (or (car (slot-value grasp-assignment
-                                                             'handle-pair))
-                                            object-designator)
-                   do (with-vars-strictly-bound (?link-name)
-                          (lazy-car
-                           (prolog
-                            `(cram-manipulation-knowledge:end-effector-link
-                              ,side ?link-name)))
-                        (plan-knowledge:on-event
-                         (make-instance
-                          'plan-knowledge:object-detached
-                          :object object-designator
-                          :link ?link-name
-                          :side side)))))
+             (dolist (grasp-assignment grasp-assignments)
+               (let ((side (side grasp-assignment))
+                     (grasped-object (or (car (handle-pair grasp-assignment))
+                                         object-designator)))
+                 (with-vars-strictly-bound (?link-name)
+                     (lazy-car
+                      (prolog
+                       `(cram-manipulation-knowledge:end-effector-link
+                         ,side ?link-name)))
+                   (plan-knowledge:on-event
+                    (make-instance
+                     'plan-knowledge:object-detached
+                     :object grasped-object
+                     :link ?link-name
+                     :side side))))))
         (cram-language::on-finish-putdown log-id success))))
 
 (defmethod display-object-handles ((object object-designator))
