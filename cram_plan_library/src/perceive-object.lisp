@@ -60,9 +60,9 @@
                           (do-retry perception-retries
                             (ros-info
                              (perceive plan-lib) "Retrying at different look location.")
-                            (retry))))
-                     ;; (retry-with-updated-location
-                     ;;  obj-loc-desig (next-solution obj-loc-desig)))))
+                            (when (next-solution obj-loc-desig)
+                              (retry-with-updated-location
+                               obj-loc-desig (next-solution obj-loc-desig))))))
                      (achieve `(looking-at ,(reference obj-loc-desig)))
                      (perform perceive-action)
                      (monitor-action perceive-action)))))))

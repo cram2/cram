@@ -158,34 +158,34 @@
                (ros-warn (achieve plan-lib) "Re-perceiving object.")
                (retry))))
         (reset-counter initial-perception-retry-count)
-        (with-failure-handling
-            ((object-not-found (f)
-               (declare (ignore f))
-               (ros-warn
-                (achieve plan-lib)
-                "Failed to perceive object in the first place.")
-               (do-retry initial-perception-retry-count
-                 (ros-warn (achieve plan-lib) "Retrying.")
-                 (retry))))
-          (ros-info (achieve plan-lib) "Perceiving object")
-          (setf ?obj (perceive-object 'a ?obj)))
-        (ros-info (achieve plan-lib) "Perceive done")
-        (reset-counter alt-grasp-poses-cnt)
-        (with-failure-handling
-            ((manipulation-pose-unreachable (f)
-               (declare (ignore f))
-               (ros-warn
-                (achieve plan-lib)
-                "Couldn't reach object.")
-               (do-retry alt-grasp-poses-cnt
-                 (ros-warn (achieve plan-lib) "Trying from different pose.")
-                 (retry-with-updated-location
-                  pick-up-loc (next-different-location-solution pick-up-loc)))))
-          (ros-info (achieve plan-lib) "Grasping")
-          (try-reference-location pick-up-loc)
-          (at-location (pick-up-loc)
-            (achieve `(object-picked ,?obj)))))))
-  ?obj)
+        (let ((perceived-object
+                (with-failure-handling
+                    ((object-not-found (f)
+                       (declare (ignore f))
+                       (ros-warn
+                        (achieve plan-lib)
+                        "Failed to perceive object in the first place.")
+                       (do-retry initial-perception-retry-count
+                         (ros-warn (achieve plan-lib) "Retrying.")
+                         (retry))))
+                  (ros-info (achieve plan-lib) "Perceiving object")
+                  (perceive-object 'a ?obj))))
+          (ros-info (achieve plan-lib) "Perceive done")
+          (reset-counter alt-grasp-poses-cnt)
+          (with-failure-handling
+              ((manipulation-pose-unreachable (f)
+                 (declare (ignore f))
+                 (ros-warn
+                  (achieve plan-lib)
+                  "Couldn't reach object.")
+                 (do-retry alt-grasp-poses-cnt
+                   (ros-warn (achieve plan-lib) "Trying from different pose.")
+                   (retry-with-updated-location
+                    pick-up-loc (next-different-location-solution pick-up-loc)))))
+            (ros-info (achieve plan-lib) "Grasping")
+            (try-reference-location pick-up-loc)
+            (at-location (pick-up-loc)
+              (achieve `(object-picked ,perceived-object)))))))))
 
 (def-goal (achieve (object-put ?obj ?loc))
   (ros-info (achieve plan-lib) "(achieve (object-put))")
@@ -198,19 +198,18 @@
                         (action `((type trajectory) (to put-down)
                                   (obj ,obj) (at ,?loc))))
                        (park-action
-                        (action `((type trajectory) (to park) (obj ,obj))))
-                       (perceive-scene-action (action `((to perceive)
-                                                        (obj scene)))))
+                        (action `((type trajectory) (to park) (obj ,obj)))))
       (with-failure-handling
           (((or manipulation-failed manipulation-pose-unreachable) (f)
              (declare (ignore f))
+             ;; Park arm first
+             (perform park-action)
              (ros-warn
               (achieve plan-lib)
               "Got unreachable putdown pose.")
              (fail 'manipulation-pose-unreachable)))
         (try-reference-location ?loc)
         (achieve `(looking-at ,(reference ?loc)))
-        (perform perceive-scene-action)
         (perform put-down-action)
         (monitor-action put-down-action))
       (with-retry-counters ((park-retry-counter 5))
