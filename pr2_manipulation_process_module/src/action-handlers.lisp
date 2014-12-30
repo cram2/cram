@@ -229,6 +229,7 @@
            action-desig `(,@(mapcar (lambda (param-set)
                                       `(grasp ((arm ,(arm param-set))
                                                (effort ,(effort param-set))
+                                               (object-pose ,obj-pose)
                                                (grasp-type ,(grasp-type param-set))
                                                (pregrasp-pose ,(pregrasp-pose param-set))
                                                (grasp-pose ,(grasp-pose param-set)))))
