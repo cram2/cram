@@ -28,6 +28,7 @@
 (in-package :pr2-manipulation-process-module)
 
 (defgeneric call-action (action &rest params))
+(defgeneric display-object-handles (object))
 
 (defmethod call-action ((action-sym t) &rest params)
   (ros-info (pr2 manip-pm)
@@ -267,8 +268,7 @@
                        (perform-grasps action-desig object assignments-list :log-id log-id)
                        (ros-info (pr2 manip-pm) "Successful grasp")
                        (setf success t)
-                       (success)
-                       t)))
+                       (success))))
            (cpl:fail 'manipulation-pose-unreachable))
       (cram-language::on-finish-grasp log-id success))))
 

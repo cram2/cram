@@ -47,6 +47,15 @@
    (unhand-pose :accessor unhand-pose :initform nil :initarg :unhand-pose)
    (open-radius :accessor open-radius :initform nil :initarg :open-radius)))
 
+;; Conversion functions for generating trajectories based on
+;; manipulation parameterizations.
+(defgeneric parameter-set->pregrasp-trajectory (parameter-set))
+(defgeneric parameter-set->grasp-trajectory (parameter-set))
+(defgeneric parameter-set->pre-putdown-trajectory (parameter-set))
+(defgeneric parameter-set->putdown-trajectory (parameter-set))
+(defgeneric parameter-set->unhand-trajectory (parameter-set))
+(defgeneric parameter-set->safe-trajectory (parameter-set))
+
 (define-hook on-execute-grasp-with-effort (object-name))
 (define-hook on-execute-grasp-gripper-closed
     (object-name gripper-effort gripper-close-pos side pregrasp-pose safe-pose))
@@ -105,7 +114,7 @@
                                safe-pose
                                (gripper-effort 100.0)
                                max-tilt)
-  (declare (ignorable object-pose gripper-close-pos))
+  (declare (ignorable object-pose gripper-close-pos max-tilt))
   ;; Generate trajectories for grasp and pregrasp
   (let* ((pregrasp-trajectory
            (execute-move-arm-pose
