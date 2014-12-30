@@ -366,33 +366,40 @@
                (open-gripper arm)))
            (gripper-closed (arm)
              (< (get-gripper-state arm) 0.0025)))
-    (assume-pregrasp-poses)
-    (dolist (parameter-set parameter-sets)
-      (open-gripper-if-necessary (arm parameter-set)))
-    (moveit:without-collision-object object-name
-      (assume-grasp-poses)
-      (cpl:par-loop (parameter-set parameter-sets)
-        (close-gripper (arm parameter-set) :max-effort (effort parameter-set)))
-      (unless (every #'not (mapcar
-                            (lambda (parameter-set)
-                              (gripper-closed (arm parameter-set)))
-                            parameter-sets))
-        (cpl:par-loop (parameter-set parameter-sets)
-          (when (gripper-closed (arm parameter-set))
-            (open-gripper (arm parameter-set))))
-        (assume-pregrasp-poses)
-        (assume-safe-poses)
-        (cpl:fail 'cram-plan-failures:object-lost)))
-    (dolist (parameter-set parameter-sets)
-      (let ((link-frame
-              (cut:var-value
-               '?link
-               (first
-                (crs:prolog
-                 `(manipulator-link ,(arm parameter-set)
-                                    ?link))))))
-        (moveit:attach-collision-object-to-link
-         object-name link-frame)))))
+    (cpl:with-failure-handling
+        (((or cram-plan-failures:manipulation-failure
+              cram-plan-failures:object-lost) (f)
+           (declare (ignore f))
+           (assume-safe-poses)))
+      (assume-pregrasp-poses)
+      (dolist (parameter-set parameter-sets)
+        (open-gripper-if-necessary (arm parameter-set)))
+      (cpl:with-failure-handling
+          (((or cram-plan-failures:manipulation-failure
+              cram-plan-failures:object-lost) (f)
+             (declare (ignore f))
+             (assume-pregrasp-poses)))
+        (moveit:without-collision-object object-name
+          (assume-grasp-poses)
+          (cpl:par-loop (parameter-set parameter-sets)
+            (close-gripper (arm parameter-set) :max-effort (effort parameter-set)))
+          (unless (every #'not (mapcar
+                                (lambda (parameter-set)
+                                  (gripper-closed (arm parameter-set)))
+                                parameter-sets))
+            (cpl:par-loop (parameter-set parameter-sets)
+              (when (gripper-closed (arm parameter-set))
+                (open-gripper (arm parameter-set))))
+            (cpl:fail 'cram-plan-failures:object-lost)))
+        (dolist (parameter-set parameter-sets)
+          (let ((link-frame
+                  (cut:var-value
+                   '?link
+                   (first
+                    (crs:prolog
+                     `(manipulator-link ,(arm parameter-set)
+                                        ?link))))))
+            (moveit:attach-collision-object-to-link object-name link-frame)))))))
 
 (defmethod parameter-set->pre-putdown-trajectory ((parameter-set putdown-parameters))
   (ros-info (pr2 grasp) "Generating pre-putdown trajectory")
