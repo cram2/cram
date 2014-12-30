@@ -176,7 +176,7 @@
   (<- (maximum-object-tilt ?object ?max-tilt)
     (equal ?max-tilt 0.3))
   
-  (<- (cram-language::grasp-effort ?object 100))
+  (<- (cram-language::grasp-effort ?object 50))
   
   (<- (min-handles ?object-desig ?min-handles)
     (current-designator ?object-desig ?current-object)
