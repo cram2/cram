@@ -284,10 +284,8 @@
                            (tf:stamp base-transform-map)
                            (tf:translation base-transform-map)
                            (tf:rotation base-transform-map)))
-           (object-pose-map (tf:transform-pose
-                             *tf*
-                             :pose object-pose
-                             :target-frame fin-frame))
+           (object-pose-map (cl-tf2:ensure-pose-stamped-transformed
+                             *tf2* object-pose fin-frame))
            (origin1 (tf:origin base-pose-map))
            (origin2 (tf:origin object-pose-map))
            (p1 (tf:make-3d-vector (tf:x origin1) (tf:y origin1) 0.0))
