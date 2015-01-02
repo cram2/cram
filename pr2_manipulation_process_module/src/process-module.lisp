@@ -36,7 +36,8 @@
    (pregrasp-offset :accessor pregrasp-offset :initform nil :initarg :pregrasp-offset)
    (grasp-offset :accessor grasp-offset :initform nil :initarg :grasp-offset)
    (gripper-offset :accessor gripper-offset :initform nil :initarg :gripper-offset)
-   (ik-cost :accessor ik-cost :initform nil :initarg :ik-cost)))
+   (ik-cost :accessor ik-cost :initform nil :initarg :ik-cost)
+   (object-part :accessor object-part :initform nil :initarg :object-part)))
 
 (defclass arm-pose ()
   ((joint-values :accessor joint-values :initform nil :initarg :joint-values)

@@ -33,7 +33,8 @@
 (defclass manipulation-parameters ()
   ((arm :accessor arm :initform nil :initarg :arm)
    (safe-pose :accessor safe-pose :initform nil :initarg :safe-pose)
-   (grasp-type :accessor grasp-type :initform nil :initarg :grasp-type)))
+   (grasp-type :accessor grasp-type :initform nil :initarg :grasp-type)
+   (object-part :accessor object-part :initform nil :initarg :object-part)))
 
 (defclass grasp-parameters (manipulation-parameters)
   ((grasp-pose :accessor grasp-pose :initform nil :initarg :grasp-pose)

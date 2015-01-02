@@ -149,18 +149,18 @@ applied."
               (length sorted-assignments))
     sorted-assignments))
 
-(defun cons->grasp-assignments (cons-cells grasp-type)
+(defun cons->grasp-assignments (cons-cells)
   (mapcar (lambda (cons-cell)
-            (cons->grasp-assignment cons-cell grasp-type))
+            (cons->grasp-assignment cons-cell))
           cons-cells))
 
-(defun cons->grasp-assignment (cons-cell grasp-type &key handle cost)
+(defun cons->grasp-assignment (cons-cell &key handle cost)
   (make-instance 'grasp-assignment
-                 :pose (cdr cons-cell)
+                 :pose (car (cdr cons-cell))
                  :side (car cons-cell)
                  :handle-pair handle
                  :ik-cost cost
-                 :grasp-type grasp-type))
+                 :grasp-type (cdr (cdr cons-cell))))
 
 (defun make-grasp-assignment (&key side pose handle cost grasp-type
                                 pregrasp-offset grasp-offset
