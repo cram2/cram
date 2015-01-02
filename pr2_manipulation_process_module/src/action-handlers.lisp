@@ -210,6 +210,7 @@
                   :pregrasp-pose (calculate-grasp-pose pose (pregrasp-offset assignment) gripper-offset)
                   :grasp-pose (calculate-grasp-pose pose (grasp-offset assignment) gripper-offset)
                   :grasp-type (grasp-type assignment)
+                  :object-part (object-part assignment)
                   :arm (side assignment)
                   :close-radius (or (close-radius assignment) 0.0)
                   :safe-pose (ecase (side assignment)
@@ -245,7 +246,14 @@
              (make-instance 'plan-knowledge:object-attached
                             :object obj
                             :link ?link-name
-                            :side (arm param-set)))))))))
+                            :side (arm param-set))))
+          (let ((at (desig-prop-value obj 'desig-props:at)))
+            (make-designator
+             'location
+             (append (description at)
+                     `((handle `(,(arm param-set)
+                                 ,(object-part param-set)))))
+             at)))))))
 
 (def-action-handler grasp (action-desig object)
   "Handles the grasping of any given `object'. Calculates proper grasping poses for the object, based on physical gripper characteristics, free grippers, object grasp points (handles), grasp type for this object, and position of the object relative to the robot's grippers. `action-desig' is the action designator instance that triggered this handler's execution, and is later updated with more precise grasping information based on the actual infered action."

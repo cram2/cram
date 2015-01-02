@@ -168,7 +168,9 @@
                    (orient-pose pose orientation-offset)
                    z-offset))))
 
-(def-fact-group pr2-manipulation-designators (action-desig cram-language::grasp-effort)
+(def-fact-group pr2-manipulation-designators (action-desig
+                                              cram-language::grasp-effort
+                                              reorient-object)
   
   (<- (maximum-object-tilt nil ?max-tilt)
     (symbol-value pi ?max-tilt))
@@ -190,8 +192,9 @@
     (findall ?o (desig-prop ?desig (obstacle ?o))
              ?obstacles))
 
-  (<- (absolute-handle ?object-desig ?handle ?reorient-object ?absolute-handle)
+  (<- (absolute-handle ?object-desig ?handle ?absolute-handle)
     (current-designator ?object-desig ?current-object)
+    (reorient-oject ?object-desig ?reorient-object)
     (lisp-fun absolute-handle ?current-object ?handle
               :reorient ?reorient-object
               ?absolute-handle))
@@ -234,12 +237,12 @@
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to park)))
 
-  (<- (action-desig ?desig (lift ?current-obj ?arm ?distance))
+  (<- (action-desig ?desig (lift ?current-obj ?arms ?distance))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to lift))
     (desig-prop ?desig (obj ?obj))
     (current-designator ?obj ?current-obj)
-    (holding-arms ?current-obj ?arm)
+    (holding-arms ?current-obj ?arms)
     (-> (desig-prop ?desig (distance ?distance))
         (true)
         (== ?distance 0.10)))
@@ -296,14 +299,13 @@
               :only-reachable t ?cost)
     (not (equal ?cost nil)))
   
-  (<- (combo-assignment ?object ?combo ?grasp-assignment)
-    (grasp-type ?object ?grasp-type)
+  (<- (arm-handle-assignment ?object ?arm-handle-combo ?grasp-assignment)
+    (member (?arm . ?handle) ?arm-handle-combo)
+    (once (or (grasp-type ?handle ?grasp-type)
+              (grasp-type ?object ?grasp-type)))
     (grasp-offsets ?grasp-type ?pregrasp-offset ?grasp-offset)
-    (member (?arm . ?handle) ?combo)
     (gripper-offset ?arm ?gripper-offset)
-    (reorient-object ?object ?reorient-object)
-    (absolute-handle ?object ?handle ?reorient-object
-                     ?absolute-handle)
+    (absolute-handle ?object ?handle ?absolute-handle)
     (desig-prop ?absolute-handle (at ?location))
     (lisp-fun reference ?location ?pose)
     (open-gripper ?arm)
@@ -317,6 +319,9 @@
               :grasp-offset ?grasp-offset
               :gripper-offset ?gripper-offset
               ?grasp-assignment))
+  
+  (<- (grasped-object-handle (?object ?handle))
+    )
   
   (<- (free-arms ?free-arms)
     (setof ?free-arm (free-arm ?free-arm) ?free-arms))
@@ -336,20 +341,11 @@
               :use-all-arms ?use-all-arms ?combos))
   
   (<- (grasp-assignments ?object ?grasp-assignments)
-    (free-arms-handles-combos ?object ?combos)
-    (member ?combo ?combos)
+    (free-arms-handles-combos ?object ?arm-handle-combos)
+    (member ?arm-handle-combo ?arm-handle-combos)
     (setof ?grasp-assignment
-           (combo-assignment ?object ?combo ?grasp-assignment)
+           (arm-handle-assignment ?object ?arm-handle-combo ?grasp-assignment)
            ?grasp-assignments))
-  
-  (<- (grasped-object-handle ?obj ?handle)
-    (handles ?obj ?handles)
-    (member ?handles ?handle)
-    (object-in-hand ?handle))
-  
-  (<- (grasped-object-part ?obj ?part)
-    (or (grasped-object-handle ?obj ?part)
-        (equal ?obj ?part)))
   
   (<- (grasp-type ?obj ?grasp-type)
     (current-designator ?obj ?current)
@@ -358,14 +354,20 @@
   (<- (grasp-type ?_ ?grasp-type)
     (equal ?grasp-type desig-props:push))
   
-  (<- (object-poses-in-gripper ?object ?poses)
+  (<- (object-grasps-in-gripper ?object ?grasps)
     (desig-prop ?object (desig-props:at ?objloc))
     (current-designator ?objloc ?current-objloc)
     (desig-prop ?current-objloc (desig-props:in desig-props:gripper))
     (setof ?posearm (and (desig-prop ?objloc (desig-props:pose ?objpose))
                          (arm-for-pose ?objpose ?arm)
                          (member ?arm (:left :right))
-                         (equal ?posearm (?arm . ?objpose)))
+                         (once
+                          (or (desig-prop ?objloc (desig-props:handle
+                                                   (?arm ?handle)))
+                              (equal ?handle nil)))
+                         (grasp-type ?handle ?grasp-type)
+                         (equal ?posearm (?arm . (?objpose
+                                                  ?grasp-type))))
            ?poses))
   
   (<- (action-desig ?desig (put-down ?current-obj ?loc ?grasp-assignments))
@@ -374,12 +376,8 @@
     (desig-prop ?desig (obj ?obj))
     (desig-prop ?desig (at ?loc))
     (current-designator ?obj ?current-obj)
-    (once
-     (or (desig-prop ?current-obj (desig-props:grasp-type ?grasp-type))
-         (desig-prop ?desig (desig-props:grasp-type ?grasp-type))
-         (equal ?grasp-type nil)))
-    (object-poses-in-gripper ?current-obj ?poses)
-    (lisp-fun cons->grasp-assignments ?poses ?grasp-type ?grasp-assignments))
+    (object-grasps-in-gripper ?current-obj ?grasps)
+    (lisp-fun cons->grasp-assignments ?grasps ?grasp-assignments))
   
   (<- (putdown-pose ?original-pose ?segments ?putdown-pose)
     (lisp-fun rotated-poses ?original-pose
@@ -397,6 +395,7 @@
     (desig-prop ?desig (distance ?distance))
     (desig-prop ?desig (direction ?direction))
     (current-designator ?obj ?current-obj)
+    (crs:fail) ;; This predicate needs to be refactored
     (grasped-object-part ?obj ?grasped)
     (holding-arms ?current-obj ?arms)
     (obstacles ?desig ?obstacles))
