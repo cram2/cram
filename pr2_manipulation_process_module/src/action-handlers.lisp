@@ -161,40 +161,7 @@
   (let ((arms (mapcar #'side grasp-assignments)))
     (unless arms
       (error 'simple-error :format-control "No arms for lifting infered."))
-    (lift-grasped-object grasp-assignments distance)))
-
-(defun lift-grasped-object (grasp-assignments distance)
-  (let ((target-arm-poses
-          (mapcar (lambda (grasp-assignment)
-                    (cons (side grasp-assignment)
-                          (let ((pose-straight
-                                  (cl-tf2:ensure-pose-stamped-transformed
-                                   *tf2*
-                                   (tf:pose->pose-stamped
-                                    (ecase (side grasp-assignment)
-                                      (:left "l_wrist_roll_link")
-                                      (:right "r_wrist_roll_link"))
-                                    0.0
-                                    (tf:make-identity-pose))
-                                   "base_link")))
-                            (tf:copy-pose-stamped
-                             pose-straight
-                             :origin (tf:v+ (tf:origin pose-straight)
-                                            (tf:make-3d-vector 0 0 distance))))))
-                  grasp-assignments)))
-    (cond ((= (length grasp-assignments) 1)
-           (destructuring-bind (arm . pose) (first target-arm-poses)
-             (execute-move-arm-pose arm pose :ignore-collisions t)))
-          (t
-           (moveit:execute-trajectories
-            (mapcar (lambda (target-arm-pose)
-                      (destructuring-bind (arm . pose)
-                          target-arm-pose
-                        (execute-move-arm-pose
-                         arm pose :plan-only t
-                                  :quiet t
-                                  :ignore-collisions t)))
-                    target-arm-poses))))))
+    (execute-lift grasp-assignments distance)))
 
 (define-hook cram-language::on-begin-grasp (obj-desig))
 (define-hook cram-language::on-finish-grasp (log-id success))

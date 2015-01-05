@@ -189,6 +189,37 @@ positions, grasp-type, effort to use) are defined in the list
     (moveit:detach-collision-object-from-link
      object-name (link-name (arm param-set)))))
 
+(defun execute-lift (grasp-assignments distance)
+  (let ((target-arm-poses
+          (mapcar (lambda (grasp-assignment)
+                    (cons (side grasp-assignment)
+                          (let ((pose-straight
+                                  (cl-tf2:ensure-pose-stamped-transformed
+                                   *tf2*
+                                   (tf:pose->pose-stamped
+                                    (link-name (side grasp-assignment))
+                                    0.0
+                                    (tf:make-identity-pose))
+                                   "base_link")))
+                            (tf:copy-pose-stamped
+                             pose-straight
+                             :origin (tf:v+ (tf:origin pose-straight)
+                                            (tf:make-3d-vector 0 0 distance))))))
+                  grasp-assignments)))
+    (cond ((= (length grasp-assignments) 1)
+           (destructuring-bind (arm . pose) (first target-arm-poses)
+             (execute-move-arm-pose arm pose :ignore-collisions t)))
+          (t
+           (moveit:execute-trajectories
+            (mapcar (lambda (target-arm-pose)
+                      (destructuring-bind (arm . pose)
+                          target-arm-pose
+                        (execute-move-arm-pose
+                         arm pose :plan-only t
+                                  :quiet t
+                                  :ignore-collisions t)))
+                    target-arm-poses))))))
+
 (defun relative-pose (pose pose-offset)
   "Applies the pose `pose-offset' as transformation into the pose
 `pose' and returns the result in the frame of `pose'."
