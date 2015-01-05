@@ -393,8 +393,7 @@
                                   (gripper-closed-p (arm parameter-set)))
                                 parameter-sets))
             (cpl:par-loop (parameter-set parameter-sets)
-              (when (gripper-closed-p (arm parameter-set))
-                (open-gripper (arm parameter-set))))
+              (open-gripper-if-necessary (arm parameter-set)))
             (cpl:fail 'cram-plan-failures:object-lost)))
         (dolist (parameter-set parameter-sets)
           (moveit:attach-collision-object-to-link
