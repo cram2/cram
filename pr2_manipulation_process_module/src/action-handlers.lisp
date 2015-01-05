@@ -92,73 +92,69 @@
                       arms)))
         (moveit::execute-trajectories trajectories)))
     (unless (> (length arms) 1)
-      (cond
-        (obj
-         (let ((grasp-type (desig-prop-value obj 'desig-props:grasp-type)))
-           (cond
-             ((and obj arms)
-              (let* ((newest-effective (newest-effective-designator obj))
-                     (object-name (desig-prop-value newest-effective
-                                                    'desig-props:name))
-                     (allowed-collision-objects
-                       (append
-                        (cond (object-name (list object-name))
-                              (t nil))
-                        (list "all"))))
-                (dolist (arm (force-ll arms))
-                  (when arm
-                    (let ((ignore-collisions nil))
-                      (cpl:with-failure-handling
-                          ((cram-plan-failures:manipulation-pose-unreachable (f)
-                             (declare (ignore f))
-                             (roslisp:ros-warn
-                              (pr2 manip-pm)
-                              "Park failed. Retrying with collisions ignored.")
-                             (setf ignore-collisions t)
-                             (cpl:retry))
-                           (cram-plan-failures:manipulation-failed (f)
-                             (declare (ignore f))
-                             (roslisp:ros-warn
-                              (pr2 manip-pm)
-                              "Park failed. Retrying with collisions ignored.")
-                             (setf ignore-collisions t)
-                             (cpl:retry))
-                           (moveit:planning-failed (f)
-                             (declare (ignore f))
-                             (cpl:fail
-                              'cram-plan-failures:manipulation-pose-unreachable)))
-                        (let ((carry-pose
-                                (ecase arm
-                                  (:left (cond
-                                           ((eql grasp-type
-                                                 'desig-props:top-slide-down)
-                                            (tf:make-pose-stamped
+      (let ((grasp-type (desig-prop-value obj 'desig-props:grasp-type)))
+        (cond
+          ((and obj arms)
+           (let* ((newest-effective (newest-effective-designator obj))
+                  (object-name (desig-prop-value newest-effective
+                                                 'desig-props:name))
+                  (allowed-collision-objects
+                    (append
+                     (cond (object-name (list object-name))
+                           (t nil))
+                     (list "all"))))
+             (dolist (arm (force-ll arms))
+               (when arm
+                 (let ((ignore-collisions nil))
+                   (cpl:with-failure-handling
+                       ((cram-plan-failures:manipulation-pose-unreachable (f)
+                          (declare (ignore f))
+                          (roslisp:ros-warn
+                           (pr2 manip-pm)
+                           "Park failed. Retrying with collisions ignored.")
+                          (setf ignore-collisions t)
+                          (cpl:retry))
+                        (cram-plan-failures:manipulation-failed (f)
+                          (declare (ignore f))
+                          (roslisp:ros-warn
+                           (pr2 manip-pm)
+                           "Park failed. Retrying with collisions ignored.")
+                          (setf ignore-collisions t)
+                          (cpl:retry))
+                        (moveit:planning-failed (f)
+                          (declare (ignore f))
+                          (cpl:fail
+                           'cram-plan-failures:manipulation-pose-unreachable)))
+                     (let ((carry-pose
+                             (ecase arm
+                               (:left (cond
+                                        ((eql grasp-type
+                                              'desig-props:top-slide-down)
+                                         (tf:make-pose-stamped
+                                          "base_link" (ros-time)
+                                          (tf:make-3d-vector 0.3 0.5 1.3)
+                                          (tf:euler->quaternion
+                                           :ax 0 :ay (/ pi -2))))
+                                        (t (tf:make-pose-stamped
+                                            "base_link" (ros-time)
+                                            (tf:make-3d-vector 0.3 0.5 1.3)
+                                            (tf:euler->quaternion :ax 0)))))
+                               (:right (cond
+                                         ((eql grasp-type
+                                               'desig-props:top-slide-down)
+                                          (tf:make-pose-stamped
+                                           "base_link" (ros-time)
+                                           (tf:make-3d-vector 0.3 -0.5 1.3)
+                                           (tf:euler->quaternion
+                                            :ax 0 :ay (/ pi -2))))
+                                         (t (tf:make-pose-stamped
                                              "base_link" (ros-time)
-                                             (tf:make-3d-vector 0.3 0.5 1.3)
-                                             (tf:euler->quaternion
-                                              :ax 0 :ay (/ pi -2))))
-                                           (t (tf:make-pose-stamped
-                                               "base_link" (ros-time)
-                                               (tf:make-3d-vector 0.3 0.5 1.3)
-                                               (tf:euler->quaternion :ax 0)))))
-                                  (:right (cond
-                                            ((eql grasp-type
-                                                  'desig-props:top-slide-down)
-                                             (tf:make-pose-stamped
-                                              "base_link" (ros-time)
-                                              (tf:make-3d-vector 0.3 -0.5 1.3)
-                                              (tf:euler->quaternion
-                                               :ax 0 :ay (/ pi -2))))
-                                            (t (tf:make-pose-stamped
-                                                "base_link" (ros-time)
-                                                (tf:make-3d-vector 0.3 -0.5 1.3)
-                                                (tf:euler->quaternion :ax 0))))))))
-                          (execute-move-arm-pose
-                           arm carry-pose
-                           :allowed-collision-objects allowed-collision-objects
-                           :ignore-collisions ignore-collisions)))))))))))
-        (t (dolist (arm arms)
-             (assume-registered-arm-pose 'park-low arm)))))))
+                                             (tf:make-3d-vector 0.3 -0.5 1.3)
+                                             (tf:euler->quaternion :ax 0))))))))
+                       (execute-move-arm-pose
+                        arm carry-pose
+                        :allowed-collision-objects allowed-collision-objects
+                        :ignore-collisions ignore-collisions)))))))))))))
 
 (def-action-handler lift (obj grasp-assignments distance)
   (declare (ignore obj))

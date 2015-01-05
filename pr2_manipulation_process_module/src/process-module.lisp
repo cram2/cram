@@ -79,8 +79,7 @@
   (setf *trajectory-action-torso*
         (actionlib:make-action-client
          "/torso_controller/joint_trajectory_action"
-         "pr2_controllers_msgs/JointTrajectoryAction"))
-  (register-default-arm-poses))
+         "pr2_controllers_msgs/JointTrajectoryAction")))
 
 (roslisp-utilities:register-ros-init-function
  init-pr2-manipulation-process-module)
@@ -131,20 +130,6 @@
                 (and (eql name (name arm-pose))
                      (eql side (arm-side arm-pose))))))
 
-(defun assume-registered-arm-pose (name side
-                                   &key (wait-for-execution t))
-  (let ((arm-pose (registered-arm-pose name side)))
-    (cond (arm-pose
-           (moveit::move-joints (ecase side
-                                  (:left "left_arm")
-                                  (:right "right_arm"))
-                                (joint-names arm-pose)
-                                (joint-values arm-pose)
-                                :wait-for-execution wait-for-execution))
-          (t (ros-error (pr2 manip-pm)
-                        "Arm pose ~a not registered for side ~a."
-                        name side)))))
-                   
 (defun links-for-arm-side (side)
   (ecase side
     (:left (list "l_shoulder_pan_link"
