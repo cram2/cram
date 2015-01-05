@@ -322,6 +322,8 @@
          object-name link-frame)))))
 
 (defun arm-pose->trajectory (arm pose)
+  "Calculated a trajectory from the current pose of gripper `arm' when
+trying to assume the pose `pose'."
   (cpl:with-failure-handling
       (((or cram-plan-failures::manipulation-failure
             moveit::moveit-failure) (f)
@@ -333,6 +335,10 @@
     (execute-move-arm-pose arm pose :quiet t :plan-only t)))
 
 (defun assume-poses (parameter-sets slot-name &key ignore-collisions)
+  "Moves all arms defined in `parameter-sets' into the poses given by
+the slot `slot-name' as defined in the respective parameter-sets. If
+`ignore-collisions' is set, all collisions are ignored during the
+motion."
   (ros-info (pr2 motion) "Assuming ~a '~a' pose~a"
             (length parameter-sets) slot-name
             (cond ((= (length parameter-sets) 1) "")
@@ -353,23 +359,35 @@
             :ignore-va t))))
 
 (defmacro with-parameter-sets (parameter-sets &body body)
+  "Defines parameter-set specific functions (like assuming poses) for
+the manipulation parameter sets `parameter-sets' and executes the code
+`body' in this environment."
   `(labels ((assume (pose-slot-name &optional ignore-collisions)
               (assume-poses
                ,parameter-sets pose-slot-name
                :ignore-collisions ignore-collisions)))
      ,@body))
 
-(defun link-name (side)
-  (cut:var-value '?link (first (crs:prolog `(manipulator-link ,side ?link)))))
+(defun link-name (arm)
+  "Returns the TF link name associated with the wrist of the robot's
+arm `arm'."
+  (cut:var-value '?link (first (crs:prolog `(manipulator-link ,arm ?link)))))
 
-(defun open-gripper-if-necessary (arm)
-  (when (< (get-gripper-state arm) 0.08)
+(defun open-gripper-if-necessary (arm &key (threshold 0.08))
+  "Opens the gripper on the robot's arm `arm' if its current position
+is smaller than `threshold'."
+  (when (< (get-gripper-state arm) threshold)
     (open-gripper arm)))
 
-(defun gripper-closed-p (arm)
-  (< (get-gripper-state arm) 0.0025))
+(defun gripper-closed-p (arm &key (threshold 0.0025))
+  "Returns `t' when the robot's gripper on the arm `arm' is smaller
+than `threshold'."
+  (< (get-gripper-state arm) threshold))
 
 (defun execute-grasps (object-name parameter-sets)
+  "Executes simultaneous grasping of the object given by the name
+`object-name'. The grasps (object-relative gripper positions,
+grasp-type, effort to use) are defined in the list `parameter-sets'."
   (with-parameter-sets parameter-sets
     (cpl:with-failure-handling
         (((or cram-plan-failures:manipulation-failure
@@ -400,6 +418,10 @@
            object-name (link-name (arm parameter-set)))))))))
 
 (defun execute-putdowns (object-name parameter-sets)
+  "Executes simultaneous putting down of the object in hand given by
+the name `object-name'. The current grasps (object-relative gripper
+positions, grasp-type, effort to use) are defined in the list
+`parameter-sets'."
   (with-parameter-sets parameter-sets
     (cpl:with-failure-handling
         ((cram-plan-failures:manipulation-failure (f)
@@ -423,57 +445,6 @@
   (dolist (param-set parameter-sets)
     (moveit:detach-collision-object-from-link
      object-name (link-name (arm param-set)))))
-
-(defun lift-grasped-object-with-one-arm (side distance)
-  "Executes a lifting motion with the `side' arm which grasped the
-object in order to lift it at `distance' form the supporting plane"
-  (let* ((frame-id (cut:var-value
-                    '?link
-                    (first
-                     (crs:prolog
-                      `(manipulator-link ,side ?link)))))
-         (arm-in-tll (cl-tf2:ensure-pose-stamped-transformed
-                      *tf2*
-                      (tf:make-pose-stamped frame-id (ros-time)
-                                            (tf:make-identity-vector)
-                                            (tf:make-identity-rotation))
-                      "/torso_lift_link" :use-current-ros-time t))
-         (raised-arm-pose
-           (tf:copy-pose-stamped
-            arm-in-tll
-            :origin (tf:v+ (tf:origin arm-in-tll)
-                           (tf:make-3d-vector 0 0 distance)))))
-            
-    (unless raised-arm-pose
-      (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))
-    (execute-move-arm-pose side raised-arm-pose :ignore-collisions t)))
-
-(defun lift-grasped-object-with-two-arms (obj-name arms distance)
-  (let ((trajectories
-          (mapcar (lambda (arm)
-                    (let* ((frame-id
-                             (ecase arm
-                               (:left "l_wrist_roll_link")
-                               (:right "r_wrist_roll_link")))
-                           (arm-in-tll
-                             (cl-tf2:ensure-pose-stamped-transformed
-                              *tf2*
-                              (tf:make-pose-stamped
-                               frame-id (ros-time)
-                               (tf:make-identity-vector)
-                               (tf:make-identity-rotation))
-                              "/torso_lift_link" :use-current-ros-time t))
-                           (raised
-                             (tf:copy-pose-stamped
-                              arm-in-tll
-                              :origin
-                              (tf:v+ (tf:origin arm-in-tll)
-                                     (tf:make-3d-vector 0 0 distance)))))
-                      (execute-move-arm-pose
-                       arm raised :plan-only t
-                       :allowed-collision-objects `(,obj-name))))
-                  arms)))
-    (moveit::execute-trajectories trajectories)))
 
 (defun relative-pose (pose pose-offset)
   (tf:pose->pose-stamped
