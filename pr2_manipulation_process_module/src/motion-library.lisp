@@ -332,39 +332,35 @@
           arm)))
     (execute-move-arm-pose arm pose :quiet t :plan-only t)))
 
-(defmethod parameter-set->pregrasp-trajectory ((parameter-set grasp-parameters))
-  (ros-info (pr2 grasp) "Generating pregrasp trajectory")
-  (arm-pose->trajectory
-   (arm parameter-set) (pregrasp-pose parameter-set)))
-
-(defmethod parameter-set->grasp-trajectory ((parameter-set grasp-parameters))
-  (ros-info (pr2 grasp) "Generating grasp trajectory")
-  (arm-pose->trajectory
-   (arm parameter-set) (grasp-pose parameter-set)))
-
-(defmethod parameter-set->safe-trajectory ((parameter-set manipulation-parameters))
-  (ros-info (pr2 grasp) "Generating safe trajectory")
-  (arm-pose->trajectory
-   (arm parameter-set) (safe-pose parameter-set)))
+(defun assume-poses (parameter-sets slot-name &key ignore-collisions)
+  (ros-info (pr2 motion) "Assuming ~a '~a' pose~a"
+            (length parameter-sets) slot-name
+            (cond ((= (length parameter-sets) 1) "")
+                  (t "s")))
+  (cond ((= (length parameter-sets) 1)
+         (when (slot-value (first parameter-sets) slot-name)
+           (execute-move-arm-pose
+            (side (first parameter-sets))
+            (slot-value (first parameter-sets) slot-name)
+            :ignore-collisions ignore-collisions)))
+        (t (moveit:execute-trajectories
+            (mapcar #'parameter-set->safe-trajectory
+                    (cpl:mapcar-clean
+                     (lambda (parameter-set)
+                       (when (slot-value parameter-set slot-name)
+                         parameter-set))
+                     parameter-sets))
+            :ignore-va t))))
 
 (defun execute-grasps (object-name parameter-sets)
   (labels ((assume-safe-poses ()
-             (moveit:execute-trajectories
-              (mapcar #'parameter-set->safe-trajectory
-                      (cpl:mapcar-clean
-                       (lambda (parameter-set)
-                         (when (safe-pose parameter-set)
-                           parameter-set))
-                       parameter-sets))
-              :ignore-va t))
+             (assume-poses parameter-sets 'safe-pose
+                           :ignore-collisions t))
            (assume-pregrasp-poses ()
-             (moveit:execute-trajectories
-              (mapcar #'parameter-set->pregrasp-trajectory parameter-sets)
-              :ignore-va t))
+             (assume-poses parameter-sets 'pregrasp-pose))
            (assume-grasp-poses ()
-             (moveit:execute-trajectories
-              (mapcar #'parameter-set->grasp-trajectory parameter-sets)
-              :ignore-va t))
+             (assume-poses parameter-sets 'grasp-pose
+                           :ignore-collisions t))
            (open-gripper-if-necessary (arm)
              (when (< (get-gripper-state arm) 0.08)
                (open-gripper arm)))
@@ -405,39 +401,18 @@
                                         ?link))))))
             (moveit:attach-collision-object-to-link object-name link-frame)))))))
 
-(defmethod parameter-set->pre-putdown-trajectory ((parameter-set putdown-parameters))
-  (ros-info (pr2 grasp) "Generating pre-putdown trajectory")
-  (arm-pose->trajectory
-   (arm parameter-set) (pre-putdown-pose parameter-set)))
-
-(defmethod parameter-set->putdown-trajectory ((parameter-set putdown-parameters))
-  (ros-info (pr2 grasp) "Generating putdown trajectory")
-  (arm-pose->trajectory
-   (arm parameter-set) (putdown-pose parameter-set)))
-
-(defmethod parameter-set->unhand-trajectory ((parameter-set putdown-parameters))
-  (ros-info (pr2 grasp) "Generating unhand trajectory")
-  (arm-pose->trajectory
-   (arm parameter-set) (unhand-pose parameter-set)))
-
 (defun execute-putdowns (object-name parameter-sets)
   (labels ((assume-safe-poses ()
-             (moveit:execute-trajectories
-              (mapcar #'parameter-set->safe-trajectory
-                      (cpl:mapcar-clean
-                       (lambda (parameter-set)
-                         (when (safe-pose parameter-set)
-                           parameter-set))
-                       parameter-sets))))
+             (assume-poses parameter-sets 'safe-pose
+                           :ignore-collisions t))
            (assume-pre-putdown-poses ()
-             (moveit:execute-trajectories
-              (mapcar #'parameter-set->pre-putdown-trajectory parameter-sets)))
+             (assume-poses parameter-sets 'pre-putdown-pose))
            (assume-putdown-poses ()
-             (moveit:execute-trajectories
-              (mapcar #'parameter-set->putdown-trajectory parameter-sets)))
+             (assume-poses parameter-sets 'putdown-pose
+                           :ignore-collisions t))
            (assume-unhand-poses ()
-             (moveit:execute-trajectories
-              (mapcar #'parameter-set->unhand-trajectory parameter-sets))))
+             (assume-poses parameter-sets 'unhand-pose
+                           :ignore-collisions t)))
     (cpl:with-failure-handling
         ((cram-plan-failures:manipulation-failure (f)
            (declare (ignore f))
