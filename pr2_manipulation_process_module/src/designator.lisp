@@ -237,12 +237,12 @@
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to park)))
 
-  (<- (action-desig ?desig (lift ?current-obj ?arms ?distance))
+  (<- (action-desig ?desig (lift ?current-obj ?grasp-assignments ?distance))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to lift))
     (desig-prop ?desig (obj ?obj))
     (current-designator ?obj ?current-obj)
-    (holding-arms ?current-obj ?arms)
+    (object->grasp-assignments ?current-obj ?grasp-assignments)
     (-> (desig-prop ?desig (distance ?distance))
         (true)
         (== ?distance 0.10)))
@@ -358,17 +358,24 @@
     (desig-prop ?object (desig-props:at ?objloc))
     (current-designator ?objloc ?current-objloc)
     (desig-prop ?current-objloc (desig-props:in desig-props:gripper))
-    (setof ?posearm (and (desig-prop ?objloc (desig-props:pose ?objpose))
-                         (arm-for-pose ?objpose ?arm)
-                         (member ?arm (:left :right))
-                         (once
-                          (or (desig-prop ?objloc (desig-props:handle
+    (setof ?grasp (and (desig-prop ?objloc (desig-props:pose ?objpose))
+                       (arm-for-pose ?objpose ?arm)
+                       (member ?arm (:left :right))
+                       (once
+                        (or (desig-prop ?objloc (desig-props:handle
                                                    (?arm ?handle)))
-                              (equal ?handle nil)))
-                         (grasp-type ?handle ?grasp-type)
-                         (equal ?posearm (?arm . (?objpose
-                                                  ?grasp-type))))
-           ?poses))
+                            (equal ?handle nil)))
+                       (grasp-type ?handle ?grasp-type)
+                       (equal ?posearm (?arm . (?objpose
+                                                ?grasp-type))))
+           ?grasps))
+  
+  (<- (grasps->grasp-assignments ?grasps ?grasp-assignments)
+    (lisp-fun cons->grasp-assignments ?grasps ?grasp-assignments))
+  
+  (<- (object->grasp-assignments ?object ?grasp-assignments)
+    (object-grasps-in-gripper ?current-obj ?grasps)
+    (lisp-fun cons->grasp-assignments ?grasps ?grasp-assignments))
   
   (<- (action-desig ?desig (put-down ?current-obj ?loc ?grasp-assignments))
     (trajectory-desig? ?desig)
@@ -376,8 +383,7 @@
     (desig-prop ?desig (obj ?obj))
     (desig-prop ?desig (at ?loc))
     (current-designator ?obj ?current-obj)
-    (object-grasps-in-gripper ?current-obj ?grasps)
-    (lisp-fun cons->grasp-assignments ?grasps ?grasp-assignments))
+    (object->grasp-assignments ?current-obj ?grasp-assignments))
   
   (<- (putdown-pose ?original-pose ?segments ?putdown-pose)
     (lisp-fun rotated-poses ?original-pose

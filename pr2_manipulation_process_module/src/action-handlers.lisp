@@ -86,6 +86,7 @@
                                    (tf:make-3d-vector -0.1 0 0.1)))))
                           (execute-move-arm-pose
                            arm raised :plan-only t
+                                      :quiet t
                                       :allowed-collision-objects
                                       `(,(desig-prop-value obj 'desig-props::name)))))
                       arms)))
@@ -159,14 +160,45 @@
         (t (dolist (arm arms)
              (assume-registered-arm-pose 'park-low arm)))))))
 
-(def-action-handler lift (obj arms distance)
-  (let ((arms (force-ll arms))
-        (obj-name (desig-prop-value obj 'desig-props:name)))
-    (cond ((eql (length arms) 1)
-           (lift-grasped-object-with-one-arm (first arms) distance))
-          ((eql (length arms) 2)
-           (lift-grasped-object-with-two-arms obj-name arms distance))
-          (t (error 'simple-error :format-control "No arms for lifting inferred.")))))
+(def-action-handler lift (obj grasp-assignments distance)
+  (declare (ignore obj))
+  (let ((arms (mapcar #'side grasp-assignments)))
+    (unless arms
+      (error 'simple-error :format-control "No arms for lifting infered."))
+    (lift-grasped-object grasp-assignments distance)))
+
+(defun lift-grasped-object (grasp-assignments distance)
+  (let ((target-arm-poses
+          (mapcar (lambda (grasp-assignment)
+                    (cons (side grasp-assignment)
+                          (let ((pose-straight
+                                  (cl-tf2:ensure-pose-stamped-transformed
+                                   *tf2*
+                                   (tf:pose->pose-stamped
+                                    (ecase (side grasp-assignment)
+                                      (:left "l_wrist_roll_link")
+                                      (:right "r_wrist_roll_link"))
+                                    0.0
+                                    (tf:make-identity-pose))
+                                   "base_link")))
+                            (tf:copy-pose-stamped
+                             pose-straight
+                             :origin (tf:v+ (tf:origin pose-straight)
+                                            (tf:make-3d-vector 0 0 distance))))))
+                  grasp-assignments)))
+    (cond ((= (length grasp-assignments) 1)
+           (destructuring-bind (arm . pose) (first target-arm-poses)
+             (execute-move-arm-pose arm pose :ignore-collisions t)))
+          (t
+           (moveit:execute-trajectories
+            (mapcar (lambda (target-arm-pose)
+                      (destructuring-bind (arm . pose)
+                          target-arm-pose
+                        (execute-move-arm-pose
+                         arm pose :plan-only t
+                                  :quiet t
+                                  :ignore-collisions t)))
+                    target-arm-poses))))))
 
 (define-hook cram-language::on-begin-grasp (obj-desig))
 (define-hook cram-language::on-finish-grasp (log-id success))
@@ -322,18 +354,21 @@
 
 (defun hand-poses-for-putdown (grasp-assignment putdown-pose)
   (let* ((grasp-type (grasp-type grasp-assignment))
+         ;; TODO(winkler): Adapt this `pre-putdown-pose' to the
+         ;; grasp-type
          (pre-putdown-offset *pre-putdown-offset*)
          (putdown-offset *putdown-offset*)
          (unhand-offset (cond ((eql grasp-type 'desig-props:top-slide-down)
                                *unhand-top-slide-down-offset*)
                               (t *unhand-offset*))))
     (labels ((gripper-putdown-pose (object-in-gripper-pose object-putdown-pose)
-               (let ((t-o-g (tf:pose->transform object-in-gripper-pose))
-                     (t-o-w (tf:pose->transform object-putdown-pose)))
-                 (tf:pose->pose-stamped
-                  (tf:frame-id object-putdown-pose) 0.0
-                  (tf:transform->pose (cl-transforms:transform*
-                                       t-o-w (cl-transforms:transform-inv t-o-g))))))
+               (tf:pose->pose-stamped
+                (tf:frame-id object-putdown-pose) 0.0
+                (tf:transform->pose
+                 (cl-transforms:transform*
+                  (tf:pose->transform object-putdown-pose)
+                  (cl-transforms:transform-inv
+                   (tf:pose->transform object-in-gripper-pose))))))
              (gripper-grasp-pose (grasp-assignment pose-offset object-putdown-pose)
                (relative-pose
                 (gripper-putdown-pose
