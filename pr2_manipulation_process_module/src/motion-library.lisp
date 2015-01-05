@@ -352,96 +352,78 @@
                      parameter-sets))
             :ignore-va t))))
 
+(defmacro with-parameter-sets (parameter-sets &body body)
+  `(labels ((assume (pose-slot-name &optional ignore-collisions)
+              (assume-poses
+               ,parameter-sets pose-slot-name
+               :ignore-collisions ignore-collisions)))
+     ,@body))
+
+(defun link-name (side)
+  (cut:var-value '?link (first (crs:prolog `(manipulator-link ,side ?link)))))
+
+(defun open-gripper-if-necessary (arm)
+  (when (< (get-gripper-state arm) 0.08)
+    (open-gripper arm)))
+
+(defun gripper-closed-p (arm)
+  (< (get-gripper-state arm) 0.0025))
+
 (defun execute-grasps (object-name parameter-sets)
-  (labels ((assume-safe-poses ()
-             (assume-poses parameter-sets 'safe-pose
-                           :ignore-collisions t))
-           (assume-pregrasp-poses ()
-             (assume-poses parameter-sets 'pregrasp-pose))
-           (assume-grasp-poses ()
-             (assume-poses parameter-sets 'grasp-pose
-                           :ignore-collisions t))
-           (open-gripper-if-necessary (arm)
-             (when (< (get-gripper-state arm) 0.08)
-               (open-gripper arm)))
-           (gripper-closed (arm)
-             (< (get-gripper-state arm) 0.0025)))
+  (with-parameter-sets parameter-sets
     (cpl:with-failure-handling
         (((or cram-plan-failures:manipulation-failure
               cram-plan-failures:object-lost) (f)
            (declare (ignore f))
-           (assume-safe-poses)))
-      (assume-pregrasp-poses)
-      (dolist (parameter-set parameter-sets)
+           (assume 'safe-pose t)))
+      (assume 'pregrasp-pose)
+      (cpl:par-loop (parameter-set parameter-sets)
         (open-gripper-if-necessary (arm parameter-set)))
       (cpl:with-failure-handling
           (((or cram-plan-failures:manipulation-failure
-              cram-plan-failures:object-lost) (f)
+                cram-plan-failures:object-lost) (f)
              (declare (ignore f))
-             (assume-pregrasp-poses)))
+             (assume 'pregrasp-pose)))
         (moveit:without-collision-object object-name
-          (assume-grasp-poses)
+          (assume 'grasp-pose t)
           (cpl:par-loop (parameter-set parameter-sets)
             (close-gripper (arm parameter-set) :max-effort (effort parameter-set)))
           (unless (every #'not (mapcar
                                 (lambda (parameter-set)
-                                  (gripper-closed (arm parameter-set)))
+                                  (gripper-closed-p (arm parameter-set)))
                                 parameter-sets))
             (cpl:par-loop (parameter-set parameter-sets)
-              (when (gripper-closed (arm parameter-set))
+              (when (gripper-closed-p (arm parameter-set))
                 (open-gripper (arm parameter-set))))
             (cpl:fail 'cram-plan-failures:object-lost)))
         (dolist (parameter-set parameter-sets)
-          (let ((link-frame
-                  (cut:var-value
-                   '?link
-                   (first
-                    (crs:prolog
-                     `(manipulator-link ,(arm parameter-set)
-                                        ?link))))))
-            (moveit:attach-collision-object-to-link object-name link-frame)))))))
+          (moveit:attach-collision-object-to-link
+           object-name (link-name (arm parameter-set)))))))))
 
 (defun execute-putdowns (object-name parameter-sets)
-  (labels ((assume-safe-poses ()
-             (assume-poses parameter-sets 'safe-pose
-                           :ignore-collisions t))
-           (assume-pre-putdown-poses ()
-             (assume-poses parameter-sets 'pre-putdown-pose))
-           (assume-putdown-poses ()
-             (assume-poses parameter-sets 'putdown-pose
-                           :ignore-collisions t))
-           (assume-unhand-poses ()
-             (assume-poses parameter-sets 'unhand-pose
-                           :ignore-collisions t)))
+  (with-parameter-sets parameter-sets
     (cpl:with-failure-handling
         ((cram-plan-failures:manipulation-failure (f)
            (declare (ignore f))
-           (assume-safe-poses)))
-      (assume-pre-putdown-poses)
+           (assume 'safe-pose t)))
+      (assume 'pre-putdown-pose)
       (cpl:with-failure-handling
           ((cram-plan-failures:manipulation-failure (f)
              (declare (ignore f))
-             (assume-pre-putdown-poses)))
-        (assume-putdown-poses)
-        (cram-language:par-loop (param-set parameter-sets)
+             (assume 'pre-putdown-pose)))
+        (assume 'putdown-pose t)
+        (cpl:par-loop (param-set parameter-sets)
           (open-gripper (arm param-set)))
         (block unhand
           (cpl:with-failure-handling
               ((cram-plan-failures:manipulation-failure (f)
                  (declare (ignore f))
-                 (assume-safe-poses)
+                 (assume 'safe-pose t)
                  (return-from unhand)))
-            (assume-unhand-poses))))))
+            (assume 'unhand-pose))))))
   (dolist (param-set parameter-sets)
-    (let ((link-frame
-            (cut:var-value
-             '?link
-             (first
-              (crs:prolog
-               `(manipulator-link ,(arm param-set)
-                                  ?link))))))
-      (moveit:detach-collision-object-from-link
-       object-name link-frame))))
+    (moveit:detach-collision-object-from-link
+     object-name (link-name (arm param-set)))))
 
 (defun lift-grasped-object-with-one-arm (side distance)
   "Executes a lifting motion with the `side' arm which grasped the
