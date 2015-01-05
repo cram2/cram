@@ -330,7 +330,7 @@
           (pr2 grasp)
           "Failed to generate trajectory for ~a."
           arm)))
-    (execute-move-arm-pose arm pose :plan-only t)))
+    (execute-move-arm-pose arm pose :quiet t :plan-only t)))
 
 (defmethod parameter-set->pregrasp-trajectory ((parameter-set grasp-parameters))
   (ros-info (pr2 grasp) "Generating pregrasp trajectory")
@@ -355,13 +355,16 @@
                        (lambda (parameter-set)
                          (when (safe-pose parameter-set)
                            parameter-set))
-                       parameter-sets))))
+                       parameter-sets))
+              :ignore-va t))
            (assume-pregrasp-poses ()
              (moveit:execute-trajectories
-              (mapcar #'parameter-set->pregrasp-trajectory parameter-sets)))
+              (mapcar #'parameter-set->pregrasp-trajectory parameter-sets)
+              :ignore-va t))
            (assume-grasp-poses ()
              (moveit:execute-trajectories
-              (mapcar #'parameter-set->grasp-trajectory parameter-sets)))
+              (mapcar #'parameter-set->grasp-trajectory parameter-sets)
+              :ignore-va t))
            (open-gripper-if-necessary (arm)
              (when (< (get-gripper-state arm) 0.08)
                (open-gripper arm)))
