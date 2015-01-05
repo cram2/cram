@@ -93,12 +93,13 @@ motion."
             (slot-value (first parameter-sets) slot-name)
             :ignore-collisions ignore-collisions)))
         (t (moveit:execute-trajectories
-            (mapcar #'parameter-set->safe-trajectory
-                    (cpl:mapcar-clean
-                     (lambda (parameter-set)
-                       (when (slot-value parameter-set slot-name)
-                         parameter-set))
-                     parameter-sets))
+            (cpl:mapcar-clean
+             (lambda (parameter-set)
+               (when (slot-value parameter-set slot-name)
+                 (arm-pose->trajectory
+                  (arm parameter-sets)
+                  (slot-value parameter-set slot-name))))
+             parameter-sets)
             :ignore-va t))))
 
 (defmacro with-parameter-sets (parameter-sets &body body)
