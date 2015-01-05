@@ -193,14 +193,45 @@
 (define-hook cram-language::on-prepare-move-arm (side pose-stamped planning-group ignore-collisions))
 (define-hook cram-language::on-finish-move-arm (log-id success))
 
+(defun execute-move-arm-poses (side poses-stamped
+                               &key allowed-collision-objects
+                                 ignore-collisions
+                                 plan-only
+                                 start-state
+                                 collidable-objects
+                                 max-tilt)
+  (ros-info (pr2 manip-pm) "Executing multi-pose arm movement")
+  (let* ((trajectories
+           (mapcar
+            (lambda (pose-stamped)
+              (multiple-value-bind
+                    (trajectory start)
+                  (execute-move-arm-pose
+                   side pose-stamped
+                   :allowed-collision-objects allowed-collision-objects
+                   :ignore-collisions ignore-collisions
+                   :plan-only t
+                   :start-state start-state
+                   :collidable-objects collidable-objects
+                   :max-tilt max-tilt)
+                (setf start-state start)
+                trajectory))
+            poses-stamped))
+         (trajectory (moveit:concatenate-trajectories
+                      trajectories :ignore-va t)))
+    (cond (plan-only trajectory)
+          (t (moveit:execute-trajectory trajectory)))))
+    
+
 (defun execute-move-arm-pose (side pose-stamped
                               &key allowed-collision-objects
                                 ignore-collisions
                                 plan-only
                                 start-state
                                 collidable-objects
-                                max-tilt)
-  (ros-info (pr2 manip-pm) "Executing arm movement")
+                                max-tilt
+                                quiet)
+  (unless quiet (ros-info (pr2 manip-pm) "Executing arm movement"))
   (let* ((allowed-collision-objects
            (cond (ignore-collisions
                   (append allowed-collision-objects
