@@ -28,6 +28,29 @@
 
 (in-package :pr2-manipulation-process-module)
 
+(defvar *registered-arm-poses* nil)
+
+(defclass manipulation-parameters ()
+  ((arm :accessor arm :initform nil :initarg :arm)
+   (safe-pose :accessor safe-pose :initform nil :initarg :safe-pose)
+   (grasp-type :accessor grasp-type :initform nil :initarg :grasp-type)
+   (object-part :accessor object-part :initform nil :initarg :object-part)))
+
+(defclass grasp-parameters (manipulation-parameters)
+  ((grasp-pose :accessor grasp-pose :initform nil :initarg :grasp-pose)
+   (pregrasp-pose :accessor pregrasp-pose :initform nil :initarg :pregrasp-pose)
+   (effort :accessor effort :initform nil :initarg :effort)
+   (close-radius :accessor close-radius :initform nil :initarg :close-radius)))
+
+(defclass putdown-parameters (manipulation-parameters)
+  ((pre-putdown-pose :accessor pre-putdown-pose :initform nil :initarg :pre-putdown-pose)
+   (putdown-pose :accessor putdown-pose :initform nil :initarg :putdown-pose)
+   (unhand-pose :accessor unhand-pose :initform nil :initarg :unhand-pose)
+   (open-radius :accessor open-radius :initform nil :initarg :open-radius)))
+
+(defclass park-parameters (manipulation-parameters)
+  ((park-pose :accessor park-pose :initform nil :initarg :park-pose)))
+
 (define-hook on-execute-grasp-with-effort (object-name))
 (define-hook on-execute-grasp-gripper-closed
     (object-name gripper-effort gripper-close-pos side pregrasp-pose safe-pose))
@@ -36,206 +59,181 @@
 (define-hook on-execute-grasp-pregrasp-reached
     (object-name gripper-effort gripper-close-pos side pregrasp-pose safe-pose))
 
-(defun execute-grasp (&key object-name
-                        object-pose
-                        pregrasp-pose
-                        grasp-pose
-                        side (gripper-open-pos 0.2)
-                        (gripper-close-pos 0.0)
-                        allowed-collision-objects
-                        safe-pose
-                        (gripper-effort 100.0))
-  (declare (ignore object-pose))
-  ;; Gather hook'ed information for the grasp
-  (let ((gripper-effort (or (first (on-execute-grasp-with-effort
-                                    object-name))
-                            gripper-effort)))
-    (let ((link-frame
-            (cut:var-value
-             '?link
-             (first
-              (crs:prolog
-               `(manipulator-link ,side ?link)))))
-          (allowed-collision-objects (append
-                                      allowed-collision-objects
-                                      (list object-name))))
-      (ros-info (pr2 grasp) "Executing pregrasp for side ~a~%" side)
-      (cpl:with-retry-counters ((pregrasp-retry 1))
-        (cpl:with-failure-handling
-            ((cram-plan-failures::manipulation-failure (f)
-               (declare (ignore f))
-               (ros-error (pr2 grasp)
-                          "Failed to go into pregrasp pose for side ~a."
-                          side)
-               (cpl:do-retry pregrasp-retry
-                 (execute-move-arm-pose side safe-pose)
-                 (cpl:retry))
-               (when safe-pose
-                 (cpl:fail 'manipulation-pose-unreachable))))
-          (execute-move-arm-pose side pregrasp-pose)))
-      (ros-info (pr2 grasp) "Opening gripper")
-      (open-gripper side :max-effort gripper-effort :position gripper-open-pos)
-      (unless object-name
-        (ros-warn (pr2 grasp) "You didn't specify an object name to
-    grasp. This might cause the grasping to fail because of a
-    misleading collision environment configuration."))
-      (when object-name (moveit:remove-collision-object object-name))
-      (on-execute-grasp-pregrasp-reached
-       object-name gripper-effort gripper-close-pos side pregrasp-pose safe-pose)
-      (ros-info (pr2 grasp) "Executing grasp for side ~a~%" side)
-      (cpl:with-failure-handling
-          ((manipulation-failed (f)
-             (declare (ignore f))
-             (ros-error
-              (pr2 grasp)
-              "Failed to go into grasp pose for side ~a."
-              side)
-             (when object-name
-               (moveit:add-collision-object object-name))
-             (cpl:fail 'manipulation-pose-unreachable)))
-        (execute-move-arm-pose side grasp-pose :ignore-collisions t))
-      (on-execute-grasp-gripper-positioned-for-grasp
-       object-name gripper-effort gripper-close-pos side pregrasp-pose safe-pose)
-      (ros-info (pr2 grasp) "Closing gripper")
-      (close-gripper side :max-effort gripper-effort
-                          :position gripper-close-pos)
-      (on-execute-grasp-gripper-closed
-       object-name gripper-effort gripper-close-pos side pregrasp-pose safe-pose)
-      (when (< (get-gripper-state side) 0.01);;gripper-close-pos)
-        (cpl:with-failure-handling
-            ((manipulation-failed (f)
-               (declare (ignore f))
-               (ros-error
-                (pr2 grasp)
-                "Failed to go into fallback pose for side ~a. Retrying."
-                side)
-               (cpl:retry))
-             (moveit:pose-not-transformable-into-link (f)
-               (declare (ignore f))
-               (ros-warn
-                (pr2 grasp)
-                "TF error. Retrying.")
-               (cpl:retry)))
-          (ros-warn
-           (pr2 grasp)
-           "Missed the object. Going into fallback pose for side ~a." side)
-          (open-gripper side)
-          (execute-move-arm-pose side pregrasp-pose
-                                 :allowed-collision-objects
-                                 allowed-collision-objects)
-          (moveit:add-collision-object object-name)
-          (when safe-pose
-            (execute-move-arm-pose side safe-pose
-                                   :allowed-collision-objects
-                                   allowed-collision-objects))
-          (cpl:fail 'cram-plan-failures:object-lost)))
-      (when object-name
-        (moveit:add-collision-object object-name)
-        (moveit:attach-collision-object-to-link
-         object-name link-frame)))))
+(defun joint-trajectory-point->joint-state (header joint-names trajectory-point)
+  (roslisp:with-fields (positions) trajectory-point
+    (roslisp:make-message
+     "sensor_msgs/JointState"
+     :header header
+     :name joint-names
+     :position positions)))
 
-(defun execute-putdown (&key object-name
-                          pre-putdown-pose putdown-pose
-                          unhand-pose side
-                          (gripper-open-pos 0.2)
-                          allowed-collision-objects)
-  (let ((allowed-collision-objects (append
-                                    allowed-collision-objects
-                                    (list object-name))))
-    (ros-info
-     (pr2 putdown) "Executing pre-putdown for side ~a~%" side)
-    (publish-pose pre-putdown-pose "/preputdownpose")
+(defun arm-pose->trajectory (arm pose)
+  "Calculated a trajectory from the current pose of gripper `arm' when
+trying to assume the pose `pose'."
+  (cpl:with-failure-handling
+      (((or cram-plan-failures::manipulation-failure
+            moveit::moveit-failure) (f)
+         (declare (ignore f))
+         (ros-error
+          (pr2 grasp)
+          "Failed to generate trajectory for ~a."
+          arm)))
+    (execute-move-arm-pose arm pose :quiet t :plan-only t)))
+
+(defun assume-poses (parameter-sets slot-name &key ignore-collisions)
+  "Moves all arms defined in `parameter-sets' into the poses given by
+the slot `slot-name' as defined in the respective parameter-sets. If
+`ignore-collisions' is set, all collisions are ignored during the
+motion."
+  (ros-info (pr2 motion) "Assuming ~a '~a' pose~a"
+            (length parameter-sets) slot-name
+            (cond ((= (length parameter-sets) 1) "")
+                  (t "s")))
+  (cond ((= (length parameter-sets) 1)
+         (when (slot-value (first parameter-sets) slot-name)
+           (execute-move-arm-pose
+            (side (first parameter-sets))
+            (slot-value (first parameter-sets) slot-name)
+            :ignore-collisions ignore-collisions)))
+        (t (moveit:execute-trajectories
+            (cpl:mapcar-clean
+             (lambda (parameter-set)
+               (when (slot-value parameter-set slot-name)
+                 (arm-pose->trajectory
+                  (arm parameter-sets)
+                  (slot-value parameter-set slot-name))))
+             parameter-sets)
+            :ignore-va t))))
+
+(defmacro with-parameter-sets (parameter-sets &body body)
+  "Defines parameter-set specific functions (like assuming poses) for
+the manipulation parameter sets `parameter-sets' and executes the code
+`body' in this environment."
+  `(labels ((assume (pose-slot-name &optional ignore-collisions)
+              (assume-poses
+               ,parameter-sets pose-slot-name
+               :ignore-collisions ignore-collisions)))
+     ,@body))
+
+(defun link-name (arm)
+  "Returns the TF link name associated with the wrist of the robot's
+arm `arm'."
+  (cut:var-value '?link (first (crs:prolog `(manipulator-link ,arm ?link)))))
+
+(defun execute-parks (parameter-sets)
+  (with-parameter-sets parameter-sets
+    (assume 'park-pose)))
+
+(defun open-gripper-if-necessary (arm &key (threshold 0.08))
+  "Opens the gripper on the robot's arm `arm' if its current position
+is smaller than `threshold'."
+  (when (< (get-gripper-state arm) threshold)
+    (open-gripper arm)))
+
+(defun gripper-closed-p (arm &key (threshold 0.0025))
+  "Returns `t' when the robot's gripper on the arm `arm' is smaller
+than `threshold'."
+  (< (get-gripper-state arm) threshold))
+
+(defun execute-grasps (object-name parameter-sets)
+  "Executes simultaneous grasping of the object given by the name
+`object-name'. The grasps (object-relative gripper positions,
+grasp-type, effort to use) are defined in the list `parameter-sets'."
+  (with-parameter-sets parameter-sets
     (cpl:with-failure-handling
-        ((manipulation-pose-unreachable (f)
+        (((or cram-plan-failures:manipulation-failure
+              cram-plan-failures:object-lost) (f)
            (declare (ignore f))
-           (ros-error
-            (pr2 putdown) "Failed to go into preputdown pose for side ~a." side)
-           (cpl:fail 'cram-plan-failures:manipulation-failed))
-         (manipulation-failed (f)
-           (declare (ignore f))
-           (ros-error
-            (pr2 putdown) "Failed to go into preputdown pose for side ~a." side))
-         (moveit:pose-not-transformable-into-link (f)
-           (declare (ignore f))
-           (cpl:retry)))
-      (execute-move-arm-pose
-       side pre-putdown-pose
-       :allowed-collision-objects allowed-collision-objects))
-    (ros-info (pr2 putdown) "Executing putdown for side ~a~%" side)
+           (assume 'safe-pose t)))
+      (assume 'pregrasp-pose)
+      (cpl:par-loop (parameter-set parameter-sets)
+        (open-gripper-if-necessary (arm parameter-set)))
+      (cpl:with-failure-handling
+          (((or cram-plan-failures:manipulation-failure
+                cram-plan-failures:object-lost) (f)
+             (declare (ignore f))
+             (assume 'pregrasp-pose)))
+        (moveit:without-collision-object object-name
+          (assume 'grasp-pose t)
+          (cpl:par-loop (parameter-set parameter-sets)
+            (close-gripper (arm parameter-set) :max-effort (effort parameter-set)))
+          (unless (every #'not (mapcar
+                                (lambda (parameter-set)
+                                  (gripper-closed-p (arm parameter-set)))
+                                parameter-sets))
+            (cpl:par-loop (parameter-set parameter-sets)
+              (open-gripper-if-necessary (arm parameter-set)))
+            (cpl:fail 'cram-plan-failures:object-lost)))
+        (dolist (parameter-set parameter-sets)
+          (moveit:attach-collision-object-to-link
+           object-name (link-name (arm parameter-set))))))))
+
+(defun execute-putdowns (object-name parameter-sets)
+  "Executes simultaneous putting down of the object in hand given by
+the name `object-name'. The current grasps (object-relative gripper
+positions, grasp-type, effort to use) are defined in the list
+`parameter-sets'."
+  (with-parameter-sets parameter-sets
     (cpl:with-failure-handling
-        ((manipulation-pose-unreachable (f)
+        ((cram-plan-failures:manipulation-failure (f)
            (declare (ignore f))
-           (ros-error (pr2 putdown)
-                              "Failed to go into putdown pose for side ~a."
-                              side))
-         (manipulation-failed (f)
-           (declare (ignore f))
-           (ros-error (pr2 putdown)
-                              "Failed to go into putdown pose for side ~a."
-                              side))
-         (moveit:pose-not-transformable-into-link (f)
-           (declare (ignore f))
-           (cpl:retry)))
-      (execute-move-arm-pose side putdown-pose
-       :allowed-collision-objects allowed-collision-objects
-       :ignore-collisions t))
-    (ros-info (pr2 putdown) "Opening gripper")
-    (open-gripper side :max-effort 50.0 :position gripper-open-pos)
+           (assume 'safe-pose t)))
+      (assume 'pre-putdown-pose)
+      (cpl:with-failure-handling
+          ((cram-plan-failures:manipulation-failure (f)
+             (declare (ignore f))
+             (assume 'pre-putdown-pose)))
+        (assume 'putdown-pose t)
+        (cpl:par-loop (param-set parameter-sets)
+          (open-gripper (arm param-set)))
+        (block unhand
+          (cpl:with-failure-handling
+              ((cram-plan-failures:manipulation-failure (f)
+                 (declare (ignore f))
+                 (assume 'safe-pose t)
+                 (return-from unhand)))
+            (assume 'unhand-pose))))))
+  (dolist (param-set parameter-sets)
     (moveit:detach-collision-object-from-link
-     object-name (cut:var-value
-                  '?link
-                  (first
-                   (crs:prolog
-                    `(manipulator-link ,side ?link)))))
-    (ros-info (pr2 putdown) "Executing unhand for side ~a~%" side)
-    (let ((ignore-collisions nil))
-      (cpl:with-failure-handling
-          ((manipulation-failure (f)
-             (declare (ignore f))
-             (ros-error
-              (pr2 putdown)
-              "Failed to go into unhand pose for side ~a. Retrying while ignoring collisions." side)
-             (cpl:retry))
-           (moveit:pose-not-transformable-into-link (f)
-             (declare (ignore f))
-             (cpl:retry)))
-        (execute-move-arm-pose
-         side unhand-pose
-         :allowed-collision-objects (unless ignore-collisions
-                                      allowed-collision-objects)
-         :ignore-collisions ignore-collisions)))
-    (ros-info (pr2 manip-pm) "Putdown complete.")))
+     object-name (link-name (arm param-set)))))
 
-(defun lift-grasped-object-with-one-arm (side distance)
-  "Executes a lifting motion with the `side' arm which grasped the
-object in order to lift it at `distance' form the supporting plane"
-  (let* ((frame-id (cut:var-value
-                    '?link
-                    (first
-                     (crs:prolog
-                      `(manipulator-link ,side ?link)))))
-         (raised-arm-pose
-           (moveit:ensure-pose-stamped-transformed
-            (tf:make-pose-stamped frame-id (ros-time)
-                                  (tf:make-3d-vector 0 0 distance)
-                                  (tf:make-identity-rotation))
-            "/torso_lift_link" :ros-time t)))
-    (unless raised-arm-pose
-      (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))
-    (execute-move-arm-pose side raised-arm-pose :ignore-collisions t)))
+(defun execute-lift (grasp-assignments distance)
+  (let ((target-arm-poses
+          (mapcar (lambda (grasp-assignment)
+                    (cons (side grasp-assignment)
+                          (let ((pose-straight
+                                  (cl-tf2:ensure-pose-stamped-transformed
+                                   *tf2*
+                                   (tf:pose->pose-stamped
+                                    (link-name (side grasp-assignment))
+                                    0.0
+                                    (tf:make-identity-pose))
+                                   "base_link")))
+                            (tf:copy-pose-stamped
+                             pose-straight
+                             :origin (tf:v+ (tf:origin pose-straight)
+                                            (tf:make-3d-vector 0 0 distance))))))
+                  grasp-assignments)))
+    (cond ((= (length grasp-assignments) 1)
+           (destructuring-bind (arm . pose) (first target-arm-poses)
+             (execute-move-arm-pose arm pose :ignore-collisions t)))
+          (t
+           (moveit:execute-trajectories
+            (mapcar (lambda (target-arm-pose)
+                      (destructuring-bind (arm . pose)
+                          target-arm-pose
+                        (execute-move-arm-pose
+                         arm pose :plan-only t
+                                  :quiet t
+                                  :ignore-collisions t)))
+                    target-arm-poses))))))
 
-(defun relative-grasp-pose (pose pose-offset)
-  (let* ((stamp (ros-time))
-         (target-frame "/torso_lift_link"))
-    ;; NOTE(winkler): Right now, we check whether a transformation can
-    ;; actually be done at the current time. This has to be checked
-    ;; because sometimes the upcoming wait-for-transform waits forever
-    ;; (for yet unknown reasons). This is a preliminary fix, though.
-    (let ((pose-offsetted (tf:pose->pose-stamped
-                           (tf:frame-id pose)
-                           stamp
-                           (cl-transforms:transform-pose
-                            (cl-transforms:pose->transform pose)
-                            pose-offset))))
-      (moveit:ensure-pose-stamped-transformed
-       pose-offsetted target-frame :ros-time t))))
+(defun relative-pose (pose pose-offset)
+  "Applies the pose `pose-offset' as transformation into the pose
+`pose' and returns the result in the frame of `pose'."
+  (tf:pose->pose-stamped
+   (tf:frame-id pose)
+   (ros-time)
+   (cl-transforms:transform-pose
+    (cl-transforms:pose->transform pose)
+    pose-offset)))

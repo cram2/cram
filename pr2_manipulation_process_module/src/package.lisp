@@ -44,8 +44,10 @@
                 manipulator-link
                 planning-group)
   (:import-from roslisp ros-info ros-warn ros-error ros-time)
+  (:import-from cram-roslisp-common *tf2*)
   (:export pr2-manipulation-process-module
-           wait-for-controller)
+           wait-for-controller
+           reorient-object)
   (:desig-properties #:trajectory #:type #:to #:open #:obj #:side #:sides #:close
                      #:grasp #:put-down #:pose #:parked #:lift
                      #:carry #:at #:orientation #:in #:gripper #:both-grippers

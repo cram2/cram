@@ -30,9 +30,20 @@
 (defclass grasp-assignment ()
   ((pose :accessor pose :initform nil :initarg :pose)
    (side :accessor side :initform nil :initarg :side)
+   (grasp-type :accessor grasp-type :initform nil :initarg :grasp-type)
    (close-radius :accessor close-radius :initform nil :initarg :close-radius)
    (handle-pair :accessor handle-pair :initform nil :initarg :handle-pair)
-   (ik-cost :accessor ik-cost :initform nil :initarg :ik-cost)))
+   (pregrasp-offset :accessor pregrasp-offset :initform nil :initarg :pregrasp-offset)
+   (grasp-offset :accessor grasp-offset :initform nil :initarg :grasp-offset)
+   (gripper-offset :accessor gripper-offset :initform nil :initarg :gripper-offset)
+   (ik-cost :accessor ik-cost :initform nil :initarg :ik-cost)
+   (object-part :accessor object-part :initform nil :initarg :object-part)))
+
+(defclass arm-pose ()
+  ((joint-values :accessor joint-values :initform nil :initarg :joint-values)
+   (joint-names :accessor joint-names :initform nil :initarg :joint-names)
+   (arm-side :accessor arm-side :initform nil :initarg :arm-side)
+   (name :accessor name :initform nil :initarg :name)))
 
 (define-condition move-arm-no-ik-solution (manipulation-failure) ())
 (define-condition move-arm-ik-link-in-collision (manipulation-failure) ())
@@ -68,8 +79,7 @@
   (setf *trajectory-action-torso*
         (actionlib:make-action-client
          "/torso_controller/joint_trajectory_action"
-         "pr2_controllers_msgs/JointTrajectoryAction"))
-  (set-robot-planning-state))
+         "pr2_controllers_msgs/JointTrajectoryAction")))
 
 (roslisp-utilities:register-ros-init-function
  init-pr2-manipulation-process-module)
@@ -81,6 +91,44 @@
       (cpl-impl:fail 'manipulation-failed
                      :format-control "Manipulation failed"))
     result))
+
+(defun register-arm-pose (arm-pose)
+  (push arm-pose *registered-arm-poses*))
+
+(defun register-arm-pose-values (name side joint-names joint-values)
+  (register-arm-pose (make-instance
+                      'arm-pose
+                      :arm-side side
+                      :joint-names joint-names
+                      :joint-values joint-values
+                      :name name)))
+
+(defun register-current-arm-pose (name side)
+  (let* ((joints (ecase side
+                   (:right (list "r_shoulder_pan_joint"
+                                 "r_shoulder_lift_joint"
+                                 "r_upper_arm_roll_joint"
+                                 "r_elbow_flex_joint"
+                                 "r_forearm_roll_joint"
+                                 "r_wrist_flex_joint"
+                                 "r_wrist_roll_joint"))
+                   (:left (list "l_shoulder_pan_joint"
+                                "l_shoulder_lift_joint"
+                                "l_upper_arm_roll_joint"
+                                "l_elbow_flex_joint"
+                                "l_forearm_roll_joint"
+                                "l_wrist_flex_joint"
+                                "l_wrist_roll_joint"))))
+         (joint-values (mapcar (lambda (joint)
+                                 (moveit:get-joint-value joint))
+                               joints)))
+    (register-arm-pose-values name side joints joint-values)))
+
+(defun registered-arm-pose (name side)
+  (find name *registered-arm-poses*
+        :test (lambda (name arm-pose)
+                (and (eql name (name arm-pose))
+                     (eql side (arm-side arm-pose))))))
 
 (defun links-for-arm-side (side)
   (ecase side
@@ -127,13 +175,48 @@
                   "r_gripper_motor_slider_link"
                   "r_gripper_motor_screw_link"))))
 
-(define-hook on-prepare-move-arm (side pose-stamped planning-group ignore-collisions))
-(define-hook on-finish-move-arm (log-id success))
+(define-hook cram-language::on-prepare-move-arm (side pose-stamped planning-group ignore-collisions))
+(define-hook cram-language::on-finish-move-arm (log-id success))
+
+(defun execute-move-arm-poses (side poses-stamped
+                               &key allowed-collision-objects
+                                 ignore-collisions
+                                 plan-only
+                                 start-state
+                                 collidable-objects
+                                 max-tilt)
+  (ros-info (pr2 manip-pm) "Executing multi-pose arm movement")
+  (let* ((trajectories
+           (mapcar
+            (lambda (pose-stamped)
+              (multiple-value-bind
+                    (trajectory start)
+                  (execute-move-arm-pose
+                   side pose-stamped
+                   :allowed-collision-objects allowed-collision-objects
+                   :ignore-collisions ignore-collisions
+                   :plan-only t
+                   :start-state start-state
+                   :collidable-objects collidable-objects
+                   :max-tilt max-tilt)
+                (setf start-state start)
+                trajectory))
+            poses-stamped))
+         (trajectory (moveit:concatenate-trajectories
+                      trajectories :ignore-va t)))
+    (cond (plan-only trajectory)
+          (t (moveit:execute-trajectory trajectory)))))
+    
 
 (defun execute-move-arm-pose (side pose-stamped
                               &key allowed-collision-objects
-                                ignore-collisions)
-  (ros-info (pr2 manip-pm) "Executing arm movement")
+                                ignore-collisions
+                                plan-only
+                                start-state
+                                collidable-objects
+                                max-tilt
+                                quiet)
+  (unless quiet (ros-info (pr2 manip-pm) "Executing arm movement"))
   (let* ((allowed-collision-objects
            (cond (ignore-collisions
                   (append allowed-collision-objects
@@ -149,60 +232,76 @@
                           (first
                            (crs:prolog
                             `(planning-group ,side ?group))))))
-    (let ((log-id (first (on-prepare-move-arm
+    (let ((log-id (first (cram-language::on-prepare-move-arm
                           link-name pose-stamped
                           planning-group ignore-collisions))))
       (cpl:with-failure-handling
           ((moveit:no-ik-solution (f)
              (declare (ignore f))
              (ros-error (move arm) "No IK solution found.")
-             (on-finish-move-arm log-id nil)
+             (cram-language::on-finish-move-arm log-id nil)
              (error 'manipulation-pose-unreachable
                     :result (list side pose-stamped)))
            (moveit:planning-failed (f)
              (declare (ignore f))
              (ros-error (move arm) "Planning failed.")
-             (on-finish-move-arm log-id nil)
+             (cram-language::on-finish-move-arm log-id nil)
              (error 'manipulation-pose-unreachable
                     :result (list side pose-stamped)))
            (moveit:goal-violates-path-constraints (f)
              (declare (ignore f))
              (ros-error (move arm) "Goal violates path constraints.")
-             (on-finish-move-arm log-id nil)
+             (cram-language::on-finish-move-arm log-id nil)
              (error 'manipulation-pose-unreachable
                     :result (list side pose-stamped)))
            (moveit:invalid-goal-constraints (f)
              (declare (ignore f))
              (ros-error (move arm) "Invalid goal constraints.")
-             (on-finish-move-arm log-id nil)
+             (cram-language::on-finish-move-arm log-id nil)
              (error 'manipulation-pose-unreachable
                     :result (list side pose-stamped)))
            (moveit:timed-out (f)
              (declare (ignore f))
              (ros-error (move arm) "Timeout.")
-             (on-finish-move-arm log-id nil)
+             (cram-language::on-finish-move-arm log-id nil)
              (error 'manipulation-pose-unreachable
                     :result (list side pose-stamped)))
            (moveit:goal-in-collision (f)
              (declare (ignore f))
              (ros-error (move arm) "Goal in collision.")
-             (on-finish-move-arm log-id nil)
+             (cram-language::on-finish-move-arm log-id nil)
              (error 'manipulation-pose-occupied
                     :result (list side pose-stamped))))
-        (cond ((moveit:move-link-pose
-                link-name
-                planning-group pose-stamped
-                :ignore-collisions ignore-collisions
-                :allowed-collision-objects allowed-collision-objects
-                :touch-links (links-for-arm-side side))
-               (on-finish-move-arm log-id t)
-               (plan-knowledge:on-event
-                (make-instance 'plan-knowledge:robot-state-changed)))
-              (t (on-finish-move-arm log-id nil)
+        (cond ((let ((result
+                       (multiple-value-bind (start trajectory)
+                           (moveit:move-link-pose
+                            link-name
+                            planning-group pose-stamped
+                            :ignore-collisions ignore-collisions
+                            :allowed-collision-objects allowed-collision-objects
+                            :touch-links (links-for-arm-side side)
+                            :plan-only plan-only
+                            :start-state start-state
+                            :collidable-objects collidable-objects
+                            :max-tilt max-tilt)
+                                        ;:reference-frame "base_link")
+                         (declare (ignorable start))
+                         (values trajectory start))))
+                 (cram-language::on-finish-move-arm log-id t)
+                 (let ((bs-update (plan-knowledge:on-event
+                                   (make-instance
+                                    'plan-knowledge:robot-state-changed))))
+                   (cond (plan-only result)
+                         (t bs-update)))))
+              (t (cram-language::on-finish-move-arm log-id nil)
                  (error 'manipulation-failed
                         :result (list side pose-stamped))))))))
 
+(define-hook cram-language::on-close-gripper (side max-effort position))
+(define-hook cram-language::on-open-gripper (side max-effort position))
+
 (defun close-gripper (side &key (max-effort 100.0) (position 0.0))
+  (cram-language::on-close-gripper side max-effort position)
   (let ((client (ecase side
                   (:right *gripper-action-right*)
                   (:left *gripper-action-left*))))
@@ -216,6 +315,7 @@
                                 'plan-knowledge:robot-state-changed)))))
 
 (defun open-gripper (side &key (max-effort 100.0) (position 0.085))
+  (cram-language::on-open-gripper side max-effort position)
   (let ((client (ecase side
                   (:right *gripper-action-right*)
                   (:left *gripper-action-left*))))
@@ -320,21 +420,3 @@ its' supporting plane."
      'object
      `((at ,new-loc-desig) . ,(remove 'at (description obj-desig) :key #'car))
      obj-desig)))
-
-(defun set-robot-planning-state ()
-  (let ((joint-names (list "r_shoulder_pan_joint"
-                           "r_shoulder_lift_joint"
-                           "r_upper_arm_roll_joint"
-                           "r_elbow_flex_joint"
-                           "r_forearm_roll_joint"
-                           "r_wrist_flex_joint"
-                           "r_wrist_roll_joint"
-                           "l_shoulder_pan_joint"
-                           "l_shoulder_lift_joint"
-                           "l_upper_arm_roll_joint"
-                           "l_elbow_flex_joint"
-                           "l_forearm_roll_joint"
-                           "l_wrist_flex_joint"
-                           "l_wrist_roll_joint"
-                           "torso_lift_joint")))
-    (moveit::copy-physical-joint-states joint-names)))

@@ -32,7 +32,7 @@
   :license "BSD"
   :description "Process module for pointing the head with PointHeadAction"
 
-  :depends-on (actionlib
+  :depends-on (actionlib-lisp
                process-modules
                designators
                cram-reasoning
@@ -40,7 +40,6 @@
                cram-plan-knowledge
                roslisp-utilities
                alexandria
-               cram-moveit
                pr2_controllers_msgs-msg)
   :components
   ((:module "src"

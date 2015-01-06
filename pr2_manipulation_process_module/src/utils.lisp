@@ -149,8 +149,8 @@ satisfy these constraints is returned."
               (cond ((or (string= (tf:frame-id pose) "map")
                          (string= (tf:frame-id pose) "/map"))
                      pose)
-                    (t (moveit:ensure-pose-stamped-transformed
-                        pose "/map" :ros-time t))))))
+                    (t (cl-tf2:ensure-pose-stamped-transformed
+                        *tf2* pose "/map" :use-current-ros-time t))))))
          (pose-stamped-msg (tf:pose-stamped->msg pose-stamped)))
     (roslisp:publish
      (roslisp:advertise topic "geometry_msgs/PoseStamped")

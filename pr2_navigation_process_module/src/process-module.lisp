@@ -31,7 +31,6 @@
 
 (defparameter *navigation-enabled* t)
 
-(defvar *move-base-client* nil)
 (defvar *navp-client* nil)
 
 (defvar *navp-min-angle* (* -135.0 (/ pi 180))
@@ -47,12 +46,8 @@
 (defvar *yaw-goal-tolerance* 0.25)
 
 (defun init-pr2-navigation-process-module ()
-  (setf *move-base-client* (actionlib:make-action-client
-                            "/pr2_move_base"
-                            "move_base_msgs/MoveBaseAction"))
-  (setf *navp-client* (actionlib:make-action-client
-                       "/nav_pcontroller/move_base"
-                       "move_base_msgs/MoveBaseAction"))
+  (setf *navp-client* (actionlib-lisp:make-simple-action-client
+                       "/nav_pcontroller/move_base" "move_base_msgs/MoveBaseAction"))
   (when (roslisp:has-param "~navigation_process_module/navp_min_angle")
     (setf *navp-min-angle* (roslisp:get-param "~navigation_process_module/navp_min_angle")))
   (when (roslisp:has-param "~navigation_process_module/navp_max_angle")
@@ -64,19 +59,15 @@
   (when (roslisp:has-param "~navigation_process_module/yaw_goal_tolerance")
     (setf *yaw-goal-tolerance* (roslisp:get-param "~navigation_process_module/yaw_goal_tolerance"))))
 
-(roslisp-utilities:register-ros-init-function
- init-pr2-navigation-process-module)
-
+(roslisp-utilities:register-ros-init-function init-pr2-navigation-process-module)
 
 (defun make-action-goal (pose)
-  (roslisp:make-message
-   "move_base_msgs/MoveBaseGoal"
-   target_pose (tf:pose-stamped->msg pose)))
+  (actionlib-lisp:make-action-goal-msg *navp-client*
+    target_pose (tf:pose-stamped->msg pose)))
 
 (defun use-navp? (goal-pose)
-  (let* ((pose-in-base (tf:transform-pose
-                        *tf* :pose goal-pose
-                        :target-frame "/base_footprint"))
+  (let* ((pose-in-base (cl-tf2:ensure-pose-stamped-transformed
+                        *tf2* goal-pose "/base_footprint"))
          (goal-dist (cl-transforms:v-norm
                      (cl-transforms:origin pose-in-base)))
          (goal-angle (atan
@@ -89,9 +80,8 @@
          (< goal-angle *navp-max-angle*))))
 
 (defun goal-reached? (goal-pose)
-  (let* ((pose-in-base (tf:transform-pose
-                        *tf* :pose goal-pose
-                        :target-frame "/base_footprint"))
+  (let* ((pose-in-base (cl-tf2:ensure-pose-stamped-transformed
+                        *tf2* goal-pose "/base_footprint"))
          (goal-dist (cl-transforms:v-norm
                      (cl-transforms:origin pose-in-base)))
          (goal-angle (second
@@ -110,26 +100,19 @@
 (defun call-nav-action (client desig)
   (let* ((goal-pose (reference desig))
          (goal-pose-in-fixed-frame
-           (when (tf:wait-for-transform
-                  *tf* :time (tf:stamp goal-pose)
-                       :target-frame designators-ros:*fixed-frame*
-                       :source-frame (tf:frame-id goal-pose)
-                       :timeout 1.0)
-             (tf:transform-pose
-              *tf* :pose goal-pose
-                   :target-frame designators-ros:*fixed-frame*))))
-    (unless goal-pose-in-fixed-frame
-      (error 'tf:tf-lookup-error :frame (tf:frame-id goal-pose)))
+           (cl-tf2:ensure-pose-stamped-transformed
+            *tf2* goal-pose designators-ros:*fixed-frame* :use-current-ros-time t)))
+    (roslisp:publish (roslisp:advertise "/ppp" "geometry_msgs/PoseStamped")
+                     (tf:pose-stamped->msg goal-pose-in-fixed-frame))
     (multiple-value-bind (result status)
-        (actionlib:send-goal-and-wait
+        (actionlib-lisp:send-goal-and-wait
          client (make-action-goal goal-pose-in-fixed-frame)
-         :result-timeout 1.0)
-      (declare (ignore result status))
+         10.0 10.0)
+      (declare (ignorable result status))
       (roslisp:ros-info (pr2-nav process-module) "Nav action finished.")
-      (unless (and ;; (eq status :succeeded)
-               (goal-reached? (tf:copy-pose-stamped
-                               goal-pose-in-fixed-frame
-                               :stamp 0)))
+      (unless (goal-reached? (tf:copy-pose-stamped
+                              goal-pose-in-fixed-frame
+                              :stamp 0))
         (cpl:fail 'location-not-reached-failure
                   :location desig)))))
 
@@ -137,26 +120,7 @@
   (when *navigation-enabled*
     (unwind-protect
          (progn
-           (roslisp:ros-info (pr2-nav process-module)
-                             "Using nav-pcontroller.")
+           (roslisp:ros-info (pr2-nav process-module) "Using nav-pcontroller.")
            (call-nav-action *navp-client* (reference goal)))
-      ;; (cond ((use-navp? (reference goal))
-      ;;        (roslisp:ros-info (pr2-nav process-module)
-      ;;                          "Using nav-pcontroller.")
-      ;;        (call-nav-action *navp-client* goal))
-      ;;       (t
-      ;;        (block nil
-      ;;          (handler-bind ((location-not-reached-failure
-      ;;                          (lambda (e)
-      ;;                            (declare (ignore e))
-      ;;                            (roslisp:ros-info (pr2-nav process-module)
-      ;;                                              "Could not reach goal.")
-      ;;                            (when (use-navp? (reference goal))
-      ;;                              (roslisp:ros-info (pr2-nav process-module)
-      ;;                                                "Falling back to nav-pcontroller.")                               
-      ;;                              (return (call-nav-action *navp-client* goal))))))
-      ;;            (roslisp:ros-info (pr2-nav process-module)
-      ;;                              "Using move_base.")
-      ;;            (call-nav-action *move-base-client* goal)))))
       (roslisp:ros-info (pr2-nav process-module) "Navigation finished.")
       (cram-plan-knowledge:on-event (make-instance 'cram-plan-knowledge:robot-state-changed)))))

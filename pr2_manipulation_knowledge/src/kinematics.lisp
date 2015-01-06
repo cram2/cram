@@ -40,7 +40,7 @@
 (def-fact-group robot-kinematics (manipulator-link
                                   manipulator-identity-orientation
                                   planning-group)
-
+  
   (<- (manipulator-link :left "l_wrist_roll_link"))
   
   (<- (manipulator-link :right "r_wrist_roll_link"))
