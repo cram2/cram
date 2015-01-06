@@ -92,7 +92,7 @@ motion."
   (cond ((= (length parameter-sets) 1)
          (when (slot-value (first parameter-sets) slot-name)
            (execute-move-arm-pose
-            (side (first parameter-sets))
+            (arm (first parameter-sets))
             (slot-value (first parameter-sets) slot-name)
             :ignore-collisions ignore-collisions)))
         (t (moveit:execute-trajectories
@@ -100,7 +100,7 @@ motion."
              (lambda (parameter-set)
                (when (slot-value parameter-set slot-name)
                  (arm-pose->trajectory
-                  (arm parameter-sets)
+                  (arm parameter-set)
                   (slot-value parameter-set slot-name))))
              parameter-sets)
             :ignore-va t))))
