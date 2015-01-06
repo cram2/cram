@@ -1,7 +1,7 @@
 ;;;; -*- Mode: LISP -*-
 
 (defsystem "cram-roslisp-common"
-  :depends-on ("roslisp" "cl-tf" "cram-utilities" "roslisp-utilities")
+  :depends-on ("roslisp" "cl-tf" "cl-tf2" "cram-utilities" "roslisp-utilities")
   :components
   ((:module "src"
             :components

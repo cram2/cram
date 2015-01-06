@@ -34,7 +34,6 @@
 (defparameter *distance-equality-threshold* 0.025)
 (defparameter *angle-equality-threshold* (* 5 (/ pi 180)))
 
-
 ;;; We need to place these methods here because in the designator
 ;;; package, we don't have a notion of poses, just more or less
 ;;; abstract interfaces
@@ -60,22 +59,23 @@
   ;; two predicates used to implement equality check
   (labels ((transform-available-p (source-frame target-frame &key (time 0.0) (timeout 2.0))
              ;; Auxiliary predicate to check whether a tf-transform is available."
-             (tf:wait-for-transform 
-              *tf* :source-frame source-frame :target-frame target-frame
-                   :time time :timeout timeout))
+             (cl-tf2:ensure-transform-available
+              *tf2* source-frame target-frame))
            (poses-equal-in-frame-p (pose-1 pose-2 compare-frame)
              ;; Predicate to check equality of two poses w.r.t. a given frame."
              (when (and (transform-available-p
-                         compare-frame (cl-tf:frame-id pose-1)
+                         compare-frame (tf:frame-id pose-1)
                          :time (tf:stamp pose-1))
                         (transform-available-p
-                         compare-frame (cl-tf:frame-id pose-2)
+                         compare-frame (tf:frame-id pose-2)
                          :time (tf:stamp pose-2)))
                ;; assert: both poses can be transformed into 'compare-frame'
-               (let ((pose-1-transformed 
-                       (tf:transform-pose *tf* :pose pose-1 :target-frame compare-frame))
+               (let ((pose-1-transformed
+                       (cl-tf2:ensure-pose-stamped-transformed
+                        *tf2* pose-1 compare-frame :use-current-ros-time t))
                      (pose-2-transformed
-                       (tf:transform-pose *tf* :pose pose-2 :target-frame compare-frame)))
+                       (cl-tf2:ensure-pose-stamped-transformed
+                        *tf2* pose-2 compare-frame :use-current-ros-time t)))
                  ;; compare transformed poses using pre-defined thresholds
                  (and (< (cl-transforms:v-dist
                       (cl-transforms:origin pose-1-transformed)

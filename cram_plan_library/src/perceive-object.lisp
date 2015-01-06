@@ -29,37 +29,44 @@
 
 (in-package :plan-lib)
 
+(cut:define-hook cram-language::on-begin-find-objects ())
+(cut:define-hook cram-language::on-finish-find-objects (id))
+
 (define-condition ambiguous-perception (simple-plan-failure) ())
 
 (def-goal (perceive-object all ?obj-desig)
-  (with-designators ((obj-loc-desig (location `((of ,?obj-desig))))
-                     (loc (location `((to see) (obj ,?obj-desig))))
-                     (perceive-action (action `((to perceive)
-                                                (obj ,?obj-desig)))))
-    (with-retry-counters ((movement-retries 3))
-      (with-failure-handling
-          ((object-not-found (e)
-             (declare (ignore e))
-             (ros-warn (perceive plan-lib) "Object not found failure.")
-             (do-retry movement-retries
-               (ros-info
-                (perceive plan-lib) "Retrying at different base location.")
-               (retry-with-updated-location
-                loc (next-different-location-solution loc)))))
-        (at-location (loc)
-          (with-retry-counters ((perception-retries 0))
-            (with-failure-handling
-                ((object-not-found (e)
-                   (declare (ignore e))
-                   (ros-warn (perceive plan-lib) "Object not found failure.")
-                   (do-retry perception-retries
-                     (ros-info
-                      (perceive plan-lib) "Retrying at different look location.")
-                     (retry-with-updated-location
-                      obj-loc-desig (next-solution obj-loc-desig)))))
-              (achieve `(looking-at ,(reference obj-loc-desig)))
-              (perform perceive-action)
-              (monitor-action perceive-action))))))))
+  (let ((log-id (first (cram-language::on-begin-find-objects))))
+    (unwind-protect
+         (with-designators ((obj-loc-desig (location `((of ,?obj-desig))))
+                            (loc (location `((to see) (obj ,?obj-desig))))
+                            (perceive-action (action `((to perceive)
+                                                       (obj ,?obj-desig)))))
+           (with-retry-counters ((movement-retries 3))
+             (with-failure-handling
+                 (((or location-not-reached-failure object-not-found) (e)
+                    (declare (ignore e))
+                    (ros-warn (perceive plan-lib) "Object not found failure.")
+                    (do-retry movement-retries
+                      (ros-info
+                       (perceive plan-lib) "Retrying at different base location.")
+                      (retry-with-updated-location
+                       loc (next-different-location-solution loc)))))
+               (at-location (loc)
+                 (with-retry-counters ((perception-retries 3))
+                   (with-failure-handling
+                       ((object-not-found (e)
+                          (declare (ignore e))
+                          (ros-warn (perceive plan-lib) "Object not found failure.")
+                          (do-retry perception-retries
+                            (ros-info
+                             (perceive plan-lib) "Retrying at different look location.")
+                            (when (next-solution obj-loc-desig)
+                              (retry-with-updated-location
+                               obj-loc-desig (next-solution obj-loc-desig))))))
+                     (achieve `(looking-at ,(reference obj-loc-desig)))
+                     (perform perceive-action)
+                     (monitor-action perceive-action)))))))
+      (cram-language::on-finish-find-objects log-id))))
 
 (def-goal (perceive-object a ?obj-desig)
   "Tries to find the object described by ?obj-desig and equates the
@@ -103,4 +110,6 @@ found."
       ((examine-action (action `((desig-props:to desig-props:examine)
                                  (desig-props:obj ,?obj-desig)
                                  (desig-props:properties ,?properties)))))
-    (perform examine-action)))
+    ;; TODO(winkler): Right now, this is broken. Fixing it.
+    ;(perform examine-action)))
+    ))

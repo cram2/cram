@@ -53,8 +53,8 @@ coordinates. The return value is of type vector (three entries, `r',
 input HSV values are in the ranges h = [0, 360], and s, v = [0, 1],
 respectively."
   (let* ((c (* v s)) ;; Chroma
-         (h-prime (/ h 60.0))
-         (x (- 1 (abs (- (mod h-prime 2) 1))))
+         (h-prime (mod (/ h 60.0) 6))
+         (x (* c (- 1 (abs (- (mod h-prime 2) 1)))))
          (m (- v c))
          (pre (cond ((and (<= 0 h-prime) (< h-prime 1)) (vector c x 0))
                     ((and (<= 1 h-prime) (< h-prime 2)) (vector x c 0))
@@ -198,7 +198,7 @@ respectively."
   (when *location-costmap-publisher*
     (multiple-value-bind (markers last-index)
         (location-costmap->marker-array
-         map :frame-id "/odom_combined";frame-id
+         map :frame-id frame-id
              :threshold threshold
              :z z
              :hsv-colormap t)

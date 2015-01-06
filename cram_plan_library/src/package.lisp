@@ -65,10 +65,11 @@
            #:object-picked-up
            #:object-in-hand-failure
            #:object-not-found-failure)
+  (:import-from cram-roslisp-common *tf2*)
   (:desig-properties #:to #:see #:obj #:of #:reach #:type #:trajectory
                      #:pose #:open #:side #:grasp #:lift #:carry :reach
                      #:location #:at #:parked #:pose #:close #:gripper
                      #:follow #:pick-up #:put-down #:height #:orientation
                      #:in #:perceive #:obstacle #:cluster #:execute
                      #:action #:goal #:navigation #:park #:on #:angle
-                     #:examine #:properties))
+                     #:examine #:properties #:scene))
