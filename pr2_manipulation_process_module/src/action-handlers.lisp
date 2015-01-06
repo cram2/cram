@@ -58,6 +58,43 @@
                   ,@body)
                 (setf ,lazy-values (lazy-cdr ,lazy-values))))))
 
+(def-action-handler park-object (object grasp-assignments)
+  (declare (ignore object))
+  (ros-info (pr2 manip-pm) "Parking object")
+  ;; TODO(winkler): Differentiate here between objects held with one
+  ;; arm (simple, default park pose), and multiple arms (keep
+  ;; transformation between the grippers as they are all attached to
+  ;; the same rigid object somewhere)
+  (execute-parks
+   (mapcar (lambda (grasp-assignment)
+             (make-instance
+              'park-parameters
+              :arm (side grasp-assignment)
+              :park-pose
+              (cond ((eql (grasp-type grasp-assignment)
+                          'desig-props:top-slide-down)
+                     (ecase (side grasp-assignment)
+                       (:left *park-pose-left-top-slide-down*)
+                       (:right *park-pose-right-top-slide-down*)))
+                    (t
+                     (ecase (side grasp-assignment)
+                       (:left *park-pose-left-default*)
+                       (:right *park-pose-right-default*))))))
+           grasp-assignments)))
+
+(def-action-handler park-arms (arms)
+  (ros-info (pr2 manip-pm) "Parking free arms: ~a" arms)
+  (execute-parks
+   (mapcar (lambda (arm)
+             (make-instance
+              'park-parameters
+              :arm arm
+              :park-pose
+              (ecase arm
+                (:left *park-pose-left-default*)
+                (:right *park-pose-right-default*))))
+           arms)))
+
 (def-action-handler park (arms obj &optional obstacles)
   (declare (ignore obstacles))
   (let ((arms (force-ll arms)))

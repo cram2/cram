@@ -226,17 +226,18 @@
     (trajectory-desig? ?desig)
     (desig-prop ?desig (pose open)))
 
-  (<- (action-desig ?desig (park ?arms ?obj))
+  (<- (action-desig ?desig (park-object ?obj ?grasp-assignments))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to park))
     (desig-prop ?desig (obj ?obj))
     (current-designator ?obj ?current-obj)
-    (holding-arms ?current-obj ?arms))
-
-  (<- (action-desig ?desig (park (:left :right) nil))
+    (object->grasp-assignments ?current-obj ?grasp-assignments))
+  
+  (<- (action-desig ?desig (park-arms ?arms))
     (trajectory-desig? ?desig)
-    (desig-prop ?desig (to park)))
-
+    (desig-prop ?desig (to park))
+    (free-arms ?arms))
+  
   (<- (action-desig ?desig (lift ?current-obj ?grasp-assignments ?distance))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to lift))
