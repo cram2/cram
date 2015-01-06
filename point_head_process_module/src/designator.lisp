@@ -29,6 +29,8 @@
 
 (in-package :point-head-process-module)
 
+(defvar *action-client* nil)
+
 (defun pose-stamped->point-stamped-msg (ps)
   (roslisp:make-message
    "geometry_msgs/PointStamped"
@@ -53,19 +55,19 @@
 
 (defun make-action-goal (pose-stamped)
   (let ((pose-stamped
-          (moveit:ensure-pose-stamped-transformed
-           pose-stamped "/base_link" :ros-time t)))
+          (cl-tf2:ensure-pose-stamped-transformed
+           *tf2* pose-stamped "/base_link" :use-current-ros-time t)))
     (let* ((point-stamped-msg (pose-stamped->point-stamped-msg
                                pose-stamped)))
-      (roslisp:make-message
-       "pr2_controllers_msgs/PointHeadGoal"
-       max_velocity 10
-       min_duration 0.3
-       pointing_frame "/high_def_frame"
-       (x pointing_axis) 1.0
-       (y pointing_axis) 0.0
-       (z pointing_axis) 0.0
-       target point-stamped-msg))))
+      (actionlib-lisp:make-action-goal-msg
+          *action-client*
+        max_velocity 10
+        min_duration 0.3
+        pointing_frame "/high_def_frame"
+        (x pointing_axis) 1.0
+        (y pointing_axis) 0.0
+        (z pointing_axis) 0.0
+        target point-stamped-msg))))
 
 (def-fact-group point-head (action-desig)
 

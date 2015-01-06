@@ -29,21 +29,20 @@
 
 (in-package :point-head-process-module)
 
-(defvar *action-client* nil)
 (defvar *point-head-thread* nil)
 
 (defun init-point-head-action ()
-  (setf *action-client* (actionlib:make-action-client
+  (setf *action-client* (actionlib-lisp:make-simple-action-client
                          "/head_traj_controller/point_head_action"
                          "pr2_controllers_msgs/PointHeadAction")))
 
 (roslisp-utilities:register-ros-init-function init-point-head-action)
 
-(cut:define-hook on-begin-move-head (pose-stamped))
-(cut:define-hook on-finish-move-head (id success))
+(cut:define-hook cram-language::on-begin-move-head (pose-stamped))
+(cut:define-hook cram-language::on-finish-move-head (id success))
 
 (def-process-module point-head-process-module (goal)
-  (let ((log-id (first (on-begin-move-head (reference goal))))
+  (let ((log-id (first (cram-language::on-begin-move-head (reference goal))))
         (success nil))
     (unwind-protect
          (handler-case
@@ -51,15 +50,13 @@
                (maybe-shutdown-thread)
                (ecase cmd
                  (point
-                  (actionlib:send-goal-and-wait
+                  (actionlib-lisp:send-goal-and-wait
                    *action-client* action-goal
-                   :result-timeout 1.0
-                   :exec-timeout 3.0))
+                   1.0 3.0))
                  (follow
-                  (actionlib:send-goal-and-wait
+                  (actionlib-lisp:send-goal-and-wait
                    *action-client* action-goal
-                   :result-timeout 1.0
-                   :exec-timeout 3.0)
+                   1.0 3.0)
                   ;; (setf *point-head-thread*
                   ;;       (sb-thread:make-thread
                   ;;        (curry #'follow-pose-thread-fun action-goal)))
@@ -72,8 +69,7 @@
              (roslisp:ros-warn
               (point-head process-module)
               "Cannot resolve designator ~a. Ignoring." goal)))
-      (roslisp:wait-duration 1.0)
-      (on-finish-move-head log-id success)
+      (cram-language::on-finish-move-head log-id success)
       (plan-knowledge:on-event
        (make-instance 'plan-knowledge:robot-state-changed)))))
 
@@ -87,7 +83,12 @@
   (top-level
     (roslisp-utils:loop-at-most-every 0.01
       (pursue
-        (actionlib:call-goal *action-client* goal)
+        ;; This is commented out to make sure that we don't
+        ;; accidentally trigger this action through some side
+        ;; effect. The head following a pose is a neat feature and
+        ;; should be re-introduced, but doesn't work right now - so we
+        ;; leave its function infrastructure here and fix it later.
+        ;(actionlib-lisp:call-goal *action-client* goal)
         (sleep 1)))))
 
 (defmethod pm-run :around ((pm point-head-process-module) &optional name)

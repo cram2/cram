@@ -50,18 +50,42 @@
 (defparameter *putdown-offset*
   (tf:make-pose
    (tf:make-3d-vector
-    0.0 0.0 0.0)
+    0.0 0.0 0.02)
    (tf:euler->quaternion)))
 (defparameter *unhand-offset*
   (tf:make-pose
    (tf:make-3d-vector
-    -0.10 0.0 0.0)
+    -0.10 0.0 0.02)
    (tf:euler->quaternion)))
 (defparameter *unhand-top-slide-down-offset*
   (tf:make-pose
    (tf:make-3d-vector
     0.0 0.0 0.10)
    (tf:euler->quaternion)))
+
+;; Parking related poses
+(defparameter *park-pose-left-default*
+  (tf:make-pose-stamped
+   "base_link" (ros-time)
+   (tf:make-3d-vector 0.3 0.5 1.3)
+   (tf:euler->quaternion :ax 0)))
+(defparameter *park-pose-right-default*
+  (tf:make-pose-stamped
+   "base_link" (ros-time)
+   (tf:make-3d-vector 0.3 -0.5 1.3)
+   (tf:euler->quaternion :ax 0)))
+(defparameter *park-pose-left-top-slide-down*
+  (tf:make-pose-stamped
+   "base_link" (ros-time)
+   (tf:make-3d-vector 0.3 0.5 1.3)
+   (tf:euler->quaternion
+    :ax 0 :ay (/ pi -2))))
+(defparameter *park-pose-right-top-slide-down*
+  (tf:make-pose-stamped
+   "base_link" (ros-time)
+   (tf:make-3d-vector 0.3 -0.5 1.3)
+   (tf:euler->quaternion
+    :ax 0 :ay (/ pi -2))))
 
 (defun absolute-handle (obj handle
                         &key (handle-offset-pose
@@ -149,24 +173,31 @@ applied."
               (length sorted-assignments))
     sorted-assignments))
 
-(defun cons-to-grasp-assignments (cons-cells)
+(defun cons->grasp-assignments (cons-cells)
   (mapcar (lambda (cons-cell)
-            (cons-to-grasp-assignment cons-cell))
+            (cons->grasp-assignment cons-cell))
           cons-cells))
 
-(defun cons-to-grasp-assignment (cons-cell &key handle cost)
+(defun cons->grasp-assignment (cons-cell &key handle cost)
   (make-instance 'grasp-assignment
-                 :pose (cdr cons-cell)
+                 :pose (car (cdr cons-cell))
                  :side (car cons-cell)
                  :handle-pair handle
-                 :ik-cost cost))
+                 :ik-cost cost
+                 :grasp-type (cdr (cdr cons-cell))))
 
-(defun make-grasp-assignment (&key side pose handle cost)
+(defun make-grasp-assignment (&key side pose handle cost grasp-type
+                                pregrasp-offset grasp-offset
+                                gripper-offset)
   (make-instance 'grasp-assignment
                  :side side
                  :pose pose
+                 :grasp-type grasp-type
                  :handle-pair handle
-                 :ik-cost cost))
+                 :ik-cost cost
+                 :pregrasp-offset pregrasp-offset
+                 :grasp-offset grasp-offset
+                 :gripper-offset gripper-offset))
 
 (defun cost-function-ik-pose (obj assignment pregrasp-offset grasp-offset
                               &key allowed-collision-objects)
@@ -194,70 +225,77 @@ configuration."
         finally (return total-cost)))
 
 (defun cost-reach-pose (obj arm pose pregrasp-offset grasp-offset
-                        &key allowed-collision-objects)
-  (let* ((distance-pregrasp (cdr (assoc arm
-                                        (arms-pose-distances
-                                         (list arm) pose
-                                         :arms-offset-pose
-                                         pregrasp-offset
-                                         :highlight-links
-                                         (links-for-arm-side arm)))))
-         (distance-grasp (when distance-pregrasp
+                        &key allowed-collision-objects
+                          only-reachable)
+  (let* ((distance-pregrasp
+           (cond (only-reachable (is-pose-reachable
+                                  pose arm
+                                  :arm-offset-pose pregrasp-offset))
+                 (t (cdr (assoc arm
+                                (arms-pose-distances
+                                 (list arm) pose
+                                 :arms-offset-pose
+                                 pregrasp-offset
+                                 :highlight-links
+                                 (links-for-arm-side arm)))))))
+         (distance-grasp (when (and distance-pregrasp (> distance-pregrasp 0))
                            (moveit:remove-collision-object
                             (desig-prop-value obj 'desig-props:name))
                            (prog1
-                               (cdr (assoc arm
-                                           (arms-pose-distances
-                                            (list arm) pose
-                                            :arms-offset-pose
-                                            grasp-offset
-                                            :allowed-collision-objects
-                                            allowed-collision-objects
-                                            :highlight-links
-                                            (links-for-arm-side arm))))
+                               (cond (only-reachable (is-pose-reachable
+                                                      pose arm
+                                                      :arm-offset-pose grasp-offset))
+                                     (t (cdr (assoc arm
+                                                    (arms-pose-distances
+                                                     (list arm) pose
+                                                     :arms-offset-pose
+                                                     grasp-offset
+                                                     :allowed-collision-objects
+                                                     allowed-collision-objects
+                                                     :highlight-links
+                                                     (links-for-arm-side arm))))))
                              (moveit:add-collision-object
                               (desig-prop-value
                                obj 'desig-props:name))))))
-    (roslisp:ros-info (pr2 manip-pm)
-                      "Pregrasp: ~a, Grasp: ~a"
+    (roslisp:ros-info (pr2 manip-pm) "Pregrasp: ~a, Grasp: ~a"
                       distance-pregrasp distance-grasp)
-    (when distance-grasp
+    (when (and distance-grasp (> distance-grasp 0))
       (+ distance-pregrasp distance-grasp))))
+
+(defun is-pose-reachable (pose arm &key arm-offset-pose)
+  (let ((pose (cond (arm-offset-pose (relative-pose pose arm-offset-pose))
+                    (t pose))))
+    (roslisp:publish (roslisp:advertise "/testpose" "geometry_msgs/PoseStamped")
+                     (tf:pose-stamped->msg pose))
+    (cpl:with-failure-handling
+        ((moveit:no-ik-solution (f)
+           (declare (ignore f))
+           (return 0)))
+      (when (moveit:compute-ik
+             (cut:var-value
+              '?link
+              (first
+               (crs:prolog
+                `(manipulator-link ,arm ?link))))
+             (ecase arm
+               (:left "left_arm")
+               (:right "right_arm"))
+             pose)
+        1))))
 
 (defun arms-pose-distances (arms pose
                             &key
                               allowed-collision-objects
-                              (constraint-aware nil)
                               (arms-offset-pose
                                (tf:make-identity-pose))
                               highlight-links)
-  (flet ((apply-pose-offset (pose offset-pose)
-           (cl-transforms:transform-pose
-            (cl-transforms:pose->transform pose)
-            offset-pose)))
-    (let ((costme
-            (loop for arm in arms
-                  for target-link = (cut:var-value
-                                     '?link
-                                     (first
-                                      (crs:prolog
-                                       `(manipulator-link ,arm ?link))))
-                  for pose-offsetted = (apply-pose-offset
-                                        pose arms-offset-pose)
-                  for pose-stamped = (tf:make-pose-stamped
-                                      "/map" 0.0
-                                      (tf:origin pose-offsetted)
-                                      (tf:orientation pose-offsetted))
-                  for publ = (publish-pose pose-stamped "/testpublisher2")
-                  for distance = (reaching-length
-                                  pose-stamped arm
-                                  :allowed-collision-objects
-                                  allowed-collision-objects
-                                  :highlight-links highlight-links)
-                  when distance
-                    collect (cons arm distance))))
-      (when costme
-        (ros-info (pr2 manip-pm) "Set of IK costs:")
-        (loop for (arm . cost) in costme
-              do (ros-info (pr2 manip-pm) "Arm = ~a, Cost = ~a" arm cost)))
-      costme)))
+  (loop for arm in arms
+        for distance = (reaching-length
+                        (relative-pose pose arms-offset-pose) arm
+                        :allowed-collision-objects
+                        allowed-collision-objects
+                        :highlight-links highlight-links)
+        when distance
+          collect (progn
+                    (ros-info (pr2 manip-pm) "Arm = ~a, Cost = ~a" arm distance)
+                    (cons arm distance))))

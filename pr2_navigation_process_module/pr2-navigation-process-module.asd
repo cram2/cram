@@ -31,7 +31,7 @@
   :author "Lorenz Moesenlechner"
   :license "BSD"
 
-  :depends-on (actionlib
+  :depends-on (actionlib-lisp
                process-modules
                designators
                roslisp-utilities

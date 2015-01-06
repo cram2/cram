@@ -86,10 +86,9 @@
   orientation of `pose'. If `pose' is of type TF:POSE-STAMPED,
   transforms it first into the fixed frame."
   (let ((pose (etypecase pose
-                (tf:pose-stamped (tf:transform-pose
-                                  cram-roslisp-common:*tf*
-                                  :target-frame designators-ros:*fixed-frame*
-                                  :pose pose))
+                (tf:pose-stamped (cl-tf2:ensure-pose-stamped-transformed
+                                  *tf2* pose designators-ros:*fixed-frame*
+                                  :use-current-ros-time t))
                 (cl-transforms:pose pose))))
     (find-closest-orientation
      (cl-transforms:orientation pose) orientations)))
