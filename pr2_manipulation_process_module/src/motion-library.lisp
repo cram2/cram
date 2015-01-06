@@ -48,6 +48,9 @@
    (unhand-pose :accessor unhand-pose :initform nil :initarg :unhand-pose)
    (open-radius :accessor open-radius :initform nil :initarg :open-radius)))
 
+(defclass park-parameters (manipulation-parameters)
+  ((park-pose :accessor park-pose :initform nil :initarg :park-pose)))
+
 (define-hook on-execute-grasp-with-effort (object-name))
 (define-hook on-execute-grasp-gripper-closed
     (object-name gripper-effort gripper-close-pos side pregrasp-pose safe-pose))
@@ -116,6 +119,10 @@ the manipulation parameter sets `parameter-sets' and executes the code
   "Returns the TF link name associated with the wrist of the robot's
 arm `arm'."
   (cut:var-value '?link (first (crs:prolog `(manipulator-link ,arm ?link)))))
+
+(defun execute-parks (parameter-sets)
+  (with-parameter-sets parameter-sets
+    (assume 'park-pose)))
 
 (defun open-gripper-if-necessary (arm &key (threshold 0.08))
   "Opens the gripper on the robot's arm `arm' if its current position
