@@ -28,11 +28,12 @@
 
 (in-package :plan-lib)
 
-(define-hook on-preparing-performing-action-designator (action-designator
-                                                        matching-process-modules)
+(define-hook cram-language::on-preparing-performing-action-designator
+    (action-designator
+     matching-process-modules)
   (:documentation "Gets triggered right before an action designator gets resolved, but after its matching process modules were identified."))
 
-(define-hook on-finishing-performing-action-designator (id success)
+(define-hook cram-language::on-finishing-performing-action-designator (id success)
   (:documentation "Gets triggered right after an action designator was resolved."))
 
 (def-goal (perform ?action-designator)
@@ -49,20 +50,17 @@
     ;; necessary to keep the high-level plans working. For instance,
     ;; if perception fails, plans expect an OBJECT-NOT-FOUND failure,
     ;; not a COMPOSITE-FAILURE.
-    (let ((result nil)
-          (log-id (first
-                   (on-preparing-performing-action-designator
-                    ?action-designator
-                    matching-process-modules))))
+    (cpl-impl::log-block
+        #'cram-language::on-preparing-performing-action-designator
+        (?action-designator matching-process-modules)
+        #'cram-language::on-finishing-performing-action-designator
       (with-failure-handling
           ((composite-failure (failure)
              (fail (car (composite-failures failure)))))
-        (unwind-protect
-             (setf result
-                   (try-each-in-order (module matching-process-modules)
-                     (perform-on-process-module module ?action-designator)))
-          (on-finishing-performing-action-designator
-           log-id result))))))
+        (setf result
+              (try-each-in-order (module matching-process-modules)
+                (perform-on-process-module module
+                                           ?action-designator)))))))
 
 (def-goal (perform-on-process-module ?module ?action-designator)
   (pm-execute ?module ?action-designator))

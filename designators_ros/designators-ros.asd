@@ -9,6 +9,7 @@
   :depends-on (:alexandria
                :designators
                :cl-tf
+	       :cl-tf2
                :cram-utilities
                :cram-reasoning
                :cram-roslisp-common)

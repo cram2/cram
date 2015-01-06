@@ -28,8 +28,8 @@
 ;;;
 
 (desig-props:def-desig-package location-costmap
-    (:use :cl :crs :cut :roslisp-utilities :cram-roslisp-common :alexandria
-          :roslisp :designators-ros #:cram-designators)
+  (:use :cl :crs :cut :roslisp-utilities :cram-roslisp-common :alexandria
+        :roslisp :designators-ros #:cram-designators)
   (:export #:make-gauss-cost-function
            #:make-location-cost-function
            #:make-range-cost-function
@@ -106,6 +106,7 @@
            #:costmap-padding #:costmap-manipulation-padding
            #:costmap-in-reach-distance #:costmap-reach-minimal-distance)
   (:import-from #:cram-math invalid-probability-distribution)
+  (:import-from cram-roslisp-common *tf2*)
   (:shadowing-import-from :roslisp-utilities #:startup-ros #:shutdown-ros
                           #:register-ros-init-function #:register-ros-cleanup-function
                           #:rosify-lisp-name #:lispify-ros-name)

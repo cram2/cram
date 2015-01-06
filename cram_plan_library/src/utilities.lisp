@@ -43,12 +43,13 @@
   ;; zero. This is an ugly hack that I feel bad about. Someone needs
   ;; to fix it in the future.
   (let ((robot-pose
-          (cl-tf:transform-pose
-           *tf* :pose (tf:make-pose-stamped
-                       designators-ros:*robot-base-frame* 0.0
-                       (cl-transforms:make-identity-vector)
-                       (cl-transforms:make-identity-rotation))
-           :target-frame designators-ros:*fixed-frame*)))
+          (cl-tf2:ensure-pose-stamped-transformed
+           *tf2*
+           (tf:make-pose-stamped
+            designators-ros:*robot-base-frame* 0.0
+            (cl-transforms:make-identity-vector)
+            (cl-transforms:make-identity-rotation))
+           designators-ros:*fixed-frame*)))
     (tf:copy-pose-stamped
      robot-pose
      :origin (cl-transforms:copy-3d-vector
