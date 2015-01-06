@@ -194,7 +194,7 @@
 
   (<- (absolute-handle ?object-desig ?handle ?absolute-handle)
     (current-designator ?object-desig ?current-object)
-    (reorient-oject ?object-desig ?reorient-object)
+    (reorient-object ?object-desig ?reorient-object)
     (lisp-fun absolute-handle ?current-object ?handle
               :reorient ?reorient-object
               ?absolute-handle))
@@ -270,13 +270,13 @@
     (desig-prop ?desig (obj ?obj))
     (current-designator ?obj ?current-obj))
   
-  (<- (grasp-offsets push ?pregrasp-offset ?grasp-offset)
-    (symbol-value *pregrasp-offset* ?pregrasp-offset)
-    (symbol-value *grasp-offset* ?grasp-offset))
-  
   (<- (grasp-offsets top-slide-down ?pregrasp-offset ?grasp-offset)
     (symbol-value *pregrasp-top-slide-down-offset* ?pregrasp-offset)
     (symbol-value *grasp-top-slide-down-offset* ?grasp-offset))
+  
+  (<- (grasp-offsets ?_ ?pregrasp-offset ?grasp-offset) ;; For example, 'push'
+    (symbol-value *pregrasp-offset* ?pregrasp-offset)
+    (symbol-value *grasp-offset* ?grasp-offset))
   
   (<- (reorient-object ?object nil))
   
@@ -359,12 +359,14 @@
     (desig-prop ?object (desig-props:at ?objloc))
     (current-designator ?objloc ?current-objloc)
     (desig-prop ?current-objloc (desig-props:in desig-props:gripper))
-    (setof ?grasp (and (desig-prop ?objloc (desig-props:pose ?objpose))
+    (setof ?grasp (and (desig-prop ?current-objloc
+                                   (desig-props:pose ?objpose))
                        (arm-for-pose ?objpose ?arm)
                        (member ?arm (:left :right))
                        (once
-                        (or (desig-prop ?objloc (desig-props:handle
-                                                   (?arm ?handle)))
+                        (or (desig-prop ?current-objloc
+                                        (desig-props:handle
+                                         (?arm ?handle)))
                             (equal ?handle nil)))
                        (grasp-type ?handle ?grasp-type)
                        (equal ?posearm (?arm . (?objpose
