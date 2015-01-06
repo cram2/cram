@@ -42,6 +42,7 @@
                  moveit_msgs-srv
                  moveit_msgs-msg
                  sensor_msgs-msg
+                 household_objects_database_msgs-msg
                  household_objects_database_msgs-srv
                  location-costmap
                  designators

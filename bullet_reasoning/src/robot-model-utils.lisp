@@ -38,35 +38,18 @@
 
 (defun set-robot-state-from-tf (tf robot &key (reference-frame "/map") timestamp)
   (let* ((root-link (cl-urdf:name (cl-urdf:root-link (urdf robot))))
-         (robot-transform (when (tf:wait-for-transform
-                                 tf :timeout 2.0 :source-frame root-link
-                                    :target-frame reference-frame
-                                    :time timestamp)
-                            (tf:lookup-transform
-                             tf :source-frame root-link :target-frame reference-frame
-                                :time timestamp))))
+         (robot-transform
+           (cl-tf2:ensure-transform-available *tf2* root-link reference-frame)))
     (when robot-transform
       (setf (link-pose robot root-link)
             (cl-transforms:transform->pose robot-transform))
       (loop for name being the hash-keys in  (slot-value robot 'links) do
         (let ((tf-name (if (eql (elt name 0) #\/) name (concatenate 'string "/" name))))
-          ;; We wait transforms instead of calling can-transform because
-          ;; in particular at initialization time, the TF tree might not
-          ;; be fully received yet.
-          (when (tf:wait-for-transform
-                 tf :timeout 0.5 :source-frame tf-name
-                 :target-frame root-link
-                 :time timestamp)
-            (handler-case
-                (setf (link-pose robot name)
-                      (cl-transforms:transform->pose
-                       (cl-transforms:transform*
-                        robot-transform
-                        (tf:lookup-transform
-                         tf :source-frame tf-name :target-frame root-link
-                         :time timestamp))))
-              (tf:tf-lookup-error ()
-                nil))))))))
+          (setf (link-pose robot name)
+                (cl-transforms:transform->pose
+                 (cl-transforms:transform*
+                  robot-transform
+                  (cl-tf2:ensure-transform-available *tf2* tf-name root-link)))))))))
 
 (defgeneric set-robot-state-from-joints (joint-states robot)
   (:method ((joint-states sensor_msgs-msg:jointstate) (robot robot-object))
@@ -308,8 +291,8 @@ time for that :(..."
                           fixed-frame robot-base-frame time
                           (cl-transforms:pose->transform (pose robot))))
     (let* ((ik-base-frame "torso_lift_link")
-           (pose (tf:transform-pose tf :pose (tf:copy-pose-stamped pose-stamped :stamp 0)
-                                       :target-frame ik-base-frame)))
+           (pose (cl-tf2:ensure-pose-stamped-transformed
+                  *tf2* pose-stamped ik-base-frame :use-current-ros-time t)))
       (roslisp:with-fields ((solution (joint_state solution))
                             (error-code (val error_code)))
           (roslisp:call-persistent-service
