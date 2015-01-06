@@ -105,7 +105,7 @@ is returned."
    (remove-if-not (lambda (designator)
                     (and
                      (typep designator 'desig:object-designator)))
-                  (desig:get-all-designators))
+                  (reverse (desig:get-all-designators)))
    :test #'desig:desig-equal))
 
 (defmethod cram-plan-knowledge:clear-belief cram-environment-representation ()

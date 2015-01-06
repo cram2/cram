@@ -94,5 +94,6 @@
            timeline-current-world-state timeline-lookup
            holds-in-world holds occurs at
            during throughout with-timeline)
+  (:import-from cram-roslisp-common *tf2*)
   (:desig-properties mug mondamin plate pot handle cutlery knife fork spatula
                      pancake pancake-maker))
