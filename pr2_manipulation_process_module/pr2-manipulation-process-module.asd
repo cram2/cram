@@ -62,4 +62,4 @@
               :depends-on ("package" "kinematics" "collision-environment" "controller-manager" "motion-library" "grasping" "sensors"))
              (:file "events" :depends-on ("package" "collision-environment"))
              (:file "designator" :depends-on ("package" "process-module"))
-             (:file "action-handlers" :depends-on ("package" "process-module"))))))
+             (:file "action-handlers" :depends-on ("package" "process-module" "grasping"))))))
