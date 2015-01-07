@@ -369,15 +369,15 @@
                                          (?arm ?handle)))
                             (equal ?handle nil)))
                        (grasp-type ?handle ?grasp-type)
-                       (equal ?posearm (?arm . (?objpose
-                                                ?grasp-type))))
+                       (equal ?grasp (?arm . (?objpose
+                                              ?grasp-type))))
            ?grasps))
   
   (<- (grasps->grasp-assignments ?grasps ?grasp-assignments)
     (lisp-fun cons->grasp-assignments ?grasps ?grasp-assignments))
   
   (<- (object->grasp-assignments ?object ?grasp-assignments)
-    (object-grasps-in-gripper ?current-obj ?grasps)
+    (object-grasps-in-gripper ?object ?grasps)
     (lisp-fun cons->grasp-assignments ?grasps ?grasp-assignments))
   
   (<- (action-desig ?desig (put-down ?current-obj ?loc ?grasp-assignments))
