@@ -70,6 +70,7 @@
              (make-instance
               'park-parameters
               :arm (side grasp-assignment)
+              :max-collisions-tolerance 3
               :park-pose
               (cond ((eql (grasp-type grasp-assignment)
                           'desig-props:top-slide-down)
@@ -89,6 +90,7 @@
              (make-instance
               'park-parameters
               :arm arm
+              :max-collisions-tolerance 3
               :park-pose
               (ecase arm
                 (:left *park-pose-left-default*)
@@ -255,6 +257,8 @@
                (declare (ignore f))
                (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable)))
           (dolist (param-set params)
+            (let ((pub (roslisp:advertise "/dhdhdh" "geometry_msgs/PoseStamped")))
+              (roslisp:publish pub (tf:pose-stamped->msg (pregrasp-pose param-set))))
             (cram-language::on-grasp-decisions-complete
              log-id obj-name (pregrasp-pose param-set)
              (grasp-pose param-set) (arm param-set) obj-pose))
