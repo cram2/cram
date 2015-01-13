@@ -168,6 +168,14 @@
                    (orient-pose pose orientation-offset)
                    z-offset))))
 
+(defun check-reorient (object)
+  (let ((ro-s (force-ll
+               (lazy-mapcar (lambda (bdgs)
+                              (with-vars-bound (?ro) bdgs
+                                ?ro))
+                            (crs:prolog `(reorient-object ,object ?ro))))))
+    (find t ro-s)))
+
 (def-fact-group pr2-manipulation-designators (action-desig
                                               cram-language::grasp-effort
                                               reorient-object)
@@ -191,14 +199,17 @@
   (<- (obstacles ?desig ?obstacles)
     (findall ?o (desig-prop ?desig (obstacle ?o))
              ?obstacles))
-
+  
+  (<- (reorient-object-globally ?object-desig ?reorient-object)
+    (lisp-fun check-reorient ?object-desig ?reorient-object))
+  
   (<- (absolute-handle ?object-desig ?handle ?absolute-handle)
     (current-designator ?object-desig ?current-object)
-    (reorient-object ?object-desig ?reorient-object)
+    (reorient-object-globally ?object-desig ?reorient-object)
     (lisp-fun absolute-handle ?current-object ?handle
               :reorient ?reorient-object
               ?absolute-handle))
-
+  
   (<- (handles ?object ?handles)
     (setof ?handle (desig-prop ?object (handle ?handle)) ?handles))
   
@@ -327,11 +338,14 @@
   (<- (free-arms ?free-arms)
     (setof ?free-arm (free-arm ?free-arm) ?free-arms))
   
-  (<- (free-arms-handles-combos ?object ?combos)
+  (<- (carry-handles ?object ?carry-handles)
     (once
      (or (desig-prop ?object (desig-props::carry-handles
                               ?carry-handles))
-         (equal ?carry-handles 1)))
+         (equal ?carry-handles 1))))
+  
+  (<- (free-arms-handles-combos ?object ?combos)
+    (carry-handles ?object ?carry-handles)
     (once
      (or (and (equal ?carry-handles 1)
               (equal ?use-all-arms nil))
@@ -346,12 +360,14 @@
     (member ?arm-handle-combo ?arm-handle-combos)
     (setof ?grasp-assignment
            (arm-handle-assignment ?object ?arm-handle-combo ?grasp-assignment)
-           ?grasp-assignments))
+           ?grasp-assignments)
+    (carry-handles ?object ?carry-handles)
+    (length ?grasp-assignments ?carry-handles))
   
   (<- (grasp-type ?obj ?grasp-type)
     (current-designator ?obj ?current)
     (desig-prop ?current (desig-props:grasp-type ?grasp-type)))
-
+  
   (<- (grasp-type ?_ ?grasp-type)
     (equal ?grasp-type desig-props:push))
   
