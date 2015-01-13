@@ -252,26 +252,22 @@
                                (:right *right-safe-pose*))
                   :effort (min-object-grasp-effort obj)))))
       (let ((params (mapcar #'grasp-parameters assignments-list)))
-        (cpl:with-failure-handling
-            ((cram-plan-failures:manipulation-failure (f)
-               (declare (ignore f))
-               (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable)))
-          (dolist (param-set params)
-            (let ((pub (roslisp:advertise "/dhdhdh" "geometry_msgs/PoseStamped")))
-              (roslisp:publish pub (tf:pose-stamped->msg (pregrasp-pose param-set))))
-            (cram-language::on-grasp-decisions-complete
-             log-id obj-name (pregrasp-pose param-set)
-             (grasp-pose param-set) (arm param-set) obj-pose))
-          (update-action-designator
-           action-desig `(,@(mapcar (lambda (param-set)
-                                      `(grasp ((arm ,(arm param-set))
-                                               (effort ,(effort param-set))
-                                               (object-pose ,obj-pose)
-                                               (grasp-type ,(grasp-type param-set))
-                                               (pregrasp-pose ,(pregrasp-pose param-set))
-                                               (grasp-pose ,(grasp-pose param-set)))))
-                                    params)))
-          (execute-grasps obj-name params))
+        (dolist (param-set params)
+          (let ((pub (roslisp:advertise "/dhdhdh" "geometry_msgs/PoseStamped")))
+            (roslisp:publish pub (tf:pose-stamped->msg (pregrasp-pose param-set))))
+          (cram-language::on-grasp-decisions-complete
+           log-id obj-name (pregrasp-pose param-set)
+           (grasp-pose param-set) (arm param-set) obj-pose))
+        (update-action-designator
+         action-desig `(,@(mapcar (lambda (param-set)
+                                    `(grasp ((arm ,(arm param-set))
+                                             (effort ,(effort param-set))
+                                             (object-pose ,obj-pose)
+                                             (grasp-type ,(grasp-type param-set))
+                                             (pregrasp-pose ,(pregrasp-pose param-set))
+                                             (grasp-pose ,(grasp-pose param-set)))))
+                                  params)))
+        (execute-grasps obj-name params)
         (dolist (param-set params)
           (with-vars-strictly-bound (?link-name)
               (lazy-car
@@ -298,23 +294,28 @@
         (log-id (first (cram-language::on-begin-grasp object)))
         (success nil))
     (unwind-protect
-         (unless (lazy-try-until assignments-list ?grasp-assignments grasp-assignments
-                   (block next-assignment-list
-                     (cpl:with-failure-handling
-                         ((cram-plan-failures:manipulation-pose-unreachable (f)
-                            (declare (ignore f))
-                            (ros-warn (pr2 manip-pm) "Try next grasp assignment")
-                            (return-from next-assignment-list)))
-                       (ros-info (pr2 manip-pm) "Performing grasp assignment(s):~%")
-                       (dolist (assignment assignments-list)
-                         (ros-info (pr2 manip-pm) " - ~a/~a"
-                                   (grasp-type assignment)
-                                   (side assignment)))
-                       (perform-grasps action-desig object assignments-list :log-id log-id)
-                       (ros-info (pr2 manip-pm) "Successful grasp")
-                       (setf success t)
-                       (success))))
-           (cpl:fail 'manipulation-pose-unreachable))
+         (block object-lost-catch
+           (cpl:with-failure-handling
+               ((cram-plan-failures:manipulation-failure (f)
+                  (declare (ignore f))
+                  (return-from object-lost-catch)))
+             (unless (lazy-try-until assignments-list ?grasp-assignments grasp-assignments
+                       (block next-assignment-list
+                         (cpl:with-failure-handling
+                             ((cram-plan-failures:manipulation-pose-unreachable (f)
+                                (declare (ignore f))
+                                (ros-warn (pr2 manip-pm) "Try next grasp assignment")
+                                (return-from next-assignment-list)))
+                           (ros-info (pr2 manip-pm) "Performing grasp assignment(s):~%")
+                           (dolist (assignment assignments-list)
+                             (ros-info (pr2 manip-pm) " - ~a/~a"
+                                       (grasp-type assignment)
+                                       (side assignment)))
+                           (perform-grasps action-desig object assignments-list :log-id log-id)
+                           (ros-info (pr2 manip-pm) "Successful grasp")
+                           (setf success t)
+                           (success))))
+               (cpl:fail 'manipulation-pose-unreachable))))
       (cram-language::on-finish-grasp log-id success))))
 
 (defun pose-pointing-away-from-base (object-pose)
