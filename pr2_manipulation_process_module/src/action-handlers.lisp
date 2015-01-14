@@ -296,8 +296,9 @@
     (unwind-protect
          (block object-lost-catch
            (cpl:with-failure-handling
-               ((cram-plan-failures:manipulation-failure (f)
+               ((cram-plan-failures:object-lost (f)
                   (declare (ignore f))
+                  (ros-warn (pr2 manip-pm) "Lost object. Canceling grasp.")
                   (return-from object-lost-catch)))
              (unless (lazy-try-until assignments-list ?grasp-assignments grasp-assignments
                        (block next-assignment-list
