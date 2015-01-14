@@ -289,34 +289,34 @@
 
 (def-action-handler grasp (action-desig object)
   "Handles the grasping of any given `object'. Calculates proper grasping poses for the object, based on physical gripper characteristics, free grippers, object grasp points (handles), grasp type for this object, and position of the object relative to the robot's grippers. `action-desig' is the action designator instance that triggered this handler's execution, and is later updated with more precise grasping information based on the actual infered action."
-  (let ((grasp-assignments (crs:prolog `(grasp-assignments
-                                         ,object ?grasp-assignments)))
+  (let ((grasp-assignments (crs:prolog `(grasp-assignments ,object ?grasp-assignments)))
         (log-id (first (cram-language::on-begin-grasp object)))
         (success nil))
     (unwind-protect
-         (block object-lost-catch
-           (cpl:with-failure-handling
-               ((cram-plan-failures:object-lost (f)
-                  (declare (ignore f))
-                  (ros-warn (pr2 manip-pm) "Lost object. Canceling grasp.")
-                  (return-from object-lost-catch)))
-             (unless (lazy-try-until assignments-list ?grasp-assignments grasp-assignments
-                       (block next-assignment-list
-                         (cpl:with-failure-handling
-                             ((cram-plan-failures:manipulation-pose-unreachable (f)
-                                (declare (ignore f))
-                                (ros-warn (pr2 manip-pm) "Try next grasp assignment")
-                                (return-from next-assignment-list)))
-                           (ros-info (pr2 manip-pm) "Performing grasp assignment(s):~%")
-                           (dolist (assignment assignments-list)
-                             (ros-info (pr2 manip-pm) " - ~a/~a"
-                                       (grasp-type assignment)
-                                       (side assignment)))
-                           (perform-grasps action-desig object assignments-list :log-id log-id)
-                           (ros-info (pr2 manip-pm) "Successful grasp")
-                           (setf success t)
-                           (success))))
-               (cpl:fail 'manipulation-pose-unreachable))))
+         (unless
+             (block object-lost-catch
+               (cpl:with-failure-handling
+                   ((cram-plan-failures:object-lost (f)
+                      (declare (ignore f))
+                      (ros-warn (pr2 manip-pm) "Lost object. Canceling grasp.")
+                      (return-from object-lost-catch)))
+                 (lazy-try-until assignments-list ?grasp-assignments grasp-assignments
+                   (block next-assignment-list
+                     (cpl:with-failure-handling
+                         ((cram-plan-failures:manipulation-pose-unreachable (f)
+                            (declare (ignore f))
+                            (ros-warn (pr2 manip-pm) "Try next grasp assignment")
+                            (return-from next-assignment-list)))
+                       (ros-info (pr2 manip-pm) "Performing grasp assignment(s):~%")
+                       (dolist (assignment assignments-list)
+                         (ros-info (pr2 manip-pm) " - ~a/~a"
+                                   (grasp-type assignment)
+                                   (side assignment)))
+                       (perform-grasps action-desig object assignments-list :log-id log-id)
+                       (ros-info (pr2 manip-pm) "Successful grasp")
+                       (setf success t)
+                       (success))))))
+           (cpl:fail 'manipulation-pose-unreachable))
       (cram-language::on-finish-grasp log-id success))))
 
 (defun pose-pointing-away-from-base (object-pose)
