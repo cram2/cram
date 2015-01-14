@@ -279,7 +279,7 @@
     (trajectory-desig? ?desig)
     (desig-prop ?desig (to grasp))
     (desig-prop ?desig (obj ?obj))
-    (current-designator ?obj ?current-obj))
+    (newest-effective-designator ?obj ?current-obj))
   
   (<- (grasp-offsets top-slide-down ?pregrasp-offset ?grasp-offset)
     (symbol-value *pregrasp-top-slide-down-offset* ?pregrasp-offset)
