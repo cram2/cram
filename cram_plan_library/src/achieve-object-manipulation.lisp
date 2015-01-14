@@ -85,9 +85,7 @@
                                      'location
                                      `((of ,perceived-object))))))
             (perform grasp-action)
-            (monitor-action grasp-action))
-          (when (not (desig-equal ?obj perceived-object))
-            (equate ?obj perceived-object))))
+            (monitor-action grasp-action))))
       (ros-info (achieve plan-lib) "Grasped object.")
       (with-failure-handling
           (((or manipulation-failure
