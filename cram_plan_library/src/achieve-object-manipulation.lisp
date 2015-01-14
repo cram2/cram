@@ -70,6 +70,8 @@
                       (fail 'object-not-found))
                     perceived-object))))
           (ros-info (achieve plan-lib) "Found the object.")
+          (when (not (desig-equal ?obj perceived-object))
+            (equate ?obj perceived-object))
           (with-failure-handling
               ((manipulation-failure (f)
                  (declare (ignore f))
@@ -78,16 +80,14 @@
                    (ros-warn (achieve plan-lib) "Retrying.")
                    (retry))
                  (fail 'manipulation-pose-unreachable)))
-            (when (not (desig-equal ?obj perceived-object))
-              (equate ?obj perceived-object))
             (achieve `(looking-at ,(reference
                                     (make-designator
                                      'location
                                      `((of ,perceived-object))))))
             (perform grasp-action)
-            (monitor-action grasp-action)
-            (when (not (desig-equal ?obj perceived-object))
-              (equate ?obj perceived-object)))))
+            (monitor-action grasp-action))
+          (when (not (desig-equal ?obj perceived-object))
+            (equate ?obj perceived-object))))
       (ros-info (achieve plan-lib) "Grasped object.")
       (with-failure-handling
           (((or manipulation-failure
