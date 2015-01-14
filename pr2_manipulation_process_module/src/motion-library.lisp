@@ -82,6 +82,30 @@ trying to assume the pose `pose'."
     (execute-move-arm-pose arm pose :quiet t :plan-only t
                                     :ignore-collisions ignore-collisions)))
 
+(defun link-distance-from-pose (link-name pose-stamped)
+  (let* ((link-identity-pose (tf:pose->pose-stamped
+                              link-name 0.0
+                              (tf:make-identity-pose)))
+         (link-in-pose-frame (cl-tf2:ensure-pose-stamped-transformed
+                              *tf2* link-identity-pose (tf:frame-id pose-stamped)
+                              :use-current-ros-time t)))
+    (tf:v-dist (tf:origin link-in-pose-frame) (tf:origin pose-stamped))))
+
+(defun pose-assumed (parameter-sets slot-name &key (threshold 3.0))
+  "Checks whether the pose defined in the slot `slot-name' was assumes for all parameter sets in `parameter-sets'. The value `threshold' is used as the maximum cartesian distance by which the to be assumed and the actual pose might differ in order to be valid."
+  (every #'identity
+         (mapcar (lambda (parameter-set)
+                   (let* ((link-name (cut:var-value
+                                      '?link
+                                      (first
+                                       (crs:prolog
+                                        `(manipulator-link
+                                          ,(arm parameter-set) ?link)))))
+                          (pose-stamped (slot-value parameter-set slot-name))
+                          (distance (link-distance-from-pose link-name pose-stamped)))
+                     (<= distance threshold)))
+                 parameter-sets)))
+
 (defun assume-poses (parameter-sets slot-name &key ignore-collisions)
   "Moves all arms defined in `parameter-sets' into the poses given by
 the slot `slot-name' as defined in the respective parameter-sets. If
@@ -99,7 +123,8 @@ motion."
     (cpl:with-failure-handling
         ((cram-plan-failures:manipulation-failure (f)
            (declare (ignore f))
-           (when max-collisions-tolerance
+           (when (and max-collisions-tolerance
+                      (> max-collisions-tolerance 0))
              (decf max-collisions-tolerance)
              (when (< max-collisions-tolerance 1)
                (setf max-collisions-tolerance nil)
@@ -120,7 +145,10 @@ motion."
                       (slot-value parameter-set slot-name)
                       :ignore-collisions ignore-collisions)))
                  parameter-sets)
-                :ignore-va t))))))
+                :ignore-va t)))
+      (unless (pose-assumed parameter-sets slot-name)
+        (ros-warn (pr2 manip-pm) "Failed to assume at least one pose (distance too large).")
+        (cpl:fail 'cram-plan-failures:manipulation-failure)))))
 
 (defmacro with-parameter-sets (parameter-sets &body body)
   "Defines parameter-set specific functions (like assuming poses) for
