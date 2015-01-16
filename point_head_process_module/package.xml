@@ -24,7 +24,6 @@
   <build_depend>cram_plan_knowledge</build_depend>
   <build_depend>roslisp_utilities</build_depend>
   <build_depend>alexandria</build_depend>
-  <build_depend>cram_moveit</build_depend>
 
   <!-- Dependencies needed after this package is compiled. -->
   <run_depend>pr2_controllers_msgs</run_depend>
@@ -36,7 +35,6 @@
   <run_depend>cram_plan_knowledge</run_depend>
   <run_depend>roslisp_utilities</run_depend>
   <run_depend>alexandria</run_depend>
-  <run_depend>cram_moveit</run_depend>
 
 </package>
 
