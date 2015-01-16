@@ -11,7 +11,6 @@ find_package(catkin REQUIRED COMPONENTS
   cram_plan_knowledge
   roslisp_utilities
   alexandria
-  cram_moveit
 )
 
 catkin_package()
