@@ -24,7 +24,6 @@
   <build_depend>cram_roslisp_common</build_depend>
   <build_depend>cram_plan_failures</build_depend>
   <build_depend>cram_plan_knowledge</build_depend>
-  <build_depend>cram_moveit</build_depend>
   
   <!-- Dependencies needed after this package is compiled. -->
   <run_depend>move_base_msgs</run_depend>
@@ -36,7 +35,6 @@
   <run_depend>cram_roslisp_common</run_depend>
   <run_depend>cram_plan_failures</run_depend>
   <run_depend>cram_plan_knowledge</run_depend>
-  <run_depend>cram_moveit</run_depend>
 
 </package>
 
