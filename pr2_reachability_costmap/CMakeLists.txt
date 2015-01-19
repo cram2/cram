@@ -1,19 +1,15 @@
-cmake_minimum_required(VERSION 2.4.6)
-include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+cmake_minimum_required(VERSION 2.8.3)
+project(pr2_reachability_costmap)
 
-# Set the build type.  Options are:
-#  Coverage       : w/ debug symbols, w/o optimization, w/ code-coverage
-#  Debug          : w/ debug symbols, w/o optimization
-#  Release        : w/o debug symbols, w/ optimization
-#  RelWithDebInfo : w/ debug symbols, w/ optimization
-#  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-#set(ROS_BUILD_TYPE RelWithDebInfo)
+find_package(catkin REQUIRED COMPONENTS
+  cram_language
+)
 
-rosbuild_init()
+catkin_package()
+include_directories(
+  ${catkin_INCLUDE_DIRS}
+)
 
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
-
-rosbuild_add_lisp_executable(
-  bin/generate_reachability_map pr2-reachability-costmap
-  pr2-reachability-costmap:generate-map-main)
+#add_lisp_executable(
+#  bin/generate_reachability_map pr2-reachability-costmap
+#  pr2-reachability-costmap:generate-map-main)

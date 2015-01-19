@@ -34,7 +34,8 @@
   ((arm :accessor arm :initform nil :initarg :arm)
    (safe-pose :accessor safe-pose :initform nil :initarg :safe-pose)
    (grasp-type :accessor grasp-type :initform nil :initarg :grasp-type)
-   (object-part :accessor object-part :initform nil :initarg :object-part)))
+   (object-part :accessor object-part :initform nil :initarg :object-part)
+   (max-collisions-tolerance :accessor max-collisions-tolerance :initform nil :initarg :max-collisions-tolerance)))
 
 (defclass grasp-parameters (manipulation-parameters)
   ((grasp-pose :accessor grasp-pose :initform nil :initarg :grasp-pose)
@@ -67,7 +68,7 @@
      :name joint-names
      :position positions)))
 
-(defun arm-pose->trajectory (arm pose)
+(defun arm-pose->trajectory (arm pose &key ignore-collisions)
   "Calculated a trajectory from the current pose of gripper `arm' when
 trying to assume the pose `pose'."
   (cpl:with-failure-handling
@@ -78,7 +79,32 @@ trying to assume the pose `pose'."
           (pr2 grasp)
           "Failed to generate trajectory for ~a."
           arm)))
-    (execute-move-arm-pose arm pose :quiet t :plan-only t)))
+    (execute-move-arm-pose arm pose :quiet t :plan-only t
+                                    :ignore-collisions ignore-collisions)))
+
+(defun link-distance-from-pose (link-name pose-stamped)
+  (let* ((link-identity-pose (tf:pose->pose-stamped
+                              link-name 0.0
+                              (tf:make-identity-pose)))
+         (link-in-pose-frame (cl-tf2:ensure-pose-stamped-transformed
+                              *tf2* link-identity-pose (tf:frame-id pose-stamped)
+                              :use-current-ros-time t)))
+    (tf:v-dist (tf:origin link-in-pose-frame) (tf:origin pose-stamped))))
+
+(defun pose-assumed (parameter-sets slot-name &key (threshold 3.0))
+  "Checks whether the pose defined in the slot `slot-name' was assumes for all parameter sets in `parameter-sets'. The value `threshold' is used as the maximum cartesian distance by which the to be assumed and the actual pose might differ in order to be valid."
+  (every #'identity
+         (mapcar (lambda (parameter-set)
+                   (let* ((link-name (cut:var-value
+                                      '?link
+                                      (first
+                                       (crs:prolog
+                                        `(manipulator-link
+                                          ,(arm parameter-set) ?link)))))
+                          (pose-stamped (slot-value parameter-set slot-name))
+                          (distance (link-distance-from-pose link-name pose-stamped)))
+                     (<= distance threshold)))
+                 parameter-sets)))
 
 (defun assume-poses (parameter-sets slot-name &key ignore-collisions)
   "Moves all arms defined in `parameter-sets' into the poses given by
@@ -89,21 +115,40 @@ motion."
             (length parameter-sets) slot-name
             (cond ((= (length parameter-sets) 1) "")
                   (t "s")))
-  (cond ((= (length parameter-sets) 1)
-         (when (slot-value (first parameter-sets) slot-name)
-           (execute-move-arm-pose
-            (side (first parameter-sets))
-            (slot-value (first parameter-sets) slot-name)
-            :ignore-collisions ignore-collisions)))
-        (t (moveit:execute-trajectories
-            (cpl:mapcar-clean
-             (lambda (parameter-set)
-               (when (slot-value parameter-set slot-name)
-                 (arm-pose->trajectory
-                  (arm parameter-sets)
-                  (slot-value parameter-set slot-name))))
-             parameter-sets)
-            :ignore-va t))))
+  (let ((max-collisions-tolerance
+          (loop for parameter-set in parameter-sets
+                as max-collisions-tolerance = (max-collisions-tolerance parameter-set)
+                when max-collisions-tolerance
+                  maximizing max-collisions-tolerance)))
+    (cpl:with-failure-handling
+        ((cram-plan-failures:manipulation-failure (f)
+           (declare (ignore f))
+           (when (and max-collisions-tolerance
+                      (> max-collisions-tolerance 0))
+             (decf max-collisions-tolerance)
+             (when (< max-collisions-tolerance 1)
+               (setf max-collisions-tolerance nil)
+               (setf ignore-collisions t))
+             (cpl:retry))))
+      (cond ((= (length parameter-sets) 1)
+             (when (slot-value (first parameter-sets) slot-name)
+               (execute-move-arm-pose
+                (arm (first parameter-sets))
+                (slot-value (first parameter-sets) slot-name)
+                :ignore-collisions ignore-collisions)))
+            (t (moveit:execute-trajectories
+                (cpl:mapcar-clean
+                 (lambda (parameter-set)
+                   (when (slot-value parameter-set slot-name)
+                     (arm-pose->trajectory
+                      (arm parameter-set)
+                      (slot-value parameter-set slot-name)
+                      :ignore-collisions ignore-collisions)))
+                 parameter-sets)
+                :ignore-va t)))
+      (unless (pose-assumed parameter-sets slot-name)
+        (ros-warn (pr2 manip-pm) "Failed to assume at least one pose (distance too large).")
+        (cpl:fail 'cram-plan-failures:manipulation-failure)))))
 
 (defmacro with-parameter-sets (parameter-sets &body body)
   "Defines parameter-set specific functions (like assuming poses) for
@@ -144,6 +189,7 @@ grasp-type, effort to use) are defined in the list `parameter-sets'."
         (((or cram-plan-failures:manipulation-failure
               cram-plan-failures:object-lost) (f)
            (declare (ignore f))
+           (ros-warn (pr2 manip-pm) "Falling back to safe pose")
            (assume 'safe-pose t)))
       (assume 'pregrasp-pose)
       (cpl:par-loop (parameter-set parameter-sets)
@@ -152,6 +198,7 @@ grasp-type, effort to use) are defined in the list `parameter-sets'."
           (((or cram-plan-failures:manipulation-failure
                 cram-plan-failures:object-lost) (f)
              (declare (ignore f))
+             (ros-warn (pr2 manip-pm) "Falling back to pregrasp pose")
              (assume 'pregrasp-pose)))
         (moveit:without-collision-object object-name
           (assume 'grasp-pose t)
@@ -161,6 +208,7 @@ grasp-type, effort to use) are defined in the list `parameter-sets'."
                                 (lambda (parameter-set)
                                   (gripper-closed-p (arm parameter-set)))
                                 parameter-sets))
+            (ros-warn (pr2 manip-pm) "At least one gripper failed to grasp the object")
             (cpl:par-loop (parameter-set parameter-sets)
               (open-gripper-if-necessary (arm parameter-set)))
             (cpl:fail 'cram-plan-failures:object-lost)))

@@ -70,6 +70,7 @@
              (make-instance
               'park-parameters
               :arm (side grasp-assignment)
+              :max-collisions-tolerance 3
               :park-pose
               (cond ((eql (grasp-type grasp-assignment)
                           'desig-props:top-slide-down)
@@ -89,6 +90,7 @@
              (make-instance
               'park-parameters
               :arm arm
+              :max-collisions-tolerance 3
               :park-pose
               (ecase arm
                 (:left *park-pose-left-default*)
@@ -250,24 +252,22 @@
                                (:right *right-safe-pose*))
                   :effort (min-object-grasp-effort obj)))))
       (let ((params (mapcar #'grasp-parameters assignments-list)))
-        (cpl:with-failure-handling
-            ((cram-plan-failures:manipulation-failure (f)
-               (declare (ignore f))
-               (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable)))
-          (dolist (param-set params)
-            (cram-language::on-grasp-decisions-complete
-             log-id obj-name (pregrasp-pose param-set)
-             (grasp-pose param-set) (arm param-set) obj-pose))
-          (update-action-designator
-           action-desig `(,@(mapcar (lambda (param-set)
-                                      `(grasp ((arm ,(arm param-set))
-                                               (effort ,(effort param-set))
-                                               (object-pose ,obj-pose)
-                                               (grasp-type ,(grasp-type param-set))
-                                               (pregrasp-pose ,(pregrasp-pose param-set))
-                                               (grasp-pose ,(grasp-pose param-set)))))
-                                    params)))
-          (execute-grasps obj-name params))
+        (dolist (param-set params)
+          (let ((pub (roslisp:advertise "/dhdhdh" "geometry_msgs/PoseStamped")))
+            (roslisp:publish pub (tf:pose-stamped->msg (pregrasp-pose param-set))))
+          (cram-language::on-grasp-decisions-complete
+           log-id obj-name (pregrasp-pose param-set)
+           (grasp-pose param-set) (arm param-set) obj-pose))
+        (update-action-designator
+         action-desig `(,@(mapcar (lambda (param-set)
+                                    `(grasp ((arm ,(arm param-set))
+                                             (effort ,(effort param-set))
+                                             (object-pose ,obj-pose)
+                                             (grasp-type ,(grasp-type param-set))
+                                             (pregrasp-pose ,(pregrasp-pose param-set))
+                                             (grasp-pose ,(grasp-pose param-set)))))
+                                  params)))
+        (execute-grasps obj-name params)
         (dolist (param-set params)
           (with-vars-strictly-bound (?link-name)
               (lazy-car
@@ -289,12 +289,19 @@
 
 (def-action-handler grasp (action-desig object)
   "Handles the grasping of any given `object'. Calculates proper grasping poses for the object, based on physical gripper characteristics, free grippers, object grasp points (handles), grasp type for this object, and position of the object relative to the robot's grippers. `action-desig' is the action designator instance that triggered this handler's execution, and is later updated with more precise grasping information based on the actual infered action."
-  (let ((grasp-assignments (crs:prolog `(grasp-assignments
-                                         ,object ?grasp-assignments)))
+  (display-object-handles object)
+  (let ((grasp-assignments (crs:prolog `(grasp-assignments ,object ?grasp-assignments)))
         (log-id (first (cram-language::on-begin-grasp object)))
         (success nil))
     (unwind-protect
-         (unless (lazy-try-until assignments-list ?grasp-assignments grasp-assignments
+         (unless
+             (block object-lost-catch
+               (cpl:with-failure-handling
+                   ((cram-plan-failures:object-lost (f)
+                      (declare (ignore f))
+                      (ros-warn (pr2 manip-pm) "Lost object. Canceling grasp.")
+                      (return-from object-lost-catch)))
+                 (lazy-try-until assignments-list ?grasp-assignments grasp-assignments
                    (block next-assignment-list
                      (cpl:with-failure-handling
                          ((cram-plan-failures:manipulation-pose-unreachable (f)
@@ -309,7 +316,7 @@
                        (perform-grasps action-desig object assignments-list :log-id log-id)
                        (ros-info (pr2 manip-pm) "Successful grasp")
                        (setf success t)
-                       (success))))
+                       (success))))))
            (cpl:fail 'manipulation-pose-unreachable))
       (cram-language::on-finish-grasp log-id success))))
 
@@ -483,9 +490,11 @@
 
 (defmethod display-object-handles ((object object-designator))
   (let* ((relative-handles (desig-prop-values object 'desig-props::handle))
+         (reorient-object
+           (var-value '?r (first (crs:prolog `(reorient-object-globally ,object ?r)))))
          (absolute-handles
            (mapcar (lambda (handle)
-                     (absolute-handle object handle))
+                     (absolute-handle object handle :reorient reorient-object))
                    relative-handles))
          (pose-msgs
            (map 'vector
