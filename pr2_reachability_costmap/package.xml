@@ -1,0 +1,41 @@
+<package>
+  <name>pr2_reachability_costmap</name>
+  <version>1.0.0</version>
+  <description>
+
+     pr2_reachability_costmap
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <maintainer email="musterman@fictional.de">Add Maintainer here</maintainer>
+  <license>BSD</license>
+  <url>http://ros.org/wiki/pr2_reachability_costmap</url>
+
+  <!-- Dependencies which this package needs to build itself. -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- Dependencies needed to compile this package. -->
+  <build_depend>iai_kinematics_msgs</build_depend>
+  <build_depend>location_costmap</build_depend>
+  <build_depend>cl_transforms</build_depend>
+  <build_depend>cl_tf</build_depend>
+  <build_depend>cram_utilities</build_depend>
+  <build_depend>cram_math</build_depend>
+  <build_depend>cram_reasoning</build_depend>
+  <build_depend>cram_roslisp_common</build_depend>
+  <build_depend>cram_manipulation_knowledge</build_depend>
+  <build_depend>designators_ros</build_depend>
+  
+  <!-- Dependencies needed after this package is compiled. -->
+  <run_depend>iai_kinematics_msgs</run_depend>
+  <run_depend>location_costmap</run_depend>
+  <run_depend>cl_transforms</run_depend>
+  <run_depend>cl_tf</run_depend>
+  <run_depend>cram_utilities</run_depend>
+  <run_depend>cram_math</run_depend>
+  <run_depend>cram_reasoning</run_depend>
+  <run_depend>cram_roslisp_common</run_depend>
+  <run_depend>cram_manipulation_knowledge</run_depend>
+  <run_depend>designators_ros</run_depend>
+
+</package>

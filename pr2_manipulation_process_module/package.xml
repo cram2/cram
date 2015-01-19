@@ -1,0 +1,52 @@
+<package>
+  <name>pr2_manipulation_process_module</name>
+  <version>1.0.0</version>
+
+  <description>
+
+     pr2_manipulation_process_module
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <maintainer email="musterman@fictional.de">Add Maintainer here</maintainer>
+  <license>BSD</license>
+  <url>http://ros.org/wiki/pr2_manipulation_process_module</url>
+
+  <!-- Dependencies which this package needs to build itself. -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- Dependencies needed to compile this package. -->
+  <build_depend>cram_process_modules</build_depend>
+  <build_depend>designators_ros</build_depend>
+  <build_depend>actionlib_lisp</build_depend>
+  <build_depend>cram_roslisp_common</build_depend>
+  <build_depend>cram_reasoning</build_depend>
+  <build_depend>cram_plan_failures</build_depend>
+  <build_depend>cram_pr2_knowledge</build_depend>
+  <build_depend>pr2_controllers_msgs</build_depend>
+  <build_depend>trivial_garbage</build_depend>
+  <build_depend>std_srvs</build_depend>
+  <build_depend>alexandria</build_depend>
+  <build_depend>semantic_map_collision_environment</build_depend>
+  <build_depend>pr2_mechanism_msgs</build_depend>
+  <build_depend>pr2_manipulation_knowledge</build_depend>
+  <build_depend>cram_moveit</build_depend>
+  
+  <!-- Dependencies needed after this package is compiled. -->
+  <run_depend>cram_process_modules</run_depend>
+  <run_depend>designators_ros</run_depend>
+  <run_depend>actionlib_lisp</run_depend>
+  <run_depend>cram_roslisp_common</run_depend>
+  <run_depend>cram_reasoning</run_depend>
+  <run_depend>cram_plan_failures</run_depend>
+  <run_depend>cram_pr2_knowledge</run_depend>
+  <run_depend>pr2_controllers_msgs</run_depend>
+  <run_depend>trivial_garbage</run_depend>
+  <run_depend>std_srvs</run_depend>
+  <run_depend>alexandria</run_depend>
+  <run_depend>semantic_map_collision_environment</run_depend>
+  <run_depend>pr2_mechanism_msgs</run_depend>
+  <run_depend>pr2_manipulation_knowledge</run_depend>
+  <run_depend>cram_moveit</run_depend>
+
+</package>

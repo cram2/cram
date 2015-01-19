@@ -1,0 +1,19 @@
+<package>
+  <name>cram_pr2</name>
+  <version>1.0.0</version>
+  <description>Metapackage for pr2-related code.</description>
+  <author>Maintained by Lorenz Moesenlechner</author>
+  <maintainer email="musterman@fictional.de">Add Maintainer here</maintainer>
+  <license>BSD</license>  
+  <url>http://ros.org/wiki/cram_pr2</url>
+
+  <!-- Dependencies which this package needs to build itself. -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <run_depend>point_head_process_module</run_depend>
+  <run_depend>pr2_manipulation_knowledge</run_depend>
+  <run_depend>pr2_navigation_process_module</run_depend>
+  <run_depend>pr2_manipulation_process_module</run_depend>
+  <run_depend>pr2_reachability_costmap</run_depend>
+
+</package>
