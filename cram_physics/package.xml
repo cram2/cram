@@ -23,4 +23,7 @@
   <run_depend>pr2_projection_process_modules</run_depend>
   <run_depend>spatial_relations_costmap</run_depend>
 
+  <export>
+    <metapackage/>
+  </export>
 </package>

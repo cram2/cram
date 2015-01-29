@@ -4,11 +4,10 @@ project(pr2_description_lowres)
 find_package(PkgConfig REQUIRED)
 
 find_package(catkin REQUIRED COMPONENTS
+  ivcon
+  convex_decomposition
   urdf
 )
-
-find_package(ivcon REQUIRED)
-find_package(convex_decomposition REQUIRED)
 
 #pkg_check_modules(ivcon_PACKAGE_PATH ivcon)
 #pkg_check_modules(convex_decomposition_PACKAGE_PATH convex_decomposition)
