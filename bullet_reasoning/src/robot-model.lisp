@@ -55,8 +55,8 @@
 (defmethod urdf-make-collision-shape ((mesh cl-urdf:mesh) &optional (color '(0.8 0.8 0.8 1.0)))
   (make-instance 'convex-hull-mesh-shape
     :color (apply-aplha-value color)
-    :faces (physics-utils:3d-model-faces (cl-urdf:3d-model mesh))
-    :points (physics-utils:3d-model-vertices (cl-urdf:3d-model mesh))))
+    :faces (physics-utils:3d-model-faces (load-mesh mesh))
+    :points (physics-utils:3d-model-vertices (load-mesh mesh))))
 
 (defstruct collision-information
   rigid-body-name flags)
@@ -552,3 +552,9 @@ current joint states"
 (defun apply-aplha-value (color)
   (destructuring-bind (r g b a) color
     (list r g b (or *robot-model-alpha* a))))
+
+(defun load-mesh (mesh)
+  (let ((model (physics-utils:load-3d-model (physics-utils:parse-uri (filename mesh)))))
+      (cond ((scale mesh) (physics-utils:scale-3d-model model (scale mesh)))
+            ((size mesh) (physics-utils:resize-3d-model model (size mesh)))
+            (t model))))
