@@ -30,9 +30,8 @@
 
 (defsystem cl-urdf
   :author "Lorenz Moesenlechner"
-  :license "BSD"
-  
-  :depends-on (s-xml cl-transforms physics-utils)
+  :license "BSD"  
+  :depends-on (s-xml cl-transforms)
   :components
   ((:module "src"
     :components

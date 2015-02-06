@@ -29,4 +29,4 @@
 (in-package :cl-user)
 
 (defpackage cl-urdf-test
-  (:use :cl :lisp-unit :roslisp :cl-urdf))
+  (:use :cl :lisp-unit :cl-urdf))
