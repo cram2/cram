@@ -37,7 +37,7 @@
    joint type name axis origin parent child limits
    inertial mass inertia
    geometry box size cylinder radius length cylinder-length sphere
-   mesh filename 3d-model
+   mesh filename
    material color texture
    visual
    collision
