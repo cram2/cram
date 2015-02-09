@@ -90,6 +90,7 @@
            #:disable-location-validation-function
            #:validate-location-designator-solution
            #:get-all-designators
+           #:human-designator #:human
            ;; Properties & prolog related stuff
            #:loc-desig?
            #:obj-desig?
