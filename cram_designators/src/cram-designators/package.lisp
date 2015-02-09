@@ -44,6 +44,7 @@
            #:next-solution #:register-designator-class
            #:make-designator
            #:copy-designator
+           #:merge-desig-descriptions
            #:first-desig
            #:current-desig
            #:current-designator
