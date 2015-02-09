@@ -62,7 +62,9 @@
   (list (cl-tf2:ensure-pose-stamped-transformed
          *tf2*
          (tf:make-pose-stamped
-          "/base_footprint" (roslisp:ros-time)
+          ;; asking for the current time results in extrapolation error
+          ;; because the available transforms in the buffer are older
+          "/base_footprint" 0.0 ;;(roslisp:ros-time)
           (tf:make-identity-vector)
           (tf:make-identity-rotation))
          "/map")))

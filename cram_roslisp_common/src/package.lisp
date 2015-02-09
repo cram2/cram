@@ -39,4 +39,5 @@
            #:lispify-ros-name
            #:rosify-lisp-name
            #:*tf*
-           #:*tf2*))
+           #:*tf2*
+           #:*tf2-tb*))
