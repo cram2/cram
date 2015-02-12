@@ -16,9 +16,9 @@
        textfile="$(find pr2_moveit_config)/config/pr2.srdf" />
 
 <!-- <group ns="moveit"> -->
-  <remap from="robot_description" to="/robot_description" />
-  <remap from="robot_description_semantic" to="/robot_description_semantic" />
-  <include file="$(find spatial_relations_demo)/launch/moveit.launch" />
+  <!-- <remap from="robot_description" to="/robot_description" /> -->
+  <!-- <remap from="robot_description_semantic" to="/robot_description_semantic" /> -->
+  <!-- <include file="$(find spatial_relations_demo)/launch/moveit.launch" /> -->
 <!-- </group> -->
 
 <!-- <node name="triangulate_point_cloud" pkg="triangulate_point_cloud" -->

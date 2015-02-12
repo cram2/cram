@@ -30,103 +30,83 @@
 
 ;; TODO: comments
 ;; TODO: declares everywhere!
-
-(defparameter *num-of-sets-on-table* 2)
-
-(defvar *items* (make-hash-table :test 'equal)
-  "TYPE -> color")
-(setf (gethash "PLATE" *items*) '(0.8 0.58 0.35))
-(setf (gethash "FORK" *items*) '(0.2 0.1 0.3))
-(setf (gethash "KNIFE" *items*) '(0.5 0 0))
-(setf (gethash "MUG" *items*) '(0.8 0.3 0))
-
 ;; TODO collision detection for knives!!!
 
-;; ;; desig for a glass near a plate
-;; (setf des (desig:make-designator 'desig-props:location '((desig-props:right-of plate-1) (desig-props:behind plate-1) (desig-props:near plate-1) (desig-props:for mug-1) (desig-props:on counter-top) (desig-props:name kitchen-island))))
+(defparameter *num-of-sets-on-table* 2)
+(defparameter *demo-object-types*
+  '((:main . (plate fork knife mug))
+    (:clutter . (pot bowl mondamin))))
+(defparameter *demo-objects-how-many-each-type*
+  `((plate . ,*num-of-sets-on-table*)
+    (fork . ,*num-of-sets-on-table*)
+    (knife . ,*num-of-sets-on-table*)
+    (mug . ,*num-of-sets-on-table*)
+    (pot . 1)
+    (bowl . 4)
+    (mondamin . 2)))
+(defparameter *demo-objects* (make-hash-table :test #'eq)
+  "All the spawned objects will go here. Hash table: name -> obj-instance.")
 
-;; desig for a plate on a table
-;; (setf des (desig:make-designator 'desig-props:location '((desig-props:on counter-top) (desig-props:name kitchen-island) (desig-props:context table-setting) (desig-props:for plate-1) (desig-props:object-count 4))))
+(defun demo-object-names ()
+  (alexandria:hash-table-keys *demo-objects*))
 
-;; ;; desig for a fork to the left of plate
-;; (setf des (desig:make-designator 'desig-props:location '((desig-props:left-of plate-1)  (desig-props:near plate-1) (desig-props:for fork-1))))
-;; (force-ll (prolog `(and (symbol-value des ?des) (assign-object-pos fork-1 ?des))))
+(defun demo-object-instance (name)
+  (gethash name *demo-objects*))
 
-
-(declaim (inline new-symbol-with-id))
 (defun new-symbol-with-id (string number)
-  (intern (concatenate 'string (string-upcase string) "-" (write-to-string number)) "SPATIAL-RELATIONS-COSTMAP"))
+  (intern (concatenate 'string (string-upcase string) "-" (write-to-string number))
+          "SPATIAL-RELATIONS-DEMO"))
 
-(declaim (inline new-symbol-from-strings))
 (defun new-symbol-from-strings (&rest strings)
-  (intern (string-upcase (reduce (alexandria:curry #'concatenate 'string) strings)) "SPATIAL-RELATIONS-COSTMAP"))
+  (intern (string-upcase (reduce (alexandria:curry #'concatenate 'string) strings))
+          "SPATIAL-RELATIONS-DEMO"))
 
+(declaim (inline new-symbol-with-id new-symbol-from-strings))
 
-(defun spawn-stuff ()
-  (loop for object-type being the hash-keys of *items*
-        using (hash-value color)
-        do (prolog
-            `(and
-              (bullet-world ?w)
-              ,@(loop for i from 1 to *num-of-sets-on-table*
-                      collect `(assert (object
-                                        ?w mesh ,(new-symbol-with-id object-type i)
-                                        ((2 0 0) (0 0 0 1))
-                                        :mesh ,(intern (string-upcase object-type))
-                                        :mass 0.2
-                                        :color ,color)))))))
+(defun spawn-demo-objects (&optional (set nil))
+  "`set' is, e.g., :main or :clutter, if not given spawns all objects."
+  (let ((object-types
+          (if set
+              (cdr (assoc set *demo-object-types*))
+              (apply #'append (mapcar #'cdr *demo-object-types*))))
+        (resulting-object-names '()))
+    (dolist (type object-types)
+      (dotimes (i (cdr (assoc type *demo-objects-how-many-each-type*)))
+        (let ((name (new-symbol-with-id type i)))
+          (format t "~a ~a ~%" name type)
+          (push name resulting-object-names)
+          (setf (gethash name *demo-objects*) (spawn-object name type)))))
+    (mapcar (alexandria:rcurry #'gethash *demo-objects*) resulting-object-names)))
 
-(defun kill-stuff ()
-  (loop for object-type being the hash-keys of *items*
-        using (hash-value color)
-        do (prolog
-            `(and (bullet-world ?w)
-                  ,@(loop for i from 1 to *num-of-sets-on-table*
-                          collect `(retract (object ?w ,(new-symbol-with-id object-type i))))))))
+(defun kill-demo-objects ()
+  (dolist (name (demo-object-names))
+    (kill-object name)
+    (remhash name *demo-objects*)))
 
-(defun put-stuff-away ()
-  (loop for object-type being the hash-keys of *items*
-        do (loop for i from 1 to *num-of-sets-on-table*
-                 do (move-object (new-symbol-with-id object-type i)
-                                 '((2.0 0 0) (0 0 0 1)))))
-  (mapcar (alexandria:rcurry #'move-object '((2.0 0 0) (0 0 0 1)))
-          '(pot-1 bowl-1 bowl-2 bowl-3 bowl-4 mondamin-1 mondamin-2)))
+(defun move-demo-objects-away ()
+  (dolist (name (demo-object-names))
+    (move-object name)))
 
 (defun put-noise-on-table ()
   "For trying out on cluttered scenes"
-  (prolog `(and (bullet-world ?w)
-                (assert (object ?w mesh pot-1 ((2.0 0 0) (0 0 0 1))
-                                :mesh pot :mass 0.2 :color (0.1 0.2 0.3)))
-                (assert (object ?w mesh bowl-1 ((2.0 0 0) (0 0 0 1))
-                                :mesh bowl :mass 0.2 :color (0 0.3 0)))
-                (assert (object ?w mesh bowl-2 ((2.0 0 0) (0 0 0 1))
-                                :mesh bowl :mass 0.2 :color (0 0.3 0)))
-                (assert (object ?w mesh bowl-3 ((2.0 0 0) (0 0 0 1))
-                                :mesh bowl :mass 0.2 :color (0 0.3 0)))
-                (assert (object ?w mesh bowl-4 ((2.0 0 0) (0 0 0 1))
-                                :mesh bowl :mass 0.2 :color (0 0.3 0)))
-                (assert (object ?w mesh mondamin-1 ((2.0 0 0) (0 0 0 1))
-                                :mesh mondamin :mass 0.2 :color (0.5 0.1 0)))
-                (assert (object ?w mesh mondamin-2 ((2.0 0 0) (0 0 0 1))
-                                :mesh mondamin :mass 0.2 :color (0.5 0.1 0)))))
-
-  (mapcar #'move-object '(pot-1 bowl-1 mondamin-1 mondamin-2 bowl-2 bowl-3 bowl-4)
-          '(((-2.0 1.65 0.9413339835685429d0) (0 0 0 1))
-            ((-1.9 1.95 0.8911207699875103d0) (0 0 0 1))
-            ((-2.0 1.06 0.9573383588498887d0) (0 0 0 1))
-            ((-2.0 2.1 0.9573383588498887d0) (0 0 0 1))
-            ((-1.9 1.3 0.8911207699875103d0) (0 0 0 1))
-            ((-2.0 2.36 0.8911207699875103d0) (0 0 0 1))
-            ((-1.95 1.16 0.8911207699875103d0) (0 0 0 1))))
-
+  ;; TODO: fixed coords -> location designator results
+  (spawn-demo-objects :clutter)
+  (mapcar #'move-object '(pot-0 bowl-0 mondamin-0 mondamin-1 bowl-2 bowl-3 bowl-1)
+          '(((-1.0 1.65 0.9413339835685429d0) (0 0 0 1))
+            ((-0.9 1.95 0.8911207699875103d0) (0 0 0 1))
+            ((-1.0 1.06 0.9573383588498887d0) (0 0 0 1))
+            ((-1.0 2.1 0.9573383588498887d0) (0 0 0 1))
+            ((-0.9 1.3 0.8911207699875103d0) (0 0 0 1))
+            ((-1.0 2.36 0.8911207699875103d0) (0 0 0 1))
+            ((-0.95 1.16 0.8911207699875103d0) (0 0 0 1))))
   ;; (simulate *current-bullet-world* 50)
   )
 
 (defun put-stuff-on-counter ()
-  (spawn-stuff)
-  (put-stuff-away)
+  (spawn-demo-objects :main)
+  (move-demo-objects-away)
 
-  (loop for i from 1 to *num-of-sets-on-table*
+  (loop for i from 0 to (1- *num-of-sets-on-table*)
         for plate-coord = 0.86 then (+ plate-coord 0.027)
         ;; for plate-coord = 0.96 then (+ plate-coord 0.027)
         for fork-coord = 1.35 then (+ fork-coord 0.05)
@@ -142,12 +122,12 @@
   (move-object 'mug-3 '((1.65 1.02 0.9119799601336841d0) (0 0 0 1)))
   (move-object 'mug-2 '((1.35 1.11 0.9119799601336841d0) (0 0 0 1)))
   (move-object 'mug-4 '((1.55 1.19 0.9119799601336841d0) (0 0 0 1)))
-  (move-object 'mug-5 '((1.5 1.17 0.9119799601336841d0) (0 0 0 1))))
+  (move-object 'mug-0 '((1.5 1.17 0.9119799601336841d0) (0 0 0 1))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;; ONLY DESIGS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun put-plates-on-table-with-far (&optional (number-of-plates *num-of-sets-on-table*))
-  (spawn-stuff)
+  (spawn-demo-objects :main)
   (cpl-impl:top-level
     (cram-language-designator-support:with-designators
        ((des-for-plate-2 (location `((right-of plate-1) (far-from plate-1)
@@ -189,8 +169,8 @@
                                                (t (make-object-near-plate-desig object-type i))))))))
 
 (defun set-table-without-robot ()
-  (spawn-stuff)
-  (put-stuff-away)
+  (spawn-demo-objects :main)
+  (move-demo-objects-away)
   (time
    (loop for object-type being the hash-keys of *items*
          do (assign-multiple-obj-pos object-type))))
@@ -289,3 +269,14 @@
           obj)))))
 
 
+
+
+;; ;; desig for a glass near a plate
+;; (setf des (desig:make-designator 'desig-props:location '((desig-props:right-of plate-1) (desig-props:behind plate-1) (desig-props:near plate-1) (desig-props:for mug-1) (desig-props:on counter-top) (desig-props:name kitchen-island))))
+
+;; desig for a plate on a table
+;; (setf des (desig:make-designator 'desig-props:location '((desig-props:on counter-top) (desig-props:name kitchen-island) (desig-props:context table-setting) (desig-props:for plate-1) (desig-props:object-count 4))))
+
+;; ;; desig for a fork to the left of plate
+;; (setf des (desig:make-designator 'desig-props:location '((desig-props:left-of plate-1)  (desig-props:near plate-1) (desig-props:for fork-1))))
+;; (force-ll (prolog `(and (symbol-value des ?des) (assign-object-pos fork-1 ?des))))
