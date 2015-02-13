@@ -262,7 +262,7 @@
                     part)))))
             (json-prolog:prolog
              `(and
-               ("rdf_has" ,(owl-name part) "http://ias.cs.tum.edu/kb/knowrob.owl#properPhysicalParts" ?sub)
+               ("rdf_has" ,(owl-name part) "http://knowrob.org/kb/knowrob.owl#properPhysicalParts" ?sub)
                ("map_object_type" ?sub ?tp)
                ("rdf_atom_no_ns" ?tp ?type)
                ("rdf_atom_no_ns" ?sub ?name))
@@ -275,7 +275,7 @@
                     '?link
                     (lazy-car (json-prolog:prolog
                                `("rdf_has"
-                                 ,owl-name "http://ias.cs.tum.edu/kb/srdl2-comp.owl#urdfName"
+                                 ,owl-name "http://knowrob.org/kb/srdl2-comp.owl#urdfName"
                                  ("literal" ?link))
                                :package :sem-map-utils)))))
         (if (is-var label)
@@ -288,7 +288,7 @@
        (json-prolog:prolog
         `(and
           ("rdf_has"
-           ?owlname "http://ias.cs.tum.edu/kb/srdl2-comp.owl#urdfName"
+           ?owlname "http://knowrob.org/kb/srdl2-comp.owl#urdfName"
            ("literal" ,urdf-name))
           ("rdf_atom_no_ns" ?owlname ?name))
         :package :sem-map-utils))
@@ -361,7 +361,7 @@
   (flet ((cached-sub-types (ref-type)
            (declare (type string ref-type))
            (or (gethash ref-type *cached-owl-types*)
-               (let* ((type-namespace-str "http://ias.cs.tum.edu/kb/knowrob.owl#")
+               (let* ((type-namespace-str "http://knowrob.org/kb/knowrob.owl#")
                       (ref-type-w/ns-str (concatenate
                                           'string
                                           type-namespace-str
@@ -430,24 +430,24 @@ of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns
       (car
        (json-prolog:prolog-1
         `(and 
-          ("rdf_has" ,owl-name "http://ias.cs.tum.edu/kb/knowrob.owl#minJointValue"
+          ("rdf_has" ,owl-name "http://knowrob.org/kb/knowrob.owl#minJointValue"
                      ("literal" ("type" ?_ ?min_)))
-          ("rdf_has" ,owl-name "http://ias.cs.tum.edu/kb/knowrob.owl#maxJointValue"
+          ("rdf_has" ,owl-name "http://knowrob.org/kb/knowrob.owl#maxJointValue"
                      ("literal" ("type" ?_ ?max_)))
           ("findall" ?c (and
                          ("rdf_has"
                           ,owl-name
-                          "http://ias.cs.tum.edu/kb/knowrob.owl#connectedTo-Rigidly"
+                          "http://knowrob.org/kb/knowrob.owl#connectedTo-Rigidly"
                           ?c_)
                          ("rdf_atom_no_ns" ?c_ ?c))
                      ?connected)
           ("rdf_has" ,owl-name
-                     "http://ias.cs.tum.edu/kb/knowrob.owl#direction" ?direction)
-          ("rdf_has" ?direction "http://ias.cs.tum.edu/kb/knowrob.owl#vectorX"
+                     "http://knowrob.org/kb/knowrob.owl#direction" ?direction)
+          ("rdf_has" ?direction "http://knowrob.org/kb/knowrob.owl#vectorX"
                      ("literal" ("type" ?_ ?direction_x_)))
-          ("rdf_has" ?direction "http://ias.cs.tum.edu/kb/knowrob.owl#vectorY"
+          ("rdf_has" ?direction "http://knowrob.org/kb/knowrob.owl#vectorY"
                      ("literal" ("type" ?_ ?direction_y_)))
-          ("rdf_has" ?direction "http://ias.cs.tum.edu/kb/knowrob.owl#vectorZ"
+          ("rdf_has" ?direction "http://knowrob.org/kb/knowrob.owl#vectorZ"
                      ("literal" ("type" ?_ ?direction_z_)))
           ("atom_number" ?min_ ?min) ("atom_number" ?max_ ?max)
           ("atom_number" ?direction_x_ ?directionx)
@@ -478,14 +478,14 @@ of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns
       (car
        (json-prolog:prolog-1
         `(and 
-          ("rdf_has" ,owl-name "http://ias.cs.tum.edu/kb/knowrob.owl#minJointValue"
+          ("rdf_has" ,owl-name "http://knowrob.org/kb/knowrob.owl#minJointValue"
                      ("literal" ("type" ?_ ?min_)))
-          ("rdf_has" ,owl-name "http://ias.cs.tum.edu/kb/knowrob.owl#maxJointValue"
+          ("rdf_has" ,owl-name "http://knowrob.org/kb/knowrob.owl#maxJointValue"
                      ("literal" ("type" ?_ ?max_)))
           ("findall" ?c (and
                          ("rdf_has"
                           ,owl-name
-                          "http://ias.cs.tum.edu/kb/knowrob.owl#connectedTo-Rigidly"
+                          "http://knowrob.org/kb/knowrob.owl#connectedTo-Rigidly"
                           ?c_)
                          ("rdf_atom_no_ns" ?c_ ?c))
                      ?connected)
