@@ -1,6 +1,14 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(map_annotation)
-find_package(catkin REQUIRED message_generation geometry_msgs)
+
+find_package(catkin REQUIRED COMPONENTS
+  geometry_msgs
+  rospy
+  cram_reasoning
+  cram_roslisp_common
+  cl_transforms
+  message_generation
+)
 
 add_service_files(
   FILES
@@ -14,6 +22,11 @@ generate_messages(
 )
 
 catkin_package(
-  DEPENDS
+  CATKIN_DEPENDS
+  geometry_msgs
+  rospy
+  cram_reasoning
+  cram_roslisp_common
+  cl_transforms
   message_runtime
 )

@@ -17,6 +17,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <build_depend>message_generation</build_depend>
   <build_depend>cram_reasoning</build_depend>
   <build_depend>cram_plan_knowledge</build_depend>
   <build_depend>cram_execution_trace</build_depend>
