@@ -32,5 +32,12 @@
   (<- (situation? ?situation)
     (desig-prop ?situation (type situation)))
   
+  (<- (meal-time ?situation ?meal-time)
+    (desig-prop ?situation (meal-time ?meal-time)))
+  
+  (<- (meal-time? breakfast))
+  (<- (meal-time? lunch))
+  (<- (meal-time? dinner))
+  
   (<- (table-setting-object ?situation ?object)
     (crs:fail)))

@@ -37,7 +37,8 @@
         #:cram-roslisp-common
         #:alexandria)
   (:export table-setting-object
-           situation?)
+           situation?
+           meal-time)
   (:import-from :cram-reasoning def-fact-group <-)
   (:import-from cram-roslisp-common *tf2*)
-  (:desig-properties type situation))
+  (:desig-properties type situation meal-time breakfast lunch dinner))
