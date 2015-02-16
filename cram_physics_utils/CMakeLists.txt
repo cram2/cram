@@ -18,6 +18,8 @@ if(NOT HAVE_CIMPORT_H)
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
       execute_process(COMMAND git config filter.gitignore.smudge cat
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+      execute_process(COMMAND git add src/assimp-grovel.lisp
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
     endif()
   else()
     message(SEND_ERROR "Can't find assimp headers.")
