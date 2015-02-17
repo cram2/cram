@@ -267,9 +267,11 @@ returns the newly created designator that is not equated yet."
 `old-designator'. When present, the description parameter
 `new-description' will be merged with the old description. The new
 description will be dominant in this relation."
-  (let ((old-description (description old-designator))
-        (old-class (get-desig-class old-designator)))
-    (let ((merged-description
-            (reduce (rcurry (flip #'adjoin) :key #'car)
-                    old-description :initial-value new-description)))
-      (make-designator old-class merged-description))))
+  (make-designator (get-desig-class old-designator) 
+                   (merge-desig-descriptions old-designator new-description)))
+
+(defun merge-desig-descriptions (designator new-description)
+  "Returns the merge of the description of `designator' with `new-description'.
+ The new description will be dominant in this relation."
+  (reduce (rcurry (flip #'adjoin) :key #'car)
+          (description designator) :initial-value new-description))

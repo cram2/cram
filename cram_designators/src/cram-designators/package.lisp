@@ -44,6 +44,7 @@
            #:next-solution #:register-designator-class
            #:make-designator
            #:copy-designator
+           #:merge-desig-descriptions
            #:first-desig
            #:current-desig
            #:current-designator
@@ -90,6 +91,7 @@
            #:disable-location-validation-function
            #:validate-location-designator-solution
            #:get-all-designators
+           #:human-designator #:human
            ;; Properties & prolog related stuff
            #:loc-desig?
            #:obj-desig?
