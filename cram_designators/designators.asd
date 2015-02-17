@@ -37,6 +37,10 @@
                                                          "designator-id-mixin"
                                                          "equate-notification-mixin"
                                                          "designator-protocol"))
+               (:file "human-designator" :depends-on ("package"
+                                                      "designator-id-mixin"
+                                                      "equate-notification-mixin"
+                                                      "designator-protocol"))
                (:file "default-location-generators"
                 :depends-on ("package" "location-designator"))
                (:file "facts" :depends-on ("package"
