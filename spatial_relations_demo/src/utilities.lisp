@@ -48,9 +48,9 @@
   (<- (costmap-in-reach-distance 1.0))
   (<- (costmap-reach-minimal-distance 0.1)))
 
-(def-fact-group semantic-map-data (semantic-map-name)
-  (<- (cl-semantic-map-utils::semantic-map-name
-       "http://ias.cs.tum.edu/kb/ias_semantic_map.owl#SemanticEnvironmentMap_PM580j"))
+(def-fact-group semantic-map-data (semantic-map-utils:semantic-map-name)
+  (<- (semantic-map-utils:semantic-map-name
+       "http://knowrob.org/kb/ias_semantic_map.owl#SemanticEnvironmentMap_PM580j"))
   (<- (semantic-map-obj my-kitchen)))
 
 (disable-location-validation-function 'btr-desig::validate-designator-solution)
