@@ -34,6 +34,7 @@
                cram-utilities
                roslisp-utilities
                cl-tf2
+               cl-tf
                cram-roslisp-common
                cram-manipulation-knowledge
                nav_msgs-msg
