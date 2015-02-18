@@ -40,4 +40,4 @@
            #:rosify-lisp-name
            #:*tf*
            #:*tf2*
-           #:*tf2-tb*))
+           #:*tf2-broadcaster*))
