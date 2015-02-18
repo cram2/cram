@@ -59,15 +59,13 @@
 
 (defun robot-current-pose-generator (desig)
   (declare (ignore desig))
-  (list (cl-tf2:ensure-pose-stamped-transformed
-         *tf2*
-         (tf:make-pose-stamped
-          ;; asking for the current time results in extrapolation error
-          ;; because the available transforms in the buffer are older
-          "/base_footprint" 0.0 ;;(roslisp:ros-time)
-          (tf:make-identity-vector)
-          (tf:make-identity-rotation))
-         "/map")))
+  (when *tf2*
+    (list (cl-tf2:ensure-pose-stamped-transformed
+           *tf2*
+           (cl-tf:make-pose-stamped
+            designators-ros:*robot-base-frame* (roslisp:ros-time)
+            (cl-tf:make-identity-vector) (cl-tf:make-identity-rotation))
+           designators-ros:*fixed-frame*))))
 
 (defun location-costmap-generator (desig)
   (let ((costmap (get-cached-costmap desig)))
