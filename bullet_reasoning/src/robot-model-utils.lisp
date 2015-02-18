@@ -36,7 +36,8 @@
 (defvar *persistent-ik-service* nil
   "IK persistent service handle.")
 
-(defun set-robot-state-from-tf (tf robot &key (reference-frame "/map") timestamp)
+(defun set-robot-state-from-tf (tf robot &key (reference-frame designators-ros:*fixed-frame*)
+                                           timestamp)
   (let* ((root-link (cl-urdf:name (cl-urdf:root-link (urdf robot))))
          (robot-transform
            (cl-tf2:ensure-transform-available *tf2* root-link reference-frame)))
@@ -64,7 +65,7 @@ sensor_msgs/JointStates message."
   (:method ((joint-states list) (robot robot-object))
     "Sets the joint states of `robot' to the values specifies in the
     list `joint-states'. `joint-states' is a list of the form:
-     
+
       ([(name value)]*)"
     (loop for (name value) in joint-states do
       (setf (joint-state robot name) value))))
@@ -276,8 +277,8 @@ time for that :(..."
                               (cl-transforms:make-3d-vector 0 0 0)
                               (cl-transforms:make-quaternion 0 0 0 1)))
                  (group-name (error "Plan group of IK service has to be specified"))
-                 (fixed-frame "map")
-                 (robot-base-frame "base_footprint")
+                 (fixed-frame designators-ros:*fixed-frame*)
+                 (robot-base-frame designators-ros:*robot-base-frame*)
                  seed-state)
   (let ((tf (make-instance 'tf:transformer)) ; create an empty tf transformer
         (time (roslisp:ros-time)))
