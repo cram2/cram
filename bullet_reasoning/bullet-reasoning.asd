@@ -38,6 +38,7 @@
                  cram-json-prolog
                  cl-urdf
                  cl-tf
+                 cl-tf2
                  roslisp
                  moveit_msgs-srv
                  moveit_msgs-msg
@@ -50,7 +51,7 @@
                  cram-plan-knowledge
                  cl-semantic-map-utils
                  cram-manipulation-knowledge
-                 designators)
+                 designators-ros)
     :components
     ((:module "src"
               :components
@@ -67,26 +68,30 @@
                (:file "action-facts" :depends-on ("package"))
                (:file "reasoning-world" :depends-on ("package"))
                (:file "textures" :depends-on ("package"))
-               (:file "objects" :depends-on ("package" "reasoning-world" "textures" "utils"))
+               (:file "objects" :depends-on ("package"
+                                             "reasoning-world" "textures" "utils"))
                (:file "aabb" :depends-on ("package" "objects"))
                (:file "world-utils" :depends-on ("package"
-                                                 "reasoning-world"
-                                                 "objects"))
+                                                 "reasoning-world" "objects"))
                (:file "semantic-map" :depends-on ("package"
                                                   "objects" "utils" "robot-model"
                                                   "household-objects"))
                (:file "urdf-semantic-map" :depends-on ("package" "semantic-map"))
                (:file "simple-semantic-map" :depends-on ("package" "semantic-map"))
-               (:file "robot-model" :depends-on ("package" "objects" "utils" "reasoning-world"))
+               (:file "robot-model" :depends-on ("package"
+                                                 "objects" "utils" "reasoning-world"))
                (:file "robot-model-utils" :depends-on ("package" "robot-model"))
                (:file "gl-scenes" :depends-on ("package" "debug-window"))
                (:file "visibility-reasoning" :depends-on ("package" "gl-scenes"))
                (:file "debug-window" :depends-on ("package"))
                (:file "household-objects" :depends-on ("package" "objects" "utils"))
-               (:file "pose-generators" :depends-on ("package" "utils" "aabb" "world-facts"))
+               (:file "pose-generators" :depends-on ("package"
+                                                     "utils" "aabb" "world-facts"))
                (:file "reachability" :depends-on ("package" "robot-model-utils"))
                (:file "articulated-objects" :depends-on ("package" "semantic-map"))
-               (:file "ros-household-object-database" :depends-on ("package" "objects" "household-objects"))
+               (:file "ros-household-object-database" :depends-on ("package"
+                                                                   "objects"
+                                                                   "household-objects"))
                (:module "temporal-reasoning"
                         :depends-on ("package" "reasoning-world" "world-facts" "utils")
                         :components
