@@ -36,3 +36,52 @@
                                            ,?situation ?object)))
           (objects-on-table (perceive-object 'all generic-object)))
       )))
+
+(def-goal (perceive-object drawer-handle ?semantic-name)
+  (let ((semantic-handle-reference
+          (first (sem-map-utils:designator->semantic-map-objects
+                  (make-designator
+                   'object `((desig-props::name ,?semantic-name)))))))
+    (when semantic-handle-reference
+      (let* ((handle-name
+               (concatenate 'string ?semantic-name "_handle"))
+             (handle
+               (first (perceive-object
+                       'currently-visible
+                       (make-designator
+                        'object `((desig-props::type
+                                   desig-props::semantic-handle)
+                                  (desig-props::name ,handle-name))))))
+             (handle-pose (desig-prop-value handle
+                                            'desig-props:pose))
+             (semantic-handle-pose
+               (sem-map-utils:pose semantic-handle-reference))
+             (handle-pose-map
+               (tf:copy-pose-stamped
+                (cl-tf2:ensure-pose-stamped-transformed
+                 cram-roslisp-common::*tf2*
+                 handle-pose
+                 "map" :use-current-ros-time t)
+                :orientation (tf:orientation
+                              semantic-handle-pose))))
+        (make-designator
+         'object `((desig-props::name ,?semantic-name)
+                   (desig-props::type desig-props::semantic-handle)
+                   (desig-props::at
+                    ,(make-designator
+                      'location
+                      `((desig-props::pose ,handle-pose-map))))))))))
+
+(def-goal (achieve (drawer-opened ?semantic-name))
+  (let ((semantic-handle (perceive-object
+                          'drawer-handle ?semantic-name)))
+    (unless semantic-handle
+      (cpl:fail 'cram-plan-failures:object-not-found))
+    (with-designators ((action-pull-open (action
+                                          `((desig-props::type
+                                             desig-props::trajectory)
+                                            (desig-props:to
+                                             desig-props::pull-open)
+                                            (desig-props::handle
+                                             ,semantic-handle)))))
+      (perform action-pull-open))))

@@ -105,3 +105,6 @@ values of `properties' and add them to `object-designator'"
   "Sets a table referred to by the name `table-name', according to a
 situation described by `situation-description'."
   (declare (ignore table-name situation-description)))
+
+(declare-goal drawer-opened (?semantic-name)
+  (declare (ignore ?semantic-name)))
