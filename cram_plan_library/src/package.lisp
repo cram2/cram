@@ -56,7 +56,7 @@
            #:at-location
            #:object-detected
            #:perceive-object
-           #:the #:all #:a #:currently-visible
+           #:the #:all #:a #:currently-visible #:drawer-handle
            #:perceive-state
            #:examine
            #:obstacles-found
