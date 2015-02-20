@@ -1,0 +1,1 @@
+../cram-task-knowledge.asd

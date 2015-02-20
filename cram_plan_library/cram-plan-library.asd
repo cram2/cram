@@ -1,4 +1,3 @@
-;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;;
@@ -25,7 +24,6 @@
 ;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
-;;;
 
 (defsystem cram-plan-library
   :author "Lorenz Moesenlechner"
@@ -36,15 +34,17 @@
                cram-reasoning
                process-modules
                designators
-	       cl-tf2
+               cl-tf2
                cram-language-designator-support
                cram-roslisp-common
                cram-plan-knowledge
                cram-plan-failures
                cram-projection
                cram-utilities
+               cram-task-knowledge
                designators-ros
-               alexandria)
+               alexandria
+               cl-semantic-map-utils)
   :components
   ((:module "src"
             :components
@@ -68,5 +68,13 @@
                            "goal-declarations"
                            "at-location"
                            "utilities"))
+             (:file "achieve-everyday-activities" :depends-on ("achieve-container-manipulation"
+                                                               "achieve-object-manipulation"
+                                                               "perceive-object"
+                                                               "package"
+                                                               "goal-declarations"
+                                                               "utilities"
+                                                               "perform"
+                                                               "at-location"))
              (:file "perform" :depends-on ("package" "goal-declarations"))
              (:file "utilities" :depends-on ("package"))))))
