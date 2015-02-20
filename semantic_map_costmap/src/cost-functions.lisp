@@ -199,41 +199,41 @@
                                          (cl-transforms:y obj-max)
                                          resolution origin-y)))
                    (let* ((mean 0.7d0)
-                          (x-min (tf:x obj-min))
-                          (x-max (tf:x obj-max))
-                          (y-min (tf:y obj-min))
-                          (y-max (tf:y obj-max))
+                          (x-min (cl-transforms:x obj-min))
+                          (x-max (cl-transforms:x obj-max))
+                          (y-min (cl-transforms:y obj-min))
+                          (y-max (cl-transforms:y obj-max))
                           (x-len (- x-max x-min))
                           (y-len (- y-max y-min))
                           (x-dominant (> x-len y-len))
                           (poses
                             (cond (x-dominant
                                    (list
-                                    (tf:make-pose
-                                     (tf:make-3d-vector
-                                      (+ (tf:x (tf:origin obj-pose))
+                                    (cl-transforms:make-pose
+                                     (cl-transforms:make-3d-vector
+                                      (+ (cl-transforms:x (cl-transforms:origin obj-pose))
                                          (/ y-len 2))
-                                      (+ (tf:y (tf:origin obj-pose))
+                                      (+ (cl-transforms:y (cl-transforms:origin obj-pose))
                                          (/ y-len 2))
                                       0.0d0)
-                                     (tf:make-identity-rotation))))
+                                     (cl-transforms:make-identity-rotation))))
                                   (t (list
-                                      (tf:make-pose
-                                       (tf:make-3d-vector
+                                      (cl-transforms:make-pose
+                                       (cl-transforms:make-3d-vector
                                         (+ x-min
                                            (/ x-len 2))
                                         (+ y-min
                                            (/ x-len 2))
                                         0.0d0)
-                                       (tf:make-identity-rotation))
-                                      (tf:make-pose
-                                       (tf:make-3d-vector
+                                       (cl-transforms:make-identity-rotation))
+                                      (cl-transforms:make-pose
+                                       (cl-transforms:make-3d-vector
                                         (+ x-min
                                            (/ x-len 2))
                                         (- y-max
                                            (/ x-len 2))
                                         0.0d0)
-                                       (tf:make-identity-rotation))))))
+                                       (cl-transforms:make-identity-rotation))))))
                           (meancovs (mapcar
                                      (lambda (pose)
                                        (location-costmap::2d-pose-covariance

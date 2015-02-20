@@ -80,7 +80,7 @@ designator."
                          nil at-location-task
                          (lambda  ()
                            (pulse robot-location-changed-fluent)))))))))
-      (tf:with-transforms-changed-callback (*tf* #'set-current-location)
+      (cl-tf2:with-transforms-changed-callbacks (*tf2-broadcaster* #'set-current-location)
         (with-equate-fluent (loc-var designator-updated)
           (loop
             for navigation-done = (make-fluent :value nil)

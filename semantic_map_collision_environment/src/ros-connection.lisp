@@ -63,8 +63,8 @@
       (with-slots (pose dimensions) obj
         (let* ((obj-name (string-upcase (make-collision-obj-name obj)))
                (pose-stamped (cl-tf2:ensure-pose-stamped-transformed
-                              *tf2*
-                              (tf:pose->pose-stamped "/map" 0.0 pose)
+                              *tf2-buffer*
+                              (cl-tf-datatypes:pose->pose-stamped "/map" 0.0 pose)
                               "/odom_combined")))
             (moveit:register-collision-object
              obj-name
@@ -127,7 +127,7 @@
      id index
      type 1
      action 0
-     pose (tf:pose->msg pose)
+     pose (cl-tf2:to-msg pose)
      (x scale) (x dimensions)
      (y scale) (y dimensions)
      (z scale) (z dimensions)

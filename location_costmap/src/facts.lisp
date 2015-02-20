@@ -66,8 +66,8 @@ quaternions to face towards `position'"
   "Returns a function that takes an X and Y coordinate and returns a
 quaternion to face towards `position'"
   (let* ((point (etypecase position
-                  (tf:pose (tf:origin position))
-                  (tf:3d-vector position)))
+                  (cl-transforms:pose (cl-transforms:origin position))
+                  (cl-transforms:3d-vector position)))
          (p-rel (cl-transforms:v- point (cl-transforms:make-3d-vector x y 0))))
     (atan (cl-transforms:y p-rel) (cl-transforms:x p-rel))))
 

@@ -44,7 +44,7 @@
     (lisp-fun cl-transforms:w ?orientation ?aw))
 
   (<- (pose-stamped ?pose ?frame-id ?stamp ?origin ?orientation)
-    (lisp-type ?pose tf:pose-stamped)
-    (lisp-fun tf:frame-id ?pose ?frame-id)
-    (lisp-fun tf:stamp ?pose ?stamp)
+    (lisp-type ?pose cl-tf-datatypes:pose-stamped)
+    (lisp-fun cl-tf-datatypes:frame-id ?pose ?frame-id)
+    (lisp-fun cl-tf-datatypes:stamp ?pose ?stamp)
     (pose ?pose ?origin ?orientation)))

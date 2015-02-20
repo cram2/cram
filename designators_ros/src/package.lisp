@@ -33,7 +33,7 @@
     (:use #:cl #:desig #:cut #:crs
           #:cram-roslisp-common)
   (:import-from #:tf pose pose-stamped)
-  (:import-from cram-roslisp-common *tf2*)
+  (:import-from cram-roslisp-common *tf2-buffer*)
   (:export pose pose-stamped *fixed-frame* *robot-base-frame*
            with-designator-solution-filter make-euclidean-distance-filter
            next-filtered-designator-solution))

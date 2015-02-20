@@ -44,13 +44,13 @@
   ;; to fix it in the future.
   (let ((robot-pose
           (cl-tf2:ensure-pose-stamped-transformed
-           *tf2*
-           (tf:make-pose-stamped
+           *tf2-buffer*
+           (cl-tf-datatypes:make-pose-stamped
             designators-ros:*robot-base-frame* 0.0
             (cl-transforms:make-identity-vector)
             (cl-transforms:make-identity-rotation))
            designators-ros:*fixed-frame*)))
-    (tf:copy-pose-stamped
+    (cl-tf-datatypes:copy-pose-stamped
      robot-pose
      :origin (cl-transforms:copy-3d-vector
               (cl-transforms:origin robot-pose) :z 0.0))))

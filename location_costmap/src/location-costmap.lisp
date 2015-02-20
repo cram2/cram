@@ -222,7 +222,7 @@ calls the generator functions and runs normalization."
 (defmethod costmap-samples ((map location-costmap) &key sampling-function)
   (lazy-mapcan (lambda (sample-point)
                  (lazy-mapcar (lambda (orientation)
-                                (tf:make-pose sample-point orientation))
+                                (cl-transforms:make-pose sample-point orientation))
                               (generate-orientations
                                map
                                (cl-transforms:x sample-point)
