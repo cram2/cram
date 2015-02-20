@@ -76,7 +76,7 @@
                                                   (y dimensions)
                                                   (z dimensions))))
              :pose-stamped pose-stamped)
-            (moveit:add-collision-object obj-name nil nil)
+            (moveit:add-collision-object obj-name nil)
             (cram-language::on-publishing-collision-object obj obj-name))))))
 
 (defun remove-semantic-map-collision-objects ()
