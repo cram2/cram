@@ -59,12 +59,12 @@
 
 (defun robot-current-pose-generator (desig)
   (declare (ignore desig))
-  (when *tf2*
+  (when *tf2-buffer*
     (list (cl-tf2:ensure-pose-stamped-transformed
-           *tf2*
-           (cl-tf:make-pose-stamped
+           *tf2-buffer*
+           (cl-tf-datatypes:make-pose-stamped
             designators-ros:*robot-base-frame* (roslisp:ros-time)
-            (cl-tf:make-identity-vector) (cl-tf:make-identity-rotation))
+            (cl-transforms:make-identity-vector) (cl-transforms:make-identity-rotation))
            designators-ros:*fixed-frame*))))
 
 (defun location-costmap-generator (desig)

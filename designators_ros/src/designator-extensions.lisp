@@ -48,8 +48,8 @@
 
 (defgeneric ensure-pose-stamped (position-object frame-id stamp)
   (:method ((pose cl-transforms:pose) frame-id stamp)
-    (tf:pose->pose-stamped frame-id stamp pose))
-  (:method ((pose-stamped tf:pose-stamped) frame-id stamp)
+    (cl-tf-datatypes:pose->pose-stamped frame-id stamp pose))
+  (:method ((pose-stamped cl-tf-datatypes:pose-stamped) frame-id stamp)
     (declare (ignore frame-id stamp))
     pose-stamped))
 
@@ -60,22 +60,22 @@
   (labels ((transform-available-p (source-frame target-frame &key (time 0.0) (timeout 2.0))
              ;; Auxiliary predicate to check whether a tf-transform is available."
              (cl-tf2:ensure-transform-available
-              *tf2* source-frame target-frame))
+              *tf2-buffer* source-frame target-frame))
            (poses-equal-in-frame-p (pose-1 pose-2 compare-frame)
              ;; Predicate to check equality of two poses w.r.t. a given frame."
              (when (and (transform-available-p
-                         compare-frame (tf:frame-id pose-1)
-                         :time (tf:stamp pose-1))
+                         compare-frame (cl-tf-datatypes:frame-id pose-1)
+                         :time (cl-tf-datatypes:stamp pose-1))
                         (transform-available-p
-                         compare-frame (tf:frame-id pose-2)
-                         :time (tf:stamp pose-2)))
+                         compare-frame (cl-tf-datatypes:frame-id pose-2)
+                         :time (cl-tf-datatypes:stamp pose-2)))
                ;; assert: both poses can be transformed into 'compare-frame'
                (let ((pose-1-transformed
                        (cl-tf2:ensure-pose-stamped-transformed
-                        *tf2* pose-1 compare-frame :use-current-ros-time t))
+                        *tf2-buffer* pose-1 compare-frame :use-current-ros-time t))
                      (pose-2-transformed
                        (cl-tf2:ensure-pose-stamped-transformed
-                        *tf2* pose-2 compare-frame :use-current-ros-time t)))
+                        *tf2-buffer* pose-2 compare-frame :use-current-ros-time t)))
                  ;; compare transformed poses using pre-defined thresholds
                  (and (< (cl-transforms:v-dist
                       (cl-transforms:origin pose-1-transformed)

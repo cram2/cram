@@ -107,15 +107,15 @@ respectively."
           (dotimes (col (array-dimension map-array 1))
             (let ((curr-val (aref map-array row col)))
               (when (> curr-val threshold)
-                (let ((pose (tf:make-pose
-                             (tf:make-3d-vector
+                (let ((pose (cl-transforms:make-pose
+                             (cl-transforms:make-3d-vector
                               (+ (* col resolution) origin-x)
                               (+ (* row resolution) origin-y)
                               (+ z (or (when elevate-costmap
                                          (/ curr-val max-val))
                                        0.0)))
-                             (tf:axis-angle->quaternion
-                              (tf:make-3d-vector 1.0 0.0 0.0) 0.0)))
+                             (cl-transforms:axis-angle->quaternion
+                              (cl-transforms:make-3d-vector 1.0 0.0 0.0) 0.0)))
                       (color (cond (hsv-colormap
                                     (hsv->rgb (* 360 (/ curr-val
                                                         max-val))
@@ -145,7 +145,7 @@ respectively."
                                       (action) (roslisp-msg-protocol:symbol-code
                                                 'visualization_msgs-msg:marker
                                                 :add)
-                                      (pose) (tf:pose->msg pose)
+                                      (pose) (cl-tf2:to-msg pose)
                                       (x scale) resolution
                                       (y scale) resolution
                                       (z scale) resolution
@@ -243,7 +243,7 @@ respectively."
                              (stamp header) (ros-time)
                              (frame_id header)
                              (typecase pose
-                               (tf:pose-stamped (tf:frame-id pose))
+                               (cl-tf-datatypes:pose-stamped (cl-tf-datatypes:frame-id pose))
                                (t "/map"))
                              ns "kipla_locations"
                              id (or id (incf current-index))

@@ -66,8 +66,8 @@
                  look-for-object
                  :generators (((look-at-pose)
                                `(,(reference obj-loc))))
-                 :features ((look-x (tf:x (tf:origin look-at-pose)))
-                            (look-y (tf:y (tf:origin look-at-pose))))
+                 :features ((look-x (cl-transforms:x (cl-transforms:origin look-at-pose)))
+                            (look-y (cl-transforms:y (cl-transforms:origin look-at-pose))))
                  :constraints ((cram-plan-failures::objectnotfound
                                 (< cut::predicted-failure 0.5)))
                  :attempts 2
@@ -96,8 +96,8 @@
                                (make-designator
                                 'location
                                 `((of ,perceived-object)))))))
-             :features ((look-x (tf:x (tf:origin look-at-pose)))
-                        (look-y (tf:y (tf:origin look-at-pose))))
+             :features ((look-x (cl-transforms:x (cl-transforms:origin look-at-pose)))
+                        (look-y (cl-transforms:y (cl-transforms:origin look-at-pose))))
              :constraints ((cram-plan-failures::objectnotfound
                             (< cut::predicted-failure 0.5)))
              :attempts 2

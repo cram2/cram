@@ -39,7 +39,7 @@
            remove-semantic-map-collision-objects
            update-sem-map-obj-pose)
   (:import-from semantic-map-utils semantic-map-name)
-  (:import-from cram-roslisp-common *tf2*)
+  (:import-from cram-roslisp-common *tf2-buffer*)
   (:shadowing-import-from :roslisp-utilities #:startup-ros #:shutdown-ros
                           #:register-ros-init-function #:register-ros-cleanup-function
                           #:rosify-lisp-name #:lispify-ros-name))

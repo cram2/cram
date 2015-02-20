@@ -88,19 +88,19 @@
                        (offset-angle 0.0)
                        grasp-type
                        (center-offset
-                        (tf:make-identity-vector)))
+                        (cl-transforms:make-identity-vector)))
   (loop for i from 0 below segments
         as current-angle = (+ (* 2 pi (float (/ i segments)))
                               offset-angle)
-        as handle-pose = (tf:make-pose
-                          (tf:make-3d-vector
+        as handle-pose = (cl-transforms:make-pose
+                          (cl-transforms:make-3d-vector
                            (+ (* distance-from-center (cos current-angle))
-                              (tf:x center-offset))
+                              (cl-transforms:x center-offset))
                            (+ (* distance-from-center (sin current-angle))
-                              (tf:y center-offset))
+                              (cl-transforms:y center-offset))
                            (+ 0.0
-                              (tf:z center-offset)))
-                          (tf:euler->quaternion
+                              (cl-transforms:z center-offset)))
+                          (cl-transforms:euler->quaternion
                            :ax ax :ay ay :az (+ az current-angle)))
         as handle-object = (make-designator
                             'cram-designators:object

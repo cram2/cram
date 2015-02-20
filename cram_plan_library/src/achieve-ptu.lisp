@@ -40,7 +40,7 @@
                               (ecase ?pose
                                 (:forward
                                  `((to see)
-                                   (pose ,(tf:make-pose-stamped
+                                   (pose ,(cl-tf-datatypes:make-pose-stamped
                                            "/base_link" 0.0
                                            (cl-transforms:make-3d-vector
                                             3.0 0.0 1.5)
