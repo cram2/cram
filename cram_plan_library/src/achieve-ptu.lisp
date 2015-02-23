@@ -41,7 +41,8 @@
                                 (:forward
                                  `((to see)
                                    (pose ,(cl-tf-datatypes:make-pose-stamped
-                                           "/base_link" 0.0
+                                           designators-ros:*robot-base-frame*
+                                           0.0
                                            (cl-transforms:make-3d-vector
                                             3.0 0.0 1.5)
                                            (cl-transforms:make-quaternion

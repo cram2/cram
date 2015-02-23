@@ -186,7 +186,7 @@
           :name name
           :type type
           :index 0
-          :pose (transform-pose
+          :pose (cl-transforms:transform-pose
                  pose-tf
                  (make-pose
                   (make-3d-vector
@@ -198,7 +198,7 @@
           :name name
           :type type
           :index 1
-          :pose (transform-pose
+          :pose (cl-transforms:transform-pose
                  pose-tf
                  (make-pose
                   (make-3d-vector
@@ -210,7 +210,7 @@
           :name name
           :type type
           :index 2
-          :pose (transform-pose
+          :pose (cl-transforms:transform-pose
                  pose-tf
                  (make-pose
                   (make-3d-vector
@@ -222,7 +222,7 @@
           :name name
           :type type
           :index 3
-          :pose (transform-pose
+          :pose (cl-transforms:transform-pose
                  pose-tf
                  (make-pose
                   (make-3d-vector
@@ -234,7 +234,7 @@
           :name name
           :type type
           :index 4
-          :pose (transform-pose
+          :pose (cl-transforms:transform-pose
                  pose-tf
                  (make-pose
                   (make-3d-vector
@@ -246,7 +246,7 @@
           :name name
           :type type
           :index 5
-          :pose (transform-pose
+          :pose (cl-transforms:transform-pose
                  pose-tf
                  (make-pose
                   (make-3d-vector
