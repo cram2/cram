@@ -26,8 +26,10 @@
   <build_depend>cram_plan_knowledge</build_depend>
   <build_depend>cram_plan_failures</build_depend>
   <build_depend>cram_projection</build_depend>
+  <build_depend>cram_task_knowledge</build_depend>
   <build_depend>alexandria</build_depend>
   <build_depend>designators_ros</build_depend>
+  <build_depend>cl_semantic_map_utils</build_depend>
 
   <run_depend>cram_language</run_depend>
   <run_depend>cram_utilities</run_depend>
@@ -38,7 +40,9 @@
   <run_depend>cram_plan_knowledge</run_depend>
   <run_depend>cram_plan_failures</run_depend>
   <run_depend>cram_projection</run_depend>
+  <run_depend>cram_task_knowledge</run_depend>
   <run_depend>alexandria</run_depend>
   <run_depend>designators_ros</run_depend>
+  <run_depend>cl_semantic_map_utils</run_depend>
 
 </package>

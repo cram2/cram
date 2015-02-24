@@ -1,4 +1,4 @@
-;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2015, Jan Winkler <winkler@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -9,7 +9,7 @@
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
-;;;     * Neither the name of Willow Garage, Inc. nor the names of its
+;;;     * Neither the name of University of Bremen nor the names of its
 ;;;       contributors may be used to endorse or promote products derived from
 ;;;       this software without specific prior written permission.
 ;;; 
@@ -27,50 +27,18 @@
 
 (in-package :cl-user)
 
-(desig-props:def-desig-package cram-plan-library
-  (:documentation "Library of plans for pick-and-place tasks.")
+(desig-props:def-desig-package cram-task-knowledge
+  (:documentation "Task Specific Knowledge Supporting CRAM High Level Plans")
   (:use #:cpl
         #:cram-designators
         #:cram-language-designator-support
         #:cram-utilities
-        #:cram-process-modules
         #:roslisp
         #:cram-roslisp-common
-        #:cram-plan-knowledge
-        #:cram-plan-failures
         #:alexandria)
-  (:nicknames :plan-lib)
-  (:export #:achieve
-           #:perform
-           #:perform-on-process-module
-           #:loc
-           #:object-in-hand
-           #:object-placed-at
-           #:object-picked
-           #:object-put
-           #:container-opened
-           #:perceive-object-in-gripper
-           #:arms-parked
-           #:arms-at
-           #:looking-at
-           #:at-location
-           #:object-detected
-           #:perceive-object
-           #:the #:all #:a #:currently-visible #:drawer-handle
-           #:perceive-state
-           #:examine
-           #:obstacles-found
-           #:robot
-           ;; rete and occasions
-           #:object-picked-up
-           #:object-in-hand-failure
-           #:object-not-found-failure)
+  (:export table-setting-object
+           situation?
+           meal-time)
+  (:import-from :cram-reasoning def-fact-group <-)
   (:import-from cram-roslisp-common *tf2*)
-  (:import-from cram-task-knowledge table-setting-object)
-  (:desig-properties #:to #:see #:obj #:of #:reach #:type #:trajectory
-                     #:pose #:open #:side #:grasp #:lift #:carry :reach
-                     #:location #:at #:parked #:pose #:close #:gripper
-                     #:follow #:pick-up #:put-down #:height #:orientation
-                     #:in #:perceive #:obstacle #:cluster #:execute
-                     #:action #:goal #:navigation #:park #:on #:angle
-                     #:examine #:properties #:scene))
+  (:desig-properties type situation meal-time breakfast lunch dinner))
