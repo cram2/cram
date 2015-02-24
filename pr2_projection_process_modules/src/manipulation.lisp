@@ -29,7 +29,7 @@
 (in-package :projection-process-modules)
 
 (defparameter *both-arms-carry-pose*
-  (tf:make-pose-stamped
+  (cl-tf-datatypes:make-pose-stamped
    "torso_lift_link" 0.0
    (cl-transforms:make-3d-vector 0.5 0.0 -0.1)
    (cl-transforms:make-quaternion 0 0 0 1)))
@@ -60,8 +60,7 @@
 
 (defun get-link-orientation-in-robot (link-name &key (base-link "base_footprint"))
   (cl-transforms:rotation
-   (tf:lookup-transform
-    cram-roslisp-common:*tf* :source-frame link-name :target-frame base-link)))
+   (cl-tf2:lookup-transform cram-roslisp-common:*tf2-buffer* base-link link-name)))
 
 (defun execute-action-trajectory-points (action-designator &optional object-name)
   (cut:force-ll
@@ -122,21 +121,21 @@
                      (robot-arms-parking-joint-states
                       ?right-parking-joint-states :right))))
     (let* ((left-gripper-transform
-             (tf:lookup-transform
-              cram-roslisp-common:*tf*
-              :source-frame ?left-end-effector :target-frame "base_footprint"))
+             (cl-tf2:lookup-transform
+              cram-roslisp-common:*tf2-buffer*
+              designators-ros:*robot-base-frame* ?left-end-effector))
            (right-gripper-transform
-             (tf:lookup-transform
-              cram-roslisp-common:*tf*
-              :source-frame ?right-end-effector :target-frame "base_footprint"))
+             (cl-tf2:lookup-transform
+              cram-roslisp-common:*tf2-buffer*
+              designators-ros:*robot-base-frame* ?right-end-effector))
            (left->right-arm-vector
              (cl-transforms:v-
               (cl-transforms:translation left-gripper-transform)
               (cl-transforms:translation right-gripper-transform)))
            (arm-distance (cl-transforms:v-norm left->right-arm-vector))
            (carry-pose-in-base
-             (tf:transform-pose
-              cram-roslisp-common:*tf*
+             (cl-tf2:transform-pose
+              cram-roslisp-common:*tf2-buffer*
               :target-frame "base_footprint" :pose *both-arms-carry-pose*)))
       (set-robot-reach-pose
        :left carry-pose-in-base
@@ -166,7 +165,7 @@
              (cut:lazy-car
               (bullet-reasoning:get-ik
                robot-object
-               (tf:copy-pose-stamped
+               (cl-tf-datatypes:copy-pose-stamped
                 ?parking-pose :orientation (get-link-orientation-in-robot link))
                :group-name (side->ik-group-name side)
                :seed-state (make-joint-state-message ?joint-states)))))
