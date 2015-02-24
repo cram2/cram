@@ -45,43 +45,45 @@
   "If desig-props:for is specified it means we generated a costmap for a specific object.
    In that case a specific costmap spread angle might be needed for that object, i.e.
    a threshold on costmap values is specified for that object in the knowledge base."
-  (when (typep pose 'cl-transforms:pose)
-    (let ((for-prop-value (desig-prop-value desig 'for)))
-      (if for-prop-value
-          (let* ((cm (location-costmap::get-cached-costmap desig))
-                 (p (cl-transforms:origin pose)))
-            (if cm
-                (let ((costmap-value (/ (get-map-value
-                                         cm
-                                         (cl-transforms:x p)
-                                         (cl-transforms:y p))
-                                        (location-costmap::get-cached-costmap-maxvalue cm))))
-                  (with-vars-bound (?threshold)
-                      (lazy-car
-                       (prolog `(and
-                                 (bullet-world ?w)
-                                 (object-instance-name ,for-prop-value ?obj-name)
-                                 (object-costmap-threshold ?w ?obj-name ?threshold))))
-                    (sb-ext:gc :full t)
-                    (if (is-var ?threshold)
-                        :accept
-                        (if (> costmap-value ?threshold)
-                            :accept
-                            :reject))))
-                :accept))
-          :accept))))
+  (if (typep pose 'cl-transforms:pose)
+      (let ((for-prop-value (desig-prop-value desig 'for)))
+        (if for-prop-value
+            (let* ((cm (location-costmap::get-cached-costmap desig))
+                   (p (cl-transforms:origin pose)))
+              (if cm
+                  (let ((costmap-value (/ (get-map-value
+                                           cm
+                                           (cl-transforms:x p)
+                                           (cl-transforms:y p))
+                                          (location-costmap::get-cached-costmap-maxvalue cm))))
+                    (with-vars-bound (?threshold)
+                        (lazy-car
+                         (prolog `(and
+                                   (bullet-world ?w)
+                                   (object-instance-name ,for-prop-value ?obj-name)
+                                   (object-costmap-threshold ?w ?obj-name ?threshold))))
+                      (sb-ext:gc :full t)
+                      (if (is-var ?threshold)
+                          :accept
+                          (if (> costmap-value ?threshold)
+                              :accept
+                              :reject))))
+                  :accept))
+            :accept))
+      :unknown))
 
 (defun collision-pose-validator (desig pose)
   "Checks if desig has a property FOR. If so, checks if the object described by FOR is
    a household object. If so, uses the prolog predicate desig-solution-not-in-collision."
-  (when (typep pose 'cl-transforms:pose)
-    (let ((for-prop-value (desig-prop-value desig 'for)))
-      (if (and for-prop-value
-               (prolog `(and
-                         (object-instance-name ,for-prop-value ?object-name)
-                         (household-object-type ?world ?object-name ?_))))
-          (if (prolog `(desig-solution-not-in-collision ,desig ,for-prop-value ,pose))
-              :accept
-              :reject)
-          :accept))))
+  (if (typep pose 'cl-transforms:pose)
+      (let ((for-prop-value (desig-prop-value desig 'for)))
+        (if (and for-prop-value
+                 (prolog `(and
+                           (object-instance-name ,for-prop-value ?object-name)
+                           (household-object-type ?world ?object-name ?_))))
+            (if (prolog `(desig-solution-not-in-collision ,desig ,for-prop-value ,pose))
+                :accept
+                :reject)
+            :accept))
+      :unknown))
 
