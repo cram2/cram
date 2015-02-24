@@ -37,5 +37,5 @@
   (:import-from #:cram-manipulation-knowledge end-effector-link)
   (:export get-robot-object get-designator-object-name get-designator-object
            object-designator-name)
-  (:import-from cram-roslisp-common *tf2*)
+  (:import-from cram-roslisp-common *tf2-buffer*)
   (:desig-properties pose in gripper z-offset at type))

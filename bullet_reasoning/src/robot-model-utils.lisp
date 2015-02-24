@@ -36,11 +36,13 @@
 (defvar *persistent-ik-service* nil
   "IK persistent service handle.")
 
-(defun set-robot-state-from-tf (tf robot &key (reference-frame designators-ros:*fixed-frame*)
-                                           timestamp)
+(defun set-robot-state-from-tf (tf-broadcaster robot
+                                &key (reference-frame designators-ros:*fixed-frame*)
+                                  timestamp)
   (let* ((root-link (cl-urdf:name (cl-urdf:root-link (urdf robot))))
          (robot-transform
-           (cl-tf2:ensure-transform-available *tf2* root-link reference-frame)))
+           (cl-tf2:ensure-transform-available
+            tf-broadcaster root-link reference-frame :time timestamp)))
     (when robot-transform
       (setf (link-pose robot root-link)
             (cl-transforms:transform->pose robot-transform))
@@ -50,7 +52,8 @@
                 (cl-transforms:transform->pose
                  (cl-transforms:transform*
                   robot-transform
-                  (cl-tf2:ensure-transform-available *tf2* tf-name root-link)))))))))
+                  (cl-tf2:ensure-transform-available
+                   tf-broadcaster tf-name root-link :time timestamp)))))))))
 
 (defgeneric set-robot-state-from-joints (joint-states robot)
   (:method ((joint-states sensor_msgs-msg:jointstate) (robot robot-object))
@@ -139,24 +142,24 @@ sensor_msgs/JointStates message."
       (assert end-link nil "Link `~a' unknown" end)
       (walk-tree end-link start-link))))
 
-(defun set-tf-from-robot-state (tf robot
-                                &key (base-frame "base_footprint")
+(defun set-tf-from-robot-state (tf-broadcaster robot
+                                &key (base-frame designators-ros:*robot-base-frame*)
                                   (time (roslisp:ros-time)))
   (let ((reference-transform-inv (cl-transforms:transform-inv
                                   (cl-transforms:reference-transform
                                    (link-pose robot base-frame)))))
-    (dolist (link (link-names robot) tf) ;; todo: check if tf result is actually needed
+    (dolist (link (link-names robot))
       (unless (equal link base-frame)
         (let ((transform (cl-transforms:transform*
                           reference-transform-inv
                           (cl-transforms:reference-transform
                            (link-pose robot link)))))
-          (tf:set-transform tf (tf:make-stamped-transform
-                                base-frame link time
-                                (cl-transforms:translation transform)
-                                (cl-transforms:rotation transform))
-                            :suppress-callbacks t))))
-    (tf:execute-changed-callbacks tf)))
+          (cl-tf2:send-transform tf-broadcaster
+                                 (cl-tf-datatypes:make-transform-stamped
+                                  base-frame link time
+                                  (cl-transforms:translation transform)
+                                  (cl-transforms:rotation transform))))))
+    (cl-tf2:execute-changed-callbacks tf-broadcaster)))
 
 (defun make-seed-states (robot joint-names &optional (steps 3))
   "Returns a sequence of possible seed states. The first seed state is
@@ -212,15 +215,13 @@ joint positions as seeds."
                                                   (gethash name lower-limits))
                                                (- steps 1)))))))))))))
 
-(defun calculate-tool-pose (pose &key (tool (cl-transforms:make-pose
-                                             (cl-transforms:make-3d-vector 0 0 0)
-                                             (cl-transforms:make-quaternion 0 0 0 1))))
+(defun calculate-tool-pose (pose &key (tool (cl-transforms:make-identity-pose)))
   (let ((goal-trans (cl-transforms:transform*
                      (cl-transforms:reference-transform pose)
                      (cl-transforms:transform-inv
                       (cl-transforms:reference-transform tool)))))
-    (tf:make-pose-stamped
-     (tf:frame-id pose) (tf:stamp pose)
+    (cl-tf-datatypes:make-pose-stamped
+     (cl-tf-datatypes:frame-id pose) (cl-tf-datatypes:stamp pose)
      (cl-transforms:translation goal-trans)
      (cl-transforms:rotation goal-trans))))
 
@@ -273,30 +274,36 @@ time for that :(..."
 (defun get-ik (robot
                pose-stamped
                &key
-                 (tool-frame (cl-transforms:make-pose
-                              (cl-transforms:make-3d-vector 0 0 0)
-                              (cl-transforms:make-quaternion 0 0 0 1)))
+                 (tool-frame (cl-transforms:make-identity-pose))
                  (group-name (error "Plan group of IK service has to be specified"))
                  (fixed-frame designators-ros:*fixed-frame*)
                  (robot-base-frame designators-ros:*robot-base-frame*)
                  seed-state)
-  (let ((tf (make-instance 'tf:transformer)) ; create an empty tf transformer
+  (roslisp:ros-info (get-ik) "inside get-ik")
+  (let (;; (tf-listener (make-instance 'cl-tf2:buffer-client))
+        ;; (tf-broadcaster (cl-tf2:make-transform-broadcaster))
         (time (roslisp:ros-time)))
     ;; tell the tf transformer the current configuration of robot's joints
-    (set-tf-from-robot-state tf robot
+    (set-tf-from-robot-state cram-roslisp-common:*tf2-broadcaster*;; tf-broadcaster
+                             robot
                              :base-frame robot-base-frame
                              :time time)
     ;; tell the tf transformer where the robot currently is in the global
     ;; fixed coordinate system
-    (tf:set-transform tf (tf:transform->stamped-transform
-                          fixed-frame robot-base-frame time
-                          (cl-transforms:pose->transform (pose robot))))
+    (cl-tf2:send-transform cram-roslisp-common:*tf2-broadcaster* ;; tf-broadcaster
+                           (cl-tf-datatypes:transform->transform-stamped
+                            fixed-frame robot-base-frame time
+                            (cl-transforms:pose->transform (pose robot))))
+    (cl-tf2:execute-changed-callbacks cram-roslisp-common:*tf2-broadcaster*)
     (let* ((ik-base-frame "torso_lift_link")
-           (pose (cl-tf2:ensure-pose-stamped-transformed
-                  *tf2* pose-stamped ik-base-frame :use-current-ros-time t)))
+           (pose (cl-tf2:transform-pose cram-roslisp-common:*tf2-buffer*
+                                    ;; tf
+                                    :pose (cl-tf-datatypes:copy-pose-stamped
+                                           pose-stamped :stamp 0.0)
+                                    :target-frame ik-base-frame)))
       (roslisp:with-fields ((solution (joint_state solution))
                             (error-code (val error_code)))
-          (roslisp:call-persistent-service
+        (roslisp:call-persistent-service
            (get-persistent-ik-service)
            :ik_request
            (roslisp:make-msg
@@ -305,8 +312,7 @@ time for that :(..."
             ;; of the chain which is what we want for ik_link_name.
             ;; :ik_link_name (elt link-names 0)  <- moveit per default takes
             ;;                                      the last link in the chain
-            :pose_stamped (tf:pose-stamped->msg
-                           (calculate-tool-pose pose :tool tool-frame))
+            :pose_stamped (cl-tf2:to-msg (calculate-tool-pose pose :tool tool-frame))
             ;; something is wrong with the seed state atm, so this will stay
             ;; disabled for now
             ;; :robot_state (roslisp:make-msg
@@ -315,6 +321,10 @@ time for that :(..."
             ;;                                (make-robot-joint-state-msg robot)))
             :group_name group-name
             :timeout 1.0))
+        (roslisp:ros-info (get-ik) "cart pose: ~a" pose-stamped)
+        (roslisp:ros-info (get-ik) "pose in torso: ~a" pose)
+        (roslisp:ros-info (get-ik) "tool pose: ~a" (calculate-tool-pose pose :tool tool-frame))
+        (roslisp:ros-info (get-ik) "solution: ~a" solution)
         (when (eql error-code (roslisp-msg-protocol:symbol-code
                                'moveit_msgs-msg:moveiterrorcodes
                                :success))
