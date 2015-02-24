@@ -30,7 +30,7 @@
 
 
 (defparameter *right-parking-end-effector-pose*
-  (tf:make-pose-stamped
+  (cl-tf-datatypes:make-pose-stamped
    "torso_lift_link" 0.0
    (cl-transforms:make-3d-vector 0.3 -0.3 -0.23)
    (cl-transforms:euler->quaternion :ay (/ pi 2))))
@@ -45,7 +45,7 @@
     ("r_wrist_roll_joint" -2.5861844605475843d0)))
 
 (defparameter *left-parking-end-effector-pose*
-  (tf:make-pose-stamped
+  (cl-tf-datatypes:make-pose-stamped
    "torso_lift_link" 0.0
    (cl-transforms:make-3d-vector 0.3 0.3 -0.23)
    (cl-transforms:euler->quaternion :ay (/ pi 2))))

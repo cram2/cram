@@ -29,6 +29,7 @@
   <build_depend>pr2_manipulation_knowledge</build_depend>
   <build_depend>cram_roslisp_common</build_depend>
   <build_depend>cl_semantic_map_utils</build_depend>
+  <build_depend>designators_ros</build_depend>
 
   <!-- Dependencies needed after this package is compiled. -->
   <run_depend>alexandria</run_depend>
@@ -45,5 +46,6 @@
   <run_depend>pr2_manipulation_knowledge</run_depend>
   <run_depend>cram_roslisp_common</run_depend>
   <run_depend>cl_semantic_map_utils</run_depend>
+  <run_depend>designators_ros</run_depend>
 
 </package>
