@@ -29,7 +29,7 @@
 (defsystem projection-process-modules
   :author "Lorenz Moesenlechner"
   :license "BSD"
-  
+
   :depends-on (alexandria
                process-modules
                designators
@@ -41,7 +41,8 @@
                cram-manipulation-knowledge
                cram-plan-failures
                pr2-manipulation-knowledge
-               cl-semantic-map-utils)
+               cl-semantic-map-utils
+               designators-ros)
   :components
   ((:module "src"
     :components

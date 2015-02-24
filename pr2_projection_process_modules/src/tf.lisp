@@ -28,7 +28,7 @@
 
 (in-package :projection-process-modules)
 
-(defun update-tf (&key (base-frame "base_footprint")
+(defun update-tf (&key (base-frame designators-ros:*robot-base-frame*)
                     (odom-frame "odom_combined")
                     (map-frame designators-ros:*fixed-frame*))
   (cut:with-vars-bound (?robot-instance ?robot-pose)
@@ -38,21 +38,20 @@
                          (%object ?world ?robot ?robot-instance)
                          (pose ?world ?robot ?robot-pose))))
     (assert (not (cut:is-var ?robot-instance)))
-    (tf:set-transform
-     *tf*
-     (tf:make-stamped-transform
-      odom-frame base-frame (roslisp:ros-time)
-      (cl-transforms:origin ?robot-pose)
-      (cl-transforms:orientation ?robot-pose))
-     :suppress-callbacks t)
-    (tf:set-transform
-     *tf*
-     (tf:make-stamped-transform
+    (cl-tf2:send-transform
+     cram-roslisp-common:*tf2-broadcaster*
+     (cl-tf-datatypes:make-transform-stamped
       map-frame odom-frame (roslisp:ros-time)
       (cl-transforms:make-identity-vector)
-      (cl-transforms:make-identity-rotation))
-     :suppress-callbacks t)
-    (bullet-reasoning:set-tf-from-robot-state *tf* ?robot-instance)))
+      (cl-transforms:make-identity-rotation)))
+    (cl-tf2:send-transform
+     cram-roslisp-common:*tf2-broadcaster*
+     (cl-tf-datatypes:make-transform-stamped
+      odom-frame base-frame (roslisp:ros-time)
+      (cl-transforms:origin ?robot-pose)
+      (cl-transforms:orientation ?robot-pose)))
+    (bullet-reasoning:set-tf-from-robot-state
+     cram-roslisp-common:*tf2-broadcaster* ?robot-instance)))
 
 (defmethod cram-plan-knowledge:on-event update-tf
     ((event cram-plan-knowledge:robot-state-changed))

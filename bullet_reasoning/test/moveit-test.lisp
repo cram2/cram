@@ -13,8 +13,8 @@
 (define-test test-moveit-service-setup
   (let* ((request (roslisp:make-message
                    "moveit_msgs/PositionIKRequest"
-                   :pose_stamped (tf:pose-stamped->msg
-                                  (tf:make-pose-stamped
+                   :pose_stamped (cl-tf2:to-msg
+                                  (cl-tf-datatypes:make-pose-stamped
                                    "torso_lift_link"
                                    (roslisp:ros-time)
                                    (cl-transforms:make-3d-vector 0.45 0.2 0.31)

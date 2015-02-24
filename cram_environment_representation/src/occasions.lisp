@@ -112,7 +112,7 @@ is returned."
   (setf *current-bullet-world* (make-instance 'bt-reasoning-world))
   (setup-world-database)
   (set-robot-state-from-tf
-   cram-roslisp-common:*tf*
+   cram-roslisp-common:*tf2-buffer*
    (var-value '?robot-instance (lazy-car (prolog `(and (robot ?robot)
                                                        (%object ?_ ?robot ?robot-instance)))))))
 
