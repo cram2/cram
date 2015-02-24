@@ -68,8 +68,7 @@
 (defun robot-location-on-floor (designator pose)
   (cond ((not (member (desig-prop-value designator 'to) '(reach see)))
          :unknown)
-        ((< (cl-transforms:z (cl-transforms:origin pose))
-            0.05)
+        ((< (cl-transforms:z (cl-transforms:origin pose)) 0.05)
          :accept)))
 
 (defun get-robot-name ()
