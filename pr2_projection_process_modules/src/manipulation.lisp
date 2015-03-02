@@ -60,7 +60,9 @@
 
 (defun get-link-orientation-in-robot (link-name &key (base-link "base_footprint"))
   (cl-transforms:rotation
-   (cl-tf2:lookup-transform cram-roslisp-common:*tf2-buffer* base-link link-name)))
+   (cl-tf2:lookup-transform
+    cram-roslisp-common:*tf2-buffer* base-link link-name
+    :timeout cram-roslisp-common:*tf-default-timeout*)))
 
 (defun execute-action-trajectory-points (action-designator &optional object-name)
   (cut:force-ll
@@ -123,11 +125,13 @@
     (let* ((left-gripper-transform
              (cl-tf2:lookup-transform
               cram-roslisp-common:*tf2-buffer*
-              designators-ros:*robot-base-frame* ?left-end-effector))
+              designators-ros:*robot-base-frame* ?left-end-effector
+              :timeout cram-roslisp-common:*tf-default-timeout*))
            (right-gripper-transform
              (cl-tf2:lookup-transform
               cram-roslisp-common:*tf2-buffer*
-              designators-ros:*robot-base-frame* ?right-end-effector))
+              designators-ros:*robot-base-frame* ?right-end-effector
+              :timeout cram-roslisp-common:*tf-default-timeout*))
            (left->right-arm-vector
              (cl-transforms:v-
               (cl-transforms:translation left-gripper-transform)
@@ -136,7 +140,9 @@
            (carry-pose-in-base
              (cl-tf2:transform-pose
               cram-roslisp-common:*tf2-buffer*
-              :target-frame "base_footprint" :pose *both-arms-carry-pose*)))
+              :target-frame designators-ros:*robot-base-frame*
+              :pose *both-arms-carry-pose*
+              :timeout cram-roslisp-common:*tf-default-timeout*)))
       (set-robot-reach-pose
        :left carry-pose-in-base
        :tool-frame (cl-transforms:make-pose
