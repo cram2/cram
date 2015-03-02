@@ -146,6 +146,7 @@
   "Returns a new location designator that indicates a location in the
   robot's gripper."
   (declare (type object object))
+  (roslisp:ros-info () "making desig in gripper ~a~%~%~%~%" gripper-link)
   (let* ((object-pose (cl-tf-datatypes:pose->pose-stamped
                        designators-ros:*fixed-frame* 0.0
                        (btr:pose object)))
@@ -169,12 +170,12 @@
   (declare (type object object)
            (type string frame))
   (cl-tf-datatypes:copy-pose-stamped
-   (cl-tf2:ensure-pose-stamped-transformed
+   (cl-tf2:transform-pose
     *tf2-buffer*
-    (cl-tf-datatypes:pose->pose-stamped
-     designators-ros:*fixed-frame* 0.0 (btr:pose object))
-    frame
-    :use-current-ros-time t)
+    :pose (cl-tf-datatypes:pose->pose-stamped
+           designators-ros:*fixed-frame* 0.0 (btr:pose object))
+    :target-frame frame
+    :timeout cram-roslisp-common:*tf-default-timeout*)
    :stamp 0.0))
 
 (defun extend-designator-properties (designator property-extension)
