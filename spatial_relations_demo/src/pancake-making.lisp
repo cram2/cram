@@ -30,6 +30,8 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; PANCAKES! ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; (cram-manipulation-knowledge:def-tool (cl-transforms:make-3d-vector 0 0 0) 0.0)
+
 (defun spawn-pancake-scenario ()
   (btr::clear-current-costmap-function-object)
   (detach-all-objects (object *current-bullet-world* 'cram-pr2-knowledge::pr2))  
@@ -71,6 +73,13 @@
                 :radius 0.01 :mass 0.1 :color '(0 0 0))))
 
 (defun execute-pancake-scenario ()
+  (setf cram-roslisp-common:*tf-default-timeout* 1.0)
+  ;; (setf cram-designators::*print-location-validation-function-results* t)
+  ;; (sb-thread:make-thread #'(lambda ()
+  ;;                            (loop for i from 1 to 90
+  ;;                                  do
+  ;;                              (projection-process-modules::update-tf)
+  ;;                              (sleep 1))))
   (sb-ext:gc :full t)
   (spawn-pancake-scenario)
   (cram-projection:with-projection-environment
