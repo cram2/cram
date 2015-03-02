@@ -39,21 +39,28 @@
 (defun set-robot-state-from-tf (tf-broadcaster robot
                                 &key (reference-frame designators-ros:*fixed-frame*)
                                   timestamp)
-  (let* ((root-link (cl-urdf:name (cl-urdf:root-link (urdf robot))))
-         (robot-transform
-           (cl-tf2:ensure-transform-available
-            tf-broadcaster root-link reference-frame :time timestamp)))
-    (when robot-transform
-      (setf (link-pose robot root-link)
-            (cl-transforms:transform->pose robot-transform))
-      (loop for name being the hash-keys in  (slot-value robot 'links) do
-        (let ((tf-name (if (eql (elt name 0) #\/) name (concatenate 'string "/" name))))
-          (setf (link-pose robot name)
-                (cl-transforms:transform->pose
-                 (cl-transforms:transform*
-                  robot-transform
-                  (cl-tf2:ensure-transform-available
-                   tf-broadcaster tf-name root-link :time timestamp)))))))))
+  (handler-case
+      (let* ((root-link (cl-urdf:name (cl-urdf:root-link (urdf robot))))
+             (robot-transform
+               (cl-tf2:lookup-transform
+                tf-broadcaster root-link reference-frame
+                :time timestamp :timeout cram-roslisp-common:*tf-default-timeout*)))
+        (when robot-transform
+          (setf (link-pose robot root-link)
+                (cl-transforms:transform->pose robot-transform))
+          (loop for name being the hash-keys in  (slot-value robot 'links) do
+            (let ((tf-name
+                    (if (eql (elt name 0) #\/) name (concatenate 'string "/" name))))
+              (setf (link-pose robot name)
+                    (cl-transforms:transform->pose
+                     (cl-transforms:transform*
+                      robot-transform
+                      (cl-tf2:lookup-transform
+                       tf-broadcaster tf-name root-link
+                       :time timestamp
+                       :timeout cram-roslisp-common:*tf-default-timeout*))))))))
+    (cl-tf2:tf2-server-error ()
+      nil)))
 
 (defgeneric set-robot-state-from-joints (joint-states robot)
   (:method ((joint-states sensor_msgs-msg:jointstate) (robot robot-object))
@@ -280,9 +287,7 @@ time for that :(..."
                  (robot-base-frame designators-ros:*robot-base-frame*)
                  seed-state)
   (roslisp:ros-info (get-ik) "inside get-ik")
-  (let (;; (tf-listener (make-instance 'cl-tf2:buffer-client))
-        ;; (tf-broadcaster (cl-tf2:make-transform-broadcaster))
-        (time (roslisp:ros-time)))
+  (let ((time (roslisp:ros-time)))
     ;; tell the tf transformer the current configuration of robot's joints
     (set-tf-from-robot-state cram-roslisp-common:*tf2-broadcaster*;; tf-broadcaster
                              robot
@@ -295,12 +300,27 @@ time for that :(..."
                             fixed-frame robot-base-frame time
                             (cl-transforms:pose->transform (pose robot))))
     (cl-tf2:execute-changed-callbacks cram-roslisp-common:*tf2-broadcaster*)
-    (let* ((ik-base-frame "torso_lift_link")
-           (pose (cl-tf2:transform-pose cram-roslisp-common:*tf2-buffer*
-                                    ;; tf
-                                    :pose (cl-tf-datatypes:copy-pose-stamped
-                                           pose-stamped :stamp 0.0)
-                                    :target-frame ik-base-frame)))
+    (let* ((pose (cl-tf2:transform-pose
+                  cram-roslisp-common:*tf2-buffer*
+                  :pose (cl-tf-datatypes:copy-pose-stamped pose-stamped :stamp 0.0)
+                  :target-frame designators-ros:*robot-base-frame*
+                  :timeout cram-roslisp-common:*tf-default-timeout*)))
+      (roslisp:ros-info (get-ik) "msg:~%~a~%"
+                        (roslisp:make-msg
+            "moveit_msgs/PositionIKRequest"
+            ;; we assume that the last joint in JOINT-NAMES is the end
+            ;; of the chain which is what we want for ik_link_name.
+            ;; :ik_link_name (elt link-names 0)  <- moveit per default takes
+            ;;                                      the last link in the chain
+            :pose_stamped (cl-tf2:to-msg (calculate-tool-pose pose :tool tool-frame))
+            ;; something is wrong with the seed state atm, so this will stay
+            ;; disabled for now
+            ;; :robot_state (roslisp:make-msg
+            ;;               "moveit_msgs/RobotState"
+            ;;               :joint_state (or seed-state
+            ;;                                (make-robot-joint-state-msg robot)))
+            :group_name group-name
+            :timeout 1.0))
       (roslisp:with-fields ((solution (joint_state solution))
                             (error-code (val error_code)))
         (roslisp:call-persistent-service

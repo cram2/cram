@@ -29,7 +29,7 @@
 (in-package :projection-process-modules)
 
 (defun update-tf (&key (base-frame designators-ros:*robot-base-frame*)
-                    (odom-frame "odom_combined")
+                    (odom-frame designators-ros:*odom-frame*)
                     (map-frame designators-ros:*fixed-frame*))
   (cut:with-vars-bound (?robot-instance ?robot-pose)
       (cut:lazy-car
