@@ -43,6 +43,20 @@
 
 
 (def-fact-group spatial-relations-costmap (desig-costmap)
+  ;; height generator for locations ((on something) (name something) (for some-obj))
+  (<- (desig-costmap ?designator ?costmap)
+    (desig-prop ?designator (on ?_))
+    (desig-prop ?designator (name ?_))
+    (desig-prop ?designator (for ?for-object-name))
+    (costmap ?costmap)
+    (semantic-map-costmap::semantic-map-desig-objects ?designator ?sem-map-objects)
+    (member ?sem-map-object ?sem-map-objects)
+    (bullet-world ?world)
+    (%object ?world ?for-object-name ?for-object)
+    (costmap-add-height-generator
+     (make-object-on-object-bb-height-generator ?sem-map-object ?for-object)
+     ?costmap))
+
   (<- (near-costmap ?designator ?ref-obj-pose ?ref-obj-size ?ref-padding
                     ?for-obj-size ?for-padding ?costmap)
     (costmap ?costmap)
@@ -204,7 +218,7 @@
     (bullet-world ?world)
     (object ?world ?ref-obj-name)
     (bagof ?z (and (supporting-rigid-body ?world ?ref-obj-name ?rigid-body)
-                            (lisp-fun get-rigid-body-aabb-top-z ?rigid-body ?z)) ?z-bag)
+                   (lisp-fun get-rigid-body-aabb-top-z ?rigid-body ?z)) ?z-bag)
     (max ?z-bag ?highest-z)
     (costmap ?costmap)
     (-> (desig-prop ?designator (for ?for-obj))
