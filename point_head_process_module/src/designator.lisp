@@ -34,8 +34,8 @@
 (defun pose-stamped->point-stamped-msg (ps)
   (roslisp:make-message
    "geometry_msgs/PointStamped"
-   (stamp header) (tf:stamp ps)
-   (frame_id header) (tf:frame-id ps)
+   (stamp header) (cl-tf-datatypes:stamp ps)
+   (frame_id header) (cl-tf-datatypes:frame-id ps)
    (x point) (cl-transforms:x
               (cl-transforms:origin ps))
    (y point) (cl-transforms:y
@@ -45,18 +45,22 @@
 
 (defun ensure-pose-stamped (pose)
   (etypecase pose
-    (tf:pose-stamped pose)
-    (tf:stamped-transform
-       (tf:make-pose-stamped
-        (tf:frame-id pose) (tf:stamp pose)
-        (cl-transforms:translation pose)
-        (cl-transforms:rotation pose)))
+    (cl-tf-datatypes:pose-stamped pose)
+    (cl-tf-datatypes:transform-stamped
+     (cl-tf-datatypes:make-pose-stamped
+      (cl-tf-datatypes:frame-id pose) (cl-tf-datatypes:stamp pose)
+      (cl-transforms:translation pose)
+      (cl-transforms:rotation pose)))
     (location-designator (reference pose))))
 
 (defun make-action-goal (pose-stamped)
   (let ((pose-stamped
-          (cl-tf2:ensure-pose-stamped-transformed
-           *tf2* pose-stamped "/base_link" :use-current-ros-time t)))
+          (cl-tf2:transform-pose
+           *tf2-buffer*
+           :pose pose-stamped
+           :target-frame "/base_link"
+           :timeout cram-roslisp-common:*tf-default-timeout*
+           :use-current-sim-time t)))
     (let* ((point-stamped-msg (pose-stamped->point-stamped-msg
                                pose-stamped)))
       (actionlib-lisp:make-action-goal-msg

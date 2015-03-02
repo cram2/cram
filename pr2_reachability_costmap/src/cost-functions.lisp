@@ -69,15 +69,16 @@
 
 (defun ensure-point-stamped (pose-specification)
   (etypecase pose-specification
-    (tf:point-stamped pose-specification)
-    (tf:pose-stamped (tf:make-point-stamped
-                      (tf:frame-id pose-specification)
-                      (tf:stamp pose-specification)
-                      (cl-transforms:origin pose-specification)))
-    (cl-transforms:3d-vector (tf:make-point-stamped
+    (cl-tf-datatypes:point-stamped pose-specification)
+    (cl-tf-datatypes:pose-stamped
+     (cl-tf-datatypes:make-point-stamped
+      (cl-tf-datatypes:frame-id pose-specification)
+      (cl-tf-datatypes:stamp pose-specification)
+      (cl-transforms:origin pose-specification)))
+    (cl-transforms:3d-vector (cl-tf-datatypes:make-point-stamped
                               designators-ros:*fixed-frame* 0.0
                               pose-specification))
-    (cl-transforms:pose (tf:make-point-stamped
+    (cl-transforms:pose (cl-tf-datatypes:make-point-stamped
                          designators-ros:*fixed-frame* 0.0
                          (cl-transforms:origin pose-specification)))))
 
@@ -86,9 +87,12 @@
   orientation of `pose'. If `pose' is of type TF:POSE-STAMPED,
   transforms it first into the fixed frame."
   (let ((pose (etypecase pose
-                (tf:pose-stamped (cl-tf2:ensure-pose-stamped-transformed
-                                  *tf2* pose designators-ros:*fixed-frame*
-                                  :use-current-ros-time t))
+                (cl-tf-datatypes:pose-stamped
+                 (cl-tf2:transform-pose
+                  *tf2-buffer*
+                  :pose pose
+                  :target-frame designators-ros:*fixed-frame*
+                  :timeout cram-roslisp-common:*tf-default-timeout*))
                 (cl-transforms:pose pose))))
     (find-closest-orientation
      (cl-transforms:orientation pose) orientations)))
@@ -117,12 +121,16 @@ point-stamped, all orientations are used."
       (error 'simple-error
              :format-control "`orientations' cannot be specified in combination with a CL-TRANSFORMS:POSE."))
     (let* ((point (ensure-point-stamped pose-specification))
-           (point-in-map (tf:transform-point
-                          cram-roslisp-common:*tf*
-                          :point point :target-frame designators-ros:*fixed-frame*))
-           (point-in-ik-frame (tf:transform-point
-                               cram-roslisp-common:*tf*
-                               :point point :target-frame *ik-reference-frame*))
+           (point-in-map (cl-tf2:transform-point
+                          cram-roslisp-common:*tf2-buffer*
+                          :point point
+                          :target-frame designators-ros:*fixed-frame*
+                          :timeout cram-roslisp-common:*tf-default-timeout*))
+           (point-in-ik-frame (cl-tf2:transform-point
+                               cram-roslisp-common:*tf2-buffer*
+                               :point point
+                               :target-frame *ik-reference-frame*
+                               :timeout cram-roslisp-common:*tf-default-timeout*))
            (functions (mapcar
                        (lambda (side)
                          (let* ((reachability-map (get-reachability-map side))

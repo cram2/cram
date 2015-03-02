@@ -144,14 +144,17 @@ satisfy these constraints is returned."
 (defun publish-pose (pose topic)
   (let* ((pose-stamped
            (case (class-name (class-of pose))
-             (cl-transforms:pose (tf:pose->pose-stamped "/map" (ros-time) pose))
-             (cl-tf:pose-stamped
-              (cond ((or (string= (tf:frame-id pose) "map")
-                         (string= (tf:frame-id pose) "/map"))
+             (cl-transforms:pose (cl-tf-datatypes:pose->pose-stamped "/map" (ros-time) pose))
+             (cl-tf-datatypes:pose-stamped
+              (cond ((or (string= (cl-tf-datatypes:frame-id pose) "map")
+                         (string= (cl-tf-datatypes:frame-id pose) "/map"))
                      pose)
-                    (t (cl-tf2:ensure-pose-stamped-transformed
-                        *tf2* pose "/map" :use-current-ros-time t))))))
-         (pose-stamped-msg (tf:pose-stamped->msg pose-stamped)))
+                    (t (cl-tf2:transform-pose
+                        *tf2-buffer*
+                        :pose pose :target-frame "/map"
+                        :timeout cram-roslisp-common:*tf-default-timeout*
+                        :use-current-ros-time t))))))
+         (pose-stamped-msg (cl-tf2:to-msg pose-stamped)))
     (roslisp:publish
      (roslisp:advertise topic "geometry_msgs/PoseStamped")
      pose-stamped-msg)))

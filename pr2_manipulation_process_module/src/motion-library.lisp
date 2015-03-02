@@ -83,13 +83,17 @@ trying to assume the pose `pose'."
                                     :ignore-collisions ignore-collisions)))
 
 (defun link-distance-from-pose (link-name pose-stamped)
-  (let* ((link-identity-pose (tf:pose->pose-stamped
+  (let* ((link-identity-pose (cl-tf-datatypes:pose->pose-stamped
                               link-name 0.0
-                              (tf:make-identity-pose)))
-         (link-in-pose-frame (cl-tf2:ensure-pose-stamped-transformed
-                              *tf2* link-identity-pose (tf:frame-id pose-stamped)
+                              (cl-transforms:make-identity-pose)))
+         (link-in-pose-frame (cl-tf2:transform-pose
+                              *tf2-buffer*
+                              :pose link-identity-pose
+                              :target-frame (cl-tf-datatypes:frame-id pose-stamped)
+                              :timeout cram-roslisp-common:*tf-default-timeout*
                               :use-current-ros-time t)))
-    (tf:v-dist (tf:origin link-in-pose-frame) (tf:origin pose-stamped))))
+    (cl-transforms:v-dist (cl-transforms:origin link-in-pose-frame)
+                          (cl-transforms:origin pose-stamped))))
 
 (defun pose-assumed (parameter-sets slot-name &key (threshold 3.0))
   "Checks whether the pose defined in the slot `slot-name' was assumes for all parameter sets in `parameter-sets'. The value `threshold' is used as the maximum cartesian distance by which the to be assumed and the actual pose might differ in order to be valid."
@@ -250,17 +254,19 @@ positions, grasp-type, effort to use) are defined in the list
           (mapcar (lambda (grasp-assignment)
                     (cons (side grasp-assignment)
                           (let ((pose-straight
-                                  (cl-tf2:ensure-pose-stamped-transformed
-                                   *tf2*
-                                   (tf:pose->pose-stamped
-                                    (link-name (side grasp-assignment))
-                                    0.0
-                                    (tf:make-identity-pose))
-                                   "base_link")))
-                            (tf:copy-pose-stamped
+                                  (cl-tf2:transform-pose
+                                   *tf2-buffer*
+                                   :pose (cl-tf-datatypes:pose->pose-stamped
+                                          (link-name (side grasp-assignment))
+                                          0.0
+                                          (cl-transforms:make-identity-pose))
+                                   :target-frame "base_link"
+                                   :timeout cram-roslisp-common:*tf-default-timeout*)))
+                            (cl-tf-datatypes:copy-pose-stamped
                              pose-straight
-                             :origin (tf:v+ (tf:origin pose-straight)
-                                            (tf:make-3d-vector 0 0 distance))))))
+                             :origin (cl-transforms:v+
+                                      (cl-transforms:origin pose-straight)
+                                      (cl-transforms:make-3d-vector 0 0 distance))))))
                   grasp-assignments)))
     (cond ((= (length grasp-assignments) 1)
            (destructuring-bind (arm . pose) (first target-arm-poses)
@@ -279,8 +285,8 @@ positions, grasp-type, effort to use) are defined in the list
 (defun relative-pose (pose pose-offset)
   "Applies the pose `pose-offset' as transformation into the pose
 `pose' and returns the result in the frame of `pose'."
-  (tf:pose->pose-stamped
-   (tf:frame-id pose)
+  (cl-tf-datatypes:pose->pose-stamped
+   (cl-tf-datatypes:frame-id pose)
    (ros-time)
    (cl-transforms:transform-pose
     (cl-transforms:pose->transform pose)
