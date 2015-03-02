@@ -31,6 +31,7 @@
 
 (defparameter *fixed-frame* "map")
 (defparameter *robot-base-frame* "base_footprint")
+(defparameter *odom-frame* "odom_combined")
 (defparameter *distance-equality-threshold* 0.025)
 (defparameter *angle-equality-threshold* (* 5 (/ pi 180)))
 
@@ -56,35 +57,28 @@
 (defmethod designator-solutions-equal
     ((solution-1 cl-transforms:pose) (solution-2 cl-transforms:pose))
   "Checks whether two designator solutions are equal in *fixed-frame* or *robot-base-frame*."
-  ;; two predicates used to implement equality check
-  (labels ((transform-available-p (source-frame target-frame &key (time 0.0) (timeout 2.0))
-             ;; Auxiliary predicate to check whether a tf-transform is available."
-             (cl-tf2:ensure-transform-available
-              *tf2-buffer* source-frame target-frame))
-           (poses-equal-in-frame-p (pose-1 pose-2 compare-frame)
-             ;; Predicate to check equality of two poses w.r.t. a given frame."
-             (when (and (transform-available-p
-                         compare-frame (cl-tf-datatypes:frame-id pose-1)
-                         :time (cl-tf-datatypes:stamp pose-1))
-                        (transform-available-p
-                         compare-frame (cl-tf-datatypes:frame-id pose-2)
-                         :time (cl-tf-datatypes:stamp pose-2)))
-               ;; assert: both poses can be transformed into 'compare-frame'
+  (flet ((poses-equal-in-frame-p (pose-1 pose-2 compare-frame
+                                  &key (timeout *tf-default-timeout*))
+           ;; Predicate to check equality of two poses w.r.t. a given frame."
+           (handler-case
                (let ((pose-1-transformed
-                       (cl-tf2:ensure-pose-stamped-transformed
-                        *tf2-buffer* pose-1 compare-frame :use-current-ros-time t))
+                       (cl-tf2:transform-pose
+                        *tf2-buffer*
+                        :pose pose-1 :target-frame compare-frame :timeout timeout))
                      (pose-2-transformed
-                       (cl-tf2:ensure-pose-stamped-transformed
-                        *tf2-buffer* pose-2 compare-frame :use-current-ros-time t)))
+                       (cl-tf2:transform-pose
+                        *tf2-buffer*
+                        :pose pose-2 :target-frame compare-frame :timeout timeout)))
                  ;; compare transformed poses using pre-defined thresholds
                  (and (< (cl-transforms:v-dist
-                      (cl-transforms:origin pose-1-transformed)
-                      (cl-transforms:origin pose-2-transformed))
-                     *distance-equality-threshold*)
-                  (< (cl-transforms:angle-between-quaternions
-                      (cl-transforms:orientation pose-1-transformed)
-                      (cl-transforms:orientation pose-2-transformed))
-                     *angle-equality-threshold*))))))
+                          (cl-transforms:origin pose-1-transformed)
+                          (cl-transforms:origin pose-2-transformed))
+                         *distance-equality-threshold*)
+                      (< (cl-transforms:angle-between-quaternions
+                          (cl-transforms:orientation pose-1-transformed)
+                          (cl-transforms:orientation pose-2-transformed))
+                         *angle-equality-threshold*)))
+             (cl-tf2:tf2-server-error () nil))))
     ;; actual check: first making sure to have pose-stamped
     (let ((pose-1 (ensure-pose-stamped solution-1 *fixed-frame* 0.0))
           (pose-2 (ensure-pose-stamped solution-2 *fixed-frame* 0.0)))
@@ -94,4 +88,5 @@
 
 (defmethod reference :around ((designator location-designator) &optional role)
   (declare (ignore role))
+  ;; convert all cl-transforms poses into cl-tf poses in the fixed coordinate system
   (ensure-pose-stamped (call-next-method) *fixed-frame* 0.0))

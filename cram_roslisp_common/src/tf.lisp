@@ -32,6 +32,7 @@
 
 (defvar *tf2-buffer* nil)
 (defvar *tf2-broadcaster* nil)
+(defparameter *tf-default-timeout* 0.0 "How long to wait until a tansform in secs.")
 
 (defun ros-tf-init ()
   (setf *tf2-buffer* (make-instance 'cl-tf2:buffer-client))
