@@ -28,68 +28,68 @@
 (in-package :pr2-manipulation-process-module)
 
 (defparameter *pregrasp-offset*
-  (tf:make-pose
-   (tf:make-3d-vector
+  (cl-transforms:make-pose
+   (cl-transforms:make-3d-vector
     -0.29 0.0 0.0)
-   (tf:euler->quaternion :ax (/ pi -2))))
+   (cl-transforms:euler->quaternion :ax (/ pi -2))))
 (defparameter *pregrasp-top-slide-down-offset*
-  (tf:make-pose
-   (tf:make-3d-vector
+  (cl-transforms:make-pose
+   (cl-transforms:make-3d-vector
     -0.20 0.10 0.0)
-   (tf:euler->quaternion :ax (/ pi -2))))
+   (cl-transforms:euler->quaternion :ax (/ pi -2))))
 (defparameter *grasp-offset*
-  (tf:make-pose
-   (tf:make-3d-vector
+  (cl-transforms:make-pose
+   (cl-transforms:make-3d-vector
     -0.20 0.0 0.0)
-   (tf:euler->quaternion :ax (/ pi -2))))
+   (cl-transforms:euler->quaternion :ax (/ pi -2))))
 (defparameter *pre-putdown-offset*
-  (tf:make-pose
-   (tf:make-3d-vector
+  (cl-transforms:make-pose
+   (cl-transforms:make-3d-vector
     0.0 0.0 0.2)
-   (tf:euler->quaternion)))
+   (cl-transforms:euler->quaternion)))
 (defparameter *putdown-offset*
-  (tf:make-pose
-   (tf:make-3d-vector
+  (cl-transforms:make-pose
+   (cl-transforms:make-3d-vector
     0.0 0.0 0.02)
-   (tf:euler->quaternion)))
+   (cl-transforms:euler->quaternion)))
 (defparameter *unhand-offset*
-  (tf:make-pose
-   (tf:make-3d-vector
+  (cl-transforms:make-pose
+   (cl-transforms:make-3d-vector
     -0.10 0.0 0.02)
-   (tf:euler->quaternion)))
+   (cl-transforms:euler->quaternion)))
 (defparameter *unhand-top-slide-down-offset*
-  (tf:make-pose
-   (tf:make-3d-vector
+  (cl-transforms:make-pose
+   (cl-transforms:make-3d-vector
     0.0 0.0 0.10)
-   (tf:euler->quaternion)))
+   (cl-transforms:euler->quaternion)))
 
 ;; Parking related poses
 (defparameter *park-pose-left-default*
-  (tf:make-pose-stamped
+  (cl-tf-datatypes:make-pose-stamped
    "base_link" (ros-time)
-   (tf:make-3d-vector 0.3 0.5 1.3)
-   (tf:euler->quaternion :ax 0)))
+   (cl-transforms:make-3d-vector 0.3 0.5 1.3)
+   (cl-transforms:euler->quaternion :ax 0)))
 (defparameter *park-pose-right-default*
-  (tf:make-pose-stamped
+  (cl-tf-datatypes:make-pose-stamped
    "base_link" (ros-time)
-   (tf:make-3d-vector 0.3 -0.5 1.3)
-   (tf:euler->quaternion :ax 0)))
+   (cl-transforms:make-3d-vector 0.3 -0.5 1.3)
+   (cl-transforms:euler->quaternion :ax 0)))
 (defparameter *park-pose-left-top-slide-down*
-  (tf:make-pose-stamped
+  (cl-tf-datatypes:make-pose-stamped
    "base_link" (ros-time)
-   (tf:make-3d-vector 0.3 0.5 1.3)
-   (tf:euler->quaternion
+   (cl-transforms:make-3d-vector 0.3 0.5 1.3)
+   (cl-transforms:euler->quaternion
     :ax 0 :ay (/ pi -2))))
 (defparameter *park-pose-right-top-slide-down*
-  (tf:make-pose-stamped
+  (cl-tf-datatypes:make-pose-stamped
    "base_link" (ros-time)
-   (tf:make-3d-vector 0.3 -0.5 1.3)
-   (tf:euler->quaternion
+   (cl-transforms:make-3d-vector 0.3 -0.5 1.3)
+   (cl-transforms:euler->quaternion
     :ax 0 :ay (/ pi -2))))
 
 (defun absolute-handle (obj handle
                         &key (handle-offset-pose
-                              (tf:make-identity-pose))
+                              (cl-transforms:make-identity-pose))
                           (reorient t))
   "Transforms the relative handle location `handle' of object `obj'
 into the object's coordinate system and returns the appropriate
@@ -107,14 +107,14 @@ applied."
                                                  'desig-props:pose))))
          (relative-handle-loc (desig-prop-value handle 'at))
          (relative-handle-pose (cl-transforms:transform-pose
-                                (tf:pose->transform
+                                (cl-transforms:pose->transform
                                  (reference relative-handle-loc))
                                 handle-offset-pose))
-         (pose-stamped (tf:pose->pose-stamped
-                        (tf:frame-id absolute-object-pose-stamped)
-                        (tf:stamp absolute-object-pose-stamped)
+         (pose-stamped (cl-tf-datatypes:pose->pose-stamped
+                        (cl-tf-datatypes:frame-id absolute-object-pose-stamped)
+                        (cl-tf-datatypes:stamp absolute-object-pose-stamped)
                         (cl-transforms:transform-pose
-                         (tf:pose->transform
+                         (cl-transforms:pose->transform
                           absolute-object-pose-stamped)
                          relative-handle-pose))))
     (make-designator 'object (loop for desc-elem in (description handle)
@@ -266,7 +266,7 @@ configuration."
   (let ((pose (cond (arm-offset-pose (relative-pose pose arm-offset-pose))
                     (t pose))))
     (roslisp:publish (roslisp:advertise "/testpose" "geometry_msgs/PoseStamped")
-                     (tf:pose-stamped->msg pose))
+                     (cl-tf2:to-msg pose))
     (cpl:with-failure-handling
         ((moveit:no-ik-solution (f)
            (declare (ignore f))
@@ -287,7 +287,7 @@ configuration."
                             &key
                               allowed-collision-objects
                               (arms-offset-pose
-                               (tf:make-identity-pose))
+                               (cl-transforms:make-identity-pose))
                               highlight-links)
   (loop for arm in arms
         for distance = (reaching-length

@@ -58,14 +58,14 @@
 (defvar *trajectory-action-both* nil)
 (defvar *trajectory-action-torso* nil)
 
-(defvar *left-safe-pose* (tf:make-pose-stamped
+(defvar *left-safe-pose* (cl-tf-datatypes:make-pose-stamped
                           "base_link" (ros-time)
-                          (tf:make-3d-vector 0.3 0.5 1.3)
-                          (tf:euler->quaternion :ax pi)))
-(defvar *right-safe-pose* (tf:make-pose-stamped
+                          (cl-transforms:make-3d-vector 0.3 0.5 1.3)
+                          (cl-transforms:euler->quaternion :ax pi)))
+(defvar *right-safe-pose* (cl-tf-datatypes:make-pose-stamped
                            "base_link" (ros-time)
-                           (tf:make-3d-vector 0.3 -0.5 1.3)
-                           (tf:euler->quaternion :ax pi)))
+                           (cl-transforms:make-3d-vector 0.3 -0.5 1.3)
+                           (cl-transforms:euler->quaternion :ax pi)))
 
 (defun init-pr2-manipulation-process-module ()
   (setf *gripper-action-left*
@@ -356,14 +356,14 @@
                                     `(cram-pr2-knowledge::end-effector-link
                                       ,(car grippers)
                                       ?target-frame)))))
-         (obj-pose-in-gripper (tf:pose->pose-stamped
+         (obj-pose-in-gripper (cl-tf-datatypes:pose->pose-stamped
                                target-frame
                                0.0
-                               (cl-tf:transform-pose
-                                *tf*
-                                :pose (obj-desig-location
-                                       (current-desig obj))
-                                :target-frame target-frame)))
+                               (cl-tf2:transform-pose
+                                *tf2-buffer*
+                                :pose (obj-desig-location (current-desig obj))
+                                :target-frame target-frame
+                                :timeout cram-roslisp-common:*tf-default-timeout*)))
          (loc-desig-in-gripper (make-designator
                                 'location
                                 (append `((pose ,obj-pose-in-gripper)
@@ -390,30 +390,35 @@ its' supporting plane."
               UPDATE-PICKED-UP-OBJECT-DESIGNATOR. Please use
               UPDATE-GRASPED-OBJECT-DESIGNATOR instead.")
   ;; get current pose of the object in map frame
-  (let* ((obj-pose (cl-tf:transform-pose
-                    *tf* :pose (obj-desig-location (current-desig obj-desig))
-                         :target-frame "/map"))
+  (let* ((obj-pose (cl-tf2:transform-pose
+                    *tf2-buffer*
+                    :pose (obj-desig-location (current-desig obj-desig))
+                    :target-frame designators-ros:*fixed-frame*
+                    :timeout cram-roslisp-common:*tf-default-timeout*))
          ;; build a new location designator for the object:
          ;; the transform will be in the wrist frame of the `side' gripper
          ;; thus it'll move with the gripper;
          ;; adding (in ,`gripper') indicates whether it has been grasped
          ;; with one or two grippers;
          ;; (orientation ...) is the intended put down orientation of the object;
-         (new-loc-desig (make-designator
-                         'location
-                         `((in ,gripper)
-                           (side ,side)
-                           (pose ,(tf:copy-pose-stamped
-                                   (cl-tf:transform-pose
-                                    *tf* :pose obj-pose
-                                         :target-frame (cut:var-value
-                                                        '?link
-                                                        (first
-                                                         (crs:prolog
-                                                          `(manipulator-link ,side ?link)))))
-                                   :stamp 0.0))
-                           (height ,height)
-                           (orientation ,(cl-transforms:orientation obj-pose))))))
+         (new-loc-desig
+           (make-designator
+            'location
+            `((in ,gripper)
+              (side ,side)
+              (pose ,(cl-tf-datatypes:copy-pose-stamped
+                      (cl-tf2:transform-pose
+                       *tf2-buffer*
+                       :pose obj-pose
+                       :target-frame (cut:var-value
+                                      '?link
+                                      (first
+                                       (crs:prolog
+                                        `(manipulator-link ,side ?link))))
+                       :timeout cram-roslisp-common:*tf-default-timeout*)
+                      :stamp 0.0))
+              (height ,height)
+              (orientation ,(cl-transforms:orientation obj-pose))))))
     ;; build and equate new object designator using the new location designator
     ;; NOTE: this usage of make-designator does it both in one line
     (make-designator

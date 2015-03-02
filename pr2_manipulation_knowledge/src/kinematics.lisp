@@ -32,10 +32,10 @@
 (defgeneric make-orientation-euler (x y z))
 
 (defmethod make-orientation (x y z w)
-  (tf:make-quaternion x y z w))
+  (cl-transforms:make-quaternion x y z w))
 
 (defmethod make-orientation-euler (x y z)
-  (tf:euler->quaternion :ax x :ay y :az z))
+  (cl-transforms:euler->quaternion :ax x :ay y :az z))
 
 (def-fact-group robot-kinematics (manipulator-link
                                   manipulator-identity-orientation

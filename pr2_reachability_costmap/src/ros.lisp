@@ -84,8 +84,9 @@
          (roslisp:make-request
           "iai_kinematics_msgs/GetPositionIK"
           (:ik_link_name :ik_request) ik-link
-          (:pose_stamped :ik_request) (tf:pose-stamped->msg
-                                       (tf:pose->pose-stamped ik-base-frame 0.0 pose))
+          (:pose_stamped :ik_request) (cl-tf2:to-msg
+                                       (cl-tf-datatypes:pose->pose-stamped
+                                        ik-base-frame 0.0 pose))
           (:joint_state :ik_seed_state :ik_request) (make-seed-state service-namespace)
           :timeout 1.0))
       ;; TODO(moesenle): Use constant instead of number here.

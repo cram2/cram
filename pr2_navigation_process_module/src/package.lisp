@@ -38,5 +38,5 @@
         #:cram-roslisp-common
         #:cram-plan-failures)
   (:export #:pr2-navigation-process-module #:*navigation-enabled*)
-  (:import-from cram-roslisp-common *tf2*)
+  (:import-from cram-roslisp-common *tf2-buffer*)
   (:desig-properties #:type #:navigation #:goal #:to))

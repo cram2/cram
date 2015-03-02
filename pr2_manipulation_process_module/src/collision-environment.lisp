@@ -86,8 +86,8 @@
   (let ((pose-tf (cl-transforms:reference-transform pose)))
     (roslisp:make-msg
      "sensor_msgs/PointCloud"
-     (stamp header) (tf:stamp pose)
-     (frame_id header) (tf:frame-id pose)
+     (stamp header) (cl-tf-datatypes:stamp pose)
+     (frame_id header) (cl-tf-datatypes:frame-id pose)
      points (map 'vector
                  (lambda (p)
                    (roslisp:with-fields (x y z) p
