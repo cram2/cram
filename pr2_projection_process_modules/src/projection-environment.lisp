@@ -38,6 +38,8 @@
   :special-variable-initializers
   ((cram-roslisp-common:*tf2-broadcaster* (cl-tf2:make-transform-broadcaster))
    (cram-roslisp-common:*tf2-buffer* (make-instance 'cl-tf2:buffer-client))
+   ;; TODO: use custom tf topic "tf_sim"
+   ;; For that first change tf2_ros/TransformListener to accept custom topic names
    ;; (*current-bullet-world* (bt:copy-world *current-bullet-world*))
    (*current-timeline* (btr:timeline-init *current-bullet-world*))
    (desig:*default-role* 'projection-role)
