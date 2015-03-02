@@ -58,12 +58,14 @@
                (sem-map-utils:pose semantic-handle-reference))
              (handle-pose-map
                (tf:copy-pose-stamped
-                (cl-tf2:ensure-pose-stamped-transformed
-                 cram-roslisp-common::*tf2-buffer*
-                 handle-pose
-                 "map" :use-current-ros-time t)
-                :orientation (tf:orientation
-                              semantic-handle-pose))))
+                (cl-tf2:transform-pose
+                 cram-roslisp-common:*tf2-buffer*
+                 :pose (cl-tf-datatypes:copy-pose-stamped
+                        handle-pose
+                        :stamp (roslisp:ros-time)) ; <- use current rostime
+                 :target-frame designators-ros:*fixed-frame*
+                 :timeout cram-roslisp-common:*tf-default-timeout*)
+                :orientation (tf:orientation semantic-handle-pose))))
         (make-designator
          'object `((desig-props::name ,?semantic-name)
                    (desig-props::type desig-props::semantic-handle)

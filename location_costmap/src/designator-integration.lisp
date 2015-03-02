@@ -60,14 +60,19 @@
 (defun robot-current-pose-generator (desig)
   (declare (ignore desig))
   (when *tf2-buffer*
-    (list (cl-tf2:ensure-pose-stamped-transformed
-           *tf2-buffer*
-           (cl-tf-datatypes:make-pose-stamped
-            designators-ros:*robot-base-frame*
-            (roslisp:ros-time)
-            (cl-transforms:make-identity-vector)
-            (cl-transforms:make-identity-rotation))
-           designators-ros:*fixed-frame*))))
+    (handler-case
+        (let ((robot-pose
+                (cl-tf2:transform-pose
+                 *tf2-buffer*
+                 :pose (cl-tf-datatypes:make-pose-stamped
+                        designators-ros:*robot-base-frame*
+                        (roslisp:ros-time)
+                        (cl-transforms:make-identity-vector)
+                        (cl-transforms:make-identity-rotation))
+                 :target-frame designators-ros:*fixed-frame*
+                 :timeout cram-roslisp-common:*tf-default-timeout*)))
+          (list robot-pose))
+      (cl-tf2:tf2-server-error () nil))))
 
 (defun location-costmap-generator (desig)
   (let ((costmap (get-cached-costmap desig)))
