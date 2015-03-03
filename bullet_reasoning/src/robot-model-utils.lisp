@@ -289,13 +289,13 @@ time for that :(..."
   (roslisp:ros-info (get-ik) "inside get-ik")
   (let ((time (roslisp:ros-time)))
     ;; tell the tf transformer the current configuration of robot's joints
-    (set-tf-from-robot-state cram-roslisp-common:*tf2-broadcaster*;; tf-broadcaster
+    (set-tf-from-robot-state cram-roslisp-common:*tf2-broadcaster*
                              robot
                              :base-frame robot-base-frame
                              :time time)
     ;; tell the tf transformer where the robot currently is in the global
     ;; fixed coordinate system
-    (cl-tf2:send-transform cram-roslisp-common:*tf2-broadcaster* ;; tf-broadcaster
+    (cl-tf2:send-transform cram-roslisp-common:*tf2-broadcaster*
                            (cl-tf-datatypes:transform->transform-stamped
                             fixed-frame robot-base-frame time
                             (cl-transforms:pose->transform (pose robot))))
@@ -345,6 +345,9 @@ time for that :(..."
         (roslisp:ros-info (get-ik) "pose in torso: ~a" pose)
         (roslisp:ros-info (get-ik) "tool pose: ~a" (calculate-tool-pose pose :tool tool-frame))
         (roslisp:ros-info (get-ik) "solution: ~a" solution)
+        (roslisp:ros-info (get-ik) "error: ~a" (rassoc error-code
+                                                       (roslisp-msg-protocol:symbol-codes
+                                                        'moveit_msgs-msg:moveiterrorcodes)))
         (when (eql error-code (roslisp-msg-protocol:symbol-code
                                'moveit_msgs-msg:moveiterrorcodes
                                :success))
