@@ -95,10 +95,7 @@
                (assert (object ?w btr::semantic-map my-kitchen ((-3.45 -4.35 0) ,pi-rotation)
                                :urdf ,*kitchen-urdf*))
                (assert (object ?w urdf ?robot ((0 0 0) (0 0 0 1)) :urdf
-                               ,*robot-urdf-lowres*))
-               (robot-arms-parking-joint-states ?joint-states)
-               (assert (joint-state ?w ?robot ?joint-states))
-               (assert (joint-state ?w ?robot (("torso_lift_joint" 0.33)))))))))))
+                               ,*robot-urdf-lowres*)))))))))
 
 ;; (setf sem-map (var-value '?sem-map (lazy-car (prolog `(%object ?w my-kitchen ?sem-map) *bdgs*))))
 

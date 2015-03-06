@@ -30,8 +30,6 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; PANCAKES! ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; (cram-manipulation-knowledge:def-tool (cl-transforms:make-3d-vector 0 0 0) 0.0)
-
 (defun spawn-pancake-scenario ()
   (btr::clear-current-costmap-function-object)
   (detach-all-objects (object *current-bullet-world* 'cram-pr2-knowledge::pr2))  
@@ -39,7 +37,8 @@
                 (robot ?robot)
                 (robot-arms-parking-joint-states ?joint-parking-state)
                 (assert (joint-state ?w ?robot ?joint-parking-state))
-                (assert (joint-state ?w ?robot (("torso_lift_joint" 0.33))))
+                ;; (assert (joint-state ?w ?robot (("torso_lift_joint" 0.33))))
+                (assert (joint-state ?w ?robot (("torso_lift_joint" 0.16825d0))))
                 (assert (object ?w btr::pancake-maker oven-1
                                 ((-1.0 -0.4 0.765) (0 0 0 1))
                                :mass 0.2 :color (0.15 0.15 0.15) :size (0.15 0.15 0.035)))
