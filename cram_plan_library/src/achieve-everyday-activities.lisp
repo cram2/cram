@@ -60,11 +60,10 @@
                (tf:copy-pose-stamped
                 (cl-tf2:transform-pose
                  cram-roslisp-common:*tf2-buffer*
-                 :pose (cl-tf-datatypes:copy-pose-stamped
-                        handle-pose
-                        :stamp (roslisp:ros-time)) ; <- use current rostime
+                 :pose handle-pose
                  :target-frame designators-ros:*fixed-frame*
-                 :timeout cram-roslisp-common:*tf-default-timeout*)
+                 :timeout cram-roslisp-common:*tf-default-timeout*
+                 :use-current-ros-time t)
                 :orientation (tf:orientation semantic-handle-pose))))
         (make-designator
          'object `((desig-props::name ,?semantic-name)
