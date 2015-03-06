@@ -57,12 +57,14 @@
 (disable-location-validation-function 'btr-desig::check-ik-solution)
 
 (defun init (&optional (ip "192.168.100.194"))
+  "Start a ROS node with `ip' as a part of master-uri"
   (let ((uri (roslisp:make-uri ip 11311)))
    (unless (and (equalp roslisp:*master-uri* uri)
                 (eq roslisp::*node-status* :running))
        (roslisp-utilities:startup-ros :anonymous nil :master-uri uri))))
 
 ;; roslaunch spatial_relations_demo demo.launch
+(defvar *bdgs* nil)
 (defvar *robot-urdf-lowres* nil)
 (defvar *kitchen-urdf* nil)
 (defun start-ros-and-bullet ()
@@ -99,49 +101,3 @@
 
 ;; (setf sem-map (var-value '?sem-map (lazy-car (prolog `(%object ?w my-kitchen ?sem-map) *bdgs*))))
 
-(defun move-object (object-name new-pose)
-  (prolog `(and
-            (bullet-world ?w)
-            (assert (object-pose ?w ,object-name ,new-pose)))))
-
-
-;;;;;;;;;;;;;;;;;;;; PROLOG ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(def-fact-group spatial-relations-demo-utilities ()
-  (<- (assign-object-pos ?obj-name ?desig)
-    (once
-     (bound ?obj-name)
-     (bound ?desig)
-     (bullet-world ?w)
-     (desig-solutions ?desig ?solutions)
-     (take 1 ?solutions ?8-solutions)
-     (btr::generate ?poses-on (btr::obj-poses-on ?obj-name ?8-solutions ?w))
-     (member ?solution ?poses-on)
-     (assert (object-pose ?w ?obj-name ?solution))))
-
-  (<- (assign-object-pos-on ?obj-name ?desig)
-    (once
-     (bound ?obj-name)
-     (bound ?desig)
-     (bullet-world ?w)
-     (desig-solutions ?desig ?solutions)
-     (take 8 ?solutions ?8-solutions)
-     (member ?solution ?8-solutions)
-     (assert (btr::object-pose-on ?w ?obj-name ?solution)))))
-
-
-;;;;;;;;;;;;;;;;;;;; CRAM FUNCTIONS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(cpl-impl:def-cram-function find-object-on-counter (object-type counter-name)
-  "Returns an object designator."
-  (cram-language-designator-support:with-designators
-      ((on-counter (desig-props:location `((desig-props:on "Cupboard")
-                                           (desig-props:name ,counter-name))))
-       (the-object (desig-props:object `((desig-props:type ,object-type)
-                                         (desig-props:at ,on-counter)))))
-    (reference on-counter)
-    (format t "trying to perceive an object ~a~%" the-object)
-    (let ((perceived-object (plan-lib:perceive-object 'cram-plan-library:a the-object)))
-      (unless (desig-equal the-object perceived-object)
-        (equate the-object perceived-object))
-      the-object)))

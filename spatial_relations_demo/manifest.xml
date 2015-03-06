@@ -23,7 +23,5 @@
   <depend package="bullet_reasoning_designators"/>
   <depend package="pr2_manipulation_knowledge"/>
   <depend package="object_location_designators"/>
-
+  <depend package="alexandria"/>
 </package>
-
-

@@ -44,11 +44,19 @@
                cram-plan-knowledge
                bullet-reasoning-designators
                pr2-manipulation-knowledge
-               object-location-designators)
+               object-location-designators
+               alexandria)
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "utilities" :depends-on ("package"))
+     (:module "utilities" :depends-on ("package")
+      :components
+      ((:file "setup")
+       (:file "objects")
+       (:file "robot")
+       (:file "random-code")
+       (:file "plan-library")))
      (:file "table-setting" :depends-on ("package" "utilities"))
-     (:file "pancake-making" :depends-on ("package" "utilities"))))))
+     ;; (:file "pancake-making" :depends-on ("package" "utilities"))
+     ))))
