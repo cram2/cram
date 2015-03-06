@@ -37,7 +37,7 @@
                  cl-bullet cl-bullet-vis
                  cram-json-prolog
                  cl-urdf
-                 cl-tf
+                 cl-tf-datatypes
                  cl-tf2
                  roslisp
                  moveit_msgs-srv
