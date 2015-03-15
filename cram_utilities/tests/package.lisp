@@ -37,4 +37,5 @@
         #:cram-utilities
         #:lisp-unit
         #:alexandria)
+  (:shadow #:extremum)
   (:shadowing-import-from #:lisp-unit set-equal))
