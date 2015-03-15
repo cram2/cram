@@ -240,6 +240,7 @@
                :cram-utilities
                :trivial-garbage
                :alexandria)
+         (:shadowing-import-from :cram-utilities #:extremum)
          (:export ,@cpl-symbols ,@fluent-ops ,@cpl-impl-ext-symbols))
 
        (defpackage :cram-language

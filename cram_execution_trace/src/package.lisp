@@ -36,6 +36,7 @@
         :alexandria
         :cram-utilities
         :cram-language-implementation)
+  (:shadowing-import-from :cram-utilities #:extremum)
   (:export
    ;; durable-copy.lisp
    #:durable-copy
