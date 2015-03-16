@@ -6,13 +6,12 @@
 ;;; <loliveira@common-lisp.net> and is provided with absolutely no
 ;;; warranty.
 
-#-(or cmu scl sbcl allegro clisp openmcl corman lispworks ecl)
+#-(or cmu scl sbcl allegro clisp openmcl corman lispworks ecl abcl)
 (error "Sorry, your Lisp is not supported by trivial-garbage.")
 
 (defsystem trivial-garbage
   :description "Portable finalizers, weak hash-tables and weak pointers."
   :author "Luis Oliveira <loliveira@common-lisp.net>"
-  :version "0.19"
   :licence "Public Domain"
   :components ((:file "trivial-garbage")))
 
@@ -28,5 +27,3 @@
                     (sys (eql (find-system :trivial-garbage-tests))))
   (operate 'load-op :trivial-garbage-tests)
   (funcall (find-symbol (string '#:do-tests) '#:rtest)))
-
-;; vim: ft=lisp et
