@@ -1,6 +1,8 @@
 (defpackage :alexandria.0.dev
   (:nicknames :alexandria)
   (:use :cl)
+  #+sb-package-locks
+  (:lock t)
   (:export
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    ;; BLESSED
@@ -13,16 +15,19 @@
    ;; REVIEW IN PROGRESS
    ;;
    ;; Control flow
+   ;;
+   ;; -- no clear consensus yet --
    #:cswitch
    #:eswitch
    #:switch
+   ;; -- problem free? --
    #:multiple-value-prog2
-   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-   ;; REVIEW PENDING
-   ;;
    #:nth-value-or
    #:whichever
    #:xor
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   ;; REVIEW PENDING
+   ;;
    ;; Definitions
    #:define-constant
    ;; Hash tables
@@ -102,8 +107,10 @@
    #:emptyp
    #:ends-with
    #:ends-with-subseq
+   #:extremum
    #:first-elt
    #:last-elt
+   #:length=
    #:map-combinations
    #:map-derangements
    #:map-permutations
@@ -112,7 +119,6 @@
    #:removef
    #:rotate
    #:sequence-of-length-p
-   #:length=
    #:shuffle
    #:starts-with
    #:starts-with-subseq
@@ -137,7 +143,7 @@
    #:negative-float-p
    #:negative-long-float
    #:negative-long-float-p
-   #:negative-rational 
+   #:negative-rational
    #:negative-rational-p
    #:negative-real
    #:negative-single-float-p
@@ -230,4 +236,7 @@
    #:symbolicate
    #:assoc-value
    #:rassoc-value
+   #:destructuring-case
+   #:destructuring-ccase
+   #:destructuring-ecase
    ))

@@ -1,14 +1,14 @@
 (in-package :alexandria)
 
-(deftype array-index (&optional (length array-dimension-limit))
+(deftype array-index (&optional (length (1- array-dimension-limit)))
   "Type designator for an index into array of LENGTH: an integer between
-0 (inclusive) and LENGTH (exclusive). LENGTH defaults to
+0 (inclusive) and LENGTH (exclusive). LENGTH defaults to one less than
 ARRAY-DIMENSION-LIMIT."
   `(integer 0 (,length)))
 
-(deftype array-length (&optional (length array-dimension-limit))
+(deftype array-length (&optional (length (1- array-dimension-limit)))
   "Type designator for a dimension of an array of LENGTH: an integer between
-0 (inclusive) and LENGTH (inclusive). LENGTH defaults to
+0 (inclusive) and LENGTH (inclusive). LENGTH defaults to one less than
 ARRAY-DIMENSION-LIMIT."
   `(integer 0 ,length))
 
@@ -24,7 +24,7 @@ ARRAY-DIMENSION-LIMIT."
                     (push result subtype-names)
                     result))
                 (make-predicate-name (sybtype-name)
-                  (let ((result (format-symbol :alexandria "~A-P"
+                  (let ((result (format-symbol :alexandria '#:~A-p
                                                (symbol-name sybtype-name))))
                     (push result predicate-names)
                     result))
@@ -34,10 +34,10 @@ ARRAY-DIMENSION-LIMIT."
 			    type
 			    (if (equal range-beg ''*) inf (ensure-car range-beg))
 			    (if (equal range-end ''*) inf (ensure-car range-end))))))
-           (let* ((negative-name     (make-subtype-name "NEGATIVE-~A"))
-                  (non-positive-name (make-subtype-name "NON-POSITIVE-~A"))
-                  (non-negative-name (make-subtype-name "NON-NEGATIVE-~A"))
-                  (positive-name     (make-subtype-name "POSITIVE-~A"))
+           (let* ((negative-name     (make-subtype-name '#:negative-~a))
+                  (non-positive-name (make-subtype-name '#:non-positive-~a))
+                  (non-negative-name (make-subtype-name '#:non-negative-~a))
+                  (positive-name     (make-subtype-name '#:positive-~a))
                   (negative-p-name     (make-predicate-name negative-name))
                   (non-positive-p-name (make-predicate-name non-positive-name))
                   (non-negative-p-name (make-predicate-name non-negative-name))
