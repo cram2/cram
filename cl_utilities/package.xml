@@ -1,7 +1,6 @@
 <package>
   <name>cl_utilities</name>
   <version>0.1.3</version>
-  <!--external-version>1.2.4</external-version-->
   <description>
     3rd party library: CL-UTILITIES
   </description>
@@ -16,6 +15,8 @@
   <url type="website">http://common-lisp.net/project/cl-utilities/</url>
   <url type="bugtracker">https://github.com/cram-code/cram_core/issues</url>
   <url type="repository">https://github.com/cram-code/cram_core</url>
+  <url type="repository">https://github.com/Publitechs/cl-utilities.git</url>
+  <!--external-version>6b4de39201d439330aec0b3589931aa3be570e66</external-version-->
 
   <buildtool_depend>catkin</buildtool_depend>
 

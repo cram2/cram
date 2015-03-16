@@ -22,8 +22,8 @@ contains the bits of INTEGER. See http://www.cliki.net/ROTATE-BYTE"
              bytespec
              integer))))
   ;; On SBCL, we use the SB-ROTATE-BYTE extension.
-  #+sbcl-uses-sb-rotate-byte (sb-rotate-byte:rotate-byte count bytespec integer))
+  #+sbcl (sb-rotate-byte:rotate-byte count bytespec integer))
 
 ;; If we're using the SB-ROTATE-BYTE extension, we should inline our
 ;; call and let SBCL handle optimization from there.
-#+sbcl-uses-sb-rotate-byte (declaim (inline rotate-byte))
+#+sbcl (declaim (inline rotate-byte))

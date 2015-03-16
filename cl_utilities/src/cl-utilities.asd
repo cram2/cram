@@ -7,6 +7,7 @@
 
 (defsystem cl-utilities
     :author "Maintained by Peter Scott"
+	:depends-on (#+sbcl sb-rotate-byte)
     :components ((:file "package")
 		 (:file "split-sequence" :depends-on ("package"))
 		 (:file "extremum" :depends-on ("package"
@@ -25,9 +26,9 @@
 
 ;; Sometimes we can accelerate byte rotation on SBCL by using the
 ;; SB-ROTATE-BYTE extension. This loads it.
-#+sbcl
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (handler-case (progn
-		  (require :sb-rotate-byte)
-		  (pushnew :sbcl-uses-sb-rotate-byte *features*))
-    (error () (delete :sbcl-uses-sb-rotate-byte *features*))))
+;; #+sbcl
+;; (eval-when (:compile-toplevel :load-toplevel :execute)
+;;  (handler-case (progn
+;;		  (require :sb-rotate-byte)
+;;		  (pushnew :sbcl-uses-sb-rotate-byte *features*))
+;;    (error () (delete :sbcl-uses-sb-rotate-byte *features*))))
