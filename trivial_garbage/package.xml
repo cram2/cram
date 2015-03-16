@@ -1,7 +1,6 @@
 <package>
   <name>trivial_garbage</name>
   <version>0.1.3</version>
-  <!-- external-version>0.1.9</external-version-->
   <description>
       3rd party library: trivial-garbage
   </description>
@@ -16,6 +15,8 @@
   <url type="website">http://www.cliki.net/trivial-garbage</url>
   <url type="bugtracker">https://github.com/cram-code/cram_core/issues</url>
   <url type="repository">https://github.com/cram-code/cram_core</url>
+  <url type="repository">https://github.com/trivial-garbage/trivial-garbage.git</url>
+  <!--external-version>5adca9908632124ca28bd17355ac281352fd97cb</external-version-->
 
   <buildtool_depend>catkin</buildtool_depend>
 
