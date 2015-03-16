@@ -1,6 +1,6 @@
 ;; This file is part of yason, a Common Lisp JSON parser/encoder
 ;;
-;; Copyright (c) 2008-2012 Hans Huebner and contributors
+;; Copyright (c) 2008-2014 Hans Huebner and contributors
 ;; All rights reserved.
 ;;
 ;; Please see the file LICENSE in the distribution.
@@ -44,12 +44,13 @@
   (write-char #\" stream)
   string)
 
-(defmethod encode ((object rational) &optional (stream *standard-output*))
-  (encode (float object) stream)
+(defmethod encode ((object ratio) &optional (stream *standard-output*))
+  (encode (coerce object 'double-float) stream)
   object)
 
 (defmethod encode ((object float) &optional (stream *standard-output*))
-  (princ (coerce object 'single-float) stream)
+  (let ((*read-default-float-format* 'double-float))
+    (format stream "~F" (coerce object 'double-float)))
   object)
 
 (defmethod encode ((object integer) &optional (stream *standard-output*))
@@ -98,7 +99,7 @@
                (encode value stream)))
     object))
 
-(defmethod encode ((object list) &optional (stream *standard-output*))
+(defun encode-list% (object &optional (stream *standard-output*))
   (with-aggregate/object (stream #\[ #\])
     (dolist (value object)
       (with-element-output ()
@@ -109,19 +110,55 @@
   (let ((string (string key)))
     (encode-key/value string value stream)))
 
-(defun encode-alist (object &optional (stream *standard-output*))
+(defun encode-alist% (object &optional (stream *standard-output*))
   (with-aggregate/object (stream #\{ #\})
     (loop for (key . value) in object
-          do (with-element-output ()
-               (encode-assoc-key/value key value stream)))
+       do
+         (with-element-output ()
+           (if (consp value)
+               (progn
+                 (format stream "\"~a\":" key)
+                 (encode value stream))
+               (progn
+                 (encode-assoc-key/value key value stream)))))
     object))
-
-(defun encode-plist (object &optional (stream *standard-output*))
+  
+(defun encode-plist% (object &optional (stream *standard-output*))
   (with-aggregate/object (stream #\{ #\})
     (loop for (key value) on object by #'cddr
-          do (with-element-output ()
-               (encode-assoc-key/value key value stream)))
+       do
+         (with-element-output ()
+           (if (consp value)
+               (progn
+                 (format stream "\"~a\":" key)
+                 (encode value stream))
+               (encode-assoc-key/value key value stream))))
     object))
+
+(defvar *list->object-convention* :keyword-string)
+
+(defun can-map-to-json-object (my-list)
+  (case *list->object-convention*
+    (:plist (keywordp (car my-list)))
+    (:alist (if (consp (car my-list))
+                (keywordp (caar my-list))))))
+
+(defmethod encode ((object list) &optional (stream *standard-output*))
+  (if (can-map-to-json-object object)
+      (case *list->object-convention*
+        (:plist
+         (encode-plist% object stream))
+        (:alist
+         (encode-alist% object stream)))
+      (encode-list% object stream)))
+
+(defun encode-alist (object &optional (stream *standard-output*))
+  (let ((*list->object-convention* :alist))
+    (encode object stream)))
+
+(defun encode-plist (object &optional (stream *standard-output*))
+  (let ((*list->object-convention* :plist))
+    (encode object stream)))
 
 (defmethod encode ((object (eql 'true)) &optional (stream *standard-output*))
   (write-string "true" stream)
@@ -298,16 +335,17 @@ type for which an ENCODE method is defined."
 
 (defgeneric encode-slots (object)
   (:documentation
-   "Generic function to encode objects.  Every class in a hierarchy
-   implements a method for ENCODE-OBJECT that serializes its slots.
-   It is a PROGN generic function so that for a given instance, all
-   slots are serialized by invoking the ENCODE-OBJECT method for all
-   classes that it inherits from."))
+   "Generic function to encode object slots. It should be called in an
+    object encoding context. It uses PROGN combinatation with
+    MOST-SPECIFIC-LAST order, so that base class slots are encoded
+    before derived class slots.")
+  (:method-combination progn :most-specific-last))
 
 (defgeneric encode-object (object)
   (:documentation
-   "Encode OBJECT, presumably a CLOS object as a JSON object, invoking
-   the ENCODE-SLOTS method as appropriate.")
+   "Generic function to encode an object. The default implementation
+    opens a new object encoding context and calls ENCODE-SLOTS on
+    the argument.")
   (:method (object)
     (with-object ()
       (yason:encode-slots object))))

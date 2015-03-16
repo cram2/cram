@@ -65,7 +65,9 @@
       applications.  YASON implements reading and writing of JSON
       formatted data in Common Lisp.  It does not attempt to provide a
       mapping between CLOS objects and YASON, but can be used to
-      implement such mappings.
+      implement such mappings. It does include an optional
+      feature which enables mapping between JSON and either plists or
+      alists with a 1:1 correspondance.
     </p>
     <p>
       <a href="http://common-lisp.net/project/cl-json/">CL-JSON</a> is
@@ -81,7 +83,7 @@
     <p>
       YASON has its permanent home at <a href="http://common-lisp.net/project/yason/">common-lisp.net</a>.
       It can be obtained by downloading the <a href="https://github.com/downloads/hanshuebner/yason/yason.tar.gz">release
-      tarball</a>.  The current release is 0.6.3.
+      tarball</a>.  The current release is 0.7.2.
     </p>
     <p>
       You may also check out the current development version from its
@@ -362,16 +364,22 @@ CL-USER&gt; (let* ((yason:*parse-json-arrays-as-vectors* t)
 	  *standard-output*)</clix:lambda-list></i>
           =&gt;
           <i>object</i></a><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
-	    Encodes <code><i>object</i></code>, an alist, in JSON
-	    format and write to <code><i>stream</i></code>.
+            Encodes <code><i>object</i></code> in JSON format and
+            write to <code><i>stream</i></code>. If alists are
+            encountered whilst traversing the list structure of
+            <code><i>object</i></code>, they will be encoded as JSON
+            objects.
 	  </clix:description></blockquote></p>
 
 	<p xmlns="">[Function]<br><a class="none" name="encode-plist"><b>encode-plist</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">object &amp;optional (stream
 	  *standard-output*)</clix:lambda-list></i>
           =&gt;
           <i>object</i></a><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
-	    Encodes <code><i>object</i></code>, a plist, in JSON
-	    format and write to <code><i>stream</i></code>.
+            Encodes <code><i>object</i></code> in JSON format and
+            write to <code><i>stream</i></code>. If plists are 
+            encountered whilst traversing the list structure of
+            <code><i>object</i></code>, they will be encoded as JSON
+            objects.
 	  </clix:description></blockquote></p>
 
         <p xmlns="">[Function]<br><a class="none" name="make-json-output-stream"><b>make-json-output-stream</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">stream &amp;key (indent t)</clix:lambda-list></i>
@@ -533,21 +541,22 @@ NIL</pre>
 	    must be called within a valid stream context.
 	  </clix:description></blockquote></p>
 
-	<p xmlns="">[Generic function]<br><a class="none" name="encode-slots"><b>encode-slots</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">object</clix:lambda-list></i>
+	<p xmlns="">[Function]<br><a class="none" name="encode-slots"><b>encode-slots</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">object</clix:lambda-list></i>
           =&gt;
           <i>result*</i></a><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
-	    Encodes all of the slots of <code><i>object</i></code>,
-	    presumably a CLOS object, to the current stream
-	    context. Must be defined for an object to use
-	    <code><a href="#encode-object">ENCODE-OBJECT</a></code> on that object.
+            Generic function to encode object slots. There is no default
+            implementation.
+            It should be called in an object encoding context. It uses
+            PROGN combinatation with MOST-SPECIFIC-LAST order, so that
+            base class slots are encoded before derived class slots.
 	  </clix:description></blockquote></p>
 
-	<p xmlns="">[Generic function]<br><a class="none" name="encode-object"><b>encode-object</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">object</clix:lambda-list></i>
+	<p xmlns="">[Function]<br><a class="none" name="encode-object"><b>encode-object</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">object</clix:lambda-list></i>
           =&gt;
           <i>result*</i></a><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
-	    Encodes <code><i>object</i></code>, presumably a CLOS
-	    object, by invoking <code><a href="#encode-slots">ENCODE-SLOTS</a></code>, to
-	    the current stream context.
+            Generic function to encode an object. The default implementation
+            opens a new object encoding context and calls
+            <code><a href="#encode-slots">ENCODE-SLOTS</a></code> on the argument.
 	  </clix:description></blockquote></p>
 
         <p xmlns="">
@@ -590,6 +599,42 @@ CL-USER&gt; (yason:encode (list (make-user :name "horst" :age 27 :password "pupp
       recursively, so any application defined method will be called
       while encoding in-memory objects as appropriate.
 
+      <p>For an example of the interplay between
+      <code xmlns=""><a href="#encode-object">ENCODE-OBJECT</a></code> and
+      <code xmlns=""><a href="#encode-slots">ENCODE-SLOTS</a></code>, suppose you have the following
+      CLOS class heirarchy:
+
+      <pre>(defclass shape ()
+  ((color :reader color)))
+
+(defclass square (shape)
+  ((side-length :reader side-length)))
+
+(defclass circle (shape)
+  ((radius :reader radius)))</pre>
+
+      In order to implement encoding of circles and squares without
+      duplicating code you can specialize
+      <code xmlns=""><a href="#encode-slots">ENCODE-SLOTS</a></code> for all three classes
+
+      <pre>(defmethod yason:encode-slots progn ((shape shape))
+  (yason:encode-object-element "color" (color shape)))
+
+(defmethod yason:encode-slots progn ((square square))
+  (yason:encode-object-element "side-length" (side-length square)))
+
+(defmethod yason:encode-slots progn ((circle circle))
+  (yason:encode-object-element "radius" (radius circle)))</pre>
+
+      and then use <code xmlns=""><a href="#encode-object">ENCODE-OBJECT</a></code>:
+
+      <pre>CL-USER&gt; (yason:with-output-to-string* ()
+           (yason:encode-object (make-instance 'square :color "red" :side-length 3)))
+"{\"color\":\"red\",\"side-length\":3}"
+CL-USER&gt; (yason:with-output-to-string* ()
+           (yason:encode-object (make-instance 'circle :color "blue" :side-length 5)))
+"{\"color\":\"blue\",\"radius\":5}"</pre>
+      </p>
     
   
 
@@ -622,7 +667,7 @@ CL-USER&gt; (yason:encode (list (make-user :name "horst" :age 27 :password "pupp
   
 
   <h3 xmlns=""><a class="none" name="license">License</a></h3>
-    <pre class="none">Copyright (c) 2008-2012 Hans Huebner and contributors
+    <pre class="none">Copyright (c) 2008-2014 Hans Hübner and contributors
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
