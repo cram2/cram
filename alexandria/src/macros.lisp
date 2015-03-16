@@ -28,15 +28,23 @@ unique symbol the named variable will be bound to."
   `(with-gensyms ,names ,@forms))
 
 (defmacro once-only (specs &body forms)
-  "Each SPEC must be either a NAME, or a (NAME INITFORM), with plain
-NAME using the named variable as initform.
+  "Evaluates FORMS with symbols specified in SPECS rebound to temporary
+variables, ensuring that each initform is evaluated only once.
 
-Evaluates FORMS with names rebound to temporary variables, ensuring
-that each is evaluated only once.
+Each of SPECS must either be a symbol naming the variable to be rebound, or of
+the form:
+
+  (symbol initform)
+
+Bare symbols in SPECS are equivalent to
+
+  (symbol symbol)
 
 Example:
+
   (defmacro cons1 (x) (once-only (x) `(cons ,x ,x)))
-  (let ((y 0)) (cons1 (incf y))) => (1 . 1)"
+  (let ((y 0)) (cons1 (incf y))) => (1 . 1)
+"
   (let ((gensyms (make-gensym-list (length specs) "ONCE-ONLY"))
         (names-and-forms (mapcar (lambda (spec)
                                    (etypecase spec
@@ -84,18 +92,27 @@ arguments when given."
                                    (normalize-optional normalize)
                                    (normalize-keyword normalize)
                                    (normalize-auxilary normalize))
-  "Parses an ordinary lambda-list, returning:
+  "Parses an ordinary lambda-list, returning as multiple values:
 
-\(values requireds optionals rest keywords allow-other-keys? auxiliaries)
+1. Required parameters.
 
- 1. Required parameters.
- 2. Optional parameter specifications, normalized into form (NAME INIT SUPPLIEDP)
-    where SUPPLIEDP is NIL if not present.
- 3. Name of the rest parameter, or NIL.
- 4. Keyword parameter specifications, normalized into form ((KEYWORD-NAME NAME) INIT SUPPLIEDP)
-    where SUPPLIEDP is NIL if not present.
- 5. Boolean indicating &ALLOW-OTHER-KEYS presence.
- 6. &AUX parameter specifications, normalized into form (NAME INIT).
+2. Optional parameter specifications, normalized into form:
+
+   (name init suppliedp)
+
+3. Name of the rest parameter, or NIL.
+
+4. Keyword parameter specifications, normalized into form:
+
+   ((keyword-name name) init suppliedp)
+
+5. Boolean indicating &ALLOW-OTHER-KEYS presence.
+
+6. &AUX parameter specifications, normalized into form
+
+   (name init).
+
+7. Existence of &KEY in the lambda-list.
 
 Signals a PROGRAM-ERROR is the lambda-list is malformed."
   (let ((state :required)
@@ -105,6 +122,7 @@ Signals a PROGRAM-ERROR is the lambda-list is malformed."
         (optional nil)
         (rest nil)
         (keys nil)
+        (keyp nil)
         (aux nil))
     (labels ((fail (elt)
                (simple-program-error "Misplaced ~S in ordinary lambda-list:~%  ~S"
@@ -133,7 +151,8 @@ Signals a PROGRAM-ERROR is the lambda-list is malformed."
           (&key
            (if (member state '(:required &optional :after-rest))
                (setf state elt)
-               (fail elt)))
+               (fail elt))
+           (setf keyp t))
           (&allow-other-keys
            (if (eq state '&key)
                (setf allow-other-keys t
@@ -214,4 +233,78 @@ Signals a PROGRAM-ERROR is the lambda-list is malformed."
              (t
               (simple-program-error "Invalid ordinary lambda-list:~%  ~S" lambda-list)))))))
     (values (nreverse required) (nreverse optional) rest (nreverse keys)
-            allow-other-keys (nreverse aux))))
+            allow-other-keys (nreverse aux) keyp)))
+
+;;;; DESTRUCTURING-*CASE
+
+(defun expand-destructuring-case (key clauses case)
+  (once-only (key)
+    `(if (typep ,key 'cons)
+         (,case (car ,key)
+           ,@(mapcar (lambda (clause)
+                       (destructuring-bind ((keys . lambda-list) &body body) clause
+                         `(,keys
+                           (destructuring-bind ,lambda-list (cdr ,key)
+                             ,@body))))
+                     clauses))
+         (error "Invalid key to DESTRUCTURING-~S: ~S" ',case ,key))))
+
+(defmacro destructuring-case (keyform &body clauses)
+  "DESTRUCTURING-CASE, -CCASE, and -ECASE are a combination of CASE and DESTRUCTURING-BIND.
+KEYFORM must evaluate to a CONS.
+
+Clauses are of the form:
+
+  ((CASE-KEYS . DESTRUCTURING-LAMBDA-LIST) FORM*)
+
+The clause whose CASE-KEYS matches CAR of KEY, as if by CASE, CCASE, or ECASE,
+is selected, and FORMs are then executed with CDR of KEY is destructured and
+bound by the DESTRUCTURING-LAMBDA-LIST.
+
+Example:
+
+ (defun dcase (x)
+   (destructuring-case x
+     ((:foo a b)
+      (format nil \"foo: ~S, ~S\" a b))
+     ((:bar &key a b)
+      (format nil \"bar, ~S, ~S\" a b))
+     (((:alt1 :alt2) a)
+      (format nil \"alt: ~S\" a))
+     ((t &rest rest)
+      (format nil \"unknown: ~S\" rest))))
+
+  (dcase (list :foo 1 2))        ; => \"foo: 1, 2\"
+  (dcase (list :bar :a 1 :b 2))  ; => \"bar: 1, 2\"
+  (dcase (list :alt1 1))         ; => \"alt: 1\"
+  (dcase (list :alt2 2))         ; => \"alt: 2\"
+  (dcase (list :quux 1 2 3))     ; => \"unknown: 1, 2, 3\"
+
+ (defun decase (x)
+   (destructuring-case x
+     ((:foo a b)
+      (format nil \"foo: ~S, ~S\" a b))
+     ((:bar &key a b)
+      (format nil \"bar, ~S, ~S\" a b))
+     (((:alt1 :alt2) a)
+      (format nil \"alt: ~S\" a))))
+
+  (decase (list :foo 1 2))        ; => \"foo: 1, 2\"
+  (decase (list :bar :a 1 :b 2))  ; => \"bar: 1, 2\"
+  (decase (list :alt1 1))         ; => \"alt: 1\"
+  (decase (list :alt2 2))         ; => \"alt: 2\"
+  (decase (list :quux 1 2 3))     ; =| error
+"
+  (expand-destructuring-case keyform clauses 'case))
+
+(defmacro destructuring-ccase (keyform &body clauses)
+  (expand-destructuring-case keyform clauses 'ccase))
+
+(defmacro destructuring-ecase (keyform &body clauses)
+  (expand-destructuring-case keyform clauses 'ecase))
+
+(dolist (name '(destructuring-ccase destructuring-ecase))
+  (setf (documentation name 'function) (documentation 'destructuring-case 'function)))
+
+
+

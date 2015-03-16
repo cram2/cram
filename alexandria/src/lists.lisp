@@ -151,14 +151,16 @@ destructively modifying it and saves back the result into the place.")
              (and (consp object)
                   (do ((fast (cons (car object) (cdr object)) (cddr fast))
                        (slow object (cdr slow)))
-                      ((or (not (consp fast)) (not (consp (cdr slow))))
-                       (do ((tail object (cdr tail)))
-                           ((not (consp tail))
-                            nil)
-                         (let ((elt (car tail)))
-                           (circularp elt (cons object seen)))))
+                      (nil)
                     (when (or (eq fast slow) (member slow seen))
-                      (return-from circular-tree-p t))))))
+                      (return-from circular-tree-p t))
+                    (when (or (not (consp fast)) (not (consp (cdr slow))))
+                      (return
+                        (do ((tail object (cdr tail)))
+                            ((not (consp tail))
+                             nil)
+                          (let ((elt (car tail)))
+                            (circularp elt (cons object seen))))))))))
     (circularp object nil)))
 
 (defun proper-list-p (object)
@@ -196,7 +198,8 @@ designator of the expected type in a TYPE-ERROR."
                      (slow (cons (car list) (cdr list)) (cdr slow))
                      ,@(when step (list step)))
                     (nil)
-                  (declare (dynamic-extent slow) ,@(when declare (list declare)))
+                  (declare (dynamic-extent slow) ,@(when declare (list declare))
+                           (ignorable last))
                   (when (safe-endp fast)
                     (return ,ret1))
                   (when (safe-endp (cdr fast))
@@ -209,18 +212,18 @@ designator of the expected type in a TYPE-ERROR."
     ;; KLUDGE: Most implementations don't actually support lists with bignum
     ;; elements -- and this is WAY faster on most implementations then declaring
     ;; N to be an UNSIGNED-BYTE.
-    (fixnum n) 
+    (fixnum n)
     (1- n)
     n)
-  
+
   (def lastcar (list)
       "Returns the last element of LIST. Signals a type-error if LIST is not a
-proper list." 
+proper list."
     nil
     nil
     (cadr last)
     (car fast))
-  
+
   (def (setf lastcar) (object list)
       "Sets the last element of LIST. Signals a type-error if LIST is not a proper
 list."
@@ -275,11 +278,25 @@ not destructively modified. Keys are compared using EQ."
 (defun delete-from-plist (plist &rest keys)
   "Just like REMOVE-FROM-PLIST, but this version may destructively modify the
 provided plist."
-  ;; FIXME: should not cons
-  (apply 'remove-from-plist plist keys))
+  (declare (optimize speed))
+  (loop with head = plist
+        with tail = nil   ; a nil tail means an empty result so far
+        for (key . rest) on plist by #'cddr
+        do (assert rest () "Expected a proper plist, got ~S" plist)
+           (if (member key keys :test #'eq)
+               ;; skip over this pair
+               (let ((next (cdr rest)))
+                 (if tail
+                     (setf (cdr tail) next)
+                     (setf head next)))
+               ;; keep this pair
+               (setf tail rest))
+        finally (return head)))
 
-(define-modify-macro remove-from-plistf (&rest keys) remove-from-plist)
-(define-modify-macro delete-from-plistf (&rest keys) delete-from-plist)
+(define-modify-macro remove-from-plistf (&rest keys) remove-from-plist
+                     "Modify macro for REMOVE-FROM-PLIST.")
+(define-modify-macro delete-from-plistf (&rest keys) delete-from-plist
+                     "Modify macro for DELETE-FROM-PLIST.")
 
 (declaim (inline sans))
 (defun sans (plist &rest keys)
@@ -322,8 +339,9 @@ In other words, returns the product of LIST and MORE-LISTS using FUNCTION.
 
 Example:
 
- (map-product 'list '(1 2) '(3 4) '(5 6)) => ((1 3 5) (1 3 6) (1 4 5) (1 4 6)
-                                              (2 3 5) (2 3 6) (2 4 5) (2 4 6))
+ (map-product 'list '(1 2) '(3 4) '(5 6))
+  => ((1 3 5) (1 3 6) (1 4 5) (1 4 6)
+      (2 3 5) (2 3 6) (2 4 5) (2 4 6))
 "
   (labels ((%map-product (f lists)
              (let ((more (cdr lists))

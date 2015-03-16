@@ -15,6 +15,8 @@
   <url type="website">http://common-lisp.net/project/alexandria/</url>
   <url type="bugtracker">https://github.com/cram-code/cram_core/issues</url>
   <url type="repository">https://github.com/cram-code/cram_core</url>
+  <url type="repository">git://common-lisp.net/projects/alexandria/alexandria.git</url>
+  <!--external-version>b1c6ee03c41e0db97989ae38e70da4d8263e09d1</external-version-->
 
   <buildtool_depend>catkin</buildtool_depend>
 

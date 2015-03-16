@@ -2,7 +2,7 @@
 
 ;; Make these inlinable by declaiming them INLINE here and some of them
 ;; NOTINLINE at the end of the file. Exclude functions that have a compiler
-;; macro, because inlining seems to cancel compiler macros (at least on SBCL).
+;; macro, because NOTINLINE is required to prevent compiler-macro expansion.
 (declaim (inline copy-sequence sequence-of-length-p))
 
 (defun sequence-of-length-p (sequence length)
@@ -64,10 +64,15 @@ SEQUENCE is not a sequence. Returns FALSE for circular lists."
 SEQUENCE rotated by N: N elements are moved from the end of the sequence to
 the front if N is positive, and -N elements moved from the front to the end if
 N is negative. SEQUENCE must be a proper sequence. N must be an integer,
-defaulting to 1. If absolute value of N is greater then the length of the
-sequence, the results are identical to calling ROTATE with (* (SIGNUM N) (MOD
-N (LENGTH SEQUENCE))). The original sequence may be destructively altered, and
-result sequence may share structure with it."
+defaulting to 1.
+
+If absolute value of N is greater then the length of the sequence, the results
+are identical to calling ROTATE with
+
+  (* (signum n) (mod n (length sequence))).
+
+Note: the original sequence may be destructively altered, and result sequence may
+share structure with it."
   (if (plusp n)
       (rotate-tail-to-head sequence n)
       (if (minusp n)
@@ -76,10 +81,12 @@ result sequence may share structure with it."
 
 (defun shuffle (sequence &key (start 0) end)
   "Returns a random permutation of SEQUENCE bounded by START and END.
-Permuted sequence may share storage with the original one. Signals an
-error if SEQUENCE is not a proper sequence."
-  (declare (fixnum start) (type (or fixnum null) end))
-  (typecase sequence
+Original sequece may be destructively modified, and share storage with
+the original one. Signals an error if SEQUENCE is not a proper
+sequence."
+  (declare (type fixnum start)
+           (type (or fixnum null) end))
+  (etypecase sequence
     (list
      (let* ((end (or end (proper-list-length sequence)))
             (n (- end start)))
@@ -89,23 +96,40 @@ error if SEQUENCE is not a proper sequence."
          (decf n))))
     (vector
      (let ((end (or end (length sequence))))
-       (loop for i from (- end 1) downto start
-             do (rotatef (aref sequence i) (aref sequence (random (+ i 1)))))))
+       (loop for i from start below end
+             do (rotatef (aref sequence i)
+                         (aref sequence (+ i (random (- end i))))))))
     (sequence
      (let ((end (or end (length sequence))))
        (loop for i from (- end 1) downto start
-             do (rotatef (elt sequence i) (elt sequence (random (+ i 1))))))))
+             do (rotatef (elt sequence i)
+                         (elt sequence (+ i (random (- end i)))))))))
   sequence)
 
 (defun random-elt (sequence &key (start 0) end)
   "Returns a random element from SEQUENCE bounded by START and END. Signals an
-error if the SEQUENCE is not a proper sequence."
+error if the SEQUENCE is not a proper non-empty sequence, or if END and START
+are not proper bounding index designators for SEQUENCE."
   (declare (sequence sequence) (fixnum start) (type (or fixnum null) end))
-  (let ((i (+ start (random (- (or end  (if (listp sequence)
-                                            (proper-list-length sequence)
-                                            (length sequence)))
-                               start)))))
-    (elt sequence i)))
+  (let* ((size (if (listp sequence)
+                   (proper-list-length sequence)
+                   (length sequence)))
+         (end2 (or end size)))
+    (cond ((zerop size)
+           (error 'type-error
+                  :datum sequence
+                  :expected-type `(and sequence (not (satisfies emptyp)))))
+          ((not (and (<= 0 start) (< start end2) (<= end2 size)))
+           (error 'simple-type-error
+                  :datum (cons start end)
+                  :expected-type `(cons (integer 0 (,end2))
+                                        (or null (integer (,start) ,size)))
+                  :format-control "~@<~S and ~S are not valid bounding index designators for ~
+                                   a sequence of length ~S.~:@>"
+                  :format-arguments (list start end size)))
+          (t
+           (let ((index (+ start (random (- end2 start)))))
+             (elt sequence index))))))
 
 (declaim (inline remove/swapped-arguments))
 (defun remove/swapped-arguments (sequence item &rest keyword-arguments)
@@ -133,7 +157,7 @@ that are not lists."
 
 (defun emptyp (sequence)
   "Returns true if SEQUENCE is an empty sequence. Signals an error if SEQUENCE
-is not a sequence"
+is not a sequence."
   (etypecase sequence
     (list (null sequence))
     (sequence (zerop (length sequence)))))
@@ -265,7 +289,7 @@ displaced array pointing to the sequence after PREFIX."
   (let ((sequence-length (length sequence))
         (prefix-length (length prefix)))
     (if (<= prefix-length sequence-length)
-        (let ((mismatch (apply #'mismatch sequence prefix args)))
+        (let ((mismatch (apply #'mismatch prefix sequence args)))
           (if mismatch
               (if (< mismatch prefix-length)
                   (values nil nil)
@@ -460,3 +484,53 @@ if calling FUNCTION modifies either the derangement or SEQUENCE."
       sequence)))
 
 (declaim (notinline sequence-of-length-p))
+
+(define-condition no-extremum (error)
+  ()
+  (:report (lambda (condition stream)
+             (declare (ignore condition))
+             (format stream "Empty sequence in ~S." 'extremum))))
+
+
+(defun extremum (sequence predicate &key key (start 0) end)
+  "Returns the element of SEQUENCE that would appear first if the subsequence
+bounded by START and END was sorted using PREDICATE and KEY.
+
+EXTREMUM determines the relationship between two elements of SEQUENCE by using
+the PREDICATE function. PREDICATE should return true if and only if the first
+argument is strictly less than the second one (in some appropriate sense). Two
+arguments X and Y are considered to be equal if (FUNCALL PREDICATE X Y)
+and (FUNCALL PREDICATE Y X) are both false.
+
+The arguments to the PREDICATE function are computed from elements of SEQUENCE
+using the KEY function, if supplied. If KEY is not supplied or is NIL, the
+sequence element itself is used.
+
+If SEQUENCE is empty, NIL is returned."
+  (let* ((pred-fun (ensure-function predicate))
+         (key-fun (unless (or (not key) (eq key 'identity) (eq key #'identity))
+                    (ensure-function key)))
+         (real-end (or end (length sequence))))
+    (cond ((> real-end start)
+           (if key-fun
+               (flet ((reduce-keys (a b)
+                        (if (funcall pred-fun
+                                     (funcall key-fun a)
+                                     (funcall key-fun b))
+                            a
+                            b)))
+                 (declare (dynamic-extent #'reduce-keys))
+                 (reduce #'reduce-keys sequence :start start :end real-end))
+               (flet ((reduce-elts (a b)
+                        (if (funcall pred-fun a b)
+                            a
+                            b)))
+                 (declare (dynamic-extent #'reduce-elts))
+                 (reduce #'reduce-elts sequence :start start :end real-end))))
+          ((= real-end start)
+           nil)
+          (t
+           (error "Invalid bounding indexes for sequence of length ~S: ~S ~S, ~S ~S"
+                  (length sequence)
+                  :start start
+                  :end end)))))
