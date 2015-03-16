@@ -45,14 +45,14 @@ CLISP, ECL and AllegroCL are supported.")
   :name "CL-STORE"
   :author "Sean Ross <sross@common-lisp.net>"
   :maintainer "Sean Ross <sross@common-lisp.net>"
-  :version "0.8.10"
+  :version "0.8.11"
   :description "Serialization package"
   :long-description "Portable CL Package to serialize data"
   :licence "MIT"
   :serial t
   :components ((:file "package")
                (:file "utils")
-               #+(or abcl (and clisp (not mop)))
+               #+(and clisp (not mop))
                (:file "mop")
                (:file "backends")
                (:file "plumbing")
