@@ -46,8 +46,8 @@
                     (lambda (c)
                       (unless *allow-debugger*
                         (format t "FAIL: ~A~%" c)
-                        (return-from test-impl                          
-                          (make-result :fail c))))))
+                        (let ((result (make-result :fail c)))
+                          (return-from test-impl result))))))
       (format t "Running test ~S... " name)
       (funcall body-fn)
       (format t "OK~%")

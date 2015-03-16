@@ -15,6 +15,8 @@
   <url type="website">http://common-lisp.net/project/trivial-gray-streams/</url>
   <url type="bugtracker">https://github.com/cram-code/cram_3rdparty/issues</url>
   <url type="repository">https://github.com/cram-code/cram_3rdparty</url>
+  <url type="repository">https://github.com/trivial-gray-streams/trivial-gray-streams.git</url>
+  <!--external-version>0483ade330508b4b2edeabdb47d16ec9437ee1cb</external-version-->
 
   <buildtool_depend>catkin</buildtool_depend>
 
