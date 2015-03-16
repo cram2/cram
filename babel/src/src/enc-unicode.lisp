@@ -217,9 +217,11 @@ in 2 to 4 bytes."
                           ((and (= u1 #xe0) (< u2 #xa0))
                            (handle-error 3 overlong-utf8-sequence))
                           ((< u1 #xf0)  ; 3 octets
-                           (logior (f-ash (f-logand u1 #x0f) 12)
-                                   (f-logior (f-ash (f-logand u2 #x3f) 6)
-                                             (f-logand u3 #x3f))))
+                           (let ((start (f-logior (f-ash (f-logand u1 #x0f) 12)
+                                                  (f-ash (f-logand u2 #x3f) 6))))
+                             (if (<= #xd800 start #xdfc0)
+                                 (handle-error 3 character-out-of-range)
+                                 (logior start (f-logand u3 #x3f)))))
                           (t            ; 4 octets
                            (setq u4 (consume-octet))
                            (handle-error-if-icb u4 3)
@@ -366,7 +368,8 @@ code points for each invalid byte."
                                 (and (= noctets 3)
                                      (not (and (< (f-logxor u2 #x80) #x40)
                                                (< (f-logxor u3 #x80) #x40)
-                                               (or (>= u1 #xe1) (>= u2 #xa0)))))
+                                               (or (>= u1 #xe1) (>= u2 #xa0))
+                                               (or (/= u1 #xed) (< u2 #xa0) (> u2 #xbf)))))
                                 (and (= noctets 4)
                                      (not
                                       (and (< (f-logxor u2 #x80) #x40)
@@ -467,10 +470,11 @@ code points for each invalid byte."
                                    (if (and (< (f-logxor u2 #x80) #x40)
                                             (< (f-logxor u3 #x80) #x40)
                                             (or (>= u1 #xe1) (>= u2 #xa0)))
-                                       (logior
-                                        (f-ash (f-logand u1 #x0f) 12)
-                                        (f-logior (f-ash (f-logand u2 #x3f) 6)
-                                                  (f-logand u3 #x3f)))
+                                       (let ((start (f-logior (f-ash (f-logand u1 #x0f) 12)
+                                                              (f-ash (f-logand u2 #x3f) 6))))
+                                         (if (<= #xd800 start #xdfc0)
+                                             (encode-raw-octets 3)
+                                             (logior start (f-logand u3 #x3f))))
                                        (encode-raw-octets 3)))
                                   (t    ; 4 octets
                                    (setq u4 (consume-octet 3))
@@ -520,9 +524,9 @@ code points for each invalid byte."
   (check-type name keyword)
   (let ((swap-var (gensym "SWAP"))
         (code-point-counter-name
-          (intern (format nil "~a-CODE-POINT-COUNTER" name)))
-        (encoder-name (intern (format nil "~a-ENCODER" name)))
-        (decoder-name (intern (format nil "~a-DECODER" name))))
+          (format-symbol t '#:~a-code-point-counter (string name)))
+        (encoder-name (format-symbol t '#:~a-encoder (string name)))
+        (decoder-name (format-symbol t '#:~a-decoder (string name))))
     (labels ((make-bom-check-form (end start getter seq)
                (if (null endianness)
                  ``((,',swap-var
@@ -536,14 +540,14 @@ code points for each invalid byte."
                (case endianness
                  (:le ``(,,getter ,,src ,,i 2 :le))
                  (:be ``(,,getter ,,src ,,i 2 :be))
-                 (T ``(if ,',swap-var
+                 (t ``(if ,',swap-var
                         (,,getter ,,src ,,i 2 :re)
                         (,,getter ,,src ,,i 2 :ne)))))
              (make-setter-form (setter code dest di)
                (case endianness
                  (:be ``(,,setter ,,code ,,dest ,,di 2 :be))
                  (:le ``(,,setter ,,code ,,dest ,,di 2 :le))
-                 (T ``(,,setter ,,code ,,dest ,,di 2 :ne)))))
+                 (t ``(,,setter ,,code ,,dest ,,di 2 :ne)))))
       `(progn
          (define-octet-counter ,name (getter type)
            `(utf16-octet-counter ,getter ,type))
@@ -691,11 +695,11 @@ written in big-endian byte-order without a leading byte-order mark."
   (check-type endianness (or null (eql :le) (eql :be)))
   (let ((swap-var (gensym "SWAP"))
         (code-point-counter-name
-          (intern (format nil "~a-CODE-POINT-COUNTER" name)))
+          (format-symbol t '#:~a-code-point-counter (string name)))
         (encoder-name
-          (intern (format nil "~a-ENCODER" name)))
+          (format-symbol t '#:~a-encoder (string name)))
         (decoder-name
-          (intern (format nil "~a-DECODER" name))))
+          (format-symbol t '#:~a-decoder (string name))))
     (labels ((make-bom-check-form (end start getter src)
                (if (null endianness)
                  ``(when (not (zerop (- ,,end ,,start)))
@@ -703,8 +707,8 @@ written in big-endian byte-order without a leading byte-order mark."
                        (#.+byte-order-mark-code+
                          (incf ,,start ,',bytes) nil)
                        (#.+swapped-byte-order-mark-code-32+
-                        (incf ,,start ,',bytes) T)
-                       (T #+little-endian T)))
+                        (incf ,,start ,',bytes) t)
+                       (t #+little-endian t)))
                  '()))
              (make-setter-form (setter code dest di)
                ``(,,setter ,,code ,,dest ,,di ,',bytes
