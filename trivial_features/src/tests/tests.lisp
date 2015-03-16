@@ -26,6 +26,11 @@
 
 (in-package :trivial-features-tests)
 
+(defun run ()
+  (let ((*package* (find-package :trivial-features-tests)))
+    (do-tests)
+    (null (regression-test:pending-tests))))
+
 ;;;; Support Code
 
 #-windows
@@ -36,7 +41,7 @@
 
   ;; Get system identification.
   (defun uname ()
-    (with-foreign-object (buf 'utsname)
+    (with-foreign-object (buf '(:struct utsname))
       (when (= (%uname buf) -1)
         (error "uname() returned -1"))
       (macrolet ((utsname-slot (name)
@@ -104,3 +109,22 @@
       (:ia64 nil) ; add this feature later!
       (t t))
   t)
+
+#-windows
+(deftest cpu.2
+    (let ((machine (nth-value 1 (uname))))
+      (cond ((member machine '("x86" "x86_64") :test #'string=)
+             (ecase (foreign-type-size :pointer)
+               (4 (featurep :x86))
+               (8 (featurep :x86-64))))
+            (t
+             (format *debug-io*
+                     "~&; NOTE: unhandled machine type, ~a, in CPU.2 test.~%"
+                     machine)
+             t)))
+  t)
+
+;; regression test: sometimes, silly logic leads to pushing nil to
+;; *features*.
+(deftest nil.1 (featurep nil) nil)
+(deftest nil.2 (featurep :nil) nil)
