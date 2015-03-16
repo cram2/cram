@@ -1,8 +1,8 @@
 ;;;; -*- Mode: lisp; indent-tabs-mode: nil -*-
 ;;;
-;;; package.lisp --- TRIVIAL-FEATURES-TESTS package definition.
+;;; tf-mkcl.lisp --- MKCL implementation of trivial-features.
 ;;;
-;;; Copyright (C) 2007, Luis Oliveira  <loliveira@common-lisp.net>
+;;; Copyright (C) 2007-2009, Luis Oliveira  <loliveira@common-lisp.net>
 ;;;
 ;;; Permission is hereby granted, free of charge, to any person
 ;;; obtaining a copy of this software and associated documentation
@@ -26,9 +26,24 @@
 
 (in-package :cl-user)
 
-(defpackage :trivial-features-tests
-  (:use :common-lisp
-        :regression-test
-        :alexandria
-        :cffi)
-  (:export #:run))
+;;;; Endianness
+
+#-(or :little-endian :big-endian)
+(pushnew (let ((ptr (ffi:allocate-foreign-object :unsigned-short)))
+           (unwind-protect
+                (progn
+                  (setf (ffi:deref-pointer ptr :unsigned-short) #xfeff)
+                  (ecase (ffi:deref-pointer ptr :unsigned-byte)
+                    (#xfe (intern "BIG-ENDIAN" "KEYWORD"))
+                    (#xff (intern "LITTLE-ENDIAN" "KEYWORD"))))
+             (ffi:free-foreign-object ptr)))
+         *features*)
+
+;;;; OS
+
+;;; MKCL conforms to SPEC
+
+;;;; CPU
+
+;;; MKCL conforms to SPEC
+

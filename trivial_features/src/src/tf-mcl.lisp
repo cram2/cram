@@ -1,8 +1,8 @@
 ;;;; -*- Mode: lisp; indent-tabs-mode: nil -*-
 ;;;
-;;; package.lisp --- TRIVIAL-FEATURES-TESTS package definition.
+;;; tf-mcl.lisp --- Digitool MCL trivial-features implementation.
 ;;;
-;;; Copyright (C) 2007, Luis Oliveira  <loliveira@common-lisp.net>
+;;; Copyright (C) 2010, Chun Tian (binghe) <binghe.lisp@gmail.com>
 ;;;
 ;;; Permission is hereby granted, free of charge, to any person
 ;;; obtaining a copy of this software and associated documentation
@@ -26,9 +26,16 @@
 
 (in-package :cl-user)
 
-(defpackage :trivial-features-tests
-  (:use :common-lisp
-        :regression-test
-        :alexandria
-        :cffi)
-  (:export #:run))
+;;;; Endianness
+
+(pushnew :big-endian *features*)
+
+;;;; OS
+
+;;; MCL already pushes :UNIX and :DARWIN.
+
+(pushnew :bsd *features*)
+
+;;;; CPU
+
+#+ppc-target (pushnew :ppc *features*)

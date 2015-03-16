@@ -1,6 +1,6 @@
 ;;;; -*- Mode: lisp; indent-tabs-mode: nil -*-
 ;;;
-;;; package.lisp --- TRIVIAL-FEATURES-TESTS package definition.
+;;; tf-mocl.lisp --- MOCL trivial-features implementation.
 ;;;
 ;;; Copyright (C) 2007, Luis Oliveira  <loliveira@common-lisp.net>
 ;;;
@@ -26,9 +26,15 @@
 
 (in-package :cl-user)
 
-(defpackage :trivial-features-tests
-  (:use :common-lisp
-        :regression-test
-        :alexandria
-        :cffi)
-  (:export #:run))
+;;;; Endianness
+
+;;; MOCL already pushes :LITTLE-ENDIAN.
+
+;;;; OS
+
+;;; MOCL already pushes :IOS, :DARWIN, :BSD, and :UNIX for iOS,
+;;; and :ANDROID, :LINUX, and :UNIX for Android.
+
+;;;; CPU
+
+;;; MOCL already pushes :ARM.
