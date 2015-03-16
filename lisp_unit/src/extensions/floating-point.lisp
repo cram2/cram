@@ -3,7 +3,7 @@
 
   Floating tests and assertions for LISP-UNIT
 
-  Copyright (c) 2009-2011, Thomas M. Hermann
+  Copyright (c) 2009-2012, Thomas M. Hermann
 
   Permission is hereby granted, free of charge, to any person obtaining 
   a copy of this software and associated documentation files (the "Software"), 
@@ -34,17 +34,32 @@
 
 ;;; Symbols exported from the floating point extension
 
+;;; Global variables
 (export
- '(*measure* *epsilon* *significant-figures* ; Global variables
-   ;; Functions
-   default-epsilon relative-error
-   sumsq sump norm relative-error-norm
-   ;; Predicates and assertions
-   float-equal assert-float-equal
+ '(*measure* *epsilon* *significant-figures*))
+
+;;; Functions
+(export
+ '(default-epsilon
+   sumsq sump norm
+   relative-error relative-error-norm
+   array-error))
+
+;;; Predicates and assertions
+(export
+ '(float-equal assert-float-equal
    sigfig-equal assert-sigfig-equal
    norm-equal assert-norm-equal
    number-equal assert-number-equal
    numerical-equal assert-numerical-equal))
+
+;;; Utilities
+(export
+ '(complex-random
+   make-2d-list
+   make-random-list
+   make-random-2d-list
+   make-random-2d-array))
 
 ;;; Floating point extensions
 
@@ -116,26 +131,22 @@
     ((complex long-float)   (* 2L0 long-float-epsilon))
     (t 0)))
 
-;;; FIXME : Use the LOOP
 (defmethod default-epsilon ((value list))
   "Return the default epsilon based on contents of the list."
-  (reduce (lambda (x y) (max x (default-epsilon y)))
-          value :initial-value 0))
+  (loop for val in value maximize (default-epsilon val)))
 
-;;; FIXME : Use the LOOP
 (defmethod default-epsilon ((value vector))
   "Return the default epsilon based on the contents of the vector."
-  (reduce (lambda (x y) (max x (default-epsilon y)))
-          value :initial-value 0))
+  (loop for val across value maximize (default-epsilon val)))
 
-;;; FIXME : Use the LOOP
 (defmethod default-epsilon ((value array))
   "Return the default epsilon based on the contents of the array."
-  (reduce (lambda (x y) (max x (default-epsilon y)))
-          (make-array (array-total-size value)
-                      :element-type (array-element-type value)
-                      :displaced-to value)
-          :initial-value 0))
+  (loop for val across
+        (make-array
+         (array-total-size value)
+         :element-type (array-element-type value)
+         :displaced-to value)
+        maximize (default-epsilon val)))
 
 #|
   (RELATIVE-ERROR x y) => float
@@ -146,7 +157,7 @@
   the Definition 1.3 in [NumAlgoC] for cases when either the exact
   or the approximate value equals zero. According to Definition 1.3,
   the relative error is identically equal to 1 in those cases. This
-  function returns the absolue error in those cases. This is more
+  function returns the absolute error in those cases. This is more
   useful for testing.
 |#
 (defun %relative-error (exact approximate)
@@ -285,27 +296,33 @@ comparison of the relative error is less than epsilon."
 (defmethod sumsq ((data list))
   "Return the scaling parameter and the sum of the squares of the ~
    list."
-  (let ((scale 0) (sumsq 1)
+  (let ((scale 0)
+        (sumsq 1)
         (abs-val nil))
     (dolist (elm data (values scale sumsq))
-      (when (< 0 (setf abs-val (abs elm)))
+      (when (plusp (setq abs-val (abs elm)))
         (if (< scale abs-val)
-            (setf sumsq (1+ (* sumsq (expt (/ scale abs-val) 2)))
-                  scale abs-val)
-            (incf sumsq (expt (/ elm scale) 2)))))))
+            (setq
+             sumsq (1+ (* sumsq (expt (/ scale abs-val) 2)))
+             scale abs-val)
+            (setq sumsq (+ sumsq (expt (/ elm scale) 2))))))))
 
 (defmethod sumsq ((data vector))
   "Return the scaling parameter and the sum of the squares of the ~
    vector."
-  (let ((scale 0) (sumsq 1)
-        (size (length data))
-        (abs-val nil))
+  (let ((scale 0)
+        (sumsq 1)
+        (abs-val nil)
+        (size (length data)))
     (dotimes (index size (values scale sumsq))
-      (when (< 0 (setf abs-val (abs (svref data index))))
+      (when (plusp (setq abs-val (abs (svref data index))))
         (if (< scale abs-val)
-            (setf sumsq (1+ (* sumsq (expt (/ scale abs-val) 2)))
-                  scale abs-val)
-            (incf sumsq (expt (/ (svref data index) scale) 2)))))))
+            (setq
+             sumsq (1+ (* sumsq (expt (/ scale abs-val) 2)))
+             scale abs-val)
+            (setq
+             sumsq
+             (+ sumsq (expt (/ (svref data index) scale) 2))))))))
 
 (defmethod sumsq ((data array))
   "Return the scaling parameter and the sum of the squares of the ~
@@ -318,27 +335,33 @@ comparison of the relative error is less than epsilon."
 (defmethod sump ((data list) (p real))
   "Return the scaling parameter and the sum of the powers of p of the ~
    data."
-  (let ((scale 0) (sump 1)
+  (let ((scale 0)
+        (sump 1)
         (abs-val nil))
     (dolist (elm data (values scale sump))
-      (when (< 0 (setf abs-val (abs elm)))
+      (when (plusp (setq abs-val (abs elm)))
         (if (< scale abs-val)
-            (setf sump  (1+ (* sump (expt (/ scale abs-val) p)))
-                  scale abs-val)
-            (incf sump (expt (/ elm scale) p)))))))
+            (setq
+             sump (1+ (* sump (expt (/ scale abs-val) p)))
+             scale abs-val)
+            (setq sump (+ sump (expt (/ elm scale) p))))))))
 
 (defmethod sump ((data vector) (p real))
   "Return the scaling parameter and the sum of the powers of p of the ~
    vector."
-  (let ((scale 0) (sump 1)
-        (size (length data))
-        (abs-val nil))
+  (let ((scale 0)
+        (sump 1)
+        (abs-val nil)
+        (size (length data)))
     (dotimes (index size (values scale sump))
-      (when (< 0 (setf abs-val (abs (svref data index))))
+      (when (plusp (setq abs-val (abs (svref data index))))
         (if (< scale abs-val)
-            (setf sump  (1+ (* sump (expt (/ scale abs-val) p)))
-                  scale abs-val)
-            (incf sump (expt (/ (svref data index) scale) p)))))))
+            (setq
+             sump (1+ (* sump (expt (/ scale abs-val) p)))
+             scale abs-val)
+            (setq
+             sump
+             (+ sump (expt (/ (svref data index) scale) p))))))))
 
 (defmethod sump ((data array) (p real))
   "Return the scaling parameter and the sum of the powers of p of the ~
@@ -349,65 +372,70 @@ comparison of the relative error is less than epsilon."
         p))
 
 ;;; (NORM data) => float
-(defun %seq-1-norm (data)
-  "Return the Taxicab norm of the sequence."
-  ;; FIXME : Use the LOOP.
-  (reduce (lambda (x y) (+ x (abs y)))
-          data :initial-value 0))
 
-(defun %seq-2-norm (data)
-  "Return the Euclidean norm of the sequence."
+(defgeneric %norm (data measure)
+  (:documentation
+   "Return the norm of the data according to measure."))
+
+(defmethod %norm ((data list) (measure (eql 1)))
+  "Return the Taxicab norm of the list."
+  (loop for item in data sum (abs item)))
+
+(defmethod %norm ((data vector) (measure (eql 1)))
+  "Return the Taxicab norm of the vector."
+  (loop for item across data sum (abs item)))
+
+(defmethod %norm ((data list) (measure (eql 2)))
+  "Return the Euclidean norm of the list."
   (multiple-value-bind (scale sumsq)
       (sumsq (map-into (make-array (length data)) #'abs data))
     (* scale (sqrt sumsq))))
 
-(defun %seq-p-norm (data p)
-  "Return the p norm of the sequence."
+(defmethod %norm ((data vector) (measure (eql 2)))
+  "Return the Euclidean norm of the vector."
+  (multiple-value-bind (scale sumsq)
+      (sumsq (map-into (make-array (length data)) #'abs data))
+    (* scale (sqrt sumsq))))
+
+(defmethod %norm ((data list) (measure integer))
+  "Return the Euclidean norm of the list."
   (multiple-value-bind (scale sump)
-      (sump (map-into (make-array (length data)) #'abs data) p)
-    (* scale (expt sump (/ p)))))
+      (sump (map-into (make-array (length data)) #'abs data)
+            measure)
+    (* scale (expt sump (/ measure)))))
 
-(defun %seq-inf-norm (data)
-  "Return the infinity, or maximum, norm of the sequence."
-  ;; FIXME : Use the LOOP.
-  (reduce (lambda (x y) (max x (abs y)))
-          data :initial-value 0))
+(defmethod %norm ((data vector) (measure integer))
+  "Return the Euclidean norm of the vector."
+  (multiple-value-bind (scale sump)
+      (sump (map-into (make-array (length data)) #'abs data)
+            measure)
+    (* scale (expt sump (/ measure)))))
 
-(defun %seq-norm (data measure)
-  "Return the norm of the sequence according to the measure."
-  (cond
-    ((equalp measure 1)
-     (%seq-1-norm data))
-    ((equalp measure 2)
-     (%seq-2-norm data))
-    ((numberp measure)
-     (%seq-p-norm data measure))
-    ((equalp measure :infinity)
-     (%seq-inf-norm data))
-    (t (error "Unrecognized norm, ~A." measure))))
+(defmethod %norm ((data list) (measure (eql :infinity)))
+  "Return the infinity, or maximum, norm of the list."
+  (loop for item in data maximize (abs item)))
+
+(defmethod %norm ((data vector) (measure (eql :infinity)))
+  "Return the infinity, or maximum, norm of the vector."
+  (loop for item across data maximize (abs item)))
 
 (defmethod norm ((data list) &optional (measure *measure*))
   "Return the norm of the list according to the measure."
-  (%seq-norm data measure))
+  (%norm data measure))
 
 (defmethod norm ((data vector) &optional (measure *measure*))
   "Return the norm of the vector according to the measure."
-  (%seq-norm data measure))
+  (%norm data measure))
 
+;;; FIXME : Is the entrywise norm of an array useful or confusing?
 (defmethod norm ((data array) &optional (measure *measure*))
   "Return the entrywise norm of the array according to the measure."
-  (let ((flat-data (make-array (array-total-size data)
-                               :element-type (array-element-type data)
-                               :displaced-to data)))
-    (cond
-      ((and (numberp measure) (< 0 measure))
-       (warn "Measure ~D results in an entrywise p-norm." measure)
-       (%seq-p-norm flat-data measure))
-      ((equalp measure :frobenius)
-       (%seq-2-norm flat-data))
-      ((equalp measure :max)
-       (%seq-inf-norm flat-data))
-      (t (error "Unrecognized norm, ~A." measure)))))
+  (%norm
+   (make-array
+    (array-total-size data)
+    :element-type (array-element-type data)
+    :displaced-to data)
+   measure))
 
 ;;; (RELATIVE-ERROR-NORM exact approximate measure) => float
 (defun %relative-error-norm (exact approximate measure)
