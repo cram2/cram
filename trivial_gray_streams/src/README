@@ -1,34 +1,40 @@
 trivial-gray-streams
 ====================
 
-This system provides an extremely thin compatibility layer for gray
-streams.  It is nearly *too* trivial for a complete package, except that
-I have copy&pasted this code into enough projects now that I decided to
-factor it out once again now, and then *never* have to touch it again.
+Gray streams is an interface proposed for inclusion with ANSI CL
+by David N. Gray in Issue STREAM-DEFINITION-BY-USER
+(http://www.nhplace.com/kent/CL/Issues/stream-definition-by-user.html).
+The proposal did not make it into ANSI CL, but most popular
+CL implementations implement this facility anyway.
 
+This system provides an extremely thin compatibility layer for gray
+streams.
 
 How to use it
 =============
 
-1. Use the package TRIVIAL-GRAY-STREAMS instead of whatever
-   implementation-specific package you would have to use otherwise to
-   get at gray stream symbols.
-2. For STREAM-READ-SEQUENCE and STREAM-WRITE-SEQUENCE, notice that we
-   use two required arguments and allow additional keyword arguments.
-   So the lambda list when defining a method on either function should look
-   like this:
-     (stream sequence start end &key)
-
+Use the package TRIVIAL-GRAY-STREAMS to refer Gray stream
+classes to inherit from, generic functions to implement.
 
 Extensions
 ==========
 
+The Gray proposal was made before the ANCI CL standard was finalized,
+and was based on the Common Lisp The Language book.
+
+The book does not have cl:file-position, cl:read-sequence, cl:write-sequence
+functions. That's why (we think) the Gray proposal does not specify
+their counterparts: stream-file-position, stream-read-sequence, stream-write-sequence.
+
+trivial-gray-streams supports these functions:
+
 Generic function STREAM-READ-SEQUENCE (stream sequence start end &key)
 Generic function STREAM-WRITE-SEQUENCE (stream sequence start end &key)
 
-        See above.
+    Notice that we use two required arguments and allow additional
+    keyword arguments. Your methods on these function should have
+    compliant lambda lists:
+        (stream sequence start end &key)
 
 Generic function STREAM-FILE-POSITION (stream) => file position
 Generic function (SETF STREAM-FILE-POSITION) (position-spec stream) => successp
-
-        Will only be called by ABCL, ACL, LispWorks, CCL, CLISP, SBCL and MOCL.

@@ -41,9 +41,11 @@
 ;;; of the implementation-specific analogue function which calls us.
 
 (defmethod stream-read-sequence ((stream fundamental-input-stream) seq start end &key)
+  (declare (ignore seq start end))
   'fallback)
 
 (defmethod stream-write-sequence ((stream fundamental-output-stream) seq start end &key)
+  (declare (ignore seq start end))
   'fallback)
 
 (defmacro or-fallback (&body body)
@@ -110,6 +112,13 @@
          (setf (stream-file-position stream) position)
          (stream-file-position stream))))
 
+;; Untill 2014-08-09 CMUCL did not have stream-file-position:
+;; http://trac.common-lisp.net/cmucl/ticket/100
+#+cmu
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (when (find-symbol (string '#:stream-file-position) '#:ext)
+    (pushnew :cmu-has-stream-file-position *features*)))
+
 #+cmu
 (progn
   (defmethod ext:stream-read-sequence
@@ -117,7 +126,15 @@
     (or-fallback (stream-read-sequence s seq (or start 0) (or end (length seq)))))
   (defmethod ext:stream-write-sequence
       ((s fundamental-output-stream) seq &optional start end)
-    (or-fallback (stream-write-sequence s seq (or start 0) (or end (length seq))))))
+    (or-fallback (stream-write-sequence s seq (or start 0) (or end (length seq)))))
+
+  #+cmu-has-stream-file-position
+  (defmethod ext:stream-file-position ((stream fundamental-stream))
+    (stream-file-position stream))
+
+  #+cmu-has-stream-file-position
+  (defmethod (setf ext:stream-file-position) (position (stream fundamental-stream))
+    (setf (stream-file-position stream) position)))
 
 #+lispworks
 (progn
@@ -229,6 +246,11 @@
 
 #+ecl
 (progn
+  (defmethod gray::stream-file-position 
+    ((stream fundamental-stream) &optional position)
+    (if position
+      (setf (stream-file-position stream) position)
+      (stream-file-position stream)))
   (defmethod gray:stream-read-sequence
     ((s fundamental-input-stream) seq &optional start end)
     (or-fallback (stream-read-sequence s seq (or start 0) (or end (length seq)))))
