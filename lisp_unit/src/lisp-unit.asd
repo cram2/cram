@@ -1,6 +1,6 @@
 ;;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp -*-
 #|
-  Copyright (c) 2009-2011, Thomas M. Hermann
+  Copyright (c) 2009-2012, Thomas M. Hermann
 
   Permission is hereby granted, free of charge, to any person obtaining 
   a copy of this software and associated documentation files (the "Software"), 
@@ -26,10 +26,13 @@
 
 (defsystem :lisp-unit
   :description "Common Lisp library that supports unit testing."
-  :version "0.7.0"
+  :version "0.9.2"
   :author "Thomas M. Hermann <thomas.m.hermann@odonata-research.com>"
   :license "MIT"
   :components
   ((:file "lisp-unit")
-   (:file "rational"       :depends-on ("lisp-unit"))
-   (:file "floating-point" :depends-on ("lisp-unit"))))
+   (:module extensions
+    :depends-on ("lisp-unit")
+    :components ((:file "rational")
+                 (:file "floating-point")
+                 (:file "test-anything-protocol")))))

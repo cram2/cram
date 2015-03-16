@@ -1,7 +1,6 @@
 <package>
   <name>lisp_unit</name>
   <version>0.1.3</version>
-  <!--external-version>0.7.0</external-version-->
   <description>
       3rd party library: A unit testing framework for common lisp.
   </description>
@@ -16,6 +15,8 @@
   <url type="website">http://www.cliki.net/lisp-unit</url>
   <url type="bugtracker">https://github.com/cram-code/cram_core/issues</url>
   <url type="repository">https://github.com/cram-code/cram_core</url>
+  <url type="repository">https://github.com/OdonataResearchLLC/lisp-unit.git</url>
+  <!--external-version>e6c259f333f038abd32a31c4138775045e9d640d</external-version-->
 
   <buildtool_depend>catkin</buildtool_depend>
 
