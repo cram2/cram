@@ -29,15 +29,14 @@
 
 (in-package :spatial-relations-demo)
 
-(defparameter +init-pose+ '((2 0 0) (0 0 0 1)) "Pose where objects are spawned.")
-(defparameter +default-color+ '(0.5 0.5 0.5) "Default color to assign to object meshes.")
-;; should be a constant but can't be bothered getting errors during each recompilation
+(defparameter *init-pose* '((2 0 0) (0 0 0 1)) "Pose where objects are spawned.")
+(defparameter *default-color* '(0.5 0.5 0.5) "Default color to assign to object meshes.")
 
 (defstruct item
   type
-  (color +default-color+)
-  (pose-stored +init-pose+)
-  (pose-used +init-pose+))
+  (color *default-color*)
+  (pose-stored *init-pose*)
+  (pose-used *init-pose*))
 
 (defun items-slots-hash-table (slots-lists)
   "A list of lists turns into a hash-table. See *item-types* for example."
@@ -61,19 +60,27 @@
      (mondamin (0.5 0.1 0))))
   "Hash table: type -> item(type,color,pose-stored,pose-used).")
 
+(defparameter *item-sizes*
+  '((pancake-maker (0.15 0.15 0.035)))
+  "AList item -> size list.")
+
 (defun item-types ()
   (alexandria:hash-table-keys *item-types*))
 
 (defun type-color (type)
-  (or (ignore-errors (item-color (gethash type *item-types*))) +default-color+))
+  (or (ignore-errors (item-color (gethash type *item-types*))) *default-color*))
 
 (defun type-pose-stored (type)
-  (or (ignore-errors (item-pose-stored (gethash type *item-types*))) +init-pose+))
+  (or (ignore-errors (item-pose-stored (gethash type *item-types*))) *init-pose*))
 
 (defun type-pose-used (type)
-  (or (ignore-errors (item-pose-used (gethash type *item-types*))) +init-pose+))
+  (or (ignore-errors (item-pose-used (gethash type *item-types*))) *init-pose*))
 
-(defun move-object (object-name &optional (new-pose +init-pose+))
+(defun type-size (type)
+  (when (assoc type *item-sizes*)
+    (car (cdr (assoc type *item-sizes*)))))
+
+(defun move-object (object-name &optional (new-pose *init-pose*))
   (prolog-?w `(assert (object-pose ?w ,object-name ,new-pose))))
 
 (defun move-object-onto (object-name onto-type onto-name)
@@ -85,12 +92,15 @@
     (simulate *current-bullet-world* 10)))
 
 (defun spawn-object (name type &optional pose)
-  (var-value
-   '?object-instance
-   (car (prolog-?w
-          `(assert (object ?w mesh ,name ,(or pose (type-pose-stored type))
-                           :mesh ,type :mass 0.2 :color ,(type-color type)))
-          `(%object ?w ,name ?object-instance)))))
+  (let ((mesh? (assoc 'pancake btr::*mesh-files*)))
+    (var-value
+     '?object-instance
+     (car (prolog-?w
+            `(assert (object ?w ,(if mesh? 'mesh type)
+                             ,name ,(or pose (type-pose-stored type))
+                             :mass 0.2 :color ,(type-color type)
+                             ,@(if mesh? `(:mesh ,type) `(:size ,(type-size type)))))
+            `(%object ?w ,name ?object-instance))))))
 
 (defun kill-object (name)
   (prolog-?w `(retract (object ?w ,name))))

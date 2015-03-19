@@ -28,11 +28,18 @@
 
 (in-package :spatial-relations-demo)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;; PANCAKES! ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defmethod parameterize-demo ((demo-name (eql 'pancake-making)))
+  (setf *demo-object-types*
+        '((:main spatula mondamin)
+          (:non-mesh pancake-maker)))
+  (setf *demo-objects-how-many-each-type*
+        '((pancake-maker . 1)
+          (spatula . 2)
+          (mondamin . 1))))
 
 (defun spawn-pancake-scenario ()
   (btr::clear-current-costmap-function-object)
-  (detach-all-objects (object *current-bullet-world* 'cram-pr2-knowledge::pr2))  
+  (detach-all-objects (object *current-bullet-world* 'cram-pr2-knowledge::pr2))
   (prolog `(and (bullet-world ?w)
                 (robot ?robot)
                 (robot-arms-parking-joint-states ?joint-parking-state)
@@ -54,6 +61,7 @@
   (move-object 'spatula-1 `((1.43 0.6 0.86) (0.0d0 0.0d0 -0.4514496d0 0.89229662d0)))
   (move-object 'spatula-2 `((1.45 0.95 0.86) (0 0 0.2 1)))
   (move-object 'mondamin-1 `((1.35 1.11 0.958) (0 0 0 1)))
+  (move-object 'oven-1 `((-1.0 -0.4 0.765) (0 0 0 1)))
   (move-object 'cram-pr2-knowledge::pr2 `((0 0 0) (0 0 0 1))))
 
 (defun spawn-spheres ()

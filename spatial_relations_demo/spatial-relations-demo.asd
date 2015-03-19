@@ -57,6 +57,7 @@
        (:file "robot")
        (:file "random-code")
        (:file "plan-library")))
-     (:file "table-setting" :depends-on ("package" "utilities"))
+     (:file "scenario-interface" :depends-on ("package" "utilities"))
+     (:file "table-setting" :depends-on ("package" "utilities" "scenario-interface"))
      ;; (:file "pancake-making" :depends-on ("package" "utilities"))
      ))))

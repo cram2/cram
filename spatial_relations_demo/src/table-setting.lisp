@@ -30,53 +30,21 @@
 
 ;; TODO: comments
 ;; TODO: declares everywhere!
-;; TODO collision detection for knives!!!
 
 (defparameter *num-of-sets-on-table* 2)
-(defparameter *demo-object-types*
-  '((:main . (plate fork knife mug))
-    (:clutter . (pot bowl mondamin))))
-(defparameter *demo-objects-how-many-each-type*
-  `((plate . ,*num-of-sets-on-table*)
-    (fork . ,*num-of-sets-on-table*)
-    (knife . ,*num-of-sets-on-table*)
-    (mug . ,*num-of-sets-on-table*)
-    (pot . 1)
-    (bowl . 4)
-    (mondamin . 2)))
-(defparameter *demo-objects* (make-hash-table :test #'eq)
-  "All the spawned objects will go here. Hash table: name -> obj-instance.")
 
-(defun demo-object-names ()
-  (alexandria:hash-table-keys *demo-objects*))
-
-(defun demo-object-instance (name)
-  (gethash name *demo-objects*))
-
-(defun new-symbol-with-id (string number)
-  (intern (concatenate 'string (string-upcase string) "-" (write-to-string number))
-          "SPATIAL-RELATIONS-DEMO"))
-
-(defun new-symbol-from-strings (&rest strings)
-  (intern (string-upcase (reduce (alexandria:curry #'concatenate 'string) strings))
-          "SPATIAL-RELATIONS-DEMO"))
-
-(declaim (inline new-symbol-with-id new-symbol-from-strings))
-
-(defun spawn-demo-objects (&optional (set nil))
-  "`set' is, e.g., :main or :clutter, if not given spawns all objects."
-  (let ((object-types
-          (if set
-              (cdr (assoc set *demo-object-types*))
-              (apply #'append (mapcar #'cdr *demo-object-types*))))
-        (resulting-object-names '()))
-    (dolist (type object-types)
-      (dotimes (i (cdr (assoc type *demo-objects-how-many-each-type*)))
-        (let ((name (new-symbol-with-id type i)))
-          (format t "~a ~a ~%" name type)
-          (push name resulting-object-names)
-          (setf (gethash name *demo-objects*) (spawn-object name type)))))
-    (mapcar (alexandria:rcurry #'gethash *demo-objects*) resulting-object-names)))
+(defmethod parameterize-demo ((demo-name (eql 'table-setting)))
+  (setf *demo-object-types*
+        '((:main . (plate fork knife mug))
+          (:clutter . (pot bowl mondamin))))
+  (setf *demo-objects-how-many-each-type*
+        `((plate . ,*num-of-sets-on-table*)
+          (fork . ,*num-of-sets-on-table*)
+          (knife . ,*num-of-sets-on-table*)
+          (mug . ,*num-of-sets-on-table*)
+          (pot . 1)
+          (bowl . 4)
+          (mondamin . 2))))
 
 (defun kill-demo-objects ()
   (dolist (name (demo-object-names))
@@ -172,7 +140,7 @@
   (spawn-demo-objects :main)
   (move-demo-objects-away)
   (time
-   (loop for object-type being the hash-keys of *items*
+   (loop for object-type being the hash-keys of *demo-objects*
          do (assign-multiple-obj-pos object-type))))
 
 
@@ -242,7 +210,7 @@
   (prolog `(and (assert (object-pose ?_ plate-1 ((-1.2 1.14 0.85747016972d0) (0 0 0 1)))))))
 
 (defun bring-robot-to-table ()
-  (put-stuff-away)
+  (move-demo-objects-away)
   (prolog `(and
             (assert (object-pose ?_ plate-1 ((-2.2 2.14 0.85747016972d0) (0 0 0 1))))
             (assert (object-pose ?_ plate-2 ((-1.75 2.14 0.85747016972d0) (0 0 0 1))))
