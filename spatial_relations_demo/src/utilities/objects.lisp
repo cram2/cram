@@ -80,6 +80,25 @@
   (when (assoc type *item-sizes*)
     (car (cdr (assoc type *item-sizes*)))))
 
+(defun spawn-object (name type &optional pose)
+  (var-value
+   '?object-instance
+   (car (prolog-?w
+          `(scenario-object-shape ,type ?shape)
+          `(scenario-object-color ?_ ,type ?color)
+          `(-> (lisp-pred identity ,pose)
+               (equal ?pose ,pose)
+               (scenario-objects-init-pose ?pose))
+          `(assert (object ?w ?shape ,name ?pose :mass 0.2 :color ?color
+                           ,@(if mesh? `(:mesh ,type) `(:size ,(type-size type)))))
+          `(%object ?w ,name ?object-instance)))))
+
+(defun kill-object (name)
+  (prolog-?w `(retract (object ?w ,name))))
+
+(defun kill-all-objects ()
+  (prolog-?w `(household-object-type ?w ?obj ?type) `(retract (object ?w ?obj)) '(fail)))
+
 (defun move-object (object-name &optional (new-pose *init-pose*))
   (prolog-?w `(assert (object-pose ?w ,object-name ,new-pose))))
 
@@ -90,23 +109,6 @@
          (location (reference on-designator)))
     (move-object object-name location)
     (simulate *current-bullet-world* 10)))
-
-(defun spawn-object (name type &optional pose)
-  (let ((mesh? (assoc 'pancake btr::*mesh-files*)))
-    (var-value
-     '?object-instance
-     (car (prolog-?w
-            `(assert (object ?w ,(if mesh? 'mesh type)
-                             ,name ,(or pose (type-pose-stored type))
-                             :mass 0.2 :color ,(type-color type)
-                             ,@(if mesh? `(:mesh ,type) `(:size ,(type-size type)))))
-            `(%object ?w ,name ?object-instance))))))
-
-(defun kill-object (name)
-  (prolog-?w `(retract (object ?w ,name))))
-
-(defun kill-all-objects ()
-  (prolog-?w `(household-object-type ?w ?obj ?type) `(retract (object ?w ?obj)) '(fail)))
 
 (defun object-instance (object-name)
   (var-value '?instance

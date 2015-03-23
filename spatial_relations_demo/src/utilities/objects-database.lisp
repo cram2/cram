@@ -30,3 +30,49 @@
 (in-package :spatial-relations-demo)
 
 ;; defmethods for all defgenerics of objects
+(def-fact-group scenario-objects-database ()
+  ;; Pose where objects are spawned.
+  (<- (scenario-objects-init-pose '((2 0 0) (0 0 0 1))))
+
+  ;; Default color to assign to object meshes.
+  (<- (scenario-objects-default-color '(0.5 0.5 0.5)))
+
+  ;; Interface to query for colors for different object types.
+  (<- (scenario-object-color ?scenario ?object-type ?color)
+    (-> (bound ?scenario)
+        (%scenario-object-color ?scenario ?object-type ?color)
+        (%scenario-object-color ?object-type ?color)))
+
+  ;; Colors for different object types different in specific scenario. E.g.:
+  ;; (<- (%scenario-object-color pancake-making pancake-maker (1.0 0 0)))
+
+  ;; Colors for different object types the same for all scenarios.
+  (<- (%scenario-object-color plate    (0.8 0.58 0.35)))
+  (<- (%scenario-object-color fork     (0.2 0.1 0.3)))
+  (<- (%scenario-object-color knife    (0.5 0 0)))
+  (<- (%scenario-object-color mug      (0.8 0.3 0)))
+  (<- (%scenario-object-color pot      (0.1 0.2 0.3)))
+  (<- (%scenario-object-color bowl     (0 0.3 0)))
+  (<- (%scenario-object-color mondamin (0.5 0.1 0)))
+
+  ;; Interface to query for sizes of different object types.
+  (<- (scenario-object-size ?scenario ?object-type ?size)
+    (-> (bound ?scenario)
+        (%scenario-object-size ?scenario ?object-type ?size)
+        (%scenario-object-size ?object-type ?size)))
+
+  ;; Sizes of different object types different in specific scenario. E.g.:
+  ;; (<- (%scenario-object-size pancake-making pancake-maker (0.1 0.1 0.1)))
+
+  ;; Sizes of different object types the same for all scenarios.
+  (<- (%scenario-object-size pancake-maker (0.15 0.15 0.035)))
+
+  ;; Object type shapes
+  (<- (scenario-object-shape ?object-type ?shape)
+    (-> (non-mesh-object ?object-type)
+        (equal ?shape ?object-type)
+        (equal ?shape mesh)))
+
+  ;; A list of objects that are primitive shape and not a mesh shape
+  (<- (non-mesh-object pancake-maker))
+  )
