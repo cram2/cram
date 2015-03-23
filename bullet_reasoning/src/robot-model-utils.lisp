@@ -36,14 +36,14 @@
 (defvar *persistent-ik-service* nil
   "IK persistent service handle.")
 
-(defun set-robot-state-from-tf (tf-broadcaster robot
+(defun set-robot-state-from-tf (tf-buffer robot
                                 &key (reference-frame designators-ros:*fixed-frame*)
                                   timestamp)
   (handler-case
       (let* ((root-link (cl-urdf:name (cl-urdf:root-link (urdf robot))))
              (robot-transform
                (cl-tf2:lookup-transform
-                tf-broadcaster root-link reference-frame
+                tf-buffer root-link reference-frame
                 :time timestamp :timeout cram-roslisp-common:*tf-default-timeout*)))
         (when robot-transform
           (setf (link-pose robot root-link)
@@ -56,7 +56,7 @@
                      (cl-transforms:transform*
                       robot-transform
                       (cl-tf2:lookup-transform
-                       tf-broadcaster tf-name root-link
+                       tf-buffer tf-name root-link
                        :time timestamp
                        :timeout cram-roslisp-common:*tf-default-timeout*))))))))
     (cl-tf2:tf2-server-error ()
