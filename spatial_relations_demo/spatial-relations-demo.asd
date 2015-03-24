@@ -54,6 +54,7 @@
       :components
       ((:file "setup")
        (:file "objects")
+       (:file "objects-database")
        (:file "robot")
        (:file "random-code")
        (:file "plan-library")))

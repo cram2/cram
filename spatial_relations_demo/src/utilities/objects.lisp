@@ -29,68 +29,19 @@
 
 (in-package :spatial-relations-demo)
 
-(defparameter *init-pose* '((2 0 0) (0 0 0 1)) "Pose where objects are spawned.")
-(defparameter *default-color* '(0.5 0.5 0.5) "Default color to assign to object meshes.")
-
-(defstruct item
-  type
-  (color *default-color*)
-  (pose-stored *init-pose*)
-  (pose-used *init-pose*))
-
-(defun items-slots-hash-table (slots-lists)
-  "A list of lists turns into a hash-table. See *item-types* for example."
-  (let ((table (make-hash-table :test #'eq)))
-    (dolist (slots-list slots-lists table)
-      (setf (gethash (first slots-list) table)
-            (make-item :type (or (first slots-list)
-                                 (error "An item should have a slot"))
-                       :color (second slots-list)
-                       :pose-stored (third slots-list)
-                       :pose-used (fourth slots-list))))))
-
-(defparameter *item-types*
-  (items-slots-hash-table
-   `((plate (0.8 0.58 0.35))
-     (fork  (0.2 0.1 0.3))
-     (knife (0.5 0 0))
-     (mug   (0.8 0.3 0))
-     (pot (0.1 0.2 0.3))
-     (bowl (0 0.3 0))
-     (mondamin (0.5 0.1 0))))
-  "Hash table: type -> item(type,color,pose-stored,pose-used).")
-
-(defparameter *item-sizes*
-  '((pancake-maker (0.15 0.15 0.035)))
-  "AList item -> size list.")
-
-(defun item-types ()
-  (alexandria:hash-table-keys *item-types*))
-
-(defun type-color (type)
-  (or (ignore-errors (item-color (gethash type *item-types*))) *default-color*))
-
-(defun type-pose-stored (type)
-  (or (ignore-errors (item-pose-stored (gethash type *item-types*))) *init-pose*))
-
-(defun type-pose-used (type)
-  (or (ignore-errors (item-pose-used (gethash type *item-types*))) *init-pose*))
-
-(defun type-size (type)
-  (when (assoc type *item-sizes*)
-    (car (cdr (assoc type *item-sizes*)))))
-
 (defun spawn-object (name type &optional pose)
   (var-value
    '?object-instance
    (car (prolog-?w
+          (if pose
+              `(equal ?pose ,pose)
+              `(scenario-objects-init-pose ?pose))
           `(scenario-object-shape ,type ?shape)
           `(scenario-object-color ?_ ,type ?color)
-          `(-> (lisp-pred identity ,pose)
-               (equal ?pose ,pose)
-               (scenario-objects-init-pose ?pose))
-          `(assert (object ?w ?shape ,name ?pose :mass 0.2 :color ?color
-                           ,@(if mesh? `(:mesh ,type) `(:size ,(type-size type)))))
+          `(scenario-object-extra-attributes ?_ ,type ?attributes)
+          `(append (object ?w ?shape ,name ?pose :mass 0.2 :color ?color) ?attributes
+                   ?object-description)
+          `(assert ?object-description)
           `(%object ?w ,name ?object-instance)))))
 
 (defun kill-object (name)
@@ -117,7 +68,7 @@
 (defun object-pose (object-name)
   (pose (object-instance object-name)))
 
-(declaim (inline type-color move-object spawn-object kill-object))
+(declaim (inline kill-object kill-all-objects move-object object-pose))
 
 
 ;;;;;;;;;;;;;;;;;;;; PROLOG ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

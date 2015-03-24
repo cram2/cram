@@ -32,10 +32,10 @@
 ;; defmethods for all defgenerics of objects
 (def-fact-group scenario-objects-database ()
   ;; Pose where objects are spawned.
-  (<- (scenario-objects-init-pose '((2 0 0) (0 0 0 1))))
+  (<- (scenario-objects-init-pose ((2 0 0) (0 0 0 1))))
 
   ;; Default color to assign to object meshes.
-  (<- (scenario-objects-default-color '(0.5 0.5 0.5)))
+  (<- (scenario-objects-default-color (0.5 0.5 0.5)))
 
   ;; Interface to query for colors for different object types.
   (<- (scenario-object-color ?scenario ?object-type ?color)
@@ -75,4 +75,13 @@
 
   ;; A list of objects that are primitive shape and not a mesh shape
   (<- (non-mesh-object pancake-maker))
-  )
+
+  ;; Extra attributes for objects to pass to the spawn function (e.g. :mesh pot)
+  (<- (scenario-object-extra-attributes ?_ ?object-type ?attributes)
+    (scenario-object-shape ?object-type mesh)
+    (equal ?attributes (:mesh ?object-type)))
+
+  (<- (scenario-object-extra-attributes ?scenario ?object-type ?attributes)
+    (not (scenario-object-shape ?object-type mesh))
+    (scenario-object-size ?scenario ?object-type ?size)
+    (equal ?attributes (:size ?size))))
