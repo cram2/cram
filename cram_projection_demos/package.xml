@@ -18,7 +18,7 @@
   <run_depend>pr2_description</run_depend>
   <run_depend>moveit_full</run_depend>
   <run_depend>pr2_moveit_config</run_depend>
-
+  <run_depend>map_server</run_depend>
   <export>
     <metapackage/>
   </export>
