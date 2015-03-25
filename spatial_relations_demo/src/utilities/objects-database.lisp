@@ -41,7 +41,9 @@
   (<- (scenario-object-color ?scenario ?object-type ?color)
     (-> (bound ?scenario)
         (%scenario-object-color ?scenario ?object-type ?color)
-        (%scenario-object-color ?object-type ?color)))
+        (-> (%scenario-object-color ?object-type ?color)
+            (%scenario-object-color ?object-type ?color)
+            (scenario-objects-default-color ?color))))
 
   ;; Colors for different object types different in specific scenario. E.g.:
   ;; (<- (%scenario-object-color pancake-making pancake-maker (1.0 0 0)))
@@ -55,18 +57,6 @@
   (<- (%scenario-object-color bowl     (0 0.3 0)))
   (<- (%scenario-object-color mondamin (0.5 0.1 0)))
 
-  ;; Interface to query for sizes of different object types.
-  (<- (scenario-object-size ?scenario ?object-type ?size)
-    (-> (bound ?scenario)
-        (%scenario-object-size ?scenario ?object-type ?size)
-        (%scenario-object-size ?object-type ?size)))
-
-  ;; Sizes of different object types different in specific scenario. E.g.:
-  ;; (<- (%scenario-object-size pancake-making pancake-maker (0.1 0.1 0.1)))
-
-  ;; Sizes of different object types the same for all scenarios.
-  (<- (%scenario-object-size pancake-maker (0.15 0.15 0.035)))
-
   ;; Object type shapes
   (<- (scenario-object-shape ?object-type ?shape)
     (-> (non-mesh-object ?object-type)
@@ -75,13 +65,18 @@
 
   ;; A list of objects that are primitive shape and not a mesh shape
   (<- (non-mesh-object pancake-maker))
+  (<- (non-mesh-object orange))
+  (<- (non-mesh-object apple))
+  (<- (non-mesh-object sugar-box))
+  (<- (non-mesh-object cereal))
 
   ;; Extra attributes for objects to pass to the spawn function (e.g. :mesh pot)
   (<- (scenario-object-extra-attributes ?_ ?object-type ?attributes)
     (scenario-object-shape ?object-type mesh)
     (equal ?attributes (:mesh ?object-type)))
 
-  (<- (scenario-object-extra-attributes ?scenario ?object-type ?attributes)
-    (not (scenario-object-shape ?object-type mesh))
-    (scenario-object-size ?scenario ?object-type ?size)
-    (equal ?attributes (:size ?size))))
+  (<- (scenario-object-extra-attributes ?_ pancake-maker (:size (0.15 0.15 0.035))))
+  (<- (scenario-object-extra-attributes ?_ orange (:radius 0.06)))
+  (<- (scenario-object-extra-attributes ?_ apple (:radius 0.05)))
+  (<- (scenario-object-extra-attributes ?_ cereal (:size (0.05 0.2 0.3))))
+  (<- (scenario-object-extra-attributes ?_ sugar-box (:size (0.05 0.1 0.15)))))

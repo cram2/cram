@@ -45,5 +45,6 @@
                      #:for #:near #:far-from
                      #:on #:name #:context #:object-count
                      #:to #:see #:reach #:centered-with-padding
-                     #:plate #:fork #:knife #:mug #:spatula #:pancake-maker))
+                     #:plate #:fork #:knife #:mug #:spatula #:pancake-maker
+                     #:orange #:apple #:sugar-box #:cereal))
 
