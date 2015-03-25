@@ -1,0 +1,28 @@
+<package format="2">
+  <name>spatial_relations_demo</name>
+  <version>0.0.0</version>
+  <description>Some Lisp code for using CRAM in projection and showcasing location designators</description>
+  <author>Gayane Kazhoyan</author>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <license>BSD</license>
+
+  <url type="website">http://cram-system.org</url>
+  <url type="repository">http://github.com/gaya-/cram_projection_demos</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>spatial_relations_costmap</depend>
+  <depend>cram_roslisp_common</depend>
+  <depend>cram_designators</depend>
+  <depend>location_costmap</depend>
+  <depend>semantic_map_costmap</depend>
+  <depend>bullet_reasoning</depend>
+  <depend>cram_pr2_knowledge</depend>
+  <depend>cram_environment_representation</depend>
+  <depend>pr2_projection_process_modules</depend>
+  <depend>occupancy_grid_costmap</depend>
+  <depend>cram_plan_knowledge</depend>
+  <depend>bullet_reasoning_designators</depend>
+  <depend>pr2_manipulation_knowledge</depend>
+  <depend>object_location_designators</depend>
+  <depend>alexandria</depend>
+</package>

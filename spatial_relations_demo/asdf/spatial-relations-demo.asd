@@ -1,1 +1,0 @@
-../spatial-relations-demo.asd
