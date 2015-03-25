@@ -1,0 +1,13 @@
+- git: {local-name: cram_core, uri: 'https://github.com/cram-code/cram_core.git'}
+- git: {local-name: cram_3rdparty, uri: 'https://github.com/cram-code/cram_3rdparty.git'}
+- git: {local-name: cram_json_prolog, uri: 'https://github.com/gaya-/cram_json_prolog.git'}
+- git: {local-name: roslisp, uri: 'https://github.com/ros/roslisp.git'}
+- git: {local-name: roslisp_common, uri: 'https://github.com/gaya-/roslisp_common.git'}
+- git: {local-name: cram_highlevel, uri: 'https://github.com/gaya-/cram_highlevel.git'}
+- git: {local-name: roslisp_tutorials, uri: 'https://github.com/code-iai/roslisp_tutorials.git'}
+- git: {local-name: cram_physics, uri: 'https://github.com/gaya-/cram_physics.git'}
+- git: {local-name: cram_pr2, uri: 'https://github.com/gaya-/cram_pr2.git'}
+- git: {local-name: cram_moveit, uri: 'git@github.com:gaya-/cram_moveit.git'}
+- git: {local-name: cram_demo, uri: 'https://github.com/gaya-/cram_demo.git'}
+- git: {local-name: robot_state_chain_publisher, uri: 'https://github.com/code-iai/robot_state_chain_publisher.git'}
+- git: {local-name: iai_maps, uri: 'https://github.com/code-iai/iai_maps.git'}
