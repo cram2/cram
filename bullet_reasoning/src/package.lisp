@@ -95,4 +95,4 @@
            holds-in-world holds occurs at
            during throughout with-timeline)
   (:desig-properties mug mondamin plate pot handle cutlery knife fork spatula
-                     pancake pancake-maker))
+                     pancake pancake-maker orange apple sugar-box cereal))
