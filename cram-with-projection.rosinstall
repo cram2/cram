@@ -11,4 +11,5 @@
 - git: {local-name: cram_projection_demos, uri: 'https://github.com/gaya-/cram_projection_demos.git'}
 - git: {local-name: robot_state_chain_publisher, uri: 'https://github.com/code-iai/robot_state_chain_publisher.git'}
 - git: {local-name: iai_maps, uri: 'https://github.com/code-iai/iai_maps.git'}
+- git: {local-name: iai_common_msgs, uri: 'https://github.com/code-iai/iai_common_msgs.git'}
 - git: {local-name: cram_tutorials, uri: 'https://github.com/cram-code/cram_tutorials.git'}
