@@ -45,7 +45,7 @@
            with-rendering-to-framebuffer render-to-framebuffer
            get-rendering-context read-pixelbuffer read-depthbuffer to-png-image
            add-object generic-cup household-object mug plate mondamin mesh
-           remove-object object pot bowl
+           remove-object object pot bowl sugar-box apple orange cereal
            object-type household-object-type name rigid-bodies
            rigid-body-names rigid-body world make-object box
            static-plane sphere cylinder cone point-cloud cutlery fork knife
@@ -95,4 +95,4 @@
            holds-in-world holds occurs at
            during throughout with-timeline)
   (:desig-properties mug mondamin plate pot handle cutlery knife fork spatula
-                     pancake pancake-maker orange apple sugar-box cereal))
+                     pancake pancake-maker orange apple sugar-box cereal bowl))
