@@ -47,6 +47,12 @@
   contains a symbol indicating the sensor that produces the
   perception."))
 
+(defclass object-updated-event (object-perceived-event) ())
+
+(defclass object-removed-event (event)
+  ((object-name :initarg :object-name :reader event-object-name
+                :initform :object-name)))
+
 (defclass robot-state-changed (event)
   ()
   (:documentation "Event that is generated whenever the robot state
