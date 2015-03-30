@@ -36,6 +36,7 @@
         #:roslisp
         #:cram-roslisp-common
         #:alexandria)
+  (:shadowing-import-from #:cram-utilities #:extremum)
   (:export table-setting-object
            situation?
            meal-time)
