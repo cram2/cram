@@ -41,7 +41,7 @@
                             (loc (location `((to see) (obj ,?obj-desig))))
                             (perceive-action (action `((to perceive)
                                                        (obj ,?obj-desig)))))
-           (with-retry-counters ((movement-retries 3))
+           (with-retry-counters ((movement-retries 2))
              (with-failure-handling
                  (((or location-not-reached-failure object-not-found) (e)
                     (declare (ignore e))
@@ -52,7 +52,7 @@
                       (retry-with-updated-location
                        loc (next-different-location-solution loc)))))
                (at-location (loc)
-                 (with-retry-counters ((perception-retries 3))
+                 (with-retry-counters ((perception-retries 2))
                    (with-failure-handling
                        ((object-not-found (e)
                           (declare (ignore e))
