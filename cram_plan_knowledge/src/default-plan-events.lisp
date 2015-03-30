@@ -47,6 +47,9 @@
   contains a symbol indicating the sensor that produces the
   perception."))
 
+;; NOTE(winkler): This contradicts the above notice; will be resolved
+;; later after everything got cleaned up, as this is a conceptual
+;; issue, not a code-one.
 (defclass object-updated-event (object-perceived-event) ())
 
 (defclass object-removed-event (event)
