@@ -46,6 +46,12 @@
       (initialize-rigid-bodies semantic-map-object bodies)
       (setf pose-reference-body (car bodies)))))
 
+(defmethod copy-object ((obj simple-semantic-map-object) (world bt-reasoning-world))
+  (with-slots (semantic-map) obj
+    (change-class
+     (call-next-method) 'simple-semantic-map-object
+     :semantic-map (sem-map-utils:copy-semantic-map-object semantic-map))))
+
 (defgeneric semantic-map-part-ridig-body (part &key pose collision-group collision-mask)
   (:documentation "Returns a rigid body for the semantic map part `part'.")
   (:method ((part sem-map-utils:semantic-map-geom) &key pose collision-group collision-mask)
