@@ -29,11 +29,22 @@
 (in-package :btr)
 
 (defclass urdf-semantic-map-object (semantic-map-object robot-object)
-  ((link-offsets :initform (make-hash-table :test 'equal)
+  ((link-offsets :initarg :link-offsets
+                 :initform (make-hash-table :test 'equal)
                  :reader link-offsets
                  :documentation "Mapping of link names to pose offsets
                  between the body that corresponds to the link and the
-                 corresponding object in the semantic map.")))
+                 corresponding object in the semantic map."))
+  (:documentation "Multiple inheritance is a pain.
+Make sure you know what you're doing before changing anything.
+Be especially careful with BTR::COPY-OBJECT."))
+
+(defmethod copy-object ((obj urdf-semantic-map-object) (world bt-reasoning-world))
+  (with-slots (link-offsets semantic-map) obj
+    (change-class
+     (call-next-method) 'urdf-semantic-map-object
+     :link-offsets (copy-hash-table link-offsets)
+     :semantic-map (sem-map-utils:copy-semantic-map-object semantic-map))))
 
 (defmethod initialize-instance :after ((semantic-map urdf-semantic-map-object)
                                        &key)
@@ -47,7 +58,7 @@
           (setf (gethash (sem-map-utils:urdf-name part) link-offsets)
                 (cl-transforms:transform*
                  (cl-transforms:transform-inv
-                  (cl-transforms:reference-transform link-pose))                   
+                  (cl-transforms:reference-transform link-pose))
                  (cl-transforms:reference-transform (sem-map-utils:pose part)))))))))
 
 (defmethod invalidate-object :around ((obj urdf-semantic-map-object))
