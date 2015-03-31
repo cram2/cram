@@ -37,7 +37,7 @@
   (with-slots (pose-reference-body semantic-map) semantic-map-object
     (let ((bodies (loop for part in (sem-map-utils:semantic-map-parts
                                      semantic-map :recursive t)
-                        for body = (semantic-map-part-ridig-body
+                        for body = (semantic-map-part-rigid-body
                                     part
                                     :pose pose
                                     :collision-group collision-group
@@ -52,7 +52,7 @@
      (call-next-method) 'simple-semantic-map-object
      :semantic-map (sem-map-utils:copy-semantic-map-object semantic-map))))
 
-(defgeneric semantic-map-part-ridig-body (part &key pose collision-group collision-mask)
+(defgeneric semantic-map-part-rigid-body (part &key pose collision-group collision-mask)
   (:documentation "Returns a rigid body for the semantic map part `part'.")
   (:method ((part sem-map-utils:semantic-map-geom) &key pose collision-group collision-mask)
     (make-instance 'rigid-body
