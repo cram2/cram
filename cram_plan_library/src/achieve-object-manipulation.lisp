@@ -27,6 +27,9 @@
 
 (in-package :plan-lib)
 
+(define-hook cram-language::on-performing-object-grasp (object))
+(define-hook cram-language::on-performing-object-putdown (object pose))
+
 (defun try-reference-location (loc)
   (with-retry-counters ((designator-resolution-retry-counter 10))
     (with-failure-handling
@@ -84,6 +87,7 @@
                                     (make-designator
                                      'location
                                      `((of ,perceived-object))))))
+            (cram-language::on-performing-object-grasp perceived-object)
             (perform grasp-action)
             (monitor-action grasp-action))))
       (ros-info (achieve plan-lib) "Grasped object.")
@@ -185,6 +189,8 @@
               "Got unreachable putdown pose.")
              (fail 'manipulation-pose-unreachable)))
         (try-reference-location ?loc)
+        (cram-language::on-performing-object-putdown
+         obj (reference ?loc))
         (achieve `(looking-at ,(reference ?loc)))
         (perform put-down-action)
         (monitor-action put-down-action))
