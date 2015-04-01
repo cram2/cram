@@ -39,6 +39,7 @@
           #:cram-execution-trace)
   (:nicknames #:plan-knowledge)
   (:shadowing-import-from #:cpl #:name)
+  (:shadowing-import-from #:cram-utilities #:extremum)
   (:import-from #:designators-ros pose pose-stamped)
   (:shadow event)
   (:export #:clear-belief
@@ -93,8 +94,10 @@
            #:object-perceived-event
            #:robot-state-changed
            #:object-connection-event
-           #:object-articulation-event           
+           #:object-articulation-event
            #:object-attached #:object-detached
+           #:object-added-event #:object-removed-event
+           #:object-updated-event #:event-object-name
            #:event-object-designator #:object-designator
            #:event-timestamp
            #:perception-source #:object #:event-object
