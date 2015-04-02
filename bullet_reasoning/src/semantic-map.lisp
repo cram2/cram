@@ -50,11 +50,18 @@
                :format-arguments (list part-name)))
       (sem-map-utils:pose part))))
 
-(defmethod copy-object ((obj semantic-map-object) (world bt-reasoning-world))
-  (with-slots (semantic-map link-offsets) obj
-    (change-class
-     (call-next-method) 'semantic-map-object
-     :semantic-map (sem-map-utils:copy-semantic-map-object semantic-map))))
+;; (defmethod copy-object ((obj semantic-map-object) (world bt-reasoning-world))
+;;   (with-slots (semantic-map) obj
+;;     (change-class
+;;      (call-next-method) 'semantic-map-object
+;;      :semantic-map (sem-map-utils:copy-semantic-map-object semantic-map))))
+;; For multiple inheritance objects of class URDF-SEMANTIC-MAP-OBJECT this function
+;; discards all the slots of its ROBOT-OBJECT when changing the class to
+;; SEMANTIC-MAP-OBJECT. Therefore, and considering that SEMANTIC-MAP-OBJECT
+;; only appears in bullet world as a URDF-SEMANTIC-MAP-OBJECT
+;; or maybe SIMPLE-SEMANTIC-MAP-OBJECT and it is itself
+;; only a mixin, it makes more sense to define COPY-OBJECT directly on the
+;; URDF-SEMANTIC-MAP-OBJECT and SIMPLE-SEMANTIC-MAP-OBJECT classes.
 
  (defmethod add-object ((world bt-world) (type (eql 'semantic-map)) name pose &key urdf)
    (if urdf
