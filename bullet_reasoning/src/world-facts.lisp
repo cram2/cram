@@ -219,6 +219,13 @@
     (forall (object ?world ?object)
             (not (object-pose-different ?world ?copy ?object))))
 
+  (<- (stable-household ?world)
+    (bullet-world ?world)
+    (copied-world ?world ?copy)
+    (simulate ?copy 5)
+    (forall (household-object-type ?world ?object ?_)        
+            (not (object-pose-different ?world ?copy ?object))))
+
   (<- (object-pose-different ?world-1 ?world-2 ?object)
     (bound ?world-1)
     (bound ?world-2)
@@ -228,7 +235,7 @@
     (%pose ?object-instance-1 ?pose-1)
     (%object ?world-2 ?object ?object-instance-2)
     (%pose ?object-instance-2 ?pose-2)
-    (not (poses-equal ?pose-1 ?pose-2 (0.005 0.015))))
+    (not (poses-equal ?pose-1 ?pose-2 (0.005 0.15))))
 
   (<- (supported-by ?world ?top ?bottom)
     (bullet-world ?world)
