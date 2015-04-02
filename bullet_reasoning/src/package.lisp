@@ -64,7 +64,7 @@
            stable-p above-p find-objects-above below-p
            find-objects-below bullet-world object
            retract step simulate-realtime object-pose object-bottom-pose
-           position orientation poses-equal contact stable
+           position orientation poses-equal contact stable stable-household
            object-not-in-collision ik-solution-not-in-collision
            link-contacts supported-by above below visible
            occluding-objects occluding-object valid-grasp grasp side reachable
