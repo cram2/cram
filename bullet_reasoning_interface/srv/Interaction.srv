@@ -1,46 +1,29 @@
-# Valid operations
-uint32 SPAWN_OBJECT = 0
-uint32 MOVE_OBJECT = 1
-uint32 REMOVE_OBJECT = 2
-uint32 OBJECT_IS_VISIBLE = 3
-uint32 OBJECT_IS_STABLE = 4
-uint32 WORLD_IS_STABLE = 5
-
 # errorLevel/confirmation values
 uint32 SUCCESS = 0
 uint32 FAILED = 1
-uint32 ERROR = 3
-uint32 UNHANDLED_VALUE = 4
-
-# Object types
-uint32 BOWL = 0
-uint32 NESQUIK = 1
-uint32 MONDAMIN = 2
-uint32 FRUIT_APPLE = 3
-uint32 FRUIT_ORANGE = 4
-uint32 SUGAR = 5
+uint32 ERROR = 2
+uint32 UNHANDLED_VALUE = 3
+uint32 REMOVE_ALL_OBJECTS_FAILED = 4
 
 # Actual request values
-
-uint32[] operations
-string[] objectIds
-uint32[] objectTypes
-std_msgs/ColorRGBA[] objectColors
-geometry_msgs/PoseStamped[] poses
-bool simulate
-duration duration
+ 
+ # Realize operations on a world copy
+  bool operationsWithCopy
+   # Remove all objects before realizing any operation
+  bool removeAllObjects
+  # The operations
+  ObjectOperation[] operations
+ # Simulate the world after application of all operations
+  bool simulate
+  # Realize simulation with a world copy. Has no effect if operationsWithCopy is set.
+  bool simulateWithCopy
+  # The duration the world will be simulated.
+  duration duration
 
 ---
 
 # Has there been an error, preventing the service call to finish?
 uint32 errorLevel
 
-# Status for every single object, showing if desired operation succeeded
-uint32[] confirmation
-
-# Answer for every single object on yes/no questions
-bool[] answer
-
-# Stamped pose for every single object
-geometry_msgs/PoseStamped[] poses
-
+# Information about all worlds that exist or have been created during this service call
+WorldIntel[] worlds
