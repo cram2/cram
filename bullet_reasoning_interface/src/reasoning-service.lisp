@@ -1,21 +1,8 @@
 (in-package :reas-inf)
 
-(defvar *transform-listener*)
-
-(defmacro out-info (&rest args)
-  `(ros-info (bullet-reasoning-interface) ,@args))
-
-(defmacro out-error (&rest args)
-  `(ros-error (bullet-reasoning-interface) ,@args))
-
-(defmacro out-debug (&rest args)
-  `(ros-debug (bullet-reasoning-interface) ,@args))
-
-(defun set-transform-listener ()
-      (out-info "Setting *transform-listener*")
-    (defparameter *transform-listener* (make-instance 'cl-tf2:buffer-client)))
 
 (defun init-interface ()
+  "Initializes the bullet reasoning interface."
   (if (eq (node-status) :RUNNING)
       (out-info "No need to start another node.")
       (start-ros-node "bullet-reasoning-interface"))
@@ -24,195 +11,210 @@
   (out-info "Initialized bullet-reasoning-interface."))
 
 (defun start-service ()
+  "Starts the service."
   (out-info "Starting service.")
   (interaction-server))
 
-(defun get-object-type (type)
-  (let ((bowl-const (get-interaction-constant ':BOWL))
-        (nesquik-const (get-interaction-constant ':NESQUIK))
-        (mondamin-const (get-interaction-constant ':MONDAMIN))
-        (fruit-apple-const (get-interaction-constant ':FRUIT_APPLE))
-        (fruit-orange-const (get-interaction-constant ':FRUIT_ORANGE))
-        (sugar-const (get-interaction-constant ':SUGAR)))
-    (cond
-      ((eq type bowl-const) 'spatial-relations-demo::bowl)
-      ((eq type nesquik-const) 'spatial-relations-demo::cereal)
-      ((eq type mondamin-const) 'spatial-relations-demo::mondamin)
-      ((eq type fruit-apple-const) 'spatial-relations-demo::apple)
-      ((eq type fruit-orange-const) 'spatial-relations-demo::orange)
-      ((eq type sugar-const) 'spatial-relations-demo::sugar-box))))
-
-;;; pose ist im frame designators-ros:*fixed-frame*
-
-(defun color-msg-to-list (msg)
-  (with-fields (r g b) msg
-    `(,r ,g ,b)))
-
-(defun make-color-msg (r g b)
-  (make-msg "std_msgs/ColorRGBA" :r r :g g :b b))
-
-(defun make-pose-stamped-msg (frame position-x position-y position-z
-                              &optional (rotation-x 0) (rotation-y 0) (rotation-z 0) (rotation-w 1))
-  (make-msg "geometry_msgs/PoseStamped"
-            (:frame_id :header) frame
-            (:x :position :pose) position-x
-            (:y :position :pose) position-y
-            (:z :position :pose) position-z
-            (:x :orientation :pose) rotation-x
-            (:y :orientation :pose) rotation-y
-            (:z :orientation :pose) rotation-z
-            (:w :orientation :pose) rotation-w))
-            
-
-(defun spawn-object (name type pose-stamped-msg color-msg)
-  (out-info "spawn-object()")
-  (if (object-exists name)
-      (progn
-        (out-error "Object ~a already exists!" name)
-        nil)
-      (let ((type-symbol (get-object-type type))
-            (name-symbol (intern name)))
-        (out-info "type-symbol: ~a" type-symbol)
-        (out-info "name-symbol: ~a" name-symbol)
-        (with-fields ((from-frame (frame_id header))) pose-stamped-msg
-          (let* ((pose-stamped (cl-tf2:from-msg pose-stamped-msg))
-                 (pose-stamped-fixed (if (string= (cl-tf2:unslash-frame from-frame) (cl-tf2:unslash-frame designators-ros:*fixed-frame*))
-                                         pose-stamped
-                                         (cl-tf2:transform-pose
-                                          *transform-listener*
-                                          :pose pose-stamped
-                                          :target-frame designators-ros:*fixed-frame*)))
-                 (color (color-msg-to-list color-msg)))
-            (spatial-relations-demo::spawn-object name-symbol type-symbol pose-stamped-fixed color)))
-        (object-exists name))))
-
-(defun move-object (name pose-stamped-msg &optional (world btr:*current-bullet-world*))
-  (if (not (object-exists name world))
-      (progn
-        (out-error "Trying to move non existent object ~a!" name)
-        nil)
-      (with-fields ((from-frame (frame_id header))
-                    (pose-msg pose)) pose-stamped-msg
-        (out-info "pose-msg: ~a" pose-msg)
-        (let* ((name-symbol (intern name))
-               (pose (cl-tf2:from-msg pose-msg))
-               (pose-stamped (cl-tf2:from-msg pose-stamped-msg))
-               (pose-stamped-fixed (if (string= (cl-tf2:unslash-frame from-frame) (cl-tf2:unslash-frame designators-ros:*fixed-frame*))
-                                       pose-stamped
-                                       (cl-tf2:transform-pose
-                                        *transform-listener*
-                                        :pose pose-stamped
-                                        :target-frame designators-ros:*fixed-frame*))))
-          (prolog `(assert (object-pose ,world ,name-symbol ,pose-stamped-fixed)))
-          (poses-equal-p pose (get-object-pose name world) 0.01 0.01)))))
-
-(defun object-exists (name &optional (world btr:*current-bullet-world*))
-  (not (null (force-ll (prolog `(object ,world ,(intern name)))))))
-
-(defun get-object-instance (name &optional (world btr:*current-bullet-world*))
-  (let ((result (cram-utilities:var-value '?instance
-                            (car (prolog `(%object ,world ,(intern name) ?instance))))))
-    (if (eq result '?instance)
-        nil
-        result)))
-
-(defun get-object-pose (name &optional (world btr:*current-bullet-world*))
-  (let ((result (get-object-instance name world)))
-    (if result
-        (pose result))))
-
-(defun get-object-pose-stamped (name &optional (world btr:*current-bullet-world*))
-  (let ((result (get-object-pose name world)))
-    (if result
-        (cl-tf:make-pose-stamped designators-ros:*fixed-frame* (ros-time) (cl-tf:origin result) (cl-tf:orientation result)))))
-
-(defun remove-obj (name &optional (world btr:*current-bullet-world*))
-  (unless (object-exists name world)
-    (out-error "Trying to remove non existent object ~a" name))
-  (let ((name-symbol (intern name)))
-    (prolog `(retract (object ,world ,name-symbol))))
-  (not (object-exists name world)))
-  
-(defun get-interaction-constant (name)
-  (let ((ret (roslisp-msg-protocol:symbol-code 'bullet_reasoning_interface-srv:<interaction-request> name)))
-    (out-debug "interaction-constant ~a: ~a" name ret)
-    ret))
-
-(defun is-in-solution (variable-name symbol solution)
-  "Returns `t' if the solution `solution' contains a tuple with `variable-name' as its car nad `symbol' as its cdr."
-  (find t (mapcar (lambda (list) (list-contains-tuple `(,variable-name . ,symbol) list)) solution)))
-
-(defun list-contains-tuple (tuple list)
-  "Returns `t' if the list `list' contains a tuple with the same car and cdr values as `tuple'. `list' is expected to be a list of tuples."
-  (let ((car-val (car list))
-        (cdr-val (cdr list)))
-    (if (tuple-contains (car car-val) (cdr car-val) tuple)
-        t
-        (if cdr-val
-            (list-contains-tuple tuple cdr-val)))))
-
-(defun tuple-contains (car-val cdr-val tuple)
-  "Returns `t' if the tuple `tuple' contains `car-val' in its car and `cdr-val' in its cdr."
-  (and (eq (car tuple) car-val) (eq (cdr tuple) cdr-val)))
-
-(defun is-visible (object &optional (world btr:*current-bullet-world*))
-  (not (null (prolog `(visible ,world cram-pr2-knowledge::pr2 ,object)))))
-;;  (is-in-solution '?objects object (force-ll (prolog `(visible ,world cram-pr2-knowledge::pr2 ?objects)))))
-
-(defun is-stable-world (&optional (world btr:*current-bullet-world*))
-  (prolog `(stable ,world)))
-
-(defun is-stable-object (object &optional (world btr:*current-bullet-world*))
-  (not (null (force-ll (prolog `(stable ,world ,object))))))
-
-(defun simulate-world (duration &optional (world btr:*current-bullet-world*))
-  (prolog `(simulate ,world ,duration)))
-  
-
-(def-service-callback bullet_reasoning_interface-srv:Interaction (operations objectIds objectTypes objectColors poses simulate duration)
+(def-service-callback bullet_reasoning_interface-srv:Interaction (operationsWithCopy
+                                                                  removeAllObjects
+                                                                  operations
+                                                                  simulate
+                                                                  simulateWithCopy
+                                                                  duration)
   (out-info "Incoming Request:")
-  (out-info "operations: ~a" operations)
-  (out-info "objectIds: ~a" objectIds)
-  (out-info "objectTypes: ~a" objectTypes)
-  (out-debug "objectColors: ~a" objectColors)
-  (out-debug "poses: ~a" poses)
+  (out-info "operationsWithCopy: ~a" operationsWithCopy)
+  (out-info "removeAllObjects: ~a" removeAllObjects)
+  (out-debug "operations: ~a" operations)
   (out-info "simulate: ~a" simulate)
+  (out-info "simulateWithCopy: ~a" simulateWithCopy)
   (out-info "duration: ~a" duration)
-  (if (not (= (length operations) (length objectIds) (length objectTypes) (length objectColors) (length poses)))
-      (progn
-        (out-error "Invalid input. I need arrays of the same size.")
-        (make-response :errorLevel (get-interaction-constant ':ERROR)))
-      (let ((spawn-object-const (get-interaction-constant ':SPAWN_OBJECT))
-            (move-object-const (get-interaction-constant ':MOVE_OBJECT))
-            (remove-object-const (get-interaction-constant ':REMOVE_OBJECT))
-            (success-const (get-interaction-constant ':SUCCESS))
-            (failed-const (get-interaction-constant ':FAILED))
-            (error-const (get-interaction-constant ':ERROR))
-            (unhandled-value-const (get-interaction-constant ':UNHANDLED_VALUE))
-            (confirmation (make-array (length operations) :fill-pointer 0)))
+  (let* (;; operation constants
+         (spawn-object-const (get-operation-constant ':SPAWN_OBJECT))
+         (move-object-const (get-operation-constant ':MOVE_OBJECT))
+         (remove-object-const (get-operation-constant ':REMOVE_OBJECT))
+         (query-status-const (get-operation-constant ':QUERY_STATUS))
+         ;; errorLevel/confirmation constants
+         (success-const (get-error-level-constant ':SUCCESS))
+         (failed-const (get-error-level-constant ':FAILED))
+         (error-const (get-error-level-constant ':ERROR))
+         (unhandled-value-const (get-error-level-constant ':UNHANDLED_VALUE))
+         (remove-all-objects-failed-const (get-error-level-constant ':REMOVE_ALL_OBJECTS_FAILED))
+         ;; world types
+         (current-world-const (get-world-type-constant ':CURRENT_WORLD))
+         (operated-world-const (get-world-type-constant ':OPERATED_WORLD))
+         (simulated-world-const (get-world-type-constant ':SIMULATED_WORLD))
+         ;; responses
+         (intel-current-world (make-msg "bullet_reasoning_interface/WorldIntel" worldType current-world-const))
+         (intel-operations-world (make-msg "bullet_reasoning_interface/WorldIntel" worldType operated-world-const))
+         (intel-simulated-world (make-msg "bullet_reasoning_interface/WorldIntel" worldType simulated-world-const))
+         (object-intel-current-world (if (not operationsWithCopy)
+                                              (make-array (length operations) :initial-element (make-msg "BULLET_REASONING_INTERFACE/ObjectIntel"))
+                                              '#()))
+         (object-intel-operations (if operationsWithCopy
+                                      (make-array (length operations) :initial-element (make-msg "BULLET_REASONING_INTERFACE/ObjectIntel"))
+                                      object-intel-current-world))
+         (object-intel-simulated (if simulateWithcopy
+                                     (make-array (length operations) :initial-element (make-msg "BULLET_REASONING_INTERFACE/ObjectIntel"))
+                                     object-intel-operations))
+         (object-ids-symbol (make-array (length operations) :fill-pointer 0))
+         (error-level success-const)
+         ;; current world
+         (world-current btr:*current-bullet-world*)
+         ;; world to operate on
+         (world-operations (if operationsWithcopy
+                               (copy-world)
+                               world-current))
+         ;; world to simulate
+         (world-simulate nil)
+         (remove-all-objects-result (if removeAllObjects
+                                        (remove-all-objects world-operations)
+                                        t)))
+    (if (not remove-all-objects-result)
+        (progn
+          (out-error "Removing all objects failed!")
+          (make-response :errorLevel remove-all-objects-failed-const))
+        (progn
+          ;; Applying operations
           (loop for i from 0 to (- (length operations) 1) do
-            (let ((operation (elt operations i))
-                  (objectId (elt objectIds i))
-                  (objectType (elt objectTypes i))
-                  (objectColor (elt objectColors i))
-                  (pose (elt poses i)))
+            (with-fields ((object-id Id)
+                          operation
+                          (object-type type)
+                          (object-pose-stamped poseStamped)
+                          (object-color color)) (elt operations i)
+              (out-info "Applying operation ~a to object ~a." operation object-id)
+              (update-message-arrays i `(:id ,object-id)
+                                     object-intel-current-world (not operationsWithCopy)
+                                     object-intel-operations operationsWithcopy
+                                     object-intel-simulated simulateWithCopy)
+              (vector-push (make-keyword object-id) object-ids-symbol)
+              ;; TODO Genauer abfragen, in welches array dinge gespeichert werden müssen. Wird kopiert beim operieren und simulieren?
               (cond
                 ((eq operation spawn-object-const)
-                 (if (spawn-object objectId objectType pose objectColor)
-                     (vector-push success-const confirmation)
-                     (vector-push failed-const confirmation)))
+                 (update-message-array i object-intel-operations
+                                       :operation operation
+                                       :operationSucceeded
+                                       (spawn-object object-id object-type object-pose-stamped object-color :world world-operations)))
                 ((eq operation move-object-const)
-                 (out-info "Move!")
-                 (vector-push failed-const confirmation))
+                 (update-message-array i object-intel-operations
+                                       :operation operation
+                                       :operationSucceeded
+                                       (move-object object-id object-pose-stamped :world world-operations)))
                 ((eq operation remove-object-const)
-                 (out-info "Remove!")
-                 (vector-push failed-const confirmation))
+                 (update-message-array i object-intel-operations
+                                       :operation operation
+                                       :operationSucceeded
+                                       (remove-obj object-id world-operations)))
+                ((eq operation query-status-const)
+                 (update-message-array i object-intel-operations
+                                       :operation operation
+                                       :operationSucceeded t)
+                 (out-info "Only querying status for object ~a" object-id))
                 (t
                  (out-error "Unhandled operation.")
-                 (vector-push unhandled-value-const confirmation))))
-                (out-info "---------------------------------"))
-        (make-response :errorLevel (get-interaction-constant ':SUCCESS) :confirmation confirmation))))
+                 (update-message-array i object-intel-operations :operation operation
+                                                                 :operationSucceeded nil))))
+            (out-info "---------------------------------"))
+          ;; simulating
+          (when simulate
+            (setf world-simulate (simulate-world duration :world world-operations :copy simulateWithCopy)))
+          ;; getting data from current world
+          (out-info "---------------------------------")
+          (out-info "Getting data from current world ~a" world-current)
+          (out-info "---------------------------------")
+          (setf object-intel-current-world (add-remaining-objects-to-intel world-current
+                                                                           object-intel-current-world
+                                                                           (if operationsWithCopy
+                                                                               '#()
+                                                                               object-ids-symbol)))
+          (multiple-value-bind (data stable)
+              (get-data-from-world world-current object-intel-current-world)
+            (setf object-intel-current-world data)
+            (setf intel-current-world (modify-message-copy intel-current-world
+                                                           isStable stable
+                                                           objects object-intel-current-world)))
+          ;; getting data from operations world
+          (out-info "---------------------------------")
+          (out-info "Getting data from operations world ~a" world-operations)
+          (out-info "---------------------------------")
+          (when operationsWithCopy
+            (setf object-intel-operations (add-remaining-objects-to-intel world-operations
+                                                                          object-intel-operations
+                                                                          object-ids-symbol))
+            (multiple-value-bind (data stable)
+                (get-data-from-world world-operations object-intel-operations)
+              (setf object-intel-operations data)
+              (setf intel-operations-world (modify-message-copy intel-operations-world
+                                                                isStable stable
+                                                                objects object-intel-operations))))
+          ;; getting data from simulated world
+          (out-info "---------------------------------")
+          (out-info "Getting data from simulatd world ~a" world-simulate)
+          (out-info "---------------------------------")
+          (when (and simulate simulateWithCopy)
+            (setf object-intel-simulated (add-remaining-objects-to-intel world-simulate
+                                                                         object-intel-simulated
+                                                                         object-ids-symbol))
+            (multiple-value-bind (data stable)
+                (get-data-from-world world-simulate object-intel-simulated)
+              (setf object-intel-simulated data)
+              (setf intel-simulated-world (modify-message-copy intel-simulated-world
+                                                               isStable stable
+                                                               objects object-intel-simulated))))
+          (out-info "Terminating service call.")
+          (out-info "########################################")
+          (make-response :errorLevel error-level
+                         :worlds (remove-if #'null
+                                            `(,intel-current-world
+                                              ,(when operationsWithCopy
+                                                 intel-operations-world)
+                                              ,(when (and simulate simulateWithCopy)
+                                                 intel-simulated-world))))))))
 
+(defun add-remaining-objects-to-intel (world intel annotated-objects)
+  "Adds intel about objects which exist in the world `world' to `intel' if they are not inside `annotated-objects'.
+`world' is expected to be a bullet world instance.
+`intel' is expected to be a vector of ObjectIntel messages.
+`annotated-objects' is expected to be a vector containing symbols representing object ids.
+Returns `intel' unified with the new intel (as a vector)."
+  (out-info "add-remaining-objects-to-intel()")
+  (let* ((query-status-const (get-operation-constant ':QUERY_STATUS))
+         (all-objects-in-world (get-all-objects world))
+         (remaining-objects (remove-duplicates
+                             (set-difference all-objects-in-world
+                                             (vector-to-list annotated-objects))))
+         (remaining-objects-intel (make-array (length remaining-objects)
+                                              :initial-element (make-msg "BULLET_REASONING_INTERFACE/ObjectIntel"))))
+    (out-info "annotated-objects: ~a~%remaining-objects: ~a" annotated-objects remaining-objects)
+    (loop for object in remaining-objects
+          for i from 0 to (- (length remaining-objects) 1)
+          do (update-message-array i remaining-objects-intel :id (symbol-name object)
+                                                             :operation query-status-const
+                                                             :operationSucceeded t))
+    (concatenate 'vector intel remaining-objects-intel)))
+
+(defun get-data-from-world (world intel)
+  "Gets information about objects in the world `world'.
+`world' is expected to be a bullet world instance.
+`intel' is expected to be a vector of ObjectIntel messages. The id field of every message inside this vecor should be set.
+Returns `intel' with aggregated information about every object
+and as second value it returns a boolean which indicates, if `world' is stable."
+  (out-info "Getting data from world ~a" world)
+  (let* ((visible-objects (get-visible-objects :world world))
+         (stable-objects (get-stable-objects :world world))
+         (world-is-stable (is-stable-world :world world)))
+    (loop for object-intel across intel
+          for i from 0 to (- (length intel) 1)
+          do (with-fields ((object-id id)) object-intel
+               (let* ((object-id-symbol (make-keyword object-id))
+                      (new-object-pose-stamped (get-object-pose-stamped object-id world)))
+                 (when new-object-pose-stamped
+                   (update-message-array i intel :poseStamped (cl-tf2:to-msg new-object-pose-stamped)))
+                 (when (or world-is-stable (find object-id-symbol stable-objects))
+                   (update-message-array i intel :isStable t))
+                 (when (find object-id-symbol visible-objects)
+                   (update-message-array i intel :isVisible t)))))
+    (values intel world-is-stable)))
+  
 (defun interaction-server ()
   (with-ros-node ("interaction_server" :spin t)
     (set-transform-listener)

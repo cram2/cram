@@ -12,4 +12,8 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "reasoning-service" :depends-on ("package"))))))
+     (:file "reasoning-service" :depends-on ("package" "output" "facts" "operations" "utils"))
+     (:file "facts" :depends-on ("package" "output"))
+     (:file "operations" :depends-on ("package" "output"))
+     (:file "output" :depends-on ("package"))
+     (:file "utils" :depends-on ("package" "output"))))))
