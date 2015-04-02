@@ -160,7 +160,7 @@
       #:degrees->radians
       #:radians->degrees
       ;; utils
-      #:minimum #:maximum #:extremum #:compare
+      #:minimum #:maximum #:compare
       #:execute-string
       ;; semaphores, reexported from sb-thread
       ,@+semaphore-symbols+
