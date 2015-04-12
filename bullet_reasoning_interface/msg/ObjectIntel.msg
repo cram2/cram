@@ -16,6 +16,9 @@ bool isStable
 # Indicates if the object is stable.
 bool isVisible
 
+# Has collision with this objects.
+string[] collisionWith
+
 # Object's stamped pose.
 geometry_msgs/PoseStamped poseStamped
 

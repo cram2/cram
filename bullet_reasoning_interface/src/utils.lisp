@@ -44,12 +44,17 @@
           (if result
               result)))))
 
-(defun get-all-x-from-solution (variable-name solution)
-  "Returns all possible values for variable `variable-name' in prolog soulution `solution'."
-  (alexandria:flatten
-   (mapcar (lambda (list) (remove-if #'null (mapcar (lambda (tuple) (if (eq (car tuple) variable-name) (cdr tuple)))
-                                                    list)))
-           solution)))
+(defun get-all-x-from-solution (variable-name solution &optional (type :list))
+  "Returns all possible values for variable `variable-name' in prolog soulution `solution'.
+If `type' is `:list', the result will be returned as list.
+If `type' is `:vector', the result will be returned as list."
+  (let ((results (alexandria:flatten
+                  (mapcar (lambda (list) (remove-if #'null (mapcar (lambda (tuple) (if (eq (car tuple) variable-name) (cdr tuple)))
+                                                                   list)))
+                          solution))))
+    (if (eq type :vector)
+        (list-to-vector results)
+        results)))
 
 (defun is-in-solution (variable-name symbol solution)
   "Returns `t' if the solution `solution' contains a tuple with `variable-name' as its car nad `symbol' as its cdr."
@@ -79,7 +84,8 @@
 `array' is expected to be a vector of messages.
 `modifications' is expected to be of the form '`message-field' `value' ...'."
   (out-info "update-message-array()")
-  (eval `(setf (elt ,array ,idx) (modify-message-copy  (elt ,array ,idx)x ,@modifications))))
+  (out-debug "modifications: ~a" modifications)
+  (eval `(setf (elt ,array ,idx) (modify-message-copy  (elt ,array ,idx) ,@modifications))))
 
 (defun update-message-arrays (idx modifications &rest arrays)
   "Updates (modifies) element number `idx' in all arrays given in `arrays'.
