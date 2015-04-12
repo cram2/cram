@@ -200,23 +200,28 @@ Returns `intel' with aggregated information about every object
 and as second value it returns a boolean which indicates, if `world' is stable."
   (out-info "Getting data from world ~a" world)
   (let* ((visible-objects (get-visible-objects :world world))
-         (stable-objects (get-stable-objects :world world))
-         (world-is-stable (is-stable-world :world world)))
+         (world-is-stable (is-stable-world :world world))
+         (stable-objects (unless world-is-stable
+                           (get-stable-objects :world world))))
     (loop for object-intel across intel
           for i from 0 to (- (length intel) 1)
           do (with-fields ((object-id id)) object-intel
+               (out-info "Updating data for object ~a" object-id)
                (let* ((object-id-symbol (make-keyword object-id))
-                      (new-object-pose-stamped (get-object-pose-stamped object-id world)))
+                      (new-object-pose-stamped (get-object-pose-stamped object-id world))
+                      (collision-objects (object-get-collisions object-id :world world :elem-type :string)))
                  (when new-object-pose-stamped
                    (update-message-array i intel :poseStamped (cl-tf2:to-msg new-object-pose-stamped)))
                  (when (or world-is-stable (find object-id-symbol stable-objects))
                    (update-message-array i intel :isStable t))
                  (when (find object-id-symbol visible-objects)
-                   (update-message-array i intel :isVisible t)))))
+                   (update-message-array i intel :isVisible t))
+                 (when collision-objects
+                   (update-message-array i intel :collisionWith collision-objects)))))
     (values intel world-is-stable)))
   
 (defun interaction-server ()
   (with-ros-node ("interaction_server" :spin t)
     (set-transform-listener)
-    (register-service "interaction" 'bullet_reasoning_interface-srv:Interaction)
+    (register-service "bullet_reasoning_interface/interaction" 'bullet_reasoning_interface-srv:Interaction)
     (out-info "Ready to receive requests.")))

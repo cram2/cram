@@ -17,6 +17,16 @@
         nil
         result)))
 
+(defun get-robot-instance (&key (world btr:*current-bullet-world*) (name 'cram-pr2-knowledge::pr2))
+  (cdr (car (car (force-ll (prolog `(%object ,world ,name ?rob)))))))
+
+(defun get-robot-pose (&key (world btr:*current-bullet-world*) (name 'cram-pr2-knowledge::pr2))
+  (pose (get-robot-instance :world world :name name)))
+
+(defun get-robot-pose-stamped (&key (world btr:*current-bullet-world*) (name 'cram-pr2-knowledge::pr2))
+  (let ((result (get-robot-pose :world world :name name)))
+    (cl-tf:make-pose-stamped  designators-ros:*fixed-frame* (ros-time) (cl-tf:origin result) (cl-tf:orientation result))))
+
 (defun get-object-pose (name &key (world btr:*current-bullet-world*) simulate-duration copy)
   "Returns the pose of object `name' in the world `world'."
   (out-info "Getting pose for object ~a in world ~a" name world)
@@ -57,8 +67,45 @@ If `copy' is `t', the simulation and the evaluation will be executed on a copy o
   (if simulate-duration
       (is-stable-object object :world (simulate-world simulate-duration :world world :copy copy))
       (let ((result (force-ll (prolog `(stable ,world ,(make-keyword object))))))
-        (format t "result: ~a" result)
         (not (null result)))))
+
+(defun have-collision (object-1 object-2  &key (world btr:*current-bullet-world*) simulate-duration copy)
+  "Returns `t' if `object-1' and `object-2' are colliding in world `world', `NIL' otherwise.
+If `simulate-duration' is given, the world will be simulated for this duration before evaluating.
+If `copy' is `t', the simulation and the evaluation will be executed on a copy of `world'."
+  (out-info "Checking if object ~a and object ~a are colliding." object-1 object-2)
+  (if (and (not (object-exists object-1 world)) (not (object-exists object-2 world)))
+      (out-error "Looking if non existent object ~a has collision with non existent object ~a." object-1 object-2)
+      (if (not (object-exists object-1 world))
+          (out-error "Looking if non existent object ~a has collision with object ~a." object-1 object-2)
+          (if (not (object-exists object-2 world))
+              (out-error "Looking if object ~a has collision with non existent object ~a." object-1 object-2))))
+  (if simulate-duration
+      (have-collision object-1 object-2 :world (simulate-world simulate-duration :world world :copy copy))
+      (not (null (force-ll (prolog `(contact ,world ,(make-keyword object-1) ,(make-keyword object-2))))))))
+
+(defun object-get-collisions (object &key (world btr:*current-bullet-world*) simulate-duration copy (elem-type :symbol) (list-type :vector))
+  "Returns all collisions for `object' in world `world'.
+If `elem-type' is `:symbol', the values are returned as symbols.
+If `elem-type' is `:string', the values are returned as strings.
+If `list-type' is `:vector', the result is returned as vector.
+If `list-type' is `:list', the result is returned as list.
+If `simulate-duration' is given, the world will be simulated for this duration before evaluating.
+If `copy' is `t', the simulation and the evaluation will be executed on a copy of `world'."
+  (out-info "Getting collisions for object ~a." object)
+  (unless (object-exists object world)
+    (out-error "Looking for collisions for non existent object ~a." object))
+  (if simulate-duration
+      (object-get-collisions object :world (simulate-world simulate-duration :world world :copy copy))
+      (let ((result (get-all-x-from-solution '?objects (force-ll (prolog `(and
+                                                                           (contact ,world ,(make-keyword object) ?objects)
+                                                                           (household-object-type ,world ?objects ?type)))))))
+        (when (eq elem-type :string)
+          (setf result (mapcar #'symbol-name result)))
+        (when (eq list-type :vector)
+          (setf result (list-to-vector result)))
+        result)))
+          
 
 (defun get-stable-objects  (&key (world btr:*current-bullet-world*) simulate-duration copy)
   "Returns a lsit of all stable objects in the world `world'.

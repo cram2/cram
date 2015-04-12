@@ -1,0 +1,7 @@
+<launch>
+   
+  <include file="$(find spatial_relations_demo)/launch/demo.launch"/>
+
+  <node name="bullet_reasoning_interface" pkg="bullet_reasoning_interface" type="start_interface" output="screen" args=""/>
+
+</launch>
