@@ -7,7 +7,10 @@ designated by PACKAGE. If symbol is not already accessible in PACKAGE, it is
 interned there. Returns a secondary value reflecting the status of the symbol
 in the package, which matches the secondary return value of INTERN.
 
-Example: (ENSURE-SYMBOL :CONS :CL) => CL:CONS, :EXTERNAL"
+Example:
+
+  (ensure-symbol :cons :cl) => cl:cons, :external
+"
   (intern (string name) package))
 
 (defun maybe-intern (name package)
@@ -18,12 +21,16 @@ Example: (ENSURE-SYMBOL :CONS :CL) => CL:CONS, :EXTERNAL"
 
 (declaim (inline format-symbol))
 (defun format-symbol (package control &rest arguments)
-  "Constructs a string by applying ARGUMENTS to CONTROL as if by FORMAT, and
-then creates a symbol named by that string. If PACKAGE is NIL, returns an
-uninterned symbol, if package is T, returns a symbol interned in the current
-package, and otherwise returns a symbol interned in the package designated by
-PACKAGE."
-  (maybe-intern (apply #'format nil control arguments) package))
+  "Constructs a string by applying ARGUMENTS to string designator CONTROL as
+if by FORMAT within WITH-STANDARD-IO-SYNTAX, and then creates a symbol named
+by that string.
+
+If PACKAGE is NIL, returns an uninterned symbol, if package is T, returns a
+symbol interned in the current package, and otherwise returns a symbol
+interned in the package designated by PACKAGE."
+  (maybe-intern (with-standard-io-syntax
+                  (apply #'format nil (string control) arguments))
+                package))
 
 (defun make-keyword (name)
   "Interns the string designated by NAME in the KEYWORD package."

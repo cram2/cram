@@ -2,7 +2,7 @@
 
 (declaim (inline clamp))
 (defun clamp (number min max)
-  "Clamps the NUMBER into [MIN, MAX] range. Returns MIN if NUMBER lesser then
+  "Clamps the NUMBER into [min, max] range. Returns MIN if NUMBER is lesser then
 MIN and MAX if NUMBER is greater then MAX, otherwise returns NUMBER."
   (if (< number min)
       min
@@ -13,32 +13,40 @@ MIN and MAX if NUMBER is greater then MAX, otherwise returns NUMBER."
 (defun gaussian-random (&optional min max)
   "Returns two gaussian random double floats as the primary and secondary value,
 optionally constrained by MIN and MAX. Gaussian random numbers form a standard
-normal distribution around 0.0d0."
-  (labels ((gauss ()
-             (loop
-                for x1 = (- (random 2.0d0) 1.0d0)
-                for x2 = (- (random 2.0d0) 1.0d0)
-                for w = (+ (expt x1 2) (expt x2 2))
-                when (< w 1.0d0)
-                do (let ((v (sqrt (/ (* -2.0d0 (log w)) w))))
-                     (return (values (* x1 v) (* x2 v))))))
-           (guard (x min max)
-             (unless (<= min x max)
-               (tagbody
-                :retry
-                  (multiple-value-bind (x1 x2) (gauss)
-                    (when (<= min x1 max)
-                      (setf x x1)
-                      (go :done))
-                    (when (<= min x2 max)
-                      (setf x x2)
-                      (go :done))
-                    (go :retry))
-                :done))
-             x))
-    (multiple-value-bind (g1 g2) (gauss)
-      (values (guard g1 (or min g1) (or max g1))
-              (guard g2 (or min g2) (or max g2))))))
+normal distribution around 0.0d0.
+
+Sufficiently positive MIN or negative MAX will cause the algorithm used to
+take a very long time. If MIN is positive it should be close to zero, and
+similarly if MAX is negative it should be close to zero."
+  (macrolet
+      ((valid (x)
+         `(<= (or min ,x) ,x (or max ,x)) ))
+    (labels
+        ((gauss ()
+           (loop
+                 for x1 = (- (random 2.0d0) 1.0d0)
+                 for x2 = (- (random 2.0d0) 1.0d0)
+                 for w = (+ (expt x1 2) (expt x2 2))
+                 when (< w 1.0d0)
+                 do (let ((v (sqrt (/ (* -2.0d0 (log w)) w))))
+                      (return (values (* x1 v) (* x2 v))))))
+         (guard (x)
+           (unless (valid x)
+             (tagbody
+              :retry
+                (multiple-value-bind (x1 x2) (gauss)
+                  (when (valid x1)
+                    (setf x x1)
+                    (go :done))
+                  (when (valid x2)
+                    (setf x x2)
+                    (go :done))
+                  (go :retry))
+              :done))
+           x))
+      (multiple-value-bind
+            (g1 g2) (gauss)
+        (values (guard g1) (guard g2))))))
 
 (declaim (inline iota))
 (defun iota (n &key (start 0) (step 1))
@@ -48,15 +56,15 @@ and STEP. START defaults to 0 and STEP to 1.
 
 Examples:
 
-  (iota 4)                      => (0 1 2 3 4)
+  (iota 4)                      => (0 1 2 3)
   (iota 3 :start 1 :step 1.0)   => (1.0 2.0 3.0)
   (iota 3 :start -1 :step -1/2) => (-1 -3/2 -2)
 "
   (declare (type (integer 0) n) (number start step))
   (loop repeat n
-     ;; KLUDGE: get numeric contagion right for the first element too
-     for i = (+ start (- step step)) then (+ i step)
-     collect i))
+        ;; KLUDGE: get numeric contagion right for the first element too
+        for i = (+ (- (+ start step) step)) then (+ i step)
+        collect i))
 
 (declaim (inline map-iota))
 (defun map-iota (function n &key (start 0) (step 1))
@@ -185,7 +193,9 @@ minimum of its original value and NUMBERS.")
                  ((< m j) f)
                (declare (type (integer 0 (#.most-positive-fixnum)) m)
                         (type unsigned-byte f)))))
-    (bisect i j)))
+    (if (and (typep i 'fixnum) (typep j 'fixnum))
+        (bisect i j)
+        (bisect-big i j))))
 
 (declaim (inline factorial))
 (defun %factorial (n)
@@ -210,6 +220,10 @@ greater then K."
   (if (or (zerop k) (= n k))
       1
       (let ((n-k (- n k)))
+        ;; Swaps K and N-K if K < N-K because the algorithm
+        ;; below is faster for bigger K and smaller N-K
+        (when (< k n-k)
+          (rotatef k n-k))
         (if (= 1 n-k)
             n
             ;; General case, avoid computing the 1x...xK twice:
@@ -223,16 +237,17 @@ greater then K."
 (defun subfactorial (n)
   "Subfactorial of the non-negative integer N."
   (check-type n (integer 0))
-  (case n
-    (0 1)
-    (1 0)
-    (otherwise
-     (floor (/ (+ 1 (factorial n)) (exp 1))))))
+  (if (zerop n)
+      1
+      (do ((x 1 (1+ x))
+           (a 0 (* x (+ a b)))
+           (b 1 a))
+          ((= n x) a))))
 
 (defun count-permutations (n &optional (k n))
   "Number of K element permutations for a sequence of N objects.
-R defaults to N"
-  ;; FIXME: Use %multiply-range and take care of 1 and 2, plus
-  ;; check types.
-  (/ (factorial n)
-     (factorial (- n k))))
+K defaults to N"
+  (check-type n (integer 0))
+  (check-type k (integer 0))
+  (assert (>= n k))
+  (%multiply-range (1+ (- n k)) n))

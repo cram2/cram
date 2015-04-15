@@ -52,18 +52,23 @@ returns the values of DEFAULT if no keys match."
   (setf possibilities (mapcar (lambda (p) (macroexpand p env)) possibilities))
   (if (every (lambda (p) (constantp p)) possibilities)
       `(svref (load-time-value (vector ,@possibilities)) (random ,(length possibilities)))
-      (with-gensyms (function)
-        `(let ((,function (lambda () ,(pop possibilities))))
-           (declare (function ,function))
-           ,@(let ((p 1))
-               (mapcar (lambda (possibility)
-                         `(when (zerop (random ,(incf p)))
-                            (setf ,function (lambda () ,possibility))))
-                       possibilities))
-           (funcall ,function)))))
+      (labels ((expand (possibilities position random-number)
+                 (if (null (cdr possibilities))
+                     (car possibilities)
+                     (let* ((length (length possibilities))
+                            (half (truncate length 2))
+                            (second-half (nthcdr half possibilities))
+                            (first-half (butlast possibilities (- length half))))
+                       `(if (< ,random-number ,(+ position half))
+                            ,(expand first-half position random-number)
+                            ,(expand second-half (+ position half) random-number))))))
+        (with-gensyms (random-number)
+          (let ((length (length possibilities)))
+            `(let ((,random-number (random ,length)))
+               ,(expand possibilities 0 random-number)))))))
 
 (defmacro xor (&rest datums)
-  "Evaluates its argument one at a time, from left to right. If more then one
+  "Evaluates its arguments one at a time, from left to right. If more then one
 argument evaluates to a true value no further DATUMS are evaluated, and NIL is
 returned as both primary and secondary value. If exactly one argument
 evaluates to true, its value is returned as the primary value after all the
@@ -83,8 +88,8 @@ value."
 
 (defmacro nth-value-or (nth-value &body forms)
   "Evaluates FORM arguments one at a time, until the NTH-VALUE returned by one
-of the forms is non-NIL. It then returns all the values returned by evaluating
-that form. If none of the forms return a non-nil nth value, this form returns
+of the forms is true. It then returns all the values returned by evaluating
+that form. If none of the forms return a true nth value, this form returns
 NIL."
   (once-only (nth-value)
     (with-gensyms (values)
@@ -95,7 +100,7 @@ NIL."
                   `(nth-value-or ,nth-value ,@(rest forms))
                   nil))))))
 
-(defmacro multiple-value-prog2 (first-form second-form &body body)
-  "Like CL:MULTIPLE-VALUE-PROG1, except it saves the values of the
-second form."
-  `(progn ,first-form (multiple-value-prog1 ,second-form ,@body)))
+(defmacro multiple-value-prog2 (first-form second-form &body forms)
+  "Evaluates FIRST-FORM, then SECOND-FORM, and then FORMS. Yields as its value
+all the value returned by SECOND-FORM."
+  `(progn ,first-form (multiple-value-prog1 ,second-form ,@forms)))

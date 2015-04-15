@@ -1,19 +1,28 @@
-.PHONY: clean html pdf
+.PHONY: clean html pdf include clean-include clean-crap info doc
 
-clean:
-	rm -rf include *.aux *.cp *.fn *.fns *.ky *.log *.pg *.toc *.tp *.tps *.vr *.pdf *.html
+doc: pdf html info clean-crap
 
-# Hook into the super sekrit texinfo generator in the SBCL tree -- this is just a quick way
-# to bootrap documentation for now.
+clean-include:
+	rm -rf include
+
+clean-crap:
+	rm -f *.aux *.cp *.fn *.fns *.ky *.log *.pg *.toc *.tp *.tps *.vr
+
+clean: clean-include
+	rm -f  *.pdf *.html *.info
+
 include:
-	sbcl --eval '(progn (require :asdf) (require :alexandria) (rename-package :alexandria :alexandria))' \
-	--eval '(load (merge-pathnames "doc/manual/docstrings" (posix-getenv "SBCL_SOURCE_ROOT")))' \
-	--eval '(sb-texinfo:generate-includes "include/" :alexandria)' \
+	sbcl --no-userinit --eval '(require :asdf)' \
+	--eval '(let ((asdf:*central-registry* (list "../"))) (require :alexandria))' \
+	--load docstrings.lisp \
+	--eval '(sb-texinfo:generate-includes "include/" (list :alexandria) :base-package :alexandria)' \
 	--eval '(quit)'
-	mv include/fun-alexandria-type=.texinfo include/fun-alexandria-type-equal.texinfo
 
 pdf: include
 	texi2pdf alexandria.texinfo
 
 html: include
-	texi2html alexandria.texinfo
+	makeinfo --html --no-split alexandria.texinfo
+
+info: include
+	makeinfo alexandria.texinfo
