@@ -7,8 +7,12 @@
 
 (in-package :alexandria-tests)
 
-(defun run-tests (&key ((:compiled *compile-tests)))
+(defun run-tests (&key ((:compiled *compile-tests*)))
   (do-tests))
+
+(defun hash-table-test-name (name)
+  ;; Workaround for Clisp calling EQL in a hash-table FASTHASH-EQL.
+  (hash-table-test (make-hash-table :test name)))
 
 ;;;; Arrays
 
@@ -29,6 +33,24 @@
                 (eql (fill-pointer orig) (fill-pointer copy)))))
   nil t t t)
 
+(deftest copy-array.3
+    (let* ((orig (vector 1 2 3))
+           (copy (copy-array orig)))
+      (typep copy 'simple-array))
+  t)
+
+(deftest copy-array.4
+   (let ((orig (make-array 21
+                           :adjustable t
+                           :fill-pointer 0)))
+     (dotimes (n 42)
+       (vector-push-extend n orig))
+     (let ((copy (copy-array orig
+                             :adjustable nil
+                             :fill-pointer nil)))
+       (typep copy 'simple-array)))
+ t)
+
 (deftest array-index.1
     (typep 0 'array-index)
   t)
@@ -38,43 +60,43 @@
 (deftest unwind-protect-case.1
     (let (result)
       (unwind-protect-case ()
-	  (random 10)
-	(:normal (push :normal result))
-	(:abort  (push :abort result))
-	(:always (push :always result)))
+          (random 10)
+        (:normal (push :normal result))
+        (:abort  (push :abort result))
+        (:always (push :always result)))
       result)
   (:always :normal))
 
 (deftest unwind-protect-case.2
     (let (result)
       (unwind-protect-case ()
-	  (random 10)
-	(:always (push :always result))
-	(:normal (push :normal result))
-	(:abort  (push :abort result)))
+          (random 10)
+        (:always (push :always result))
+        (:normal (push :normal result))
+        (:abort  (push :abort result)))
       result)
   (:normal :always))
 
 (deftest unwind-protect-case.3
     (let (result1 result2 result3)
       (ignore-errors
-	(unwind-protect-case ()
-	    (error "FOOF!")
-	  (:normal (push :normal result1))
-	  (:abort  (push :abort result1))
-	  (:always (push :always result1))))
+        (unwind-protect-case ()
+            (error "FOOF!")
+          (:normal (push :normal result1))
+          (:abort  (push :abort result1))
+          (:always (push :always result1))))
       (catch 'foof
-	(unwind-protect-case ()
-	    (throw 'foof 42)
-	  (:normal (push :normal result2))
-	  (:abort  (push :abort result2))
-	  (:always (push :always result2))))
+        (unwind-protect-case ()
+            (throw 'foof 42)
+          (:normal (push :normal result2))
+          (:abort  (push :abort result2))
+          (:always (push :always result2))))
       (block foof
-	(unwind-protect-case ()
-	    (return-from foof 42)
-	  (:normal (push :normal result3))
-	  (:abort  (push :abort result3))
-	  (:always (push :always result3))))
+        (unwind-protect-case ()
+            (return-from foof 42)
+          (:normal (push :normal result3))
+          (:abort  (push :abort result3))
+          (:always (push :always result3))))
       (values result1 result2 result3))
   (:always :abort)
   (:always :abort)
@@ -83,17 +105,17 @@
 (deftest unwind-protect-case.4
     (let (result)
       (unwind-protect-case (aborted-p)
-	  (random 42)
-	(:always (setq result aborted-p)))
+          (random 42)
+        (:always (setq result aborted-p)))
       result)
   nil)
 
 (deftest unwind-protect-case.5
     (let (result)
       (block foof
-	(unwind-protect-case (aborted-p)
-	    (return-from foof)
-	  (:always (setq result aborted-p))))
+        (unwind-protect-case (aborted-p)
+            (return-from foof)
+          (:always (setq result aborted-p))))
       result)
   t)
 
@@ -138,6 +160,21 @@
       (13.0 :oops))
   :yay)
 
+(deftest multiple-value-prog2.1
+    (multiple-value-prog2
+        (values 1 1 1)
+        (values 2 20 200)
+      (values 3 3 3))
+  2 20 200)
+
+(deftest nth-value-or.1
+    (multiple-value-bind (a b c)
+        (nth-value-or 1
+                      (values 1 nil 1)
+                      (values 2 2 2))
+      (= a b c 2))
+  t)
+
 (deftest whichever.1
     (let ((x (whichever 1 2 3)))
       (and (member x '(1 2 3)) t))
@@ -154,6 +191,16 @@
 (deftest xor.1
     (xor nil nil 1 nil)
   1
+  t)
+
+(deftest xor.2
+    (xor nil nil 1 2)
+  nil
+  nil)
+
+(deftest xor.3
+    (xor nil nil nil)
+  nil
   t)
 
 ;;;; Definitions
@@ -207,8 +254,6 @@
                     (= 42 (gethash x table)))))))
   t)
 
-#+clisp (pushnew 'copy-hash-table.1 *expected-failures*)
-
 (deftest copy-hash-table.1
     (let ((orig (make-hash-table :test 'eq :size 123))
           (foo "foo"))
@@ -217,9 +262,7 @@
       (let ((eq-copy (copy-hash-table orig))
             (eql-copy (copy-hash-table orig :test 'eql))
             (equal-copy (copy-hash-table orig :test 'equal))
-            ;; CLISP overflows the stack with this bit.
-            ;; See <http://sourceforge.net/tracker/index.php?func=detail&aid=2029069&group_id=1355&atid=101355>.
-            #-clisp (equalp-copy (copy-hash-table orig :test 'equalp)))
+            (equalp-copy (copy-hash-table orig :test 'equalp)))
         (list (eql (hash-table-size eq-copy) (hash-table-size orig))
               (eql (hash-table-rehash-size eq-copy)
                    (hash-table-rehash-size orig))
@@ -229,7 +272,7 @@
               (gethash foo eql-copy)
               (gethash (copy-seq foo) equal-copy)
               (gethash "FOO" equal-copy)
-              #-clisp (gethash "FOO" equalp-copy))))
+              (gethash "FOO" equalp-copy))))
   (t t 2 t nil t t nil t))
 
 (deftest copy-hash-table.2
@@ -237,17 +280,17 @@
           (list (list :list (vector :A :B :C))))
       (setf (gethash 'list ht) list)
       (let* ((shallow-copy (copy-hash-table ht))
-	     (deep1-copy (copy-hash-table ht :key 'copy-list))
-	     (list         (gethash 'list ht))
-	     (shallow-list (gethash 'list shallow-copy))
-	     (deep1-list   (gethash 'list deep1-copy)))
+             (deep1-copy (copy-hash-table ht :key 'copy-list))
+             (list         (gethash 'list ht))
+             (shallow-list (gethash 'list shallow-copy))
+             (deep1-list   (gethash 'list deep1-copy)))
         (list (eq ht shallow-copy)
-	      (eq ht deep1-copy)
-	      (eq list shallow-list)
-	      (eq list deep1-list)	             ; outer list was copied.
-	      (eq (second list) (second shallow-list))
-	      (eq (second list) (second deep1-list)) ; inner vector wasn't copied.
-	      )))
+              (eq ht deep1-copy)
+              (eq list shallow-list)
+              (eq list deep1-list)                   ; outer list was copied.
+              (eq (second list) (second shallow-list))
+              (eq (second list) (second deep1-list)) ; inner vector wasn't copied.
+              )))
   (nil nil t nil t t))
 
 (deftest maphash-keys.1
@@ -308,8 +351,6 @@
               (getf plist nil))))
   (20 0 -2 -7 nil))
 
-#+clisp (pushnew 'alist-hash-table.1 *expected-failures*)
-
 (deftest alist-hash-table.1
     (let* ((alist '((0 a) (1 b) (2 c)))
            (table (alist-hash-table alist)))
@@ -317,10 +358,9 @@
             (gethash 0 table)
             (gethash 1 table)
             (gethash 2 table)
-            (hash-table-test table))) ; CLISP returns EXT:FASTHASH-EQL.
-  (3 (a) (b) (c) eql))
-
-#+clisp (pushnew 'plist-hash-table.1 *expected-failures*)
+            (eq (hash-table-test-name 'eql)
+                (hash-table-test table))))
+  (3 (a) (b) (c) t))
 
 (deftest plist-hash-table.1
     (let* ((plist '(:a 1 :b 2 :c 3))
@@ -331,8 +371,9 @@
             (gethash :c table)
             (gethash 2 table)
             (gethash nil table)
-            (hash-table-test table))) ; CLISP returns EXT:FASTHASH-EQ.
-  (3 1 2 3 nil nil eq))
+            (eq (hash-table-test-name 'eq)
+                (hash-table-test table))))
+  (3 1 2 3 nil nil t))
 
 ;;;; Functions
 
@@ -465,10 +506,32 @@
         (funcall fun 2)))
   4)
 
+(deftest curry.4
+    (let* ((x 1)
+           (curried (curry (progn
+                             (incf x)
+                             (lambda (y z) (* x y z)))
+                           3)))
+      (list (funcall curried 7)
+            (funcall curried 7)
+            x))
+  (42 42 2))
+
 (deftest rcurry.1
     (let ((r (rcurry '/ 2)))
       (funcall r 8))
   4)
+
+(deftest rcurry.2
+    (let* ((x 1)
+           (curried (rcurry (progn
+                              (incf x)
+                              (lambda (y z) (* x y z)))
+                            3)))
+      (list (funcall curried 7)
+            (funcall curried 7)
+            x))
+  (42 42 2))
 
 (deftest named-lambda.1
     (let ((fac (named-lambda fac (x)
@@ -580,6 +643,10 @@
             (circular-tree-p quite-proper)
             (circular-tree-p quite-dotted)))
   (t t t t t t nil nil))
+
+(deftest circular-tree-p.2
+    (alexandria:circular-tree-p '#1=(#1#))
+  t)
 
 (deftest proper-list-p.1
     (let ((l1 (list 1))
@@ -802,6 +869,27 @@
    nil
    t))
 
+(deftest delete-from-plist.1
+    (let ((orig '(a 1 b 2 c 3 d 4 d 5)))
+      (list (delete-from-plist (copy-list orig) 'a 'c)
+            (delete-from-plist (copy-list orig) 'b 'd)
+            (delete-from-plist (copy-list orig) 'b)
+            (delete-from-plist (copy-list orig) 'a)
+            (delete-from-plist (copy-list orig) 'd 42 "zot")
+            (delete-from-plist (copy-list orig) 'a 'b 'c 'd)
+            (delete-from-plist (copy-list orig) 'a 'b 'c 'd 'x)
+            (equal orig (delete-from-plist orig))
+            (eq orig (delete-from-plist orig))))
+  ((b 2 d 4 d 5)
+   (a 1 c 3)
+   (a 1 c 3 d 4 d 5)
+   (b 2 c 3 d 4 d 5)
+   (a 1 b 2 c 3)
+   nil
+   nil
+   t
+   t))
+
 (deftest mappend.1
     (mappend (compose 'list '*) '(1 2 3) '(1 2 3))
   (1 4 9))
@@ -819,20 +907,9 @@
       (push (assoc-value alist key2) result)
 
       (push 'very (rassoc-value alist (list 2 1) :test #'equal))
-      (push (cons 'very (cdr (assoc '(very complex key) alist :test #'equal))) result)
-      (reverse result))
-  ((2 1) (43 42) (very 2 1)))
-
-(deftest assoc-value.2
-    (let ((key 'key)
-          (alist '())
-          (result '()))
-      (setf (assoc-value alist key) 1)
-      (push (assoc-value alist key) result)
-      (push (setf (assoc-value alist key) 2) result)
-      (push (assoc-value alist key) result)
-      (reverse result))
-  (1 2 2))
+      (push (cdr (assoc '(very complex key) alist :test #'equal)) result)
+      result)
+  ((2 1) (43 42) (2 1)))
 
 ;;;; Numbers
 
@@ -856,6 +933,19 @@
   t
   t
   t)
+
+#+sbcl
+(deftest gaussian-random.2
+    (handler-case
+        (sb-ext:with-timeout 2
+          (progn
+            (loop
+              :repeat 10000
+              :do (gaussian-random 0 nil))
+            'done))
+      (sb-ext:timeout ()
+        'timed-out))
+  done)
 
 (deftest iota.1
     (iota 3)
@@ -955,6 +1045,31 @@
       (list p xv))
   (2 #(10 2 10)))
 
+(deftest subfactorial.1
+    (mapcar #'subfactorial (iota 22))
+  (1
+   0
+   1
+   2
+   9
+   44
+   265
+   1854
+   14833
+   133496
+   1334961
+   14684570
+   176214841
+   2290792932
+   32071101049
+   481066515734
+   7697064251745
+   130850092279664
+   2355301661033953
+   44750731559645106
+   895014631192902121
+   18795307255050944540))
+
 ;;;; Arrays
 
 #+nil
@@ -1044,6 +1159,14 @@
                      (typep x '(integer 0 99)))
                    s)))
   (nil t t))
+
+(deftest shuffle.3
+    (let* ((orig (coerce (iota 21) 'vector))
+           (copy (copy-seq orig)))
+      (shuffle copy :start 10 :end 15)
+      (list (every #'eql (subseq copy 0 10) (subseq orig 0 10))
+            (every #'eql (subseq copy 15) (subseq orig 15))))
+  (t t))
 
 (deftest random-elt.1
     (let ((s1 #(1 2 3 4))
@@ -1194,8 +1317,8 @@
               (member v (list v.vector v.list v.string))
               (equal l.list l)
               (equalp l.vector #(1 2 3))
-              (eql (upgraded-array-element-type 'fixnum)
-                   (array-element-type l.spec-v))
+              (type= (upgraded-array-element-type 'fixnum)
+                     (array-element-type l.spec-v))
               (equalp v.vector v)
               (equal v.list '(#\a #\b #\c))
               (equal "abc" v.string))))
@@ -1340,26 +1463,26 @@
 
 (deftest sequences.passing-improper-lists
     (macrolet ((signals-error-p (form)
-		 `(handler-case 
+                 `(handler-case
                       (progn ,form nil)
-		    (type-error (e)
+                    (type-error (e)
                       t)))
                (cut (fn &rest args)
                  (with-gensyms (arg)
                    (print`(lambda (,arg)
                        (apply ,fn (list ,@(substitute arg '_ args))))))))
       (let ((circular-list (make-circular-list 5 :initial-element :foo))
-	    (dotted-list (list* 'a 'b 'c 'd)))
-	(loop for nth from 0
-	      for fn in (list
-			 (cut #'lastcar _)
-			 (cut #'rotate _ 3)
-			 (cut #'rotate _ -3)
-			 (cut #'shuffle _)
-			 (cut #'random-elt _)
-			 (cut #'last-elt _)
-			 (cut #'ends-with :foo _))
-	      nconcing
+            (dotted-list (list* 'a 'b 'c 'd)))
+        (loop for nth from 0
+              for fn in (list
+                         (cut #'lastcar _)
+                         (cut #'rotate _ 3)
+                         (cut #'rotate _ -3)
+                         (cut #'shuffle _)
+                         (cut #'random-elt _)
+                         (cut #'last-elt _)
+                         (cut #'ends-with :foo _))
+              nconcing
                  (let ((on-circular-p (signals-error-p (funcall fn circular-list)))
                        (on-dotted-p (signals-error-p (funcall fn dotted-list))))
                    (when (or (not on-circular-p) (not on-dotted-p))
@@ -1493,18 +1616,18 @@
   :inherited)
 
 (deftest format-symbol.1
-    (let ((s (format-symbol nil "X-~D" 13)))
+    (let ((s (format-symbol nil '#:x-~d 13)))
       (list (symbol-package s)
-            (symbol-name s)))
-  (nil "X-13"))
+            (string= (string '#:x-13) (symbol-name s))))
+  (nil t))
 
 (deftest format-symbol.2
-    (format-symbol :keyword "SYM-~A" :bolic)
+    (format-symbol :keyword '#:sym-~a (string :bolic))
   :sym-bolic)
 
 (deftest format-symbol.3
     (let ((*package* (find-package :cl)))
-      (format-symbol t "FIND-~A" 'package))
+      (format-symbol t '#:find-~a (string 'package)))
   find-package)
 
 (deftest make-keyword.1
@@ -1566,16 +1689,16 @@
 
 (macrolet
     ((test (type numbers)
-       `(deftest ,(format-symbol t "CDR5.~A" type)
-	    (let ((numbers ,numbers))
-	      (values (mapcar (of-type ',(format-symbol t "NEGATIVE-~A" type)) numbers)
-		      (mapcar (of-type ',(format-symbol t "NON-POSITIVE-~A" type)) numbers)
-		      (mapcar (of-type ',(format-symbol t "NON-NEGATIVE-~A" type)) numbers)
-		      (mapcar (of-type ',(format-symbol t "POSITIVE-~A" type)) numbers)))
-	  (t t t nil nil nil nil)
-	  (t t t t nil nil nil)
-	  (nil nil nil t t t t)
-	  (nil nil nil nil t t t))))
+       `(deftest ,(format-symbol t '#:cdr5.~a (string type))
+            (let ((numbers ,numbers))
+              (values (mapcar (of-type ',(format-symbol t '#:negative-~a (string type))) numbers)
+                      (mapcar (of-type ',(format-symbol t '#:non-positive-~a (string type))) numbers)
+                      (mapcar (of-type ',(format-symbol t '#:non-negative-~a (string type))) numbers)
+                      (mapcar (of-type ',(format-symbol t '#:positive-~a (string type))) numbers)))
+          (t t t nil nil nil nil)
+          (t t t t nil nil nil)
+          (nil nil nil t t t t)
+          (nil nil nil nil t t t))))
   (test fixnum       (list most-negative-fixnum       -42      -1     0     1     42      most-positive-fixnum))
   (test integer      (list (1- most-negative-fixnum)  -42      -1     0     1     42      (1+ most-positive-fixnum)))
   (test rational     (list (1- most-negative-fixnum)  -42/13   -1     0     1     42/13   (1+ most-positive-fixnum)))
@@ -1688,14 +1811,6 @@
         :type-error))
   :type-error)
 
-(deftest nth-value-or.1
-    (multiple-value-bind (a b c)
-        (nth-value-or 1
-                      (values 1 nil 1)
-                      (values 2 2 2))
-      (= a b c 2))
-  t)
-
 (deftest doplist.1
     (let (keys values)
       (doplist (k v '(a 1 b 2 c 3) (values t (reverse keys) (reverse values) k v))
@@ -1706,3 +1821,117 @@
   (1 2 3)
   nil
   nil)
+
+(deftest count-permutations.1
+    (values (count-permutations 31 7)
+            (count-permutations 1 1)
+            (count-permutations 2 1)
+            (count-permutations 2 2)
+            (count-permutations 3 2)
+            (count-permutations 3 1))
+  13253058000
+  1
+  2
+  2
+  6
+  3)
+
+(deftest binomial-coefficient.1
+    (alexandria:binomial-coefficient 1239 139)
+  28794902202288970200771694600561826718847179309929858835480006683522184441358211423695124921058123706380656375919763349913245306834194782172712255592710204598527867804110129489943080460154)
+
+;; Exercise bignum case (at least on x86).
+(deftest binomial-coefficient.2
+    (alexandria:binomial-coefficient 2000000000000 20)
+  430998041177272843950422879590338454856322722740402365741730748431530623813012487773080486408378680853987520854296499536311275320016878730999689934464711239072435565454954447356845336730100919970769793030177499999999900000000000)
+
+(deftest copy-stream.1
+    (let ((data "sdkfjhsakfh weior763495ewofhsdfk sdfadlkfjhsadf woif sdlkjfhslkdfh sdklfjh"))
+      (values (equal data
+                     (with-input-from-string (in data)
+                       (with-output-to-string (out)
+                         (alexandria:copy-stream in out))))
+              (equal (subseq data 10 20)
+                     (with-input-from-string (in data)
+                       (with-output-to-string (out)
+                         (alexandria:copy-stream in out :start 10 :end 20))))
+              (equal (subseq data 10)
+                     (with-input-from-string (in data)
+                       (with-output-to-string (out)
+                         (alexandria:copy-stream in out :start 10))))
+              (equal (subseq data 0 20)
+                     (with-input-from-string (in data)
+                       (with-output-to-string (out)
+                         (alexandria:copy-stream in out :end 20))))))
+  t
+  t
+  t
+  t)
+
+(deftest extremum.1
+    (let ((n 0))
+      (dotimes (i 10)
+       (let ((data (shuffle (coerce (iota 10000 :start i) 'vector)))
+             (ok t))
+         (unless (eql i (extremum data #'<))
+           (setf ok nil))
+         (unless (eql i (extremum (coerce data 'list) #'<))
+           (setf ok nil))
+         (unless (eql (+ 9999 i) (extremum data #'>))
+           (setf ok nil))
+         (unless (eql (+ 9999 i) (extremum (coerce  data 'list) #'>))
+           (setf ok nil))
+         (when ok
+           (incf n))))
+      (when (eql 10 (extremum #(100 1 10 1000) #'> :start 1 :end 3))
+        (incf n))
+      (when (eql -1000 (extremum #(100 1 10 -1000) #'> :key 'abs))
+        (incf n))
+      (when (eq nil (extremum "" (lambda (a b) (error "wtf? ~S, ~S" a b))))
+        (incf n))
+      n)
+  13)
+
+(deftest starts-with-subseq.start1
+    (starts-with-subseq "foo" "oop" :start1 1)
+  t
+  nil)
+
+(deftest starts-with-subseq.start2
+    (starts-with-subseq "foo" "xfoop" :start2 1)
+  t
+  nil)
+
+(deftest format-symbol.print-case-bound
+    (let ((upper (intern "FOO-BAR"))
+          (lower (intern "foo-bar"))
+          (*print-escape* nil))
+      (values
+       (let ((*print-case* :downcase))
+         (and (eq upper (format-symbol t "~A" upper))
+               (eq lower (format-symbol t "~A" lower))))
+       (let ((*print-case* :upcase))
+         (and (eq upper (format-symbol t "~A" upper))
+               (eq lower (format-symbol t "~A" lower))))
+       (let ((*print-case* :capitalize))
+         (and (eq upper (format-symbol t "~A" upper))
+              (eq lower (format-symbol t "~A" lower))))))
+  t
+  t
+  t)
+
+(deftest iota.fp-start-and-complex-integer-step
+    (equal '(#C(0.0 0.0) #C(0.0 2.0) #C(0.0 4.0))
+           (iota 3 :start 0.0 :step #C(0 2)))
+  t)
+
+(deftest parse-ordinary-lambda-list.1
+    (multiple-value-bind (req opt rest keys allowp aux keyp)
+        (parse-ordinary-lambda-list '(a b c &optional d &key))
+      (and (equal '(a b c) req)
+           (equal '((d nil nil)) opt)
+           (equal '() keys)
+           (not allowp)
+           (not aux)
+           (eq t keyp)))
+  t)
