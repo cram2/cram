@@ -100,19 +100,11 @@
                                  (= c (char-code #\_)))))
                      filename))
 
-(defun extremum (seq &key test (key #'identity))
-  (assert test)
-  (reduce (lambda (prev curr)
-            (if (funcall test (funcall key curr) (funcall key prev))
-                curr
-                prev))
-          seq))
-
 (defun minimum (seq &key (test #'<) (key #'identity))
-  (extremum seq :test test :key key))
+  (extremum seq test :key key))
 
 (defun maximum (seq &key (test #'>) (key #'identity))
-  (extremum seq :test test :key key))
+  (extremum seq test :key key))
 
 (defun style-warn (datum &rest arguments)
   (apply #'sb-int:style-warn datum arguments))
