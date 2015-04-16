@@ -39,7 +39,6 @@
         #:cram-plan-knowledge
         #:cram-plan-failures
         #:alexandria)
-  (:shadowing-import-from #:cram-utilities #:extremum)
   (:nicknames :plan-lib)
   (:export #:achieve
            #:perform
