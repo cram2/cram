@@ -68,6 +68,7 @@
 (defvar *kitchen-urdf* nil)
 (defun start-ros-and-bullet ()
   (init "localhost")
+  (setf cram-roslisp-common:*tf-default-timeout* 1.0)
   (unless *robot-urdf-lowres*
     (setf *robot-urdf-lowres*
           (cl-urdf:parse-urdf (roslisp:get-param "robot_description_lowres"))))
