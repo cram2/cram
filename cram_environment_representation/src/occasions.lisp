@@ -63,10 +63,7 @@
     (fail))
 
   (<- (object-put ?object)
-    (fail))
-
-  (<- (holds ?occasion)
-    (call ?occasion)))
+    (fail)))
 
 (def-fact-group occasion-utilities ()
   (<- (object-designator-name ?object-designator ?object-name)
@@ -115,11 +112,6 @@ is returned."
    cram-roslisp-common:*tf2-buffer*
    (var-value '?robot-instance (lazy-car (prolog `(and (robot ?robot)
                                                        (%object ?_ ?robot ?robot-instance)))))))
-
-(defmethod cram-plan-knowledge:holds (occasion &optional time-specification)
-  (if time-specification
-      (prolog `(holds ?_  ,occasion ,time-specification))
-      (prolog `(holds ,occasion))))
 
 (defvar *robot-urdf* nil)
 (defvar *kitchen-urdf* nil)
