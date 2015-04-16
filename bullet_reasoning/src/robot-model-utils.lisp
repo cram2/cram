@@ -49,18 +49,17 @@
           (setf (link-pose robot root-link)
                 (cl-transforms:transform->pose robot-transform))
           (loop for name being the hash-keys in  (slot-value robot 'links) do
-            (let ((tf-name
-                    (if (eql (elt name 0) #\/) name (concatenate 'string "/" name))))
-              (setf (link-pose robot name)
-                    (cl-transforms:transform->pose
-                     (cl-transforms:transform*
-                      robot-transform
-                      (cl-tf2:lookup-transform
-                       tf-buffer tf-name root-link
-                       :time timestamp
-                       :timeout cram-roslisp-common:*tf-default-timeout*))))))))
-    (cl-tf2:tf2-server-error ()
-      nil)))
+            (setf (link-pose robot name)
+                  (cl-transforms:transform->pose
+                   (cl-transforms:transform*
+                    robot-transform
+                    (cl-tf2:lookup-transform
+                     tf-buffer name root-link
+                     :time timestamp
+                     :timeout cram-roslisp-common:*tf-default-timeout*)))))))
+    (cl-tf2:tf2-server-error (error)
+      (roslisp:ros-warn (set-robot-state-from-tf)
+                        "Failed with tf2-server-error: ~a" error))))
 
 (defgeneric set-robot-state-from-joints (joint-states robot)
   (:method ((joint-states sensor_msgs-msg:jointstate) (robot robot-object))
