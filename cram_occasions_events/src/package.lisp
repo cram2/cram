@@ -39,7 +39,6 @@
           #:cram-execution-trace)
   (:nicknames #:plan-knowledge)
   (:shadowing-import-from #:cpl #:name)
-  (:shadowing-import-from #:cram-utilities #:extremum)
   (:import-from #:designators-ros pose pose-stamped)
   (:shadow event)
   (:export #:clear-belief
