@@ -59,3 +59,13 @@
 (defun holds-occasion (occ)
   (deprecate "HOLDS-OCCASION is deprecated.")
   (force-ll (rete-holds occ #'occasion-equal-test)))
+
+(defmethod holds (occasion &optional time-specification)
+  (if time-specification
+      (prolog `(holds ?_  ,occasion ,time-specification))
+      (prolog `(holds ,occasion))))
+
+
+(def-fact-group occasions (holds)
+  (<- (holds ?occasion)
+    (call ?occasion)))
