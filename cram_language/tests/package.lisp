@@ -39,5 +39,4 @@
         :fiveam
         :alexandria)
   (:import-from #:cram-walker #:make-plan-tree-node)
-  (:shadowing-import-from :cram-utilities #:extremum)
   (:shadowing-import-from :cram-language-implementation #:fail))
