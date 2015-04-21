@@ -1,6 +1,9 @@
 (in-package :reas-inf)
 
-(defun spawn-object (name type pose-stamped-msg color-msg &key (world btr:*current-bullet-world*))
+(defvar *camera* :camera)
+(defvar *camera-view* :camera-view)
+
+(defun spawn-object (name type pose-stamped-msg color-msg bounding-box &key (world btr:*current-bullet-world*))
   "Spawns an object with the name `name', the type `type', the color `color-msg' (`std_msgs/ColorRGBA')
 at `pose-stamped-msg' (`geometry_msgs/PoseStamped') in the bullet world `world.
 If there is already an object `name' in `world', nothing happens."
@@ -15,28 +18,77 @@ If there is already an object `name' in `world', nothing happens."
         (out-info "name-symbol: ~a" name-symbol)
         (let* ((pose-stamped (cl-tf2:from-msg pose-stamped-msg))
                (pose-stamped-fixed (pose-stamped->pose-stamped-fixed pose-stamped))
-               (color (color-msg-to-list color-msg)))
+               (color (color-msg-to-list color-msg))
+               (box (cl-bullet:make-bounding-box :center pose-stamped-fixed
+                                                 :dimensions bounding-box)))
           (spatial-relations-demo::spawn-object name-symbol
                                                 type-symbol
                                                 :pose pose-stamped-fixed
                                                 :color color
-                                                :world world))
+                                                :world world)
+          (approximate-object-to-bounding-box name box world))
         (object-exists name))))
 
-(defun move-object (name pose-stamped-msg &key (world btr:*current-bullet-world*))
+(defun update-camera-pose (pose &optional (world btr:*current-bullet-world*))
+  (out-info "update-camera-pose()")
+  (out-debug "pose: ~a" pose)
+  (not (null
+        (let* ((color '(0 1 0))
+               (camera-name *camera*)
+               (view-name *camera-view*)
+               (radius 0.05)
+               (view-r 0.049)
+               (view-h 0.1)
+               (view-pose (cl-tf:transform
+                           (cl-tf:pose->transform pose)
+                           (cl-tf:make-pose
+                            (cl-tf:make-3d-vector 0 0 view-h)
+                            (cl-tf:make-quaternion 0 0 0 1)))))
+          (if (prolog `(object ,world ,camera-name))
+              (progn
+                (out-info "Camera exists.")
+                (prolog `(assert (object-pose ,world ,camera-name ,pose)))
+                (prolog `(assert (object-pose ,world ,view-name ,view-pose))))
+              (progn
+                (out-info "Camera does not exist.")
+                (prolog `(assert (object ,world sphere ,camera-name ,pose :mass 0.0 :color ,color :radius ,radius)))
+                (prolog `(assert (object ,world cone ,view-name ,view-pose :mass 0.0 :color ,color :radius ,view-r :height ,view-h)))))))))
+
+(defun remove-camera (&optional (world btr:*current-bullet-world*))
+  (out-info "remove-camera()")
+  (prolog `(retract (object ,world ,*camera*)))
+  (prolog `(retract (object ,world ,*camera-view*))))
+
+(defun move-robot (pose &key (world btr:*current-bullet-world*) (robot-name 'cram-pr2-knowledge::pr2))
+  `(assert (object-pose ,world ,robot-name ,pose)))
+
+(defun move-object (name pose-stamped-msg bounding-box &key (world btr:*current-bullet-world*))
   "Moves the object with the name `name' to `pose-stamped-msg' (`geometry_msgs/PoseStamped')
 in the bullet world `world.
 If there is no object `name' in `world', nothing happens."
+  (out-info "move-object()")
+  (let* ((pose-stamped (cl-tf2:from-msg pose-stamped-msg))
+         (pose-stamped-fixed (pose-stamped->pose-stamped-fixed pose-stamped)))
+    (move-object-by-fixed-pose name pose-stamped-fixed :world world :bounding-box bounding-box)))
+
+(defun move-object-by-fixed-pose (name pose &key (world btr:*current-bullet-world*) bounding-box)
+  (out-info "move-object-by-fixed-pose")
   (if (not (object-exists name world))
       (progn
         (out-error "Trying to move non existent object ~a!" name)
         nil)
-        (let* ((name-symbol (make-keyword name))
-               (pose (cl-tf2:from-msg pose-stamped-msg))
-               (pose-stamped (cl-tf2:from-msg pose-stamped-msg))
-               (pose-stamped-fixed (pose-stamped->pose-stamped-fixed pose-stamped)))
-          (prolog `(assert (object-pose ,world ,name-symbol ,pose-stamped-fixed)))
-          (poses-equal-p pose (get-object-pose name :world world) 0.01 0.01))))
+      (let* ((name-symbol (make-keyword name))
+             (box (cl-bullet:make-bounding-box :center pose
+                                               :dimensions bounding-box))
+             (new-pose (if bounding-box
+                           (get-approximated-bounding-box-to-bounding-box-pose
+                            (get-object-bounding-box name)
+                            box)
+                           pose)))
+        (unless new-pose
+          (setf new-pose pose))
+        (prolog `(assert (object-pose ,world ,name-symbol ,new-pose)))
+        (poses-equal-p new-pose (get-object-pose name :world world) 0.01 0.01))))
 
 (defun remove-obj (name &optional (world btr:*current-bullet-world*))
   "Removes the object `name' from the bullet world `world'."

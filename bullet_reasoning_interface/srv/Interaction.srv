@@ -9,11 +9,15 @@ uint32 REMOVE_ALL_OBJECTS_FAILED = 4
  
  # Realize operations on a world copy
   bool operationsWithCopy
-   # Remove all objects before realizing any operation
+  # Remove all objects before realizing any operation
   bool removeAllObjects
   # The operations
   ObjectOperation[] operations
- # Simulate the world after application of all operations
+  # Whether to update the camera's pose.
+  bool updateCameraPose
+  # The camera pose
+  geometry_msgs/PoseStamped cameraPose
+  # Simulate the world after application of all operations
   bool simulate
   # Realize simulation with a world copy. Has no effect if operationsWithCopy is set.
   bool simulateWithCopy

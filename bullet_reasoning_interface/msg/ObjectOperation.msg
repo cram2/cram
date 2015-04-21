@@ -20,3 +20,5 @@ geometry_msgs/PoseStamped poseStamped
 # Object's color. Only necessary when spawning an object.
 std_msgs/ColorRGBA color
 
+# Object's bounding box in world's fixed frame.
+geometry_msgs/Vector3 boundingBox

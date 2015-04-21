@@ -1,5 +1,5 @@
 (desig-props:def-desig-package bullet-reasoning-interface
-  (:nicknames :reas-inf)
+  (:nicknames :reas-inf :btri)
   (:use
    #:cram-designators
    #:roslisp
