@@ -1,6 +1,5 @@
 (in-package :reas-inf)
 
-
 (defun init-interface ()
   "Initializes the bullet reasoning interface."
   (if (eq (node-status) :RUNNING)
@@ -18,6 +17,8 @@
 (def-service-callback bullet_reasoning_interface-srv:Interaction (operationsWithCopy
                                                                   removeAllObjects
                                                                   operations
+                                                                  updateCameraPose
+                                                                  cameraPose
                                                                   simulate
                                                                   simulateWithCopy
                                                                   duration)
@@ -43,13 +44,16 @@
          (current-world-const (get-world-type-constant ':CURRENT_WORLD))
          (operated-world-const (get-world-type-constant ':OPERATED_WORLD))
          (simulated-world-const (get-world-type-constant ':SIMULATED_WORLD))
+         ;; camera pose
+         (camera-pose (when cameraPose
+                        (cl-tf2:from-msg cameraPose)))
          ;; responses
          (intel-current-world (make-msg "bullet_reasoning_interface/WorldIntel" worldType current-world-const))
          (intel-operations-world (make-msg "bullet_reasoning_interface/WorldIntel" worldType operated-world-const))
          (intel-simulated-world (make-msg "bullet_reasoning_interface/WorldIntel" worldType simulated-world-const))
          (object-intel-current-world (if (not operationsWithCopy)
-                                              (make-array (length operations) :initial-element (make-msg "BULLET_REASONING_INTERFACE/ObjectIntel"))
-                                              '#()))
+                                         (make-array (length operations) :initial-element (make-msg "BULLET_REASONING_INTERFACE/ObjectIntel"))
+                                         '#()))
          (object-intel-operations (if operationsWithCopy
                                       (make-array (length operations) :initial-element (make-msg "BULLET_REASONING_INTERFACE/ObjectIntel"))
                                       object-intel-current-world))
@@ -69,6 +73,8 @@
          (remove-all-objects-result (if removeAllObjects
                                         (remove-all-objects world-operations)
                                         t)))
+    (when updateCameraPose
+      (update-camera-pose camera-pose))
     (if (not remove-all-objects-result)
         (progn
           (out-error "Removing all objects failed!")
@@ -80,40 +86,43 @@
                           operation
                           (object-type type)
                           (object-pose-stamped poseStamped)
-                          (object-color color)) (elt operations i)
-              (out-info "Applying operation ~a to object ~a." operation object-id)
-              (update-message-arrays i `(:id ,object-id)
-                                     object-intel-current-world (not operationsWithCopy)
-                                     object-intel-operations operationsWithcopy
-                                     object-intel-simulated simulateWithCopy)
-              (vector-push (make-keyword object-id) object-ids-symbol)
-              ;; TODO Genauer abfragen, in welches array dinge gespeichert werden müssen. Wird kopiert beim operieren und simulieren?
-              (cond
-                ((eq operation spawn-object-const)
-                 (update-message-array i object-intel-operations
-                                       :operation operation
-                                       :operationSucceeded
-                                       (spawn-object object-id object-type object-pose-stamped object-color :world world-operations)))
-                ((eq operation move-object-const)
-                 (update-message-array i object-intel-operations
-                                       :operation operation
-                                       :operationSucceeded
-                                       (move-object object-id object-pose-stamped :world world-operations)))
-                ((eq operation remove-object-const)
-                 (update-message-array i object-intel-operations
-                                       :operation operation
-                                       :operationSucceeded
-                                       (remove-obj object-id world-operations)))
-                ((eq operation query-status-const)
-                 (update-message-array i object-intel-operations
-                                       :operation operation
-                                       :operationSucceeded t)
-                 (out-info "Only querying status for object ~a" object-id))
-                (t
-                 (out-error "Unhandled operation.")
-                 (update-message-array i object-intel-operations :operation operation
-                                                                 :operationSucceeded nil))))
-            (out-info "---------------------------------"))
+                          (object-color color)
+                          (bounding-box boundingBox))
+                (elt operations i)
+              (let ((object-bounding-box (cl-tf2:from-msg bounding-box)))
+                (out-info "Applying operation ~a to object ~a." operation object-id)
+                (update-message-arrays i `(:id ,object-id)
+                                       object-intel-current-world (not operationsWithCopy)
+                                       object-intel-operations operationsWithcopy
+                                       object-intel-simulated simulateWithCopy)
+                (vector-push (make-keyword object-id) object-ids-symbol)
+                (cond
+                  ((eq operation spawn-object-const)
+                   (update-message-array i object-intel-operations
+                                         :operation operation
+                                         :operationSucceeded
+                                         (spawn-object object-id object-type object-pose-stamped
+                                                       object-color object-bounding-box :world world-operations)))
+                  ((eq operation move-object-const)
+                   (update-message-array i object-intel-operations
+                                         :operation operation
+                                         :operationSucceeded
+                                         (move-object object-id object-pose-stamped object-bounding-box :world world-operations)))
+                  ((eq operation remove-object-const)
+                   (update-message-array i object-intel-operations
+                                         :operation operation
+                                         :operationSucceeded
+                                         (remove-obj object-id world-operations)))
+                  ((eq operation query-status-const)
+                   (update-message-array i object-intel-operations
+                                         :operation operation
+                                         :operationSucceeded t)
+                   (out-info "Only querying status for object ~a" object-id))
+                  (t
+                   (out-error "Unhandled operation.")
+                   (update-message-array i object-intel-operations :operation operation
+                                                                   :operationSucceeded nil))))
+              (out-info "---------------------------------")))
           ;; simulating
           (when simulate
             (setf world-simulate (simulate-world duration :world world-operations :copy simulateWithCopy)))
@@ -127,7 +136,7 @@
                                                                                '#()
                                                                                object-ids-symbol)))
           (multiple-value-bind (data stable)
-              (get-data-from-world world-current object-intel-current-world)
+              (get-data-from-world world-current object-intel-current-world :camera-pose camera-pose)
             (setf object-intel-current-world data)
             (setf intel-current-world (modify-message-copy intel-current-world
                                                            isStable stable
@@ -141,7 +150,7 @@
                                                                           object-intel-operations
                                                                           object-ids-symbol))
             (multiple-value-bind (data stable)
-                (get-data-from-world world-operations object-intel-operations)
+                (get-data-from-world world-operations object-intel-operations :camera-pose camera-pose)
               (setf object-intel-operations data)
               (setf intel-operations-world (modify-message-copy intel-operations-world
                                                                 isStable stable
@@ -155,7 +164,7 @@
                                                                          object-intel-simulated
                                                                          object-ids-symbol))
             (multiple-value-bind (data stable)
-                (get-data-from-world world-simulate object-intel-simulated)
+                (get-data-from-world world-simulate object-intel-simulated :camera-pose camera-pose)
               (setf object-intel-simulated data)
               (setf intel-simulated-world (modify-message-copy intel-simulated-world
                                                                isStable stable
@@ -192,14 +201,14 @@ Returns `intel' unified with the new intel (as a vector)."
                                                              :operationSucceeded t))
     (concatenate 'vector intel remaining-objects-intel)))
 
-(defun get-data-from-world (world intel)
+(defun get-data-from-world (world intel &key camera-pose)
   "Gets information about objects in the world `world'.
 `world' is expected to be a bullet world instance.
 `intel' is expected to be a vector of ObjectIntel messages. The id field of every message inside this vecor should be set.
 Returns `intel' with aggregated information about every object
 and as second value it returns a boolean which indicates, if `world' is stable."
   (out-info "Getting data from world ~a" world)
-  (let* ((visible-objects (get-visible-objects :world world))
+  (let* ((visible-objects (get-visible-objects :world world :camera-pose camera-pose))
          (world-is-stable (is-stable-world :world world))
          (stable-objects (unless world-is-stable
                            (get-stable-objects :world world))))
