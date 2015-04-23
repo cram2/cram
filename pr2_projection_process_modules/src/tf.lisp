@@ -40,13 +40,13 @@
     (assert (not (cut:is-var ?robot-instance)))
     (cl-tf2:send-transform
      cram-roslisp-common:*tf2-broadcaster*
-     (cl-tf-datatypes:make-transform-stamped
+     (make-transform-stamped
       map-frame odom-frame (roslisp:ros-time)
       (cl-transforms:make-identity-vector)
       (cl-transforms:make-identity-rotation)))
     (cl-tf2:send-transform
      cram-roslisp-common:*tf2-broadcaster*
-     (cl-tf-datatypes:make-transform-stamped
+     (make-transform-stamped
       odom-frame base-frame (roslisp:ros-time)
       (cl-transforms:origin ?robot-pose)
       (cl-transforms:orientation ?robot-pose)))
