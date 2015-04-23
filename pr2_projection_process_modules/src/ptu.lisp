@@ -35,7 +35,7 @@
 (defmethod on-input ((process-module projection-ptu) (input desig:action-designator))
   (let* ((designator-solution (desig:reference input))
          (pose (etypecase designator-solution
-                 (cl-tf-datatypes:pose-stamped designator-solution)
+                 (pose-stamped designator-solution)
                  (desig:location-designator (desig:reference designator-solution)))))
     (execute-as-action
      input

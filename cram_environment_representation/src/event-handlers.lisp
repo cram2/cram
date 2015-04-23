@@ -138,7 +138,7 @@
     (assert object)
     (desig:make-designator
      'desig-props:location
-     `((pose ,(cl-tf-datatypes:pose->pose-stamped
+     `((pose ,(pose->pose-stamped
                designators-ros:*fixed-frame* (cut:current-timestamp)
                (bt:pose object)))))))
 
@@ -147,7 +147,7 @@
   robot's gripper."
   (declare (type object object))
   (roslisp:ros-info () "making desig in gripper ~a~%~%~%~%" gripper-link)
-  (let* ((object-pose (cl-tf-datatypes:pose->pose-stamped
+  (let* ((object-pose (pose->pose-stamped
                        designators-ros:*fixed-frame* 0.0
                        (btr:pose object)))
          (robot (get-robot-object)))
@@ -169,10 +169,10 @@
 (defun object-pose-in-frame (object frame)
   (declare (type object object)
            (type string frame))
-  (cl-tf-datatypes:copy-pose-stamped
+  (copy-pose-stamped
    (cl-tf2:transform-pose
     *tf2-buffer*
-    :pose (cl-tf-datatypes:pose->pose-stamped
+    :pose (pose->pose-stamped
            designators-ros:*fixed-frame* 0.0 (btr:pose object))
     :target-frame frame
     :timeout cram-roslisp-common:*tf-default-timeout*)

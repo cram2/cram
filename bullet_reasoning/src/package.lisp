@@ -32,10 +32,11 @@
 
 (desig-props:def-desig-package bullet-reasoning
   (:nicknames :btr)
-  (:use #:common-lisp #:crs #:bt #:bt-vis #:cut #:cram-manipulation-knowledge)
+  (:use #:common-lisp #:crs #:bt #:bt-vis #:cut #:cram-manipulation-knowledge
+        #:cl-transforms-stamped)
   (:import-from #:alexandria compose curry rcurry with-gensyms copy-hash-table)
   (:import-from #:desig desig-solutions)
-  (:shadowing-import-from #:cl-bullet points)
+  (:shadowing-import-from #:cl-bullet points pose)
   (:shadow copy-object)
   (:export *current-bullet-world* *current-timeline*
            merge-bounding-boxes aabb with-stored-world *debug-window*
