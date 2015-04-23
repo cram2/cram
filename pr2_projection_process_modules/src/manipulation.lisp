@@ -29,7 +29,7 @@
 (in-package :projection-process-modules)
 
 (defparameter *both-arms-carry-pose*
-  (cl-tf-datatypes:make-pose-stamped
+  (make-pose-stamped
    "torso_lift_link" 0.0
    (cl-transforms:make-3d-vector 0.5 0.0 -0.1)
    (cl-transforms:make-quaternion 0 0 0 1)))
@@ -171,7 +171,7 @@
              (cut:lazy-car
               (bullet-reasoning:get-ik
                robot-object
-               (cl-tf-datatypes:copy-pose-stamped
+               (copy-pose-stamped
                 ?parking-pose :orientation (get-link-orientation-in-robot link))
                :group-name (side->ik-group-name side)
                :seed-state (make-joint-state-message ?joint-states)))))

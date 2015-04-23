@@ -30,8 +30,10 @@
   (:use #:common-lisp
         #:bullet-reasoning
         #:cram-process-modules
-        #:cram-projection)
+        #:cram-projection
+        #:cl-transforms-stamped)
   (:shadowing-import-from #:bullet-reasoning name)
+  (:shadowing-import-from #:cl-bullet pose)
   (:import-from #:cram-roslisp-common *tf2-buffer*)
   (:import-from #:cram-manipulation-knowledge trajectory-point end-effector-link)
   (:export execute-container-opened execute-container-closed

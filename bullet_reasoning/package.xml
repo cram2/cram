@@ -20,7 +20,7 @@
   <build_depend>cl_bullet_vis</build_depend>
   <build_depend>cram_json_prolog</build_depend>
   <build_depend>cl_urdf</build_depend>
-  <build_depend>cl_tf_datatypes</build_depend>
+  <build_depend>cl_transforms_stamped</build_depend>
   <build_depend>cl_tf2</build_depend>
   <build_depend>cl_semantic_map_utils</build_depend>
   <build_depend>cram_designators</build_depend>
@@ -35,7 +35,7 @@
   <run_depend>cl_bullet_vis</run_depend>
   <run_depend>cram_json_prolog</run_depend>
   <run_depend>cl_urdf</run_depend>
-  <run_depend>cl_tf_datatypes</run_depend>
+  <run_depend>cl_transforms_stamped</run_depend>
   <run_depend>cl_tf2</run_depend>
   <run_depend>cl_semantic_map_utils</run_depend>
   <run_depend>cram_designators</run_depend>

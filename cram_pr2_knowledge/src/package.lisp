@@ -29,7 +29,8 @@
 (in-package :cl-user)
 
 (desig-props:def-desig-package cram-pr2-knowledge
-  (:use #:common-lisp #:bullet-reasoning #:cram-reasoning)
+  (:use #:common-lisp #:bullet-reasoning #:cram-reasoning #:cl-transforms-stamped)
+  (:shadowing-import-from #:cl-bullet pose)
   (:import-from  #:cram-manipulation-knowledge
                  arm required-arms available-arms object-type-grasp
                  object-designator-grasp object-type-tool-length

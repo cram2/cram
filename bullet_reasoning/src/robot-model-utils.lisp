@@ -161,7 +161,7 @@ sensor_msgs/JointStates message."
                           (cl-transforms:reference-transform
                            (link-pose robot link)))))
           (cl-tf2:send-transform tf-broadcaster
-                                 (cl-tf-datatypes:make-transform-stamped
+                                 (make-transform-stamped
                                   base-frame link time
                                   (cl-transforms:translation transform)
                                   (cl-transforms:rotation transform))))))
@@ -226,8 +226,8 @@ joint positions as seeds."
                      (cl-transforms:reference-transform pose)
                      (cl-transforms:transform-inv
                       (cl-transforms:reference-transform tool)))))
-    (cl-tf-datatypes:make-pose-stamped
-     (cl-tf-datatypes:frame-id pose) (cl-tf-datatypes:stamp pose)
+    (make-pose-stamped
+     (frame-id pose) (stamp pose)
      (cl-transforms:translation goal-trans)
      (cl-transforms:rotation goal-trans))))
 
@@ -295,13 +295,13 @@ time for that :(..."
     ;; tell the tf transformer where the robot currently is in the global
     ;; fixed coordinate system
     (cl-tf2:send-transform cram-roslisp-common:*tf2-broadcaster*
-                           (cl-tf-datatypes:transform->transform-stamped
+                           (transform->transform-stamped
                             fixed-frame robot-base-frame time
                             (cl-transforms:pose->transform (pose robot))))
     (cl-tf2:execute-changed-callbacks cram-roslisp-common:*tf2-broadcaster*)
     (let* ((pose (cl-tf2:transform-pose
                   cram-roslisp-common:*tf2-buffer*
-                  :pose (cl-tf-datatypes:copy-pose-stamped pose-stamped :stamp 0.0)
+                  :pose (copy-pose-stamped pose-stamped :stamp 0.0)
                   :target-frame designators-ros:*robot-base-frame*
                   :timeout cram-roslisp-common:*tf-default-timeout*)))
       (roslisp:ros-info (get-ik) "msg:~%~a~%"

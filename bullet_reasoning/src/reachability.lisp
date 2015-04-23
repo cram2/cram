@@ -149,9 +149,8 @@ tool length."
   (let ((reference-frame (cl-urdf:name (cl-urdf:root-link (slot-value robot 'urdf)))))
     (get-ik
      robot (etypecase pose
-             (cl-tf-datatypes:pose-stamped pose)
-             (cl-transforms:pose (cl-tf-datatypes:pose->pose-stamped
-                                  "map" 0.0 pose)))
+             (pose-stamped pose)
+             (cl-transforms:pose (pose->pose-stamped "map" 0.0 pose)))
      :group-name (side->ik-group-name side)
      :tool-frame (or tool-frame
                      (calculate-tool
