@@ -33,7 +33,7 @@
              (equal (cl-tf2:unslash-frame gripper-link)
                     (cl-tf2:unslash-frame pose-frame-id)))
            (desig-prop-values designator 'pose)
-           :key #'cl-tf-datatypes:frame-id))
+           :key #'frame-id))
 
 (defun get-latest-detected-object-pose (object-designator)
   "Returns the pose where the object has been detected using
@@ -62,7 +62,7 @@
 
 (defun calculate-put-down-hand-pose (gripper-link object-designator put-down-pose
                                      &key robot-pose)
-  (declare (type cl-tf-datatypes:pose-stamped put-down-pose))
+  (declare (type pose-stamped put-down-pose))
   (let ((current-object (desig:current-desig object-designator)))
     (desig:with-desig-props (desig-props:at) current-object
       (assert desig-props:at () "Object ~a needs to have an `at' property"
@@ -80,7 +80,7 @@
                   :timeout cram-roslisp-common:*tf-default-timeout*))
                (put-down-pose (if (not robot-pose)
                                   put-down-pose-in-fixed-frame
-                                  (cl-tf-datatypes:copy-pose-stamped
+                                  (copy-pose-stamped
                                    put-down-pose-in-fixed-frame
                                    :orientation (cl-transforms:q*
                                                  (cl-transforms:orientation

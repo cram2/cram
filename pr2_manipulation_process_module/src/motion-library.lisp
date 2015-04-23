@@ -83,13 +83,13 @@ trying to assume the pose `pose'."
                                     :ignore-collisions ignore-collisions)))
 
 (defun link-distance-from-pose (link-name pose-stamped)
-  (let* ((link-identity-pose (cl-tf-datatypes:pose->pose-stamped
+  (let* ((link-identity-pose (pose->pose-stamped
                               link-name 0.0
                               (cl-transforms:make-identity-pose)))
          (link-in-pose-frame (cl-tf2:transform-pose
                               *tf2-buffer*
                               :pose link-identity-pose
-                              :target-frame (cl-tf-datatypes:frame-id pose-stamped)
+                              :target-frame (frame-id pose-stamped)
                               :timeout cram-roslisp-common:*tf-default-timeout*
                               :use-current-ros-time t)))
     (cl-transforms:v-dist (cl-transforms:origin link-in-pose-frame)
@@ -256,13 +256,13 @@ positions, grasp-type, effort to use) are defined in the list
                           (let ((pose-straight
                                   (cl-tf2:transform-pose
                                    *tf2-buffer*
-                                   :pose (cl-tf-datatypes:pose->pose-stamped
+                                   :pose (pose->pose-stamped
                                           (link-name (side grasp-assignment))
                                           0.0
                                           (cl-transforms:make-identity-pose))
                                    :target-frame "base_link"
                                    :timeout cram-roslisp-common:*tf-default-timeout*)))
-                            (cl-tf-datatypes:copy-pose-stamped
+                            (copy-pose-stamped
                              pose-straight
                              :origin (cl-transforms:v+
                                       (cl-transforms:origin pose-straight)
@@ -285,8 +285,8 @@ positions, grasp-type, effort to use) are defined in the list
 (defun relative-pose (pose pose-offset)
   "Applies the pose `pose-offset' as transformation into the pose
 `pose' and returns the result in the frame of `pose'."
-  (cl-tf-datatypes:pose->pose-stamped
-   (cl-tf-datatypes:frame-id pose)
+  (pose->pose-stamped
+   (frame-id pose)
    (ros-time)
    (cl-transforms:transform-pose
     (cl-transforms:pose->transform pose)

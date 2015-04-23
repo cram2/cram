@@ -65,23 +65,23 @@
 
 ;; Parking related poses
 (defparameter *park-pose-left-default*
-  (cl-tf-datatypes:make-pose-stamped
+  (make-pose-stamped
    "base_link" (ros-time)
    (cl-transforms:make-3d-vector 0.3 0.5 1.3)
    (cl-transforms:euler->quaternion :ax 0)))
 (defparameter *park-pose-right-default*
-  (cl-tf-datatypes:make-pose-stamped
+  (make-pose-stamped
    "base_link" (ros-time)
    (cl-transforms:make-3d-vector 0.3 -0.5 1.3)
    (cl-transforms:euler->quaternion :ax 0)))
 (defparameter *park-pose-left-top-slide-down*
-  (cl-tf-datatypes:make-pose-stamped
+  (make-pose-stamped
    "base_link" (ros-time)
    (cl-transforms:make-3d-vector 0.3 0.5 1.3)
    (cl-transforms:euler->quaternion
     :ax 0 :ay (/ pi -2))))
 (defparameter *park-pose-right-top-slide-down*
-  (cl-tf-datatypes:make-pose-stamped
+  (make-pose-stamped
    "base_link" (ros-time)
    (cl-transforms:make-3d-vector 0.3 -0.5 1.3)
    (cl-transforms:euler->quaternion
@@ -110,9 +110,9 @@ applied."
                                 (cl-transforms:pose->transform
                                  (reference relative-handle-loc))
                                 handle-offset-pose))
-         (pose-stamped (cl-tf-datatypes:pose->pose-stamped
-                        (cl-tf-datatypes:frame-id absolute-object-pose-stamped)
-                        (cl-tf-datatypes:stamp absolute-object-pose-stamped)
+         (pose-stamped (pose->pose-stamped
+                        (frame-id absolute-object-pose-stamped)
+                        (stamp absolute-object-pose-stamped)
                         (cl-transforms:transform-pose
                          (cl-transforms:pose->transform
                           absolute-object-pose-stamped)

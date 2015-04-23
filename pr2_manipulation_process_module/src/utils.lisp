@@ -144,10 +144,10 @@ satisfy these constraints is returned."
 (defun publish-pose (pose topic)
   (let* ((pose-stamped
            (case (class-name (class-of pose))
-             (cl-transforms:pose (cl-tf-datatypes:pose->pose-stamped "/map" (ros-time) pose))
-             (cl-tf-datatypes:pose-stamped
-              (cond ((or (string= (cl-tf-datatypes:frame-id pose) "map")
-                         (string= (cl-tf-datatypes:frame-id pose) "/map"))
+             (cl-transforms:pose (pose->pose-stamped "/map" (ros-time) pose))
+             (pose-stamped
+              (cond ((or (string= (frame-id pose) "map")
+                         (string= (frame-id pose) "/map"))
                      pose)
                     (t (cl-tf2:transform-pose
                         *tf2-buffer*

@@ -34,8 +34,8 @@
 (defun pose-stamped->point-stamped-msg (ps)
   (roslisp:make-message
    "geometry_msgs/PointStamped"
-   (stamp header) (cl-tf-datatypes:stamp ps)
-   (frame_id header) (cl-tf-datatypes:frame-id ps)
+   (stamp header) (stamp ps)
+   (frame_id header) (frame-id ps)
    (x point) (cl-transforms:x
               (cl-transforms:origin ps))
    (y point) (cl-transforms:y
@@ -45,10 +45,10 @@
 
 (defun ensure-pose-stamped (pose)
   (etypecase pose
-    (cl-tf-datatypes:pose-stamped pose)
-    (cl-tf-datatypes:transform-stamped
-     (cl-tf-datatypes:make-pose-stamped
-      (cl-tf-datatypes:frame-id pose) (cl-tf-datatypes:stamp pose)
+    (pose-stamped pose)
+    (transform-stamped
+     (make-pose-stamped
+      (frame-id pose) (cl-tf-datatypes:stamp pose)
       (cl-transforms:translation pose)
       (cl-transforms:rotation pose)))
     (location-designator (reference pose))))

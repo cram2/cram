@@ -36,7 +36,8 @@
         #:cram-process-modules
         #:cram-roslisp-common
         #:alexandria
-        #:cpl-impl)
+        #:cpl-impl
+        #:cl-transforms-stamped)
   (:export #:point-head-process-module)
   (:import-from cram-roslisp-common *tf2-buffer*)
   (:shadowing-import-from #:cpl-impl #:fail)
