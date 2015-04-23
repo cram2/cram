@@ -38,7 +38,8 @@
         #:cram-process-modules
         #:cram-plan-failures
         #:cram-plan-knowledge
-        #:cram-manipulation-knowledge)
+        #:cram-manipulation-knowledge
+        #:cl-transforms-stamped)
   (:import-from alexandria ignore-some-conditions)
   (:import-from pr2-manipulation-knowledge
                 manipulator-link

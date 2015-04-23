@@ -31,7 +31,7 @@
   (apply #'roslisp::make-message-fn type-str slots))
 
 (defun arm-for-pose (pose)
-  (let* ((pose-frame (cl-tf-datatypes:frame-id pose))
+  (let* ((pose-frame (frame-id pose))
          (string-frame
            (or (when (and (> (length pose-frame) 0)
                           (string= (subseq pose-frame 0 1) "/"))
@@ -151,12 +151,12 @@
                          (cl-transforms:euler->quaternion :az z-rotation))
                         (cl-transforms:make-pose
                          (cl-transforms:make-identity-vector) orig-orient)))))
-    (cl-tf-datatypes:make-pose-stamped
-     (cl-tf-datatypes:frame-id pose-stamped) (ros-time)
+    (make-pose-stamped
+     (frame-id pose-stamped) (ros-time)
      (cl-transforms:origin pose-stamped) tran-orient)))
 
 (defun elevate-pose (pose-stamped z-offset)
-  (cl-tf-datatypes:copy-pose-stamped
+  (copy-pose-stamped
    pose-stamped :origin (cl-transforms:v+ (cl-transforms:origin pose-stamped)
                                           (cl-transforms:make-3d-vector 0.0 0.0 z-offset))))
 

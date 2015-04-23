@@ -58,11 +58,11 @@
 (defvar *trajectory-action-both* nil)
 (defvar *trajectory-action-torso* nil)
 
-(defvar *left-safe-pose* (cl-tf-datatypes:make-pose-stamped
+(defvar *left-safe-pose* (make-pose-stamped
                           "base_link" (ros-time)
                           (cl-transforms:make-3d-vector 0.3 0.5 1.3)
                           (cl-transforms:euler->quaternion :ax pi)))
-(defvar *right-safe-pose* (cl-tf-datatypes:make-pose-stamped
+(defvar *right-safe-pose* (make-pose-stamped
                            "base_link" (ros-time)
                            (cl-transforms:make-3d-vector 0.3 -0.5 1.3)
                            (cl-transforms:euler->quaternion :ax pi)))
@@ -356,7 +356,7 @@
                                     `(cram-pr2-knowledge::end-effector-link
                                       ,(car grippers)
                                       ?target-frame)))))
-         (obj-pose-in-gripper (cl-tf-datatypes:pose->pose-stamped
+         (obj-pose-in-gripper (pose->pose-stamped
                                target-frame
                                0.0
                                (cl-tf2:transform-pose
@@ -406,7 +406,7 @@ its' supporting plane."
             'location
             `((in ,gripper)
               (side ,side)
-              (pose ,(cl-tf-datatypes:copy-pose-stamped
+              (pose ,(copy-pose-stamped
                       (cl-tf2:transform-pose
                        *tf2-buffer*
                        :pose obj-pose

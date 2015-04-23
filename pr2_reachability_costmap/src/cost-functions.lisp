@@ -69,16 +69,16 @@
 
 (defun ensure-point-stamped (pose-specification)
   (etypecase pose-specification
-    (cl-tf-datatypes:point-stamped pose-specification)
-    (cl-tf-datatypes:pose-stamped
-     (cl-tf-datatypes:make-point-stamped
-      (cl-tf-datatypes:frame-id pose-specification)
-      (cl-tf-datatypes:stamp pose-specification)
+    (point-stamped pose-specification)
+    (pose-stamped
+     (make-point-stamped
+      (frame-id pose-specification)
+      (stamp pose-specification)
       (cl-transforms:origin pose-specification)))
-    (cl-transforms:3d-vector (cl-tf-datatypes:make-point-stamped
+    (cl-transforms:3d-vector (make-point-stamped
                               designators-ros:*fixed-frame* 0.0
                               pose-specification))
-    (cl-transforms:pose (cl-tf-datatypes:make-point-stamped
+    (cl-transforms:pose (make-point-stamped
                          designators-ros:*fixed-frame* 0.0
                          (cl-transforms:origin pose-specification)))))
 
@@ -87,7 +87,7 @@
   orientation of `pose'. If `pose' is of type TF:POSE-STAMPED,
   transforms it first into the fixed frame."
   (let ((pose (etypecase pose
-                (cl-tf-datatypes:pose-stamped
+                (pose-stamped
                  (cl-tf2:transform-pose
                   *tf2-buffer*
                   :pose pose
