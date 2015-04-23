@@ -31,7 +31,8 @@
 
 (defpackage :designators-ros
     (:use #:cl #:desig #:cut #:crs
-          #:cram-roslisp-common)
+          #:cram-roslisp-common
+          #:cl-transforms-stamped)
   (:import-from #:tf pose pose-stamped)
   (:import-from cram-roslisp-common *tf2-buffer*)
   (:export pose pose-stamped *fixed-frame* *robot-base-frame* *odom-frame*

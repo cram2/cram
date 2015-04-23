@@ -243,7 +243,7 @@ respectively."
                              (stamp header) (ros-time)
                              (frame_id header)
                              (typecase pose
-                               (cl-tf-datatypes:pose-stamped (cl-tf-datatypes:frame-id pose))
+                               (pose-stamped (frame-id pose))
                                (t "/map"))
                              ns "kipla_locations"
                              id (or id (incf current-index))

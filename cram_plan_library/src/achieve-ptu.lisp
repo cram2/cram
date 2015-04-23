@@ -40,7 +40,7 @@
                               (ecase ?pose
                                 (:forward
                                  `((to see)
-                                   (pose ,(cl-tf-datatypes:make-pose-stamped
+                                   (pose ,(make-pose-stamped
                                            designators-ros:*robot-base-frame*
                                            0.0
                                            (cl-transforms:make-3d-vector
