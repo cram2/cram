@@ -30,7 +30,7 @@
 
 (defpackage semantic-map-collision-environment
   (:nicknames :sem-map-coll-env)
-  (:use #:common-lisp #:cl-transforms #:cut
+  (:use #:common-lisp #:cl-transforms #:cut #:cl-transforms-stamped
         #:roslisp-utilities #:cram-roslisp-common)
   (:export init-semantic-map-obj-cache collision-environment-names
            invalidate-semantic-map-obj-cache

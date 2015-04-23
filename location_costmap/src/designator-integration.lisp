@@ -64,7 +64,7 @@
         (let ((robot-pose
                 (cl-tf2:transform-pose
                  *tf2-buffer*
-                 :pose (cl-tf-datatypes:make-pose-stamped
+                 :pose (make-pose-stamped
                         designators-ros:*robot-base-frame*
                         (roslisp:ros-time)
                         (cl-transforms:make-identity-vector)

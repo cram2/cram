@@ -29,6 +29,7 @@
 
 (desig-props:def-desig-package cram-plan-library
   (:documentation "Library of plans for pick-and-place tasks.")
+  (:nicknames :plan-lib)
   (:use #:cpl
         #:cram-designators
         #:cram-language-designator-support
@@ -38,8 +39,9 @@
         #:cram-roslisp-common
         #:cram-plan-knowledge
         #:cram-plan-failures
-        #:alexandria)
-  (:nicknames :plan-lib)
+        #:alexandria
+        #:cl-transforms-stamped)
+  (:shadowing-import-from #:alexandria rotate)
   (:export #:achieve
            #:perform
            #:perform-on-process-module

@@ -64,7 +64,7 @@
         (let* ((obj-name (string-upcase (make-collision-obj-name obj)))
                (pose-stamped (cl-tf2:transform-pose
                               *tf2-buffer*
-                              :pose (cl-tf-datatypes:pose->pose-stamped
+                              :pose (pose->pose-stamped
                                      designators-ros:*fixed-frame* 0.0 pose)
                               :target-frame designators-ros:*odom-frame*
                               :timeout cram-roslisp-common:*tf-default-timeout*)))

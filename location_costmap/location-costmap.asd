@@ -34,7 +34,7 @@
                cram-utilities
                roslisp-utilities
                cl-tf2
-               cl-tf-datatypes
+               cl-transforms-stamped
                cram-roslisp-common
                cram-manipulation-knowledge
                nav_msgs-msg

@@ -45,13 +45,13 @@
   (let ((robot-pose
           (cl-tf2:transform-pose
            *tf2-buffer*
-           :pose (cl-tf-datatypes:make-pose-stamped
+           :pose (make-pose-stamped
                   designators-ros:*robot-base-frame* 0.0
                   (cl-transforms:make-identity-vector)
                   (cl-transforms:make-identity-rotation))
            :target-frame designators-ros:*fixed-frame*
            :timeout cram-roslisp-common:*tf-default-timeout*)))
-    (cl-tf-datatypes:copy-pose-stamped
+    (copy-pose-stamped
      robot-pose
      :origin (cl-transforms:copy-3d-vector
               (cl-transforms:origin robot-pose) :z 0.0))))
