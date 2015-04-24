@@ -32,68 +32,21 @@
   (setf *demo-object-types*
         '((:main spatula mondamin)
           (:non-mesh pancake-maker)))
-  (setf *demo-objects-how-many-each-type*
-        '((pancake-maker . 1)
-          (spatula . 2)
-          (mondamin . 1))))
+  (setf *demo-objects-initial-poses*
+        '((pancake-maker ((-1.0 -0.4 0.765) (0 0 0 1)))
+          (spatula
+           ((1.43 0.6 0.86) (0.0d0 0.0d0 -0.4514496d0 0.89229662d0))
+           ((1.45 0.95 0.86) (0 0 0.2 1)))
+          (mondamin ((1.35 1.11 0.958) (0 0 0 1))))))
 
-(defun spawn-pancake-scenario ()
-  (btr::clear-current-costmap-function-object)
-  (detach-all-objects (object *current-bullet-world* 'cram-pr2-knowledge::pr2))
-  (prolog `(and (bullet-world ?w)
-                (robot ?robot)
-                (robot-arms-parking-joint-states ?joint-parking-state)
-                (assert (joint-state ?w ?robot ?joint-parking-state))
-                ;; (assert (joint-state ?w ?robot (("torso_lift_joint" 0.33))))
-                (assert (joint-state ?w ?robot (("torso_lift_joint" 0.16825d0))))
-                (assert (object ?w btr::pancake-maker oven-1
-                                ((-1.0 -0.4 0.765) (0 0 0 1))
-                               :mass 0.2 :color (0.15 0.15 0.15) :size (0.15 0.15 0.035)))
-                (assert (object ?w btr::mesh spatula-1
-                                ((1.4 1.08 0.9119799601336841d0) (0 0 0 1))
-                                :mesh btr::spatula :mass 0.2 :color (0 0 0)))
-                (assert (object ?w btr::mesh spatula-2
-                                ((1.4 1.08 0.9119799601336841d0) (0 0 0 1))
-                                :mesh btr::spatula :mass 0.2 :color (0 0 0)))
-                (assert (object ?w btr::mesh mondamin-1
-                                ((1.35 1.11 0.9119799601336841d0) (0 0 0 1))
-                                :mesh mondamin :mass 0.2 :color (0.8 0.4 0.2)))))
-  (move-object 'spatula-1 `((1.43 0.6 0.86) (0.0d0 0.0d0 -0.4514496d0 0.89229662d0)))
-  (move-object 'spatula-2 `((1.45 0.95 0.86) (0 0 0.2 1)))
-  (move-object 'mondamin-1 `((1.35 1.11 0.958) (0 0 0 1)))
-  (move-object 'oven-1 `((-1.0 -0.4 0.765) (0 0 0 1)))
-  (move-object 'cram-pr2-knowledge::pr2 `((0 0 0) (0 0 0 1))))
-
-(defun spawn-spheres ()
-  (btr::set-object-pose (object *current-bullet-world* 'cram-pr2-knowledge::pr2)
-                        '((-0.2 1.3 0) (0 0 1 0)))
-  (dolist (pair *position-scatter*)
-    ;; (add-object *current-bullet-world* 'sphere (gensym) (first pair)
-    ;;             :radius 0.01 :mass 0.1 :color '(0 0 0))
-    (add-object *current-bullet-world* 'sphere (gensym)
-                (cl-transforms:make-pose
-                 (cl-transforms:make-3d-vector
-                  (cl-transforms:x (cl-transforms:origin (first pair)))
-                  (cl-transforms:y (cl-transforms:origin (first pair)))
-                  0.862)
-                 (cl-transforms:orientation (first pair)))
-                :radius 0.01 :mass 0.1 :color '(0 0 0))))
-
-(defun execute-pancake-scenario ()
-  (setf cram-roslisp-common:*tf-default-timeout* 1.0)
-  ;; (setf cram-designators::*print-location-validation-function-results* t)
-  ;; (sb-thread:make-thread #'(lambda ()
-  ;;                            (loop for i from 1 to 90
-  ;;                                  do
-  ;;                              (projection-process-modules::update-tf)
-  ;;                              (sleep 1))))
+(defmethod execute-demo ((demo-name (eql 'pancake-making)) &key (set nil))
   (sb-ext:gc :full t)
-  (spawn-pancake-scenario)
   (cram-projection:with-projection-environment
       projection-process-modules::pr2-bullet-projection-environment
     (cpl-impl:top-level
       (let ((spatula-designator
-              (find-object-on-counter 'btr::spatula "kitchen_sink_block")))
+              (find-object-on-counter 'btr::spatula "CounterTop"
+                                      "kitchen_sink_block_counter_top")))
         (sb-ext:gc :full t)
         (cram-language-designator-support:with-designators
             ((spatula-location (location `((on "Cupboard")

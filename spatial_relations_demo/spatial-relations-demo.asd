@@ -60,5 +60,4 @@
        (:file "plan-library")))
      (:file "scenario-interface" :depends-on ("package" "utilities"))
      (:file "table-setting" :depends-on ("package" "utilities" "scenario-interface"))
-     ;; (:file "pancake-making" :depends-on ("package" "utilities"))
-     ))))
+     (:file "pancake-making" :depends-on ("package" "utilities"))))))

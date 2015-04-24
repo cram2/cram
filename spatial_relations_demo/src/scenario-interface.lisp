@@ -33,9 +33,12 @@
   "An AList with object set keyword -> object types list.
 E.g. '((:main . (plate fork)) (:other-set . (other-type))).")
 
-(defparameter *demo-objects-how-many-each-type* nil
-  "An AList with object type -> number of such objects in demo.
-E.g. '((plate . 3) (other-type . 436)).")
+(defparameter *demo-objects-initial-poses* nil
+  "An AList with object type -> list of initial poses for objects of the type.
+E.g. '((plate ((0 0 1) (0 0 0 1))
+              ((1 0 1) (0 0 1 0)))
+       (other-type ((1.2 3.4 5.3) (0 0 0 1))))
+for 2 plates and 1 other-type.")
 
 (defparameter *demo-objects* (make-hash-table :test #'eq)
   "All the spawned objects will go here. Hash table: name -> obj-instance.")
@@ -43,24 +46,37 @@ E.g. '((plate . 3) (other-type . 436)).")
 (defgeneric parameterize-demo (demo-name)
   (:documentation "Bind all the parameters such as *demo-object-types* etc."))
 
-(defgeneric spawn-demo-objects (demo-name &key &allow-other-keys)
-  (:documentation "Function to spawn the objects.")
-  (:method :before (demo-name &key)
-    (unless *demo-object-types* (parameterize-demo demo-name)))
-  (:method (demo-name &key (set nil))
-    "`set' is, e.g., :main or :other-set, if not given spawns all objects."
-    (let ((object-types
-            (if set
-                (cdr (assoc set *demo-object-types*))
-                (apply #'append (mapcar #'cdr *demo-object-types*))))
-          (resulting-object-names '()))
-      (dolist (type object-types)
-        (dotimes (i (cdr (assoc type *demo-objects-how-many-each-type*)))
+(defun spawn-demo (demo-name &key (set nil))
+  "Function to spawn the demo objects.
+`set' is, e.g., :main or :other-set, if not given spawns all objects."
+  (unless *demo-object-types* (parameterize-demo demo-name))
+  (btr::clear-current-costmap-function-object)
+  (detach-all-objects (object-instance (robot-name)))
+  (move-robot)
+
+  (let ((object-types
+          (if set
+              (cdr (assoc set *demo-object-types*))
+              (apply #'append (mapcar #'cdr *demo-object-types*))))
+        (resulting-object-names '()))
+    (dolist (type object-types)
+      (let ((poses-for-type (cdr (assoc type *demo-objects-initial-poses*))))
+        (dotimes (i (length poses-for-type))
           (let ((name (new-symbol-with-id type i)))
             (format t "~a ~a ~%" name type)
             (push name resulting-object-names)
-            (setf (gethash name *demo-objects*) (spawn-object name type)))))
-      (mapcar (alexandria:rcurry #'gethash *demo-objects*) resulting-object-names))))
+            (setf (gethash name *demo-objects*)
+                  (spawn-object name type (nth i poses-for-type)))))))
+    (mapcar (alexandria:rcurry #'gethash *demo-objects*) resulting-object-names)))
+
+(defun respawn-demo (demo-name &key (set nil))
+  (kill-all-objects)
+  (spawn-demo demo-name :set set))
+
+(defgeneric execute-demo (demo-name &key &allow-other-keys)
+  (:documentation "A function to call after spawn-demo to execute the scenario.")
+  (:method :before (demo-name &key (set nil))
+    (respawn-demo demo-name :set set)))
 
 (defun new-symbol-with-id (string number)
   (intern (concatenate 'string (string-upcase string) "-" (write-to-string number))
@@ -71,7 +87,6 @@ E.g. '((plate . 3) (other-type . 436)).")
           "SPATIAL-RELATIONS-DEMO"))
 
 (declaim (inline new-symbol-with-id new-symbol-from-strings))
-
 
 (defun demo-object-names ()
   (alexandria:hash-table-keys *demo-objects*))

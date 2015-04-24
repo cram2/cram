@@ -56,6 +56,9 @@
 (disable-location-validation-function 'btr-desig::validate-designator-solution)
 (disable-location-validation-function 'btr-desig::check-ik-solution)
 
+(setf cram-roslisp-common:*tf-default-timeout* 1.0)
+;; (setf cram-designators::*print-location-validation-function-results* t)
+
 (defun init (&optional (ip "192.168.100.194"))
   "Start a ROS node with `ip' as a part of master-uri"
   (let ((uri (roslisp:make-uri ip 11311)))

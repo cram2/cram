@@ -56,6 +56,8 @@
   (<- (%scenario-object-color pot      (0.1 0.2 0.3)))
   (<- (%scenario-object-color bowl     (0 0.3 0)))
   (<- (%scenario-object-color mondamin (0.5 0.1 0)))
+  (<- (%scenario-object-color spatula  (0.1 0.1 0.1)))
+  (<- (%scenario-object-color pancake-maker (0.15 0.15 0.15)))
 
   ;; Object type shapes
   (<- (scenario-object-shape ?object-type ?shape)
