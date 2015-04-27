@@ -42,7 +42,7 @@
   (handler-case
       (let* ((root-link (cl-urdf:name (cl-urdf:root-link (urdf robot))))
              (robot-transform
-               (cl-tf2:lookup-transform
+               (cl-transforms-stamped:lookup-transform-stamped
                 tf-buffer root-link reference-frame
                 :time timestamp :timeout cram-roslisp-common:*tf-default-timeout*)))
         (when robot-transform
@@ -53,7 +53,7 @@
                   (cl-transforms:transform->pose
                    (cl-transforms:transform*
                     robot-transform
-                    (cl-tf2:lookup-transform
+                    (cl-transforms-stamped:lookup-transform-stamped
                      tf-buffer name root-link
                      :time timestamp
                      :timeout cram-roslisp-common:*tf-default-timeout*)))))))
@@ -299,7 +299,7 @@ time for that :(..."
                             fixed-frame robot-base-frame time
                             (cl-transforms:pose->transform (pose robot))))
     (cl-tf2:execute-changed-callbacks cram-roslisp-common:*tf2-broadcaster*)
-    (let* ((pose (cl-tf2:transform-pose
+    (let* ((pose (cl-transforms-stamped:transform-pose-stamped
                   cram-roslisp-common:*tf2-buffer*
                   :pose (copy-pose-stamped pose-stamped :stamp 0.0)
                   :target-frame designators-ros:*robot-base-frame*

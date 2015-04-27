@@ -170,7 +170,7 @@
   (declare (type object object)
            (type string frame))
   (copy-pose-stamped
-   (cl-tf2:transform-pose
+   (cl-transforms-stamped:transform-pose-stamped
     *tf2-buffer*
     :pose (pose->pose-stamped
            designators-ros:*fixed-frame* 0.0 (btr:pose object))

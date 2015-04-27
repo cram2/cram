@@ -40,7 +40,7 @@
     (execute-as-action
      input
      (lambda ()
-       (let ((pose (cl-tf2:transform-pose
+       (let ((pose (cl-transforms-stamped:transform-pose-stamped
                     *tf2-buffer*
                     :pose pose :target-frame designators-ros:*fixed-frame*
                     :timeout cram-roslisp-common:*tf-default-timeout*)))
