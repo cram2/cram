@@ -40,6 +40,7 @@
           (mondamin ((1.35 1.11 0.958) (0 0 0 1))))))
 
 (defmethod execute-demo ((demo-name (eql 'pancake-making)) &key (set nil))
+  (declare (ignore set))
   (sb-ext:gc :full t)
   (cram-projection:with-projection-environment
       projection-process-modules::pr2-bullet-projection-environment

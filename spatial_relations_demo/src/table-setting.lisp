@@ -58,7 +58,7 @@
 (defun put-noise-on-table ()
   "For trying out on cluttered scenes"
   ;; TODO: fixed coords -> location designator results
-  (spawn-demo-objects :clutter)
+  (spawn-demo :clutter)
   (mapcar #'move-object '(pot-0 bowl-0 mondamin-0 mondamin-1 bowl-2 bowl-3 bowl-1)
           '(((-1.0 1.65 0.9413339835685429d0) (0 0 0 1))
             ((-0.9 1.95 0.8911207699875103d0) (0 0 0 1))
@@ -71,7 +71,7 @@
   )
 
 (defun put-stuff-on-counter ()
-  (spawn-demo-objects :main)
+  (spawn-demo :main)
   (move-demo-objects-away)
 
   (loop for i from 0 to (1- *num-of-sets-on-table*)
@@ -95,7 +95,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;; ONLY DESIGS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun put-plates-on-table-with-far (&optional (number-of-plates *num-of-sets-on-table*))
-  (spawn-demo-objects :main)
+  (spawn-demo :main)
   (cpl-impl:top-level
     (cram-language-designator-support:with-designators
        ((des-for-plate-2 (location `((right-of plate-1) (far-from plate-1)
@@ -137,7 +137,7 @@
                                                (t (make-object-near-plate-desig object-type i))))))))
 
 (defun set-table-without-robot ()
-  (spawn-demo-objects :main)
+  (spawn-demo :main)
   (move-demo-objects-away)
   (time
    (loop for object-type being the hash-keys of *demo-objects*

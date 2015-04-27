@@ -50,8 +50,13 @@
 (defun kill-all-objects ()
   (prolog-?w `(household-object-type ?w ?obj ?type) `(retract (object ?w ?obj)) '(fail)))
 
-(defun move-object (object-name &optional (new-pose *init-pose*))
-  (prolog-?w `(assert (object-pose ?w ,object-name ,new-pose))))
+(defun move-object (object-name &optional new-pose)
+  (if new-pose
+      (prolog-?w
+        `(assert (object-pose ?w ,object-name ,new-pose)))
+      (prolog-?w
+        '(scenario-objects-init-pose ?pose)
+        `(assert (object-pose ?w ,object-name ?pose)))))
 
 (defun move-object-onto (object-name onto-type onto-name)
   (let* ((on-designator (make-designator 'location `((on ,onto-type)
