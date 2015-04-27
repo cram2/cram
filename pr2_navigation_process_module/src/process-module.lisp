@@ -66,7 +66,7 @@
                                        target_pose (cl-tf2:to-msg pose)))
 
 (defun use-navp? (goal-pose)
-  (let* ((pose-in-base (cl-tf2:transform-pose
+  (let* ((pose-in-base (cl-transforms-stamped:transform-pose-stamped
                         *tf2-buffer*
                         :pose goal-pose :target-frame "/base_footprint"
                         :timeout cram-roslisp-common:*tf-default-timeout*))
@@ -82,7 +82,7 @@
          (< goal-angle *navp-max-angle*))))
 
 (defun goal-reached? (goal-pose)
-  (let* ((pose-in-base (cl-tf2:transform-pose
+  (let* ((pose-in-base (cl-transforms-stamped:transform-pose-stamped
                         *tf2-buffer*
                         :pose goal-pose :target-frame "/base_footprint"
                         :timeout cram-roslisp-common:*tf-default-timeout*))
@@ -104,7 +104,7 @@
 (defun call-nav-action (client desig)
   (let* ((goal-pose (reference desig))
          (goal-pose-in-fixed-frame
-           (cl-tf2:transform-pose
+           (cl-transforms-stamped:transform-pose-stamped
             *tf2-buffer*
             :pose goal-pose
             :target-frame designators-ros:*fixed-frame*

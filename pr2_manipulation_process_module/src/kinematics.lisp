@@ -81,7 +81,7 @@ is fundamentally different."
                       (crs:prolog
                        `(planning-group ,side ?group)))))
          (pose-in-tll
-           (cl-tf2:transform-pose
+           (cl-transforms-stamped:transform-pose-stamped
             *tf2-buffer* :pose pose :target-frame  "/torso_lift_link"
                          :timeout *tf-default-timeout* :use-current-ros-time t)))
     (let ((state-0 (moveit:plan-link-movement

@@ -109,7 +109,7 @@
                                    (:left "l_wrist_roll_link")
                                    (:right "r_wrist_roll_link")))
                                (arm-in-tll
-                                 (cl-tf2:transform-pose
+                                 (cl-transforms-stamped:transform-pose-stamped
                                   *tf2-buffer*
                                   :pose (make-pose-stamped
                                          frame-id (ros-time)
@@ -232,7 +232,7 @@
          (obj-pose (reference (desig-prop-value obj 'desig-props:at)))
          (obj-name (desig-prop-value obj 'desig-props:name)))
     (labels ((calculate-grasp-pose (pose grasp-offset gripper-offset)
-               (cl-tf2:transform-pose
+               (cl-transforms-stamped:transform-pose-stamped
                 *tf2-buffer*
                 :pose (relative-pose
                        (relative-pose pose grasp-offset)
@@ -334,7 +334,7 @@
                            (stamp base-transform-map)
                            (cl-transforms:translation base-transform-map)
                            (cl-transforms:rotation base-transform-map)))
-           (object-pose-map (cl-tf2:transform-pose
+           (object-pose-map (cl-transforms-stamped:transform-pose-stamped
                              *tf2-buffer*
                              :pose object-pose
                              :target-frame fin-frame
@@ -362,7 +362,7 @@
   (let* ((putdown-pose (pose-pointing-away-from-base
                         (reference putdown-location)))
          (pose-in-tll
-           (cl-tf2:transform-pose
+           (cl-transforms-stamped:transform-pose-stamped
             *tf2-buffer*
             :pose putdown-pose
             :target-frame "/torso_lift_link"
