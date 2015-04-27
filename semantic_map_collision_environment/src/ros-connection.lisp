@@ -62,7 +62,7 @@
     (dolist (obj objs)
       (with-slots (pose dimensions) obj
         (let* ((obj-name (string-upcase (make-collision-obj-name obj)))
-               (pose-stamped (cl-tf2:transform-pose
+               (pose-stamped (cl-transforms-stamped:transform-pose-stamped
                               *tf2-buffer*
                               :pose (pose->pose-stamped
                                      designators-ros:*fixed-frame* 0.0 pose)
