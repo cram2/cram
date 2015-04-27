@@ -60,7 +60,7 @@
 
 (defun get-link-orientation-in-robot (link-name &key (base-link "base_footprint"))
   (cl-transforms:rotation
-   (cl-tf2:lookup-transform
+   (cl-transforms-stamped:lookup-transform-stamped
     cram-roslisp-common:*tf2-buffer* base-link link-name
     :timeout cram-roslisp-common:*tf-default-timeout*)))
 
@@ -123,12 +123,12 @@
                      (robot-arms-parking-joint-states
                       ?right-parking-joint-states :right))))
     (let* ((left-gripper-transform
-             (cl-tf2:lookup-transform
+             (cl-transforms-stamped:lookup-transform-stamped
               cram-roslisp-common:*tf2-buffer*
               designators-ros:*robot-base-frame* ?left-end-effector
               :timeout cram-roslisp-common:*tf-default-timeout*))
            (right-gripper-transform
-             (cl-tf2:lookup-transform
+             (cl-transforms-stamped:lookup-transform-stamped
               cram-roslisp-common:*tf2-buffer*
               designators-ros:*robot-base-frame* ?right-end-effector
               :timeout cram-roslisp-common:*tf-default-timeout*))
@@ -138,7 +138,7 @@
               (cl-transforms:translation right-gripper-transform)))
            (arm-distance (cl-transforms:v-norm left->right-arm-vector))
            (carry-pose-in-base
-             (cl-tf2:transform-pose
+             (cl-transforms-stamped:transform-pose-stamped
               cram-roslisp-common:*tf2-buffer*
               :target-frame designators-ros:*robot-base-frame*
               :pose *both-arms-carry-pose*
