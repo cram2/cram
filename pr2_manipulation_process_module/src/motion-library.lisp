@@ -86,7 +86,7 @@ trying to assume the pose `pose'."
   (let* ((link-identity-pose (pose->pose-stamped
                               link-name 0.0
                               (cl-transforms:make-identity-pose)))
-         (link-in-pose-frame (cl-tf2:transform-pose
+         (link-in-pose-frame (cl-transforms-stamped:transform-pose-stamped
                               *tf2-buffer*
                               :pose link-identity-pose
                               :target-frame (frame-id pose-stamped)
@@ -254,7 +254,7 @@ positions, grasp-type, effort to use) are defined in the list
           (mapcar (lambda (grasp-assignment)
                     (cons (side grasp-assignment)
                           (let ((pose-straight
-                                  (cl-tf2:transform-pose
+                                  (cl-transforms-stamped:transform-pose-stamped
                                    *tf2-buffer*
                                    :pose (pose->pose-stamped
                                           (link-name (side grasp-assignment))

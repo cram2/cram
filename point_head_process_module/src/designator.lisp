@@ -55,7 +55,7 @@
 
 (defun make-action-goal (pose-stamped)
   (let ((pose-stamped
-          (cl-tf2:transform-pose
+          (cl-transforms-stamped:transform-pose-stamped
            *tf2-buffer*
            :pose pose-stamped
            :target-frame "/base_link"

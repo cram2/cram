@@ -149,7 +149,7 @@ satisfy these constraints is returned."
               (cond ((or (string= (frame-id pose) "map")
                          (string= (frame-id pose) "/map"))
                      pose)
-                    (t (cl-tf2:transform-pose
+                    (t (cl-transforms-stamped:transform-pose-stamped
                         *tf2-buffer*
                         :pose pose :target-frame "/map"
                         :timeout cram-roslisp-common:*tf-default-timeout*

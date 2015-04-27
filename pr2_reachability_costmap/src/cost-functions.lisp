@@ -88,7 +88,7 @@
   transforms it first into the fixed frame."
   (let ((pose (etypecase pose
                 (pose-stamped
-                 (cl-tf2:transform-pose
+                 (cl-transforms-stamped:transform-pose-stamped
                   *tf2-buffer*
                   :pose pose
                   :target-frame designators-ros:*fixed-frame*
@@ -121,12 +121,12 @@ point-stamped, all orientations are used."
       (error 'simple-error
              :format-control "`orientations' cannot be specified in combination with a CL-TRANSFORMS:POSE."))
     (let* ((point (ensure-point-stamped pose-specification))
-           (point-in-map (cl-tf2:transform-point
+           (point-in-map (cl-transforms-stamped:transform-point-stamped
                           cram-roslisp-common:*tf2-buffer*
                           :point point
                           :target-frame designators-ros:*fixed-frame*
                           :timeout cram-roslisp-common:*tf-default-timeout*))
-           (point-in-ik-frame (cl-tf2:transform-point
+           (point-in-ik-frame (cl-transforms-stamped:transform-point-stamped
                                cram-roslisp-common:*tf2-buffer*
                                :point point
                                :target-frame *ik-reference-frame*

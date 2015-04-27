@@ -73,7 +73,7 @@
         (assert z-offset () "Object ~a needs to have a `z-offset' property" current-object)
         (let* ((pose-in-gripper (find-designator-pose-in-link gripper-link at))
                (put-down-pose-in-fixed-frame
-                 (cl-tf2:transform-pose
+                 (cl-transforms-stamped:transform-pose-stamped
                   cram-roslisp-common:*tf2-buffer*
                   :target-frame designators-ros:*fixed-frame*
                   :pose put-down-pose

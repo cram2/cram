@@ -359,7 +359,7 @@
          (obj-pose-in-gripper (pose->pose-stamped
                                target-frame
                                0.0
-                               (cl-tf2:transform-pose
+                               (cl-transforms-stamped:transform-pose-stamped
                                 *tf2-buffer*
                                 :pose (obj-desig-location (current-desig obj))
                                 :target-frame target-frame
@@ -390,7 +390,7 @@ its' supporting plane."
               UPDATE-PICKED-UP-OBJECT-DESIGNATOR. Please use
               UPDATE-GRASPED-OBJECT-DESIGNATOR instead.")
   ;; get current pose of the object in map frame
-  (let* ((obj-pose (cl-tf2:transform-pose
+  (let* ((obj-pose (cl-transforms-stamped:transform-pose-stamped
                     *tf2-buffer*
                     :pose (obj-desig-location (current-desig obj-desig))
                     :target-frame designators-ros:*fixed-frame*
@@ -407,7 +407,7 @@ its' supporting plane."
             `((in ,gripper)
               (side ,side)
               (pose ,(copy-pose-stamped
-                      (cl-tf2:transform-pose
+                      (cl-transforms-stamped:transform-pose-stamped
                        *tf2-buffer*
                        :pose obj-pose
                        :target-frame (cut:var-value
