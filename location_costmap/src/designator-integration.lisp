@@ -62,7 +62,7 @@
   (when *tf2-buffer*
     (handler-case
         (let ((robot-pose
-                (cl-tf2:transform-pose
+                (cl-transforms-stamped:transform-pose-stamped
                  *tf2-buffer*
                  :pose (make-pose-stamped
                         designators-ros:*robot-base-frame*

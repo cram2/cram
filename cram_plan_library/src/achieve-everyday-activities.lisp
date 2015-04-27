@@ -58,7 +58,7 @@
                (sem-map-utils:pose semantic-handle-reference))
              (handle-pose-map
                (tf:copy-pose-stamped
-                (cl-tf2:transform-pose
+                (cl-transforms-stamped:transform-pose-stamped
                  cram-roslisp-common:*tf2-buffer*
                  :pose handle-pose
                  :target-frame designators-ros:*fixed-frame*

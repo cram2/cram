@@ -62,11 +62,11 @@
            ;; Predicate to check equality of two poses w.r.t. a given frame."
            (handler-case
                (let ((pose-1-transformed
-                       (cl-tf2:transform-pose
+                       (cl-transforms-stamped:transform-pose-stamped
                         *tf2-buffer*
                         :pose pose-1 :target-frame compare-frame :timeout timeout))
                      (pose-2-transformed
-                       (cl-tf2:transform-pose
+                       (cl-transforms-stamped:transform-pose-stamped
                         *tf2-buffer*
                         :pose pose-2 :target-frame compare-frame :timeout timeout)))
                  ;; compare transformed poses using pre-defined thresholds
