@@ -6,7 +6,7 @@ uint32 QUERY_STATUS = 3
 
 
 # Object's id
-string id
+uint64 id
 
 # Operation to execute
 uint32 operation

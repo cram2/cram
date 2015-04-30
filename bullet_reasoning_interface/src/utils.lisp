@@ -7,6 +7,9 @@
   (out-info "Setting *transform-listener*")
   (defparameter *transform-listener* (make-instance 'cl-tf2:buffer-client)))
 
+(defun get-elapsed-time ()
+  (out-info"Elapsed time: ~a ms" (- (get-internal-real-time) *start-time*)))
+
 (defun color-msg-to-list (msg)
   "Returns a list with the RGB values from a given message `msg' (`std_msgs/ColorRGBA')"
   (with-fields (r g b) msg
@@ -48,7 +51,7 @@
   (sort (copy-list sequence) predicate))
 
 (defun get-approximated-bounding-box-to-bounding-box-pose (box-1 box-2)
-  (out-info " get-approximated-bounding-box-to-bounding-box-pose()")
+  (out-debug " get-approximated-bounding-box-to-bounding-box-pose()")
   (let* ((obj-box-dim (cl-bullet:bounding-box-dimensions box-1))
          (obj-box-dim-tup `((:x . ,(cl-tf:x obj-box-dim))
                             (:y . ,(cl-tf:y obj-box-dim))
@@ -68,22 +71,22 @@
          (box-pose (cl-bullet:bounding-box-center box-2)))
     (cond
       ((null axes-mappings)
-       (out-info "Objects seems to be aligned just fine.")
+       (out-debug "Objects seems to be aligned just fine.")
        nil)
       ((list-contains-exactly-tuples '((:y . :z) (:z . :y)) axes-mappings)
-       (out-info "Interchanged axes: y -> z, z -> y. Rotating around x.")
+       (out-debug "Interchanged axes: y -> z, z -> y. Rotating around x.")
        (rotate-pose-multiple box-pose `((:x . ,deg90))))
       ((list-contains-exactly-tuples '((:x . :y) (:y . :x)) axes-mappings)
-       (out-info "Interchanged axes: x -> y, y -> x. Rotating around z.")
+       (out-debug "Interchanged axes: x -> y, y -> x. Rotating around z.")
        (rotate-pose-multiple box-pose `((:z . ,deg90))))
       ((list-contains-exactly-tuples '((:x . :y) (:y . :z) (:z . :x)) axes-mappings)
-       (out-info "Interchanged axes: x -> y, y -> z, z -> x. Rotating around y and x.")
+       (out-debug "Interchanged axes: x -> y, y -> z, z -> x. Rotating around y and x.")
        (rotate-pose-multiple box-pose `((:y . ,deg90) (:x . ,deg90))))
       ((list-contains-exactly-tuples '((:x . :z) (:y . :x) (:z . :y)) axes-mappings)
-       (out-info "Interchanged axes: x -> z, y -> x, z -> y. Rotating around x and y.")
+       (out-debug "Interchanged axes: x -> z, y -> x, z -> y. Rotating around x and y.")
        (rotate-pose-multiple box-pose `((:x . ,deg90) (:y . ,deg90))))
       ((list-contains-exactly-tuples '((:x . :z) (:z . :x)) axes-mappings)
-       (out-info "Interchanged axes: x -> z, z -> x. Rotating around y.")
+       (out-debug "Interchanged axes: x -> z, z -> x. Rotating around y.")
        (rotate-pose-multiple box-pose `((:y . ,deg90))))
       (t (out-error "Unhandled axes mapping.")
          nil))))
@@ -94,7 +97,7 @@ Therefore it checks for interchanged axes and corrects it by rotating the object
 If there are no interchaged axes, this function does not do anything."
   (out-info "approximate-object-to-bounding-box()")
   (let ((new-pose (get-approximated-bounding-box-to-bounding-box-pose (get-object-bounding-box name world) box)))
-    (out-info "new-pose: ~a" new-pose)
+    (out-debug "new-pose: ~a" new-pose)
     (if new-pose
         (move-object-by-fixed-pose name new-pose :world world)
         t)))
@@ -151,9 +154,10 @@ The format of `roations' is expected to be `(list (:axis . angle) (:axis . angle
   (let* ((origin (cl-tf:origin pose))
          (orientation (cl-tf:orientation pose))
          (add-rotation (cond
+                         ((eq axis :x) (cl-tf:make-quaternion (sin (/ angle 2.0)) 0.0 0.0 (* -1 (cos (/ angle 2.0)))))
                          ((eq axis :y) (cl-tf:make-quaternion 0.0 (sin (/ angle 2.0)) 0.0 (cos (/ angle 2.0))))
                          ((eq axis :z) (cl-tf:make-quaternion 0.0 0.0 (sin (/ angle 2.0)) (cos (/ angle 2.0))))
-                         (t (cl-tf:make-quaternion (sin (/ angle 2.0)) 0.0 0.0 (* -1 (cos (/ angle 2.0)))))))
+                         (t (out-error "Unhandled axis: ~a" axis))))
          (new-orientation (cl-transforms:q* add-rotation orientation)))
     (out-debug "add-rotation: ~a" add-rotation)
     (out-debug "old-orientation: ~a" orientation)
@@ -235,7 +239,7 @@ If `permutation'x is `t', the tuples' permutations are being evaluated, too."
 (defun remove-duplicate-tuples (list &key ((:permutation perm)) car-eq-cdr)
   "Removes all duplicate tuples from `list'.
 If `permutation' is `t', the tuples' permutation are being evaluated, too."
-  (out-info "remove-duplicate-tuples(): ~a" list)
+  (out-debug "remove-duplicate-tuples(): ~a" list)
   (let ((l (if car-eq-cdr
                (remove-if #'tuple-car-eq-cdr list)
                list)))
@@ -251,7 +255,7 @@ If `permutation' is `t', the tuples' permutation are being evaluated, too."
   "Updates (modifies) element number `idx' in `array'.
 `array' is expected to be a vector of messages.
 `modifications' is expected to be of the form '`message-field' `value' ...'."
-  (out-info "update-message-array()")
+  (out-debug "update-message-array()")
   (out-debug "modifications: ~a" modifications)
   (eval `(setf (elt ,array ,idx) (modify-message-copy  (elt ,array ,idx) ,@modifications))))
 
@@ -259,7 +263,7 @@ If `permutation' is `t', the tuples' permutation are being evaluated, too."
   "Updates (modifies) element number `idx' in all arrays given in `arrays'.
   `arrays' is expected to be of the form '`array' `boolean-indicating-if-array-should-be-modified-or-left-alone''
   `modifications' is expected to be of the form '(`message-field' `value' ...)'."
-  (out-info "update-message-arrays()")
+  (out-debug "update-message-arrays()")
   (loop
     for array in arrays by #'cddr
     for modify in (cdr arrays) by #'cddr
@@ -279,10 +283,19 @@ If `permutation' is `t', the tuples' permutation are being evaluated, too."
 
 (defun make-keyword (name)
   "Creates a keyword from the string `name' and returns it."
-  (values (intern name "KEYWORD")))
+  (cond
+   ((typep name 'integer) (values (intern (write-to-string name) "KEYWORD")))
+   ((typep name 'string) (values (intern name "KEYWORD")))))
+
+(defun resolve-keyword (keyword &optional (type 'integer))
+  (cond
+    ((eq type 'integer) (multiple-value-bind (int) (read-from-string (symbol-name keyword)) int))
+    ((eq type 'string (symbol-name keyword)))))
+  
 
 (defun get-object-type (type)
   "Returns the object type for the given object type constant `type'."
+  (out-info "get-object-type()")
   (let ((bowl-const (get-object-type-constant ':BOWL))
         (nesquik-const (get-object-type-constant ':NESQUIK))
         (mondamin-const (get-object-type-constant ':MONDAMIN))
@@ -295,7 +308,8 @@ If `permutation' is `t', the tuples' permutation are being evaluated, too."
       ((eq type mondamin-const) 'spatial-relations-demo::mondamin)
       ((eq type fruit-apple-const) 'spatial-relations-demo::apple)
       ((eq type fruit-orange-const) 'spatial-relations-demo::orange)
-      ((eq type sugar-const) 'spatial-relations-demo::sugar-box))))
+      ((eq type sugar-const) 'spatial-relations-demo::sugar-box)
+      (t (out-error "Unhandled object-type: ~a" type)))))
 
 (defun get-error-level-constant (error-name)
   "Returns the error level constant for the given error `error-name'."

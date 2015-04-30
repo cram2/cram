@@ -1,8 +1,11 @@
 (in-package :reas-inf)
 
+(defvar *camera* :camera)
+(defvar *camera-view* :camera-view)
+
 (defun exists-any-object (&optional (world btr:*current-bullet-world*))
   "Returns `t' if there exists any object in the world `world', `NIL' otherwise."
-  (out-info "exists-any-object()")
+  (out-debug "exists-any-object()")
   (not (null (force-ll (prolog `(household-object-type ,world ?objects ?types))))))
 
 (defun object-exists (name &optional (world btr:*current-bullet-world*))
@@ -12,7 +15,7 @@
 
 (defun get-object-instance (name &optional (world btr:*current-bullet-world*))
   "Returns the instance of object `name' in the world `world'."
-  (out-info "get-object-instance()")
+  (out-debug "get-object-instance()")
   (out-debug "Getting object instance from object ~a in world ~a" name world)
   (let ((result (cram-utilities:var-value '?instance
                             (car (prolog `(%object ,world ,(make-keyword name) ?instance))))))
@@ -42,8 +45,13 @@
 (defun get-camera-pose (&optional (world btr:*current-bullet-world*))
   (cdaar (prolog `(object-pose ,world ,*camera* ?pose))))
 
+(defun get-object-dimensions (name &optional (world btr:*current-bullet-world*))
+  (let ((box (get-object-bounding-box name world)))
+    (when box
+      (cl-bullet:bounding-box-dimensions box))))
+
 (defun get-object-bounding-box (name &optional (world btr:*current-bullet-world*))
-  (out-info "get-object-bounding-box() name: ~a" name)
+  (out-debug "get-object-bounding-box() name: ~a" name)
   (let ((dimensions (get-box-dimensions name world)))
     (when (null dimensions)
         (setf dimensions (get-mesh-dimensions name world)))
@@ -79,7 +87,7 @@
       (cl-tf:make-3d-vector d d d))))
 
 (defun get-sphere-radius (name &optional (world btr:*current-bullet-world*))
-  (out-info "Getting radius from object ~a." name)
+  (out-debug "Getting radius from object ~a." name)
   (with-failure-handling ((simple-error (e)
                             (declare (ignore e))
                             (return)))
@@ -118,54 +126,6 @@
                        (setf min-z new-z)))))
       (cl-tf:make-3d-vector (- max-x min-x) (- max-y min-y) (- max-z min-z)))))
         
-(defun get-bounding-box-points-fixed-tmp (box)
-  (let* ((pose (cl-bullet:bounding-box-center box))
-         (origin (cl-tf:origin pose))
-         (dimensions (cl-bullet:bounding-box-dimensions box))
-         (h-width (/ (cl-tf:x dimensions) 2.0))
-         (h-depth (/ (cl-tf:y dimensions) 2.0))
-         (h-height (/ (cl-tf:z dimensions) 2.0))
-         (point-min (cl-tf:make-3d-vector (- 0.0 h-width) (- 0.0 h-depth) (- 0.0 h-height)))
-         (point-max (cl-tf:make-3d-vector (+ 0.0 h-width) (+ 0.0 h-depth) (+ 0.0 h-height)))
-         (transform (cl-tf:make-transform origin (cl-tf:orientation pose)))
-         (t-point-min (cl-tf:transform transform point-min))
-         (t-point-max (cl-tf:transform transform point-max))
-         (ret-point-min (cl-tf:make-3d-vector (min (cl-tf:x t-point-min ) (cl-tf:x t-point-max))
-                                              (min (cl-tf:y t-point-min ) (cl-tf:y t-point-max))
-                                              (min (cl-tf:z t-point-min ) (cl-tf:z t-point-max))))
-         (ret-point-max (cl-tf:make-3d-vector (max (cl-tf:x t-point-min ) (cl-tf:x t-point-max))
-                                              (max (cl-tf:y t-point-min ) (cl-tf:y t-point-max))
-                                              (max (cl-tf:z t-point-min ) (cl-tf:z t-point-max)))))
-    (values ret-point-min ret-point-max)))
-
-(defun vector+ (v &key (x 0) (y 0) (z 0))
-  (cl-tf:v+ v (cl-tf:make-3d-vector x y z)))
-
-(defun get-bounding-box-points-fixed (box)
-  (let* ((pose (cl-bullet:bounding-box-center box))
-         (origin (cl-tf:origin pose))
-         (dimensions (cl-bullet:bounding-box-dimensions box))
-         (h-width (/ (cl-tf:x dimensions) 2.0))
-         (h-depth (/ (cl-tf:y dimensions) 2.0))
-         (h-height (/ (cl-tf:z dimensions) 2.0))
-         (ref-point (cl-tf:make-3d-vector (- h-width) (- h-depth) (- h-height)))
-         (points `(,(vector+ ref-point )
-
-                   ))
-         
-         (point-min (cl-tf:make-3d-vector (- 0.0 h-width) (- 0.0 h-depth) (- 0.0 h-height)))
-         (point-max (cl-tf:make-3d-vector (+ 0.0 h-width) (+ 0.0 h-depth) (+ 0.0 h-height)))
-         (transform (cl-tf:make-transform origin (cl-tf:orientation pose)))
-         (t-point-min (cl-tf:transform transform point-min))
-         (t-point-max (cl-tf:transform transform point-max))
-         (ret-point-min (cl-tf:make-3d-vector (min (cl-tf:x t-point-min ) (cl-tf:x t-point-max))
-                                              (min (cl-tf:y t-point-min ) (cl-tf:y t-point-max))
-                                              (min (cl-tf:z t-point-min ) (cl-tf:z t-point-max))))
-         (ret-point-max (cl-tf:make-3d-vector (max (cl-tf:x t-point-min ) (cl-tf:x t-point-max))
-                                              (max (cl-tf:y t-point-min ) (cl-tf:y t-point-max))
-                                              (max (cl-tf:z t-point-min ) (cl-tf:z t-point-max)))))
-    '()))
-
 (defun get-object-pose-stamped (name &optional (world btr:*current-bullet-world*))
   "Returns the stamped pose of object `name' in the world `world'."
   (let ((result (get-object-pose name :world world)))
@@ -190,11 +150,14 @@ If `copy' is `t', the simulation and the evaluation will be executed on a copy o
           (not (null (prolog `(visible ,world cram-pr2-knowledge::pr2 ,(make-keyword object))))))))
 
 (defun is-stable-world (&key (world btr:*current-bullet-world*) simulate-duration copy)
-    "Returns `t' if world `world' is stable, `NIL' otherwise."
+  "Returns `t' if world `world' is stable, `NIL' otherwise."
   (out-info "Checking if world ~a is stable" world)
-  (if simulate-duration
-      (is-stable-world :world (simulate-world simulate-duration :world world :copy copy))
-      (not (null (force-ll (prolog `(stable-household ,world)))))))
+  (let ((result
+          (if simulate-duration
+              (is-stable-world :world (simulate-world simulate-duration :world world :copy copy))
+              (not (null (force-ll (prolog `(stable-household ,world))))))))
+    (get-elapsed-time)
+    result))
       ;;(prolog `(stable ,world))))
 
 (defun is-stable-object (object &key (world btr:*current-bullet-world*) simulate-duration copy)
@@ -208,6 +171,16 @@ If `copy' is `t', the simulation and the evaluation will be executed on a copy o
       (is-stable-object object :world (simulate-world simulate-duration :world world :copy copy))
       (let ((result (force-ll (prolog `(stable ,world ,(make-keyword object))))))
         (not (null result)))))
+
+(defun object-has-contact-with-kitchen (object &key (world btr:*current-bullet-world*) simulate-duration copy)
+  (out-info "object-has-contact-with-kitchen()")
+  (let ((result
+          (if simulate-duration
+              (object-has-contact-with-kitchen  object :world (simulate-world simulate-duration :world world :copy copy))
+              (is-in-solution '?objects 'spatial-relations-demo::my-kitchen
+                              (force-ll (prolog `(contact ,world ,(make-keyword object) ?objects)))))))
+    (get-elapsed-time)
+    result))
 
 (defun have-collision (object-1 object-2  &key (world btr:*current-bullet-world*) simulate-duration copy)
   "Returns `t' if `object-1' and `object-2' are colliding in world `world', `NIL' otherwise.
@@ -241,9 +214,10 @@ If `copy' is `t', the simulation and the evaluation will be executed on a copy o
                                                                            (contact ,world ,(make-keyword object) ?objects)
                                                                            (household-object-type ,world ?objects ?type)))))))
         (when (eq elem-type :string)
-          (setf result (mapcar #'symbol-name result)))
+          (setf result (mapcar #'resolve-keyword result)))
         (when (eq list-type :vector)
           (setf result (list-to-vector result)))
+        (get-elapsed-time)
         result)))
           
 
@@ -252,10 +226,13 @@ If `copy' is `t', the simulation and the evaluation will be executed on a copy o
 If `simulate-duration' is given, the world will be simulated for this duration before avaluating.
 If `copy' is `t', the simulation and the evaluation will be executed on a copy of `world'."
   (out-info "Getting stable objects from world ~a" world)
-  (if simulate-duration
-      (get-stable-objects :world (simulate-world simulate-duration :world world :copy copy))
-      (get-all-x-from-solution '?object (force-ll (prolog `(and (household-object-type ,world ?object ?type)
-                                                                (stable ,world ?object)))))))
+  (let ((result
+          (if simulate-duration
+              (get-stable-objects :world (simulate-world simulate-duration :world world :copy copy))
+              (get-all-x-from-solution '?object (force-ll (prolog `(and (household-object-type ,world ?object ?type)
+                                                                        (stable ,world ?object))))))))
+    (get-elapsed-time)
+    result))
 
 (defun get-visible-objects  (&key (world btr:*current-bullet-world*) camera-pose simulate-duration copy)
   "Returns a lsit of all objects that are visible from the robot's viewpoint in the world `world'.
@@ -266,17 +243,20 @@ If `copy' is `t', the simulation and the evaluation will be executed on a copy o
   (if simulate-duration
       (get-visible-objects :world (simulate-world simulate-duration :world world :copy copy) :camera-pose camera-pose)
       (get-all-x-from-solution '?object
-                               (if camera-pose
-                                   (progn
-                                     (remove-camera)
-                                     (let ((result
-                                             (force-ll (prolog `(and
-                                                        (household-object-type ,world ?object ?type)
-                                                        (visible-from ,world ,camera-pose ?object))))))
-                                       (update-camera-pose camera-pose world)
-                                       result))
-                                   (force-ll (prolog `(and (household-object-type ,world ?object ?type)
-                                                           (visible ,world ?robot ?object))))))))
+                               (let ((result
+                                       (if camera-pose
+                                           (progn
+                                             (remove-camera)
+                                             (let ((result
+                                                     (force-ll (prolog `(and
+                                                                         (household-object-type ,world ?object ?type)
+                                                                         (visible-from ,world ,camera-pose ?object))))))
+                                               (update-camera-pose camera-pose world)
+                                               result))
+                                           (force-ll (prolog `(and (household-object-type ,world ?object ?type)
+                                                                   (visible ,world ?robot ?object)))))))
+                                 (get-elapsed-time)
+                                 result))))
 
 (defun get-all-objects (&optional (world btr:*current-bullet-world*))
   "Returns a list of all objects in the world `world'."

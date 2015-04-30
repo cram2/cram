@@ -1,5 +1,7 @@
 (in-package :reas-inf)
 
+(defvar *start-time*)
+
 (defmacro out-info (&rest args)
   `(ros-info (bullet-reasoning-interface) ,@args))
 
