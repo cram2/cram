@@ -4,7 +4,7 @@
 - git: {local-name: roslisp, uri: 'https://github.com/ros/roslisp.git'}
 - git: {local-name: roslisp_common, uri: 'https://github.com/gaya-/roslisp_common.git'}
 - git: {local-name: cram_highlevel, uri: 'https://github.com/gaya-/cram_highlevel.git'}
-- git: {local-name: roslisp_tutorials, uri: 'https://github.com/code-iai/roslisp_tutorials.git'}
+#- git: {local-name: roslisp_tutorials, uri: 'https://github.com/code-iai/roslisp_tutorials.git'}
 - git: {local-name: cram_physics, uri: 'https://github.com/gaya-/cram_physics.git'}
 - git: {local-name: cram_pr2, uri: 'https://github.com/gaya-/cram_pr2.git'}
 - git: {local-name: cram_moveit, uri: 'git@github.com:gaya-/cram_moveit.git'}
