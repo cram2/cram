@@ -22,10 +22,13 @@
                                                                   simulate
                                                                   simulateWithCopy
                                                                   duration)
+  (setf *start-time* (get-internal-real-time))
   (out-info "Incoming Request:")
   (out-info "operationsWithCopy: ~a" operationsWithCopy)
   (out-info "removeAllObjects: ~a" removeAllObjects)
   (out-debug "operations: ~a" operations)
+  (out-info "updateCameraPose: ~a" updateCameraPose)
+  (out-debug "cameraPose: ~a" cameraPose)
   (out-info "simulate: ~a" simulate)
   (out-info "simulateWithCopy: ~a" simulateWithCopy)
   (out-info "duration: ~a" duration)
@@ -45,7 +48,7 @@
          (operated-world-const (get-world-type-constant ':OPERATED_WORLD))
          (simulated-world-const (get-world-type-constant ':SIMULATED_WORLD))
          ;; camera pose
-         (camera-pose (when cameraPose
+         (camera-pose (when updateCameraPose
                         (cl-tf2:from-msg cameraPose)))
          ;; responses
          (intel-current-world (make-msg "bullet_reasoning_interface/WorldIntel" worldType current-world-const))
@@ -73,6 +76,8 @@
          (remove-all-objects-result (if removeAllObjects
                                         (remove-all-objects world-operations)
                                         t)))
+    (out-info "Prepared all variables.")
+    (get-elapsed-time)
     (when updateCameraPose
       (update-camera-pose camera-pose))
     (if (not remove-all-objects-result)
@@ -81,7 +86,9 @@
           (make-response :errorLevel remove-all-objects-failed-const))
         (progn
           ;; Applying operations
+          (out-info "Number operations: ~a" (length operations))
           (loop for i from 0 to (- (length operations) 1) do
+            (get-elapsed-time)
             (with-fields ((object-id Id)
                           operation
                           (object-type type)
@@ -99,12 +106,14 @@
                 (cond
                   ((eq operation spawn-object-const)
                    (update-message-array i object-intel-operations
+                                         :contactWithKitchenBeforeSimulation (object-has-contact-with-kitchen object-id)
                                          :operation operation
                                          :operationSucceeded
                                          (spawn-object object-id object-type object-pose-stamped
                                                        object-color object-bounding-box :world world-operations)))
                   ((eq operation move-object-const)
                    (update-message-array i object-intel-operations
+                                         :contactWithKitchenBeforeSimulation (object-has-contact-with-kitchen object-id)
                                          :operation operation
                                          :operationSucceeded
                                          (move-object object-id object-pose-stamped object-bounding-box :world world-operations)))
@@ -115,6 +124,7 @@
                                          (remove-obj object-id world-operations)))
                   ((eq operation query-status-const)
                    (update-message-array i object-intel-operations
+                                         :contactWithKitchenBeforeSimulation (object-has-contact-with-kitchen object-id)
                                          :operation operation
                                          :operationSucceeded t)
                    (out-info "Only querying status for object ~a" object-id))
@@ -123,9 +133,12 @@
                    (update-message-array i object-intel-operations :operation operation
                                                                    :operationSucceeded nil))))
               (out-info "---------------------------------")))
+          (get-elapsed-time)
+          (out-info "Simulating.")
           ;; simulating
           (when simulate
             (setf world-simulate (simulate-world duration :world world-operations :copy simulateWithCopy)))
+          (get-elapsed-time)
           ;; getting data from current world
           (out-info "---------------------------------")
           (out-info "Getting data from current world ~a" world-current)
@@ -141,6 +154,7 @@
             (setf intel-current-world (modify-message-copy intel-current-world
                                                            isStable stable
                                                            objects object-intel-current-world)))
+          (get-elapsed-time)
           ;; getting data from operations world
           (out-info "---------------------------------")
           (out-info "Getting data from operations world ~a" world-operations)
@@ -155,6 +169,7 @@
               (setf intel-operations-world (modify-message-copy intel-operations-world
                                                                 isStable stable
                                                                 objects object-intel-operations))))
+          (get-elapsed-time)
           ;; getting data from simulated world
           (out-info "---------------------------------")
           (out-info "Getting data from simulatd world ~a" world-simulate)
@@ -170,6 +185,7 @@
                                                                isStable stable
                                                                objects object-intel-simulated))))
           (out-info "Terminating service call.")
+          (get-elapsed-time)
           (out-info "########################################")
           (make-response :errorLevel error-level
                          :worlds (remove-if #'null
@@ -196,7 +212,7 @@ Returns `intel' unified with the new intel (as a vector)."
     (out-info "annotated-objects: ~a~%remaining-objects: ~a" annotated-objects remaining-objects)
     (loop for object in remaining-objects
           for i from 0 to (- (length remaining-objects) 1)
-          do (update-message-array i remaining-objects-intel :id (symbol-name object)
+          do (update-message-array i remaining-objects-intel :id (resolve-keyword object)
                                                              :operation query-status-const
                                                              :operationSucceeded t))
     (concatenate 'vector intel remaining-objects-intel)))
@@ -208,25 +224,34 @@ Returns `intel' unified with the new intel (as a vector)."
 Returns `intel' with aggregated information about every object
 and as second value it returns a boolean which indicates, if `world' is stable."
   (out-info "Getting data from world ~a" world)
-  (let* ((visible-objects (get-visible-objects :world world :camera-pose camera-pose))
+  (let* ((remove-object-const (get-operation-constant ':REMOVE_OBJECT))
+         (visible-objects (get-visible-objects :world world :camera-pose camera-pose))
          (world-is-stable (is-stable-world :world world))
          (stable-objects (unless world-is-stable
                            (get-stable-objects :world world))))
     (loop for object-intel across intel
           for i from 0 to (- (length intel) 1)
-          do (with-fields ((object-id id)) object-intel
+          do (with-fields ((object-id id) operation) object-intel
                (out-info "Updating data for object ~a" object-id)
-               (let* ((object-id-symbol (make-keyword object-id))
-                      (new-object-pose-stamped (get-object-pose-stamped object-id world))
-                      (collision-objects (object-get-collisions object-id :world world :elem-type :string)))
-                 (when new-object-pose-stamped
-                   (update-message-array i intel :poseStamped (cl-tf2:to-msg new-object-pose-stamped)))
-                 (when (or world-is-stable (find object-id-symbol stable-objects))
-                   (update-message-array i intel :isStable t))
-                 (when (find object-id-symbol visible-objects)
-                   (update-message-array i intel :isVisible t))
-                 (when collision-objects
-                   (update-message-array i intel :collisionWith collision-objects)))))
+               (if (eq operation remove-object-const)
+                   (out-info "Skipping removed object.")
+                   (let* ((object-id-symbol (make-keyword object-id))
+                          (new-object-pose-stamped (get-object-pose-stamped object-id world))
+                          (object-dimensions (get-object-dimensions object-id world))
+                          (collision-objects (object-get-collisions object-id :world world :elem-type :string)))
+                     (when new-object-pose-stamped
+                       (update-message-array i intel :poseStamped (cl-tf2:to-msg new-object-pose-stamped)))
+                     (when object-dimensions
+                       (update-message-array i intel :boundingBox (cl-tf2:to-msg object-dimensions)))
+                     (when (or world-is-stable (find object-id-symbol stable-objects))
+                       (update-message-array i intel :isStable t))
+                     (when (find object-id-symbol visible-objects)
+                       (update-message-array i intel :isVisible t))
+                     (update-message-array i intel :contactWithKitchenAfterSimulation (object-has-contact-with-kitchen object-id))
+                     (when collision-objects
+                       (update-message-array i intel :collisionWith collision-objects))))))
+    (out-info "Leaving get-data-from-world().")
+    (get-elapsed-time)
     (values intel world-is-stable)))
   
 (defun interaction-server ()
