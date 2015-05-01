@@ -206,6 +206,8 @@ i.e. `return' can be used."
                       `(when (> ,counter-name 0)
                          (decf ,counter-name)
                          ,@body)))
+                  (get-counter (counter)
+                    `,(cdr (assoc counter ',counters)))
                   (reset-counter (counter)
                     `(setf ,(cdr (assoc counter ',counters))
                            ,(second (assoc counter ',counter-definitions)))))
