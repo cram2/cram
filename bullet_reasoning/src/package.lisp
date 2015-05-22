@@ -53,7 +53,7 @@
            bt-reasoning-world invalidate-object objects object %object
            bt-reasoning-world-state robot-object links joint-states
            assert joint-state urdf joint-names joint-state link-names
-           link-pose set-robot-state-from-tf set-tf-from-robot-state
+           link-pose set-robot-state-from-tf
            semantic-map-object ensure-pose ensure-vector object-visibility
            semantic-map container semantic-map-part semantic-map-part-type
            semantic-map-part-pose object-visibility-percentage

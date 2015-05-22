@@ -28,6 +28,26 @@
 
 (in-package :projection-process-modules)
 
+(defun set-tf-from-robot-state (transformer robot
+                                &key (base-frame designators-ros:*robot-base-frame*)
+                                  (time (roslisp:ros-time)))
+  (let ((reference-transform-inv (cl-transforms:transform-inv
+                                  (cl-transforms:reference-transform
+                                   (link-pose robot base-frame)))))
+    (dolist (link (link-names robot))
+      (unless (equal link base-frame)
+        (let ((transform (cl-transforms:transform*
+                          reference-transform-inv
+                          (cl-transforms:reference-transform
+                           (link-pose robot link)))))
+          (add-new-transform transformer
+                             (make-transform-stamped
+                              base-frame link time
+                              (cl-transforms:translation transform)
+                              (cl-transforms:rotation transform))
+                             :suppress-callbacks t))))
+    (execute-new-transform-callbacks transformer)))
+
 (defun update-tf (&key (base-frame designators-ros:*robot-base-frame*)
                     (odom-frame designators-ros:*odom-frame*)
                     (map-frame designators-ros:*fixed-frame*))
@@ -38,21 +58,48 @@
                          (%object ?world ?robot ?robot-instance)
                          (pose ?world ?robot ?robot-pose))))
     (assert (not (cut:is-var ?robot-instance)))
-    (cl-tf2:send-transform
-     cram-roslisp-common:*tf2-broadcaster*
+    (add-new-transform
+     cram-roslisp-common:*transformer*
      (make-transform-stamped
       map-frame odom-frame (roslisp:ros-time)
       (cl-transforms:make-identity-vector)
-      (cl-transforms:make-identity-rotation)))
-    (cl-tf2:send-transform
-     cram-roslisp-common:*tf2-broadcaster*
+      (cl-transforms:make-identity-rotation))
+     :suppress-callbacks t)
+    (add-new-transform
+     cram-roslisp-common:*transformer*
      (make-transform-stamped
       odom-frame base-frame (roslisp:ros-time)
       (cl-transforms:origin ?robot-pose)
-      (cl-transforms:orientation ?robot-pose)))
-    (bullet-reasoning:set-tf-from-robot-state
-     cram-roslisp-common:*tf2-broadcaster* ?robot-instance)))
+      (cl-transforms:orientation ?robot-pose))
+     :suppress-callbacks t)
+    (set-tf-from-robot-state
+     cram-roslisp-common:*transformer* ?robot-instance)))
 
 (defmethod cram-plan-knowledge:on-event update-tf
     ((event cram-plan-knowledge:robot-state-changed))
   (update-tf))
+
+(defmethod get-ik :before (robot pose-stamped
+                           &key tool-frame group-name
+                             (fixed-frame designators-ros:*fixed-frame*)
+                             (robot-base-frame designators-ros:*robot-base-frame*)
+                             seed-state)
+  (declare (ignore pose-stamped tool-frame group-name seed-state))
+  (let ((time (roslisp:ros-time)))
+    ;; tell the tf transformer where the robot currently is in the global
+    ;; fixed coordinate system
+    (add-new-transform cram-roslisp-common:*transformer*
+                       (transform->transform-stamped
+                        fixed-frame robot-base-frame time
+                        (cl-transforms:pose->transform (pose robot))))
+    ;; tell the tf transformer the current configuration of robot's joints
+    (set-tf-from-robot-state cram-roslisp-common:*transformer*
+                             robot
+                             :base-frame robot-base-frame
+                             :time time)))
+
+(defun add-new-transform (transformer transform &key suppress-callbacks)
+  (cl-tf:set-transform transformer transform :suppress-callbacks suppress-callbacks))
+
+(defun execute-new-transform-callbacks (transformer)
+  (cl-tf:execute-changed-callbacks transformer))

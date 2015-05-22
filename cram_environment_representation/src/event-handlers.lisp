@@ -85,7 +85,7 @@
     (let ((robot (get-robot-object)))
       (when robot
         (set-robot-state-from-tf
-         cram-roslisp-common:*tf2-buffer* robot :timestamp (event-timestamp event)))))
+         cram-roslisp-common:*transformer* robot :timestamp (event-timestamp event)))))
   (timeline-advance
    *current-timeline*
    (make-event
@@ -171,7 +171,7 @@
            (type string frame))
   (copy-pose-stamped
    (cl-transforms-stamped:transform-pose-stamped
-    *tf2-buffer*
+    *transformer*
     :pose (pose->pose-stamped
            designators-ros:*fixed-frame* 0.0 (btr:pose object))
     :target-frame frame

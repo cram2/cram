@@ -13,7 +13,7 @@
 (define-test test-moveit-service-setup
   (let* ((request (roslisp:make-message
                    "moveit_msgs/PositionIKRequest"
-                   :pose_stamped (cl-tf2:to-msg
+                   :pose_stamped (to-msg
                                   (make-pose-stamped
                                    "torso_lift_link"
                                    (roslisp:ros-time)
