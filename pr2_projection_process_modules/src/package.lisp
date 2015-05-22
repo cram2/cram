@@ -34,7 +34,7 @@
         #:cl-transforms-stamped)
   (:shadowing-import-from #:bullet-reasoning name)
   (:shadowing-import-from #:cl-bullet pose)
-  (:import-from #:cram-roslisp-common *tf2-buffer*)
+  (:import-from #:cram-roslisp-common *transformer*)
   (:import-from #:cram-manipulation-knowledge trajectory-point end-effector-link)
   (:export execute-container-opened execute-container-closed
            execute-park execute-lift execute-grasp execute-put-down

@@ -41,7 +41,7 @@
      input
      (lambda ()
        (let ((pose (cl-transforms-stamped:transform-pose-stamped
-                    *tf2-buffer*
+                    *transformer*
                     :pose pose :target-frame designators-ros:*fixed-frame*
                     :timeout cram-roslisp-common:*tf-default-timeout*)))
          (assert
