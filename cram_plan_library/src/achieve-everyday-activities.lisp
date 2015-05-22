@@ -59,7 +59,7 @@
              (handle-pose-map
                (tf:copy-pose-stamped
                 (cl-transforms-stamped:transform-pose-stamped
-                 cram-roslisp-common:*tf2-buffer*
+                 cram-roslisp-common:*transformer*
                  :pose handle-pose
                  :target-frame designators-ros:*fixed-frame*
                  :timeout cram-roslisp-common:*tf-default-timeout*

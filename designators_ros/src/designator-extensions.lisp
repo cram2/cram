@@ -32,6 +32,7 @@
 (defparameter *fixed-frame* "map")
 (defparameter *robot-base-frame* "base_footprint")
 (defparameter *odom-frame* "odom_combined")
+(defparameter *ik-service-name* "/moveit/compute_ik")
 (defparameter *distance-equality-threshold* 0.025)
 (defparameter *angle-equality-threshold* (* 5 (/ pi 180)))
 
@@ -63,11 +64,11 @@
            (handler-case
                (let ((pose-1-transformed
                        (cl-transforms-stamped:transform-pose-stamped
-                        *tf2-buffer*
+                        *transformer*
                         :pose pose-1 :target-frame compare-frame :timeout timeout))
                      (pose-2-transformed
                        (cl-transforms-stamped:transform-pose-stamped
-                        *tf2-buffer*
+                        *transformer*
                         :pose pose-2 :target-frame compare-frame :timeout timeout)))
                  ;; compare transformed poses using pre-defined thresholds
                  (and (< (cl-transforms:v-dist
@@ -78,7 +79,7 @@
                           (cl-transforms:orientation pose-1-transformed)
                           (cl-transforms:orientation pose-2-transformed))
                          *angle-equality-threshold*)))
-             (cl-tf2:tf2-server-error () nil))))
+             (transform-stamped-error () nil))))
     ;; actual check: first making sure to have pose-stamped
     (let ((pose-1 (ensure-pose-stamped solution-1 *fixed-frame* 0.0))
           (pose-2 (ensure-pose-stamped solution-2 *fixed-frame* 0.0)))

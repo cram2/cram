@@ -38,6 +38,5 @@
            #:shutdown-ros
            #:lispify-ros-name
            #:rosify-lisp-name
-           #:*tf2-buffer*
-           #:*tf2-broadcaster*
+           #:*transformer*
            #:*tf-default-timeout*))
