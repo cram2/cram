@@ -45,7 +45,7 @@
                 manipulator-link
                 planning-group)
   (:import-from roslisp ros-info ros-warn ros-error ros-time)
-  (:import-from cram-roslisp-common *tf2-buffer*)
+  (:import-from cram-roslisp-common *transformer*)
   (:export pr2-manipulation-process-module
            wait-for-controller
            reorient-object)

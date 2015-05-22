@@ -360,7 +360,7 @@
                                target-frame
                                0.0
                                (cl-transforms-stamped:transform-pose-stamped
-                                *tf2-buffer*
+                                *transformer*
                                 :pose (obj-desig-location (current-desig obj))
                                 :target-frame target-frame
                                 :timeout cram-roslisp-common:*tf-default-timeout*)))
@@ -391,7 +391,7 @@ its' supporting plane."
               UPDATE-GRASPED-OBJECT-DESIGNATOR instead.")
   ;; get current pose of the object in map frame
   (let* ((obj-pose (cl-transforms-stamped:transform-pose-stamped
-                    *tf2-buffer*
+                    *transformer*
                     :pose (obj-desig-location (current-desig obj-desig))
                     :target-frame designators-ros:*fixed-frame*
                     :timeout cram-roslisp-common:*tf-default-timeout*))
@@ -408,7 +408,7 @@ its' supporting plane."
               (side ,side)
               (pose ,(copy-pose-stamped
                       (cl-transforms-stamped:transform-pose-stamped
-                       *tf2-buffer*
+                       *transformer*
                        :pose obj-pose
                        :target-frame (cut:var-value
                                       '?link

@@ -62,12 +62,11 @@
 (roslisp-utilities:register-ros-init-function init-pr2-navigation-process-module)
 
 (defun make-action-goal (pose)
-  (actionlib-lisp:make-action-goal-msg *navp-client*
-                                       target_pose (cl-tf2:to-msg pose)))
+  (actionlib-lisp:make-action-goal-msg *navp-client* target_pose (to-msg pose)))
 
 (defun use-navp? (goal-pose)
   (let* ((pose-in-base (cl-transforms-stamped:transform-pose-stamped
-                        *tf2-buffer*
+                        *transformer*
                         :pose goal-pose :target-frame "/base_footprint"
                         :timeout cram-roslisp-common:*tf-default-timeout*))
          (goal-dist (cl-transforms:v-norm
@@ -83,7 +82,7 @@
 
 (defun goal-reached? (goal-pose)
   (let* ((pose-in-base (cl-transforms-stamped:transform-pose-stamped
-                        *tf2-buffer*
+                        *transformer*
                         :pose goal-pose :target-frame "/base_footprint"
                         :timeout cram-roslisp-common:*tf-default-timeout*))
          (goal-dist (cl-transforms:v-norm
@@ -105,13 +104,13 @@
   (let* ((goal-pose (reference desig))
          (goal-pose-in-fixed-frame
            (cl-transforms-stamped:transform-pose-stamped
-            *tf2-buffer*
+            *transformer*
             :pose goal-pose
             :target-frame designators-ros:*fixed-frame*
             :timeout cram-roslisp-common:*tf-default-timeout*
             :use-current-ros-time t)))
     (roslisp:publish (roslisp:advertise "/ppp" "geometry_msgs/PoseStamped")
-                     (cl-tf2:to-msg goal-pose-in-fixed-frame))
+                     (to-msg goal-pose-in-fixed-frame))
     (multiple-value-bind (result status)
         (actionlib-lisp:send-goal-and-wait
          client (make-action-goal goal-pose-in-fixed-frame)

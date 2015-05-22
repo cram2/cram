@@ -56,7 +56,7 @@
 (defun make-action-goal (pose-stamped)
   (let ((pose-stamped
           (cl-transforms-stamped:transform-pose-stamped
-           *tf2-buffer*
+           *transformer*
            :pose pose-stamped
            :target-frame "/base_link"
            :timeout cram-roslisp-common:*tf-default-timeout*

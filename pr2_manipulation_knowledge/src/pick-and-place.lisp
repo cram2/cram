@@ -74,7 +74,7 @@
         (let* ((pose-in-gripper (find-designator-pose-in-link gripper-link at))
                (put-down-pose-in-fixed-frame
                  (cl-transforms-stamped:transform-pose-stamped
-                  cram-roslisp-common:*tf2-buffer*
+                  cram-roslisp-common:*transformer*
                   :target-frame designators-ros:*fixed-frame*
                   :pose put-down-pose
                   :timeout cram-roslisp-common:*tf-default-timeout*))
