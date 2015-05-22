@@ -150,11 +150,11 @@ satisfy these constraints is returned."
                          (string= (frame-id pose) "/map"))
                      pose)
                     (t (cl-transforms-stamped:transform-pose-stamped
-                        *tf2-buffer*
+                        *transformer*
                         :pose pose :target-frame "/map"
                         :timeout cram-roslisp-common:*tf-default-timeout*
                         :use-current-ros-time t))))))
-         (pose-stamped-msg (cl-tf2:to-msg pose-stamped)))
+         (pose-stamped-msg (to-msg pose-stamped)))
     (roslisp:publish
      (roslisp:advertise topic "geometry_msgs/PoseStamped")
      pose-stamped-msg)))

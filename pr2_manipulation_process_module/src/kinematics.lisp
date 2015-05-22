@@ -82,7 +82,7 @@ is fundamentally different."
                        `(planning-group ,side ?group)))))
          (pose-in-tll
            (cl-transforms-stamped:transform-pose-stamped
-            *tf2-buffer* :pose pose :target-frame  "/torso_lift_link"
+            *transformer* :pose pose :target-frame  "/torso_lift_link"
                          :timeout *tf-default-timeout* :use-current-ros-time t)))
     (let ((state-0 (moveit:plan-link-movement
                     wrist-frame arm-group pose-in-tll

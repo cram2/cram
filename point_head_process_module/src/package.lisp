@@ -39,7 +39,7 @@
         #:cpl-impl
         #:cl-transforms-stamped)
   (:export #:point-head-process-module)
-  (:import-from cram-roslisp-common *tf2-buffer*)
+  (:import-from cram-roslisp-common *transformer*)
   (:shadowing-import-from #:cpl-impl #:fail)
   (:shadowing-import-from #:cram-process-modules #:name)
   (:desig-properties #:to #:see #:follow #:pose #:location #:obj))

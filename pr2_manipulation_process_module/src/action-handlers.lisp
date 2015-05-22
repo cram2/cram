@@ -110,7 +110,7 @@
                                    (:right "r_wrist_roll_link")))
                                (arm-in-tll
                                  (cl-transforms-stamped:transform-pose-stamped
-                                  *tf2-buffer*
+                                  *transformer*
                                   :pose (make-pose-stamped
                                          frame-id (ros-time)
                                          (cl-transforms:make-identity-vector)
@@ -233,7 +233,7 @@
          (obj-name (desig-prop-value obj 'desig-props:name)))
     (labels ((calculate-grasp-pose (pose grasp-offset gripper-offset)
                (cl-transforms-stamped:transform-pose-stamped
-                *tf2-buffer*
+                *transformer*
                 :pose (relative-pose
                        (relative-pose pose grasp-offset)
                        gripper-offset)
@@ -257,7 +257,7 @@
       (let ((params (mapcar #'grasp-parameters assignments-list)))
         (dolist (param-set params)
           (let ((pub (roslisp:advertise "/dhdhdh" "geometry_msgs/PoseStamped")))
-            (roslisp:publish pub (cl-tf2:to-msg (pregrasp-pose param-set))))
+            (roslisp:publish pub (to-msg (pregrasp-pose param-set))))
           (cram-language::on-grasp-decisions-complete
            log-id obj-name (pregrasp-pose param-set)
            (grasp-pose param-set) (arm param-set) obj-pose))
@@ -328,14 +328,14 @@
         (fin-frame "/map"))
     (let* ((base-transform-map
              (cl-tf2:ensure-transform-available
-              *tf2-buffer* ref-frame fin-frame))
+              *transformer* ref-frame fin-frame))
            (base-pose-map (make-pose-stamped
                            (frame-id base-transform-map)
                            (stamp base-transform-map)
                            (cl-transforms:translation base-transform-map)
                            (cl-transforms:rotation base-transform-map)))
            (object-pose-map (cl-transforms-stamped:transform-pose-stamped
-                             *tf2-buffer*
+                             *transformer*
                              :pose object-pose
                              :target-frame fin-frame
                              :timeout cram-roslisp-common:*tf-default-timeout*))
@@ -363,7 +363,7 @@
                         (reference putdown-location)))
          (pose-in-tll
            (cl-transforms-stamped:transform-pose-stamped
-            *tf2-buffer*
+            *transformer*
             :pose putdown-pose
             :target-frame "/torso_lift_link"
             :timeout cram-roslisp-common:*tf-default-timeout*
@@ -515,7 +515,7 @@
            (map 'vector
                 (lambda (handle)
                   (let ((pose (reference (desig-prop-value handle 'desig-props::at))))
-                    (cl-tf2:to-msg pose)))
+                    (to-msg pose)))
                 absolute-handles)))
     (let ((publisher (roslisp:advertise "/objecthandleposes" "geometry_msgs/PoseArray")))
       (roslisp:publish publisher

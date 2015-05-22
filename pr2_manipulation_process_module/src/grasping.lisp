@@ -266,7 +266,7 @@ configuration."
   (let ((pose (cond (arm-offset-pose (relative-pose pose arm-offset-pose))
                     (t pose))))
     (roslisp:publish (roslisp:advertise "/testpose" "geometry_msgs/PoseStamped")
-                     (cl-tf2:to-msg pose))
+                     (to-msg pose))
     (cpl:with-failure-handling
         ((moveit:no-ik-solution (f)
            (declare (ignore f))

@@ -87,7 +87,7 @@ trying to assume the pose `pose'."
                               link-name 0.0
                               (cl-transforms:make-identity-pose)))
          (link-in-pose-frame (cl-transforms-stamped:transform-pose-stamped
-                              *tf2-buffer*
+                              *transformer*
                               :pose link-identity-pose
                               :target-frame (frame-id pose-stamped)
                               :timeout cram-roslisp-common:*tf-default-timeout*
@@ -255,7 +255,7 @@ positions, grasp-type, effort to use) are defined in the list
                     (cons (side grasp-assignment)
                           (let ((pose-straight
                                   (cl-transforms-stamped:transform-pose-stamped
-                                   *tf2-buffer*
+                                   *transformer*
                                    :pose (pose->pose-stamped
                                           (link-name (side grasp-assignment))
                                           0.0

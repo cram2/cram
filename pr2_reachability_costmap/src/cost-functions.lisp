@@ -89,7 +89,7 @@
   (let ((pose (etypecase pose
                 (pose-stamped
                  (cl-transforms-stamped:transform-pose-stamped
-                  *tf2-buffer*
+                  *transformer*
                   :pose pose
                   :target-frame designators-ros:*fixed-frame*
                   :timeout cram-roslisp-common:*tf-default-timeout*))
@@ -122,12 +122,12 @@ point-stamped, all orientations are used."
              :format-control "`orientations' cannot be specified in combination with a CL-TRANSFORMS:POSE."))
     (let* ((point (ensure-point-stamped pose-specification))
            (point-in-map (cl-transforms-stamped:transform-point-stamped
-                          cram-roslisp-common:*tf2-buffer*
+                          cram-roslisp-common:*transformer*
                           :point point
                           :target-frame designators-ros:*fixed-frame*
                           :timeout cram-roslisp-common:*tf-default-timeout*))
            (point-in-ik-frame (cl-transforms-stamped:transform-point-stamped
-                               cram-roslisp-common:*tf2-buffer*
+                               cram-roslisp-common:*transformer*
                                :point point
                                :target-frame *ik-reference-frame*
                                :timeout cram-roslisp-common:*tf-default-timeout*))
