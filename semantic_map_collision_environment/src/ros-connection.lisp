@@ -63,7 +63,7 @@
       (with-slots (pose dimensions) obj
         (let* ((obj-name (string-upcase (make-collision-obj-name obj)))
                (pose-stamped (cl-transforms-stamped:transform-pose-stamped
-                              *tf2-buffer*
+                              *transformer*
                               :pose (pose->pose-stamped
                                      designators-ros:*fixed-frame* 0.0 pose)
                               :target-frame designators-ros:*odom-frame*
@@ -129,7 +129,7 @@
      id index
      type 1
      action 0
-     pose (cl-tf2:to-msg pose)
+     pose (to-msg pose)
      (x scale) (x dimensions)
      (y scale) (y dimensions)
      (z scale) (z dimensions)

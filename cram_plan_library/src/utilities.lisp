@@ -44,7 +44,7 @@
   ;; to fix it in the future.
   (let ((robot-pose
           (cl-transforms-stamped:transform-pose-stamped
-           *tf2-buffer*
+           *transformer*
            :pose (make-pose-stamped
                   designators-ros:*robot-base-frame* 0.0
                   (cl-transforms:make-identity-vector)

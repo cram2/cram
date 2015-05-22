@@ -59,11 +59,11 @@
 
 (defun robot-current-pose-generator (desig)
   (declare (ignore desig))
-  (when *tf2-buffer*
+  (when *transformer*
     (handler-case
         (let ((robot-pose
                 (cl-transforms-stamped:transform-pose-stamped
-                 *tf2-buffer*
+                 *transformer*
                  :pose (make-pose-stamped
                         designators-ros:*robot-base-frame*
                         (roslisp:ros-time)
@@ -72,7 +72,7 @@
                  :target-frame designators-ros:*fixed-frame*
                  :timeout cram-roslisp-common:*tf-default-timeout*)))
           (list robot-pose))
-      (cl-tf2:tf2-server-error () nil))))
+      (transform-stamped-error () nil))))
 
 (defun location-costmap-generator (desig)
   (let ((costmap (get-cached-costmap desig)))

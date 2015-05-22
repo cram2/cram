@@ -34,7 +34,9 @@
           #:cram-roslisp-common
           #:cl-transforms-stamped)
   (:import-from #:tf pose pose-stamped)
-  (:import-from cram-roslisp-common *tf2-buffer*)
-  (:export pose pose-stamped *fixed-frame* *robot-base-frame* *odom-frame*
+  (:import-from cram-roslisp-common *transformer*)
+  (:export pose pose-stamped
+           *fixed-frame* *robot-base-frame* *odom-frame*
+           *ik-service-name*
            with-designator-solution-filter make-euclidean-distance-filter
            next-filtered-designator-solution))
