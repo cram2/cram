@@ -89,7 +89,7 @@ If there is no object `name' in `world', nothing happens."
         (prolog `(assert (object-pose ,world ,name-symbol ,new-pose)))
         (let ((moved-pose (get-object-pose name :world world)))
           (out-info "moved-pose: ~a" moved-pose)
-          (poses-equal-p new-pose moved-pose 0.01 0.01)))))
+          (poses-equal-p new-pose moved-pose 0.01 10.00)))))
 
 (defun remove-obj (name &optional (world btr:*current-bullet-world*))
   "Removes the object `name' from the bullet world `world'."
