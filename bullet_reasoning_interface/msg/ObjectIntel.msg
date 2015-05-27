@@ -23,7 +23,10 @@ bool contactWithKitchenBeforeSimulation
 bool contactWithKitchenAfterSimulation
 
 # Has collision with this objects.
-uint64[] collisionWith
+uint64[] collisionWithBeforeSimulation
+uint64[] collisionWithAfterSimulation
+
+uint64[] occludedBy
 
 # Object's stamped pose.
 geometry_msgs/PoseStamped poseStamped

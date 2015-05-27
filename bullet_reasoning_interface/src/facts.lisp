@@ -263,3 +263,22 @@ If `copy' is `t', the simulation and the evaluation will be executed on a copy o
   (get-all-x-from-solution
    '?obj
    (force-ll (prolog `(and (household-object-type ,world ?obj ?type) (object ,world ?obj))))))
+
+(defun get-occlusions (&key (world btr:*current-bullet-world*) simulate-duration copy camera-pose)
+  (if simulate-duration
+      (get-occlusions :world (simulate-world simulate-duration :world world :copy copy) :camera-pose camera-pose)
+      (let ((result))
+        (if camera-pose
+            (progn
+              (remove-camera)
+              (setf result
+                    (force-ll (prolog `(and
+                                        (household-object-type ,world ?objects ?type)
+                                        (occluding-objects ,world ,camera-pose ?objects ?occluded-by)))))
+              (update-camera-pose camera-pose))
+            (setf result
+                  (force-ll (prolog `(and
+                                      (household-object-type ,world ?objects ?type)
+                                      (occluding-objects ,world ?robot ?objects ?occluded-by))))))
+        (get-elapsed-time)
+        (get-all-y-for-x-from-solution '?objects '?occluded-by result :ignore '(spatial-relations-demo::my-kitchen)))))

@@ -176,6 +176,20 @@ If `type' is `:vector', the result will be returned as list."
         (list-to-vector results)
         results)))
 
+(defun get-all-y-for-x-from-solution (x-variable-name y-variable-name solution &key ignore)
+  (let ((hash (make-hash-table)))
+    (loop for list in solution
+          do (let ((x-var-val (list-contains-tuple-car x-variable-name list)))
+               (when x-var-val
+                 (setf (gethash x-var-val hash)
+                       (let ((result-list))
+                         (loop for tuple in list
+                               do (when (eq (car tuple) y-variable-name) (setf result-list (remove-if
+                                                                                            (lambda (elem) (member elem ignore))
+                                                                                            (force-ll (cdr tuple))))))
+                         result-list)))))
+    hash))
+
 (defun is-in-solution (variable-name symbol solution)
   "Returns `t' if the solution `solution' contains a tuple with `variable-name' as its car nad `symbol' as its cdr."
   (find t (mapcar (lambda (list) (list-contains-tuple `(,variable-name . ,symbol) list)) solution)))
@@ -189,6 +203,15 @@ If `permutation'x is `t', the tuple's permutation is being evaluated, too."
         t
         (if cdr-val
             (list-contains-tuple tuple cdr-val :permutation perm)))))
+
+(defun list-contains-tuple-car (car-val list)
+  "Returns the `cdr' for the tuple in list `list' which contains the same car values as `car-val'. `list' is expected to be a list of tuples."
+  (let ((car-v (car list))
+        (cdr-v (cdr list)))
+    (if (eq car-val (car car-v))
+        (cdr car-v)
+        (if cdr-v
+            (list-contains-tuple-car car-val cdr-v)))))
 
 (defun list-contains-tuples (tuple-list list &key ((:permutation perm)))
   "Returns `t' if the list `list' contains all tuples with the same car and cdr values as given in `tuple-list'.
@@ -226,7 +249,7 @@ If `permutation' is `t', the tuples' permutation are being evaluated, too."
       (and (eq (car tuple) car-val) (eq (cdr tuple) cdr-val))))
 
 (defun tuple-eq (tup-a tup-b &key ((:permutation perm)))
-  "Returns `t' if `tup-a' and `tup-b' contian the same values.
+  "Returns `t' if `tup-a' and `tup-b' contain the same values.
 If `permutation'x is `t', the tuples' permutations are being evaluated, too."
   (let ((a (car tup-a))
         (b (cdr tup-a)))
