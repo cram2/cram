@@ -277,7 +277,7 @@
 
   ;; for plates on table
   ;; '((on counter-top) (name kitchen-island)
-  ;;   (context table-setting) (for plate-1) (object-count 4))
+  ;;   (context :table-setting) (for plate-1) (object-count 4))
     ;; uses make-slot-cost-function
   (<- (slot-costmap ?designator ?supp-object ?context ?object-type ?object-count
                     ?costmap)
@@ -299,7 +299,7 @@
   (<- (desig-costmap ?designator ?costmap)
     (desig-prop ?designator (on ?_))
     (desig-prop ?designator (name ?supp-obj-name))
-    (desig-prop ?designator (context table-setting))
+    (desig-prop ?designator (context :table-setting))
     (desig-prop ?designator (for ?for-object))
     (desig-prop ?designator (object-count ?object-count))
     (bullet-world ?world)
@@ -308,7 +308,7 @@
     (lisp-fun sem-map-utils:designator->semantic-map-objects
               ?designator ?supp-objects)
     (member ?supp-object ?supp-objects)
-    (slot-costmap ?designator ?supp-object table-setting ?object-type ?object-count
+    (slot-costmap ?designator ?supp-object :table-setting ?object-type ?object-count
                   ?costmap))
 
   ;; for validators
