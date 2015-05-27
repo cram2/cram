@@ -177,9 +177,12 @@ of the object should _not_ be updated."
   (:documentation "Removes all objects form the list of attached
   objects.")
   (:method ((robot-object robot-object))
-    (dolist (attached-object (attached-objects robot-object))
-      (detach-object robot-object
-                     (object *current-bullet-world* (car attached-object))))))
+    (with-slots (attached-objects) robot-object
+      (dolist (attached-object attached-objects)
+       (let ((object-name (car attached-object)))
+         (if (object *current-bullet-world* object-name)
+             (detach-object robot-object (object *current-bullet-world* object-name))
+             (setf attached-objects (remove object-name attached-objects :key #'car))))))))
 
 (defgeneric gc-attached-objects (robot-object)
   (:documentation "Removes all attached objects with an invalid world
