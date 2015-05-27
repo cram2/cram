@@ -9,9 +9,11 @@
   (set-transform-listener)
   (out-info "Initialized bullet-reasoning-interface."))
 
-(defun start-service ()
+(defun start-service (&key (debug-level :info))
   "Starts the service."
   (out-info "Starting service.")
+  (out-info "Setting debug level to ~a" debug-level)
+  (roslisp:set-debug-level '(bullet-reasoning-interface) debug-level)
   (interaction-server))
 
 (def-service-callback bullet_reasoning_interface-srv:Interaction (operationsWithCopy
@@ -21,6 +23,13 @@
                                                                   cameraPose
                                                                   simulate
                                                                   simulateWithCopy
+                                                                  computeStability
+                                                                  computeContactWithKitchenBeforeSimulation
+                                                                  computeContactWithKitchenAfterSimulation
+                                                                  computeCollisionsBeforeSimulation
+                                                                  computeCollisionsAfterSimulation
+                                                                  computeVisibility
+                                                                  computeOcclusions
                                                                   duration)
   (setf *start-time* (get-internal-real-time))
   (out-info "Incoming Request:")
@@ -31,6 +40,13 @@
   (out-debug "cameraPose: ~a" cameraPose)
   (out-info "simulate: ~a" simulate)
   (out-info "simulateWithCopy: ~a" simulateWithCopy)
+  (out-info "computeStability: ~a" computeStability)
+  (out-info "computeContactWithKitchenBeforeSimulation: ~a" computeContactWithKitchenBeforeSimulation)
+  (out-info "computeContactWithKitchenAfterSimulation: ~a" computeContactWithKitchenAfterSimulation)
+  (out-info "computeCollisionsBeforeSimulation: ~a" computeCollisionsBeforeSimulation)
+  (out-info "computeCollisionsAfterSimulation: ~a" computeCollisionsAfterSimulation)
+  (out-info "computeVisibility: ~a" computeVisibility)
+  (out-info "computeOcclusions: ~a" computeOcclusions)
   (out-info "duration: ~a" duration)
   (let* (;; operation constants
          (spawn-object-const (get-operation-constant ':SPAWN_OBJECT))
@@ -97,6 +113,7 @@
                           (bounding-box boundingBox))
                 (elt operations i)
               (let ((object-bounding-box (cl-tf2:from-msg bounding-box)))
+                (out-info "######## operations loop ########")
                 (out-info "Applying operation ~a to object ~a." operation object-id)
                 (update-message-arrays i `(:id ,object-id)
                                        object-intel-current-world (not operationsWithCopy)
@@ -106,17 +123,23 @@
                 (cond
                   ((eq operation spawn-object-const)
                    (update-message-array i object-intel-operations
-                                         :contactWithKitchenBeforeSimulation (object-has-contact-with-kitchen object-id)
                                          :operation operation
                                          :operationSucceeded
                                          (spawn-object object-id object-type object-pose-stamped
-                                                       object-color object-bounding-box :world world-operations)))
+                                                       object-color object-bounding-box :world world-operations)
+                                         :contactWithKitchenBeforeSimulation (when computeContactWithKitchenBeforeSimulation
+                                                                               (object-has-contact-with-kitchen object-id))
+                                         :collisionWithBeforeSimulation (when computeCollisionsBeforeSimulation
+                                                                          (object-get-collisions object-id :world world-operations :elem-type :string))))
                   ((eq operation move-object-const)
                    (update-message-array i object-intel-operations
-                                         :contactWithKitchenBeforeSimulation (object-has-contact-with-kitchen object-id)
                                          :operation operation
                                          :operationSucceeded
-                                         (move-object object-id object-pose-stamped object-bounding-box :world world-operations)))
+                                         (move-object object-id object-pose-stamped object-bounding-box :world world-operations)
+                                         :contactWithKitchenBeforeSimulation (when computeContactWithKitchenBeforeSimulation
+                                                                               (object-has-contact-with-kitchen object-id))
+                                         :collisionWithBeforeSimulation (when computeCollisionsBeforeSimulation
+                                                                          (object-get-collisions object-id :world world-operations :elem-type :string))))
                   ((eq operation remove-object-const)
                    (update-message-array i object-intel-operations
                                          :operation operation
@@ -124,7 +147,10 @@
                                          (remove-obj object-id world-operations)))
                   ((eq operation query-status-const)
                    (update-message-array i object-intel-operations
-                                         :contactWithKitchenBeforeSimulation (object-has-contact-with-kitchen object-id)
+                                         :contactWithKitchenBeforeSimulation (when computeContactWithKitchenBeforeSimulation
+                                                                               (object-has-contact-with-kitchen object-id))
+                                         :collisionWithBeforeSimulation (when computeCollisionsBeforeSimulation
+                                                                          (object-get-collisions object-id :world world-operations :elem-type :string))
                                          :operation operation
                                          :operationSucceeded t)
                    (out-info "Only querying status for object ~a" object-id))
@@ -133,6 +159,7 @@
                    (update-message-array i object-intel-operations :operation operation
                                                                    :operationSucceeded nil))))
               (out-info "---------------------------------")))
+          (out-info "######## Finished operations loop ########")
           (get-elapsed-time)
           (out-info "Simulating.")
           ;; simulating
@@ -149,7 +176,15 @@
                                                                                '#()
                                                                                object-ids-symbol)))
           (multiple-value-bind (data stable)
-              (get-data-from-world world-current object-intel-current-world :camera-pose camera-pose)
+              (get-data-from-world world-current object-intel-current-world
+                                   :camera-pose camera-pose
+                                   :stability computeStability
+                                   :kitchen-contact (when (and simulate computeContactWithKitchenAfterSimulation)
+                                                        :after)
+                                   :collisions (when (and simulate computeCollisionsAfterSimulation
+                                                   :after))
+                                   :visibility computeVisibility
+                                   :occlusions computeOcclusions)
             (setf object-intel-current-world data)
             (setf intel-current-world (modify-message-copy intel-current-world
                                                            isStable stable
@@ -164,7 +199,15 @@
                                                                           object-intel-operations
                                                                           object-ids-symbol))
             (multiple-value-bind (data stable)
-                (get-data-from-world world-operations object-intel-operations :camera-pose camera-pose)
+                (get-data-from-world world-operations object-intel-operations
+                                     :camera-pose camera-pose
+                                     :stability computeStability
+                                     :kitchen-contact (when (and simulate computeContactWithKitchenAfterSimulation
+                                                          :after))
+                                     :collisions (when (and simulate computeCollisionsAfterSimulation
+                                                     :after))
+                                     :visibility computeVisibility
+                                     :occlusions computeOcclusions)
               (setf object-intel-operations data)
               (setf intel-operations-world (modify-message-copy intel-operations-world
                                                                 isStable stable
@@ -172,14 +215,22 @@
           (get-elapsed-time)
           ;; getting data from simulated world
           (out-info "---------------------------------")
-          (out-info "Getting data from simulatd world ~a" world-simulate)
+          (out-info "Getting data from simulated world ~a" world-simulate)
           (out-info "---------------------------------")
           (when (and simulate simulateWithCopy)
             (setf object-intel-simulated (add-remaining-objects-to-intel world-simulate
                                                                          object-intel-simulated
                                                                          object-ids-symbol))
             (multiple-value-bind (data stable)
-                (get-data-from-world world-simulate object-intel-simulated :camera-pose camera-pose)
+                (get-data-from-world world-simulate object-intel-simulated
+                                     :camera-pose camera-pose
+                                     :stability computeStability
+                                     :kitchen-contact (when (and simulate computeContactWithKitchenAfterSimulation
+                                                          :after))
+                                     :collisions (when (and simulate computeCollisionsBeforeSimulation
+                                                     :after))
+                                     :visibility computeVisibility
+                                     :occlusions computeOcclusions)
               (setf object-intel-simulated data)
               (setf intel-simulated-world (modify-message-copy intel-simulated-world
                                                                isStable stable
@@ -188,6 +239,13 @@
           (get-elapsed-time)
           (out-info "########################################")
           (make-response :errorLevel error-level
+                         :computedStability computeStability
+                         :computedContactWithKitchenBeforeSimulation computeContactWithKitchenBeforeSimulation
+                         :computedContactWithKitchenAfterSimulation computeContactWithKitchenAfterSimulation
+                         :computedCollisionsBeforeSimulation computeCollisionsBeforeSimulation
+                         :computedCollisionsAfterSimulation computeCollisionsAfterSimulation
+                         :computedVisibility computeVisibility
+                         :computedOcclusions computeOcclusions
                          :worlds (remove-if #'null
                                             `(,intel-current-world
                                               ,(when operationsWithCopy
@@ -217,18 +275,33 @@ Returns `intel' unified with the new intel (as a vector)."
                                                              :operationSucceeded t))
     (concatenate 'vector intel remaining-objects-intel)))
 
-(defun get-data-from-world (world intel &key camera-pose)
+(defun get-data-from-world (world intel &key stability kitchen-contact collisions visibility occlusions camera-pose)
   "Gets information about objects in the world `world'.
 `world' is expected to be a bullet world instance.
 `intel' is expected to be a vector of ObjectIntel messages. The id field of every message inside this vecor should be set.
+`stability' -- `t' to calcualte stability for each object, `NIL' otherwise.
+`kitchen-contact' -- `:before' to calcualte contact with kitchen for each object and put result into field `contactWithKitchenBeforeSimulation',
+                     `:after' to calcualte contact with kitchen for each object and put result into field `contactWithKitchenAfterSimulation',
+                     `NIL' otherwise.
+`collisions' -- `:before' to calcualte collisions for each object and put result into field `collisionWithBeforeSimulation',
+                `:after' to calcualte collisions for each object and put result into field `collisionWithAfterSimulation',
+                `NIL' otherwise.
+`visibility' -- `t' to calcualte visibility for each object, `NIL' otherwise.
+`occlusions' -- `t' to calcualte occlusions for each object, `NIL' otherwise.
+`camera-pose' -- User for everytihng related with visibility/occlusions. When `NIK', the robot's point of view will be used.
 Returns `intel' with aggregated information about every object
 and as second value it returns a boolean which indicates, if `world' is stable."
   (out-info "Getting data from world ~a" world)
   (let* ((remove-object-const (get-operation-constant ':REMOVE_OBJECT))
-         (visible-objects (get-visible-objects :world world :camera-pose camera-pose))
-         (world-is-stable (is-stable-world :world world))
-         (stable-objects (unless world-is-stable
-                           (get-stable-objects :world world))))
+         (visible-objects (when visibility
+                            (get-visible-objects :world world :camera-pose camera-pose)))
+         (world-is-stable (when stability
+                            (is-stable-world :world world)))
+         (stable-objects (when stability
+                           (unless world-is-stable
+                             (get-stable-objects :world world))))
+         (occluded-objects (when occlusions
+                             (get-occlusions :world world :camera-pose camera-pose))))
     (loop for object-intel across intel
           for i from 0 to (- (length intel) 1)
           do (with-fields ((object-id id) operation) object-intel
@@ -238,7 +311,8 @@ and as second value it returns a boolean which indicates, if `world' is stable."
                    (let* ((object-id-symbol (make-keyword object-id))
                           (new-object-pose-stamped (get-object-pose-stamped object-id world))
                           (object-dimensions (get-object-dimensions object-id world))
-                          (collision-objects (object-get-collisions object-id :world world :elem-type :string)))
+                          (collision-objects (when collisions
+                                               (object-get-collisions object-id :world world :elem-type :string))))
                      (when new-object-pose-stamped
                        (update-message-array i intel :poseStamped (cl-tf2:to-msg new-object-pose-stamped)))
                      (when object-dimensions
@@ -247,9 +321,20 @@ and as second value it returns a boolean which indicates, if `world' is stable."
                        (update-message-array i intel :isStable t))
                      (when (find object-id-symbol visible-objects)
                        (update-message-array i intel :isVisible t))
-                     (update-message-array i intel :contactWithKitchenAfterSimulation (object-has-contact-with-kitchen object-id))
+                     (when kitchen-contact
+                       (when (eq kitchen-contact :before)
+                         (update-message-array i intel :contactWithKitchenBeforeSimulation (object-has-contact-with-kitchen object-id)))
+                       (when (eq kitchen-contact :after)
+                         (update-message-array i intel :contactWithKitchenAfterSimulation (object-has-contact-with-kitchen object-id))))
                      (when collision-objects
-                       (update-message-array i intel :collisionWith collision-objects))))))
+                       (when (eq collisions :before)
+                         (update-message-array i intel :collisionWithBeforeSimulation collision-objects))
+                       (when (eq collisions :after)
+                         (update-message-array i intel :collisionWithAfterSimulation collision-objects)))
+                     (when occluded-objects
+                       (update-message-array i intel :occludedBy (list-to-vector
+                                                                  (mapcar #'resolve-keyword
+                                                                          (gethash object-id-symbol occluded-objects)))))))))
     (out-info "Leaving get-data-from-world().")
     (get-elapsed-time)
     (values intel world-is-stable)))

@@ -23,11 +23,33 @@ uint32 REMOVE_ALL_OBJECTS_FAILED = 4
   bool simulateWithCopy
   # The duration the world will be simulated.
   duration duration
+  # Whether to compute if each object is stable.
+  bool computeStability
+  # Whether to compute kitchen contact for each object before simulation.
+  bool computeContactWithKitchenBeforeSimulation
+  # Whether to compute kitchen contact for each object after simulation.
+  bool computeContactWithKitchenAfterSimulation
+  # Whether to compute collisions for each object before simulation.
+  bool computeCollisionsBeforeSimulation
+  # Whether to compute collisions for each object after simulation.
+  bool computeCollisionsAfterSimulation
+  # Whether to compute visibility for each object.
+  bool computeVisibility
+  # Whether to compute occlusions for each object.
+  bool computeOcclusions
 
 ---
 
 # Has there been an error, preventing the service call to finish?
 uint32 errorLevel
+
+bool computedStability
+bool computedContactWithKitchenBeforeSimulation
+bool computedContactWithKitchenAfterSimulation
+bool computedCollisionsBeforeSimulation
+bool computedCollisionsAfterSimulation
+bool computedVisibility
+bool computedOcclusions
 
 # Information about all worlds that exist or have been created during this service call
 WorldIntel[] worlds
