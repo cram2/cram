@@ -46,6 +46,16 @@ for 2 plates and 1 other-type.")
 (defgeneric parameterize-demo (demo-name)
   (:documentation "Bind all the parameters such as *demo-object-types* etc."))
 
+(defmethod spawn-object :around (name type &optional pose)
+  (declare (ignore pose))
+  (setf (gethash name *demo-objects*) (call-next-method)))
+
+(defmethod kill-object :after (name)
+  (remhash name *demo-objects*))
+
+(defmethod kill-all-objects :after ()
+  (clrhash *demo-objects*))
+
 (defun spawn-demo (demo-name &key (set nil))
   "Function to spawn the demo objects.
 `set' is, e.g., :main or :other-set, if not given spawns all objects."
@@ -65,12 +75,12 @@ for 2 plates and 1 other-type.")
           (let ((name (new-symbol-with-id type i)))
             (format t "~a ~a ~%" name type)
             (push name resulting-object-names)
-            (setf (gethash name *demo-objects*)
-                  (spawn-object name type (nth i poses-for-type)))))))
+            (spawn-object name type (nth i poses-for-type))))))
     (mapcar (alexandria:rcurry #'gethash *demo-objects*) resulting-object-names)))
 
 (defun respawn-demo (demo-name &key (set nil))
   (kill-all-objects)
+  (setf *demo-object-types* nil)
   (spawn-demo demo-name :set set))
 
 (defgeneric execute-demo (demo-name &key &allow-other-keys)
@@ -90,6 +100,10 @@ for 2 plates and 1 other-type.")
 
 (defun demo-object-names ()
   (alexandria:hash-table-keys *demo-objects*))
+
+(defun move-demo-objects-away ()
+  (dolist (name (demo-object-names))
+    (move-object name)))
 
 (defun demo-object-instance (name)
   (gethash name *demo-objects*))

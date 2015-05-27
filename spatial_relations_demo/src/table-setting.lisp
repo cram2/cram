@@ -31,78 +31,49 @@
 ;; TODO: comments
 ;; TODO: declares everywhere!
 
-(defparameter *num-of-sets-on-table* 2)
+(defparameter *num-of-sets-on-table* 4)
 
-(defmethod parameterize-demo ((demo-name (eql 'table-setting)))
+(defmethod parameterize-demo ((demo-name (eql :table-setting)))
   (setf *demo-object-types*
         '((:main . (plate fork knife mug))
           (:clutter . (pot bowl mondamin))))
-  (setf *demo-objects-how-many-each-type*
-        `((plate . ,*num-of-sets-on-table*)
-          (fork . ,*num-of-sets-on-table*)
-          (knife . ,*num-of-sets-on-table*)
-          (mug . ,*num-of-sets-on-table*)
-          (pot . 1)
-          (bowl . 4)
-          (mondamin . 2))))
+  (setf *demo-objects-initial-poses*
+        `((plate ,@(mapcar (lambda (x) `((1.45 0.8 ,x) (0 0 0 1)))
+                           (alexandria:iota *num-of-sets-on-table*
+                                            :start 0.86 :step 0.027)))
+          (fork ,@(mapcar (lambda (x) `((,x 0.5 0.865) (0 0 1 1)))
+                          (alexandria:iota *num-of-sets-on-table*
+                                           :start 1.35 :step 0.05)))
+          (knife ,@(mapcar (lambda (x) `((,x 0.5 0.857) (0 0 1 1)))
+                           (alexandria:iota
+                            *num-of-sets-on-table*
+                            :start (+ 1.35 (* (+ *num-of-sets-on-table* 1) 0.04))
+                            :step 0.05)))
+          (mug ((1.5 1.17 0.9119799601336841d0) (0 0 0 1))
+               ((1.46 1.04 0.9119799601336841d0) (0 0 0 1))
+               ((1.35 1.11 0.9119799601336841d0) (0 0 0 1))
+               ((1.65 1.02 0.9119799601336841d0) (0 0 0 1))
+               ((1.35 1.23 0.9119799601336841d0) (0 0 0 1)))
+          (pot ((-1.0 1.65 0.9413339835685429d0) (0 0 0 1)))
+          (bowl ((-0.9 1.95 0.8911207699875103d0) (0 0 0 1))
+                ((-0.95 1.16 0.8911207699875103d0) (0 0 0 1))
+                ((-0.9 1.3 0.8911207699875103d0) (0 0 0 1))
+                ((-1.0 2.36 0.8911207699875103d0) (0 0 0 1)))
+          (mondamin ((-1.0 1.06 0.9573383588498887d0) (0 0 0 1))
+                    ((-1.0 2.1 0.9573383588498887d0) (0 0 0 1))))))
 
-(defun kill-demo-objects ()
-  (dolist (name (demo-object-names))
-    (kill-object name)
-    (remhash name *demo-objects*)))
-
-(defun move-demo-objects-away ()
-  (dolist (name (demo-object-names))
-    (move-object name)))
-
-(defun put-noise-on-table ()
-  "For trying out on cluttered scenes"
-  ;; TODO: fixed coords -> location designator results
-  (spawn-demo :clutter)
-  (mapcar #'move-object '(pot-0 bowl-0 mondamin-0 mondamin-1 bowl-2 bowl-3 bowl-1)
-          '(((-1.0 1.65 0.9413339835685429d0) (0 0 0 1))
-            ((-0.9 1.95 0.8911207699875103d0) (0 0 0 1))
-            ((-1.0 1.06 0.9573383588498887d0) (0 0 0 1))
-            ((-1.0 2.1 0.9573383588498887d0) (0 0 0 1))
-            ((-0.9 1.3 0.8911207699875103d0) (0 0 0 1))
-            ((-1.0 2.36 0.8911207699875103d0) (0 0 0 1))
-            ((-0.95 1.16 0.8911207699875103d0) (0 0 0 1))))
-  ;; (simulate *current-bullet-world* 50)
-  )
-
-(defun put-stuff-on-counter ()
-  (spawn-demo :main)
-  (move-demo-objects-away)
-
-  (loop for i from 0 to (1- *num-of-sets-on-table*)
-        for plate-coord = 0.86 then (+ plate-coord 0.027)
-        ;; for plate-coord = 0.96 then (+ plate-coord 0.027)
-        for fork-coord = 1.35 then (+ fork-coord 0.05)
-        for knife-coord = (+ fork-coord (* (+ *num-of-sets-on-table* 1) 0.04))
-        do (move-object (new-symbol-with-id "PLATE" i)
-                        `((1.45 0.8 ,plate-coord) (0 0 0 1)))
-           (move-object (new-symbol-with-id "FORK" i)
-                        `((,fork-coord 0.5 0.865) (0 0 1 1)))
-           (move-object (new-symbol-with-id "KNIFE" i)
-                        `((,knife-coord 0.5 0.857) (0 0 1 1))))
-
-  (move-object 'mug-1 '((1.5 1.08 0.9119799601336841d0) (0 0 0 1)))
-  (move-object 'mug-3 '((1.65 1.02 0.9119799601336841d0) (0 0 0 1)))
-  (move-object 'mug-2 '((1.35 1.11 0.9119799601336841d0) (0 0 0 1)))
-  (move-object 'mug-4 '((1.55 1.19 0.9119799601336841d0) (0 0 0 1)))
-  (move-object 'mug-0 '((1.5 1.17 0.9119799601336841d0) (0 0 0 1))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;; ONLY DESIGS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun put-plates-on-table-with-far (&optional (number-of-plates *num-of-sets-on-table*))
-  (spawn-demo :main)
+  (spawn-demo :table-setting :set :main)
   (cpl-impl:top-level
     (cram-language-designator-support:with-designators
        ((des-for-plate-2 (location `((right-of plate-1) (far-from plate-1)
                                                         (for plate-2))))
         (des-for-plate-4 (location `((left-of plate-3) (far-from plate-3)
                                                        (for plate-4)))))
-     (when (> number-of-plates 0)
+      (when (> number-of-plates 0)
        (prolog `(assert (object-pose ?_ plate-1 ((-1.5 1.84 0.85747d0) (0 0 0 1)))))
        (when (> number-of-plates 1)
          (prolog `(assert (object-pose ?_ plate-3 ((-1.0 1.84 0.85747d0) (0 0 0 1)))))
@@ -111,11 +82,11 @@
            (when (> number-of-plates 3)
              (prolog `(assign-object-pos-on plate-4 ,des-for-plate-4)))))))))
 
-(defun make-plate-desig (plate-id &optional (counter-name "kitchen_island")
+(defun make-plate-desig (plate-id &optional (counter-name "kitchen_island_counter_top")
                                     (plate-num *num-of-sets-on-table*))
   (let ((plate-name (new-symbol-with-id "PLATE" plate-id)))
-    (make-designator 'location `((on "Cupboard") (name ,counter-name)
-                                 (for ,plate-name) (context table-setting)
+    (make-designator 'location `((on "CounterTop") (name ,counter-name)
+                                 (for ,plate-name) (context :table-setting)
                                  (object-count ,plate-num)))))
 
 (defun make-object-near-plate-desig (object-type object-id &optional (plate-id object-id))
@@ -130,18 +101,18 @@
                                          (desig-props:for ,object-name))))))
 
 (defun assign-multiple-obj-pos (object-type &optional (object-number *num-of-sets-on-table*))
-  (prolog `(and ,@(loop for i from 1 to object-number collect
-                        `(assign-object-pos ,(new-symbol-with-id object-type i)
-                                            ,(string-case object-type
-                                               ("PLATE" (make-plate-desig i))
-                                               (t (make-object-near-plate-desig object-type i))))))))
+  (dotimes (i object-number)
+    (move-object (new-symbol-with-id object-type i)
+                 (string-case object-type
+                   ("PLATE" (reference (make-plate-desig i)))
+                   (t (reference (make-object-near-plate-desig object-type i)))))))
 
 (defun set-table-without-robot ()
-  (spawn-demo :main)
+  (spawn-demo :table-setting :set :main)
   (move-demo-objects-away)
   (time
-   (loop for object-type being the hash-keys of *demo-objects*
-         do (assign-multiple-obj-pos object-type))))
+   (dolist (object-type (cdr (assoc :main *demo-object-types*)))
+     (assign-multiple-obj-pos object-type))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; PROJECTION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -150,7 +121,7 @@
   (cram-language-designator-support:with-designators
       ((on-kitchen-island (location `((on "Cupboard")
                                       (name "kitchen_island")
-                                      (for ,plate-obj-desig) (context table-setting) 
+                                      (for ,plate-obj-desig) (context :table-setting) 
                                       (object-count ,*num-of-sets-on-table*)))))
     (format t "now trying to achieve the location of plate on kitchen-island~%")
     (plan-knowledge:achieve `(plan-knowledge:loc ,plate-obj-desig ,on-kitchen-island))))
@@ -203,7 +174,7 @@
 
 
 (defun set-table-in-projection ()
-  (put-stuff-on-counter)
+  (spawn-demo :table-setting :set :main)
   (put-stuff-on-table))
 
 (defun teleport-a-plate ()
@@ -243,7 +214,7 @@
 ;; (setf des (desig:make-designator 'desig-props:location '((desig-props:right-of plate-1) (desig-props:behind plate-1) (desig-props:near plate-1) (desig-props:for mug-1) (desig-props:on counter-top) (desig-props:name kitchen-island))))
 
 ;; desig for a plate on a table
-;; (setf des (desig:make-designator 'desig-props:location '((desig-props:on counter-top) (desig-props:name kitchen-island) (desig-props:context table-setting) (desig-props:for plate-1) (desig-props:object-count 4))))
+;; (setf des (desig:make-designator 'desig-props:location '((desig-props:on counter-top) (desig-props:name kitchen-island) (desig-props:context :table-setting) (desig-props:for plate-1) (desig-props:object-count 4))))
 
 ;; ;; desig for a fork to the left of plate
 ;; (setf des (desig:make-designator 'desig-props:location '((desig-props:left-of plate-1)  (desig-props:near plate-1) (desig-props:for fork-1))))

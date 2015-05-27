@@ -46,7 +46,7 @@
             (scenario-objects-default-color ?color))))
 
   ;; Colors for different object types different in specific scenario. E.g.:
-  ;; (<- (%scenario-object-color pancake-making pancake-maker (1.0 0 0)))
+  ;; (<- (%scenario-object-color :pancake-making pancake-maker (1.0 0 0)))
 
   ;; Colors for different object types the same for all scenarios.
   (<- (%scenario-object-color plate    (0.8 0.58 0.35)))

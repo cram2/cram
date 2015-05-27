@@ -29,26 +29,29 @@
 
 (in-package :spatial-relations-demo)
 
-(defun spawn-object (name type &optional pose)
-  (var-value
-   '?object-instance
-   (car (prolog-?w
-          (if pose
-              `(equal ?pose ,pose)
-              `(scenario-objects-init-pose ?pose))
-          `(scenario-object-shape ,type ?shape)
-          `(scenario-object-color ?_ ,type ?color)
-          `(scenario-object-extra-attributes ?_ ,type ?attributes)
-          `(append (object ?w ?shape ,name ?pose :mass 0.2 :color ?color) ?attributes
-                   ?object-description)
-          `(assert ?object-description)
-          `(%object ?w ,name ?object-instance)))))
+(defgeneric spawn-object (name type &optional pose)
+  (:method (name type &optional pose)
+    (var-value
+     '?object-instance
+     (car (prolog-?w
+            (if pose
+                `(equal ?pose ,pose)
+                `(scenario-objects-init-pose ?pose))
+            `(scenario-object-shape ,type ?shape)
+            `(scenario-object-color ?_ ,type ?color)
+            `(scenario-object-extra-attributes ?_ ,type ?attributes)
+            `(append (object ?w ?shape ,name ?pose :mass 0.2 :color ?color) ?attributes
+                     ?object-description)
+            `(assert ?object-description)
+            `(%object ?w ,name ?object-instance))))))
 
-(defun kill-object (name)
-  (prolog-?w `(retract (object ?w ,name))))
+(defgeneric kill-object (name)
+  (:method (name)
+    (prolog-?w `(retract (object ?w ,name)))))
 
-(defun kill-all-objects ()
-  (prolog-?w `(household-object-type ?w ?obj ?type) `(retract (object ?w ?obj)) '(fail)))
+(defgeneric kill-all-objects ()
+  (:method ()
+    (prolog-?w `(household-object-type ?w ?obj ?type) `(retract (object ?w ?obj)) '(fail))))
 
 (defun move-object (object-name &optional new-pose)
   (if new-pose
@@ -73,7 +76,8 @@
 (defun object-pose (object-name)
   (pose (object-instance object-name)))
 
-(declaim (inline kill-object kill-all-objects move-object object-pose))
+(declaim (inline ;; kill-object kill-all-objects
+                 move-object object-pose))
 
 
 ;;;;;;;;;;;;;;;;;;;; PROLOG ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

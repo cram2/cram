@@ -28,7 +28,7 @@
 
 (in-package :spatial-relations-demo)
 
-(defmethod parameterize-demo ((demo-name (eql 'pancake-making)))
+(defmethod parameterize-demo ((demo-name (eql :pancake-making)))
   (setf *demo-object-types*
         '((:main spatula mondamin)
           (:non-mesh pancake-maker)))
@@ -39,87 +39,56 @@
            ((1.45 0.95 0.86) (0 0 0.2 1)))
           (mondamin ((1.35 1.11 0.958) (0 0 0 1))))))
 
-(defmethod execute-demo ((demo-name (eql 'pancake-making)) &key (set nil))
+(defmethod execute-demo ((demo-name (eql :pancake-making)) &key set)
   (declare (ignore set))
   (sb-ext:gc :full t)
   (cram-projection:with-projection-environment
       projection-process-modules::pr2-bullet-projection-environment
     (cpl-impl:top-level
-      (let ((spatula-designator
-              (find-object-on-counter 'btr::spatula "CounterTop"
-                                      "kitchen_sink_block_counter_top")))
+      (let ((pancake-maker-designator
+              (find-object-on-counter 'btr::pancake-maker "Cupboard" "pancake_table")))
+        (let ((spatula-designator
+                (find-object-on-counter 'btr::spatula "CounterTop"
+                                        "kitchen_sink_block_counter_top")))
+          (sb-ext:gc :full t)
+          (cram-language-designator-support:with-designators
+              ((spatula-location (location `((on "Cupboard")
+                                             (name "pancake_table")
+                                             (centered-with-padding 0.6)
+                                             (for ,spatula-designator)
+                                             (right-of ,pancake-maker-designator)
+                                             (near ,pancake-maker-designator)))))
+            (format t "now trying to achieve the location of spatula on kitchen-island~%")
+            (plan-knowledge:achieve
+             `(plan-knowledge:loc ,spatula-designator ,spatula-location))))
         (sb-ext:gc :full t)
-        (cram-language-designator-support:with-designators
-            ((spatula-location (location `((on "Cupboard")
-                                           (name "pancake_table")
-                                           (centered-with-padding 0.6)
-                                           (for ,spatula-designator)
-                                           (right-of oven-1)
-                                           (near oven-1)))))
-          (format t "now trying to achieve the location of spatula on kitchen-island~%")
-          (plan-knowledge:achieve
-           `(plan-knowledge:loc ,spatula-designator ,spatula-location))))
-      (sb-ext:gc :full t)
-      (let ((mondamin-designator
-              (find-object-on-counter 'btr::mondamin "kitchen_sink_block")))
+        (let ((mondamin-designator
+                (find-object-on-counter 'btr::mondamin "CounterTop"
+                                        "kitchen_sink_block_counter_top")))
+          (sb-ext:gc :full t)
+          (cram-language-designator-support:with-designators
+              ((on-kitchen-island (location `((on "Cupboard")
+                                              (name "pancake_table")
+                                              (centered-with-padding 0.35)
+                                              (for ,mondamin-designator)
+                                              (right-of ,pancake-maker-designator)
+                                              (far-from ,pancake-maker-designator)))))
+            (format t "now trying to achieve the location of mondamin on kitchen-island~%")
+            (plan-knowledge:achieve
+             `(plan-knowledge:loc ,mondamin-designator ,on-kitchen-island))
+            (sb-ext:gc :full t)))
         (sb-ext:gc :full t)
-        (cram-language-designator-support:with-designators
-            ((on-kitchen-island (location `((on "Cupboard")
-                                            (name "pancake_table")
-                                            (centered-with-padding 0.35)
-                                            (for ,mondamin-designator)
-                                            (right-of oven-1)
-                                            (far-from oven-1)))))
-          (format t "now trying to achieve the location of mondamin on kitchen-island~%")
-          (plan-knowledge:achieve
-           `(plan-knowledge:loc ,mondamin-designator ,on-kitchen-island))
-          (sb-ext:gc :full t)))
-      (sb-ext:gc :full t)
-      (let ((spatula-2-designator
-              (find-object-on-counter 'btr::spatula "kitchen_sink_block")))
-        (sb-ext:gc :full t)
-        (cram-language-designator-support:with-designators
-            ((spatula-location (location `((on "Cupboard")
-                                           (name "pancake_table")
-                                           (centered-with-padding 0.6)
-                                           (for ,spatula-2-designator)
-                                           (left-of oven-1)
-                                           (near oven-1)))))
-          (format t "now trying to achieve the location of spatula on kitchen-island~%")
-          (plan-knowledge:achieve
-           `(plan-knowledge:loc ,spatula-2-designator ,spatula-location)))))))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;; restricting area for the robot ;;;;;;;;;;;;;;;;;
-
-(defun make-restricted-area-cost-function ()
-  (lambda (x y)
-    (if (> x 1.0) 0.0
-        (if (and (> x 0.0) (> y -1.0) (< y 1.0)) 1.0
-            (if (and (< x 0.0) (> x -1.0) (> y -1.0) (< y 2.0)) 1.0
-                0.0)))))
-
-(defmethod costmap-generator-name->score ((name (eql 'restricted-area))) 5)
-
-(def-fact-group pancakes (desig-costmap)
-  (<- (desig-costmap ?designator ?costmap)
-    (or (desig-prop ?designator (to see))
-        (desig-prop ?designator (to reach)))
-    (costmap ?costmap)
-    (costmap-padding ?padding)
-    (costmap-add-function restricted-area (make-restricted-area-cost-function)
-                          ?costmap)))
-
-(defun test-costmap ()
-  (prolog `(and (costmap-padding ?pad)
-              (costmap ?cm)
-              (occupancy-grid-costmap::drivable-location-costmap ?cm ?pad)
-              (semantic-map-objects ?objects)
-              (costmap-add-function semantic-map-costmap::semantic-map-free-space
-                                    (semantic-map-costmap::make-semantic-map-costmap
-                                     ?objects :invert t :padding ?pad)
-                                    ?cm)
-              (costmap-add-function restricted-area
-                                    (make-restricted-area-cost-function)
-                                    ?cm)
-              (debug-costmap ?cm))))
+        (let ((spatula-2-designator
+                (find-object-on-counter 'btr::spatula "CounterTop"
+                                        "kitchen_sink_block_counter_top")))
+          (sb-ext:gc :full t)
+          (cram-language-designator-support:with-designators
+              ((spatula-location (location `((on "Cupboard")
+                                             (name "pancake_table")
+                                             (centered-with-padding 0.6)
+                                             (for ,spatula-2-designator)
+                                             (left-of ,pancake-maker-designator)
+                                             (near ,pancake-maker-designator)))))
+            (format t "now trying to achieve the location of spatula on kitchen-island~%")
+            (plan-knowledge:achieve
+             `(plan-knowledge:loc ,spatula-2-designator ,spatula-location))))))))
