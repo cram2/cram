@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+"true"; exec /usr/bin/env sbcl --noinform --load `rospack find roslisp`/scripts/roslisp-sbcl-init --script "$0" "$@"
+
+(ros-load:load-system "bullet_reasoning_interface" "bullet-reasoning-interface")
+(bullet-reasoning-interface:init-interface)
+(bullet-reasoning-interface:start-service)
