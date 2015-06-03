@@ -30,6 +30,7 @@
 (defvar *pose-mid* nil)
 (defvar *pose-cube* nil)
 (defvar *pose-right* nil)
+(defvar *pose-right-msg* nil)
 (defvar *cube-mesh* nil)
 (defvar *start-robot-state* nil)
 (defvar *planned-trajectory* nil)
@@ -60,6 +61,10 @@
            0.0
            (cl-transforms:make-3d-vector 0.67 -0.45 0.94)
            (cl-transforms:make-quaternion 0.0 0.0 0.0 1.0)))
+  (setf *pose-right-msg*
+        (roslisp:make-msg "geometry_msgs/Pose"
+                          :position (roslisp:make-msg "geometry_msgs/Point" :x 0.67 :y -0.45 :z 0.94)
+                          :orientation (roslisp:make-msg "geometry_msgs/Quaternion" :x 0.0 :y 0.0 :z 0.0 :w 1.0)))
   (setf *cube-mesh*
          (roslisp:make-msg
            "shape_msgs/Mesh"

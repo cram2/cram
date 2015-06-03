@@ -14,6 +14,7 @@
    *pose-mid*
    *pose-cube*
    *pose-right*
+   *pose-right-msg*
    *start-robot-pose*
    *planned-trajectory*)
 
