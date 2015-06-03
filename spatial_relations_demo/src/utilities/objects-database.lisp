@@ -76,7 +76,7 @@
     (equal ?attributes (:mesh ?object-type)))
 
   (<- (scenario-object-extra-attributes ?_ pancake-maker (:size (0.15 0.15 0.035))))
-  (<- (scenario-object-extra-attributes ?_ orange (:radius 0.06)))
-  (<- (scenario-object-extra-attributes ?_ apple (:radius 0.05)))
-  (<- (scenario-object-extra-attributes ?_ cereal (:size (0.05 0.2 0.3))))
-  (<- (scenario-object-extra-attributes ?_ sugar-box (:size (0.05 0.1 0.15)))))
+  (<- (scenario-object-extra-attributes ?_ orange (:radius 0.04)))
+  (<- (scenario-object-extra-attributes ?_ apple (:radius 0.0425)))
+  (<- (scenario-object-extra-attributes ?_ cereal (:size (0.029 0.0965 0.1385))))
+  (<- (scenario-object-extra-attributes ?_ sugar-box (:size (0.0275 0.047 0.1035)))))
