@@ -29,20 +29,23 @@
 
 (in-package :spatial-relations-demo)
 
-(defun spawn-object (name type &optional pose)
+(defun spawn-object (name type &key pose color (world btr:*current-bullet-world*))
   (var-value
    '?object-instance
-   (car (prolog-?w
-          (if pose
-              `(equal ?pose ,pose)
-              `(scenario-objects-init-pose ?pose))
-          `(scenario-object-shape ,type ?shape)
-          `(scenario-object-color ?_ ,type ?color)
-          `(scenario-object-extra-attributes ?_ ,type ?attributes)
-          `(append (object ?w ?shape ,name ?pose :mass 0.2 :color ?color) ?attributes
+   (car (prolog
+         `(and
+           ,(if pose
+                `(equal ?pose ,pose)
+                `(scenario-objects-init-pose ?pose))
+           (scenario-object-shape ,type ?shape)
+           ,(if color
+                `(equal ?color ,color)
+                `(scenario-object-color ?_ ,type ?color))
+           (scenario-object-extra-attributes ?_ ,type ?attributes)
+           (append (object ,world ?shape ,name ?pose :mass 0.2 :color ?color) ?attributes
                    ?object-description)
-          `(assert ?object-description)
-          `(%object ?w ,name ?object-instance)))))
+           (assert ?object-description)
+           (%object ,world ,name ?object-instance))))))
 
 (defun kill-object (name)
   (prolog-?w `(retract (object ?w ,name))))
@@ -65,8 +68,16 @@
   (var-value '?instance
              (car (prolog-?w `(%object ?w ,object-name ?instance)))))
 
-(defun object-pose (object-name)
+(defun object-pose-tmp (object-name)
   (pose (object-instance object-name)))
+
+(defun object-exists (object-name)
+  (typep (object-instance object-name) 'bullet-reasoning:object))
+
+;;(defun object-visible-p
+
+(defun household-object-exists (object-name)
+  (typep (object-instance object-name) 'bullet-reasoning:household-object))
 
 (declaim (inline kill-object kill-all-objects move-object object-pose))
 
