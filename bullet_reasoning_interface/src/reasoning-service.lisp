@@ -65,7 +65,7 @@
          (simulated-world-const (get-world-type-constant ':SIMULATED_WORLD))
          ;; camera pose
          (camera-pose (when updateCameraPose
-                        (cl-tf2:from-msg cameraPose)))
+                        (cl-transforms-stamped:from-msg cameraPose)))
          ;; responses
          (intel-current-world (make-msg "bullet_reasoning_interface/WorldIntel" worldType current-world-const))
          (intel-operations-world (make-msg "bullet_reasoning_interface/WorldIntel" worldType operated-world-const))
@@ -112,7 +112,7 @@
                           (object-color color)
                           (bounding-box boundingBox))
                 (elt operations i)
-              (let ((object-bounding-box (cl-tf2:from-msg bounding-box)))
+              (let ((object-bounding-box (cl-transforms-stamped:from-msg bounding-box)))
                 (out-info "######## operations loop ########")
                 (out-info "Applying operation ~a to object ~a." operation object-id)
                 (update-message-arrays i `(:id ,object-id)
@@ -314,9 +314,13 @@ and as second value it returns a boolean which indicates, if `world' is stable."
                           (collision-objects (when collisions
                                                (object-get-collisions object-id :world world :elem-type :string))))
                      (when new-object-pose-stamped
-                       (update-message-array i intel :poseStamped (cl-tf2:to-msg new-object-pose-stamped)))
+                       (update-message-array
+                        i intel
+                        :poseStamped (cl-transforms-stamped:to-msg new-object-pose-stamped)))
                      (when object-dimensions
-                       (update-message-array i intel :boundingBox (cl-tf2:to-msg object-dimensions)))
+                       (update-message-array
+                        i intel
+                        :boundingBox (cl-transforms-stamped:to-msg object-dimensions)))
                      (when (or world-is-stable (find object-id-symbol stable-objects))
                        (update-message-array i intel :isStable t))
                      (when (find object-id-symbol visible-objects)

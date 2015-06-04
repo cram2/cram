@@ -35,10 +35,10 @@
             
 (defun pose-stamped->pose-stamped-fixed (pose-stamped)
   "Transforms the stamped pose `pose-stamped' to `designators-ros:*fixed-frame*' and returns it."
-  (let ((frame_id (cl-tf-datatypes:frame-id pose-stamped)))
+  (let ((frame_id (cl-transforms-stamped:frame-id pose-stamped)))
     (if (string= (cl-tf2:unslash-frame frame_id) (cl-tf2:unslash-frame designators-ros:*fixed-frame*))
         pose-stamped
-        (let ((result (cl-tf2:transform-pose
+        (let ((result (cl-transforms-stamped:transform-pose-stamped
                        *transform-listener*
                        :pose pose-stamped
                        :target-frame designators-ros:*fixed-frame*)))
@@ -53,14 +53,14 @@
 (defun get-approximated-bounding-box-to-bounding-box-pose (box-1 box-2)
   (out-debug " get-approximated-bounding-box-to-bounding-box-pose()")
   (let* ((obj-box-dim (cl-bullet:bounding-box-dimensions box-1))
-         (obj-box-dim-tup `((:x . ,(cl-tf:x obj-box-dim))
-                            (:y . ,(cl-tf:y obj-box-dim))
-                            (:z . ,(cl-tf:z obj-box-dim))))
+         (obj-box-dim-tup `((:x . ,(cl-transforms:x obj-box-dim))
+                            (:y . ,(cl-transforms:y obj-box-dim))
+                            (:z . ,(cl-transforms:z obj-box-dim))))
          (obj-box-dim-tup-sorted (sort-non-destructive obj-box-dim-tup (lambda (t1 t2) (< (cdr t1) (cdr t2)))))
          (box-dim (cl-bullet:bounding-box-dimensions box-2))
-         (box-dim-tup `((:x . ,(cl-tf:x box-dim))
-                        (:y . ,(cl-tf:y box-dim))
-                        (:z . ,(cl-tf:z box-dim))))
+         (box-dim-tup `((:x . ,(cl-transforms:x box-dim))
+                        (:y . ,(cl-transforms:y box-dim))
+                        (:z . ,(cl-transforms:z box-dim))))
          (box-dim-tup-sorted (sort-non-destructive  box-dim-tup (lambda (t1 t2) (< (cdr t1) (cdr t2)))))
          (axes-mappings (remove-duplicate-tuples
                          `((,(caar obj-box-dim-tup-sorted) . ,(caar box-dim-tup-sorted))
@@ -104,33 +104,36 @@ If there are no interchaged axes, this function does not do anything."
 
 (defun vector-length (v)
   "Returns the length (euclidean norm) of a vector `v'."
-  (sqrt (+ (expt (cl-tf:x v) 2) (expt (cl-tf:y v) 2) (expt (cl-tf:z v) 2))))
+  (sqrt (+ (expt (cl-transforms:x v) 2)
+           (expt (cl-transforms:y v) 2)
+           (expt (cl-transforms:z v) 2))))
 
 (defun rotation-between-vectors (v1 v2)
   "Returns the rotation between vector `va' and vector `v2' as a quaternion."
-  (let* ((crossproduct (cl-tf:cross-product v1 v2))
-         (dotproduct (cl-tf:dot-product v1 v2))
+  (let* ((crossproduct (cl-transforms:cross-product v1 v2))
+         (dotproduct (cl-transforms:dot-product v1 v2))
          (v1-length-pow-2 (expt (vector-length v1) 2))
          (v2-length-pow-2 (expt (vector-length v2) 2))
          (k (sqrt (* v1-length-pow-2 v2-length-pow-2)))
          (scalar (+  k dotproduct)))
     (if (= (/ dotproduct k) -1)
-        (let* ((x-axis (cl-tf:make-3d-vector 1 0 0))
-               (y-axis (cl-tf:make-3d-vector 0 1 0))
+        (let* ((x-axis (cl-transforms:make-3d-vector 1 0 0))
+               (y-axis (cl-transforms:make-3d-vector 0 1 0))
                (some-vector
                  (if (< (abs
-                         (cl-tf:dot-product v1 x-axis))
+                         (cl-transforms:dot-product v1 x-axis))
                         1.0)
                      x-axis
                      y-axis))
-               (cross (cl-tf:normalize-vector
-                       (cl-tf:cross-product v1 some-vector))))
-          (cl-tf:normalize
-           (cl-tf:axis-angle->quaternion cross pi)))
-        (cl-tf:normalize (cl-tf:make-quaternion (cl-tf:x crossproduct)
-                                                (cl-tf:y crossproduct)
-                                                (cl-tf:z crossproduct)
-                                                scalar)))))
+               (cross (cl-transforms:normalize-vector
+                       (cl-transforms:cross-product v1 some-vector))))
+          (cl-transforms:normalize
+           (cl-transforms:axis-angle->quaternion cross pi)))
+        (cl-transforms:normalize
+         (cl-transforms:make-quaternion (cl-transforms:x crossproduct)
+                                        (cl-transforms:y crossproduct)
+                                        (cl-transforms:z crossproduct)
+                                        scalar)))))
          
 (defun rotate-object (name axis angle &optional (world btr:*current-bullet-world*))
   "Rotates the object `name' in `world' with given `angle' around `axis'."
@@ -151,18 +154,24 @@ The format of `roations' is expected to be `(list (:axis . angle) (:axis . angle
 (defun rotate-pose (pose axis angle)
   "Rotates `pose' with given `angle' around `axis'."
   (out-debug "Rotating pose ~a around axis ~a by ~a degree." pose axis (* angle (/ 180.0 pi)))
-  (let* ((origin (cl-tf:origin pose))
-         (orientation (cl-tf:orientation pose))
+  (let* ((origin (cl-transforms:origin pose))
+         (orientation (cl-transforms:orientation pose))
          (add-rotation (cond
-                         ((eq axis :x) (cl-tf:make-quaternion (sin (/ angle 2.0)) 0.0 0.0 (* -1 (cos (/ angle 2.0)))))
-                         ((eq axis :y) (cl-tf:make-quaternion 0.0 (sin (/ angle 2.0)) 0.0 (cos (/ angle 2.0))))
-                         ((eq axis :z) (cl-tf:make-quaternion 0.0 0.0 (sin (/ angle 2.0)) (cos (/ angle 2.0))))
+                         ((eq axis :x)
+                          (cl-transforms:make-quaternion
+                           (sin (/ angle 2.0)) 0.0 0.0 (* -1 (cos (/ angle 2.0)))))
+                         ((eq axis :y)
+                          (cl-transforms:make-quaternion
+                           0.0 (sin (/ angle 2.0)) 0.0 (cos (/ angle 2.0))))
+                         ((eq axis :z)
+                          (cl-transforms:make-quaternion
+                           0.0 0.0 (sin (/ angle 2.0)) (cos (/ angle 2.0))))
                          (t (out-error "Unhandled axis: ~a" axis))))
          (new-orientation (cl-transforms:q* add-rotation orientation)))
     (out-debug "add-rotation: ~a" add-rotation)
     (out-debug "old-orientation: ~a" orientation)
     (out-debug "new-orientation: ~a" new-orientation)
-    (cl-tf:make-pose origin new-orientation)))
+    (cl-transforms:make-pose origin new-orientation)))
 
 (defun get-all-x-from-solution (variable-name solution &optional (type :list))
   "Returns all possible values for variable `variable-name' in prolog soulution `solution'.
