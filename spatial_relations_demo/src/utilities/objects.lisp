@@ -29,21 +29,27 @@
 
 (in-package :spatial-relations-demo)
 
-(defgeneric spawn-object (name type &optional pose)
-  (:method (name type &optional pose)
+(defgeneric spawn-object (name type &key pose color world)
+  (:method (name type &key pose color world)
     (var-value
-     '?object-instance
-     (car (prolog-?w
-            (if pose
+   '?object-instance
+   (car (prolog
+         `(and
+           ,(if pose
                 `(equal ?pose ,pose)
                 `(scenario-objects-init-pose ?pose))
-            `(scenario-object-shape ,type ?shape)
-            `(scenario-object-color ?_ ,type ?color)
-            `(scenario-object-extra-attributes ?_ ,type ?attributes)
-            `(append (object ?w ?shape ,name ?pose :mass 0.2 :color ?color) ?attributes
-                     ?object-description)
-            `(assert ?object-description)
-            `(%object ?w ,name ?object-instance))))))
+           ,(if color
+                `(equal ?color ,color)
+                `(scenario-object-color ?_ ,type ?color))
+           ,(if world
+                `(equal ?world ,world)
+                `(bullet-world ?world))
+           (scenario-object-shape ,type ?shape)
+           (scenario-object-extra-attributes ?_ ,type ?attributes)
+           (append (object ?world ?shape ,name ?pose :mass 0.2 :color ?color) ?attributes
+                   ?object-description)
+           (assert ?object-description)
+           (%object ?world ,name ?object-instance)))))))
 
 (defgeneric kill-object (name)
   (:method (name)
@@ -75,6 +81,18 @@
 
 (defun object-pose (object-name)
   (pose (object-instance object-name)))
+
+;; ToDo: clean up the next 3 functions
+(defun object-pose-tmp (object-name)
+  (pose (object-instance object-name)))
+
+(defun object-exists (object-name)
+  (typep (object-instance object-name) 'bullet-reasoning:object))
+
+;;(defun object-visible-p
+
+(defun household-object-exists (object-name)
+  (typep (object-instance object-name) 'bullet-reasoning:household-object))
 
 (declaim (inline ;; kill-object kill-all-objects
                  move-object object-pose))
