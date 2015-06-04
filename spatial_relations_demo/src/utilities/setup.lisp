@@ -86,7 +86,7 @@
        (bullet-world ?w)
        (debug-window ?w)
        (robot ?robot)
-       (assert (object ?w btr::static-plane floor ((0 0 0.001) (0 0 0 1))
+       (assert (object ?w btr::static-plane floor ((0 0 0) (0 0 0 1))
                        :normal (0 0 1) :constant 0
                        :disable-collisions-with (?robot)))
        ;; (assert (object ?w static-plane wall-behind-shelves
