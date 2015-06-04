@@ -13,7 +13,7 @@ If there is already an object `name' in `world', nothing happens."
             (name-symbol (make-keyword name)))
         (out-info "type-symbol: ~a" type-symbol)
         (out-info "name-symbol: ~a" name-symbol)
-        (let* ((pose-stamped (cl-tf2:from-msg pose-stamped-msg))
+        (let* ((pose-stamped (cl-transforms-stamped:from-msg pose-stamped-msg))
                (pose-stamped-fixed (pose-stamped->pose-stamped-fixed pose-stamped))
                (color (color-msg-to-list color-msg))
                (box (cl-bullet:make-bounding-box :center pose-stamped-fixed
@@ -65,7 +65,7 @@ If there is already an object `name' in `world', nothing happens."
 in the bullet world `world.
 If there is no object `name' in `world', nothing happens."
   (out-debug "move-object()")
-  (let* ((pose-stamped (cl-tf2:from-msg pose-stamped-msg))
+  (let* ((pose-stamped (cl-transforms-stamped:from-msg pose-stamped-msg))
          (pose-stamped-fixed (pose-stamped->pose-stamped-fixed pose-stamped)))
     (move-object-by-fixed-pose name pose-stamped-fixed :world world :bounding-box bounding-box)))
 
