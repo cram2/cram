@@ -177,7 +177,7 @@ If `copy' is `t', the simulation and the evaluation will be executed on a copy o
   (let ((result
           (if simulate-duration
               (object-has-contact-with-kitchen  object :world (simulate-world simulate-duration :world world :copy copy))
-              (is-in-solution '?objects 'spatial-relations-demo::my-kitchen
+              (is-in-solution '?objects :kitchen
                               (force-ll (prolog `(contact ,world ,(make-keyword object) ?objects)))))))
     (get-elapsed-time)
     result))
@@ -281,4 +281,4 @@ If `copy' is `t', the simulation and the evaluation will be executed on a copy o
                                       (household-object-type ,world ?objects ?type)
                                       (occluding-objects ,world ?robot ?objects ?occluded-by))))))
         (get-elapsed-time)
-        (get-all-y-for-x-from-solution '?objects '?occluded-by result :ignore '(spatial-relations-demo::my-kitchen)))))
+        (get-all-y-for-x-from-solution '?objects '?occluded-by result :ignore '(:kitchen)))))
