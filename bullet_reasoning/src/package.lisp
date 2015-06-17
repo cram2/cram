@@ -45,11 +45,13 @@
            camera-transform look-at-object-rotation
            with-rendering-to-framebuffer render-to-framebuffer
            get-rendering-context read-pixelbuffer read-depthbuffer to-png-image
-           add-object generic-cup household-object mug plate mondamin mesh
-           remove-object object pot bowl sugar-box apple orange cereal
+           add-object generic-cup household-object mesh
+           remove-object object
            object-type household-object-type name rigid-bodies
            rigid-body-names rigid-body world make-object box
-           static-plane sphere cylinder cone point-cloud cutlery fork knife
+           static-plane sphere cylinder cone point-cloud
+           cutlery fork knife mug plate mondamin pot bowl sugar-box apple orange
+           cereal spatula pancake pancake-maker
            bt-reasoning-world invalidate-object objects object %object
            bt-reasoning-world-state robot-object links joint-states
            assert joint-state urdf joint-names joint-state link-names
