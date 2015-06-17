@@ -31,3 +31,5 @@
 
 (defun clear-costmap-viz ()
   (bullet-reasoning::clear-current-costmap-function-object))
+
+(declaim (inline clear-costmap-viz))

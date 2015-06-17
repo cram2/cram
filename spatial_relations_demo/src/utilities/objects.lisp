@@ -82,20 +82,14 @@
 (defun object-pose (object-name)
   (pose (object-instance object-name)))
 
-;; ToDo: clean up the next 3 functions
-(defun object-pose-tmp (object-name)
-  (pose (object-instance object-name)))
-
 (defun object-exists (object-name)
-  (typep (object-instance object-name) 'bullet-reasoning:object))
-
-;;(defun object-visible-p
+  (typep (object-instance object-name) 'btr:object))
 
 (defun household-object-exists (object-name)
-  (typep (object-instance object-name) 'bullet-reasoning:household-object))
+  (typep (object-instance object-name) 'btr:household-object))
 
-(declaim (inline ;; kill-object kill-all-objects
-                 move-object object-pose))
+(declaim (inline move-object object-instance object-pose
+                 object-exists household-object-exists))
 
 
 ;;;;;;;;;;;;;;;;;;;; PROLOG ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

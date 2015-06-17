@@ -37,3 +37,5 @@
 
 (defun move-robot-away ()
   (move-robot))
+
+(declaim (inline robot-name move-robot move-robot-away))

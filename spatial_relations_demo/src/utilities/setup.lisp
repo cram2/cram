@@ -51,7 +51,7 @@
 (def-fact-group semantic-map-data (semantic-map-utils:semantic-map-name)
   (<- (semantic-map-utils:semantic-map-name
        "http://knowrob.org/kb/ias_semantic_map.owl#SemanticEnvironmentMap_PM580j"))
-  (<- (semantic-map-obj my-kitchen)))
+  (<- (semantic-map-object-name :kitchen)))
 
 (disable-location-validation-function 'btr-desig::validate-designator-solution)
 (disable-location-validation-function 'btr-desig::check-ik-solution)
@@ -79,7 +79,7 @@
     (setf *kitchen-urdf*
           (cl-urdf:parse-urdf (roslisp:get-param "kitchen_description"))))
   (let ((pi-rotation '(0 0 1 0)))
-    (btr::clear-current-costmap-function-object)
+    (clear-costmap-viz)
     (prolog
      `(and
        (clear-bullet-world)
@@ -93,7 +93,8 @@
        ;;                 ((1.83 0 0) (0 0 0 1)) :normal (1 0 0) :constant 0))
        ;; (assert (object ?w static-plane wall-behind-table
        ;;                 ((0 3 0) (0 0 0 1)) :normal (0 1 0) :constant 0))
-       (assert (object ?w btr::semantic-map my-kitchen ((-3.45 -4.35 0) ,pi-rotation)
+       (semantic-map-object-name ?map-name)
+       (assert (object ?w btr::semantic-map ?map-name ((-3.45 -4.35 0) ,pi-rotation)
                        :urdf ,*kitchen-urdf*))
        (assert (object ?w urdf ?robot ((0 0 0) (0 0 0 1)) :urdf
                        ,*robot-urdf-lowres*))

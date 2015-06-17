@@ -56,7 +56,7 @@
        (:file "objects")
        (:file "objects-database")
        (:file "robot")
-       (:file "random-code")
+       (:file "misc")
        (:file "plan-library")))
      (:file "restricted-area-costmap" :depends-on ("package"))
      (:file "scenario-interface" :depends-on ("package" "utilities"))
