@@ -1,0 +1,29 @@
+<package format="2">
+  <name>bullet_reasoning_utilities</name>
+  <version>0.0.0</version>
+  <description>Syntactic sugar for using bullet_reasoning</description>
+  <author>Gayane Kazhoyan</author>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <license>BSD</license>
+
+  <url type="website">http://cram-system.org</url>
+  <url type="repository">http://github.com/gaya-/cram_physics</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>bullet_reasoning</depend>
+  <depend>cram_reasoning</depend>
+  <depend>cram_designators</depend>
+  <depend>location_costmap</depend>
+  <depend>cl_semantic_map_utils</depend>
+  <depend>bullet_reasoning_designators</depend>
+  <depend>cram_roslisp_common</depend>
+  <depend>roslisp_utilities</depend>
+  <depend>cl_urdf</depend>
+  <depend>cram_plan_library</depend>
+  <depend>cram_language</depend>
+  <depend>roslisp</depend>
+
+  <!-- launch file -->
+  <depend>iai_maps</depend>
+  <depend>pr2_description_lowres</depend>
+</package>
