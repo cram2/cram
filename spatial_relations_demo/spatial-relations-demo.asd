@@ -45,20 +45,13 @@
                bullet-reasoning-designators
                pr2-manipulation-knowledge
                object-location-designators
-               alexandria)
+               alexandria
+               bullet-reasoning-utilities)
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:module "utilities" :depends-on ("package")
-      :components
-      ((:file "setup")
-       (:file "objects")
-       (:file "objects-database")
-       (:file "robot")
-       (:file "misc")
-       (:file "plan-library")))
      (:file "restricted-area-costmap" :depends-on ("package"))
-     (:file "scenario-interface" :depends-on ("package" "utilities"))
-     (:file "table-setting" :depends-on ("package" "utilities" "scenario-interface"))
-     (:file "pancake-making" :depends-on ("package" "utilities"))))))
+     (:file "scenario-interface" :depends-on ("package"))
+     (:file "table-setting" :depends-on ("package" "scenario-interface"))
+     (:file "pancake-making" :depends-on ("package"))))))

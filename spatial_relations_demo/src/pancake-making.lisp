@@ -46,9 +46,9 @@
       projection-process-modules::pr2-bullet-projection-environment
     (cpl-impl:top-level
       (let ((pancake-maker-designator
-              (find-object-on-counter 'btr::pancake-maker "Cupboard" "pancake_table")))
+              (find-object-on-counter 'pancake-maker "Cupboard" "pancake_table")))
         (let ((spatula-designator
-                (find-object-on-counter 'btr::spatula "CounterTop"
+                (find-object-on-counter 'spatula "CounterTop"
                                         "kitchen_sink_block_counter_top")))
           (sb-ext:gc :full t)
           (cram-language-designator-support:with-designators

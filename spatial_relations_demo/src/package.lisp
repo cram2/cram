@@ -38,8 +38,9 @@
           #:btr
           #:cram-utilities
           #:cram-environment-representation
-          #:cram-language-implementation)
-  (:shadowing-import-from #:btr object pose object-pose width height)
+          #:cram-language-implementation
+          #:bullet-reasoning-utilities)
+  (:shadowing-import-from #:btr object pose object-pose width height name)
   (:shadowing-import-from #:cram-reasoning fail)
   (:desig-properties #:left-of #:right-of #:in-front-of #:behind
                      #:for #:near #:far-from

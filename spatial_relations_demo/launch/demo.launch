@@ -1,10 +1,6 @@
 <launch>
+  <include file="$(find bullet_reasoning_utilities)/launch/maps_and_robot.launch" />
 
-  <include file="$(find iai_maps)/launch/iai_maps.launch" />
-
-  <param name="robot_description_lowres"
-         command="$(find xacro)/xacro.py
-                  '$(find pr2_description_lowres)/robots/pr2.urdf.xacro'"/>
   <!-- <param name="robot_description_lowres" -->
   <!--        command="$(find xacro)/xacro.py -->
   <!--                 '$(find pr2_description)/robots/pr2.urdf.xacro'"/> -->
