@@ -216,7 +216,7 @@
 (defgeneric update-pose (obj new-pose &key relative recursive)
   (:documentation "Updates the pose of `obj' using `new-pose'. When
   `relative' is T, `new-pose' is interpreted as relative offset to the
-  curren pose of`obj', otherwise `new-pose' indicates the new
+  current pose of`obj', otherwise `new-pose' indicates the new
   pose. When `recursive' is T (default), the pose of all sub-objects
   of `obj' is updated, too.")
   (:method ((obj semantic-map-geom) new-pose &key (relative nil) (recursive t))
