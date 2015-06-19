@@ -32,7 +32,7 @@
 (defclass action-designator (designator designator-id-mixin equate-notification-mixin)
   ((solutions)))
 
-(register-designator-class action action-designator)
+(register-designator-class :action action-designator)
 
 (defmethod reference ((desig action-designator) &optional (role *default-role*))
   (with-slots (solutions) desig
@@ -55,7 +55,7 @@
 (defmethod next-solution ((desig action-designator))
   (reference desig)
   (when (lazy-cdr (slot-value desig 'solutions))
-    (let ((new-desig (make-designator 'action (description desig) desig)))
+    (let ((new-desig (make-designator :action (description desig) desig)))
       (setf (slot-value new-desig 'solutions)
             (lazy-cdr (slot-value desig 'solutions)))
       new-desig)))

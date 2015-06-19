@@ -47,7 +47,7 @@
 (defclass human-designator (designator designator-id-mixin equate-notification-mixin)
   ())
 
-(register-designator-class human human-designator)
+(register-designator-class :human human-designator)
 
 (defmethod reference ((desig human-designator) &optional (role *default-role*))
   "References the human-designators `desig'. If its data-slot is nil, i.e. `desig'

@@ -32,11 +32,11 @@
 
 (defun obj-desig-location (obj-desig)
   (when (and (typep obj-desig 'object-designator)
-             (desig-prop-value obj-desig 'at)
-             (typep (desig-prop-value obj-desig 'at) 'designator))
+             (desig-prop-value obj-desig :at)
+             (typep (desig-prop-value obj-desig :at) 'designator))
     (reference (current-desig (desig-prop-value
                                (current-desig obj-desig)
-                               'at)))))
+                               :at)))))
 
 (defun loc-desig-location (loc-desig)
   (when (and loc-desig (typep loc-desig 'location-designator))
@@ -71,8 +71,8 @@
   
   ;; (location ... (obj ?obj)...), e.g. location to see obj
   (<- (desig-location-prop ?desig ?loc)
-    (or (desig-prop ?desig (obj ?obj))
-        (desig-prop ?desig (object ?obj)))
+    (or (desig-prop ?desig (:obj ?obj))
+        (desig-prop ?desig (:object ?obj)))
     (obj-desig? ?obj)
     (lisp-fun obj-desig-location ?obj ?loc)
     (lisp-pred identity ?loc))
@@ -80,22 +80,22 @@
   ;; (location ... (location ?loc)...), e.g. location to see location
   (<- (desig-location-prop ?desig ?loc)
     (loc-desig? ?desig)
-    (desig-prop ?desig (location ?loc-desig))
+    (desig-prop ?desig (:location ?loc-desig))
     (lisp-fun loc-desig-location ?loc-desig ?loc))
 
   ;; (location ... (pose ?loc)...), e.g. location to see pose
   (<- (desig-location-prop ?desig ?pose)
     (loc-desig? ?desig)
-    (desig-prop ?desig (pose ?pose))))
+    (desig-prop ?desig (:pose ?pose))))
 
 (def-fact-group manipulation-designator (action-desig)
   (<- (trajectory-desig? ?desig)
     (lisp-pred typep ?desig action-designator)
-    (desig-prop ?desig (type trajectory)))
+    (desig-prop ?desig (:type :trajectory)))
 
   (<- (constraints-desig? ?desig)
       (lisp-pred typep ?desig action-designator)
-      (desig-prop ?desig (type constraints))))
+      (desig-prop ?desig (:type :constraints))))
 
 (macrolet ((def-desig-accessor (slot &optional (predicate-name nil))
              (let* ((predicate-name (or predicate-name slot))
@@ -145,7 +145,7 @@
 
   ;; parses description and timestamp
   (<- (desig-prop ?desig (?prop-name ?prop) ?t)
-    (lisp-type ?desig designator)    
+    (lisp-type ?desig designator)
     (lisp-fun check-desig-prop-package ?prop-name ?_)
     (desig-timestamp ?desig ?t)
     (desig-prop ?desig (?prop-name ?prop)))

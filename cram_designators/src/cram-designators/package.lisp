@@ -29,7 +29,7 @@
 
 (in-package :cl-user)
 
-(desig-props:def-desig-package :cram-designators
+(defpackage :cram-designators
   (:use #:common-lisp #:cram-reasoning #:cut)
   (:nicknames :desig)
   (:import-from #:alexandria
@@ -103,6 +103,4 @@
            #:equated-desigs
            #:desig
            #:trajectory-desig?
-           #:constraints-desig?)
-  (:desig-properties #:obj #:location #:object #:pose #:of #:at
-                     #:type #:trajectory #:action #:constraints))
+           #:constraints-desig?))

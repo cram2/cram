@@ -41,7 +41,7 @@
 (defclass object-designator (designator designator-id-mixin equate-notification-mixin)
   ())
 
-(register-designator-class object object-designator)
+(register-designator-class :object object-designator)
 
 (defmethod reference ((desig object-designator) &optional (role *default-role*))
   (with-slots (data) desig
