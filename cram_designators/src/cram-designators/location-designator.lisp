@@ -143,7 +143,7 @@ either :ACCEPT, :REJECT, :MAYBE-REJECT or :UNKNOWN."
 (defclass location-designator (designator designator-id-mixin equate-notification-mixin)
   ((current-solution :reader current-solution :initform nil)))
 
-(register-designator-class location location-designator)
+(register-designator-class :location location-designator)
 
 (defmethod reference ((desig location-designator) &optional (role *default-role*))
   (with-slots (data current-solution) desig
@@ -163,7 +163,7 @@ either :ACCEPT, :REJECT, :MAYBE-REJECT or :UNKNOWN."
     (reference desig))
   (with-slots (data) desig
     (or (successor desig)
-        (let ((new-desig (make-designator 'location (description desig))))
+        (let ((new-desig (make-designator :location (description desig))))
           (when (lazy-cdr data)
             (setf (slot-value new-desig 'data) (lazy-cdr data))
             (setf (slot-value new-desig 'current-solution) (lazy-car (lazy-cdr data)))

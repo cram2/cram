@@ -246,6 +246,7 @@ returns the newly created designator that is not equated yet."
 (defun check-desig-prop-package (prop)
   "Checks if `prop' is in the correct package and can be used as a designator property"
   (unless (or (not (symbol-package prop))
+              (keywordp prop)
               (eq (symbol-package prop)
                   (symbol-package (intern (symbol-name prop) (find-package :desig-props)))))
     (warn 'simple-warning

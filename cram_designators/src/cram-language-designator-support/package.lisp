@@ -28,7 +28,7 @@
 
 (in-package :cl-user)
 
-(desig-props:def-desig-package :cram-language-designator-support
+(defpackage :cram-language-designator-support
   (:documentation "CRAM language extensions to support designators.")
   (:use #:cpl #:cram-designators)
   (:nicknames :cpl-desig-supp)
