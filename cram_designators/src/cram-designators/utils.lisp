@@ -35,8 +35,11 @@
   variables. The value of the variables corresponds to the value in
   the designator's properties or nil if the property is unbound."
   `(let ,(mapcar (lambda (prop)
-                   (check-desig-prop-package prop)
-                   `(,prop (cadr (find ',prop (description ,desig) :key #'car))))
+                   ;; (check-desig-prop-package prop)
+                   `(,prop (cadr (or (and (find ',prop (description ,desig) :key #'car)
+                                          (check-desig-prop-package ',prop))
+                                     (find ,(intern (string-upcase prop) "KEYWORD")
+                                           (description ,desig) :key #'car)))))
           props)
      ,@body))
 
