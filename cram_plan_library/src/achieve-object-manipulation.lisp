@@ -46,13 +46,13 @@
                         (near-reperceive-retry-count 1)
                         (carry-retry-count 10))
     (with-designators ((obj-loc
-                        (location `((of ,?obj))))
+                        (:location `((:of ,?obj))))
                        (grasp-action
-                        (action `((type trajectory) (to grasp) (obj ,?obj))))
+                        (:action `((:type :trajectory) (:to :grasp) (:obj ,?obj))))
                        (lift-action
-                        (action `((type trajectory) (to lift) (obj ,?obj))))
+                        (:action `((:type :trajectory) (:to :lift) (:obj ,?obj))))
                        (carry-action
-                        (action `((type trajectory) (to carry) (obj ,?obj)))))
+                        (:action `((:type :trajectory) (:to :carry) (:obj ,?obj)))))
       (with-failure-handling
           ((object-not-found (f)
              (declare (ignore f))
@@ -85,8 +85,8 @@
                  (fail 'manipulation-pose-unreachable)))
             (achieve `(looking-at ,(reference
                                     (make-designator
-                                     'location
-                                     `((of ,perceived-object))))))
+                                     :location
+                                     `((:of ,perceived-object))))))
             (cram-language::on-performing-object-grasp perceived-object)
             (perform grasp-action)
             (monitor-action grasp-action))))
@@ -129,7 +129,7 @@
                         (initial-perception-retry-count 3)
                         (alt-grasp-poses-cnt 3))
     (with-designators ((pick-up-loc
-                        (location `((to reach) (obj ,?obj)))))
+                        (:location `((:to :reach) (:obj ,?obj)))))
       (with-failure-handling
           ((manipulation-pose-unreachable (f)
              (declare (ignore f))
@@ -175,10 +175,10 @@
      "The object `~a' needs to be in the hand before being able to place it."
      obj)
     (with-designators ((put-down-action
-                        (action `((type trajectory) (to put-down)
-                                  (obj ,obj) (at ,?loc))))
+                        (:action `((:type :trajectory) (:to :put-down)
+                                   (:obj ,obj) (:at ,?loc))))
                        (park-action
-                        (action `((type trajectory) (to park) (obj ,obj)))))
+                        (:action `((:type :trajectory) (:to :park) (:obj ,obj)))))
       (with-failure-handling
           (((or manipulation-failed manipulation-pose-unreachable) (f)
              (declare (ignore f))
@@ -224,8 +224,8 @@
              (do-retry goal-pose-retries
                (retry-with-updated-location
                 ?loc (next-different-location-solution ?loc)))))
-        (with-designators ((put-down-loc (location `((to reach)
-                                                     (location ,?loc)))))
+        (with-designators ((put-down-loc (:location `((:to :reach)
+                                                      (:location ,?loc)))))
           (reset-counter manipulation-retries)
           (with-failure-handling
               ((manipulation-failure (f)
@@ -242,7 +242,7 @@
               (achieve `(cram-plan-library:object-put ,?obj ,?loc)))))))))
 
 (def-goal (achieve (arms-parked))
-  (with-designators ((parking (action `((type trajectory) (to park)))))
+  (with-designators ((parking (:action `((:type :trajectory) (:to :park)))))
     (perform parking)
     (monitor-action parking)))
 
@@ -262,24 +262,24 @@
       (ros-info (achieve plan-lib) "Perceiving object")
       (setf ?obj (perceive-object 'a ?obj)))
     (with-designators
-        ((reach-object-location (location `((to reach)
-                                            (obj ,?obj)
+        ((reach-object-location (:location `((:to :reach)
+                                             (:obj ,?obj)
                                             ;; TODO(winkler): Replace
                                             ;; these fixed side
                                             ;; prameters by the
                                             ;; prolog-resolved sides
                                             ;; in which ?tool-1 and
                                             ;; ?tool-2 are held.
-                                            (sides (:left :right)))))
-         (obj-look-location (location `((of ,?obj)))))
+                                             (:sides (:left :right)))))
+         (obj-look-location (:location `((:of ,?obj)))))
       (at-location (reach-object-location)
         ;; TODO(winkler): Add a variant of `looking-at' that accepts
         ;; an object-designator as a parameter
         (achieve `(looking-at ,(reference obj-look-location)))
         (let* ((parameterization (description ?flipping-parameters))
-               (new-description `((to flip)
-                                  (obj ,?obj)
-                                  (tools (,?tool-1 ,?tool-2))))
+               (new-description `((:to :flip)
+                                  (:obj ,?obj)
+                                  (:tools (,?tool-1 ,?tool-2))))
                (appended-description
                  (append (loop for param in parameterization
                                when (not (find param new-description

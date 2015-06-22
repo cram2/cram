@@ -29,9 +29,9 @@
 
 (def-goal (achieve (table-set ?table ?situation))
   (ros-info (achieve plan-lib) "(achieve (table-set))")
-  (with-designators ((loc-on-table (location `((on Cupboard)
-                                               (name ,?table))))
-                     (generic-object (object `((at ,loc-on-table)))))
+  (with-designators ((loc-on-table (:location `((:on Cupboard)
+                                               (:name ,?table))))
+                     (generic-object (:object `((:at ,loc-on-table)))))
     (let ((necessary-objects (crs:prolog `(table-setting-object
                                            ,?situation ?object)))
           (objects-on-table (perceive-object 'all generic-object)))
@@ -41,7 +41,7 @@
   (let ((semantic-handle-reference
           (first (sem-map-utils:designator->semantic-map-objects
                   (make-designator
-                   'object `((desig-props::name ,?semantic-name)))))))
+                   :object `((:name ,?semantic-name)))))))
     (when semantic-handle-reference
       (let* ((handle-name
                (concatenate 'string ?semantic-name "_handle"))
@@ -49,11 +49,9 @@
                (first (perceive-object
                        'currently-visible
                        (make-designator
-                        'object `((desig-props::type
-                                   desig-props::semantic-handle)
-                                  (desig-props::name ,handle-name))))))
-             (handle-pose (desig-prop-value handle
-                                            'desig-props:pose))
+                        :object `((:type :semantic-handle)
+                                  (:name ,handle-name))))))
+             (handle-pose (desig-prop-value handle :pose))
              (semantic-handle-pose
                (sem-map-utils:pose semantic-handle-reference))
              (handle-pose-map
@@ -66,23 +64,20 @@
                  :use-current-ros-time t)
                 :orientation (tf:orientation semantic-handle-pose))))
         (make-designator
-         'object `((desig-props::name ,?semantic-name)
-                   (desig-props::type desig-props::semantic-handle)
-                   (desig-props::at
+         :object `((:name ,?semantic-name)
+                   (:type :semantic-handle)
+                   (:at
                     ,(make-designator
-                      'location
-                      `((desig-props::pose ,handle-pose-map))))))))))
+                      :location
+                      `((:pose ,handle-pose-map))))))))))
 
 (def-goal (achieve (drawer-opened ?semantic-name))
   (let ((semantic-handle (perceive-object
                           'drawer-handle ?semantic-name)))
     (unless semantic-handle
       (cpl:fail 'cram-plan-failures:object-not-found))
-    (with-designators ((action-pull-open (action
-                                          `((desig-props::type
-                                             desig-props::trajectory)
-                                            (desig-props:to
-                                             desig-props::pull-open)
-                                            (desig-props::handle
-                                             ,semantic-handle)))))
+    (with-designators ((action-pull-open (:action
+                                          `((:type :trajectory)
+                                            (:to :pull-open)
+                                            (:handle ,semantic-handle)))))
       (perform action-pull-open))))

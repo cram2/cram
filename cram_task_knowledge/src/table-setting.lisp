@@ -30,10 +30,10 @@
 (def-fact-group facts-table-setting (table-setting-object)
   
   (<- (situation? ?situation)
-    (desig-prop ?situation (type situation)))
+    (desig-prop ?situation (:type situation)))
   
   (<- (meal-time ?situation ?meal-time)
-    (desig-prop ?situation (meal-time ?meal-time)))
+    (desig-prop ?situation (:meal-time ?meal-time)))
   
   (<- (meal-time? breakfast))
   (<- (meal-time? lunch))

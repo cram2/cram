@@ -40,7 +40,7 @@
 
 (def-process-module fake-perception (desig)
   (format t "Fake perception invoked with designator `~a'.~%" desig)
-  (let ((new-desig (make-designator 'object (description desig))))
+  (let ((new-desig (make-designator :object (description desig))))
     (with-slots (data valid) new-desig
       (setf data :data)
       (setf valid t))

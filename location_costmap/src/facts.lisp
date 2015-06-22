@@ -173,7 +173,7 @@ If the value is greater than 1, the samples' orientations differ by `sample-step
 (def-fact-group location-costmap-desigs (desig-costmap)
 
   (<- (desig-costmap ?desig ?cm)
-    (desig-prop ?desig (to see))
+    (desig-prop ?desig (:to :see))
     (bagof ?pose (desig-location-prop ?desig ?pose) ?poses)
     (costmap ?cm)
     (lisp-fun 2d-pose-covariance ?poses 0.5 (?mean ?covariance))
@@ -223,46 +223,46 @@ If the value is greater than 1, the samples' orientations differ by `sample-step
 (def-fact-group reachability-designators ()
 
   (<- (reachability-designator ?designator)
-    (desig-prop ?designator (to reach)))
+    (desig-prop ?designator (:to :reach)))
 
   (<- (reachability-designator ?designator)
-    (desig-prop ?designator (to execute))
-    (desig-prop ?designator (action ?_)))
+    (desig-prop ?designator (:to :execute))
+    (desig-prop ?designator (:action ?_)))
 
   (<- (designator-reach-pose ?designator ?pose ?side)
     (reachability-designator ?designator)
-    (desig-prop ?designator (pose ?pose))
+    (desig-prop ?designator (:pose ?pose))
     (once
-     (-> (desig-prop ?designator (side ?side)) (true)
+     (-> (desig-prop ?designator (:side ?side)) (true)
          (cram-manipulation-knowledge:arm ?side))))
 
   (<- (designator-reach-pose ?designator ?point ?side)
     (reachability-designator ?designator)
-    (or (desig-prop ?designator (object ?object))
-        (desig-prop ?designator (obj ?object)))
+    (or (desig-prop ?designator (:object ?object))
+        (desig-prop ?designator (:obj ?object)))
     (desig-location-prop ?object ?pose)
     (once
-     (-> (desig-prop ?designator (side ?side)) (true)
+     (-> (desig-prop ?designator (:side ?side)) (true)
          (cram-manipulation-knowledge:arm ?side)))
     (lisp-fun cl-transforms:origin ?pose ?point))
 
   (<- (designator-reach-pose ?designator ?pose ?side)
     (reachability-designator ?designator)
-    (desig-prop ?designator (location ?location))
+    (desig-prop ?designator (:location ?location))
     (once
-     (-> (desig-prop ?designator (side ?side)) (true)
+     (-> (desig-prop ?designator (:side ?side)) (true)
          (cram-manipulation-knowledge:arm ?side)))
     (desig-location-prop ?designator ?pose))
 
   (<- (designator-reach-pose ?designator ?robot-pose ?pose ?side)
     (reachability-designator ?designator)
-    (desig-prop ?designator (to execute))
-    (desig-prop ?designator (action ?action))
+    (desig-prop ?designator (:to :execute))
+    (desig-prop ?designator (:action ?action))
     (cram-manipulation-knowledge:trajectory-point
      ?action ?robot-pose ?pose ?side))
   
   (<- (designator-reach-pose ?designator ?pose ?side)
     (reachability-designator ?designator)
-    (desig-prop ?designator (to execute))
-    (desig-prop ?designator (action ?action))
+    (desig-prop ?designator (:to :execute))
+    (desig-prop ?designator (:action ?action))
     (cram-manipulation-knowledge:trajectory-point ?action ?pose ?side)))
