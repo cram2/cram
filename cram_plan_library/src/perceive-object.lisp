@@ -37,10 +37,10 @@
 (def-goal (perceive-object all ?obj-desig)
   (let ((log-id (first (cram-language::on-begin-find-objects))))
     (unwind-protect
-         (with-designators ((obj-loc-desig (location `((of ,?obj-desig))))
-                            (loc (location `((to see) (obj ,?obj-desig))))
-                            (perceive-action (action `((to perceive)
-                                                       (obj ,?obj-desig)))))
+         (with-designators ((obj-loc-desig (:location `((:of ,?obj-desig))))
+                            (loc (:location `((:to :see) (:obj ,?obj-desig))))
+                            (perceive-action (:action `((:to :perceive)
+                                                        (:obj ,?obj-desig)))))
            (with-retry-counters ((movement-retries 2))
              (with-failure-handling
                  (((or location-not-reached-failure object-not-found) (e)
@@ -97,8 +97,8 @@ found."
     (car new-desigs)))
 
 (def-goal (perceive-object currently-visible ?obj-desig)
-  (with-designators ((perceive-action (action `((to perceive)
-                                                (obj ,?obj-desig)))))
+  (with-designators ((perceive-action (:action `((:to :perceive)
+                                                 (:obj ,?obj-desig)))))
     (with-failure-handling ((object-not-found (f)
                               (declare (ignore f))
                               (return nil)))
@@ -107,9 +107,9 @@ found."
 
 (def-goal (examine ?obj-desig ?properties)
   (with-designators
-      ((examine-action (action `((desig-props:to desig-props:examine)
-                                 (desig-props:obj ,?obj-desig)
-                                 (desig-props:properties ,?properties)))))
+      ((examine-action (:action `((:to :examine)
+                                  (:obj ,?obj-desig)
+                                  (:properties ,?properties)))))
     ;; TODO(winkler): Right now, this is broken. Fixing it.
     ;(perform examine-action)))
     ))

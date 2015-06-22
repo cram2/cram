@@ -49,7 +49,7 @@
         (true)))
 
   (<- (desig-costmap ?desig ?cm)
-    (desig-prop ?desig (to see))
+    (desig-prop ?desig (:to :see))
     (costmap ?cm)
     (costmap-padding ?padding)
     (drivable-location-costmap ?cm ?padding))

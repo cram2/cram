@@ -36,7 +36,7 @@
               (distance-to-drive goal))
     (achieve `(looking-at :forward))
     (achieve `(arms-parked)))
-  (with-designators ((navigation-action (action `((type navigation) (goal ,goal)))))
+  (with-designators ((navigation-action (:action `((:type :navigation) (:goal ,goal)))))
     (perform navigation-action)
     (monitor-action navigation-action)))
 

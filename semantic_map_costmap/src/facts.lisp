@@ -59,7 +59,7 @@
   
   (<- (desig-costmap ?desig ?cm)
     (semantic-map-desig-objects ?desig ?objects)
-    (desig-prop ?desig (on ?_))
+    (desig-prop ?desig (:on ?_))
     (costmap ?cm)
     (costmap-add-function semantic-map-objects
                           (make-semantic-map-costmap ?objects)
@@ -70,7 +70,7 @@
 
   (<- (desig-costmap ?desig ?cm)
     (semantic-map-desig-objects ?desig ?objects)
-    (desig-prop ?desig (in ?_))
+    (desig-prop ?desig (:in ?_))
     (costmap ?cm)
     (costmap-add-function semantic-map-objects
                           (make-semantic-map-costmap ?objects)
@@ -80,7 +80,7 @@
      ?cm))
   
   (<- (desig-costmap ?desig ?cm)
-    (desig-prop ?desig (centered-with-padding ?padding))
+    (desig-prop ?desig (:centered-with-padding ?padding))
     (costmap ?cm)
     (semantic-map-desig-objects ?desig ?objects)
     (costmap-add-function center-of-object
@@ -88,8 +88,8 @@
                           ?cm))
 
   (<- (desig-costmap ?desig ?cm)
-    (or (desig-prop ?desig (to see))
-        (desig-prop ?desig (to reach)))
+    (or (desig-prop ?desig (:to :see))
+        (desig-prop ?desig (:to :reach)))
     (costmap ?cm)
     (semantic-map-objects ?objects)
     (costmap-padding ?padding)
@@ -110,7 +110,7 @@
   ;; should be replaced by a more general approach
   (<- (desig-z-value ?desig ?point ?z)
     (loc-desig? ?desig)
-    (desig-prop ?desig (on ?_))
+    (desig-prop ?desig (:on ?_))
     (semantic-map-desig-objects ?desig ?objects)
     (member ?obj ?objects)
     (lisp-pred point-on-object ?obj ?point)
