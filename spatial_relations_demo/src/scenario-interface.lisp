@@ -60,7 +60,7 @@ for 2 plates and 1 other-type.")
   "Function to spawn the demo objects.
 `set' is, e.g., :main or :other-set, if not given spawns all objects."
   (unless *demo-object-types* (parameterize-demo demo-name))
-  (btr::clear-current-costmap-function-object)
+  (clear-costmap-viz)
   (detach-all-objects (object-instance (robot-name)))
   (move-robot)
 

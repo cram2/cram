@@ -38,9 +38,9 @@
 (defun step-1 ()
   "the plate desig"
   (spawn-object 'plate-0 'plate)
-  (let* ((plate-location-desig (make-designator 'location `((on "CounterTop")
-                                                            (name "kitchen_island_counter_top")
-                                                            (for plate-0))))
+  (let* ((plate-location-desig (make-designator :location `((:on "CounterTop")
+                                                            (:name "kitchen_island_counter_top")
+                                                            (:for plate-0))))
          (location-for-plate (reference plate-location-desig)))))
 
 (defun step-2 ()
@@ -52,12 +52,12 @@
 (defun step-3 ()
   "right-and-behind designator"
   (spawn-object 'mug-0 'mug)
-  (let ((mug-location-desig (make-designator 'location `((on "CounterTop")
-                                                          (name "kitchen_island_counter_top")
-                                                          (for mug-0)
-                                                          (right-of plate-0)
-                                                          (behind plate-0)
-                                                          (near plate-0)))))
+  (let ((mug-location-desig (make-designator :location `((:on "CounterTop")
+                                                          (:name "kitchen_island_counter_top")
+                                                          (:for mug-0)
+                                                          (:right-of plate-0)
+                                                          (:behind plate-0)
+                                                          (:near plate-0)))))
     (setf *location-for-mug* (reference mug-location-desig))))
 
 (defun step-4 ()

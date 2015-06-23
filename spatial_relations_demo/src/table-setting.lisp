@@ -35,31 +35,31 @@
 
 (defmethod parameterize-demo ((demo-name (eql :table-setting)))
   (setf *demo-object-types*
-        '((:main . (plate fork knife mug))
-          (:clutter . (pot bowl mondamin))))
+        '((:main . (:plate :fork :knife :mug))
+          (:clutter . (:pot :bowl :mondamin))))
   (setf *demo-objects-initial-poses*
-        `((plate ,@(mapcar (lambda (x) `((1.45 0.8 ,x) (0 0 0 1)))
+        `((:plate ,@(mapcar (lambda (x) `((1.45 0.8 ,x) (0 0 0 1)))
                            (alexandria:iota *num-of-sets-on-table*
                                             :start 0.86 :step 0.027)))
-          (fork ,@(mapcar (lambda (x) `((,x 0.5 0.865) (0 0 1 1)))
+          (:fork ,@(mapcar (lambda (x) `((,x 0.5 0.865) (0 0 1 1)))
                           (alexandria:iota *num-of-sets-on-table*
                                            :start 1.35 :step 0.05)))
-          (knife ,@(mapcar (lambda (x) `((,x 0.5 0.857) (0 0 1 1)))
+          (:knife ,@(mapcar (lambda (x) `((,x 0.5 0.857) (0 0 1 1)))
                            (alexandria:iota
                             *num-of-sets-on-table*
                             :start (+ 1.35 (* (+ *num-of-sets-on-table* 1) 0.04))
                             :step 0.05)))
-          (mug ((1.5 1.17 0.9119799601336841d0) (0 0 0 1))
+          (:mug ((1.5 1.17 0.9119799601336841d0) (0 0 0 1))
                ((1.46 1.04 0.9119799601336841d0) (0 0 0 1))
                ((1.35 1.11 0.9119799601336841d0) (0 0 0 1))
                ((1.65 1.02 0.9119799601336841d0) (0 0 0 1))
                ((1.35 1.23 0.9119799601336841d0) (0 0 0 1)))
-          (pot ((-1.0 1.65 0.9413339835685429d0) (0 0 0 1)))
-          (bowl ((-0.9 1.95 0.8911207699875103d0) (0 0 0 1))
+          (:pot ((-1.0 1.65 0.9413339835685429d0) (0 0 0 1)))
+          (:bowl ((-0.9 1.95 0.8911207699875103d0) (0 0 0 1))
                 ((-0.95 1.16 0.8911207699875103d0) (0 0 0 1))
                 ((-0.9 1.3 0.8911207699875103d0) (0 0 0 1))
                 ((-1.0 2.36 0.8911207699875103d0) (0 0 0 1)))
-          (mondamin ((-1.0 1.06 0.9573383588498887d0) (0 0 0 1))
+          (:mondamin ((-1.0 1.06 0.9573383588498887d0) (0 0 0 1))
                     ((-1.0 2.1 0.9573383588498887d0) (0 0 0 1))))))
 
 
@@ -69,10 +69,10 @@
   (spawn-demo :table-setting :set :main)
   (cpl-impl:top-level
     (cram-language-designator-support:with-designators
-       ((des-for-plate-2 (location `((right-of plate-1) (far-from plate-1)
-                                                        (for plate-2))))
-        (des-for-plate-4 (location `((left-of plate-3) (far-from plate-3)
-                                                       (for plate-4)))))
+       ((des-for-plate-2 (:location `((:right-of plate-1) (:far-from plate-1)
+                                      (:for plate-2))))
+        (des-for-plate-4 (:location `((:left-of plate-3) (:far-from plate-3)
+                                      (:for plate-4)))))
       (when (> number-of-plates 0)
        (prolog `(assert (object-pose ?_ plate-1 ((-1.5 1.84 0.85747d0) (0 0 0 1)))))
        (when (> number-of-plates 1)
@@ -85,20 +85,20 @@
 (defun make-plate-desig (plate-id &optional (counter-name "kitchen_island_counter_top")
                                     (plate-num *num-of-sets-on-table*))
   (let ((plate-name (new-symbol-with-id "PLATE" plate-id)))
-    (make-designator 'location `((on "CounterTop") (name ,counter-name)
-                                 (for ,plate-name) (context :table-setting)
-                                 (object-count ,plate-num)))))
+    (make-designator :location `((:on "CounterTop") (:name ,counter-name)
+                                 (:for ,plate-name) (:context :table-setting)
+                                 (:object-count ,plate-num)))))
 
 (defun make-object-near-plate-desig (object-type object-id &optional (plate-id object-id))
   (let ((plate-name (new-symbol-with-id "PLATE" plate-id))
         (object-name (new-symbol-with-id object-type object-id)))
-    (make-designator 'location (append (string-case object-type
-                                         ("FORK" `((desig-props:left-of ,plate-name)))
-                                         ("KNIFE" `((desig-props:right-of ,plate-name)))
-                                         ("MUG" `((desig-props:right-of ,plate-name)
-                                                  (desig-props:behind ,plate-name))))
-                                       `((desig-props:near ,plate-name)
-                                         (desig-props:for ,object-name))))))
+    (make-designator :location (append (string-case object-type
+                                         ("FORK" `((:left-of ,plate-name)))
+                                         ("KNIFE" `((:right-of ,plate-name)))
+                                         ("MUG" `((:right-of ,plate-name)
+                                                  (:behind ,plate-name))))
+                                       `((:near ,plate-name)
+                                         (:for ,object-name))))))
 
 (defun assign-multiple-obj-pos (object-type &optional (object-number *num-of-sets-on-table*))
   (dotimes (i object-number)
@@ -119,17 +119,17 @@
 
 (cpl-impl:def-cram-function put-plate-on-table (plate-obj-desig)
   (cram-language-designator-support:with-designators
-      ((on-kitchen-island (location `((on "Cupboard")
-                                      (name "kitchen_island")
-                                      (for ,plate-obj-desig) (context :table-setting) 
-                                      (object-count ,*num-of-sets-on-table*)))))
+      ((on-kitchen-island (:location `((:on "Cupboard")
+                                      (:name "kitchen_island")
+                                      (:for ,plate-obj-desig) (:context :table-setting) 
+                                      (:object-count ,*num-of-sets-on-table*)))))
     (format t "now trying to achieve the location of plate on kitchen-island~%")
     (plan-knowledge:achieve `(plan-knowledge:loc ,plate-obj-desig ,on-kitchen-island))))
 
 (cpl-impl:def-cram-function put-plate-from-counter-on-table ()
   (sb-ext:gc :full t)
   (format t "Put a PLATE from counter on table~%")
-  (let ((plate (find-object-on-counter 'btr:plate "kitchen_sink_block")))
+  (let ((plate (find-object-on-counter :plate "kitchen_sink_block")))
     (sb-ext:gc :full t)
     (put-plate-on-table plate)
     plate))
@@ -145,23 +145,23 @@
 (cpl-impl:def-cram-function put-object-near-plate (object-to-put plate-obj
                                                    spatial-relations)
   (cram-language-designator-support:with-designators
-      ((put-down-location (location `(,@(loop for property in spatial-relations
+      ((put-down-location (:location `(,@(loop for property in spatial-relations
                                               collecting `(,property ,plate-obj))
-                                      (near ,plate-obj) (for ,object-to-put)
-                                      (on "Cupboard")))))
+                                      (:near ,plate-obj) (:for ,object-to-put)
+                                      (:on "Cupboard")))))
     (plan-knowledge:achieve `(plan-knowledge:loc ,object-to-put ,put-down-location))))
 
 (cpl-impl:def-cram-function put-object-from-counter-near-plate (object-type plate-obj)
   (format t "Put ~a from counter on table near ~a~%"
-          object-type (desig-prop-value plate-obj 'name))
+          object-type (desig-prop-value plate-obj :name))
   (sb-ext:gc :full t)
   (let ((obj (find-object-on-counter object-type "kitchen_sink_block")))
     (sb-ext:gc :full t)
     (put-object-near-plate obj plate-obj
                            (ecase object-type
-                             (btr::fork '(desig-props:left-of))
-                             (btr::knife '(desig-props:right-of))
-                             (btr::mug '(desig-props:right-of desig-props:behind))))
+                             (:fork '(:left-of))
+                             (:knife '(:right-of))
+                             (:mug '(:right-of :behind))))
     (sb-ext:gc :full t)))
 
 (cpl-impl:def-top-level-cram-function put-stuff-on-table ()
@@ -170,7 +170,7 @@
   (loop for i from 1 to *num-of-sets-on-table* do
     (let ((plate (put-plate-from-counter-on-table)))
       (mapcar (alexandria:rcurry #'put-object-from-counter-near-plate plate)
-              '(btr::fork btr::knife btr::mug))))))
+              '(:fork :knife :mug))))))
 
 
 (defun set-table-in-projection ()
@@ -194,7 +194,7 @@
     (format t "id: ~a~%" obj-id)
     (prolog `(and (bullet-world ?w)
                   (robot ?robot)
-                  (assert (object ?w mesh ,obj-id
+                  (assert (object ?w :mesh ,obj-id
                                   ((2 0 0) (0 0 0 1))
                                   :mesh ,type :mass 0.2 :color (0.8 0.3 0)
                                   :disable-collisions-with (?robot)
