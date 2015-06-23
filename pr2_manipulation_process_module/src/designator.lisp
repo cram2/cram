@@ -190,14 +190,14 @@
   
   (<- (min-handles ?object-desig ?min-handles)
     (current-designator ?object-desig ?current-object)
-    (or (desig-prop ?current-object (min-handles ?min-handles))
+    (or (desig-prop ?current-object (:min-handles ?min-handles))
         (equal ?min-handles 1)))
   
   (<- (ros-message ?type ?slots ?msg)
     (lisp-fun make-message ?type ?slots ?msg))
 
   (<- (obstacles ?desig ?obstacles)
-    (findall ?o (desig-prop ?desig (obstacle ?o))
+    (findall ?o (desig-prop ?desig (:obstacle ?o))
              ?obstacles))
   
   (<- (reorient-object-globally ?object-desig ?reorient-object)
@@ -211,7 +211,7 @@
               ?absolute-handle))
   
   (<- (handles ?object ?handles)
-    (setof ?handle (desig-prop ?object (handle ?handle)) ?handles))
+    (setof ?handle (desig-prop ?object (:handle ?handle)) ?handles))
   
   (<- (gripper-arms-in-belief ?desig ?arms)
     (current-designator ?desig ?current-desig)
@@ -224,45 +224,48 @@
   
   (<- (handled-obj-desig? ?designator)
     (obj-desig? ?designator)
-    (desig-prop ?designator (handle ?_)))
+    (desig-prop ?designator (:handle ?_)))
   
   (<- (gripped-obj-desig? ?designator)
     (obj-desig? ?designator)
-    (desig-prop ?designator (at ?obj-loc))
+    (desig-prop ?designator (:at ?obj-loc))
     (loc-desig? ?obj-loc)
-    (desig-prop ?obj-loc (in gripper)))
+    (desig-prop ?obj-loc (:in :gripper)))
   
   ;; On the PR2 we don't need an open pose
   (<- (action-desig ?desig (noop ?desig))
     (trajectory-desig? ?desig)
-    (desig-prop ?desig (pose open)))
+    (desig-prop ?desig (:pose :open)))
 
   (<- (action-desig ?desig (park-object ?obj ?grasp-assignments))
     (trajectory-desig? ?desig)
-    (desig-prop ?desig (to park))
-    (desig-prop ?desig (obj ?obj))
+    (desig-prop ?desig (:to :park))
+    (or (desig-prop ?desig (:obj ?obj))
+        (desig-prop ?desig (:object ?obj)))
     (current-designator ?obj ?current-obj)
     (object->grasp-assignments ?current-obj ?grasp-assignments))
   
   (<- (action-desig ?desig (park-arms ?arms))
     (trajectory-desig? ?desig)
-    (desig-prop ?desig (to park))
+    (desig-prop ?desig (:to :park))
     (free-arms ?arms))
   
   (<- (action-desig ?desig (lift ?current-obj ?grasp-assignments ?distance))
     (trajectory-desig? ?desig)
-    (desig-prop ?desig (to lift))
-    (desig-prop ?desig (obj ?obj))
+    (desig-prop ?desig (:to :lift))
+    (or (desig-prop ?desig (:obj ?obj))
+        (desig-prop ?desig (:object ?obj)))
     (current-designator ?obj ?current-obj)
     (object->grasp-assignments ?current-obj ?grasp-assignments)
-    (-> (desig-prop ?desig (distance ?distance))
+    (-> (desig-prop ?desig (:distance ?distance))
         (true)
         (== ?distance 0.10)))
 
   (<- (action-desig ?desig (park ?arms ?obj ?obstacles))
     (trajectory-desig? ?desig)
-    (desig-prop ?desig (to carry))
-    (desig-prop ?desig (obj ?obj))
+    (desig-prop ?desig (:to :carry))
+    (or (desig-prop ?desig (:obj ?obj))
+        (desig-prop ?desig (:object ?obj)))
     (current-designator ?obj ?current-obj)
     (holding-arms ?current-obj ?arms)
     (obstacles ?desig ?obstacles))
@@ -277,8 +280,9 @@
   
   (<- (action-desig ?desig (grasp ?desig ?current-obj))
     (trajectory-desig? ?desig)
-    (desig-prop ?desig (to grasp))
-    (desig-prop ?desig (obj ?obj))
+    (desig-prop ?desig (:to :grasp))
+    (or (desig-prop ?desig (:obj ?obj))
+        (desig-prop ?desig (:object ?obj)))
     (newest-effective-designator ?obj ?current-obj))
   
   (<- (grasp-offsets top-slide-down ?pregrasp-offset ?grasp-offset)
@@ -318,7 +322,7 @@
     (grasp-offsets ?grasp-type ?pregrasp-offset ?grasp-offset)
     (gripper-offset ?arm ?gripper-offset)
     (absolute-handle ?object ?handle ?absolute-handle)
-    (desig-prop ?absolute-handle (at ?location))
+    (desig-prop ?absolute-handle (:at ?location))
     (lisp-fun reference ?location ?pose)
     (open-gripper ?arm)
     (object-pose-reachable ?object ?pose ?arm)
@@ -340,8 +344,7 @@
   
   (<- (carry-handles ?object ?carry-handles)
     (once
-     (or (desig-prop ?object (desig-props::carry-handles
-                              ?carry-handles))
+     (or (desig-prop ?object (:carry-handles ?carry-handles))
          (equal ?carry-handles 1))))
   
   (<- (free-arms-handles-combos ?object ?combos)
@@ -366,23 +369,20 @@
   
   (<- (grasp-type ?obj ?grasp-type)
     (current-designator ?obj ?current)
-    (desig-prop ?current (desig-props:grasp-type ?grasp-type)))
+    (desig-prop ?current (:grasp-type ?grasp-type)))
   
   (<- (grasp-type ?_ ?grasp-type)
-    (equal ?grasp-type desig-props:push))
+    (equal ?grasp-type :push))
   
   (<- (object-grasps-in-gripper ?object ?grasps)
-    (desig-prop ?object (desig-props:at ?objloc))
+    (desig-prop ?object (:at ?objloc))
     (current-designator ?objloc ?current-objloc)
-    (desig-prop ?current-objloc (desig-props:in desig-props:gripper))
-    (setof ?grasp (and (desig-prop ?current-objloc
-                                   (desig-props:pose ?objpose))
+    (desig-prop ?current-objloc (:in :gripper))
+    (setof ?grasp (and (desig-prop ?current-objloc (pose ?objpose))
                        (arm-for-pose ?objpose ?arm)
                        (member ?arm (:left :right))
                        (once
-                        (or (desig-prop ?current-objloc
-                                        (desig-props:handle
-                                         (?arm ?handle)))
+                        (or (desig-prop ?current-objloc (:handle (?arm ?handle)))
                             (equal ?handle nil)))
                        (grasp-type ?handle ?grasp-type)
                        (equal ?grasp (?arm . (?objpose
@@ -398,9 +398,10 @@
   
   (<- (action-desig ?desig (put-down ?current-obj ?loc ?grasp-assignments))
     (trajectory-desig? ?desig)
-    (desig-prop ?desig (to put-down))
-    (desig-prop ?desig (obj ?obj))
-    (desig-prop ?desig (at ?loc))
+    (desig-prop ?desig (:to :put-down))
+    (or (desig-prop ?desig (:obj ?obj))
+        (desig-prop ?desig (:object ?obj)))
+    (desig-prop ?desig (:at ?loc))
     (current-designator ?obj ?current-obj)
     (object->grasp-assignments ?current-obj ?grasp-assignments))
   
@@ -415,10 +416,11 @@
                                  ?direction ?distance
                                  ?obstacles))
     (trajectory-desig? ?desig)
-    (desig-prop ?desig (to pull))
-    (desig-prop ?desig (obj ?obj))
-    (desig-prop ?desig (distance ?distance))
-    (desig-prop ?desig (direction ?direction))
+    (desig-prop ?desig (:to :pull))
+    (or (desig-prop ?desig (:obj ?obj))
+        (desig-prop ?desig (:object ?obj)))
+    (desig-prop ?desig (:distance ?distance))
+    (desig-prop ?desig (:direction ?direction))
     (current-designator ?obj ?current-obj)
     (crs:fail) ;; This predicate needs to be refactored
     (grasped-object-part ?obj ?grasped)
@@ -429,10 +431,11 @@
                                  ?direction ?distance
                                  ?obstacles))
     (trajectory-desig? ?desig)
-    (desig-prop ?desig (to push))
-    (desig-prop ?desig (obj ?obj))
-    (desig-prop ?desig (distance ?distance))
-    (desig-prop ?desig (direction ?direction))
+    (desig-prop ?desig (:to :push))
+    (or (desig-prop ?desig (:obj ?obj))
+        (desig-prop ?desig (:object ?obj)))
+    (desig-prop ?desig (:distance ?distance))
+    (desig-prop ?desig (:direction ?direction))
     (current-designator ?obj ?current-obj)
     (holding-arms ?current-obj ?arms)
     (obstacles ?desig ?obstacles)))
@@ -441,17 +444,17 @@
 
   (<- (matching-process-module ?designator pr2-manipulation-process-module)
     (and (trajectory-desig? ?designator)
-         (or (desig-prop ?designator (to grasp))
-             (desig-prop ?designator (to put-down))
-             (desig-prop ?designator (to open))
-             (desig-prop ?designator (to close))
-             (desig-prop ?designator (to park))
-             (desig-prop ?designator (pose open))        
-             (desig-prop ?designator (to lift))
-             (desig-prop ?designator (to carry))
-             (desig-prop ?designator (to pull))
-             (desig-prop ?designator (to push))
-             (desig-prop ?designator (to debug)))))
+         (or (desig-prop ?designator (:to :grasp))
+             (desig-prop ?designator (:to :put-down))
+             (desig-prop ?designator (:to :open))
+             (desig-prop ?designator (:to :close))
+             (desig-prop ?designator (:to :park))
+             (desig-prop ?designator (:pose :open))        
+             (desig-prop ?designator (:to :lift))
+             (desig-prop ?designator (:to :carry))
+             (desig-prop ?designator (:to :pull))
+             (desig-prop ?designator (:to :push))
+             (desig-prop ?designator (:to :debug)))))
 
   (<- (available-process-module pr2-manipulation-process-module)
     (not (projection-running ?_))))

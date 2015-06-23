@@ -96,16 +96,16 @@ into the object's coordinate system and returns the appropriate
 location designator. The optional parameter `handle-offset-pose' is
 applied to the handle pose before the absolute object pose is
 applied."
-  (let* ((absolute-object-loc (desig-prop-value obj 'at))
+  (let* ((absolute-object-loc (desig-prop-value obj :at))
          (absolute-object-pose-stamped (cond (reorient
                                               (pose-pointing-away-from-base
                                                (desig-prop-value
                                                 absolute-object-loc
-                                                'desig-props:pose)))
+                                                :pose)))
                                              (t (desig-prop-value
                                                  absolute-object-loc
-                                                 'desig-props:pose))))
-         (relative-handle-loc (desig-prop-value handle 'at))
+                                                 :pose))))
+         (relative-handle-loc (desig-prop-value handle :at))
          (relative-handle-pose (cl-transforms:transform-pose
                                 (cl-transforms:pose->transform
                                  (reference relative-handle-loc))
@@ -117,22 +117,22 @@ applied."
                          (cl-transforms:pose->transform
                           absolute-object-pose-stamped)
                          relative-handle-pose))))
-    (make-designator 'object (loop for desc-elem in (description handle)
-                                   when (eql (car desc-elem) 'at)
-                                     collect `(at ,(make-designator
-                                                    'location
-                                                    `((pose ,pose-stamped))))
-                                   when (not (eql (car desc-elem) 'at))
+    (make-designator :object (loop for desc-elem in (description handle)
+                                   when (eql (car desc-elem) :at)
+                                     collect `(:at ,(make-designator
+                                                    :location
+                                                    `((:pose ,pose-stamped))))
+                                   when (not (eql (car desc-elem) :at))
                                      collect desc-elem))))
 
 (defun optimal-arm-handle-assignment (obj avail-arms avail-handles min-handles
                                       pregrasp-offset grasp-offset
                                       &key (max-handles
                                             (or (desig-prop-value
-                                                 obj 'desig-props:max-handles)
+                                                 obj :max-handles)
                                                 nil)))
   (optimal-arm-pose-assignment (mapcar (lambda (handle)
-                                         (reference (desig-prop-value (cdr handle) 'at)))
+                                         (reference (desig-prop-value (cdr handle) :at)))
                                        avail-handles)
                                avail-arms min-handles pregrasp-offset grasp-offset
                                :obj obj :max-poses max-handles
@@ -143,7 +143,7 @@ applied."
                                     &key obj (max-poses
                                               (or (and obj
                                                        (desig-prop-value
-                                                        obj 'desig-props:max-handles))
+                                                        obj :max-handles))
                                                   nil))
                                       handles)
   (declare (ignore max-poses))
@@ -240,7 +240,7 @@ configuration."
                                  (links-for-arm-side arm)))))))
          (distance-grasp (when (and distance-pregrasp (> distance-pregrasp 0))
                            (moveit:remove-collision-object
-                            (desig-prop-value obj 'desig-props:name))
+                            (desig-prop-value obj :name))
                            (prog1
                                (cond (only-reachable (is-pose-reachable
                                                       pose arm
@@ -255,8 +255,7 @@ configuration."
                                                      :highlight-links
                                                      (links-for-arm-side arm))))))
                              (moveit:add-collision-object
-                              (desig-prop-value
-                               obj 'desig-props:name))))))
+                              (desig-prop-value obj :name))))))
     (roslisp:ros-info (pr2 manip-pm) "Pregrasp: ~a, Grasp: ~a"
                       distance-pregrasp distance-grasp)
     (when (and distance-grasp (> distance-grasp 0))

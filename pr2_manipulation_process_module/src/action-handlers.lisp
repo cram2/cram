@@ -73,7 +73,7 @@
               :max-collisions-tolerance 3
               :park-pose
               (cond ((eql (grasp-type grasp-assignment)
-                          'desig-props:top-slide-down)
+                          :top-slide-down)
                      (ecase (side grasp-assignment)
                        (:left *park-pose-left-top-slide-down*)
                        (:right *park-pose-right-top-slide-down*)))
@@ -128,16 +128,15 @@
                            arm raised :plan-only t
                                       :quiet t
                                       :allowed-collision-objects
-                                      `(,(desig-prop-value obj 'desig-props::name)))))
+                                      `(,(desig-prop-value obj :name)))))
                       arms)))
         (moveit::execute-trajectories trajectories)))
     (unless (> (length arms) 1)
-      (let ((grasp-type (desig-prop-value obj 'desig-props:grasp-type)))
+      (let ((grasp-type (desig-prop-value obj :grasp-type)))
         (cond
           ((and obj arms)
            (let* ((newest-effective (newest-effective-designator obj))
-                  (object-name (desig-prop-value newest-effective
-                                                 'desig-props:name))
+                  (object-name (desig-prop-value newest-effective :name))
                   (allowed-collision-objects
                     (append
                      (cond (object-name (list object-name))
@@ -168,8 +167,7 @@
                      (let ((carry-pose
                              (ecase arm
                                (:left (cond
-                                        ((eql grasp-type
-                                              'desig-props:top-slide-down)
+                                        ((eql grasp-type :top-slide-down)
                                          (make-pose-stamped
                                           "base_link" (ros-time)
                                           (cl-transforms:make-3d-vector 0.3 0.5 1.3)
@@ -180,8 +178,7 @@
                                             (cl-transforms:make-3d-vector 0.3 0.5 1.3)
                                             (cl-transforms:euler->quaternion :ax 0)))))
                                (:right (cond
-                                         ((eql grasp-type
-                                               'desig-props:top-slide-down)
+                                         ((eql grasp-type :top-slide-down)
                                           (make-pose-stamped
                                            "base_link" (ros-time)
                                            (cl-transforms:make-3d-vector 0.3 -0.5 1.3)
@@ -209,7 +206,7 @@
     (log-id object-name pregrasp-pose grasp-pose side object-pose))
 
 (defun update-action-designator (action-desig new-properties)
-  (make-designator 'action (update-designator-properties
+  (make-designator :action (update-designator-properties
                             new-properties
                             (description action-desig))
                    action-desig))
@@ -229,8 +226,8 @@
 
 (defun perform-grasps (action-desig object assignments-list &key log-id)
   (let* ((obj (desig:newest-effective-designator object))
-         (obj-pose (reference (desig-prop-value obj 'desig-props:at)))
-         (obj-name (desig-prop-value obj 'desig-props:name)))
+         (obj-pose (reference (desig-prop-value obj :at)))
+         (obj-name (desig-prop-value obj :name)))
     (labels ((calculate-grasp-pose (pose grasp-offset gripper-offset)
                (cl-transforms-stamped:transform-pose-stamped
                 *transformer*
@@ -263,12 +260,12 @@
            (grasp-pose param-set) (arm param-set) obj-pose))
         (update-action-designator
          action-desig `(,@(mapcar (lambda (param-set)
-                                    `(grasp ((arm ,(arm param-set))
-                                             (effort ,(effort param-set))
-                                             (object-pose ,obj-pose)
-                                             (grasp-type ,(grasp-type param-set))
-                                             (pregrasp-pose ,(pregrasp-pose param-set))
-                                             (grasp-pose ,(grasp-pose param-set)))))
+                                    `(:grasp ((:arm ,(arm param-set))
+                                              (:effort ,(effort param-set))
+                                              (:object-pose ,obj-pose)
+                                              (:grasp-type ,(grasp-type param-set))
+                                              (:pregrasp-pose ,(pregrasp-pose param-set))
+                                              (:grasp-pose ,(grasp-pose param-set)))))
                                   params)))
         (execute-grasps obj-name params)
         (dolist (param-set params)
@@ -282,11 +279,11 @@
                             :object obj
                             :link ?link-name
                             :side (arm param-set))))
-          (let ((at (desig-prop-value obj 'desig-props:at)))
+          (let ((at (desig-prop-value obj :at)))
             (make-designator
-             'location
+             :location
              (append (description at)
-                     `((handle `(,(arm param-set)
+                     `((:handle `(,(arm param-set)
                                  ,(object-part param-set)))))
              at)))))))
 
@@ -380,7 +377,7 @@
          ;; grasp-type
          (pre-putdown-offset *pre-putdown-offset*)
          (putdown-offset *putdown-offset*)
-         (unhand-offset (cond ((eql grasp-type 'desig-props:top-slide-down)
+         (unhand-offset (cond ((eql grasp-type :top-slide-down)
                                *unhand-top-slide-down-offset*)
                               (t *unhand-offset*))))
     (labels ((gripper-putdown-pose (object-in-gripper-pose object-putdown-pose)
@@ -446,7 +443,7 @@
                     (hand-poses-for-putdown
                      grasp-assignment putdown-pose))
                   grasp-assignments)))
-    (execute-putdowns (desig-prop-value object-designator 'name)
+    (execute-putdowns (desig-prop-value object-designator :name)
                       putdown-parameter-sets)))
 
 (def-action-handler put-down (object-designator location grasp-assignments)
@@ -460,10 +457,10 @@
                              location
                              :z-offset (or (when (desig-prop-value
                                                   object-designator
-                                                  'desig-props::plane-distance)
+                                                  :plane-distance)
                                              (+ (desig-prop-value
                                                  object-designator
-                                                 'desig-props::plane-distance)
+                                                 :plane-distance)
                                                 0.01)) ;; Add one centimeter for good measure
                                            0.0)))
          (lazy-putdown-poses
@@ -504,7 +501,7 @@
       (cram-language::on-finish-putdown log-id success))))
 
 (defmethod display-object-handles ((object object-designator))
-  (let* ((relative-handles (desig-prop-values object 'desig-props::handle))
+  (let* ((relative-handles (desig-prop-values object :handle))
          (reorient-object
            (var-value '?r (first (crs:prolog `(reorient-object-globally ,object ?r)))))
          (absolute-handles
@@ -514,7 +511,7 @@
          (pose-msgs
            (map 'vector
                 (lambda (handle)
-                  (let ((pose (reference (desig-prop-value handle 'desig-props::at))))
+                  (let ((pose (reference (desig-prop-value handle :at))))
                     (to-msg pose)))
                 absolute-handles)))
     (let ((publisher (roslisp:advertise "/objecthandleposes" "geometry_msgs/PoseArray")))
@@ -523,5 +520,5 @@
                         "geometry_msgs/PoseArray"
                         (frame_id header) (frame-id
                                            (reference (desig-prop-value
-                                                       (first absolute-handles) 'desig-props::at)))
+                                                       (first absolute-handles) :at)))
                         (poses) pose-msgs)))))

@@ -365,15 +365,15 @@
                                 :target-frame target-frame
                                 :timeout cram-roslisp-common:*tf-default-timeout*)))
          (loc-desig-in-gripper (make-designator
-                                'location
-                                (append `((pose ,obj-pose-in-gripper)
-                                          (in gripper))
+                                :location
+                                (append `((:pose ,obj-pose-in-gripper)
+                                          (:in :gripper))
                                         (mapcar (lambda (grip)
-                                                  `(gripper ,grip))
+                                                  `(:gripper ,grip))
                                                 grippers)))))
     (make-designator
-     'object
-     (append `((at ,loc-desig-in-gripper) . ,(remove 'at (description obj) :key #'car))
+     :object
+     (append `((:at ,loc-desig-in-gripper) . ,(remove :at (description obj) :key #'car))
              new-properties)
      obj)))
 
@@ -403,10 +403,10 @@ its' supporting plane."
          ;; (orientation ...) is the intended put down orientation of the object;
          (new-loc-desig
            (make-designator
-            'location
-            `((in ,gripper)
-              (side ,side)
-              (pose ,(copy-pose-stamped
+            :location
+            `((:in ,gripper)
+              (:side ,side)
+              (:pose ,(copy-pose-stamped
                       (cl-transforms-stamped:transform-pose-stamped
                        *transformer*
                        :pose obj-pose
@@ -417,11 +417,11 @@ its' supporting plane."
                                         `(manipulator-link ,side ?link))))
                        :timeout cram-roslisp-common:*tf-default-timeout*)
                       :stamp 0.0))
-              (height ,height)
-              (orientation ,(cl-transforms:orientation obj-pose))))))
+              (:height ,height)
+              (:orientation ,(cl-transforms:orientation obj-pose))))))
     ;; build and equate new object designator using the new location designator
     ;; NOTE: this usage of make-designator does it both in one line
     (make-designator
-     'object
-     `((at ,new-loc-desig) . ,(remove 'at (description obj-desig) :key #'car))
+     :object
+     `((:at ,new-loc-desig) . ,(remove :at (description obj-desig) :key #'car))
      obj-desig)))
