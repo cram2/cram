@@ -34,7 +34,7 @@
 ;;; also load a file describing costmaps and providing them with prolog rules such as
 ;;;   (<- (desig-costmap ?desig ?cm)
 ;;;     (costmap ?cm)
-;;;     (desig-prop ?desig (to see))
+;;;     (desig-prop ?desig (:to :see))
 ;;;     ...)
 ;;; examples are in table_costmap and semantic_map_costmap
 
