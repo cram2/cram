@@ -289,5 +289,5 @@
                                  collect param)
                          new-description)))
           (with-designators
-              ((flip-action (action appended-description)))
+              ((flip-action (:action appended-description)))
             (perform flip-action)))))))

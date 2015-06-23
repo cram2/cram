@@ -30,15 +30,15 @@
 
 (defun lookup-object-location (object-name object-type)
   (declare (ignore object-name object-type))
-  (make-designator 'location `((desig-props:in Cupboard)
-                               (name "kitchen_island"))))
+  (make-designator :location `((:in Cupboard)
+                               (:name "kitchen_island"))))
 
 (defun lookup-object-type (object-name)
   (case object-name
-    (desig-props::pancakemix
-     'desig-props::pancakemix)
-    (desig-props::pancake
-     'desig-props::pancake)))
+    (:pancakemix
+     :pancakemix)
+    (:pancake
+     :pancake)))
 
 (defun lookup-object-handles (object-type)
   (declare (ignore object-type))
@@ -51,20 +51,20 @@
   (let* ((handles (lookup-object-handles type))
          (details (lookup-object-details name type))
          (location (lookup-object-location name type)))
-    (append `((desig-props:name ,name)
-              (desig-props:at ,location))
+    (append `((:name ,name)
+              (:at ,location))
             (when type
-              `((desig-props:type ,type)))
+              `((:type ,type)))
             (when handles
               (mapcar (lambda (handle)
-                        `(desig-props:handle ,handle))
+                        `(:handle ,handle))
                       handles))
             details)))
 
 (defmacro with-known-object-types (objects &body body)
   `(with-designators (,@(mapcar (lambda (object)
                                   (destructuring-bind (object-variable object-type object-name)
-                                      object
+                                      :object
                                     `(,object-variable
                                       (object (lookup-object-description
                                                ,object-name ,object-type)))))
@@ -72,13 +72,13 @@
      ,@body))
 
 (defun on-surface-p (object)
-  (let* ((at (desig-prop-value object 'desig-props:at))
-         (on (desig-prop-value at 'desig-props:on)))
+  (let* ((at (desig-prop-value object :at))
+         (on (desig-prop-value at :on)))
     (when on t)))
 
 (defun in-container-p (object)
-  (let* ((at (desig-prop-value object 'desig-props:at))
-         (in (desig-prop-value at 'desig-props:in)))
+  (let* ((at (desig-prop-value object :at))
+         (in (desig-prop-value at :in)))
     (when in t)))
 
 (defun make-handles (distance-from-center
@@ -103,12 +103,12 @@
                           (cl-transforms:euler->quaternion
                            :ax ax :ay ay :az (+ az current-angle)))
         as handle-object = (make-designator
-                            'cram-designators:object
+                            :object
                             (append
-                             `((desig-props:type desig-props:handle)
-                               (desig-props:at
-                                ,(a location `((desig-props:pose
+                             `((:type :handle)
+                               (:at
+                                ,(a :location `((:pose
                                                 ,handle-pose)))))
                              (when grasp-type
-                               `((desig-props:grasp-type ,grasp-type)))))
+                               `((:grasp-type ,grasp-type)))))
         collect handle-object))
