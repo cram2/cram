@@ -49,10 +49,10 @@
      (desig:make-effective-designator
       parent
       :new-properties (desig:update-designator-properties
-                       `(,@(when type `((desig-props:type ,type)))
-                         (desig-props:at ,(desig:make-designator
-                                           'desig:location `((desig-props:pose ,pose))))
-                         ,@(when name `((desig-props:name ,name))))
+                       `(,@(when type `((:type ,type)))
+                         (:at ,(desig:make-designator
+                                :location `((:pose ,pose))))
+                         ,@(when name `((:name ,name))))
                        (when parent (desig:properties parent)))
       :data-object perceived-object)
      'projection-object-designator)))
@@ -63,8 +63,8 @@
   (let ((object-name (or
                       (when (slot-value designator 'desig:data)
                         (desig:object-identifier (desig:reference designator)))
-                      (desig:desig-prop-value designator 'desig-props:name)))
-        (type (or (desig:desig-prop-value designator 'desig-props:type)
+                      (desig:desig-prop-value designator :name)))
+        (type (or (desig:desig-prop-value designator :type)
                   '?_)))
     (flet ((find-household-object ()
              (cut:force-ll
@@ -87,7 +87,7 @@
                         (sem-map-utils:pose semantic-map-object)))
                      (sem-map-utils:designator->semantic-map-objects designator))))
       (case type
-        (desig-props:handle (find-handle))
+        (:handle (find-handle))
         (t (find-household-object))))))
 
 (defun find-with-bound-designator (designator)
@@ -103,16 +103,16 @@
       (alexandria:curry #'apply #'make-designator) (find-object designator)))))
 
 (defun find-with-new-designator (designator)
-  (desig:with-desig-props (desig-props:type) designator
+  (desig:with-desig-props (type) designator
     (flet ((make-designator (object pose)
              (make-object-designator
               (make-instance 'perceived-object
                 :object-identifier object
                 :pose pose)
-              :type desig-props:type
+              :type type
               :parent designator
               :name object)))
-      (when desig-props:type
+      (when type
         (cut:force-ll
          (cut:lazy-mapcar
           (alexandria:curry #'apply #'make-designator) (find-object designator)))))))

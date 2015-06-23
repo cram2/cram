@@ -46,20 +46,20 @@
 
   (<- (matching-process-module ?designator projection-ptu)
     (trajectory-desig? ?designator)
-    (or (desig-prop ?designator (to see))
-        (desig-prop ?designator (to follow))))
+    (or (desig-prop ?designator (:to :see))
+        (desig-prop ?designator (:to :follow))))
 
   (<- (matching-process-module ?designator projection-perception)
-    (desig-prop ?designator (to perceive)))
+    (desig-prop ?designator (:to :perceive)))
 
   (<- (matching-process-module ?designator projection-manipulation)
     (trajectory-desig? ?designator)
     (not
-     (or (desig-prop ?designator (to see))
-         (desig-prop ?designator (to follow)))))
+     (or (desig-prop ?designator (:to :see))
+         (desig-prop ?designator (:to :follow)))))
   
   (<- (matching-process-module ?designator projection-navigation)
-    (desig-prop ?designator (type navigation)))
+    (desig-prop ?designator (:type :navigation)))
 
   (<- (available-process-module projection-ptu)
     (symbol-value *projection-environment* pr2-bullet-projection-environment))
@@ -89,31 +89,32 @@
 
   (<- (action-desig-projection ?desig ?pose)
     (or 
-     (desig-prop ?desig (to see))
-     (desig-prop ?desig (to follow)))
-    (desig-prop ?desig (pose ?pose)))
+     (desig-prop ?desig (:to :see))
+     (desig-prop ?desig (:to :follow)))
+    (desig-prop ?desig (:pose ?pose)))
 
   (<- (action-desig-projection ?desig ?pose)
     (or
-     (desig-prop ?desig (to see))
-     (desig-prop ?desig (to follow)))
+     (desig-prop ?desig (:to :see))
+     (desig-prop ?desig (:to :follow)))
     (desig-location-prop ?desig ?pose)))
 
 (def-fact-group perception-designators (action-desig-projection)
 
   (<- (action-desig-projection ?designator ?object-designator)
-    (desig-prop ?designator (to perceive))
-    (desig-prop ?designator (obj ?object-designator))))
+    (desig-prop ?designator (:to :perceive))
+    (or (desig-prop ?designator (:obj ?object-designator))
+        (desig-prop ?designator (:object ?object-designator)))))
 
 (def-fact-group manipulation-designators (action-desig-projection)
 
   (<- (action-desig-projection
        ?desig (execute-container-opened ?desig ?obj ?distance))
     (trajectory-desig? ?desig)
-    (desig-prop ?desig (to open))
-    (desig-prop ?desig (handle ?obj))
-    (desig-prop ?obj (name ?handle-name))
-    (-> (desig-prop ?desig (side ?side))
+    (desig-prop ?desig (:to :open))
+    (desig-prop ?desig (:handle ?obj))
+    (desig-prop ?obj (:name ?handle-name))
+    (-> (desig-prop ?desig (:side ?side))
         (== ?sides (?side))
         (true))
     (available-arms ?obj ?sides)
@@ -121,24 +122,25 @@
 
   (<- (action-desig-projection ?desig (execute-container-closed ?desig ?obj))
     (trajectory-desig? ?desig)
-    (desig-prop ?desig (to close))
-    (desig-prop ?desig (handle ?obj))
-    (-> (desig-prop ?desig (side ?side))
+    (desig-prop ?desig (:to :close))
+    (desig-prop ?desig (:handle ?obj))
+    (-> (desig-prop ?desig (:side ?side))
         (== ?sides (?side))
         (true))
     (available-arms ?obj ?sides))
 
   (<- (action-desig-projection ?desig (execute-lift ?desig))
     (trajectory-desig? ?desig)
-    (desig-prop ?desig (to lift))
-    (desig-prop ?desig (obj ?_)))
+    (desig-prop ?desig (:to :lift))
+    (or (desig-prop ?desig (:obj ?_))
+        (desig-prop ?desig (:object ?_))))
 
   (<- (action-desig-projection ?desig (execute-park ?sides ?objects-in-hand))
     (trajectory-desig? ?desig)
     (or
-     (desig-prop ?desig (to park))
-     (desig-prop ?desig (to carry)))
-    (-> (desig-prop ?desig (side ?side))
+     (desig-prop ?desig (:to :park))
+     (desig-prop ?desig (:to :carry)))
+    (-> (desig-prop ?desig (:side ?side))
         (== ?sides ?side)
         (findall ?side (arm ?side) ?sides))
     (findall (?side ?obj ?link)
@@ -149,14 +151,16 @@
 
   (<- (action-desig-projection ?desig (execute-grasp ?desig ?obj))
     (trajectory-desig? ?desig)
-    (desig-prop ?desig (to grasp))
-    (desig-prop ?desig (obj ?obj)))
+    (desig-prop ?desig (:to :grasp))
+    (or (desig-prop ?desig (:obj ?obj))
+        (desig-prop ?desig (:object ?obj))))
 
   (<- (action-desig-projection ?desig (execute-put-down ?desig ?obj))
     (trajectory-desig? ?desig)
-    (desig-prop ?desig (to put-down))
-    (desig-prop ?desig (obj ?obj))
-    (desig-prop ?desig (at ?_)))
+    (desig-prop ?desig (:to :put-down))
+    (or (desig-prop ?desig (:obj ?obj))
+        (desig-prop ?desig (:object ?obj)))
+    (desig-prop ?desig (:at ?_)))
 
   (<- (required-sides ?designator ?sides)
     (setof ?side (cram-manipulation-knowledge:trajectory-point
@@ -170,5 +174,5 @@
 
 (def-fact-group navigation-designators (action-desig-projection)
   (<- (action-desig-projection ?desig ?goal-location)
-    (desig-prop ?desig (type navigation))
-    (desig-prop ?desig (goal ?goal-location))))
+    (desig-prop ?desig (:type :navigation))
+    (desig-prop ?desig (:goal ?goal-location))))
