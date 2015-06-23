@@ -46,7 +46,7 @@
    In that case a specific costmap spread angle might be needed for that object, i.e.
    a threshold on costmap values is specified for that object in the knowledge base."
   (if (typep pose 'cl-transforms:pose)
-      (let ((for-prop-value (desig-prop-value desig 'for)))
+      (let ((for-prop-value (desig-prop-value desig :for)))
         (if for-prop-value
             (let* ((cm (location-costmap::get-cached-costmap desig))
                    (p (cl-transforms:origin pose)))
@@ -76,7 +76,7 @@
   "Checks if desig has a property FOR. If so, checks if the object described by FOR is
    a household object. If so, uses the prolog predicate desig-solution-not-in-collision."
   (if (typep pose 'cl-transforms:pose)
-      (let ((for-prop-value (desig-prop-value desig 'for)))
+      (let ((for-prop-value (desig-prop-value desig :for)))
         (if (and for-prop-value
                  (prolog `(and
                            (object-instance-name ,for-prop-value ?object-name)

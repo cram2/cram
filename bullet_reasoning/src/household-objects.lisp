@@ -30,15 +30,15 @@
 
 (in-package :btr)
 
-(defparameter *mesh-files* '((mug "package://bullet_reasoning/resource/mug.stl" t)
-                             (plate "package://bullet_reasoning/resource/plate.stl" nil)
-                             (mondamin "package://bullet_reasoning/resource/mondamin.stl" nil)
-                             (pot "package://bullet_reasoning/resource/pot-ww.stl" nil)
-                             (weisswurst "package://bullet_reasoning/resource/ww.stl" nil)
-                             (bowl "package://bullet_reasoning/resource/bowl.stl" nil)
-                             (fork "package://bullet_reasoning/resource/fork.stl" nil)
-                             (knife "package://bullet_reasoning/resource/knife.stl" nil)
-                             (spatula "package://bullet_reasoning/resource/spatula.stl" nil)))
+(defparameter *mesh-files* '((:mug "package://bullet_reasoning/resource/mug.stl" t)
+                             (:plate "package://bullet_reasoning/resource/plate.stl" nil)
+                             (:mondamin "package://bullet_reasoning/resource/mondamin.stl" nil)
+                             (:pot "package://bullet_reasoning/resource/pot-ww.stl" nil)
+                             (:weisswurst "package://bullet_reasoning/resource/ww.stl" nil)
+                             (:bowl "package://bullet_reasoning/resource/bowl.stl" nil)
+                             (:fork "package://bullet_reasoning/resource/fork.stl" nil)
+                             (:knife "package://bullet_reasoning/resource/knife.stl" nil)
+                             (:spatula "package://bullet_reasoning/resource/spatula.stl" nil)))
 
 (defclass household-object (object)
   ((types :reader household-object-types :initarg :types)))
@@ -71,9 +71,9 @@
 (defgeneric cutlery-dimensions (type)
   (:method ((type t))
     nil)
-  (:method ((type (eql 'knife)))
+  (:method ((type (eql :knife)))
     (cl-transforms:make-3d-vector 0.1 0.01 0.005))
-  (:method ((type (eql 'fork)))
+  (:method ((type (eql :fork)))
     (cl-transforms:make-3d-vector 0.1 0.015 0.005)))
 
 (defun make-household-object (world name types &optional bodies (add-to-world t))
@@ -118,7 +118,7 @@
                       :half-extents (cl-transforms:v* handle-size 0.5)))
     collision-shape))
 
-(defmethod add-object ((world bt-world) (type (eql 'generic-cup)) name pose &key
+(defmethod add-object ((world bt-world) (type (eql :generic-cup)) name pose &key
                        mass radius height
                        (handle-size (cl-transforms:make-3d-vector
                                      0.03 0.01 (* height 0.8))))
@@ -129,11 +129,11 @@
                             :name name :mass mass :pose (ensure-pose pose)
                             :collision-shape (make-cup-shape radius height handle-size)))))
 
-(defmethod add-object ((world bt-world) (type (eql 'mug)) name pose &key
+(defmethod add-object ((world bt-world) (type (eql :mug)) name pose &key
                        mass)
-  (add-object world 'mesh name pose :mass mass :mesh 'mug))
+  (add-object world :mesh name pose :mass mass :mesh :mug))
 
-(defmethod add-object ((world bt-world) (type (eql 'mesh)) name pose
+(defmethod add-object ((world bt-world) (type (eql :mesh)) name pose
                        &key mass mesh (color '(0.5 0.5 0.5 1.0)) types (scale 1.0)
                          disable-face-culling)
   (let ((mesh-model (physics-utils:scale-3d-model
@@ -158,7 +158,7 @@
                                                  :color color
                                                  :disable-face-culling disable-face-culling))))))
 
-(defmethod add-object ((world bt-world) (type (eql 'cutlery)) name pose
+(defmethod add-object ((world bt-world) (type (eql :cutlery)) name pose
                        &key mass (color '(0.5 0.5 0.5 1.0)) cutlery-type)
   (let ((size (cutlery-dimensions cutlery-type)))
     (assert size)
@@ -170,7 +170,7 @@
                                                  :half-extents size
                                                  :color color))))))
 
-(defmethod add-object ((world bt-world) (type (eql 'pancake-maker)) name pose
+(defmethod add-object ((world bt-world) (type (eql :pancake-maker)) name pose
                        &key mass (color '(0.5 0.5 0.5 1.0)) size)
   (assert size)
   (make-household-object world name (list type)
@@ -181,7 +181,7 @@
                                                :half-extents (ensure-vector size)
                                                :color color)))))
 
-(defmethod add-object ((world bt-world) (type (eql 'pancake)) name pose
+(defmethod add-object ((world bt-world) (type (eql :pancake)) name pose
                        &key mass (color '(0.5 0.5 0.5 1.0)) size)
   (assert size)
   (make-household-object world name (list type)
@@ -192,7 +192,7 @@
                                                :half-extents (ensure-vector size)
                                                :color color)))))
 
-(defmethod add-object ((world bt-world) (type (eql 'orange)) name pose
+(defmethod add-object ((world bt-world) (type (eql :orange)) name pose
                        &key mass (color '(0.5 0.5 0.5 1.0)) radius)
   (assert radius)
   (make-household-object world name (list type)
@@ -203,7 +203,7 @@
                                                :radius radius
                                                :color color)))))
 
-(defmethod add-object ((world bt-world) (type (eql 'apple)) name pose
+(defmethod add-object ((world bt-world) (type (eql :apple)) name pose
                        &key mass (color '(0.5 0.5 0.5 1.0)) radius)
   (assert radius)
   (make-household-object world name (list type)
@@ -214,7 +214,7 @@
                                                :radius radius
                                                :color color)))))
 
-(defmethod add-object ((world bt-world) (type (eql 'sugar-box)) name pose
+(defmethod add-object ((world bt-world) (type (eql :sugar-box)) name pose
                        &key mass (color '(0.5 0.5 0.5 1.0)) size)
   (assert size)
   (make-household-object world name (list type)
@@ -225,7 +225,7 @@
                                                :half-extents (ensure-vector size)
                                                :color color)))))
 
-(defmethod add-object ((world bt-world) (type (eql 'cereal)) name pose
+(defmethod add-object ((world bt-world) (type (eql :cereal)) name pose
                        &key mass (color '(0.5 0.5 0.5 1.0)) size)
   (assert size)
   (make-household-object world name (list type)

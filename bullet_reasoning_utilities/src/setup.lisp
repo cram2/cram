@@ -86,7 +86,7 @@
        (bullet-world ?w)
        (debug-window ?w)
        (robot ?robot)
-       (assert (object ?w btr::static-plane floor ((0 0 0) (0 0 0 1))
+       (assert (object ?w :static-plane floor ((0 0 0) (0 0 0 1))
                        :normal (0 0 1) :constant 0
                        :disable-collisions-with (?robot)))
        ;; (assert (object ?w static-plane wall-behind-shelves
@@ -94,9 +94,9 @@
        ;; (assert (object ?w static-plane wall-behind-table
        ;;                 ((0 3 0) (0 0 0 1)) :normal (0 1 0) :constant 0))
        (semantic-map-object-name ?map-name)
-       (assert (object ?w btr::semantic-map ?map-name ((-3.45 -4.35 0) ,pi-rotation)
+       (assert (object ?w :semantic-map ?map-name ((-3.45 -4.35 0) ,pi-rotation)
                        :urdf ,*kitchen-urdf*))
-       (assert (object ?w urdf ?robot ((0 0 0) (0 0 0 1)) :urdf
+       (assert (object ?w :urdf ?robot ((0 0 0) (0 0 0 1)) :urdf
                        ,*robot-urdf-lowres*))
        (robot-arms-parking-joint-states ?joint-states)
        (assert (joint-state ?w ?robot ?joint-states))

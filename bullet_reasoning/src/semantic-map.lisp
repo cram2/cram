@@ -63,7 +63,7 @@
 ;; only a mixin, it makes more sense to define COPY-OBJECT directly on the
 ;; URDF-SEMANTIC-MAP-OBJECT and SIMPLE-SEMANTIC-MAP-OBJECT classes.
 
- (defmethod add-object ((world bt-world) (type (eql 'semantic-map)) name pose &key urdf)
+ (defmethod add-object ((world bt-world) (type (eql :semantic-map)) name pose &key urdf)
    (if urdf
        (make-instance 'urdf-semantic-map-object
          :name name

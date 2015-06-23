@@ -92,7 +92,7 @@
             (setf (gethash id *ros-object-database-model-meshes*)
                   (physics-utils:shape-msg->mesh mesh :disable-type-check t)))))))
 
-(defmethod add-object ((world bt-world) (type (eql 'ros-household-object)) name pose
+(defmethod add-object ((world bt-world) (type (eql :ros-household-object)) name pose
                        &key mass model (color '(0.8 0.8 0.8 1.0)))
   (let* ((mesh (get-ros-model-mesh model)))
     (assert mesh)
