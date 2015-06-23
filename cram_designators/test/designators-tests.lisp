@@ -75,7 +75,7 @@
 ;;; auxiliary macros
 
 (defmacro with-location-designators ((&rest names) &body body)
-  `(let ,(loop for n in names collect `(,n (make-designator 'location nil)))
+  `(let ,(loop for n in names collect `(,n (make-designator :location nil)))
      ,@body))
 
 ;;; actual test cases
@@ -136,7 +136,7 @@
     (assert-error 'designator-error (reference desig))))
 
 (defclass test-designator (designator) ())
-(register-designator-class test test-designator)
+(register-designator-class :test test-designator)
 
 (defmethod reference ((designator test-designator) &optional role)
   (declare (ignore role))
@@ -145,7 +145,7 @@
             (funcall (properties designator)))))
 
 (define-test synchronized-reference
-  (let ((designator (make-designator 'test (lambda ()
+  (let ((designator (make-designator :test (lambda ()
                                              (sleep 0.2)
                                              (random 1.0))))
         (value-1 nil)

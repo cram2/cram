@@ -30,7 +30,7 @@
 
 (defclass test-designator (desig:designator) ())
 
-(desig:register-designator-class test test-designator)
+(desig:register-designator-class :test test-designator)
 
 (defmethod desig:reference ((designator test-designator) &optional role)
   (declare (ignore role))

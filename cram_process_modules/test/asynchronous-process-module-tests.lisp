@@ -41,7 +41,7 @@
 (define-test test-finish
   (let* ((executed nil)
          (designator (desig:make-designator
-                      'test (lambda (module input)
+                      :test (lambda (module input)
                               (declare (ignore input))                              
                               (setf executed t)
                               (finish-process-module module)))))
@@ -55,7 +55,7 @@
   (let* ((time-1 nil)
          (time-2 nil)
          (designator (desig:make-designator
-                      'test (lambda (module input)
+                      :test (lambda (module input)
                               (declare (ignore input))
                               (sleep 0.2)
                               (setf time-1 (get-internal-real-time))
@@ -72,12 +72,12 @@
          (time-2 nil)
          (time-3 nil)
          (designator-1 (desig:make-designator
-                        'test (lambda (module input)
+                        :test (lambda (module input)
                                 (sleep 0.2)
                                 (setf time-1 (get-internal-real-time))
                                 (finish-process-module module :designator input))))
          (designator-2 (desig:make-designator
-                        'test (lambda (module input)
+                        :test (lambda (module input)
                                 (sleep 0.2)
                                 (setf time-2 (get-internal-real-time))
                                 (finish-process-module module :designator input)))))
@@ -95,14 +95,14 @@
          (time-2 nil)
          (time-3 nil)
          (designator-1 (desig:make-designator
-                        'test (lambda (module input)
+                        :test (lambda (module input)
                                 (sb-thread:make-thread
                                  (lambda ()
                                    (sleep 0.2)
                                    (setf time-1 (get-internal-real-time))
                                    (finish-process-module module :designator input))))))
          (designator-2 (desig:make-designator
-                        'test (lambda (module input)
+                        :test (lambda (module input)
                                 (sb-thread:make-thread
                                  (lambda ()
                                    (setf time-2 (get-internal-real-time))
@@ -120,7 +120,7 @@
 (define-test test-failure
   (let* ((condition (make-condition 'process-module-test-error))
          (designator (desig:make-designator
-                     'test (lambda (module input)
+                     :test (lambda (module input)
                              (declare (ignore input))
                              (fail-process-module module condition))))
         (received-condition nil))
@@ -136,14 +136,14 @@
   (let* ((condition-1 (make-condition 'process-module-test-error))
          (condition-2 (make-condition 'process-module-test-error))
          (designator-1 (desig:make-designator
-                        'test (lambda (module input)
+                        :test (lambda (module input)
                                 (sb-thread:make-thread
                                  (lambda ()
                                    (sleep 0.1)
                                    (fail-process-module
                                     module condition-1 :designator input))))))
          (designator-2 (desig:make-designator
-                        'test (lambda (module input)
+                        :test (lambda (module input)
                                 (sb-thread:make-thread
                                  (lambda ()
                                    (fail-process-module

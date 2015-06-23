@@ -34,7 +34,7 @@
 (define-test process-module-execution
   (let* ((process-module-executed nil)
          (designator (desig:make-designator
-                      'test (lambda ()
+                      :test (lambda ()
                               (setf process-module-executed t)))))
     (assert-false process-module-executed)
     (cpl:top-level
@@ -46,10 +46,10 @@
   (let* ((process-module-1-executed nil)
          (process-module-2-executed nil)
          (designator-1 (desig:make-designator
-                        'test (lambda ()
+                        :test (lambda ()
                                 (setf process-module-1-executed t))))
          (designator-2 (desig:make-designator
-                        'test (lambda ()
+                        :test (lambda ()
                                 (setf process-module-2-executed t)))))
     (cpl:top-level
       (with-process-modules-running ((:module-1 test-process-module)
@@ -63,7 +63,7 @@
   (let* ((condition (make-condition 'process-module-test-error))
          (caught-condition nil)
          (designator (desig:make-designator
-                      'test (lambda ()
+                      :test (lambda ()
                               (error condition)))))
     (assert-error
      'process-module-test-error
@@ -84,7 +84,7 @@
   (let* ((started nil)
          (done nil)
          (designator (desig:make-designator
-                      'test (lambda ()
+                      :test (lambda ()
                               (setf started t)
                               (cpl:sleep 10)
                               (setf done t)))))
@@ -100,7 +100,7 @@
   (let* ((runs 0)
          (done nil)
          (designator (desig:make-designator
-                      'test (lambda ()
+                      :test (lambda ()
                               (incf runs)
                               (cpl:sleep 0.2)
                               (setf done t)))))
@@ -120,11 +120,11 @@
          (a-run nil)
          (b-run nil)
          (designator-1 (desig:make-designator
-                        'test (lambda ()
+                        :test (lambda ()
                                 (cpl:sleep 0.2)
                                 (setf a-run (incf counter)))))
          (designator-2 (desig:make-designator
-                        'test (lambda ()
+                        :test (lambda ()
                                 (cpl:sleep 0.2)
                                 (setf b-run (incf counter))))))
     (cpl:top-level
@@ -141,7 +141,7 @@
     (assert-eql 1 b-run)))
 
 (define-test return-value
-  (let ((designator (desig:make-designator 'test (lambda () :ok)))
+  (let ((designator (desig:make-designator :test (lambda () :ok)))
         (result nil))
     (cpl:top-level
       (with-process-modules-running (test-process-module)
@@ -160,7 +160,7 @@
     (assert-eq :ok monitor-result)))
 
 (define-test process-module.monitor-return-value.2
-  (let ((designator (desig:make-designator 'test (lambda () :ok)))
+  (let ((designator (desig:make-designator :test (lambda () :ok)))
         (execute-result nil)
         (monitor-result nil))
     (cpl:top-level
@@ -173,7 +173,7 @@
     (assert-eq :ok monitor-result)))
 
 (define-test process-module.monitor-return-value.3
-  (let ((designator (desig:make-designator 'test (lambda () (sleep 0.2) :ok)))
+  (let ((designator (desig:make-designator :test (lambda () (sleep 0.2) :ok)))
         (execute-result nil)
         (monitor-result nil))
     (cpl:top-level
