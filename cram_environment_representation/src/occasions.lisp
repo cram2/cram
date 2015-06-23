@@ -92,7 +92,7 @@
     (not (bound ?location))
     (bullet-world ?world)
     (object-pose ?world ?object-name ?object-pose)
-    (desig:designator desig:location ((pose ?object-pose))
+    (desig:designator :location ((:pose ?object-pose))
                       ?location-designator)))
 
 (defun unique-object-designators ()
@@ -130,10 +130,10 @@ is returned."
     (assert
      (force-ll (prolog `(and
                          (bullet-world ?w)
-                         (assert ?w (object static-plane floor ((0 0 0) (0 0 0 1))
+                         (assert ?w (object :static-plane floor ((0 0 0) (0 0 0 1))
                                             :normal (0 0 1) :constant 0))
-                         (assert ?w (object semantic-map sem-map ((0 0 0) (0 0 0 1))
+                         (assert ?w (object :semantic-map sem-map ((0 0 0) (0 0 0 1))
                                             ,@(when kitchen
                                                 `(:urdf ,kitchen))))
                          (robot ?robot)
-                         (assert ?w (object urdf ?robot ((0 0 0) (0 0 0 1)) :urdf ,robot))))))))
+                         (assert ?w (object :urdf ?robot ((0 0 0) (0 0 0 1)) :urdf ,robot))))))))

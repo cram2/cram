@@ -52,7 +52,7 @@
 
   (<- (desig-costmap ?desig ?cm)
     (costmap ?cm)
-    (desig-prop ?desig (reachable-from ?pose))
+    (desig-prop ?desig (:reachable-from ?pose))
     (lisp-fun cl-transforms:origin ?pose ?point)
     (costmap-in-reach-distance ?distance)
     (costmap-add-function reachable-from-space
@@ -63,7 +63,7 @@
                           ?cm))
 
   (<- (desig-costmap ?designator ?costmap)
-    (desig-prop ?designator (on ?object))
+    (desig-prop ?designator (:on ?object))
     (bullet-world ?world)
     (once
      (or (cram-environment-representation:object-designator-name
@@ -86,8 +86,8 @@
     (visibility-costmap-size ?size))
 
   (<- (object-visibility-costmap ?designator ?costmap)
-    (or (desig-prop ?designator (obj ?object))
-        (desig-prop ?designator (object ?object)))
+    (or (desig-prop ?designator (:obj ?object))
+        (desig-prop ?designator (:object ?object)))
     (bullet-world ?world)
     (once
      (or (cram-environment-representation:object-designator-name
@@ -106,7 +106,7 @@
      ?costmap))
 
   (<- (location-visibility-costmap ?designator ?costmap)
-    (desig-prop ?designator (location ?location))
+    (desig-prop ?designator (:location ?location))
     (bullet-world ?world)
     (robot ?robot)
     (costmap ?costmap)
@@ -120,14 +120,14 @@
      ?costmap))
   
   (<- (desig-costmap ?designator ?costmap)
-    (desig-prop ?designator (to see))
+    (desig-prop ?designator (:to :see))
     (once (or (object-visibility-costmap ?designator ?costmap)
               (location-visibility-costmap ?designator ?costmap))))
 
   (<- (desig-location-prop ?desig ?loc)
     (loc-desig? ?desig)
-    (or (desig-prop ?desig (obj ?o))
-        (desig-prop ?desig (object ?o)))
+    (or (desig-prop ?desig (:obj ?o))
+        (desig-prop ?desig (:object ?o)))
     (btr:object ?_ ?o)
     (btr:pose ?_ ?o ?loc))
 
@@ -157,7 +157,8 @@
     (assert (object-pose ?w ?robot ?robot-pose))
     (object-not-in-collision ?w ?robot)
     (head-pointing-at ?w ?robot ?obj-pose)
-    (desig-prop ?desig (obj ?obj))
+    (or (desig-prop ?desig (:obj ?obj))
+        (desig-prop ?desig (:object ?obj)))
     (-> (btr:object ?w ?obj)
         (visible ?w ?robot ?obj)
         (true)))
@@ -166,14 +167,14 @@
        ?action-designator ?robot-pose)
     (bullet-world ?world)
     (robot ?robot)
-    (desig-prop ?action-designator (to open))
-    (desig-prop ?action-designator (handle ?handle))
+    (desig-prop ?action-designator (:to :open))
+    (desig-prop ?action-designator (:handle ?handle))
     (lisp-fun newest-effective-designator ?handle ?current-handle)
     (-> (lisp-pred identity ?current-handle)
-        (desig-prop ?current-handle (name ?handle-name))
+        (desig-prop ?current-handle (:name ?handle-name))
         ;; Note(moesenle): This is not clean, it helps with debugging
         ;; though.
-        (desig-prop ?handle (name ?handle-name)))
+        (desig-prop ?handle (:name ?handle-name)))
     (semantic-map ?world ?semantic-map)
     (assert (object-pose ?world ?robot ?robot-pose))
     (with-copied-world ?world
@@ -183,16 +184,17 @@
   (<- (location-valid
        ?desig ?pose
        (desig-check-articulated-object-manipulation ?action ?pose))
-    (desig-prop ?desig (to execute))
-    (desig-prop ?desig (action ?action))
-    (desig-prop ?action (to open))
-    (desig-prop ?action (handle ?_)))
+    (desig-prop ?desig (:to :execute))
+    (desig-prop ?desig (:action ?action))
+    (desig-prop ?action (:to :open))
+    (desig-prop ?action (:handle ?_)))
 
   (<- (location-valid
        ?desig ?pose
        (desig-check-to-see ?desig ?pose))
-    (desig-prop ?desig (to see))
-    (desig-prop ?desig (obj ?obj)))
+    (desig-prop ?desig (:to :see))
+    (or (desig-prop ?desig (:obj ?obj))
+        (desig-prop ?desig (:object ?obj))))
 
   (<- (location-valid
        ?desig ?pose

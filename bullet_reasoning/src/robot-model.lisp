@@ -293,7 +293,7 @@ of the object should _not_ be updated."
      :pose (slot-value obj 'initial-pose)
      :attached-objects (copy-list (attached-objects obj)))))
 
-(defmethod add-object ((world bt-world) (type (eql 'urdf)) name pose
+(defmethod add-object ((world bt-world) (type (eql :urdf)) name pose
                        &key urdf (color '(0.8 0.8 0.8 1.0)))
   (make-instance 'robot-object
     :name name

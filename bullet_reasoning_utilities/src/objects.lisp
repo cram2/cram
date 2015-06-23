@@ -68,8 +68,8 @@
         `(assert (object-pose ?w ,object-name ?pose)))))
 
 (defun move-object-onto (object-name onto-type onto-name)
-  (let* ((on-designator (make-designator 'location `((on ,onto-type)
-                                                     (name ,onto-name))))
+  (let* ((on-designator (make-designator :location `((:on ,onto-type)
+                                                     (:name ,onto-name))))
          (location (reference on-designator)))
     (move-object object-name location)
     (simulate *current-bullet-world* 10)))

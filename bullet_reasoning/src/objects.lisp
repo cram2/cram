@@ -173,7 +173,7 @@
     (when disable-collisions-with
       (disable-collisions world name disable-collisions-with))))
 
-(defmethod add-object ((world bt-world) (type (eql 'box)) name pose &key mass size)
+(defmethod add-object ((world bt-world) (type (eql :box)) name pose &key mass size)
   (destructuring-bind (size-x size-y size-z) size
     (make-object world name
                  (list
@@ -187,7 +187,7 @@
                                                     (/ size-y 2)
                                                     (/ size-z 2))))))))
 
-(defmethod add-object ((world bt-world) (type (eql 'static-plane)) name pose
+(defmethod add-object ((world bt-world) (type (eql :static-plane)) name pose
                        &key normal constant)
   (destructuring-bind (normal-x normal-y normal-z) normal
     (make-object world name
@@ -206,7 +206,7 @@
                                                *static-plane-texture*
                                                #\Space)))))))
 
-(defmethod add-object ((world bt-world) (type (eql 'sphere)) name pose
+(defmethod add-object ((world bt-world) (type (eql :sphere)) name pose
                        &key mass radius color)
   (make-object world name
                (list
@@ -216,7 +216,7 @@
                   :collision-shape (make-instance 'colored-sphere-shape
                                      :radius radius :color color)))))
 
-(defmethod add-object ((world bt-world) (type (eql 'cylinder)) name pose &key mass size)
+(defmethod add-object ((world bt-world) (type (eql :cylinder)) name pose &key mass size)
   (destructuring-bind (size-x size-y size-z) size
     (make-object world name
                  (list
@@ -229,7 +229,7 @@
                                                                   (/ size-y 2)
                                                                   (/ size-z 2))))))))
 
-(defmethod add-object ((world bt-world) (type (eql 'cone)) name pose &key
+(defmethod add-object ((world bt-world) (type (eql :cone)) name pose &key
                        mass radius height)
   (make-object world name
                (list
@@ -240,7 +240,7 @@
                                                  :radius radius
                                                  :height height)))))
 
-(defmethod add-object ((world bt-world) (type (eql 'point-cloud)) name pose &key points)
+(defmethod add-object ((world bt-world) (type (eql :point-cloud)) name pose &key points)
   (make-object world name
                (list
                 (make-instance

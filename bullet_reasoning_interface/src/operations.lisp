@@ -49,8 +49,8 @@ If there is already an object `name' in `world', nothing happens."
                 (prolog `(assert (object-pose ,world ,view-name ,view-pose))))
               (progn
                 (out-debug "Camera does not exist.")
-                (prolog `(assert (object ,world sphere ,camera-name ,pose :mass 0.0 :color ,color :radius ,radius)))
-                (prolog `(assert (object ,world cone ,view-name ,view-pose :mass 0.0 :color ,color :radius ,view-r :height ,view-h)))))))))
+                (prolog `(assert (object ,world :sphere ,camera-name ,pose :mass 0.0 :color ,color :radius ,radius)))
+                (prolog `(assert (object ,world :cone ,view-name ,view-pose :mass 0.0 :color ,color :radius ,view-r :height ,view-h)))))))))
 
 (defun remove-camera (&optional (world btr:*current-bullet-world*))
   (out-debug "remove-camera()")

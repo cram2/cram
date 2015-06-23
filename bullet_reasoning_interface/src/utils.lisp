@@ -335,12 +335,12 @@ If `permutation' is `t', the tuples' permutation are being evaluated, too."
         (fruit-orange-const (get-object-type-constant ':FRUIT_ORANGE))
         (sugar-const (get-object-type-constant ':SUGAR)))
     (cond
-      ((eq type bowl-const) 'spatial-relations-demo::bowl)
-      ((eq type nesquik-const) 'spatial-relations-demo::cereal)
-      ((eq type mondamin-const) 'spatial-relations-demo::mondamin)
-      ((eq type fruit-apple-const) 'spatial-relations-demo::apple)
-      ((eq type fruit-orange-const) 'spatial-relations-demo::orange)
-      ((eq type sugar-const) 'spatial-relations-demo::sugar-box)
+      ((eq type bowl-const) :bowl)
+      ((eq type nesquik-const) :cereal)
+      ((eq type mondamin-const) :mondamin)
+      ((eq type fruit-apple-const) :apple)
+      ((eq type fruit-orange-const) :orange)
+      ((eq type sugar-const) :sugar-box)
       (t (out-error "Unhandled object-type: ~a" type)))))
 
 (defun get-error-level-constant (error-name)

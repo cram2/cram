@@ -136,26 +136,26 @@
   (<- (arm ?arm)
     (side ?arm))
 
-  (<- (object-type-grasp mug ?grasp (?side))
+  (<- (object-type-grasp :mug ?grasp (?side))
     (grasp ?grasp)
     (side ?side))
 
-  (<- (object-type-grasp mondamin :side (:right)))
+  (<- (object-type-grasp :mondamin :side (:right)))
 
-  (<- (object-type-grasp plate :side (:left :right)))
+  (<- (object-type-grasp :plate :side (:left :right)))
 
-  (<- (object-type-grasp pot :side (:left :right)))
+  (<- (object-type-grasp :pot :side (:left :right)))
 
-  (<- (object-type-grasp handle :front (?side))
+  (<- (object-type-grasp :handle :front (?side))
     (side ?side))
 
   (<- (object-type-grasp ?type :top (?side))
-    (member ?type (cutlery knife fork spatula))
+    (member ?type (:cutlery :knife :fork :spatula))
     (side ?side))
 
   (<- (object-designator-grasp ?object-designator ?grasp ?sides)
     (lisp-fun desig:current-desig ?object-designator ?current-object-designator)
-    (desig:desig-prop ?current-object-designator (type ?object-type))
+    (desig:desig-prop ?current-object-designator (:type ?object-type))
     (object-type-grasp ?object-type ?grasp ?sides))
   
   ;; The OBJECT-GRASP predicate can be used to control which grasps
@@ -182,18 +182,18 @@
   (<- (object-designator-tool-length
        ?object-designator ?grasp ?tool-length)
     (lisp-fun desig:current-desig ?object-designator ?current-object-designator)
-    (desig:desig-prop ?current-object-designator (type ?object-type))
+    (desig:desig-prop ?current-object-designator (:type ?object-type))
     (object-type-tool-length ?object-type ?grasp ?tool-length))
 
   (<- (orientation-matters ?object-designator)
     (lisp-fun desig:current-desig ?object-designator ?current-object-designator)
-    (or (desig:desig-prop ?current-object-designator (type knife))
-        (desig:desig-prop ?current-object-designator (type fork))
-        (desig:desig-prop ?current-object-designator (type spatula))))
+    (or (desig:desig-prop ?current-object-designator (:type :knife))
+        (desig:desig-prop ?current-object-designator (:type :fork))
+        (desig:desig-prop ?current-object-designator (:type :spatula))))
 
 
   (<- (required-arms ?object-designator ?arms)
-    (desig-prop ?object-designator (type ?object-type))
+    (desig-prop ?object-designator (:type ?object-type))
     ;; object-type-grasp will give the cross-product of all available
     ;; arms and grasps. That's why we first calculate the set of all
     ;; solutions of arms (i.e. duplicate arms removed).

@@ -66,7 +66,7 @@
           (add-costmap-function-object map))))))
 
 (defun robot-location-on-floor (designator pose)
-  (cond ((not (member (desig-prop-value designator 'to) '(reach see)))
+  (cond ((not (member (desig-prop-value designator :to) '(:reach :see)))
          :unknown)
         ((< (cl-transforms:z (cl-transforms:origin pose)) 0.05)
          :accept)))

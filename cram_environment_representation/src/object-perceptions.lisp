@@ -66,7 +66,7 @@ just updated. Otherwise a new instance is created."))
                       (assert ?world (btr:object-pose
                                       ,instance-name
                                       ,(desig:object-pose data)))
-                      (assert ?world (btr:object btr:mesh ,instance-name
+                      (assert ?world (btr:object :mesh ,instance-name
                                                  ,(desig:object-pose data)
                                                  :mesh ,(object-mesh data)
                                                  :mass ,(object-mass data)

@@ -40,20 +40,20 @@
              ;; by a second pose in the gripper.
              (attach-object robot object (event-link event) :loose t)
              (desig:with-desig-props (at) current-event-object
-               (assert (eql (desig:desig-prop-value at 'in) 'gripper))
+               (assert (eql (desig:desig-prop-value at :in) :gripper))
                (update-object-designator-location
                 current-event-object
                 (extend-designator-properties
-                 at `((pose ,(object-pose-in-frame
-                              object
-                              (event-link event))))))))
+                 at `((:pose ,(object-pose-in-frame
+                               object
+                               (event-link event))))))))
             (t
              (attach-object robot object (event-link event) :loose nil)
              (update-object-designator-location
               current-event-object
               (extend-designator-properties
                (make-object-location-in-gripper object (event-link event))
-               `((pose ,(object-pose-in-frame object "base_footprint"))))))))
+               `((:pose ,(object-pose-in-frame object "base_footprint"))))))))
     (timeline-advance
      *current-timeline*
      (make-event
@@ -113,13 +113,13 @@
   (unless cram-projection:*projection-environment*
     (register-object-designator-data
      (desig:reference (event-object-designator event))
-     :type (desig:desig-prop-value (event-object-designator event) 'type))))
+     :type (desig:desig-prop-value (event-object-designator event) :type))))
 
 (defun update-object-designator-location (object-designator location-designator)
   (desig:make-designator
-   'desig:object
-   `((at ,location-designator)
-     ,@(remove 'at (desig:properties object-designator) :key #'car))
+   :object
+   `((:at ,location-designator)
+     ,@(remove :at (desig:properties object-designator) :key #'car))
    object-designator))
 
 (defun get-supporting-object-bounding-box (object-name)
@@ -137,10 +137,10 @@
   (let ((object (object *current-bullet-world* object-name)))
     (assert object)
     (desig:make-designator
-     'desig-props:location
-     `((pose ,(pose->pose-stamped
-               designators-ros:*fixed-frame* (cut:current-timestamp)
-               (bt:pose object)))))))
+     :location
+     `((:pose ,(pose->pose-stamped
+                designators-ros:*fixed-frame* (cut:current-timestamp)
+                (bt:pose object)))))))
 
 (defun make-object-location-in-gripper (object gripper-link)
   "Returns a new location designator that indicates a location in the
@@ -154,17 +154,17 @@
     (assert (member gripper-link (btr:object-attached robot object) :test #'equal))
     (let ((supporting-bounding-box (get-supporting-object-bounding-box (name object))))
       (desig:make-designator
-       'desig-props:location
-       `((in gripper) (pose ,(object-pose-in-frame object gripper-link))
-         (z-offset ,(cond (supporting-bounding-box
-                           (- (cl-transforms:z (cl-transforms:origin object-pose))
-                              (+ (cl-transforms:z
-                                  (cl-bullet:bounding-box-center supporting-bounding-box))
-                                 (/ (cl-transforms:z
-                                     (cl-bullet:bounding-box-dimensions
-                                      supporting-bounding-box))
-                                    2))))
-                          (t 0.0))))))))
+       :location
+       `((:in :gripper) (:pose ,(object-pose-in-frame object gripper-link))
+         (:z-offset ,(cond (supporting-bounding-box
+                            (- (cl-transforms:z (cl-transforms:origin object-pose))
+                               (+ (cl-transforms:z
+                                   (cl-bullet:bounding-box-center supporting-bounding-box))
+                                  (/ (cl-transforms:z
+                                      (cl-bullet:bounding-box-dimensions
+                                       supporting-bounding-box))
+                                     2))))
+                           (t 0.0))))))))
 
 (defun object-pose-in-frame (object frame)
   (declare (type object object)
