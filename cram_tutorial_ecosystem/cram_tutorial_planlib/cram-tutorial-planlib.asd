@@ -14,7 +14,7 @@
                cram-plan-failures
                cram-designators
                cram-language
-	       process-modules)
+               cram-process-modules)
   :components
   ((:module "src"
     :components

@@ -3,7 +3,7 @@
   :license "BSD"
   
   :depends-on (designators-ros
-               process-modules
+               cram-process-modules
                cram-roslisp-common
                cram-reasoning
                cram-plan-failures
