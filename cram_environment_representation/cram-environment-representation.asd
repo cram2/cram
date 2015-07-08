@@ -33,7 +33,7 @@
   :depends-on (cram-reasoning
                cram-utilities
                cram-projection
-               designators
+               cram-designators
                cram-roslisp-common
                bullet-reasoning
                cram-plan-knowledge

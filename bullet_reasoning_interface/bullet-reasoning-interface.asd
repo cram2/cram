@@ -3,7 +3,7 @@
                cram-language
                bullet-reasoning
                spatial-relations-demo
-               designators
+               cram-designators
                cl-tf2
                cram-reasoning
                bullet_reasoning_interface-srv
