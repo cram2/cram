@@ -149,7 +149,7 @@
     (assert-eq :ok result)))
 
 (define-test process-module.monitor-return-value.1
-  (let ((designator (desig:make-designator 'test (lambda () :ok)))
+  (let ((designator (desig:make-designator :test (lambda () :ok)))
         (execute-result nil)
         (monitor-result nil))
     (cpl:top-level
