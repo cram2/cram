@@ -32,7 +32,7 @@
 
   :depends-on (alexandria
                process-modules
-               designators
+               cram-designators
                bullet-reasoning
                bullet-reasoning-designators
                cram-plan-knowledge
