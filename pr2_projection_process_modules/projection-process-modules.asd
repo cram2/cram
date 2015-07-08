@@ -31,7 +31,7 @@
   :license "BSD"
 
   :depends-on (alexandria
-               process-modules
+               cram-process-modules
                cram-designators
                bullet-reasoning
                bullet-reasoning-designators
