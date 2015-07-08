@@ -32,8 +32,8 @@
   
   :depends-on (cram-language
                cram-reasoning
-               designators
-	       cram-language-designator-support
+               cram-designators
+               cram-language-designator-support
                cram-roslisp-common
                cram-utilities
                designators-ros

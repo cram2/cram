@@ -32,7 +32,7 @@
   :license "BSD"
 
   :depends-on (process-modules
-               designators)
+               cram-designators)
   :components
   ((:module "src"
             :components

@@ -36,7 +36,7 @@
   :depends-on (cram-json-prolog
                cram-roslisp-common
                cl-transforms
-               designators
+               cram-designators
                cram-reasoning)
   :components
   ((:module "src"

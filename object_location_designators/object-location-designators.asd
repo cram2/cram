@@ -30,7 +30,7 @@
   :author "Lorenz Moesenlechner"
   :license "BSD"
   
-  :depends-on (designators
+  :depends-on (cram-designators
                cl-semantic-map-utils
                cram-json-prolog
                cram-reasoning
