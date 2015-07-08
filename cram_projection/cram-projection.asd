@@ -33,7 +33,7 @@
   :depends-on (alexandria
                cram-language
                cram-utilities
-               process-modules
+               cram-process-modules
                cram-execution-trace)
   :components
   ((:module "src"

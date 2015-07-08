@@ -26,11 +26,11 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem process-modules-test
+(defsystem cram-process-modules-test
   :author "Lorenz Moesenlechner"
   :license "BSD"
   
-  :depends-on (lisp-unit process-modules)
+  :depends-on (lisp-unit cram-process-modules)
   :components
   ((:module "test"
     :components
@@ -44,7 +44,7 @@
       :depends-on ("package" "test-designator" "test-condition"))))))
 
 (defmethod asdf:perform ((o asdf:test-op)
-                         (c (eql (asdf:find-system 'process-modules-test))))
+                         (c (eql (asdf:find-system 'cram-process-modules-test))))
   (flet ((symbol (pkg name)
            (intern (string name) (find-package pkg))))
     (funcall (symbol :cram-process-module-tests :run-process-module-tests))))

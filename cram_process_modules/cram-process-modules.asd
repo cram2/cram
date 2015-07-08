@@ -1,7 +1,7 @@
 ; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 
-(asdf:defsystem process-modules
-  :name "process-modules"
+(asdf:defsystem cram-process-modules
+  :name "cram-process-modules"
   :author "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
   :version "0.1"
   :maintainer "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
