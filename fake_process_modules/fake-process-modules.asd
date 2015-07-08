@@ -31,7 +31,7 @@
   :author "Lorenz Moesenlechner <moesenle@in.tum.de>"
   :license "BSD"
 
-  :depends-on (process-modules
+  :depends-on (cram-process-modules
                cram-designators)
   :components
   ((:module "src"
