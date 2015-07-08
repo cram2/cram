@@ -22,9 +22,7 @@ given by `obj-desig'."
                  when (description-matches desc-search desc-known)
                    collect (equate
                             obj-desig
-                            (make-designator
-                             'cram-designators:object
-                             desc-known)))))
+                            (make-designator :object desc-known)))))
     objects-found))
 
 (def-action-handler ground (obj-desig)

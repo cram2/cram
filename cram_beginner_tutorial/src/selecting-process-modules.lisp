@@ -2,8 +2,8 @@
 
 (cram-reasoning:def-fact-group navigation-action-designator (action-desig)
   (cram-reasoning:<- (action-desig ?designator (navigation ?goal))
-  (desig-prop ?designator (type navigation))
-  (desig-prop ?designator (goal ?goal))))
+  (desig-prop ?designator (:type :navigation))
+  (desig-prop ?designator (:goal ?goal))))
 
 (cram-process-modules:def-process-module turtle-navigation-handler (action-designator)
   (roslisp:ros-info (turtle-process-modules)
@@ -18,13 +18,13 @@
 (cram-reasoning:def-fact-group turtle-navigation (cram-process-modules:matching-process-module
                                    cram-process-modules:available-process-module)
   (cram-reasoning:<- (cram-process-modules:matching-process-module ?designator turtle-navigation-handler)
-    (desig-prop ?designator (type navigation)))
+    (desig-prop ?designator (:type :navigation)))
   (cram-reasoning:<- (cram-process-modules:available-process-module turtle-navigation-handler)))
 
 (cram-reasoning:def-fact-group turtle-actuators (cram-process-modules:matching-process-module
                                   cram-process-modules:available-process-module)
   (cram-reasoning:<- (cram-process-modules:matching-process-module ?designator turtle-actuators)
-    (desig-prop ?designator (type shape)))
+    (desig-prop ?designator (:type :shape)))
   (cram-reasoning:<- (cram-process-modules:available-process-module turtle-actuators)))
 
 (defun do-action-designator (action-desig)

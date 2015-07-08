@@ -11,8 +11,8 @@
                cram-plan-knowledge
                cram-environment-representation
                alexandria
-	       cram-plan-failures
-               designators
+               cram-plan-failures
+               cram-designators
                cram-language
 	       process-modules)
   :components
