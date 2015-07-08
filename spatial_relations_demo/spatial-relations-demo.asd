@@ -30,7 +30,7 @@
   :author "eris"
   :license "BSD"
   :depends-on (spatial-relations-costmap
-               designators
+               cram-designators
                cram-roslisp-common
                location-costmap
                cram-reasoning
