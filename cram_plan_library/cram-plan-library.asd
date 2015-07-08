@@ -32,7 +32,7 @@
 
   :depends-on (cram-language
                cram-reasoning
-               process-modules
+               cram-process-modules
                cram-designators
                cl-tf2
                cram-language-designator-support
