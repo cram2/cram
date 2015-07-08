@@ -22,13 +22,11 @@
   <build_depend>libgsl</build_depend>
   <build_depend>gsd</build_depend>
   <build_depend>trivial_garbage</build_depend>
-  <build_depend>cl_utilities</build_depend>
   <build_depend>cffi</build_depend>
 
   <run_depend>sbcl</run_depend>
   <run_depend>libgsl</run_depend>
   <run_depend>gsd</run_depend>
   <run_depend>trivial_garbage</run_depend>
-  <run_depend>cl_utilities</run_depend>
   <run_depend>cffi</run_depend>
 </package>
