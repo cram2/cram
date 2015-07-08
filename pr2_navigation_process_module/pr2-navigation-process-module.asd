@@ -33,7 +33,7 @@
 
   :depends-on (actionlib-lisp
                process-modules
-               designators
+               cram-designators
                roslisp-utilities
                cram-reasoning
                cram-roslisp-common
