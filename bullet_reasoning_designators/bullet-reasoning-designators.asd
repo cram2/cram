@@ -32,7 +32,7 @@
 
   :depends-on (cram-reasoning
                bullet-reasoning
-               designators
+               cram-designators
                location-costmap
                designators-ros
                cram-utilities

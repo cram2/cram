@@ -31,7 +31,7 @@
   :license "BSD"
   
   :depends-on (cram-reasoning
-               designators
+               cram-designators
                cram-manipulation-knowledge
                bullet-reasoning)
   :components

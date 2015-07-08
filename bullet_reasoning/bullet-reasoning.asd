@@ -46,7 +46,7 @@
                  household_objects_database_msgs-msg
                  household_objects_database_msgs-srv
                  location-costmap
-                 designators
+                 cram-designators
                  cram-roslisp-common
                  cram-plan-knowledge
                  cl-semantic-map-utils
