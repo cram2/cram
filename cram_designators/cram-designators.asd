@@ -1,7 +1,7 @@
 ; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 
-(asdf:defsystem designators
-  :name "designators"
+(asdf:defsystem cram-designators
+  :name "cram-designators"
   :author "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
   :version "0.1"
   :maintainer "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
@@ -17,7 +17,7 @@
   :components
   ((:module "src"
     :components
-    ((:module "cram-designators" 
+    ((:module "cram-designators"
       :components
               ((:file "properties")
                (:file "package" :depends-on ("properties"))

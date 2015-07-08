@@ -26,11 +26,11 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem designators-test
+(defsystem cram-designators-test
   :author "Georg Bartels"
   :licence "BSD"
 
-  :depends-on (lisp-unit designators)
+  :depends-on (lisp-unit cram-designators)
   :components
   ((:module "test"
             :components
