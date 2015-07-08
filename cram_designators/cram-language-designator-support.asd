@@ -39,7 +39,7 @@
                      designators some language extension are desirable. This package holds
                      several language extensions of this type."
   :depends-on (:cram-language
-               :designators)
+               :cram-designators)
   :components
   ((:module "src"
     :components
