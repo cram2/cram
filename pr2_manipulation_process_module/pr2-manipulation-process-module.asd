@@ -31,7 +31,7 @@
   :license "BSD"
 
   :depends-on (designators-ros
-               process-modules
+               cram-process-modules
                actionlib
                cram-roslisp-common
                cram-reasoning

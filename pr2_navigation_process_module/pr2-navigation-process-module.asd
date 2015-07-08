@@ -32,7 +32,7 @@
   :license "BSD"
 
   :depends-on (actionlib-lisp
-               process-modules
+               cram-process-modules
                cram-designators
                roslisp-utilities
                cram-reasoning

@@ -33,7 +33,7 @@
   :description "Process module for pointing the head with PointHeadAction"
 
   :depends-on (actionlib-lisp
-               process-modules
+               cram-process-modules
                cram-designators
                cram-reasoning
                cram-roslisp-common
