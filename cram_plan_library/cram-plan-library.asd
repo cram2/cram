@@ -33,7 +33,7 @@
   :depends-on (cram-language
                cram-reasoning
                process-modules
-               designators
+               cram-designators
                cl-tf2
                cram-language-designator-support
                cram-roslisp-common

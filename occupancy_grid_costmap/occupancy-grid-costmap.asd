@@ -30,7 +30,7 @@
   :author "Lorenz Moesenlechner"
   :license "BSD"
   
-  :depends-on (designators
+  :depends-on (cram-designators
                cram-roslisp-common
                location-costmap
                roslisp-utilities

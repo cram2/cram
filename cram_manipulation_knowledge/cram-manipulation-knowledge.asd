@@ -36,7 +36,7 @@
                cram-utilities
                physics-utils
                cl-transforms
-               designators
+               cram-designators
                roslisp
                shape_msgs-msg)
   :components

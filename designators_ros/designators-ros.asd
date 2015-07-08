@@ -7,9 +7,9 @@
   :licence "BSD"
   :description "Ros specific stuff for designators."
   :depends-on (:alexandria
-               :designators
+               :cram-designators
                :cl-tf
-	       :cl-tf2
+               :cl-tf2
                :cram-utilities
                :cram-reasoning
                :cram-roslisp-common)
