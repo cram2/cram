@@ -34,7 +34,7 @@
 
   :depends-on (actionlib-lisp
                process-modules
-               designators
+               cram-designators
                cram-reasoning
                cram-roslisp-common
                cram-plan-knowledge
