@@ -46,4 +46,4 @@
     (equal lhs rhs)))
 
 (defun run-cram-reasoning-tests ()
-  (run-all-tests :crs-tests))
+  (run-tests))
