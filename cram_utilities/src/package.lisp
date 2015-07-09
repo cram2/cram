@@ -156,9 +156,6 @@
       #:condition-variable-broadcast
       #:make-synchronized-hash-table
       #:with-hash-table-locked
-      ;; geometry
-      #:degrees->radians
-      #:radians->degrees
       ;; utils
       #:minimum #:maximum #:compare
       #:execute-string

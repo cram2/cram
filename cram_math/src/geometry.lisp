@@ -34,3 +34,10 @@
                            (x (aref vertices i)))))
               do (setf c (not c))
             finally (return c)))))
+
+
+(defun degrees->radians (degrees)
+  (* PI (/ degrees 180)))
+
+(defun radians->degrees (radians)
+  (* 180 (/ radians PI)))
