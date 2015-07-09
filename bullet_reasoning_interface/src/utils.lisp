@@ -36,7 +36,8 @@
 (defun pose-stamped->pose-stamped-fixed (pose-stamped)
   "Transforms the stamped pose `pose-stamped' to `designators-ros:*fixed-frame*' and returns it."
   (let ((frame_id (cl-transforms-stamped:frame-id pose-stamped)))
-    (if (string= (cl-tf2:unslash-frame frame_id) (cl-tf2:unslash-frame designators-ros:*fixed-frame*))
+    (if (string= (cl-transforms-stamped:unslash-frame frame_id)
+                 (cl-tf2:unslash-frame designators-ros:*fixed-frame*))
         pose-stamped
         (let ((result (cl-transforms-stamped:transform-pose-stamped
                        *transform-listener*
