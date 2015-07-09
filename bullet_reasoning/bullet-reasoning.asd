@@ -38,7 +38,6 @@
                  cram-json-prolog
                  cl-urdf
                  cl-transforms-stamped
-                 cl-tf2
                  roslisp
                  moveit_msgs-srv
                  moveit_msgs-msg
