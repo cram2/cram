@@ -47,4 +47,4 @@
    ;; functions
    #:determinant #:gauss
    ;; geometry
-   #:2d-point #:polygon #:point-in-polygon))
+   #:2d-point #:polygon #:point-in-polygon #:degrees->radians #:radians->degrees))

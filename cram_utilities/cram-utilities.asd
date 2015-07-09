@@ -26,7 +26,6 @@
              (:file "clos" :depends-on ("package"))
              (:file "time" :depends-on ("package"))
              (:file "quad-tree" :depends-on ("package"))
-             (:file "geometry" :depends-on ("package"))
              (:file "deprecation" :depends-on ("package"))
              (:file "file-cache" :depends-on ("package"))))))
 
