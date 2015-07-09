@@ -30,8 +30,8 @@
 
 (defun find-designator-pose-in-link (gripper-link designator)
   (find-if (lambda (pose-frame-id)
-             (equal (cl-tf2:unslash-frame gripper-link)
-                    (cl-tf2:unslash-frame pose-frame-id)))
+             (equal (cl-transforms-stamped:unslash-frame gripper-link)
+                    (cl-transforms-stamped:unslash-frame pose-frame-id)))
            (desig-prop-values designator :pose)
            :key #'frame-id))
 
