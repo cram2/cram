@@ -34,7 +34,7 @@
                cram-reasoning
                cram-process-modules
                cram-designators
-               cl-tf2
+               cl-transforms-stamped
                cram-language-designator-support
                cram-roslisp-common
                cram-plan-knowledge

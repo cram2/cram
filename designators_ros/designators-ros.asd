@@ -8,8 +8,7 @@
   :description "Ros specific stuff for designators."
   :depends-on (:alexandria
                :cram-designators
-               :cl-tf
-               :cl-tf2
+               :cl-transforms-stamped
                :cram-utilities
                :cram-reasoning
                :cram-roslisp-common)
