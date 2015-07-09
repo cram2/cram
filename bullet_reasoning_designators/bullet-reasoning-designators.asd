@@ -36,7 +36,8 @@
                location-costmap
                designators-ros
                cram-utilities
-               cram-environment-representation)
+               cram-environment-representation
+               cram-math)
   :components
   ((:module "src"
     :components

@@ -75,7 +75,7 @@ void main(void)
           with index = 0
           for y-index from 0 below height
           do (loop for x-index from 0 below width
-                   for angle from (cut:degrees->radians (/ fov-y -2)) by (/ pi 180)
+                   for angle from (cma:degrees->radians (/ fov-y -2)) by (/ pi 180)
                    do (setf (aref normalized-depth-image y-index x-index)
                             (float (normalize angle (aref depth-buffer index))
                                    0.0d0))
@@ -119,7 +119,7 @@ void main(void)
               collecting depth-image
               ;; do (png::encode-file (with-slots (fov-y z-far) camera
               ;;                        (let ((normalized (make-array (array-total-size depth-image) :element-type 'double-float))
-              ;;                              (max-value (* z-far (/ (cos (cut:degrees->radians (/ fov-y 2)))))))
+              ;;                              (max-value (* z-far (/ (cos (cma:degrees->radians (/ fov-y 2)))))))
               ;;                          (dotimes (i (array-total-size depth-image))
               ;;                            (setf (aref normalized i)
               ;;                                  (min
