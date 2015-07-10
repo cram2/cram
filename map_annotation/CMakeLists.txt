@@ -5,7 +5,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   rospy
   cram_prolog
-  cram_roslisp_common
+  roslisp_utilities
   cl_transforms
   message_generation
 )
@@ -26,7 +26,7 @@ catkin_package(
   geometry_msgs
   rospy
   cram_prolog
-  cram_roslisp_common
+  roslisp_utilities
   cl_transforms
   message_runtime
 )

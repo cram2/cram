@@ -7,6 +7,5 @@
             :components
             ((:file "package")
              (:file "time" :depends-on ("package"))
-             (:file "lispification" :depends-on ("package"))
              (:file "tf" :depends-on ("package"))
              (:file "sbcl-hotpatches")))))

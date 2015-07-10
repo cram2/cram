@@ -11,7 +11,8 @@
         (map 'list (lambda (label point)
                      (with-fields ((x x) (y y) (z z))
                          point
-                       (cons (lispify-ros-name label (find-package :map-annotation))
+                       (cons (roslisp-utilities:lispify-ros-name
+                              label (find-package :map-annotation))
                              (make-instance 'cl-transforms:3d-vector
                                             :x x :y y :z z))))
              (map_annotation-srv:labels-val srv-result)

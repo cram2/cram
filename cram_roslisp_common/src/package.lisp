@@ -36,7 +36,5 @@
            #:register-ros-cleanup-function
            #:startup-ros
            #:shutdown-ros
-           #:lispify-ros-name
-           #:rosify-lisp-name
            #:*transformer*
            #:*tf-default-timeout*))

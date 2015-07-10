@@ -1,6 +1,6 @@
 
 (asdf:defsystem map-annotation
-  :depends-on ("cram-roslisp-common"
+  :depends-on ("roslisp-utilities"
                "cl-transforms"
                "cram-prolog"
                "map_annotation-srv")
