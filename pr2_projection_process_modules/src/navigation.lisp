@@ -44,7 +44,7 @@
               goal-action
               (lambda ()
                 (assert 
-                 (crs:prolog
+                 (prolog:prolog
                   `(and (robot ?robot)
                         (assert (object-pose ?_ ?robot ,(desig:reference location-designator))))))
                 (cram-plan-knowledge:on-event

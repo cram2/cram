@@ -72,10 +72,10 @@
                (lambda (solution)
                  (cut:with-vars-strictly-bound (?object ?pose) solution
                    (list ?object ?pose)))
-               (crs:prolog `(and (robot ?robot)
+               (prolog:prolog `(and (robot ?robot)
                                  (bullet-world ?world)
                                  ,@(when object-name
-                                     `((crs:== ?object ,object-name)))
+                                     `((prolog:== ?object ,object-name)))
                                  (object ?world ?object)
                                  (household-object-type ?world ?object ,type)
                                  (visible ?world ?robot ?object)

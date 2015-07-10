@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(cram_environment_representation)
 
 find_package(catkin REQUIRED COMPONENTS
-  cram_reasoning
+  cram_prolog
   cram_utilities
   cram_designators
   cram_roslisp_common

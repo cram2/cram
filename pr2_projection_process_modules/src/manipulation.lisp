@@ -36,15 +36,15 @@
 
 (defun set-robot-reach-pose (side pose &key tool-frame seed-state)
   (or
-   (crs:prolog `(crs:once
-                 (robot ?robot)
-                 (%object ?_ ?robot ?robot-instance)
-                 (crs:lisp-fun reach-pose-ik ?robot-instance ,pose
-                               :side ,side :tool-frame ,tool-frame
-                               :seed-state ,seed-state
-                               ?ik-solutions)
-                 (member ?ik-solution ?ik-solutions)
-                 (assert (joint-state ?_ ?robot ?ik-solution))))
+   (prolog:prolog `(prolog:once
+                    (robot ?robot)
+                    (%object ?_ ?robot ?robot-instance)
+                    (prolog:lisp-fun reach-pose-ik ?robot-instance ,pose
+                                     :side ,side :tool-frame ,tool-frame
+                                     :seed-state ,seed-state
+                                     ?ik-solutions)
+                    (member ?ik-solution ?ik-solutions)
+                    (assert (joint-state ?_ ?robot ?ik-solution))))
    (cpl-impl:fail 'cram-plan-failures:manipulation-pose-unreachable)))
 
 (defun action-end-effector-links (action-designator)
@@ -53,7 +53,7 @@
                       (cut:with-vars-bound (?end-effector-link) solution
                         (unless (cut:is-var ?end-effector-link)
                           ?end-effector-link)))
-                    (crs:prolog
+                    (prolog:prolog
                      `(and
                        (trajectory-point ,action-designator ?_ ?side)
                        (end-effector-link ?side ?end-effector-link))))))
@@ -71,29 +71,29 @@
       (cram-plan-knowledge:on-event
        (make-instance 'cram-plan-knowledge:robot-state-changed))
       solution)
-    (crs:prolog `(and
-                  (bullet-world ?world)
-                  (robot ?robot)
-                  (object-pose ?world ?robot ?robot-pose)
-                  (trajectory-point ,action-designator ?robot-pose ?point ?side)
-                  (crs:once
-                   ,@(if object-name
-                         `((valid-grasp ?world ,object-name ?grasp ?sides)
-                           (member ?side ?sides))
-                         `((grasp ?grasp)
-                           (cram-manipulation-knowledge:arm ?side)))
-                   (%object ?world ?robot ?robot-instance)
-                   (crs:-> (crs:lisp-type ?point cl-transforms:3d-vector)
-                           (crs:lisp-fun reach-point-ik ?robot-instance ?point
-                                         :side ?side :grasp ?grasp ?ik-solutions)
-                           (crs:lisp-fun reach-pose-ik ?robot-instance ?point
-                                         :side ?side ?ik-solutions))
-                   (member ?ik-solution ?ik-solutions)
-                   ;; For now, ik-solution-not-in-collision is commented out,
-                   ;; as moveit has difficulties finding good ik solutions
-                   ;; without the seed state and collision environment information.
-                   ;; (ik-solution-not-in-collision ?world ?robot ?ik-solution :grasping)
-                   (assert (joint-state ?world ?robot ?ik-solution))))))))
+    (prolog:prolog `(and
+                     (bullet-world ?world)
+                     (robot ?robot)
+                     (object-pose ?world ?robot ?robot-pose)
+                     (trajectory-point ,action-designator ?robot-pose ?point ?side)
+                     (prolog:once
+                      ,@(if object-name
+                            `((valid-grasp ?world ,object-name ?grasp ?sides)
+                              (member ?side ?sides))
+                            `((grasp ?grasp)
+                              (cram-manipulation-knowledge:arm ?side)))
+                      (%object ?world ?robot ?robot-instance)
+                      (prolog:-> (prolog:lisp-type ?point cl-transforms:3d-vector)
+                                 (prolog:lisp-fun reach-point-ik ?robot-instance ?point
+                                               :side ?side :grasp ?grasp ?ik-solutions)
+                                 (prolog:lisp-fun reach-pose-ik ?robot-instance ?point
+                                               :side ?side ?ik-solutions))
+                      (member ?ik-solution ?ik-solutions)
+                      ;; For now, ik-solution-not-in-collision is commented out,
+                      ;; as moveit has difficulties finding good ik solutions
+                      ;; without the seed state and collision environment information.
+                      ;; (ik-solution-not-in-collision ?world ?robot ?ik-solution :grasping)
+                      (assert (joint-state ?world ?robot ?ik-solution))))))))
 
 (defun execute-container-opened (action-designator object-designator distance)
   (execute-action-trajectory-points action-designator)
@@ -115,7 +115,7 @@
                                  ?left-parking-joint-states
                                  ?right-parking-joint-states)
       (cut:lazy-car
-       (crs:prolog `(and
+       (prolog:prolog `(and
                      (end-effector-link :left ?left-end-effector)
                      (end-effector-link :right ?right-end-effector)
                      (robot-arms-parking-joint-states
@@ -162,7 +162,7 @@
   (declare (ignore object))
   (cut:with-vars-strictly-bound (?robot ?parking-pose ?joint-states)
       (cut:lazy-car
-       (crs:prolog
+       (prolog:prolog
         `(and (robot ?robot)
               (end-effector-parking-pose ?parking-pose ,side)
               (robot-arms-parking-joint-states ?joint-states ,side))))
@@ -180,7 +180,7 @@
       (set-robot-state-from-joints ik-solution robot-object))))
 
 (defun park (side)
-  (crs:prolog `(and
+  (prolog:prolog `(and
                 (robot ?robot)
                 (robot-arms-parking-joint-states ?joint-states ,side)
                 (assert (joint-state ?_ ?robot ?joint-states)))))
@@ -284,7 +284,7 @@
   (declare (type desig:action-designator designator))
   (cut:with-vars-strictly-bound (?sides)
       (cut:lazy-car
-       (crs:prolog
+       (prolog:prolog
         `(projection-designators:required-sides ,designator ?sides)))
     (cut:force-ll ?sides)))
 

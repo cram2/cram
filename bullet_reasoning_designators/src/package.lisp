@@ -30,7 +30,7 @@
 
 (desig-props:def-desig-package bullet-reasoning-designators
     (:nicknames :btr-desig)
-  (:use #:common-lisp #:crs #:desig #:location-costmap
+  (:use #:common-lisp #:prolog #:desig #:location-costmap
         #:btr #:designators-ros #:cut)
   (:shadowing-import-from #:desig-props at)
   (:shadowing-import-from #:btr object pose object-pose width height)

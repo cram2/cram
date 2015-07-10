@@ -11,7 +11,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <depend>bullet_reasoning</depend>
-  <depend>cram_reasoning</depend>
+  <depend>cram_prolog</depend>
   <depend>cram_designators</depend>
   <depend>location_costmap</depend>
   <depend>cl_semantic_map_utils</depend>

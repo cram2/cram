@@ -30,7 +30,7 @@
   :author "Lorenz Moesenlechner"
   :license "BSD"
 
-  :depends-on (cram-reasoning
+  :depends-on (cram-prolog
                bullet-reasoning
                cram-designators
                location-costmap

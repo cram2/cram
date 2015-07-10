@@ -35,7 +35,7 @@
         (with-current-bullet-world first-world
           (assert-false
            (cut:lazy-car
-            (crs:prolog `(and
+            (prolog:prolog `(and
                           (clear-bullet-world)
                           (bullet-world ?w)
                           (assert (object ?w static-plane floor ((0 0 0) (0 0 0 1))
@@ -48,7 +48,7 @@
             (with-current-bullet-world second-world
               (assert-true
                (cut:lazy-car
-                (crs:prolog `(and
+                (prolog:prolog `(and
                               (clear-bullet-world)
                               (bullet-world ?w)
                               (assert (object ?w static-plane floor
@@ -62,7 +62,7 @@
                               (robot-not-in-collision-with-environment ?w ?robot)))))))
           (assert-false
            (cut:lazy-car
-            (crs:prolog `(and
+            (prolog:prolog `(and
                           (bullet-world ?w)
                           (robot ?robot)
                           ;; the next predicate should fail again
