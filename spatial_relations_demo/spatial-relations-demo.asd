@@ -33,7 +33,7 @@
                cram-designators
                cram-roslisp-common
                location-costmap
-               cram-reasoning
+               cram-prolog
                roslisp
                semantic-map-costmap
                bullet-reasoning

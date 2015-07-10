@@ -33,7 +33,7 @@
           #:cram-roslisp-common
           #:location-costmap
           #:common-lisp
-          #:cram-reasoning
+          #:cram-prolog
           #:semantic-map-costmap
           #:btr
           #:cram-utilities
@@ -41,7 +41,7 @@
           #:cram-language-implementation
           #:bullet-reasoning-utilities)
   (:shadowing-import-from #:btr object pose object-pose width height name)
-  (:shadowing-import-from #:cram-reasoning fail)
+  (:shadowing-import-from #:cram-prolog fail)
   (:desig-properties #:left-of #:right-of #:in-front-of #:behind
                      #:for #:near #:far-from
                      #:on #:name #:context #:object-count
