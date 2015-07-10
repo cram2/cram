@@ -99,7 +99,7 @@
     (make-household-object
      world name
      ;; For now, we use the first tag as object type.
-     (mapcar #'cram-roslisp-common:lispify-ros-name (get-ros-model-tags model))
+     (mapcar #'roslisp-utilities:lispify-ros-name (get-ros-model-tags model))
      (list
       (make-instance
           'rigid-body
