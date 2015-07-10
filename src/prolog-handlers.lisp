@@ -38,7 +38,7 @@ alist of the form ((new-var . old-var) ...)"
             (cons var (intern (symbol-name (gen-var (substitute #\_ #\- (symbol-name var)))))))
           vars))
 
-(crs:def-prolog-handler json-prolog (bdgs form &rest key-args &key prologify lispify package)
+(prolog:def-prolog-handler json-prolog (bdgs form &rest key-args &key prologify lispify package)
   (declare (ignore prologify lispify package))
   (when (wait-for-prolog-service 0.5)
     (let* ((form (substitute-vars form bdgs))

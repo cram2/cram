@@ -51,7 +51,7 @@
                    (assert (not (gethash id open-queries)) ()
                            "Query with id `~a' is already open." id)
                    (setf (gethash id open-queries)
-                         (cram-reasoning:prolog
+                         (cram-prolog:prolog
                           (json->prolog query)))
                    (make-response 'json_prolog_msgs-srv:PrologQuery
                                   :ok t
@@ -68,7 +68,7 @@
                    (assert (not (gethash id open-queries)) ()
                            "Query with id `~a' is already open." id)
                    (setf (gethash id open-queries)
-                         (cram-reasoning:prolog
+                         (cram-prolog:prolog
                           (let ((*read-eval* nil)
                                 (*package* package))
                             (replace-complex-types (read-from-string query)))))

@@ -36,10 +36,10 @@
   :version "0.2"
   :maintainer "Lorenz Moesenlechner <moesenle@in.tum.de>"
   :license "BSD"
-  :description "A json_prolog server/client library for cram-reasoning."
+  :description "A json_prolog server/client library for cram-prolog."
 
   :depends-on (:cram-utilities
-               :cram-reasoning
+               :cram-prolog
                :json_prolog_msgs-srv
                :yason 
                :roslisp
