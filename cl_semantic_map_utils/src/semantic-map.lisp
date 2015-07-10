@@ -31,6 +31,7 @@
 (in-package :sem-map-utils)
 
 (defvar *cached-semantic-map* nil)
+(defvar *cached-semantic-map-name* nil "OWL name of current *cached-semantic-map*")
 (defvar *cached-owl-types* (make-hash-table :test 'equal))
 
 (defclass semantic-map ()
@@ -310,7 +311,9 @@
   (let ((map-name
           (or map-name
               "http://knowrob.org/kb/ias_semantic_map.owl#SemanticEnvironmentMap_PM580j")))
-    (unless (or (not (json-prolog:check-connection)) *cached-semantic-map*)
+    (when (and (json-prolog:check-connection)
+               (not (and *cached-semantic-map*
+                         (string= map-name *cached-semantic-map-name*))))
       (setf *cached-semantic-map*
             (make-instance
                 'semantic-map
@@ -335,7 +338,9 @@
                                 ("rdf_atom_no_ns" ?tp ?type)
                                 ("rdf_atom_no_ns" ?o ?n))
                           :package :sem-map-utils))))
-                      :test 'equal))))))
+                      :test 'equal))
+            *cached-semantic-map-name*
+            map-name))))
 
 (defun get-semantic-map ()
   (init-semantic-map-cache)
