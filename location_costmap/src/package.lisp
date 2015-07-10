@@ -109,8 +109,6 @@
            #:costmap-in-reach-distance #:costmap-reach-minimal-distance)
   (:import-from #:cram-math invalid-probability-distribution)
   (:import-from cram-roslisp-common *transformer*)
-  (:shadowing-import-from :roslisp-utilities #:startup-ros #:shutdown-ros
-                          #:register-ros-init-function #:register-ros-cleanup-function)
   (:desig-properties #:to #:see #:reach #:execute #:location #:pose #:obj
                      #:object #:action #:side))
 

@@ -34,6 +34,7 @@
    
    :depends-on (cram-prolog
                 cram-plan-knowledge
+                roslisp-utilities
                 cram-execution-trace
                 cram-plan-library
                 cram-json-prolog

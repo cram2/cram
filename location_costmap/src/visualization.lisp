@@ -44,7 +44,7 @@
   (setf *marker-publisher*
         (advertise "/kipla/location_marker" "visualization_msgs/Marker")))
 
-(register-ros-init-function location-costmap-vis-init)
+(roslisp-utilities:register-ros-init-function location-costmap-vis-init)
 
 (defun hsv->rgb (h s v)
   "Converts a given set of HSV values `h', `s', `v' into RGB

@@ -91,10 +91,10 @@
        (progn
          (setf cpl-impl:*break-on-plan-failures* nil)
          (setf cpl-impl:*debug-on-lisp-errors* nil)
-         (startup-ros :name "cram_actionserver" :anonymous nil)
+         (roslisp-utilitiesstartup-ros :name "cram_actionserver" :anonymous nil)
          (register-service-fn "~list_plans" #'plan-list 'cram_plan_actionserver-srv:planlist)
          (maybe-setup-tracing)
          (actionlib:start-action-server
           "~execute_plan" "cram_plan_actionserver/ExecutePlanAction"
           #'cram-actionserver-execute))
-    (shutdown-ros)))
+    (roslisp-utilities:shutdown-ros)))
