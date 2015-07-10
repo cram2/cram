@@ -6,7 +6,7 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib_lisp
   cram_process_modules
   cram_designators
-  cram_reasoning
+  cram_prolog
   roslisp_utilities
   cram_roslisp_common
   cram_plan_failures

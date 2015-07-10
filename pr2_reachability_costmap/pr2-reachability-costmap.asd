@@ -36,7 +36,7 @@
                cl-tf
                cram-utilities
                cram-math
-               cram-reasoning
+               cram-prolog
                cram-roslisp-common
                cram-manipulation-knowledge
                designators-ros

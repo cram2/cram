@@ -225,12 +225,12 @@
          (link-name (cut:var-value
                      '?link
                      (first
-                      (crs:prolog
+                      (prolog:prolog
                        `(manipulator-link ,side ?link)))))
          (planning-group (cut:var-value
                           '?group
                           (first
-                           (crs:prolog
+                           (prolog:prolog
                             `(planning-group ,side ?group))))))
     (let ((log-id (first (cram-language::on-prepare-move-arm
                           link-name pose-stamped
@@ -352,7 +352,7 @@
 (defun update-grasped-object-designator (obj grippers &key new-properties)
   (let* ((target-frame (var-value '?target-frame
                                   (lazy-car
-                                   (crs:prolog
+                                   (prolog:prolog
                                     `(cram-pr2-knowledge::end-effector-link
                                       ,(car grippers)
                                       ?target-frame)))))
@@ -413,7 +413,7 @@ its' supporting plane."
                        :target-frame (cut:var-value
                                       '?link
                                       (first
-                                       (crs:prolog
+                                       (prolog:prolog
                                         `(manipulator-link ,side ?link))))
                        :timeout cram-roslisp-common:*tf-default-timeout*)
                       :stamp 0.0))

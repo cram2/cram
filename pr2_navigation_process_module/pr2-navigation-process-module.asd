@@ -35,7 +35,7 @@
                cram-process-modules
                cram-designators
                roslisp-utilities
-               cram-reasoning
+               cram-prolog
                cram-roslisp-common
                cram-plan-failures
                cram-plan-knowledge

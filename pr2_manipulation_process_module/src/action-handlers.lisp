@@ -212,7 +212,7 @@
                    action-desig))
 
 (defun min-object-grasp-effort (object)
-  (let ((efforts (crs:prolog `(cram-language::grasp-effort ,object ?effort))))
+  (let ((efforts (prolog:prolog `(cram-language::grasp-effort ,object ?effort))))
     (cond (efforts
            (apply
             #'min
@@ -290,7 +290,7 @@
 (def-action-handler grasp (action-desig object)
   "Handles the grasping of any given `object'. Calculates proper grasping poses for the object, based on physical gripper characteristics, free grippers, object grasp points (handles), grasp type for this object, and position of the object relative to the robot's grippers. `action-desig' is the action designator instance that triggered this handler's execution, and is later updated with more precise grasping information based on the actual infered action."
   (display-object-handles object)
-  (let ((grasp-assignments (crs:prolog `(grasp-assignments ,object ?grasp-assignments)))
+  (let ((grasp-assignments (prolog:prolog `(grasp-assignments ,object ?grasp-assignments)))
         (log-id (first (cram-language::on-begin-grasp object)))
         (success nil))
     (unwind-protect
@@ -411,13 +411,13 @@
                (cut:var-value
                 '?link
                 (first
-                 (crs:prolog
+                 (prolog:prolog
                   `(manipulator-link ,side ?link)))))
              (planning-group
                (cut:var-value
                 '?group
                 (first
-                 (crs:prolog
+                 (prolog:prolog
                   `(planning-group ,side ?group))))))
         (publish-pose putdown-hand-pose "/putdownhandpose")
         (publish-pose pre-putdown-pose "/preputdownpose")
@@ -464,7 +464,7 @@
                                                 0.01)) ;; Add one centimeter for good measure
                                            0.0)))
          (lazy-putdown-poses
-           (crs:prolog
+           (prolog:prolog
             `(putdown-pose
               ,putdown-pose-pure
               ,(first (cram-language::on-put-down-reorientation-count
@@ -503,7 +503,7 @@
 (defmethod display-object-handles ((object object-designator))
   (let* ((relative-handles (desig-prop-values object :handle))
          (reorient-object
-           (var-value '?r (first (crs:prolog `(reorient-object-globally ,object ?r)))))
+           (var-value '?r (first (prolog:prolog `(reorient-object-globally ,object ?r)))))
          (absolute-handles
            (mapcar (lambda (handle)
                      (absolute-handle object handle :reorient reorient-object))

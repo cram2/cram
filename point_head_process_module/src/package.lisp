@@ -31,7 +31,7 @@
 
 (desig-props:def-desig-package point-head-process-module
   (:use #:common-lisp
-        #:cram-reasoning
+        #:cram-prolog
         #:cram-designators
         #:cram-process-modules
         #:cram-roslisp-common

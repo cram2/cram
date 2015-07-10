@@ -274,7 +274,7 @@ configuration."
              (cut:var-value
               '?link
               (first
-               (crs:prolog
+               (prolog:prolog
                 `(manipulator-link ,arm ?link))))
              (ecase arm
                (:left "left_arm")
