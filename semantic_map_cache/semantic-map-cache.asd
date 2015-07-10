@@ -30,7 +30,7 @@
   :author "Lorenz Moesenlechner"
   :license "BSD"
   
-  :depends-on (cl-semantic-map-utils cram-plan-knowledge cram-projection)
+  :depends-on (cram-semantic-map-utils cram-plan-knowledge cram-projection)
   :components
   ((:module "src"
     :components

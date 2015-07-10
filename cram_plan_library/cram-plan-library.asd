@@ -44,7 +44,7 @@
                cram-task-knowledge
                designators-ros
                alexandria
-               cl-semantic-map-utils)
+               cram-semantic-map-utils)
   :components
   ((:module "src"
             :components

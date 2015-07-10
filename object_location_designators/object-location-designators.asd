@@ -31,7 +31,7 @@
   :license "BSD"
   
   :depends-on (cram-designators
-               cl-semantic-map-utils
+               cram-semantic-map-utils
                cram-json-prolog
                cram-prolog
                cram-projection)

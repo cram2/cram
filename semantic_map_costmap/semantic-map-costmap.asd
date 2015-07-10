@@ -37,7 +37,7 @@
                cram-projection
                cl-transforms
                cram-json-prolog
-               cl-semantic-map-utils
+               cram-semantic-map-utils
                location-costmap
                alexandria
                semantic-map-cache)
