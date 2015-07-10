@@ -35,7 +35,7 @@
                location-costmap
                cram-prolog
                roslisp
-               cl-semantic-map-utils
+               cram-semantic-map-utils
                bullet-reasoning
                roslisp-utilities
                cl-urdf

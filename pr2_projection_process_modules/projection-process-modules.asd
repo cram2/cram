@@ -41,7 +41,7 @@
                cram-manipulation-knowledge
                cram-plan-failures
                pr2-manipulation-knowledge
-               cl-semantic-map-utils
+               cram-semantic-map-utils
                designators-ros)
   :components
   ((:module "src"
