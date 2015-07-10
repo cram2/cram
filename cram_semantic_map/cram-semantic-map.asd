@@ -31,8 +31,7 @@
   :license "BSD"
   
   :depends-on (cram-semantic-map-utils
-               cram-plan-knowledge
-               cram-projection
+               cram-plan-knowledge ; for events
                cram-designators
                cram-utilities)
   :components
