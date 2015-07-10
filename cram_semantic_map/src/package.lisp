@@ -26,23 +26,9 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :semantic-map-cache)
+(in-package :cl-user)
 
-(defvar *semantic-map* nil)
-
-;; (cram-projection:define-special-projection-variable
-;;     *semantic-map* (sem-map-utils:copy-semantic-map-object
-;;                     (get-semantic-map)))
-
-(defun get-semantic-map ()
-  (or *semantic-map*
-      (setf *semantic-map* (sem-map-utils:get-semantic-map))))
-
-(defmethod on-event manipulation-articulation-event ((event object-articulation-event))
-  (format t "semantic-map: ~a~%" (get-semantic-map))
-  (with-slots (object-designator opening-distance) event
-    (let ((perceived-object (desig:reference (desig:newest-effective-designator
-                                              object-designator))))
-      (sem-map-utils:update-articulated-object-poses
-       (get-semantic-map)
-       (desig:object-identifier perceived-object) opening-distance))))
+(defpackage cram-semantic-map
+  (:nicknames #:semantic-map #:sem-map)
+  (:use #:common-lisp #:cram-plan-knowledge)
+  (:export get-semantic-map))

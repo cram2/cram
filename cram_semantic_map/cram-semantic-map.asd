@@ -26,8 +26,13 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
-
-(defpackage semantic-map-cache
-  (:use #:common-lisp #:cram-plan-knowledge)
-  (:export get-semantic-map))
+(defsystem cram-semantic-map
+  :author "Lorenz Moesenlechner"
+  :license "BSD"
+  
+  :depends-on (cram-semantic-map-utils cram-plan-knowledge cram-projection)
+  :components
+  ((:module "src"
+    :components
+    ((:file "package")
+     (:file "semantic-map-cache" :depends-on ("package"))))))
