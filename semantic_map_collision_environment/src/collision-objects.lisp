@@ -255,11 +255,9 @@
           :dimensions (make-3d-vector x y *board-thickness*)))))))
 
 (defun query-sem-map (&optional map-name)
-  (let ((map-name (or map-name
-                      (with-vars-bound (?map-name)
-                          (lazy-car
-                           (crs:prolog `(semantic-map-name ?map-name)))
-                        ?map-name))))
+  (let ((map-name
+          (or map-name
+              "http://knowrob.org/kb/ias_semantic_map.owl#SemanticEnvironmentMap_PM580j")))
     (lazy-mapcan (lambda (bdg)
                    (with-vars-bound (?o ?type)
                        bdg
