@@ -34,6 +34,7 @@
                cram-process-modules
                actionlib
                cram-roslisp-common
+               roslisp-utilities
                cram-prolog
                cram-plan-failures
                cram-pr2-knowledge

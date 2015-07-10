@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   cram_designators
   cram_prolog
   cram_roslisp_common
+  roslisp_utilities
   cram_plan_knowledge
   roslisp_utilities
   alexandria
