@@ -38,7 +38,6 @@
            publish-semantic-map-markers
            remove-semantic-map-collision-objects
            update-sem-map-obj-pose)
-  (:import-from semantic-map-utils semantic-map-name)
   (:import-from cram-roslisp-common *transformer*)
   (:shadowing-import-from :roslisp-utilities #:startup-ros #:shutdown-ros
                           #:register-ros-init-function #:register-ros-cleanup-function
