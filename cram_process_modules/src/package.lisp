@@ -34,8 +34,8 @@
   (:use #:cpl
         #:cram-designators
         #:alexandria)
-  (:import-from #:cram-reasoning def-fact-group <- prolog)
-  (:shadowing-import-from #:cram-reasoning fail)
+  (:import-from #:cram-prolog def-fact-group <- prolog)
+  (:shadowing-import-from #:cram-prolog fail)
   (:import-from #:cram-utilities lazy-mapcar force-ll var-value)
   (:nicknames :cpm)
   (:export process-module name input feedback result

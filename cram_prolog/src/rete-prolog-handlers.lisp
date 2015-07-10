@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2009, Lorenz Moesenlechner <moesenle@cs.tum.edu>
+;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,20 +27,19 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
+(in-package :prolog)
 
-(in-package :crs)
-
-(deftype token () 'cons)
-
-(defun make-token (wme &optional (parent nil))
-  (cons wme parent))
-
-(defun token-wme (token)
-  (car token))
-
-(defsetf token-wme rplaca)
-
-(defun token-parent (token)
-  (cdr token))
-
-(defsetf token-parent rplacd)
+(def-prolog-handler rete-holds (bdgs pattern)
+  (let ((rete-solutions (rete-holds pattern)))
+    (block nil
+      (lazy-mapcan (lambda (rete-bdgs)
+                     (block nil
+                       (list
+                        (reduce
+                         (lambda (bdgs curr-bdg)
+                           (destructuring-bind (var . val) curr-bdg
+                             (or (add-bdg var val bdgs)
+                                 (return nil))))
+                         rete-bdgs
+                         :initial-value bdgs))))
+                   rete-solutions))))

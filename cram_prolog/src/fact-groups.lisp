@@ -28,7 +28,7 @@
 ;;;
 
 
-(in-package :crs)
+(in-package :prolog)
 
 ;;;
 ;;; ABOUT FACTS, FACT GROUPS, PREDICATES AND FUNCTORS 

@@ -1,5 +1,5 @@
 <package>
-  <name>cram_reasoning</name>
+  <name>cram_prolog</name>
   <version>0.1.2</version>
   <description>
     This package implements a simple interpreter for a Prolog-like
@@ -14,7 +14,7 @@
   <license>BSD</license>
 
   <url type="website">http://cram-project.org</url>
-  <url type="website">http://ros.org/wiki/cram_reasoning</url>
+  <url type="website">http://ros.org/wiki/cram_prolog</url>
   <url type="bugtracker">https://github.com/cram-code/cram_core/issues</url>
   <url type="repository">https://github.com/cram-code/cram_core</url>
 

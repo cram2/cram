@@ -28,7 +28,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :crs)
+(in-package :prolog)
 
 ;;; NOTE: Unify cannot deal with infinite bindigns. For example evaluating
 ;;; (var-value '?x (unify '?x '(1 . ?x))) will cause a stack overflow. Now

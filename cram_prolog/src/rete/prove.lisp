@@ -1,5 +1,5 @@
 
-(in-package :crs)
+(in-package :prolog)
 
 (defun rete-prove (expr &optional bdgs)
   "Returns a list of bindings that satisfy the conjunction of tokens

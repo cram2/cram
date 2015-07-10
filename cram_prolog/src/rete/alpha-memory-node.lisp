@@ -28,7 +28,7 @@
 ;;;
 
 
-(in-package :crs)
+(in-package :prolog)
 
 (defclass alpha-memory-node (alpha-node)
   ((pattern :reader alpha-memory-node-pattern :initarg :pattern)

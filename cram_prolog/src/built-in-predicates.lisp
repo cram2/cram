@@ -28,7 +28,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :crs)
+(in-package :prolog)
 
 (defvar *break-on-lisp-errors* nil)
 

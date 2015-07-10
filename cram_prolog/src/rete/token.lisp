@@ -28,34 +28,19 @@
 ;;;
 
 
-(in-package :cl-user)
+(in-package :prolog)
 
-(defpackage :cram-reasoning
-  (:use #:common-lisp #:cram-utilities)
-  (:nicknames :crs)
-  (:import-from #:alexandria
-                #:curry #:rcurry #:compose #:with-gensyms)
-  (:export
-   ;; prolog handlers
-   #:and #:or #:not #:-> #:*-> #:cut #:lisp-fun #:lisp-pred #:bound #:ground
-   #:true #:fail #:once #:call #:findall #:bagof #:setof #:every #:forall
-   #:member #:take #:filter-bindings
-   ;; utilities
-   #:== #:equal #:length #:append #:sort #:reduce #:max
-   #:string-concat #:format #:warn #:error
-   #:slot-value #:get-slot-value #:instance-of #:lisp-type #:symbol-value
-   #:set-symbol-value
-   ;; rest
-   #:?_ #:< #:> #:<= #:>= #:unify #:unify-p #:prolog #:def-fact-group
-   #:<- #:def-prolog-handler #:*break-on-lisp-errors* #:query-var
-   ;; Rete
-   #:clear-alpha-network #:rete-assert #:rete-retract
-   #:with-facts-asserted #:object-id
-   #:rete-holds #:alpha-network-size
-   #:def-production #:register-production
-   #:clear-productions #:remove-production
-   #:with-productions #:remove-production-handler
-   #:register-production-handler
-   #:with-production-handlers
-   #:rete-prove))
+(deftype token () 'cons)
 
+(defun make-token (wme &optional (parent nil))
+  (cons wme parent))
+
+(defun token-wme (token)
+  (car token))
+
+(defsetf token-wme rplaca)
+
+(defun token-parent (token)
+  (cdr token))
+
+(defsetf token-parent rplacd)

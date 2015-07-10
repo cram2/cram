@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :crs-tests)
+(in-package :prolog-tests)
 
 (define-test constant
   (multiple-value-bind (result matched?)
@@ -115,15 +115,15 @@
 
 ;; (unify '(?x !?x !y) '((b c d) b c d e f)) -> nil (should unify)
 ;; 
-;; CRS-TESTS> (unify '(a !?x d) '(?y d))
+;; PROLOG-TESTS> (unify '(a !?x d) '(?y d))
 ;; ((?X) (?Y . A))
 ;; T
-;; CRS-TESTS> (unify '(a !?x d) '(?y foo d))
+;; PROLOG-TESTS> (unify '(a !?x d) '(?y foo d))
 ;; ((?X FOO) (?Y . A))
 ;; T
-;; CRS-TESTS> (unify '(a !?x d) '(?y ?z d))
+;; PROLOG-TESTS> (unify '(a !?x d) '(?y ?z d))
 ;; ((?X ?Z) (?Y . A))
 ;; T
-;; CRS-TESTS> (unify '(a !?x d ?z (e)) '(?y ?z d e ?x))
+;; PROLOG-TESTS> (unify '(a !?x d ?z (e)) '(?y ?z d e ?x))
 ;; NIL
 ;; NIL

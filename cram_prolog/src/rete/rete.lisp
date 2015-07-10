@@ -28,7 +28,7 @@
 ;;;
 
 
-(in-package :crs)
+(in-package :prolog)
 
 (defgeneric input (node wme operation &key &allow-other-keys)
   (:documentation "Processes a working memory entry. 'unmatched'

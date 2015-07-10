@@ -27,7 +27,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :crs-tests)
+(in-package :prolog-tests)
 
 (define-test and-handler
   (assert-equality #'solutions-equal

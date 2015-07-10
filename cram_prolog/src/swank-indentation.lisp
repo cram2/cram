@@ -1,5 +1,5 @@
 
-(in-package :crs)
+(in-package :prolog)
 
 (eval-when (:load-toplevel)
   (when (and (find-package "SWANK")
