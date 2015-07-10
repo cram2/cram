@@ -33,7 +33,7 @@
 (desig-props:def-desig-package semantic-map-costmap
   (:use #:common-lisp #:prolog #:location-costmap
         #:designators-ros #:cram-roslisp-common
-        #:desig #:semantic-map-cache)
+        #:desig #:cram-semantic-map)
   (:export #:desig-z-value #:supporting-z-value
            semantic-map-objects)
   (:desig-properties #:on #:in #:name #:to #:see #:reach #:type

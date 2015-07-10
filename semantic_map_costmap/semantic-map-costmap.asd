@@ -40,7 +40,7 @@
                cram-semantic-map-utils
                location-costmap
                alexandria
-               semantic-map-cache)
+               cram-semantic-map)
   :components
   ((:module "src"
             :components

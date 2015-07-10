@@ -26,13 +26,23 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem semantic-map-cache
-  :author "Lorenz Moesenlechner"
-  :license "BSD"
-  
-  :depends-on (cram-semantic-map-utils cram-plan-knowledge cram-projection)
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "semantic-map-cache" :depends-on ("package"))))))
+(in-package :semantic-map)
+
+(defvar *semantic-map* nil)
+
+;; (cram-projection:define-special-projection-variable
+;;     *semantic-map* (sem-map-utils:copy-semantic-map-object
+;;                     (get-semantic-map)))
+
+(defun get-semantic-map ()
+  (or *semantic-map*
+      (setf *semantic-map* (sem-map-utils:get-semantic-map))))
+
+(defmethod on-event manipulation-articulation-event ((event object-articulation-event))
+  (format t "semantic-map: ~a~%" (get-semantic-map))
+  (with-slots (object-designator opening-distance) event
+    (let ((perceived-object (desig:reference (desig:newest-effective-designator
+                                              object-designator))))
+      (sem-map-utils:update-articulated-object-poses
+       (get-semantic-map)
+       (desig:object-identifier perceived-object) opening-distance))))
