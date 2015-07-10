@@ -48,7 +48,7 @@
                  cram-designators
                  cram-roslisp-common
                  cram-plan-knowledge
-                 cl-semantic-map-utils
+                 cram-semantic-map-utils
                  cram-manipulation-knowledge
                  designators-ros)
     :components

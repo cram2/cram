@@ -10,7 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   cram_json_prolog
   cl_urdf
   cl_tf
-  cl_semantic_map_utils
+  cram_semantic_map_utils
   cram_designators
   location_costmap
 )

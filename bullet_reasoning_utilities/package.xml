@@ -14,7 +14,7 @@
   <depend>cram_prolog</depend>
   <depend>cram_designators</depend>
   <depend>location_costmap</depend>
-  <depend>cl_semantic_map_utils</depend>
+  <depend>cram_semantic_map_utils</depend>
   <depend>bullet_reasoning_designators</depend>
   <depend>cram_roslisp_common</depend>
   <depend>roslisp_utilities</depend>
