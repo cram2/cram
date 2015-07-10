@@ -1,7 +1,7 @@
 ; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 
-(asdf:defsystem cram-reasoning
-  :name "cram-reasoning"
+(asdf:defsystem cram-prolog
+  :name "cram-prolog"
   :author "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
   :version "0.1"
   :maintainer "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
@@ -42,6 +42,6 @@
              (:file "swank-indentation" :depends-on ("package"))))))
 
 (defmethod asdf:perform ((o asdf:test-op)
-                         (c (eql (asdf:find-system 'cram-reasoning))))
-  (asdf:operate 'asdf:load-op 'cram-reasoning-tests)
-  (asdf:operate 'asdf:test-op 'cram-reasoning-tests))
+                         (c (eql (asdf:find-system 'cram-prolog))))
+  (asdf:operate 'asdf:load-op 'cram-prolog-tests)
+  (asdf:operate 'asdf:test-op 'cram-prolog-tests))

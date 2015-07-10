@@ -1,5 +1,5 @@
 
-(in-package :crs)
+(in-package :prolog)
 
 (defun prolog-type-p (variable type)
   (alexandria:ignore-some-conditions (simple-error)

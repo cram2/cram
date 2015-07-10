@@ -16,7 +16,7 @@
                      mechanisms since they represent the continous
                      processes in the world."
   :depends-on (:alexandria :cram-language :cram-designators
-                           :cram-reasoning :cram-utilities)
+                           :cram-prolog :cram-utilities)
 
   :components
   ((:module "src"

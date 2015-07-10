@@ -28,7 +28,7 @@
 ;;;
 
 
-(in-package :crs)
+(in-package :prolog)
 
 (defclass alpha-node ()
   ((parent :reader alpha-node-parent :initarg :parent)

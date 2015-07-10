@@ -348,7 +348,7 @@
 
            
 
-* TODO cram_reasoning: rete-holds seems to have a bug.
+* TODO cram_prolog: rete-holds seems to have a bug.
   
   Example: Rete net contains (desig-bound d1 'foo) and (desig-bound d2 'bar).
   (rete-holds (desig-bound ?x ?_) is fine, but (desig-bind d1 ?_) returns

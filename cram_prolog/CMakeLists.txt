@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(cram_reasoning)
+project(cram_prolog)
 
 find_package(catkin REQUIRED) 
 
@@ -14,5 +14,5 @@ foreach(dir
       PATTERN ".git" EXCLUDE)
 endforeach()
 
-install (FILES cram-reasoning.asd cram-reasoning-tests.asd
+install (FILES cram-prlog.asd cram-prolog-tests.asd
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

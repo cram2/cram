@@ -30,7 +30,7 @@
 (in-package :cl-user)
 
 (defpackage :cram-designators
-  (:use #:common-lisp #:cram-reasoning #:cut)
+  (:use #:common-lisp #:cram-prolog #:cut)
   (:nicknames :desig)
   (:import-from #:alexandria
                 #:curry #:rcurry #:compose #:with-gensyms

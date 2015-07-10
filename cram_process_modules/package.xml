@@ -23,7 +23,7 @@
   <build_depend>alexandria</build_depend>
   <build_depend>cram_designators</build_depend>
   <build_depend>cram_language</build_depend>
-  <build_depend>cram_reasoning</build_depend>
+  <build_depend>cram_prolog</build_depend>
   <build_depend>cram_utilities</build_depend>
   <build_depend>lisp_unit</build_depend>
 
@@ -31,7 +31,7 @@
   <run_depend>alexandria</run_depend>
   <run_depend>cram_designators</run_depend>
   <run_depend>cram_language</run_depend>
-  <run_depend>cram_reasoning</run_depend>
+  <run_depend>cram_prolog</run_depend>
   <run_depend>cram_utilities</run_depend>
   <run_depend>lisp_unit</run_depend>
 </package>

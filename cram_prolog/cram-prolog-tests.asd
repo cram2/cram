@@ -1,16 +1,16 @@
 ; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 
-(asdf:defsystem cram-reasoning-tests
-  :name "cram-reasoning-tests"
+(asdf:defsystem cram-prolog-tests
+  :name "cram-prolog-tests"
   :author "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
   :version "0.1"
   :maintainer "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
   :licence "BSD"
-  :description "Tests for cram-reasoning"
+  :description "Tests for cram-prolog"
   :depends-on (alexandria
                lisp-unit
                cram-utilities
-               cram-reasoning)
+               cram-prolog)
   :components
   ((:module "tests"
             :components
@@ -21,7 +21,7 @@
              (:file "prolog" :depends-on ("package"))))))
 
 (defmethod asdf:perform ((o asdf:test-op)
-                         (c (eql (asdf:find-system 'cram-reasoning-tests))))
+                         (c (eql (asdf:find-system 'cram-prolog-tests))))
   (flet ((symbol (pkg name)
            (intern (string name) (find-package pkg))))
-    (funcall (symbol :cram-reasoning-tests :run-cram-reasoning-tests))))
+    (funcall (symbol :cram-prolog-tests :run-cram-prolog-tests))))

@@ -28,7 +28,7 @@
 ;;;
 
 
-(in-package :crs)
+(in-package :prolog)
 
 (defvar *alpha-network* (make-instance 'alpha-node :parent nil :key nil))
 

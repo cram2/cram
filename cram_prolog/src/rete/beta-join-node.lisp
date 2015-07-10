@@ -28,7 +28,7 @@
 ;;;
 
 
-(in-package :crs)
+(in-package :prolog)
 
 (defclass beta-join-node ()
   ((connections :reader connections :initform nil

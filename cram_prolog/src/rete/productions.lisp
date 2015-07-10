@@ -28,7 +28,7 @@
 ;;;
 
 
-(in-package :crs)
+(in-package :prolog)
 
 (defclass production-node ()
   ((beta-node :reader production-beta-node :initarg :beta-node)

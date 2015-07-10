@@ -27,7 +27,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :crs-tests)
+(in-package :prolog-tests)
 
 (def-production stacked
   (on ?a ?b)
@@ -63,7 +63,7 @@
     (assert-equality #'member :retract triggered)))
 
 (define-test rete-prove
-  (let ((crs::*alpha-network* (make-instance 'crs::alpha-node :parent nil :key nil)))
+  (let ((prolog::*alpha-network* (make-instance 'prolog::alpha-node :parent nil :key nil)))
     (rete-assert '(on a b))
     (rete-assert '(on b c))
     (rete-assert '(on b d))

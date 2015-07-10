@@ -1,6 +1,5 @@
 ;;;
-;;; Copyright (c) 2009, Lorenz Moesenlechner <moesenle@cs.tum.edu>,
-;;;                     Nikolaus Demmel <demmeln@cs.tum.edu>
+;;; Copyright (c) 2009, Lorenz Moesenlechner <moesenle@cs.tum.edu>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -28,13 +27,9 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :cl-user)
 
-(defpackage :cram-reasoning-tests
-  (:documentation "Package for the cram-reasoning test-suite")
-  (:nicknames :crs-tests)
-  (:use :cl :cut :alexandria
-        :crs :lisp-unit)
-  (:export run-cram-reasoning-tests)
-  (:import-from #:cut #:force-ll)
-  (:shadowing-import-from #:alexandria set-equal))
+(in-package :prolog)
+
+(defun make-prolog-node (parent callback)
+  (declare (ignore parent callback))
+  nil)

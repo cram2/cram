@@ -12,7 +12,7 @@
                      includes object descriptions, locations and trajectories."
   :depends-on (:alexandria
                :cram-utilities
-               :cram-reasoning
+               :cram-prolog
                :trivial-garbage)
   :components
   ((:module "src"

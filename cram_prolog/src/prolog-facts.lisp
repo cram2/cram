@@ -28,7 +28,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :crs)
+(in-package :prolog)
 
 (defmacro bin-pred-fact (pred)
   `(<- (,pred ?x ?y)
