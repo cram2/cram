@@ -30,9 +30,14 @@
   :author "Lorenz Moesenlechner"
   :license "BSD"
   
-  :depends-on (cram-semantic-map-utils cram-plan-knowledge cram-projection)
+  :depends-on (cram-semantic-map-utils
+               cram-plan-knowledge
+               cram-projection
+               cram-designators
+               cram-utilities)
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "semantic-map-cache" :depends-on ("package"))))))
+     (:file "semantic-map-cache" :depends-on ("package"))
+     (:file "designator-integration" :depends-on ("package"))))))
