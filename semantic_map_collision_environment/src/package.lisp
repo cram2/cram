@@ -40,5 +40,4 @@
            update-sem-map-obj-pose)
   (:import-from cram-roslisp-common *transformer*)
   (:shadowing-import-from :roslisp-utilities #:startup-ros #:shutdown-ros
-                          #:register-ros-init-function #:register-ros-cleanup-function
-                          #:rosify-lisp-name #:lispify-ros-name))
+                          #:register-ros-init-function #:register-ros-cleanup-function))
