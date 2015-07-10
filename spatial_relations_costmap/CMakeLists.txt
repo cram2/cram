@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   bullet_reasoning_designators
   pr2_manipulation_knowledge
   object_location_designators
+  cram_semantic_map
 )
 
 #set the default path for built executables to the "bin" directory

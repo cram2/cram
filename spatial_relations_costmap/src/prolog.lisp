@@ -305,7 +305,7 @@
     (bullet-world ?world)
     (object-instance-name ?for-object ?object-name)
     (household-object-type ?world ?object-name ?object-type)
-    (lisp-fun sem-map-utils:designator->semantic-map-objects
+    (lisp-fun semantic-map:designator->semantic-map-objects
               ?designator ?supp-objects)
     (member ?supp-object ?supp-objects)
     (slot-costmap ?designator ?supp-object :table-setting ?object-type ?object-count
