@@ -33,7 +33,7 @@
           #:cram-roslisp-common
           #:location-costmap
           #:common-lisp
-          #:cram-reasoning
+          #:cram-prolog
           #:semantic-map-costmap
           #:btr
           #:cram-utilities

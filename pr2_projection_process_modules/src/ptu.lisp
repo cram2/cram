@@ -45,7 +45,7 @@
                     :pose pose :target-frame designators-ros:*fixed-frame*
                     :timeout cram-roslisp-common:*tf-default-timeout*)))
          (assert
-          (crs:prolog `(and
+          (prolog:prolog `(and
                         (bullet-world ?world)
                         (robot ?robot)
                         (head-pointing-at ?world ?robot ,pose)))))

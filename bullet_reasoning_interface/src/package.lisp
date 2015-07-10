@@ -6,7 +6,7 @@
    #:btr
    #:cpl)
    (:shadowing-import-from #:btr object pose object-pose width height)
-   (:import-from #:cram-reasoning prolog force-ll)
+   (:import-from #:cram-prolog prolog force-ll)
   (:export init-interface start-service)
   (:desig-properties
  ;;;object properties

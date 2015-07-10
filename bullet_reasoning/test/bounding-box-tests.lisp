@@ -32,7 +32,7 @@
   (let ((*epsilon* 1e-6))
     (with-current-bullet-world (copy-world *current-bullet-world*)
       (cut:lazy-car
-       (crs:prolog `(and
+       (prolog:prolog `(and
                      (clear-bullet-world) 
                      (bullet-world ?w)
                      (assert (object ?w static-plane floor ((0 0 0) (0 0 0 1)) :normal (0 0 1) :constant 0))
@@ -49,11 +49,11 @@
   (let ((*epsilon* 1e-6))
     (with-current-bullet-world (copy-world *current-bullet-world*)
       (cut:lazy-car
-       (crs:prolog `(and
-                     (clear-bullet-world) 
-                     (bullet-world ?w)
-                     (assert (object ?w static-plane floor ((0 0 0) (0 0 0 1)) :normal (0 0 1) :constant 0))
-                     (assert (object ?w box box-1 ((0 0 0.0) (0 0 0 1)) :size (0.3 0.3 0.3) :mass 0.0)))))
+       (prolog:prolog `(and
+                        (clear-bullet-world) 
+                        (bullet-world ?w)
+                        (assert (object ?w static-plane floor ((0 0 0) (0 0 0 1)) :normal (0 0 1) :constant 0))
+                        (assert (object ?w box box-1 ((0 0 0.0) (0 0 0 1)) :size (0.3 0.3 0.3) :mass 0.0)))))
       (let ((pose-on (obj-pose-on (cl-transforms:make-identity-pose) (object *current-bullet-world* 'box-1))))
         (assert-float-equal 0.0d0 (cl-transforms:x (cl-transforms:origin pose-on)))
         (assert-float-equal 0.0d0 (cl-transforms:y (cl-transforms:origin pose-on)))

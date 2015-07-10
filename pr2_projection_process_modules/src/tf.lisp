@@ -53,10 +53,10 @@
                     (map-frame designators-ros:*fixed-frame*))
   (cut:with-vars-bound (?robot-instance ?robot-pose)
       (cut:lazy-car
-       (crs:prolog `(and (robot ?robot)
-                         (bullet-world ?world)
-                         (%object ?world ?robot ?robot-instance)
-                         (pose ?world ?robot ?robot-pose))))
+       (prolog:prolog `(and (robot ?robot)
+                            (bullet-world ?world)
+                            (%object ?world ?robot ?robot-instance)
+                            (pose ?world ?robot ?robot-pose))))
     (assert (not (cut:is-var ?robot-instance)))
     (add-new-transform
      cram-roslisp-common:*transformer*

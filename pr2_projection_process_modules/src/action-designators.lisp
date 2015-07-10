@@ -33,7 +33,7 @@
                      (cut:with-vars-bound (?solution) bindings
                        (unless (cut:is-var ?solution)
                          (list ?solution))))
-                   (crs:prolog `(action-desig-projection ,designator ?solution))))
+                   (prolog:prolog `(action-desig-projection ,designator ?solution))))
 
 ;;; TODO(moesenle): Fix this by using some kind of knowledge instead
 ;;; of using the maximal value.

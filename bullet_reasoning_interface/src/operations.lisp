@@ -105,7 +105,7 @@ If there is no object `name' in `world', nothing happens."
 (defun remove-all-objects (&optional (world btr:*current-bullet-world*))
   "Removes all objects from the bullet world `world'."
   (out-info "Removing all objects.")
-  (prolog `(and (household-object-type ,world ?obj ?type) (retract (object ,world ?obj)) (cram-reasoning:fail)))
+  (prolog `(and (household-object-type ,world ?obj ?type) (retract (object ,world ?obj)) (cram-prolog:fail)))
   (not (exists-any-object)))
 
 (defun simulate-world (duration &key (world btr:*current-bullet-world*) copy)

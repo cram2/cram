@@ -14,7 +14,7 @@
 
   <!-- Dependencies needed to compile this package. -->
   <build_depend>alexandria</build_depend>
-  <build_depend>cram_reasoning</build_depend>
+  <build_depend>cram_prolog</build_depend>
   <build_depend>cram_manipulation_knowledge</build_depend>
   <build_depend>cl_bullet</build_depend>
   <build_depend>cl_bullet_vis</build_depend>
@@ -28,7 +28,7 @@
 
   <!-- Dependencies needed after this package is compiled. -->
   <run_depend>alexandria</run_depend>
-  <run_depend>cram_reasoning</run_depend>
+  <run_depend>cram_prolog</run_depend>
   <run_depend>cram_manipulation_knowledge</run_depend>
   <run_depend>cl_bullet</run_depend>
   <run_depend>cl_bullet_vis</run_depend>

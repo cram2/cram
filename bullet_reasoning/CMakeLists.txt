@@ -3,7 +3,7 @@ project(bullet_reasoning)
 
 find_package(catkin REQUIRED COMPONENTS
   alexandria
-  cram_reasoning
+  cram_prolog
   cram_manipulation_knowledge
   cl_bullet
   cl_bullet_vis

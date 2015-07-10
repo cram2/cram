@@ -5,7 +5,7 @@
                spatial-relations-demo
                cram-designators
                cl-tf2
-               cram-reasoning
+               cram-prolog
                bullet_reasoning_interface-srv
                bullet_reasoning_interface-msg)
   :components

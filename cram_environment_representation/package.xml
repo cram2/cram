@@ -15,7 +15,7 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <!-- Dependencies needed to compile this package. -->
-  <build_depend>cram_reasoning</build_depend>
+  <build_depend>cram_prolog</build_depend>
   <build_depend>cram_utilities</build_depend>
   <build_depend>cram_designators</build_depend>
   <build_depend>cram_roslisp_common</build_depend>
@@ -25,7 +25,7 @@
   <build_depend>cram_plan_library</build_depend>
 
   <!-- Dependencies needed after this package is compiled. -->
-  <run_depend>cram_reasoning</run_depend>
+  <run_depend>cram_prolog</run_depend>
   <run_depend>cram_utilities</run_depend>
   <run_depend>cram_designators</run_depend>
   <run_depend>cram_roslisp_common</run_depend>

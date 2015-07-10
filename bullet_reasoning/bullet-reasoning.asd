@@ -33,7 +33,7 @@
     :license "BSD"
 
     :depends-on (alexandria
-                 cram-reasoning
+                 cram-prolog
                  cl-bullet cl-bullet-vis
                  cram-json-prolog
                  cl-urdf

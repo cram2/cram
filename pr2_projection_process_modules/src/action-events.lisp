@@ -30,10 +30,10 @@
 
 (defvar *projection-clock* nil)
 
-(crs:def-fact-group action-facts (action-duration)
+(prolog:def-fact-group action-facts (action-duration)
   ;; Declaration of the action-duration predicate
-  (crs:<- (action-duration ?designator ?duration)
-    (crs:fail)))
+  (prolog:<- (action-duration ?designator ?duration)
+    (prolog:fail)))
 
 (defun projection-timestamp-function ()
   (clock-time *projection-clock*))
@@ -43,7 +43,7 @@
   unit is given. This value is mainly used for ordering events and
   blocking until an action is terminated."
   (cut:with-vars-bound (?duration)
-      (cut:lazy-car (crs:prolog `(action-duration ,designator ?duration)))
+      (cut:lazy-car (prolog:prolog `(action-duration ,designator ?duration)))
     (if (cut:is-var ?duration) default ?duration)))
 
 (defun execute-as-action (designator action-function)
