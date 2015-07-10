@@ -39,7 +39,7 @@
                pose-frame)))
     (cut:var-value
      '?side
-     (first (crs:prolog `(manipulator-link ?side ,string-frame))))))
+     (first (prolog:prolog `(manipulator-link ?side ,string-frame))))))
 
 (defun gripper-offset-pose (side)
   "Adds custom offsets to gripper poses based on their arm `side'. This is mainly intended for customly adapted robots that need special handling for gripper sides."
@@ -173,7 +173,7 @@
                (lazy-mapcar (lambda (bdgs)
                               (with-vars-bound (?ro) bdgs
                                 ?ro))
-                            (crs:prolog `(reorient-object ,object ?ro))))))
+                            (prolog:prolog `(reorient-object ,object ?ro))))))
     (find t ro-s)))
 
 (def-fact-group pr2-manipulation-designators (action-desig
@@ -305,7 +305,7 @@
   (<- (open-gripper ?arm)
     (or (and (not (gripper-open? ?arm))
              (lisp-pred open-gripper ?arm))
-        (crs:true)))
+        (prolog:true)))
   
   (<- (object-pose-reachable ?object ?pose ?arm)
     (grasp-type ?object ?grasp-type)
@@ -422,7 +422,7 @@
     (desig-prop ?desig (:distance ?distance))
     (desig-prop ?desig (:direction ?direction))
     (current-designator ?obj ?current-obj)
-    (crs:fail) ;; This predicate needs to be refactored
+    (prolog:fail) ;; This predicate needs to be refactored
     (grasped-object-part ?obj ?grasped)
     (holding-arms ?current-obj ?arms)
     (obstacles ?desig ?obstacles))

@@ -29,7 +29,7 @@
 (in-package :cl-user)
 
 (defpackage pr2-reachability-costmap
-  (:use #:common-lisp #:location-costmap #:cram-reasoning #:cl-transforms-stamped)
+  (:use #:common-lisp #:location-costmap #:cram-prolog #:cl-transforms-stamped)
   (:import-from cram-roslisp-common *transformer*)
   (:export generate-map-main reachability-map side maximum minimum
            resolution orientations reachability-map pose-reachable-p

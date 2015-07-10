@@ -73,12 +73,12 @@ is fundamentally different."
   (let* ((wrist-frame (cut:var-value
                        '?link
                        (first
-                        (crs:prolog
+                        (prolog:prolog
                          `(manipulator-link ,side ?link)))))
          (arm-group (cut:var-value
                      '?group
                      (first
-                      (crs:prolog
+                      (prolog:prolog
                        `(planning-group ,side ?group)))))
          (pose-in-tll
            (cl-transforms-stamped:transform-pose-stamped

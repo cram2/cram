@@ -30,7 +30,7 @@
 (desig-props:def-desig-package pr2-manipulation-process-module
   (:nicknames :pr2-manip-pm)
   (:use #:common-lisp
-        #:crs
+        #:prolog
         #:cut
         #:desig
         #:designators-ros

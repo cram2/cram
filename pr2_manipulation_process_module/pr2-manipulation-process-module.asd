@@ -34,7 +34,7 @@
                cram-process-modules
                actionlib
                cram-roslisp-common
-               cram-reasoning
+               cram-prolog
                cram-plan-failures
                cram-pr2-knowledge
                pr2_controllers_msgs-msg
