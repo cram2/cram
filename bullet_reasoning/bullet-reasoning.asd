@@ -47,6 +47,7 @@
                  location-costmap
                  cram-designators
                  cram-roslisp-common
+                 roslisp-utilities
                  cram-plan-knowledge
                  cram-semantic-map-utils
                  cram-manipulation-knowledge
