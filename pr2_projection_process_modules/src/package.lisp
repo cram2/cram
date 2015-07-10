@@ -43,7 +43,7 @@
            action-started action-finished action-duration projection-role))
 
 (desig-props:def-desig-package projection-designators
-  (:use #:common-lisp #:cram-designators #:cram-reasoning
+  (:use #:common-lisp #:cram-designators #:cram-prolog
         #:projection-process-modules)
   (:import-from #:cram-manipulation-knowledge
                 arm available-arms required-arms)
