@@ -19,7 +19,7 @@
   <build_depend>cram_prolog</build_depend>
   <build_depend>cram_semantic_map_utils</build_depend>
   <build_depend>cram_designators</build_depend>
-  <build_depend>semantic_map_cache</build_depend>
+  <build_depend>cram_semantic_map</build_depend>
 
   <!-- Dependencies needed after this package is compiled. -->
   <run_depend>cram_plan_knowledge</run_depend>
@@ -27,6 +27,6 @@
   <run_depend>cram_prolog</run_depend>
   <run_depend>cram_semantic_map_utils</run_depend>
   <run_depend>cram_designators</run_depend>
-  <run_depend>semantic_map_cache</run_depend>
+  <run_depend>cram_semantic_map</run_depend>
 
 </package>

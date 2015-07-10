@@ -30,7 +30,7 @@
 
 (desig-props:def-desig-package pr2-manipulation-knowledge
   (:use #:common-lisp #:cram-plan-knowledge #:cram-manipulation-knowledge
-        #:prolog #:desig #:semantic-map-cache #:cl-transforms-stamped)
+        #:prolog #:desig #:cram-semantic-map #:cl-transforms-stamped)
   (:export get-semantic-map
            manipulator-link
            manipulator-identity-orientation
