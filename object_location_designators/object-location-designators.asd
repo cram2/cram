@@ -33,7 +33,7 @@
   :depends-on (cram-designators
                cl-semantic-map-utils
                cram-json-prolog
-               cram-reasoning
+               cram-prolog
                cram-projection)
   :components
   ((:module "src"

@@ -32,7 +32,7 @@
   :description "Definitions for manipulating objects, including
   available grasps, trajectories etc."
   
-  :depends-on (cram-reasoning
+  :depends-on (cram-prolog
                cram-utilities
                physics-utils
                cl-transforms

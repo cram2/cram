@@ -39,7 +39,7 @@
                designators-ros
                cram-roslisp-common
                cram-plan-library
-               cram-reasoning
+               cram-prolog
                cram-plan-knowledge
                object-location-designators
                alexandria

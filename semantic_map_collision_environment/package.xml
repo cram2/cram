@@ -21,7 +21,7 @@
   <build_depend>cl_semantic_map_utils</build_depend>
   <build_depend>cram_json_prolog</build_depend>
   <build_depend>cl_tf</build_depend>
-  <build_depend>cram_reasoning</build_depend>
+  <build_depend>cram_prolog</build_depend>
   <build_depend>visualization_msgs</build_depend>
   <build_depend>cram_utilities</build_depend>
   <build_depend>cram_roslisp_common</build_depend>
@@ -32,7 +32,7 @@
   <run_depend>cl_semantic_map_utils</run_depend>
   <run_depend>cram_json_prolog</run_depend>
   <run_depend>cl_tf</run_depend>
-  <run_depend>cram_reasoning</run_depend>
+  <run_depend>cram_prolog</run_depend>
   <run_depend>visualization_msgs</run_depend>
   <run_depend>cram_utilities</run_depend>
   <run_depend>cram_roslisp_common</run_depend>

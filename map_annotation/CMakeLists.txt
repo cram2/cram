@@ -4,7 +4,7 @@ project(map_annotation)
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   rospy
-  cram_reasoning
+  cram_prolog
   cram_roslisp_common
   cl_transforms
   message_generation
@@ -25,7 +25,7 @@ catkin_package(
   CATKIN_DEPENDS
   geometry_msgs
   rospy
-  cram_reasoning
+  cram_prolog
   cram_roslisp_common
   cl_transforms
   message_runtime

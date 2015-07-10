@@ -29,6 +29,6 @@
 (in-package :cl-user)
 
 (desig-props:def-desig-package object-location-designators
-  (:use #:common-lisp #:cram-designators #:cram-reasoning)
+  (:use #:common-lisp #:cram-designators #:cram-prolog)
   (:export)
   (:desig-properties #:of #:type #:name))

@@ -10,7 +10,7 @@
                :cram-designators
                :cl-transforms-stamped
                :cram-utilities
-               :cram-reasoning
+               :cram-prolog
                :cram-roslisp-common)
 
   :components

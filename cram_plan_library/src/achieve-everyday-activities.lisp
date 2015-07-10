@@ -32,8 +32,8 @@
   (with-designators ((loc-on-table (:location `((:on Cupboard)
                                                (:name ,?table))))
                      (generic-object (:object `((:at ,loc-on-table)))))
-    (let ((necessary-objects (crs:prolog `(table-setting-object
-                                           ,?situation ?object)))
+    (let ((necessary-objects (prolog:prolog `(table-setting-object
+                                              ,?situation ?object)))
           (objects-on-table (perceive-object 'all generic-object)))
       )))
 

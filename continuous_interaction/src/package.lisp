@@ -44,7 +44,7 @@
                 action-desig)
   (:import-from :cram-language-designator-support with-designators)
   (:import-from :cram-language def-cram-function def-top-level-cram-function)
-  (:import-from :cram-reasoning def-fact-group <- not lisp-fun lisp-pred)
+  (:import-from :cram-prolog def-fact-group <- not lisp-fun lisp-pred)
   (:export lookup-object-location
            lookup-object-type
            lookup-object-handles
