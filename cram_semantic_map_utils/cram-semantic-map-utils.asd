@@ -34,14 +34,13 @@
   :description "Utilities to work with semantic maps in lisp"
   
   :depends-on (cram-json-prolog
-               cram-roslisp-common
-               cl-transforms
-               cram-designators)
+               roslisp-utilities
+               cram-utilities
+               cl-transforms)
   :components
   ((:module "src"
     :components
     ((:file "package")
      (:file "owl-type-initializers" :depends-on ("package"))
      (:file "semantic-map" :depends-on ("package" "owl-type-initializers"))
-     (:file "designator-utils" :depends-on ("package" "semantic-map"))
      (:file "articulation-utilities" :depends-on ("package" "semantic-map"))))))

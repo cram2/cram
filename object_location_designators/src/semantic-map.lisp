@@ -39,7 +39,7 @@
       (setf *semantic-map* (sem-map-utils:get-semantic-map))))
 
 (defun semantic-map-object-poses (designator)
-  (let ((objects (sem-map-utils:designator->semantic-map-objects
+  (let ((objects (semantic-map:designator->semantic-map-objects
                   designator (get-semantic-map))))
     (mapcar #'sem-map-utils:pose objects)))
 

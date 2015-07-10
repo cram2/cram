@@ -28,7 +28,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(desig-props:def-desig-package cram-semantic-map-utils
+(defpackage cram-semantic-map-utils
   (:nicknames #:sem-map-utils #:semantic-map-utils)
   (:use #:common-lisp #:json-prolog #:cut)
   (:export semantic-map semantic-map-part semantic-map-geom
@@ -41,8 +41,7 @@
            copy-semantic-map-object sub-parts-with-name name owl-name
            obj-type urdf-name sub-parts update-pose pose dimensions
            aliases urdf-name->obj-name owl-type-p parent
-           designator->semantic-map-objects get-connecting-joint
+           get-connecting-joint
            get-articulated-position get-top-level-object
            update-articulated-object-poses
-           get-connecting-joint-limits)
-  (:desig-properties name type part-of on in))
+           get-connecting-joint-limits))
