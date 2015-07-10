@@ -33,7 +33,7 @@
   :depends-on (cram-plan-knowledge
                cram-manipulation-knowledge
                cram-prolog
-               cl-semantic-map-utils
+               cram-semantic-map-utils
                semantic-map-cache)
   :components
   ((:module "src"
