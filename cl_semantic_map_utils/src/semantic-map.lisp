@@ -342,8 +342,8 @@
             *cached-semantic-map-name*
             map-name))))
 
-(defun get-semantic-map ()
-  (init-semantic-map-cache)
+(defun get-semantic-map (&optional map-name)
+  (init-semantic-map-cache map-name)
   (when *cached-semantic-map*
     (copy-semantic-map-object *cached-semantic-map*)))
 
