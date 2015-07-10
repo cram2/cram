@@ -33,7 +33,7 @@
 (defun json-prolog-init ()
   (json-prolog:start-prolog-server *ros-node-name* :package (find-package :vis-et)))
 
-(register-ros-init-function json-prolog-init)
+(roslisp-utilities:register-ros-init-function json-prolog-init)
 
 (roslisp:def-service-callback execution_trace_server-srv:ListExecutionTraces ()
   (handler-case
@@ -64,11 +64,11 @@
   (roslisp:register-service "~list_exectuon_traces" execution_trace_server-srv:ListExecutionTraces)
   (roslisp:register-service "~select_execution_trace" execution_trace_server-srv:SelectExecutionTrace))
 
-(cram-roslisp-common:register-ros-init-function init-pick-and-place-info-srv)
+(roslisp-utilities:register-ros-init-function init-pick-and-place-info-srv)
 
 (defun run ()
   (unwind-protect
        (progn
-         (startup-ros :name "execution_trace" :anonymous nil)
+         (roslisp-utilities:startup-ros :name "execution_trace" :anonymous nil)
          (spin-until nil 100))
-    (shutdown-ros)))
+    (roslisp-utilities:shutdown-ros)))
