@@ -32,7 +32,7 @@
   :license "BSD"
   :description "Utilities for working with occasions and rete"
 
-  :depends-on (cram-reasoning
+  :depends-on (cram-prolog
                cram-language
                cram-utilities
                cram-execution-trace
