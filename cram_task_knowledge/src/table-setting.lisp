@@ -40,4 +40,4 @@
   (<- (meal-time? dinner))
   
   (<- (table-setting-object ?situation ?object)
-    (crs:fail)))
+    (prolog:fail)))

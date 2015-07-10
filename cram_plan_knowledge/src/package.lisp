@@ -31,7 +31,7 @@
 
 (desig-props:def-desig-package cram-plan-knowledge
     (:use #:common-lisp
-          #:cram-reasoning
+          #:cram-prolog
           #:cpl-impl
           #:alexandria
           #:desig
@@ -111,7 +111,7 @@
                 #:common-lisp-error-envelope
                 #:task-tree-node-children
                 #:task-tree-node-status-fluent)
-  (:shadowing-import-from #:cram-reasoning
+  (:shadowing-import-from #:cram-prolog
                           #:fail)
   ;; We need AT from the desig properties to make sure the symbol AT we use
   ;; and export is compatible with other packages from the cram universe

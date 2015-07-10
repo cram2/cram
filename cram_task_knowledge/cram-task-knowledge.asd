@@ -31,7 +31,7 @@
   :description "Task Specific Knowledge Supporting CRAM High Level Plans"
   
   :depends-on (cram-language
-               cram-reasoning
+               cram-prolog
                cram-designators
                cram-language-designator-support
                cram-roslisp-common

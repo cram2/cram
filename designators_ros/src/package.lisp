@@ -30,7 +30,7 @@
 (in-package :cl-user)
 
 (defpackage :designators-ros
-    (:use #:cl #:desig #:cut #:crs
+    (:use #:cl #:desig #:cut #:prolog
           #:cram-roslisp-common
           #:cl-transforms-stamped)
   (:import-from #:tf pose pose-stamped)

@@ -32,7 +32,7 @@
    :author "Lorenz Moesenlechner"
    :license "BSD"
    
-   :depends-on (cram-reasoning
+   :depends-on (cram-prolog
                 cram-plan-knowledge
                 cram-execution-trace
                 cram-plan-library

@@ -31,7 +31,7 @@
   :description "A library of plans for the IAS kitchen environment"
 
   :depends-on (cram-language
-               cram-reasoning
+               cram-prolog
                cram-process-modules
                cram-designators
                cl-transforms-stamped

@@ -30,5 +30,5 @@
 
 (desig-props:def-desig-package occupancy-grid-costmap
   (:use #:common-lisp #:desig #:location-costmap
-        #:cram-roslisp-common #:crs)
+        #:cram-roslisp-common #:prolog)
   (:desig-properties #:to #:see #:reach))

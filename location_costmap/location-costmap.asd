@@ -28,7 +28,7 @@
 ;;;
 
 (defsystem location-costmap
-  :depends-on (cram-reasoning
+  :depends-on (cram-prolog
                cram-language
                cram-math
                cram-utilities

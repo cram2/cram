@@ -28,7 +28,7 @@
 ;;;
 
 (desig-props:def-desig-package location-costmap
-  (:use :cl :crs :cut :roslisp-utilities :cram-roslisp-common :alexandria
+  (:use :cl :prolog :cut :roslisp-utilities :cram-roslisp-common :alexandria
         :roslisp :designators-ros #:cram-designators
         #:cl-transforms-stamped)
   (:shadowing-import-from :alexandria rotate)

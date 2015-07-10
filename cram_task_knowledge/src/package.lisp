@@ -39,6 +39,6 @@
   (:export table-setting-object
            situation?
            meal-time)
-  (:import-from :cram-reasoning def-fact-group <-)
+  (:import-from :cram-prolog def-fact-group <-)
   (:import-from cram-roslisp-common *transformer*)
   (:desig-properties type situation meal-time breakfast lunch dinner))

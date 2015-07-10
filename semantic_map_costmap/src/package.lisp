@@ -31,7 +31,7 @@
 (in-package :cl-user)
 
 (desig-props:def-desig-package semantic-map-costmap
-  (:use #:common-lisp #:crs #:location-costmap
+  (:use #:common-lisp #:prolog #:location-costmap
         #:designators-ros #:cram-roslisp-common
         #:desig #:semantic-map-cache)
   (:export #:desig-z-value #:supporting-z-value

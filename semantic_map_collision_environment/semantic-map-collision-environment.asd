@@ -36,7 +36,7 @@
   :depends-on (roslisp
                cram-json-prolog
                cl-tf
-               cram-reasoning
+               cram-prolog
                cram-utilities
                roslisp-utilities
                cram-roslisp-common

@@ -35,7 +35,7 @@
         #:cut
         #:cram-plan-knowledge
         #:cram-plan-library
-        #:cram-reasoning
+        #:cram-prolog
         #:cram-roslisp-common
         #:designators-ros)
   (:export run))
