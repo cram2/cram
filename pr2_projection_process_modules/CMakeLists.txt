@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   pr2_manipulation_knowledge
   cram_roslisp_common
   cram_semantic_map_utils
+  cram_semantic_map
 )
 
 #set the default path for built executables to the "bin" directory

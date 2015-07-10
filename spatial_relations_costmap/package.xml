@@ -29,6 +29,7 @@
   <build_depend>bullet_reasoning_designators</build_depend>
   <build_depend>pr2_manipulation_knowledge</build_depend>
   <build_depend>object_location_designators</build_depend>
+  <build_depend>cram_semantic_map</build_depend>
 
   <!-- Dependencies needed after this package is compiled. -->
   <run_depend>sbcl</run_depend>
@@ -45,6 +46,7 @@
   <run_depend>bullet_reasoning_designators</run_depend>
   <run_depend>pr2_manipulation_knowledge</run_depend>
   <run_depend>object_location_designators</run_depend>
+  <run_depend>cram_semantic_map</run_depend>
 
 </package>
 

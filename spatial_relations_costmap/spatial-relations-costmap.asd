@@ -44,7 +44,8 @@
                cram-plan-knowledge
                bullet-reasoning-designators
                pr2-manipulation-knowledge
-               object-location-designators)
+               object-location-designators
+               cram-semantic-map)
   :components
   ((:module "src"
     :components
