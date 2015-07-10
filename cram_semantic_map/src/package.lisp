@@ -28,7 +28,9 @@
 
 (in-package :cl-user)
 
-(defpackage cram-semantic-map
+(desig-props:def-desig-package cram-semantic-map
   (:nicknames #:semantic-map #:sem-map)
-  (:use #:common-lisp #:cram-plan-knowledge)
-  (:export get-semantic-map))
+  (:use #:common-lisp #:cram-plan-knowledge #:cram-semantic-map-utils #:cut)
+  (:shadow get-semantic-map)
+  (:export get-semantic-map designator->semantic-map-objects)
+  (:desig-properties name type part-of on in))

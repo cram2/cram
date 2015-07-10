@@ -28,7 +28,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :sem-map-utils)
+(in-package :semantic-map)
 
 (defun resolve-part-of (identifier)
   (ecase (type-of identifier)

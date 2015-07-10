@@ -48,7 +48,7 @@
   ;; relation-tag is either IN or ON at the moment
   (<- (semantic-map-desig-objects ?desig ?objects)
     (lisp-fun get-semantic-map ?semantic-map)
-    (lisp-fun sem-map-utils:designator->semantic-map-objects
+    (lisp-fun semantic-map:designator->semantic-map-objects
               ?desig ?semantic-map ?objects)
     (lisp-pred identity ?objects))
 

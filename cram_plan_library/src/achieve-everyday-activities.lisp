@@ -39,7 +39,7 @@
 
 (def-goal (perceive-object drawer-handle ?semantic-name)
   (let ((semantic-handle-reference
-          (first (sem-map-utils:designator->semantic-map-objects
+          (first (semantic-map:designator->semantic-map-objects
                   (make-designator
                    :object `((:name ,?semantic-name)))))))
     (when semantic-handle-reference

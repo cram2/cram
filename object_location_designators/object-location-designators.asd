@@ -32,6 +32,7 @@
   
   :depends-on (cram-designators
                cram-semantic-map-utils
+               cram-semantic-map
                cram-json-prolog
                cram-prolog
                cram-projection)
