@@ -206,6 +206,8 @@
     (member ?status (:succeeded :failed :evaporated))
     (holds (task-status ?task ?status) (at ?time)))
 
+  ;; TODO(gaya-) this is a very weird place to define such a predicate.
+  ;; It's way too specific.
   (<- (task-location-context ?task ?loc)
     (task ?task)
     (subtask+ ?loc-task ?task)
