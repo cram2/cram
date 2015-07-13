@@ -108,7 +108,6 @@
            #:costmap-padding #:costmap-manipulation-padding
            #:costmap-in-reach-distance #:costmap-reach-minimal-distance)
   (:import-from #:cram-math invalid-probability-distribution)
-  (:import-from cram-roslisp-common *transformer*)
   (:desig-properties #:to #:see #:reach #:execute #:location #:pose #:obj
                      #:object #:action #:side))
 

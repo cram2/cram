@@ -41,7 +41,7 @@
                                  (:forward
                                   `((:to :see)
                                     (:pose ,(make-pose-stamped
-                                             designators-ros:*robot-base-frame*
+                                             *robot-base-frame*
                                              0.0
                                              (cl-transforms:make-3d-vector
                                               3.0 0.0 1.5)

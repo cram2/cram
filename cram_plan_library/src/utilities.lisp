@@ -46,11 +46,11 @@
           (cl-transforms-stamped:transform-pose-stamped
            *transformer*
            :pose (make-pose-stamped
-                  designators-ros:*robot-base-frame* 0.0
+                  *robot-base-frame* 0.0
                   (cl-transforms:make-identity-vector)
                   (cl-transforms:make-identity-rotation))
-           :target-frame designators-ros:*fixed-frame*
-           :timeout cram-roslisp-common:*tf-default-timeout*)))
+           :target-frame *fixed-frame*
+           :timeout *tf-default-timeout*)))
     (copy-pose-stamped
      robot-pose
      :origin (cl-transforms:copy-3d-vector

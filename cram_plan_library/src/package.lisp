@@ -67,7 +67,6 @@
            #:object-picked-up
            #:object-in-hand-failure
            #:object-not-found-failure)
-  (:import-from cram-roslisp-common *transformer*)
   (:import-from cram-task-knowledge table-setting-object)
   (:desig-properties #:to #:see #:obj #:of #:reach #:type #:trajectory
                      #:pose #:open #:side #:grasp #:lift #:carry :reach

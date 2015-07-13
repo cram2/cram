@@ -57,10 +57,10 @@
              (handle-pose-map
                (tf:copy-pose-stamped
                 (cl-transforms-stamped:transform-pose-stamped
-                 cram-roslisp-common:*transformer*
+                 *transformer*
                  :pose handle-pose
-                 :target-frame designators-ros:*fixed-frame*
-                 :timeout cram-roslisp-common:*tf-default-timeout*
+                 :target-frame *fixed-frame*
+                 :timeout *tf-default-timeout*
                  :use-current-ros-time t)
                 :orientation (tf:orientation semantic-handle-pose))))
         (make-designator

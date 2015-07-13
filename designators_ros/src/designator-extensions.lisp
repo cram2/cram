@@ -29,10 +29,6 @@
 
 (in-package :designators-ros)
 
-(defparameter *fixed-frame* "map")
-(defparameter *robot-base-frame* "base_footprint")
-(defparameter *odom-frame* "odom_combined")
-(defparameter *ik-service-name* "/moveit/compute_ik")
 (defparameter *distance-equality-threshold* 0.025)
 (defparameter *angle-equality-threshold* (* 5 (/ pi 180)))
 
