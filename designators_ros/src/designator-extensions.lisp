@@ -48,13 +48,6 @@
    (cl-transforms:origin (reference desig-1))
    (cl-transforms:origin (reference desig-2))))
 
-(defgeneric ensure-pose-stamped (position-object frame-id stamp)
-  (:method ((pose cl-transforms:pose) frame-id stamp)
-    (pose->pose-stamped frame-id stamp pose))
-  (:method ((pose-stamped pose-stamped) frame-id stamp)
-    (declare (ignore frame-id stamp))
-    pose-stamped))
-
 (defmethod designator-solutions-equal
     ((solution-1 cl-transforms:pose) (solution-2 cl-transforms:pose))
   "Checks whether two designator solutions are equal in *fixed-frame* or *robot-base-frame*."
