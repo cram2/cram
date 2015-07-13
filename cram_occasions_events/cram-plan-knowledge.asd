@@ -37,8 +37,7 @@
                cram-utilities
                cram-execution-trace
                alexandria
-               cram-designators
-               designators-ros)
+               cram-designators)
   :components
   ((:module "src"
             :components
