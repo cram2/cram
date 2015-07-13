@@ -36,6 +36,9 @@
         #:cram-manipulation-knowledge #:cl-transforms-stamped)
   (:import-from #:alexandria compose curry rcurry with-gensyms copy-hash-table)
   (:import-from #:desig desig-solutions)
+  (:import-from #:cram-roslisp-common
+                *fixed-frame* *robot-base-frame* *ik-service-name*
+                *transformer* *tf-default-timeout*)
   (:shadowing-import-from #:cl-bullet points pose)
   (:shadow copy-object)
   (:export *current-bullet-world* *current-timeline*

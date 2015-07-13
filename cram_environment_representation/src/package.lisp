@@ -32,11 +32,11 @@
   (:use #:common-lisp #:cram-plan-library #:cram-plan-knowledge
         #:bullet-reasoning #:cram-prolog #:cram-utilities
         #:cl-transforms-stamped)
-  (:shadowing-import-from
-   #:bullet-reasoning side robot at throughout object during holds)
+  (:shadowing-import-from #:bullet-reasoning
+                          side robot at throughout object during holds)
   (:shadowing-import-from #:cram-plan-knowledge event object-attached)
   (:import-from #:cram-manipulation-knowledge end-effector-link)
+  (:import-from #:cram-roslisp-common *fixed-frame* *transformer* *tf-default-timeout*)
   (:export get-robot-object get-designator-object-name get-designator-object
            object-designator-name)
-  (:import-from cram-roslisp-common *transformer*)
   (:desig-properties pose in gripper z-offset at type))
