@@ -85,7 +85,7 @@
     (let ((robot (get-robot-object)))
       (when robot
         (set-robot-state-from-tf
-         cram-roslisp-common:*transformer* robot :timestamp (event-timestamp event)))))
+         *transformer* robot :timestamp (event-timestamp event)))))
   (timeline-advance
    *current-timeline*
    (make-event
@@ -139,17 +139,14 @@
     (desig:make-designator
      :location
      `((:pose ,(pose->pose-stamped
-                designators-ros:*fixed-frame* (cut:current-timestamp)
-                (cl-bullet:pose object)))))))
+                *fixed-frame* (cut:current-timestamp) (cl-bullet:pose object)))))))
 
 (defun make-object-location-in-gripper (object gripper-link)
   "Returns a new location designator that indicates a location in the
   robot's gripper."
   (declare (type object object))
   (roslisp:ros-info () "making desig in gripper ~a~%~%~%~%" gripper-link)
-  (let* ((object-pose (pose->pose-stamped
-                       designators-ros:*fixed-frame* 0.0
-                       (btr:pose object)))
+  (let* ((object-pose (pose->pose-stamped *fixed-frame* 0.0 (btr:pose object)))
          (robot (get-robot-object)))
     (assert (member gripper-link (btr:object-attached robot object) :test #'equal))
     (let ((supporting-bounding-box (get-supporting-object-bounding-box (name object))))
@@ -172,10 +169,9 @@
   (copy-pose-stamped
    (cl-transforms-stamped:transform-pose-stamped
     *transformer*
-    :pose (pose->pose-stamped
-           designators-ros:*fixed-frame* 0.0 (btr:pose object))
+    :pose (pose->pose-stamped *fixed-frame* 0.0 (btr:pose object))
     :target-frame frame
-    :timeout cram-roslisp-common:*tf-default-timeout*)
+    :timeout *tf-default-timeout*)
    :stamp 0.0))
 
 (defun extend-designator-properties (designator property-extension)

@@ -37,14 +37,13 @@
   "IK persistent service handle.")
 
 (defun set-robot-state-from-tf (tf-buffer robot
-                                &key (reference-frame designators-ros:*fixed-frame*)
-                                  timestamp)
+                                &key (reference-frame *fixed-frame*) timestamp)
   (handler-case
       (let* ((root-link (cl-urdf:name (cl-urdf:root-link (urdf robot))))
              (robot-transform
                (cl-transforms-stamped:lookup-transform-stamped
                 tf-buffer root-link reference-frame
-                :time timestamp :timeout cram-roslisp-common:*tf-default-timeout*)))
+                :time timestamp :timeout *tf-default-timeout*)))
         (when robot-transform
           (setf (link-pose robot root-link)
                 (cl-transforms:transform->pose robot-transform))
@@ -56,7 +55,7 @@
                     (cl-transforms-stamped:lookup-transform-stamped
                      tf-buffer name root-link
                      :time timestamp
-                     :timeout cram-roslisp-common:*tf-default-timeout*)))))))
+                     :timeout *tf-default-timeout*)))))))
     (transform-stamped-error (error)
       (roslisp:ros-warn (set-robot-state-from-tf)
                         "Failed with transform-stamped-error: ~a" error))))
@@ -224,7 +223,7 @@ joint positions as seeds."
   (unless (and *persistent-ik-service*
                (roslisp:persistent-service-ok *persistent-ik-service*))
     (setf *persistent-ik-service* (make-instance 'roslisp:persistent-service
-                                    :service-name designators-ros:*ik-service-name*
+                                    :service-name *ik-service-name*
                                     :service-type "moveit_msgs/GetPositionIK")))
   *persistent-ik-service*)
 
@@ -265,15 +264,15 @@ time for that :(..."
               (tool-frame (cl-transforms:make-identity-pose))
               (group-name (error "Plan group of IK service has to be specified"))
               fixed-frame
-              (robot-base-frame designators-ros:*robot-base-frame*)
+              (robot-base-frame *robot-base-frame*)
               seed-state)
     (declare (ignore fixed-frame))
     (roslisp:ros-info (get-ik) "inside get-ik")
     (let* ((pose (cl-transforms-stamped:transform-pose-stamped
-                  cram-roslisp-common:*transformer*
+                  *transformer*
                   :pose (copy-pose-stamped pose-stamped :stamp 0.0)
                   :target-frame robot-base-frame
-                  :timeout cram-roslisp-common:*tf-default-timeout*)))
+                  :timeout *tf-default-timeout*)))
       (roslisp:ros-info (get-ik) "msg:~%~a~%"
                         (roslisp:make-msg
                          "moveit_msgs/PositionIKRequest"

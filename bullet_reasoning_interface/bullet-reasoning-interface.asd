@@ -7,7 +7,8 @@
                cl-tf2
                cram-prolog
                bullet_reasoning_interface-srv
-               bullet_reasoning_interface-msg)
+               bullet_reasoning_interface-msg
+               cram-roslisp-common)
   :components
   ((:module "src"
     :components

@@ -34,15 +34,15 @@
             (:w :orientation :pose) rotation-w))
             
 (defun pose-stamped->pose-stamped-fixed (pose-stamped)
-  "Transforms the stamped pose `pose-stamped' to `designators-ros:*fixed-frame*' and returns it."
+  "Transforms the stamped pose `pose-stamped' to `*fixed-frame*' and returns it."
   (let ((frame_id (cl-transforms-stamped:frame-id pose-stamped)))
     (if (string= (cl-transforms-stamped:unslash-frame frame_id)
-                 (cl-tf2:unslash-frame designators-ros:*fixed-frame*))
+                 (cl-tf2:unslash-frame *fixed-frame*))
         pose-stamped
         (let ((result (cl-transforms-stamped:transform-pose-stamped
                        *transform-listener*
                        :pose pose-stamped
-                       :target-frame designators-ros:*fixed-frame*)))
+                       :target-frame *fixed-frame*)))
           (out-info "transform result: ~a" result)
           (if result
               result)))))

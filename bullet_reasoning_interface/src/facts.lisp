@@ -31,7 +31,7 @@
 
 (defun get-robot-pose-stamped (&key (world btr:*current-bullet-world*) (name 'cram-pr2-knowledge::pr2))
   (let ((result (get-robot-pose :world world :name name)))
-    (cl-tf:make-pose-stamped  designators-ros:*fixed-frame* (ros-time) (cl-tf:origin result) (cl-tf:orientation result))))
+    (cl-tf:make-pose-stamped  *fixed-frame* (ros-time) (cl-tf:origin result) (cl-tf:orientation result))))
 
 (defun get-object-pose (name &key (world btr:*current-bullet-world*) simulate-duration copy)
   "Returns the pose of object `name' in the world `world'."
@@ -130,7 +130,7 @@
   "Returns the stamped pose of object `name' in the world `world'."
   (let ((result (get-object-pose name :world world)))
     (when result
-        (cl-tf:make-pose-stamped designators-ros:*fixed-frame* (ros-time) (cl-tf:origin result) (cl-tf:orientation result)))))
+        (cl-tf:make-pose-stamped *fixed-frame* (ros-time) (cl-tf:origin result) (cl-tf:orientation result)))))
 
 (defun is-visible (object &key (world btr:*current-bullet-world*) camera-pose simulate-duration copy)
   "Returns `t' if the object `name' is visible from the robot's viewpoint in the world `world', `NIL' otherwise.

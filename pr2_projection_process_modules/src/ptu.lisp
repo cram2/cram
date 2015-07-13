@@ -42,8 +42,8 @@
      (lambda ()
        (let ((pose (cl-transforms-stamped:transform-pose-stamped
                     *transformer*
-                    :pose pose :target-frame designators-ros:*fixed-frame*
-                    :timeout cram-roslisp-common:*tf-default-timeout*)))
+                    :pose pose :target-frame *fixed-frame*
+                    :timeout *tf-default-timeout*)))
          (assert
           (prolog:prolog `(and
                         (bullet-world ?world)
