@@ -38,23 +38,24 @@
               (result nil))
           (unwind-protect
                (progn
-                 (setf worker-thread (sb-thread:make-thread
-                                      (lambda ()
-                                        (handler-case
-                                            (setf result
-                                                  (apply (symbol-function plan-symbol)
-                                                         (let ((*read-eval* nil)
-                                                               (*package* (symbol-package plan-symbol)))
-                                                           (map 'list #'read-from-string parameters))))
-                                          (condition (e)
-                                            (setf result e))))))
+                 (setf worker-thread
+                       (sb-thread:make-thread
+                        (lambda ()
+                          (handler-case
+                              (setf result
+                                    (apply (symbol-function plan-symbol)
+                                           (let ((*read-eval* nil)
+                                                 (*package* (symbol-package plan-symbol)))
+                                             (map 'list #'read-from-string parameters))))
+                            (condition (e)
+                              (setf result e))))))
                  (loop-at-most-every 0.1
                    (when (actionlib:cancel-request-received)
                      (actionlib:abort-current))
                    (unless (sb-thread:thread-alive-p worker-thread)
                      (typecase result
                        (condition
-                          (actionlib:abort-current :result (format nil "~a" result)))
+                        (actionlib:abort-current :result (format nil "~a" result)))
                        (t (actionlib:succeed-current :result (format nil "~a" result)))))))
             (when (and worker-thread (sb-thread:thread-alive-p worker-thread))
               (let* ((task-tree (get-top-level-task-tree plan-symbol))
@@ -91,7 +92,7 @@
        (progn
          (setf cpl-impl:*break-on-plan-failures* nil)
          (setf cpl-impl:*debug-on-lisp-errors* nil)
-         (roslisp-utilitiesstartup-ros :name "cram_actionserver" :anonymous nil)
+         (roslisp-utilities:startup-ros :name "cram_actionserver" :anonymous nil)
          (register-service-fn "~list_plans" #'plan-list 'cram_plan_actionserver-srv:planlist)
          (maybe-setup-tracing)
          (actionlib:start-action-server
