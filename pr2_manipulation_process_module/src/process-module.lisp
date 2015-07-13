@@ -363,7 +363,7 @@
                                 *transformer*
                                 :pose (obj-desig-location (current-desig obj))
                                 :target-frame target-frame
-                                :timeout cram-roslisp-common:*tf-default-timeout*)))
+                                :timeout *tf-default-timeout*)))
          (loc-desig-in-gripper (make-designator
                                 :location
                                 (append `((:pose ,obj-pose-in-gripper)
@@ -393,8 +393,8 @@ its' supporting plane."
   (let* ((obj-pose (cl-transforms-stamped:transform-pose-stamped
                     *transformer*
                     :pose (obj-desig-location (current-desig obj-desig))
-                    :target-frame designators-ros:*fixed-frame*
-                    :timeout cram-roslisp-common:*tf-default-timeout*))
+                    :target-frame *fixed-frame*
+                    :timeout *tf-default-timeout*))
          ;; build a new location designator for the object:
          ;; the transform will be in the wrist frame of the `side' gripper
          ;; thus it'll move with the gripper;
@@ -415,7 +415,7 @@ its' supporting plane."
                                       (first
                                        (prolog:prolog
                                         `(manipulator-link ,side ?link))))
-                       :timeout cram-roslisp-common:*tf-default-timeout*)
+                       :timeout *tf-default-timeout*)
                       :stamp 0.0))
               (:height ,height)
               (:orientation ,(cl-transforms:orientation obj-pose))))))

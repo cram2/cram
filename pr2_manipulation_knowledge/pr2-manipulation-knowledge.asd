@@ -34,7 +34,8 @@
                cram-manipulation-knowledge
                cram-prolog
                cram-semantic-map-utils
-               cram-semantic-map)
+               cram-semantic-map
+               cram-roslisp-common)
   :components
   ((:module "src"
     :components

@@ -74,10 +74,10 @@
         (let* ((pose-in-gripper (find-designator-pose-in-link gripper-link at))
                (put-down-pose-in-fixed-frame
                  (cl-transforms-stamped:transform-pose-stamped
-                  cram-roslisp-common:*transformer*
-                  :target-frame designators-ros:*fixed-frame*
+                  *transformer*
+                  :target-frame *fixed-frame*
                   :pose put-down-pose
-                  :timeout cram-roslisp-common:*tf-default-timeout*))
+                  :timeout *tf-default-timeout*))
                (put-down-pose (if (not robot-pose)
                                   put-down-pose-in-fixed-frame
                                   (copy-pose-stamped

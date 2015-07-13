@@ -67,8 +67,9 @@
 (defun use-navp? (goal-pose)
   (let* ((pose-in-base (cl-transforms-stamped:transform-pose-stamped
                         *transformer*
-                        :pose goal-pose :target-frame "/base_footprint"
-                        :timeout cram-roslisp-common:*tf-default-timeout*))
+                        :pose goal-pose
+                        :target-frame *robot-base-frame*
+                        :timeout *tf-default-timeout*))
          (goal-dist (cl-transforms:v-norm
                      (cl-transforms:origin pose-in-base)))
          (goal-angle (atan
@@ -83,8 +84,8 @@
 (defun goal-reached? (goal-pose)
   (let* ((pose-in-base (cl-transforms-stamped:transform-pose-stamped
                         *transformer*
-                        :pose goal-pose :target-frame "/base_footprint"
-                        :timeout cram-roslisp-common:*tf-default-timeout*))
+                        :pose goal-pose :target-frame *robot-base-frame*
+                        :timeout *tf-default-timeout*))
          (goal-dist (cl-transforms:v-norm
                      (cl-transforms:origin pose-in-base)))
          (goal-angle (second
@@ -106,8 +107,8 @@
            (cl-transforms-stamped:transform-pose-stamped
             *transformer*
             :pose goal-pose
-            :target-frame designators-ros:*fixed-frame*
-            :timeout cram-roslisp-common:*tf-default-timeout*
+            :target-frame *fixed-frame*
+            :timeout *tf-default-timeout*
             :use-current-ros-time t)))
     (roslisp:publish (roslisp:advertise "/ppp" "geometry_msgs/PoseStamped")
                      (to-msg goal-pose-in-fixed-frame))
