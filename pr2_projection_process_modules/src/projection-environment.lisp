@@ -36,7 +36,7 @@
 
 (define-projection-environment pr2-bullet-projection-environment
   :special-variable-initializers
-  ((cram-roslisp-common:*transformer* (make-instance 'cl-tf:transformer))
+  ((*transformer* (make-instance 'cl-tf:transformer))
    ;; TODO: use custom tf topic "tf_sim"
    ;; For that first change tf2_ros/TransformListener to accept custom topic names
    ;; (*current-bullet-world* (cl-bullet:copy-world *current-bullet-world*))

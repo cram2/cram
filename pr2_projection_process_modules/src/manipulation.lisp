@@ -61,8 +61,7 @@
 (defun get-link-orientation-in-robot (link-name &key (base-link "base_footprint"))
   (cl-transforms:rotation
    (cl-transforms-stamped:lookup-transform-stamped
-    cram-roslisp-common:*transformer* base-link link-name
-    :timeout cram-roslisp-common:*tf-default-timeout*)))
+    *transformer* base-link link-name :timeout *tf-default-timeout*)))
 
 (defun execute-action-trajectory-points (action-designator &optional object-name)
   (cut:force-ll
@@ -124,14 +123,12 @@
                       ?right-parking-joint-states :right))))
     (let* ((left-gripper-transform
              (cl-transforms-stamped:lookup-transform-stamped
-              cram-roslisp-common:*transformer*
-              designators-ros:*robot-base-frame* ?left-end-effector
-              :timeout cram-roslisp-common:*tf-default-timeout*))
+              *transformer* *robot-base-frame* ?left-end-effector
+              :timeout *tf-default-timeout*))
            (right-gripper-transform
              (cl-transforms-stamped:lookup-transform-stamped
-              cram-roslisp-common:*transformer*
-              designators-ros:*robot-base-frame* ?right-end-effector
-              :timeout cram-roslisp-common:*tf-default-timeout*))
+              *transformer* *robot-base-frame* ?right-end-effector
+              :timeout *tf-default-timeout*))
            (left->right-arm-vector
              (cl-transforms:v-
               (cl-transforms:translation left-gripper-transform)
@@ -139,10 +136,10 @@
            (arm-distance (cl-transforms:v-norm left->right-arm-vector))
            (carry-pose-in-base
              (cl-transforms-stamped:transform-pose-stamped
-              cram-roslisp-common:*transformer*
-              :target-frame designators-ros:*robot-base-frame*
+              *transformer*
+              :target-frame *robot-base-frame*
               :pose *both-arms-carry-pose*
-              :timeout cram-roslisp-common:*tf-default-timeout*)))
+              :timeout *tf-default-timeout*)))
       (set-robot-reach-pose
        :left carry-pose-in-base
        :tool-frame (cl-transforms:make-pose
