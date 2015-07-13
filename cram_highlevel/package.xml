@@ -28,7 +28,6 @@
   <run_depend>occupancy_grid_costmap/</run_depend>
   <run_depend>perception_process_module/</run_depend>
   <run_depend>cram_semantic_map</run_depend>
-  <run_depend>semantic_map_collision_environment/</run_depend>
   <run_depend>semantic_map_costmap/</run_depend>
   <run_depend>cram_semantic_map_utils</run_depend>
   <run_depend>cffi_ros_utils/</run_depend>
