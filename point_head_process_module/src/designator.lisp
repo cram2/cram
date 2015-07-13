@@ -43,15 +43,8 @@
    (z point) (cl-transforms:z
               (cl-transforms:origin ps))))
 
-(defun ensure-pose-stamped (pose)
-  (etypecase pose
-    (pose-stamped pose)
-    (transform-stamped
-     (make-pose-stamped
-      (frame-id pose) (cl-tf-datatypes:stamp pose)
-      (cl-transforms:translation pose)
-      (cl-transforms:rotation pose)))
-    (location-designator (reference pose))))
+(defmethod ensure-pose-stamped ((desig location-designator) &optional frame-id stamp)
+  (reference desig))
 
 (defun make-action-goal (pose-stamped)
   (let ((pose-stamped
