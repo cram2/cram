@@ -35,5 +35,7 @@
            manipulator-link
            manipulator-identity-orientation
            planning-group)
+  (:import-from #:cram-roslisp-common
+                *fixed-frame* *transformer* *tf-default-timeout*)
   (:desig-properties to grasp obj side put-down at open close handle
                      in gripper pose z-offset lift distance name height))

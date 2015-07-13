@@ -75,12 +75,10 @@
       (frame-id pose-specification)
       (stamp pose-specification)
       (cl-transforms:origin pose-specification)))
-    (cl-transforms:3d-vector (make-point-stamped
-                              designators-ros:*fixed-frame* 0.0
-                              pose-specification))
-    (cl-transforms:pose (make-point-stamped
-                         designators-ros:*fixed-frame* 0.0
-                         (cl-transforms:origin pose-specification)))))
+    (cl-transforms:3d-vector
+     (make-point-stamped *fixed-frame* 0.0 pose-specification))
+    (cl-transforms:pose
+     (make-point-stamped *fixed-frame* 0.0 (cl-transforms:origin pose-specification)))))
 
 (defun get-closest-orientation (pose orientations)
   "Returns the orientation in `orientation' that is closest to the
@@ -90,9 +88,7 @@
                 (pose-stamped
                  (cl-transforms-stamped:transform-pose-stamped
                   *transformer*
-                  :pose pose
-                  :target-frame designators-ros:*fixed-frame*
-                  :timeout cram-roslisp-common:*tf-default-timeout*))
+                  :pose pose :target-frame *fixed-frame* :timeout *tf-default-timeout*))
                 (cl-transforms:pose pose))))
     (find-closest-orientation
      (cl-transforms:orientation pose) orientations)))
@@ -122,15 +118,15 @@ point-stamped, all orientations are used."
              :format-control "`orientations' cannot be specified in combination with a CL-TRANSFORMS:POSE."))
     (let* ((point (ensure-point-stamped pose-specification))
            (point-in-map (cl-transforms-stamped:transform-point-stamped
-                          cram-roslisp-common:*transformer*
+                          *transformer*
                           :point point
-                          :target-frame designators-ros:*fixed-frame*
-                          :timeout cram-roslisp-common:*tf-default-timeout*))
+                          :target-frame *fixed-frame*
+                          :timeout *tf-default-timeout*))
            (point-in-ik-frame (cl-transforms-stamped:transform-point-stamped
-                               cram-roslisp-common:*transformer*
+                               *transformer*
                                :point point
                                :target-frame *ik-reference-frame*
-                               :timeout cram-roslisp-common:*tf-default-timeout*))
+                               :timeout *tf-default-timeout*))
            (functions (mapcar
                        (lambda (side)
                          (let* ((reachability-map (get-reachability-map side))
