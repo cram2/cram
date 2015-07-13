@@ -33,4 +33,6 @@
 (defpackage cram-roslisp-common
     (:use :cl :roslisp)
   (:export #:*transformer*
-           #:*tf-default-timeout*))
+           #:*tf-default-timeout*
+           #:*fixed-frame* #:*robot-base-frame* #:*odom-frame*
+           #:*ik-service-name*))

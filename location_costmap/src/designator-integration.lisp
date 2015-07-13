@@ -65,12 +65,12 @@
                 (cl-transforms-stamped:transform-pose-stamped
                  *transformer*
                  :pose (make-pose-stamped
-                        designators-ros:*robot-base-frame*
+                        *robot-base-frame*
                         (roslisp:ros-time)
                         (cl-transforms:make-identity-vector)
                         (cl-transforms:make-identity-rotation))
-                 :target-frame designators-ros:*fixed-frame*
-                 :timeout cram-roslisp-common:*tf-default-timeout*)))
+                 :target-frame *fixed-frame*
+                 :timeout *tf-default-timeout*)))
           (list robot-pose))
       (transform-stamped-error () nil))))
 
