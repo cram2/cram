@@ -89,12 +89,10 @@ for 2 plates and 1 other-type.")
     (respawn-demo demo-name :set set)))
 
 (defun new-symbol-with-id (string number)
-  (intern (concatenate 'string (string-upcase string) "-" (write-to-string number))
-          "SPATIAL-RELATIONS-DEMO"))
+  (alexandria:format-symbol T "~a-~a" string number))
 
 (defun new-symbol-from-strings (&rest strings)
-  (intern (string-upcase (reduce (alexandria:curry #'concatenate 'string) strings))
-          "SPATIAL-RELATIONS-DEMO"))
+  (alexandria:format-symbol T "~{~a~}" strings))
 
 (declaim (inline new-symbol-with-id new-symbol-from-strings))
 
