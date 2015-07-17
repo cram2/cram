@@ -10,9 +10,9 @@
         #:cram-roslisp-common
         #:cram-process-modules
         #:cram-plan-failures
-        #:cram-plan-knowledge)
+        #:cram-plan-events)
   (:import-from alexandria ignore-some-conditions)
-  (:import-from #:cram-plan-knowledge
+  (:import-from #:cram-plan-events
                 matching-process-module available-process-module)
   (:export tutorial-process-module generate-random-location)
   (:desig-properties #:to #:perceive #:obj #:ground

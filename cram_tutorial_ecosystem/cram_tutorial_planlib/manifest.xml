@@ -15,7 +15,7 @@
   <depend package="alexandria"/>
   <depend package="cram_reasoning"/>
   <depend package="cram_plan_library"/>
-  <depend package="cram_plan_knowledge"/>
+  <depend package="cram_plan_events"/>
   <depend package="cram_environment_representation"/>
   <depend package="cram_utilities" />
   <depend package="cram_process_modules" />

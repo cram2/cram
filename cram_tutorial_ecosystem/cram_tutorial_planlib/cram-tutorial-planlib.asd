@@ -8,7 +8,7 @@
                cram-roslisp-common
                cram-plan-library
                cram-reasoning
-               cram-plan-knowledge
+               cram-plan-events
                cram-environment-representation
                alexandria
                cram-plan-failures

@@ -3,7 +3,7 @@
 (desig-props:def-desig-package cram-tutorial-planlib
   (:use #:roslisp #:cram-utilities #:designators-ros
         #:cram-roslisp-common #:cram-designators
-        #:cram-plan-knowledge #:cram-plan-library #:cpl
+        #:cram-plan-events #:cram-plan-library #:cpl
 	#:cram-plan-failures)
   (:import-from #:cram-reasoning #:<- #:def-fact-group)
   (:export ambiguous-perception perceive-object a the all)
