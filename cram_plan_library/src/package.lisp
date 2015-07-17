@@ -55,7 +55,6 @@
            #:container-opened
            #:perceive-object-in-gripper
            #:arms-parked
-           #:arms-at
            #:looking-at
            #:at-location
            #:object-detected
