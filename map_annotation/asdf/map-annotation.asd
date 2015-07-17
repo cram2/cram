@@ -1,1 +1,0 @@
-../src/lisp/map-annotation.asd
