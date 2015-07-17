@@ -29,44 +29,23 @@
 
 (in-package :cl-user)
 
-(desig-props:def-desig-package cram-plan-knowledge
-    (:use #:common-lisp
-          #:cram-prolog
-          #:cpl-impl
-          #:alexandria
-          #:desig
-          #:cram-utilities
-          #:cram-execution-trace)
-  (:nicknames #:plan-knowledge)
-  (:shadowing-import-from #:cpl #:name)
-  (:shadow event)
-  (:export #:clear-belief
-           #:assert-occasion
-           #:retract-occasion
-           #:holds-occasion
-           ;; prolog
-           #:fluent
-           #:fluent-value
-           #:task-path
-           #:top-level
-           #:task #:goal-task
-           #:task-status-fluent
-           #:task-goal
-           #:task-outcome
-           #:task-result
-           #:task-error
-           #:error-type
-           #:holds
-           #:task-status
-           #:duration-includes
-           #:throughout
-           #:during
-           #:task-started-at
-           #:task-created-at
-           #:task-ended-at
-           #:subtask
-           #:subtask+
-           #:at
+(defpackage cram-plan-events
+  (:use #:common-lisp
+        #:cram-occasions-events)
+  (:nicknames #:plan-events)
+  (:export #:object-perceived-event
+           #:robot-state-changed
+           #:object-connection-event
+           #:object-articulation-event
+           #:object-attached #:object-detached
+           #:object-removed-event
+           #:object-updated-event #:event-object-name
+           #:event-object-designator #:object-designator
+           #:perception-source #:object #:event-object
+           #:link #:event-link #:side #:event-side
+           #:opening-distance
+
+           ;; occasions
            ;; Symbols used in plans and thus the execution trace.
            #:achieve
            #:object-in-hand
@@ -88,7 +67,6 @@
            #:?loc
            #:pm-executing #:?module #:?input
            #:on-pm-execute
-           #:event #:on-event
            #:object-perceived-event
            #:robot-state-changed
            #:object-connection-event
@@ -97,21 +75,8 @@
            #:object-removed-event
            #:object-updated-event #:event-object-name
            #:event-object-designator #:object-designator
-           #:event-timestamp
            #:perception-source #:object #:event-object
            #:link #:event-link #:side #:event-side
            #:holds #:opening-distance
            ;; cooking goals
-           #:object-flipped)
-  (:import-from #:cpl-impl
-                #:make-fluent
-                #:value
-                #:plan-failure
-                #:common-lisp-error-envelope
-                #:task-tree-node-children
-                #:task-tree-node-status-fluent)
-  (:shadowing-import-from #:cram-prolog
-                          #:fail)
-  ;; We need AT from the desig properties to make sure the symbol AT we use
-  ;; and export is compatible with other packages from the cram universe
-  (:desig-properties #:at))
+           #:object-flipped))

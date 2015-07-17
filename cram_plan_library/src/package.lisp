@@ -37,11 +37,13 @@
         #:cram-process-modules
         #:roslisp
         #:cram-roslisp-common
-        #:cram-plan-knowledge
+        #:cram-plan-events
+        #:cram-occasions-events
         #:cram-plan-failures
         #:alexandria
         #:cl-transforms-stamped)
   (:shadowing-import-from #:alexandria rotate)
+  (:shadowing-import-from #:cram-designators object-designator object)
   (:export #:achieve
            #:perform
            #:perform-on-process-module

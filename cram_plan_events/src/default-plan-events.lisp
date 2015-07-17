@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-plan-knowledge)
+(in-package :cram-plan-events)
 
 ;;; Note that we do not provide an event for object change. The reason
 ;;; is that object changes are essentially object perception events.

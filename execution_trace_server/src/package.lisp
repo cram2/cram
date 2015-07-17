@@ -33,7 +33,7 @@
         #:roslisp
         #:desig
         #:cut
-        #:cram-plan-knowledge
+        #:cram-plan-events
         #:cram-plan-library
         #:cram-prolog
         #:cram-roslisp-common

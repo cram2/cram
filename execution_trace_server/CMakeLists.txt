@@ -4,7 +4,7 @@ project(execution_trace_server)
 find_package(catkin REQUIRED COMPONENTS
   message_generation
   cram_prolog
-  cram_plan_knowledge
+  cram_plan_events
   cram_execution_trace
   cram_plan_library
   cram_roslisp_common
@@ -25,6 +25,7 @@ catkin_package(
   CATKIN_DEPENDS
   message_runtime
   cram_prolog
+  cram_plan_events
   cram_execution_trace
   cram_plan_library
   cram_roslisp_common
