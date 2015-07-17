@@ -70,8 +70,8 @@
               (point-head process-module)
               "Cannot resolve designator ~a. Ignoring." goal)))
       (cram-language::on-finish-move-head log-id success)
-      (plan-knowledge:on-event
-       (make-instance 'plan-knowledge:robot-state-changed)))))
+      (cram-occasions-events:on-event
+       (make-instance 'cram-plan-events:robot-state-changed)))))
 
 (defun maybe-shutdown-thread ()
   (when (and *point-head-thread*
