@@ -9,7 +9,9 @@ find_package(catkin REQUIRED COMPONENTS
   bullet_reasoning
   bullet_reasoning_designators
   cram_designators
-  cram_plan_knowledge
+  cram_plan_events
+  cram_occasions_events
+  cram_environment_representation
   cram_manipulation_knowledge
   cl_transforms
   cram_projection

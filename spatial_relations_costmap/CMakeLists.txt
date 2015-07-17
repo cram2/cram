@@ -11,7 +11,6 @@ find_package(catkin REQUIRED COMPONENTS
   cram_environment_representation
   pr2_projection_process_modules
   occupancy_grid_costmap
-  cram_plan_knowledge
   bullet_reasoning_designators
   pr2_manipulation_knowledge
   object_location_designators

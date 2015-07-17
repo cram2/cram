@@ -75,8 +75,8 @@
     (set-tf-from-robot-state
      *transformer* ?robot-instance)))
 
-(defmethod cram-plan-knowledge:on-event update-tf
-    ((event cram-plan-knowledge:robot-state-changed))
+(defmethod cram-occasions-events:on-event update-tf
+    ((event cram-plan-events:robot-state-changed))
   (update-tf))
 
 (defmethod get-ik :before (robot pose-stamped

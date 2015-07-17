@@ -30,6 +30,8 @@
   (:use #:common-lisp
         #:bullet-reasoning
         #:cram-process-modules
+        ;; #:cram-occasions-events
+        ;; #:cram-plan-events
         #:cram-projection
         #:cl-transforms-stamped)
   (:shadowing-import-from #:bullet-reasoning name)

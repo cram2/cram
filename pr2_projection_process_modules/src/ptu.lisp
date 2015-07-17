@@ -49,8 +49,8 @@
                         (bullet-world ?world)
                         (robot ?robot)
                         (head-pointing-at ?world ?robot ,pose)))))
-       (cram-plan-knowledge:on-event
-        (make-instance 'cram-plan-knowledge:robot-state-changed))))
+       (cram-occasions-events:on-event
+        (make-instance 'cram-plan-events:robot-state-changed))))
     (finish-process-module process-module :designator input)))
 
 (defmethod synchronization-fluent ((process-module projection-ptu)
