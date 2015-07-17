@@ -10,7 +10,8 @@ find_package(catkin REQUIRED COMPONENTS
   roslisp_utilities
   cram_roslisp_common
   cram_plan_failures
-  cram_plan_knowledge
+  cram_plan_events
+  cram_occasions_events
   cram_moveit
 )
 

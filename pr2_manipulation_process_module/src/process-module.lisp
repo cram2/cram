@@ -288,9 +288,9 @@
                          (declare (ignorable start))
                          (values trajectory start))))
                  (cram-language::on-finish-move-arm log-id t)
-                 (let ((bs-update (plan-knowledge:on-event
+                 (let ((bs-update (cram-occasions-events:on-event
                                    (make-instance
-                                    'plan-knowledge:robot-state-changed))))
+                                       'cram-plan-events:robot-state-changed))))
                    (cond (plan-only result)
                          (t bs-update)))))
               (t (cram-language::on-finish-move-arm log-id nil)
@@ -311,8 +311,8 @@
                    (position command) position
                    (max_effort command) max-effort)
           :result-timeout 1.0)
-      (plan-knowledge:on-event (make-instance
-                                'plan-knowledge:robot-state-changed)))))
+      (cram-occasions-events:on-event (make-instance
+                                          'cram-plan-events:robot-state-changed)))))
 
 (defun open-gripper (side &key (max-effort 100.0) (position 0.085))
   (cram-language::on-open-gripper side max-effort position)
@@ -326,13 +326,14 @@
                        (position command) position
                        (max_effort command) max-effort)
               :result-timeout 1.0)
-          (plan-knowledge:on-event (make-instance 'plan-knowledge:robot-state-changed)))
+          (cram-occasions-events:on-event
+           (make-instance 'cram-plan-events:robot-state-changed)))
       (with-vars-bound (?carried-object ?gripper-link)
           (lazy-car (prolog `(and (object-in-hand ?carried-object ,side)
                                   (cram-manipulation-knowledge:end-effector-link ,side ?gripper-link))))
         (unless (is-var ?carried-object)
-          (plan-knowledge:on-event
-           (make-instance 'object-detached
+          (cram-occasions-events:on-event
+           (make-instance 'cram-plan-events:object-detached
              :object ?carried-object
              :link ?gripper-link
              :side side)))))))

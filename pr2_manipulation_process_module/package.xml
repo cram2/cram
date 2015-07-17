@@ -23,6 +23,8 @@
   <build_depend>roslisp_utilities</build_depend>
   <build_depend>cram_prolog</build_depend>
   <build_depend>cram_plan_failures</build_depend>
+  <build_depend>cram_plan_events</build_depend>
+  <build_depend>cram_occasions_events</build_depend>
   <build_depend>cram_pr2_knowledge</build_depend>
   <build_depend>pr2_controllers_msgs</build_depend>
   <build_depend>trivial_garbage</build_depend>
@@ -41,6 +43,8 @@
   <run_depend>roslisp_utilities</run_depend>
   <run_depend>cram_prolog</run_depend>
   <run_depend>cram_plan_failures</run_depend>
+  <run_depend>cram_plan_events</run_depend>
+  <run_depend>cram_occasions_events</run_depend>
   <run_depend>cram_pr2_knowledge</run_depend>
   <run_depend>pr2_controllers_msgs</run_depend>
   <run_depend>trivial_garbage</run_depend>

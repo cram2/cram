@@ -38,7 +38,8 @@
                cram-prolog
                cram-roslisp-common
                cram-plan-failures
-               cram-plan-knowledge
+               cram-plan-events
+               cram-occasions-events
                move_base_msgs-msg)
   :components
   ((:module "src"

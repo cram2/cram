@@ -37,7 +37,8 @@
                cram-designators
                cram-prolog
                cram-roslisp-common
-               cram-plan-knowledge
+               cram-plan-events
+               cram-occasions-events
                roslisp-utilities
                alexandria
                pr2_controllers_msgs-msg)

@@ -131,4 +131,5 @@
            (roslisp:ros-info (pr2-nav process-module) "Using nav-pcontroller.")
            (call-nav-action *navp-client* (reference goal)))
       (roslisp:ros-info (pr2-nav process-module) "Navigation finished.")
-      (cram-plan-knowledge:on-event (make-instance 'cram-plan-knowledge:robot-state-changed)))))
+      (cram-occasions-events:on-event
+       (make-instance 'cram-plan-events:robot-state-changed)))))

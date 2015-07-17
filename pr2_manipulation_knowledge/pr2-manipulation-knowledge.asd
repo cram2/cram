@@ -30,7 +30,7 @@
   :author "Lorenz Moesenlechner"
   :license "BSD"
   
-  :depends-on (cram-plan-knowledge
+  :depends-on (cram-plan-events
                cram-manipulation-knowledge
                cram-prolog
                cram-semantic-map-utils

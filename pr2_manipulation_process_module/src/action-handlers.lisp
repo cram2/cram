@@ -274,8 +274,8 @@
                (prolog
                 `(cram-manipulation-knowledge:end-effector-link
                   ,(arm param-set) ?link-name)))
-            (plan-knowledge:on-event
-             (make-instance 'plan-knowledge:object-attached
+            (cram-occasions-events:on-event
+             (make-instance 'cram-plan-events:object-attached
                             :object obj
                             :link ?link-name
                             :side (arm param-set))))
@@ -492,12 +492,12 @@
                     (prolog
                      `(cram-manipulation-knowledge:end-effector-link
                        ,side ?link-name)))
-                 (plan-knowledge:on-event
+                 (cram-occasions-events:on-event
                   (make-instance
-                   'plan-knowledge:object-detached
-                   :object grasped-object
-                   :link ?link-name
-                   :side side))))))
+                      'cram-plan-events:object-detached
+                    :object grasped-object
+                    :link ?link-name
+                    :side side))))))
       (cram-language::on-finish-putdown log-id success))))
 
 (defmethod display-object-handles ((object object-designator))

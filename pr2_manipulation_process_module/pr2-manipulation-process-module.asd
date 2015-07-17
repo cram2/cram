@@ -37,6 +37,8 @@
                roslisp-utilities
                cram-prolog
                cram-plan-failures
+               cram-plan-events
+               cram-occasions-events
                cram-pr2-knowledge
                pr2_controllers_msgs-msg
                pr2_msgs-msg

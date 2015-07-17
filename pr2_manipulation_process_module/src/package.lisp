@@ -37,7 +37,8 @@
         #:cram-roslisp-common
         #:cram-process-modules
         #:cram-plan-failures
-        #:cram-plan-knowledge
+        #:cram-plan-events
+        #:cram-occasions-events
         #:cram-manipulation-knowledge
         #:cl-transforms-stamped)
   (:import-from alexandria ignore-some-conditions)
