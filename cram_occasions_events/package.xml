@@ -2,22 +2,24 @@
   <name>cram_occasions_events</name>
   <version>0.1.0</version>
   <description>
-    This package defines the event protocol and a number of utilities to work
-on occasions.
+    Defines the event protocol for process modules and utilities to work with occasions.
   </description>
 
   <author email="moesenle@cs.tum.edu">Lorenz Moesenlechner</author>
 
   <maintainer email="moesenle@cs.tum.edu">Lorenz Moesenlechner</maintainer>
+  <maintainer email="georg.bartels@cs.uni-bremen.de">Georg Bartels</maintainer>
 
   <license>BSD</license>
 
+  <url type="website">http://cram-project.org</url>
   <url type="website">http://ros.org/wiki/cram_occasions_events</url>
   <url type="bugtracker">https://github.com/cram-code/cram_core/issues</url>
   <url type="repository">https://github.com/cram-code/cram_core</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <build_depend>sbcl</build_depend>
   <build_depend>cram_prolog</build_depend>
   <build_depend>cram_language</build_depend>
   <build_depend>cram_utilities</build_depend>
@@ -25,6 +27,7 @@ on occasions.
   <build_depend>alexandria</build_depend>
   <build_depend>cram_designators</build_depend>
 
+  <run_depend>sbcl</run_depend>
   <run_depend>cram_prolog</run_depend>
   <run_depend>cram_language</run_depend>
   <run_depend>cram_utilities</run_depend>
