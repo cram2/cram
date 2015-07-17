@@ -60,14 +60,14 @@
   (roslisp:ros-info (put plan-lib) "OBJECT-PUT `~a'"
   object-designator))
 
-(declare-goal object-flipped (object-designator
-                              tool-object-designator-1
-                              tool-object-designator-2
-                              flipping-parameters)
-  "Tries to flip an object `object-designator' using the instrumental
-tools `tool-object-designator-1' and `tool-object-designator-2'."
-  (declare (ignore tool-object-designator-1 tool-object-designator-2))
-  (roslisp:ros-info (flip plan-lib) "OBJECT-FLIPPED `~a'" object-designator))
+;; (declare-goal object-flipped (object-designator
+;;                               tool-object-designator-1
+;;                               tool-object-designator-2
+;;                               flipping-parameters)
+;;   "Tries to flip an object `object-designator' using the instrumental
+;; tools `tool-object-designator-1' and `tool-object-designator-2'."
+;;   (declare (ignore tool-object-designator-1 tool-object-designator-2))
+;;   (roslisp:ros-info (flip plan-lib) "OBJECT-FLIPPED `~a'" object-designator))
 
 (declare-goal perceive-state (occasion)
   "Tries to prove that `occasion' holds. Returns a list of bindings
