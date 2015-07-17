@@ -57,27 +57,15 @@
            #:?obj
            #:?side
            #:owl-type
-           #:cowsmilk-product
            #:shape
-           #:arms-at
            #:?traj
            #:looking-at
            #:?lo
-           #:arm-parked
+           #:arms-parked
            #:?loc
-           #:pm-executing #:?module #:?input
+           #:pm-execute
+           #:?module #:?input
            #:on-pm-execute
-           #:object-perceived-event
-           #:robot-state-changed
-           #:object-connection-event
-           #:object-articulation-event
-           #:object-attached #:object-detached
-           #:object-removed-event
-           #:object-updated-event #:event-object-name
-           #:event-object-designator #:object-designator
-           #:perception-source #:object #:event-object
-           #:link #:event-link #:side #:event-side
-           #:holds #:opening-distance
            ;; cooking goals
            ;; #:object-flipped
            ))
