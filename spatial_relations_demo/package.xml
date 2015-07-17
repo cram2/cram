@@ -20,7 +20,7 @@
   <depend>cram_environment_representation</depend>
   <depend>pr2_projection_process_modules</depend>
   <depend>occupancy_grid_costmap</depend>
-  <depend>cram_plan_knowledge</depend>
+  <depend>cram_plan_library</depend>
   <depend>bullet_reasoning_designators</depend>
   <depend>pr2_manipulation_knowledge</depend>
   <depend>object_location_designators</depend>

@@ -59,8 +59,7 @@
                                              (:right-of ,pancake-maker-designator)
                                              (:near ,pancake-maker-designator)))))
             (format t "now trying to achieve the location of spatula on kitchen-island~%")
-            (plan-knowledge:achieve
-             `(plan-knowledge:loc ,spatula-designator ,spatula-location))))
+            (plan-lib:achieve `(plan-lib:loc ,spatula-designator ,spatula-location))))
         (sb-ext:gc :full t)
         (let ((mondamin-designator
                 (find-object-on-counter :mondamin "CounterTop"
@@ -74,8 +73,7 @@
                                               (:right-of ,pancake-maker-designator)
                                               (:far-from ,pancake-maker-designator)))))
             (format t "now trying to achieve the location of mondamin on kitchen-island~%")
-            (plan-knowledge:achieve
-             `(plan-knowledge:loc ,mondamin-designator ,on-kitchen-island))
+            (plan-lib:achieve `(plan-lib:loc ,mondamin-designator ,on-kitchen-island))
             (sb-ext:gc :full t)))
         (sb-ext:gc :full t)
         (let ((spatula-2-designator
@@ -90,5 +88,4 @@
                                              (:left-of ,pancake-maker-designator)
                                              (:near ,pancake-maker-designator)))))
             (format t "now trying to achieve the location of spatula on kitchen-island~%")
-            (plan-knowledge:achieve
-             `(plan-knowledge:loc ,spatula-2-designator ,spatula-location))))))))
+            (plan-lib:achieve `(plan-lib:loc ,spatula-2-designator ,spatula-location))))))))

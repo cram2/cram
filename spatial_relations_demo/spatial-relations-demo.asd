@@ -41,7 +41,7 @@
                cram-environment-representation
                projection-process-modules
                occupancy-grid-costmap
-               cram-plan-knowledge
+               cram-plan-library
                bullet-reasoning-designators
                pr2-manipulation-knowledge
                object-location-designators

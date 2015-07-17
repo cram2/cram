@@ -124,7 +124,7 @@
                                       (:for ,plate-obj-desig) (:context :table-setting) 
                                       (:object-count ,*num-of-sets-on-table*)))))
     (format t "now trying to achieve the location of plate on kitchen-island~%")
-    (plan-knowledge:achieve `(plan-knowledge:loc ,plate-obj-desig ,on-kitchen-island))))
+    (plan-lib:achieve `(plan-lib:loc ,plate-obj-desig ,on-kitchen-island))))
 
 (cpl-impl:def-cram-function put-plate-from-counter-on-table ()
   (sb-ext:gc :full t)
@@ -149,7 +149,7 @@
                                               collecting `(,property ,plate-obj))
                                       (:near ,plate-obj) (:for ,object-to-put)
                                       (:on "Cupboard")))))
-    (plan-knowledge:achieve `(plan-knowledge:loc ,object-to-put ,put-down-location))))
+    (plan-lib:achieve `(plan-lib:loc ,object-to-put ,put-down-location))))
 
 (cpl-impl:def-cram-function put-object-from-counter-near-plate (object-type plate-obj)
   (format t "Put ~a from counter on table near ~a~%"
