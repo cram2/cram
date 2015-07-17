@@ -60,7 +60,8 @@
            #:at-location
            #:object-detected
            #:perceive-object
-           #:the #:all #:a #:currently-visible #:drawer-handle
+           #:the #:all #:a #:currently-visible
+           ;; #:drawer-handle
            #:perceive-state
            #:examine
            #:obstacles-found
@@ -69,7 +70,7 @@
            #:object-picked-up
            #:object-in-hand-failure
            #:object-not-found-failure)
-  (:import-from cram-task-knowledge table-setting-object)
+  ;; (:import-from cram-task-knowledge table-setting-object)
   (:desig-properties #:to #:see #:obj #:of #:reach #:type #:trajectory
                      #:pose #:open #:side #:grasp #:lift #:carry :reach
                      #:location #:at #:parked #:pose #:close #:gripper

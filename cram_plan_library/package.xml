@@ -27,11 +27,11 @@
   <build_depend>cram_occasions_events</build_depend>
   <build_depend>cram_plan_failures</build_depend>
   <build_depend>cram_projection</build_depend>
-  <build_depend>cram_task_knowledge</build_depend>
+  <!-- <build_depend>cram_task_knowledge</build_depend> -->
   <build_depend>alexandria</build_depend>
   <build_depend>designators_ros</build_depend>
-  <build_depend>cram_semantic_map_utils</build_depend>
-  <build_depend>cram_semantic_map</build_depend>
+  <!-- <build_depend>cram_semantic_map_utils</build_depend> -->
+  <!-- <build_depend>cram_semantic_map</build_depend> -->
   <build_depend>cl_transforms_stamped</build_depend>
 
   <run_depend>cram_language</run_depend>
@@ -44,11 +44,11 @@
   <run_depend>cram_occasions_events</run_depend>
   <run_depend>cram_plan_failures</run_depend>
   <run_depend>cram_projection</run_depend>
-  <run_depend>cram_task_knowledge</run_depend>
+  <!-- <run_depend>cram_task_knowledge</run_depend> -->
   <run_depend>alexandria</run_depend>
   <run_depend>designators_ros</run_depend>
-  <run_depend>cram_semantic_map_utils</run_depend>
-  <run_depend>cram_semantic_map</run_depend>
+  <!-- <run_depend>cram_semantic_map_utils</run_depend> -->
+  <!-- <run_depend>cram_semantic_map</run_depend> -->
   <run_depend>cl_transforms_stamped</run_depend>
 
 </package>

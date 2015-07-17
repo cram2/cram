@@ -42,41 +42,36 @@
                cram-plan-failures
                cram-projection
                cram-utilities
-               cram-task-knowledge
+               ;; cram-task-knowledge
                designators-ros
                alexandria
-               cram-semantic-map-utils
-               cram-semantic-map)
+               ;; cram-semantic-map-utils
+               ;; cram-semantic-map
+               )
   :components
   ((:module "src"
             :components
             ((:file "package")
+             (:file "utilities" :depends-on ("package"))
              (:file "goal-declarations" :depends-on ("package"))
+             (:file "perform" :depends-on ("package" "goal-declarations"))
+             (:file "perceive-state" :depends-on ("package" "goal-declarations"))
+             (:file "achieve-ptu" :depends-on ("package" "goal-declarations"))
+             (:file "at-location" :depends-on ("package"))
+             (:file "perceive-object"
+              :depends-on ("package" "goal-declarations" "at-location" "utilities"))
              (:file "achieve-loc" :depends-on ("package"
                                                "goal-declarations"
                                                "achieve-object-manipulation"
                                                "achieve-container-manipulation"
                                                "achieve-ptu"
                                                "utilities"))
-             (:file "achieve-ptu"
-              :depends-on ("package" "goal-declarations"))
-             (:file "at-location" :depends-on ("package"))
-             (:file "perceive-object"
-              :depends-on ("package" "goal-declarations" "at-location" "utilities"))
-             (:file "perceive-state" :depends-on ("package" "goal-declarations"))
-             (:file "achieve-container-manipulation" :depends-on ("achieve-object-manipulation"))
              (:file "achieve-object-manipulation"
-              :depends-on ("package"
-                           "goal-declarations"
-                           "at-location"
-                           "utilities"))
-             (:file "achieve-everyday-activities" :depends-on ("achieve-container-manipulation"
-                                                               "achieve-object-manipulation"
-                                                               "perceive-object"
-                                                               "package"
-                                                               "goal-declarations"
-                                                               "utilities"
-                                                               "perform"
-                                                               "at-location"))
-             (:file "perform" :depends-on ("package" "goal-declarations"))
-             (:file "utilities" :depends-on ("package"))))))
+              :depends-on ("package" "goal-declarations" "at-location" "utilities"))
+             (:file "achieve-container-manipulation"
+              :depends-on ("achieve-object-manipulation"))
+             (:file "achieve-everyday-activities"
+              :depends-on ("package" "achieve-container-manipulation"
+                           "achieve-object-manipulation" "perceive-object"
+                           "goal-declarations" "utilities" "perform"
+                           "at-location"))))))
