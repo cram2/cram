@@ -47,8 +47,8 @@
                  (prolog:prolog
                   `(and (robot ?robot)
                         (assert (object-pose ?_ ?robot ,(desig:reference location-designator))))))
-                (cram-plan-knowledge:on-event
-                 (make-instance 'cram-plan-knowledge:robot-state-changed))))
+                (cram-occasions-events:on-event
+                 (make-instance 'cram-plan-events:robot-state-changed))))
              (finish-process-module process-module :designator goal-action))
         (setf (cpl:value goal) nil)
         (setf (cpl:value processing) nil)))))
