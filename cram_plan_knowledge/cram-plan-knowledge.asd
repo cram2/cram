@@ -44,7 +44,7 @@
             ((:file "package")
              (:file "event-protocol" :depends-on ("package"))
              (:file "default-plan-events" :depends-on ("package" "event-protocol"))
-             (:file "belief-state" :depends-on ("package" "default-plan-events"))
+             (:file "belief-state" :depends-on ("package"))
              (:file "occasions" :depends-on ("package" "belief-state"))
              (:file "time" :depends-on ("package"))
              (:file "tasks" :depends-on ("package" "time"))))))
