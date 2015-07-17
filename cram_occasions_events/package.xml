@@ -1,9 +1,9 @@
 <package>
-  <name>cram_plan_knowledge</name>
+  <name>cram_occasions_events</name>
   <version>0.1.0</version>
   <description>
-    This package defines general plan knowledge specialized in actual
-    plan implementations.
+    This package defines the event protocol and a number of utilities to work
+on occasions.
   </description>
 
   <author email="moesenle@cs.tum.edu">Lorenz Moesenlechner</author>
@@ -12,9 +12,9 @@
 
   <license>BSD</license>
 
-  <url type="website">http://ros.org/wiki/cram_plan_knowledge</url>
-  <url type="bugtracker">https://github.com/cram-code/cram_highlevel/issues</url>
-  <url type="repository">https://github.com/cram-code/cram_highlevel</url>
+  <url type="website">http://ros.org/wiki/cram_occasions_events</url>
+  <url type="bugtracker">https://github.com/cram-code/cram_core/issues</url>
+  <url type="repository">https://github.com/cram-code/cram_core</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 

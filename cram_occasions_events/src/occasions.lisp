@@ -27,7 +27,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :cram-plan-knowledge)
+(in-package :cram-occasions-events)
 
 (defvar *believed-occasions* (make-fluent :name 'believed-occasions))
 
