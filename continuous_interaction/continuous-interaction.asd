@@ -40,7 +40,8 @@
                cram-roslisp-common
                cram-plan-library
                cram-prolog
-               cram-plan-knowledge
+               cram-plan-events
+               cram-occasions-events
                object-location-designators
                alexandria
                cram-language)

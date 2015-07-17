@@ -37,7 +37,8 @@
                cl-transforms-stamped
                cram-language-designator-support
                cram-roslisp-common
-               cram-plan-knowledge
+               cram-plan-events
+               cram-occasions-events
                cram-plan-failures
                cram-projection
                cram-utilities
