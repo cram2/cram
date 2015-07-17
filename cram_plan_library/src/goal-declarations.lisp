@@ -101,10 +101,10 @@ values of `properties' and add them to `object-designator'"
   method MONITOR-PROCESS-MODULE."
   (declare (ignore action-designator)))
 
-(declare-goal table-set (table-name situation-description)
-  "Sets a table referred to by the name `table-name', according to a
-situation described by `situation-description'."
-  (declare (ignore table-name situation-description)))
+;; (declare-goal table-set (table-name situation-description)
+;;   "Sets a table referred to by the name `table-name', according to a
+;; situation described by `situation-description'."
+;;   (declare (ignore table-name situation-description)))
 
-(declare-goal drawer-opened (?semantic-name)
-  (declare (ignore ?semantic-name)))
+;; (declare-goal drawer-opened (?semantic-name)
+;;   (declare (ignore ?semantic-name)))
