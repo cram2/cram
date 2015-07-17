@@ -27,7 +27,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(defsystem cram-plan-knowledge
+(defsystem cram-occasions-events
   :author "Lorenz Moesenlechner <moesenle@in.tum.de>"
   :license "BSD"
   :description "Utilities for working with occasions and rete"
@@ -43,7 +43,6 @@
             :components
             ((:file "package")
              (:file "event-protocol" :depends-on ("package"))
-             (:file "default-plan-events" :depends-on ("package" "event-protocol"))
              (:file "belief-state" :depends-on ("package"))
              (:file "occasions" :depends-on ("package" "belief-state"))
              (:file "time" :depends-on ("package"))

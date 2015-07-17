@@ -24,6 +24,7 @@
   <run_depend>cram_execution_trace</run_depend>
   <run_depend>cram_language</run_depend>
   <run_depend>cram_math</run_depend>
+  <run_depend>cram_occasions_events</run_depend>
   <run_depend>cram_process_modules</run_depend>
   <run_depend>cram_projection</run_depend>
   <run_depend>cram_prolog</run_depend>
