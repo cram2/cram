@@ -8,7 +8,8 @@ find_package(catkin REQUIRED COMPONENTS
   cram_roslisp_common
   cram_projection
   bullet_reasoning
-  cram_plan_knowledge
+  cram_plan_events
+  cram_occasions_events
   cram_plan_library
 )
 

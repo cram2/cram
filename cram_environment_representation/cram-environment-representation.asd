@@ -36,8 +36,10 @@
                cram-designators
                cram-roslisp-common
                bullet-reasoning
-               cram-plan-knowledge
-               cram-plan-library)
+               cram-plan-events
+               cram-plan-library
+               cram-language
+               cram-occasions-events)
   :components
   ((:module "src"
     :components

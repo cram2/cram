@@ -9,7 +9,6 @@ find_package(catkin REQUIRED COMPONENTS
   cram_designators
   location_costmap
   cram_environment_representation
-  cram_plan_knowledge
   roslisp_utilities
   alexandria
   cram_moveit

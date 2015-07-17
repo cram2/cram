@@ -23,7 +23,6 @@
   <build_depend>cram_designators</build_depend>
   <build_depend>location_costmap</build_depend>
   <build_depend>cram_environment_representation</build_depend>
-  <build_depend>cram_plan_knowledge</build_depend>
   <build_depend>roslisp_utilities</build_depend>
   <build_depend>alexandria</build_depend>
   <build_depend>cram_moveit</build_depend>
@@ -37,7 +36,6 @@
   <run_depend>cram_designators</run_depend>
   <run_depend>location_costmap</run_depend>
   <run_depend>cram_environment_representation</run_depend>
-  <run_depend>cram_plan_knowledge</run_depend>
   <run_depend>roslisp_utilities</run_depend>
   <run_depend>alexandria</run_depend>
   <run_depend>cram_moveit</run_depend>

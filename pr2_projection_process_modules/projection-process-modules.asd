@@ -35,7 +35,10 @@
                cram-designators
                bullet-reasoning
                bullet-reasoning-designators
-               cram-plan-knowledge
+               cram-plan-events
+               cram-occasions-events
+               cram-plan-library
+               cram-environment-representation
                cram-projection
                cram-roslisp-common
                cram-manipulation-knowledge

@@ -125,8 +125,8 @@
      (lambda ()
        (or
         (mapcar (lambda (designator)
-                  (cram-plan-knowledge:on-event
-                   (make-instance 'cram-plan-knowledge:object-perceived-event
+                  (cram-occasions-events:on-event
+                   (make-instance 'cram-plan-events:object-perceived-event
                      :perception-source :projection
                      :object-designator designator))
                   designator)

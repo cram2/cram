@@ -145,7 +145,7 @@
         (findall ?side (arm ?side) ?sides))
     (findall (?side ?obj ?link)
              (and
-              (plan-knowledge:object-in-hand ?obj ?side)
+              (cram-plan-events:object-in-hand ?obj ?side)
               (cram-manipulation-knowledge:end-effector-link ?side ?link))
              ?objects-in-hand))
 

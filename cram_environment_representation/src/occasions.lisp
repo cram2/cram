@@ -44,7 +44,7 @@
   (<- (object-placed-at ?object ?location)
     (loc ?object ?location))
 
-  (<- (loc plan-knowledge:robot ?location)
+  (<- (loc ?robot ?location)
     (robot ?robot)
     (object-at-location ?_ ?robot ?location))
 
@@ -105,7 +105,7 @@ is returned."
                   (reverse (desig:get-all-designators)))
    :test #'desig:desig-equal))
 
-(defmethod cram-plan-knowledge:clear-belief cram-environment-representation ()
+(defmethod cram-occasions-events:clear-belief cram-environment-representation ()
   (setf *current-bullet-world* (make-instance 'bt-reasoning-world))
   (setup-world-database)
   (set-robot-state-from-tf
