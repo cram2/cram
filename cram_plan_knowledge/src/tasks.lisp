@@ -208,8 +208,9 @@
 
   ;; TODO(gaya-) this is a very weird place to define such a predicate.
   ;; It's way too specific.
-  (<- (task-location-context ?task ?loc)
-    (task ?task)
-    (subtask+ ?loc-task ?task)
-    (task-goal ?loc-task (at-location (?loc)))    
-    (task ?loc-task)))
+  ;; (<- (task-location-context ?task ?loc)
+  ;;   (task ?task)
+  ;;   (subtask+ ?loc-task ?task)
+  ;;   (task-goal ?loc-task (at-location (?loc)))
+  ;;   (task ?loc-task))
+  )
