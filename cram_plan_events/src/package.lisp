@@ -79,4 +79,5 @@
            #:link #:event-link #:side #:event-side
            #:holds #:opening-distance
            ;; cooking goals
-           #:object-flipped))
+           ;; #:object-flipped
+           ))
