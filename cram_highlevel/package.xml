@@ -43,7 +43,6 @@
   <run_depend>execution_trace_server/</run_depend>
   <run_depend>fake_process_modules/</run_depend>
   <run_depend>location_costmap/</run_depend>
-  <run_depend>map_annotation/</run_depend>
   <run_depend>object_location_designators/</run_depend>
 
   <export>
