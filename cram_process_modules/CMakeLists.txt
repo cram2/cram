@@ -14,5 +14,5 @@ foreach(dir
       PATTERN ".git" EXCLUDE)
 endforeach()
 
-install (FILES process-modules.asd process-modules-test.asd 
+install (FILES cram-process-modules.asd cram-process-modules-test.asd
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
