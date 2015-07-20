@@ -40,4 +40,4 @@
     :components
     ((:file "package")
      (:file "semantic-map-cache" :depends-on ("package"))
-     (:file "designator-integration" :depends-on ("package"))))))
+     (:file "designator-utils" :depends-on ("package"))))))
