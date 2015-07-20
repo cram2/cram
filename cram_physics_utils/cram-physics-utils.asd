@@ -35,7 +35,7 @@
 ;; typedef its structs which causes compilation to fail.
 (setf cffi-grovel::*cc* "g++")
 
-(defsystem physics-utils
+(defsystem cram-physics-utils
   :author "Lorenz Moesenlechner"
   :license "BSD"
   
