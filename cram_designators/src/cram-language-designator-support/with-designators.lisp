@@ -80,13 +80,3 @@ definition order until one returns a NON-nil value. Of all functions
 return NIL, the designator is constructed using MAKE-DESIGNATOR."
   (setf *designator-create-functions*
         (cons function (remove function *designator-create-functions*))))
-
-(defmacro a (type &body body)
-  `(with-designators
-       ((desig (,type ,@body)))
-     desig))
-
-(defmacro an (type &body body)
-  `(with-designators
-       ((desig (,type ,@body)))
-     desig))

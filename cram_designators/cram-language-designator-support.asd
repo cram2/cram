@@ -43,7 +43,9 @@
   :components
   ((:module "src"
     :components
-    ((:module "cram-language-designator-support" 
+    ((:module "cram-language-designator-support"
       :components
               ((:file "package")
-               (:file "with-designators" :depends-on ("package"))))))))
+               (:file "with-designators" :depends-on ("package"))
+               (:file "a-and-an"
+                :depends-on ("package" "with-designators"))))))))
