@@ -50,6 +50,8 @@
            #:achieve
            #:object-in-hand
            #:object-placed-at
+           #:object-picked
+           #:object-put
            #:loc
            #:robot
            #:perceive
