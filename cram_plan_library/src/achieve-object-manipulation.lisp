@@ -239,7 +239,7 @@
                     (next-different-location-solution put-down-loc)))))
             (try-reference-location put-down-loc)
             (at-location (put-down-loc)
-              (achieve `(cram-plan-library:object-put ,?obj ,?loc)))))))))
+              (achieve `(object-put ,?obj ,?loc)))))))))
 
 (def-goal (achieve (arms-parked))
   (with-designators ((parking (:action `((:type :trajectory) (:to :park)))))

@@ -47,18 +47,18 @@
   (roslisp:ros-info (perceive plan-lib) "PERCEIVE-OBJECT ~a `~a'"
   indicator designator))
 
-(declare-goal object-picked (object-designator)
-  "Tries to pick up the object `object-designator' from the current
-  position."
-  (roslisp:ros-info (picked plan-lib) "OBJECT-PICKED `~a'"
-  object-designator))
+;; (declare-goal object-picked (object-designator)
+;;   "Tries to pick up the object `object-designator' from the current
+;;   position."
+;;   (roslisp:ros-info (picked plan-lib) "OBJECT-PICKED `~a'"
+;;   object-designator))
 
-(declare-goal object-put (object-designator location-designator)
-  "Tries to put down the object `object-designator' to the location
-`location-designator'."
-  (declare (ignore location-designator))
-  (roslisp:ros-info (put plan-lib) "OBJECT-PUT `~a'"
-  object-designator))
+;; (declare-goal object-put (object-designator location-designator)
+;;   "Tries to put down the object `object-designator' to the location
+;; `location-designator'."
+;;   (declare (ignore location-designator))
+;;   (roslisp:ros-info (put plan-lib) "OBJECT-PUT `~a'"
+;;   object-designator))
 
 ;; (declare-goal object-flipped (object-designator
 ;;                               tool-object-designator-1
