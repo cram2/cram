@@ -63,7 +63,6 @@
            #:?lo
            #:arms-parked
            #:?loc
-           #:pm-execute
            #:?module #:?input
            #:on-pm-execute
            ;; cooking goals
