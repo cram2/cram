@@ -39,7 +39,8 @@
                      designators some language extension are desirable. This package holds
                      several language extensions of this type."
   :depends-on (:cram-language
-               :cram-designators)
+               :cram-designators
+               :alexandria)
   :components
   ((:module "src"
     :components
@@ -48,4 +49,5 @@
               ((:file "package")
                (:file "with-designators" :depends-on ("package"))
                (:file "a-and-an"
-                :depends-on ("package" "with-designators"))))))))
+                :depends-on ("package" "with-designators"))
+               (:file "fluents" :depends-on ("package"))))))))
