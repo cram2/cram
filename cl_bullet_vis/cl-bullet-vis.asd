@@ -41,7 +41,7 @@
                  cl-glx
                  trivial-garbage
                  alexandria
-                 physics-utils)
+                 cram-physics-utils)
     :components
     ((:module "src"
               :components
