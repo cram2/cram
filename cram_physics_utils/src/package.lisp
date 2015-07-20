@@ -30,8 +30,9 @@
 
 (in-package :cl-user)
 
-(defpackage physics-utils
+(defpackage cram-physics-utils
   (:use #:common-lisp #:cffi #:cffi-ros-utils)
+  (:nicknames :physics-utils)
   (:export
    load-3d-model
    face make-face face-points face-normals
