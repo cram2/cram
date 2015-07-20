@@ -39,7 +39,6 @@
       (setf *semantic-map* (sem-map-utils:get-semantic-map))))
 
 (defmethod on-event manipulation-articulation-event ((event object-articulation-event))
-  (format t "semantic-map: ~a~%" (get-semantic-map))
   (with-slots (object-designator opening-distance) event
     (let ((perceived-object (desig:reference (desig:newest-effective-designator
                                               object-designator))))
