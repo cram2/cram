@@ -34,7 +34,7 @@
   
   :depends-on (cram-prolog
                cram-utilities
-               physics-utils
+               cram-physics-utils
                cl-transforms
                cram-designators
                roslisp
