@@ -32,4 +32,5 @@
   (:documentation "CRAM language extensions to support designators.")
   (:use #:cpl #:cram-designators)
   (:nicknames :cpl-desig-supp)
-  (:export #:with-designators #:a #:an #:register-designator-create-function))
+  (:export #:with-designators #:a #:an #:register-designator-create-function
+           #:with-equate-fluent))
