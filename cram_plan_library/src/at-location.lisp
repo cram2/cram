@@ -52,18 +52,6 @@ terminates before executing the body of the second one.")
 valid solution for `location-designator'"
   (validate-location-designator-solution location-designator current-location))
 
-(defmacro with-equate-fluent ((designator fluent-name) &body body)
-  "Executes `body' with `fluent-name' bound to a lexical variable. The
-fluent is pulsed whenever `designator' is equated to another
-designator."
-  (alexandria:with-gensyms (callback)
-    `(let ((,fluent-name (make-fluent :value nil :name ',fluent-name)))
-       (flet ((,callback (other)
-                (declare (ignore other))
-                (pulse ,fluent-name)))
-         (with-equate-callback (,designator #',callback)
-           ,@body)))))
-
 (defun %execute-at-location (loc-var function)
   (let ((terminated nil)
         (robot-location-changed-fluent (make-fluent :allow-tracing nil))
@@ -81,7 +69,7 @@ designator."
                          (lambda  ()
                            (pulse robot-location-changed-fluent)))))))))
       (with-new-transform-stamped-callback (*transformer* #'set-current-location)
-        (with-equate-fluent (loc-var designator-updated)
+        (cram-language-designator-support:with-equate-fluent (loc-var designator-updated)
           (loop
             for navigation-done = (make-fluent :value nil)
             for location-lost-count from 0
