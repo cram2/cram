@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(execution_trace_server)
+project(cram_execution_trace_server)
 
 find_package(catkin REQUIRED COMPONENTS
   message_generation

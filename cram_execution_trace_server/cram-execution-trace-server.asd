@@ -28,7 +28,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(defsystem execution-trace-server
+(defsystem cram-execution-trace-server
    :author "Lorenz Moesenlechner"
    :license "BSD"
    
@@ -38,7 +38,7 @@
                 cram-execution-trace
                 cram-plan-library
                 cram-json-prolog
-                execution_trace_server-srv)
+                cram_execution_trace_server-srv)
    :components
    ((:module "src"
      :components
