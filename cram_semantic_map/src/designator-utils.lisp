@@ -83,3 +83,7 @@
                                (semantic-map-parts parent :recursive t))
                              parents)))
               (t nil))))))
+
+(defun semantic-map-object-poses (designator)
+  (let ((objects (designator->semantic-map-objects designator (get-semantic-map))))
+    (mapcar #'sem-map-utils:pose objects)))
