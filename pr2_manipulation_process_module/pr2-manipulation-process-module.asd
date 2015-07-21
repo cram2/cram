@@ -30,7 +30,7 @@
   :author "Lorenz Moesenlechner"
   :license "BSD"
 
-  :depends-on (designators-ros
+  :depends-on (cram-transforms-stamped
                cram-process-modules
                actionlib
                cram-roslisp-common
