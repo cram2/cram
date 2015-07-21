@@ -37,4 +37,4 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "semantic-map" :depends-on ("package"))))))
+     (:file "prolog" :depends-on ("package"))))))
