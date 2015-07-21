@@ -38,7 +38,8 @@
                cl-transforms
                cram-designators
                roslisp
-               shape_msgs-msg)
+               shape_msgs-msg
+               geometry_msgs-msg)
   :components
   ((:module "src"
     :components
