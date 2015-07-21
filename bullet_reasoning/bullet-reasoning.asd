@@ -50,7 +50,7 @@
                  roslisp-utilities
                  cram-semantic-map-utils
                  cram-manipulation-knowledge
-                 designators-ros)
+                 cram-transforms-stamped)
     :components
     ((:module "src"
               :components

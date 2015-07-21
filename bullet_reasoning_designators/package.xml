@@ -16,7 +16,7 @@
 
   <!-- Dependencies needed to compile this package. -->
   <build_depend>cram_prolog</build_depend>
-  <build_depend>designators_ros</build_depend>
+  <build_depend>cram_transforms_stamped</build_depend>
   <build_depend>cram_utilities</build_depend>
   <build_depend>cram_math</build_depend>
   <build_depend>bullet_reasoning</build_depend>
@@ -29,7 +29,7 @@
 
   <!-- Dependencies needed after this package is compiled. -->
   <run_depend>cram_prolog</run_depend>
-  <run_depend>designators_ros</run_depend>
+  <run_depend>cram_transforms_stamped</run_depend>
   <run_depend>cram_utilities</run_depend>
   <run_depend>cram_math</run_depend>
   <run_depend>bullet_reasoning</run_depend>
