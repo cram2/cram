@@ -39,7 +39,7 @@
                cram-prolog
                cram-roslisp-common
                cram-manipulation-knowledge
-               designators-ros
+               cram-transforms-stamped
                iai_kinematics_msgs-srv)
   :components
   ((:module "src"
