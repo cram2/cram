@@ -33,5 +33,6 @@
   (:use #:common-lisp #:cram-plan-events #:cram-semantic-map-utils
         #:cut #:cram-occasions-events)
   (:shadow get-semantic-map)
-  (:export get-semantic-map designator->semantic-map-objects)
+  (:export get-semantic-map
+           designator->semantic-map-objects semantic-map-object-poses)
   (:desig-properties name type part-of on in))
