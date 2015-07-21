@@ -34,7 +34,7 @@
                bullet-reasoning
                cram-designators
                location-costmap
-               designators-ros
+               cram-transforms-stamped
                cram-utilities
                cram-environment-representation
                cram-math)

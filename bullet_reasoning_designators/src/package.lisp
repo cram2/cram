@@ -31,7 +31,7 @@
 (desig-props:def-desig-package bullet-reasoning-designators
     (:nicknames :btr-desig)
   (:use #:common-lisp #:prolog #:desig #:location-costmap
-        #:btr #:designators-ros #:cut)
+        #:btr #:cram-transforms-stamped #:cut)
   (:shadowing-import-from #:desig-props at)
   (:shadowing-import-from #:btr object pose object-pose width height)
   (:export *robot-name* *check-ik-joint-states* *robot-valid-sides*)

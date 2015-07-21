@@ -46,7 +46,7 @@
                pr2-manipulation-knowledge
                cram-semantic-map-utils
                cram-semantic-map
-               designators-ros)
+               cram-transforms-stamped)
   :components
   ((:module "src"
     :components
