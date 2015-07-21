@@ -1,5 +1,5 @@
 <package>
-  <name>object_location_designators</name>
+  <name>cram_semantic_map_designators</name>
   <version>0.1.0</version>
   <description>
     Object Location Designators package
@@ -11,7 +11,7 @@
 
   <license>BSD</license>
 
-  <url type="website">http://ros.org/wiki/object_location_designators</url>
+  <url type="website">http://ros.org/wiki/cram_semantic_map_designators</url>
   <url type="bugtracker">https://github.com/cram-code/cram_highlevel/issues</url>
   <url type="repository">https://github.com/cram-code/cram_highlevel</url>
 

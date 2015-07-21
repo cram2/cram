@@ -18,7 +18,7 @@
   <build_depend>cram_prolog</build_depend>
   <build_depend>cram_roslisp_common</build_depend>
   <build_depend>cram_transforms_stamped</build_depend>
-  <build_depend>object_location_designators</build_depend>
+  <build_depend>cram_semantic_map_designators</build_depend>
   <build_depend>roslisp</build_depend>
   
   <run_depend>cram_language</run_depend>
@@ -29,7 +29,7 @@
   <run_depend>cram_prolog</run_depend>
   <run_depend>cram_roslisp_common</run_depend>
   <run_depend>cram_transforms_stamped</run_depend>
-  <run_depend>object_location_designators</run_depend>
+  <run_depend>cram_semantic_map_designators</run_depend>
   <run_depend>roslisp</run_depend>
 
   <export>

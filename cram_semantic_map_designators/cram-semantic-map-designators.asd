@@ -26,12 +26,15 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :object-location-designators)
+(defsystem cram-semantic-map-designators
+  :author "Lorenz Moesenlechner"
+  :license "BSD"
 
-(def-fact-group semantic-map-object-poses (desig-solution)
-  (<- (desig-solution ?designator ?solution)
-    (desig-prop ?designator (:of ?object))
-    (lisp-fun current-desig ?object ?current-object)
-    (lisp-fun semantic-map:semantic-map-object-poses ?current-object ?poses)
-    (member ?solution ?poses)))
-
+  :depends-on (cram-designators
+               cram-semantic-map
+               cram-prolog)
+  :components
+  ((:module "src"
+    :components
+    ((:file "package")
+     (:file "prolog" :depends-on ("package"))))))

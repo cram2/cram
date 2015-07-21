@@ -26,15 +26,9 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem object-location-designators
-  :author "Lorenz Moesenlechner"
-  :license "BSD"
+(in-package :cl-user)
 
-  :depends-on (cram-designators
-               cram-semantic-map
-               cram-prolog)
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "prolog" :depends-on ("package"))))))
+(desig-props:def-desig-package cram-semantic-map-designators
+  (:use #:common-lisp #:cram-designators #:cram-prolog)
+  (:export)
+  (:desig-properties #:of #:type #:name))
