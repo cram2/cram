@@ -29,13 +29,10 @@
 (defsystem object-location-designators
   :author "Lorenz Moesenlechner"
   :license "BSD"
-  
+
   :depends-on (cram-designators
-               cram-semantic-map-utils
                cram-semantic-map
-               cram-json-prolog
-               cram-prolog
-               cram-projection)
+               cram-prolog)
   :components
   ((:module "src"
     :components
