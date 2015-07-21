@@ -28,14 +28,14 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :execution-trace-server)
+(in-package :cram-execution-trace-server)
 
 (defun json-prolog-init ()
   (json-prolog:start-prolog-server *ros-node-name* :package (find-package :vis-et)))
 
 (roslisp-utilities:register-ros-init-function json-prolog-init)
 
-(roslisp:def-service-callback execution_trace_server-srv:ListExecutionTraces ()
+(roslisp:def-service-callback cram_execution_trace_server-srv:ListExecutionTraces ()
   (handler-case
       (roslisp:make-response
        :filenames (map 'vector #'namestring
@@ -44,25 +44,29 @@
                                    (make-pathname
                                     :directory (roslisp:get-param "~execution_trace_dir"))))))
     (error (e)
-      (roslisp:ros-warn (list-execution-traces execution-trace-server) "Service callback failed: ~a" e)
+      (roslisp:ros-warn (list-execution-traces cram-execution-trace-server)
+                        "Service callback failed: ~a" e)
       (roslisp:make-response))))
 
 (defun enable-episode-knowledge (filename)
   (setf cet:*episode-knowledge*
         (cet:load-episode-knowledge filename)))
 
-(roslisp:def-service-callback execution_trace_server-srv:SelectExecutionTrace (filename)
+(roslisp:def-service-callback cram_execution_trace_server-srv:SelectExecutionTrace (filename)
   (handler-case
       (progn
         (enable-episode-knowledge filename)
         (roslisp:make-response))
     (error (e)
-      (roslisp:ros-warn (list-execution-traces execution-trace-server) "Service callback failed: ~a" e)
+      (roslisp:ros-warn (list-execution-traces cram-execution-trace-server)
+                        "Service callback failed: ~a" e)
       (roslisp:make-response))))
 
 (defun init-pick-and-place-info-srv ()
-  (roslisp:register-service "~list_exectuon_traces" execution_trace_server-srv:ListExecutionTraces)
-  (roslisp:register-service "~select_execution_trace" execution_trace_server-srv:SelectExecutionTrace))
+  (roslisp:register-service "~list_exectuon_traces"
+                            cram_execution_trace_server-srv:ListExecutionTraces)
+  (roslisp:register-service "~select_execution_trace"
+                            cram_execution_trace_server-srv:SelectExecutionTrace))
 
 (roslisp-utilities:register-ros-init-function init-pick-and-place-info-srv)
 

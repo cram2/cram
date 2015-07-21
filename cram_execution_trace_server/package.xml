@@ -1,5 +1,5 @@
 <package>
-  <name>execution_trace_server</name>
+  <name>cram_execution_trace_server</name>
   <version>0.1.0</version>
   <description>
     Execution Trace Server
@@ -11,7 +11,7 @@
 
   <license>BSD</license>
 
-  <url type="website">http://ros.org/wiki/execution_trace_server</url>
+  <url type="website">http://ros.org/wiki/cram_execution_trace_server</url>
   <url type="bugtracker">https://github.com/cram-code/cram_highlevel/issues</url>
   <url type="repository">https://github.com/cram-code/cram_highlevel</url>
 

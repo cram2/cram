@@ -28,7 +28,8 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(defpackage execution-trace-server
+(defpackage cram-execution-trace-server
+  (:nicknames #:execution-trace-server)
   (:use #:common-lisp
         #:roslisp
         #:desig
@@ -38,4 +39,5 @@
         #:cram-prolog
         #:cram-roslisp-common
         #:cram-transforms-stamped)
+  (:shadowing-import-from #:cram-designators object object-designator)
   (:export run))
