@@ -57,7 +57,9 @@
      (:file "plans" :depends-on ("packages" "tasks"))
      (:file "goals" :depends-on ("packages" "tasks"))
      (:file "fluent-operators" :depends-on ("packages" "fluents"))
-     (:file "swank-indentation" :depends-on ("packages"))))))
+     (:file "swank-indentation" :depends-on ("packages"))
+     ;; Some CRAM vs. SBCL scheduling related stuff
+     #+sbcl (:file "sbcl-hotpatches")))))
 
 (defmethod asdf:perform ((o asdf:test-op)
                          (c (eql (asdf:find-system 'cram-language))))
