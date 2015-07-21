@@ -4,14 +4,14 @@
   :description "A roslisp package called 'cram-tutorial-executive'"
   
   :depends-on (roslisp
-               designators-ros
+               cram-transforms-stamped
                cram-roslisp-common
                cram-plan-library
                cram-reasoning
                cram-plan-events
                cram-environment-representation
                alexandria
-               designators-ros
+               cram-transforms-stamped
                cram-language
                tutorial-process-module
                cram-tutorial-planlib)

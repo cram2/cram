@@ -4,7 +4,7 @@
   :description "A roslisp package called 'cram-tutorial-planlib'"
   
   :depends-on (roslisp
-               designators-ros
+               cram-transforms-stamped
                cram-roslisp-common
                cram-plan-library
                cram-reasoning

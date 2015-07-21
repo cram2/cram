@@ -10,7 +10,7 @@
   <url>http://ros.org/wiki/tutorial_process_module</url>
   <depend package="roslisp"/>
   <depend package="cram_process_modules"/>
-  <depend package="designators_ros"/>
+  <depend package="cram_transforms_stamped"/>
   <depend package="cram_roslisp_common"/>
   <depend package="cram_reasoning"/>
   <depend package="cram_plan_failures"/>

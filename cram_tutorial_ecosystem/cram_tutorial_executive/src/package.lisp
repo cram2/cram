@@ -1,7 +1,7 @@
 (in-package :cl-user)
 
 (desig-props:def-desig-package cram-tutorial-executive
-  (:use #:roslisp #:cram-utilities #:designators-ros
+  (:use #:roslisp #:cram-utilities #:cram-transforms-stamped
         #:cram-roslisp-common #:cram-designators
         #:cram-plan-events #:cram-plan-library #:cpl)
   (:import-from #:cram-reasoning #:<- #:def-fact-group)

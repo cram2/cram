@@ -6,7 +6,7 @@
         #:crs
         #:cut
         #:desig
-        #:designators-ros
+        #:cram-transforms-stamped
         #:cram-roslisp-common
         #:cram-process-modules
         #:cram-plan-failures
