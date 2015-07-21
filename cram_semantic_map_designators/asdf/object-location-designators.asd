@@ -1,1 +1,0 @@
-../object-location-designators.asd
