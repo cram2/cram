@@ -34,7 +34,8 @@
                cram-plan-events
                cram-occasions-events
                cram-designators
-               cram-utilities)
+               cram-utilities
+               cram-projection)
   :components
   ((:module "src"
     :components
