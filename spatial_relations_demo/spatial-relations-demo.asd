@@ -44,7 +44,7 @@
                cram-plan-library
                bullet-reasoning-designators
                pr2-manipulation-knowledge
-               object-location-designators
+               cram-semantic-map-designators
                alexandria
                bullet-reasoning-utilities)
   :components
