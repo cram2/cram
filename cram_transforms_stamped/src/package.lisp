@@ -29,7 +29,7 @@
 
 (in-package :cl-user)
 
-(defpackage :designators-ros
+(defpackage :cram-transforms-stamped
     (:use #:cl #:desig #:cut #:prolog
           #:cram-roslisp-common
           #:cl-transforms-stamped)

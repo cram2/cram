@@ -37,5 +37,5 @@
         #:cram-plan-library
         #:cram-prolog
         #:cram-roslisp-common
-        #:designators-ros)
+        #:cram-transforms-stamped)
   (:export run))

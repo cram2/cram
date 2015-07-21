@@ -30,7 +30,7 @@
 
 (desig-props:def-desig-package continuous-interaction
   (:nicknames continuous)
-  (:use #:common-lisp #:roslisp #:cram-utilities #:designators-ros
+  (:use #:common-lisp #:roslisp #:cram-utilities #:cram-transforms-stamped
         #:cram-roslisp-common #:cram-designators
         #:cram-plan-events #:cram-occasions-events #:cram-plan-library)
   (:import-from :cram-language

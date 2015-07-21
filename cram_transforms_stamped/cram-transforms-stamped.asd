@@ -1,11 +1,11 @@
 ; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 
-(asdf:defsystem designators-ros
-  :name "designators-ros"
+(asdf:defsystem cram-transforms-stamped
+  :name "cram-transforms-stamped"
   :author "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
   :maintainer "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
   :licence "BSD"
-  :description "Ros specific stuff for designators."
+  :description "Coordinate-frame transformation specific stuff for designators."
   :depends-on (:alexandria
                :cram-designators
                :cl-transforms-stamped

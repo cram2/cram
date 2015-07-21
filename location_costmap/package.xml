@@ -27,7 +27,7 @@
   <build_depend>cram_math</build_depend>
   <build_depend>cram_language</build_depend>
   <build_depend>cram_prolog</build_depend>
-  <build_depend>designators_ros</build_depend>
+  <build_depend>cram_transforms_stamped</build_depend>
   <build_depend>nav_msgs</build_depend>
   <build_depend>visualization_msgs</build_depend>
   <build_depend>trivial_garbage</build_depend>
@@ -44,7 +44,7 @@
   <run_depend>cram_math</run_depend>
   <run_depend>cram_language</run_depend>
   <run_depend>cram_prolog</run_depend>
-  <run_depend>designators_ros</run_depend>
+  <run_depend>cram_transforms_stamped</run_depend>
   <run_depend>nav_msgs</run_depend>
   <run_depend>visualization_msgs</run_depend>
   <run_depend>trivial_garbage</run_depend>

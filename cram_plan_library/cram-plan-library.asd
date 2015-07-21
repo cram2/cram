@@ -43,7 +43,7 @@
                cram-projection
                cram-utilities
                ;; cram-task-knowledge
-               designators-ros
+               cram-transforms-stamped
                alexandria
                ;; cram-semantic-map-utils
                ;; cram-semantic-map

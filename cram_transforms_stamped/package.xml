@@ -1,5 +1,5 @@
 <package>
-  <name>designators_ros</name>
+  <name>cram_transforms_stamped</name>
   <version>0.1.0</version>
   <description>
     This package supplies application specific functionalities for
@@ -12,7 +12,7 @@
 
   <license>BSD</license>
 
-  <url type="website">http://ros.org/wiki/designators_ros</url>
+  <url type="website">http://ros.org/wiki/cram_transforms_stamped</url>
   <url type="bugtracker">https://github.com/cram-code/cram_highlevel/issues</url>
   <url type="repository">https://github.com/cram-code/cram_highlevel</url>
 

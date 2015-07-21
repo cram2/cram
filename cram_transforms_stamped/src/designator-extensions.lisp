@@ -27,7 +27,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :designators-ros)
+(in-package :cram-transforms-stamped)
 
 (defparameter *distance-equality-threshold* 0.025)
 (defparameter *angle-equality-threshold* (* 5 (/ pi 180)))
