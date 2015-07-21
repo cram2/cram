@@ -28,12 +28,10 @@
 
 (in-package :semantic-map)
 
-(defvar *semantic-map* nil)
-
-(cram-projection:define-special-projection-variable
-    *semantic-map* (sem-map-utils:copy-semantic-map-object
-                    (get-semantic-map)))
-
-(defun get-semantic-map ()
-  (or *semantic-map*
-      (setf *semantic-map* (sem-map-utils:get-semantic-map))))
+(defmethod on-event manipulation-articulation-event ((event object-articulation-event))
+  (with-slots (object-designator opening-distance) event
+    (let ((perceived-object (desig:reference (desig:newest-effective-designator
+                                              object-designator))))
+      (sem-map-utils:update-articulated-object-poses
+       (get-semantic-map)
+       (desig:object-identifier perceived-object) opening-distance))))
