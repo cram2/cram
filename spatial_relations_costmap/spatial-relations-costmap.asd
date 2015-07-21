@@ -43,7 +43,7 @@
                occupancy-grid-costmap
                bullet-reasoning-designators
                pr2-manipulation-knowledge
-               object-location-designators
+               cram-semantic-map-designators
                cram-semantic-map)
   :components
   ((:module "src"
