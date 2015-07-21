@@ -13,7 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   occupancy_grid_costmap
   bullet_reasoning_designators
   pr2_manipulation_knowledge
-  object_location_designators
+  cram_semantic_map_designators
   cram_semantic_map
 )
 
