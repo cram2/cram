@@ -26,9 +26,12 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
+(in-package :cram-semantic-map-designators)
 
-(desig-props:def-desig-package object-location-designators
-  (:use #:common-lisp #:cram-designators #:cram-prolog)
-  (:export)
-  (:desig-properties #:of #:type #:name))
+(def-fact-group semantic-map-object-poses (desig-solution)
+  (<- (desig-solution ?designator ?solution)
+    (desig-prop ?designator (:of ?object))
+    (lisp-fun current-desig ?object ?current-object)
+    (lisp-fun semantic-map:semantic-map-object-poses ?current-object ?poses)
+    (member ?solution ?poses)))
+

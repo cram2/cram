@@ -42,7 +42,7 @@
                cram-prolog
                cram-plan-events
                cram-occasions-events
-               object-location-designators
+               cram-semantic-map-designators
                alexandria
                cram-language)
   :components
