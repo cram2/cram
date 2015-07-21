@@ -28,7 +28,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :designators-ros)
+(in-package :cram-transforms-stamped)
 
 (def-fact-group poses ()
   (<- (pose ?pose (?x ?y ?z) (?ax ?ay ?az ?aw))

@@ -36,7 +36,7 @@
   :licence "BSD"
   :description "Continuous Interaction Helper Functionalities for CRAM Robot Plans"
   :depends-on (roslisp
-               designators-ros
+               cram-transforms-stamped
                cram-roslisp-common
                cram-plan-library
                cram-prolog

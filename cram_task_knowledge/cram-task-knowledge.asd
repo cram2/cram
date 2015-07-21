@@ -36,7 +36,7 @@
                cram-language-designator-support
                cram-roslisp-common
                cram-utilities
-               designators-ros
+               cram-transforms-stamped
                alexandria)
   :components
   ((:module "src"

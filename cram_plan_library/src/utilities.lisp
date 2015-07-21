@@ -32,8 +32,8 @@
   "Returns a new designator solution that is at a different place than
   the current solution of `designator'."
   (declare (type location-designator designator))
-  (designators-ros:next-filtered-designator-solution
-   designator (designators-ros:make-euclidean-distance-filter
+  (cram-transforms-stamped:next-filtered-designator-solution
+   designator (cram-transforms-stamped:make-euclidean-distance-filter
                (reference designator) threshold)))
 
 (defun current-robot-location ()

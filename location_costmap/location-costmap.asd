@@ -40,7 +40,7 @@
                nav_msgs-msg
                visualization_msgs-msg
                trivial-garbage
-               designators-ros)
+               cram-transforms-stamped)
   :components
   ((:module "src"
             :components
