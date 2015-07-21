@@ -34,6 +34,7 @@
           #:cram-roslisp-common
           #:cl-transforms-stamped)
   (:import-from #:tf pose pose-stamped)
-  (:export pose pose-stamped
-           with-designator-solution-filter make-euclidean-distance-filter
-           next-filtered-designator-solution))
+  (:export with-designator-solution-filter make-euclidean-distance-filter
+           next-filtered-designator-solution
+           ;; prolog facts:
+           pose pose-stamped))
