@@ -31,7 +31,7 @@
   :license "BSD"
   
   :depends-on (roslisp
-               location-costmap
+               cram-location-costmap
                cl-transforms
                cl-tf
                cram-utilities
