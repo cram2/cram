@@ -1,0 +1,33 @@
+<package>
+  <name>pr2_description_lowres</name>
+  <version>1.0.0</version>
+  <description>
+  pr2_description_lowres
+
+  This package contains the description (mechanical, kinematic, visual,
+  etc.) of the PR2 robot.  The files in this package are parsed and used by
+  a variety of other components.  Most users will not interact directly
+  with this package.
+
+  </description>
+  <author>John Hsu, Eric Berger</author>
+  <maintainer email="musterman@fictional.de">Add Maintainer here</maintainer>
+  <license>BSD</license>
+  <url>http://ros.org/wiki/pr2_description</url>
+
+  <!-- Dependencies which this package needs to build itself. -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- Dependencies needed to compile this package. -->
+  <build_depend>convex_decomposition</build_depend>
+  <build_depend>ivcon</build_depend>
+  <build_depend>urdf</build_depend>
+
+  <!-- Dependencies needed after this package is compiled. -->
+  <run_depend>convex_decomposition</run_depend>
+  <run_depend>ivcon</run_depend>
+  <run_depend>urdf</run_depend>
+
+</package>
+
+
