@@ -13,7 +13,7 @@
   <depend>spatial_relations_costmap</depend>
   <depend>cram_roslisp_common</depend>
   <depend>cram_designators</depend>
-  <depend>location_costmap</depend>
+  <depend>cram_location_costmap</depend>
   <depend>semantic_map_costmap</depend>
   <depend>bullet_reasoning</depend>
   <depend>cram_pr2_knowledge</depend>
