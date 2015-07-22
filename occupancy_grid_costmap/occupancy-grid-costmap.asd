@@ -32,7 +32,7 @@
   
   :depends-on (cram-designators
                cram-roslisp-common
-               location-costmap
+               cram-location-costmap
                roslisp-utilities
                roslisp
                nav_msgs-msg)

@@ -1,5 +1,5 @@
 <package>
-  <name>location_costmap</name>
+  <name>cram_location_costmap</name>
   <version>0.1.0</version>
   <description>
     Location costmap generation and managing functionalities
@@ -11,7 +11,7 @@
 
   <license>BSD</license>
 
-  <url type="website">http://ros.org/wiki/location_costmap</url>
+  <url type="website">http://ros.org/wiki/cram_location_costmap</url>
   <url type="bugtracker">https://github.com/cram-code/cram_highlevel/issues</url>
   <url type="repository">https://github.com/cram-code/cram_highlevel</url>
 
