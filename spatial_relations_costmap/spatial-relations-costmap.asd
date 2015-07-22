@@ -32,7 +32,7 @@
   
   :depends-on (cram-designators
                cram-roslisp-common
-               location-costmap
+               cram-location-costmap
                cram-prolog
                roslisp
                semantic-map-costmap

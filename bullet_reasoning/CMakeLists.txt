@@ -12,7 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   cl_tf
   cram_semantic_map_utils
   cram_designators
-  location_costmap
+  cram_location_costmap
   roslisp_utilities
   cram_roslisp_common
 )

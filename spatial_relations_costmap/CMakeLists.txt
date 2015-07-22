@@ -4,7 +4,7 @@ project(spatial_relations_costmap)
 find_package(catkin REQUIRED COMPONENTS
   cram_roslisp_common
   cram_designators
-  location_costmap
+  cram_location_costmap
   semantic_map_costmap
   bullet_reasoning
   cram_pr2_knowledge

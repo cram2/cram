@@ -13,7 +13,7 @@
   <depend>bullet_reasoning</depend>
   <depend>cram_prolog</depend>
   <depend>cram_designators</depend>
-  <depend>location_costmap</depend>
+  <depend>cram_location_costmap</depend>
   <depend>cram_semantic_map_utils</depend>
   <depend>bullet_reasoning_designators</depend>
   <depend>cram_roslisp_common</depend>

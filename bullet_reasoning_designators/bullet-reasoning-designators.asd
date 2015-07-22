@@ -33,7 +33,7 @@
   :depends-on (cram-prolog
                bullet-reasoning
                cram-designators
-               location-costmap
+               cram-location-costmap
                cram-transforms-stamped
                cram-utilities
                cram-environment-representation

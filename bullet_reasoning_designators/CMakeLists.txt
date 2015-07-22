@@ -7,7 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
   cram_utilities
   bullet_reasoning
   cram_designators
-  location_costmap
+  cram_location_costmap
   cram_environment_representation
   roslisp_utilities
   alexandria
