@@ -42,7 +42,7 @@
   <run_depend>cram_transforms_stamped</run_depend>
   <run_depend>cram_execution_trace_server/</run_depend>
   <run_depend>fake_process_modules/</run_depend>
-  <run_depend>location_costmap/</run_depend>
+  <run_depend>cram_location_costmap/</run_depend>
   <run_depend>cram_semantic_map_designators</run_depend>
 
   <export>

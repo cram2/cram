@@ -38,7 +38,7 @@
 
 (defun location-costmap-vis-init ()
   (setf *location-costmap-publisher*
-        (advertise "/kipla/location_costmap" "visualization_msgs/MarkerArray"))
+        (advertise "/kipla/cram_location_costmap" "visualization_msgs/MarkerArray"))
   (setf *occupancy-grid-publisher*
         (advertise "/kipla/location_occupancy_grid" "nav_msgs/OccupancyGrid"))  
   (setf *marker-publisher*

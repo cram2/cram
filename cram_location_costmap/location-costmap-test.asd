@@ -31,7 +31,7 @@
   :licence "BSD"
 
   :depends-on (lisp-unit
-               location-costmap
+               cram-location-costmap
                cram-roslisp-common
                cram-utilities)
   :components

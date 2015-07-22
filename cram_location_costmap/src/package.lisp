@@ -27,7 +27,8 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(desig-props:def-desig-package location-costmap
+(desig-props:def-desig-package cram-location-costmap
+  (:nicknames #:location-costmap)
   (:use #:cl #:prolog #:cram-utilities #:roslisp-utilities #:cram-roslisp-common
         #:alexandria #:roslisp #:cram-transforms-stamped #:cram-designators
         #:cl-transforms-stamped)

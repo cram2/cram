@@ -27,7 +27,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(defsystem location-costmap
+(defsystem cram-location-costmap
   :depends-on (cram-prolog
                cram-language
                cram-math
