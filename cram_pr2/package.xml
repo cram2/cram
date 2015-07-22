@@ -10,6 +10,8 @@
   <!-- Dependencies which this package needs to build itself. -->
   <buildtool_depend>catkin</buildtool_depend>
 
+  <run_depend>cram_pr2_knowledge</run_depend>
+  <run_depend>pr2_description_lowres</run_depend>
   <run_depend>point_head_process_module</run_depend>
   <run_depend>pr2_manipulation_knowledge</run_depend>
   <run_depend>pr2_navigation_process_module</run_depend>
