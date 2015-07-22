@@ -37,7 +37,6 @@
                roslisp
                semantic-map-costmap
                bullet-reasoning
-               cram-pr2-knowledge
                cram-environment-representation
                projection-process-modules
                occupancy-grid-costmap

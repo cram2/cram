@@ -7,7 +7,6 @@ find_package(catkin REQUIRED COMPONENTS
   cram_location_costmap
   semantic_map_costmap
   bullet_reasoning
-  cram_pr2_knowledge
   cram_environment_representation
   pr2_projection_process_modules
   occupancy_grid_costmap
