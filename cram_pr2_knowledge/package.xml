@@ -1,0 +1,29 @@
+<package>
+  <name>cram_pr2_knowledge</name>
+  <version>1.0.0</version>
+  <description>
+
+     cram_pr2_knowledge
+
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <maintainer email="musterman@fictional.de">Add Maintainer here</maintainer>
+  <license>BSD</license>
+  <url>http://ros.org/wiki/cram_pr2_knowledge</url>
+
+  <!-- Dependencies which this package needs to build itself. -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- Dependencies needed to compile this package. -->
+  <build_depend>cram_prolog</build_depend>
+  <build_depend>cram_manipulation_knowledge</build_depend>
+  <build_depend>bullet_reasoning</build_depend>
+  <build_depend>cram_designators</build_depend>
+
+  <!-- Dependencies needed after this package is compiled. -->
+  <run_depend>cram_prolog</run_depend>
+  <run_depend>cram_manipulation_knowledge</run_depend>
+  <run_depend>bullet_reasoning</run_depend>
+  <run_depend>cram_designators</run_depend>
+
+</package>
