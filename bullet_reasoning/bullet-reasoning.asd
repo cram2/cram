@@ -44,7 +44,7 @@
                  sensor_msgs-msg
                  household_objects_database_msgs-msg
                  household_objects_database_msgs-srv
-                 location-costmap
+                 cram-location-costmap
                  cram-designators
                  cram-roslisp-common
                  roslisp-utilities
