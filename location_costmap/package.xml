@@ -23,7 +23,6 @@
   <build_depend>roslisp_utilities</build_depend>
   <build_depend>cl_transforms</build_depend>
   <build_depend>cl_transforms_stamped</build_depend>
-  <build_depend>cl_tf2</build_depend>
   <build_depend>cram_math</build_depend>
   <build_depend>cram_language</build_depend>
   <build_depend>cram_prolog</build_depend>
@@ -40,7 +39,6 @@
   <run_depend>roslisp_utilities</run_depend>
   <run_depend>cl_transforms</run_depend>
   <run_depend>cl_transforms_stamped</run_depend>
-  <run_depend>cl_tf2</run_depend>
   <run_depend>cram_math</run_depend>
   <run_depend>cram_language</run_depend>
   <run_depend>cram_prolog</run_depend>

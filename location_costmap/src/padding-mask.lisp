@@ -29,7 +29,8 @@
 (in-package :location-costmap)
 
 (defun make-padding-mask (size)
-  "returns a 2d square array with an odd dimension drawing a discretized circle or radius size in grid space"
+  "returns a 2d square array with an odd dimension drawing a discretized circle
+of radius `size' in grid space"
   (unless (<= size 0)
     (let* ((array-width (1+ (* size 2)))
            (mask (make-array (list array-width array-width) :element-type 'fixnum))

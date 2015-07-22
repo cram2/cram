@@ -164,19 +164,22 @@ respectively."
     (let ((grid-arr (grid grid))
           (resolution/2 (/ resolution 2)))
       (declare (type (simple-array fixnum 2) grid-arr))
-      (make-message "nav_msgs/GridCells"
-                    (frame_id header) frame-id
-                    (stamp header) (ros-time)
-                    cell_width resolution
-                    cell_height resolution
-                    cells (map 'vector #'identity
-                               (loop for row below (array-dimension grid-arr 0)
-                                     nconcing (loop for col below (array-dimension grid-arr 1)
-                                                    when (eql (aref grid-arr row col) 1) collect
-                                                      (make-message "geometry_msgs/Point"
-                                                           x (+ (* col resolution) resolution/2 origin-x)
-                                                           y (+ (* row resolution) resolution/2 origin-y)
-                                                           z z))))))))
+      (make-message
+       "nav_msgs/GridCells"
+       (frame_id header) frame-id
+       (stamp header) (ros-time)
+       cell_width resolution
+       cell_height resolution
+       cells (map 'vector #'identity
+                  (loop for row below (array-dimension grid-arr 0)
+                        nconcing (loop for col below (array-dimension grid-arr 1)
+                                       when (eql (aref grid-arr row col) 1)
+                                         collect
+                                         (make-message
+                                          "geometry_msgs/Point"
+                                          x (+ (* col resolution) resolution/2 origin-x)
+                                          y (+ (* row resolution) resolution/2 origin-y)
+                                          z z))))))))
 
 (defun remove-markers-up-to-index (index)
   (let ((removers

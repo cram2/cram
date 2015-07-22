@@ -28,8 +28,8 @@
 ;;;
 
 (desig-props:def-desig-package location-costmap
-  (:use :cl :prolog :cut :roslisp-utilities :cram-roslisp-common :alexandria
-        :roslisp :cram-transforms-stamped #:cram-designators
+  (:use #:cl #:prolog #:cram-utilities #:roslisp-utilities #:cram-roslisp-common
+        #:alexandria #:roslisp #:cram-transforms-stamped #:cram-designators
         #:cl-transforms-stamped)
   (:shadowing-import-from :alexandria rotate)
   (:export #:make-gauss-cost-function

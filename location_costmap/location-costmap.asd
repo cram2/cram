@@ -33,7 +33,6 @@
                cram-math
                cram-utilities
                roslisp-utilities
-               cl-tf2
                cl-transforms-stamped
                cram-roslisp-common
                cram-manipulation-knowledge
@@ -45,19 +44,20 @@
   ((:module "src"
             :components
             ((:file "package")
-             (:file "cost-functions"
-                    :depends-on ("package" "occupancy-grid" "padding-mask"))
-             (:file "2d-value-map" :depends-on ("package" "occupancy-grid"))
-             (:file "location-costmap" :depends-on ("package"
-                                                    "occupancy-grid"
-                                                    "costmap-generators"))
-             (:file "location-prolog-handlers" :depends-on ("package" "location-costmap"))
              (:file "occupancy-grid" :depends-on ("package"))
              (:file "padding-mask" :depends-on ("package"))
-             (:file "ros-grid-cells" :depends-on ("package"))
-             (:file "ros-occupancy-grid" :depends-on ("package"))
-             (:file "visualization" :depends-on ("package" "occupancy-grid" "location-costmap"))
+             (:file "cost-functions"
+              :depends-on ("package" "occupancy-grid" "padding-mask"))
+             (:file "costmap-generators" :depends-on ("package" "occupancy-grid"))
+             (:file "location-costmap"
+              :depends-on ("package" "occupancy-grid" "costmap-generators"))
+             (:file "2d-value-map" :depends-on ("package" "occupancy-grid"))
+             (:file "location-prolog-handlers"
+              :depends-on ("package" "location-costmap" "2d-value-map"))
+             (:file "designator-integration" :depends-on ("package" "location-costmap")) 
              (:file "facts" :depends-on ("package" "cost-functions"))
              (:file "cost-function-utils" :depends-on ("package"))
-             (:file "costmap-generators" :depends-on ("package" "occupancy-grid"))
-             (:file "designator-integration" :depends-on ("package" "location-costmap"))))))
+             (:file "ros-grid-cells" :depends-on ("package" "2d-value-map"))
+             (:file "ros-occupancy-grid" :depends-on ("package"))
+             (:file "visualization"
+              :depends-on ("package" "occupancy-grid" "location-costmap"))))))
