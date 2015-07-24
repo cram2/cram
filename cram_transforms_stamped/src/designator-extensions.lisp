@@ -77,6 +77,9 @@
           (poses-equal-in-frame-p pose-1 pose-2 *robot-base-frame*)))))
 
 (defmethod reference :around ((designator location-designator) &optional role)
+  "Converts all cl-transforms poses into cl-tf poses in the fixed coordinate system"
   (declare (ignore role))
-  ;; convert all cl-transforms poses into cl-tf poses in the fixed coordinate system
-  (ensure-pose-stamped (call-next-method) *fixed-frame* 0.0))
+  (let ((solution (call-next-method)))
+    (if (typep solution 'cl-transforms:pose)
+        (ensure-pose-stamped solution *fixed-frame* 0.0)
+        solution)))
