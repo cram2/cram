@@ -49,7 +49,7 @@
 ;; This fact group contains general rules for location designators
 ;;
 ;; Process modules and other reasoning modules can extend location
-;; designator resolution, as an example cram_highlevel/location_costmap
+;; designator resolution, as an example cram_highlevel/cram_location_costmap
 ;; provides extentions, when loaded
 ;; Here, we only define trivial resolutions
 (def-fact-group location-designators (desig-loc desig-location-prop)
