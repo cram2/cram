@@ -116,7 +116,13 @@
   (:documentation "Compares two designator solutions and returns T if
   they are equal.")
   (:method ((solution-1 t) (solution-2 t))
-    (eql solution-1 solution-2)))
+    (eql solution-1 solution-2))
+  (:method ((solution-1 string) (solution-2 string))
+    (string-equal solution-1 solution-2))
+  (:method ((solution-1 list) (solution-2 list))
+    (equal solution-1 solution-2))
+  (:method ((solution-1 array) (solution-2 array))
+    (equalp solution-1 solution-2)))
 
 (defvar *designator-pprint-description* t
   "If set to T, DESIGNATOR objects will be pretty printed with their description.")
