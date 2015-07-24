@@ -160,3 +160,11 @@
       (sb-thread:join-thread thread-1)
       (sb-thread:join-thread thread-2))
     (assert-eq value-1 value-2)))
+
+(define-test default-location-generators
+  (cleanup-generators-and-validators)
+  (let* ((pose-desig (make-designator :location '((:pose (1 2 3)))))
+         (object-desig (make-designator :object `((:at ,pose-desig))))
+         (object-loc-desig (make-designator :location `((:of ,object-desig)))))
+    (assert-equal '(1 2 3) (reference pose-desig))
+    (assert-equal '(1 2 3) (reference object-loc-desig))))
