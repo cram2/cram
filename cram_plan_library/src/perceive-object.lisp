@@ -64,7 +64,7 @@
                                       "Retrying at different look location.")
                             (when (next-solution obj-loc-desig)
                               (retry-with-updated-location
-                               obj-loc-desig (next-solution obj-loc-desig))))))
+                               obj-loc-desig (next-different-location-solution obj-loc-desig))))))
                      (achieve `(looking-at ,(reference obj-loc-desig)))
                      (perform perceive-action)
                      (monitor-action perceive-action)))))))
