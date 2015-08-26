@@ -78,7 +78,7 @@
   (let ((costmap (get-cached-costmap desig)))
     (unless costmap
       (return-from location-costmap-generator nil))
-    (publish-location-costmap costmap)
+    ;; (publish-location-costmap costmap)
     (handler-case (costmap-samples costmap)
       (invalid-probability-distribution ()
         nil))))

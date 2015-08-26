@@ -168,10 +168,11 @@ calls the generator functions and runs normalization."
 (defun merge-costmaps (cm-1 &rest costmaps)
   "merges cost functions and copies one height-map, returns one costmap"
   (etypecase cm-1
-    (list (let ((merged (apply #'merge-costmaps
-                               (append (force-ll cm-1) costmaps))))
-            (publish-location-costmap merged)
-            merged))
+    (list ;; (let ((merged (apply #'merge-costmaps
+          ;;                      (append (force-ll cm-1) costmaps))))
+          ;;   (publish-location-costmap merged)
+          ;;   merged)
+     (apply #'merge-costmaps (append (force-ll cm-1) costmaps)))
     (location-costmap
        ;; Todo: assert equal size of all costmaps
      (make-instance 'location-costmap
