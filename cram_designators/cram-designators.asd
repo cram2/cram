@@ -43,6 +43,8 @@
                                                       "designator-protocol"))
                (:file "default-location-generators"
                 :depends-on ("package" "location-designator"))
+               (:file "location-designator-filters"
+                :depends-on ("package" "location-designator"))
                (:file "facts" :depends-on ("package"
                                            "designator-protocol"
                                            "object-designator"
