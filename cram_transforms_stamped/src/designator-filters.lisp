@@ -28,31 +28,6 @@
 
 (in-package :cram-transforms-stamped)
 
-(register-location-validation-function 1 filter-solution)
-
-(defvar *filter-functions* nil)
-
-(defmacro with-designator-solution-filter (filter &body body)
-  "Executes `body' with a filter function added to the location
-designator resolution mechanism. To validate a designator solution
-inside `body', all filters have to return T. `filter' must be a
-function that takes exactly one parameter, the solution."
-  `(let ((*filter-functions* (cons ,filter *filter-functions*)))
-     ,@body))
-
-(defun filter-solution (designator solution)
-  (declare (ignore designator))
-  (cond ((not *filter-functions*)
-         :unknown)
-        ((every (lambda (function)
-                  (funcall function solution))
-                *filter-functions*)
-         :accept)))
-
-(defun next-filtered-designator-solution (designator filter)
-  (with-designator-solution-filter filter
-    (next-solution designator)))
-
 (defun make-euclidean-distance-filter (pose distance-threshold)
   "Filters (i.e. removes) all solutions that are closer than
 `distance-threshold' to `pose'."
