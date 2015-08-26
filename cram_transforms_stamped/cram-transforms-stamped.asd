@@ -11,12 +11,13 @@
                :cl-transforms-stamped
                :cram-utilities
                :cram-prolog
-               :cram-roslisp-common)
-
+               :cram-roslisp-common
+               :roslisp)
   :components
   ((:module "src"
             :components
             ((:file "package")
              (:file "designator-extensions" :depends-on ("package"))
              (:file "designator-filters" :depends-on ("package"))
+             (:file "robot-current-pose" :depends-on ("package"))
              (:file "facts" :depends-on ("package"))))))
