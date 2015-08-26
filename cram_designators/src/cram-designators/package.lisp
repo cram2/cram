@@ -90,6 +90,9 @@
            #:enable-location-validation-function
            #:disable-location-validation-function
            #:validate-location-designator-solution
+           ;; location designator filters
+           #:with-designator-solution-filter #:next-filtered-designator-solution
+           ;; other stuff
            #:get-all-designators
            #:human-designator #:human
            ;; Properties & prolog related stuff
