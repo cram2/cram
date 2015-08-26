@@ -1,19 +1,20 @@
 ;;;
-;;; Copyright (c) 2009, Lorenz Moesenlechner <moesenle@cs.tum.edu>
+;;; Copyright (c) 2015, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
-;;;     * Neither the name of Willow Garage, Inc. nor the names of its
-;;;       contributors may be used to endorse or promote products derived from
-;;;       this software without specific prior written permission.
-;;; 
+;;;     * Neither the name of the Institute for Artificial Intelligence/
+;;;       Universitaet Bremen nor the names of its contributors may be used to
+;;;       endorse or promote products derived from this software without
+;;;       specific prior written permission.
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -25,17 +26,30 @@
 ;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
-;;;
 
-(in-package :cl-user)
+(in-package :cram-transforms-stamped)
 
-(defpackage :cram-transforms-stamped
-    (:use #:cl #:desig #:cut #:prolog
-          #:cram-roslisp-common
-          #:cl-transforms-stamped)
-  (:import-from #:tf pose pose-stamped)
-  (:export make-euclidean-distance-filter
-           ;; prolog facts:
-           pose pose-stamped
-           ;; robot current pose
-           robot-current-pose))
+(defun robot-current-pose ()
+  (when *transformer*
+    (handler-case
+        (transform-pose-stamped
+         *transformer*
+         :pose (make-pose-stamped
+                *robot-base-frame*
+                (roslisp:ros-time)
+                (cl-transforms:make-identity-vector)
+                (cl-transforms:make-identity-rotation))
+         :target-frame *fixed-frame*
+         :timeout *tf-default-timeout*)
+      (transform-stamped-error () nil))))
+
+(defun robot-current-pose-generator (desig)
+  (declare (ignore desig))
+  (let ((pose (robot-current-pose)))
+    (when pose
+      (list pose))))
+
+(desig:register-location-generator
+ 15 robot-current-pose-generator
+ "We should move the robot only if we really need to move. Try the
+ current robot pose as a first solution.")

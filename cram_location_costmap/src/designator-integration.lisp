@@ -57,23 +57,6 @@
                   (when (> (aref cm row col) max)
                     (setf max (aref cm row col)))))))))
 
-(defun robot-current-pose-generator (desig)
-  (declare (ignore desig))
-  (when *transformer*
-    (handler-case
-        (let ((robot-pose
-                (cl-transforms-stamped:transform-pose-stamped
-                 *transformer*
-                 :pose (make-pose-stamped
-                        *robot-base-frame*
-                        (roslisp:ros-time)
-                        (cl-transforms:make-identity-vector)
-                        (cl-transforms:make-identity-rotation))
-                 :target-frame *fixed-frame*
-                 :timeout *tf-default-timeout*)))
-          (list robot-pose))
-      (transform-stamped-error () nil))))
-
 (defun location-costmap-generator (desig)
   (let ((costmap (get-cached-costmap desig)))
     (unless costmap
@@ -109,10 +92,6 @@
             :maybe-reject)))
       :unknown))
 
-(register-location-generator
- 15 robot-current-pose-generator
- "We should move the robot only if we really need to move. Try the
- current robot pose as a first solution.")
 
 (register-location-generator
  20 location-costmap-generator
