@@ -104,6 +104,7 @@
            #:generate
            #:map-coordinate->array-index
            #:array-index->map-coordinate
+           #:*costmap-valid-solution-threshold*
            ;; Costmap configuration symbols
            #:costmap-size #:costmap-origin #:costmap-resolution
            #:costmap-padding #:costmap-manipulation-padding

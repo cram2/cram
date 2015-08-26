@@ -105,20 +105,18 @@ respectively."
       (let ((index 0))
         (dotimes (row (array-dimension map-array 0))
           (dotimes (col (array-dimension map-array 1))
-            (let ((curr-val (aref map-array row col)))
+            (let ((curr-val (/ (aref map-array row col) max-val)))
               (when (> curr-val threshold)
                 (let ((pose (cl-transforms:make-pose
                              (cl-transforms:make-3d-vector
                               (+ (* col resolution) origin-x)
                               (+ (* row resolution) origin-y)
-                              (+ z (or (when elevate-costmap
-                                         (/ curr-val max-val))
+                              (+ z (or (when elevate-costmap curr-val)
                                        0.0)))
                              (cl-transforms:axis-angle->quaternion
                               (cl-transforms:make-3d-vector 1.0 0.0 0.0) 0.0)))
                       (color (cond (hsv-colormap
-                                    (hsv->rgb (* 360 (/ curr-val
-                                                        max-val))
+                                    (hsv->rgb (* 360 curr-val)
                                               0.5 0.5))
                                    (intensity-colormap
                                     (let* ((hsv-color (rgb->hsv
@@ -128,7 +126,7 @@ respectively."
                                            (mod-hsv
                                              (vector (elt hsv-color 0)
                                                      (elt hsv-color 1)
-                                                     (/ curr-val max-val))))
+                                                     curr-val)))
                                       (hsv->rgb
                                        (elt mod-hsv 0)
                                        (elt mod-hsv 1)
@@ -152,7 +150,7 @@ respectively."
                                       (r color) (elt color 0)
                                       (g color) (elt color 1)
                                       (b color) (elt color 2)
-                                      (a color) 0.9)
+                                      (a color) 0.5)
                         boxes)
                   (incf index))))))
         (values (make-message "visualization_msgs/MarkerArray"
@@ -231,9 +229,9 @@ respectively."
                              (x scale) 0.15
                              (y scale) 0.15
                              (z scale) 0.15
-                             (r color) (random 1.0)
-                             (g color) (random 1.0)
-                             (b color) (random 1.0)
+                             (r color) 1.0 ; (random 1.0)
+                             (g color) 0.0 ; (random 1.0)
+                             (b color) 0.0 ; (random 1.0)
                              (a color) 0.9)))))
 
 (defun publish-pose (pose &key id)
@@ -275,3 +273,17 @@ respectively."
 ;;                      (slot-value desig 'data))))
 ;;     (assert cm () "No location costmap found. Cannot visualize.")
 ;;     (publish-location-costmap (kipla-reasoning::costmap cm))))
+
+(defmethod gen-costmap-sample-point :around ((map location-costmap) &key sampling-function)
+  (declare (ignore map sampling-function))
+  (let ((point (call-next-method)))
+    (publish-point point)
+    point))
+
+(defmethod costmap-samples :around ((map location-costmap) &key sampling-function)
+  (declare (ignore sampling-function))
+  (with-slots (cost-map) map
+    (let ((initialized (slot-boundp map 'cost-map)))
+      (prog1 (call-next-method)
+        (unless initialized
+          (publish-location-costmap map :threshold *costmap-valid-solution-threshold*))))))
