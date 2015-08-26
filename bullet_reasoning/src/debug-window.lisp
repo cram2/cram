@@ -83,13 +83,13 @@
             (remove *current-costmap-function* (gl-objects *debug-window*))))
     (when costmap
       (let* ((map-array (location-costmap:get-cost-map costmap))
-             (max-val (loop for y from 0 below (array-dimension map-array 1)
+             (max-val (loop for y from 0 below (array-dimension map-array 0)
                             maximizing (loop for x from 0 below (array-dimension map-array 1)
                                              maximizing (aref map-array y x)))))
         (declare (type cma:double-matrix map-array))
         (flet ((costmap-function (x y)
                  (let ((val (/ (location-costmap:get-map-value costmap x y) max-val)))
-                   (when (> val 0.01)
+                   (when (> val location-costmap:*costmap-valid-solution-threshold*)
                      val))))
           (setf *current-costmap-function*
                 (make-instance 'math-function-object
