@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   cram_plan_events
   cram_occasions_events
   cram_plan_library
+  cram_physics_utils
 )
 
 #set the default path for built executables to the "bin" directory

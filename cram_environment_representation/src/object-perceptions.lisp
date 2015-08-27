@@ -49,12 +49,12 @@ just updated. Otherwise a new instance is created."))
   identified by `data' which is of type OBJECT-DESIGNATOR-DATA."))
 
 (defmethod register-object-designator-data
-    ((data cram-manipulation-knowledge:object-shape-data-mixin) &key type)
+    ((data cram-physics-utils:object-shape-data-mixin) &key type)
   (declare (ignore type))
   nil)
 
 (defmethod register-object-designator-data
-    ((data cram-manipulation-knowledge:object-mesh-data-mixin) &key type)
+    ((data cram-physics-utils:object-mesh-data-mixin) &key type)
   (let ((instance-name (or
                         (gethash (desig:object-identifier data)
                                  *object-identifier-to-instance-mappings*)
@@ -74,23 +74,23 @@ just updated. Otherwise a new instance is created."))
                                                  :disable-face-culling t)))))))
 
 (defmethod register-object-designator-data
-    ((data cram-manipulation-knowledge:object-point-data-mixin) &key type)
+    ((data cram-physics-utils:object-point-data-mixin) &key type)
   (declare (ignore type))
   nil)
 
-(defmethod object-mass ((data cram-manipulation-knowledge:object-mesh-data-mixin))
-  (physics-utils:calculate-mass
-   :mesh :points (cram-manipulation-knowledge:vertices data)))
+(defmethod object-mass ((data cram-physics-utils:object-mesh-data-mixin))
+  (cram-physics-utils:calculate-mass
+   :mesh :points (cram-physics-utils:vertices data)))
 
 (defun object-mesh (data)
-  (declare (type cram-manipulation-knowledge:object-mesh-data-mixin data))
-  (with-slots ((vertices cram-manipulation-knowledge:vertices)
-               (faces cram-manipulation-knowledge:faces)) data
-    (physics-utils:make-3d-model
+  (declare (type cram-physics-utils:object-mesh-data-mixin data))
+  (with-slots ((vertices cram-physics-utils:vertices)
+               (faces cram-physics-utils:faces)) data
+    (cram-physics-utils:make-3d-model
      :vertices vertices
-     :faces (physics-utils:fix-normals
+     :faces (cram-physics-utils:fix-normals
              (map 'vector (lambda (indices)
-                            (physics-utils:make-face
+                            (cram-physics-utils:make-face
                              :points (mapcar (alexandria:curry #'elt vertices) indices)))
                   faces)
              :always-recalculate t))))

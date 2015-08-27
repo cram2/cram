@@ -39,7 +39,8 @@
                cram-plan-events
                cram-plan-library
                cram-language
-               cram-occasions-events)
+               cram-occasions-events
+               cram-physics-utils)
   :components
   ((:module "src"
     :components
