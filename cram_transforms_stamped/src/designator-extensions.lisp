@@ -40,6 +40,7 @@
   (reference desig))
 
 (defmethod ensure-pose-stamped ((desig location-designator) &optional frame-id stamp)
+  (declare (ignore frame-id stamp))
   (reference desig))
 
 (defmethod designator-distance ((desig-1 location-designator) (desig-2 location-designator))
