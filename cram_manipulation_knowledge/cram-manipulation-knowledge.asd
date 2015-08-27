@@ -34,12 +34,7 @@
   
   :depends-on (cram-prolog
                cram-utilities
-               cram-physics-utils
-               cl-transforms
-               cram-designators
-               roslisp
-               shape_msgs-msg
-               geometry_msgs-msg)
+               cl-transforms)
   :components
   ((:module "src"
     :components
@@ -47,5 +42,4 @@
      (:file "grasps" :depends-on ("package"))
      (:file "trajectories" :depends-on ("package"))
      (:file "arms" :depends-on ("package"))
-     (:file "objects" :depends-on ("package"))
-     (:file "object-designator-extensions" :depends-on ("package"))))))
+     (:file "objects" :depends-on ("package"))))))

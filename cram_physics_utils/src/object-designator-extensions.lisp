@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-manipulation-knowledge)
+(in-package :physics-utils)
 
 (defclass object-shape-data-mixin ()
   ((shape-type :initarg :shape-type :reader shape-type
