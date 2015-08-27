@@ -58,12 +58,8 @@
  10 validate-designator-solution
  "Uses the bullet base reasoning system to validate a designator.")
 
-(defmethod get-cost-map :around ((map location-costmap))
-  (with-slots (cost-map) map
-    (let ((initialized (slot-boundp map 'location-costmap::cost-map)))
-      (prog1 (call-next-method)
-        (unless initialized
-          (add-costmap-function-object map))))))
+(defmethod on-visualize-costmap opengl ((map location-costmap))
+  (add-costmap-function-object map))
 
 (defun robot-location-on-floor (designator pose)
   (cond ((not (member (desig-prop-value designator :to) '(:reach :see)))
