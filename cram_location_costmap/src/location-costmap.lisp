@@ -112,6 +112,8 @@
   (:method ((name number))
     name))
 
+(define-hook on-visualize-costmap (costmap))
+
 (defmethod get-cost-map ((map location-costmap))
   "Returns the costmap matrix of `map', i.e. if not generated yet,
 calls the generator functions and runs normalization."
@@ -137,7 +139,8 @@ calls the generator functions and runs normalization."
             (incf sum (aref new-cost-map row column))))
         (when (= sum 0)
           (error 'invalid-probability-distribution))
-        (setf (slot-value map 'cost-map) (cma:m./ new-cost-map sum))))
+        (setf (slot-value map 'cost-map) (cma:m./ new-cost-map sum))
+        (on-visualize-costmap map)))
     (slot-value map 'cost-map)))
 
 (defmethod get-map-value ((map location-costmap) x y)

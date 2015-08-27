@@ -280,10 +280,5 @@ respectively."
     (publish-point point)
     point))
 
-(defmethod costmap-samples :around ((map location-costmap) &key sampling-function)
-  (declare (ignore sampling-function))
-  (with-slots (cost-map) map
-    (let ((initialized (slot-boundp map 'cost-map)))
-      (prog1 (call-next-method)
-        (unless initialized
-          (publish-location-costmap map :threshold *costmap-valid-solution-threshold*))))))
+(defmethod on-visualize-costmap rviz ((map location-costmap))
+  (publish-location-costmap map :threshold *costmap-valid-solution-threshold*))

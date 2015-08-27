@@ -76,6 +76,7 @@
            #:occupancy-grid-covariance
            #:location-costmap
            #:get-cost-map
+           #:on-visualize-costmap
            #:get-map-value
            #:no-cost-functions-registered
            #:register-cost-function
