@@ -11,8 +11,7 @@
                :cl-transforms-stamped
                :cram-utilities
                :cram-prolog
-               :cram-roslisp-common
-               :roslisp)
+               :cram-roslisp-common)
   :components
   ((:module "src"
             :components

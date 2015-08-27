@@ -82,7 +82,7 @@ valid solution for `location-designator'"
                 (cond ((sb-thread:with-mutex (*navigating-lock*)
                          (and (sb-thread:mutex-owner *at-location-lock*)
                               (location-designator-reached
-                               (current-robot-location) loc-var)
+                               (cram-transforms-stamped:robot-current-pose) loc-var)
                               (setf (value navigation-done) t)))
                        (sb-thread:with-mutex (*at-location-lock*)
                          (wait-for (make-fluent :value nil)))
@@ -101,10 +101,10 @@ valid solution for `location-designator'"
                 (seq
                   (wait-for navigation-done)
                   (unless (location-designator-reached
-                           (current-robot-location) loc-var)
+                           (cram-transforms-stamped:robot-current-pose) loc-var)
                     (cpl:fail 'cram-plan-failures:location-not-reached-failure))
                   ;; (assert (location-designator-reached
-                  ;;          (current-robot-location) loc-var))
+                  ;;          (cram-transforms-stamped:robot-current-pose) loc-var))
                   (pursue
                     ;; We are ignoring the designator-updated and
                     ;; location-changed fluents inside the body of the
@@ -127,7 +127,7 @@ valid solution for `location-designator'"
                         (declare (ignore location-changed
                                          designator-updated))
                         (not (location-designator-reached
-                              (current-robot-location) loc-var)))
+                              (cram-transforms-stamped:robot-current-pose) loc-var)))
                       (pulsed robot-location-changed-fluent)
                       (pulsed designator-updated)))
                     (seq
