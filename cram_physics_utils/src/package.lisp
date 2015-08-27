@@ -45,4 +45,8 @@
    calculate-mass
    event-queue post-event get-next-event
    wait-for-queue-empty
-   fix-normals transform-3d-model))
+   fix-normals transform-3d-model
+   ;; object designator extensions
+   object-shape-data-mixin object-mesh-data-mixin object-point-data-mixin
+   shape-type dimensions vertices faces points
+   get-shape-message))
