@@ -31,21 +31,6 @@
 
 (defvar *action-client* nil)
 
-(defun pose-stamped->point-stamped-msg (ps)
-  (roslisp:make-message
-   "geometry_msgs/PointStamped"
-   (stamp header) (stamp ps)
-   (frame_id header) (frame-id ps)
-   (x point) (cl-transforms:x
-              (cl-transforms:origin ps))
-   (y point) (cl-transforms:y
-              (cl-transforms:origin ps))                
-   (z point) (cl-transforms:z
-              (cl-transforms:origin ps))))
-
-(defmethod ensure-pose-stamped ((desig location-designator) &optional frame-id stamp)
-  (reference desig))
-
 (defun make-action-goal (pose-stamped)
   (let ((pose-stamped
           (cl-transforms-stamped:transform-pose-stamped
@@ -54,8 +39,8 @@
            :target-frame "/base_link"
            :timeout cram-roslisp-common:*tf-default-timeout*
            :use-current-sim-time t)))
-    (let* ((point-stamped-msg (pose-stamped->point-stamped-msg
-                               pose-stamped)))
+    (let* ((point-stamped-msg
+             (cl-transforms-stamped:pose-stamped->point-stamped-msg pose-stamped)))
       (actionlib-lisp:make-action-goal-msg
           *action-client*
         max_velocity 10
