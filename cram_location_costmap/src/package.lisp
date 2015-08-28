@@ -107,7 +107,10 @@
            ;; Costmap configuration symbols
            #:costmap-size #:costmap-origin #:costmap-resolution
            #:costmap-padding #:costmap-manipulation-padding
-           #:costmap-in-reach-distance #:costmap-reach-minimal-distance)
+           #:costmap-in-reach-distance #:costmap-reach-minimal-distance
+           ;; facts
+           #:make-angle-to-point-generator #:make-orientation-generator
+           #:2d-pose-covariance)
   (:import-from #:cram-math invalid-probability-distribution)
   (:desig-properties #:to #:see #:reach #:execute #:location #:pose #:obj
                      #:object #:action #:side))
