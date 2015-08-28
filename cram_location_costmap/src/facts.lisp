@@ -30,7 +30,8 @@
 (in-package :location-costmap)
 
 ;;; This file defines the PROLOG rules that help resolution of designators based on costmaps.
-;;; By itself, the file will do nothing, as it does not define any costmaps, so to use it you have to
+;;; By itself, the file will do nothing, as it does not define any costmaps,
+;;; so to use it you have to
 ;;; also load a file describing costmaps and providing them with prolog rules such as
 ;;;   (<- (desig-costmap ?desig ?cm)
 ;;;     (costmap ?cm)
