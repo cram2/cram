@@ -36,6 +36,7 @@
                cram-prolog
                roslisp
                semantic-map-costmap
+               cram-robot-pose-gaussian-costmap
                bullet-reasoning
                cram-pr2-knowledge
                cram-environment-representation

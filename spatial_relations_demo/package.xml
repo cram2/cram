@@ -15,6 +15,7 @@
   <depend>cram_designators</depend>
   <depend>cram_location_costmap</depend>
   <depend>semantic_map_costmap</depend>
+  <depend>cram_robot_pose_gaussian_costmap</depend>
   <depend>bullet_reasoning</depend>
   <depend>cram_pr2_knowledge</depend>
   <depend>cram_environment_representation</depend>
