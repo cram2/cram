@@ -73,10 +73,6 @@
                      (unless (is-var ?robot)
                        ?robot))))
 
-(defun reach-designator (designator)
-  (prolog `(location-costmap:reachability-designator
-            ,designator)))
-
 (defun pose-side-properties (designator)
   "Returns a list of lists (pose side) that correspond to the poses
 that `designator' tries to reach."
@@ -85,7 +81,7 @@ that `designator' tries to reach."
     (lambda (solution)
       (with-vars-bound (?pose ?side) solution
         (list ?pose (unless (is-var ?side) ?side))))
-    (prolog `(designator-reach-pose ,designator ?pose ?side)))))
+    (prolog `(cram-manipulation-knowledge:designator-reach-pose ,designator ?pose ?side)))))
 
 (defun check-reachability (robot reach-pose &key side)
   (etypecase reach-pose
@@ -120,7 +116,7 @@ that `designator' tries to reach."
              poses-and-sides))))
 
 (defun check-ik-solution (designator pose)
-  (cond ((not (reach-designator designator))
+  (cond ((not (cram-manipulation-knowledge:reachability-designator-p designator))
          :unknown)
         ((let ((cached-function
                  (or (gethash designator *designator-ik-check-cache*)

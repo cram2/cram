@@ -37,6 +37,7 @@
                cram-transforms-stamped
                cram-utilities
                cram-environment-representation
+               cram-manipulation-knowledge
                cram-math)
   :components
   ((:module "src"
