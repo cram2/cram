@@ -171,13 +171,10 @@ calls the generator functions and runs normalization."
 (defun merge-costmaps (cm-1 &rest costmaps)
   "merges cost functions and copies one height-map, returns one costmap"
   (etypecase cm-1
-    (list ;; (let ((merged (apply #'merge-costmaps
-          ;;                      (append (force-ll cm-1) costmaps))))
-          ;;   (publish-location-costmap merged)
-          ;;   merged)
+    (list
      (apply #'merge-costmaps (append (force-ll cm-1) costmaps)))
     (location-costmap
-       ;; Todo: assert equal size of all costmaps
+     ;; Todo: assert equal size of all costmaps
      (make-instance 'location-costmap
        :width (width cm-1)
        :height (height cm-1)
@@ -186,8 +183,10 @@ calls the generator functions and runs normalization."
        :resolution (resolution cm-1)
        :cost-functions (reduce #'append (mapcar #'cost-functions costmaps)
                                :initial-value (cost-functions cm-1))
-       :height-generators (mapcan (compose #'copy-list #'height-generators) (cons cm-1 costmaps))
-       :orientation-generators (mapcan (compose #'copy-list #'orientation-generators) (cons cm-1 costmaps))))))
+       :height-generators (mapcan (compose #'copy-list #'height-generators)
+                                  (cons cm-1 costmaps))
+       :orientation-generators (mapcan (compose #'copy-list #'orientation-generators)
+                                       (cons cm-1 costmaps))))))
 
 (defun generate-height (map x y &optional (default 0.0d0))
   (or
