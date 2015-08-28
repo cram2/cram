@@ -49,15 +49,3 @@
      robot-pose
      :origin (cl-transforms:copy-3d-vector
               (cl-transforms:origin robot-pose) :z 0.0))))
-
-(defun robot-current-pose-generator (desig)
-  (when (member (desig-prop-value desig :to) '(:reach :see :execute))
-    (when *transformer*
-      (handler-case
-          (list (robot-current-pose))
-        (transform-stamped-error () nil)))))
-
-(desig:register-location-generator
- 15 robot-current-pose-generator
- "We should move the robot only if we really need to move. Try the
- current robot pose as a first solution.")

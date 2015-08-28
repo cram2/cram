@@ -38,4 +38,4 @@
            get-grasp-names
            ;; reachbility prolog utils
            #:reachability-designator #:designator-reach-pose
-           #:reachability-designator-p))
+           #:reachability-designator-p #:visibility-designator-p))
