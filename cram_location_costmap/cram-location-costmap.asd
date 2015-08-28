@@ -35,7 +35,6 @@
                roslisp-utilities
                cl-transforms-stamped
                cram-roslisp-common
-               cram-manipulation-knowledge
                nav_msgs-msg
                visualization_msgs-msg
                trivial-garbage

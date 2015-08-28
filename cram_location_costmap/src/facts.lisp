@@ -39,24 +39,6 @@
 ;;;     ...)
 ;;; examples are in table_costmap and semantic_map_costmap
 
-(defparameter *orientation-samples* 5)
-(defparameter *orientation-sample-step* (/ pi 18))
-
-(defmethod costmap-generator-name->score ((name (eql 'pose-distribution)))
-  5)
-
-(defclass pose-distribution-range-include-generator () ())
-
-(defclass pose-distribution-range-exclude-generator () ())
-
-(defmethod costmap-generator-name->score
-    ((name pose-distribution-range-include-generator))
-  7)
-
-(defmethod costmap-generator-name->score
-    ((name pose-distribution-range-exclude-generator))
-  6)
-
 (defun make-angle-to-point-generator (position &key (samples 1) sample-step)
   "Returns a function that takes an X and Y coordinate and returns a lazy-list of
 quaternions to face towards `position'"
@@ -126,9 +108,17 @@ If the value is greater than 1, the samples' orientations differ by `sample-step
     (list (cl-transforms:make-3d-vector mean-x mean-y 0.0d0)
           result)))
 
-;; TODO: This fact belongs into a package for CRAM_PL based desig utils
 (def-fact-group location-costmap-utils ()
 
+  (<- (merged-desig-costmap ?desig ?cm)
+    ;; bagof collects all true solutions for c into costmaps
+    (bagof ?c (desig-costmap ?desig ?c) ?costmaps)
+    (lisp-fun merge-costmaps ?costmaps ?cm))
+
+  (<- (costmap-samples ?cm ?solutions)
+    (lisp-fun costmap-samples ?cm ?solutions))
+
+  ;; TODO: This fact belongs into a package for CRAM_PL based desig utils
   ;; looks up a value in a CRAM fluent
   (<- (global-fluent-value ?name ?value)
     (symbol-value ?name ?fl)
@@ -169,55 +159,3 @@ If the value is greater than 1, the samples' orientations differ by `sample-step
     (lisp-type ?msg nav_msgs-msg:gridcells)
     (lisp-fun grid-cells-msg->occupancy-grid ?msg ?p ?tmp-grid)
     (lisp-fun invert-occupancy-grid ?tmp-grid ?grid)))
-
-;; this fact group extends location designator resolution with costmaps
-(def-fact-group location-costmap-desigs (desig-costmap)
-
-  (<- (desig-costmap ?desig ?cm)
-    (desig-prop ?desig (:to :see))
-    (bagof ?pose (desig-location-prop ?desig ?pose) ?poses)
-    (costmap ?cm)
-    (lisp-fun 2d-pose-covariance ?poses 0.5 (?mean ?covariance))
-    (costmap-add-function pose-distribution (make-gauss-cost-function ?mean ?covariance) ?cm)
-    (symbol-value *orientation-samples* ?samples)
-    (symbol-value *orientation-sample-step* ?sample-step)
-    (costmap-add-orientation-generator
-     (make-angle-to-point-generator ?mean :samples ?samples :sample-step ?sample-step)
-     ?cm))
-  
-  (<- (desig-costmap ?desig ?cm)
-    (cram-manipulation-knowledge:reachability-designator ?desig)
-    (bagof ?pose (cram-manipulation-knowledge:designator-reach-pose ?desig ?pose ?_) ?poses)
-    (costmap ?cm)
-    (lisp-fun 2d-pose-covariance ?poses 0.5 (?mean ?covariance))
-    (costmap-in-reach-distance ?distance)
-    (costmap-reach-minimal-distance ?minimal-distance)
-    (forall
-     (member ?pose ?poses)
-     (and
-      (instance-of pose-distribution-range-include-generator
-                   ?include-generator-id)
-      (costmap-add-function
-       ?include-generator-id
-       (make-range-cost-function ?pose ?distance) ?cm)
-      (instance-of pose-distribution-range-exclude-generator
-                   ?exclude-generator-id)
-      (costmap-add-function
-       ?exclude-generator-id
-       (make-range-cost-function ?pose ?minimal-distance :invert t)
-       ?cm)))
-    (costmap-add-function pose-distribution (make-gauss-cost-function ?mean ?covariance) ?cm)
-    (symbol-value *orientation-samples* ?samples)
-    (symbol-value *orientation-sample-step* ?sample-step)
-    (costmap-add-orientation-generator
-     (make-angle-to-point-generator ?mean :samples ?samples :sample-step ?sample-step)
-     ?cm))
-
-  (<- (merged-desig-costmap ?desig ?cm)
-    ;; bagof collects all true solutions for c into costmaps
-    (bagof ?c (desig-costmap ?desig ?c) ?costmaps)
-    (lisp-fun merge-costmaps ?costmaps ?cm))
-
-  (<- (costmap-samples ?cm ?solutions)
-    (lisp-fun costmap-samples ?cm ?solutions)))
-
