@@ -46,7 +46,7 @@
   (let ((val (var-value var bdgs)))
     (unless (is-var val)
       val)))
-      
+
 (defun eval-generator (?generator-pat bdgs)
   (destructuring-bind (?generator-fun &rest args)
       (var-value ?generator-pat bdgs)
