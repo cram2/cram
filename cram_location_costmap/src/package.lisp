@@ -95,8 +95,6 @@
            #:*z-padding*
            #:2d-cov #:points-mean
            #:points-cov
-           #:reachability-designator
-           #:designator-reach-pose
            #:costmap-generator
            #:generator-name
            #:generator-function
