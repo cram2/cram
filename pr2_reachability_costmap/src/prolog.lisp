@@ -35,8 +35,9 @@
 
 (def-fact-group pr2-reachability-costmap (desig-costmap)
   (<- (desig-costmap ?designator ?costmap)
-    (reachability-designator ?designator)
-    (bagof (?pose ?side) (designator-reach-pose ?designator ?pose ?side)
+    (cram-manipulation-knowledge:reachability-designator ?designator)
+    (bagof (?pose ?side)
+           (cram-manipulation-knowledge:designator-reach-pose ?designator ?pose ?side)
            ?poses)
     (costmap ?costmap)
     (forall
