@@ -34,7 +34,8 @@
   
   :depends-on (cram-prolog
                cram-utilities
-               cl-transforms)
+               cl-transforms
+               cram-designators)
   :components
   ((:module "src"
     :components
@@ -42,4 +43,5 @@
      (:file "grasps" :depends-on ("package"))
      (:file "trajectories" :depends-on ("package"))
      (:file "arms" :depends-on ("package"))
-     (:file "objects" :depends-on ("package"))))))
+     (:file "objects" :depends-on ("package"))
+     (:file "reachability-utils" :depends-on ("package" "trajectories" "arms"))))))

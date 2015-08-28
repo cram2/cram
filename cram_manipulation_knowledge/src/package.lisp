@@ -29,10 +29,13 @@
 (in-package :cl-user)
 
 (defpackage cram-manipulation-knowledge
-  (:use #:common-lisp #:cram-prolog)
+  (:use #:common-lisp #:cram-prolog #:cram-designators)
   (:export trajectory-point arm required-arms available-arms
            def-grasp def-tool get-grasp get-grasps calculate-bounding-box-tool-length
            get-tool-direction-vector get-tool-length get-tool-vector calculate-tool
            object-type-grasp object-designator-grasp object-type-tool-length
            object-designator-tool-length end-effector-link gripper-link orientation-matters
-           get-grasp-names))
+           get-grasp-names
+           ;; reachbility prolog utils
+           #:reachability-designator #:designator-reach-pose
+           #:reachability-designator-p))
