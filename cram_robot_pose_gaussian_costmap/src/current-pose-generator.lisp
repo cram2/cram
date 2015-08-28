@@ -1,3 +1,4 @@
+;;;
 ;;; Copyright (c) 2015, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
@@ -9,10 +10,10 @@
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
-;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
-;;;       without specific prior written permission.
+;;;     * Neither the name of the Institute for Artificial Intelligence/
+;;;       Universitaet Bremen nor the names of its contributors may be used to
+;;;       endorse or promote products derived from this software without
+;;;       specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -26,20 +27,17 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-robot-pose-gaussian-costmap
-  :author "Gayane Kazhoyan"
-  :license "BSD"
+(in-package :gaussian-costmap)
 
-  :depends-on (cram-prolog
-               cram-designators
-               cram-location-costmap
-               cram-manipulation-knowledge
-               cram-transforms-stamped
-               cram-roslisp-common)
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "prolog" :depends-on ("package"))
-     (:file "current-pose-generator" :depends-on ("package"))))))
+(defun robot-current-pose-generator (desig)
+  (when (or (cram-manipulation-knowledge:reachability-designator-p desig)
+            (cram-manipulation-knowledge:visibility-designator-p desig))
+    (when cram-roslisp-common:*transformer*
+      (handler-case
+          (list (cram-transforms-stamped:robot-current-pose))
+        (transform-stamped-error () nil)))))
 
+(desig:register-location-generator
+ 15 robot-current-pose-generator
+ "We should move the robot only if we really need to move. Try the
+ current robot pose as a first solution.")

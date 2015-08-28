@@ -81,3 +81,6 @@
 
 (defun reachability-designator-p (designator)
   (prolog `(cram-manipulation-knowledge:reachability-designator ,designator)))
+
+(defun visibility-designator-p (designator)
+  (eq (desig-prop-value designator :to) :see))
