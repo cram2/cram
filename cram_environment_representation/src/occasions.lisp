@@ -86,7 +86,7 @@
     (desig:desig-solutions ?current-location ?_)
     (or (object-pose ?world ?object-name ?object-pose)
         (object-bottom-pose ?world ?object-name ?object-pose))
-    (lisp-pred validate-location ?current-location ?object-pose))
+    (lisp-pred desig:validate-location-designator-solution ?current-location ?object-pose))
 
   (<- (object-at-location ?world ?object-name ?location-designator)
     (not (bound ?location))
