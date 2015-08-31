@@ -45,12 +45,6 @@ database.")
       ;; little easier.
       object-identifier))
 
-(defun get-robot-object ()
-  (with-vars-bound (?robot-name)
-      (lazy-car (prolog `(robot ?robot-name)))
-    (unless (is-var ?robot-name)
-      (object *current-bullet-world* ?robot-name))))
-
 (defun get-designator-object-name (object-designator)
   (let ((object-designator (desig:newest-effective-designator object-designator)))
     (when object-designator

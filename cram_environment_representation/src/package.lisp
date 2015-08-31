@@ -39,7 +39,7 @@
   (:import-from #:cram-occasions-events on-event)
   (:import-from #:cram-manipulation-knowledge end-effector-link)
   (:import-from #:cram-roslisp-common *fixed-frame* *transformer* *tf-default-timeout*)
-  (:export get-robot-object get-designator-object-name get-designator-object
+  (:export get-designator-object-name get-designator-object
            object-designator-name
            object-in-hand)
   (:desig-properties pose in gripper z-offset at type))
