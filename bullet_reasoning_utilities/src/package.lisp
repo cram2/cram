@@ -46,7 +46,7 @@
    ;; plan-library.lisp
    find-object-on-counter
    ;; robot.lisp
-   robot-name move-robot move-robot-away
+   robot-name move-robot move-robot-away park-robot
    ;; setup.lisp
    semantic-map-object-name init start-ros-and-bullet)
   (:desig-properties #:on #:name #:type #:at
