@@ -257,70 +257,130 @@ time for that :(..."
                            indeces)))
             `(sensor_msgs-msg::name sensor_msgs-msg::position))))
 
-(defgeneric get-ik (robot pose-stamped
-                    &key tool-frame group-name fixed-frame robot-base-frame seed-state)
-  (:method (robot pose-stamped
-            &key
-              (tool-frame (cl-transforms:make-identity-pose))
-              (group-name (error "Plan group of IK service has to be specified"))
-              fixed-frame
-              (robot-base-frame *robot-base-frame*)
-              seed-state)
-    (declare (ignore fixed-frame))
-    (roslisp:ros-info (get-ik) "inside get-ik")
-    (let* ((pose (cl-transforms-stamped:transform-pose-stamped
-                  *transformer*
-                  :pose (copy-pose-stamped pose-stamped :stamp 0.0)
-                  :target-frame robot-base-frame
-                  :timeout *tf-default-timeout*)))
-      (roslisp:ros-info (get-ik) "msg:~%~a~%"
-                        (roslisp:make-msg
-                         "moveit_msgs/PositionIKRequest"
-                         ;; we assume that the last joint in JOINT-NAMES is the end
-                         ;; of the chain which is what we want for ik_link_name.
-                         ;; :ik_link_name (elt link-names 0)  <- moveit per default takes
-                         ;;                                      the last link in the chain
-                         :pose_stamped (to-msg (calculate-tool-pose pose :tool tool-frame))
-                         ;; something is wrong with the seed state atm, so this will stay
-                         ;; disabled for now
-                         ;; :robot_state (roslisp:make-msg
-                         ;;               "moveit_msgs/RobotState"
-                         ;;               :joint_state (or seed-state
-                         ;;                                (make-robot-joint-state-msg robot)))
-                         :group_name group-name
-                         :timeout 1.0))
-      (roslisp:with-fields ((solution (joint_state solution))
-                            (error-code (val error_code)))
-          (roslisp:call-persistent-service
-           (get-persistent-ik-service)
-           :ik_request
-           (roslisp:make-msg
-            "moveit_msgs/PositionIKRequest"
-            ;; we assume that the last joint in JOINT-NAMES is the end
-            ;; of the chain which is what we want for ik_link_name.
-            ;; :ik_link_name (elt link-names 0)  <- moveit per default takes
-            ;;                                      the last link in the chain
-            :pose_stamped (to-msg (calculate-tool-pose pose :tool tool-frame))
-            ;; something is wrong with the seed state atm, so this will stay
-            ;; disabled for now
-            ;; :robot_state (roslisp:make-msg
-            ;;               "moveit_msgs/RobotState"
-            ;;               :joint_state (or seed-state
-            ;;                                (make-robot-joint-state-msg robot)))
-            :group_name group-name
-            :timeout 1.0))
-        (roslisp:ros-info (get-ik) "cart pose: ~a" pose-stamped)
-        (roslisp:ros-info (get-ik) "pose in torso: ~a" pose)
-        (roslisp:ros-info (get-ik) "tool pose: ~a" (calculate-tool-pose pose :tool tool-frame))
-        (roslisp:ros-info (get-ik) "solution: ~a" solution)
-        (roslisp:ros-info (get-ik) "error: ~a" (rassoc error-code
-                                                       (roslisp-msg-protocol:symbol-codes
-                                                        'moveit_msgs-msg:moveiterrorcodes)))
-        (when (eql error-code (roslisp-msg-protocol:symbol-code
-                               'moveit_msgs-msg:moveiterrorcodes
-                               :success))
-          (strip-joint-state! solution group-name)
-          (list solution))))))
+(defmethod compute-ik (pose-stamped &key link-name planning-group robot-state
+                                      target-frame seed-state
+                                      (tcp-frame (cl-transforms:make-identity-pose)))
+  (declare (ignore robot-state target-frame seed-state link-name))
+  (roslisp:ros-info (compute-ik) "inside compute-ik of BTR")
+  (let* ((pose (cl-transforms-stamped:transform-pose-stamped
+                *transformer*
+                :pose (copy-pose-stamped pose-stamped :stamp 0.0)
+                :target-frame *robot-base-frame*
+                :timeout *tf-default-timeout*)))
+    (roslisp:ros-info (compute-ik) "msg:~%~a~%"
+                      (roslisp:make-msg
+                       "moveit_msgs/PositionIKRequest"
+                       ;; we assume that the last joint in JOINT-NAMES is the end
+                       ;; of the chain which is what we want for ik_link_name.
+                       ;; :ik_link_name (elt link-names 0)  <- moveit per default takes
+                       ;;                                      the last link in the chain
+                       :pose_stamped (to-msg (calculate-tool-pose pose :tool tcp-frame))
+                       ;; something is wrong with the seed state atm, so this will stay
+                       ;; disabled for now
+                       ;; :robot_state (roslisp:make-msg
+                       ;;               "moveit_msgs/RobotState"
+                       ;;               :joint_state (or seed-state
+                       ;;                                (make-robot-joint-state-msg robot)))
+                       :group_name planning-group
+                       :timeout 1.0))
+    (roslisp:with-fields ((solution (joint_state solution))
+                          (error-code (val error_code)))
+        (roslisp:call-persistent-service
+         (get-persistent-ik-service)
+         :ik_request
+         (roslisp:make-msg
+          "moveit_msgs/PositionIKRequest"
+          ;; we assume that the last joint in JOINT-NAMES is the end
+          ;; of the chain which is what we want for ik_link_name.
+          ;; :ik_link_name (elt link-names 0)  <- moveit per default takes
+          ;;                                      the last link in the chain
+          :pose_stamped (to-msg (calculate-tool-pose pose :tool tcp-frame))
+          ;; something is wrong with the seed state atm, so this will stay
+          ;; disabled for now
+          ;; :robot_state (roslisp:make-msg
+          ;;               "moveit_msgs/RobotState"
+          ;;               :joint_state (or seed-state
+          ;;                                (make-robot-joint-state-msg robot)))
+          :group_name planning-group
+          :timeout 1.0))
+      (roslisp:ros-info (get-ik) "cart pose: ~a" pose-stamped)
+      (roslisp:ros-info (get-ik) "pose in torso: ~a" pose)
+      (roslisp:ros-info (get-ik) "tool pose: ~a" (calculate-tool-pose pose :tool tcp-frame))
+      (roslisp:ros-info (get-ik) "solution: ~a" solution)
+      (roslisp:ros-info (get-ik) "error: ~a" (rassoc error-code
+                                                     (roslisp-msg-protocol:symbol-codes
+                                                      'moveit_msgs-msg:moveiterrorcodes)))
+      (when (eql error-code (roslisp-msg-protocol:symbol-code
+                             'moveit_msgs-msg:moveiterrorcodes
+                             :success))
+        (strip-joint-state! solution planning-group)
+        (list solution))))
+
+  ;; (robot pose-stamped
+  ;;        &key tool-frame group-name fixed-frame robot-base-frame seed-state)
+  ;; (:method (robot pose-stamped
+  ;;           &key
+  ;;             (tool-frame (cl-transforms:make-identity-pose))
+  ;;             (group-name (error "Plan group of IK service has to be specified"))
+  ;;             fixed-frame
+  ;;             (robot-base-frame *robot-base-frame*)
+  ;;             seed-state)
+  ;;   (declare (ignore fixed-frame))
+  ;;   (roslisp:ros-info (get-ik) "inside get-ik")
+  ;;   (let* ((pose (cl-transforms-stamped:transform-pose-stamped
+  ;;                 *transformer*
+  ;;                 :pose (copy-pose-stamped pose-stamped :stamp 0.0)
+  ;;                 :target-frame robot-base-frame
+  ;;                 :timeout *tf-default-timeout*)))
+  ;;     (roslisp:ros-info (get-ik) "msg:~%~a~%"
+  ;;                       (roslisp:make-msg
+  ;;                        "moveit_msgs/PositionIKRequest"
+  ;;                        ;; we assume that the last joint in JOINT-NAMES is the end
+  ;;                        ;; of the chain which is what we want for ik_link_name.
+  ;;                        ;; :ik_link_name (elt link-names 0)  <- moveit per default takes
+  ;;                        ;;                                      the last link in the chain
+  ;;                        :pose_stamped (to-msg (calculate-tool-pose pose :tool tool-frame))
+  ;;                        ;; something is wrong with the seed state atm, so this will stay
+  ;;                        ;; disabled for now
+  ;;                        ;; :robot_state (roslisp:make-msg
+  ;;                        ;;               "moveit_msgs/RobotState"
+  ;;                        ;;               :joint_state (or seed-state
+  ;;                        ;;                                (make-robot-joint-state-msg robot)))
+  ;;                        :group_name group-name
+  ;;                        :timeout 1.0))
+  ;;     (roslisp:with-fields ((solution (joint_state solution))
+  ;;                           (error-code (val error_code)))
+  ;;         (roslisp:call-persistent-service
+  ;;          (get-persistent-ik-service)
+  ;;          :ik_request
+  ;;          (roslisp:make-msg
+  ;;           "moveit_msgs/PositionIKRequest"
+  ;;           ;; we assume that the last joint in JOINT-NAMES is the end
+  ;;           ;; of the chain which is what we want for ik_link_name.
+  ;;           ;; :ik_link_name (elt link-names 0)  <- moveit per default takes
+  ;;           ;;                                      the last link in the chain
+  ;;           :pose_stamped (to-msg (calculate-tool-pose pose :tool tool-frame))
+  ;;           ;; something is wrong with the seed state atm, so this will stay
+  ;;           ;; disabled for now
+  ;;           ;; :robot_state (roslisp:make-msg
+  ;;           ;;               "moveit_msgs/RobotState"
+  ;;           ;;               :joint_state (or seed-state
+  ;;           ;;                                (make-robot-joint-state-msg robot)))
+  ;;           :group_name group-name
+  ;;           :timeout 1.0))
+  ;;       (roslisp:ros-info (get-ik) "cart pose: ~a" pose-stamped)
+  ;;       (roslisp:ros-info (get-ik) "pose in torso: ~a" pose)
+  ;;       (roslisp:ros-info (get-ik) "tool pose: ~a" (calculate-tool-pose pose :tool tool-frame))
+  ;;       (roslisp:ros-info (get-ik) "solution: ~a" solution)
+  ;;       (roslisp:ros-info (get-ik) "error: ~a" (rassoc error-code
+  ;;                                                      (roslisp-msg-protocol:symbol-codes
+  ;;                                                       'moveit_msgs-msg:moveiterrorcodes)))
+  ;;       (when (eql error-code (roslisp-msg-protocol:symbol-code
+  ;;                              'moveit_msgs-msg:moveiterrorcodes
+  ;;                              :success))
+  ;;         (strip-joint-state! solution group-name)
+  ;;         (list solution)))))
+  )
 
 (defun calculate-pan-tilt (robot pan-link tilt-link pose)
   "Calculates values for the pan and tilt joints so that they pose on

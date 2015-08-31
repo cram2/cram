@@ -84,7 +84,7 @@
            ros-household-object execute open close reach-ik-solution
            attached attached-objects object-attached
            attach-object detach-object detach-all-objects
-           side->ik-group-name household-object-dimensions get-ik
+           side->ik-group-name household-object-dimensions
            make-joint-state-message open-object close-object
            set-articulated-object-joint-position
            with-world copied-world with-copied-world

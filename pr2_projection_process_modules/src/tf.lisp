@@ -79,22 +79,28 @@
     ((event cram-plan-events:robot-state-changed))
   (update-tf))
 
-(defmethod get-ik :before (robot pose-stamped
-                           &key tool-frame group-name
-                             (fixed-frame *fixed-frame*)
-                             (robot-base-frame *robot-base-frame*)
-                             seed-state)
-  (declare (ignore pose-stamped tool-frame group-name seed-state))
+(defmethod cram-manipulation-knowledge:compute-ik :before
+    (pose-stamped &key link-name planning-group robot-state target-frame seed-state tcp-frame)
+  (declare (ignore pose-stamped link-name planning-group
+                   target-frame tcp-frame seed-state))
   (let ((time (roslisp:ros-time)))
     ;; tell the tf transformer where the robot currently is in the global
     ;; fixed coordinate system
-    (add-new-transform *transformer*
-                       (transform->transform-stamped
-                        fixed-frame robot-base-frame time
-                        (cl-transforms:pose->transform (pose robot))))
-    ;; tell the tf transformer the current configuration of robot's joints
-    (set-tf-from-robot-state *transformer* robot
-                             :base-frame robot-base-frame :time time)))
+    (cut:with-vars-bound (?robot-instance ?robot-pose)
+        (cut:lazy-car
+         (prolog:prolog `(and (robot ?robot)
+                              (bullet-world ?world)
+                              (%object ?world ?robot ?robot-instance)
+                              (pose ?world ?robot ?robot-pose))))
+      (assert (not (cut:is-var ?robot-instance)))
+
+      (add-new-transform *transformer*
+                         (transform->transform-stamped
+                          *fixed-frame* *robot-base-frame* time
+                          (cl-transforms:pose->transform ?robot-pose)))
+      ;; tell the tf transformer the current configuration of robot's joints
+      (set-tf-from-robot-state *transformer* robot-state
+                               :base-frame *robot-base-frame* :time time))))
 
 (defun add-new-transform (transformer transform &key suppress-callbacks)
   (cl-tf:set-transform transformer transform :suppress-callbacks suppress-callbacks))
