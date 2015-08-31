@@ -140,3 +140,18 @@
 
   (<- (retract (attached ?world . ?rest))
     (retract ?world (attached . ?rest))))
+
+
+(defun get-robot-object ()
+  (with-vars-bound (?robot-object)
+      (lazy-car (prolog `(and (robot ?robot-name)
+                              (bullet-world ?world)
+                              (%object ?world ?robot-name ?robot-object))))
+    (unless (is-var ?robot-object)
+      ?robot-object)))
+
+(defun get-robot-name ()
+  (with-vars-bound (?robot)
+      (lazy-car (prolog `(robot ?robot)))
+    (unless (is-var ?robot)
+      ?robot)))

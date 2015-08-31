@@ -34,7 +34,7 @@
         #:btr #:cram-transforms-stamped #:cut)
   (:shadowing-import-from #:desig-props at)
   (:shadowing-import-from #:btr object pose object-pose width height)
-  (:export *robot-name* *check-ik-joint-states* *robot-valid-sides*)
+  (:export *check-ik-joint-states* *robot-valid-sides*)
   (:desig-properties side to see reach name type obj
                      reachable-from pose object on execute
                      location action open handle name))

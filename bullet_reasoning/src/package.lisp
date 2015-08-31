@@ -95,6 +95,7 @@
            camera-frame robot-arms-parking-joint-states
            robot-pre-grasp-joint-states end-effector-parking-pose
            camera-minimal-height camera-maximal-height
+           get-robot-object get-robot-name
 
            event make-event timeline timeline-init timeline-advance
            timeline-current-world-state timeline-lookup

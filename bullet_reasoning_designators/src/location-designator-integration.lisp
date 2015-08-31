@@ -34,9 +34,6 @@
   (tg:make-weak-hash-table :weakness :key)
   "Cache of closures to check IK for a specific designator.")
 
-(defvar *robot-name* nil
-  "The name of the robot in the bullet world to calculate IK for.")
-
 (defvar *robot-valid-sides* '(:left :right))
 
 (defvar *check-ik-joint-states*
@@ -66,12 +63,6 @@
          :unknown)
         ((< (cl-transforms:z (cl-transforms:origin pose)) 0.05)
          :accept)))
-
-(defun get-robot-name ()
-  (or *robot-name* (with-vars-bound (?robot)
-                       (lazy-car (prolog `(robot ?robot)))
-                     (unless (is-var ?robot)
-                       ?robot))))
 
 (defun pose-side-properties (designator)
   "Returns a list of lists (pose side) that correspond to the poses
@@ -125,7 +116,7 @@ that `designator' tries to reach."
                                   (world (bullet:restore-world-state
                                           state (make-instance 'btr:bt-reasoning-world
                                                   :gravity-vector (bullet:gravity-vector state))))
-                                  (robot (btr:object world (get-robot-name))))
+                                  (robot (btr:object world (btr:get-robot-name))))
                              (make-ik-check-function
                               robot (pose-side-properties designator)))))))
            (funcall cached-function pose))
