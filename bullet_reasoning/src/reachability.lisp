@@ -147,15 +147,14 @@ tool length."
            (type cl-transforms:pose pose)
            (type (or cl-transforms:pose null) tool-frame))
   (let ((reference-frame (cl-urdf:name (cl-urdf:root-link (slot-value robot 'urdf)))))
-    (get-ik
-     robot (etypecase pose
-             (pose-stamped pose)
-             (cl-transforms:pose (pose->pose-stamped "map" 0.0 pose)))
-     :group-name (side->ik-group-name side)
-     :tool-frame (or tool-frame
+    (compute-ik
+     (etypecase pose
+       (pose-stamped pose)
+       (cl-transforms:pose (pose->pose-stamped "map" 0.0 pose)))
+     :robot-state robot
+     :planning-group (side->ik-group-name side)
+     :tcp-frame (or tool-frame
                      (calculate-tool
                       (get-tool-length)
                       (cl-transforms:make-identity-rotation)))
-     :robot-base-frame reference-frame
-     :fixed-frame "map"
      :seed-state seed-state)))
