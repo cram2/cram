@@ -39,11 +39,11 @@
 
   (<- (clear-bullet-world)
     (lisp-fun set *current-bullet-world* nil ?_))
-  
+
   (<- (clear-bullet-world ?world)
     (not (bound ?world))
     (instance-of bt-reasoning-world ?world))
-  
+
   (<- (bullet-world ?world)
     (not (bound ?world))
     (symbol-value *current-bullet-world* ?current-world)
@@ -154,7 +154,7 @@
     (bound ?obj-2-name)
     (bullet-world ?world)
     (%object ?world ?obj-1-name ?obj-1)
-    (%object ?world ?obj-2-name ?obj-2)    
+    (%object ?world ?obj-2-name ?obj-2)
     (lisp-fun perform-collision-detection ?world ?_)
     (lisp-pred contact-p ?world ?obj-1 ?obj-2))
 
@@ -223,7 +223,7 @@
     (bullet-world ?world)
     (copied-world ?world ?copy)
     (simulate ?copy 5)
-    (forall (household-object-type ?world ?object ?_)        
+    (forall (household-object-type ?world ?object ?_)
             (not (object-pose-different ?world ?copy ?object))))
 
   (<- (object-pose-different ?world-1 ?world-2 ?object)
@@ -244,7 +244,7 @@
 
   (<- (supported-by ?world ?top ?bottom)
     (supported-by ?world ?top ?bottom ?_))
-  
+
   (<- (supported-by ?world ?top ?bottom ?link)
     (bullet-world ?world)
     (contact ?world ?top ?bottom ?link)

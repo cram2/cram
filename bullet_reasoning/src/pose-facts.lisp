@@ -44,8 +44,8 @@
     (lisp-fun calculate-object-bottom-pose ?object ?pose))
 
   (<- (pose ?w ?obj-name ?pose)
-    (object-pose ?w ?obj-name ?pose))  
-  
+    (object-pose ?w ?obj-name ?pose))
+
   (<- (%pose ?obj ?pose)
     (bound ?obj)
     (not (bound ?pose))

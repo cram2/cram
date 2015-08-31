@@ -138,8 +138,9 @@
                          disable-face-culling)
   (let ((mesh-model (physics-utils:scale-3d-model
                      (etypecase mesh
-                       (symbol (let ((uri (physics-utils:parse-uri (cadr (assoc mesh *mesh-files*)))))
-                                 (with-file-cache model uri                                  
+                       (symbol (let ((uri (physics-utils:parse-uri
+                                           (cadr (assoc mesh *mesh-files*)))))
+                                 (with-file-cache model uri
                                      (physics-utils:load-3d-model
                                       uri :flip-winding-order (caddr (assoc mesh *mesh-files*)))
                                    model)))
@@ -152,11 +153,12 @@
                            (list
                             (make-instance 'rigid-body
                               :name name :mass mass :pose (ensure-pose pose)
-                              :collision-shape (make-instance 'convex-hull-mesh-shape
-                                                 :points (physics-utils:3d-model-vertices mesh-model)
-                                                 :faces (physics-utils:3d-model-faces mesh-model)
-                                                 :color color
-                                                 :disable-face-culling disable-face-culling))))))
+                              :collision-shape
+                              (make-instance 'convex-hull-mesh-shape
+                                :points (physics-utils:3d-model-vertices mesh-model)
+                                :faces (physics-utils:3d-model-faces mesh-model)
+                                :color color
+                                :disable-face-culling disable-face-culling))))))
 
 (defmethod add-object ((world bt-world) (type (eql :cutlery)) name pose
                        &key mass (color '(0.5 0.5 0.5 1.0)) cutlery-type)
