@@ -63,6 +63,7 @@ for 2 plates and 1 other-type.")
   (clear-costmap-viz)
   (detach-all-objects (object-instance (robot-name)))
   (move-robot)
+  (park-robot)
 
   (let ((object-types
           (if set
