@@ -28,7 +28,10 @@
 
 (in-package :btr)
 
-(def-fact-group robot-model (assert retract)
+(def-fact-group robot-model (assert retract robot)
+
+  (<- (robot ?robot-name)
+    (fail))
 
   (<- (link ?world ?robot-name ?link)
     (bullet-world ?world)
