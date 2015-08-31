@@ -35,6 +35,12 @@
 (defun move-robot (&optional (new-pose '((0 0 0) (0 0 0 1))))
   (move-object (robot-name) new-pose))
 
+(defun park-robot ()
+  (prolog `(and (robot ?robot)
+                (robot-arms-parking-joint-states ?joint-states)
+                (assert (joint-state ?w ?robot ?joint-states))
+                (assert (joint-state ?w ?robot (("torso_lift_joint" 0.16825d0)))))))
+
 (defun move-robot-away ()
   (move-robot))
 
