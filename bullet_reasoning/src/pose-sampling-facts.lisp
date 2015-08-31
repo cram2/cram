@@ -54,7 +54,7 @@
     (bullet-world ?w)
     (%object ?w ?obj-name ?obj)
     (lisp-fun obj-poses-on ?obj ?desig-poses ?poses))
-  
+
   (<- (desig-poses ?n ?desig ?obj-name ?poses)
     (desig-poses ?desig ?obj-name ?poses-inf)
     (take ?n ?poses-inf ?poses)))

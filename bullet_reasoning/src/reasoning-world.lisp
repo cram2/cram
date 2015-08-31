@@ -39,6 +39,8 @@
 from collision checking used in a number of Prolog predicates dealing with
 collisions with the environment.")))
 
+(defvar *current-bullet-world* (make-instance 'bt-reasoning-world))
+
 (defgeneric invalidate-object (object)
   (:documentation "Invalidates an object. This method is called after
   restoring the world from a saved state and is responsible for
@@ -105,5 +107,3 @@ list from bt-reasoning-world to keep in the current world state.")))
                            obj (copy-object obj world))))
               (setf (gethash name objects) obj)
               (invalidate-object obj))))))))
-
-(defvar *current-bullet-world* (make-instance 'bt-reasoning-world))

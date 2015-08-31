@@ -34,10 +34,12 @@
 
     :depends-on (alexandria
                  cram-prolog
-                 cl-bullet cl-bullet-vis
+                 cl-bullet
+                 cl-bullet-vis
                  cram-json-prolog
                  cl-urdf
                  cl-transforms-stamped
+                 cl-transforms
                  roslisp
                  moveit_msgs-srv
                  moveit_msgs-msg
@@ -50,47 +52,67 @@
                  roslisp-utilities
                  cram-semantic-map-utils
                  cram-manipulation-knowledge
+                 cram-utilities ; lazy in pose-generators
                  cram-transforms-stamped)
     :components
     ((:module "src"
               :components
               ((:file "package")
-               (:file "utils" :depends-on ("package"))
-               (:file "prolog-handlers" :depends-on ("package" "world-facts"))
-               (:file "world-facts" :depends-on ("package" "reasoning-world"))
-               (:file "pose-facts" :depends-on ("package"))
-               (:file "pose-sampling-facts" :depends-on ("package" "world-facts"))
-               (:file "robot-model-facts" :depends-on ("package"))
-               (:file "visibility-facts" :depends-on ("package"))
-               (:file "reachability-facts" :depends-on ("package"))
-               (:file "semantic-map-facts" :depends-on ("package"))
-               (:file "action-facts" :depends-on ("package"))
                (:file "reasoning-world" :depends-on ("package"))
                (:file "textures" :depends-on ("package"))
-               (:file "objects" :depends-on ("package"
-                                             "reasoning-world" "textures" "utils"))
+               (:file "utils" :depends-on ("package"))
+               (:file "objects"
+                :depends-on ("package" "reasoning-world" "textures" "utils"))
+               (:file "household-objects" :depends-on ("package" "objects" "utils"))
+               (:file "ros-household-object-database"
+                :depends-on ("package" "objects" "household-objects"))
                (:file "aabb" :depends-on ("package" "objects"))
-               (:file "world-utils" :depends-on ("package"
-                                                 "reasoning-world" "objects"))
-               (:file "semantic-map" :depends-on ("package"
-                                                  "objects" "utils" "robot-model"
-                                                  "household-objects"))
-               (:file "urdf-semantic-map" :depends-on ("package" "semantic-map"))
-               (:file "simple-semantic-map" :depends-on ("package" "semantic-map"))
-               (:file "robot-model" :depends-on ("package"
-                                                 "objects" "utils" "reasoning-world"))
+               (:file "debug-window" :depends-on ("package"))
+               (:file "world-utils"
+                :depends-on ("package" "reasoning-world" "objects"))
+               (:file "world-facts"
+                :depends-on ("package"
+                             "reasoning-world" "household-objects" "objects"
+                             "debug-window"
+                             "world-utils"))
+               (:file "prolog-handlers"
+                :depends-on ("package" "reasoning-world" "world-facts"))
+               (:file "robot-model"
+                :depends-on ("package" "objects" "utils" "reasoning-world"))
                (:file "robot-model-utils" :depends-on ("package" "robot-model"))
+               (:file "robot-model-facts"
+                :depends-on ("package"
+                             "world-facts" "prolog-handlers"
+                             "robot-model" "robot-model-utils"))
+               (:file "pose-generators"
+                :depends-on ("package" "utils" "aabb" "world-facts"))
+               (:file "pose-sampling-facts"
+                :depends-on ("package" "world-facts" "pose-generators"))
+               (:file "pose-facts"
+                :depends-on ("package"
+                             "aabb" "world-utils" "pose-generators" "objects"
+                             "world-facts"))
                (:file "gl-scenes" :depends-on ("package" "debug-window"))
                (:file "visibility-reasoning" :depends-on ("package" "gl-scenes"))
-               (:file "debug-window" :depends-on ("package"))
-               (:file "household-objects" :depends-on ("package" "objects" "utils"))
-               (:file "pose-generators" :depends-on ("package"
-                                                     "utils" "aabb" "world-facts"))
+               (:file "visibility-facts"
+                :depends-on ("package" "world-facts" "visibility-reasoning"))
                (:file "reachability" :depends-on ("package" "robot-model-utils"))
+               (:file "reachability-facts"
+                :depends-on ("package"
+                             "world-facts" "prolog-handlers"
+                             "robot-model-utils" "reachability"))
+               (:file "semantic-map"
+                :depends-on ("package" "objects" "utils" "robot-model" "household-objects"))
+               (:file "urdf-semantic-map"
+                :depends-on ("package" "reasoning-world" "semantic-map" "robot-model"))
+               (:file "simple-semantic-map" :depends-on ("package" "semantic-map"))
+               (:file "semantic-map-facts"
+                :depends-on ("package" "semantic-map" "world-facts"))
                (:file "articulated-objects" :depends-on ("package" "semantic-map"))
-               (:file "ros-household-object-database" :depends-on ("package"
-                                                                   "objects"
-                                                                   "household-objects"))
+               (:file "action-facts"
+                :depends-on ("package"
+                             "world-facts" "prolog-handlers"
+                             "articulated-objects"))
                (:module "temporal-reasoning"
                         :depends-on ("package" "reasoning-world" "world-facts" "utils")
                         :components

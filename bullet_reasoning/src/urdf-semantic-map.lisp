@@ -110,15 +110,19 @@ Be especially careful with BTR::COPY-OBJECT."))
     ;; is that in the current semantic map, the drawer is connected to
     ;; the door by the joint. We will keep this code until the
     ;; semantic map is fixed.
-    (let* ((child-link-name (cl-urdf:name (cl-urdf:child (gethash joint-name (cl-urdf:joints urdf)))))
-           (parent-link-name (cl-urdf:name (cl-urdf:parent (gethash joint-name (cl-urdf:joints urdf)))))
+    (let* ((child-link-name
+             (cl-urdf:name (cl-urdf:child (gethash joint-name (cl-urdf:joints urdf)))))
+           (parent-link-name
+             (cl-urdf:name (cl-urdf:parent (gethash joint-name (cl-urdf:joints urdf)))))
            (child-link (gethash child-link-name links))
-           (parent-sem-map-obj (lazy-car
-                                (sem-map-utils:sub-parts-with-name
-                                 semantic-map (owl-name-from-urdf-name sem-map parent-link-name))))
-           (child-sem-map-obj (lazy-car
-                               (sem-map-utils:sub-parts-with-name
-                                semantic-map (owl-name-from-urdf-name sem-map child-link-name))))
+           (parent-sem-map-obj
+             (lazy-car
+              (sem-map-utils:sub-parts-with-name
+               semantic-map (owl-name-from-urdf-name sem-map parent-link-name))))
+           (child-sem-map-obj
+             (lazy-car
+              (sem-map-utils:sub-parts-with-name
+               semantic-map (owl-name-from-urdf-name sem-map child-link-name))))
            (sem-map-obj  (string-case (if parent-sem-map-obj
                                           (sem-map-utils:obj-type parent-sem-map-obj)
                                           "")

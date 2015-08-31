@@ -69,7 +69,7 @@
              (contact-manifolds world))))
 
 (defun find-all-contacts (world)
-  (perform-collision-detection world)  
+  (perform-collision-detection world)
   (let ((objects (objects world)))
     (remove-duplicates
      (mapcan (lambda (contact)
@@ -89,7 +89,7 @@
      :test #'equal)))
 
 (defun find-objects-in-contact (world obj)
-  (perform-collision-detection world)  
+  (perform-collision-detection world)
   (let ((objects (objects world)))
     (remove-duplicates
      (remove-if-not

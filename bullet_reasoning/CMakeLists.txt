@@ -14,7 +14,10 @@ find_package(catkin REQUIRED COMPONENTS
   cram_designators
   cram_location_costmap
   roslisp_utilities
+  cram_utilities
   cram_roslisp_common
+  cl_transforms_stamped
+  cl_transforms
 )
 
 #set the default path for built executables to the "bin" directory
