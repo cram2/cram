@@ -61,6 +61,3 @@ database.")
   (let ((object-name (get-designator-object-name object-designator)))
     (when object-name
       (object *current-bullet-world* object-name))))
-
-(defun validate-location (designator pose)
-  (desig:validate-location-designator-solution designator pose))
