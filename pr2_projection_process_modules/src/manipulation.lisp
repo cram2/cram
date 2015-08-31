@@ -166,11 +166,11 @@
     (let* ((robot-object (object *current-bullet-world* ?robot))
            (ik-solution
              (cut:lazy-car
-              (bullet-reasoning:get-ik
-               robot-object
+              (cram-manipulation-knowledge:compute-ik
                (copy-pose-stamped
                 ?parking-pose :orientation (get-link-orientation-in-robot link))
-               :group-name (side->ik-group-name side)
+               :robot-state robot-object
+               :planning-group (side->ik-group-name side)
                :seed-state (make-joint-state-message ?joint-states)))))
       (unless ik-solution
         (cpl-impl:fail 'cram-plan-failures:manipulation-pose-unreachable))
