@@ -22,6 +22,7 @@
   <build_depend>cram_location_costmap</build_depend>
   <build_depend>cram_manipulation_knowledge</build_depend>
   <build_depend>cram_transforms_stamped</build_depend>
+  <build_depend>cl_transforms_stamped</build_depend>
   <build_depend>cram_roslisp_common</build_depend>
   <build_depend>sbcl</build_depend>
 
@@ -30,6 +31,7 @@
   <run_depend>cram_location_costmap</run_depend>
   <run_depend>cram_manipulation_knowledge</run_depend>
   <run_depend>cram_transforms_stamped</run_depend>
+  <run_depend>cl_transforms_stamped</run_depend>
   <run_depend>cram_roslisp_common</run_depend>
   <run_depend>sbcl</run_depend>
 </package>

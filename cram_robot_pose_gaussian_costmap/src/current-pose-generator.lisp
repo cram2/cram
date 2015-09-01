@@ -35,7 +35,7 @@
     (when cram-roslisp-common:*transformer*
       (handler-case
           (list (cram-transforms-stamped:robot-current-pose))
-        (transform-stamped-error () nil)))))
+        (cl-transforms-stamped:transform-stamped-error () nil)))))
 
 (desig:register-location-generator
  15 robot-current-pose-generator
