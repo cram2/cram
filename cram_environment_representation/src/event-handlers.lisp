@@ -43,7 +43,7 @@
                (assert (eql (desig:desig-prop-value at :in) :gripper))
                (update-object-designator-location
                 current-event-object
-                (extend-designator-properties
+                (desig:extend-designator-properties
                  at `((:pose ,(object-pose-in-frame
                                object
                                (event-link event))))))))
@@ -51,7 +51,7 @@
              (attach-object robot object (event-link event) :loose nil)
              (update-object-designator-location
               current-event-object
-              (extend-designator-properties
+              (desig:extend-designator-properties
                (make-object-location-in-gripper object (event-link event))
                `((:pose ,(object-pose-in-frame
                           object cram-roslisp-common:*robot-base-frame*))))))))
@@ -174,10 +174,3 @@
     :target-frame frame
     :timeout *tf-default-timeout*)
    :stamp 0.0))
-
-(defun extend-designator-properties (designator property-extension)
-  "Extends the properties of `designator' by `property-extension' and
-  returns a new (unequated) designator."
-  (desig:make-designator
-   (class-of designator)
-   (append (desig:properties designator) property-extension)))
