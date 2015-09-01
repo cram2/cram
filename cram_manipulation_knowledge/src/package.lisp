@@ -37,5 +37,6 @@
            object-designator-tool-length end-effector-link gripper-link orientation-matters
            get-grasp-names
            ;; reachbility prolog utils
+           #:compute-ik
            #:reachability-designator #:designator-reach-pose
            #:reachability-designator-p #:visibility-designator-p))

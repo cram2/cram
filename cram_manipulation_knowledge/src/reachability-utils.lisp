@@ -29,6 +29,19 @@
 
 (in-package :cram-manipulation-knowledge)
 
+(defgeneric compute-ik (pose-stamped &key link-name planning-group robot-state
+                                       target-frame seed-state tcp-frame)
+  (:documentation "Computes an inverse kinematics solution (if possible)
+to position the link `link-name' in the goal pose `pose-stamped'
+specified in the frame of the pose or `target-frame' when given,
+where only the links in `planning-group' can be moved to achieve the solution.
+When given, `robot-state' is used as initial pose of robot joints,
+otherwise TF data is used. `seed-state' is the initial seed for the
+iterative search for solution. When `tcp-frame' (i.e. tool center point) is given
+the goal pose is automatically transformed to take it into account.
+Returns a ROS message with solution states of the joints in the `planning-group'."))
+
+
 (def-fact-group reachability-designators ()
 
   (<- (reachability-designator ?designator)
@@ -80,7 +93,7 @@
 
 
 (defun reachability-designator-p (designator)
-  (prolog `(cram-manipulation-knowledge:reachability-designator ,designator)))
+  (prolog `(reachability-designator ,designator)))
 
 (defun visibility-designator-p (designator)
   (eq (desig-prop-value designator :to) :see))
