@@ -39,7 +39,8 @@
   :author "Lorenz Moesenlechner"
   :license "BSD"
   
-  :depends-on (cl-transforms cffi cffi-ros-utils ros-load-manifest roslisp
+  :depends-on (cl-transforms cffi cffi-ros-utils cram-roslisp-common
+                             ros-load-manifest roslisp
                              geometry_msgs-msg shape_msgs-msg)
   :components
   ((:module "src"
