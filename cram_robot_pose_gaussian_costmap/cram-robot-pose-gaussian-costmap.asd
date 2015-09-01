@@ -35,6 +35,7 @@
                cram-location-costmap
                cram-manipulation-knowledge
                cram-transforms-stamped
+               cl-transforms-stamped
                cram-roslisp-common)
   :components
   ((:module "src"
