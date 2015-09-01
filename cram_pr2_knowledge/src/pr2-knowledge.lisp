@@ -66,7 +66,7 @@
 
 (def-tool (cl-transforms:make-3d-vector 1 0 0) 0.20)
 
-(def-fact-group robot-metadata (end-effector-link gripper-link)
+(def-fact-group robot-metadata (end-effector-link gripper-link robot)
   (<- (robot pr2))
   (<- (camera-frame pr2 "head_mount_kinect_rgb_optical_frame"))
   (<- (camera-frame pr2 "openni_rgb_optical_frame"))
