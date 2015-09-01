@@ -41,5 +41,7 @@
   (:import-from #:cram-roslisp-common *fixed-frame* *transformer* *tf-default-timeout*)
   (:export get-designator-object-name get-designator-object
            object-designator-name
-           object-in-hand)
+           object-in-hand
+           ;; event handlers
+           object-pose-in-frame)
   (:desig-properties pose in gripper z-offset at type))
