@@ -38,12 +38,18 @@
                cram-utilities
                cram-environment-representation
                cram-manipulation-knowledge
-               cram-math)
+               cram-math
+               cl-opengl
+               cl-bullet
+               cl-bullet-vis)
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "location-designator-facts" :depends-on ("package"))
-     (:file "location-designator-integration" :depends-on ("package"))
+     (:file "costmap-generators" :depends-on ("package"))
      (:file "visibility-costmap" :depends-on ("package"))
-     (:file "costmap-generators" :depends-on ("package"))))))
+     (:file "location-designator-facts" :depends-on ("package"
+                                                     "costmap-generators"
+                                                     "visibility-costmap"))
+     (:file "location-designator-integration" :depends-on ("package"
+                                                           "location-designator-facts"))))))
