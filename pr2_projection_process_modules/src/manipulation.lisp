@@ -58,7 +58,7 @@
                        (trajectory-point ,action-designator ?_ ?side)
                        (end-effector-link ?side ?end-effector-link))))))
 
-(defun get-link-orientation-in-robot (link-name &key (base-link "base_footprint"))
+(defun get-link-orientation-in-robot (link-name &key (base-link *robot-base-frame*))
   (cl-transforms:rotation
    (cl-transforms-stamped:lookup-transform-stamped
     *transformer* base-link link-name :timeout *tf-default-timeout*)))
