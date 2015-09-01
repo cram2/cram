@@ -270,11 +270,11 @@ returns the newly created designator that is not equated yet."
           new-properties :initial-value old-properties))
 
 (defun copy-designator (old-designator &key (new-description nil))
-  "Returns a new designator with the same properties as
+  "Returns a new (unequated) designator with the same properties as
 `old-designator'. When present, the description parameter
 `new-description' will be merged with the old description. The new
 description will be dominant in this relation."
-  (make-designator (get-desig-class old-designator) 
+  (make-designator (get-desig-class old-designator)
                    (merge-desig-descriptions old-designator new-description)))
 
 (defun merge-desig-descriptions (designator new-description)
