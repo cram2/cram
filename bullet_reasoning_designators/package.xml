@@ -27,6 +27,9 @@
   <build_depend>roslisp_utilities</build_depend>
   <build_depend>alexandria</build_depend>
   <build_depend>cram_moveit</build_depend>
+  <build_depend>cl_opengl</build_depend>
+  <build_depend>cl_bullet</build_depend>
+  <build_depend>cl_bullet_vis</build_depend>
 
   <!-- Dependencies needed after this package is compiled. -->
   <run_depend>cram_prolog</run_depend>
@@ -41,5 +44,8 @@
   <run_depend>roslisp_utilities</run_depend>
   <run_depend>alexandria</run_depend>
   <run_depend>cram_moveit</run_depend>
+  <run_depend>cl_opengl</run_depend>
+  <run_depend>cl_bullet</run_depend>
+  <run_depend>cl_bullet_vis</run_depend>
 
 </package>

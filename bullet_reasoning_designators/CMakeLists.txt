@@ -13,6 +13,9 @@ find_package(catkin REQUIRED COMPONENTS
   roslisp_utilities
   alexandria
   cram_moveit
+  cl_opengl
+  cl_bullet
+  cl_bullet_vis
 )
 
 #set the default path for built executables to the "bin" directory
