@@ -45,6 +45,7 @@
            #:make-designator
            #:copy-designator
            #:merge-desig-descriptions
+           #:extend-designator-properties
            #:first-desig
            #:current-desig
            #:current-designator

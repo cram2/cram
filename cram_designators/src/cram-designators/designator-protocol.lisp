@@ -282,3 +282,10 @@ description will be dominant in this relation."
  The new description will be dominant in this relation."
   (reduce (rcurry (flip #'adjoin) :key #'car)
           (description designator) :initial-value new-description))
+
+(defun extend-designator-properties (designator property-extension)
+  "Extends (without merging) the properties of `designator'
+by `property-extension' and returns a new (unequated) designator."
+  (make-designator
+   (class-of designator)
+   (append (properties designator) property-extension)))
