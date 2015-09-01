@@ -88,7 +88,7 @@ respectively."
           (t (vector 0 0 c-max)))))
 
 (defun location-costmap->marker-array (map &key
-                                             (frame-id "/map")
+                                             (frame-id *fixed-frame*)
                                              (threshold 0.0005) (z *z-padding*)
                                              hsv-colormap
                                              (intensity-colormap nil)
@@ -157,7 +157,7 @@ respectively."
                               (markers) (map 'vector #'identity boxes))
                 index)))))
 
-(defun occupancy-grid->grid-cells-msg (grid &key (frame-id "/map") (z *z-padding*))
+(defun occupancy-grid->grid-cells-msg (grid &key (frame-id *fixed-frame*) (z *z-padding*))
   (with-slots (origin-x origin-y width height resolution) grid
     (let ((grid-arr (grid grid))
           (resolution/2 (/ resolution 2)))
@@ -183,7 +183,7 @@ respectively."
   (let ((removers
           (loop for i from 0 to index
                 collect (make-message "visualization_msgs/Marker"
-                                      (frame_id header) "/map"
+                                      (frame_id header) *fixed-frame*
                                       (ns) ""
                                       (id) i
                                       (action) (roslisp-msg-protocol:symbol-code
@@ -195,7 +195,8 @@ respectively."
                 "visualization_msgs/MarkerArray"
                 (markers) (map 'vector #'identity removers))))))
 
-(defun publish-location-costmap (map &key (frame-id "/map") (threshold 0.0005) (z *z-padding*))
+(defun publish-location-costmap (map &key (frame-id *fixed-frame*)
+                                       (threshold 0.0005) (z *z-padding*))
   (when *location-costmap-publisher*
     (multiple-value-bind (markers last-index)
         (location-costmap->marker-array
@@ -215,7 +216,7 @@ respectively."
       (publish *marker-publisher*
                (make-message "visualization_msgs/Marker"
                              (stamp header) (ros-time)
-                             (frame_id header) "/map"
+                             (frame_id header) *fixed-frame*
                              ns "kipla_locations"
                              id (or id (incf current-index))
                              type (symbol-code
@@ -245,7 +246,7 @@ respectively."
                              (frame_id header)
                              (typecase pose
                                (pose-stamped (frame-id pose))
-                               (t "/map"))
+                               (t *fixed-frame*))
                              ns "kipla_locations"
                              id (or id (incf current-index))
                              type (symbol-code
