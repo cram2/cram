@@ -150,7 +150,8 @@ tool length."
     (compute-ik
      (etypecase pose
        (pose-stamped pose)
-       (cl-transforms:pose (pose->pose-stamped "map" 0.0 pose)))
+       (cl-transforms:pose
+        (pose->pose-stamped cram-roslisp-common:*fixed-frame* 0.0 pose)))
      :robot-state robot
      :planning-group (side->ik-group-name side)
      :tcp-frame (or tool-frame
