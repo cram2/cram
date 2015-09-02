@@ -40,7 +40,7 @@
 (defun get-opening-distance (part-name)
   (second
    (sem-map-utils:get-connecting-joint-limits
-    (pr2-manipulation-knowledge:get-semantic-map) part-name)))
+    (cram-semantic-map:get-semantic-map) part-name)))
 
 (def-fact-group process-modules (matching-process-module available-process-module projection-running)
 

@@ -222,16 +222,13 @@
                   (append allowed-collision-objects
                           (links-for-arm-side side)))
                  (t allowed-collision-objects)))
-         (link-name (cut:var-value
-                     '?link
-                     (first
-                      (prolog:prolog
-                       `(manipulator-link ,side ?link)))))
+         (link-name (link-name side))
          (planning-group (cut:var-value
                           '?group
                           (first
                            (prolog:prolog
-                            `(planning-group ,side ?group))))))
+                            `(and (robot ?robot)
+                                  (planning-group ?robot ,side ?group)))))))
     (let ((log-id (first (cram-language::on-prepare-move-arm
                           link-name pose-stamped
                           planning-group ignore-collisions))))
@@ -412,11 +409,7 @@ its' supporting plane."
                       (cl-transforms-stamped:transform-pose-stamped
                        *transformer*
                        :pose obj-pose
-                       :target-frame (cut:var-value
-                                      '?link
-                                      (first
-                                       (prolog:prolog
-                                        `(manipulator-link ,side ?link))))
+                       :target-frame (link-name side)
                        :timeout *tf-default-timeout*)
                       :stamp 0.0))
               (:height ,height)

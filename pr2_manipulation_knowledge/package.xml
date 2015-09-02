@@ -17,6 +17,7 @@
   <build_depend>cram_plan_events</build_depend>
   <build_depend>cram_manipulation_knowledge</build_depend>
   <build_depend>cram_prolog</build_depend>
+  <build_depend>cram_designators</build_depend>
   <build_depend>cram_semantic_map_utils</build_depend>
   <build_depend>cram_designators</build_depend>
   <build_depend>cram_semantic_map</build_depend>
@@ -26,6 +27,7 @@
   <run_depend>cram_plan_events</run_depend>
   <run_depend>cram_manipulation_knowledge</run_depend>
   <run_depend>cram_prolog</run_depend>
+  <run_depend>cram_designators</run_depend>
   <run_depend>cram_semantic_map_utils</run_depend>
   <run_depend>cram_designators</run_depend>
   <run_depend>cram_semantic_map</run_depend>

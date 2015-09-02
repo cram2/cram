@@ -103,8 +103,9 @@ trying to assume the pose `pose'."
                                       '?link
                                       (first
                                        (prolog:prolog
-                                        `(manipulator-link
-                                          ,(arm parameter-set) ?link)))))
+                                        `(and (robot ?robot)
+                                              (end-effector-link
+                                               ?robot ,(arm parameter-set) ?link))))))
                           (pose-stamped (slot-value parameter-set slot-name))
                           (distance (link-distance-from-pose link-name pose-stamped)))
                      (<= distance threshold)))
@@ -167,7 +168,9 @@ the manipulation parameter sets `parameter-sets' and executes the code
 (defun link-name (arm)
   "Returns the TF link name associated with the wrist of the robot's
 arm `arm'."
-  (cut:var-value '?link (first (prolog:prolog `(manipulator-link ,arm ?link)))))
+  (cut:var-value '?link (first (prolog:prolog
+                                `(and (robot ?robot)
+                                      (end-effector-link ?robot ,arm ?link))))))
 
 (defun execute-parks (parameter-sets)
   (with-parameter-sets parameter-sets

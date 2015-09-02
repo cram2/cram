@@ -408,17 +408,14 @@
              (unhand-pose (grasp-assignment->unhand-pose
                            grasp-assignment putdown-pose))
              (link-name
-               (cut:var-value
-                '?link
-                (first
-                 (prolog:prolog
-                  `(manipulator-link ,side ?link)))))
+               (link-name side))
              (planning-group
                (cut:var-value
                 '?group
                 (first
                  (prolog:prolog
-                  `(planning-group ,side ?group))))))
+                  `(and (robot ?robot)
+                        (planning-group ?robot ,side ?group)))))))
         (publish-pose putdown-hand-pose "/putdownhandpose")
         (publish-pose pre-putdown-pose "/preputdownpose")
         (publish-pose unhand-pose "/unhandpose")
