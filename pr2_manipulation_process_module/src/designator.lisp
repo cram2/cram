@@ -39,7 +39,8 @@
                pose-frame)))
     (cut:var-value
      '?side
-     (first (prolog:prolog `(manipulator-link ?side ,string-frame))))))
+     (first (prolog:prolog `(and (robot ?robot)
+                                 (end-effector-link ?robot ?side ,string-frame)))))))
 
 (defun gripper-offset-pose (side)
   "Adds custom offsets to gripper poses based on their arm `side'. This is mainly intended for customly adapted robots that need special handling for gripper sides."

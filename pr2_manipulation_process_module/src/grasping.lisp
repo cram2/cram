@@ -271,11 +271,7 @@ configuration."
            (declare (ignore f))
            (return 0)))
       (when (moveit:compute-ik
-             (cut:var-value
-              '?link
-              (first
-               (prolog:prolog
-                `(manipulator-link ,arm ?link))))
+             (link-name arm)
              (ecase arm
                (:left "left_arm")
                (:right "right_arm"))

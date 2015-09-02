@@ -29,10 +29,11 @@
 (defsystem pr2-manipulation-knowledge
   :author "Lorenz Moesenlechner"
   :license "BSD"
-  
+
   :depends-on (cram-plan-events
                cram-manipulation-knowledge
                cram-prolog
+               cram-designators
                cram-semantic-map-utils
                cram-semantic-map
                cram-roslisp-common)
@@ -41,5 +42,4 @@
     :components
     ((:file "package")
      (:file "semantic-map" :depends-on ("package"))
-     (:file "kinematics" :depends-on ("package"))
      (:file "pick-and-place" :depends-on ("package"))))))

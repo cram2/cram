@@ -70,6 +70,7 @@
                                       camera-minimal-height camera-maximal-height
                                       robot-pan-tilt-links robot-pan-tilt-joints
                                       end-effector-link gripper-link
+                                      planning-group
                                       robot-arms-parking-joint-states
                                       end-effector-parking-pose
                                       robot-pre-grasp-joint-states)
@@ -89,6 +90,10 @@
   (<- (gripper-link pr2 :right ?link)
     (lisp-fun search "r_gripper" ?link ?pos)
     (lisp-pred identity ?pos))
+  (<- (planning-group pr2 :left "left_arm"))
+  (<- (planning-group pr2 :right "right_arm"))
+  (<- (planning-group pr2 (:left :right) "both_arms"))
+  (<- (planning-group pr2 (:right :left) "both_arms"))
 
   (<- (robot-arms-parking-joint-states pr2 ?joint-states)
     (symbol-value *right-parking-joint-states* ?right-joint-states)

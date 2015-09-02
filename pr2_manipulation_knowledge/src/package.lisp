@@ -31,10 +31,6 @@
 (desig-props:def-desig-package pr2-manipulation-knowledge
   (:use #:common-lisp #:cram-plan-events #:cram-manipulation-knowledge
         #:prolog #:desig #:cram-semantic-map #:cl-transforms-stamped)
-  (:export get-semantic-map
-           manipulator-link
-           manipulator-identity-orientation
-           planning-group)
   (:import-from #:cram-roslisp-common
                 *fixed-frame* *transformer* *tf-default-timeout*)
   (:shadowing-import-from #:cram-designators object-designator object)

@@ -70,16 +70,13 @@ service can be used by setting the parameter `constraint-aware' to
 distance is used. Otherwise, the (unweighted) quadratic joint-space
 integral is calculated. Both methods may not be mixed as their scale
 is fundamentally different."
-  (let* ((wrist-frame (cut:var-value
-                       '?link
-                       (first
-                        (prolog:prolog
-                         `(manipulator-link ,side ?link)))))
+  (let* ((wrist-frame (link-name side))
          (arm-group (cut:var-value
                      '?group
                      (first
                       (prolog:prolog
-                       `(planning-group ,side ?group)))))
+                       `(and (robot ?robot)
+                             (planning-group ?robot ,side ?group))))))
          (pose-in-tll
            (cl-transforms-stamped:transform-pose-stamped
             *transformer* :pose pose :target-frame  "/torso_lift_link"
