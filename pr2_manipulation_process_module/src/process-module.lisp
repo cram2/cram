@@ -330,7 +330,8 @@
            (make-instance 'cram-plan-events:robot-state-changed)))
       (with-vars-bound (?carried-object ?gripper-link)
           (lazy-car (prolog `(and (object-in-hand ?carried-object ,side)
-                                  (cram-manipulation-knowledge:end-effector-link ,side ?gripper-link))))
+                                  (robot ?robot)
+                                  (end-effector-link ?robot ,side ?gripper-link))))
         (unless (is-var ?carried-object)
           (cram-occasions-events:on-event
            (make-instance 'cram-plan-events:object-detached

@@ -140,13 +140,14 @@
     (or
      (desig-prop ?desig (:to :park))
      (desig-prop ?desig (:to :carry)))
+    (robot ?robot)
     (-> (desig-prop ?desig (:side ?side))
         (== ?sides ?side)
-        (findall ?side (arm ?side) ?sides))
+        (findall ?side (arm ?robot ?side) ?sides))
     (findall (?side ?obj ?link)
              (and
-              (cram-plan-events:object-in-hand ?obj ?side)
-              (cram-manipulation-knowledge:end-effector-link ?side ?link))
+              (cram-plan-events:object-in-hand ?obj ?side) 
+              (end-effector-link ?robot ?side ?link))
              ?objects-in-hand))
 
   (<- (action-desig-projection ?desig (execute-grasp ?desig ?obj))
