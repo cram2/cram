@@ -271,7 +271,8 @@
     (obstacles ?desig ?obstacles))
   
   (<- (free-arm ?free-arm)
-    (arm ?free-arm)
+    (robot ?robot)
+    (arm ?robot ?free-arm)
     (not (object-in-hand ?_ ?free-arm)))
   
   (<- (arm-for-pose ?pose ?arm)

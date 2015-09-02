@@ -33,7 +33,8 @@
   :depends-on (cram-prolog
                cram-designators
                cram-manipulation-knowledge
-               bullet-reasoning)
+               bullet-reasoning
+               cl-transforms-stamped)
   :components
   ((:module "src"
     :components

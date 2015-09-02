@@ -33,13 +33,14 @@
         ;; #:cram-occasions-events
         ;; #:cram-plan-events
         #:cram-projection
-        #:cl-transforms-stamped)
+        #:cl-transforms-stamped
+        #:cram-manipulation-knowledge)
   (:shadowing-import-from #:bullet-reasoning name)
   (:shadowing-import-from #:cl-bullet pose)
   (:import-from #:cram-roslisp-common
                 *fixed-frame* *robot-base-frame* *odom-frame*
                 *transformer* *tf-default-timeout*)
-  (:import-from #:cram-manipulation-knowledge trajectory-point end-effector-link)
+  (:import-from #:cram-manipulation-knowledge arm trajectory-point end-effector-link robot)
   (:export execute-container-opened execute-container-closed
            execute-park execute-lift execute-grasp execute-put-down
            projection-navigation projection-ptu projection-perception
@@ -48,9 +49,7 @@
 
 (desig-props:def-desig-package projection-designators
   (:use #:common-lisp #:cram-designators #:cram-prolog
-        #:projection-process-modules)
-  (:import-from #:cram-manipulation-knowledge
-                arm available-arms required-arms)
+        #:projection-process-modules #:cram-manipulation-knowledge)
   (:import-from #:cram-process-modules
                 matching-process-module available-process-module projection-running)
   (:import-from #:cram-projection *projection-environment*)

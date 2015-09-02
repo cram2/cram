@@ -56,7 +56,8 @@
                     (prolog:prolog
                      `(and
                        (trajectory-point ,action-designator ?_ ?side)
-                       (end-effector-link ?side ?end-effector-link))))))
+                       (robot ?robot)
+                       (end-effector-link ?robot ?side ?end-effector-link))))))
 
 (defun get-link-orientation-in-robot (link-name &key (base-link *robot-base-frame*))
   (cl-transforms:rotation
@@ -79,8 +80,8 @@
                       ,@(if object-name
                             `((valid-grasp ?world ,object-name ?grasp ?sides)
                               (member ?side ?sides))
-                            `((grasp ?grasp)
-                              (cram-manipulation-knowledge:arm ?side)))
+                            `((grasp ?robot ?grasp)
+                              (arm ?robot ?side)))
                       (%object ?world ?robot ?robot-instance)
                       (prolog:-> (prolog:lisp-type ?point cl-transforms:3d-vector)
                                  (prolog:lisp-fun reach-point-ik ?robot-instance ?point
@@ -115,12 +116,13 @@
                                  ?right-parking-joint-states)
       (cut:lazy-car
        (prolog:prolog `(and
-                     (end-effector-link :left ?left-end-effector)
-                     (end-effector-link :right ?right-end-effector)
-                     (robot-arms-parking-joint-states
-                      ?left-parking-joint-states :left)
-                     (robot-arms-parking-joint-states
-                      ?right-parking-joint-states :right))))
+                        (robot ?robot)
+                        (end-effector-link ?robot :left ?left-end-effector)
+                        (end-effector-link ?robot :right ?right-end-effector)
+                        (robot-arms-parking-joint-states
+                         ?left-parking-joint-states :left)
+                        (robot-arms-parking-joint-states
+                         ?right-parking-joint-states :right))))
     (let* ((left-gripper-transform
              (cl-transforms-stamped:lookup-transform-stamped
               *transformer* *robot-base-frame* ?left-end-effector
@@ -161,8 +163,8 @@
       (cut:lazy-car
        (prolog:prolog
         `(and (robot ?robot)
-              (end-effector-parking-pose ?parking-pose ,side)
-              (robot-arms-parking-joint-states ?joint-states ,side))))
+              (end-effector-parking-pose ?robot ?parking-pose ,side)
+              (robot-arms-parking-joint-states ?robot ?joint-states ,side))))
     (let* ((robot-object (object *current-bullet-world* ?robot))
            (ik-solution
              (cut:lazy-car
@@ -170,7 +172,7 @@
                (copy-pose-stamped
                 ?parking-pose :orientation (get-link-orientation-in-robot link))
                :robot-state robot-object
-               :planning-group (side->ik-group-name side)
+               :planning-group (cram-manipulation-knowledge:side->ik-group-name side)
                :seed-state (make-joint-state-message ?joint-states)))))
       (unless ik-solution
         (cpl-impl:fail 'cram-plan-failures:manipulation-pose-unreachable))
@@ -179,7 +181,7 @@
 (defun park (side)
   (prolog:prolog `(and
                 (robot ?robot)
-                (robot-arms-parking-joint-states ?joint-states ,side)
+                (robot-arms-parking-joint-states ?robot ?joint-states ,side)
                 (assert (joint-state ?_ ?robot ?joint-states)))))
 
 (defun execute-park (sides objects-in-hand)

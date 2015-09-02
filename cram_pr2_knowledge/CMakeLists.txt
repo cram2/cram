@@ -6,6 +6,7 @@ find_package(catkin REQUIRED COMPONENTS
   cram_manipulation_knowledge
   bullet_reasoning
   cram_designators
+  cl_transforms_stamped
 )
 
 #set the default path for built executables to the "bin" directory

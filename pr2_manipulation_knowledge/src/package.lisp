@@ -38,5 +38,6 @@
   (:import-from #:cram-roslisp-common
                 *fixed-frame* *transformer* *tf-default-timeout*)
   (:shadowing-import-from #:cram-designators object-designator object)
+  (:shadowing-import-from #:cram-manipulation-knowledge robot)
   (:desig-properties to grasp obj side put-down at open close handle
                      in gripper pose z-offset lift distance name height))

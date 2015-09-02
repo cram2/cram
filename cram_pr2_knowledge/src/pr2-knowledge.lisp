@@ -30,7 +30,7 @@
 
 
 (defparameter *right-parking-end-effector-pose*
-  (make-pose-stamped
+  (cl-transforms-stamped:make-pose-stamped
    "torso_lift_link" 0.0
    (cl-transforms:make-3d-vector 0.3 -0.3 -0.23)
    (cl-transforms:euler->quaternion :ay (/ pi 2))))
@@ -45,7 +45,7 @@
     ("r_wrist_roll_joint" -2.5861844605475843d0)))
 
 (defparameter *left-parking-end-effector-pose*
-  (make-pose-stamped
+  (cl-transforms-stamped:make-pose-stamped
    "torso_lift_link" 0.0
    (cl-transforms:make-3d-vector 0.3 0.3 -0.23)
    (cl-transforms:euler->quaternion :ay (/ pi 2))))
@@ -66,79 +66,87 @@
 
 (def-tool (cl-transforms:make-3d-vector 1 0 0) 0.20)
 
-(def-fact-group robot-metadata (end-effector-link gripper-link robot)
+(def-fact-group robot-metadata (robot camera-frame
+                                      camera-minimal-height camera-maximal-height
+                                      robot-pan-tilt-links robot-pan-tilt-joints
+                                      end-effector-link gripper-link
+                                      robot-arms-parking-joint-states
+                                      end-effector-parking-pose
+                                      robot-pre-grasp-joint-states)
   (<- (robot pr2))
   (<- (camera-frame pr2 "head_mount_kinect_rgb_optical_frame"))
   (<- (camera-frame pr2 "openni_rgb_optical_frame"))
   (<- (camera-frame pr2 "narrow_stereo_optical_frame"))
-  (<- (camera-minimal-height 1.27))
-  (<- (camera-maximal-height 1.60))
-  (<- (robot-pan-tilt-links "head_pan_link" "head_tilt_link"))
-  (<- (robot-pan-tilt-joints "head_pan_joint" "head_tilt_joint"))
-  (<- (end-effector-link :left "l_wrist_roll_link"))
-  (<- (end-effector-link :right "r_wrist_roll_link"))
-  (<- (gripper-link :left ?link)
+  (<- (camera-minimal-height pr2 1.27))
+  (<- (camera-maximal-height pr2 1.60))
+  (<- (robot-pan-tilt-links pr2 "head_pan_link" "head_tilt_link"))
+  (<- (robot-pan-tilt-joints pr2 "head_pan_joint" "head_tilt_joint"))
+  (<- (end-effector-link pr2 :left "l_wrist_roll_link"))
+  (<- (end-effector-link pr2 :right "r_wrist_roll_link"))
+  (<- (gripper-link pr2 :left ?link)
     (lisp-fun search "l_gripper" ?link ?pos)
     (lisp-pred identity ?pos))
-  (<- (gripper-link :right ?link)
+  (<- (gripper-link pr2 :right ?link)
     (lisp-fun search "r_gripper" ?link ?pos)
     (lisp-pred identity ?pos))
 
-  (<- (robot-arms-parking-joint-states ?joint-states)
+  (<- (robot-arms-parking-joint-states pr2 ?joint-states)
     (symbol-value *right-parking-joint-states* ?right-joint-states)
     (symbol-value *left-parking-joint-states* ?left-joint-states)
     (append ?right-joint-states ?left-joint-states ?joint-states))
 
-  (<- (robot-arms-parking-joint-states ?joint-states :left)
+  (<- (robot-arms-parking-joint-states pr2 ?joint-states :left)
     (symbol-value *left-parking-joint-states* ?joint-states))
 
-  (<- (robot-arms-parking-joint-states ?joint-states :right)
+  (<- (robot-arms-parking-joint-states pr2 ?joint-states :right)
     (symbol-value *right-parking-joint-states* ?joint-states))
 
-  (<- (end-effector-parking-pose ?pose :left)
+  (<- (end-effector-parking-pose pr2 ?pose :left)
     (symbol-value *left-parking-end-effector-pose* ?pose))
 
-  (<- (end-effector-parking-pose ?pose :right)
+  (<- (end-effector-parking-pose pr2 ?pose :right)
     (symbol-value *right-parking-end-effector-pose* ?pose))
 
-  (<- (robot-pre-grasp-joint-states
+  (<- (robot-pre-grasp-joint-states pr2
        (("torso_lift_joint" 0.33) . ?parking-joint-states))
-    (robot-arms-parking-joint-states ?parking-joint-states))
+    (robot-arms-parking-joint-states pr2 ?parking-joint-states))
 
-  (<- (robot-pre-grasp-joint-states
+  (<- (robot-pre-grasp-joint-states pr2
        (("torso_lift_joint" 0.165) . ?parking-joint-states))
-    (robot-arms-parking-joint-states ?parking-joint-states))
+    (robot-arms-parking-joint-states pr2 ?parking-joint-states))
 
-  (<- (robot-pre-grasp-joint-states
+  (<- (robot-pre-grasp-joint-states pr2
        (("torso_lift_joint" 0.00) . ?parking-joint-states))
-    (robot-arms-parking-joint-states ?parking-joint-states)))
+    (robot-arms-parking-joint-states pr2 ?parking-joint-states)))
 
 (defun object-type->tool-length (object-type)
-  (let ((bounding-box (household-object-dimensions object-type)))
+  (let ((bounding-box (btr:household-object-dimensions object-type)))
     (cram-manipulation-knowledge:calculate-bounding-box-tool-length
      bounding-box)))
 
-(def-fact-group manipulation-knowledge (arm
-                                        required-arms
-                                        available-arms
+(def-fact-group manipulation-knowledge (grasp
+                                        side
+                                        arm
                                         object-type-grasp
                                         object-designator-grasp
                                         object-type-tool-length
                                         object-designator-tool-length
-                                        orientation-matters)
-  (<- (grasp :top))
-  (<- (grasp :side))
-  (<- (grasp :front))
+                                        orientation-matters
+                                        required-arms
+                                        available-arms)
+  (<- (grasp pr2 :top))
+  (<- (grasp pr2 :side))
+  (<- (grasp pr2 :front))
 
-  (<- (side :right))
-  (<- (side :left))
+  (<- (side pr2 :right))
+  (<- (side pr2 :left))
 
-  (<- (arm ?arm)
-    (side ?arm))
+  (<- (arm pr2 ?arm)
+    (side pr2 ?arm))
 
   (<- (object-type-grasp :mug ?grasp (?side))
-    (grasp ?grasp)
-    (side ?side))
+    (grasp pr2 ?grasp)
+    (side pr2 ?side))
 
   (<- (object-type-grasp :mondamin :side (:right)))
 
@@ -147,25 +155,15 @@
   (<- (object-type-grasp :pot :side (:left :right)))
 
   (<- (object-type-grasp :handle :front (?side))
-    (side ?side))
+    (side pr2 ?side))
 
   (<- (object-type-grasp ?type :top (?side))
     (member ?type (:cutlery :knife :fork :spatula))
-    (side ?side))
+    (side pr2 ?side))
 
   (<- (object-designator-grasp ?object-designator ?grasp ?sides)
     (lisp-fun desig:current-desig ?object-designator ?current-object-designator)
     (desig:desig-prop ?current-object-designator (:type ?object-type))
-    (object-type-grasp ?object-type ?grasp ?sides))
-  
-  ;; The OBJECT-GRASP predicate can be used to control which grasps
-  ;; and which sides are valid for a specific object. The third
-  ;; parameter, ?SIDES, indicates the arms that must be used for
-  ;; grasping the object. ?SIDES is a list of arms to be used. A
-  ;; solution for _all_ sides in that sequence must be found to let
-  ;; reachability succeed.
-  (<- (object-grasp ?world ?object ?grasp ?sides)
-    (household-object-type ?world ?object ?object-type)
     (object-type-grasp ?object-type ?grasp ?sides))
 
   (<- (%object-type-tool-length ?object-type ?grasp ?tool-length)
@@ -177,7 +175,8 @@
      (or
       (%object-type-tool-length ?object-type ?grasp ?tool-length)
       (== ?tool-length 0.0)))
-    (grasp ?grasp))
+    (robot ?robot)
+    (grasp ?robot ?grasp))
 
   (<- (object-designator-tool-length
        ?object-designator ?grasp ?tool-length)
@@ -191,16 +190,15 @@
         (desig:desig-prop ?current-object-designator (:type :fork))
         (desig:desig-prop ?current-object-designator (:type :spatula))))
 
-
   (<- (required-arms ?object-designator ?arms)
-    (desig-prop ?object-designator (:type ?object-type))
+    (desig:desig-prop ?object-designator (:type ?object-type))
     ;; object-type-grasp will give the cross-product of all available
     ;; arms and grasps. That's why we first calculate the set of all
     ;; solutions of arms (i.e. duplicate arms removed).
     (once
      (or
       (setof ?arms (object-type-grasp ?object-type ?_ ?arms) ?all-arms-solutions)
-      (setof (?arm) (arm ?arm) ?all-arms-solutions)))
+      (setof (?arm) (and (robot ?robot) (arm ?robot ?arm)) ?all-arms-solutions)))
     (member ?arms ?all-arms-solutions))
 
   (<- (available-arms ?object-designator ?arms)
@@ -208,8 +206,8 @@
     (required-arms ?object-designator ?arms)
     (forall (member ?arm ?arms)
             (and
-             (end-effector-link ?arm ?link)
-             (not (attached ?_ ?robot ?link ?_))))))
+             (end-effector-link ?robot ?arm ?link)
+             (not (btr:attached ?_ ?robot ?link ?_))))))
 
 (defmethod side->ik-group-name ((side symbol))
   (ecase side
