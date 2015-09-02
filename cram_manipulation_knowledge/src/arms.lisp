@@ -30,7 +30,7 @@
 
 (def-fact-group arms (arm required-arms available-arms end-effector-link gripper-link
                           robot-arms-parking-joint-states end-effector-parking-pose
-                          robot-pre-grasp-joint-states)
+                          robot-pre-grasp-joint-states planning-group)
   ;; Unifies ?side with the name of an arm that is present on the ?robot.
   (<- (arm ?robot ?arm)
     (fail))
@@ -51,6 +51,9 @@
 
   ;; Defines links of the grippers of the robot
   (<- (gripper-link ?robot ?arm ?link)
+    (fail))
+
+  (<- (planning-group ?robot ?arms ?group-name)
     (fail))
 
   (<- (robot-arms-parking-joint-states ?robot ?joint-states)
