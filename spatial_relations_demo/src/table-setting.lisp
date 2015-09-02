@@ -193,7 +193,7 @@
   (let ((obj-id (gensym)))
     (format t "id: ~a~%" obj-id)
     (prolog `(and (bullet-world ?w)
-                  (robot ?robot)
+                  (cram-manipulation-knowledge:robot ?robot)
                   (assert (object ?w :mesh ,obj-id
                                   ((2 0 0) (0 0 0 1))
                                   :mesh ,type :mass 0.2 :color (0.8 0.3 0)
