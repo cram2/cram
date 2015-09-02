@@ -41,6 +41,9 @@ iterative search for solution. When `tcp-frame' (i.e. tool center point) is give
 the goal pose is automatically transformed to take it into account.
 Returns a ROS message with solution states of the joints in the `planning-group'."))
 
+(defgeneric side->ik-group-name (side)
+  (:documentation "Returns the name of the kinematic chain group
+that corresponds to side indicator `side' used for the IK service."))
 
 (def-fact-group reachability-designators ()
 
@@ -57,7 +60,8 @@ Returns a ROS message with solution states of the joints in the `planning-group'
     (once
      (-> (desig-prop ?designator (:side ?side))
          (true)
-         (arm ?side))))
+         (and (robot ?robot)
+              (arm ?robot ?side)))))
 
   (<- (designator-reach-pose ?designator ?point ?side)
     (reachability-designator ?designator)
@@ -67,7 +71,8 @@ Returns a ROS message with solution states of the joints in the `planning-group'
     (once
      (-> (desig-prop ?designator (:side ?side))
          (true)
-         (arm ?side)))
+         (and (robot ?robot)
+              (arm ?robot ?side))))
     (lisp-fun cl-transforms:origin ?pose ?point))
 
   (<- (designator-reach-pose ?designator ?pose ?side)
@@ -76,7 +81,8 @@ Returns a ROS message with solution states of the joints in the `planning-group'
     (once
      (-> (desig-prop ?designator (:side ?side))
          (true)
-         (arm ?side)))
+         (and (robot ?robot)
+              (arm ?robot ?side))))
     (desig-location-prop ?designator ?pose))
 
   (<- (designator-reach-pose ?designator ?robot-pose ?pose ?side)

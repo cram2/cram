@@ -106,10 +106,20 @@ CL-TRANSFORMS:3D-VECTOR."
    (cl-transforms:v* (car *tool*) tool-length)
    grasp-orientation))
 
-(def-fact-group grasps (object-type-grasp
+(def-fact-group grasps (grasp
+                        side
+                        object-type-grasp
                         object-designator-grasp
                         object-type-tool-length
                         object-designator-tool-length)
+  ;; Defines types of grasps for a particular ?robot
+  (<- (grasp ?robot ?grasp-type)
+    (fail))
+
+  ;; Defines from which ?side-s ?robot can grasp
+  (<- (side ?robot ?side)
+    (fail))
+
   ;; Unifies grasps with object types and required arms to manipulate
   ;; that object.
   (<- (object-type-grasp ?object-type ?grasp ?arms)

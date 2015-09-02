@@ -30,13 +30,28 @@
 
 (defpackage cram-manipulation-knowledge
   (:use #:common-lisp #:cram-prolog #:cram-designators)
-  (:export trajectory-point arm required-arms available-arms
-           def-grasp def-tool get-grasp get-grasps calculate-bounding-box-tool-length
-           get-tool-direction-vector get-tool-length get-tool-vector calculate-tool
-           object-type-grasp object-designator-grasp object-type-tool-length
-           object-designator-tool-length end-effector-link gripper-link orientation-matters
-           get-grasp-names
-           ;; reachbility prolog utils
-           #:compute-ik
-           #:reachability-designator #:designator-reach-pose
-           #:reachability-designator-p #:visibility-designator-p))
+  (:export
+   ;; trajectories
+   #:trajectory-point
+   ;; robot
+   #:robot
+   ;; ptu
+   #:camera-frame #:camera-minimal-height #:camera-maximal-height
+   #:robot-pan-tilt-links #:robot-pan-tilt-joints
+   ;; arms
+   #:arm #:required-arms #:available-arms
+   #:end-effector-link #:gripper-link
+   #:robot-arms-parking-joint-states #:end-effector-parking-pose
+   #:robot-pre-grasp-joint-states
+   ;; grasps
+   #:def-grasp #:def-tool #:get-grasp #:get-grasps #:get-grasp-names
+   #:calculate-bounding-box-tool-length #:get-tool-direction-vector
+   #:get-tool-length #:get-tool-vector #:calculate-tool
+   #:grasp #:side #:object-type-grasp #:object-designator-grasp
+   #:object-type-tool-length #:object-designator-tool-length
+   ;; objects
+   #:orientation-matters
+   ;; reachbility prolog utils
+   #:compute-ik #:side->ik-group-name
+   #:reachability-designator #:designator-reach-pose
+   #:reachability-designator-p #:visibility-designator-p))
