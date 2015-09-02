@@ -29,10 +29,6 @@
 
 (in-package :bullet-reasoning)
 
-(defgeneric side->ik-group-name (side)
-  (:documentation "Returns the name of the kinematic chain group
-that corresponds to side indicator `side' used for the IK service."))
-
 (defgeneric pose-reachable-p (robot pose &key side tool-frame)
   (:documentation "Checks if a pose is reachable for the robot
 `robot'. `side' is used to get the namespace of the IK service and

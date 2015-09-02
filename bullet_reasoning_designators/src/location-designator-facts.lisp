@@ -80,8 +80,9 @@
 
   (<- (visibility-costmap-metadata
        ?minimal-height ?maximal-height ?resolution ?size)
-    (camera-minimal-height ?minimal-height)
-    (camera-maximal-height ?maximal-height)
+    (robot ?robot)
+    (camera-minimal-height ?robot ?minimal-height)
+    (camera-maximal-height ?robot ?maximal-height)
     (costmap-resolution ?resolution)
     (visibility-costmap-size ?size))
 

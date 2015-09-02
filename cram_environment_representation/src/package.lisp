@@ -33,11 +33,11 @@
         #:cram-prolog #:cram-utilities #:cram-occasions-events
         #:cl-transforms-stamped)
   (:shadowing-import-from #:bullet-reasoning
-                          side robot at throughout object during holds)
+                          side at throughout object during holds)
   (:shadowing-import-from #:cram-plan-events object-attached)
   (:shadowing-import-from #:cram-occasions-events event)
   (:import-from #:cram-occasions-events on-event)
-  (:import-from #:cram-manipulation-knowledge end-effector-link)
+  (:shadowing-import-from #:cram-manipulation-knowledge end-effector-link robot)
   (:import-from #:cram-roslisp-common *fixed-frame* *transformer* *tf-default-timeout*)
   (:export get-designator-object-name get-designator-object
            object-designator-name

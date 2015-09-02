@@ -22,6 +22,7 @@
   <depend>cram_plan_library</depend>
   <depend>cram_language</depend>
   <depend>roslisp</depend>
+  <depend>cram_manipulation_knowledge</depend>
 
   <!-- launch file -->
   <depend>iai_maps</depend>

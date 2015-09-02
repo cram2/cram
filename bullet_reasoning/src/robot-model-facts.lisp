@@ -28,10 +28,7 @@
 
 (in-package :btr)
 
-(def-fact-group robot-model (assert retract robot)
-
-  (<- (robot ?robot-name)
-    (fail))
+(def-fact-group robot-model (assert retract)
 
   (<- (link ?world ?robot-name ?link)
     (bullet-world ?world)
@@ -69,8 +66,8 @@
 
   (<- (head-pointing-at ?w ?robot-name ?pose)
     (robot ?robot-name)
-    (robot-pan-tilt-links ?pan-link ?tilt-link)
-    (robot-pan-tilt-joints ?pan-joint ?tilt-joint)
+    (robot-pan-tilt-links ?robot-name ?pan-link ?tilt-link)
+    (robot-pan-tilt-joints ?robot-name ?pan-joint ?tilt-joint)
     (bullet-world ?w)
     (%object ?w ?robot-name ?robot)
     (lisp-fun calculate-pan-tilt
@@ -110,7 +107,7 @@
                   (and (slot-value ?world disabled-collision-objects ?objects)
                        (or (member (?robot-name . ?object-name) ?objects)
                            (member (?object-name . ?robot-name) ?objects)))
-                  (gripper-link ?_ ?link)))))
+                  (gripper-link ?robot-name ?_ ?link)))))
 
   (<- (attached ?world ?robot ?link-name ?object)
     (bullet-world ?world)
