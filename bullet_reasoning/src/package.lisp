@@ -74,7 +74,7 @@
            object-not-in-collision ik-solution-not-in-collision
            link-contacts supported-by above below visible visible-from
            occluding-objects occluding-object valid-grasp grasp side reachable
-           def-grasp def-tool object-grasp
+           object-grasp
            point-reachable pose-reachable blocking debug-window
            debug-costmap head-pointing-at with-current-bullet-world prolog-?w ?w
            reach-pose-ik reach-object-ik point-reachable-p reach-point-ik
@@ -84,17 +84,13 @@
            ros-household-object execute open close reach-ik-solution
            attached attached-objects object-attached
            attach-object detach-object detach-all-objects
-           side->ik-group-name household-object-dimensions
+           household-object-dimensions
            make-joint-state-message open-object close-object
            set-articulated-object-joint-position
            with-world copied-world with-copied-world
            obj-pose-on obj-poses-on flat-color-object-proxy drawable-list
            drawable-list-drawables make-drawable-list
 
-           robot-pan-tilt-links robot-pan-tilt-joints robot
-           camera-frame robot-arms-parking-joint-states
-           robot-pre-grasp-joint-states end-effector-parking-pose
-           camera-minimal-height camera-maximal-height
            get-robot-object get-robot-name
 
            event make-event timeline timeline-init timeline-advance

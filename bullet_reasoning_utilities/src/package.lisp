@@ -31,7 +31,7 @@
 
 (desig-props:def-desig-package bullet-reasoning-utilities
   (:use #:common-lisp #:bullet-reasoning #:cram-prolog #:cram-designators
-        #:cram-utilities)
+        #:cram-utilities #:cram-manipulation-knowledge)
   (:shadowing-import-from #:btr object object-pose)
   (:export
    ;; misc.lisp

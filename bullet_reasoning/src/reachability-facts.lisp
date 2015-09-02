@@ -29,11 +29,23 @@
 (in-package :btr)
 
 (def-fact-group reachability (object-grasp assert)
+
+  ;; The OBJECT-GRASP predicate can be used to control which grasps
+  ;; and which sides are valid for a specific object. The third
+  ;; parameter, ?SIDES, indicates the arms that must be used for
+  ;; grasping the object. ?SIDES is a list of arms to be used. A
+  ;; solution for _all_ sides in that sequence must be found to let
+  ;; reachability succeed.
+  (<- (object-grasp ?world ?object ?grasp ?sides)
+    (household-object-type ?world ?object ?object-type)
+    (object-type-grasp ?object-type ?grasp ?sides))
+
   (<- (valid-grasp ?world ?object ?grasp ?sides)
     (-> (not (object-grasp ?world ?object ?_ ?_))
         (and
-         (grasp ?grasp)
-         (side ?side)
+         (robot ?robot)
+         (grasp ?robot ?grasp)
+         (side ?robot ?side)
          (== ?sides (?side)))
         (object-grasp ?world ?object ?grasp ?sides)))
 
@@ -52,31 +64,31 @@
       (member ?arms ?all-possible-arms)
       (once
        (valid-grasp ?w ?obj-name ?grasp ?arms)
-       (robot-pre-grasp-joint-states ?pre-grasp-joint-states)
+       (robot-pre-grasp-joint-states ?robot-name ?pre-grasp-joint-states)
        (assert (joint-state ?w ?robot-name ?pre-grasp-joint-states))
        (forall (member ?arm ?arms)
                (lisp-pred object-reachable-p ?robot ?obj :side ?arm :grasp ?grasp)))))
 
   (<- (point-reachable ?world ?robot-name ?point ?side)
     (bullet-world ?world)
-    (side ?side)
+    (side ?robot-name ?side)
     (%object ?world ?robot-name ?robot)
     (lisp-type ?robot robot-object)
     (with-copied-world ?world
       (once
-       (robot-pre-grasp-joint-states ?pre-grasp-joint-states)
+       (robot-pre-grasp-joint-states ?robot-name ?pre-grasp-joint-states)
        (assert (joint-state ?w ?robot-name ?pre-grasp-joint-states))
-       (grasp ?grasp)
+       (grasp ?robot-name ?grasp)
        (lisp-pred point-reachable-p ?robot ?point :side ?side :grasp ?grasp))))
 
   (<- (pose-reachable ?world ?robot-name ?pose ?side)
     (bullet-world ?world)
-    (side ?side)
+    (side ?robot-name ?side)
     (%object ?world ?robot-name ?robot)
     (lisp-type ?robot robot-object)
     (with-copied-world ?world
       (once
-       (robot-pre-grasp-joint-states ?pre-grasp-joint-states)
+       (robot-pre-grasp-joint-states ?robot-name ?pre-grasp-joint-states)
        (assert (joint-state ?w ?robot-name ?pre-grasp-joint-states))
        (lisp-pred pose-reachable-p ?robot ?pose :side ?side))))
 
@@ -89,7 +101,7 @@
   (<- (blocking ?w ?robot ?object ?arm ?blocking-object)
     (bullet-world ?w)
     (robot ?robot)
-    (side ?arm)
+    (side ?robot ?arm)
     (%blocking ?w ?robot ?object ?arm ?blocking-objects)
     (member ?blocking-object ?blocking-objects))
   
@@ -108,7 +120,7 @@
         (-> (supported-by ?w ?obj-name ?supporting) (true) (true))
         ;; Generate all ik solutions
         (once
-         (robot-pre-grasp-joint-states ?pre-grasp-joint-states)
+         (robot-pre-grasp-joint-states ?robot-name ?pre-grasp-joint-states)
          (assert (joint-state ?w ?robot-name ?pre-grasp-joint-states))
          (lisp-fun reach-object-ik ?robot ?obj :side ?side :grasp ?grasp ?ik-solutions)
          (member ?ik-solution ?ik-solutions))
@@ -121,7 +133,7 @@
   (<- (assert (reach-ik-solution ?world ?robot ?pose ?side))
     (bullet-world ?world)
     (%object ?world ?robot ?robot-instance)
-    (side ?side)
+    (side ?robot ?side)
     (lisp-fun reach-pose-ik ?robot-instance ?pose :side ?side ?ik-solutions)
     (lisp-pred identity ?ik-solutions)
     (member ?ik-solution ?ik-solutions)

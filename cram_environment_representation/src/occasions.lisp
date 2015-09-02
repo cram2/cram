@@ -39,7 +39,7 @@
     (attached ?world ?robot ?link ?object-name)
     (once
      (object-designator-name ?object ?object-name))
-    (end-effector-link ?side ?link))
+    (end-effector-link ?robot ?side ?link))
 
   (<- (object-placed-at ?object ?location)
     (loc ?object ?location))

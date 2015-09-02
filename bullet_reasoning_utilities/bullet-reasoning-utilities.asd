@@ -41,7 +41,8 @@
                cl-urdf
                cram-plan-library
                cram-language
-               bullet-reasoning-designators)
+               bullet-reasoning-designators
+               cram-manipulation-knowledge)
   :components
   ((:module "src"
     :components
