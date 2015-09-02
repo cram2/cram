@@ -1,4 +1,4 @@
-;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2015, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -28,38 +28,6 @@
 
 (in-package :cram-manipulation-knowledge)
 
-(def-fact-group arms (arm required-arms available-arms end-effector-link gripper-link
-                          robot-arms-parking-joint-states end-effector-parking-pose
-                          robot-pre-grasp-joint-states)
-  ;; Unifies ?side with the name of an arm that is present on the ?robot.
-  (<- (arm ?robot ?arm)
-    (fail))
-
-  ;; ?sides is unified with the list of arms that are required to
-  ;; manipulate the object indicated by the object designator ?object.
-  (<- (required-arms ?object-designator ?arms)
-    (fail))
-
-  ;; Similar to REQUIRED-ARMS but only unifies with currently unused
-  ;; arms.
-  (<- (available-arms ?object-designator ?arms)
-    (fail))
-
-  ;; Defines end-effector links for arms.
-  (<- (end-effector-link ?robot ?arm ?link-name)
-    (fail))
-
-  ;; Defines links of the grippers of the robot
-  (<- (gripper-link ?robot ?arm ?link)
-    (fail))
-
-  (<- (robot-arms-parking-joint-states ?robot ?joint-states)
-    (fail))
-  (<- (robot-arms-parking-joint-states ?robot ?joint-states ?arm)
-    (fail))
-
-  (<- (end-effector-parking-pose ?robot ?pose ?arm)
-    (fail))
-
-  (<- (robot-pre-grasp-joint-states ?robot ?joint-states)
+(def-fact-group robot (robot)
+  (<- (robot ?robot-name)
     (fail)))

@@ -43,5 +43,7 @@
      (:file "grasps" :depends-on ("package"))
      (:file "trajectories" :depends-on ("package"))
      (:file "arms" :depends-on ("package"))
+     (:file "ptu" :depends-on ("package"))
+     (:file "robot" :depends-on ("package"))
      (:file "objects" :depends-on ("package"))
      (:file "reachability-utils" :depends-on ("package" "trajectories" "arms"))))))
