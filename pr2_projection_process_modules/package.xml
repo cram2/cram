@@ -30,7 +30,7 @@
   <build_depend>cl_transforms</build_depend>
   <build_depend>cl_tf</build_depend>
   <build_depend>cram_projection</build_depend>
-  <build_depend>pr2_manipulation_knowledge</build_depend>
+  <build_depend>cram_pr2_designators</build_depend>
   <build_depend>cram_roslisp_common</build_depend>
   <build_depend>cram_semantic_map_utils</build_depend>
   <build_depend>cram_semantic_map</build_depend>
@@ -52,7 +52,7 @@
   <run_depend>cl_transforms</run_depend>
   <run_depend>cl_tf</run_depend>
   <run_depend>cram_projection</run_depend>
-  <run_depend>pr2_manipulation_knowledge</run_depend>
+  <run_depend>cram_pr2_designators</run_depend>
   <run_depend>cram_roslisp_common</run_depend>
   <run_depend>cram_semantic_map_utils</run_depend>
   <run_depend>cram_semantic_map</run_depend>

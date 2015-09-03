@@ -43,7 +43,7 @@
                cram-roslisp-common
                cram-manipulation-knowledge
                cram-plan-failures
-               pr2-manipulation-knowledge
+               cram-pr2-designators
                cram-semantic-map-utils
                cram-semantic-map
                cram-transforms-stamped)

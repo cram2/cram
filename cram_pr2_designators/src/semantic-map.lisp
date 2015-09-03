@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-manipulation-knowledge)
+(in-package :cram-pr2-designators)
 
 (defun get-articulated-gripper-position (part-name relative-joint-position)
   "Gets the position of the gripper to reach `part-name'. Uses its

@@ -48,7 +48,7 @@
                alexandria
                semantic-map-collision-environment
                pr2_mechanism_msgs-srv
-               pr2-manipulation-knowledge
+               cram-pr2-designators
                cram-moveit)
   :components
   ((:module "src"

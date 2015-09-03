@@ -28,7 +28,7 @@
 
 (in-package :cl-user)
 
-(desig-props:def-desig-package pr2-manipulation-knowledge
+(desig-props:def-desig-package cram-pr2-designators
   (:use #:common-lisp #:cram-plan-events #:cram-manipulation-knowledge
         #:prolog #:desig #:cram-semantic-map #:cl-transforms-stamped)
   (:import-from #:cram-roslisp-common
