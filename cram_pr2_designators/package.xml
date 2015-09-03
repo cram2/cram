@@ -1,15 +1,13 @@
 <package>
-  <name>pr2_manipulation_knowledge</name>
+  <name>cram_pr2_designators</name>
   <version>1.0.0</version>
   <description>
-
-     pr2_manipulation_knowledge
-
+    Resolving manipulation designators for PR2 robot
   </description>
   <author>Lorenz Moesenlechner</author>
   <maintainer email="musterman@fictional.de">Add Maintainer here</maintainer>
   <license>BSD</license>
-  <url>http://ros.org/wiki/pr2_manipulation_knowledge</url>
+  <url>http://ros.org/wiki/cram_pr2_designators</url>
   <!-- Dependencies which this package needs to build itself. -->
   <buildtool_depend>catkin</buildtool_depend>
 

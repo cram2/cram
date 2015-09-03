@@ -15,7 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   cram_manipulation_knowledge
   cl_transforms
   cram_projection
-  pr2_manipulation_knowledge
+  cram_pr2_designators
   cram_roslisp_common
   cram_semantic_map_utils
   cram_semantic_map
