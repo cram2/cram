@@ -38,10 +38,8 @@
                semantic-map-costmap
                bullet-reasoning
                cram-environment-representation
-               projection-process-modules
                occupancy-grid-costmap
                bullet-reasoning-designators
-               pr2-manipulation-knowledge
                cram-semantic-map-designators
                cram-semantic-map)
   :components

@@ -8,10 +8,8 @@ find_package(catkin REQUIRED COMPONENTS
   semantic_map_costmap
   bullet_reasoning
   cram_environment_representation
-  pr2_projection_process_modules
   occupancy_grid_costmap
   bullet_reasoning_designators
-  pr2_manipulation_knowledge
   cram_semantic_map_designators
   cram_semantic_map
 )

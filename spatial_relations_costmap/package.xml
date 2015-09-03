@@ -22,10 +22,8 @@
   <build_depend>semantic_map_costmap</build_depend>
   <build_depend>bullet_reasoning</build_depend>
   <build_depend>cram_environment_representation</build_depend>
-  <build_depend>pr2_projection_process_modules</build_depend>
   <build_depend>occupancy_grid_costmap</build_depend>
   <build_depend>bullet_reasoning_designators</build_depend>
-  <build_depend>pr2_manipulation_knowledge</build_depend>
   <build_depend>cram_semantic_map_designators</build_depend>
   <build_depend>cram_semantic_map</build_depend>
 
@@ -37,10 +35,8 @@
   <run_depend>semantic_map_costmap</run_depend>
   <run_depend>bullet_reasoning</run_depend>
   <run_depend>cram_environment_representation</run_depend>
-  <run_depend>pr2_projection_process_modules</run_depend>
   <run_depend>occupancy_grid_costmap</run_depend>
   <run_depend>bullet_reasoning_designators</run_depend>
-  <run_depend>pr2_manipulation_knowledge</run_depend>
   <run_depend>cram_semantic_map_designators</run_depend>
   <run_depend>cram_semantic_map</run_depend>
 
