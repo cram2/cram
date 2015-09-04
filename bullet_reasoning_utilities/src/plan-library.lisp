@@ -32,10 +32,10 @@
 (cpl-impl:def-cram-function find-object-on-counter (object-type counter-type counter-name)
   "Returns an object designator."
   (cram-language-designator-support:with-designators
-      ((on-counter (:location `((:on ,counter-type)
-                                (:name ,counter-name))))
-       (the-object (:object `((:type ,object-type)
-                              (:at ,on-counter)))))
+      ((on-counter :location `((:on ,counter-type)
+                               (:name ,counter-name)))
+       (the-object :object `((:type ,object-type)
+                             (:at ,on-counter))))
     (reference on-counter)
     (format t "trying to perceive an object ~a~%" the-object)
     (let ((perceived-object (plan-lib:perceive-object 'cram-plan-library:a the-object)))
