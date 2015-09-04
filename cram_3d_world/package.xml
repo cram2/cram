@@ -1,13 +1,12 @@
 <package>
-  <name>cram_physics</name>
+  <name>cram_3d_world</name>
   <version>1.0.0</version>
-  <description>cram_physics</description>
-  <author>Maintained by Lorenz Moesenlechner</author>
-  <maintainer email="musterman@fictional.de">Add Maintainer here.</maintainer>
+  <description>cram_3d_world</description>
+  <author>Lorenz Moesenlechner</author>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
   <license>BSD</license>
-  <url>http://ros.org/wiki/cram_physics</url>
+  <url>http://cram-system.org</url>
 
-  <!-- Dependencies which this package needs to build itself. -->
   <buildtool_depend>catkin</buildtool_depend>
 
   <run_depend>cram_bullet_reasoning</run_depend>
