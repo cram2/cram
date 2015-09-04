@@ -30,11 +30,9 @@
 
 (in-package :cl-user)
 
-(desig-props:def-desig-package semantic-map-costmap
+(defpackage semantic-map-costmap
   (:use #:common-lisp #:prolog #:location-costmap
         #:cram-transforms-stamped #:cram-roslisp-common
         #:desig #:cram-semantic-map)
   (:export #:desig-z-value #:supporting-z-value
-           semantic-map-objects)
-  (:desig-properties #:on #:in #:name #:to #:see #:reach #:type
-                     #:centered-with-padding))
+           semantic-map-objects))

@@ -28,7 +28,6 @@
 
 (in-package :cl-user)
 
-(desig-props:def-desig-package occupancy-grid-costmap
+(defpackage occupancy-grid-costmap
   (:use #:common-lisp #:desig #:location-costmap
-        #:cram-roslisp-common #:prolog)
-  (:desig-properties #:to #:see #:reach))
+        #:cram-roslisp-common #:prolog))

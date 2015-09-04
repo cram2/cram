@@ -27,7 +27,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(desig-props:def-desig-package cram-location-costmap
+(defpackage cram-location-costmap
   (:nicknames #:location-costmap)
   (:use #:cl #:prolog #:cram-utilities #:roslisp-utilities #:cram-roslisp-common
         #:alexandria #:roslisp #:cram-transforms-stamped #:cram-designators
@@ -111,7 +111,5 @@
            ;; facts
            #:make-angle-to-point-generator #:make-orientation-generator
            #:2d-pose-covariance)
-  (:import-from #:cram-math invalid-probability-distribution)
-  (:desig-properties #:to #:see #:reach #:execute #:location #:pose #:obj
-                     #:object #:action #:side))
+  (:import-from #:cram-math invalid-probability-distribution))
 

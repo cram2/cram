@@ -27,7 +27,7 @@
 
 (in-package :cl-user)
 
-(desig-props:def-desig-package cram-plan-library
+(defpackage cram-plan-library
   (:documentation "Library of plans for pick-and-place tasks.")
   (:nicknames :plan-lib)
   (:use #:cpl
@@ -68,12 +68,4 @@
            ;; rete and occasions
            #:object-picked-up
            #:object-in-hand-failure
-           #:object-not-found-failure)
-  ;; (:import-from cram-task-knowledge table-setting-object)
-  (:desig-properties #:to #:see #:obj #:of #:reach #:type #:trajectory
-                     #:pose #:open #:side #:grasp #:lift #:carry :reach
-                     #:location #:at #:parked #:pose #:close #:gripper
-                     #:follow #:pick-up #:put-down #:height #:orientation
-                     #:in #:obstacle #:cluster #:execute
-                     #:action #:goal #:navigation #:park #:on #:angle
-                     #:examine #:properties #:scene))
+           #:object-not-found-failure))
