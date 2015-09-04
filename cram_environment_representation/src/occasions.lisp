@@ -28,7 +28,7 @@
 
 (in-package :cram-environment-representation)
 
-(def-fact-group occasions (holds)
+(def-fact-group occasions (object-in-hand object-placed-at loc)
   (<- (object-in-hand ?object)
     (setof ?object (object-in-hand ?object ?_) ?objects)
     (member ?object ?objects))
@@ -51,19 +51,7 @@
   (<- (loc ?object ?location)
     (desig:obj-desig? object)
     (object-designator-name ?object ?object-name)
-    (object-at-location ?_ ?object-name ?location))
-
-  (<- (looking-at ?location)
-    (fail))
-
-  (<- (object-picked ?object)
-    (fail))
-
-  (<- (arms-parked)
-    (fail))
-
-  (<- (object-put ?object)
-    (fail)))
+    (object-at-location ?_ ?object-name ?location)))
 
 (def-fact-group occasion-utilities ()
   (<- (object-designator-name ?object-designator ?object-name)

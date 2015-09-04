@@ -37,11 +37,10 @@
   (:shadowing-import-from #:cram-plan-events object-attached)
   (:shadowing-import-from #:cram-occasions-events event)
   (:import-from #:cram-occasions-events on-event)
-  (:shadowing-import-from #:cram-manipulation-knowledge end-effector-link robot)
+  (:shadowing-import-from #:cram-robot-interfaces end-effector-link robot)
   (:import-from #:cram-roslisp-common *fixed-frame* *transformer* *tf-default-timeout*)
   (:export get-designator-object-name get-designator-object
            object-designator-name
-           object-in-hand
            ;; event handlers
            object-pose-in-frame)
   (:desig-properties pose in gripper z-offset at type))

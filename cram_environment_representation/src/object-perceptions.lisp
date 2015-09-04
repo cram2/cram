@@ -39,7 +39,7 @@ right object instance that needs to be updated and for adding new
 instances if necessary.
 
 The default implementation for the objects defined in
-CRAM-MANIPULATION-KNOWLEDGE completely trust the object identifiers,
+CRAM-ROBOT-INTERFACES completely trust the object identifiers,
 i.e. if an object instance for an identifier has been registered
 already, the pose of the corresponding object in the world database is
 just updated. Otherwise a new instance is created."))
