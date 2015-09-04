@@ -4,32 +4,15 @@
   <version>0.0.0</version>
   <description>The cram_highlevel package</description>
 
-  <!-- One maintainer tag required, multiple allowed, one person per tag --> 
-  <!-- Example:  -->
-  <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
   <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
-
-
-  <!-- One license tag required, multiple allowed, one license per tag -->
-  <!-- Commonly used license strings: -->
-  <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
   <license>BSD</license>
-
   <url type="website">http://cram-system.org</url>
-
-  <!-- Author tags are optional, mutiple are allowed, one per tag -->
-  <!-- Authors do not have to be maintianers, but could be -->
-  <!-- Example: -->
-  <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
-
 
   <buildtool_depend>catkin</buildtool_depend>
 
   <run_depend>occupancy_grid_costmap/</run_depend>
   <run_depend>perception_process_module/</run_depend>
-  <run_depend>cram_semantic_map</run_depend>
   <run_depend>semantic_map_costmap/</run_depend>
-  <run_depend>cram_semantic_map_utils</run_depend>
   <run_depend>cram_plan_actionserver/</run_depend>
   <run_depend>cram_plan_failures/</run_depend>
   <run_depend>cram_plan_occasions_events</run_depend>
@@ -41,7 +24,6 @@
   <run_depend>fake_process_modules/</run_depend>
   <run_depend>cram_location_costmap/</run_depend>
   <run_depend>cram_robot_pose_gaussian_costmap/</run_depend>
-  <run_depend>cram_semantic_map_designators</run_depend>
 
   <export>
     <metapackage/>
