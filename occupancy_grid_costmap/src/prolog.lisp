@@ -55,7 +55,7 @@
     (drivable-location-costmap ?cm ?padding))
 
   (<- (desig-costmap ?desig ?cm)
-    (cram-manipulation-knowledge:reachability-designator ?desig)
+    (cram-robot-interfaces:reachability-designator ?desig)
     (costmap ?cm)
     (costmap-manipulation-padding ?padding)
     (drivable-location-costmap ?cm ?padding)))

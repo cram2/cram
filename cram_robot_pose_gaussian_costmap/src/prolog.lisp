@@ -64,8 +64,8 @@
      ?cm))
 
   (<- (desig-costmap ?desig ?cm)
-    (cram-manipulation-knowledge:reachability-designator ?desig)
-    (bagof ?pose (cram-manipulation-knowledge:designator-reach-pose ?desig ?pose ?_) ?poses)
+    (cram-robot-interfaces:reachability-designator ?desig)
+    (bagof ?pose (cram-robot-interfaces:designator-reach-pose ?desig ?pose ?_) ?poses)
     (costmap ?cm)
     (lisp-fun 2d-pose-covariance ?poses 0.5 (?mean ?covariance))
     (costmap-in-reach-distance ?distance)

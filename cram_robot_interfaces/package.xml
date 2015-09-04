@@ -1,5 +1,5 @@
 <package>
-  <name>cram_manipulation_knowledge</name>
+  <name>cram_robot_interfaces</name>
   <version>0.1.0</version>
   <description>
     CRAM Manipulation Knowledge package
@@ -11,7 +11,7 @@
 
   <license>BSD</license>
 
-  <url type="website">http://ros.org/wiki/cram_manipulation_knowledge</url>
+  <url type="website">http://ros.org/wiki/cram_robot_interfaces</url>
   <url type="bugtracker">https://github.com/cram-code/cram_highlevel/issues</url>
   <url type="repository">https://github.com/cram-code/cram_highlevel</url>
 

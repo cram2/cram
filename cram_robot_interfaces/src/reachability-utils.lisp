@@ -27,7 +27,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :cram-manipulation-knowledge)
+(in-package :cram-robot-interfaces)
 
 (defgeneric compute-ik (pose-stamped &key link-name planning-group robot-state
                                        target-frame seed-state tcp-frame)

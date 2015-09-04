@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-manipulation-knowledge)
+(in-package :cram-robot-interfaces)
 
 (def-fact-group ptu (camera-frame camera-minimal-height camera-maximal-height
                                   robot-pan-tilt-links robot-pan-tilt-joints)
