@@ -69,7 +69,7 @@
    (cut:lazy-mapcar
     (lambda (solution)
       (cram-occasions-events:on-event
-       (make-instance 'cram-plan-events:robot-state-changed))
+       (make-instance 'cram-plan-occasions-events:robot-state-changed))
       solution)
     (prolog:prolog `(and
                      (bullet-world ?world)
@@ -98,14 +98,14 @@
 (defun execute-container-opened (action-designator object-designator distance)
   (execute-action-trajectory-points action-designator)
   (cram-occasions-events:on-event
-   (make-instance 'cram-plan-events:object-articulation-event
+   (make-instance 'cram-plan-occasions-events:object-articulation-event
      :object-designator object-designator
      :opening-distance distance)))
 
 (defun execute-container-closed (action-designator object-designator)
   (execute-action-trajectory-points action-designator)
   (cram-occasions-events:on-event
-   (make-instance 'cram-plan-events:object-articulation-event
+   (make-instance 'cram-plan-occasions-events:object-articulation-event
      :object-designator object-designator :opening-distance 0.0)))
 
 (defun carry-with-both-hands (object)
@@ -200,7 +200,7 @@
                    (apply #'carry-with-one-hand object-in-hand)
                    (park side))))))
     (cram-occasions-events:on-event
-     (make-instance 'cram-plan-events:robot-state-changed))))
+     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
 (defun execute-lift (designator)
   (or
@@ -216,7 +216,7 @@
          (assert gripper-links)
          (dolist (gripper-link gripper-links t)
            (cram-occasions-events:on-event
-            (make-instance 'cram-plan-events:object-attached
+            (make-instance 'cram-plan-occasions-events:object-attached
               :object current-object :link gripper-link)))))
      (cpl-impl:fail 'cram-plan-failures:manipulation-pose-unreachable))))
 
@@ -229,7 +229,7 @@
          (assert gripper-links)
          (dolist (gripper-link gripper-links t)
            (cram-occasions-events:on-event
-            (make-instance 'cram-plan-events:object-detached
+            (make-instance 'cram-plan-occasions-events:object-detached
               :object current-object :link gripper-link)))))
      (cpl-impl:fail 'cram-plan-failures:manipulation-pose-unreachable))))
 

@@ -275,7 +275,7 @@
                 `(cram-robot-interfaces:end-effector-link
                   ,(arm param-set) ?link-name)))
             (cram-occasions-events:on-event
-             (make-instance 'cram-plan-events:object-attached
+             (make-instance 'cram-plan-occasions-events:object-attached
                             :object obj
                             :link ?link-name
                             :side (arm param-set))))
@@ -491,7 +491,7 @@
                        ,side ?link-name)))
                  (cram-occasions-events:on-event
                   (make-instance
-                      'cram-plan-events:object-detached
+                      'cram-plan-occasions-events:object-detached
                     :object grasped-object
                     :link ?link-name
                     :side side))))))

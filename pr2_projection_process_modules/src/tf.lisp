@@ -76,7 +76,7 @@
      *transformer* ?robot-instance)))
 
 (defmethod cram-occasions-events:on-event update-tf
-    ((event cram-plan-events:robot-state-changed))
+    ((event cram-plan-occasions-events:robot-state-changed))
   (update-tf))
 
 (defmethod cram-robot-interfaces:compute-ik :before

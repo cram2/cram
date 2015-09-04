@@ -71,7 +71,7 @@
               "Cannot resolve designator ~a. Ignoring." goal)))
       (cram-language::on-finish-move-head log-id success)
       (cram-occasions-events:on-event
-       (make-instance 'cram-plan-events:robot-state-changed)))))
+       (make-instance 'cram-plan-occasions-events:robot-state-changed)))))
 
 (defun maybe-shutdown-thread ()
   (when (and *point-head-thread*

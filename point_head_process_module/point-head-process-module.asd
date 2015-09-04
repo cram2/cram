@@ -38,7 +38,7 @@
                cram-prolog
                cram-roslisp-common
                cram-transforms-stamped
-               cram-plan-events
+               cram-plan-occasions-events
                cram-occasions-events
                roslisp-utilities
                alexandria

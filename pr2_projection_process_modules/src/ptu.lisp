@@ -50,7 +50,7 @@
                         (robot ?robot)
                         (head-pointing-at ?world ?robot ,pose)))))
        (cram-occasions-events:on-event
-        (make-instance 'cram-plan-events:robot-state-changed))))
+        (make-instance 'cram-plan-occasions-events:robot-state-changed))))
     (finish-process-module process-module :designator input)))
 
 (defmethod synchronization-fluent ((process-module projection-ptu)

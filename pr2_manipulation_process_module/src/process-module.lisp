@@ -287,7 +287,7 @@
                  (cram-language::on-finish-move-arm log-id t)
                  (let ((bs-update (cram-occasions-events:on-event
                                    (make-instance
-                                       'cram-plan-events:robot-state-changed))))
+                                       'cram-plan-occasions-events:robot-state-changed))))
                    (cond (plan-only result)
                          (t bs-update)))))
               (t (cram-language::on-finish-move-arm log-id nil)
@@ -309,7 +309,7 @@
                    (max_effort command) max-effort)
           :result-timeout 1.0)
       (cram-occasions-events:on-event (make-instance
-                                          'cram-plan-events:robot-state-changed)))))
+                                          'cram-plan-occasions-events:robot-state-changed)))))
 
 (defun open-gripper (side &key (max-effort 100.0) (position 0.085))
   (cram-language::on-open-gripper side max-effort position)
@@ -324,14 +324,14 @@
                        (max_effort command) max-effort)
               :result-timeout 1.0)
           (cram-occasions-events:on-event
-           (make-instance 'cram-plan-events:robot-state-changed)))
+           (make-instance 'cram-plan-occasions-events:robot-state-changed)))
       (with-vars-bound (?carried-object ?gripper-link)
           (lazy-car (prolog `(and (object-in-hand ?carried-object ,side)
                                   (robot ?robot)
                                   (end-effector-link ?robot ,side ?gripper-link))))
         (unless (is-var ?carried-object)
           (cram-occasions-events:on-event
-           (make-instance 'cram-plan-events:object-detached
+           (make-instance 'cram-plan-occasions-events:object-detached
              :object ?carried-object
              :link ?gripper-link
              :side side)))))))
