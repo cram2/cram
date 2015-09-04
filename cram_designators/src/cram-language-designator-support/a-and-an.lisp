@@ -32,10 +32,10 @@
 ;; TODO(gaya) make these more generic
 (defmacro a (type &body body)
   `(with-designators
-       ((desig (,type ,@body)))
+       ((desig ,type ,@body))
      desig))
 
 (defmacro an (type &body body)
   `(with-designators
-       ((desig (,type ,@body)))
+       ((desig ,type ,@body))
      desig))

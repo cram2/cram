@@ -49,7 +49,7 @@ given a name, a designator class and the designator properties.")
 (defmacro with-designators (&whole sexp defs &body body)
   `(let ((log-params
            ',(mapcar (lambda (def)
-                       (destructuring-bind (name (type props)) def
+                       (destructuring-bind (name type props) def
                          `(,name ,(write-to-string (list type props)))))
                      defs)))
      (with-task-tree-node (:path-part `(goal-context `(with-designators))
@@ -61,7 +61,7 @@ given a name, a designator class and the designator properties.")
                            :log-pattern
                            (list (cons 'definitions ',defs)))
        (let* ,(mapcar (lambda (def)
-                        (destructuring-bind (name (type props)) def
+                        (destructuring-bind (name type props) def
                           `(,name
                             (let ((desig (create-designator
                                           ',name ',type ,props)))
