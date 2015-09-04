@@ -28,12 +28,10 @@
 
 (in-package :cl-user)
 
-(desig-props:def-desig-package cram-pr2-designators
+(defpackage cram-pr2-designators
   (:use #:common-lisp #:cram-plan-occasions-events #:cram-robot-interfaces
         #:prolog #:desig #:cram-semantic-map #:cl-transforms-stamped)
   (:import-from #:cram-roslisp-common
                 *fixed-frame* *transformer* *tf-default-timeout*)
   (:shadowing-import-from #:cram-designators object-designator object)
-  (:shadowing-import-from #:cram-robot-interfaces robot)
-  (:desig-properties to grasp obj side put-down at open close handle
-                     in gripper pose z-offset lift distance name height))
+  (:shadowing-import-from #:cram-robot-interfaces robot side))

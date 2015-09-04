@@ -45,14 +45,10 @@
            projection-manipulation pr2-bullet-projection-environment
            action-started action-finished action-duration projection-role))
 
-(desig-props:def-desig-package projection-designators
+(defpackage projection-designators
   (:use #:common-lisp #:cram-designators #:cram-prolog
         #:projection-process-modules #:cram-robot-interfaces)
   (:import-from #:cram-process-modules
                 matching-process-module available-process-module projection-running)
   (:import-from #:cram-projection *projection-environment*)
-  (:export projection-role required-sides)
-  (:desig-properties at type to see follow pose location obj perceive
-                     grasp carry lift park put-down open close side
-                     z-offset distance parked navigation goal handle
-                     name))
+  (:export projection-role required-sides))
