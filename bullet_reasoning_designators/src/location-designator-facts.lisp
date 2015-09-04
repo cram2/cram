@@ -141,7 +141,7 @@
     (robot ?robot)
     (assert (object-pose ?w ?robot ?robot-pose))
     (object-not-in-collision ?w ?robot)
-    (forall (cram-manipulation-knowledge:designator-reach-pose ?desig ?robot-pose ?pose ?side)
+    (forall (cram-robot-interfaces:designator-reach-pose ?desig ?robot-pose ?pose ?side)
             (or
              (and
               (lisp-type ?pose cl-transforms:pose)
@@ -200,7 +200,7 @@
   (<- (location-valid
        ?desig ?pose
        (desig-check-to-reach ?desig ?pose))
-    (cram-manipulation-knowledge:reachability-designator ?desig))
+    (cram-robot-interfaces:reachability-designator ?desig))
 
   (<- (btr-desig-solution-valid ?desig ?solution)
     (btr-desig-solution-valid ?desig ?solution ?_))

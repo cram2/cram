@@ -37,7 +37,7 @@
                cram-transforms-stamped
                cram-utilities
                cram-environment-representation
-               cram-manipulation-knowledge
+               cram-robot-interfaces
                cram-math
                cl-opengl
                cl-bullet

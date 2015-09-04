@@ -42,7 +42,7 @@
                cram-plan-library
                cram-language
                bullet-reasoning-designators
-               cram-manipulation-knowledge)
+               cram-robot-interfaces)
   :components
   ((:module "src"
     :components
