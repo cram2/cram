@@ -30,7 +30,7 @@
 
 (in-package :cl-user)
 
-(desig-props:def-desig-package cram-bullet-reasoning
+(defpackage cram-bullet-reasoning
   (:nicknames :btr)
   (:use #:common-lisp #:prolog #:cl-bullet #:bt-vis #:cut
         #:cram-robot-interfaces #:cl-transforms-stamped)
@@ -96,6 +96,4 @@
            event make-event timeline timeline-init timeline-advance
            timeline-current-world-state timeline-lookup
            holds-in-world holds occurs at
-           during throughout with-timeline)
-  (:desig-properties mug mondamin plate pot handle cutlery knife fork spatula
-                     pancake pancake-maker orange apple sugar-box cereal bowl))
+           during throughout with-timeline))

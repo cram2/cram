@@ -28,13 +28,13 @@
 
 (in-package :cl-user)
 
-(desig-props:def-desig-package cram-bullet-reasoning-belief-state
+(defpackage cram-bullet-reasoning-belief-state
   (:use #:common-lisp #:cram-plan-library
         #:cram-plan-occasions-events #:cram-occasions-events
         #:cram-bullet-reasoning #:cram-prolog #:cram-utilities
         #:cl-transforms-stamped)
   (:shadowing-import-from #:cram-bullet-reasoning
-                          side at throughout object during holds)
+                          side at throughout object during holds pose)
   (:shadowing-import-from #:cram-plan-occasions-events object-attached)
   (:shadowing-import-from #:cram-occasions-events event)
   (:shadowing-import-from #:cram-robot-interfaces end-effector-link robot)
@@ -42,5 +42,4 @@
   (:export get-designator-object-name get-designator-object
            object-designator-name
            ;; event handlers
-           object-pose-in-frame)
-  (:desig-properties pose in gripper z-offset at type))
+           object-pose-in-frame))

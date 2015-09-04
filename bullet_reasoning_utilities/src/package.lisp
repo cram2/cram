@@ -29,7 +29,7 @@
 
 (in-package :cl-user)
 
-(desig-props:def-desig-package bullet-reasoning-utilities
+(defpackage bullet-reasoning-utilities
   (:use #:common-lisp #:cram-bullet-reasoning #:cram-prolog #:cram-designators
         #:cram-utilities #:cram-robot-interfaces)
   (:shadowing-import-from #:btr object object-pose)
@@ -48,8 +48,4 @@
    ;; robot.lisp
    robot-name move-robot move-robot-away park-robot
    ;; setup.lisp
-   semantic-map-object-name init start-ros-and-bullet)
-  (:desig-properties #:on #:name #:type #:at
-                     #:plate #:fork #:knife #:mug #:pot #:bowl #:mondamin
-                     #:spatula #:pancake-maker #:orange #:apple #:sugar-box
-                     #:cereal))
+   semantic-map-object-name init start-ros-and-bullet))

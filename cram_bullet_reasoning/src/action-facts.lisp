@@ -51,9 +51,7 @@
     ;; of information. For instance, it already does visibility
     ;; reasoning. If we can find a solution for the designator, we are
     ;; done already.
-    (desig:designator desig:location ((desig-props:to desig-props:see)
-                                      (desig-props:obj ?obj))
-                ?to-see-desig)
+    (desig:designator :location ((:to :see) (:obj ?obj)) ?to-see-desig)
     (desig-solutions ?to-see-desig (?_ . ?_)))
 
   (<- (achieve ?w (visible ?obj)
