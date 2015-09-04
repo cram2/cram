@@ -38,7 +38,7 @@
                cram-plan-occasions-events
                cram-occasions-events
                cram-plan-library
-               cram-environment-representation
+               cram-bullet-reasoning-belief-state
                cram-projection
                cram-roslisp-common
                cram-robot-interfaces
