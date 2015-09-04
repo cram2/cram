@@ -19,7 +19,7 @@
 
   <build_depend>message_generation</build_depend>
   <build_depend>cram_prolog</build_depend>
-  <build_depend>cram_plan_events</build_depend>
+  <build_depend>cram_plan_occasions_events</build_depend>
   <build_depend>cram_execution_trace</build_depend>
   <build_depend>cram_plan_library</build_depend>
   <build_depend>cram_roslisp_common</build_depend>
@@ -29,7 +29,7 @@
 
   <run_depend>message_runtime</run_depend>
   <run_depend>cram_prolog</run_depend>
-  <run_depend>cram_plan_events</run_depend>
+  <run_depend>cram_plan_occasions_events</run_depend>
   <run_depend>cram_execution_trace</run_depend>
   <run_depend>cram_plan_library</run_depend>
   <run_depend>cram_roslisp_common</run_depend>

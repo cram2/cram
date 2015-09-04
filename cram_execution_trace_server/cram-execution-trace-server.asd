@@ -33,7 +33,7 @@
    :license "BSD"
    
    :depends-on (cram-prolog
-                cram-plan-events
+                cram-plan-occasions-events
                 roslisp-utilities
                 cram-execution-trace
                 cram-plan-library

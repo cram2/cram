@@ -30,7 +30,7 @@
 
 (desig-props:def-desig-package cram-semantic-map
   (:nicknames #:semantic-map #:sem-map)
-  (:use #:common-lisp #:cram-plan-events #:cram-semantic-map-utils
+  (:use #:common-lisp #:cram-plan-occasions-events #:cram-semantic-map-utils
         #:cut #:cram-occasions-events)
   (:shadow get-semantic-map)
   (:export get-semantic-map
