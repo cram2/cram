@@ -79,7 +79,7 @@
     ((event cram-plan-events:robot-state-changed))
   (update-tf))
 
-(defmethod cram-manipulation-knowledge:compute-ik :before
+(defmethod cram-robot-interfaces:compute-ik :before
     (pose-stamped &key link-name planning-group robot-state target-frame seed-state tcp-frame)
   (declare (ignore pose-stamped link-name planning-group
                    target-frame tcp-frame seed-state))

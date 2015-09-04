@@ -39,7 +39,7 @@
         #:cram-plan-failures
         #:cram-plan-events
         #:cram-occasions-events
-        #:cram-manipulation-knowledge
+        #:cram-robot-interfaces
         #:cl-transforms-stamped)
   (:import-from alexandria ignore-some-conditions)
   (:import-from roslisp ros-info ros-warn ros-error ros-time)

@@ -32,7 +32,7 @@
   
   :depends-on (cram-prolog
                cram-designators
-               cram-manipulation-knowledge
+               cram-robot-interfaces
                bullet-reasoning
                cl-transforms-stamped)
   :components

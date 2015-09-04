@@ -29,16 +29,8 @@
 (in-package :cl-user)
 
 (desig-props:def-desig-package cram-pr2-knowledge
-  (:use #:common-lisp ;; #:bullet-reasoning
-        #:cram-prolog ;; #:cl-transforms-stamped
-        #:cram-manipulation-knowledge
-        )
-;  (:shadowing-import-from #:cl-bullet pose)
-  ;; (:import-from  #:cram-manipulation-knowledge
-  ;;                arm required-arms available-arms object-type-grasp
-  ;;                object-designator-grasp object-type-tool-length
-  ;;                object-designator-tool-length end-effector-link
-  ;;                gripper-link orientation-matters)
-  ;; (:import-from #:cram-designators desig-prop)
+  (:use #:common-lisp
+        #:cram-prolog
+        #:cram-robot-interfaces)
   (:desig-properties type handle mug mondamin plate pot handle cutlery knife
                      fork spatula))

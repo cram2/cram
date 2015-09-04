@@ -12,7 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   cram_plan_events
   cram_occasions_events
   cram_environment_representation
-  cram_manipulation_knowledge
+  cram_robot_interfaces
   cl_transforms
   cram_projection
   cram_pr2_designators
