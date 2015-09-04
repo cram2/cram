@@ -28,9 +28,7 @@
 
 (in-package :cl-user)
 
-(desig-props:def-desig-package cram-pr2-knowledge
+(defpackage cram-pr2-knowledge
   (:use #:common-lisp
         #:cram-prolog
-        #:cram-robot-interfaces)
-  (:desig-properties type handle mug mondamin plate pot handle cutlery knife
-                     fork spatula))
+        #:cram-robot-interfaces))
