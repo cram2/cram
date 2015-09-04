@@ -27,7 +27,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :bullet-reasoning)
+(in-package :cram-bullet-reasoning)
 
 (defgeneric pose-reachable-p (robot pose &key side tool-frame)
   (:documentation "Checks if a pose is reachable for the robot

@@ -1,13 +1,13 @@
 <package>
-  <name>bullet_reasoning</name>
+  <name>cram_bullet_reasoning</name>
   <version>1.0.0</version>
   <description>
-     bullet_reasoning
+     cram_bullet_reasoning
   </description>
   <author>Lorenz Moesenlechner</author>
   <maintainer email="musterman@fictional.de">Add Maintainer here</maintainer>
   <license>BSD</license>
-  <url>http://ros.org/wiki/bullet_reasoning</url>
+  <url>http://ros.org/wiki/cram_bullet_reasoning</url>
 
   <!-- Dependencies which this package needs to build itself. -->
   <buildtool_depend>catkin</buildtool_depend>

@@ -36,7 +36,7 @@
                cram-prolog
                roslisp
                cram-semantic-map-utils
-               bullet-reasoning
+               cram-bullet-reasoning
                roslisp-utilities
                cl-urdf
                cram-plan-library

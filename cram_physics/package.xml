@@ -10,7 +10,7 @@
   <!-- Dependencies which this package needs to build itself. -->
   <buildtool_depend>catkin</buildtool_depend>
 
-  <run_depend>bullet_reasoning</run_depend>
+  <run_depend>cram_bullet_reasoning</run_depend>
   <run_depend>bullet_reasoning_designators</run_depend>
   <run_depend>cl_bullet</run_depend>
   <run_depend>cl_bullet_vis</run_depend>

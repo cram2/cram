@@ -31,7 +31,7 @@
   :license "BSD"
 
   :depends-on (cram-prolog
-               bullet-reasoning
+               cram-bullet-reasoning
                cram-designators
                cram-location-costmap
                cram-transforms-stamped

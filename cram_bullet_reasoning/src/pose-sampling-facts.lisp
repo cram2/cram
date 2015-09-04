@@ -1,4 +1,5 @@
-;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;;
+;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -25,17 +26,35 @@
 ;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
+;;;
 
-(defsystem bullet-reasoning-test
-  :author "Lorenz Moesenlechner"
-  :license "BSD"
+(in-package :cram-bullet-reasoning)
 
-  :depends-on (bullet-reasoning lisp-unit)
-  :components
-  ((:module "test"
-    :components
-    ((:file "package")
-     (:file "bounding-box-tests" :depends-on ("package"))
-     (:file "timeline" :depends-on ("package"))
-     (:file "copy-world-tests" :depends-on ("package"))
-     (:file "moveit-test" :depends-on ("package"))))))
+(def-fact-group pose-sampling ()
+  (<- (random-poses-on ?bottom ?top ?poses)
+    (ground (?bottom ?top))
+    (not (bound ?poses))
+    (generate ?poses (random-poses-on ?bottom ?top)))
+
+  (<- (random-poses-on ?n ?bottom ?top ?poses)
+    (ground (?bottom ?top))
+    (not (bound ?poses))
+    (generate ?tmp (random-poses-on ?bottom ?top))
+    (take ?n ?tmp ?poses))
+
+  (<- (n-poses-on ?n ?bottom ?top ?poses)
+    (ground (?bottom ?top ?n))
+    (not (bound ?poses))
+    (generate ?poses (n-poses-on ?bottom ?top ?n)))
+
+  (<- (desig-poses ?desig ?obj-name ?poses)
+    (ground (?desig ?obj-name))
+    (location-costmap:merged-desig-costmap ?desig ?cm)
+    (location-costmap:costmap-samples ?cm ?desig-poses)
+    (bullet-world ?w)
+    (%object ?w ?obj-name ?obj)
+    (lisp-fun obj-poses-on ?obj ?desig-poses ?poses))
+
+  (<- (desig-poses ?n ?desig ?obj-name ?poses)
+    (desig-poses ?desig ?obj-name ?poses-inf)
+    (take ?n ?poses-inf ?poses)))

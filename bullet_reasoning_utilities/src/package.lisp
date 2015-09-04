@@ -30,7 +30,7 @@
 (in-package :cl-user)
 
 (desig-props:def-desig-package bullet-reasoning-utilities
-  (:use #:common-lisp #:bullet-reasoning #:cram-prolog #:cram-designators
+  (:use #:common-lisp #:cram-bullet-reasoning #:cram-prolog #:cram-designators
         #:cram-utilities #:cram-robot-interfaces)
   (:shadowing-import-from #:btr object object-pose)
   (:export

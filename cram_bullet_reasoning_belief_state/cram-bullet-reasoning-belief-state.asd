@@ -35,7 +35,7 @@
                cram-projection
                cram-designators
                cram-roslisp-common
-               bullet-reasoning
+               cram-bullet-reasoning
                cram-occasions-events
                cram-plan-occasions-events
                cram-plan-library
