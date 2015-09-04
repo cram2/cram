@@ -37,7 +37,7 @@
           #:semantic-map-costmap
           #:btr
           #:cram-utilities
-          #:cram-environment-representation
+          #:cram-bullet-reasoning-belief-state
           #:cram-language-implementation
           #:bullet-reasoning-utilities)
   (:shadowing-import-from #:btr object pose object-pose width height name)

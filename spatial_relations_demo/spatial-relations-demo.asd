@@ -37,14 +37,14 @@
                roslisp
                semantic-map-costmap
                cram-robot-pose-gaussian-costmap
-               bullet-reasoning
+               cram-bullet-reasoning
                cram-pr2-knowledge
-               cram-environment-representation
+               cram-bullet-reasoning-belief-state
                projection-process-modules
                occupancy-grid-costmap
                cram-plan-library
-               bullet-reasoning-designators
-               pr2-manipulation-knowledge
+               cram-bullet-reasoning-designators
+               cram-pr2-designators
                cram-semantic-map-designators
                alexandria
                bullet-reasoning-utilities)
