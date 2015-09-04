@@ -34,20 +34,21 @@
          (ros-info (achieve plan-lib) "Looking at pose: ~a~%" ?pose)
          (with-designators
              ((look-at-desig
-               (:action `((:type :trajectory)
-                          ,@(typecase ?pose
-                              (symbol
-                               (ecase ?pose
-                                 (:forward
-                                  `((:to :see)
-                                    (:pose ,(make-pose-stamped
-                                             *robot-base-frame*
-                                             0.0
-                                             (cl-transforms:make-3d-vector
-                                              3.0 0.0 1.5)
-                                             (cl-transforms:make-quaternion
-                                              0.0 0.0 0.0 1.0)))))))
-                              (t `((:to :follow) (:pose ,?pose))))))))
+               :action
+               `((:type :trajectory)
+                 ,@(typecase ?pose
+                     (symbol
+                      (ecase ?pose
+                        (:forward
+                         `((:to :see)
+                           (:pose ,(make-pose-stamped
+                                    *robot-base-frame*
+                                    0.0
+                                    (cl-transforms:make-3d-vector
+                                     3.0 0.0 1.5)
+                                    (cl-transforms:make-quaternion
+                                     0.0 0.0 0.0 1.0)))))))
+                     (t `((:to :follow) (:pose ,?pose)))))))
            (perform look-at-desig)
            (monitor-action look-at-desig)
            (ros-info (achieve plan-lib) "Look at done~%")))))

@@ -46,13 +46,13 @@
                         (near-reperceive-retry-count 1)
                         (carry-retry-count 10))
     (with-designators ((obj-loc
-                        (:location `((:of ,?obj))))
+                        :location `((:of ,?obj)))
                        (grasp-action
-                        (:action `((:type :trajectory) (:to :grasp) (:obj ,?obj))))
+                        :action `((:type :trajectory) (:to :grasp) (:obj ,?obj)))
                        (lift-action
-                        (:action `((:type :trajectory) (:to :lift) (:obj ,?obj))))
+                        :action `((:type :trajectory) (:to :lift) (:obj ,?obj)))
                        (carry-action
-                        (:action `((:type :trajectory) (:to :carry) (:obj ,?obj)))))
+                        :action `((:type :trajectory) (:to :carry) (:obj ,?obj))))
       (with-failure-handling
           ((object-not-found (f)
              (declare (ignore f))
@@ -128,8 +128,7 @@
   (with-retry-counters ((alt-perception-poses-cnt 3)
                         (initial-perception-retry-count 3)
                         (alt-grasp-poses-cnt 3))
-    (with-designators ((pick-up-loc
-                        (:location `((:to :reach) (:obj ,?obj)))))
+    (with-designators ((pick-up-loc :location `((:to :reach) (:obj ,?obj))))
       (with-failure-handling
           ((manipulation-pose-unreachable (f)
              (declare (ignore f))
@@ -175,10 +174,10 @@
      "The object `~a' needs to be in the hand before being able to place it."
      obj)
     (with-designators ((put-down-action
-                        (:action `((:type :trajectory) (:to :put-down)
-                                   (:obj ,obj) (:at ,?loc))))
+                        :action `((:type :trajectory) (:to :put-down)
+                                  (:obj ,obj) (:at ,?loc)))
                        (park-action
-                        (:action `((:type :trajectory) (:to :park) (:obj ,obj)))))
+                        :action `((:type :trajectory) (:to :park) (:obj ,obj))))
       (with-failure-handling
           (((or manipulation-failed manipulation-pose-unreachable) (f)
              (declare (ignore f))
@@ -224,8 +223,7 @@
              (do-retry goal-pose-retries
                (retry-with-updated-location
                 ?loc (next-different-location-solution ?loc)))))
-        (with-designators ((put-down-loc (:location `((:to :reach)
-                                                      (:location ,?loc)))))
+        (with-designators ((put-down-loc :location `((:to :reach) (:location ,?loc))))
           (reset-counter manipulation-retries)
           (with-failure-handling
               ((manipulation-failure (f)
@@ -242,7 +240,7 @@
               (achieve `(object-put ,?obj ,?loc)))))))))
 
 (def-goal (achieve (arms-parked))
-  (with-designators ((parking (:action `((:type :trajectory) (:to :park)))))
+  (with-designators ((parking :action `((:type :trajectory) (:to :park))))
     (perform parking)
     (monitor-action parking)))
 
