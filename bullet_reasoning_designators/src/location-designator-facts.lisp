@@ -66,7 +66,7 @@
     (desig-prop ?designator (:on ?object))
     (bullet-world ?world)
     (once
-     (or (cram-environment-representation:object-designator-name
+     (or (cram-bullet-reasoning-belief-state:object-designator-name
           ?object ?object-instance-name)
          (== ?object ?object-instance-name)))
     (%object ?world ?object-instance-name ?object-instance)
@@ -91,7 +91,7 @@
         (desig-prop ?designator (:object ?object)))
     (bullet-world ?world)
     (once
-     (or (cram-environment-representation:object-designator-name
+     (or (cram-bullet-reasoning-belief-state:object-designator-name
           ?object ?object-name)
          (and (lisp-type ?object symbol)
               (== ?object ?object-name))))

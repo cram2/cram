@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-environment-representation)
+(in-package :cram-bullet-reasoning-belief-state)
 
 (defmethod clear-belief object-identifiers ()
   (clrhash *object-identifier-to-instance-mappings*))

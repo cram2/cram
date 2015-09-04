@@ -17,7 +17,7 @@
   <run_depend>cl_glx</run_depend>
   <run_depend>cl_opengl</run_depend>
   <run_depend>cl_urdf</run_depend>
-  <run_depend>cram_environment_representation</run_depend>
+  <run_depend>cram_bullet_reasoning_belief_state</run_depend>
   <run_depend>spatial_relations_costmap</run_depend>
 
   <export>

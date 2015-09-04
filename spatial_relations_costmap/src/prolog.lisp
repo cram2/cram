@@ -357,7 +357,7 @@
   ;;
   (<- (object-instance-name ?designator ?name)
     (obj-desig? ?designator)
-    (lisp-fun cram-environment-representation::get-designator-object-name
+    (lisp-fun cram-bullet-reasoning-belief-state:get-designator-object-name
               ?designator ?name))
 
   ;; returns diameter or something similar in meters

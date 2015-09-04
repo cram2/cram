@@ -26,32 +26,27 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-environment-representation)
-
-(cpl:define-task-variable *object-identifier-to-instance-mappings*
-    (make-hash-table :test #'equal)
-    "Mapping from object-identifiers as bound in the
-OBJECT-DESIGNATOR-DATA class to instance names in the bullet world
-database.")
-
-(cram-projection:define-special-projection-variable
-    *object-identifier-to-instance-mappings*
-    (alexandria:copy-hash-table *object-identifier-to-instance-mappings*))
-
-(defun get-object-instance-name (object-identifier)
-  (or (gethash object-identifier *object-identifier-to-instance-mappings*)
-      ;; as a fallback, return the object identifier. This is not
-      ;; really clean but makes integration of projection perception a
-      ;; little easier.
-      object-identifier))
-
-(defun get-designator-object-name (object-designator)
-  (let ((object-designator (desig:newest-effective-designator object-designator)))
-    (when object-designator
-      (get-object-instance-name
-       (desig:object-identifier (desig:reference object-designator))))))
-
-(defun get-designator-object (object-designator)
-  (let ((object-name (get-designator-object-name object-designator)))
-    (when object-name
-      (object *current-bullet-world* object-name))))
+(defsystem cram-bullet-reasoning-belief-state
+  :author "Lorenz Moesenlechner"
+  :license "BSD"
+  
+  :depends-on (cram-prolog
+               cram-utilities
+               cram-projection
+               cram-designators
+               cram-roslisp-common
+               bullet-reasoning
+               cram-occasions-events
+               cram-plan-occasions-events
+               cram-plan-library
+               cram-language ; for DEFINE-TASK-VARIABLE in utitlities
+               cram-physics-utils)
+  :components
+  ((:module "src"
+    :components
+    ((:file "package")
+     (:file "belief-state" :depends-on ("package"))
+     (:file "utilities" :depends-on ("package"))
+     (:file "occasions" :depends-on ("package" "utilities"))
+     (:file "object-perceptions" :depends-on ("package" "utilities"))
+     (:file "event-handlers" :depends-on ("package" "object-perceptions" "utilities"))))))

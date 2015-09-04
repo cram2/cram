@@ -26,26 +26,37 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-environment-representation
-  :author "Lorenz Moesenlechner"
-  :license "BSD"
-  
-  :depends-on (cram-prolog
-               cram-utilities
-               cram-projection
-               cram-designators
-               cram-roslisp-common
-               bullet-reasoning
-               cram-plan-occasions-events
-               cram-plan-library
-               cram-language
-               cram-occasions-events
-               cram-physics-utils)
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "object-perceptions" :depends-on ("package" "utilities"))
-     (:file "event-handlers" :depends-on ("package" "object-perceptions" "utilities"))
-     (:file "occasions" :depends-on ("package" "utilities"))
-     (:file "utilities" :depends-on ("package"))))))
+(in-package :cram-bullet-reasoning-belief-state)
+
+(defmethod cram-occasions-events:clear-belief cram-bullet-reasoning-belief-state ()
+  (setf *current-bullet-world* (make-instance 'bt-reasoning-world))
+  (setup-world-database)
+  (set-robot-state-from-tf
+   *transformer*
+   (var-value '?robot-instance
+              (lazy-car (prolog `(and (robot ?robot) (%object ?_ ?robot ?robot-instance)))))))
+
+(defvar *robot-urdf* nil)
+(defvar *kitchen-urdf* nil)
+
+(defun setup-world-database ()
+  (let ((robot (or *robot-urdf*
+                   (setf *robot-urdf*
+                         (cl-urdf:parse-urdf
+                          (roslisp:get-param "robot_description_lowres")))))
+        (kitchen (or *kitchen-urdf*
+                     (let ((kitchen-urdf-string
+                             (roslisp:get-param "kitchen_description" nil)))
+                       (when kitchen-urdf-string
+                         (setf *kitchen-urdf* (cl-urdf:parse-urdf
+                                               kitchen-urdf-string)))))))
+    (assert
+     (force-ll (prolog `(and
+                         (bullet-world ?w)
+                         (assert ?w (object :static-plane floor ((0 0 0) (0 0 0 1))
+                                            :normal (0 0 1) :constant 0))
+                         (assert ?w (object :semantic-map sem-map ((0 0 0) (0 0 0 1))
+                                            ,@(when kitchen
+                                                `(:urdf ,kitchen))))
+                         (robot ?robot)
+                         (assert ?w (object :urdf ?robot ((0 0 0) (0 0 0 1)) :urdf ,robot))))))))
