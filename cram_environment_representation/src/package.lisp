@@ -29,14 +29,14 @@
 (in-package :cl-user)
 
 (desig-props:def-desig-package cram-environment-representation
-  (:use #:common-lisp #:cram-plan-library #:cram-plan-events #:bullet-reasoning
-        #:cram-prolog #:cram-utilities #:cram-occasions-events
+  (:use #:common-lisp #:cram-plan-library
+        #:cram-plan-occasions-events #:cram-occasions-events
+        #:bullet-reasoning #:cram-prolog #:cram-utilities
         #:cl-transforms-stamped)
   (:shadowing-import-from #:bullet-reasoning
                           side at throughout object during holds)
-  (:shadowing-import-from #:cram-plan-events object-attached)
+  (:shadowing-import-from #:cram-plan-occasions-events object-attached)
   (:shadowing-import-from #:cram-occasions-events event)
-  (:import-from #:cram-occasions-events on-event)
   (:shadowing-import-from #:cram-robot-interfaces end-effector-link robot)
   (:import-from #:cram-roslisp-common *fixed-frame* *transformer* *tf-default-timeout*)
   (:export get-designator-object-name get-designator-object
