@@ -1,1 +1,0 @@
-../spatial-relations-costmap.asd
