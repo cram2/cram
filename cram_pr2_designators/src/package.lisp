@@ -29,7 +29,7 @@
 (in-package :cl-user)
 
 (desig-props:def-desig-package cram-pr2-designators
-  (:use #:common-lisp #:cram-plan-events #:cram-robot-interfaces
+  (:use #:common-lisp #:cram-plan-occasions-events #:cram-robot-interfaces
         #:prolog #:desig #:cram-semantic-map #:cl-transforms-stamped)
   (:import-from #:cram-roslisp-common
                 *fixed-frame* *transformer* *tf-default-timeout*)

@@ -29,7 +29,7 @@
 (in-package :pr2-manipulation-process-module)
 
 (defmethod cram-occasions-events:on-event
-    attach-object ((event cram-plan-events:object-attached))
+    attach-object ((event cram-plan-occasions-events:object-attached))
   ;; (with-slots ((object plan-knowledge:object)
   ;;              (side plan-knowledge:side)) event
     ;; TODO(winkler): Attaching objects does here. Currently done in
@@ -37,7 +37,7 @@
     ))
 
 (defmethod cram-occasions-events:on-event
-    detach-object ((event cram-plan-events:object-detached))
+    detach-object ((event cram-plan-occasions-events:object-detached))
   ;; (with-slots ((object plan-knowledge:object)
   ;;              (side plan-knowledge:side)) event
     ;; TODO(winkler): Detaching objects done here. Currently done in

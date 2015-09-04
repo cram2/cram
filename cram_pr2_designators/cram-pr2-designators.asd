@@ -30,7 +30,7 @@
   :author "Lorenz Moesenlechner"
   :license "BSD"
 
-  :depends-on (cram-plan-events
+  :depends-on (cram-plan-occasions-events
                cram-robot-interfaces
                cram-prolog
                cram-designators

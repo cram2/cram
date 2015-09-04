@@ -146,7 +146,7 @@
         (findall ?side (arm ?robot ?side) ?sides))
     (findall (?side ?obj ?link)
              (and
-              (cram-plan-events:object-in-hand ?obj ?side) 
+              (cram-plan-occasions-events:object-in-hand ?obj ?side) 
               (end-effector-link ?robot ?side ?link))
              ?objects-in-hand))
 

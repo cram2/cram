@@ -10,7 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   cram_roslisp_common
   cram_transforms_stamped
   roslisp_utilities
-  cram_plan_events
+  cram_plan_occasions_events
   cram_occasions_events
   roslisp_utilities
   alexandria

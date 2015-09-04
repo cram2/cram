@@ -22,7 +22,7 @@
   <build_depend>bullet_reasoning</build_depend>
   <build_depend>bullet_reasoning_designators</build_depend>
   <build_depend>cram_designators</build_depend>
-  <build_depend>cram_plan_events</build_depend>
+  <build_depend>cram_plan_occasions_events</build_depend>
   <build_depend>cram_occasions_events</build_depend>
   <build_depend>cram_plan_library</build_depend>
   <build_depend>cram_environment_representation</build_depend>
@@ -44,7 +44,7 @@
   <run_depend>bullet_reasoning</run_depend>
   <run_depend>bullet_reasoning_designators</run_depend>
   <run_depend>cram_designators</run_depend>
-  <run_depend>cram_plan_events</run_depend>
+  <run_depend>cram_plan_occasions_events</run_depend>
   <run_depend>cram_occasions_events</run_depend>
   <run_depend>cram_plan_library</run_depend>
   <run_depend>cram_environment_representation</run_depend>

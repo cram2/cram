@@ -35,7 +35,7 @@
                cram-designators
                bullet-reasoning
                bullet-reasoning-designators
-               cram-plan-events
+               cram-plan-occasions-events
                cram-occasions-events
                cram-plan-library
                cram-environment-representation

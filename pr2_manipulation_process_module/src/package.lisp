@@ -37,7 +37,7 @@
         #:cram-roslisp-common
         #:cram-process-modules
         #:cram-plan-failures
-        #:cram-plan-events
+        #:cram-plan-occasions-events
         #:cram-occasions-events
         #:cram-robot-interfaces
         #:cl-transforms-stamped)
