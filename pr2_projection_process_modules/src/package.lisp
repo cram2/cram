@@ -28,12 +28,12 @@
 
 (defpackage projection-process-modules
   (:use #:common-lisp
-        #:bullet-reasoning
+        #:cram-bullet-reasoning
         #:cram-process-modules
         #:cram-projection
         #:cl-transforms-stamped
         #:cram-robot-interfaces)
-  (:shadowing-import-from #:bullet-reasoning name)
+  (:shadowing-import-from #:cram-bullet-reasoning name)
   (:shadowing-import-from #:cl-bullet pose)
   (:import-from #:cram-roslisp-common
                 *fixed-frame* *robot-base-frame* *odom-frame*
