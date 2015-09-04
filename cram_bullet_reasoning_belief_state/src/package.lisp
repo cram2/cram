@@ -28,7 +28,7 @@
 
 (in-package :cl-user)
 
-(desig-props:def-desig-package cram-environment-representation
+(desig-props:def-desig-package cram-bullet-reasoning-belief-state
   (:use #:common-lisp #:cram-plan-library
         #:cram-plan-occasions-events #:cram-occasions-events
         #:bullet-reasoning #:cram-prolog #:cram-utilities

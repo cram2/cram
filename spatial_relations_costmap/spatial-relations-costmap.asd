@@ -37,7 +37,7 @@
                roslisp
                semantic-map-costmap
                bullet-reasoning
-               cram-environment-representation
+               cram-bullet-reasoning-belief-state
                occupancy-grid-costmap
                bullet-reasoning-designators
                cram-semantic-map-designators

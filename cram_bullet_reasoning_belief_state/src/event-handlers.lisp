@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-environment-representation)
+(in-package :cram-bullet-reasoning-belief-state)
 
 (defmethod on-event attach-objects ((event object-attached))
   (let* ((robot (get-robot-object))

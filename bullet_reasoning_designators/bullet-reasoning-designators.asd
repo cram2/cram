@@ -36,7 +36,7 @@
                cram-location-costmap
                cram-transforms-stamped
                cram-utilities
-               cram-environment-representation
+               cram-bullet-reasoning-belief-state
                cram-robot-interfaces
                cram-math
                cl-opengl

@@ -1,4 +1,4 @@
-;;; Copyright (c) 2012, Gayane Kazhoyan <kazhoyan@in.tum.de>
+;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -26,20 +26,32 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
+(in-package :cram-bullet-reasoning-belief-state)
 
-(desig-props:def-desig-package spatial-relations-costmap
-    (:use #:desig
-          #:cram-roslisp-common
-          #:location-costmap
-          #:common-lisp
-          #:cram-prolog
-          #:semantic-map-costmap
-          #:btr
-          #:cram-utilities
-          #:cram-bullet-reasoning-belief-state)
-  (:shadowing-import-from #:btr object pose object-pose width height)
-  (:desig-properties #:left-of #:right-of #:in-front-of #:behind
-                     #:for #:near #:far-from
-                     #:on #:name #:context #:object-count))
+(cpl:define-task-variable *object-identifier-to-instance-mappings*
+    (make-hash-table :test #'equal)
+    "Mapping from object-identifiers as bound in the
+OBJECT-DESIGNATOR-DATA class to instance names in the bullet world
+database.")
 
+(cram-projection:define-special-projection-variable
+    *object-identifier-to-instance-mappings*
+    (alexandria:copy-hash-table *object-identifier-to-instance-mappings*))
+
+(defun get-object-instance-name (object-identifier)
+  (or (gethash object-identifier *object-identifier-to-instance-mappings*)
+      ;; as a fallback, return the object identifier. This is not
+      ;; really clean but makes integration of projection perception a
+      ;; little easier.
+      object-identifier))
+
+(defun get-designator-object-name (object-designator)
+  (let ((object-designator (desig:newest-effective-designator object-designator)))
+    (when object-designator
+      (get-object-instance-name
+       (desig:object-identifier (desig:reference object-designator))))))
+
+(defun get-designator-object (object-designator)
+  (let ((object-name (get-designator-object-name object-designator)))
+    (when object-name
+      (object *current-bullet-world* object-name))))
