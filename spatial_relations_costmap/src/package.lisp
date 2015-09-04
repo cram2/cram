@@ -28,7 +28,7 @@
 
 (in-package :cl-user)
 
-(desig-props:def-desig-package spatial-relations-costmap
+(defpackage spatial-relations-costmap
     (:use #:desig
           #:cram-roslisp-common
           #:location-costmap
@@ -38,8 +38,5 @@
           #:btr
           #:cram-utilities
           #:cram-bullet-reasoning-belief-state)
-  (:shadowing-import-from #:btr object pose object-pose width height)
-  (:desig-properties #:left-of #:right-of #:in-front-of #:behind
-                     #:for #:near #:far-from
-                     #:on #:name #:context #:object-count))
+  (:shadowing-import-from #:btr object pose object-pose width height))
 

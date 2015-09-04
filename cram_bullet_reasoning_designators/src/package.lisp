@@ -28,13 +28,9 @@
 
 (in-package :cl-user)
 
-(desig-props:def-desig-package cram-bullet-reasoning-designators
+(defpackage cram-bullet-reasoning-designators
     (:nicknames :btr-desig)
   (:use #:common-lisp #:prolog #:desig #:location-costmap
         #:btr #:cram-transforms-stamped #:cut #:cram-robot-interfaces)
-  (:shadowing-import-from #:desig-props at)
   (:shadowing-import-from #:btr object pose object-pose width height)
-  (:export *check-ik-joint-states* *robot-valid-sides*)
-  (:desig-properties side to see reach name type obj
-                     reachable-from pose object on execute
-                     location action open handle name))
+  (:export *check-ik-joint-states* *robot-valid-sides*))
