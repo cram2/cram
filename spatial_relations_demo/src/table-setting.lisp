@@ -69,18 +69,18 @@
   (spawn-demo :table-setting :set :main)
   (cpl-impl:top-level
     (cram-language-designator-support:with-designators
-       ((des-for-plate-2 (:location `((:right-of plate-1) (:far-from plate-1)
-                                      (:for plate-2))))
-        (des-for-plate-4 (:location `((:left-of plate-3) (:far-from plate-3)
-                                      (:for plate-4)))))
+        ((des-for-plate-2 :location
+                          `((:right-of plate-1) (:far-from plate-1) (:for plate-2)))
+         (des-for-plate-4 :location
+                          `((:left-of plate-3) (:far-from plate-3) (:for plate-4))))
       (when (> number-of-plates 0)
-       (prolog `(assert (object-pose ?_ plate-1 ((-1.5 1.84 0.85747d0) (0 0 0 1)))))
-       (when (> number-of-plates 1)
-         (prolog `(assert (object-pose ?_ plate-3 ((-1.0 1.84 0.85747d0) (0 0 0 1)))))
-         (when (> number-of-plates 2)
-           (prolog `(assign-object-pos-on plate-2 ,des-for-plate-2))
-           (when (> number-of-plates 3)
-             (prolog `(assign-object-pos-on plate-4 ,des-for-plate-4)))))))))
+        (prolog `(assert (object-pose ?_ plate-1 ((-1.5 1.84 0.85747d0) (0 0 0 1)))))
+        (when (> number-of-plates 1)
+          (prolog `(assert (object-pose ?_ plate-3 ((-1.0 1.84 0.85747d0) (0 0 0 1)))))
+          (when (> number-of-plates 2)
+            (prolog `(assign-object-pos-on plate-2 ,des-for-plate-2))
+            (when (> number-of-plates 3)
+              (prolog `(assign-object-pos-on plate-4 ,des-for-plate-4)))))))))
 
 (defun make-plate-desig (plate-id &optional (counter-name "kitchen_island_counter_top")
                                     (plate-num *num-of-sets-on-table*))
@@ -119,10 +119,10 @@
 
 (cpl-impl:def-cram-function put-plate-on-table (plate-obj-desig)
   (cram-language-designator-support:with-designators
-      ((on-kitchen-island (:location `((:on "Cupboard")
+      ((on-kitchen-island :location `((:on "Cupboard")
                                       (:name "kitchen_island")
                                       (:for ,plate-obj-desig) (:context :table-setting) 
-                                      (:object-count ,*num-of-sets-on-table*)))))
+                                      (:object-count ,*num-of-sets-on-table*))))
     (format t "now trying to achieve the location of plate on kitchen-island~%")
     (plan-lib:achieve `(plan-lib:loc ,plate-obj-desig ,on-kitchen-island))))
 
@@ -145,10 +145,10 @@
 (cpl-impl:def-cram-function put-object-near-plate (object-to-put plate-obj
                                                    spatial-relations)
   (cram-language-designator-support:with-designators
-      ((put-down-location (:location `(,@(loop for property in spatial-relations
+      ((put-down-location :location `(,@(loop for property in spatial-relations
                                               collecting `(,property ,plate-obj))
                                       (:near ,plate-obj) (:for ,object-to-put)
-                                      (:on "Cupboard")))))
+                                      (:on "Cupboard"))))
     (plan-lib:achieve `(plan-lib:loc ,object-to-put ,put-down-location))))
 
 (cpl-impl:def-cram-function put-object-from-counter-near-plate (object-type plate-obj)
