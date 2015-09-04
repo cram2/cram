@@ -28,7 +28,7 @@
 
 (in-package :cl-user)
 
-(desig-props:def-desig-package spatial-relations-demo
+(defpackage spatial-relations-demo
     (:use #:desig
           #:cram-roslisp-common
           #:location-costmap
@@ -41,11 +41,5 @@
           #:cram-language-implementation
           #:bullet-reasoning-utilities)
   (:shadowing-import-from #:btr object pose object-pose width height name)
-  (:shadowing-import-from #:cram-prolog fail)
-  (:desig-properties #:left-of #:right-of #:in-front-of #:behind
-                     #:for #:near #:far-from
-                     #:on #:name #:context #:object-count
-                     #:to #:see #:reach #:centered-with-padding
-                     #:plate #:fork #:knife #:mug #:spatula #:pancake-maker
-                     #:orange #:apple #:sugar-box #:cereal #:mondamin #:bowl))
+  (:shadowing-import-from #:cram-prolog fail))
 
