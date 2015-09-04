@@ -164,8 +164,7 @@
     (desig-prop ?desig (:at ?_)))
 
   (<- (required-sides ?designator ?sides)
-    (setof ?side (cram-manipulation-knowledge:trajectory-point
-                  ?designator ?_ ?side)
+    (setof ?side (cram-robot-interfaces:trajectory-point ?designator ?_ ?side)
            ?sides))
 
   ;; TRAJECTORY-POINT is defined for grasp, lift and put-down but not

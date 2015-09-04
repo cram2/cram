@@ -41,7 +41,7 @@
                cram-environment-representation
                cram-projection
                cram-roslisp-common
-               cram-manipulation-knowledge
+               cram-robot-interfaces
                cram-plan-failures
                cram-pr2-designators
                cram-semantic-map-utils

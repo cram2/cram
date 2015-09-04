@@ -3,7 +3,7 @@ project(cram_pr2_knowledge)
 
 find_package(catkin REQUIRED COMPONENTS
   cram_prolog
-  cram_manipulation_knowledge
+  cram_robot_interfaces
   bullet_reasoning
   cram_designators
   cl_transforms_stamped

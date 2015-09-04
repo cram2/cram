@@ -126,7 +126,7 @@
 
 (defun object-type->tool-length (object-type)
   (let ((bounding-box (btr:household-object-dimensions object-type)))
-    (cram-manipulation-knowledge:calculate-bounding-box-tool-length
+    (cram-robot-interfaces:calculate-bounding-box-tool-length
      bounding-box)))
 
 (def-fact-group manipulation-knowledge (grasp
