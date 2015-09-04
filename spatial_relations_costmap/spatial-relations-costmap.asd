@@ -39,7 +39,7 @@
                cram-bullet-reasoning
                cram-bullet-reasoning-belief-state
                occupancy-grid-costmap
-               bullet-reasoning-designators
+               cram-bullet-reasoning-designators
                cram-semantic-map-designators
                cram-semantic-map)
   :components

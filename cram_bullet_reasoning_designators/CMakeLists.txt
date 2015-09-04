@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(bullet_reasoning_designators)
+project(cram_bullet_reasoning_designators)
 
 find_package(catkin REQUIRED COMPONENTS
   cram_prolog

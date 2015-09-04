@@ -23,7 +23,7 @@
   <build_depend>cram_bullet_reasoning</build_depend>
   <build_depend>cram_bullet_reasoning_belief_state</build_depend>
   <build_depend>occupancy_grid_costmap</build_depend>
-  <build_depend>bullet_reasoning_designators</build_depend>
+  <build_depend>cram_bullet_reasoning_designators</build_depend>
   <build_depend>cram_semantic_map_designators</build_depend>
   <build_depend>cram_semantic_map</build_depend>
 
@@ -36,7 +36,7 @@
   <run_depend>cram_bullet_reasoning</run_depend>
   <run_depend>cram_bullet_reasoning_belief_state</run_depend>
   <run_depend>occupancy_grid_costmap</run_depend>
-  <run_depend>bullet_reasoning_designators</run_depend>
+  <run_depend>cram_bullet_reasoning_designators</run_depend>
   <run_depend>cram_semantic_map_designators</run_depend>
   <run_depend>cram_semantic_map</run_depend>
 

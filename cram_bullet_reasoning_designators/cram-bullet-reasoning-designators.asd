@@ -26,15 +26,30 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
+(defsystem cram-bullet-reasoning-designators
+  :author "Lorenz Moesenlechner"
+  :license "BSD"
 
-(desig-props:def-desig-package bullet-reasoning-designators
-    (:nicknames :btr-desig)
-  (:use #:common-lisp #:prolog #:desig #:location-costmap
-        #:btr #:cram-transforms-stamped #:cut #:cram-robot-interfaces)
-  (:shadowing-import-from #:desig-props at)
-  (:shadowing-import-from #:btr object pose object-pose width height)
-  (:export *check-ik-joint-states* *robot-valid-sides*)
-  (:desig-properties side to see reach name type obj
-                     reachable-from pose object on execute
-                     location action open handle name))
+  :depends-on (cram-prolog
+               cram-bullet-reasoning
+               cram-designators
+               cram-location-costmap
+               cram-transforms-stamped
+               cram-utilities
+               cram-bullet-reasoning-belief-state
+               cram-robot-interfaces
+               cram-math
+               cl-opengl
+               cl-bullet
+               cl-bullet-vis)
+  :components
+  ((:module "src"
+    :components
+    ((:file "package")
+     (:file "costmap-generators" :depends-on ("package"))
+     (:file "visibility-costmap" :depends-on ("package"))
+     (:file "location-designator-facts" :depends-on ("package"
+                                                     "costmap-generators"
+                                                     "visibility-costmap"))
+     (:file "location-designator-integration" :depends-on ("package"
+                                                           "location-designator-facts"))))))
