@@ -30,7 +30,7 @@
 
 (in-package :cl-user)
 
-(desig-props:def-desig-package bullet-reasoning
+(desig-props:def-desig-package cram-bullet-reasoning
   (:nicknames :btr)
   (:use #:common-lisp #:prolog #:cl-bullet #:bt-vis #:cut
         #:cram-robot-interfaces #:cl-transforms-stamped)

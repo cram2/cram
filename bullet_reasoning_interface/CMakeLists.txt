@@ -5,8 +5,7 @@ project(bullet_reasoning_interface)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  bullet_reasoning
-#  spatial_relations_demo
+  cram_bullet_reasoning
   cram_language
   std_msgs
   geometry_msgs
@@ -87,7 +86,8 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES bullet_reasoning_interface
- CATKIN_DEPENDS roslisp bullet_reasoning spatial_relations_demo cram_language message_runtime std_msgs geometry_msgs
+ CATKIN_DEPENDS roslisp cram_bullet_reasoning spatial_relations_demo
+ cram_language message_runtime std_msgs geometry_msgs
 #  DEPENDS system_lib
 )
 

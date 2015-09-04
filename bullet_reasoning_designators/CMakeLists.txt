@@ -5,7 +5,7 @@ find_package(catkin REQUIRED COMPONENTS
   cram_prolog
   cram_transforms_stamped
   cram_utilities
-  bullet_reasoning
+  cram_bullet_reasoning
   cram_designators
   cram_location_costmap
   cram_bullet_reasoning_belief_state

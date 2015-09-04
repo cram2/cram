@@ -31,9 +31,9 @@
 (desig-props:def-desig-package cram-bullet-reasoning-belief-state
   (:use #:common-lisp #:cram-plan-library
         #:cram-plan-occasions-events #:cram-occasions-events
-        #:bullet-reasoning #:cram-prolog #:cram-utilities
+        #:cram-bullet-reasoning #:cram-prolog #:cram-utilities
         #:cl-transforms-stamped)
-  (:shadowing-import-from #:bullet-reasoning
+  (:shadowing-import-from #:cram-bullet-reasoning
                           side at throughout object during holds)
   (:shadowing-import-from #:cram-plan-occasions-events object-attached)
   (:shadowing-import-from #:cram-occasions-events event)

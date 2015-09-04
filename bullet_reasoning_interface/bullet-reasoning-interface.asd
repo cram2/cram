@@ -1,7 +1,7 @@
 (defsystem bullet-reasoning-interface
   :depends-on (roslisp
                cram-language
-               bullet-reasoning
+               cram-bullet-reasoning
                spatial-relations-demo
                cram-designators
                cl-tf2

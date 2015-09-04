@@ -42,7 +42,7 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <build_depend>roslisp</build_depend>
-  <build_depend>bullet_reasoning</build_depend>
+  <build_depend>cram_bullet_reasoning</build_depend>
   <build_depend>spatial_relations_demo</build_depend>
   <build_depend>cram_prolog</build_depend>
   <build_depend>cram_language</build_depend>
@@ -55,7 +55,7 @@
 
 
   <run_depend>roslisp</run_depend>
-  <run_depend>bullet_reasoning</run_depend>
+  <run_depend>cram_bullet_reasoning</run_depend>
   <run_depend>spatial_relations_demo</run_depend>
   <run_depend>cram_prolog</run_depend>
   <run_depend>cram_language</run_depend>

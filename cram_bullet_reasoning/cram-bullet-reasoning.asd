@@ -28,7 +28,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(defsystem bullet-reasoning
+(defsystem cram-bullet-reasoning
     :author "Lorenz Moesenlechner"
     :license "BSD"
 

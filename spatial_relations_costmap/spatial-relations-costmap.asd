@@ -36,7 +36,7 @@
                cram-prolog
                roslisp
                semantic-map-costmap
-               bullet-reasoning
+               cram-bullet-reasoning
                cram-bullet-reasoning-belief-state
                occupancy-grid-costmap
                bullet-reasoning-designators
