@@ -29,7 +29,7 @@
 
 (in-package :cl-user)
 
-(desig-props:def-desig-package cram-occasions-events
+(defpackage cram-occasions-events
   (:use #:common-lisp
         #:cram-prolog
         #:cpl-impl
@@ -77,7 +77,4 @@
                 #:task-tree-node-children
                 #:task-tree-node-status-fluent)
   (:shadowing-import-from #:cram-prolog
-                          #:fail)
-  ;; We need AT from the desig properties to make sure the symbol AT we use
-  ;; and export is compatible with other packages from the cram universe
-  (:desig-properties #:at))
+                          #:fail))
