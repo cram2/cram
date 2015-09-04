@@ -34,7 +34,7 @@
                cram-process-modules
                cram-designators
                cram-bullet-reasoning
-               bullet-reasoning-designators
+               cram-bullet-reasoning-designators
                cram-plan-occasions-events
                cram-occasions-events
                cram-plan-library
