@@ -33,7 +33,7 @@
   :depends-on (alexandria
                cram-process-modules
                cram-designators
-               bullet-reasoning
+               cram-bullet-reasoning
                bullet-reasoning-designators
                cram-plan-occasions-events
                cram-occasions-events

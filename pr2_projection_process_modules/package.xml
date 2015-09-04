@@ -19,7 +19,7 @@
   <build_depend>cram_plan_failures</build_depend>
   <build_depend>cram_process_modules</build_depend>
   <build_depend>cram_roslisp_common</build_depend>
-  <build_depend>bullet_reasoning</build_depend>
+  <build_depend>cram_bullet_reasoning</build_depend>
   <build_depend>bullet_reasoning_designators</build_depend>
   <build_depend>cram_designators</build_depend>
   <build_depend>cram_plan_occasions_events</build_depend>
@@ -41,7 +41,7 @@
   <run_depend>cram_plan_failures</run_depend>
   <run_depend>cram_process_modules</run_depend>
   <run_depend>cram_roslisp_common</run_depend>
-  <run_depend>bullet_reasoning</run_depend>
+  <run_depend>cram_bullet_reasoning</run_depend>
   <run_depend>bullet_reasoning_designators</run_depend>
   <run_depend>cram_designators</run_depend>
   <run_depend>cram_plan_occasions_events</run_depend>
