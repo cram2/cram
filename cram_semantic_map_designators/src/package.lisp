@@ -28,7 +28,5 @@
 
 (in-package :cl-user)
 
-(desig-props:def-desig-package cram-semantic-map-designators
-  (:use #:common-lisp #:cram-designators #:cram-prolog)
-  (:export)
-  (:desig-properties #:of #:type #:name))
+(defpackage cram-semantic-map-designators
+  (:use #:common-lisp #:cram-designators #:cram-prolog))

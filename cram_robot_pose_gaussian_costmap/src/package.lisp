@@ -28,7 +28,6 @@
 
 (in-package :cl-user)
 
-(desig-props:def-desig-package cram-robot-pose-guassian-costmap
+(defpackage cram-robot-pose-guassian-costmap
   (:nicknames #:gaussian-costmap)
-  (:use #:common-lisp #:desig #:location-costmap #:prolog)
-  (:desig-properties #:to #:see #:reach #:execute))
+  (:use #:common-lisp #:desig #:location-costmap #:prolog))

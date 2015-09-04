@@ -28,11 +28,10 @@
 
 (in-package :cl-user)
 
-(desig-props:def-desig-package cram-semantic-map
+(defpackage cram-semantic-map
   (:nicknames #:semantic-map #:sem-map)
   (:use #:common-lisp #:cram-plan-occasions-events #:cram-semantic-map-utils
         #:cut #:cram-occasions-events)
   (:shadow get-semantic-map)
   (:export get-semantic-map
-           designator->semantic-map-objects semantic-map-object-poses)
-  (:desig-properties name type part-of on in))
+           designator->semantic-map-objects semantic-map-object-poses))
