@@ -37,7 +37,7 @@
         #:cram-process-modules
         #:roslisp
         #:cram-roslisp-common
-        #:cram-plan-events
+        #:cram-plan-occasions-events
         #:cram-occasions-events
         #:cram-plan-failures
         #:alexandria

@@ -1,5 +1,5 @@
 <package>
-  <name>cram_plan_events</name>
+  <name>cram_plan_occasions_events</name>
   <version>0.1.0</version>
   <description>
     Specific plan events to be used across the actual plans and executive
@@ -11,7 +11,7 @@
 
   <license>BSD</license>
 
-  <url type="website">http://ros.org/wiki/cram_plan_events</url>
+  <url type="website">http://ros.org/wiki/cram_plan_occasions_events</url>
   <url type="bugtracker">https://github.com/cram-code/cram_highlevel/issues</url>
   <url type="repository">https://github.com/cram-code/cram_highlevel</url>
 

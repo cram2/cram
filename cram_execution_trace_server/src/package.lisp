@@ -34,7 +34,7 @@
         #:roslisp
         #:desig
         #:cut
-        #:cram-plan-events
+        #:cram-plan-occasions-events
         #:cram-plan-library
         #:cram-prolog
         #:cram-roslisp-common

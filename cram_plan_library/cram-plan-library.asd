@@ -37,17 +37,13 @@
                cl-transforms-stamped
                cram-language-designator-support
                cram-roslisp-common
-               cram-plan-events
+               cram-plan-occasions-events
                cram-occasions-events
                cram-plan-failures
                cram-projection
                cram-utilities
-               ;; cram-task-knowledge
                cram-transforms-stamped
-               alexandria
-               ;; cram-semantic-map-utils
-               ;; cram-semantic-map
-               )
+               alexandria)
   :components
   ((:module "src"
             :components

@@ -1,10 +1,10 @@
 ;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
@@ -13,7 +13,7 @@
 ;;;     * Neither the name of Willow Garage, Inc. nor the names of its
 ;;;       contributors may be used to endorse or promote products derived from
 ;;;       this software without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -27,15 +27,30 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(defsystem cram-plan-events
-  :author "Lorenz Moesenlechner <moesenle@in.tum.de>"
-  :license "BSD"
-  :description "Events for plan library, belief state managements, actual PMs"
+(in-package :cl-user)
 
-  :depends-on (cram-occasions-events cram-prolog)
-  :components
-  ((:module "src"
-            :components
-            ((:file "package")
-             (:file "default-plan-events" :depends-on ("package"))
-             (:file "occasion-declarations" :depends-on ("package"))))))
+(defpackage cram-plan-occasions-events
+  (:use #:common-lisp
+        #:cram-occasions-events
+        #:cram-prolog)
+  (:export #:object-perceived-event
+           #:robot-state-changed
+           #:object-connection-event
+           #:object-articulation-event
+           #:object-attached #:object-detached
+           #:object-removed-event
+           #:object-updated-event #:event-object-name
+           #:event-object-designator #:object-designator
+           #:perception-source #:object #:event-object
+           #:link #:event-link #:side #:event-side
+           #:opening-distance
+
+           ;; occasion-declarations
+           ;; Symbols used in plans and thus the execution trace.
+           #:object-in-hand
+           #:object-placed-at
+           #:object-picked
+           #:object-put
+           #:loc
+           #:looking-at
+           #:arms-parked))
