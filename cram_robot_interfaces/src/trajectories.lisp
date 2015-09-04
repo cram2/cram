@@ -26,32 +26,26 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
+(in-package :cram-robot-interfaces)
 
-(defpackage cram-manipulation-knowledge
-  (:use #:common-lisp #:cram-prolog #:cram-designators)
-  (:export
-   ;; trajectories
-   #:trajectory-point
-   ;; robot
-   #:robot
-   ;; ptu
-   #:camera-frame #:camera-minimal-height #:camera-maximal-height
-   #:robot-pan-tilt-links #:robot-pan-tilt-joints
-   ;; arms
-   #:arm #:required-arms #:available-arms
-   #:end-effector-link #:gripper-link #:planning-group
-   #:robot-arms-parking-joint-states #:end-effector-parking-pose
-   #:robot-pre-grasp-joint-states
-   ;; grasps
-   #:def-grasp #:def-tool #:get-grasp #:get-grasps #:get-grasp-names
-   #:calculate-bounding-box-tool-length #:get-tool-direction-vector
-   #:get-tool-length #:get-tool-vector #:calculate-tool
-   #:grasp #:side #:object-type-grasp #:object-designator-grasp
-   #:object-type-tool-length #:object-designator-tool-length
-   ;; objects
-   #:orientation-matters
-   ;; reachbility prolog utils
-   #:compute-ik #:side->ik-group-name
-   #:reachability-designator #:designator-reach-pose
-   #:reachability-designator-p #:visibility-designator-p))
+(def-fact-group trajectories (trajectory-point)
+  ;; Yields points that are part of a manipulation
+  ;; trajectory. ?designator is bound to an action designator. The
+  ;; intended use of this predicate is for reasoning about
+  ;; reachability. Since it is not always possible to generate the
+  ;; exactly same points that are used for the manipulation actions
+  ;; here, e.g. when grasp planning has to be done, ?point is not
+  ;; necessarily an exact trajectory point but it should at least be
+  ;; close to the actual point.
+  (<- (trajectory-point ?designator ?point ?side)
+    (fail))
+
+  ;; The second version of the TRAJECTORY-POINT predicate takes an
+  ;; additional binding, the reference pose of the robot, i.e. the
+  ;; pose at which the robot will execute the trajectory. That way, it
+  ;; is possible to generate better trajectory points by e.g. taking
+  ;; into account the object size and the arm. For instance, to
+  ;; calculate the trajectory point for the left arm for grasping a
+  ;; pot, it is better to move the trajectory point to the side.
+  (<- (trajectory-point ?designator ?robot-reference-pose ?point ?side)
+    (fail)))

@@ -1,4 +1,4 @@
-;;; Copyright (c) 2015, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -26,8 +26,24 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-manipulation-knowledge)
-
-(def-fact-group robot (robot)
-  (<- (robot ?robot-name)
-    (fail)))
+(defsystem cram-robot-interfaces
+  :author "Lorenz Moesenlechner"
+  :license "BSD"
+  :description "Definitions for manipulating objects, including
+  available grasps, trajectories etc."
+  
+  :depends-on (cram-prolog
+               cram-utilities
+               cl-transforms
+               cram-designators)
+  :components
+  ((:module "src"
+    :components
+    ((:file "package")
+     (:file "grasps" :depends-on ("package"))
+     (:file "trajectories" :depends-on ("package"))
+     (:file "arms" :depends-on ("package"))
+     (:file "ptu" :depends-on ("package"))
+     (:file "robot" :depends-on ("package"))
+     (:file "objects" :depends-on ("package"))
+     (:file "reachability-utils" :depends-on ("package" "trajectories" "arms"))))))

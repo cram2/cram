@@ -26,13 +26,32 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-manipulation-knowledge)
+(in-package :cl-user)
 
-(def-fact-group object-knowledge (orientation-matters)
-
-  ;; The predicate ORIENTATION-MATTERS holds for all objects where the
-  ;; orientation really matters when putting down the object. E.g. for
-  ;; knives, forks, etc, the orientation is important while for plates
-  ;; the orientation doesn't matter at all.
-  (<- (orientation-matters ?object-designator)
-    (fail)))
+(defpackage cram-robot-interfaces
+  (:use #:common-lisp #:cram-prolog #:cram-designators)
+  (:export
+   ;; trajectories
+   #:trajectory-point
+   ;; robot
+   #:robot
+   ;; ptu
+   #:camera-frame #:camera-minimal-height #:camera-maximal-height
+   #:robot-pan-tilt-links #:robot-pan-tilt-joints
+   ;; arms
+   #:arm #:required-arms #:available-arms
+   #:end-effector-link #:gripper-link #:planning-group
+   #:robot-arms-parking-joint-states #:end-effector-parking-pose
+   #:robot-pre-grasp-joint-states
+   ;; grasps
+   #:def-grasp #:def-tool #:get-grasp #:get-grasps #:get-grasp-names
+   #:calculate-bounding-box-tool-length #:get-tool-direction-vector
+   #:get-tool-length #:get-tool-vector #:calculate-tool
+   #:grasp #:side #:object-type-grasp #:object-designator-grasp
+   #:object-type-tool-length #:object-designator-tool-length
+   ;; objects
+   #:orientation-matters
+   ;; reachbility prolog utils
+   #:compute-ik #:side->ik-group-name
+   #:reachability-designator #:designator-reach-pose
+   #:reachability-designator-p #:visibility-designator-p))

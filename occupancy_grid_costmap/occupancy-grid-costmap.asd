@@ -33,7 +33,7 @@
   :depends-on (cram-designators
                cram-roslisp-common
                cram-location-costmap
-               cram-manipulation-knowledge
+               cram-robot-interfaces
                roslisp-utilities
                roslisp
                nav_msgs-msg)

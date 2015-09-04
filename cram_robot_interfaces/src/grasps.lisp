@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-manipulation-knowledge)
+(in-package :cram-robot-interfaces)
 
 (defvar *grasps* nil
   "An alist that maps grasps to orientations in the robot's root

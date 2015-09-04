@@ -19,7 +19,7 @@
 
   <build_depend>cram_designators</build_depend>
   <build_depend>cram_location_costmap</build_depend>
-  <build_depend>cram_manipulation_knowledge</build_depend>
+  <build_depend>cram_robot_interfaces</build_depend>
   <build_depend>nav_msgs</build_depend>
   <build_depend>roslisp_utilities</build_depend>
   <build_depend>cram_roslisp_common</build_depend>
@@ -27,7 +27,7 @@
 
   <run_depend>cram_designators</run_depend>
   <run_depend>cram_location_costmap</run_depend>
-  <run_depend>cram_manipulation_knowledge</run_depend>
+  <run_depend>cram_robot_interfaces</run_depend>
   <run_depend>nav_msgs</run_depend>
   <run_depend>roslisp_utilities</run_depend>
   <run_depend>cram_roslisp_common</run_depend>

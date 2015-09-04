@@ -33,7 +33,7 @@
   :depends-on (cram-prolog
                cram-designators
                cram-location-costmap
-               cram-manipulation-knowledge
+               cram-robot-interfaces
                cram-transforms-stamped
                cl-transforms-stamped
                cram-roslisp-common)

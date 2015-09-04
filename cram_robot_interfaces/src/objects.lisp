@@ -26,26 +26,13 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-manipulation-knowledge)
+(in-package :cram-robot-interfaces)
 
-(def-fact-group trajectories (trajectory-point)
-  ;; Yields points that are part of a manipulation
-  ;; trajectory. ?designator is bound to an action designator. The
-  ;; intended use of this predicate is for reasoning about
-  ;; reachability. Since it is not always possible to generate the
-  ;; exactly same points that are used for the manipulation actions
-  ;; here, e.g. when grasp planning has to be done, ?point is not
-  ;; necessarily an exact trajectory point but it should at least be
-  ;; close to the actual point.
-  (<- (trajectory-point ?designator ?point ?side)
-    (fail))
+(def-fact-group object-knowledge (orientation-matters)
 
-  ;; The second version of the TRAJECTORY-POINT predicate takes an
-  ;; additional binding, the reference pose of the robot, i.e. the
-  ;; pose at which the robot will execute the trajectory. That way, it
-  ;; is possible to generate better trajectory points by e.g. taking
-  ;; into account the object size and the arm. For instance, to
-  ;; calculate the trajectory point for the left arm for grasping a
-  ;; pot, it is better to move the trajectory point to the side.
-  (<- (trajectory-point ?designator ?robot-reference-pose ?point ?side)
+  ;; The predicate ORIENTATION-MATTERS holds for all objects where the
+  ;; orientation really matters when putting down the object. E.g. for
+  ;; knives, forks, etc, the orientation is important while for plates
+  ;; the orientation doesn't matter at all.
+  (<- (orientation-matters ?object-designator)
     (fail)))
