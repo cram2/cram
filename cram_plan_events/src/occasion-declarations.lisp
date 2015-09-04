@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2015, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -10,9 +10,10 @@
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
-;;;     * Neither the name of Willow Garage, Inc. nor the names of its
-;;;       contributors may be used to endorse or promote products derived from
-;;;       this software without specific prior written permission.
+;;;     * Neither the name of the Institute for Artificial Intelligence/
+;;;       Universitaet Bremen nor the names of its contributors may be used to
+;;;       endorse or promote products derived from this software without
+;;;       specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -25,33 +26,30 @@
 ;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
-;;;
 
-(in-package :cl-user)
+(in-package :cram-plan-events)
 
-(defpackage cram-plan-events
-  (:use #:common-lisp
-        #:cram-occasions-events
-        #:cram-prolog)
-  (:nicknames #:plan-events)
-  (:export #:object-perceived-event
-           #:robot-state-changed
-           #:object-connection-event
-           #:object-articulation-event
-           #:object-attached #:object-detached
-           #:object-removed-event
-           #:object-updated-event #:event-object-name
-           #:event-object-designator #:object-designator
-           #:perception-source #:object #:event-object
-           #:link #:event-link #:side #:event-side
-           #:opening-distance
+(def-fact-group occasions (object-in-hand object-placed-at object-picked object-put
+                                          loc looking-at arms-parked)
+  (<- (object-in-hand ?object)
+    (fail))
 
-           ;; occasion-declarations
-           ;; Symbols used in plans and thus the execution trace.
-           #:object-in-hand
-           #:object-placed-at
-           #:object-picked
-           #:object-put
-           #:loc
-           #:looking-at
-           #:arms-parked))
+  (<- (object-placed-at ?object ?location)
+    (fail))
+
+  (<- (object-picked ?object)
+    (fail))
+
+  (<- (object-put ?object)
+    (fail))
+
+  (<- (loc ?robot-or-object ?location)
+    (fail))
+
+  (<- (looking-at ?location)
+    (fail))
+
+  (<- (arms-parked)
+    (fail))
+
+)

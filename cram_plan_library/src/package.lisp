@@ -74,6 +74,6 @@
                      #:pose #:open #:side #:grasp #:lift #:carry :reach
                      #:location #:at #:parked #:pose #:close #:gripper
                      #:follow #:pick-up #:put-down #:height #:orientation
-                     #:in #:perceive #:obstacle #:cluster #:execute
+                     #:in #:obstacle #:cluster #:execute
                      #:action #:goal #:navigation #:park #:on #:angle
                      #:examine #:properties #:scene))

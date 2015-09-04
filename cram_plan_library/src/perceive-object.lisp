@@ -45,10 +45,11 @@
              (with-failure-handling
                  (((or location-not-reached-failure object-not-found) (e)
                     (declare (ignore e))
-                    (ros-warn (perceive plan-lib) "Object not found failure.")
+                    (ros-warn (perceive-object plan-lib)
+                              "Object not found failure.")
                     (do-retry movement-retries
-                      (ros-info
-                       (perceive plan-lib) "Retrying at different base location.")
+                      (ros-info (perceive-object plan-lib)
+                                "Retrying at different base location.")
                       (retry-with-updated-location
                        loc (next-different-location-solution loc)))))
                (at-location (loc)
@@ -56,10 +57,11 @@
                    (with-failure-handling
                        ((object-not-found (e)
                           (declare (ignore e))
-                          (ros-warn (perceive plan-lib) "Object not found failure.")
+                          (ros-warn (perceive-object plan-lib)
+                                    "Object not found failure.")
                           (do-retry perception-retries
-                            (ros-info
-                             (perceive plan-lib) "Retrying at different look location.")
+                            (ros-info (perceive-object plan-lib)
+                                      "Retrying at different look location.")
                             (when (next-solution obj-loc-desig)
                               (retry-with-updated-location
                                obj-loc-desig (next-solution obj-loc-desig))))))
