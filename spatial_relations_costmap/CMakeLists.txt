@@ -9,7 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   cram_bullet_reasoning
   cram_bullet_reasoning_belief_state
   occupancy_grid_costmap
-  bullet_reasoning_designators
+  cram_bullet_reasoning_designators
   cram_semantic_map_designators
   cram_semantic_map
 )
