@@ -9,7 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   cram_designators
   cram_location_costmap
   cram_environment_representation
-  cram_manipulation_knowledge
+  cram_robot_interfaces
   roslisp_utilities
   alexandria
   cram_moveit

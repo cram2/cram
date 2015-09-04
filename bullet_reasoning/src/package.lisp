@@ -33,7 +33,7 @@
 (desig-props:def-desig-package bullet-reasoning
   (:nicknames :btr)
   (:use #:common-lisp #:prolog #:cl-bullet #:bt-vis #:cut
-        #:cram-manipulation-knowledge #:cl-transforms-stamped)
+        #:cram-robot-interfaces #:cl-transforms-stamped)
   (:import-from #:alexandria compose curry rcurry with-gensyms copy-hash-table)
   (:import-from #:desig desig-solutions)
   (:import-from #:cram-roslisp-common

@@ -72,7 +72,7 @@ that `designator' tries to reach."
     (lambda (solution)
       (with-vars-bound (?pose ?side) solution
         (list ?pose (unless (is-var ?side) ?side))))
-    (prolog `(cram-manipulation-knowledge:designator-reach-pose ,designator ?pose ?side)))))
+    (prolog `(cram-robot-interfaces:designator-reach-pose ,designator ?pose ?side)))))
 
 (defun check-reachability (robot reach-pose &key side)
   (etypecase reach-pose
@@ -107,7 +107,7 @@ that `designator' tries to reach."
              poses-and-sides))))
 
 (defun check-ik-solution (designator pose)
-  (cond ((not (cram-manipulation-knowledge:reachability-designator-p designator))
+  (cond ((not (cram-robot-interfaces:reachability-designator-p designator))
          :unknown)
         ((let ((cached-function
                  (or (gethash designator *designator-ik-check-cache*)

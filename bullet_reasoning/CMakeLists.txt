@@ -4,7 +4,7 @@ project(bullet_reasoning)
 find_package(catkin REQUIRED COMPONENTS
   alexandria
   cram_prolog
-  cram_manipulation_knowledge
+  cram_robot_interfaces
   cl_bullet
   cl_bullet_vis
   cram_json_prolog

@@ -51,7 +51,7 @@
                  cram-roslisp-common
                  roslisp-utilities
                  cram-semantic-map-utils
-                 cram-manipulation-knowledge
+                 cram-robot-interfaces
                  cram-utilities ; lazy in pose-generators
                  cram-transforms-stamped)
     :components
