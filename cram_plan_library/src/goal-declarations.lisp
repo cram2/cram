@@ -44,7 +44,7 @@
  CURRENTLY-VISIBLE: Returns all objects that match `designator' and
                     can be detected without moving the ptu or the
                     robot."
-  (roslisp:ros-info (perceive plan-lib) "PERCEIVE-OBJECT ~a `~a'"
+  (roslisp:ros-info (perceive-object plan-lib) "PERCEIVE-OBJECT ~a `~a'"
   indicator designator))
 
 ;; (declare-goal object-picked (object-designator)
@@ -72,13 +72,13 @@
 (declare-goal perceive-state (occasion)
   "Tries to prove that `occasion' holds. Returns a list of bindings
 that fulfill `occasion' or NIL if the occasion cannot be proven."
-  (roslisp:ros-info (perceive plan-lib) "PERCEIVE-STATE `~a'" occasion))
+  (roslisp:ros-info (perceive-state plan-lib) "PERCEIVE-STATE `~a'" occasion))
 
 (declare-goal examine (object-designator properties)
   "Examines `object-designator' using `property'. Examining means that
 a new, extended designator is returned. Examination tries to find the
 values of `properties' and add them to `object-designator'"
-  (roslisp:ros-info (perceive plan-lib) "EXAMINE `~a' ~a"
+  (roslisp:ros-info (examine plan-lib) "EXAMINE `~a' ~a"
                     object-designator properties))
 
 (declare-goal achieve (occasion)
