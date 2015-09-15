@@ -66,14 +66,14 @@
 
 (def-tool (cl-transforms:make-3d-vector 1 0 0) 0.20)
 
-(def-fact-group robot-metadata (robot camera-frame
-                                      camera-minimal-height camera-maximal-height
-                                      robot-pan-tilt-links robot-pan-tilt-joints
-                                      end-effector-link gripper-link
-                                      planning-group
-                                      robot-arms-parking-joint-states
-                                      end-effector-parking-pose
-                                      robot-pre-grasp-joint-states)
+(def-fact-group pr2-metadata (robot camera-frame
+                                    camera-minimal-height camera-maximal-height
+                                    robot-pan-tilt-links robot-pan-tilt-joints
+                                    end-effector-link gripper-link
+                                    planning-group
+                                    robot-arms-parking-joint-states
+                                    end-effector-parking-pose
+                                    robot-pre-grasp-joint-states)
   (<- (robot pr2))
   (<- (camera-frame pr2 "head_mount_kinect_rgb_optical_frame"))
   (<- (camera-frame pr2 "openni_rgb_optical_frame"))
@@ -113,15 +113,15 @@
     (symbol-value *right-parking-end-effector-pose* ?pose))
 
   (<- (robot-pre-grasp-joint-states pr2
-       (("torso_lift_joint" 0.33) . ?parking-joint-states))
+                                    (("torso_lift_joint" 0.33) . ?parking-joint-states))
     (robot-arms-parking-joint-states pr2 ?parking-joint-states))
 
   (<- (robot-pre-grasp-joint-states pr2
-       (("torso_lift_joint" 0.165) . ?parking-joint-states))
+                                    (("torso_lift_joint" 0.165) . ?parking-joint-states))
     (robot-arms-parking-joint-states pr2 ?parking-joint-states))
 
   (<- (robot-pre-grasp-joint-states pr2
-       (("torso_lift_joint" 0.00) . ?parking-joint-states))
+                                    (("torso_lift_joint" 0.00) . ?parking-joint-states))
     (robot-arms-parking-joint-states pr2 ?parking-joint-states)))
 
 (defun object-type->tool-length (object-type)
@@ -129,16 +129,16 @@
     (cram-robot-interfaces:calculate-bounding-box-tool-length
      bounding-box)))
 
-(def-fact-group manipulation-knowledge (grasp
-                                        side
-                                        arm
-                                        object-type-grasp
-                                        object-designator-grasp
-                                        object-type-tool-length
-                                        object-designator-tool-length
-                                        orientation-matters
-                                        required-arms
-                                        available-arms)
+(def-fact-group pr2-manipulation-knowledge (grasp
+                                            side
+                                            arm
+                                            object-type-grasp
+                                            object-designator-grasp
+                                            object-type-tool-length
+                                            object-designator-tool-length
+                                            orientation-matters
+                                            required-arms
+                                            available-arms)
   (<- (grasp pr2 :top))
   (<- (grasp pr2 :side))
   (<- (grasp pr2 :front))
