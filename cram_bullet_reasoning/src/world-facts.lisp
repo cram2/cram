@@ -201,8 +201,8 @@
     (forall (contact ?world ?object-name ?other-object-name)
             (or (attached ?world ?object-name ?_ ?other-object-name)
                 (and (slot-value ?world disabled-collision-objects ?objects)
-                     (or (member (?object-name . ?other-object-name) ?objects)
-                         (member (?other-object-name . ?object-name) ?objects))))))
+                     (or (member (?object-name ?other-object-name) ?objects)
+                         (member (?other-object-name ?object-name) ?objects))))))
 
 
   (<- (stable ?world ?obj-name)
