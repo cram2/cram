@@ -1,6 +1,6 @@
 <package>
   <name>cram_roslisp_common</name>
-  <version>0.1.0</version>
+  <version>0.2.0</version>
   <description>
     This package includes interface functions from CRAM to roslisp.
   </description>
