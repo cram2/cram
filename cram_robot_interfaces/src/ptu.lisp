@@ -34,8 +34,15 @@
   (<- (camera-frame ?robot ?frame)
     (fail))
 
+  ;; ?min-height is possible minimal distance (in meters) of the camera from
+  ;; the 'ground'.
+  ;; E.g. for PR2 it's the Z pose when the torso is maximally down.
+  ;; For a quadrotor it will be close to 0, as it can stand on the ground
   (<- (camera-minimal-height ?robot ?min-height)
     (fail))
+  ;; ?max-height is the opposite of ?min-height, the maximal possible
+  ;; distance from the ground. For quadrotors it will be the maximal
+  ;; distance it can fly off the ground...
   (<- (camera-maximal-height ?robot ?max-height)
     (fail))
 
