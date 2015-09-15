@@ -5,7 +5,6 @@
 (asdf:defsystem cram-language
   :name "cram-language"
   :author "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
-  :version "0.1"
   :maintainer "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
   :licence "BSD"
   :description "Coginitive plan language"

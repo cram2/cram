@@ -29,7 +29,6 @@
 (asdf:defsystem cram-language-designator-support
   :name "cram-language-designator-support"
   :author "Georg Bartels <georg.bartels@cs.uni-bremen.de>"
-  :version "0.1"
   :maintainer "Georg Bartels <georg.bartels@cs.uni-bremen.de>"
   :licence "BSD"
   :description "Designator-specific extension of the CRAM plan language"

@@ -5,7 +5,6 @@
 (asdf:defsystem cram-execution-trace
   :name "cram-execution-trace"
   :author "Nikolaus Demmel <demmeln@cs.tum.edu>"
-  :version "0.1"
   :maintainer "Nikolaus Demmel <demmeln@cs.tum.edu>"
   :licence "BSD"
   :description "Execution trace for CPL."
