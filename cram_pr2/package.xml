@@ -1,6 +1,6 @@
 <package>
   <name>cram_pr2</name>
-  <version>1.0.0</version>
+  <version>0.2.0</version>
   <description>Metapackage for pr2-related code.</description>
   <author>Maintained by Lorenz Moesenlechner</author>
   <maintainer email="musterman@fictional.de">Add Maintainer here</maintainer>
