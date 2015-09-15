@@ -5,7 +5,6 @@
 (asdf:defsystem cram-language-tests
   :name "cram-language-tests"
   :author "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
-  :version "0.1"
   :maintainer "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
   :licence "BSD"
   :description "Test-suite for cram-language"

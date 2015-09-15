@@ -3,7 +3,6 @@
 (asdf:defsystem cram-utilities
   :name "cram-utilities"
   :author "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
-  :version "0.1"
   :maintainer "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
   :licence "BSD"
   :description "Pattern matching and other utilities."

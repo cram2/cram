@@ -3,7 +3,6 @@
 (asdf:defsystem cram-math
   :name "cram-math"
   :author "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
-  :version "0.1"
   :maintainer "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
   :licence "BSD"
   :description "Some math utilities"

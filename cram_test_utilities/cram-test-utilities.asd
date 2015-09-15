@@ -3,7 +3,6 @@
 (asdf:defsystem cram-test-utilities
   :name "cram-test-utilities"
   :author "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
-  :version "0.1"
   :maintainer "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
   :licence "BSD"
   :description "Utilities for writing unit tests."

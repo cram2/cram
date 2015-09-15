@@ -3,7 +3,6 @@
 (asdf:defsystem cram-process-modules
   :name "cram-process-modules"
   :author "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
-  :version "0.1"
   :maintainer "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
   :licence "BSD"
   :description "Process modules."

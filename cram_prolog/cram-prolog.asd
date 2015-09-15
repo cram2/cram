@@ -3,7 +3,6 @@
 (asdf:defsystem cram-prolog
   :name "cram-prolog"
   :author "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
-  :version "0.1"
   :maintainer "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
   :licence "BSD"
   :description "Prolog-like language interpreter and reasoning framework."
