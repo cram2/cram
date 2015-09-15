@@ -14,5 +14,5 @@ foreach(dir
       PATTERN ".git" EXCLUDE)
 endforeach()
 
-install (FILES cram-prlog.asd cram-prolog-tests.asd
+install (FILES cram-prolog.asd cram-prolog-tests.asd
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
