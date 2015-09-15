@@ -1,13 +1,13 @@
 <package>
   <name>cram_json_prolog</name>
-  <version>1.0.0</version>
+  <version>0.2.0</version>
   <description>
 
      cram_json_prolog
 
   </description>
   <author>Lorenz Moesenlechner</author>
-  <maintainer email="mustermann@fictional.de">Add Maintainer here</maintainer>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
   <license>BSD</license>
 
   <!-- Dependencies which this package needs to build itself. -->
