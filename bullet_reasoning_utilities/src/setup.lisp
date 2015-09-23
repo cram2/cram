@@ -28,16 +28,6 @@
 
 (in-package :bullet-reasoning-utilities)
 
-;; (def-fact-group costmap-metadata ()
-;;   (<- (costmap-size 12 12))
-;;   (<- (costmap-origin -6 -6))
-;;   (<- (costmap-resolution 0.025))
-
-;;   (<- (costmap-padding 0.6))
-;;   (<- (costmap-manipulation-padding 0.55))
-;;   (<- (costmap-in-reach-distance 1.1))
-;;   (<- (costmap-reach-minimal-distance 0.3)))
-
 (def-fact-group costmap-metadata ()
   (<- (location-costmap:costmap-size 12 12))
   (<- (location-costmap:costmap-origin -6 -6))
