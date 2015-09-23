@@ -7,7 +7,6 @@ find_package(catkin REQUIRED COMPONENTS
   cram_robot_interfaces
   cl_bullet
   cl_bullet_vis
-  cram_json_prolog
   cl_urdf
   cl_tf
   cram_semantic_map_utils
