@@ -32,6 +32,6 @@
   (<- (desig-solution ?designator ?solution)
     (desig-prop ?designator (:of ?object))
     (lisp-fun current-desig ?object ?current-object)
-    (lisp-fun semantic-map:semantic-map-object-poses ?current-object ?poses)
+    (lisp-fun semantic-map-object-poses ?current-object ?poses)
     (member ?solution ?poses)))
 

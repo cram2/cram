@@ -30,8 +30,6 @@
 
 (defpackage cram-semantic-map
   (:nicknames #:semantic-map #:sem-map)
-  (:use #:common-lisp #:cram-plan-occasions-events #:cram-semantic-map-utils
-        #:cut #:cram-occasions-events)
+  (:use #:common-lisp #:cram-plan-occasions-events #:cram-occasions-events)
   (:shadow get-semantic-map)
-  (:export get-semantic-map
-           designator->semantic-map-objects semantic-map-object-poses))
+  (:export get-semantic-map))

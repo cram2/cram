@@ -29,4 +29,11 @@
 (in-package :cl-user)
 
 (defpackage cram-semantic-map-designators
-  (:use #:common-lisp #:cram-designators #:cram-prolog))
+  (:nicknames #:sem-map-desig)
+  (:use #:common-lisp #:cram-designators #:cram-prolog
+        #:cram-semantic-map-utils #:cram-utilities)
+  (:shadowing-import-from #:cram-semantic-map-utils #:parent)
+  (:export
+   ;; designator-utils
+   #:designator->semantic-map-objects
+   #:semantic-map-object-poses))

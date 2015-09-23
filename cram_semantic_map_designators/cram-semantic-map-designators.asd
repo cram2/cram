@@ -32,9 +32,12 @@
 
   :depends-on (cram-designators
                cram-semantic-map
-               cram-prolog)
+               cram-prolog
+               cram-semantic-map-utils
+               cram-utilities)
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "prolog" :depends-on ("package"))))))
+     (:file "designator-utils" :depends-on ("package"))
+     (:file "prolog" :depends-on ("package" "designator-utils"))))))

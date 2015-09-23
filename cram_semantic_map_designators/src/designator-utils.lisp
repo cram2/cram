@@ -28,7 +28,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :semantic-map)
+(in-package :cram-semantic-map-designators)
 
 (defun resolve-part-of (identifier)
   (ecase (type-of identifier)

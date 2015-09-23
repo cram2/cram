@@ -29,17 +29,13 @@
 (defsystem cram-semantic-map
   :author "Lorenz Moesenlechner"
   :license "BSD"
-  
-  :depends-on (cram-semantic-map-utils
-               cram-plan-occasions-events
+
+  :depends-on (cram-plan-occasions-events
                cram-occasions-events
-               cram-designators
-               cram-utilities
                cram-projection)
   :components
   ((:module "src"
     :components
     ((:file "package")
      (:file "semantic-map-cache" :depends-on ("package"))
-     (:file "events" :depends-on ("package"))
-     (:file "designator-utils" :depends-on ("package"))))))
+     (:file "events" :depends-on ("package"))))))
