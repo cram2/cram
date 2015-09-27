@@ -59,8 +59,8 @@
    activate
    activation-state
    collision-flags
-   get-total-force
-   get-total-torque
+   total-force
+   total-torque
    apply-force
    apply-central-force
    apply-torque
