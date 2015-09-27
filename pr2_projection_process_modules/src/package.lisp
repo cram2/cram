@@ -26,7 +26,8 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defpackage projection-process-modules
+(defpackage pr2-projection-process-modules
+  (:nicknames #:projection-process-modules)
   (:use #:common-lisp
         #:cram-bullet-reasoning
         #:cram-process-modules
