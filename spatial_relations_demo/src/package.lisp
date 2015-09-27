@@ -44,8 +44,10 @@
         #:cram-projection
         #:pr2-projection-process-modules
         #:cram-robot-interfaces
-        #:cram-plan-library)
-  (:shadowing-import-from #:btr object pose object-pose width height name)
+        #:cram-plan-library
+        #:cram-plan-occasions-events)
+  (:shadowing-import-from #:btr object pose object-pose width height name object-attached)
   (:shadowing-import-from #:cram-prolog fail)
-  (:shadowing-import-from #:cram-robot-interfaces robot))
+  (:shadowing-import-from #:cram-designators object-designator)
+  (:shadowing-import-from #:cram-robot-interfaces robot side))
 
