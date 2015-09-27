@@ -29,17 +29,23 @@
 (in-package :cl-user)
 
 (defpackage spatial-relations-demo
-    (:use #:desig
-          #:cram-roslisp-common
-          #:location-costmap
-          #:common-lisp
-          #:cram-prolog
-          #:semantic-map-costmap
-          #:btr
-          #:cram-utilities
-          #:cram-bullet-reasoning-belief-state
-          #:cram-language-implementation
-          #:bullet-reasoning-utilities)
+  (:nicknames #:demo)
+  (:use #:desig
+        #:cram-roslisp-common
+        #:location-costmap
+        #:common-lisp
+        #:cram-prolog
+        #:semantic-map-costmap
+        #:btr
+        #:cram-utilities
+        #:cram-bullet-reasoning-belief-state
+        #:cram-language-implementation
+        #:bullet-reasoning-utilities
+        #:cram-projection
+        #:pr2-projection-process-modules
+        #:cram-robot-interfaces
+        #:cram-plan-library)
   (:shadowing-import-from #:btr object pose object-pose width height name)
-  (:shadowing-import-from #:cram-prolog fail))
+  (:shadowing-import-from #:cram-prolog fail)
+  (:shadowing-import-from #:cram-robot-interfaces robot))
 
