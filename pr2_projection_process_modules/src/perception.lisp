@@ -85,7 +85,7 @@
                        (list
                         (sem-map-utils:name semantic-map-object)
                         (sem-map-utils:pose semantic-map-object)))
-                     (semantic-map:designator->semantic-map-objects designator))))
+                     (sem-map-desig:designator->semantic-map-objects designator))))
       (case type
         (:handle (find-handle))
         (t (find-household-object))))))

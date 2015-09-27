@@ -34,6 +34,7 @@
   <build_depend>cram_roslisp_common</build_depend>
   <build_depend>cram_semantic_map_utils</build_depend>
   <build_depend>cram_semantic_map</build_depend>
+  <build_depend>cram_semantic_map_designators</build_depend>
   <build_depend>cram_transforms_stamped</build_depend>
 
   <!-- Dependencies needed after this package is compiled. -->
@@ -56,6 +57,7 @@
   <run_depend>cram_roslisp_common</run_depend>
   <run_depend>cram_semantic_map_utils</run_depend>
   <run_depend>cram_semantic_map</run_depend>
+  <run_depend>cram_semantic_map_designators</run_depend>
   <run_depend>cram_transforms_stamped</run_depend>
 
 </package>

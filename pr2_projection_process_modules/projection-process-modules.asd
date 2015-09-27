@@ -46,6 +46,7 @@
                cram-pr2-designators
                cram-semantic-map-utils
                cram-semantic-map
+               cram-semantic-map-designators
                cram-transforms-stamped)
   :components
   ((:module "src"
