@@ -31,7 +31,7 @@
 ;; TODO: comments
 ;; TODO: declares everywhere!
 
-(defparameter *num-of-sets-on-table* 4)
+(defparameter *num-of-sets-on-table* 2) ;; max is 4
 
 (defmethod parameterize-demo ((demo-name (eql :table-setting)))
   (setf *demo-object-types*
@@ -40,7 +40,7 @@
   (setf *demo-objects-initial-poses*
         `((:plate ,@(mapcar (lambda (x) `((1.45 0.8 ,x) (0 0 0 1)))
                            (alexandria:iota *num-of-sets-on-table*
-                                            :start 0.86 :step 0.027)))
+                                            :start 0.86 :step 0.0244)))
           (:fork ,@(mapcar (lambda (x) `((,x 0.5 0.865) (0 0 1 1)))
                           (alexandria:iota *num-of-sets-on-table*
                                            :start 1.35 :step 0.05)))
@@ -49,11 +49,12 @@
                             *num-of-sets-on-table*
                             :start (+ 1.35 (* (+ *num-of-sets-on-table* 1) 0.04))
                             :step 0.05)))
-          (:mug ((1.5 1.17 0.9119799601336841d0) (0 0 0 1))
-               ((1.46 1.04 0.9119799601336841d0) (0 0 0 1))
-               ((1.35 1.11 0.9119799601336841d0) (0 0 0 1))
-               ((1.65 1.02 0.9119799601336841d0) (0 0 0 1))
-               ((1.35 1.23 0.9119799601336841d0) (0 0 0 1)))
+          (:mug ,@(subseq '(((1.5 1.17 0.9119799601336841d0) (0 0 0 1))
+                            ((1.46 1.04 0.9119799601336841d0) (0 0 0 1))
+                            ((1.35 1.11 0.9119799601336841d0) (0 0 0 1))
+                            ((1.65 1.02 0.9119799601336841d0) (0 0 0 1))
+                            ((1.35 1.23 0.9119799601336841d0) (0 0 0 1)))
+                          0 *num-of-sets-on-table*))
           (:pot ((-1.0 1.65 0.9413339835685429d0) (0 0 0 1)))
           (:bowl ((-0.9 1.95 0.8911207699875103d0) (0 0 0 1))
                 ((-0.95 1.16 0.8911207699875103d0) (0 0 0 1))
