@@ -59,7 +59,8 @@ for 2 plates and 1 other-type.")
 (defun spawn-demo (demo-name &key (set nil))
   "Function to spawn the demo objects.
 `set' is, e.g., :main or :other-set, if not given spawns all objects."
-  (unless *demo-object-types* (parameterize-demo demo-name))
+  (kill-all-objects)
+  (parameterize-demo demo-name)
   (clear-costmap-viz)
   (detach-all-objects (object-instance (robot-name)))
   (move-robot)
