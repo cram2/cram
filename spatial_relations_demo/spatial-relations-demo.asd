@@ -52,7 +52,7 @@
   ((:module "src"
     :components
     ((:file "package")
-     ;; (:file "restricted-area-costmap" :depends-on ("package"))
+     (:file "restricted-area-costmap" :depends-on ("package"))
      (:file "scenario-interface" :depends-on ("package"))
      (:file "table-setting" :depends-on ("package" "scenario-interface"))
      (:file "pancake-making" :depends-on ("package"))))))
