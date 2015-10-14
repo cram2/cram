@@ -33,18 +33,18 @@
   (<- (location-costmap:costmap-origin -6 -6))
   (<- (location-costmap:costmap-resolution 0.05))
 
-  (<- (location-costmap:costmap-padding 0.35))
-  (<- (location-costmap:costmap-manipulation-padding 0.35))
-  (<- (location-costmap:costmap-in-reach-distance 1.0))
+  (<- (location-costmap:costmap-padding 0.2))
+  (<- (location-costmap:costmap-manipulation-padding 0.2))
+  (<- (location-costmap:costmap-in-reach-distance 0.9))
   (<- (location-costmap:costmap-reach-minimal-distance 0.1)))
 
 (def-fact-group semantic-map-data ()
   (<- (semantic-map-object-name :kitchen)))
 
-(disable-location-validation-function 'btr-desig::validate-designator-solution)
+;; (disable-location-validation-function 'btr-desig::validate-designator-solution)
 (disable-location-validation-function 'btr-desig::check-ik-solution)
 
-(setf cram-roslisp-common:*tf-default-timeout* 1.0)
+(setf *tf-default-timeout* 1.0)
 ;; (setf cram-designators::*print-location-validation-function-results* t)
 
 (defun init (&optional (ip "192.168.100.194"))
@@ -59,7 +59,7 @@
 (defvar *kitchen-urdf* nil)
 (defun start-ros-and-bullet ()
   (init "localhost")
-  (setf cram-roslisp-common:*tf-default-timeout* 1.0)
+  (setf *tf-default-timeout* 1.0)
   (unless *robot-urdf-lowres*
     (setf *robot-urdf-lowres*
           (cl-urdf:parse-urdf (roslisp:get-param "robot_description_lowres"))))
