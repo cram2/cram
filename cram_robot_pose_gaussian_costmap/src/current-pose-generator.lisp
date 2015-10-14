@@ -32,7 +32,7 @@
 (defun robot-current-pose-generator (desig)
   (when (or (cram-robot-interfaces:reachability-designator-p desig)
             (cram-robot-interfaces:visibility-designator-p desig))
-    (when cram-roslisp-common:*transformer*
+    (when cram-transforms-stamped:*transformer*
       (handler-case
           (list (cram-transforms-stamped:robot-current-pose))
         (cl-transforms-stamped:transform-stamped-error () nil)))))

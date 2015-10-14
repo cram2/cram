@@ -35,8 +35,7 @@
                cram-location-costmap
                cram-robot-interfaces
                cram-transforms-stamped
-               cl-transforms-stamped
-               cram-roslisp-common)
+               cl-transforms-stamped)
   :components
   ((:module "src"
     :components
