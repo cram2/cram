@@ -1,4 +1,5 @@
-;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;;
+;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -25,20 +26,11 @@
 ;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
+;;;
 
-(in-package :cl-user)
+(in-package :cram-bullet-reasoning-belief-state)
 
-(defpackage cram-bullet-reasoning-belief-state
-  (:use #:common-lisp #:cram-plan-library
-        #:cram-plan-occasions-events #:cram-occasions-events
-        #:cram-bullet-reasoning #:cram-prolog #:cram-utilities
-        #:cl-transforms-stamped #:cram-transforms-stamped)
-  (:shadowing-import-from #:cram-bullet-reasoning
-                          side at throughout object during holds pose)
-  (:shadowing-import-from #:cram-plan-occasions-events object-attached)
-  (:shadowing-import-from #:cram-occasions-events event)
-  (:shadowing-import-from #:cram-robot-interfaces end-effector-link robot)
-  (:export get-designator-object-name get-designator-object
-           object-designator-name
-           ;; event handlers
-           object-pose-in-frame))
+(defun ros-tf-init ()
+  (setf cram-transforms-stamped:*transformer* (make-instance 'cl-tf2:buffer-client)))
+
+(roslisp-utilities:register-ros-init-function ros-tf-init)

@@ -31,6 +31,6 @@
 (in-package :cram-bullet-reasoning-belief-state)
 
 (defun ros-time-init ()
-  (cut:set-timestamp-function #'ros-time))
+  (cut:set-timestamp-function #'roslisp:ros-time))
 
 (roslisp-utilities:register-ros-init-function ros-time-init)

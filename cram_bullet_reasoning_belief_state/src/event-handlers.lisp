@@ -53,8 +53,7 @@
               current-event-object
               (desig:extend-designator-properties
                (make-object-location-in-gripper object (event-link event))
-               `((:pose ,(object-pose-in-frame
-                          object cram-roslisp-common:*robot-base-frame*))))))))
+               `((:pose ,(object-pose-in-frame object *robot-base-frame*))))))))
     (timeline-advance
      *current-timeline*
      (make-event

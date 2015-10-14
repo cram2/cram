@@ -31,8 +31,8 @@
 
 (defpackage bullet-reasoning-utilities
   (:use #:common-lisp #:cram-bullet-reasoning #:cram-prolog #:cram-designators
-        #:cram-utilities #:cram-robot-interfaces)
-  (:shadowing-import-from #:btr object object-pose)
+        #:cram-utilities #:cram-robot-interfaces #:cram-transforms-stamped)
+  (:shadowing-import-from #:btr object object-pose pose)
   (:export
    ;; misc.lisp
    clear-costmap-viz

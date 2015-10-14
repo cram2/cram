@@ -47,7 +47,6 @@
                  household_objects_database_msgs-srv
                  cram-location-costmap
                  cram-designators
-                 cram-roslisp-common
                  roslisp-utilities
                  cram-semantic-map-utils
                  cram-robot-interfaces

@@ -31,7 +31,6 @@
   :license "BSD"
   :depends-on (spatial-relations-costmap
                cram-designators
-               cram-roslisp-common
                cram-location-costmap
                cram-prolog
                roslisp
