@@ -11,7 +11,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <depend>spatial_relations_costmap</depend>
-  <depend>cram_roslisp_common</depend>
+  <depend>cram_transforms_stamped</depend>
   <depend>cram_designators</depend>
   <depend>cram_location_costmap</depend>
   <depend>semantic_map_costmap</depend>

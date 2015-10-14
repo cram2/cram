@@ -31,7 +31,7 @@
 (defpackage spatial-relations-demo
   (:nicknames #:demo)
   (:use #:desig
-        #:cram-roslisp-common
+        #:cram-transforms-stamped
         #:location-costmap
         #:common-lisp
         #:cram-prolog
@@ -45,7 +45,8 @@
         #:pr2-projection-process-modules
         #:cram-robot-interfaces
         #:cram-plan-library
-        #:cram-plan-occasions-events)
+        #:cram-plan-occasions-events
+        #:cram-language-designator-support)
   (:shadowing-import-from #:btr object pose object-pose width height name object-attached)
   (:shadowing-import-from #:cram-prolog fail)
   (:shadowing-import-from #:cram-designators object-designator)
