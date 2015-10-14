@@ -40,7 +40,6 @@
                :actionlib
                :cram_plan_actionserver-msg
                :cram_plan_actionserver-srv
-               :cram-roslisp-common
                :roslisp-utilities
                :cram-execution-trace)
 

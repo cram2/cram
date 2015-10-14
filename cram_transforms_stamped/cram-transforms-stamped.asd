@@ -10,8 +10,7 @@
                :cram-designators
                :cl-transforms-stamped
                :cram-utilities
-               :cram-prolog
-               :cram-roslisp-common)
+               :cram-prolog)
   :components
   ((:module "src"
             :components
@@ -19,4 +18,5 @@
              (:file "designator-extensions" :depends-on ("package"))
              (:file "designator-filters" :depends-on ("package"))
              (:file "robot-current-pose" :depends-on ("package"))
-             (:file "facts" :depends-on ("package"))))))
+             (:file "facts" :depends-on ("package"))
+             (:file "setup" :depends-on ("package"))))))

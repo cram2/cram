@@ -30,6 +30,6 @@
 (in-package :cl-user)
 
 (defpackage :cram-actionserver
-    (:use #:cpl #:roslisp :cram-roslisp-common)
+    (:use #:cpl #:roslisp)
   (:export #:server))
 

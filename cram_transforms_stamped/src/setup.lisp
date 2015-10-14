@@ -28,7 +28,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :cram-roslisp-common)
+(in-package :cram-transforms-stamped)
 
 (defvar *transformer* nil)
 (defparameter *tf-default-timeout* 0.0 "How long to wait until a tansform in secs.")
@@ -37,8 +37,3 @@
 (defparameter *robot-base-frame* "base_footprint")
 (defparameter *odom-frame* "odom_combined")
 (defparameter *ik-service-name* "/moveit/compute_ik")
-
-(defun ros-tf-init ()
-  (setf *transformer* (make-instance 'cl-tf2:buffer-client)))
-
-(roslisp-utilities:register-ros-init-function ros-tf-init)

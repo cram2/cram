@@ -36,7 +36,7 @@
         #:cram-utilities
         #:cram-process-modules
         #:roslisp
-        #:cram-roslisp-common
+        #:cram-transforms-stamped
         #:cram-plan-occasions-events
         #:cram-occasions-events
         #:cram-plan-failures
@@ -46,6 +46,7 @@
   (:shadowing-import-from #:cram-designators object-designator object)
   (:export #:achieve
            #:perform
+           #:monitor-action
            #:perform-on-process-module
            #:loc
            #:object-in-hand

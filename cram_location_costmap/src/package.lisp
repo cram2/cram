@@ -29,7 +29,7 @@
 
 (defpackage cram-location-costmap
   (:nicknames #:location-costmap)
-  (:use #:cl #:prolog #:cram-utilities #:roslisp-utilities #:cram-roslisp-common
+  (:use #:cl #:prolog #:cram-utilities #:roslisp-utilities
         #:alexandria #:roslisp #:cram-transforms-stamped #:cram-designators
         #:cl-transforms-stamped)
   (:shadowing-import-from :alexandria rotate)
