@@ -5,7 +5,6 @@ find_package(catkin REQUIRED COMPONENTS
   alexandria
   cram_plan_failures
   cram_process_modules
-  cram_roslisp_common
   cram_bullet_reasoning
   cram_bullet_reasoning_designators
   cram_designators
@@ -16,7 +15,6 @@ find_package(catkin REQUIRED COMPONENTS
   cl_transforms
   cram_projection
   cram_pr2_designators
-  cram_roslisp_common
   cram_semantic_map_utils
   cram_semantic_map
 )

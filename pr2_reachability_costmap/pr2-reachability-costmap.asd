@@ -37,7 +37,6 @@
                cram-utilities
                cram-math
                cram-prolog
-               cram-roslisp-common
                cram-robot-interfaces
                cram-transforms-stamped
                iai_kinematics_msgs-srv)

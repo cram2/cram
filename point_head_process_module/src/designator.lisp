@@ -37,7 +37,7 @@
            *transformer*
            :pose pose-stamped
            :target-frame "/base_link"
-           :timeout cram-roslisp-common:*tf-default-timeout*
+           :timeout *tf-default-timeout*
            :use-current-sim-time t)))
     (let* ((point-stamped-msg
              (cl-transforms-stamped:pose-stamped->point-stamped-msg pose-stamped)))

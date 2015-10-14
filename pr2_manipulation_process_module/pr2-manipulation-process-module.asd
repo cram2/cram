@@ -33,7 +33,6 @@
   :depends-on (cram-transforms-stamped
                cram-process-modules
                actionlib
-               cram-roslisp-common
                roslisp-utilities
                cram-prolog
                cram-plan-failures

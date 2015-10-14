@@ -22,7 +22,6 @@
   <build_depend>cram_utilities</build_depend>
   <build_depend>cram_math</build_depend>
   <build_depend>cram_prolog</build_depend>
-  <build_depend>cram_roslisp_common</build_depend>
   <build_depend>cram_robot_interfaces</build_depend>
   <build_depend>cram_transforms_stamped</build_depend>
   
@@ -34,7 +33,6 @@
   <run_depend>cram_utilities</run_depend>
   <run_depend>cram_math</run_depend>
   <run_depend>cram_prolog</run_depend>
-  <run_depend>cram_roslisp_common</run_depend>
   <run_depend>cram_robot_interfaces</run_depend>
   <run_depend>cram_transforms_stamped</run_depend>
 

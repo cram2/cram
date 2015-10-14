@@ -36,7 +36,6 @@
                cram-process-modules
                cram-designators
                cram-prolog
-               cram-roslisp-common
                cram-transforms-stamped
                cram-plan-occasions-events
                cram-occasions-events

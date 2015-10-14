@@ -34,7 +34,6 @@
         #:cut
         #:desig
         #:cram-transforms-stamped
-        #:cram-roslisp-common
         #:cram-process-modules
         #:cram-plan-failures
         #:cram-plan-occasions-events

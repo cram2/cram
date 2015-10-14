@@ -116,7 +116,7 @@
                                          (cl-transforms:make-identity-vector)
                                          (cl-transforms:make-identity-rotation))
                                   :target-frame "/torso_lift_link"
-                                  :timeout cram-roslisp-common:*tf-default-timeout*))
+                                  :timeout *tf-default-timeout*))
                                (raised
                                  (copy-pose-stamped
                                   arm-in-tll
@@ -235,7 +235,7 @@
                        (relative-pose pose grasp-offset)
                        gripper-offset)
                 :target-frame "/torso_lift_link"
-                :timeout cram-roslisp-common:*tf-default-timeout*))
+                :timeout *tf-default-timeout*))
              (grasp-parameters (assignment)
                (let* ((pose (pose assignment))
                       (gripper-offset (gripper-offset assignment)))
@@ -335,7 +335,7 @@
                              *transformer*
                              :pose object-pose
                              :target-frame fin-frame
-                             :timeout cram-roslisp-common:*tf-default-timeout*))
+                             :timeout *tf-default-timeout*))
            (origin1 (cl-transforms:origin base-pose-map))
            (origin2 (cl-transforms:origin object-pose-map))
            (p1 (cl-transforms:make-3d-vector (cl-transforms:x origin1)
@@ -363,7 +363,7 @@
             *transformer*
             :pose putdown-pose
             :target-frame "/torso_lift_link"
-            :timeout cram-roslisp-common:*tf-default-timeout*
+            :timeout *tf-default-timeout*
             :use-current-ros-time t)))
     (copy-pose-stamped
      pose-in-tll :origin (cl-transforms:v+ (cl-transforms:origin pose-in-tll)
