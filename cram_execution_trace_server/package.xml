@@ -22,7 +22,6 @@
   <build_depend>cram_plan_occasions_events</build_depend>
   <build_depend>cram_execution_trace</build_depend>
   <build_depend>cram_plan_library</build_depend>
-  <build_depend>cram_roslisp_common</build_depend>
   <build_depend>roslisp_utilities</build_depend>
   <build_depend>cram_utilities</build_depend>
   <build_depend>cram_json_prolog</build_depend>
@@ -32,7 +31,6 @@
   <run_depend>cram_plan_occasions_events</run_depend>
   <run_depend>cram_execution_trace</run_depend>
   <run_depend>cram_plan_library</run_depend>
-  <run_depend>cram_roslisp_common</run_depend>
   <run_depend>roslisp_utilities</run_depend>
   <run_depend>cram_utilities</run_depend>
   <run_depend>cram_json_prolog</run_depend>

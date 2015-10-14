@@ -7,7 +7,6 @@ find_package(catkin REQUIRED COMPONENTS
   cram_plan_occasions_events
   cram_execution_trace
   cram_plan_library
-  cram_roslisp_common
   roslisp_utilities
   cram_utilities
   cram_json_prolog
@@ -28,7 +27,6 @@ catkin_package(
   cram_plan_occasions_events
   cram_execution_trace
   cram_plan_library
-  cram_roslisp_common
   roslisp_utilities
   cram_utilities
   cram_json_prolog

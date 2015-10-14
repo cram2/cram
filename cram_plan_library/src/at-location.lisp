@@ -50,7 +50,8 @@ terminates before executing the body of the second one.")
 (defun location-designator-reached (current-location location-designator)
   "Returns a boolean fluent that indicates if `current-location' is a
 valid solution for `location-designator'"
-  (validate-location-designator-solution location-designator current-location))
+  t;; (validate-location-designator-solution location-designator current-location)
+  )
 
 (defun %execute-at-location (loc-var function)
   (let ((terminated nil)

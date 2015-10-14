@@ -16,7 +16,6 @@
   <run_depend>cram_plan_occasions_events</run_depend>
   <run_depend>cram_plan_library/</run_depend>
   <run_depend>cram_plan_transformations/</run_depend>
-  <run_depend>cram_roslisp_common/</run_depend>
   <run_depend>cram_transforms_stamped</run_depend>
   <run_depend>cram_execution_trace_server/</run_depend>
   <run_depend>fake_process_modules/</run_depend>

@@ -37,7 +37,6 @@
         #:cram-plan-occasions-events
         #:cram-plan-library
         #:cram-prolog
-        #:cram-roslisp-common
         #:cram-transforms-stamped)
   (:shadowing-import-from #:cram-designators object object-designator)
   (:export run))
