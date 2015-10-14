@@ -51,8 +51,7 @@
    y (cl-transforms:y point)
    z (cl-transforms:z point)))
 
-(defun points->point-cloud (pose points &key (frame-id cram-roslisp-common:*fixed-frame*)
-                                          (stamp 0.0))
+(defun points->point-cloud (pose points &key (frame-id *fixed-frame*) (stamp 0.0))
   (let ((pose-tf (cl-transforms:reference-transform pose)))
     (roslisp:make-msg
      "sensor_msgs/PointCloud"

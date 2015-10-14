@@ -34,13 +34,18 @@
                cram-utilities
                cram-projection
                cram-designators
-               cram-roslisp-common
                cram-bullet-reasoning
                cram-occasions-events
                cram-plan-occasions-events
                cram-plan-library
                cram-language ; for DEFINE-TASK-VARIABLE in utitlities
-               cram-physics-utils)
+               cram-physics-utils
+               ;; ros-init-function-s
+               roslisp-utilities
+               roslisp
+               cram-utilities
+               cl-tf2
+               cram-transforms-stamped)
   :components
   ((:module "src"
     :components
