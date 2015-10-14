@@ -106,6 +106,24 @@
       ?minimal-height ?maximal-height ?size ?resolution)
      ?costmap))
 
+  (<- (unknown-object-visibility-costmap ?designator ?costmap)
+    ;; object hasn't been perceived yet and
+    ;; (OBJECT-VISIBILITY-COSTMAP ?des ?cm) failed
+    (or (desig-prop ?designator (:obj ?object))
+        (desig-prop ?designator (:object ?object)))
+    (bullet-world ?world)
+    (robot ?robot)
+    (costmap ?costmap)
+    (visibility-costmap-metadata
+     ?minimal-height ?maximal-height ?resolution ?size)
+    (desig-prop ?object (:at ?location))
+    (costmap-add-function
+     visible
+     (make-location-visibility-costmap
+      ?world ?location ?robot
+      ?minimal-height ?maximal-height ?size ?resolution)
+     ?costmap))
+
   (<- (location-visibility-costmap ?designator ?costmap)
     (desig-prop ?designator (:location ?location))
     (bullet-world ?world)
@@ -119,10 +137,11 @@
       ?world ?location ?robot
       ?minimal-height ?maximal-height ?size ?resolution)
      ?costmap))
-  
+
   (<- (desig-costmap ?designator ?costmap)
     (desig-prop ?designator (:to :see))
     (once (or (object-visibility-costmap ?designator ?costmap)
+              (unknown-object-visibility-costmap ?designator ?costmap)
               (location-visibility-costmap ?designator ?costmap))))
 
   (<- (desig-location-prop ?desig ?loc)
