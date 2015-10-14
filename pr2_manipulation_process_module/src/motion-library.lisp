@@ -90,7 +90,7 @@ trying to assume the pose `pose'."
                               *transformer*
                               :pose link-identity-pose
                               :target-frame (frame-id pose-stamped)
-                              :timeout cram-roslisp-common:*tf-default-timeout*
+                              :timeout *tf-default-timeout*
                               :use-current-ros-time t)))
     (cl-transforms:v-dist (cl-transforms:origin link-in-pose-frame)
                           (cl-transforms:origin pose-stamped))))
@@ -264,7 +264,7 @@ positions, grasp-type, effort to use) are defined in the list
                                           0.0
                                           (cl-transforms:make-identity-pose))
                                    :target-frame "base_link"
-                                   :timeout cram-roslisp-common:*tf-default-timeout*)))
+                                   :timeout *tf-default-timeout*)))
                             (copy-pose-stamped
                              pose-straight
                              :origin (cl-transforms:v+

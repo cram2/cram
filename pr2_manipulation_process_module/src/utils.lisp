@@ -152,7 +152,7 @@ satisfy these constraints is returned."
                     (t (cl-transforms-stamped:transform-pose-stamped
                         *transformer*
                         :pose pose :target-frame "/map"
-                        :timeout cram-roslisp-common:*tf-default-timeout*
+                        :timeout *tf-default-timeout*
                         :use-current-ros-time t))))))
          (pose-stamped-msg (to-msg pose-stamped)))
     (roslisp:publish

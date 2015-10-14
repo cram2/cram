@@ -40,14 +40,14 @@
                cram-plan-library
                cram-bullet-reasoning-belief-state
                cram-projection
-               cram-roslisp-common
                cram-robot-interfaces
                cram-plan-failures
                cram-pr2-designators
                cram-semantic-map-utils
                cram-semantic-map
                cram-semantic-map-designators
-               cram-transforms-stamped)
+               cram-transforms-stamped
+               cl-tf)
   :components
   ((:module "src"
     :components

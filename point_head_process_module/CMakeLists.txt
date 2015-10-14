@@ -7,7 +7,6 @@ find_package(catkin REQUIRED COMPONENTS
   cram_process_modules
   cram_designators
   cram_prolog
-  cram_roslisp_common
   cram_transforms_stamped
   roslisp_utilities
   cram_plan_occasions_events

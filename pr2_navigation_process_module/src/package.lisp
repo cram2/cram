@@ -35,8 +35,7 @@
         #:cram-prolog
         #:cram-designators
         #:cram-process-modules
-        #:cram-roslisp-common
+        #:cram-transforms-stamped
         #:cram-plan-failures)
   (:export #:pr2-navigation-process-module #:*navigation-enabled*)
-  (:import-from cram-roslisp-common *transformer*)
   (:desig-properties #:type #:navigation #:goal #:to))

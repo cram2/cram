@@ -36,7 +36,7 @@
                cram-designators
                cram-semantic-map-utils
                cram-semantic-map
-               cram-roslisp-common)
+               cram-transforms-stamped)
   :components
   ((:module "src"
     :components
