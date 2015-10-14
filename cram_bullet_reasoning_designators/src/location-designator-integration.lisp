@@ -37,7 +37,8 @@
 (defvar *robot-valid-sides* '(:left :right))
 
 (defvar *check-ik-joint-states*
-  '(("torso_lift_joint" 0.33)
+  '(("torso_lift_joint" 0.16825)
+    ("torso_lift_joint" 0.33)
     ("torso_lift_joint" 0.0))
   "Joint states to set before calling the IK solver.")
 
