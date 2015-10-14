@@ -29,7 +29,7 @@
 
 (def-goal (achieve (looking-at ?pose))
   (cond ((not ?pose)
-         (ros-warn (achieve plan-lib) "Pose not set. Cannot look at it."))
+         (ros-warn (achieve plan-lib) "Pose not set. cannot look at it"))
         (t
          (ros-info (achieve plan-lib) "Looking at pose: ~a~%" ?pose)
          (with-designators
@@ -49,6 +49,6 @@
                                     (cl-transforms:make-quaternion
                                      0.0 0.0 0.0 1.0)))))))
                      (t `((:to :follow) (:pose ,?pose)))))))
-           (perform look-at-desig)
-           (monitor-action look-at-desig)
-           (ros-info (achieve plan-lib) "Look at done~%")))))
+           (prog2 (perform look-at-desig)
+               (monitor-action look-at-desig)
+             (ros-info (achieve plan-lib) "Look at done~%"))))))
