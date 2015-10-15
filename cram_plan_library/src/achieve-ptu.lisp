@@ -40,14 +40,7 @@
                      (symbol
                       (ecase ?pose
                         (:forward
-                         `((:to :see)
-                           (:pose ,(make-pose-stamped
-                                    *robot-base-frame*
-                                    0.0
-                                    (cl-transforms:make-3d-vector
-                                     3.0 0.0 1.5)
-                                    (cl-transforms:make-quaternion
-                                     0.0 0.0 0.0 1.0)))))))
+                         `((:to :see) (:pose :forward)))))
                      (t `((:to :follow) (:pose ,?pose)))))))
            (prog2 (perform look-at-desig)
                (monitor-action look-at-desig)
