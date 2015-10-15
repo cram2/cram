@@ -28,6 +28,12 @@
 
 (in-package :cram-robot-interfaces)
 
-(def-fact-group robot (robot)
+(def-fact-group robot (robot robot-base-frame robot-torso-link-joint)
   (<- (robot ?robot-name)
+    (fail))
+
+  (<- (robot-base-frame ?robot-name ?base-frame)
+    (fail))
+
+  (<- (robot-torso-link-joint ?robot-name ?torso-link ?torso-joint)
     (fail)))

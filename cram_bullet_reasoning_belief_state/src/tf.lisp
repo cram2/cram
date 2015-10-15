@@ -30,7 +30,21 @@
 
 (in-package :cram-bullet-reasoning-belief-state)
 
+(setf cram-transforms-stamped:*fixed-frame* "map")
+(setf cram-transforms-stamped:*odom-frame* "odom_combined")
+
 (defun ros-tf-init ()
-  (setf cram-transforms-stamped:*transformer* (make-instance 'cl-tf2:buffer-client)))
+  (setf cram-transforms-stamped:*transformer* (make-instance 'cl-tf2:buffer-client))
+
+  (with-vars-bound (?base-frame ?torso-frame ?torso-joint)
+      (lazy-car (prolog `(and (robot ?robot)
+                              (robot-base-frame ?robot ?base-frame)
+                              (robot-torso-link-joint ?robot ?torso-frame ?torso-joint))))
+    (unless (is-var ?base-frame)
+      (setf cram-transforms-stamped:*robot-base-frame* ?base-frame))
+    (unless (is-var ?torso-frame)
+      (setf cram-transforms-stamped:*robot-torso-frame* ?torso-frame))
+    (unless (is-var ?torso-joint)
+      (setf cram-transforms-stamped:*robot-torso-joint* ?torso-joint))))
 
 (roslisp-utilities:register-ros-init-function ros-tf-init)

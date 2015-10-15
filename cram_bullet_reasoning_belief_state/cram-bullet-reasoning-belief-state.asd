@@ -45,6 +45,7 @@
                roslisp
                cram-utilities
                cl-tf2
+               cram-robot-interfaces
                cram-transforms-stamped)
   :components
   ((:module "src"
@@ -53,6 +54,7 @@
      (:file "belief-state" :depends-on ("package"))
      (:file "utilities" :depends-on ("package"))
      (:file "time" :depends-on ("package"))
+     (:file "tf" :depends-on ("package"))
      (:file "occasions" :depends-on ("package" "utilities"))
      (:file "object-perceptions" :depends-on ("package" "utilities"))
      (:file "event-handlers" :depends-on ("package" "object-perceptions" "utilities"))))))

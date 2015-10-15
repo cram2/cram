@@ -34,7 +34,7 @@
    ;; trajectories
    #:trajectory-point
    ;; robot
-   #:robot
+   #:robot #:robot-base-frame #:robot-torso-link-joint
    ;; ptu
    #:camera-frame #:camera-minimal-height #:camera-maximal-height
    #:robot-pan-tilt-links #:robot-pan-tilt-joints
