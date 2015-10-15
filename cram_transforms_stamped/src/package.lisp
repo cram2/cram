@@ -40,4 +40,5 @@
            ;; setup
            #:*transformer*
            #:*tf-default-timeout*
-           #:*fixed-frame* #:*robot-base-frame* #:*odom-frame*))
+           #:*fixed-frame* #:*robot-base-frame* #:*odom-frame*
+           #:*robot-torso-frame* #:*robot-torso-joint*))

@@ -30,11 +30,25 @@
 
 (in-package :cram-transforms-stamped)
 
-(defvar *transformer* nil)
-(defparameter *tf-default-timeout* 2.0 "How long to wait until a tansform in secs.")
+(defvar *transformer* nil
+  "A TF transformer object: be it TF:TRANSFORM-LISTENER or TF2:BUFFER-CLIENT etc.")
 
-(defparameter *fixed-frame* "map")
-(defparameter *odom-frame* "odom_combined")
+(defvar *tf-default-timeout* 2.0
+  "How long to wait until a tansform in secs.")
 
 
-(defparameter *robot-base-frame* "base_footprint")
+(defvar *fixed-frame* nil
+  "World coordinate system name. Should be initialized in an environment setup package.
+Currently done in CRAM-BULLET-REASONING-BELIEF-STATE.")
+
+(defvar *odom-frame* nil
+  "Robot odometry frame name.")
+
+(defvar *robot-base-frame* nil
+  "Robot's TF tree root frame. Be careful, this parameter and the ones below
+are only initialized when a ROS node is started. DO NOT USE THESE IN OTHER PARAMETERS,
+or in general at compile-time.")
+
+(defvar *robot-torso-frame* nil)
+
+(defvar *robot-torso-joint* nil)
