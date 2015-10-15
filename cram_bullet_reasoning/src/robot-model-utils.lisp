@@ -36,6 +36,8 @@
 (defvar *persistent-ik-service* nil
   "IK persistent service handle.")
 
+(defparameter *ik-service-name* "/moveit/compute_ik")
+
 (defun set-robot-state-from-tf (tf-buffer robot
                                 &key (reference-frame *fixed-frame*) timestamp)
   (handler-case
