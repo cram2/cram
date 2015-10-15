@@ -31,7 +31,7 @@
 (in-package :cram-transforms-stamped)
 
 (defvar *transformer* nil)
-(defparameter *tf-default-timeout* 0.0 "How long to wait until a tansform in secs.")
+(defparameter *tf-default-timeout* 2.0 "How long to wait until a tansform in secs.")
 
 (defparameter *fixed-frame* "map")
 (defparameter *odom-frame* "odom_combined")
