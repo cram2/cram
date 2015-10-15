@@ -115,7 +115,7 @@
                                          frame-id (ros-time)
                                          (cl-transforms:make-identity-vector)
                                          (cl-transforms:make-identity-rotation))
-                                  :target-frame "/torso_lift_link"
+                                  :target-frame *robot-torso-frame*
                                   :timeout *tf-default-timeout*))
                                (raised
                                  (copy-pose-stamped
@@ -234,7 +234,7 @@
                 :pose (relative-pose
                        (relative-pose pose grasp-offset)
                        gripper-offset)
-                :target-frame "/torso_lift_link"
+                :target-frame *robot-torso-frame*
                 :timeout *tf-default-timeout*))
              (grasp-parameters (assignment)
                (let* ((pose (pose assignment))
@@ -362,7 +362,7 @@
            (cl-transforms-stamped:transform-pose-stamped
             *transformer*
             :pose putdown-pose
-            :target-frame "/torso_lift_link"
+            :target-frame *robot-torso-frame*
             :timeout *tf-default-timeout*
             :use-current-ros-time t)))
     (copy-pose-stamped

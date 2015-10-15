@@ -79,8 +79,11 @@ is fundamentally different."
                              (planning-group ?robot ,side ?group))))))
          (pose-in-tll
            (cl-transforms-stamped:transform-pose-stamped
-            *transformer* :pose pose :target-frame  "/torso_lift_link"
-                         :timeout *tf-default-timeout* :use-current-ros-time t)))
+            *transformer*
+            :pose pose
+            :target-frame *robot-torso-frame*
+            :timeout *tf-default-timeout*
+            :use-current-ros-time t)))
     (let ((state-0 (moveit:plan-link-movement
                     wrist-frame arm-group pose-in-tll
                     :touch-links

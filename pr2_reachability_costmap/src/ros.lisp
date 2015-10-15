@@ -73,7 +73,7 @@
      velocity zero-vector
      effort zero-vector)))
 
-(defun find-ik-solution (&key service-namespace pose (ik-base-frame "torso_lift_link"))
+(defun find-ik-solution (&key service-namespace pose (ik-base-frame *robot-torso-frame*))
   (declare (type string service-namespace)
            (type cl-transforms:pose))
   (let ((ik-link (get-ik-solver-link service-namespace)))

@@ -66,15 +66,20 @@
 
 (def-tool (cl-transforms:make-3d-vector 1 0 0) 0.20)
 
-(def-fact-group pr2-metadata (robot camera-frame
-                                    camera-minimal-height camera-maximal-height
-                                    robot-pan-tilt-links robot-pan-tilt-joints
-                                    end-effector-link gripper-link
-                                    planning-group
-                                    robot-arms-parking-joint-states
-                                    end-effector-parking-pose
-                                    robot-pre-grasp-joint-states)
+(def-fact-group pr2-metadata (robot
+                              robot-base-frame robot-torso-link-joint
+                              camera-frame camera-minimal-height camera-maximal-height
+                              robot-pan-tilt-links robot-pan-tilt-joints
+                              end-effector-link gripper-link
+                              planning-group
+                              robot-arms-parking-joint-states
+                              end-effector-parking-pose
+                              robot-pre-grasp-joint-states)
   (<- (robot pr2))
+
+  (<- (robot-base-frame pr2 "base_footprint"))
+  (<- (robot-torso-link-joint pr2 "torso_lift_link" "torso_lift_joint"))
+
   (<- (camera-frame pr2 "head_mount_kinect_rgb_optical_frame"))
   (<- (camera-frame pr2 "openni_rgb_optical_frame"))
   (<- (camera-frame pr2 "narrow_stereo_optical_frame"))
@@ -82,6 +87,7 @@
   (<- (camera-maximal-height pr2 1.60))
   (<- (robot-pan-tilt-links pr2 "head_pan_link" "head_tilt_link"))
   (<- (robot-pan-tilt-joints pr2 "head_pan_joint" "head_tilt_joint"))
+
   (<- (end-effector-link pr2 :left "l_wrist_roll_link"))
   (<- (end-effector-link pr2 :right "r_wrist_roll_link"))
   (<- (gripper-link pr2 :left ?link)
