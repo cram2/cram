@@ -32,13 +32,12 @@
 (defpackage :cram-transforms-stamped
     (:use #:cl #:desig #:cut #:prolog
           #:cl-transforms-stamped)
-  (:export make-euclidean-distance-filter
+  (:export :make-euclidean-distance-filter
            ;; prolog facts:
-           pose pose-stamped
+           #:pose #:pose-stamped
            ;; robot current pose
-           robot-current-pose
+           #:robot-current-pose
            ;; setup
            #:*transformer*
            #:*tf-default-timeout*
-           #:*fixed-frame* #:*robot-base-frame* #:*odom-frame*
-           #:*ik-service-name*))
+           #:*fixed-frame* #:*robot-base-frame* #:*odom-frame*))

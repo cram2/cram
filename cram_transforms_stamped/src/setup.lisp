@@ -34,6 +34,7 @@
 (defparameter *tf-default-timeout* 0.0 "How long to wait until a tansform in secs.")
 
 (defparameter *fixed-frame* "map")
-(defparameter *robot-base-frame* "base_footprint")
 (defparameter *odom-frame* "odom_combined")
-(defparameter *ik-service-name* "/moveit/compute_ik")
+
+
+(defparameter *robot-base-frame* "base_footprint")
