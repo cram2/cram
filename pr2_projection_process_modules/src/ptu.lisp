@@ -36,6 +36,14 @@
   (let* ((designator-solution (desig:reference input))
          (pose (etypecase designator-solution
                  (pose-stamped designator-solution)
+                 (symbol (if (eql designator-solution :forward)
+                             (make-pose-stamped
+                              *robot-base-frame*
+                              0.0
+                              (cl-transforms:make-3d-vector 3.0 0.0 1.5)
+                              (cl-transforms:make-quaternion 0.0 0.0 0.0 1.0))
+                             (cpl-impl:fail "location ~a is unknown for PTU"
+                                            designator-solution)))
                  (desig:location-designator (desig:reference designator-solution)))))
     (execute-as-action
      input

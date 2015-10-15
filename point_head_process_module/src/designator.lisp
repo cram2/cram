@@ -35,10 +35,16 @@
   (let ((pose-stamped
           (cl-transforms-stamped:transform-pose-stamped
            *transformer*
-           :pose pose-stamped
+           :pose (if (eql pose-stamped :forward)
+                     (make-pose-stamped
+                      *robot-base-frame*
+                      0.0
+                      (cl-transforms:make-3d-vector 3.0 0.0 1.5)
+                      (cl-transforms:make-quaternion 0.0 0.0 0.0 1.0))
+                     pose-stamped)
            :target-frame "/base_link"
            :timeout *tf-default-timeout*
-           :use-current-sim-time t)))
+           :use-current-ros-time t)))
     (let* ((point-stamped-msg
              (cl-transforms-stamped:pose-stamped->point-stamped-msg pose-stamped)))
       (actionlib-lisp:make-action-goal-msg
