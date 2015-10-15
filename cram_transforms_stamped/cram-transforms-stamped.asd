@@ -15,8 +15,8 @@
   ((:module "src"
             :components
             ((:file "package")
-             (:file "designator-extensions" :depends-on ("package"))
+             (:file "setup" :depends-on ("package"))
+             (:file "designator-extensions" :depends-on ("package" "setup"))
+             (:file "robot-current-pose" :depends-on ("package" "setup"))
              (:file "designator-filters" :depends-on ("package"))
-             (:file "robot-current-pose" :depends-on ("package"))
-             (:file "facts" :depends-on ("package"))
-             (:file "setup" :depends-on ("package"))))))
+             (:file "facts" :depends-on ("package"))))))
