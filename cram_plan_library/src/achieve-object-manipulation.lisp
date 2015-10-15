@@ -44,7 +44,7 @@
   (with-retry-counters ((lift-retry-count 2)
                         (misgrasp-retry-count 0)
                         (near-reperceive-retry-count 1)
-                        (carry-retry-count 10))
+                        (carry-retry-count 20))
     (with-designators ((obj-loc
                         :location `((:of ,?obj)))
                        (grasp-action
@@ -105,7 +105,17 @@
              ;; will lead to a different pose from which the robot
              ;; will go into the carry pose. This might turn out to be
              ;; problematic.
-             (fail 'manipulation-pose-unreachable)))
+             (with-designators
+                 ((emergency-put-location
+                   :location `((:of ,?obj)))
+                  (emergency-put-action
+                   :action `((:type :trajectory) (:to :put-down) (:obj ,?obj)
+                             (:at ,emergency-put-location))))
+               (try-reference-location emergency-put-location)
+               (perform emergency-put-action)
+               (monitor-action emergency-put-action)
+               (achieve `(arms-parked))
+               (fail 'manipulation-pose-unreachable))))
         (perform lift-action)
         (monitor-action lift-action))
       (ros-info (achieve plan-lib) "Lifted object.")
@@ -127,7 +137,7 @@
   (ros-info (achieve plan-lib) "(achieve (object-in-hand))")
   (with-retry-counters ((alt-perception-poses-cnt 3)
                         (initial-perception-retry-count 3)
-                        (alt-grasp-poses-cnt 3))
+                        (alt-grasp-poses-cnt 6))
     (with-designators ((pick-up-loc :location `((:to :reach) (:obj ,?obj))))
       (with-failure-handling
           ((manipulation-pose-unreachable (f)
@@ -183,6 +193,7 @@
              (declare (ignore f))
              ;; Park arm first
              (perform park-action)
+             (monitor-action park-action)
              (ros-warn
               (achieve plan-lib)
               "Got unreachable putdown pose.")
@@ -213,7 +224,7 @@
      "The object `~a' needs to be in the hand before being able to place it."
      obj)
     (with-retry-counters ((goal-pose-retries 3)
-                          (manipulation-retries 3))
+                          (manipulation-retries 6))
       (with-failure-handling
           ((manipulation-failure (f)
              (declare (ignore f))
