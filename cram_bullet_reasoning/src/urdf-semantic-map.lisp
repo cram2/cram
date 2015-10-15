@@ -65,12 +65,18 @@ Be especially careful with BTR::COPY-OBJECT."))
   (with-slots (joint-states) obj
     (let ((old-joint-states (alexandria:copy-hash-table joint-states)))
       (call-next-method)
-      (update-semantic-map-poses
-       obj
-       (loop for name being the hash-keys in joint-states
-             using (hash-value new-state)
-             for old-state being the hash-values in old-joint-states
-             unless (eql new-state old-state) collect name)))))
+      ;; TODO(gaya): this needs to be fixed!!!
+      ;; The next block is commented out to optimize out querying of KnowRob
+      ;; which is horribly slow!
+      ;; As a result, if semantic map joint angles change CRAM belief state
+      ;; will not reflect that.
+      ;; (update-semantic-map-poses
+      ;;  obj
+      ;;  (loop for name being the hash-keys in joint-states
+      ;;        using (hash-value new-state)
+      ;;        for old-state being the hash-values in old-joint-states
+      ;;        unless (eql new-state old-state) collect name))
+      )))
 
 (defmethod (setf joint-state) :before (new-value (sem-map urdf-semantic-map-object) name)
   (attach-contacting-objects
