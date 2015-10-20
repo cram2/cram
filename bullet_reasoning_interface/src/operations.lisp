@@ -57,7 +57,7 @@ If there is already an object `name' in `world', nothing happens."
   (prolog `(retract (object ,world ,*camera*)))
   (prolog `(retract (object ,world ,*camera-view*))))
 
-(defun move-robot (pose &key (world btr:*current-bullet-world*) (robot-name 'cram-pr2-knowledge::pr2))
+(defun move-robot (pose &key (world btr:*current-bullet-world*) (robot-name 'cram-pr2-description::pr2))
   `(assert (object-pose ,world ,robot-name ,pose)))
 
 (defun move-object (name pose-stamped-msg bounding-box &key (world btr:*current-bullet-world*))

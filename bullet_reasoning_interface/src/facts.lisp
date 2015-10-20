@@ -23,13 +23,13 @@
         nil
         result)))
 
-(defun get-robot-instance (&key (world btr:*current-bullet-world*) (name 'cram-pr2-knowledge::pr2))
+(defun get-robot-instance (&key (world btr:*current-bullet-world*) (name 'cram-pr2-description::pr2))
   (cdr (car (car (force-ll (prolog `(%object ,world ,name ?rob)))))))
 
-(defun get-robot-pose (&key (world btr:*current-bullet-world*) (name 'cram-pr2-knowledge::pr2))
+(defun get-robot-pose (&key (world btr:*current-bullet-world*) (name 'cram-pr2-description::pr2))
   (pose (get-robot-instance :world world :name name)))
 
-(defun get-robot-pose-stamped (&key (world btr:*current-bullet-world*) (name 'cram-pr2-knowledge::pr2))
+(defun get-robot-pose-stamped (&key (world btr:*current-bullet-world*) (name 'cram-pr2-description:pr2))
   (let ((result (get-robot-pose :world world :name name)))
     (cl-tf:make-pose-stamped  *fixed-frame* (ros-time) (cl-tf:origin result) (cl-tf:orientation result))))
 
@@ -147,7 +147,7 @@ If `copy' is `t', the simulation and the evaluation will be executed on a copy o
                     (not (null (prolog `(visible-from ,world ,camera-pose ,(make-keyword object)))))))
               (update-camera-pose camera-pose world)
               result))
-          (not (null (prolog `(visible ,world cram-pr2-knowledge::pr2 ,(make-keyword object))))))))
+          (not (null (prolog `(visible ,world cram-pr2-description::pr2 ,(make-keyword object))))))))
 
 (defun is-stable-world (&key (world btr:*current-bullet-world*) simulate-duration copy)
   "Returns `t' if world `world' is stable, `NIL' otherwise."
