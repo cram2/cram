@@ -38,7 +38,7 @@
                cram-plan-failures
                cram-plan-occasions-events
                cram-occasions-events
-               cram-pr2-knowledge
+               cram-pr2-description
                pr2_controllers_msgs-msg
                pr2_msgs-msg
                pr2_msgs-srv

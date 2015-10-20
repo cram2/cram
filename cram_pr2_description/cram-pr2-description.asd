@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-pr2-knowledge
+(defsystem cram-pr2-description
   :author "Lorenz Moesenlechner"
   :license "BSD"
   

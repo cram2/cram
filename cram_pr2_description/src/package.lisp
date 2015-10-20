@@ -28,7 +28,7 @@
 
 (in-package :cl-user)
 
-(defpackage cram-pr2-knowledge
+(defpackage cram-pr2-description
   (:use #:common-lisp
         #:cram-prolog
         #:cram-robot-interfaces))

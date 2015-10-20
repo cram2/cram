@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-pr2-knowledge)
+(in-package :cram-pr2-description)
 
 
 (defparameter *right-parking-end-effector-pose*

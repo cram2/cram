@@ -352,7 +352,7 @@
   (let* ((target-frame (var-value '?target-frame
                                   (lazy-car
                                    (prolog:prolog
-                                    `(cram-pr2-knowledge::end-effector-link
+                                    `(cram-pr2-description::end-effector-link
                                       ,(car grippers)
                                       ?target-frame)))))
          (obj-pose-in-gripper (pose->pose-stamped
