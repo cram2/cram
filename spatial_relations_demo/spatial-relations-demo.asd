@@ -37,7 +37,7 @@
                semantic-map-costmap
                cram-robot-pose-gaussian-costmap
                cram-bullet-reasoning
-               cram-pr2-knowledge
+               cram-pr2-description
                cram-bullet-reasoning-belief-state
                projection-process-modules
                occupancy-grid-costmap
