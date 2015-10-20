@@ -1,15 +1,13 @@
 <package>
-  <name>cram_pr2_knowledge</name>
+  <name>cram_pr2_description</name>
   <version>0.2.0</version>
   <description>
-
-     cram_pr2_knowledge
-
+     cram_pr2_description
   </description>
   <author>Lorenz Moesenlechner</author>
-  <maintainer email="musterman@fictional.de">Add Maintainer here</maintainer>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
   <license>BSD</license>
-  <url>http://ros.org/wiki/cram_pr2_knowledge</url>
+  <url>http://ros.org/wiki/cram_pr2_description</url>
 
   <!-- Dependencies which this package needs to build itself. -->
   <buildtool_depend>catkin</buildtool_depend>
