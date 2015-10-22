@@ -28,39 +28,8 @@
 
 (in-package :plan-lib)
 
-(define-hook cram-language::on-preparing-performing-action-designator
-    (action-designator
-     matching-process-modules)
-  (:documentation "Gets triggered right before an action designator gets resolved, but after its matching process modules were identified."))
-
-(define-hook cram-language::on-finishing-performing-action-designator (id success)
-  (:documentation "Gets triggered right after an action designator was resolved."))
-
 (def-goal (perform ?action-designator)
-  (let ((matching-process-modules
-          (remove-if
-           (lambda (matching-process-module)
-             (eql nil (cram-process-modules:get-running-process-module
-                       matching-process-module)))
-          (matching-process-module-names ?action-designator))))
-    (unless matching-process-modules
-      (fail "No process modules found for executing designator ~a"
-            ?action-designator))
-    ;; Rethrow the first error in the composite-failure. This is
-    ;; necessary to keep the high-level plans working. For instance,
-    ;; if perception fails, plans expect an OBJECT-NOT-FOUND failure,
-    ;; not a COMPOSITE-FAILURE.
-    (cpl-impl::log-block
-        #'cram-language::on-preparing-performing-action-designator
-        (?action-designator matching-process-modules)
-        #'cram-language::on-finishing-performing-action-designator
-      (with-failure-handling
-          ((composite-failure (failure)
-             (fail (car (composite-failures failure)))))
-        (setf result
-              (try-each-in-order (module matching-process-modules)
-                (perform-on-process-module module
-                                           ?action-designator)))))))
+  (pm-execute-matching ?action-designator))
 
 (def-goal (perform-on-process-module ?module ?action-designator)
   (pm-execute ?module ?action-designator))
