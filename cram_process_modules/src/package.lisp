@@ -39,10 +39,10 @@
   (:import-from #:cram-utilities lazy-mapcar force-ll var-value)
   (:nicknames :cpm)
   (:export process-module name input feedback result
-           status cancel priority caller pm-run pm-execute
-           pm-cancel pm-status def-process-module
-           register-process-module process-module-alias
-           with-process-module-aliases
+           status cancel priority caller
+           pm-run pm-execute pm-execute-matching pm-cancel pm-status
+           def-process-module register-process-module
+           process-module-alias with-process-module-aliases
            get-running-process-module get-running-process-module-name
            get-process-module-names get-running-process-module-names
            on-process-module-started on-process-module-finished

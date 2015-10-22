@@ -49,14 +49,16 @@
 ;;; themselves available for plan execution. Basically, PROJECTION-RUNNING
 ;;; can act as a flag to hot-swap projection- and regular-process-modules.
 
-(def-fact-group process-modules (matching-process-module available-process-module)
+(def-fact-group process-modules (matching-process-module
+                                 available-process-module
+                                 projection-running)
 
   (<- (matching-process-module ?action-designator ?process-module-name)
     (fail))
 
   (<- (available-process-module ?process-name)
     (fail))
-  
+
   (<- (projection-running ?projection-process-module-name)
     (fail)))
 
@@ -70,3 +72,38 @@
                           (matching-process-module
                            ,action-designator ?process-module-name)
                           (available-process-module ?process-module-name))))))
+
+(cut:define-hook cram-language::on-preparing-performing-action-designator
+    (action-designator
+     matching-process-modules)
+  (:documentation "Gets triggered right before an action designator gets resolved, but after its matching process modules were identified."))
+
+(cut:define-hook cram-language::on-finishing-performing-action-designator (id success)
+  (:documentation "Gets triggered right after an action designator was resolved."))
+
+(defun pm-execute-matching (action-designator)
+  "Executes `action-designator' on the currently running process module
+that matches through predicates MATCHING-PROCESS-MODULE and AVAILABLE-PROCESS-MODULE."
+  (let ((matching-process-modules
+          (remove-if
+           (lambda (matching-process-module)
+             (eql nil (cram-process-modules:get-running-process-module
+                       matching-process-module)))
+          (matching-process-module-names action-designator))))
+    (unless matching-process-modules
+      (cpl:fail "No process modules found for executing designator ~a"
+            action-designator))
+    ;; Rethrow the first error in the composite-failure. This is
+    ;; necessary to keep the high-level plans working. For instance,
+    ;; if perception fails, plans expect an OBJECT-NOT-FOUND failure,
+    ;; not a COMPOSITE-FAILURE.
+    (cpl-impl::log-block
+        #'cram-language::on-preparing-performing-action-designator
+        (action-designator matching-process-modules)
+        #'cram-language::on-finishing-performing-action-designator
+      (with-failure-handling
+          ((composite-failure (failure)
+             (cpl:fail (car (composite-failures failure)))))
+        (setf result
+              (try-each-in-order (module matching-process-modules)
+                (pm-execute module action-designator)))))))
