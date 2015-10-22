@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2015, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,14 +27,29 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(defsystem fake-process-modules
-  :author "Lorenz Moesenlechner <moesenle@in.tum.de>"
-  :license "BSD"
+(in-package :cram-dummy-process-modules)
 
-  :depends-on (cram-process-modules
-               cram-designators)
-  :components
-  ((:module "src"
-            :components
-            ((:file "package")
-             (:file "process-modules" :depends-on ("package"))))))
+(def-fact-group process-modules (matching-process-module
+                                 available-process-module
+                                 projection-running)
+
+  (<- (matching-process-module ?designator :ptu)
+    (trajectory-desig? ?designator)
+    (or (desig-prop ?designator (:to :see))
+        (desig-prop ?designator (:to :follow))))
+
+  (<- (matching-process-module ?designator :perception)
+    (desig-prop ?designator (:to :perceive)))
+
+  (<- (matching-process-module ?designator :manipulation)
+    (trajectory-desig? ?designator)
+    (not
+     (or (desig-prop ?designator (:to :see))
+         (desig-prop ?designator (:to :follow)))))
+
+  (<- (matching-process-module ?designator :navigation)
+    (desig-prop ?designator (:type :navigation)))
+
+  (<- (matching-process-module ?designator :anything))
+
+  (<- (available-process-module ?pm)))

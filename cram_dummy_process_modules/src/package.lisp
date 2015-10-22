@@ -29,13 +29,15 @@
 
 (in-package :cl-user)
 
-(defpackage fake-process-modules
+(defpackage cram-dummy-process-modules
   (:use #:common-lisp
         #:cram-process-modules
-        #:desig)
+        #:desig
+        #:cram-prolog)
   (:export #:enable-fake-process-modules
            #:with-fake-process-modules
            #:fake-navigation
            #:fake-manipulation
            #:fake-perception
-           #:fake-ptu))
+           #:fake-ptu
+           #:fake-anything))

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(fake_process_module)
+project(cram_dummy_process_modules)
 find_package(catkin REQUIRED)
 
 catkin_package()

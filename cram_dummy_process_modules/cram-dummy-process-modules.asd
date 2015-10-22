@@ -27,35 +27,16 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :fake-process-modules)
+(defsystem cram-dummy-process-modules
+  :author "Lorenz Moesenlechner <moesenle@in.tum.de>"
+  :license "BSD"
 
-(def-process-module fake-navigation (goal-pose)
-  (format t "Fake navigation invoked with pose `~a'." goal-pose))
-
-(def-process-module fake-ptu (desig)
-  (format t "Fake ptu invoked with designator `~a'.~%" desig))
-
-(def-process-module fake-manipulation (desig)
-  (format t "Fake manipulation invoked with designator `~a'.~%" desig))
-
-(def-process-module fake-perception (desig)
-  (format t "Fake perception invoked with designator `~a'.~%" desig)
-  (let ((new-desig (make-designator :object (description desig))))
-    (with-slots (data valid) new-desig
-      (setf data :data)
-      (setf valid t))
-    (list new-desig)))
-
-(defun enable-fake-process-modules ()
-  (cpm:process-module-alias :navigation 'fake-navigation)
-  (cpm:process-module-alias :ptu 'fake-ptu)
-  (cpm:process-module-alias :manipulation 'fake-manipulation)
-  (cpm:process-module-alias :perception 'fake-perception))
-
-(defmacro with-fake-process-modules (&body body)
-  `(with-process-module-aliases
-       ((:navigation fake-navigation)
-        (:ptu fake-ptu)
-        (:manipulation fake-manipulation)
-        (:perception fake-perception))
-     ,@body))
+  :depends-on (cram-process-modules
+               cram-designators
+               cram-prolog)
+  :components
+  ((:module "src"
+            :components
+            ((:file "package")
+             (:file "process-modules" :depends-on ("package"))
+             (:file "matching-pms" :depends-on ("package" "process-modules"))))))
