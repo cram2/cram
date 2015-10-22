@@ -42,7 +42,9 @@
    (sem-map-utils:get-connecting-joint-limits
     (cram-semantic-map:get-semantic-map) part-name)))
 
-(def-fact-group process-modules (matching-process-module available-process-module projection-running)
+(def-fact-group process-modules (matching-process-module
+                                 available-process-module
+                                 projection-running)
 
   (<- (matching-process-module ?designator projection-ptu)
     (trajectory-desig? ?designator)
