@@ -1,5 +1,5 @@
 <package>
-  <name>fake_process_module</name>
+  <name>cram_dummy_process_modules</name>
   <version>0.2.0</version>
   <description>
     Fake process module implementation
@@ -11,7 +11,7 @@
 
   <license>BSD</license>
 
-  <url type="website">http://ros.org/wiki/fake_process_module</url>
+  <url type="website">http://ros.org/wiki/cram_dummy_process_modules</url>
   <url type="bugtracker">https://github.com/cram-code/cram_highlevel/issues</url>
   <url type="repository">https://github.com/cram-code/cram_highlevel</url>
 
@@ -19,7 +19,9 @@
 
   <build_depend>cram_process_modules</build_depend>
   <build_depend>cram_designators</build_depend>
+  <build_depend>cram_prolog</build_depend>
 
   <run_depend>cram_process_modules</run_depend>
   <run_depend>cram_designators</run_depend>
+  <run_depend>cram_prolog</run_depend>
 </package>
