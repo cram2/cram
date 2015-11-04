@@ -43,7 +43,7 @@
   (handler-case
       (let* ((root-link (cl-urdf:name (cl-urdf:root-link (urdf robot))))
              (robot-transform
-               (cl-transforms-stamped:lookup-transform-stamped
+               (cl-transforms-stamped:lookup-transform
                 tf-buffer root-link reference-frame
                 :time timestamp :timeout *tf-default-timeout*)))
         (when robot-transform
@@ -54,7 +54,7 @@
                   (cl-transforms:transform->pose
                    (cl-transforms:transform*
                     robot-transform
-                    (cl-transforms-stamped:lookup-transform-stamped
+                    (cl-transforms-stamped:lookup-transform
                      tf-buffer name root-link
                      :time timestamp
                      :timeout *tf-default-timeout*)))))))
