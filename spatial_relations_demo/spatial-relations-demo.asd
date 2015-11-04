@@ -39,7 +39,7 @@
                cram-bullet-reasoning
                cram-pr2-description
                cram-bullet-reasoning-belief-state
-               projection-process-modules
+               cram-pr2-synch-projection-pms
                occupancy-grid-costmap
                cram-plan-library
                cram-bullet-reasoning-designators

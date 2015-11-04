@@ -19,7 +19,7 @@
   <depend>cram_bullet_reasoning</depend>
   <depend>cram_pr2_description</depend>
   <depend>cram_bullet_reasoning_belief_state</depend>
-  <depend>pr2_projection_process_modules</depend>
+  <depend>cram_pr2_synch_projection_pms</depend>
   <depend>occupancy_grid_costmap</depend>
   <depend>cram_plan_library</depend>
   <depend>cram_bullet_reasoning_designators</depend>
