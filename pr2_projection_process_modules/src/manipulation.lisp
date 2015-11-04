@@ -61,7 +61,7 @@
 
 (defun get-link-orientation-in-robot (link-name &key (base-link *robot-base-frame*))
   (cl-transforms:rotation
-   (cl-transforms-stamped:lookup-transform-stamped
+   (cl-transforms-stamped:lookup-transform
     *transformer* base-link link-name :timeout *tf-default-timeout*)))
 
 (defun execute-action-trajectory-points (action-designator &optional object-name)
@@ -124,11 +124,11 @@
                         (robot-arms-parking-joint-states
                          ?right-parking-joint-states :right))))
     (let* ((left-gripper-transform
-             (cl-transforms-stamped:lookup-transform-stamped
+             (cl-transforms-stamped:lookup-transform
               *transformer* *robot-base-frame* ?left-end-effector
               :timeout *tf-default-timeout*))
            (right-gripper-transform
-             (cl-transforms-stamped:lookup-transform-stamped
+             (cl-transforms-stamped:lookup-transform
               *transformer* *robot-base-frame* ?right-end-effector
               :timeout *tf-default-timeout*))
            (left->right-arm-vector
