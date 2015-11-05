@@ -236,7 +236,6 @@
 
 (def-process-module projection-manipulation (input)
   (let ((action (desig:reference input)))
-    (format t "action: ~a ~a~%" (car action) (cdr action))
     (execute-as-action
      input (lambda () (apply (symbol-function (car action)) (cdr action))))))
 
