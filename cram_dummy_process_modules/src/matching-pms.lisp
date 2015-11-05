@@ -34,7 +34,7 @@
                                  projection-running)
 
   (<- (matching-process-module ?designator :ptu)
-    (trajectory-desig? ?designator)
+    (desig-prop ?desig (:type :trajectory))
     (or (desig-prop ?designator (:to :see))
         (desig-prop ?designator (:to :follow))))
 
@@ -42,7 +42,7 @@
     (desig-prop ?designator (:to :perceive)))
 
   (<- (matching-process-module ?designator :manipulation)
-    (trajectory-desig? ?designator)
+    (desig-prop ?desig (:type :trajectory))
     (not
      (or (desig-prop ?designator (:to :see))
          (desig-prop ?designator (:to :follow)))))
