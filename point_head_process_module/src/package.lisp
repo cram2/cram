@@ -40,6 +40,7 @@
         #:cl-transforms-stamped
         #:cram-robot-interfaces)
   (:export #:point-head-process-module)
+  (:shadowing-import-from :alexandria rotate)
   (:shadowing-import-from #:cpl-impl #:fail)
   (:shadowing-import-from #:cram-process-modules #:name)
   (:desig-properties #:to #:see #:follow #:pose #:location #:obj))

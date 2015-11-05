@@ -36,6 +36,7 @@
         #:cram-designators
         #:cram-process-modules
         #:cram-transforms-stamped
-        #:cram-plan-failures)
+        #:cram-plan-failures
+        #:cl-transforms-stamped)
   (:export #:pr2-navigation-process-module #:*navigation-enabled*)
   (:desig-properties #:type #:navigation #:goal #:to))
