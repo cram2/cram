@@ -37,7 +37,8 @@
         #:alexandria
         #:cram-transforms-stamped
         #:cpl-impl
-        #:cl-transforms-stamped)
+        #:cl-transforms-stamped
+        #:cram-robot-interfaces)
   (:export #:point-head-process-module)
   (:shadowing-import-from #:cpl-impl #:fail)
   (:shadowing-import-from #:cram-process-modules #:name)
