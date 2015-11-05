@@ -41,7 +41,8 @@
                cram-occasions-events
                roslisp-utilities
                alexandria
-               pr2_controllers_msgs-msg)
+               pr2_controllers_msgs-msg
+               cram-robot-interfaces)
   :components
   ((:module "src"
             :components
