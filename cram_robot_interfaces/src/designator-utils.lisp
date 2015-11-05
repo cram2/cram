@@ -103,3 +103,13 @@ that corresponds to side indicator `side' used for the IK service."))
 
 (defun visibility-designator-p (designator)
   (eq (desig-prop-value designator :to) :see))
+
+
+(def-fact-group manipulation-designators (action-desig)
+  (<- (trajectory-desig? ?desig)
+    (lisp-pred typep ?desig action-designator)
+    (desig-prop ?desig (:type :trajectory)))
+
+  (<- (constraints-desig? ?desig)
+      (lisp-pred typep ?desig action-designator)
+      (desig-prop ?desig (:type :constraints))))

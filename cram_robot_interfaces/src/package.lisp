@@ -51,7 +51,8 @@
    #:object-type-tool-length #:object-designator-tool-length
    ;; objects
    #:orientation-matters
-   ;; reachbility prolog utils
+   ;; designator prolog utils
    #:compute-ik #:side->ik-group-name
    #:reachability-designator #:designator-reach-pose
-   #:reachability-designator-p #:visibility-designator-p))
+   #:reachability-designator-p #:visibility-designator-p
+   #:trajectory-desig? #:constraints-desig?))
