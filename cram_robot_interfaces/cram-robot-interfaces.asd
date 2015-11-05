@@ -46,4 +46,4 @@
      (:file "ptu" :depends-on ("package"))
      (:file "robot" :depends-on ("package"))
      (:file "objects" :depends-on ("package"))
-     (:file "reachability-utils" :depends-on ("package" "trajectories" "arms"))))))
+     (:file "designator-utils" :depends-on ("package" "trajectories" "arms"))))))
