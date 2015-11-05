@@ -53,8 +53,6 @@ valid solution for `location-designator'"
   t;; (validate-location-designator-solution location-designator current-location)
   ;; TODO(gaya): this is an ugly hack that needs to be fixed!!!
   ;; Something is conceptually wrong with calling the validation function explicitly.
-  ;; It is breaking plan execution, it's quite clear why ATM.
-  ;; This hack breaks it for the real robot in case the navigation action fails.
   )
 
 (defun %execute-at-location (loc-var function)
