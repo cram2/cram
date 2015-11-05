@@ -37,6 +37,7 @@
                roslisp-utilities
                cram-prolog
                cram-transforms-stamped
+               cl-transforms-stamped
                cram-plan-failures
                cram-plan-occasions-events
                cram-occasions-events

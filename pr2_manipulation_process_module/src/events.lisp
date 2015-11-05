@@ -34,7 +34,7 @@
   ;;              (side plan-knowledge:side)) event
     ;; TODO(winkler): Attaching objects does here. Currently done in
     ;; the motion library.
-    ))
+    )
 
 (defmethod cram-occasions-events:on-event
     detach-object ((event cram-plan-occasions-events:object-detached))
@@ -42,4 +42,4 @@
   ;;              (side plan-knowledge:side)) event
     ;; TODO(winkler): Detaching objects done here. Currently done in
     ;; the motion library.
-    ))
+    )

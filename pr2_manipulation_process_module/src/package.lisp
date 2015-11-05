@@ -42,6 +42,7 @@
         #:cl-transforms-stamped)
   (:import-from alexandria ignore-some-conditions)
   (:import-from roslisp ros-info ros-warn ros-error ros-time)
+  (:shadowing-import-from #:cram-designators object object-designator)
   (:export pr2-manipulation-process-module
            wait-for-controller
            reorient-object)

@@ -89,7 +89,7 @@
         ;; should be re-introduced, but doesn't work right now - so we
         ;; leave its function infrastructure here and fix it later.
         ;(actionlib-lisp:call-goal *action-client* goal)
-        (sleep 1)))))
+        (cpl:sleep 1)))))
 
 (defmethod pm-run :around ((pm point-head-process-module) &optional name)
   (declare (ignore name))

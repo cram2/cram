@@ -22,6 +22,7 @@
   <build_depend>cram_prolog</build_depend>
   <build_depend>roslisp_utilities</build_depend>
   <build_depend>cram_transforms_stamped</build_depend>
+  <build_depend>cl_transforms_stamped</build_depend>
   <build_depend>cram_plan_failures</build_depend>
   <build_depend>cram_plan_occasions_events</build_depend>
   <build_depend>cram_occasions_events</build_depend>
@@ -34,6 +35,7 @@
   <run_depend>cram_prolog</run_depend>
   <run_depend>roslisp_utilities</run_depend>
   <run_depend>cram_transforms_stamped</run_depend>
+  <run_depend>cl_transforms_stamped</run_depend>
   <run_depend>cram_plan_failures</run_depend>
   <run_depend>cram_plan_occasions_events</run_depend>
   <run_depend>cram_occasions_events</run_depend>

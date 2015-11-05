@@ -323,9 +323,9 @@
 (defun pose-pointing-away-from-base (object-pose)
   (let ((ref-frame "/base_link")
         (fin-frame "/map"))
-    (let* ((base-transform-map
-             (cl-tf2:ensure-transform-available
-              *transformer* ref-frame fin-frame))
+    (let* ((base-transform-map (cl-transforms-stamped:lookup-transform
+                                *transformer* ref-frame fin-frame
+                                :timeout *tf-default-timeout*))
            (base-pose-map (make-pose-stamped
                            (frame-id base-transform-map)
                            (stamp base-transform-map)
