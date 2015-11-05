@@ -105,6 +105,4 @@
            #:effective-designator #:desig-value
            #:desig-location-prop
            #:equated-desigs
-           #:desig
-           #:trajectory-desig?
-           #:constraints-desig?))
+           #:desig))
