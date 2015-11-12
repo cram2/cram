@@ -62,6 +62,7 @@
                (:file "objects"
                 :depends-on ("package" "reasoning-world" "textures" "utils"))
                (:file "household-objects" :depends-on ("package" "objects" "utils"))
+	       (:file "manmade-objects" :depends-on ("package" "objects" "utils"))
                (:file "ros-household-object-database"
                 :depends-on ("package" "objects" "household-objects"))
                (:file "aabb" :depends-on ("package" "objects"))
