@@ -65,6 +65,7 @@
         (object (get-designator-object (event-object event))))
     (when object
       (detach-object robot object (event-link event))
+      (simulate *current-bullet-world* 10)
       (update-object-designator-location
        (desig:current-desig (event-object event))
        (make-object-location (get-designator-object-name
