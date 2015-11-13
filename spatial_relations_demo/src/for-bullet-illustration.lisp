@@ -32,7 +32,7 @@
 (defun step-0 ()
   "initialization"
   (move-demo-objects-away)
-  (clear-costmap-viz)
+  (clear-costmap-gl-object)
   (move-robot '((-1.8 1 0) (0 0 0 1))))
 
 (defun step-1 ()

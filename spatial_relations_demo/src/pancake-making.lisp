@@ -41,17 +41,14 @@
 
 (defmethod execute-demo ((demo-name (eql :pancake-making)) &key set)
   (declare (ignore set))
-  (sb-ext:gc :full t)
-  (cram-projection:with-projection-environment
-      projection-process-modules::pr2-bullet-projection-environment
-    (cpl-impl:top-level
+  (with-projection-environment pr2-bullet-projection-environment
+    (top-level
       (let ((pancake-maker-designator
               (find-object-on-counter :pancake-maker "Cupboard" "pancake_table")))
         (let ((spatula-designator
                 (find-object-on-counter :spatula "CounterTop"
                                         "kitchen_sink_block_counter_top")))
-          (sb-ext:gc :full t)
-          (cram-language-designator-support:with-designators
+          (with-designators
               ((spatula-location :location `((:on "Cupboard")
                                              (:name "pancake_table")
                                              (:centered-with-padding 0.6)
@@ -59,12 +56,10 @@
                                              (:right-of ,pancake-maker-designator)
                                              (:near ,pancake-maker-designator))))
             (format t "now trying to achieve the location of spatula on kitchen-island~%")
-            (plan-lib:achieve `(plan-lib:loc ,spatula-designator ,spatula-location))))
-        (sb-ext:gc :full t)
+            (achieve `(loc ,spatula-designator ,spatula-location))))
         (let ((mondamin-designator
                 (find-object-on-counter :mondamin "CounterTop"
                                         "kitchen_sink_block_counter_top")))
-          (sb-ext:gc :full t)
           (cram-language-designator-support:with-designators
               ((on-kitchen-island :location `((:on "Cupboard")
                                               (:name "pancake_table")
@@ -73,14 +68,11 @@
                                               (:right-of ,pancake-maker-designator)
                                               (:far-from ,pancake-maker-designator))))
             (format t "now trying to achieve the location of mondamin on kitchen-island~%")
-            (plan-lib:achieve `(plan-lib:loc ,mondamin-designator ,on-kitchen-island))
-            (sb-ext:gc :full t)))
-        (sb-ext:gc :full t)
+            (achieve `(loc ,mondamin-designator ,on-kitchen-island))))
         (let ((spatula-2-designator
                 (find-object-on-counter :spatula "CounterTop"
                                         "kitchen_sink_block_counter_top")))
-          (sb-ext:gc :full t)
-          (cram-language-designator-support:with-designators
+          (with-designators
               ((spatula-location :location `((:on "Cupboard")
                                              (:name "pancake_table")
                                              (:centered-with-padding 0.6)
@@ -88,4 +80,4 @@
                                              (:left-of ,pancake-maker-designator)
                                              (:near ,pancake-maker-designator))))
             (format t "now trying to achieve the location of spatula on kitchen-island~%")
-            (plan-lib:achieve `(plan-lib:loc ,spatula-2-designator ,spatula-location))))))))
+            (achieve `(loc ,spatula-2-designator ,spatula-location))))))))

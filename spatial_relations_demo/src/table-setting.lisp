@@ -79,9 +79,9 @@
         (when (> number-of-plates 1)
           (prolog `(assert (object-pose ?_ plate-3 ((-1.0 1.84 0.85747d0) (0 0 0 1)))))
           (when (> number-of-plates 2)
-            (prolog `(assign-object-pos-on plate-2 ,des-for-plate-2))
+            (prolog `(assert-object-pose-on plate-2 ,des-for-plate-2))
             (when (> number-of-plates 3)
-              (prolog `(assign-object-pos-on plate-4 ,des-for-plate-4)))))))))
+              (prolog `(assert-object-pose-on plate-4 ,des-for-plate-4)))))))))
 
 (defun make-plate-desig (plate-id &optional (counter-name "kitchen_island_counter_top")
                                     (plate-num *num-of-sets-on-table*))

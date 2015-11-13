@@ -61,7 +61,7 @@ for 2 plates and 1 other-type.")
 `set' is, e.g., :main or :other-set, if not given spawns all objects."
   (kill-all-objects)
   (parameterize-demo demo-name)
-  (clear-costmap-viz)
+  (clear-costmap-gl-object)
   (detach-all-objects (object-instance (robot-name)))
   (move-robot)
   (park-robot)
