@@ -162,10 +162,10 @@ of the object should _not_ be updated."
       (with-slots (attached-objects) robot-object
         (let ((attachment (assoc (name obj) attached-objects)))
           (cond (link
-                 (setf (car (cdr attachment))
-                       (remove link (car (cdr attachment))
+                 (setf (second attachment)
+                       (remove link (second attachment)
                                :test #'equal :key #'attachment-link))
-                 (unless (cdr attachment)
+                 (unless (second attachment)
                    (setf attached-objects (remove (name obj) attached-objects
                                                   :key #'car))
                    (reset-collision-information obj (cdr (cdr attachment)))))
