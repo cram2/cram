@@ -98,3 +98,37 @@
     (format t "Now trying to achieve mondamin object in hand.~%")
     (achieve `(object-in-hand ,mondamin-on-cupboard))
     (format t "Object is in hand.~%")))
+
+(def-top-level-cram-function achieve-hand-with-monamin-above-maker ()
+  (with-designators
+      ((on-pancake-table :location `((:on "Cupboard")
+                                     (:name "pancake_table")))
+       (pancake-maker :object `((:at ,on-pancake-table)
+                                (:type :pancake-maker)))
+
+       (near-maker :location `((:to :reach)
+                               (:obj ,pancake-maker)))
+
+       (location-in-gripper :location `((:in :gripper)))
+       (pouring-container :object `((:at ,location-in-gripper)))
+
+       (pouring-target-location :location `((:on ,pancake-maker)))
+       (pour-action :action `((:to :pour)
+                              (:stuff ,pouring-container)
+                              (:target ,pouring-target-location))))
+    (perceive-object 'a pouring-container)
+    (perceive-object 'a pancake-maker)
+    (format t "now trying to achieve hand above maker~%")
+    (with-retry-counters ((navigation-retries 10))
+      (with-failure-handling
+          ((manipulation-pose-unreachable (f)
+             (declare (ignore f))
+             (format t "Could not reach target pose.~%")
+             (do-retry navigation-retries
+               (format t "Re-positioning base.~%")
+               (retry))))
+        (at-location (near-maker)
+          (format t "i'm near maker.~%")
+          (format t "Now trying to pour.~%")
+          (perform pour-action)
+          (monitor-action pour-action))))))
