@@ -40,7 +40,8 @@
   (:shadow copy-object)
   (:export *current-bullet-world* *current-timeline*
            merge-bounding-boxes aabb with-stored-world *debug-window*
-           add-debug-window add-costmap-function-object camera width
+           add-debug-window add-costmap-function-object clear-costmap-gl-object
+           camera width
            height fov-y z-near z-far pose gl-execute-with-camera
            camera-transform look-at-object-rotation
            with-rendering-to-framebuffer render-to-framebuffer
@@ -67,6 +68,7 @@
            stable-p above-p find-objects-above below-p
            find-objects-below bullet-world object
            retract step simulate-realtime object-pose object-bottom-pose
+           object-pose-on
            position orientation poses-equal contact stable stable-household
            object-not-in-collision ik-solution-not-in-collision
            link-contacts supported-by above below visible visible-from
