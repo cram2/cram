@@ -35,14 +35,13 @@
   (:shadowing-import-from #:btr object object-pose pose)
   (:export
    ;; misc.lisp
-   clear-costmap-viz
    ;; object-database.lisp
    scenario-objects-init-pose scenario-objects-default-color scenario-object-color
    scenario-object-shape scenario-object-extra-attributes
    ;; objects.lisp
    spawn-object kill-object kill-all-objects move-object move-object-onto
    object-instance object-pose object-exists household-object-exists
-   assign-object-pos assign-object-pos-on
+   assert-object-pose assert-object-pose-on
    ;; plan-library.lisp
    find-object-on-counter
    ;; robot.lisp

@@ -29,7 +29,3 @@
 
 (in-package :bullet-reasoning-utilities)
 
-(defun clear-costmap-viz ()
-  (cram-bullet-reasoning::clear-current-costmap-function-object))
-
-(declaim (inline clear-costmap-viz))

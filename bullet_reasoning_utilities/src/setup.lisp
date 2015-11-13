@@ -67,7 +67,7 @@
     (setf *kitchen-urdf*
           (cl-urdf:parse-urdf (roslisp:get-param "kitchen_description"))))
   (let ((pi-rotation '(0 0 1 0)))
-    (clear-costmap-viz)
+    (clear-costmap-gl-object)
     (prolog
      `(and
        (clear-bullet-world)
