@@ -207,16 +207,3 @@ that the bounding boxes of `bottom' and `top' are alligned."
                       (list pose))
                     obj))
                  poses)))
-
-(def-prolog-handler generate (bdgs ?values ?generator)
-  "Lisp-calls the function call form `?generator' and binds every
-single value to `value. If `?n' is specified, generates at most `?n'
-solutions."
-  (destructuring-bind (generator-fun &rest generator-args)
-      (substitute-vars ?generator bdgs)
-    (assert (fboundp generator-fun) ()
-            "Generator function `~a' not valid" generator-fun)
-    (list
-     (unify (var-value ?values bdgs)
-            (apply generator-fun generator-args)
-            bdgs))))

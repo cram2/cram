@@ -34,18 +34,18 @@
   (<- (random-poses-on ?bottom ?top ?poses)
     (ground (?bottom ?top))
     (not (bound ?poses))
-    (generate ?poses (random-poses-on ?bottom ?top)))
+    (generate-values ?poses (random-poses-on ?bottom ?top)))
 
   (<- (random-poses-on ?n ?bottom ?top ?poses)
     (ground (?bottom ?top))
     (not (bound ?poses))
-    (generate ?tmp (random-poses-on ?bottom ?top))
+    (generate-values ?tmp (random-poses-on ?bottom ?top))
     (take ?n ?tmp ?poses))
 
   (<- (n-poses-on ?n ?bottom ?top ?poses)
     (ground (?bottom ?top ?n))
     (not (bound ?poses))
-    (generate ?poses (n-poses-on ?bottom ?top ?n)))
+    (generate-values ?poses (n-poses-on ?bottom ?top ?n)))
 
   (<- (desig-poses ?desig ?obj-name ?poses)
     (ground (?desig ?obj-name))
