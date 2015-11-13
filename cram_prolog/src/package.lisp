@@ -39,7 +39,7 @@
    ;; prolog handlers
    #:and #:or #:not #:-> #:*-> #:cut #:lisp-fun #:lisp-pred #:bound #:ground
    #:true #:fail #:once #:call #:findall #:bagof #:setof #:every #:forall
-   #:member #:take #:filter-bindings
+   #:member #:take #:filter-bindings #:generate-values
    ;; utilities
    #:== #:equal #:length #:append #:sort #:reduce #:max
    #:string-concat #:format #:warn #:error
