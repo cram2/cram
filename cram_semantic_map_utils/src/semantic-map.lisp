@@ -392,7 +392,7 @@
   "Returns a lazy list of all objects of type `type' that are children
 of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns not only direct children."
   ;; Update the cache if not updated yet
-  (let ((type (etypecase type
+  (let ((type (typecase type
                 (symbol (roslisp-utilities:rosify-lisp-name type))
                 (string type))))
     (lazy-mapcan (lambda (part)
@@ -407,7 +407,7 @@ of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns
   "Returns a lazy list of all objects of type `type' that are children
 of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns not only direct children."
   ;; Update the cache if not updated yet
-  (let ((name (etypecase name
+  (let ((name (typecase name
                 (symbol (roslisp-utilities:rosify-lisp-name name))
                 (string name))))
     (lazy-mapcan (lambda (part)
