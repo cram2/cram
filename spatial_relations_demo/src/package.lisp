@@ -46,7 +46,8 @@
         #:cram-robot-interfaces
         #:cram-plan-library
         #:cram-plan-occasions-events
-        #:cram-language-designator-support)
+        #:cram-language-designator-support
+        #:cram-plan-failures)
   (:shadowing-import-from #:btr object pose object-pose width height name object-attached)
   (:shadowing-import-from #:cram-prolog fail)
   (:shadowing-import-from #:cram-designators object-designator)

@@ -60,7 +60,7 @@
         (let ((mondamin-designator
                 (find-object-on-counter :mondamin "CounterTop"
                                         "kitchen_sink_block_counter_top")))
-          (cram-language-designator-support:with-designators
+          (with-designators
               ((on-kitchen-island :location `((:on "Cupboard")
                                               (:name "pancake_table")
                                               (:centered-with-padding 0.35)
@@ -81,3 +81,20 @@
                                              (:near ,pancake-maker-designator))))
             (format t "now trying to achieve the location of spatula on kitchen-island~%")
             (achieve `(loc ,spatula-2-designator ,spatula-location))))))))
+
+(def-top-level-cram-function achieve-mondamin-in-hand ()
+  (with-designators
+      ((on-cupboard :location '((:on "Cupboard")))
+       (mondamin-on-cupboard :object `((:at ,on-cupboard) (:type :mondamin))))
+    (with-retry-counters ((perception-retries 10))
+      (with-failure-handling
+          ((object-not-found (f)
+             (declare (ignore f))
+             (format t "Object ~a was not found.~%" mondamin-on-cupboard)
+             (do-retry perception-retries
+               (format t "Re-perceiving object.~%")
+               (retry))))
+        (perceive-object 'a mondamin-on-cupboard)))
+    (format t "Now trying to achieve mondamin object in hand.~%")
+    (achieve `(object-in-hand ,mondamin-on-cupboard))
+    (format t "Object is in hand.~%")))
