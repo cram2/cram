@@ -231,3 +231,16 @@
 (def-prolog-handler filter-bindings (bdgs vars &rest goals)
   (lazy-mapcar (rcurry (curry #'filter-bindings vars) nil)
                (prove-all goals bdgs)))
+
+
+(def-prolog-handler generate-values (bdgs ?values ?generator)
+  "Lisp-calls the function call form `?generator' and binds every
+single value to `?values'. E.g. (generate-values ?poses (generate-poses ?arg))."
+  (destructuring-bind (generator-fun &rest generator-args)
+      (substitute-vars ?generator bdgs)
+    (assert (fboundp generator-fun) ()
+            "Generator function `~a' not valid" generator-fun)
+    (list
+     (unify (var-value ?values bdgs)
+            (apply generator-fun generator-args)
+            bdgs))))
