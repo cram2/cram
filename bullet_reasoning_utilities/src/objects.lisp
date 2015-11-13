@@ -68,11 +68,16 @@
         `(assert (object-pose ?w ,object-name ?pose)))))
 
 (defun move-object-onto (object-name onto-type onto-name)
-  (let* ((on-designator (make-designator :location `((:on ,onto-type)
-                                                     (:name ,onto-name))))
-         (location (reference on-designator)))
-    (move-object object-name location)
-    (simulate *current-bullet-world* 10)))
+  (let* ((size
+           (cl-bullet:bounding-box-dimensions (aabb (object-instance object-name))))
+         (obj-diagonal-len
+           (sqrt (+ (expt (cl-transforms:x size) 2) (expt (cl-transforms:y size) 2))))
+         (on-designator
+           (make-designator :location `((:on ,onto-type)
+                                        (:name ,onto-name)
+                                        (:centered-with-padding ,obj-diagonal-len)))))
+    (prolog
+     `(assert-object-pose-on ,object-name ,on-designator))))
 
 (defun object-instance (object-name)
   (var-value '?instance
@@ -94,18 +99,18 @@
 ;;;;;;;;;;;;;;;;;;;; PROLOG ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def-fact-group bullet-reasoning-utilities ()
-  (<- (assign-object-pos ?obj-name ?desig)
+  (<- (assert-object-pose ?obj-name ?desig)
     (once
      (bound ?obj-name)
      (bound ?desig)
      (bullet-world ?w)
      (desig-solutions ?desig ?solutions)
      (take 1 ?solutions ?8-solutions)
-     (btr::generate ?poses-on (btr::obj-poses-on ?obj-name ?8-solutions ?w))
+     (generate-values ?poses-on (obj-poses-on ?obj-name ?8-solutions ?w))
      (member ?solution ?poses-on)
      (assert (object-pose ?w ?obj-name ?solution))))
 
-  (<- (assign-object-pos-on ?obj-name ?desig)
+  (<- (assert-object-pose-on ?obj-name ?desig)
     (once
      (bound ?obj-name)
      (bound ?desig)
@@ -113,5 +118,5 @@
      (desig-solutions ?desig ?solutions)
      (take 8 ?solutions ?8-solutions)
      (member ?solution ?8-solutions)
-     (assert (btr::object-pose-on ?w ?obj-name ?solution)))))
+     (assert (object-pose-on ?w ?obj-name ?solution)))))
 
