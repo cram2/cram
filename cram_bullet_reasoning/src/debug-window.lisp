@@ -69,7 +69,7 @@
              (list 1.0 (- 1.0 (* (- val 0.75) 4)) 0.0))
             (t (list 1.0 0.0 0.0))))))
 
-(defun clear-current-costmap-function-object ()
+(defun clear-costmap-gl-object ()
   (sb-thread:with-mutex (*debug-window-lock*)
     (when (and *current-costmap-function* *debug-window*)
       (setf (gl-objects *debug-window*)
