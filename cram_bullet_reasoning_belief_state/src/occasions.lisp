@@ -28,10 +28,13 @@
 
 (in-package :cram-bullet-reasoning-belief-state)
 
-(def-fact-group occasions (object-in-hand object-placed-at loc)
+(def-fact-group occasions (object-in-hand object-picked object-placed-at loc)
   (<- (object-in-hand ?object)
     (setof ?object (object-in-hand ?object ?_) ?objects)
     (member ?object ?objects))
+
+  (<- (object-picked ?object)
+    (object-in-hand ?object))
 
   (<- (object-in-hand ?object ?side)
     (bullet-world ?world)
