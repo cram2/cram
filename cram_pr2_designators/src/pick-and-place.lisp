@@ -28,6 +28,9 @@
 
 (in-package :cram-pr2-designators)
 
+(defparameter *put-down-pose-z-offset* 0.01
+  "Extra padding between the calculated put-down pose and the surface [m].")
+
 (defun find-designator-pose-in-link (gripper-link designator)
   (find-if (lambda (pose-frame-id)
              (equal (cl-transforms-stamped:unslash-frame gripper-link)
@@ -78,20 +81,21 @@
                   :target-frame *fixed-frame*
                   :pose put-down-pose
                   :timeout *tf-default-timeout*))
-               (put-down-pose (if (not robot-pose)
-                                  put-down-pose-in-fixed-frame
-                                  (copy-pose-stamped
-                                   put-down-pose-in-fixed-frame
-                                   :orientation (cl-transforms:q*
-                                                 (cl-transforms:orientation
-                                                  (find-designator-pose-in-link "base_footprint" at))
-                                                 (cl-transforms:orientation robot-pose))))))
+               (put-down-pose
+                 (if (not robot-pose)
+                     put-down-pose-in-fixed-frame
+                     (copy-pose-stamped
+                      put-down-pose-in-fixed-frame
+                      :orientation (cl-transforms:q*
+                                    (cl-transforms:orientation
+                                     (find-designator-pose-in-link "base_footprint" at))
+                                    (cl-transforms:orientation robot-pose))))))
           (assert pose-in-gripper () "Object ~a needs to have a `pose' property" current-object)
           (cl-transforms:transform->pose
            (cl-transforms:transform*
             (cl-transforms:pose->transform put-down-pose)
             (cl-transforms:make-transform
-             (cl-transforms:make-3d-vector 0 0 z-offset)
+             (cl-transforms:make-3d-vector 0 0 (+ z-offset *put-down-pose-z-offset*))
              (cl-transforms:make-identity-rotation))
             (cl-transforms:transform-inv
              (cl-transforms:transform*
