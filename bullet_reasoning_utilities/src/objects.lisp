@@ -67,14 +67,14 @@
         '(scenario-objects-init-pose ?pose)
         `(assert (object-pose ?w ,object-name ?pose)))))
 
-(defun move-object-onto (object-name onto-type onto-name)
+(defun move-object-onto (object-name onto-type &optional onto-name)
   (let* ((size
            (cl-bullet:bounding-box-dimensions (aabb (object-instance object-name))))
          (obj-diagonal-len
            (sqrt (+ (expt (cl-transforms:x size) 2) (expt (cl-transforms:y size) 2))))
          (on-designator
            (make-designator :location `((:on ,onto-type)
-                                        (:name ,onto-name)
+                                        ,(when onto-name (list :name onto-name))
                                         (:centered-with-padding ,obj-diagonal-len)))))
     (prolog
      `(assert-object-pose-on ,object-name ,on-designator))))
