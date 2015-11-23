@@ -233,6 +233,15 @@
               :object current-object :link gripper-link)))))
      (cpl-impl:fail 'cram-plan-failures:manipulation-pose-unreachable))))
 
+(defun execute-pour (designator container)
+  (let* ((current-object (desig:newest-effective-designator container))
+         (object-name (desig:object-identifier (desig:reference current-object))))
+    (or
+     (when (execute-action-trajectory-points designator object-name)
+       (cram-occasions-events:on-event
+        (make-instance 'cram-plan-occasions-events:robot-state-changed)))
+     (cpl-impl:fail 'cram-plan-failures:manipulation-pose-unreachable))))
+
 
 (def-process-module projection-manipulation (input)
   (let ((action (desig:reference input)))

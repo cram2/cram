@@ -39,7 +39,7 @@
   (:shadowing-import-from #:cl-bullet pose)
   (:import-from #:cram-robot-interfaces arm trajectory-point end-effector-link robot)
   (:export execute-container-opened execute-container-closed
-           execute-park execute-lift execute-grasp execute-put-down
+           execute-park execute-lift execute-grasp execute-put-down execute-pour
            projection-navigation projection-ptu projection-perception
            projection-manipulation pr2-bullet-projection-environment
            action-started action-finished action-duration projection-role))
