@@ -165,6 +165,12 @@
         (desig-prop ?desig (:object ?obj)))
     (desig-prop ?desig (:at ?_)))
 
+  (<- (action-desig-projection ?desig (execute-pour ?desig ?container))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (:to :pour))
+    (desig-prop ?desig (:container ?container))
+    (desig-prop ?desig (:at ?_)))
+
   (<- (required-sides ?designator ?sides)
     (setof ?side (cram-robot-interfaces:trajectory-point ?designator ?_ ?side)
            ?sides))
