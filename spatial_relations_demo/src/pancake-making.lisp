@@ -82,41 +82,42 @@
             (format t "now trying to achieve the location of spatula on kitchen-island~%")
             (achieve `(loc ,spatula-2-designator ,spatula-location))))))))
 
+(def-top-level-cram-function put-down-object-in-hand ()
+  (with-designators
+      ((on-cupboard :location `((:on "Cupboard"))))
+    (let ((obj-in-hand (cut:var-value '?obj (car (prolog '(object-in-hand ?obj))))))
+      (achieve `(object-placed-at ,obj-in-hand ,on-cupboard)))))
+
 (def-top-level-cram-function achieve-mondamin-in-hand ()
   (with-designators
       ((on-cupboard :location '((:on "Cupboard")))
        (mondamin-on-cupboard :object `((:at ,on-cupboard) (:type :mondamin))))
-    (with-retry-counters ((perception-retries 10))
+    (with-retry-counters ((perception-retries 100))
       (with-failure-handling
           ((object-not-found (f)
              (declare (ignore f))
              (format t "Object ~a was not found.~%" mondamin-on-cupboard)
              (do-retry perception-retries
                (format t "Re-perceiving object.~%")
-               (retry))))
+               (plan-lib::retry-with-updated-location
+                on-cupboard (plan-lib::next-different-location-solution on-cupboard)))))
         (perceive-object 'a mondamin-on-cupboard)))
     (format t "Now trying to achieve mondamin object in hand.~%")
     (achieve `(object-in-hand ,mondamin-on-cupboard))
     (format t "Object is in hand.~%")))
 
-(def-top-level-cram-function achieve-hand-with-monamin-above-maker ()
+(def-top-level-cram-function achieve-hand-with-mondamin-above-maker ()
   (with-designators
       ((on-pancake-table :location `((:on "Cupboard")
                                      (:name "pancake_table")))
        (pancake-maker :object `((:at ,on-pancake-table)
                                 (:type :pancake-maker)))
 
-       (near-maker :location `((:to :reach)
-                               (:obj ,pancake-maker)))
-
        (location-in-gripper :location `((:in :gripper)))
        (pouring-container :object `((:at ,location-in-gripper)))
 
-       (pouring-target-location :location `((:on ,pancake-maker)))
-       (pour-action :action `((:to :pour)
-                              (:stuff ,pouring-container)
-                              (:target ,pouring-target-location))))
-    (perceive-object 'a pouring-container)
+       (pouring-target-location :location `((:on ,pancake-maker))))
+    (reference-object pouring-container)
     (perceive-object 'a pancake-maker)
     (format t "now trying to achieve hand above maker~%")
     (with-retry-counters ((navigation-retries 10))
@@ -127,8 +128,89 @@
              (do-retry navigation-retries
                (format t "Re-positioning base.~%")
                (retry))))
-        (at-location (near-maker)
-          (format t "i'm near maker.~%")
-          (format t "Now trying to pour.~%")
-          (perform pour-action)
-          (monitor-action pour-action))))))
+        (achieve `(stuff-poured-at ,pouring-container ,pouring-target-location))))))
+
+(defun reference-object (object-designator)
+  (when (eql (desig-prop-value
+              (desig-prop-value object-designator
+               :at)
+              :in) :gripper)
+    (let ((new-desig
+            (newest-effective-designator
+             (cut:var-value '?obj (car (prolog '(object-in-hand ?obj)))))))
+      (unless (is-var new-desig)
+        (unless (desig-equal object-designator new-desig)
+          (equate object-designator new-desig))
+        new-desig))))
+
+(def-goal (achieve (stuff-poured-at ?container ?loc))
+  (roslisp:ros-info (achieve plan-lib) "(achieve (stuff-poured-at))")
+  (let ((obj (current-desig ?container)))
+    (assert
+     (cram-occasions-events:holds `(object-in-hand ,obj)) ()
+     "The container `~a' needs to be in the hand before being able to pour from it."
+     obj)
+    (with-retry-counters ((goal-pose-retries 3)
+                          (manipulation-retries 6))
+      (with-failure-handling
+          ((manipulation-failure (f)
+             (declare (ignore f))
+             (roslisp:ros-warn
+              (achieve plan-lib)
+              "Got unreachable putdown pose. Trying different put-down location")
+             (do-retry goal-pose-retries
+               (plan-lib::retry-with-updated-location
+                ?loc (plan-lib::next-different-location-solution ?loc)))))
+        (with-designators ((pouring-loc :location `((:to :reach) (:location ,?loc))))
+          (plan-lib::reset-counter manipulation-retries)
+          (with-failure-handling
+              ((manipulation-failure (f)
+                 (declare (ignore f))
+                 (roslisp:ros-warn
+                  (achieve plan-lib)
+                  "Got unreachable pouring pose. Trying alternatives.")
+                 (plan-lib::do-retry manipulation-retries
+                   (plan-lib::retry-with-updated-location
+                    pouring-loc
+                    (plan-lib::next-different-location-solution pouring-loc)))))
+            (plan-lib::try-reference-location pouring-loc)
+            (at-location (pouring-loc)
+              (achieve `(stuff-poured ,?container ,?loc)))))))))
+
+(def-goal (achieve (stuff-poured ?container ?loc))
+  (roslisp:ros-info (achieve plan-lib) "(achieve (stuff-poured))")
+  (let ((container (current-desig ?container)))
+    (assert
+     (cram-occasions-events:holds `(object-in-hand ,container)) ()
+     "The container `~a' needs to be in the hand before being able to pour from it."
+     container)
+    (with-designators ((pour-action
+                        :action `((:type :trajectory) (:to :pour)
+                                  (:container ,container) (:at ,?loc)))
+                       (park-action
+                        :action `((:type :trajectory) (:to :park) (:obj ,container))))
+      (with-failure-handling
+          (((or manipulation-failed manipulation-pose-unreachable) (f)
+             (declare (ignore f))
+             ;; Park arm first
+             (perform park-action)
+             (monitor-action park-action)
+             (roslisp:ros-warn
+              (achieve plan-lib)
+              "Got unreachable putdown pose.")
+             (cpl:fail 'manipulation-pose-unreachable)))
+        (cram-plan-library::try-reference-location ?loc)
+        (achieve `(looking-at ,(reference ?loc)))
+        (perform pour-action)
+        (monitor-action pour-action))
+      (with-retry-counters ((park-retry-counter 5))
+        (with-failure-handling
+            ((manipulation-failure (f)
+               (declare (ignore f))
+               (roslisp:ros-warn (achieve plan-lib) "Unable to park.")
+               (do-retry park-retry-counter
+                 (roslisp:ros-warn (achieve plan-lib) "Retrying.")
+                 (retry))
+               (cpl:fail 'manipulation-pose-unreachable)))
+          (perform park-action)
+          (monitor-action park-action))))))
