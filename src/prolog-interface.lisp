@@ -71,28 +71,29 @@
     (error 'simple-error
            :format-control "Prolog query failed: ~a."
            :format-arguments (list (json_prolog_msgs-srv:message result))))
-  (lazy-list ()
-    (cond (*finish-marker*
-           (call-prolog-service (concatenate 'string *service-namespace* "/finish")
-                                'json_prolog_msgs-srv:PrologFinish
-                                :id query-id)
-           nil)
-          (t
-           (let ((next-value
-                   (call-prolog-service (concatenate 'string *service-namespace* "/next_solution")
-                                'json_prolog_msgs-srv:PrologNextSolution
-                                :id query-id)))
-             (ecase (car (rassoc (json_prolog_msgs-srv:status next-value)
-                                 (symbol-codes 'json_prolog_msgs-srv:<prolognextsolution-response>)))
-               (:no_solution nil)
-               (:wrong_id (error 'simple-error
-                                 :format-control "We seem to have lost our query. ID invalid."))
-               (:query_failed (error 'simple-error
-                                     :format-control "Prolog query failed: ~a"
-                                     :format-arguments (list (json_prolog_msgs-srv:solution next-value))))
-               (:ok (cont (json-bdgs->prolog-bdgs (json_prolog_msgs-srv:solution next-value)
-                                                  :lispify lispify
-                                                  :package package)))))))))
+  (let ((*read-default-float-format* 'double-float))
+    (lazy-list ()
+      (cond (*finish-marker*
+             (call-prolog-service (concatenate 'string *service-namespace* "/finish")
+                                  'json_prolog_msgs-srv:PrologFinish
+                                  :id query-id)
+             nil)
+            (t
+             (let ((next-value
+                     (call-prolog-service (concatenate 'string *service-namespace* "/next_solution")
+                                          'json_prolog_msgs-srv:PrologNextSolution
+                                          :id query-id)))
+               (ecase (car (rassoc (json_prolog_msgs-srv:status next-value)
+                                   (symbol-codes 'json_prolog_msgs-srv:<prolognextsolution-response>)))
+                 (:no_solution nil)
+                 (:wrong_id (error 'simple-error
+                                   :format-control "We seem to have lost our query. ID invalid."))
+                 (:query_failed (error 'simple-error
+                                       :format-control "Prolog query failed: ~a"
+                                       :format-arguments (list (json_prolog_msgs-srv:solution next-value))))
+                 (:ok (cont (json-bdgs->prolog-bdgs (json_prolog_msgs-srv:solution next-value)
+                                                    :lispify lispify
+                                                    :package package))))))))))
 
 (defun check-connection ()
   "Returns T if the json_prolog could be found, otherwise NIL."
