@@ -33,6 +33,7 @@
 (defvar *debug-window* nil)
 (defvar *debug-window-lock* (sb-thread:make-mutex))
 (defvar *current-costmap-function* nil)
+(defvar *current-costmap-sample* nil)
 (defparameter *costmap-z* 0.0)
 (defparameter *costmap-tilt* (cl-transforms:make-quaternion 0 0 0 1))
 
@@ -69,12 +70,16 @@
              (list 1.0 (- 1.0 (* (- val 0.75) 4)) 0.0))
             (t (list 1.0 0.0 0.0))))))
 
-(defun clear-costmap-gl-object ()
+(defun clear-costmap-vis-object ()
   (sb-thread:with-mutex (*debug-window-lock*)
     (when (and *current-costmap-function* *debug-window*)
       (setf (gl-objects *debug-window*)
             (remove *current-costmap-function* (gl-objects *debug-window*)))
-      (setf *current-costmap-function* nil))))
+      (setf *current-costmap-function* nil))
+    (when (and *current-costmap-sample* *debug-window*)
+      (setf (gl-objects *debug-window*)
+            (remove *current-costmap-sample* (gl-objects *debug-window*)))
+      (setf *current-costmap-sample* nil))))
 
 (defun add-costmap-function-object (costmap &optional (z 0.0))
   (sb-thread:with-mutex (*debug-window-lock*)
@@ -103,8 +108,25 @@
                           (+ (location-costmap:origin-y costmap)
                              (/ (location-costmap:grid-height costmap) 2))
                           *costmap-z*)
-			 *costmap-tilt*)
+                         *costmap-tilt*)
                   :function #'costmap-function
                   :step-size (location-costmap:resolution costmap)))))
       (when *debug-window*
         (push *current-costmap-function* (gl-objects *debug-window*))))))
+
+(defun add-costmap-sample-object (point)
+  (sb-thread:with-mutex (*debug-window-lock*)
+    (when (and *current-costmap-sample* *debug-window*)
+      (setf (gl-objects *debug-window*)
+            (remove *current-costmap-sample* (gl-objects *debug-window*))))
+    (when (and point (typep point 'cl-transforms:3d-vector))
+      (setf *current-costmap-sample*
+            (make-instance 'rigid-body
+              :pose (cl-transforms:make-pose
+                     point
+                     (cl-transforms:make-identity-rotation))
+              :collision-shape (make-instance 'colored-sphere-shape
+                                 :radius 0.05
+                                 :color '(1.0 0.0 0.0 0.5))))
+      (when *debug-window*
+        (push *current-costmap-sample* (gl-objects *debug-window*))))))
