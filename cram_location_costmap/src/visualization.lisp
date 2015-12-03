@@ -268,11 +268,8 @@ respectively."
                              (b color) 0.0
                              (a color) 1.0)))))
 
-(defmethod gen-costmap-sample-point :around ((map location-costmap) &key sampling-function)
-  (declare (ignore map sampling-function))
-  (let ((point (call-next-method)))
-    (publish-point point)
-    point))
+(defmethod on-visualize-costmap-sample rviz ((point cl-transforms:3d-vector))
+  (publish-point point))
 
 (defmethod on-visualize-costmap rviz ((map location-costmap))
   (publish-location-costmap map :threshold *costmap-valid-solution-threshold*))

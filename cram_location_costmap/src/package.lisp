@@ -77,6 +77,7 @@
            #:location-costmap
            #:get-cost-map
            #:on-visualize-costmap
+           #:on-visualize-costmap-sample
            #:get-map-value
            #:no-cost-functions-registered
            #:register-cost-function
