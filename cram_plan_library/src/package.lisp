@@ -69,4 +69,8 @@
            ;; rete and occasions
            #:object-picked-up
            #:object-in-hand-failure
-           #:object-not-found-failure))
+           #:object-not-found-failure
+           ;; utilities
+           #:next-different-location-solution
+           #:distance-to-drive
+           #:retry-with-updated-location))
