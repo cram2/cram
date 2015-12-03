@@ -113,6 +113,7 @@
     name))
 
 (define-hook on-visualize-costmap (costmap))
+(define-hook on-visualize-costmap-sample (point))
 
 (defmethod get-cost-map ((map location-costmap))
   "Returns the costmap matrix of `map', i.e. if not generated yet,
@@ -219,8 +220,10 @@ calls the generator functions and runs normalization."
       (with-slots (origin-x origin-y resolution) map
         (let* ((x (+ (* column resolution) origin-x))
                (y (+ (* row resolution) origin-y))
-               (z (generate-height map x y)))
-          (cl-transforms:make-3d-vector x y z))))))
+               (z (generate-height map x y))
+               (point (cl-transforms:make-3d-vector x y z)))
+          (on-visualize-costmap-sample point)
+          point)))))
 
 (defmethod costmap-samples ((map location-costmap) &key sampling-function)
   (lazy-mapcan (lambda (sample-point)
