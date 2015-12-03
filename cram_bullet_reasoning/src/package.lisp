@@ -40,7 +40,8 @@
   (:shadow copy-object)
   (:export *current-bullet-world* *current-timeline*
            merge-bounding-boxes aabb with-stored-world *debug-window*
-           add-debug-window add-costmap-function-object clear-costmap-gl-object
+           add-debug-window add-costmap-function-object
+           add-costmap-sample-object clear-costmap-vis-object
            camera width
            height fov-y z-near z-far pose gl-execute-with-camera
            camera-transform look-at-object-rotation

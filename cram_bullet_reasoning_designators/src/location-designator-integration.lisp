@@ -62,6 +62,9 @@
 (defmethod on-visualize-costmap opengl ((map location-costmap))
   (add-costmap-function-object map))
 
+(defmethod on-visualize-costmap-sample opengl ((point cl-transforms:3d-vector))
+  (add-costmap-sample-object point))
+
 (defun robot-location-on-floor (designator pose)
   (cond ((not (member (desig-prop-value designator :to) '(:reach :see)))
          :unknown)
