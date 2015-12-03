@@ -130,6 +130,60 @@
                (retry))))
         (achieve `(stuff-poured-at ,pouring-container ,pouring-target-location))))))
 
+(def-top-level-cram-function pick-up-and-pour ()
+  (with-designators
+      ((on-counter-top :location '((:on "Cupboard")))
+       (mondamin-bottle :object `((:at ,on-counter-top) (:type :mondamin)))
+       (pancake-maker :object `((:at ,on-counter-top) (:type :pancake-maker)))
+       (pouring-target-location :location `((:on ,pancake-maker))))
+    (with-retry-counters ((perception-retries 100))
+      (with-failure-handling
+          ((object-not-found (f)
+             (declare (ignore f))
+             (format t "Object ~a was not found.~%" mondamin-bottle)
+             (do-retry perception-retries
+               (format t "Re-perceiving object.~%")
+               (plan-lib:retry-with-updated-location
+                on-counter-top
+                (plan-lib:next-different-location-solution on-counter-top)))))
+        (perceive-object 'a mondamin-bottle)))
+    (format t "Now trying to achieve mondamin object in hand.~%")
+    (achieve `(object-in-hand ,mondamin-bottle))
+    (format t "Object is in hand.~%")
+    (with-retry-counters ((perception-retries 100))
+      (with-failure-handling
+          ((object-not-found (f)
+             (declare (ignore f))
+             (format t "Object ~a was not found.~%" pancake-maker)
+             (do-retry perception-retries
+               (format t "Re-perceiving object.~%")
+               (plan-lib:retry-with-updated-location
+                on-counter-top
+                (plan-lib:next-different-location-solution on-counter-top)))))
+        (perceive-object 'a pancake-maker)))
+    (format t "now trying to pour above pancake maker~%")
+    (with-retry-counters ((navigation-retries 10))
+      (with-failure-handling
+          ((manipulation-pose-unreachable (f)
+             (declare (ignore f))
+             (format t "Could not reach target pose.~%")
+             (do-retry navigation-retries
+               (format t "Re-positioning base.~%")
+               (retry))))
+        (achieve `(stuff-poured-at ,mondamin-bottle ,pouring-target-location))))
+    (with-retry-counters ((navigation-retries 10))
+      (with-failure-handling
+          ((manipulation-pose-unreachable (f)
+             (declare (ignore f))
+             (format t "Could not reach target pose.~%")
+             (do-retry navigation-retries
+               (format t "Re-positioning base.~%")
+               (retry-with-updated-location
+                on-counter-top
+                (next-different-location-solution on-counter-top)))))
+        (achieve `(object-placed-at ,mondamin-bottle ,on-counter-top))))))
+
+
 (defun reference-object (object-designator)
   (when (eql (desig-prop-value
               (desig-prop-value object-designator
