@@ -63,7 +63,7 @@ for 2 plates and 1 other-type.")
   (parameterize-demo demo-name)
   (clear-costmap-vis-object)
   (detach-all-objects (object-instance (robot-name)))
-  (move-robot)
+  (move-robot '((0 0 0) (0 0 1 0)))
   (park-robot)
 
   (let ((object-types
@@ -81,7 +81,6 @@ for 2 plates and 1 other-type.")
     (mapcar (alexandria:rcurry #'gethash *demo-objects*) resulting-object-names)))
 
 (defun respawn-demo (demo-name &key (set nil))
-  (kill-all-objects)
   (setf *demo-object-types* nil)
   (spawn-demo demo-name :set set))
 

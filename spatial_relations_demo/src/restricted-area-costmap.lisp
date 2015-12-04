@@ -38,14 +38,14 @@
 
 (defmethod costmap-generator-name->score ((name (eql 'restricted-area))) 5)
 
-(def-fact-group pancakes (desig-costmap)
-  (<- (desig-costmap ?designator ?costmap)
-    (or (desig-prop ?designator (:to :see))
-        (desig-prop ?designator (:to :reach)))
-    (costmap ?costmap)
-    (costmap-padding ?padding)
-    (costmap-add-function restricted-area (make-restricted-area-cost-function)
-                          ?costmap)))
+;; (def-fact-group pancakes (desig-costmap)
+;;   (<- (desig-costmap ?designator ?costmap)
+;;     (or (desig-prop ?designator (:to :see))
+;;         (desig-prop ?designator (:to :reach)))
+;;     (costmap ?costmap)
+;;     (costmap-padding ?padding)
+;;     (costmap-add-function restricted-area (make-restricted-area-cost-function)
+;;                           ?costmap)))
 
 (defun test-costmap ()
   (prolog `(and (costmap-padding ?pad)

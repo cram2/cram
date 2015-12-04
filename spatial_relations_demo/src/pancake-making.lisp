@@ -35,9 +35,11 @@
   (setf *demo-objects-initial-poses*
         '((:pancake-maker ((-1.0 -0.4 0.765) (0 0 0 1)))
           (:spatula
-           ((1.43 0.6 0.86) (0.0d0 0.0d0 -0.4514496d0 0.89229662d0))
-           ((1.45 0.95 0.86) (0 0 0.2 1)))
-          (:mondamin ((1.35 1.11 0.958) (0 0 0 1))))))
+           ((-0.9215973409016927d0 -0.7200214258829752d0 0.7330556233723958d0)
+            (0.0d0 0.0d0 0.009999499814012982d0 0.9999500037519226d0))
+           ((-0.9215973409016927d0 -0.05d0 0.7330556233723958d0)
+            (0.0d0 0.0d0 0.019996000752833393d0 0.9998000599889424d0)))
+          (:mondamin ((-0.77d0 0.7d0 0.9586666742960612d0) (0.0d0 0.0d0 0.6d0 0.8d0))))))
 
 (defmethod execute-demo ((demo-name (eql :pancake-making)) &key set)
   (declare (ignore set))
@@ -86,7 +88,17 @@
   (with-designators
       ((on-cupboard :location `((:on "Cupboard"))))
     (let ((obj-in-hand (cut:var-value '?obj (car (prolog '(object-in-hand ?obj))))))
-      (achieve `(object-placed-at ,obj-in-hand ,on-cupboard)))))
+      (with-retry-counters ((navigation-retries 10))
+        (with-failure-handling
+            ((manipulation-pose-unreachable (f)
+               (declare (ignore f))
+               (format t "Could not reach target pose.~%")
+               (do-retry navigation-retries
+                 (format t "Re-positioning base.~%")
+                 (retry-with-updated-location
+                  on-cupboard
+                  (next-different-location-solution on-cupboard)))))
+          (achieve `(object-placed-at ,obj-in-hand ,on-cupboard)))))))
 
 (def-top-level-cram-function achieve-mondamin-in-hand ()
   (with-designators
@@ -162,6 +174,8 @@
                 (plan-lib:next-different-location-solution on-counter-top)))))
         (perceive-object 'a pancake-maker)))
     (format t "now trying to pour above pancake maker~%")
+    (reference pouring-target-location)
+    (format t "this was the destination~%")
     (with-retry-counters ((navigation-retries 10))
       (with-failure-handling
           ((manipulation-pose-unreachable (f)
