@@ -105,8 +105,8 @@
       (forall (contact ?world ?robot-name ?object-name ?link)
               (or (attached ?world ?robot-name ?_ ?object-name)
                   (and (slot-value ?world disabled-collision-objects ?objects)
-                       (or (member (?robot-name . ?object-name) ?objects)
-                           (member (?object-name . ?robot-name) ?objects)))
+                       (or (member (?robot-name ?object-name) ?objects)
+                           (member (?object-name ?robot-name) ?objects)))
                   (gripper-link ?robot-name ?_ ?link)))))
 
   (<- (attached ?world ?robot ?link-name ?object)
