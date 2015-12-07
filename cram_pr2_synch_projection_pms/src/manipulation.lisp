@@ -92,7 +92,7 @@
                       ;; For now, ik-solution-not-in-collision is commented out,
                       ;; as moveit has difficulties finding good ik solutions
                       ;; without the seed state and collision environment information.
-                      ;; (ik-solution-not-in-collision ?world ?robot ?ik-solution :grasping)
+                      (ik-solution-not-in-collision ?world ?robot ?ik-solution :grasping)
                       (assert (joint-state ?world ?robot ?ik-solution))))))))
 
 (defun execute-container-opened (action-designator object-designator distance)
@@ -238,6 +238,7 @@
          (object-name (desig:object-identifier (desig:reference current-object))))
     (or
      (when (execute-action-trajectory-points designator object-name)
+       (cpl:sleep* 5)
        (cram-occasions-events:on-event
         (make-instance 'cram-plan-occasions-events:robot-state-changed)))
      (cpl-impl:fail 'cram-plan-failures:manipulation-pose-unreachable))))
