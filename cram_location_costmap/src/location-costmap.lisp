@@ -223,6 +223,7 @@ calls the generator functions and runs normalization."
                (z (generate-height map x y))
                (point (cl-transforms:make-3d-vector x y z)))
           (on-visualize-costmap-sample point)
+          (on-visualize-costmap map)
           point)))))
 
 (defmethod costmap-samples ((map location-costmap) &key sampling-function)
