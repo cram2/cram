@@ -42,9 +42,9 @@
   (<- (semantic-map-object-name :kitchen)))
 
 ;; (disable-location-validation-function 'btr-desig::validate-designator-solution)
-(disable-location-validation-function 'btr-desig::check-ik-solution)
+;; (disable-location-validation-function 'btr-desig::check-ik-solution)
 
-(setf *tf-default-timeout* 1.0)
+(setf *tf-default-timeout* 0.0)
 ;; (setf cram-designators::*print-location-validation-function-results* t)
 
 (defun init (&optional (ip "192.168.100.194"))
@@ -67,7 +67,7 @@
     (setf *kitchen-urdf*
           (cl-urdf:parse-urdf (roslisp:get-param "kitchen_description"))))
   (let ((pi-rotation '(0 0 1 0)))
-    (clear-costmap-gl-object)
+    (clear-costmap-vis-object)
     (prolog
      `(and
        (clear-bullet-world)
@@ -77,10 +77,6 @@
        (assert (object ?w :static-plane floor ((0 0 0) (0 0 0 1))
                        :normal (0 0 1) :constant 0
                        :disable-collisions-with (?robot)))
-       ;; (assert (object ?w static-plane wall-behind-shelves
-       ;;                 ((1.83 0 0) (0 0 0 1)) :normal (1 0 0) :constant 0))
-       ;; (assert (object ?w static-plane wall-behind-table
-       ;;                 ((0 3 0) (0 0 0 1)) :normal (0 1 0) :constant 0))
        (semantic-map-object-name ?map-name)
        (assert (object ?w :semantic-map ?map-name ((-3.45 -4.35 0) ,pi-rotation)
                        :urdf ,*kitchen-urdf*))
@@ -89,4 +85,53 @@
        (robot-arms-parking-joint-states ?robot ?joint-states)
        (robot-torso-link-joint ?robot ?_ ?joint)
        (assert (joint-state ?w ?robot ?joint-states))
-       (assert (joint-state ?w ?robot ((?joint 0.16825d0))))))))
+       (assert (joint-state ?w ?robot ((?joint 0.16825d0)))))))
+  (add-walls))
+
+(defun add-walls ()
+  (setf cram-bullet-reasoning::*static-plane-texture*
+        (concatenate
+         'string
+         "                "
+         "                "
+         "                "
+         "                "
+         "                "
+         "                "
+         "                "
+         "                "
+         "                "
+         "                "
+         "                "
+         "                "
+         "                "
+         "                "
+         "                "
+         "                "))
+  (prolog `(and (bullet-world ?w)
+                (robot ?robot)
+                (assert (object ?w :static-plane wall-behind-shelves
+                                ((1.83 0 0) (0 0 0 1)) :normal (1 0 0) :constant 0
+                                                       :disable-collisions-with (?robot)))
+                (assert (object ?w :static-plane wall-behind-table
+                                ((0 3 0) (0 0 0 1)) :normal (0 1 0) :constant 0
+                                                    :disable-collisions-with (?robot)))))
+  (setf cram-bullet-reasoning::*static-plane-texture*
+        (concatenate
+         'string
+         "xxxxxxxxxxxxxxxx"
+         "x              x"
+         "x              x"
+         "x              x"
+         "x              x"
+         "x              x"
+         "x              x"
+         "x              x"
+         "x              x"
+         "x              x"
+         "x              x"
+         "x              x"
+         "x              x"
+         "x              x"
+         "x              x"
+         "xxxxxxxxxxxxxxxx")))
