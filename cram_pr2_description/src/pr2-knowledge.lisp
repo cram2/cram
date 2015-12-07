@@ -159,7 +159,8 @@
     (grasp pr2 ?grasp)
     (side pr2 ?side))
 
-  (<- (object-type-grasp :mondamin :side (:right)))
+  (<- (object-type-grasp :mondamin :front (?side))
+    (side pr2 ?side))
 
   (<- (object-type-grasp :plate :side (:left :right)))
 
