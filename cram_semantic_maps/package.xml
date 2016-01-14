@@ -13,6 +13,7 @@
   <run_depend>cram_semantic_map</run_depend>
   <run_depend>cram_semantic_map_utils</run_depend>
   <run_depend>cram_semantic_map_designators</run_depend>
+  <run_depend>cram_semantic_map_costmap</run_depend>
 
   <export>
     <metapackage/>
