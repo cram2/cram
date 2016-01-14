@@ -35,7 +35,10 @@
                cram-location-costmap
                cram-robot-interfaces
                cram-transforms-stamped
-               cl-transforms-stamped)
+               cl-transforms-stamped
+               ;; for robot-current-pose-bullet-generator
+               cram-bullet-reasoning
+               cram-utilities)
   :components
   ((:module "src"
     :components
