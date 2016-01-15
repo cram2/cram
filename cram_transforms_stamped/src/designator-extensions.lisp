@@ -72,6 +72,7 @@
                    (poses-equal-p pose-1-transformed pose-2-transformed))
                (transform-stamped-error () nil))))
     ;; actual check: first making sure to have pose-stamped
+    (assert *fixed-frame* () "cram-transforms-stamped:*fixed-frame* must be set.")
     (let ((pose-1 (ensure-pose-stamped solution-1 *fixed-frame* 0.0))
           (pose-2 (ensure-pose-stamped solution-2 *fixed-frame* 0.0)))
       (if (string-equal (unslash-frame (frame-id pose-1)) (unslash-frame (frame-id pose-2)))
@@ -85,5 +86,7 @@
   (declare (ignore role))
   (let ((solution (call-next-method)))
     (if (typep solution 'cl-transforms:pose)
-        (ensure-pose-stamped solution *fixed-frame* 0.0)
+        (if *fixed-frame*
+            (ensure-pose-stamped solution *fixed-frame* 0.0)
+            (error "cram-transforms-stamped:*fixed-frame* must be set."))
         solution)))
