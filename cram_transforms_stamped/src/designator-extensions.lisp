@@ -51,34 +51,34 @@
 (defmethod designator-solutions-equal
     ((solution-1 cl-transforms:pose) (solution-2 cl-transforms:pose))
   "Checks whether two designator solutions are equal in *fixed-frame* or *robot-base-frame*."
-  (flet ((poses-equal-in-frame-p (pose-1 pose-2 compare-frame
-                                  &key (timeout *tf-default-timeout*))
-           ;; Predicate to check equality of two poses w.r.t. a given frame."
-           (handler-case
-               (let ((pose-1-transformed
-                       (cl-transforms-stamped:transform-pose-stamped
-                        *transformer*
-                        :pose pose-1 :target-frame compare-frame :timeout timeout))
-                     (pose-2-transformed
-                       (cl-transforms-stamped:transform-pose-stamped
-                        *transformer*
-                        :pose pose-2 :target-frame compare-frame :timeout timeout)))
-                 ;; compare transformed poses using pre-defined thresholds
-                 (and (< (cl-transforms:v-dist
-                          (cl-transforms:origin pose-1-transformed)
-                          (cl-transforms:origin pose-2-transformed))
-                         *distance-equality-threshold*)
-                      (< (cl-transforms:angle-between-quaternions
-                          (cl-transforms:orientation pose-1-transformed)
-                          (cl-transforms:orientation pose-2-transformed))
-                         *angle-equality-threshold*)))
-             (transform-stamped-error () nil))))
+  (labels ((poses-equal-p (pose-1 pose-2)
+             ;; predicate to check equality of two cl-trasforms:pose-s
+             (and (< (v-dist (origin pose-1) (origin pose-2))
+                     *distance-equality-threshold*)
+                  (< (angle-between-quaternions (orientation pose-1) (orientation pose-2))
+                     *angle-equality-threshold*)))
+           (poses-equal-in-frame-p (pose-1 pose-2 compare-frame
+                                    &key (timeout *tf-default-timeout*))
+             ;; Predicate to check equality of two pose-stamped-s w.r.t. a given frame."
+             (handler-case
+                 (let ((pose-1-transformed
+                         (transform-pose-stamped
+                          *transformer*
+                          :pose pose-1 :target-frame compare-frame :timeout timeout))
+                       (pose-2-transformed
+                         (transform-pose-stamped
+                          *transformer*
+                          :pose pose-2 :target-frame compare-frame :timeout timeout)))
+                   (poses-equal-p pose-1-transformed pose-2-transformed))
+               (transform-stamped-error () nil))))
     ;; actual check: first making sure to have pose-stamped
     (let ((pose-1 (ensure-pose-stamped solution-1 *fixed-frame* 0.0))
           (pose-2 (ensure-pose-stamped solution-2 *fixed-frame* 0.0)))
-      ;; equality in either of the defined frames is sufficient for us
-      (or (poses-equal-in-frame-p pose-1 pose-2 *fixed-frame*)
-          (poses-equal-in-frame-p pose-1 pose-2 *robot-base-frame*)))))
+      (if (string-equal (unslash-frame (frame-id pose-1)) (unslash-frame (frame-id pose-2)))
+          (poses-equal-p pose-1 pose-2)
+          ;; equality in either of the defined frames is sufficient for us
+          (or (poses-equal-in-frame-p pose-1 pose-2 *fixed-frame*)
+              (poses-equal-in-frame-p pose-1 pose-2 *robot-base-frame*))))))
 
 (defmethod reference :around ((designator location-designator) &optional role)
   "Converts all cl-transforms poses into cl-tf poses in the fixed coordinate system"

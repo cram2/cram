@@ -31,7 +31,7 @@
 
 (defpackage :cram-transforms-stamped
     (:use #:cl #:desig #:cut #:prolog
-          #:cl-transforms-stamped)
+          #:cl-transforms-stamped #:cl-transforms)
   (:export :make-euclidean-distance-filter
            ;; prolog facts:
            #:pose #:pose-stamped
