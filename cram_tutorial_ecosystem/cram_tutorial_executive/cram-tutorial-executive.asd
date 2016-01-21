@@ -8,8 +8,8 @@
                cram-roslisp-common
                cram-plan-library
                cram-reasoning
-               cram-plan-events
-               cram-environment-representation
+               cram-plan-occasions-events
+               cram-bullet-reasoning-belief-state
                alexandria
                cram-transforms-stamped
                cram-language

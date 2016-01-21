@@ -7,7 +7,7 @@
                cram-roslisp-common
                cram-reasoning
                cram-plan-failures
-               cram-plan-events
+               cram-plan-occasions-events
                cram-projection
                trivial-garbage
                alexandria)

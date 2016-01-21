@@ -14,7 +14,7 @@
   <depend package="cram_roslisp_common"/>
   <depend package="cram_reasoning"/>
   <depend package="cram_plan_failures"/>
-  <depend package="cram_plan_events"/>
+  <depend package="cram_plan_occasions_events"/>
   <depend package="alexandria"/>
 
 </package>
