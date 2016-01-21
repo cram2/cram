@@ -29,9 +29,10 @@
 
 (in-package :cl-user)
 
-(defpackage bullet-reasoning-utilities
+(defpackage cram-bullet-reasoning-utilities
   (:use #:common-lisp #:cram-bullet-reasoning #:cram-prolog #:cram-designators
         #:cram-utilities #:cram-robot-interfaces #:cram-transforms-stamped)
+  (:nicknames #:btr-utils #:bullet-reasoning-utilities)
   (:shadowing-import-from #:btr object object-pose pose)
   (:export
    ;; misc.lisp
