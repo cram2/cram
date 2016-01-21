@@ -1,6 +1,6 @@
 (defsystem cram-beginner-tutorial
   :depends-on (roslisp cram-language turtlesim-msg cl-transforms
-                       geometry_msgs-msg cram-designators cram-reasoning
+                       geometry_msgs-msg cram-designators cram-prolog
                        cram-language-designator-support actionlib
                        actionlib_tutorials-msg cram-process-modules
                        turtle_actionlib-msg cl-tf cram-plan-library)
