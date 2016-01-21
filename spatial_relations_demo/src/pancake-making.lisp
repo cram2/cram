@@ -39,7 +39,7 @@
             (0.0d0 0.0d0 0.009999499814012982d0 0.9999500037519226d0))
            ((-0.9215973409016927d0 -0.05d0 0.7330556233723958d0)
             (0.0d0 0.0d0 0.019996000752833393d0 0.9998000599889424d0)))
-          (:mondamin ((-0.77d0 0.7d0 0.9586666742960612d0) (0.0d0 0.0d0 0.6d0 0.8d0))))))
+          (:mondamin ((-0.77d0 0.7d0 0.9586666742960612d0) (0.0d0 0.0d0 0.0d0 0.99d0))))))
 
 (defmethod execute-demo ((demo-name (eql :pancake-making)) &key set)
   (declare (ignore set))
@@ -48,8 +48,8 @@
       (let ((pancake-maker-designator
               (find-object-on-counter :pancake-maker "Cupboard" "pancake_table")))
         (let ((spatula-designator
-                (find-object-on-counter :spatula "CounterTop"
-                                        "kitchen_sink_block_counter_top")))
+                (find-object-on-counter :spatula "Cupboard"
+                                        "pancake_table")))
           (with-designators
               ((spatula-location :location `((:on "Cupboard")
                                              (:name "pancake_table")
@@ -61,7 +61,7 @@
             (achieve `(loc ,spatula-designator ,spatula-location))))
         (let ((mondamin-designator
                 (find-object-on-counter :mondamin "CounterTop"
-                                        "kitchen_sink_block_counter_top")))
+                                        "kitchen_island")))
           (with-designators
               ((on-kitchen-island :location `((:on "Cupboard")
                                               (:name "pancake_table")
@@ -72,8 +72,8 @@
             (format t "now trying to achieve the location of mondamin on kitchen-island~%")
             (achieve `(loc ,mondamin-designator ,on-kitchen-island))))
         (let ((spatula-2-designator
-                (find-object-on-counter :spatula "CounterTop"
-                                        "kitchen_sink_block_counter_top")))
+                (find-object-on-counter :spatula "Cupboard"
+                                        "pancake_table")))
           (with-designators
               ((spatula-location :location `((:on "Cupboard")
                                              (:name "pancake_table")
@@ -160,8 +160,12 @@
                 (plan-lib:next-different-location-solution on-counter-top)))))
         (perceive-object 'a mondamin-bottle)))
     (format t "Now trying to achieve mondamin object in hand.~%")
+    (format t "BEFORE SLEEP~%~%")
+    (sleep* 10)
     (achieve `(object-in-hand ,mondamin-bottle))
     (format t "Object is in hand.~%")
+    (format t "BEFORE SLEEP~%~%")
+    (sleep* 10)
     (with-retry-counters ((perception-retries 100))
       (with-failure-handling
           ((object-not-found (f)
@@ -174,6 +178,8 @@
                 (plan-lib:next-different-location-solution on-counter-top)))))
         (perceive-object 'a pancake-maker)))
     (format t "now trying to pour above pancake maker~%")
+    (format t "BEFORE SLEEP~%~%")
+    (sleep* 10)
     (reference pouring-target-location)
     (format t "this was the destination~%")
     (with-retry-counters ((navigation-retries 10))
@@ -185,6 +191,8 @@
                (format t "Re-positioning base.~%")
                (retry))))
         (achieve `(stuff-poured-at ,mondamin-bottle ,pouring-target-location))))
+    (format t "BEFORE SLEEP~%~%")
+    (sleep* 10)
     (with-retry-counters ((navigation-retries 10))
       (with-failure-handling
           ((manipulation-pose-unreachable (f)

@@ -1,5 +1,5 @@
 <launch>
-  <include file="$(find bullet_reasoning_utilities)/launch/maps_and_robot.launch" />
+  <include file="$(find spatial_relations_demo)/launch/maps_and_robot.launch" />
 
   <!-- <param name="robot_description_lowres" -->
   <!--        command="$(find xacro)/xacro.py -->

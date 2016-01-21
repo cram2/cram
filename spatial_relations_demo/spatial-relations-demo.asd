@@ -29,28 +29,32 @@
 (defsystem spatial-relations-demo
   :author "eris"
   :license "BSD"
-  :depends-on (spatial-relations-costmap
+  :depends-on (cram-spatial-relations-costmap
+               cl-urdf
                cram-designators
                cram-location-costmap
                cram-prolog
                roslisp
+               roslisp-utilities
                cram-semantic-map-costmap
+               cram-semantic-map-utils
                cram-robot-pose-gaussian-costmap
                cram-bullet-reasoning
                cram-pr2-description
                cram-bullet-reasoning-belief-state
                cram-pr2-synch-projection-pms
-               occupancy-grid-costmap
+               cram-occupancy-grid-costmap
                cram-plan-library
                cram-bullet-reasoning-designators
                cram-pr2-designators
                cram-semantic-map-designators
                alexandria
-               bullet-reasoning-utilities)
+               cram-bullet-reasoning-utilities)
   :components
   ((:module "src"
     :components
     ((:file "package")
+     (:file "setup" :depends-on ("package"))
      (:file "restricted-area-costmap" :depends-on ("package"))
      (:file "scenario-interface" :depends-on ("package"))
      (:file "table-setting" :depends-on ("package" "scenario-interface"))
