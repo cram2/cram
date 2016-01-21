@@ -29,3 +29,14 @@
 
 (in-package :bullet-reasoning-utilities)
 
+(defun visualize-designator-costmaps (designator)
+  (declare (type location-designator designator))
+  (mapcar
+   (lambda (costmap-pair)
+     (let ((costmap (cdar costmap-pair)))
+       (format t "cm: ~a~%" (location-costmap:generator-name (car (cost-functions costmap))))
+       (location-costmap:get-cost-map costmap)
+       (sleep 3)))
+   (force-ll (prolog `(and (desig-costmap ,designator ?cm)))))
+  (format t "cm: combined costmap~%")
+  (reference designator))

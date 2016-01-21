@@ -35,6 +35,7 @@
   (:shadowing-import-from #:btr object object-pose pose)
   (:export
    ;; misc.lisp
+   visualize-designator-costmaps
    ;; object-database.lisp
    scenario-objects-init-pose scenario-objects-default-color scenario-object-color
    scenario-object-shape scenario-object-extra-attributes
