@@ -26,29 +26,24 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem bullet-reasoning-utilities
+(defsystem cram-bullet-reasoning-utilities
   :author "eris"
   :license "BSD"
-  :depends-on (spatial-relations-costmap
-               cram-designators
+  :depends-on (cram-designators
                cram-location-costmap
                cram-prolog
-               roslisp
-               cram-semantic-map-utils
+               cram-transforms-stamped
                cram-bullet-reasoning
-               roslisp-utilities
-               cl-urdf
+               cram-utilities
                cram-plan-library
                cram-language
-               cram-bullet-reasoning-designators
                cram-robot-interfaces)
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "setup" :depends-on ("package"))
-     (:file "objects" :depends-on ("package"))
-     (:file "objects-database" :depends-on ("package"))
-     (:file "robot" :depends-on ("package"))
      (:file "misc" :depends-on ("package"))
+     (:file "objects-database" :depends-on ("package"))
+     (:file "objects" :depends-on ("package" "objects-database"))
+     (:file "robot" :depends-on ("package"))
      (:file "plan-library" :depends-on ("package"))))))
