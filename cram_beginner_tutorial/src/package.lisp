@@ -1,28 +1,5 @@
-(in-package :cl-user)
-
-(desig-props:def-desig-package cram-beginner-tutorial
+(defpackage :cram-beginner-tutorial
   (:nicknames :tut)
-  (:use #:cpl
-        #:roslisp
-        #:cl-transforms
-        #:cram-designators)
-  (:import-from #:cram-reasoning #:<-)
-
-  (:desig-properties
-   ;; action properties
-   #:shape
-   #:navigation
-   #:goal
-   #:radius
-   #:triangle
-   #:square
-   #:pentagon
-   #:hexagon
-   ;; location Properties
-   #:vpos
-   #:hpos
-   #:left
-   #:right
-   #:top
-   #:bottom
-   #:center))
+  (:use :cpl :roslisp :cl-transforms :cram-designators :cram-process-modules
+        :cram-language-designator-support)
+  (:import-from :cram-prolog :def-fact-group :<- :lisp-fun))

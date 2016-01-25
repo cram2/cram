@@ -10,7 +10,7 @@
                     "Waiting for turtle shape action server...")
   ;; workaround for race condition in actionlib wait-for server
   (loop until
-    (actionlib:wait-for-server *navp-client*))
+        (actionlib:wait-for-server *navp-client*))
   (roslisp:ros-info (turtle-shape-action-client)
                     "Turtle shape action client created."))
 
@@ -21,8 +21,8 @@
 
 (defun make-shape-action-goal (in-edges in-radius)
   (actionlib:make-action-goal (get-action-client)
-                        edges in-edges
-                        radius in-radius))
+    edges in-edges
+    radius in-radius))
 
 (defun call-shape-action (&key edges radius)
   (multiple-value-bind (result status)
@@ -37,4 +37,3 @@
            (make-shape-action-goal edges radius))))
     (roslisp:ros-info (turtle-shape-action-client) "Nav action finished.")
     (values result status)))
-

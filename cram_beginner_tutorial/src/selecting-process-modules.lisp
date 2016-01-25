@@ -1,37 +1,19 @@
 (in-package :tut)
 
-(cram-reasoning:def-fact-group navigation-action-designator (action-desig)
-  (cram-reasoning:<- (action-desig ?designator (navigation ?goal))
-  (desig-prop ?designator (:type :navigation))
-  (desig-prop ?designator (:goal ?goal))))
+(def-fact-group navigation-process-modules (available-process-module
+                                            matching-process-module)
+  (<- (available-process-module actionlib-navigation))
+  (<- (available-process-module simple-navigation))
 
-(cram-process-modules:def-process-module turtle-navigation-handler (action-designator)
-  (roslisp:ros-info (turtle-process-modules)
-                    "Turtle navigation invoked with action designator `~a'."
-                    action-designator)
-  (destructuring-bind (cmd action-goal) (reference action-designator)
-    (ecase cmd
-        (navigation
-          (print (cl-transforms:origin (reference action-goal)))
-          (move-to (cl-transforms:origin (reference action-goal)))))))
-
-(cram-reasoning:def-fact-group turtle-navigation (cram-process-modules:matching-process-module
-                                   cram-process-modules:available-process-module)
-  (cram-reasoning:<- (cram-process-modules:matching-process-module ?designator turtle-navigation-handler)
-    (desig-prop ?designator (:type :navigation)))
-  (cram-reasoning:<- (cram-process-modules:available-process-module turtle-navigation-handler)))
-
-(cram-reasoning:def-fact-group turtle-actuators (cram-process-modules:matching-process-module
-                                  cram-process-modules:available-process-module)
-  (cram-reasoning:<- (cram-process-modules:matching-process-module ?designator turtle-actuators)
+  (<- (matching-process-module ?designator actionlib-navigation)
     (desig-prop ?designator (:type :shape)))
-  (cram-reasoning:<- (cram-process-modules:available-process-module turtle-actuators)))
+  (<- (matching-process-module ?designator simple-navigation)
+    (desig-prop ?designator (:type :goal))))
 
-(defun do-action-designator (action-desig)
+(defun perform-some-action (action-desig)
   (let ((turtle-name "turtle1"))
     (start-ros-node turtle-name)
     (init-ros-turtle turtle-name)
     (top-level
-      (cpm:with-process-modules-running (turtle-navigation-handler turtle-actuators)
-        (cram-plan-library:perform action-desig)))))
-
+      (with-turtle-process-modules
+        (pm-execute-matching action-desig)))))

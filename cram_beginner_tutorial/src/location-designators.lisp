@@ -1,53 +1,66 @@
 (in-package :tut)
 
-(defun navigation-goal-generator (location-designator)
-  (let ((retq ()))
-      (dotimes (k 10)
-          (let ((x (- 1)) (y (- 1)))
-              (dolist (elem (description location-designator))
-                  (case
-                      (car elem)
-                          (vpos
-                              (case (cadr elem)
-                                  (center (setq y (+ 6 (random 4.0) -2)) )
-                                  (top (setq y (+ 11 (random 4.0) -2)) )
-                                  (bottom (setq y (+ 1 (random 4.0) -2)))))
-                          (hpos
-                              (case (cadr elem)
-                                  (center (setq x (+ 6 (random 4.0) -2)))
-                                  (right (setq x (+ 11 (random 4.0) -2)))
-                                  (left (setq x (+ 1 (random 4.0) -2)))))))
-    (setq retq (append retq
-         (list (cl-tf:make-pose-stamped
-              "turtlesim"
-              (roslisp:ros-time)
-              (cl-transforms:make-3d-vector x y 0)
-              (cl-transforms:make-quaternion 0 0 0 1)))))))
-    (return-from navigation-goal-generator retq)))
-
-(defun turtle-pose-validator (location-designator pose)
-  (declare (ignore location-designator))
-  (when (typep pose 'cl-transforms:pose)
-    (if
-     (or
-      (< (cl-transforms:x
-          (cl-transforms:origin pose))
-         0)
-      (< (cl-transforms:y
-          (cl-transforms:origin pose))
-         0)
-      (> (cl-transforms:x
-          (cl-transforms:origin pose))
-         11.8)
-      (> (cl-transforms:y
-          (cl-transforms:origin pose))
-         11.8))
-     (return-from turtle-pose-validator :reject)
-     (return-from turtle-pose-validator :accept))))
+(defun navigation-goal-generator (designator)
+  (declare (type location-designator designator))
+  (with-desig-props (vertical-position horizontal-position) designator
+    (let ((x-offset (ecase horizontal-position
+                      (:left 0)
+                      (:center (/ 11.0 3.0))
+                      (:right (* (/ 11.0 3.0) 2))))
+          (y-offset (ecase vertical-position
+                      (:bottom 0)
+                      (:center (/ 11.0 3.0))
+                      (:top (* (/ 11.0 3.0) 2)))))
+      (loop repeat 5
+            collect (cl-transforms:make-3d-vector
+                     (+ x-offset (random (/ 11.0 3.0)))
+                     (+ y-offset (random (/ 11.0 3.0)))
+                     0)))))
 
 (register-location-generator
- 15 navigation-goal-generator)
+ 5 navigation-goal-generator)
+
+(defun navigation-goal-validator (designator solution)
+  (declare (type location-designator designator))
+  (when (and (desig-prop-value designator :vertical-position)
+             (desig-prop-value designator :horizontal-position))
+    (when (typep solution 'cl-transforms:3d-vector)
+      (when
+          (and
+           (>= (cl-transforms:x solution) 0.5)
+           (>= (cl-transforms:y solution) 0.5)
+           (<= (cl-transforms:x solution) 10.5)
+           (<= (cl-transforms:y solution) 10.5))
+        :accept))))
 
 (register-location-validation-function
- 15 turtle-pose-validator)
+ 5 navigation-goal-validator)
 
+;; (defun make-2d-pose-with-randomness (x y random-range)
+;;   (cl-transforms:make-pose
+;;    (cl-transforms:make-3d-vector (+ x (random random-range))
+;;                                  (+ y (random random-range))
+;;                                  0)
+;;    (cl-transforms:make-identity-rotation)))
+
+;; (def-fact-group location-designator-generator (desig-solution)
+;;   (<- (position-offset :bottom 0))
+;;   (<- (position-offset :top ?offset)
+;;     (lisp-fun / 11.0 3.0 0.5 ?offset))
+
+;;   (<- (position-offset :center ?offset)
+;;     (lisp-fun / 11.0 3.0 ?offset))
+
+;;   (<- (position-offset :left 0))
+;;   (<- (position-offset :right ?offset)
+;;     (position-offset :top ?offset))
+
+;;   (<- (desig-solution ?desig ?solution)
+;;     (loc-desig? ?desig)
+;;     (desig-prop ?desig (:vertical-position ?vertical-position))
+;;     (desig-prop ?desig (:horizontal-position ?horizontal-position))
+;;     (position-offset ?vertical-position ?vertical-offset)
+;;     (position-offset ?horizontal-position ?horizontal-offset)
+;;     (lisp-fun / 11.0 3.0 ?random-range)
+;;     (lisp-fun make-2d-pose-with-randomness
+;;               ?horizontal-offset ?vertical-offset ?random-range ?solution)))

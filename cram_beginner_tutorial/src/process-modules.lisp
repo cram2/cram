@@ -1,47 +1,55 @@
 (in-package :tut)
 
-(cram-process-modules:def-process-module turtle-actuators (action-designator)
+(def-process-module actionlib-navigation (action-designator)
   (roslisp:ros-info (turtle-process-modules)
-                    "Turtle navigation invoked with action designator `~a'."
+                    "Turtle shape navigation invoked with action designator `~a'."
                     action-designator)
-  (destructuring-bind (cmd action-goal) (reference action-designator)
-    (ecase cmd
-      (shape
-         (call-shape-action
-          :edges (turtle-shape-edges action-goal)
-          :radius (turtle-shape-radius action-goal))))))
+  (destructuring-bind (command action-goal) (reference action-designator)
+    (ecase command
+      (draw-shape
+       (call-shape-action
+        :edges (turtle-shape-edges action-goal)
+        :radius (turtle-shape-radius action-goal))))))
 
+(def-process-module simple-navigation (action-designator)
+  (roslisp:ros-info (turtle-process-modules)
+                    "Turtle simple navigation invoked with action designator `~a'."
+                    action-designator)
+  (destructuring-bind (command action-goal) (reference action-designator)
+    (ecase command
+      (go-to
+       (when (typep action-goal 'location-designator)
+         (let ((target-point (reference action-goal)))
+           (roslisp:ros-info (turtle-process-modules)
+                             "Going to point ~a." target-point)
+           (move-to target-point)))))))
 
 (defmacro with-turtle-process-modules (&body body)
-  `(cpm:with-process-modules-running
-       (turtle-actuators)
+  `(with-process-modules-running
+       (actionlib-navigation
+        simple-navigation)
      ,@body))
 
-(defun draw-hexagon (r)
+(defun draw-hexagon (radius)
   (let ((turtle-name "turtle1"))
     (start-ros-node turtle-name)
     (init-ros-turtle turtle-name)
     (top-level
       (with-turtle-process-modules
-        (cpm:process-module-alias :manipulation 'turtle-actuators)
-          (cram-language-designator-support:with-designators
-              ((trajectory :action `((:type :shape) (:shape :hexagon) (:radius ,r))))
-            (cpm:pm-execute :manipulation trajectory))))))
+        (process-module-alias :navigation 'actionlib-navigation)
+        (with-designators
+            ((trajectory :action `((:type :shape) (:shape :hexagon) (:radius ,radius))))
+          (pm-execute :navigation trajectory))))))
 
-(cram-process-modules:def-process-module turtle-navigation (location-designator)
-  (roslisp:ros-info (turtle-process-modules)
-                    "Turtle navigation invoked with location designator `~a'."
-                    location-designator)
-  (let ((target-pose (reference location-designator)))
-       (print (cl-transforms:origin target-pose))
-       (move-to (cl-transforms:origin target-pose))))
-
-(defun goto-location (location-desig)
+(defun goto-location (horizontal-position vertical-position)
   (let ((turtle-name "turtle1"))
     (start-ros-node turtle-name)
     (init-ros-turtle turtle-name)
     (top-level
-      (cpm:with-process-modules-running (turtle-navigation)
-        (cpm:process-module-alias :navigation 'turtle-navigation)
-            (cpm:pm-execute :navigation location-desig)))))
-
+      (with-turtle-process-modules
+        (process-module-alias :navigation 'simple-navigation)
+        (with-designators
+            ((area :location `((:horizontal-position ,horizontal-position)
+                               (:vertical-position ,vertical-position)))
+             (goal :action `((:type :goal) (:goal ,area))))
+          (pm-execute :navigation goal))))))
