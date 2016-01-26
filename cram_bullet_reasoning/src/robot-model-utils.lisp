@@ -44,7 +44,7 @@
       (let* ((root-link (cl-urdf:name (cl-urdf:root-link (urdf robot))))
              (robot-transform
                (cl-transforms-stamped:lookup-transform
-                tf-buffer root-link reference-frame
+                tf-buffer reference-frame root-link
                 :time timestamp :timeout *tf-default-timeout*)))
         (when robot-transform
           (setf (link-pose robot root-link)
