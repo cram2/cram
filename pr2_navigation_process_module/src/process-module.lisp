@@ -112,6 +112,7 @@
             :use-current-ros-time t)))
     (roslisp:publish (roslisp:advertise "/ppp" "geometry_msgs/PoseStamped")
                      (to-msg goal-pose-in-fixed-frame))
+    (actionlib-lisp:wait-for-server client)
     (multiple-value-bind (result status)
         (actionlib-lisp:send-goal-and-wait
          client (make-action-goal goal-pose-in-fixed-frame)
