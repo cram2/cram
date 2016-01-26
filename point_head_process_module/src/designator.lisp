@@ -32,30 +32,30 @@
 (defvar *action-client* nil)
 
 (defun make-action-goal (pose-stamped)
-  (let ((pose-stamped
-          (cl-transforms-stamped:transform-pose-stamped
-           *transformer*
-           :pose (if (eql pose-stamped :forward)
-                     (make-pose-stamped
-                      *robot-base-frame*
-                      0.0
-                      (cl-transforms:make-3d-vector 3.0 0.0 1.5)
-                      (cl-transforms:make-quaternion 0.0 0.0 0.0 1.0))
-                     pose-stamped)
-           :target-frame "/base_link"
-           :timeout *tf-default-timeout*
-           :use-current-ros-time t)))
-    (let* ((point-stamped-msg
-             (cl-transforms-stamped:pose-stamped->point-stamped-msg pose-stamped)))
-      (actionlib-lisp:make-action-goal-msg
-          *action-client*
-        max_velocity 10
-        min_duration 0.3
-        pointing_frame "/high_def_frame"
-        (x pointing_axis) 1.0
-        (y pointing_axis) 0.0
-        (z pointing_axis) 0.0
-        target point-stamped-msg))))
+  (let* ((pose-stamped
+           (cl-transforms-stamped:transform-pose-stamped
+            *transformer*
+            :pose (if (eql pose-stamped :forward)
+                      (make-pose-stamped
+                       *robot-base-frame*
+                       0.0
+                       (cl-transforms:make-3d-vector 3.0 0.0 1.5)
+                       (cl-transforms:make-quaternion 0.0 0.0 0.0 1.0))
+                      pose-stamped)
+            :target-frame "/base_link"
+            :timeout *tf-default-timeout*
+            :use-current-ros-time t))
+         (point-stamped-msg
+           (cl-transforms-stamped:pose-stamped->point-stamped-msg pose-stamped)))
+    (actionlib-lisp:make-action-goal-msg
+     *action-client*
+     max_velocity 10
+     min_duration 0.3
+     pointing_frame "/high_def_frame"
+     (x pointing_axis) 1.0
+     (y pointing_axis) 0.0
+     (z pointing_axis) 0.0
+     target point-stamped-msg)))
 
 (def-fact-group point-head (action-desig)
 

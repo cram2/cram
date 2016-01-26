@@ -27,6 +27,8 @@
 
 (in-package :pr2-manipulation-process-module)
 
+(defparameter *allowed-arms* `(:left :right))
+
 (defun make-message (type-str slots)
   (apply #'roslisp::make-message-fn type-str slots))
 
@@ -131,10 +133,16 @@
   ;; TODO(winkler): Implement this function.
   combos)
 
-(defun arms-handles-combos (arms handles &key sort-by-distance
-                                          (use-all-arms t))
+(defun arms-handles-combos (arms handles &key sort-by-distance allowed-arms
+                                           (use-all-arms t))
   "Generates a lazy list of permutations of available `arms' over `handles'. If the flag `sort-by-distance' is set, the lazy list is sorted according to the lowest overall distance of one arms/handles combo set."
-  (let* ((permuted-combos (permute-grasp-combinations
+  (let* ((arms (or (unless allowed-arms arms)
+                   (cpl:mapcar-clean
+                    (lambda (arm)
+                      (when (find arm allowed-arms)
+                        arm))
+                    arms)))
+         (permuted-combos (permute-grasp-combinations
                            arms handles
                            :use-all-arms use-all-arms))
          (maybe-sorted-combos
@@ -161,8 +169,16 @@
    pose-stamped :origin (cl-transforms:v+ (cl-transforms:origin pose-stamped)
                                           (cl-transforms:make-3d-vector 0.0 0.0 z-offset))))
 
-(defun rotated-poses (pose &key segments (z-offset 0.0))
-  (let ((segments (or segments 8)))
+(defun rotated-poses (object pose &key segments (z-offset 0.0))
+  (let* ((object-type (desig-prop-value object :type))
+         (prolog-result (prolog:prolog `(orientation-matters ,object-type ?matters)))
+         (matters
+           (when prolog-result
+             (with-vars-bound (?matters) (lazy-car prolog-result)
+               ?matters)))
+         (segments (or (and matters 2)
+                       segments
+                       8)))
     (loop for i from 0 below segments
           as orientation-offset = (* 2 pi (/ i segments))
           collect (elevate-pose
@@ -250,17 +266,40 @@
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :park))
     (free-arms ?arms))
-  
+
+  (<- (action-desig ?desig (lift nil nil ?distance))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (:to :lift))
+    (desig-prop ?desig (:obj nil))
+    (-> (desig-prop ?desig (:distance ?distance))
+        (true)
+        (== ?distance 0.1)))
+
+  (<- (action-desig ?desig (handover ?object ?grasp-assignments))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (:to :handover))
+    (desig-prop ?desig (:obj ?obj))
+    (current-designator ?obj ?object)
+    (object->grasp-assignments ?object ?grasp-assignments))
+
   (<- (action-desig ?desig (lift ?current-obj ?grasp-assignments ?distance))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :lift))
     (or (desig-prop ?desig (:obj ?obj))
         (desig-prop ?desig (:object ?obj)))
+    (not (equal ?obj nil))
     (current-designator ?obj ?current-obj)
     (object->grasp-assignments ?current-obj ?grasp-assignments)
     (-> (desig-prop ?desig (:distance ?distance))
         (true)
-        (== ?distance 0.10)))
+        (== ?distance 0.02)))
+
+  (<- (grasp-type ?obj ?grasp-type)
+    (not (equal ?obj nil))
+    (current-designator ?obj ?current)
+    (desig-prop ?current (:grasp-type ?grasp-type)))
+
+  (<- (grasp-type ?_ :push))
 
   (<- (action-desig ?desig (park ?arms ?obj ?obstacles))
     (trajectory-desig? ?desig)
@@ -274,6 +313,8 @@
   (<- (free-arm ?free-arm)
     (robot ?robot)
     (arm ?robot ?free-arm)
+    (symbol-value *allowed-arms* ?allowed-arms)
+    (member ?free-arm ?allowed-arms)
     (not (object-in-hand ?_ ?free-arm)))
   
   (<- (arm-for-pose ?pose ?arm)
@@ -286,11 +327,22 @@
     (or (desig-prop ?desig (:obj ?obj))
         (desig-prop ?desig (:object ?obj)))
     (newest-effective-designator ?obj ?current-obj))
-  
+
+  (<- (action-desig ?desig (shove-into ?current-obj ?target-pose))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (:to :shove-into))
+    (desig-prop ?desig (:obj ?obj))
+    (current-designator ?obj ?current-obj)
+    (desig-prop ?desig (:pose ?target-pose)))
+
   (<- (grasp-offsets top-slide-down ?pregrasp-offset ?grasp-offset)
     (symbol-value *pregrasp-top-slide-down-offset* ?pregrasp-offset)
-    (symbol-value *grasp-top-slide-down-offset* ?grasp-offset))
-  
+    (symbol-value *grasp-offset* ?grasp-offset))
+
+  (<- (grasp-offsets pull ?pregrasp-offset ?grasp-offset)
+    (symbol-value *pregrasp-pull-offset* ?pregrasp-offset)
+    (symbol-value *grasp-pull-offset* ?grasp-offset))
+
   (<- (grasp-offsets ?_ ?pregrasp-offset ?grasp-offset) ;; For example, 'push'
     (symbol-value *pregrasp-offset* ?pregrasp-offset)
     (symbol-value *grasp-offset* ?grasp-offset))
@@ -310,19 +362,39 @@
         (prolog:true)))
   
   (<- (object-pose-reachable ?object ?pose ?arm)
-    (grasp-type ?object ?grasp-type)
-    (grasp-offsets ?grasp-type ?pregrasp-offset ?grasp-offset)
+    (once (grasp-type ?object ?grasp-type))
+    (once (grasp-offsets ?grasp-type ?pregrasp-offset ?grasp-offset))
     (lisp-fun cost-reach-pose ?object ?arm ?pose
               ?pregrasp-offset ?grasp-offset
               :only-reachable t ?cost)
     (not (equal ?cost nil)))
-  
+
   (<- (arm-handle-assignment ?object ?arm-handle-combo ?grasp-assignment)
+    (desig-prop ?object (:type :semantic-handle))
+    (member (?arm . ?handle) ?arm-handle-combo)
+    (once (grasp-offsets pull ?pregrasp-offset ?grasp-offset))
+    (gripper-offset ?arm ?gripper-offset)
+    (desig-prop ?handle (:at ?location))
+    (lisp-fun reference ?location ?pose)
+    (open-gripper ?arm)
+    (object-pose-reachable ?object ?pose ?arm)
+    (lisp-fun make-grasp-assignment
+              :side ?arm
+              :grasp-type pull
+              :pose ?pose
+              :handle ?handle
+              :pregrasp-offset ?pregrasp-offset
+              :grasp-offset ?grasp-offset
+              :gripper-offset ?gripper-offset
+              ?grasp-assignment))
+
+  (<- (arm-handle-assignment ?object ?arm-handle-combo ?grasp-assignment)
+    (not (desig-prop ?object (:type :semantic-handle)))
     (member (?arm . ?handle) ?arm-handle-combo)
     (once (or (grasp-type ?handle ?grasp-type)
               (grasp-type ?object ?grasp-type)))
-    (grasp-offsets ?grasp-type ?pregrasp-offset ?grasp-offset)
-    (gripper-offset ?arm ?gripper-offset)
+    (once (grasp-offsets ?grasp-type ?pregrasp-offset ?grasp-offset))
+    (once (gripper-offset ?arm ?gripper-offset))
     (absolute-handle ?object ?handle ?absolute-handle)
     (desig-prop ?absolute-handle (:at ?location))
     (lisp-fun reference ?location ?pose)
@@ -348,19 +420,33 @@
     (once
      (or (desig-prop ?object (:carry-handles ?carry-handles))
          (equal ?carry-handles 1))))
-  
+
+  (<- (free-arms-handles-combos ?semantic-handle ?combos)
+    (desig-prop ?semantic-handle (:type :semantic-handle))
+    (free-arms ?free-arms)
+    (lisp-fun list ?semantic-handle ?handles)
+    (lisp-fun arms-handles-combos ?free-arms ?handles
+              :use-all-arms nil ?combos))
+
   (<- (free-arms-handles-combos ?object ?combos)
+    (not (desig-prop ?semantic-handle (:type :semantic-handle)))
     (carry-handles ?object ?carry-handles)
     (once
      (or (and (equal ?carry-handles 1)
               (equal ?use-all-arms nil))
          (equal ?use-all-arms t)))
+    (once
+     (or (desig-prop ?object (:sides ?sides))
+         (equal ?sides (:left :right))))
     (free-arms ?free-arms)
     (handles ?object ?handles)
     (lisp-fun arms-handles-combos ?free-arms ?handles
-              :use-all-arms ?use-all-arms ?combos))
-  
+              :use-all-arms ?use-all-arms
+              :allowed-arms ?sides
+              ?combos))
+
   (<- (grasp-assignments ?object ?grasp-assignments)
+    (not (desig-prop ?object (:type :semantic-handle)))
     (free-arms-handles-combos ?object ?arm-handle-combos)
     (member ?arm-handle-combo ?arm-handle-combos)
     (setof ?grasp-assignment
@@ -397,7 +483,28 @@
   (<- (object->grasp-assignments ?object ?grasp-assignments)
     (object-grasps-in-gripper ?object ?grasps)
     (lisp-fun cons->grasp-assignments ?grasps ?grasp-assignments))
+
+  (<- (action-desig ?desig (pull-open ?semantic-handle))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (:to :pull-open))
+    (desig-prop ?desig (:handle ?semantic-handle)))
   
+  (<- (action-desig ?desig (open-container ?arm ?loc ?degree))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (:to :open))
+    (desig-prop ?desig (:location ?loc))
+    (desig-prop ?desig (:degree ?degree))
+    (free-arm ?arm))
+  
+  (<- (grasp-assignments ?semantic-handle ?grasp-assignments)
+    (desig-prop ?semantic-handle (:type :semantic-handle))
+    (free-arms-handles-combos ?semantic-handle ?arm-handle-combos)
+    (member ?arm-handle-combo ?arm-handle-combos)
+    (setof ?grasp-assignment
+           (arm-handle-assignment
+            ?semantic-handle ?arm-handle-combo ?grasp-assignment)
+           ?grasp-assignments))
+
   (<- (action-desig ?desig (put-down ?current-obj ?loc ?grasp-assignments))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :put-down))
@@ -406,9 +513,9 @@
     (desig-prop ?desig (:at ?loc))
     (current-designator ?obj ?current-obj)
     (object->grasp-assignments ?current-obj ?grasp-assignments))
-  
-  (<- (putdown-pose ?original-pose ?segments ?putdown-pose)
-    (lisp-fun rotated-poses ?original-pose
+
+  (<- (putdown-pose ?object ?original-pose ?segments ?putdown-pose)
+    (lisp-fun rotated-poses ?object ?original-pose
               :segments ?segments
               :z-offset 0.01
               ?rotated-poses)
@@ -424,7 +531,7 @@
     (desig-prop ?desig (:distance ?distance))
     (desig-prop ?desig (:direction ?direction))
     (current-designator ?obj ?current-obj)
-    (prolog:fail) ;; This predicate needs to be refactored
+    (fail) ;; This predicate needs to be refactored
     (grasped-object-part ?obj ?grasped)
     (holding-arms ?current-obj ?arms)
     (obstacles ?desig ?obstacles))
@@ -451,12 +558,15 @@
              (desig-prop ?designator (:to :open))
              (desig-prop ?designator (:to :close))
              (desig-prop ?designator (:to :park))
-             (desig-prop ?designator (:pose :open))        
+             (desig-prop ?designator (:pose :open))
              (desig-prop ?designator (:to :lift))
              (desig-prop ?designator (:to :carry))
              (desig-prop ?designator (:to :pull))
              (desig-prop ?designator (:to :push))
-             (desig-prop ?designator (:to :debug)))))
+             (desig-prop ?designator (:to :shove-into))
+             (desig-prop ?designator (:to :pull-open))
+             (desig-prop ?designator (:to :debug))
+             (desig-prop ?designator (:to :handover)))))
 
   (<- (available-process-module pr2-manipulation-process-module)
     (not (projection-running ?_))))

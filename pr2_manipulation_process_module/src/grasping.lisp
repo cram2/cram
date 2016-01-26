@@ -30,22 +30,32 @@
 (defparameter *pregrasp-offset*
   (cl-transforms:make-pose
    (cl-transforms:make-3d-vector
-    -0.29 0.0 0.0)
+    -0.31 0.0 0.0)
    (cl-transforms:euler->quaternion :ax (/ pi -2))))
 (defparameter *pregrasp-top-slide-down-offset*
   (cl-transforms:make-pose
    (cl-transforms:make-3d-vector
     -0.20 0.10 0.0)
    (cl-transforms:euler->quaternion :ax (/ pi -2))))
+(defparameter *pregrasp-pull-offset*
+  (cl-transforms:make-pose
+   (cl-transforms:make-3d-vector
+    -0.28 -0.02 0)
+   (cl-transforms:euler->quaternion :ax (/ pi 2)))) ;; Fix me
+(defparameter *grasp-pull-offset*
+  (cl-transforms:make-pose
+   (cl-transforms:make-3d-vector
+    -0.18 -0.02 0)
+   (cl-transforms:euler->quaternion :ax (/ pi 2)))) ;; Fix me
 (defparameter *grasp-offset*
   (cl-transforms:make-pose
    (cl-transforms:make-3d-vector
-    -0.20 0.0 0.0)
+    -0.22 0.0 0.0)
    (cl-transforms:euler->quaternion :ax (/ pi -2))))
 (defparameter *pre-putdown-offset*
   (cl-transforms:make-pose
    (cl-transforms:make-3d-vector
-    0.0 0.0 0.2)
+    0.0 0.0 0.04)
    (cl-transforms:euler->quaternion)))
 (defparameter *putdown-offset*
   (cl-transforms:make-pose
@@ -66,14 +76,14 @@
 ;; Parking related poses
 (defparameter *park-pose-left-default*
   (make-pose-stamped
-   "base_link" (ros-time)
-   (cl-transforms:make-3d-vector 0.3 0.5 1.3)
-   (cl-transforms:euler->quaternion :ax 0)))
+   *robot-torso-frame* (ros-time)
+   (cl-transforms:make-3d-vector 0.1 0.45 0.3)
+   (cl-transforms:euler->quaternion :ay (/ pi -2))))
 (defparameter *park-pose-right-default*
   (make-pose-stamped
-   "base_link" (ros-time)
-   (cl-transforms:make-3d-vector 0.3 -0.5 1.3)
-   (cl-transforms:euler->quaternion :ax 0)))
+   *robot-torso-frame* (ros-time)
+   (cl-transforms:make-3d-vector 0.1 -0.45 0.3)
+   (cl-transforms:euler->quaternion :ay (/ pi -2))))
 (defparameter *park-pose-left-top-slide-down*
   (make-pose-stamped
    "base_link" (ros-time)
@@ -227,7 +237,8 @@ configuration."
 (defun cost-reach-pose (obj arm pose pregrasp-offset grasp-offset
                         &key allowed-collision-objects
                           only-reachable)
-  (let* ((distance-pregrasp
+  (let* ((attached-objects (cram-moveit::get-robot-attached-objects))
+         (distance-pregrasp
            (cond (only-reachable (is-pose-reachable
                                   pose arm
                                   :arm-offset-pose pregrasp-offset))
@@ -239,6 +250,9 @@ configuration."
                                  :highlight-links
                                  (links-for-arm-side arm)))))))
          (distance-grasp (when (and distance-pregrasp (> distance-pregrasp 0))
+                           (loop for object in attached-objects do
+                             (moveit:detach-collision-object-from-link
+                              (first object) (second object)))
                            (moveit:remove-collision-object
                             (desig-prop-value obj :name))
                            (prog1
@@ -255,7 +269,10 @@ configuration."
                                                      :highlight-links
                                                      (links-for-arm-side arm))))))
                              (moveit:add-collision-object
-                              (desig-prop-value obj :name))))))
+                              (desig-prop-value obj :name))
+                             (loop for object in attached-objects do
+                               (moveit:attach-collision-object-to-link
+                                (first object) (second object)))))))
     (roslisp:ros-info (pr2 manip-pm) "Pregrasp: ~a, Grasp: ~a"
                       distance-pregrasp distance-grasp)
     (when (and distance-grasp (> distance-grasp 0))

@@ -48,6 +48,7 @@
          (handler-case
              (destructuring-bind (cmd action-goal) (reference goal)
                (maybe-shutdown-thread)
+               (actionlib-lisp:wait-for-server *action-client*)
                (ecase cmd
                  (point
                   (actionlib-lisp:send-goal-and-wait
