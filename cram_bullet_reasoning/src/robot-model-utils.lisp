@@ -55,7 +55,7 @@
                    (cl-transforms:transform*
                     robot-transform
                     (cl-transforms-stamped:lookup-transform
-                     tf-buffer name root-link
+                     tf-buffer root-link name
                      :time timestamp
                      :timeout *tf-default-timeout*)))))))
     (transform-stamped-error (error)
