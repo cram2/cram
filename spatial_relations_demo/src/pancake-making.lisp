@@ -60,7 +60,7 @@
             (format t "now trying to achieve the location of spatula on kitchen-island~%")
             (achieve `(loc ,spatula-designator ,spatula-location))))
         (let ((mondamin-designator
-                (find-object-on-counter :mondamin "CounterTop"
+                (find-object-on-counter :mondamin "Cupboard"
                                         "kitchen_island")))
           (with-designators
               ((on-kitchen-island :location `((:on "Cupboard")
