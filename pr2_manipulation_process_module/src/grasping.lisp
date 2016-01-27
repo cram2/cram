@@ -76,12 +76,12 @@
 ;; Parking related poses
 (defparameter *park-pose-left-default*
   (make-pose-stamped
-   *robot-torso-frame* (ros-time)
+   "torso_lift_link" (ros-time)
    (cl-transforms:make-3d-vector 0.1 0.45 0.3)
    (cl-transforms:euler->quaternion :ay (/ pi -2))))
 (defparameter *park-pose-right-default*
   (make-pose-stamped
-   *robot-torso-frame* (ros-time)
+   "torso_lift_link" (ros-time)
    (cl-transforms:make-3d-vector 0.1 -0.45 0.3)
    (cl-transforms:euler->quaternion :ay (/ pi -2))))
 (defparameter *park-pose-left-top-slide-down*

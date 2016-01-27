@@ -211,7 +211,7 @@
                           &key cartesian-thres angular-thres)
   (let* ((cartesian-distance-threshold (or cartesian-thres 0.02))
          (angular-distance-threshold (or angular-thres 0.1))
-         (link-name side)
+         (link-name (link-name side))
          (link-id-pose
            (cl-transforms-stamped:pose->pose-stamped
             link-name 0.0 (cl-transforms:make-identity-pose)))
@@ -225,8 +225,8 @@
                   (origin pose-stamped)
                   (origin link-compare-pose)))
          (dist-a-pre (angle-between-quaternions
-                      (orientation pose-stamped)
-                      (orientation link-compare-pose)))
+                      (cl-transforms:orientation pose-stamped)
+                      (cl-transforms:orientation link-compare-pose)))
          (dist-a (cond ((> dist-a-pre pi)
                         (- dist-a-pre (* 2 pi)))
                        (t dist-a-pre))))
