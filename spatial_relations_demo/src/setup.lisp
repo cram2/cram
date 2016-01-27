@@ -87,7 +87,8 @@
        (robot-torso-link-joint ?robot ?_ ?joint)
        (assert (joint-state ?w ?robot ?joint-states))
        (assert (joint-state ?w ?robot ((?joint 0.16825d0)))))))
-  (add-walls))
+  ;; (add-walls)
+  )
 
 (defun add-walls ()
   (setf cram-bullet-reasoning::*static-plane-texture*
