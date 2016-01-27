@@ -56,10 +56,10 @@
     (lisp-fun get-semantic-map ?semantic-map)
     (lisp-fun sem-map-utils:semantic-map-parts ?semantic-map
               :recursive nil ?objects))
-  
+
   (<- (desig-costmap ?desig ?cm)
-    (semantic-map-desig-objects ?desig ?objects)
     (desig-prop ?desig (:on ?_))
+    (semantic-map-desig-objects ?desig ?objects)
     (costmap ?cm)
     (costmap-add-function semantic-map-objects
                           (make-semantic-map-costmap ?objects)
@@ -69,8 +69,8 @@
      ?cm))
 
   (<- (desig-costmap ?desig ?cm)
-    (semantic-map-desig-objects ?desig ?objects)
     (desig-prop ?desig (:in ?_))
+    (semantic-map-desig-objects ?desig ?objects)
     (costmap ?cm)
     (costmap-add-function semantic-map-objects
                           (make-semantic-map-costmap ?objects)
