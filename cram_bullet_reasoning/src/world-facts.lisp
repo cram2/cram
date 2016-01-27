@@ -266,7 +266,7 @@
     (object ?w ?obj-2-name)
     (%object ?w ?obj-1-name ?obj-1)
     (%object ?w ?obj-2-name ?obj-2)
-    (lisp-type ?obj-2 robot-object)
+    (lisp-pred typep ?obj-2 robot-object)
     (link ?w ?obj-2-name ?link-name)
     (lisp-pred above-link-p ?obj-1 ?obj-2 ?link-name))
 
