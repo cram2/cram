@@ -291,9 +291,11 @@
   (let* ((target-frame (var-value '?target-frame
                                   (lazy-car
                                    (prolog:prolog
-                                    `(cram-pr2-description::end-effector-link
-                                      ,(car grippers)
-                                      ?target-frame)))))
+                                    `(and (robot ?robot)
+                                          (cram-robot-interfaces:end-effector-link
+                                           ?robot
+                                           ,(car grippers)
+                                           ?target-frame))))))
          (obj-pose-in-gripper (pose->pose-stamped
                                target-frame
                                0.0
