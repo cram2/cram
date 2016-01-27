@@ -237,8 +237,7 @@ configuration."
 (defun cost-reach-pose (obj arm pose pregrasp-offset grasp-offset
                         &key allowed-collision-objects
                           only-reachable)
-  (let* ((attached-objects (cram-moveit::get-robot-attached-objects))
-         (distance-pregrasp
+  (let* ((distance-pregrasp
            (cond (only-reachable (is-pose-reachable
                                   pose arm
                                   :arm-offset-pose pregrasp-offset))
@@ -250,9 +249,6 @@ configuration."
                                  :highlight-links
                                  (links-for-arm-side arm)))))))
          (distance-grasp (when (and distance-pregrasp (> distance-pregrasp 0))
-                           (loop for object in attached-objects do
-                             (moveit:detach-collision-object-from-link
-                              (first object) (second object)))
                            (moveit:remove-collision-object
                             (desig-prop-value obj :name))
                            (prog1
@@ -269,14 +265,55 @@ configuration."
                                                      :highlight-links
                                                      (links-for-arm-side arm))))))
                              (moveit:add-collision-object
-                              (desig-prop-value obj :name))
-                             (loop for object in attached-objects do
-                               (moveit:attach-collision-object-to-link
-                                (first object) (second object)))))))
+                              (desig-prop-value obj :name))))))
     (roslisp:ros-info (pr2 manip-pm) "Pregrasp: ~a, Grasp: ~a"
                       distance-pregrasp distance-grasp)
     (when (and distance-grasp (> distance-grasp 0))
       (+ distance-pregrasp distance-grasp))))
+
+;; (defun cost-reach-pose (obj arm pose pregrasp-offset grasp-offset
+;;                         &key allowed-collision-objects
+;;                           only-reachable)
+;;   (let* ((attached-objects (cram-moveit::get-robot-attached-objects))
+;;          (distance-pregrasp
+;;            (cond (only-reachable (is-pose-reachable
+;;                                   pose arm
+;;                                   :arm-offset-pose pregrasp-offset))
+;;                  (t (cdr (assoc arm
+;;                                 (arms-pose-distances
+;;                                  (list arm) pose
+;;                                  :arms-offset-pose
+;;                                  pregrasp-offset
+;;                                  :highlight-links
+;;                                  (links-for-arm-side arm)))))))
+;;          (distance-grasp (when (and distance-pregrasp (> distance-pregrasp 0))
+;;                            (loop for object in attached-objects do
+;;                              (moveit:detach-collision-object-from-link
+;;                               (first object) (second object)))
+;;                            (moveit:remove-collision-object
+;;                             (desig-prop-value obj :name))
+;;                            (prog1
+;;                                (cond (only-reachable (is-pose-reachable
+;;                                                       pose arm
+;;                                                       :arm-offset-pose grasp-offset))
+;;                                      (t (cdr (assoc arm
+;;                                                     (arms-pose-distances
+;;                                                      (list arm) pose
+;;                                                      :arms-offset-pose
+;;                                                      grasp-offset
+;;                                                      :allowed-collision-objects
+;;                                                      allowed-collision-objects
+;;                                                      :highlight-links
+;;                                                      (links-for-arm-side arm))))))
+;;                              (moveit:add-collision-object
+;;                               (desig-prop-value obj :name))
+;;                              (loop for object in attached-objects do
+;;                                (moveit:attach-collision-object-to-link
+;;                                 (first object) (second object)))))))
+;;     (roslisp:ros-info (pr2 manip-pm) "Pregrasp: ~a, Grasp: ~a"
+;;                       distance-pregrasp distance-grasp)
+;;     (when (and distance-grasp (> distance-grasp 0))
+;;       (+ distance-pregrasp distance-grasp))))
 
 (defun is-pose-reachable (pose arm &key arm-offset-pose)
   (let ((pose (cond (arm-offset-pose (relative-pose pose arm-offset-pose))
