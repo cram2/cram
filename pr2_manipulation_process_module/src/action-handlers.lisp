@@ -295,8 +295,9 @@
           (with-vars-strictly-bound (?link-name)
               (lazy-car
                (prolog
-                `(cram-robot-interfaces:end-effector-link
-                  ,(arm param-set) ?link-name)))
+                `(and (robot ?robot)
+                      (cram-robot-interfaces:end-effector-link
+                       ?robot ,(arm param-set) ?link-name))))
             (cram-occasions-events:on-event
              (make-instance 'cram-plan-occasions-events:object-attached
                             :object obj
@@ -614,8 +615,9 @@
                (with-vars-strictly-bound (?link-name)
                    (lazy-car
                     (prolog
-                     `(cram-robot-interfaces:end-effector-link
-                       ,side ?link-name)))
+                     `(and (robot ?robot)
+                           (cram-robot-interfaces:end-effector-link
+                            ?robot ,side ?link-name))))
                  (cram-occasions-events:on-event
                   (make-instance
                       'cram-plan-occasions-events:object-detached
