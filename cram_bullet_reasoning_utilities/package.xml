@@ -1,6 +1,6 @@
 <package format="2">
   <name>cram_bullet_reasoning_utilities</name>
-  <version>0.0.0</version>
+  <version>0.0.1</version>
   <description>Syntactic sugar for using cram_bullet_reasoning</description>
   <author>Gayane Kazhoyan</author>
   <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
