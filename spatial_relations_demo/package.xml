@@ -29,6 +29,9 @@
   <depend>cram_bullet_reasoning_utilities</depend>
 
   <!-- launch file -->
-  <depend>iai_maps</depend>
-  <depend>pr2_description_lowres</depend>
+  <exec_depend>iai_maps</exec_depend>
+  <exec_depend>map_server</exec_depend>
+  <exec_depend>pr2_description_lowres</exec_depend>
+  <exec_depend>pr2_moveit_config</exec_depend>
+  <exec_depend>pr2_moveit_plugins</exec_depend>
 </package>
