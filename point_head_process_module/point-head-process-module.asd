@@ -36,7 +36,7 @@
                cram-process-modules
                cram-designators
                cram-prolog
-               cram-transforms-stamped
+               cram-tf
                cram-plan-occasions-events
                cram-occasions-events
                roslisp-utilities

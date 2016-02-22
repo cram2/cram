@@ -33,7 +33,7 @@
         #:prolog
         #:cut
         #:desig
-        #:cram-transforms-stamped
+        #:cram-tf
         #:cram-process-modules
         #:cram-plan-failures
         #:cram-plan-occasions-events

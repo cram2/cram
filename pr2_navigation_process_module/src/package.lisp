@@ -35,7 +35,7 @@
         #:cram-prolog
         #:cram-designators
         #:cram-process-modules
-        #:cram-transforms-stamped
+        #:cram-tf
         #:cram-plan-failures
         #:cl-transforms-stamped)
   (:export #:pr2-navigation-process-module #:*navigation-enabled*)

@@ -36,7 +36,7 @@
                cram-designators
                roslisp-utilities
                cram-prolog
-               cram-transforms-stamped
+               cram-tf
                cl-transforms-stamped
                cram-plan-failures
                cram-plan-occasions-events

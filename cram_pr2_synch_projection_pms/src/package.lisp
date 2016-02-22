@@ -34,7 +34,7 @@
         #:cram-projection
         #:cl-transforms-stamped
         #:cram-robot-interfaces
-        #:cram-transforms-stamped)
+        #:cram-tf)
   (:shadowing-import-from #:cram-bullet-reasoning name)
   (:shadowing-import-from #:cl-bullet pose)
   (:import-from #:cram-robot-interfaces arm trajectory-point end-effector-link robot)

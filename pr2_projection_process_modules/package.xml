@@ -33,7 +33,7 @@
   <build_depend>cram_semantic_map_utils</build_depend>
   <build_depend>cram_semantic_map</build_depend>
   <build_depend>cram_semantic_map_designators</build_depend>
-  <build_depend>cram_transforms_stamped</build_depend>
+  <build_depend>cram_tf</build_depend>
 
   <!-- Dependencies needed after this package is compiled. -->
   <run_depend>alexandria</run_depend>
@@ -54,6 +54,6 @@
   <run_depend>cram_semantic_map_utils</run_depend>
   <run_depend>cram_semantic_map</run_depend>
   <run_depend>cram_semantic_map_designators</run_depend>
-  <run_depend>cram_transforms_stamped</run_depend>
+  <run_depend>cram_tf</run_depend>
 
 </package>

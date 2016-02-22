@@ -35,7 +35,7 @@
         #:cram-designators
         #:cram-process-modules
         #:alexandria
-        #:cram-transforms-stamped
+        #:cram-tf
         #:cpl-impl
         #:cl-transforms-stamped
         #:cram-robot-interfaces)
