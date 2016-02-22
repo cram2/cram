@@ -36,7 +36,7 @@
                cram-designators
                cram-semantic-map-utils
                cram-semantic-map
-               cram-transforms-stamped)
+               cram-tf)
   :components
   ((:module "src"
     :components
