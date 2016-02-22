@@ -54,17 +54,17 @@ or in general at compile-time.")
 
 
 (defun init-tf ()
-  (flet ((initialize-var (dynamic-var prolog-var)
-           (let ((var-name (symbol-name dynamic-var)))
-             (if (is-var prolog-var)
-                 (roslisp:ros-info (cram-tf init-tf)
-                                   "~a is unknown. Did you load a robot description package?"
-                                   var-name)
-                 (progn
-                   (setf dynamic-var prolog-var)
-                   (roslisp:ros-info (cram-tf init-tf)
-                                     "Set ~a to ~s."
-                                     var-name prolog-var))))))
+  (macrolet ((initialize-var (dynamic-var prolog-var)
+               (let ((var-name (symbol-name dynamic-var)))
+                 `(if (is-var ,prolog-var)
+                      (roslisp:ros-info (cram-tf init-tf)
+                                        "~a is unknown. Did you load a robot description package?"
+                                        ,var-name)
+                      (progn
+                        (setf ,dynamic-var ,prolog-var)
+                        (roslisp:ros-info (cram-tf init-tf)
+                                          "Set ~a to ~s."
+                                          ,var-name ,prolog-var))))))
 
    (setf *fixed-frame* "map")
    (roslisp:ros-info (cram-tf init-tf) "Set *fixed-frame* to \"map\".")
@@ -81,9 +81,10 @@ or in general at compile-time.")
                                (robot-base-frame ?robot ?base-frame)
                                (robot-odom-frame ?robot ?odom-frame)
                                (robot-torso-link-joint ?robot ?torso-frame ?torso-joint))))
-     (mapcar #'initialize-var
-             '(*robot-base-frame* *robot-torso-frame* *robot-torso-joint* *odom-frame*)
-             (list ?base-frame ?torso-frame ?torso-joint ?odom-frame)))))
+     (initialize-var *robot-base-frame* ?base-frame)
+     (initialize-var *robot-torso-frame* ?torso-frame)
+     (initialize-var *robot-torso-joint* ?torso-joint)
+     (initialize-var *odom-frame* ?odom-frame))))
 
 (defun destroy-tf ()
   (setf *transformer* nil)
