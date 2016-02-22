@@ -1,7 +1,7 @@
 (in-package :cl-user)
 
 (desig-props:def-desig-package cram-tutorial-planlib
-  (:use #:roslisp #:cram-utilities #:cram-transforms-stamped
+  (:use #:roslisp #:cram-utilities #:cram-tf
         #:cram-roslisp-common #:cram-designators
         #:cram-plan-occasions-events #:cram-plan-library #:cpl
 	#:cram-plan-failures)

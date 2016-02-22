@@ -11,7 +11,7 @@
   <depend package="roslisp"/>
   <depend package="cram_language"/>
   <depend package="cram_roslisp_common"/>
-  <depend package="cram_transforms_stamped"/>
+  <depend package="cram_tf"/>
   <depend package="alexandria"/>
   <depend package="cram_reasoning"/>
   <depend package="cram_plan_library"/>

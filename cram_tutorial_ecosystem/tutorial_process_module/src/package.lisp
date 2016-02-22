@@ -6,7 +6,7 @@
         #:crs
         #:cut
         #:desig
-        #:cram-transforms-stamped
+        #:cram-tf
         #:cram-roslisp-common
         #:cram-process-modules
         #:cram-plan-failures

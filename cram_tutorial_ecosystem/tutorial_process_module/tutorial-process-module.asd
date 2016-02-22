@@ -2,7 +2,7 @@
   :author "Jan Winkler"
   :license "BSD"
   
-  :depends-on (cram-transforms-stamped
+  :depends-on (cram-tf
                cram-process-modules
                cram-roslisp-common
                cram-reasoning
