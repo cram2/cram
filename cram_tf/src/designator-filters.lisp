@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-transforms-stamped)
+(in-package :cram-tf)
 
 (defun make-euclidean-distance-filter (pose distance-threshold)
   "Filters (i.e. removes) all solutions that are closer than

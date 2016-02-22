@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-transforms-stamped)
+(in-package :cram-tf)
 
 (defun robot-current-pose (&key use-current-time-p)
   (if *transformer*

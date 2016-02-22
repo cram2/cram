@@ -36,7 +36,7 @@
         #:cram-utilities
         #:cram-process-modules
         #:roslisp
-        #:cram-transforms-stamped
+        #:cram-tf
         #:cram-plan-occasions-events
         #:cram-occasions-events
         #:cram-plan-failures

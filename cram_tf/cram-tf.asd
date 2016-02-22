@@ -1,7 +1,7 @@
 ; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 
-(asdf:defsystem cram-transforms-stamped
-  :name "cram-transforms-stamped"
+(asdf:defsystem cram-tf
+  :name "cram-tf"
   :author "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
   :maintainer "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
   :licence "BSD"

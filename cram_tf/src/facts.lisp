@@ -28,7 +28,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :cram-transforms-stamped)
+(in-package :cram-tf)
 
 (def-fact-group poses ()
   (<- (pose ?pose (?x ?y ?z) (?ax ?ay ?az ?aw))
