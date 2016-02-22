@@ -34,12 +34,11 @@
   "A TF transformer object: be it TF:TRANSFORM-LISTENER or TF2:BUFFER-CLIENT etc.")
 
 (defvar *tf-default-timeout* 2.0
-  "How long to wait until a tansform in secs.")
+  "How long to wait until a tansform in secs. For simulation the default is 4.0")
 
 
 (defvar *fixed-frame* nil
-  "World coordinate system name. Should be initialized in an environment setup package.
-Currently done in CRAM-BULLET-REASONING-BELIEF-STATE.")
+  "World coordinate system name. Initialized in a ROS init function.")
 
 (defvar *odom-frame* nil
   "Robot odometry frame name.")
@@ -52,3 +51,43 @@ or in general at compile-time.")
 (defvar *robot-torso-frame* nil)
 
 (defvar *robot-torso-joint* nil)
+
+
+(defun init-tf ()
+  (flet ((initialize-var (dynamic-var prolog-var)
+           (let ((var-name (symbol-name dynamic-var)))
+             (if (is-var prolog-var)
+                 (roslisp:ros-info (cram-tf init-tf)
+                                   "~a is unknown. Did you load a robot description package?"
+                                   var-name)
+                 (progn
+                   (setf dynamic-var prolog-var)
+                   (roslisp:ros-info (cram-tf init-tf)
+                                     "Set ~a to ~s."
+                                     var-name prolog-var))))))
+
+   (setf *fixed-frame* "map")
+   (roslisp:ros-info (cram-tf init-tf) "Set *fixed-frame* to \"map\".")
+
+   (setf *transformer* (make-instance 'cl-tf:transform-listener))
+   (roslisp:ros-info (cram-tf init-tf) "Initialized *transformer* to a cl-tf:transform-listener.")
+
+   (when (roslisp:get-param "use_sim_time" nil)
+     (setf *tf-default-timeout* 4.0)
+     (roslisp:ros-info (cram-tf init-tf) "Set *tf-default-timeout* to 4.0."))
+
+   (with-vars-bound (?base-frame ?torso-frame ?torso-joint ?odom-frame)
+       (lazy-car (prolog `(and (robot ?robot)
+                               (robot-base-frame ?robot ?base-frame)
+                               (robot-odom-frame ?robot ?odom-frame)
+                               (robot-torso-link-joint ?robot ?torso-frame ?torso-joint))))
+     (mapcar #'initialize-var
+             '(*robot-base-frame* *robot-torso-frame* *robot-torso-joint* *odom-frame*)
+             (list ?base-frame ?torso-frame ?torso-joint ?odom-frame)))))
+
+(defun destroy-tf ()
+  (setf *transformer* nil)
+  (setf *tf-default-timeout* 2.0))
+
+(roslisp-utilities:register-ros-init-function init-tf)
+(roslisp-utilities:register-ros-cleanup-function destroy-tf)

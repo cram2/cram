@@ -6,11 +6,14 @@
   :maintainer "Lorenz Moesenlechner <moesenle@cs.tum.edu>"
   :licence "BSD"
   :description "Coordinate-frame transformation specific stuff for designators."
-  :depends-on (:alexandria
-               :cram-designators
+  :depends-on (:cram-designators
                :cl-transforms-stamped
                :cram-utilities
-               :cram-prolog)
+               :cram-prolog
+               :cram-robot-interfaces
+               :cl-tf
+               :roslisp-utilities
+               :roslisp)
   :components
   ((:module "src"
             :components
