@@ -68,6 +68,7 @@
 
 (def-fact-group pr2-metadata (robot
                               robot-base-frame robot-torso-link-joint
+                              robot-odom-frame
                               camera-frame camera-minimal-height camera-maximal-height
                               robot-pan-tilt-links robot-pan-tilt-joints
                               end-effector-link gripper-link
@@ -76,6 +77,8 @@
                               end-effector-parking-pose
                               robot-pre-grasp-joint-states)
   (<- (robot pr2))
+
+  (<- (robot-odom-frame pr2 "odom_combined"))
 
   (<- (robot-base-frame pr2 "base_footprint"))
   (<- (robot-torso-link-joint pr2 "torso_lift_link" "torso_lift_joint"))
