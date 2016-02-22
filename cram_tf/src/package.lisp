@@ -29,7 +29,7 @@
 
 (in-package :cl-user)
 
-(defpackage :cram-transforms-stamped
+(defpackage :cram-tf
   (:use #:cl #:desig #:cut #:prolog
         #:cl-transforms-stamped #:cl-transforms
         #:cram-robot-interfaces)

@@ -34,12 +34,12 @@
   (declare (type location-designator designator))
   (next-filtered-designator-solution
    designator
-   (cram-transforms-stamped:make-euclidean-distance-filter
+   (cram-tf:make-euclidean-distance-filter
     (reference designator) threshold)))
 
 (defun distance-to-drive (goal)
   (let ((loc-1 (reference goal))
-        (current-loc (cram-transforms-stamped:robot-current-pose)))
+        (current-loc (cram-tf:robot-current-pose)))
     (cl-transforms:v-dist (cl-transforms:origin loc-1)
                           (cl-transforms:origin current-loc))))
 

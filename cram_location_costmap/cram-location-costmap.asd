@@ -37,7 +37,7 @@
                nav_msgs-msg
                visualization_msgs-msg
                trivial-garbage
-               cram-transforms-stamped)
+               cram-tf)
   :components
   ((:module "src"
             :components

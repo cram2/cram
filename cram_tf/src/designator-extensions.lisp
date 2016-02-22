@@ -27,7 +27,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :cram-transforms-stamped)
+(in-package :cram-tf)
 
 (defparameter *distance-equality-threshold* 0.025)
 (defparameter *angle-equality-threshold* (* 5 (/ pi 180)))
@@ -72,7 +72,7 @@
                    (poses-equal-p pose-1-transformed pose-2-transformed))
                (transform-stamped-error () nil))))
     ;; actual check: first making sure to have pose-stamped
-    (assert *fixed-frame* () "cram-transforms-stamped:*fixed-frame* must be set.")
+    (assert *fixed-frame* () "cram-tf:*fixed-frame* must be set.")
     (let ((pose-1 (ensure-pose-stamped solution-1 *fixed-frame* 0.0))
           (pose-2 (ensure-pose-stamped solution-2 *fixed-frame* 0.0)))
       (if (string-equal (unslash-frame (frame-id pose-1)) (unslash-frame (frame-id pose-2)))
@@ -88,5 +88,5 @@
     (if (typep solution 'cl-transforms:pose)
         (if *fixed-frame*
             (ensure-pose-stamped solution *fixed-frame* 0.0)
-            (error "cram-transforms-stamped:*fixed-frame* must be set."))
+            (error "cram-tf:*fixed-frame* must be set."))
         solution)))

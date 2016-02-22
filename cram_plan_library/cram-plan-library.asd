@@ -40,7 +40,7 @@
                cram-plan-failures
                cram-projection
                cram-utilities
-               cram-transforms-stamped
+               cram-tf
                alexandria)
   :components
   ((:module "src"

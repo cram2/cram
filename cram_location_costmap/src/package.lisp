@@ -30,7 +30,7 @@
 (defpackage cram-location-costmap
   (:nicknames #:location-costmap)
   (:use #:cl #:prolog #:cram-utilities #:roslisp-utilities
-        #:alexandria #:roslisp #:cram-transforms-stamped #:cram-designators
+        #:alexandria #:roslisp #:cram-tf #:cram-designators
         #:cl-transforms-stamped)
   (:shadowing-import-from :alexandria rotate)
   (:export #:make-gauss-cost-function

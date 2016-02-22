@@ -32,7 +32,7 @@
 
   :depends-on (lisp-unit
                cram-location-costmap
-               cram-transforms-stamped
+               cram-tf
                cram-utilities)
   :components
   ((:module "test"
