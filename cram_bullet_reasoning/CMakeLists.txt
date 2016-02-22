@@ -14,7 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   cram_location_costmap
   roslisp_utilities
   cram_utilities
-  cram_transforms_stamped
+  cram_tf
   cl_transforms_stamped
   cl_transforms
 )

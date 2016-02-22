@@ -34,7 +34,7 @@
                cram-bullet-reasoning
                cram-designators
                cram-location-costmap
-               cram-transforms-stamped
+               cram-tf
                cram-utilities
                cram-bullet-reasoning-belief-state
                cram-robot-interfaces

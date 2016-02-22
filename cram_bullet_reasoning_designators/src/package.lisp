@@ -31,6 +31,6 @@
 (defpackage cram-bullet-reasoning-designators
     (:nicknames :btr-desig)
   (:use #:common-lisp #:prolog #:desig #:location-costmap
-        #:btr #:cram-transforms-stamped #:cut #:cram-robot-interfaces)
+        #:btr #:cram-tf #:cut #:cram-robot-interfaces)
   (:shadowing-import-from #:btr object pose object-pose width height)
   (:export *check-ik-joint-states* *robot-valid-sides*))

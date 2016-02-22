@@ -32,7 +32,7 @@
   :depends-on (cram-designators
                cram-location-costmap
                cram-prolog
-               cram-transforms-stamped
+               cram-tf
                cram-bullet-reasoning
                cram-utilities
                cram-plan-library

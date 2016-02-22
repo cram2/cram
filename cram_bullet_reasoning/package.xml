@@ -24,7 +24,7 @@
   <build_depend>cram_semantic_map_utils</build_depend>
   <build_depend>cram_designators</build_depend>
   <build_depend>cram_location_costmap</build_depend>
-  <build_depend>cram_transforms_stamped</build_depend>
+  <build_depend>cram_tf</build_depend>
   <build_depend>roslisp_utilities</build_depend>
   <build_depend>cram_utilities</build_depend>
   <build_depend>household_objects_database_msgs</build_depend>
@@ -41,7 +41,7 @@
   <run_depend>cram_semantic_map_utils</run_depend>
   <run_depend>cram_designators</run_depend>
   <run_depend>cram_location_costmap</run_depend>
-  <run_depend>cram_transforms_stamped</run_depend>
+  <run_depend>cram_tf</run_depend>
   <run_depend>roslisp_utilities</run_depend>
   <run_depend>cram_utilities</run_depend>
   <run_depend>household_objects_database_msgs</run_depend>

@@ -39,7 +39,7 @@
   :author "Lorenz Moesenlechner"
   :license "BSD"
   
-  :depends-on (cl-transforms cffi cffi-ros-utils cram-transforms-stamped
+  :depends-on (cl-transforms cffi cffi-ros-utils cram-tf
                              ros-load-manifest roslisp
                              geometry_msgs-msg shape_msgs-msg)
   :components

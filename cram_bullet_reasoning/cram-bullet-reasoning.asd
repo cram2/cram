@@ -51,7 +51,7 @@
                  cram-semantic-map-utils
                  cram-robot-interfaces
                  cram-utilities ; lazy in pose-generators
-                 cram-transforms-stamped)
+                 cram-tf)
     :components
     ((:module "src"
               :components
