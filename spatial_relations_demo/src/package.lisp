@@ -31,7 +31,7 @@
 (defpackage spatial-relations-demo
   (:nicknames #:demo)
   (:use #:desig
-        #:cram-transforms-stamped
+        #:cram-tf
         #:location-costmap
         #:common-lisp
         #:cram-prolog
