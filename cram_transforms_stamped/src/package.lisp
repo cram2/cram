@@ -30,8 +30,9 @@
 (in-package :cl-user)
 
 (defpackage :cram-transforms-stamped
-    (:use #:cl #:desig #:cut #:prolog
-          #:cl-transforms-stamped #:cl-transforms)
+  (:use #:cl #:desig #:cut #:prolog
+        #:cl-transforms-stamped #:cl-transforms
+        #:cram-robot-interfaces)
   (:export :make-euclidean-distance-filter
            ;; prolog facts:
            #:pose #:pose-stamped
