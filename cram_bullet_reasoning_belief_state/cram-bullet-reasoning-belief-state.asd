@@ -46,7 +46,7 @@
                cram-utilities
                cl-tf2
                cram-robot-interfaces
-               cram-transforms-stamped)
+               cram-tf)
   :components
   ((:module "src"
     :components

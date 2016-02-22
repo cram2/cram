@@ -30,7 +30,7 @@
   <build_depend>cram_utilities</build_depend>
   <build_depend>cl_tf2</build_depend>
   <build_depend>cram_robot_interfaces</build_depend>
-  <build_depend>cram_transforms_stamped</build_depend>
+  <build_depend>cram_tf</build_depend>
 
   <!-- Dependencies needed after this package is compiled. -->
   <run_depend>cram_prolog</run_depend>
@@ -48,7 +48,7 @@
   <run_depend>cram_utilities</run_depend>
   <run_depend>cl_tf2</run_depend>
   <run_depend>cram_robot_interfaces</run_depend>
-  <run_depend>cram_transforms_stamped</run_depend>
+  <run_depend>cram_tf</run_depend>
 
 </package>
 

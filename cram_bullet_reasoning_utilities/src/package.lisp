@@ -31,7 +31,7 @@
 
 (defpackage cram-bullet-reasoning-utilities
   (:use #:common-lisp #:cram-bullet-reasoning #:cram-prolog #:cram-designators
-        #:cram-utilities #:cram-robot-interfaces #:cram-transforms-stamped)
+        #:cram-utilities #:cram-robot-interfaces #:cram-tf)
   (:nicknames #:btr-utils #:bullet-reasoning-utilities)
   (:shadowing-import-from #:btr object object-pose pose)
   (:export

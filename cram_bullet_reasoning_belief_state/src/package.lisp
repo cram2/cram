@@ -32,7 +32,7 @@
   (:use #:common-lisp #:cram-plan-library
         #:cram-plan-occasions-events #:cram-occasions-events
         #:cram-bullet-reasoning #:cram-prolog #:cram-utilities
-        #:cl-transforms-stamped #:cram-transforms-stamped
+        #:cl-transforms-stamped #:cram-tf
         #:cram-robot-interfaces)
   (:shadowing-import-from #:cram-bullet-reasoning
                           side at throughout object during holds pose)

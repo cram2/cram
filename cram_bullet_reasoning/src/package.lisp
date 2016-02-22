@@ -33,7 +33,7 @@
 (defpackage cram-bullet-reasoning
   (:nicknames :btr)
   (:use #:common-lisp #:prolog #:cl-bullet #:bt-vis #:cut
-        #:cram-robot-interfaces #:cl-transforms-stamped #:cram-transforms-stamped)
+        #:cram-robot-interfaces #:cl-transforms-stamped #:cram-tf)
   (:import-from #:alexandria compose curry rcurry with-gensyms copy-hash-table)
   (:import-from #:desig desig-solutions)
   (:shadowing-import-from #:cl-bullet points pose)

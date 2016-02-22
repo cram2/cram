@@ -3,7 +3,7 @@ project(cram_bullet_reasoning_designators)
 
 find_package(catkin REQUIRED COMPONENTS
   cram_prolog
-  cram_transforms_stamped
+  cram_tf
   cram_utilities
   cram_bullet_reasoning
   cram_designators
