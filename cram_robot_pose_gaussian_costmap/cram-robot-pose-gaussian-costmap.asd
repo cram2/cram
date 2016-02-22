@@ -34,7 +34,7 @@
                cram-designators
                cram-location-costmap
                cram-robot-interfaces
-               cram-transforms-stamped
+               cram-tf
                cl-transforms-stamped
                ;; for robot-current-pose-bullet-generator
                cram-bullet-reasoning
