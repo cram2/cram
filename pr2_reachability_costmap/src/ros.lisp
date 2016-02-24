@@ -75,7 +75,7 @@
 
 (defun find-ik-solution (&key service-namespace pose (ik-base-frame *robot-torso-frame*))
   (declare (type string service-namespace)
-           (type cl-transforms:pose))
+           (type cl-transforms:pose pose))
   (let ((ik-link (get-ik-solver-link service-namespace)))
     (roslisp:with-fields ((error-code (val error_code))
                           (joint-state (joint_state solution)))
@@ -87,10 +87,20 @@
           (:pose_stamped :ik_request) (to-msg
                                        (pose->pose-stamped ik-base-frame 0.0 pose))
           (:joint_state :ik_seed_state :ik_request) (make-seed-state service-namespace)
-          :timeout 1.0))
-      ;; TODO(moesenle): Use constant instead of number here.
-      (cond ((eql error-code 1) joint-state)
-            ((eql error-code -31) nil)
+          (:timeout :ik_request) 1.0))
+      (cond ((eql error-code
+                  (roslisp-msg-protocol:symbol-code
+                   'moveit_msgs-msg:moveiterrorcodes
+                   :success))
+             joint-state)
+            ((eql error-code
+                  (roslisp-msg-protocol:symbol-code
+                   'moveit_msgs-msg:moveiterrorcodes
+                   :no_ik_solution))
+             nil)
             (t (error 'simple-error
                       :format-control "IK service failed: ~a"
-                      :format-arguments (list error-code)))))))
+                      :format-arguments (list
+                                         (roslisp-msg-protocol:code-symbol
+                                          'moveit_msgs-msg:moveiterrorcodes
+                                          error-code))))))))

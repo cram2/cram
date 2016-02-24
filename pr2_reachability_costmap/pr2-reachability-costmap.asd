@@ -29,7 +29,7 @@
 (defsystem pr2-reachability-costmap
   :author "Lorenz Moesenlechner"
   :license "BSD"
-  
+
   :depends-on (roslisp
                cram-location-costmap
                cl-transforms
@@ -38,8 +38,8 @@
                cram-math
                cram-prolog
                cram-robot-interfaces
-               cram-transforms-stamped
-               iai_kinematics_msgs-srv)
+               cram-tf
+               moveit_msgs-srv)
   :components
   ((:module "src"
     :components
