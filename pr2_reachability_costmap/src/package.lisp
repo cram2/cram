@@ -30,8 +30,8 @@
 
 (defpackage pr2-reachability-costmap
   (:use #:common-lisp #:location-costmap #:cram-prolog #:cl-transforms-stamped)
-  (:import-from #:cram-transforms-stamped
-                *fixed-frame* *transformer* *tf-default-timeout*)
+  (:import-from #:cram-tf
+                *fixed-frame* *transformer* *tf-default-timeout* *robot-torso-frame*)
   (:export generate-map-main reachability-map side maximum minimum
            resolution orientations reachability-map pose-reachable-p
            pose-reachability inverse-reachability-map origin
