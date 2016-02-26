@@ -27,7 +27,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :pr2)
+(in-package :pr2-ll)
 
 (defvar *nav-pcontroller-action-client* nil
   "Actionlib client for nav-pcontroller.")

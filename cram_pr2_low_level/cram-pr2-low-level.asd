@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem pr2-low-level
+(defsystem cram-pr2-low-level
   :author "Gayane Kazhoyan"
   :maintainer "Gayane Kazhoyan"
   :license "BSD"

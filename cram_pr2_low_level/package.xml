@@ -1,8 +1,8 @@
 <package>
-  <name>pr2_low_level</name>
+  <name>cram_pr2_low_level</name>
   <version>0.0.1</version>
   <description>
-     pr2_low_level
+     cram_pr2_low_level
   </description>
   <author>Gayane Kazhoyan</author>
   <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
