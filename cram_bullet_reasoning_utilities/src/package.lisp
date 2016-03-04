@@ -42,7 +42,7 @@
    scenario-object-shape scenario-object-extra-attributes
    ;; objects.lisp
    spawn-object kill-object kill-all-objects move-object move-object-onto
-   object-instance object-pose object-exists household-object-exists
+   object-instance object-pose object-exists item-exists
    assert-object-pose assert-object-pose-on
    ;; plan-library.lisp
    find-object-on-counter

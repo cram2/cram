@@ -37,7 +37,7 @@
   ;; solution for _all_ sides in that sequence must be found to let
   ;; reachability succeed.
   (<- (object-grasp ?world ?object ?grasp ?sides)
-    (household-object-type ?world ?object ?object-type)
+    (item-type ?world ?object ?object-type)
     (object-type-grasp ?object-type ?grasp ?sides))
 
   (<- (valid-grasp ?world ?object ?grasp ?sides)

@@ -47,9 +47,9 @@
            camera-transform look-at-object-rotation
            with-rendering-to-framebuffer render-to-framebuffer
            get-rendering-context read-pixelbuffer read-depthbuffer to-png-image
-           add-object generic-cup household-object mesh
+           add-object generic-cup item mesh
            remove-object object
-           object-type household-object-type name rigid-bodies
+           object-type item-type name rigid-bodies
            rigid-body-names rigid-body world make-object box
            static-plane sphere cylinder cone point-cloud
            cutlery fork knife mug plate mondamin pot bowl sugar-box apple orange
@@ -70,7 +70,7 @@
            find-objects-below bullet-world object
            retract step simulate-realtime object-pose object-bottom-pose
            object-pose-on
-           contact stable stable-household
+           contact stable stable-items
            object-not-in-collision ik-solution-not-in-collision
            link-contacts supported-by above below visible visible-from
            occluding-objects occluding-object valid-grasp grasp side reachable
@@ -84,7 +84,7 @@
            ros-household-object execute open close reach-ik-solution
            attached attached-objects object-attached
            attach-object detach-object detach-all-objects
-           household-object-dimensions
+           item-dimensions
            make-joint-state-message open-object close-object
            set-articulated-object-joint-position
            with-world copied-world with-copied-world

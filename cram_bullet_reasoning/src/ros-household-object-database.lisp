@@ -96,7 +96,7 @@
                        &key mass model (color '(0.8 0.8 0.8 1.0)))
   (let* ((mesh (get-ros-model-mesh model)))
     (assert mesh)
-    (make-household-object
+    (make-item
      world name
      ;; For now, we use the first tag as object type.
      (mapcar #'roslisp-utilities:lispify-ros-name (get-ros-model-tags model))

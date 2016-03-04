@@ -95,14 +95,14 @@
   (<- (object-type ?world ?name ?type)
     (bullet-world ?world)
     (%object ?world ?name ?obj)
-    (lisp-type ?obj household-object)
-    (household-object-type ?world ?name ?type))
+    (lisp-type ?obj item)
+    (item-type ?world ?name ?type))
 
-  (<- (household-object-type ?world ?name ?type)
+  (<- (item-type ?world ?name ?type)
     (bullet-world ?world)
     (object ?world ?name)
     (%object ?world ?name ?object-instance)
-    (lisp-type ?object-instance household-object)
+    (lisp-type ?object-instance item)
     (get-slot-value ?object-instance types ?types)
     (member ?type ?types))
   
@@ -219,11 +219,11 @@
     (forall (object ?world ?object)
             (not (object-pose-different ?world ?copy ?object))))
 
-  (<- (stable-household ?world)
+  (<- (stable-items ?world)
     (bullet-world ?world)
     (copied-world ?world ?copy)
     (simulate ?copy 5)
-    (forall (household-object-type ?world ?object ?_)
+    (forall (item-type ?world ?object ?_)
             (not (object-pose-different ?world ?copy ?object))))
 
   (<- (object-pose-different ?world-1 ?world-2 ?object)
