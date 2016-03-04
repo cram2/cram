@@ -39,17 +39,21 @@
     (:bowl "package://cram_bullet_reasoning/resource/bowl.stl" nil)
     (:fork "package://cram_bullet_reasoning/resource/fork.stl" nil)
     (:knife "package://cram_bullet_reasoning/resource/knife.stl" nil)
-    (:spatula "package://cram_bullet_reasoning/resource/spatula.stl" nil)))
+    (:spatula "package://cram_bullet_reasoning/resource/spatula.stl" nil)
+    (:cap "package://cram_bullet_reasoning/resource/cap.stl" t)
+    (:glasses "package://cram_bullet_reasoning/resource/glasses.stl" nil)
+    (:glove "package://cram_bullet_reasoning/resource/glove.stl" nil)
+    (:shoe "package://cram_bullet_reasoning/resource/shoe.stl" nil)))
 
-(defclass household-object (object)
-  ((types :reader household-object-types :initarg :types)))
+(defclass item (object)
+  ((types :reader item-types :initarg :types)))
 
-(defmethod copy-object ((object household-object) (world bt-reasoning-world))
-  (change-class (call-next-method) 'household-object
-                :types (household-object-types object)))
+(defmethod copy-object ((object item) (world bt-reasoning-world))
+  (change-class (call-next-method) 'item
+                :types (item-types object)))
 
-(defgeneric household-object-dimensions (object)
-  (:method ((object household-object))
+(defgeneric item-dimensions (object)
+  (:method ((object item))
     (bounding-box-dimensions (aabb object)))
   (:method ((object-type symbol))
     (or (cutlery-dimensions object-type)
@@ -77,8 +81,8 @@
   (:method ((type (eql :fork)))
     (cl-transforms:make-3d-vector 0.1 0.015 0.005)))
 
-(defun make-household-object (world name types &optional bodies (add-to-world t))
-  (make-instance 'household-object
+(defun make-item (world name types &optional bodies (add-to-world t))
+  (make-instance 'item
     :name name
     :world world
     :rigid-bodies bodies
@@ -123,12 +127,12 @@
                        mass radius height
                        (handle-size (cl-transforms:make-3d-vector
                                      0.03 0.01 (* height 0.8))))
-  (make-household-object world name '(generic-cup)
-                         (list
-                          (make-instance
-                              'rigid-body
-                            :name name :mass mass :pose (ensure-pose pose)
-                            :collision-shape (make-cup-shape radius height handle-size)))))
+  (make-item world name '(generic-cup)
+             (list
+              (make-instance
+                  'rigid-body
+                :name name :mass mass :pose (ensure-pose pose)
+                :collision-shape (make-cup-shape radius height handle-size)))))
 
 (defmethod add-object ((world bt-world) (type (eql :mug)) name pose &key
                        mass)
@@ -150,91 +154,91 @@
                                    model)))
                        (physics-utils:3d-model mesh))
                      scale)))
-    (make-household-object world name (or types (list mesh))
-                           (list
-                            (make-instance 'rigid-body
-                              :name name :mass mass :pose (ensure-pose pose)
-                              :collision-shape
-                              (make-instance 'convex-hull-mesh-shape
-                                :points (physics-utils:3d-model-vertices mesh-model)
-                                :faces (physics-utils:3d-model-faces mesh-model)
-                                :color color
-                                :disable-face-culling disable-face-culling))))))
+    (make-item world name (or types (list mesh))
+               (list
+                (make-instance 'rigid-body
+                  :name name :mass mass :pose (ensure-pose pose)
+                  :collision-shape
+                  (make-instance 'convex-hull-mesh-shape
+                    :points (physics-utils:3d-model-vertices mesh-model)
+                    :faces (physics-utils:3d-model-faces mesh-model)
+                    :color color
+                    :disable-face-culling disable-face-culling))))))
 
 (defmethod add-object ((world bt-world) (type (eql :cutlery)) name pose
                        &key mass (color '(0.5 0.5 0.5 1.0)) cutlery-type)
   (let ((size (cutlery-dimensions cutlery-type)))
     (assert size)
-    (make-household-object world name (list type cutlery-type)
-                           (list
-                            (make-instance 'rigid-body
-                              :name name :mass mass :pose (ensure-pose pose)
-                              :collision-shape (make-instance 'colored-box-shape
-                                                 :half-extents size
-                                                 :color color))))))
+    (make-item world name (list type cutlery-type)
+               (list
+                (make-instance 'rigid-body
+                  :name name :mass mass :pose (ensure-pose pose)
+                  :collision-shape (make-instance 'colored-box-shape
+                                     :half-extents size
+                                     :color color))))))
 
 (defmethod add-object ((world bt-world) (type (eql :pancake-maker)) name pose
                        &key mass (color '(0.5 0.5 0.5 1.0)) size)
   (assert size)
-  (make-household-object world name (list type)
-                         (list
-                          (make-instance 'rigid-body
-                            :name name :mass mass :pose (ensure-pose pose)
-                            :collision-shape (make-instance 'colored-cylinder-shape
-                                               :half-extents (ensure-vector size)
-                                               :color color)))))
+  (make-item world name (list type)
+             (list
+              (make-instance 'rigid-body
+                :name name :mass mass :pose (ensure-pose pose)
+                :collision-shape (make-instance 'colored-cylinder-shape
+                                   :half-extents (ensure-vector size)
+                                   :color color)))))
 
 (defmethod add-object ((world bt-world) (type (eql :pancake)) name pose
                        &key mass (color '(0.5 0.5 0.5 1.0)) size)
   (assert size)
-  (make-household-object world name (list type)
-                         (list
-                          (make-instance 'rigid-body
-                            :name name :mass mass :pose (ensure-pose pose)
-                            :collision-shape (make-instance 'colored-cylinder-shape
-                                               :half-extents (ensure-vector size)
-                                               :color color)))))
+  (make-item world name (list type)
+             (list
+              (make-instance 'rigid-body
+                :name name :mass mass :pose (ensure-pose pose)
+                :collision-shape (make-instance 'colored-cylinder-shape
+                                   :half-extents (ensure-vector size)
+                                   :color color)))))
 
 (defmethod add-object ((world bt-world) (type (eql :orange)) name pose
                        &key mass (color '(0.5 0.5 0.5 1.0)) radius)
   (assert radius)
-  (make-household-object world name (list type)
-                         (list
-                          (make-instance 'rigid-body
-                            :name name :mass mass :pose (ensure-pose pose)
-                            :collision-shape (make-instance 'colored-sphere-shape
-                                               :radius radius
-                                               :color color)))))
+  (make-item world name (list type)
+             (list
+              (make-instance 'rigid-body
+                :name name :mass mass :pose (ensure-pose pose)
+                :collision-shape (make-instance 'colored-sphere-shape
+                                   :radius radius
+                                   :color color)))))
 
 (defmethod add-object ((world bt-world) (type (eql :apple)) name pose
                        &key mass (color '(0.5 0.5 0.5 1.0)) radius)
   (assert radius)
-  (make-household-object world name (list type)
-                         (list
-                          (make-instance 'rigid-body
-                            :name name :mass mass :pose (ensure-pose pose)
-                            :collision-shape (make-instance 'colored-sphere-shape
-                                               :radius radius
-                                               :color color)))))
+  (make-item world name (list type)
+             (list
+              (make-instance 'rigid-body
+                :name name :mass mass :pose (ensure-pose pose)
+                :collision-shape (make-instance 'colored-sphere-shape
+                                   :radius radius
+                                   :color color)))))
 
 (defmethod add-object ((world bt-world) (type (eql :sugar-box)) name pose
                        &key mass (color '(0.5 0.5 0.5 1.0)) size)
   (assert size)
-  (make-household-object world name (list type)
-                         (list
-                          (make-instance 'rigid-body
-                            :name name :mass mass :pose (ensure-pose pose)
-                            :collision-shape (make-instance 'colored-box-shape
-                                               :half-extents (ensure-vector size)
-                                               :color color)))))
+  (make-item world name (list type)
+             (list
+              (make-instance 'rigid-body
+                :name name :mass mass :pose (ensure-pose pose)
+                :collision-shape (make-instance 'colored-box-shape
+                                   :half-extents (ensure-vector size)
+                                   :color color)))))
 
 (defmethod add-object ((world bt-world) (type (eql :cereal)) name pose
                        &key mass (color '(0.5 0.5 0.5 1.0)) size)
   (assert size)
-  (make-household-object world name (list type)
-                         (list
-                          (make-instance 'rigid-body
-                            :name name :mass mass :pose (ensure-pose pose)
-                            :collision-shape (make-instance 'colored-box-shape
-                                               :half-extents (ensure-vector size)
-                                               :color color)))))
+  (make-item world name (list type)
+             (list
+              (make-instance 'rigid-body
+                :name name :mass mass :pose (ensure-pose pose)
+                :collision-shape (make-instance 'colored-box-shape
+                                   :half-extents (ensure-vector size)
+                                   :color color)))))

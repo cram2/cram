@@ -57,7 +57,7 @@
 
 (defgeneric kill-all-objects ()
   (:method ()
-    (prolog-?w `(household-object-type ?w ?obj ?type) `(retract (object ?w ?obj)) '(fail))))
+    (prolog-?w `(item-type ?w ?obj ?type) `(retract (object ?w ?obj)) '(fail))))
 
 (defun move-object (object-name &optional new-pose)
   (if new-pose
@@ -89,11 +89,10 @@
 (defun object-exists (object-name)
   (typep (object-instance object-name) 'btr:object))
 
-(defun household-object-exists (object-name)
-  (typep (object-instance object-name) 'btr:household-object))
+(defun item-exists (object-name)
+  (typep (object-instance object-name) 'btr:item))
 
-(declaim (inline move-object object-instance object-pose
-                 object-exists household-object-exists))
+(declaim (inline move-object object-instance object-pose object-exists item-exists))
 
 
 ;;;;;;;;;;;;;;;;;;;; PROLOG ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

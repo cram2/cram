@@ -61,17 +61,16 @@
                (:file "utils" :depends-on ("package"))
                (:file "objects"
                 :depends-on ("package" "reasoning-world" "textures" "utils"))
-               (:file "household-objects" :depends-on ("package" "objects" "utils"))
-	       (:file "manmade-objects" :depends-on ("package" "objects" "utils"))
+               (:file "items" :depends-on ("package" "objects" "utils"))
                (:file "ros-household-object-database"
-                :depends-on ("package" "objects" "household-objects"))
+                :depends-on ("package" "objects" "items"))
                (:file "aabb" :depends-on ("package" "objects"))
                (:file "debug-window" :depends-on ("package"))
                (:file "world-utils"
                 :depends-on ("package" "reasoning-world" "objects"))
                (:file "world-facts"
                 :depends-on ("package"
-                             "reasoning-world" "household-objects" "objects"
+                             "reasoning-world" "items" "objects"
                              "debug-window"
                              "world-utils"))
                (:file "prolog-handlers"
@@ -101,7 +100,7 @@
                              "world-facts" "prolog-handlers"
                              "robot-model-utils" "reachability"))
                (:file "semantic-map"
-                :depends-on ("package" "objects" "utils" "robot-model" "household-objects"))
+                :depends-on ("package" "objects" "utils" "robot-model" "items"))
                (:file "urdf-semantic-map"
                 :depends-on ("package" "reasoning-world" "semantic-map" "robot-model"))
                (:file "simple-semantic-map" :depends-on ("package" "semantic-map"))
