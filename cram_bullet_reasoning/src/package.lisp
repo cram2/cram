@@ -64,13 +64,13 @@
            object-visibility-occluding-objects flat-color-object-proxy
            calculate-object-visibility object-visible-p
            occluding-objects simulate find-objects contact-p
-           find-all-contacts find-objects-in-contact poses-equal-p
+           find-all-contacts find-objects-in-contact
            object-pose-different
            stable-p above-p find-objects-above below-p
            find-objects-below bullet-world object
            retract step simulate-realtime object-pose object-bottom-pose
            object-pose-on
-           position orientation poses-equal contact stable stable-household
+           contact stable stable-household
            object-not-in-collision ik-solution-not-in-collision
            link-contacts supported-by above below visible visible-from
            occluding-objects occluding-object valid-grasp grasp side reachable
