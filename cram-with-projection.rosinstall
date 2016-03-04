@@ -8,7 +8,7 @@
 - git: {local-name: cram_core, uri: 'https://github.com/cram2/cram_core.git'}
 
 # Plans and high-level interfaces:
-- git: {local-name: roslisp_common, uri: 'https://github.com/cram2/roslisp_common.git'}
+- git: {local-name: roslisp_common, uri: 'https://github.com/ros/roslisp_common.git'}
 - git: {local-name: cram_plans, uri: 'https://github.com/cram2/cram_plans.git'}
 
 # Semantic map functionality and other KnowRob interfaces:
