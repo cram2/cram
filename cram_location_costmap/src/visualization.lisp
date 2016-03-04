@@ -32,8 +32,8 @@
 (defvar *location-costmap-publisher* nil)
 (defvar *marker-publisher* nil)
 (defvar *occupancy-grid-publisher* nil)
-(defvar *z-padding* 0.0)
 
+(defparameter *z-padding* 0.0)
 (defparameter *last-published-marker-index* nil)
 
 (defun location-costmap-vis-init ()
