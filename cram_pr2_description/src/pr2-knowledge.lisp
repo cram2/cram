@@ -134,7 +134,7 @@
     (robot-arms-parking-joint-states pr2 ?parking-joint-states)))
 
 (defun object-type->tool-length (object-type)
-  (let ((bounding-box (btr:household-object-dimensions object-type)))
+  (let ((bounding-box (btr:item-dimensions object-type)))
     (cram-robot-interfaces:calculate-bounding-box-tool-length
      bounding-box)))
 

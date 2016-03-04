@@ -66,7 +66,7 @@
                       (desig:desig-prop-value designator :name)))
         (type (or (desig:desig-prop-value designator :type)
                   '?_)))
-    (flet ((find-household-object ()
+    (flet ((find-item ()
              (cut:force-ll
               (cut:lazy-mapcar
                (lambda (solution)
@@ -77,7 +77,7 @@
                                  ,@(when object-name
                                      `((prolog:== ?object ,object-name)))
                                  (object ?world ?object)
-                                 (household-object-type ?world ?object ,type)
+                                 (item-type ?world ?object ,type)
                                  (visible ?world ?robot ?object)
                                  (pose ?world ?object ?pose))))))
            (find-handle ()
@@ -88,7 +88,7 @@
                      (sem-map-desig:designator->semantic-map-objects designator))))
       (case type
         (:handle (find-handle))
-        (t (find-household-object))))))
+        (t (find-item))))))
 
 (defun find-with-bound-designator (designator)
   (flet ((make-designator (object pose)
