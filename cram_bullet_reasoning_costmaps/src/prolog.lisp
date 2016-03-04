@@ -304,7 +304,7 @@
     (desig-prop ?designator (:object-count ?object-count))
     (bullet-world ?world)
     (object-instance-name ?for-object ?object-name)
-    (household-object-type ?world ?object-name ?object-type)
+    (item-type ?world ?object-name ?object-type)
     (lisp-fun sem-map-desig:designator->semantic-map-objects
               ?designator ?supp-objects)
     (member ?supp-object ?supp-objects)
@@ -329,7 +329,7 @@
 
       (assert (object-pose ?world ?object-name ?new-pose))
       (forall (contact ?world ?object-name ?other-object-name)
-              (not (object-type ?world ?other-object-name btr::household-object))))))
+              (not (object-type ?world ?other-object-name btr::item))))))
 
 
 (def-fact-group relations-lookup-table ()

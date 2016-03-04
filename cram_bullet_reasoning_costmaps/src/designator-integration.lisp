@@ -37,8 +37,8 @@
 
 (register-location-validation-function
  6 collision-pose-validator
- "If a location was generated for a household object, then it is checked if the
-  generated pose causes collisions of that object with other household objects,
+ "If a location was generated for an item, then it is checked if the
+  generated pose causes collisions of that object with other items,
   in which case the pose is rejected.")
 
 (defun potential-field-costmap-pose-validator (desig pose)
@@ -74,13 +74,13 @@
 
 (defun collision-pose-validator (desig pose)
   "Checks if desig has a property FOR. If so, checks if the object described by FOR is
-   a household object. If so, uses the prolog predicate desig-solution-not-in-collision."
+   an item. If so, uses the prolog predicate desig-solution-not-in-collision."
   (if (typep pose 'cl-transforms:pose)
       (let ((for-prop-value (desig-prop-value desig :for)))
         (if (and for-prop-value
                  (prolog `(and
                            (object-instance-name ,for-prop-value ?object-name)
-                           (household-object-type ?world ?object-name ?_))))
+                           (item-type ?world ?object-name ?_))))
             (if (prolog `(desig-solution-not-in-collision ,desig ,for-prop-value ,pose))
                 :accept
                 :reject)
