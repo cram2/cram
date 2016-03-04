@@ -22,4 +22,5 @@
              (:file "designator-extensions" :depends-on ("package" "setup"))
              (:file "robot-current-pose" :depends-on ("package" "setup"))
              (:file "designator-filters" :depends-on ("package"))
-             (:file "facts" :depends-on ("package"))))))
+             (:file "utilities" :depends-on ("package"))
+             (:file "facts" :depends-on ("package" "utilities"))))))
