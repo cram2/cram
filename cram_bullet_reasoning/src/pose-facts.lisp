@@ -83,59 +83,16 @@
 
   (<- (pose ?obj-name ?position ?orientation)
     (pose ?_ ?obj-name ?position ?orientation))
-  
+
   (<- (pose ?w ?obj-name ?position ?orientation)
     (bullet-world ?w)
     (lisp-type ?obj-name symbol)
     (%object ?w ?obj-name ?obj)
     (%pose ?obj ?position ?orientation))
-  
+
   (<- (%pose ?obj ?position ?orientation)
     (bound ?obj)
     (instance-of object ?obj)
     (pose ?obj ?p)
     (position ?p ?position)
-    (orientation ?p ?orientation))
-
-  (<- (pose ?pose ?position ?orientation)
-    (bound ?pose)
-    (position ?pose ?position)
-    (orientation ?pose ?orientation))
-
-  (<- (pose ?pose (?x ?y ?z) (?ax ?ay ?az ?aw))
-    (not (bound ?pose))
-    (ground (?x ?y ?z))
-    (ground (?ax ?ay ?az ?aw))
-    (lisp-fun cl-transforms:make-3d-vector ?x ?y ?z ?o)
-    (lisp-fun cl-transforms:make-quaternion ?ax ?ay ?az ?aw ?q)
-    (lisp-fun cl-transforms:make-pose ?o ?q ?pose))
-  
-  (<- (pose ?pose ?position (?ax ?ay ?az ?aw))
-    (not (bound ?pose))
-    (lisp-type ?position cl-transforms:3d-vector)
-    (ground (?ax ?ay ?az ?aw))
-    (lisp-fun cl-transforms:make-quaternion ?ax ?ay ?az ?aw ?q)
-    (lisp-fun cl-transforms:make-pose ?position ?q ?pose))
-
-  (<- (pose ?pose (?x ?y ?z) ?orientation)
-    (not (bound ?pose))
-    (ground (?x ?y ?z))
-    (lisp-type ?orientation cl-transforms:quaternion)
-    (lisp-fun cl-transforms:make-3d-vector ?x ?y ?z ?o)
-    (lisp-fun cl-transforms:make-pose ?position ?orientation ?pose))
-
-  (<- (position ?pose (?x ?y ?z))
-    (lisp-fun cl-transforms:origin ?pose ?p)
-    (lisp-fun cl-transforms:x ?p ?x)
-    (lisp-fun cl-transforms:y ?p ?y)
-    (lisp-fun cl-transforms:z ?p ?z))
-
-  (<- (orientation ?pose (?x ?y ?z ?w))
-    (lisp-fun cl-transforms:orientation ?pose ?o)
-    (lisp-fun cl-transforms:x ?o ?x)
-    (lisp-fun cl-transforms:y ?o ?y)
-    (lisp-fun cl-transforms:z ?o ?z)
-    (lisp-fun cl-transforms:w ?o ?w))
-
-  (<- (poses-equal ?pose-1 ?pose-2 (?dist-sigma ?ang-sigma))
-    (lisp-pred poses-equal-p ?pose-1 ?pose-2 ?dist-sigma ?ang-sigma)))
+    (orientation ?p ?orientation)))
