@@ -1,10 +1,11 @@
 (defsystem cram-intermediate-tutorial
-  :depends-on (roslisp cram-language cl-transforms geometry_msgs-msg designators cram-reasoning 
-                 cram-language-designator-support actionlib actionlib_tutorials-msg process-modules cram-moveit cl-tf2)
+  :depends-on (geometry_msgs-msg shape_msgs-msg
+               roslisp cl-transforms cl-tf2
+               cram-moveit)
   :components
   ((:module "src"
-            :components
-            ((:file "package")
-             (:file "cram-moveit-tutorial" :depends-on  ("package"))))))
+    :components
+    ((:file "package")
+     (:file "cram-moveit-tutorial" :depends-on  ("package"))))))
 
 

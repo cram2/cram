@@ -39,58 +39,52 @@
 (defvar *tf2* nil)
 
 (defun init-cram-moveit-tutorial ()
-  (start-ros-node "tutorial-client")
+  (roslisp:start-ros-node "tutorial-client")
   (setf *tf2-tb* (cl-tf2:make-transform-broadcaster))
   (setf *tf2* (make-instance 'cl-tf2:buffer-client))
-  (moveit:init-moveit-bridge)
+  (cram-moveit:init-moveit-bridge)
   (setf *pose-mid*
-         (cl-tf-datatypes:make-pose-stamped
-           "/odom_combined"
-           0.0
-           (cl-transforms:make-3d-vector 0.67 0.0 0.94)
-           (cl-transforms:make-quaternion 0.0 0.0 0.0 1.0)))
+        (cl-tf2:make-pose-stamped
+         "/odom_combined"
+         0.0
+         (cl-transforms:make-3d-vector 0.67 0.0 0.94)
+         (cl-transforms:make-quaternion 0.0 0.0 0.0 1.0)))
   (setf *pose-cube*
-         (cl-tf-datatypes:make-pose-stamped
-           "/odom_combined"
-           0.0
-           (cl-transforms:make-3d-vector 0.67 -0.20 0.94)
-           (cl-transforms:make-quaternion 0.0 0.0 0.0 1.0)))
+        (cl-tf2:make-pose-stamped
+         "/odom_combined"
+         0.0
+         (cl-transforms:make-3d-vector 0.67 -0.20 0.94)
+         (cl-transforms:make-quaternion 0.0 0.0 0.0 1.0)))
   (setf *pose-right*
-         (cl-tf-datatypes:make-pose-stamped
-           "/odom_combined"
-           0.0
-           (cl-transforms:make-3d-vector 0.67 -0.45 0.94)
-           (cl-transforms:make-quaternion 0.0 0.0 0.0 1.0)))
+        (cl-tf2:make-pose-stamped
+         "/odom_combined"
+         0.0
+         (cl-transforms:make-3d-vector 0.67 -0.45 0.94)
+         (cl-transforms:make-quaternion 0.0 0.0 0.0 1.0)))
   (setf *pose-right-msg*
-        (roslisp:make-msg "geometry_msgs/Pose"
-                          :position (roslisp:make-msg "geometry_msgs/Point" :x 0.67 :y -0.45 :z 0.94)
-                          :orientation (roslisp:make-msg "geometry_msgs/Quaternion" :x 0.0 :y 0.0 :z 0.0 :w 1.0)))
+        (cl-tf2:to-msg (cl-tf2:pose-stamped->pose *pose-right*)))
   (setf *cube-mesh*
-         (roslisp:make-msg
-           "shape_msgs/Mesh"
-           :triangles (make-array 12 :initial-contents 
-                                     (list 
-                                       (roslisp:make-msg "shape_msgs/MeshTriangle" :vertex_indices (make-array 3 :initial-contents '(0 2 1)))
-                                       (roslisp:make-msg "shape_msgs/MeshTriangle" :vertex_indices (make-array 3 :initial-contents '(2 0 3)))
-                                       (roslisp:make-msg "shape_msgs/MeshTriangle" :vertex_indices (make-array 3 :initial-contents '(4 5 6)))
-                                       (roslisp:make-msg "shape_msgs/MeshTriangle" :vertex_indices (make-array 3 :initial-contents '(6 7 4)))
-                                       (roslisp:make-msg "shape_msgs/MeshTriangle" :vertex_indices (make-array 3 :initial-contents '(0 1 5)))
-                                       (roslisp:make-msg "shape_msgs/MeshTriangle" :vertex_indices (make-array 3 :initial-contents '(1 2 6)))
-                                       (roslisp:make-msg "shape_msgs/MeshTriangle" :vertex_indices (make-array 3 :initial-contents '(2 3 7)))
-                                       (roslisp:make-msg "shape_msgs/MeshTriangle" :vertex_indices (make-array 3 :initial-contents '(3 0 4)))
-                                       (roslisp:make-msg "shape_msgs/MeshTriangle" :vertex_indices (make-array 3 :initial-contents '(0 5 4)))
-                                       (roslisp:make-msg "shape_msgs/MeshTriangle" :vertex_indices (make-array 3 :initial-contents '(1 6 5)))
-                                       (roslisp:make-msg "shape_msgs/MeshTriangle" :vertex_indices (make-array 3 :initial-contents '(2 7 6)))
-                                       (roslisp:make-msg "shape_msgs/MeshTriangle" :vertex_indices (make-array 3 :initial-contents '(3 4 7)))))
-           :vertices (make-array 8 :initial-contents
-                                   (list
-                                     (roslisp:make-msg "geometry_msgs/Point" :x -0.05 :y -0.05 :z -0.05)
-                                     (roslisp:make-msg "geometry_msgs/Point" :x +0.05 :y -0.05 :z -0.05)
-                                     (roslisp:make-msg "geometry_msgs/Point" :x +0.05 :y +0.05 :z -0.05)
-                                     (roslisp:make-msg "geometry_msgs/Point" :x -0.05 :y +0.05 :z -0.05)
-                                     (roslisp:make-msg "geometry_msgs/Point" :x -0.05 :y -0.05 :z +0.05)
-                                     (roslisp:make-msg "geometry_msgs/Point" :x +0.05 :y -0.05 :z +0.05)
-                                     (roslisp:make-msg "geometry_msgs/Point" :x +0.05 :y +0.05 :z +0.05)
-                                     (roslisp:make-msg "geometry_msgs/Point" :x -0.05 :y +0.05 :z +0.05)))))
+        (roslisp:make-msg
+         "shape_msgs/Mesh"
+         :triangles (map 'vector
+                         (lambda (index-vector)
+                           (roslisp:make-msg
+                            "shape_msgs/MeshTriangle"
+                            :vertex_indices (make-array 3 :initial-contents index-vector)))
+                         '((0 2 1) (2 0 3) (4 5 6) (6 7 4) (0 1 5) (1 2 6)
+                           (2 3 7) (3 0 4) (0 5 4) (1 6 5) (2 7 6) (3 4 7)))
+         :vertices (map 'vector
+                        (lambda (x-y-z)
+                          (roslisp:make-msg
+                           "geometry_msgs/Point"
+                           :x (first x-y-z) :y (second x-y-z) :z (third x-y-z)))
+                        '((-0.05 -0.05 -0.05)
+                          (+0.05 -0.05 -0.05)
+                          (+0.05 +0.05 -0.05)
+                          (-0.05 +0.05 -0.05)
+                          (-0.05 -0.05 +0.05)
+                          (+0.05 -0.05 +0.05)
+                          (+0.05 +0.05 +0.05)
+                          (-0.05 +0.05 +0.05)))))
   (format T "Init done.~%"))
 
