@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2014, Jan Winkler <winkler@cs.uni-bremen.de>
+;;; Copyright (c) 2016, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,15 +27,44 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-language-designator-support)
+(in-package :desig)
 
-;; TODO(gaya) make these more generic
-(defmacro a (type &body body)
-  `(with-designators
-       ((desig ,type ,@body))
-     desig))
+(defun parse-key-value-pairs (key-value-pairs)
+  (labels ((parse (key-value-pair-list)
+             (format t "key-value-pair-list: ~a~%" key-value-pair-list)
+             (if (listp key-value-pair-list)
+                 (if (and (symbolp (first key-value-pair-list))
+                          (member (intern (string-upcase (first key-value-pair-list))
+                                          :keyword)
+                                  '(:a :an :some :the)))
+                     (make-designator
+                      (intern (string-upcase (second key-value-pair-list)) :keyword)
+                      (parse (cddr key-value-pair-list)))
+                     (loop for key-value-pair in key-value-pair-list
+                           collecting (parse key-value-pair)))
+                 (intern (string-upcase key-value-pair-list) :keyword))))
+    (parse key-value-pairs)))
 
-(defmacro an (type &body body)
-  `(with-designators
-       ((desig ,type ,@body))
-     desig))
+(defmacro a (type &rest key-value-pairs-list)
+  (let ((type-keyword (intern (string-upcase type) :keyword)))
+    `(make-designator ,type-keyword
+                      ',(parse-key-value-pairs key-value-pairs-list))))
+
+(defmacro an (&rest body)
+  `(a ,@body))
+
+;; (defmacro some (&rest body)
+;;   `(a ,@body))
+;;
+;; (defmacro the (&rest body)
+;;   `(a ,@body))
+;;
+;; CAN'T BE USED, IT'S A COMMON LISP SPECIAL FORM
+
+
+;; Example:
+;;
+;; (an action (to open)
+;;            (location (the location (bla bla)
+;;                                    (and (an object (another thing)
+;;                                                    (kind bla))))))

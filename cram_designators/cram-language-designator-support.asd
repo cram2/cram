@@ -47,6 +47,4 @@
       :components
               ((:file "package")
                (:file "with-designators" :depends-on ("package"))
-               (:file "a-and-an"
-                :depends-on ("package" "with-designators"))
                (:file "fluents" :depends-on ("package"))))))))
