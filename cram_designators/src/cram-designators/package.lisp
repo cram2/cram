@@ -105,4 +105,6 @@
            #:effective-designator #:desig-value
            #:desig-location-prop
            #:equated-desigs
-           #:desig))
+           #:desig
+           ;; initialization macros
+           #:a #:an))

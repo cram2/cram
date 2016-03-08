@@ -49,4 +49,5 @@
                                            "object-designator"
                                            "location-designator"
                                            "action-designator"))
-               (:file "utils" :depends-on ("package"))))))))
+               (:file "utils" :depends-on ("package"))
+               (:file "initialization-macros" :depends-on ("package"))))))))
