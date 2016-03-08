@@ -75,9 +75,9 @@
                            (2 3 7) (3 0 4) (0 5 4) (1 6 5) (2 7 6) (3 4 7)))
          :vertices (map 'vector
                         (lambda (x-y-z)
-                          (roslisp:make-msg
-                           "geometry_msgs/Point"
-                           :x (first x-y-z) :y (second x-y-z) :z (third x-y-z)))
+                          (destructuring-bind (x y z) x-y-z
+                            (roslisp:make-msg
+                             "geometry_msgs/Point" :x x :y y :z z)))
                         '((-0.05 -0.05 -0.05)
                           (+0.05 -0.05 -0.05)
                           (+0.05 +0.05 -0.05)
