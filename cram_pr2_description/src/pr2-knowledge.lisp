@@ -71,7 +71,7 @@
                               robot-odom-frame
                               camera-frame camera-minimal-height camera-maximal-height
                               robot-pan-tilt-links robot-pan-tilt-joints
-                              end-effector-link gripper-link
+                              end-effector-link gripper-link gripper-joint
                               planning-group
                               robot-arms-parking-joint-states
                               end-effector-parking-pose
@@ -93,12 +93,17 @@
 
   (<- (end-effector-link pr2 :left "l_wrist_roll_link"))
   (<- (end-effector-link pr2 :right "r_wrist_roll_link"))
+
   (<- (gripper-link pr2 :left ?link)
     (lisp-fun search "l_gripper" ?link ?pos)
     (lisp-pred identity ?pos))
   (<- (gripper-link pr2 :right ?link)
     (lisp-fun search "r_gripper" ?link ?pos)
     (lisp-pred identity ?pos))
+
+  (<- (gripper-joint pr2 :left "l_gripper_joint"))
+  (<- (gripper-joint pr2 :right "r_gripper_joint"))
+
   (<- (planning-group pr2 :left "left_arm"))
   (<- (planning-group pr2 :right "right_arm"))
   (<- (planning-group pr2 (:left :right) "both_arms"))
@@ -121,33 +126,25 @@
   (<- (end-effector-parking-pose pr2 ?pose :right)
     (symbol-value *right-parking-end-effector-pose* ?pose))
 
-  (<- (robot-pre-grasp-joint-states pr2
-                                    (("torso_lift_joint" 0.33) . ?parking-joint-states))
+  (<- (robot-pre-grasp-joint-states
+       pr2 (("torso_lift_joint" 0.33) . ?parking-joint-states))
     (robot-arms-parking-joint-states pr2 ?parking-joint-states))
 
-  (<- (robot-pre-grasp-joint-states pr2
-                                    (("torso_lift_joint" 0.165) . ?parking-joint-states))
+  (<- (robot-pre-grasp-joint-states
+       pr2 (("torso_lift_joint" 0.165) . ?parking-joint-states))
     (robot-arms-parking-joint-states pr2 ?parking-joint-states))
 
-  (<- (robot-pre-grasp-joint-states pr2
-                                    (("torso_lift_joint" 0.00) . ?parking-joint-states))
+  (<- (robot-pre-grasp-joint-states
+       pr2 (("torso_lift_joint" 0.00) . ?parking-joint-states))
     (robot-arms-parking-joint-states pr2 ?parking-joint-states)))
-
-(defun object-type->tool-length (object-type)
-  (let ((bounding-box (btr:item-dimensions object-type)))
-    (cram-robot-interfaces:calculate-bounding-box-tool-length
-     bounding-box)))
 
 (def-fact-group pr2-manipulation-knowledge (grasp
                                             side
                                             arm
                                             object-type-grasp
                                             object-designator-grasp
-                                            object-type-tool-length
-                                            object-designator-tool-length
                                             orientation-matters
-                                            required-arms
-                                            available-arms)
+                                            required-arms)
   (<- (grasp pr2 :top))
   (<- (grasp pr2 :side))
   (<- (grasp pr2 :front))
@@ -181,24 +178,6 @@
     (desig:desig-prop ?current-object-designator (:type ?object-type))
     (object-type-grasp ?object-type ?grasp ?sides))
 
-  (<- (%object-type-tool-length ?object-type ?grasp ?tool-length)
-    (object-type-grasp ?object-type ?grasp ?_)
-    (lisp-fun object-type->tool-length ?object-type ?tool-length))
-
-  (<- (object-type-tool-length ?object-type ?grasp ?tool-length)
-    (once
-     (or
-      (%object-type-tool-length ?object-type ?grasp ?tool-length)
-      (== ?tool-length 0.0)))
-    (robot ?robot)
-    (grasp ?robot ?grasp))
-
-  (<- (object-designator-tool-length
-       ?object-designator ?grasp ?tool-length)
-    (lisp-fun desig:current-desig ?object-designator ?current-object-designator)
-    (desig:desig-prop ?current-object-designator (:type ?object-type))
-    (object-type-tool-length ?object-type ?grasp ?tool-length))
-
   (<- (orientation-matters ?object-designator)
     (lisp-fun desig:current-desig ?object-designator ?current-object-designator)
     (or (desig:desig-prop ?current-object-designator (:type :knife))
@@ -214,15 +193,7 @@
      (or
       (setof ?arms (object-type-grasp ?object-type ?_ ?arms) ?all-arms-solutions)
       (setof (?arm) (and (robot ?robot) (arm ?robot ?arm)) ?all-arms-solutions)))
-    (member ?arms ?all-arms-solutions))
-
-  (<- (available-arms ?object-designator ?arms)
-    (robot ?robot)
-    (required-arms ?object-designator ?arms)
-    (forall (member ?arm ?arms)
-            (and
-             (end-effector-link ?robot ?arm ?link)
-             (not (btr:attached ?_ ?robot ?link ?_))))))
+    (member ?arms ?all-arms-solutions)))
 
 (defmethod side->ik-group-name ((side symbol))
   (ecase side
