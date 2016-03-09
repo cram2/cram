@@ -172,7 +172,30 @@
               (get-tool-vector) (cl-transforms:make-identity-rotation)))))
           (t (cl-transforms:translation lift-transform)))))
 
+(defun object-type->tool-length (object-type)
+  (let ((bounding-box (btr:item-dimensions object-type)))
+    (cram-robot-interfaces:calculate-bounding-box-tool-length
+     bounding-box)))
+
 (def-fact-group pick-and-place-manipulation (trajectory-point)
+
+  (<- (%object-type-tool-length ?object-type ?grasp ?tool-length)
+    (object-type-grasp ?object-type ?grasp ?_)
+    (lisp-fun object-type->tool-length ?object-type ?tool-length))
+
+  (<- (object-type-tool-length ?object-type ?grasp ?tool-length)
+    (once
+     (or
+      (%object-type-tool-length ?object-type ?grasp ?tool-length)
+      (== ?tool-length 0.0)))
+    (robot ?robot)
+    (grasp ?robot ?grasp))
+
+  (<- (object-designator-tool-length
+       ?object-designator ?grasp ?tool-length)
+    (lisp-fun desig:current-desig ?object-designator ?current-object-designator)
+    (desig:desig-prop ?current-object-designator (:type ?object-type))
+    (object-type-tool-length ?object-type ?grasp ?tool-length))
 
   (<- (trajectory-point ?designator ?point ?side)
     (trajectory-desig? ?designator)
