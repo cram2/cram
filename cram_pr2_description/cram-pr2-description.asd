@@ -29,11 +29,10 @@
 (defsystem cram-pr2-description
   :author "Lorenz Moesenlechner"
   :license "BSD"
-  
+
   :depends-on (cram-prolog
                cram-designators
                cram-robot-interfaces
-               cram-bullet-reasoning
                cl-transforms-stamped)
   :components
   ((:module "src"
