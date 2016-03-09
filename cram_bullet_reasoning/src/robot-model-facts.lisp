@@ -28,7 +28,7 @@
 
 (in-package :btr)
 
-(def-fact-group robot-model (assert retract)
+(def-fact-group robot-model (assert retract available-arms)
 
   (<- (link ?world ?robot-name ?link)
     (bullet-world ?world)
@@ -136,7 +136,15 @@
     (lisp-fun detach-object ?robot-instance ?object ?link-name ?_))
 
   (<- (retract (attached ?world . ?rest))
-    (retract ?world (attached . ?rest))))
+    (retract ?world (attached . ?rest)))
+
+  (<- (available-arms ?object-designator ?arms)
+    (robot ?robot)
+    (required-arms ?object-designator ?arms)
+    (forall (member ?arm ?arms)
+            (and
+             (end-effector-link ?robot ?arm ?link)
+             (not (btr:attached ?_ ?robot ?link ?_))))))
 
 
 (defun get-robot-object ()
