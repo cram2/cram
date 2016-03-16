@@ -31,7 +31,6 @@
 
 (defun parse-key-value-pairs (key-value-pairs)
   (labels ((parse (key-value-pair-list)
-             (format t "key-value-pair-list: ~a~%" key-value-pair-list)
              (if (listp key-value-pair-list)
                  (if (and (symbolp (first key-value-pair-list))
                           (member (intern (string-upcase (first key-value-pair-list))
@@ -42,7 +41,9 @@
                       (parse (cddr key-value-pair-list)))
                      (loop for key-value-pair in key-value-pair-list
                            collecting (parse key-value-pair)))
-                 (intern (string-upcase key-value-pair-list) :keyword))))
+                 (if (symbolp key-value-pair-list)
+                     (intern (string-upcase key-value-pair-list) :keyword)
+                     key-value-pair-list))))
     (parse key-value-pairs)))
 
 (defmacro a (type &rest key-value-pairs-list)
