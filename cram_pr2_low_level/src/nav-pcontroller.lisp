@@ -36,6 +36,9 @@
 (defvar *yaw-goal-tolerance* 0.1 "in radiants, about 6 degrees.")
 ;; There are VARs (not PARAMETERs) as they're read from the ROS param server
 
+(defparameter *navigation-action-timeout* 60.0
+  "in seconds")
+
 (defun init-nav-pcontroller ()
   (setf *nav-pcontroller-action-client*
         (actionlib:make-action-client
@@ -85,11 +88,14 @@
           nil)
         t)))
 
-(defun call-nav-pcontroller-action (goal-pose)
+(cpl:def-cram-function call-nav-pcontroller-action (goal-pose)
+  "`goal-pose' is a POSE (in *fixed-frame*) or POSE-STAMPED."
   (let ((goal-pose-in-fixed-frame
           (cl-transforms-stamped:transform-pose-stamped
            *transformer*
-           :pose goal-pose
+           :pose (cl-transforms-stamped:ensure-pose-stamped
+                  goal-pose
+                  *fixed-frame* 0.0)
            :target-frame *fixed-frame*
            :timeout *tf-default-timeout*
            :use-current-ros-time t)))
@@ -106,14 +112,12 @@
             (actionlib:call-goal
              (get-nav-pcontroller-action-client)
              (make-nav-p-action-goal goal-pose-in-fixed-frame)
-             :timeout 60.0)))
+             :timeout *navigation-action-timeout*)))
       (roslisp:ros-info (navigation low-level) "Nav action finished.")
-      (unless (goal-reached-p (cl-transforms-stamped:copy-pose-stamped
-                               goal-pose-in-fixed-frame :stamp 0))
-        (error "OMG")
-        ;; (cpl:fail 'location-not-reached-failure
-        ;;           :location goal-pose)
-        ))))
+      (if (goal-reached-p (cl-transforms-stamped:copy-pose-stamped
+                           goal-pose-in-fixed-frame :stamp 0))
+          (values result status)
+          (cpl:fail 'location-not-reached-failure :location goal-pose)))))
 
 ;; (def-process-module pr2-navigation-process-module (goal)
 ;;   (unwind-protect

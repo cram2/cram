@@ -86,16 +86,17 @@
                                     position)))
                          (keyword (ecase position
                                     (:open 0.085)
-                                    (:close 0.0))))
+                                    (:close 0.0)
+                                    (:grip 0.0))))
     (max_effort command) (or max-effort (etypecase position
                                           (number 50.0)
                                           (keyword (ecase position
                                                      (:open -1)
-                                                     (:close 50.0)))))))
+                                                     (:close 500.0) ; because of stupid gazebo
+                                                     (:grip 50.0)))))))
 
-;; TODO: when something in the hand, gripper action result is :ABORTED
-;; and STALLED is T. Use this for checking if grasp succeeded.
 (defun call-gripper-action (left-or-right position &optional max-effort)
+  "`position' can be :open, :close, :grip or a joint position."
   (multiple-value-bind (result status)
       (cpl:with-failure-handling
           ((simple-error (e)
@@ -108,6 +109,9 @@
            action-client
            (make-gripper-action-goal action-client position max-effort)
            :timeout 10.0)))
-    (roslisp:ros-info (gripper-action) "~a gripper action finished: ~a."
-                      left-or-right status)
+    (if (eql position :grip) ; gripper should stall and action should result :aborted
+        (unless (eql status :aborted)
+          (cpl:fail 'cram-plan-failures:gripping-failed))
+        (unless (eql status :succeeded)
+          (cpl:fail 'cram-plan-failures:gripping-failed)))
     (values result status)))

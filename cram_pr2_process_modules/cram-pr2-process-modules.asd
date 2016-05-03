@@ -31,10 +31,19 @@
   :maintainer "Gayane Kazhoyan"
   :license "BSD"
 
-  :depends-on (cram-process-modules)
+  :depends-on (cram-process-modules
+               cram-prolog
+               cram-designators
+               cram-pr2-low-level
+               roslisp
+               cram-pr2-description
+               cram-tf)
 
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "designators" :depends-on ("package"))))))
+     (:file "designators" :depends-on ("package"))
+     (:file "grippers" :depends-on ("package"))
+     (:file "ptu" :depends-on ("package"))
+     (:file "base" :depends-on ("package"))))))

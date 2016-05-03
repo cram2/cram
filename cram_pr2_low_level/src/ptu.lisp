@@ -29,6 +29,8 @@
 
 (in-package :pr2-ll)
 
+(defparameter *ptu-action-timeout* 5.0
+  "How many seconds to wait before returning from PTU action.")
 (defvar *ptu-action-client* nil)
 
 (defun init-ptu-action-client ()
@@ -72,8 +74,9 @@
           (actionlib:call-goal
            (get-ptu-action-client)
            (make-ptu-action-goal frame point)
-           :timeout 5.0)))
-    (roslisp:ros-info (ptu-action-client) "PTU action finished.")
+           :timeout *ptu-action-timeout*)))
+    (unless (eql status :succeeded)
+      (cpl:fail 'cram-plan-failures:look-at-failed))
     (values result status)))
 
 (defun shake-head (n-times)

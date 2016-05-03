@@ -27,11 +27,41 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
+(in-package :pr2-pms)
 
-(defpackage cram-pr2-low-level
-  (:nicknames #:pr2-ll)
-  (:use #:common-lisp #:cram-tf)
-  (:export #:call-gripper-action
-           #:call-ptu-action
-           #:call-nav-pcontroller-action))
+(def-process-module pr2-ptu-pm (action-designator)
+  (destructuring-bind (command pose) (reference action-designator)
+    (ecase command
+      (look-at
+       (let ((pose-stamped
+               (cl-transforms-stamped:ensure-pose-stamped
+                pose
+                cram-tf:*fixed-frame*
+                0.0)))
+         (handler-case
+             (pr2-ll::call-ptu-action
+              :frame (cl-transforms-stamped:frame-id pose-stamped)
+              :point (cl-transforms:origin pose-stamped))
+           (cram-plan-failures:look-at-failed ()
+             (cpl:fail 'cram-plan-failures:look-at-failed :action action-designator))))))))
+
+;; Examples:
+;;
+;; (cram-process-modules:with-process-modules-running
+;;     (pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm)
+;;   (cpl:top-level
+;;     (cpm:pm-execute-matching
+;;      (desig:an action
+;;                (to look)
+;;                (at (an object
+;;                        (part-of robot)
+;;                        (link end-effector-link)
+;;                        (which-link right)))))))
+;;
+;; (cram-process-modules:with-process-modules-running
+;;     (pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm)
+;;   (cpl:top-level
+;;     (cpm:pm-execute-matching
+;;      (desig:an action
+;;                (to look)
+;;                (at ((1 0 1) (0 0 0 1)))))))
