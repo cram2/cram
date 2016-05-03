@@ -173,6 +173,10 @@
     (member ?type (:cutlery :knife :fork :spatula))
     (side pr2 ?side))
 
+  (<- (object-type-grip-maximum-effort pr2 :mug 50))
+  (<- (object-type-grip-maximum-effort pr2 :mondamin 30))
+  (<- (object-type-grip-maximum-effort pr2 :handle 50))
+
   (<- (object-designator-grasp ?object-designator ?grasp ?sides)
     (lisp-fun desig:current-desig ?object-designator ?current-object-designator)
     (desig:desig-prop ?current-object-designator (:type ?object-type))
