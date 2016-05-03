@@ -27,11 +27,21 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
+(in-package :pr2-pms)
 
-(defpackage cram-pr2-low-level
-  (:nicknames #:pr2-ll)
-  (:use #:common-lisp #:cram-tf)
-  (:export #:call-gripper-action
-           #:call-ptu-action
-           #:call-nav-pcontroller-action))
+(def-process-module pr2-grippers-pm (action-designator)
+  (destructuring-bind (command action-type which-gripper &optional max-effort)
+      (reference action-designator)
+    (ecase command
+      (gripper-action
+       (handler-case
+           (pr2-ll:call-gripper-action which-gripper action-type max-effort)
+         (cram-plan-failures:gripping-failed ()
+           (cpl:fail 'cram-plan-failures:gripping-failed :action action-designator)))))))
+
+;;; Example:
+;; (cram-process-modules:with-process-modules-running
+;;     (pr2-pms::pr2-grippers-pm)
+;;   (cpl:top-level
+;;     (cpm:pm-execute-matching
+;;      (desig:an action (to open) (right gripper)))))

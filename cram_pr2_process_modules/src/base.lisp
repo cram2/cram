@@ -27,11 +27,34 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
+(in-package :pr2-pms)
 
-(defpackage cram-pr2-low-level
-  (:nicknames #:pr2-ll)
-  (:use #:common-lisp #:cram-tf)
-  (:export #:call-gripper-action
-           #:call-ptu-action
-           #:call-nav-pcontroller-action))
+(def-process-module pr2-base-pm (action-designator)
+  (destructuring-bind (command destination-pose)
+      (reference action-designator)
+    (ecase command
+      (drive
+       (handler-case
+           (pr2-ll:call-nav-pcontroller-action destination-pose)
+         ;; (cram-plan-failures:location-not-reached-failure ()
+         ;;   (cpl:fail 'cram-plan-failures:gripping-failed :action action-designator))
+         )))))
+
+;; Example:
+;;
+;; (cl-tf::with-tf-broadcasting
+;;     ((cl-tf:make-transform-broadcaster)
+;;      (cl-tf:make-transform-stamped
+;;       "map"
+;;       "odom_combined"
+;;       0.0
+;;       (cl-transforms:make-identity-vector)
+;;       (cl-transforms:make-identity-rotation)))
+
+;;   (cram-process-modules:with-process-modules-running
+;;       (pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm pr2-pms::pr2-base-pm)
+;;     (cpl:top-level
+;;       (cpm:pm-execute-matching
+;;        (desig:an action
+;;                  (to go)
+;;                  (to ((0 1.9 0) (0 0 0 1))))))))

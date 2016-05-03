@@ -45,7 +45,8 @@
                trajectory_msgs-msg
                alexandria
                cram-tf
-               cram-pr2-description)
+               cram-pr2-description
+               cram-plan-failures)
   :components
   ((:module "src"
     :components

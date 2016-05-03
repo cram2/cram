@@ -31,4 +31,4 @@
 
 (defpackage cram-pr2-process-modules
   (:nicknames :pr2-pms)
-  (:use #:common-lisp))
+  (:use #:common-lisp #:cram-process-modules #:cram-prolog #:cram-designators))

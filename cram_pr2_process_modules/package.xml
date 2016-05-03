@@ -12,4 +12,16 @@
 
   <build_depend>cram_process_modules</build_depend>
   <run_depend>cram_process_modules</run_depend>
+  <build_depend>cram_prolog</build_depend>
+  <run_depend>cram_prolog</run_depend>
+  <build_depend>cram_designators</build_depend>
+  <run_depend>cram_designators</run_depend>
+  <build_depend>cram_pr2_low_level</build_depend>
+  <run_depend>cram_pr2_low_level</run_depend>
+  <build_depend>roslisp</build_depend>
+  <run_depend>roslisp</run_depend>
+  <build_depend>cram_pr2_description</build_depend>
+  <run_depend>cram_pr2_description</run_depend>
+  <build_depend>cram_tf</build_depend>
+  <run_depend>cram_tf</run_depend>
 </package>
