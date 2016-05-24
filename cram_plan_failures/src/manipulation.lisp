@@ -42,3 +42,6 @@
 (define-condition manipulation-pickup-failed (manipulation-pose-unreachable) ())
 
 (define-condition manipulation-pose-occupied (manipulation-failure) ())
+
+(define-condition gripping-failed (manipulation-failure)
+  ((action :initarg :object :initform nil :reader gripping-failed-action)))
