@@ -31,3 +31,6 @@
 
 (define-condition object-not-found (plan-failure)
   ((object-desig :initarg :object-desig :initform nil :reader object-not-found-desig)))
+
+(define-condition look-at-failed (simple-plan-failure)
+  ((action :initarg :action :initform nil :reader look-at-failed-action)))

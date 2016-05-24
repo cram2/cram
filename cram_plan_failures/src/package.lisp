@@ -40,6 +40,8 @@
    ;; perception
    #:object-not-found
    #:object-not-found-desig
+   #:look-at-failed
+   #:look-at-failed-action
    ;; manipulation
    #:manipulation-failure
    #:object-lost
@@ -47,4 +49,6 @@
    #:manipulation-pose-unreachable
    #:manipulation-pickup-failed
    #:manipulation-pose-occupied
+   #:gripping-failed
+   #:gripping-failed-action
    #:result))
