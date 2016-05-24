@@ -28,7 +28,8 @@
 
 (in-package :cram-robot-interfaces)
 
-(def-fact-group arms (arm required-arms available-arms end-effector-link gripper-link
+(def-fact-group arms (arm required-arms available-arms end-effector-link
+                          gripper-joint gripper-link
                           robot-arms-parking-joint-states end-effector-parking-pose
                           robot-pre-grasp-joint-states planning-group)
   ;; Unifies ?side with the name of an arm that is present on the ?robot.
@@ -51,6 +52,10 @@
 
   ;; Defines links of the grippers of the robot
   (<- (gripper-link ?robot ?arm ?link)
+    (fail))
+
+  ;; Defines joints of robot's grippers
+  (<- (gripper-joint ?robot ?arm ?joint)
     (fail))
 
   (<- (planning-group ?robot ?arms ?group-name)

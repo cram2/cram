@@ -37,3 +37,13 @@
             (cl-transforms:orientation pose-1)
             (cl-transforms:orientation pose-2))
            ang-sigma)))
+
+(defun frame-to-pose-in-fixed-frame (frame-name)
+  (when *transformer*
+    (transform-pose-stamped
+     *transformer*
+     :timeout *tf-default-timeout*
+     :pose (make-pose-stamped frame-name 0.0
+                              (make-identity-vector)
+                              (make-identity-rotation))
+     :target-frame *fixed-frame*)))
