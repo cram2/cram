@@ -40,7 +40,7 @@
    #:robot-pan-tilt-links #:robot-pan-tilt-joints
    ;; arms
    #:arm #:required-arms #:available-arms
-   #:end-effector-link #:gripper-link #:planning-group
+   #:end-effector-link #:gripper-link #:gripper-joint #:planning-group
    #:robot-arms-parking-joint-states #:end-effector-parking-pose
    #:robot-pre-grasp-joint-states
    ;; grasps
@@ -48,11 +48,12 @@
    #:calculate-bounding-box-tool-length #:get-tool-direction-vector
    #:get-tool-length #:get-tool-vector #:calculate-tool
    #:grasp #:side #:object-type-grasp #:object-designator-grasp
-   #:object-type-tool-length #:object-designator-tool-length
    ;; objects
    #:orientation-matters
    ;; designator prolog utils
    #:compute-ik #:side->ik-group-name
    #:reachability-designator #:designator-reach-pose
    #:reachability-designator-p #:visibility-designator-p
-   #:trajectory-desig? #:constraints-desig?))
+   #:trajectory-desig? #:constraints-desig?
+   ;; utilities
+   #:symbol-to-prolog-rule))

@@ -54,6 +54,9 @@
     (position ?pose ?position)
     (orientation ?pose ?orientation))
 
+  (<- (pose ?pose (?position ?orientation))
+    (pose ?pose ?position ?orientation))
+
   (<- (pose ?pose (?x ?y ?z) (?ax ?ay ?az ?aw))
     (not (bound ?pose))
     (ground (?x ?y ?z))
@@ -91,3 +94,18 @@
 
   (<- (poses-equal ?pose-1 ?pose-2 (?dist-sigma ?ang-sigma))
     (lisp-pred poses-equal-p ?pose-1 ?pose-2 ?dist-sigma ?ang-sigma)))
+
+
+;; todo(@gaya): ugliest piece of code ever...
+;; spent 2 years cleaning up cram, now spend another 2 messing it up again...
+(def-fact-group robot-parts-location (desig-location-prop)
+  (<- (desig-location-prop ?object-designator ?pose-stamped)
+    (obj-desig? ?object-designator)
+    (desig-prop ?object-designator (:part-of ?robot))
+    (lisp-fun symbol-to-prolog-rule ?robot ?robot-name)
+    (desig-prop ?object-designator (:link ?link))
+    (-> (desig-prop ?object-designator (:which-link ?params))
+        (lisp-fun symbol-to-prolog-rule ?link ?robot-name ?params ?link-name)
+        (lisp-fun symbol-to-prolog-rule ?link ?robot-name ?link-name))
+    (lisp-fun frame-to-pose-in-fixed-frame ?link-name ?pose-stamped)))
+
