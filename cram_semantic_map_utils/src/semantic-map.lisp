@@ -197,35 +197,26 @@
                                                   (remove #\' (symbol-name label)))
                                                 aliases)
                                :parent parent)
-                (if (= (length ?pose) 7)
-                    (make-instance 'semantic-map-geom
-                                   :type type
-                                   :name name
-                                   :owl-name owlname
-                                   :pose (cl-transforms:make-pose
-                                          (cl-transforms:make-3d-vector
-                                           (nth 0 ?pose) (nth 1 ?pose) (nth 2 ?pose))
-                                          (cl-transforms:make-quaternion
-                                           (nth 3 ?pose) (nth 4 ?pose) (nth 5 ?pose)(nth 6 ?pose)))
-                                   :dimensions (apply #'cl-transforms:make-3d-vector ?dim)
-                                   :aliases (mapcar (lambda (label)
-                                                      (remove #\' (symbol-name label)))
-                                                    aliases)
-                                   :parent parent)
-                    (make-instance 'semantic-map-geom
-                                   :type type
-                                   :name name
-                                   :owl-name owlname
-                                   :pose (cl-transforms:transform->pose
-                                          (cl-transforms:matrix->transform
-                                           (make-array
-                                            '(4 4) :displaced-to (make-array
-                                                                  16 :initial-contents ?pose))))
-                                   :dimensions (apply #'cl-transforms:make-3d-vector ?dim)
-                                   :aliases (mapcar (lambda (label)
-                                                      (remove #\' (symbol-name label)))
-                                                    aliases)
-                                   :parent parent))))))))
+                (make-instance 'semantic-map-geom
+                  :type type
+                  :name name
+                  :owl-name owlname
+                  :pose (if (= (length ?pose) 7)
+                            (destructuring-bind (x y z q1 q2 q3 w)
+                                ?pose
+                             (cl-transforms:make-pose
+                              (cl-transforms:make-3d-vector x y z)
+                              (cl-transforms:make-quaternion q1 q2 q3 w)))
+                            (cl-transforms:transform->pose
+                             (cl-transforms:matrix->transform
+                              (make-array
+                               '(4 4) :displaced-to (make-array
+                                                     16 :initial-contents ?pose)))))
+                  :dimensions (apply #'cl-transforms:make-3d-vector ?dim)
+                  :aliases (mapcar (lambda (label)
+                                     (remove #\' (symbol-name label)))
+                                   aliases)
+                  :parent parent)))))))
 
 (defgeneric update-pose (obj new-pose &key relative recursive)
   (:documentation "Updates the pose of `obj' using `new-pose'. When
@@ -322,42 +313,54 @@
      ,@body))
 
 (defun init-semantic-map-cache (&optional map-name)
-  (when (json-prolog:check-connection)
-    (cond ((and (null map-name)
-                (null *cached-semantic-map*))
-           (setf map-name
-                 (remove #\' (symbol-name
-                           (cut:var-value '?name
-                                          (cut:lazy-car
-                                           (cut:force-ll
-                                            (json-prolog:prolog
-                                             `("map_name" ?name) :package :sem-map-utils)))))))
-           (setf *cached-semantic-map*
-                 (make-instance
-                  'semantic-map
-                  :parts (alexandria:alist-hash-table
-                          (mapcar
-                           (lambda (elem)
-                             (cons (name elem) elem))
-                           (force-ll
-                            (lazy-mapcan
-                             (lambda (bdgs)
-                               (with-vars-bound (?type ?n ?o) bdgs
-                                 (unless (or (is-var ?type) (is-var ?o))
-                                   (list (make-semantic-map-part
-                                          (remove #\' (symbol-name ?type))
-                                          (remove #\' (symbol-name ?n))
-                                          (remove #\' (symbol-name ?o))
-                                          nil)))))
-                             (json-prolog:prolog
-                              `(and ("map_root_objects" ,map-name ?objs)
-                                    ("member" ?o ?objs)
-                                    ("map_object_type" ?o ?tp)
-                                    ("rdf_atom_no_ns" ?tp ?type)
-                                    ("rdf_atom_no_ns" ?o ?n))
-                              :package :sem-map-utils))))
-                          :test 'equal)))))) 
-  *cached-semantic-map-name* map-name)
+  (unless (and map-name
+               (string= map-name *cached-semantic-map-name*))
+    (if (json-prolog:check-connection)
+        (let ((uploaded-map-name
+                (var-value
+                 '?name
+                 (lazy-car
+                  (json-prolog:prolog
+                   '("map_name" ?name)
+                   :package :sem-map-utils)))))
+          (when (is-var uploaded-map-name)
+            (warn "MAP-NAME predicate is undefined for uploaded map.
+Cannot update semantic map.")
+            (return-from init-semantic-map-cache))
+          (setf uploaded-map-name (remove #\' (symbol-name uploaded-map-name)))
+          (when (and map-name
+                     (not (string= map-name uploaded-map-name)))
+            (warn 'simple-warning
+                  :format-control "MAP-NAME ~a is different from uploaded map ~a. Ignoring."
+                  :format-arguments (list map-name uploaded-map-name)))
+          (unless (string= uploaded-map-name *cached-semantic-map-name*)
+            (setf *cached-semantic-map*
+                  (make-instance
+                      'semantic-map
+                    :parts (alexandria:alist-hash-table
+                            (mapcar
+                             (lambda (elem)
+                               (cons (name elem) elem))
+                             (force-ll
+                              (lazy-mapcan
+                               (lambda (bdgs)
+                                 (with-vars-bound (?type ?n ?o) bdgs
+                                   (unless (or (is-var ?type) (is-var ?o))
+                                     (list (make-semantic-map-part
+                                            (remove #\' (symbol-name ?type))
+                                            (remove #\' (symbol-name ?n))
+                                            (remove #\' (symbol-name ?o))
+                                            nil)))))
+                               (json-prolog:prolog
+                                `(and ("map_root_objects" ,uploaded-map-name ?objs)
+                                      ("member" ?o ?objs)
+                                      ("map_object_type" ?o ?tp)
+                                      ("rdf_atom_no_ns" ?tp ?type)
+                                      ("rdf_atom_no_ns" ?o ?n))
+                                :package :sem-map-utils))))
+                            :test 'equal))
+                  *cached-semantic-map-name* uploaded-map-name)))
+        (warn "No connection to json-prolog server. Cannot update semantic map."))))
 
 (defun get-semantic-map (&optional map-name)
   (init-semantic-map-cache map-name)
