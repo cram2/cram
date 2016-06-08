@@ -35,6 +35,7 @@
   
   :depends-on (cram-json-prolog
                roslisp-utilities
+               roslisp
                cram-utilities
                cl-transforms)
   :components

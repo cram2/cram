@@ -30,8 +30,10 @@
   :author "Lorenz Moesenlechner"
   :license "BSD"
 
-  :depends-on (cram-plan-occasions-events
+  :depends-on (cram-semantic-map-utils
+               cram-plan-occasions-events
                cram-occasions-events
+               cram-designators
                cram-projection)
   :components
   ((:module "src"

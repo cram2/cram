@@ -184,7 +184,7 @@
             (lazy-car
              (json-prolog:prolog
               `(and ("current_object_pose" ,owlname ?pose)
-                    ("map_object_dimensions" ,owlname ?w ?d ?h)
+                    ("object_dimensions" ,owlname ?d ?w ?h)
                     ("findall" ?l ("map_object_label" ,owlname ?l) ?labels)
                     (= '(?d ?w ?h) ?dim))
               :package :sem-map-utils))
@@ -212,7 +212,10 @@
                               (make-array
                                '(4 4) :displaced-to (make-array
                                                      16 :initial-contents ?pose)))))
-                  :dimensions (apply #'cl-transforms:make-3d-vector ?dim)
+                  :dimensions (apply #'cl-transforms:make-3d-vector
+                                     (mapcar (lambda (x)
+                                               (read-from-string (remove #\' (symbol-name x))))
+                                             ?dim))
                   :aliases (mapcar (lambda (label)
                                      (remove #\' (symbol-name label)))
                                    aliases)
@@ -324,15 +327,16 @@
                    '("map_name" ?name)
                    :package :sem-map-utils)))))
           (when (is-var uploaded-map-name)
-            (warn "MAP-NAME predicate is undefined for uploaded map.
+            (roslisp:ros-warn (sem-map-cache)
+                              "MAP-NAME predicate is undefined for uploaded map.
 Cannot update semantic map.")
             (return-from init-semantic-map-cache))
           (setf uploaded-map-name (remove #\' (symbol-name uploaded-map-name)))
           (when (and map-name
                      (not (string= map-name uploaded-map-name)))
-            (warn 'simple-warning
-                  :format-control "MAP-NAME ~a is different from uploaded map ~a. Ignoring."
-                  :format-arguments (list map-name uploaded-map-name)))
+            (roslisp:ros-warn (sem-map-cache)
+                              "MAP-NAME ~a is different from uploaded map ~a. Ignoring."
+                              map-name uploaded-map-name))
           (unless (string= uploaded-map-name *cached-semantic-map-name*)
             (setf *cached-semantic-map*
                   (make-instance
@@ -359,8 +363,10 @@ Cannot update semantic map.")
                                       ("rdf_atom_no_ns" ?o ?n))
                                 :package :sem-map-utils))))
                             :test 'equal))
-                  *cached-semantic-map-name* uploaded-map-name)))
-        (warn "No connection to json-prolog server. Cannot update semantic map."))))
+                  *cached-semantic-map-name* uploaded-map-name)
+            (roslisp:ros-info (sem-map-cache) "Updated semantic map cache.")))
+        (roslisp:ros-warn (sem-map-cache)
+                          "No connection to json-prolog server. Cannot update semantic map."))))
 
 (defun get-semantic-map (&optional map-name)
   (init-semantic-map-cache map-name)
