@@ -37,7 +37,8 @@
                nav_msgs-msg
                visualization_msgs-msg
                trivial-garbage
-               cram-tf)
+               cram-tf ; for visualizing markers in the fixed frame
+               )
   :components
   ((:module "src"
             :components
