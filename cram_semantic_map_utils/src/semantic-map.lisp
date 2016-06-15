@@ -201,6 +201,7 @@
                   :type type
                   :name name
                   :owl-name owlname
+                  :urdf-link-name (urdf-name owlname)
                   :pose (if (= (length ?pose) 7)
                             (destructuring-bind (x y z q1 q2 q3 w)
                                 ?pose
@@ -285,10 +286,8 @@
                ("rdf_atom_no_ns" ?sub ?name))
              :package :sem-map-utils))))))
 
-(defmethod urdf-name :before ((part semantic-map-part))
-  (unless (slot-boundp part 'urdf-name)
-    (with-slots (owl-name urdf-name) part
-      (let ((label (var-value
+(defmethod urdf-name ((owl-name string))
+  (let ((label (var-value
                     '?link
                     (lazy-car (json-prolog:prolog
                                `("rdf_has"
@@ -296,8 +295,13 @@
                                  ("literal" ?link))
                                :package :sem-map-utils)))))
         (if (is-var label)
-            (setf urdf-name nil)
-            (setf urdf-name (remove #\' (symbol-name label))))))))
+            nil
+            (remove #\' (symbol-name label)))))
+
+(defmethod urdf-name :before ((part semantic-map-part))
+  (unless (slot-boundp part 'urdf-name)
+    (with-slots (owl-name urdf-name) part
+      (setf urdf-name (urdf-name owl-name)))))
 
 (defun urdf-name->obj-name (urdf-name)
   (with-vars-bound (?name)
