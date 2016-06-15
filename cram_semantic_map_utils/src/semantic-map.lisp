@@ -214,7 +214,10 @@
                                                      16 :initial-contents ?pose)))))
                   :dimensions (apply #'cl-transforms:make-3d-vector
                                      (mapcar (lambda (x)
-                                               (read-from-string (remove #\' (symbol-name x))))
+                                               (typecase x
+                                                 (number x)
+                                                 (t (read-from-string
+                                                     (remove #\' (symbol-name x))))))
                                              ?dim))
                   :aliases (mapcar (lambda (label)
                                      (remove #\' (symbol-name label)))
@@ -271,7 +274,12 @@
                     part)))))
             (json-prolog:prolog
              `(and
-               ("rdf_has" ,(owl-name part) "http://knowrob.org/kb/knowrob.owl#properPhysicalParts" ?sub)
+               (or ("rdf_has" ,(owl-name part)
+                              "http://knowrob.org/kb/knowrob.owl#properPhysicalParts"
+                              ?sub)
+                   ("rdf_has" ,(owl-name part)
+                              "http://knowrob.org/kb/srdl2-comp.owl#subComponent"
+                              ?sub))
                ("map_object_type" ?sub ?tp)
                ("rdf_atom_no_ns" ?tp ?type)
                ("rdf_atom_no_ns" ?sub ?name))
