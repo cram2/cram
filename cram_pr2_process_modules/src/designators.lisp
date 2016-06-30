@@ -38,7 +38,7 @@
     (desig-prop ?action-designator (:destination ?where))
     (-> (lisp-type ?where designator)
         (desig-location-prop ?where ?pose)
-        (or (cram-tf:pose ?pose ?where)
+        (or (cl-transforms:pose ?pose ?where)
             (equal ?where ?pose))))
 
   (<- (action-desig ?action-designator (drive ?pose))
@@ -154,6 +154,57 @@
 
   (<- (available-process-module pr2-grippers-pm)
     (not (projection-running ?_))))
+
+
+(def-fact-group pr2-arm-actions (action-desig
+                                 matching-process-module
+                                 available-process-module)
+
+  (<- (action-desig ?action-designator (move-arm ?pose ?left-or-right))
+    (desig-prop ?action-designator (:type :moving))
+    (desig-prop ?action-designator (:arm ?left-or-right))
+    (desig-prop ?action-designator (:goal ?location))
+    (-> (lisp-type ?location designator)
+        (desig-location-prop ?location ?pose)
+        (or (cram-tf:pose ?pose ?location)
+            (equal ?location ?pose))))
+
+  (<- (action-desig ?action-designator (move-arm ?pose ?left-or-right))
+    (desig-prop ?action-designator (:to :move))
+    (or (desig-prop ?action-designator (?left-or-right :arm))
+        (desig-prop ?action-designator (?left-or-right :arms)))
+    (desig-prop ?action-designator (:to ?location))
+    (not (equal ?location :move))
+    ;; (-> (equal ?location (?left-location ?right-location))
+    ;;     (and (-> (lisp-type ?left-location designator)
+    ;;              (desig-location-prop ?left-location ?left-pose)
+    ;;              (or (cram-tf:pose ?left-pose ?left-location)
+    ;;                  (equal ?left-location ?left-pose)))
+    ;;          (-> (lisp-type ?right-location designator)
+    ;;              (desig-location-prop ?right-location ?right-pose)
+    ;;              (or (cram-tf:pose ?right-pose ?right-location)
+    ;;                  (equal ?right-location ?right-pose)))
+    ;;          (equal ?pose (?left-pose ?right-pose)))
+    ;;     (-> (lisp-type ?location designator)
+    ;;         (desig-location-prop ?location ?pose)
+    ;;         (or (cram-tf:pose ?pose ?location)
+    ;;             (equal ?location ?pose))))
+    ;; support for both arms in one designator is difficult right now
+    (-> (lisp-type ?location designator)
+        (desig-location-prop ?location ?pose)
+        (or (cram-tf:pose ?pose ?location)
+            (equal ?location ?pose))))
+
+
+  (<- (matching-process-module ?action-designator pr2-arms-pm)
+    (or (and (desig-prop ?action-designator (:type :moving))
+             (desig-prop ?action-designator (:arm ?_)))
+        (and (desig-prop ?action-designator (:to :move))
+             (desig-prop ?action-designator (?_ :arm)))))
+
+  (<- (available-process-module pr2-arms-pm)
+    (not (projection-running ?_))))
+
 
 ;; (def-fact-group pr2-manipulation-actions (action-desig)
 ;;   ;; On the PR2 we don't need an open pose

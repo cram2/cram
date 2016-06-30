@@ -46,4 +46,5 @@
      (:file "designators" :depends-on ("package"))
      (:file "grippers" :depends-on ("package"))
      (:file "ptu" :depends-on ("package"))
-     (:file "base" :depends-on ("package"))))))
+     (:file "base" :depends-on ("package"))
+     (:file "arms" :depends-on ("package"))))))
