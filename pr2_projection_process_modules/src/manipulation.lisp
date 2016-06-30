@@ -119,9 +119,9 @@
                         (robot ?robot)
                         (end-effector-link ?robot :left ?left-end-effector)
                         (end-effector-link ?robot :right ?right-end-effector)
-                        (robot-arms-parking-joint-states
+                        (robot-arms-parking-joint-states ?robot
                          ?left-parking-joint-states :left)
-                        (robot-arms-parking-joint-states
+                        (robot-arms-parking-joint-states ?robot
                          ?right-parking-joint-states :right))))
     (let* ((left-gripper-transform
              (cl-transforms-stamped:lookup-transform
