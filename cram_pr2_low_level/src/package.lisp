@@ -34,4 +34,5 @@
   (:use #:common-lisp #:cram-tf)
   (:export #:call-gripper-action
            #:call-ptu-action
-           #:call-nav-pcontroller-action))
+           #:call-nav-pcontroller-action
+           #:call-giskard-action))
