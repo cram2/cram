@@ -46,7 +46,8 @@
                alexandria
                cram-tf
                cram-pr2-description
-               cram-plan-failures)
+               cram-plan-failures
+               giskard_msgs-msg)
   :components
   ((:module "src"
     :components
@@ -60,4 +61,5 @@
      (:file "joint-trajectory" :depends-on ("package"))
      (:file "kinematics-trajectory" :depends-on ("package"
                                                  "joint-trajectory"
-                                                 "joint-states"))))))
+                                                 "joint-states"))
+     (:file "giskard-cartesian" :depends-on ("package"))))))
