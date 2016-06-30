@@ -53,20 +53,18 @@
       (init-giskard-action-client)))
 
 (defun make-giskard-action-goal (frame left-pose right-pose)
-  (declare (type (or null cl-transforms:pose) left-pose right-pose)
-           (type string frame))
+  ;; (declare (type (or null cl-transforms:pose) left-pose right-pose)
+  ;;          (type string frame))
   (let ((left-pose-msg (cl-transforms-stamped:to-msg
-                        (cl-transforms-stamped:pose->pose-stamped
-                         frame
-                         0.0
+                        (cl-transforms-stamped:ensure-pose-stamped
                          (or left-pose
-                             (cl-transforms:make-identity-pose)))))
+                             (cl-transforms:make-identity-pose))
+                         frame 0.0)))
         (right-pose-msg (cl-transforms-stamped:to-msg
-                         (cl-transforms-stamped:pose->pose-stamped
-                          frame
-                          0.0
+                         (cl-transforms-stamped:ensure-pose-stamped
                           (or right-pose
-                              (cl-transforms:make-identity-pose))))))
+                              (cl-transforms:make-identity-pose))
+                          frame 0.0))))
     (actionlib:make-action-goal
         (get-giskard-action-client)
       (goal left_ee command) left-pose-msg
