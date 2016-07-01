@@ -36,7 +36,8 @@
                cram-designators
                cram-semantic-map-utils
                cram-semantic-map
-               cram-tf)
+               cram-tf
+               cram-bullet-reasoning)
   :components
   ((:module "src"
     :components
