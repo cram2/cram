@@ -35,7 +35,7 @@
   ((side :reader side :initarg :side :type (or :left :right))
    (minimum :reader minimum :initarg :minimum :type cl-transforms:3d-vector)
    (maximum :reader maximum :initarg :maximum :type cl-transforms:3d-vector)
-   (resolution :reader resolution :initarg :resolution ::type cl-transforms:3d-vector)
+   (resolution :reader resolution :initarg :resolution :type cl-transforms:3d-vector)
    (orientations :reader orientations :initarg :orientations :type list)
    (reachability-map :reader reachability-map)
    (inverse-reachability-map :reader inverse-reachability-map)))
