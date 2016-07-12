@@ -561,7 +561,7 @@ current joint states"
       (destructuring-bind (r g b a) color
         (list r g b (or *robot-model-alpha* a)))
       (let ((some-gray (/ (+ (random 5) 3) 10.0)))
-        `(,some-gray ,some-gray ,some-gray 1.0))))
+        (list some-gray some-gray some-gray (or *robot-model-alpha* 1.0)))))
 
 (defun load-mesh (mesh)
   "Loads and resizes the 3d-model"
