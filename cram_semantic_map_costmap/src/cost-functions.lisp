@@ -286,7 +286,9 @@
   (let ((costmap-generators
           (mapcar (lambda (object)
                     (make-semantic-object-center-generator object padding))
-                  (cut:force-ll objects))))
+                  (remove-if-not (lambda (object)
+                                   (typep object 'sem-map-utils:semantic-map-geom))
+                                 (cut:force-ll objects)))))
     (flet ((generator (costmap-metadata matrix)
              (declare (type cma:double-matrix matrix))
              (dolist (generator costmap-generators matrix)
@@ -300,7 +302,9 @@ list of SEM-MAP-UTILS:SEMANTIC-MAP-GEOMs"
   (let ((costmap-generators (mapcar (lambda (object)
                                       (make-semantic-map-object-costmap-generator
                                        object :padding padding))
-                                    (cut:force-ll objects))))
+                                    (remove-if-not (lambda (object)
+                                                     (typep object 'sem-map-utils:semantic-map-geom))
+                                                   (cut:force-ll objects)))))
     (flet ((invert-matrix (matrix)
              (declare (type cma:double-matrix matrix))
              (dotimes (row (cma:height matrix) matrix)
@@ -337,6 +341,8 @@ list of SEM-MAP-UTILS:SEMANTIC-MAP-GEOMs"
 
 (defun make-semantic-map-height-function (objects &optional (type-tag :on))
   (lambda (x y)
-    (loop for obj in (cut:force-ll objects)
+    (loop for obj in (remove-if-not (lambda (object)
+                                      (typep object 'sem-map-utils:semantic-map-geom))
+                                    (cut:force-ll objects))
           when (point-on-object obj (cl-transforms:make-3d-vector x y 0))
             collecting (float (obj-z-value obj type-tag) 0.0d0))))
