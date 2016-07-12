@@ -557,8 +557,11 @@ current joint states"
      ,@body))
 
 (defun apply-aplha-value (color)
-  (destructuring-bind (r g b a) color
-    (list r g b (or *robot-model-alpha* a))))
+  (if (= (length color) 4)
+      (destructuring-bind (r g b a) color
+        (list r g b (or *robot-model-alpha* a)))
+      (let ((some-gray (/ (+ (random 5) 3) 10.0)))
+        `(,some-gray ,some-gray ,some-gray 1.0))))
 
 (defun load-mesh (mesh)
   "Loads and resizes the 3d-model"
