@@ -52,9 +52,19 @@
          (cram-plan-failures:manipulation-failed ()
            (cpl:fail 'cram-plan-failures:manipulation-failed :action action-designator)))))))
 
-;;; Example:
+;;; Examples:
+;;
 ;; (cram-process-modules:with-process-modules-running
 ;;     (pr2-pms::pr2-arms-pm)
 ;;   (cpl:top-level
 ;;     (cpm:pm-execute-matching
 ;;      (desig:an action (to move) (right arm) (to ((1 0 1) (0 0 0 1))))))
+;;
+;; (cram-process-modules:with-process-modules-running
+;;     (pr2-pms::pr2-arms-pm)
+;;   (cpl:top-level
+;;     (cpm:pm-execute-matching
+;;      (desig:an action
+;;                (to move) (both arms)
+;;                (right ((0.5 -0.5 1.5) (0 0 0 1)))
+;;                (left ((0.5 0.5 1.5) (0 0 0 1)))))))
