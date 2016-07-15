@@ -34,7 +34,7 @@
 ;;                      (generic-object (:object `((:at ,loc-on-table)))))
 ;;     (let ((necessary-objects (prolog:prolog `(table-setting-object
 ;;                                               ,?situation ?object)))
-;;           (objects-on-table (perceive-object 'all generic-object)))
+;;           (objects-on-table (perceive-object :all generic-object)))
 ;;       )))
 
 ;; (def-goal (perceive-object drawer-handle ?semantic-name)
@@ -47,7 +47,7 @@
 ;;                (concatenate 'string ?semantic-name "_handle"))
 ;;              (handle
 ;;                (first (perceive-object
-;;                        'currently-visible
+;;                        :currently-visible
 ;;                        (make-designator
 ;;                         :object `((:type :semantic-handle)
 ;;                                   (:name ,handle-name))))))
