@@ -34,7 +34,7 @@
 
 (define-condition ambiguous-perception (simple-plan-failure) ())
 
-(def-goal (perceive-object all ?obj-desig)
+(def-goal (perceive-object :all ?obj-desig)
   (let ((log-id (first (cram-language::on-begin-find-objects))))
     (unwind-protect
          (with-designators ((obj-loc-desig :location `((:of ,?obj-desig)))
@@ -70,26 +70,26 @@
                      (monitor-action perceive-action)))))))
       (cram-language::on-finish-find-objects log-id))))
 
-(def-goal (perceive-object a ?obj-desig)
+(def-goal (perceive-object :a ?obj-desig)
   "Tries to find the object described by ?obj-desig and equates the
 resulting designator with `?obj-desig'. If several objects match, the
 first one is bound."
   ;; NOTE(winkler): This is a dirty hack. Sometimes, the perceived
   ;; objects don't come out as a list. We're forcing it here for
   ;; now. Have to check where this error originates from since they
-  ;; should always be a list after perceive-object 'all.
+  ;; should always be a list after perceive-object :all.
   (let ((perceived-objects
-          (alexandria:flatten (list (perceive-object 'all ?obj-desig)))))
+          (alexandria:flatten (list (perceive-object :all ?obj-desig)))))
     (let ((new-desig (car perceived-objects)))
       (unless (desig-equal ?obj-desig new-desig)
         (equate ?obj-desig new-desig))
       new-desig)))
 
-(def-goal (perceive-object the ?obj-desig)
+(def-goal (perceive-object :the ?obj-desig)
   "Tries to find _the_ object described by ?obj-desig and equates
 ?obj-desig with the result. Fail if more than one matching object are
 found."
-  (let ((new-desigs (perceive-object 'all ?obj-desig)))
+  (let ((new-desigs (perceive-object :all ?obj-desig)))
     (unless (eql (length new-desigs) 1)
       (error 'ambiguous-perception
              :format-control "Found ~a objects that match ~a."
@@ -98,7 +98,7 @@ found."
       (equate ?obj-desig (car new-desigs)))
     (car new-desigs)))
 
-(def-goal (perceive-object currently-visible ?obj-desig)
+(def-goal (perceive-object :currently-visible ?obj-desig)
   (with-designators ((perceive-action :action `((:to :perceive)
                                                 (:obj ,?obj-desig))))
     (with-failure-handling ((object-not-found (f)
