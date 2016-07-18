@@ -38,7 +38,7 @@
                              (:at ,on-counter))))
     (reference on-counter)
     (format t "trying to perceive an object ~a~%" the-object)
-    (let ((perceived-object (plan-lib:perceive-object 'cram-plan-library:a the-object)))
+    (let ((perceived-object (plan-lib:perceive-object :a the-object)))
       (unless (desig-equal the-object perceived-object)
         (equate the-object perceived-object))
       the-object)))
