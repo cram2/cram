@@ -66,7 +66,7 @@
                 (progn
                   (achieve `(looking-at ,(reference obj-loc)))
                   (let ((perceived-object
-                          (first (perceive-object 'currently-visible
+                          (first (perceive-object :currently-visible
                                                   ?obj))))
                     (unless perceived-object
                       (ros-info (achieve plan-lib) "Didn't find the object.")
@@ -158,7 +158,7 @@
                          (ros-warn (achieve plan-lib) "Retrying.")
                          (retry))))
                   (ros-info (achieve plan-lib) "Perceiving object")
-                  (perceive-object 'a ?obj))))
+                  (perceive-object :a ?obj))))
           (ros-info (achieve plan-lib) "Perceive done")
           (reset-counter alt-grasp-poses-cnt)
           (with-failure-handling
@@ -269,7 +269,7 @@
 ;;              (ros-warn (achieve plan-lib) "Retrying.")
 ;;              (retry))))
 ;;       (ros-info (achieve plan-lib) "Perceiving object")
-;;       (setf ?obj (perceive-object 'a ?obj)))
+;;       (setf ?obj (perceive-object :a ?obj)))
 ;;     (with-designators
 ;;         ((reach-object-location (:location `((:to :reach)
 ;;                                              (:obj ,?obj)
