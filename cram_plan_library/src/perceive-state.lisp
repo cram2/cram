@@ -35,8 +35,8 @@
   "Checks if an object is at a specific location."
   ;; To prove if an object is at a specific location, we perceive it.
   (if (newest-effective-designator ?object)
-      (perceive-object 'the ?object)
-      (perceive-object 'a ?object))
+      (perceive-object :the ?object)
+      (perceive-object :a ?object))
   (holds `(loc ,?object ,?location)))
 
 (def-goal (perceive-state ?state)
