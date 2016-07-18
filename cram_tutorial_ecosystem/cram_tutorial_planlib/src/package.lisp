@@ -6,7 +6,7 @@
         #:cram-plan-occasions-events #:cram-plan-library #:cpl
 	#:cram-plan-failures)
   (:import-from #:cram-reasoning #:<- #:def-fact-group)
-  (:export ambiguous-perception perceive-object a the all)
+  (:export ambiguous-perception perceive-object)
   (:desig-properties #:to #:perceive #:obj #:ground
                      #:type #:box #:bowl #:cutlery
                      #:color #:red #:white #:blue #:green

@@ -73,5 +73,4 @@
              (roslisp:ros-error
               (perceive-failure plan)
               "Found more than one object that match the given description. This is a failure in this context as we were asking for `the' object.")))
-        (cram-tutorial-planlib::perceive-object
-         'cram-tutorial-planlib:the obj-1)))))
+        (cram-tutorial-planlib::perceive-object :the obj-1)))))

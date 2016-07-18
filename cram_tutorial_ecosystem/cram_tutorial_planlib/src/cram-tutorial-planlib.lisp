@@ -14,11 +14,11 @@
                                (desig-props:obj ,?obj)))))
     (perform act-perceive)))
 
-(def-goal (perceive-object a ?obj)
-  (first (perceive-object 'all ?obj)))
+(def-goal (perceive-object :a ?obj)
+  (first (perceive-object :all ?obj)))
 
-(def-goal (perceive-object the ?obj)
-  (let ((objects (perceive-object 'all ?obj)))
+(def-goal (perceive-object :the ?obj)
+  (let ((objects (perceive-object :all ?obj)))
     (cond ((= (length objects) 1)
            (first objects))
           (t (cpl:error 'ambiguous-perception
