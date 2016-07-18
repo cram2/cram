@@ -113,7 +113,7 @@
                (format t "Re-perceiving object.~%")
                (plan-lib::retry-with-updated-location
                 on-cupboard (plan-lib::next-different-location-solution on-cupboard)))))
-        (perceive-object 'a mondamin-on-cupboard)))
+        (perceive-object :a mondamin-on-cupboard)))
     (format t "Now trying to achieve mondamin object in hand.~%")
     (achieve `(object-in-hand ,mondamin-on-cupboard))
     (format t "Object is in hand.~%")))
@@ -130,7 +130,7 @@
 
        (pouring-target-location :location `((:on ,pancake-maker))))
     (reference-object pouring-container)
-    (perceive-object 'a pancake-maker)
+    (perceive-object :a pancake-maker)
     (format t "now trying to achieve hand above maker~%")
     (with-retry-counters ((navigation-retries 10))
       (with-failure-handling
@@ -158,7 +158,7 @@
                (plan-lib:retry-with-updated-location
                 on-counter-top
                 (plan-lib:next-different-location-solution on-counter-top)))))
-        (perceive-object 'a mondamin-bottle)))
+        (perceive-object :a mondamin-bottle)))
     (format t "Now trying to achieve mondamin object in hand.~%")
     (format t "BEFORE SLEEP~%~%")
     (sleep* 10)
@@ -176,7 +176,7 @@
                (plan-lib:retry-with-updated-location
                 on-counter-top
                 (plan-lib:next-different-location-solution on-counter-top)))))
-        (perceive-object 'a pancake-maker)))
+        (perceive-object :a pancake-maker)))
     (format t "now trying to pour above pancake maker~%")
     (format t "BEFORE SLEEP~%~%")
     (sleep* 10)
