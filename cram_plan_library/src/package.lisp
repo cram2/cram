@@ -60,7 +60,6 @@
            #:at-location
            #:object-detected
            #:perceive-object
-           #:the #:all #:a #:currently-visible
            ;; #:drawer-handle
            #:perceive-state
            #:examine
