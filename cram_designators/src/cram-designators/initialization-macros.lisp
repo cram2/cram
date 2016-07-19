@@ -29,6 +29,15 @@
 
 (in-package :desig)
 
+(defun variable-value-or-keyword (a-symbol)
+  (if (boundp a-symbol)
+      (if (equal (symbol-value a-symbol) a-symbol)
+          a-symbol ; it's a keyword
+          (variable-value-or-keyword (symbol-value a-symbol))) ; it's a special var
+      (if (eql (aref (string-upcase a-symbol) 0) #\?)
+          a-symbol ; it's a variable (starts with ?, e.g. ?x)
+          (intern (string-upcase a-symbol) :keyword)))) ; it's a simple symbol
+
 (defun parse-key-value-pairs (key-value-pairs)
   (labels ((parse (key-value-pair-list)
              (if (listp key-value-pair-list)
@@ -36,23 +45,21 @@
                           (member (intern (string-upcase (first key-value-pair-list))
                                           :keyword)
                                   '(:a :an :some :the)))
-                     (make-designator
-                      (intern (string-upcase (second key-value-pair-list)) :keyword)
-                      (parse (cddr key-value-pair-list)))
-                     (loop for key-value-pair in key-value-pair-list
-                           collecting (parse key-value-pair)))
-                 (if (symbolp key-value-pair-list)
-                     (handler-case (symbol-value key-value-pair-list)
-                       (unbound-variable (e)
-                         (declare (ignore e))
-                         (intern (string-upcase key-value-pair-list) :keyword)))
+                     (let ((quantifier (first key-value-pair-list))
+                           (type-symbol (second key-value-pair-list))
+                           (key-value-pairs-evaluated (cddr key-value-pair-list)))
+                       `(,quantifier ,type-symbol ,key-value-pairs-evaluated))
+                     `(list ,@(loop for key-value-pair in key-value-pair-list
+                                    collecting (parse key-value-pair))))
+                 (if (symbolp key-value-pair-list) ; we're at a leaf
+                     (variable-value-or-keyword key-value-pair-list)
                      key-value-pair-list))))
     (parse key-value-pairs)))
 
 (defmacro a (type &rest key-value-pairs-list)
   (let ((type-keyword (intern (string-upcase type) :keyword)))
     `(make-designator ,type-keyword
-                      ',(parse-key-value-pairs key-value-pairs-list))))
+                      ,(parse-key-value-pairs key-value-pairs-list))))
 
 (defmacro an (&rest body)
   `(a ,@body))
