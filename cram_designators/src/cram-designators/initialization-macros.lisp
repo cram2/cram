@@ -30,13 +30,15 @@
 (in-package :desig)
 
 (defun variable-value-or-keyword (a-symbol)
-  (if (boundp a-symbol)
-      (if (equal (symbol-value a-symbol) a-symbol)
-          a-symbol ; it's a keyword
-          (variable-value-or-keyword (symbol-value a-symbol))) ; it's a special var
-      (if (eql (aref (string-upcase a-symbol) 0) #\?)
-          a-symbol ; it's a variable (starts with ?, e.g. ?x)
-          (intern (string-upcase a-symbol) :keyword)))) ; it's a simple symbol
+  (if (symbolp a-symbol)
+      (if (boundp a-symbol)
+          (if (equal (symbol-value a-symbol) a-symbol)
+              a-symbol                  ; it's a keyword
+              (variable-value-or-keyword (symbol-value a-symbol))) ; it's a special var
+          (if (eql (aref (string-upcase a-symbol) 0) #\?)
+              a-symbol      ; it's a variable (starts with ?, e.g. ?x)
+              (intern (string-upcase a-symbol) :keyword))) ; it's a simple symbol
+      a-symbol)) ; it's not a symbol but a number or some other actual value
 
 (defun parse-key-value-pairs (key-value-pairs)
   (labels ((parse (key-value-pair-list)
