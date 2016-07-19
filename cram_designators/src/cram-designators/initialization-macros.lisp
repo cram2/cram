@@ -42,7 +42,10 @@
                      (loop for key-value-pair in key-value-pair-list
                            collecting (parse key-value-pair)))
                  (if (symbolp key-value-pair-list)
-                     (intern (string-upcase key-value-pair-list) :keyword)
+                     (handler-case (symbol-value key-value-pair-list)
+                       (unbound-variable (e)
+                         (declare (ignore e))
+                         (intern (string-upcase key-value-pair-list) :keyword)))
                      key-value-pair-list))))
     (parse key-value-pairs)))
 
