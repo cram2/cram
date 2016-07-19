@@ -90,7 +90,7 @@ or in general at compile-time.")
 
 (defun destroy-tf ()
   (setf *transformer* nil)
-  (setf *tf-default-timeout* 2.0))
+  (setf *tf-default-timeout* 4.0))
 
 (roslisp-utilities:register-ros-init-function init-tf)
 (roslisp-utilities:register-ros-cleanup-function destroy-tf)
