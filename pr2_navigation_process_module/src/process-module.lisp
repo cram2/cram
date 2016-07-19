@@ -102,7 +102,10 @@
           (t t))))
 
 (defun call-nav-action (client desig)
-  (let* ((goal-pose (reference desig))
+  (let* ((goal-location (desig-prop-value desig :goal))
+         (timeout (or (desig-prop-value desig :timeout)
+                      10.0))
+         (goal-pose (reference goal-location))
          (goal-pose-in-fixed-frame
            (cl-transforms-stamped:transform-pose-stamped
             *transformer*
@@ -116,7 +119,7 @@
     (multiple-value-bind (result status)
         (actionlib-lisp:send-goal-and-wait
          client (make-action-goal goal-pose-in-fixed-frame)
-         10.0 10.0)
+         timeout timeout)
       (declare (ignorable result status))
       (roslisp:ros-info (pr2-nav process-module) "Nav action finished.")
       (unless (goal-reached? (copy-pose-stamped
@@ -125,12 +128,12 @@
         (cpl:fail 'location-not-reached-failure
                   :location desig)))))
 
-(def-process-module pr2-navigation-process-module (goal)
+(def-process-module pr2-navigation-process-module (desig)
   (when *navigation-enabled*
     (unwind-protect
          (progn
            (roslisp:ros-info (pr2-nav process-module) "Using nav-pcontroller.")
-           (call-nav-action *navp-client* (reference goal)))
+           (call-nav-action *navp-client* desig))
       (roslisp:ros-info (pr2-nav process-module) "Navigation finished.")
       (cram-occasions-events:on-event
        (make-instance 'cram-plan-occasions-events:robot-state-changed)))))
