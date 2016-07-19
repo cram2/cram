@@ -31,11 +31,9 @@
 
 (def-fact-group pr2-navigation-designators (action-desig)
   
-  (<- (action-desig ?designator ?goal-location ?timeout)
+  (<- (action-desig ?designator ?designator)
     (desig-prop ?designator (:type :navigation))
-    (desig-prop ?designator (:goal ?goal-location))
-    (or (desig-prop ?designator (:timeout ?timeout))
-        (equal ?timeout 10.0))))
+    (desig-prop ?designator (:goal ?goal-location))))
 
 (def-fact-group navigation-process-module (matching-process-module available-process-module)
 
