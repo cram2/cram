@@ -130,10 +130,10 @@
 
 (def-process-module pr2-navigation-process-module (desig)
   (when *navigation-enabled*
-      (unwind-protect
-           (progn
-             (roslisp:ros-info (pr2-nav process-module) "Using nav-pcontroller.")
-             (call-nav-action *navp-client* desig))
-        (roslisp:ros-info (pr2-nav process-module) "Navigation finished.")
-        (cram-occasions-events:on-event
-         (make-instance 'cram-plan-occasions-events:robot-state-changed)))))
+    (unwind-protect
+         (progn
+           (roslisp:ros-info (pr2-nav process-module) "Using nav-pcontroller.")
+           (call-nav-action *navp-client* desig))
+      (roslisp:ros-info (pr2-nav process-module) "Navigation finished.")
+      (cram-occasions-events:on-event
+       (make-instance 'cram-plan-occasions-events:robot-state-changed)))))
