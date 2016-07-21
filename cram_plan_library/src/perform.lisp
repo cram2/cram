@@ -36,11 +36,7 @@
 
 (def-goal (monitor-action ?action-designator)
   (let ((matching-process-modules
-          (remove-if
-           (lambda (matching-process-module)
-             (eql nil (cram-process-modules:get-running-process-module
-                       matching-process-module)))
-           (matching-process-module-names ?action-designator))))
+          (matching-available-process-modules ?action-designator :fail-if-none t))) 
     (monitor-process-module (car matching-process-modules) :designators (list ?action-designator))
     ;; (par-loop (module matching-process-modules)
     ;;   (monitor-process-module module :designators (list ?action-designator)))
