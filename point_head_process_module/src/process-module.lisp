@@ -57,7 +57,7 @@
                  (follow
                   (actionlib-lisp:send-goal-and-wait
                    *action-client* action-goal
-                   1.0 3.0)
+                   10.0 10.0)
                   ;; (setf *point-head-thread*
                   ;;       (sb-thread:make-thread
                   ;;        (curry #'follow-pose-thread-fun action-goal)))

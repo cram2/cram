@@ -42,7 +42,7 @@
                        (cl-transforms:make-3d-vector 3.0 0.0 1.5)
                        (cl-transforms:make-quaternion 0.0 0.0 0.0 1.0))
                       pose-stamped)
-            :target-frame "/base_link"
+            :target-frame "base_link"
             :timeout *tf-default-timeout*
             :use-current-ros-time t))
          (point-stamped-msg
@@ -51,7 +51,7 @@
      *action-client*
      max_velocity 10
      min_duration 0.3
-     pointing_frame "/high_def_frame"
+     pointing_frame "high_def_frame"
      (x pointing_axis) 1.0
      (y pointing_axis) 0.0
      (z pointing_axis) 0.0
