@@ -54,4 +54,4 @@
            on-input on-cancel on-run synchronization-fluent
            finish-process-module fail-process-module monitor-process-module
            matching-process-module available-process-module projection-running
-           matching-process-module-names))
+           matching-process-module-names matching-available-process-modules))
