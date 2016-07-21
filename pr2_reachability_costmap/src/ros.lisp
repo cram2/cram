@@ -78,7 +78,7 @@
            (type string group-name)
            (type string ik-base-frame-name)
            (type cl-transforms:pose pose))
-  (format t "IK for ~a in group ~a with base ~a~%" ik-link-name group-name ik-base-frame-name)
+  ;;(format t "IK for ~a in group ~a with base ~a~%" ik-link-name group-name ik-base-frame-name)
   (let* ((dummy nil))
     (declare (ignore dummy))
     (roslisp:with-fields ((error-code (val error_code))
@@ -91,7 +91,7 @@
                         :avoid_collisions T
                         :pose_stamped (to-msg
                                         (pose->pose-stamped ik-base-frame-name 0.0 pose))
-                        :timeout 0.02))
+                        :timeout 0.01))
       (cond ((eql error-code
                   (roslisp-msg-protocol:symbol-code
                    'moveit_msgs-msg:moveiterrorcodes

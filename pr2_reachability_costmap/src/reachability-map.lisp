@@ -249,9 +249,9 @@
                                                  :ik-link-name link-name
                                                  :group-name group-name
                                                  :ik-base-frame-name ik-base-name)
-                                               (format t ".")
+                                               ;;(format t ".")
                                                (setf (aref map z-index y-index x-index angle-index) 1))
-                                              (t (format t "x")
+                                              (t ;;(format t "x")
                                                  (setf (aref map z-index y-index x-index angle-index) 0))))
                             finally (format t "~%")))
           finally (return map))))
