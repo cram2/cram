@@ -73,6 +73,18 @@
                            ,action-designator ?process-module-name)
                           (available-process-module ?process-module-name))))))
 
+(defun matching-available-process-modules (action-designator &key fail-if-none)
+  (let ((matching-process-modules
+          (remove-if
+           (lambda (matching-process-module)
+             (eql nil (cram-process-modules:get-running-process-module
+                       matching-process-module)))
+           (matching-process-module-names action-designator))))
+    (if (and fail-if-none (not matching-process-modules))
+        (cpl:fail "No process modules found for executing designator ~a"
+                  action-designator)
+        matching-process-modules)))
+
 (cut:define-hook cram-language::on-preparing-performing-action-designator
     (action-designator
      matching-process-modules)
@@ -85,14 +97,7 @@
   "Executes `action-designator' on the currently running process module
 that matches through predicates MATCHING-PROCESS-MODULE and AVAILABLE-PROCESS-MODULE."
   (let ((matching-process-modules
-          (remove-if
-           (lambda (matching-process-module)
-             (eql nil (cram-process-modules:get-running-process-module
-                       matching-process-module)))
-          (matching-process-module-names action-designator))))
-    (unless matching-process-modules
-      (cpl:fail "No process modules found for executing designator ~a"
-            action-designator))
+          (matching-available-process-modules action-designator :fail-if-none t))) 
     ;; Rethrow the first error in the composite-failure. This is
     ;; necessary to keep the high-level plans working. For instance,
     ;; if perception fails, plans expect an OBJECT-NOT-FOUND failure,
