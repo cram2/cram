@@ -32,19 +32,29 @@
 (defvar *action-client* nil)
 
 (defun make-action-goal (pose-stamped)
-  (let* ((pose-stamped
-           (cl-transforms-stamped:transform-pose-stamped
-            *transformer*
-            :pose (if (eql pose-stamped :forward)
-                      (make-pose-stamped
-                       *robot-base-frame*
-                       0.0
-                       (cl-transforms:make-3d-vector 3.0 0.0 1.5)
-                       (cl-transforms:make-quaternion 0.0 0.0 0.0 1.0))
-                      pose-stamped)
-            :target-frame "base_link"
-            :timeout *tf-default-timeout*
-            :use-current-ros-time t))
+  (let* ((target-frame "base_link")
+         (pose-stamped
+           (or (when (eql pose-stamped :forward)
+                 (make-pose-stamped
+                  *robot-base-frame*
+                  0.0
+                  (cl-transforms:make-3d-vector 3.0 0.0 1.5)
+                  (cl-transforms:make-quaternion 0.0 0.0 0.0 1.0)))
+               (cl-tf:copy-pose-stamped pose-stamped :stamp 0.0)))
+         (pose-stamped
+           (progn
+             (loop while (not (cl-tf:wait-for-transform
+                               *transformer*
+                               :timeout *tf-default-timeout*
+                               :time (cl-tf:stamp pose-stamped)
+                               :source-frame (cl-tf:frame-id pose-stamped)
+                               :target-frame target-frame))
+                   do (sleep 0.5))
+             (cl-transforms-stamped:transform-pose-stamped
+              *transformer*
+              :pose pose-stamped
+              :target-frame target-frame
+              :timeout *tf-default-timeout*)))
          (point-stamped-msg
            (cl-transforms-stamped:pose-stamped->point-stamped-msg pose-stamped)))
     (actionlib-lisp:make-action-goal-msg
