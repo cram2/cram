@@ -257,7 +257,7 @@
                   :effort (min-object-grasp-effort obj)))))
       (let ((params (mapcar #'grasp-parameters assignments-list)))
         (dolist (param-set params)
-          (let ((pub (roslisp:advertise "/dhdhdh" "geometry_msgs/PoseStamped")))
+          (let ((pub (roslisp:advertise "dhdhdh" "geometry_msgs/PoseStamped")))
             (roslisp:publish pub (to-msg (pregrasp-pose param-set))))
           (when (and obj-pose action-desig)
             (cram-language::on-grasp-decisions-complete
@@ -353,8 +353,8 @@
       (cpl:fail 'manipulation-pose-unreachable))))
 
 (defun pose-pointing-away-from-base (object-pose)
-  (let ((ref-frame "/base_link")
-        (fin-frame "/map"))
+  (let ((ref-frame "base_link")
+        (fin-frame "map"))
     (let* ((base-transform-map (cl-transforms-stamped:lookup-transform
                                 *transformer* fin-frame ref-frame
                                 :timeout *tf-default-timeout*))
@@ -449,9 +449,9 @@
                  (prolog:prolog
                   `(and (robot ?robot)
                         (planning-group ?robot ,side ?group)))))))
-        (publish-pose putdown-hand-pose "/putdownhandpose")
-        (publish-pose pre-putdown-pose "/preputdownpose")
-        (publish-pose unhand-pose "/unhandpose")
+        (publish-pose putdown-hand-pose "putdownhandpose")
+        (publish-pose pre-putdown-pose "preputdownpose")
+        (publish-pose unhand-pose "unhandpose")
         (unless (moveit:plan-link-movements
                  link-name planning-group
                  `(,pre-putdown-pose
@@ -495,7 +495,7 @@
                (prolog:prolog
                 `(and (robot ?robot)
                       (planning-group ?robot ,side ?group)))))))
-      (publish-pose pose "/handpose")
+      (publish-pose pose "handpose")
       (unless (moveit:plan-link-movements
                link-name planning-group `(,pose)
                :destination-validity-only t)
@@ -603,7 +603,7 @@
                             (declare (ignore f))
                             (ros-info (pr2 manip-pm) "Trying next putdown-pose.")
                             (return-from next-putdown-pose)))
-                       (publish-pose putdown-pose "/putdownpose")
+                       (publish-pose putdown-pose "putdownpose")
                        (perform-putdowns object-designator grasp-assignments putdown-pose)
                        (setf success t)
                        (success))))
@@ -640,7 +640,7 @@
                   (let ((pose (reference (desig-prop-value handle :at))))
                     (to-msg pose)))
                 absolute-handles)))
-    (let ((publisher (roslisp:advertise "/objecthandleposes" "geometry_msgs/PoseArray")))
+    (let ((publisher (roslisp:advertise "objecthandleposes" "geometry_msgs/PoseArray")))
       (roslisp:publish publisher
                        (roslisp:make-message
                         "geometry_msgs/PoseArray"
