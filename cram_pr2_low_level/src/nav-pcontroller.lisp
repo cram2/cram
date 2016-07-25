@@ -36,8 +36,7 @@
 (defvar *yaw-goal-tolerance* 0.1 "in radiants, about 6 degrees.")
 ;; There are VARs (not PARAMETERs) as they're read from the ROS param server
 
-(defparameter *navigation-action-timeout* 60.0
-  "in seconds")
+(defparameter *navigation-action-timeout* 60.0 "in seconds")
 
 (defun init-nav-pcontroller ()
   (setf *nav-pcontroller-action-client*

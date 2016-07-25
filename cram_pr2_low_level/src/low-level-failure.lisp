@@ -27,14 +27,12 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
+(in-package :pr2-ll)
 
-(defpackage cram-pr2-low-level
-  (:nicknames #:pr2-ll)
-  (:use #:common-lisp #:cram-tf)
-  (:export #:call-giskard-action
-           #:call-gripper-action
-           #:call-joint-trajectory-action
-           #:call-nav-pcontroller-action
-           #:call-ptu-action
-           #:call-torso-action))
+(define-condition pr2-low-level-failure (cpl:simple-plan-failure)
+  ((description :initarg :description
+                :initform "Actionlib action didn't end with SUCCEEDED"
+                :reader error-description))
+  (:documentation "Actionlib action didn't end with SUCCEEDED")
+  (:report (lambda (condition stream)
+             (format stream (error-description condition)))))
