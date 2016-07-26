@@ -45,3 +45,12 @@
 ;;   (cpl:top-level
 ;;     (cpm:pm-execute-matching
 ;;      (desig:an action (to open) (right gripper)))))
+;;
+;; (cram-process-modules:with-process-modules-running
+;;     (pr2-pms::pr2-grippers-pm)
+;;   (cpl:top-level
+;;     (cpm:pm-execute-matching
+;;      (desig:an action
+;;                (to grip)
+;;                (object (an object (type mondamin)))
+;;                (with right)))))
