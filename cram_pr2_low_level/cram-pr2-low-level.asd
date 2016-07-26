@@ -52,15 +52,15 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "low-level-failure" :depends-on ("package"))
+     (:file "low-level-common" :depends-on ("package"))
      (:file "joint-states" :depends-on ("package"))
      (:file "base-controller" :depends-on ("package"))
-     (:file "nav-pcontroller" :depends-on ("package" "low-level-failure" "base-controller"))
-     (:file "torso" :depends-on ("package" "low-level-failure"))
-     (:file "gripper" :depends-on ("package" "low-level-failure"))
-     (:file "ptu" :depends-on ("package" "low-level-failure"))
-     (:file "joint-trajectory" :depends-on ("package" "low-level-failure"))
+     (:file "nav-pcontroller" :depends-on ("package" "low-level-common" "base-controller"))
+     (:file "torso" :depends-on ("package" "low-level-common"))
+     (:file "gripper" :depends-on ("package" "low-level-common"))
+     (:file "ptu" :depends-on ("package" "low-level-common"))
+     (:file "joint-trajectory" :depends-on ("package" "low-level-common"))
      (:file "kinematics-trajectory" :depends-on ("package"
                                                  "joint-trajectory"
                                                  "joint-states"))
-     (:file "giskard-cartesian" :depends-on ("package" "low-level-failure"))))))
+     (:file "giskard-cartesian" :depends-on ("package" "low-level-common"))))))
