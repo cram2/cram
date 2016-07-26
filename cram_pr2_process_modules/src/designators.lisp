@@ -33,6 +33,13 @@
                                         matching-process-module
                                         available-process-module)
 
+  (<- (matching-process-module ?action-designator pr2-base-pm)
+    (or (and (desig-prop ?action-designator (:type :going))
+             (desig-prop ?action-designator (:destination ?_)))
+        (and (desig-prop ?action-designator (:to :go))
+             (desig-prop ?action-designator (:to ?where))
+             (not (equal ?where :go)))))
+
   (<- (action-desig ?action-designator (drive ?pose))
     (desig-prop ?action-designator (:type :going))
     (desig-prop ?action-designator (:destination ?where))
@@ -50,11 +57,6 @@
         (or (cram-tf:pose ?pose ?where)
             (equal ?where ?pose))))
 
-
-  (<- (matching-process-module ?action-designator pr2-base-pm)
-    (or (desig-prop ?action-designator (:type :going))
-        (desig-prop ?action-designator (:to :go))))
-
   (<- (available-process-module pr2-base-pm)
     (not (projection-running ?_))))
 
@@ -62,6 +64,14 @@
 (def-fact-group pr2-ptu-actions (action-desig
                                  matching-process-module
                                  available-process-module)
+
+  (<- (matching-process-module ?action-designator pr2-ptu-pm)
+    (or (and (desig-prop ?action-designator (:type :looking))
+             (or (desig-prop ?action-designator (:pose ?_))
+                 (desig-prop ?action-designator (:location ?_))
+                 (desig-prop ?action-designator (:object ?_))))
+        (and (desig-prop ?action-designator (:to :look))
+             (desig-prop ?action-designator (:at ?_)))))
 
   (<- (action-desig ?action-designator (look-at ?pose))
     (desig-prop ?action-designator (:type :looking))
@@ -77,11 +87,6 @@
         (desig-location-prop ?where ?pose)
         (or (cram-tf:pose ?pose ?where)
             (equal ?where ?pose))))
-
-
-  (<- (matching-process-module ?action-designator pr2-ptu-pm)
-    (or (desig-prop ?action-designator (:type :looking))
-        (desig-prop ?action-designator (:to :look))))
 
   (<- (available-process-module pr2-ptu-pm)
     (not (projection-running ?_))))
@@ -103,6 +108,16 @@
 (def-fact-group pr2-gripper-actions (action-desig
                                      matching-process-module
                                      available-process-module)
+
+  (<- (matching-process-module ?action-designator pr2-grippers-pm)
+    (or (desig-prop ?action-designator (:type :gripping))
+        (desig-prop ?action-designator (:to :grip))
+        (and (or (desig-prop ?action-designator (:type :opening))
+                 (desig-prop ?action-designator (:type :closing)))
+             (desig-prop ?action-designator (:gripper ?_)))
+        (and (or (desig-prop ?action-designator (:to :open))
+                 (desig-prop ?action-designator (:to :close)))
+             (desig-prop ?action-designator (?_ :gripper)))))
 
   (<- (action-desig ?action-designator (gripper-action :open ?which-gripper))
     (desig-prop ?action-designator (:type :opening))
@@ -141,17 +156,6 @@
     (desig-prop ?action-designator (:with ?which-gripper))
     (%gripper-action-solution ?which-gripper ?object-designator ?solution))
 
-
-  (<- (matching-process-module ?action-designator pr2-grippers-pm)
-    (or (desig-prop ?action-designator (:type :gripping))
-        (desig-prop ?action-designator (:to :grip))
-        (and (or (desig-prop ?action-designator (:type :opening))
-                 (desig-prop ?action-designator (:type :closing)))
-             (desig-prop ?action-designator (:gripper ?_)))
-        (and (or (desig-prop ?action-designator (:to :open))
-                 (desig-prop ?action-designator (:to :close)))
-             (desig-prop ?action-designator (?_ :gripper)))))
-
   (<- (available-process-module pr2-grippers-pm)
     (not (projection-running ?_))))
 
@@ -159,6 +163,26 @@
 (def-fact-group pr2-arm-actions (action-desig
                                  matching-process-module
                                  available-process-module)
+
+  (<- (matching-process-module ?action-designator pr2-arms-pm)
+    (or (and (desig-prop ?action-designator (:type :moving))
+             (desig-prop ?action-designator (:arm ?_)))
+        (and (desig-prop ?action-designator (:to :move))
+             (or (desig-prop ?action-designator (?_ :arm))
+                 (desig-prop ?action-designator (?_ :arms))))))
+
+  (<- (matching-process-module ?action-designator pr2-arms-pm)
+    (or (and (desig-prop ?action-designator (:type :moving))
+             (desig-prop ?action-designator (:arm ?_))
+             (desig-prop ?action-designator (:goal ?_)))
+        (and (desig-prop ?action-designator (:to :move))
+             (desig-prop ?action-designator (?_ :arm))
+             (desig-prop ?action-designator (:to ?location))
+             (not (equal ?location :move)))
+        (and (desig-prop ?action-designator (:to :move))
+             (desig-prop ?action-designator (:both :arms))
+             (desig-prop ?action-designator (:left ?_))
+             (desig-prop ?action-designator (:right ?_)))))
 
   (<- (action-desig ?action-designator (move-arm ?pose ?left-or-right))
     (desig-prop ?action-designator (:type :moving))
@@ -174,29 +198,14 @@
     (desig-prop ?action-designator (?left-or-right :arm))
     (desig-prop ?action-designator (:to ?location))
     (not (equal ?location :move))
-    ;; (-> (equal ?location (?left-location ?right-location))
-    ;;     (and (-> (lisp-type ?left-location designator)
-    ;;              (desig-location-prop ?left-location ?left-pose)
-    ;;              (or (cram-tf:pose ?left-pose ?left-location)
-    ;;                  (equal ?left-location ?left-pose)))
-    ;;          (-> (lisp-type ?right-location designator)
-    ;;              (desig-location-prop ?right-location ?right-pose)
-    ;;              (or (cram-tf:pose ?right-pose ?right-location)
-    ;;                  (equal ?right-location ?right-pose)))
-    ;;          (equal ?pose (?left-pose ?right-pose)))
-    ;;     (-> (lisp-type ?location designator)
-    ;;         (desig-location-prop ?location ?pose)
-    ;;         (or (cram-tf:pose ?pose ?location)
-    ;;             (equal ?location ?pose))))
-    ;; support for both arms in one designator is difficult right now
     (-> (lisp-type ?location designator)
         (desig-location-prop ?location ?pose)
         (or (cram-tf:pose ?pose ?location)
             (equal ?location ?pose))))
 
-  (<- (action-desig ?action-designator (move-arm ?pose ?left-or-right))
+  (<- (action-desig ?action-designator (move-arm ?poses :both))
     (desig-prop ?action-designator (:to :move))
-    (desig-prop ?action-designator (?left-or-right :arms))
+    (desig-prop ?action-designator (:both :arms))
     (desig-prop ?action-designator (:left ?left-location))
     (desig-prop ?action-designator (:right ?right-location))
     (and (-> (lisp-type ?left-location designator)
@@ -207,15 +216,7 @@
              (desig-location-prop ?right-location ?right-pose)
              (or (cram-tf:pose ?right-pose ?right-location)
                  (equal ?right-location ?right-pose)))
-         (equal ?pose (?left-pose ?right-pose))))
-
-
-  (<- (matching-process-module ?action-designator pr2-arms-pm)
-    (or (and (desig-prop ?action-designator (:type :moving))
-             (desig-prop ?action-designator (:arm ?_)))
-        (and (desig-prop ?action-designator (:to :move))
-             (or (desig-prop ?action-designator (?_ :arm))
-                 (desig-prop ?action-designator (?_ :arms))))))
+         (equal ?poses (?left-pose ?right-pose))))
 
   (<- (available-process-module pr2-arms-pm)
     (not (projection-running ?_))))
