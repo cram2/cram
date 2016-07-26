@@ -110,8 +110,11 @@
                                      available-process-module)
 
   (<- (matching-process-module ?action-designator pr2-grippers-pm)
-    (or (desig-prop ?action-designator (:type :gripping))
-        (desig-prop ?action-designator (:to :grip))
+    (or (and (or (desig-prop ?action-designator (:type :gripping))
+                 (desig-prop ?action-designator (:to :grip)))
+             (desig-prop ?action-designator (:object ?object-designator))
+             (or (desig-prop ?action-designator (:gripper ?which-gripper))
+                 (desig-prop ?action-designator (:with ?which-gripper))))
         (and (or (desig-prop ?action-designator (:type :opening))
                  (desig-prop ?action-designator (:type :closing)))
              (desig-prop ?action-designator (:gripper ?_)))
