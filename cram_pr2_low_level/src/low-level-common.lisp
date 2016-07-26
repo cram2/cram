@@ -36,3 +36,26 @@
   (:documentation "Actionlib action didn't end with SUCCEEDED")
   (:report (lambda (condition stream)
              (format stream (error-description condition)))))
+
+
+(defun values-converged (values goal-values deltas)
+  (flet ((value-converged (value goal-value delta)
+           (<= (abs (- value goal-value)) delta)))
+    ;; correct arguments
+    (if (listp values)
+        (if (or (atom goal-values)
+                (not (= (length values) (length goal-values))))
+            (error "GOAL-VALUES (~a) and VALUES (~a) should be of same length."
+                   goal-values values)
+            (if (atom deltas)
+                (setf deltas (make-list (length values) :initial-element deltas))
+                (unless (= (length values) (length deltas))
+                  (error "DELTAS (~a) and VALUES (~a) should be of same length."
+                         deltas values))))
+        (if (or (listp goal-values) (listp deltas))
+            (error "All arguments should be of same length")
+            (setf values (list values)
+                  goal-values (list goal-values)
+                  deltas (list deltas))))
+    ;; actually compare
+    (every #'value-converged values goal-values deltas)))
