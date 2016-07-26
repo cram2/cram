@@ -30,7 +30,7 @@
 (in-package :pr2-ll)
 
 (defparameter *giskard-action-timeout* 10.0
-  "How many seconds to wait before returning from PTU action.")
+  "How many seconds to wait before returning from giskard action.")
 
 (defvar *giskard-action-client* nil)
 
@@ -72,8 +72,10 @@
       (goal right_ee command) right-pose-msg
       (process right_ee command) right-pose)))
 
+(define-condition giskard-action-failed (pr2-low-level-failure) ())
+
 (defun call-giskard-action (left-pose right-pose
-                            &optional (ik-base-frame "base_footprint"))
+                            &optional (ik-base-frame *robot-base-frame*))
   (multiple-value-bind (result status)
       (cpl:with-failure-handling
           ((simple-error (e)

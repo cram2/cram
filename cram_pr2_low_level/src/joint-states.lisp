@@ -43,6 +43,7 @@
           (roslisp:subscribe "joint_states"
                              "sensor_msgs/JointState"
                              #'joint-state-sub-cb))))
+
 (defun destroy-joint-state-sub ()
   (setf *joint-state-sub* nil))
 
