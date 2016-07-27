@@ -34,7 +34,7 @@
     (ecase command
       (look-at
        (handler-case
-           (pr2-ll::call-ptu-action :point pose)
+           (pr2-ll:call-ptu-action :point pose)
          (cram-plan-failures:look-at-failed ()
            (cpl:fail 'cram-plan-failures:look-at-failed :action action-designator)))))))
 
