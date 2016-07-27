@@ -31,7 +31,14 @@
   :maintainer "Gayane Kazhoyan"
   :license "BSD"
 
-  :depends-on (cram-pr2-process-modules)
+  :depends-on (cl-transforms
+               cl-transforms-stamped
+               cram-tf
+               cram-language
+               cram-pr2-low-level
+               cram-pr2-process-modules
+               cram-process-modules
+               cram-designators)
 
   :components
   ((:module "src"
