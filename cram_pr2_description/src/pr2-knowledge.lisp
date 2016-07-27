@@ -59,6 +59,7 @@
     ("l_wrist_flex_joint" -1.9927790883777252d0)
     ("l_wrist_roll_joint" 2.586184460547585d0)))
 
+
 (def-grasp :top (cl-transforms:euler->quaternion :ay (/ pi -2)))
 (def-grasp :left (cl-transforms:euler->quaternion :az (/ pi 2)) :side)
 (def-grasp :right (cl-transforms:euler->quaternion :az (/ pi -2)) :side)
@@ -72,6 +73,7 @@
                               camera-frame camera-minimal-height camera-maximal-height
                               robot-pan-tilt-links robot-pan-tilt-joints
                               end-effector-link gripper-link gripper-joint
+                              robot-tool-frame
                               planning-group
                               robot-arms-parking-joint-states
                               end-effector-parking-pose
@@ -93,6 +95,9 @@
 
   (<- (end-effector-link pr2 :left "l_wrist_roll_link"))
   (<- (end-effector-link pr2 :right "r_wrist_roll_link"))
+
+  (<- (robot-tool-frame pr2 :left "l_gripper_tool_frame"))
+  (<- (robot-tool-frame pr2 :right "r_gripper_tool_frame"))
 
   (<- (gripper-link pr2 :left ?link)
     (lisp-fun search "l_gripper" ?link ?pos)
