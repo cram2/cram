@@ -96,19 +96,19 @@
                      cl-transforms:point cl-transforms-stamped:point-stamped
                      cl-transforms:pose cl-transforms-stamped:pose-stamped)))
   (let ((goal-point-stamped (ensure-ptu-input-parameters frame point)))
-   (multiple-value-bind (result status)
-       (cpl:with-failure-handling
-           ((simple-error (e)
-              (format t "Actionlib error occured!~%~a~%Reinitializing...~%~%" e)
-              (init-ptu-action-client)
-              (cpl:retry)))
-         (let ((actionlib:*action-server-timeout* 10.0))
-           (actionlib:call-goal
-            (get-ptu-action-client)
-            (make-ptu-action-goal goal-point-stamped)
-            :timeout action-timeout)))
-     (ensure-ptu-goal-reached status)
-     (values result status))))
+    (multiple-value-bind (result status)
+        (cpl:with-failure-handling
+            ((simple-error (e)
+               (format t "Actionlib error occured!~%~a~%Reinitializing...~%~%" e)
+               (init-ptu-action-client)
+               (cpl:retry)))
+          (let ((actionlib:*action-server-timeout* 10.0))
+            (actionlib:call-goal
+             (get-ptu-action-client)
+             (make-ptu-action-goal goal-point-stamped)
+             :timeout action-timeout)))
+      (ensure-ptu-goal-reached status)
+      (values result status))))
 
 (defun shake-head (n-times)
   (dotimes (n n-times)
