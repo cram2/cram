@@ -34,6 +34,7 @@
   :depends-on (roslisp
                geometry_msgs-msg
                roslisp-utilities
+               cl-transforms-stamped
                cl-tf
                cram-language
                sensor_msgs-msg
@@ -45,9 +46,13 @@
                trajectory_msgs-msg
                alexandria
                cram-tf
+               cram-prolog
+               cram-robot-interfaces
                cram-pr2-description
+               cram-utilities
                cram-plan-failures
-               giskard_msgs-msg)
+               giskard_msgs-msg
+               visualization_msgs-msg)
   :components
   ((:module "src"
     :components

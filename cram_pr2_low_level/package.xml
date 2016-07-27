@@ -13,6 +13,7 @@
   <build_depend>roslisp</build_depend>
   <build_depend>geometry_msgs</build_depend>
   <build_depend>roslisp_utilities</build_depend>
+  <build_depend>cl_transforms_stamped</build_depend>
   <build_depend>cl_tf</build_depend>
   <build_depend>cram_language</build_depend>
   <build_depend>sensor_msgs</build_depend>
@@ -26,14 +27,19 @@
   <build_depend>alexandria</build_depend>
   <!-- <build_depend>pr2_arm_kinematics</build_depend> -->
   <build_depend>cram_tf</build_depend>
+  <build_depend>cram_utilities</build_depend>
+  <build_depend>cram_prolog</build_depend>
+  <build_depend>cram_robot_interfaces</build_depend>
   <build_depend>cram_pr2_description</build_depend>
   <build_depend>cram_plan_failures</build_depend>
   <build_depend>giskard_msgs</build_depend>
+  <build_depend>visualization_msgs</build_depend>
 
 
   <run_depend>roslisp</run_depend>
   <run_depend>geometry_msgs</run_depend>
   <run_depend>roslisp_utilities</run_depend>
+  <run_depend>cl_transforms_stamped</run_depend>
   <run_depend>cl_tf</run_depend>
   <run_depend>cram_language</run_depend>
   <run_depend>sensor_msgs</run_depend>
@@ -47,7 +53,11 @@
   <run_depend>alexandria</run_depend>
   <run_depend>pr2_arm_kinematics</run_depend>
   <run_depend>cram_tf</run_depend>
+  <run_depend>cram_utilities</run_depend>
+  <run_depend>cram_prolog</run_depend>
+  <run_depend>cram_robot_interfaces</run_depend>
   <run_depend>cram_pr2_description</run_depend>
   <run_depend>cram_plan_failures</run_depend>
   <run_depend>giskard_msgs</run_depend>
+  <run_depend>visualization_msgs</run_depend>
 </package>
