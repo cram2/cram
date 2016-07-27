@@ -33,17 +33,10 @@
   (destructuring-bind (command pose) (reference action-designator)
     (ecase command
       (look-at
-       (let ((pose-stamped
-               (cl-transforms-stamped:ensure-pose-stamped
-                pose
-                cram-tf:*fixed-frame*
-                0.0)))
-         (handler-case
-             (pr2-ll::call-ptu-action
-              :frame (cl-transforms-stamped:frame-id pose-stamped)
-              :point (cl-transforms:origin pose-stamped))
-           (cram-plan-failures:look-at-failed ()
-             (cpl:fail 'cram-plan-failures:look-at-failed :action action-designator))))))))
+       (handler-case
+           (pr2-ll::call-ptu-action :point pose)
+         (cram-plan-failures:look-at-failed ()
+           (cpl:fail 'cram-plan-failures:look-at-failed :action action-designator)))))))
 
 ;; Examples:
 ;;
