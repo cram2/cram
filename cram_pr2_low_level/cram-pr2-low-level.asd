@@ -32,27 +32,27 @@
   :license "BSD"
 
   :depends-on (roslisp
-               geometry_msgs-msg
                roslisp-utilities
                cl-transforms-stamped
                cl-tf
-               cram-language
-               sensor_msgs-msg
                actionlib
-               moveit_msgs-msg
-               moveit_msgs-srv
-               move_base_msgs-msg
-               pr2_controllers_msgs-msg
-               trajectory_msgs-msg
                alexandria
+               cram-language
                cram-tf
+               cram-utilities
                cram-prolog
                cram-robot-interfaces
                cram-pr2-description
-               cram-utilities
                cram-plan-failures
-               giskard_msgs-msg
-               visualization_msgs-msg)
+               sensor_msgs-msg
+               geometry_msgs-msg
+               visualization_msgs-msg
+               moveit_msgs-msg
+               moveit_msgs-srv
+               pr2_controllers_msgs-msg
+               trajectory_msgs-msg
+               move_base_msgs-msg
+               giskard_msgs-msg)
   :components
   ((:module "src"
     :components
