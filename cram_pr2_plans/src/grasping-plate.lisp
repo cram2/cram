@@ -27,27 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-plan)
-
-(asdf:load-system :iai_robosherlock_msgs-srv)
-(asdf:load-system :iai_robosherlock_msgs-msg)
-(asdf:load-system :visualization_msgs-msg)
-(asdf:load-system :std_msgs-msg)
-(asdf:load-system :yason)
-
-(defun ask-robosherlock ()
-  (if (not (roslisp:wait-for-service "/RoboSherlock/json_query" 10))
-      (error "Timed out waiting for robosherlock service")
-      (let* ((response (roslisp:call-service
-                        "/RoboSherlock/json_query"
-                        "iai_robosherlock_msgs/RSQueryService"
-                        :query "{\"_designator_type\":7, \"DETECTION\":\"red_spotted_plate\"}"))
-             (response-answer (iai_robosherlock_msgs-srv:answer response)))
-        (when (> (length response-answer) 1)
-          (error "perception returned multiple objects although there should've been just one."))
-        (when (< (length response-answer) 1)
-          (error "couldn't perceive requested object :("))
-        (yason:parse (aref response-answer 0)))))
+(in-package :pr2-plans)
 
 (defun get-object-pose (yason-hash-table)
   (let* ((pose-hash-table (gethash "POSE" yason-hash-table))
@@ -65,53 +45,13 @@
                       stamp
                       (cl-transforms:make-3d-vector pos-x pos-y pos-z)
                       (cl-transforms:make-quaternion rot-x rot-y rot-z rot-w)))
-         (plate-pose-in-base (cl-tf:transform-pose-stamped
+         (plate-pose-in-base (cl-transforms-stamped:transform-pose-stamped
                               cram-tf:*transformer*
                               :use-current-ros-time t
                               :timeout 10.0
                               :pose plate-pose
                               :target-frame cram-tf:*robot-base-frame*)))
     plate-pose-in-base))
-
-(defun publish-pose (pose &key id)
-  (format t "publishing pose: ~a~%" pose)
-  (setf pose (cl-tf:transform-pose-stamped
-              cram-tf:*transformer*
-              :use-current-ros-time t
-              :timeout 10.0
-              :pose pose
-              :target-frame cram-tf:*fixed-frame*))
-  (let ((point (cl-transforms:origin pose))
-        (rot (cl-transforms:orientation pose))
-        (current-index 0))
-    (roslisp:publish (roslisp:advertise "~location_marker" "visualization_msgs/Marker")
-                     (roslisp:make-message "visualization_msgs/Marker"
-                                           (std_msgs-msg:stamp header) (roslisp:ros-time)
-                                           (std_msgs-msg:frame_id header)
-                                           (typecase pose
-                                             (cl-transforms-stamped:pose-stamped
-                                              (cl-transforms-stamped:frame-id pose))
-                                             (t "map"))
-                                           ns "goal_locations"
-                                           id (or id (incf current-index))
-                                           type (roslisp:symbol-code
-                                                 'visualization_msgs-msg:<marker> :arrow)
-                                           action (roslisp:symbol-code
-                                                   'visualization_msgs-msg:<marker> :add)
-                                           (x position pose) (cl-transforms:x point)
-                                           (y position pose) (cl-transforms:y point)
-                                           (z position pose) (cl-transforms:z point)
-                                           (x orientation pose) (cl-transforms:x rot)
-                                           (y orientation pose) (cl-transforms:y rot)
-                                           (z orientation pose) (cl-transforms:z rot)
-                                           (w orientation pose) (cl-transforms:w rot)
-                                           (x scale) 0.1
-                                           (y scale) 0.05
-                                           (z scale) 0.05
-                                           (r color) 1.0
-                                           (g color) 0.0
-                                           (b color) 1.0
-                                           (a color) 1.0))))
 
 (defconstant +plate-diameter+ 0.36 "in meters")
 (defconstant +plate-pregrasp-z-offset+ 0.05 "in meters")
@@ -132,7 +72,7 @@
       :z (+ (cl-transforms:z object-origin)
             +plate-pregrasp-z-offset+))
      :orientation
-     (cl-tf:matrix->quaternion
+     (cl-transforms:matrix->quaternion
       (make-array '(4 4)
                   :initial-contents
                   (case arm
@@ -147,11 +87,11 @@
                     (t (error "get only get grasp poses for :left or :right arms"))))))))
 
 (defun pregrasp-plate ()
-  (let* ((object-pose (get-object-pose (ask-robosherlock)))
+  (let* ((object-pose (get-object-pose (pr2-ll::ask-robosherlock)))
          (left-grasp-pose (get-grasp-pose object-pose :left))
          (right-grasp-pose (get-grasp-pose object-pose :right)))
-    (publish-pose left-grasp-pose :id 1)
-    (publish-pose right-grasp-pose :id 2)
+    (pr2-ll:visualize-marker left-grasp-pose :id 1 :r-g-b-list '(1 0 1))
+    (pr2-ll:visualize-marker right-grasp-pose :id 2 :r-g-b-list '(1 0 1))
     (cram-process-modules:with-process-modules-running
         (pr2-pms::pr2-arms-pm)
       (cpl:top-level

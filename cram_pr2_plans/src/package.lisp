@@ -30,5 +30,5 @@
 (in-package :cl-user)
 
 (defpackage cram-pr2-plans
-  (:nicknames :pr2-plan)
+  (:nicknames :pr2-plans)
   (:use #:common-lisp))
