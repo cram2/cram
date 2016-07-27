@@ -39,7 +39,7 @@
 (defvar *tf2* nil)
 
 (defun init-cram-moveit-tutorial ()
-  (roslisp:start-ros-node "tutorial-client")
+  (roslisp-utilities:startup-ros)
   (setf *tf2-tb* (cl-tf2:make-transform-broadcaster))
   (setf *tf2* (make-instance 'cl-tf2:buffer-client))
   (cram-moveit:init-moveit-bridge)
