@@ -37,6 +37,7 @@
                cl-tf
                actionlib
                alexandria
+               yason
                cram-language
                cram-tf
                cram-utilities
@@ -52,7 +53,9 @@
                pr2_controllers_msgs-msg
                trajectory_msgs-msg
                move_base_msgs-msg
-               giskard_msgs-msg)
+               giskard_msgs-msg
+               iai_robosherlock_msgs-msg
+               iai_robosherlock_msgs-srv)
   :components
   ((:module "src"
     :components
@@ -68,4 +71,5 @@
      (:file "kinematics-trajectory" :depends-on ("package"
                                                  "joint-trajectory"
                                                  "joint-states"))
-     (:file "giskard-cartesian" :depends-on ("package" "low-level-common"))))))
+     (:file "giskard-cartesian" :depends-on ("package" "low-level-common"))
+     (:file "robosherlock-json" :depends-on ("package" "low-level-common"))))))
