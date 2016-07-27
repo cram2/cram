@@ -31,6 +31,9 @@
 
 (defvar *torso-action-client* nil)
 
+(defparameter *torso-action-timeout* 20.0 "in seconds")
+(defparameter *torso-convergence-delta* 0.005 "in meters")
+
 (defun init-torso-action-client ()
   (setf *torso-action-client* (actionlib:make-action-client
                                "torso_controller/position_joint_action"
@@ -52,47 +55,66 @@
 (defun make-torso-action-goal (position)
   (actionlib:make-action-goal
       (get-torso-action-client)
-    :position (etypecase position
-                (number (cond
-                          ((< position 0.02)
-                           (roslisp:ros-warn
-                            (torso-action)
-                            "POSITION (~a) cannot be smaller than 0.02. Clipping."
-                            position)
-                           0.02)
-                          ((> position 0.32)
-                           (roslisp:ros-warn
-                            (torso-action)
-                            "POSITION (~a) shouldn't be bigger than 0.32. Clipping."
-                            position)
-                           0.32)
-                          (t
-                           position)))
-                (keyword (ecase position
-                           (:up 0.32)
-                           (:down 0.02))))))
+    :position position))
 
-(defun call-torso-action (position)
-  (multiple-value-bind (result status)
-      (cpl:with-failure-handling
-          ((simple-error (e)
-             (format t "Actionlib error occured!~%~a~%Reinitializing...~%~%" e)
-             (init-torso-action-client)
-             (cpl:retry)))
-        (let ((actionlib:*action-server-timeout* 10.0))
-          (actionlib:call-goal
-           (get-torso-action-client)
-           (make-torso-action-goal position)
-           :timeout 20.0)))
-    (roslisp:ros-info (torso-action-client) "Torso action finished.")
-    (values result status)))
+(defun ensure-torso-input-parameters (position)
+  (declare (type (or keyword number) position))
+  (etypecase position
+    (number (cond
+              ((< position 0.02)
+               (roslisp:ros-warn
+                (torso-action)
+                "POSITION (~a) cannot be smaller than 0.02. Clipping."
+                position)
+               0.02)
+              ((> position 0.32)
+               (roslisp:ros-warn
+                (torso-action)
+                "POSITION (~a) shouldn't be bigger than 0.32. Clipping."
+                position)
+               0.32)
+              (t
+               position)))
+    (keyword (ecase position
+               (:up 0.32)
+               (:down 0.02)))))
+
+(defun ensure-torso-goal-reached (status goal-position convergence-delta)
+  (when (eql status :timeout)
+    (cpl:fail 'actionlib-action-timed-out :description "Torso action timed out"))
+  (let ((current-position (car (joint-positions (list cram-tf:*robot-torso-joint*)))))
+   (unless (values-converged current-position goal-position convergence-delta)
+     (cpl:fail 'pr2-low-level-failure
+               :description (format nil "Torso action did not converge to the goal:
+goal: ~a, current: ~a, delta: ~a." goal-position current-position convergence-delta)))))
+
+(defun call-torso-action (position &key
+                                     (action-timeout *torso-action-timeout*)
+                                     (convergence-delta *torso-convergence-delta*))
+  (declare (type (or keyword number) position)
+           (type number action-timeout convergence-delta))
+  (let ((position-number (ensure-torso-input-parameters position)))
+   (multiple-value-bind (result status)
+       (cpl:with-failure-handling
+           ((simple-error (e)
+              (format t "Actionlib error occured!~%~a~%Reinitializing...~%~%" e)
+              (init-torso-action-client)
+              (cpl:retry)))
+         (let ((actionlib:*action-server-timeout* 10.0))
+           (actionlib:call-goal
+            (get-torso-action-client)
+            (make-torso-action-goal position-number)
+            :timeout action-timeout)))
+     (roslisp:ros-info (torso-action-client) "Torso action finished.")
+     (ensure-torso-goal-reached status position convergence-delta)
+     (values result status))))
 
 
 
 
 
 
-;; (defconstant +max-torso-joint-position+ 10000.0)
+;; (defconstant +max-torso-joint-position+ 0.33)
 ;; (defconstant +min-torso-joint-position+ 0.0)
 
 ;; (defun make-torso-action-goal-cpl (position)

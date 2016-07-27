@@ -29,14 +29,14 @@
 
 (in-package :pr2-ll)
 
-(defvar *nav-pcontroller-action-client* nil
-  "Actionlib client for nav-pcontroller.")
-
 (defvar *xy-goal-tolerance* 0.05 "in meters")
 (defvar *yaw-goal-tolerance* 0.1 "in radiants, about 6 degrees.")
 ;; There are VARs (not PARAMETERs) as they're read from the ROS param server
 
 (defparameter *navigation-action-timeout* 60.0 "in seconds")
+
+(defvar *nav-pcontroller-action-client* nil
+  "Actionlib client for nav-pcontroller.")
 
 (defun init-nav-pcontroller ()
   (setf *nav-pcontroller-action-client*
@@ -67,40 +67,29 @@
       (get-nav-pcontroller-action-client)
     :target_pose (cl-transforms-stamped:to-msg pose)))
 
-(defun goal-reached-p (goal-pose)
-  (let* ((pose-in-base (cl-transforms-stamped:transform-pose-stamped
-                        *transformer*
-                        :pose goal-pose :target-frame *robot-base-frame*
-                        :timeout *tf-default-timeout*))
-         (goal-dist (max (abs (cl-transforms:x (cl-transforms:origin pose-in-base)))
-                         (abs (cl-transforms:y (cl-transforms:origin pose-in-base)))))
-         (goal-angle (cl-transforms:normalize-angle
-                      (cl-transforms:get-yaw
-                       (cl-transforms:orientation pose-in-base)))))
-    (if (or (> goal-dist *xy-goal-tolerance*)
-            (> (abs goal-angle) *yaw-goal-tolerance*))
-        (progn
-          (roslisp:ros-warn
-           (navigation low-level)
-           "Goal not reached. Linear distance: ~a, angular distance: ~a"
-           goal-dist goal-angle)
-          nil)
-        t)))
+(defun ensure-nav-p-goal-reached (status goal-pose convergence-delta-xy convergence-delta-theta)
+  (when (eql status :timeout)
+    (cpl:fail 'actionlib-action-timed-out :description "Nav-pcontroller action timed out"))
+  (unless (tf-frame-converged cram-tf:*robot-base-frame* goal-pose
+                              convergence-delta-xy convergence-delta-theta)
+    (cpl:fail 'pr2-low-level-failure
+              :description (format nil "Nav-pcontroller did not converge to goal:
+~a should have been at ~a with delta-xy of ~a and delta-angle of ~a."
+                                   cram-tf:*robot-base-frame* goal-pose
+                                   convergence-delta-xy convergence-delta-theta))))
 
-(cpl:def-cram-function call-nav-pcontroller-action (goal-pose)
-  "`goal-pose' is a POSE (in *fixed-frame*) or POSE-STAMPED."
+(defun call-nav-pcontroller-action (goal-pose &key
+                                                (convergence-delta-xy *xy-goal-tolerance*)
+                                                (convergence-delta-theta *yaw-goal-tolerance*)
+                                                (action-timeout *navigation-action-timeout*)
+                                                visualize)
+  (declare (type (or cl-transforms:pose cl-transforms-stamped:pose-stamped))
+           (type number convergence-delta-xy convergence-delta-theta action-timeout))
+  "If `goal-pose' is a CL-TRANSFORMS:POSE it's in *fixed-frame*."
   (let ((goal-pose-in-fixed-frame
-          (cl-transforms-stamped:transform-pose-stamped
-           *transformer*
-           :pose (cl-transforms-stamped:ensure-pose-stamped
-                  goal-pose
-                  *fixed-frame* 0.0)
-           :target-frame *fixed-frame*
-           :timeout *tf-default-timeout*
-           :use-current-ros-time t)))
-    ;; todo publish nav goals
-    (roslisp:publish (roslisp:advertise "/ppp" "geometry_msgs/PoseStamped")
-                     (cl-transforms-stamped:to-msg goal-pose-in-fixed-frame))
+          (ensure-pose-in-frame goal-pose cram-tf:*fixed-frame*)))
+    (when visualize
+      (visualize-marker goal-pose :topic "low-level-goals"))
     (multiple-value-bind (result status)
         (cpl:with-failure-handling
             ((simple-error (e)
@@ -111,12 +100,11 @@
             (actionlib:call-goal
              (get-nav-pcontroller-action-client)
              (make-nav-p-action-goal goal-pose-in-fixed-frame)
-             :timeout *navigation-action-timeout*)))
+             :timeout action-timeout)))
       (roslisp:ros-info (navigation low-level) "Nav action finished.")
-      (if (goal-reached-p (cl-transforms-stamped:copy-pose-stamped
-                           goal-pose-in-fixed-frame :stamp 0))
-          (values result status)
-          (cpl:fail 'location-not-reached-failure :location goal-pose)))))
+      (ensure-nav-p-goal-reached
+       status goal-pose-in-fixed-frame convergence-delta-xy convergence-delta-theta)
+      (values result status))))
 
 ;; (def-process-module pr2-navigation-process-module (goal)
 ;;   (unwind-protect

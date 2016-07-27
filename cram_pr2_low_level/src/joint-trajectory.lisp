@@ -66,8 +66,8 @@
       (init-joint-trajectory-action-client left-or-right)))
 
 (defun make-joint-trajectory-action-goal (left-or-right positions-vectors-.-times-list)
-  "`positions-vectors-.-times-list' is e.g. `((,(vector 0 0 0 0 0 0 0) . 0.0)
-                                              (,(vector 1 1 1 1 1 1 1) . 1.0))."
+  "`positions-vectors-.-times-list' is e.g. '((#(0 0 0 0 0 0 0) . 0.0)
+                                              (#(1 1 1 1 1 1 1) . 1.0))."
   (actionlib:make-action-goal
       (get-joint-trajectory-action-client left-or-right)
     (joint_names trajectory)
@@ -133,7 +133,7 @@
     (roslisp:ros-info (joint-trajectory-action) "~a arm action finished." left-or-right)
     (values result status)))
 
-(defun move-joint-angles (left-or-right joint-angle-list)
+(defun call-joint-angle-action (left-or-right joint-angle-list)
   (multiple-value-bind (result status)
       (cpl:with-failure-handling
           ((simple-error (e)
@@ -174,9 +174,9 @@
 (defun call-joint-trajectory-action-example ()
   (call-joint-trajectory-action
    :left
-   (list (vector 0 0 0 0 0 0 0)
-         (vector -0.3 0.2 -0.1 -1.2 1.5 -0.3 0.5)
-         (vector 0 0 0 -1.2 1.5 -0.3 0.5))))
+   '(#(0 0 0 0 0 0 0)
+     #(-0.3 0.2 -0.1 -1.2 1.5 -0.3 0.5)
+     #(0 0 0 -1.2 1.5 -0.3 0.5))))
 
-(defun move-joint-angles-example ()
-  (move-joint-angles :right '(0 0 0 0 0 0 0)))
+(defun call-joint-angle-action-example ()
+  (call-joint-angle-action :right '(0 0 0 0 0 0 0)))

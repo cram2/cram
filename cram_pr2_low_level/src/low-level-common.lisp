@@ -37,6 +37,9 @@
   (:report (lambda (condition stream)
              (format stream (error-description condition)))))
 
+(define-condition actionlib-action-timed-out (pr2-low-level-failure) ()
+  (:documentation "Actionlib action timeout was reached"))
+
 
 (defun values-converged (values goal-values deltas)
   (flet ((value-converged (value goal-value delta)
@@ -59,3 +62,82 @@
                   deltas (list deltas))))
     ;; actually compare
     (every #'value-converged values goal-values deltas)))
+
+(defun tf-frame-converged (goal-frame goal-pose-stamped delta-xy delta-theta)
+  (let* ((pose-in-frame
+           (cl-transforms-stamped:transform-pose-stamped
+            *transformer*
+            :pose goal-pose-stamped
+            :target-frame goal-frame
+            :timeout *tf-default-timeout*
+            :use-current-ros-time t))
+         (goal-dist (max (abs (cl-transforms:x (cl-transforms:origin pose-in-frame)))
+                         (abs (cl-transforms:y (cl-transforms:origin pose-in-frame)))))
+         (goal-angle (cl-transforms:normalize-angle
+                      (cl-transforms:get-yaw
+                       (cl-transforms:orientation pose-in-frame)))))
+    (and (<= goal-dist delta-xy)
+         (<= (abs goal-angle) delta-theta))))
+
+
+(defun ensure-pose-in-frame (pose frame)
+  (declare (type (or cl-transforms:pose cl-transforms-stamped:pose-stamped)))
+  (cl-transforms-stamped:transform-pose-stamped
+   cram-tf:*transformer*
+   :pose (cl-transforms-stamped:ensure-pose-stamped
+          pose frame 0.0)
+   :target-frame frame
+   :timeout cram-tf:*tf-default-timeout*
+   :use-current-ros-time t))
+
+(defun ensure-point-in-frame (point frame)
+  (declare (type (or cl-transforms:point cl-transforms-stamped:point-stamped)))
+  (cl-transforms-stamped:transform-point-stamped
+   cram-tf:*transformer*
+   :point (if (typep point 'cl-transforms-stamped:point-stamped)
+              point
+              (cl-transforms-stamped:make-point-stamped
+               frame 0.0 point))
+   :target-frame frame
+   :timeout cram-tf:*tf-default-timeout*
+   :use-current-ros-time t))
+
+
+(defun visualize-marker (pose &key
+                                (topic "visualization_marker")
+                                (r-g-b-list '(1 0 0))
+                                (marker-type :arrow)
+                                (id 1))
+  (declare (type (or cl-transforms:pose cl-transforms-stamped:pose-stamped))
+           (type string topic))
+  (let ((point (cl-transforms:origin pose))
+        (rot (cl-transforms:orientation pose)))
+    (roslisp:publish (roslisp:advertise topic "visualization_msgs/Marker")
+                     (roslisp:make-message "visualization_msgs/Marker"
+                                           (std_msgs-msg:stamp header) (roslisp:ros-time)
+                                           (std_msgs-msg:frame_id header)
+                                           (typecase pose
+                                             (cl-transforms-stamped:pose-stamped
+                                              (cl-transforms-stamped:frame-id pose))
+                                             (t cram-tf:*fixed-frame*))
+                                           ns "goal_locations"
+                                           id id
+                                           type (roslisp:symbol-code
+                                                 'visualization_msgs-msg:<marker>
+                                                 marker-type)
+                                           action (roslisp:symbol-code
+                                                   'visualization_msgs-msg:<marker> :add)
+                                           (x position pose) (cl-transforms:x point)
+                                           (y position pose) (cl-transforms:y point)
+                                           (z position pose) (cl-transforms:z point)
+                                           (x orientation pose) (cl-transforms:x rot)
+                                           (y orientation pose) (cl-transforms:y rot)
+                                           (z orientation pose) (cl-transforms:z rot)
+                                           (w orientation pose) (cl-transforms:w rot)
+                                           (x scale) 0.1
+                                           (y scale) 0.05
+                                           (z scale) 0.05
+                                           (r color) (first r-g-b-list)
+                                           (g color) (second r-g-b-list)
+                                           (b color) (third r-g-b-list)
+                                           (a color) 1.0))))
