@@ -35,7 +35,7 @@
     (ecase command
       (drive
        (handler-case
-           (pr2-ll:call-nav-pcontroller-action destination-pose)
+           (pr2-ll:call-nav-pcontroller-action destination-pose :visualize t)
          ;; (cram-plan-failures:location-not-reached-failure ()
          ;;   (cpl:fail 'cram-plan-failures:gripping-failed :action action-designator))
          )))))

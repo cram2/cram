@@ -40,15 +40,11 @@
               (unless (and (listp goal-pose)
                            (= (length goal-pose) 2))
                 (error "when moving both arms goal pose should be a list of 2 elements."))
-              (pr2-ll:call-giskard-action (first goal-pose) (second goal-pose)))
-             (:left (pr2-ll:call-giskard-action goal-pose nil))
-             (:right (pr2-ll:call-giskard-action nil goal-pose))
-             (t (error "arm can only be :left, :right or :both")
-                ;; (error 'designator-error
-                ;;        :format-control "Designator `~a' does not reference an object."
-                ;;        :format-arguments (list desig)
-                ;;        :designator desig)
-              ))
+              (pr2-ll:call-giskard-action :left (first goal-pose)
+                                          :right (second goal-pose)))
+             (:left (pr2-ll:call-giskard-action :left goal-pose))
+             (:right (pr2-ll:call-giskard-action :right goal-pose))
+             (t (error "arm can only be :left, :right or :both")))
          (cram-plan-failures:manipulation-failed ()
            (cpl:fail 'cram-plan-failures:manipulation-failed :action action-designator)))))))
 
