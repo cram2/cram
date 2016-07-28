@@ -409,6 +409,10 @@
     (lisp-fun reference ?location ?pose)
     (open-gripper ?arm)
     (object-pose-reachable ?object ?pose ?arm)
+    (once (or (close-radius ?object ?radius)
+              ;; TODO(winkler): Additionally, check the object
+              ;; properties here.
+              (equal ?radius 0.0)))
     (lisp-fun make-grasp-assignment
               :side ?arm
               :grasp-type ?grasp-type
@@ -417,6 +421,7 @@
               :pregrasp-offset ?pregrasp-offset
               :grasp-offset ?grasp-offset
               :gripper-offset ?gripper-offset
+              :close-radius ?radius
               ?grasp-assignment))
   
   (<- (grasped-object-handle (?object ?handle))
