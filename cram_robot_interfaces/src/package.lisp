@@ -40,7 +40,8 @@
    #:robot-pan-tilt-links #:robot-pan-tilt-joints
    ;; arms
    #:arm #:required-arms #:available-arms
-   #:end-effector-link #:gripper-link #:gripper-joint #:planning-group
+   #:end-effector-link #:gripper-link #:gripper-joint #:robot-tool-frame
+   #:planning-group
    #:robot-arms-parking-joint-states #:end-effector-parking-pose
    #:robot-pre-grasp-joint-states
    ;; grasps
