@@ -195,7 +195,8 @@
 
 (def-fact-group pr2-manipulation-designators (action-desig
                                               cram-language::grasp-effort
-                                              reorient-object)
+                                              reorient-object
+                                              close-radius)
   
   (<- (maximum-object-tilt nil ?max-tilt)
     (symbol-value pi ?max-tilt))
@@ -369,6 +370,9 @@
               :only-reachable t ?cost)
     (not (equal ?cost nil)))
 
+  (<- (close-radius ?object ?radius)
+    (fail))
+
   (<- (arm-handle-assignment ?object ?arm-handle-combo ?grasp-assignment)
     (desig-prop ?object (:type :semantic-handle))
     (member (?arm . ?handle) ?arm-handle-combo)
@@ -378,6 +382,10 @@
     (lisp-fun reference ?location ?pose)
     (open-gripper ?arm)
     (object-pose-reachable ?object ?pose ?arm)
+    (once (or (close-radius ?object ?radius)
+              ;; TODO(winkler): Additionally, check the object
+              ;; properties here.
+              (equal ?radius 0.0)))
     (lisp-fun make-grasp-assignment
               :side ?arm
               :grasp-type pull
@@ -386,6 +394,7 @@
               :pregrasp-offset ?pregrasp-offset
               :grasp-offset ?grasp-offset
               :gripper-offset ?gripper-offset
+              :close-radius ?radius
               ?grasp-assignment))
 
   (<- (arm-handle-assignment ?object ?arm-handle-combo ?grasp-assignment)
