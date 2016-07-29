@@ -18,4 +18,5 @@
   <depend>cram_pr2_process_modules</depend>
   <depend>cram_process_modules</depend>
   <depend>cram_designators</depend>
+  <depend>cram_plan_library</depend>
 </package>

@@ -38,7 +38,8 @@
                cram-pr2-low-level
                cram-pr2-process-modules
                cram-process-modules
-               cram-designators)
+               cram-designators
+               cram-plan-library)
 
   :components
   ((:module "src"
