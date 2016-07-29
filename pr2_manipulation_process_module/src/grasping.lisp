@@ -198,7 +198,7 @@ applied."
 
 (defun make-grasp-assignment (&key side pose handle cost grasp-type
                                 pregrasp-offset grasp-offset
-                                gripper-offset)
+                                gripper-offset close-radius)
   (make-instance 'grasp-assignment
                  :side side
                  :pose pose
@@ -207,6 +207,7 @@ applied."
                  :ik-cost cost
                  :pregrasp-offset pregrasp-offset
                  :grasp-offset grasp-offset
+                 :close-radius close-radius
                  :gripper-offset gripper-offset))
 
 (defun cost-function-ik-pose (obj assignment pregrasp-offset grasp-offset
