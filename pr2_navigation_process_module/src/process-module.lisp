@@ -136,4 +136,5 @@
            (call-nav-action *navp-client* desig))
       (roslisp:ros-info (pr2-nav process-module) "Navigation finished.")
       (cram-occasions-events:on-event
-       (make-instance 'cram-plan-occasions-events:robot-state-changed)))))
+       (make-instance 'cram-plan-occasions-events:robot-state-changed
+                      :timestamp 0.0)))))
