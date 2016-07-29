@@ -572,12 +572,12 @@ positions, grasp-type, effort to use) are defined in the list
                                   :ignore-collisions t)))
                     target-arm-poses))))))
 
-(defun relative-pose (pose pose-offset)
+(defun relative-pose (pose pose-offset &key (time (ros-time)))
   "Applies the pose `pose-offset' as transformation into the pose
 `pose' and returns the result in the frame of `pose'."
   (pose->pose-stamped
    (frame-id pose)
-   (ros-time)
+   time
    (cl-transforms:transform-pose
     (cl-transforms:pose->transform pose)
     pose-offset)))
