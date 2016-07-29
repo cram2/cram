@@ -1,3 +1,4 @@
+;;;
 ;;; Copyright (c) 2016, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
@@ -9,10 +10,10 @@
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
-;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
-;;;       without specific prior written permission.
+;;;     * Neither the name of the Institute for Artificial Intelligence/
+;;;       Universitaet Bremen nor the names of its contributors may be used to
+;;;       endorse or promote products derived from this software without
+;;;       specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -26,25 +27,30 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-pr2-process-modules
-  :author "Gayane Kazhoyan"
-  :maintainer "Gayane Kazhoyan"
-  :license "BSD"
+(in-package :pr2-pms)
 
-  :depends-on (cram-process-modules
-               cram-prolog
-               cram-designators
-               cram-pr2-low-level
-               cram-pr2-description
-               cram-tf)
+(def-process-module pr2-perception-pm (action-designator)
+  (destructuring-bind (command object-key-value-pairs quantifier)
+      (reference action-designator)
+    (ecase command
+      (detect
+       (handler-case
+           (pr2-ll:call-robosherlock-service
+            object-key-value-pairs :quantifier quantifier)
+         ;; (cram-plan-failures:manipulation-failed ()
+         ;;   (cpl:fail 'cram-plan-failures:manipulation-failed :action action-designator))
+         )))))
 
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "designators" :depends-on ("package"))
-     (:file "grippers" :depends-on ("package"))
-     (:file "ptu" :depends-on ("package"))
-     (:file "base" :depends-on ("package"))
-     (:file "arms" :depends-on ("package"))
-     (:file "perception" :depends-on ("package"))))))
+;;; Examples:
+;;
+;; (cram-process-modules:with-process-modules-running
+;;     (pr2-pms::pr2-perception-pm)
+;;   (cpl:top-level
+;;     (cpm:pm-execute-matching
+;;      (desig:an action (to detect) (object (desig:an object (color red) (type "fork_red_plastic")))))))
+;;
+;; (cram-process-modules:with-process-modules-running
+;;     (pr2-pms::pr2-perception-pm)
+;;   (cpl:top-level
+;;     (cpm:pm-execute-matching
+;;      (desig:an action (to detect) (object "fork_red_plastic")))))

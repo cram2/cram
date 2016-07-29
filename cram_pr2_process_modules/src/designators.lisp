@@ -96,13 +96,29 @@
                                         matching-process-module
                                         available-process-module)
 
-  (<- (action-desig ?action-designator (detect ?object-designator))
-    (desig-prop ?action-designator (:type :detecting))
-    (desig-prop ?action-designator (:object ?object-designator)))
+  (<- (matching-process-module ?action-designator pr2-perception-pm)
+    (or (desig-prop ?action-designator (:type :detecting))
+        (desig-prop ?action-designator (:to :detect)))
+    (desig-prop ?action-designator (:object ?object-designator))
+    ;; (current-designator ?object-designator ?current-object-designator)
+    ;; (desig-prop ?current-object-designator (:type ?object-type))
+    )
 
-  (<- (action-desig ?action-designator (detect ?object-designator))
-    (desig-prop ?action-designator (:to :detect))
-    (desig-prop ?action-designator (:an ?object-designator))))
+  (<- (action-desig ?action-designator (detect ?object-properties ?quantifier))
+    (or (desig-prop ?action-designator (:type :detecting))
+        (desig-prop ?action-designator (:to :detect)))
+    (desig-prop ?action-designator (:object ?object-designator))
+    (-> (lisp-type ?object-designator object-designator)
+        (and (current-designator ?object-designator ?current-object-designator)
+             (desig-description ?current-object-designator (?object-properties . ?_))
+             ;; somehow desig-description gives ((())) back, i dug deep still nothing
+             )
+        (prolog:equal ?object-properties ((:type ?object-designator))))
+    (equal ?quantifier :an) ; this should be done more smartly :)
+    )
+
+  (<- (available-process-module pr2-perception-pm)
+    (not (projection-running ?_))))
 
 
 (def-fact-group pr2-gripper-actions (action-desig
