@@ -29,16 +29,206 @@
 
 (in-package :pr2-ll)
 
-(defun ask-robosherlock ()
-  (if (not (roslisp:wait-for-service "/RoboSherlock/json_query" 10))
-      (error "Timed out waiting for robosherlock service")
-      (let* ((response (roslisp:call-service
-                        "/RoboSherlock/json_query"
-                        "iai_robosherlock_msgs/RSQueryService"
-                        :query "{\"_designator_type\":7, \"DETECTION\":\"red_spotted_plate\"}"))
-             (response-answer (iai_robosherlock_msgs-srv:answer response)))
-        (when (> (length response-answer) 1)
-          (error "perception returned multiple objects although there should've been just one."))
-        (when (< (length response-answer) 1)
-          (error "couldn't perceive requested object :("))
-        (yason:parse (aref response-answer 0)))))
+(defvar *robosherlock-service* nil
+  "Persistent service client for querying RoboSherlock JSON interface.")
+
+(defparameter *robosherlock-service-name* "/RoboSherlock/json_query")
+
+(defun init-robosherlock-service ()
+  "Initializes *robosherlock-service* ROS publisher"
+  (loop until (roslisp:wait-for-service *robosherlock-service-name* 5)
+        do (roslisp:ros-info (robosherlock-service) "Waiting for robosherlock service."))
+  (setf *robosherlock-service*
+        (make-instance 'roslisp:persistent-service
+          :service-name *robosherlock-service-name*
+          :service-type 'iai_robosherlock_msgs-srv:rsqueryservice))
+  (roslisp:ros-info (robosherlock-service) "Robosherlock service client created."))
+
+(defun get-robosherlock-service ()
+  (if (and *robosherlock-service*
+           (roslisp:persistent-service-ok *robosherlock-service*))
+      *robosherlock-service*
+      (init-robosherlock-service)))
+
+(defun destroy-robosherlock-service ()
+  (when *robosherlock-service*
+    (roslisp:close-persistent-service *robosherlock-service*))
+  (setf *robosherlock-service* nil))
+
+(roslisp-utilities:register-ros-cleanup-function destroy-robosherlock-service)
+
+
+(defun make-robosherlock-query (&optional key-value-pairs-list)
+  (let* ((query (reduce (lambda (query-so-far key-value-pair)
+                          (concatenate 'string query-so-far
+                                       (format nil "\"~a\":\"~a\", "
+                                               (first key-value-pair)
+                                               (second key-value-pair))))
+                        key-value-pairs-list
+                        :initial-value "{\"_designator_type\":7, "))
+         (query-with-closing-bracket (concatenate 'string query "}")))
+    (roslisp:make-request
+     iai_robosherlock_msgs-srv:rsqueryservice
+     :query query-with-closing-bracket)))
+
+(defun ensure-robosherlock-input-parameters (key-value-pairs-list quantifier)
+  (let ((key-value-pairs-list
+          (mapcar (lambda (key-value-pair)
+                    (destructuring-bind (key value)
+                        key-value-pair
+                      ;; (ecase key
+                      ;;   (:detection `("DETECTION"
+                      ;;                 ,(ecase value
+                      ;;                    ("red_spotted_plate" (list key value)))))
+                      ;;   (:shape `("SHAPE" ,value))
+                      ;;   (:color `("COLOR" ,value))
+                      ;;   (:handle `("HANDLE" ,value))
+                      ;;   (:size `("SIZE" ,value)))
+                      (list (etypecase key
+                              (keyword (if (eq key :type)
+                                           :detection
+                                           (symbol-name key)))
+                              (string (string-upcase key)))
+                            value)))
+                  key-value-pairs-list))
+        (quantifier quantifier
+          ;; (etypecase quantifier
+          ;;   (keyword (ecase quantifier
+          ;;              ((:a :an) :a)
+          ;;              (:the :the)
+          ;;              (:all :all)))
+          ;;   (number quantifier))
+          ))
+    (values key-value-pairs-list quantifier)))
+
+(defun parse-robosherlock-designator (yason-string)
+  (let* ((yason-hash-table (yason:parse yason-string))
+         (pose-hash-table (gethash "POSE" yason-hash-table))
+         (frame-id (gethash "frame_id" pose-hash-table))
+         (pos-x (gethash "pos_x" pose-hash-table))
+         (pos-y (gethash "pos_y" pose-hash-table))
+         (pos-z (gethash "pos_z" pose-hash-table))
+         (rot-x (gethash "rot_x" pose-hash-table))
+         (rot-y (gethash "rot_y" pose-hash-table))
+         (rot-z (gethash "rot_z" pose-hash-table))
+         (rot-w (gethash "rot_w" pose-hash-table))
+         (stamp (gethash "stamp" pose-hash-table))
+         (object-pose (cl-transforms-stamped:make-pose-stamped
+                       frame-id
+                       stamp
+                       (cl-transforms:make-3d-vector pos-x pos-y pos-z)
+                       (cl-transforms:make-quaternion rot-x rot-y rot-z rot-w)))
+         (object-pose-in-base (cl-transforms-stamped:transform-pose-stamped
+                               cram-tf:*transformer*
+                               :use-current-ros-time t
+                               :timeout 10.0
+                               :pose object-pose
+                               :target-frame cram-tf:*robot-base-frame*))
+         (object-pose-projected-onto-semantic-map
+           (cl-transforms-stamped:copy-pose-stamped
+            object-pose-in-base
+            :origin (cl-transforms:copy-3d-vector
+                     (cl-transforms:origin object-pose-in-base)
+                     :z 0.85))))
+    object-pose-projected-onto-semantic-map))
+
+(defun ensure-robosherlock-result (result quantifier)
+  (unless result
+    (cpl:fail 'pr2-low-level-failure :description "robosherlock didn't answer"))
+  (let ((number-of-objects (length result)))
+    (when (< number-of-objects 1)
+      (cpl:fail 'pr2-low-level-failure :description "couldn't find the object"))
+    (etypecase quantifier
+      (keyword (ecase quantifier
+                 ((:a :an) (parse-robosherlock-designator (aref result 0))
+                  ;; this case should return a lazy list but I don't like them so...
+                  )
+                 (:the (if (= number-of-objects 1)
+                           (parse-robosherlock-designator (aref result 0))
+                           (cpl:fail 'pr2-low-level-failure
+                                     :description "There was more than one of THE object")))
+                 (:all (map 'list #'parse-robosherlock-designator result))))
+      (number (if (= number-of-objects quantifier)
+                  (map 'list #'parse-robosherlock-designator result)
+                  (cpl:fail 'pr2-low-level-failure
+                            :description (format nil "perception returned ~a objects
+although there should've been ~a"
+                                                 number-of-objects quantifier)))))))
+
+(defun call-robosherlock-service (key-value-pairs-list &key (quantifier :a))
+  (declare (type (or keyword number) quantifier))
+  (multiple-value-bind (key-value-pairs-list quantifier)
+      (ensure-robosherlock-input-parameters key-value-pairs-list quantifier)
+    (roslisp:with-fields (answer)
+        (cpl:with-failure-handling
+            (((or simple-error roslisp:service-call-error) (e)
+               (format t "Service call error occured!~%~a~%Reinitializing...~%~%" e)
+               (destroy-robosherlock-service)
+               (init-robosherlock-service)
+               (let ((restart (find-restart 'roslisp:reconnect)))
+                 (if restart
+                     (progn (roslisp:wait-duration 5.0)
+                            (invoke-restart 'roslisp:reconnect))
+                     (progn (cpl:retry))))))
+          (roslisp:call-persistent-service
+           (get-robosherlock-service)
+           (make-robosherlock-query key-value-pairs-list)))
+      (ensure-robosherlock-result answer quantifier))))
+
+
+
+;; rosservice call /RoboSherlock/json_query "query: '{\"_designator_type\":7, \"HANDLE\":\"\"}'"
+;; rosservice call /RoboSherlock/json_query "query: '{\"_designator_type\":7, \"DETECTION\":\"red_spotted_plate\"}'"
+;; rosservice call /RoboSherlock/json_query ":query "{\"_designator_type\":7, \"SHAPE\":\"round\"}'"
+;; rosservice call /RoboSherlock/json_query ":query "{\"_designator_type\":7, \"COLOR\":\"red\", \"COLOR\":\"blue\"}'"
+;; rosservice call /RoboSherlock/json_query "query: '{\"_designator_type\":7, \"DETECTION\":\"cutlery\", \"COLOR\":\"red\"}'"
+
+
+
+;; answer: ['{"_designator_type":7,
+;;            "TIMESTAMP":1468431426.0368367,
+;;            "CLUSTERID":3.0,
+;;            "BOUNDINGBOX":{"_designator_type":3,
+;;                           "POSE":{"_designator_type":4,
+;;                                   "seq":0,
+;;                                   "frame_id":"head_mount_kinect_rgb_optical_frame",
+;;                                   "stamp":1468431426036836672,
+;;                                   "pos_x":-0.3824820239015819,
+;;                                   "pos_y":0.08422647909290526,
+;;                                   "pos_z":1.0731382941783395
+;;                                   ,"rot_x":0.7288296241525841,
+;;                                   "rot_y":-0.5690367079709026,
+;;                                   "rot_z":0.23528549195063853,
+;;                                   "rot_w":0.29940828792304299},
+;;                          "SIZE":"medium",
+;;                          "DIMENSIONS-3D":{"_designator_type":3,
+;;                                           "WIDTH":0.25294819474220278,
+;;                                           "HEIGHT":0.26393774151802065,
+;;                                           "DEPTH":0.018034279346466066}},
+;;            "DETECTION":{"_designator_type":3,
+;;                         "CONFIDENCE":1819.9918212890625,
+;;                         "SOURCE":"DeCafClassifier",
+;;                         "TYPE":"red_spotted_plate"},
+;;            "POSE":{"_designator_type":4,"seq":0,
+;;                    "frame_id":"head_mount_kinect_rgb_optical_frame",
+;;                    "stamp":1468431426036836672,
+;;                    "pos_x":-0.3824820239015819,
+;;                    "pos_y":0.08422647909290526,
+;;                    "pos_z":1.0731382941783395,
+;;                    "rot_x":0.7288296241525841,
+;;                    "rot_y":-0.5690367079709026,
+;;                    "rot_z":0.23528549195063853,
+;;                    "rot_w":0.29940828792304299},
+;;            "COLOR":{"_designator_type":3,
+;;                     "red":0.9489008188247681,
+;;                     "white":0.026660431176424028,
+;;                     "yellow":0.015434985980391503,
+;;                     "grey":0.005963517352938652,
+;;                     "magenta":0.0026894293259829284,
+;;                     "black":0.0003507951332721859,
+;;                     "green":0.0,
+;;                     "cyan":0.0,
+;;                     "blue":0.0},
+;;            "SHAPE":"round",
+;;            "SHAPE":"flat"}']
+

@@ -41,6 +41,7 @@
    #:call-nav-pcontroller-action
    #:call-ptu-action
    #:call-torso-action
+   #:call-robosherlock-service
    ;; joint-states
    #:joint-states
    #:joint-positions
