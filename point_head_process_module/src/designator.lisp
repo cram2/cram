@@ -43,13 +43,12 @@
                (cl-tf:copy-pose-stamped pose-stamped :stamp 0.0)))
          (pose-stamped
            (progn
-             (loop while (not (cl-tf:wait-for-transform
-                               *transformer*
-                               :timeout *tf-default-timeout*
-                               :time (cl-tf:stamp pose-stamped)
-                               :source-frame (cl-tf:frame-id pose-stamped)
-                               :target-frame target-frame))
-                   do (sleep 0.5))
+             (cl-tf:wait-for-transform
+              *transformer*
+              :timeout *tf-default-timeout*
+              :time (cl-tf:stamp pose-stamped)
+              :source-frame (cl-tf:frame-id pose-stamped)
+              :target-frame target-frame)
              (cl-transforms-stamped:transform-pose-stamped
               *transformer*
               :pose pose-stamped
