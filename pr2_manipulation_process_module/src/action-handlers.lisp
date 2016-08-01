@@ -237,7 +237,8 @@
                 *transformer*
                 :pose (relative-pose
                        (relative-pose pose grasp-offset)
-                       gripper-offset)
+                       gripper-offset
+                       :time 0.0)
                 :target-frame *robot-torso-frame*
                 :timeout *tf-default-timeout*))
              (grasp-parameters (assignment)
