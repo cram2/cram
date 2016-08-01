@@ -110,7 +110,8 @@
     (desig-prop ?action-designator (:object ?object-designator))
     (-> (lisp-type ?object-designator object-designator)
         (and (current-designator ?object-designator ?current-object-designator)
-             (desig-description ?current-object-designator (?object-properties . ?_))
+             ;; (desig-description ?current-object-designator (?object-properties . ?_))
+             (desig-description ?current-object-designator ?object-properties)
              ;; somehow desig-description gives ((())) back, i dug deep still nothing
              )
         (prolog:equal ?object-properties ((:type ?object-designator))))
