@@ -247,8 +247,10 @@
                    (position command) position
                    (max_effort command) max-effort)
           :result-timeout 1.0)
-      (cram-occasions-events:on-event (make-instance
-                                          'cram-plan-occasions-events:robot-state-changed)))))
+      (cram-occasions-events:on-event
+       (make-instance
+        'cram-plan-occasions-events:robot-state-changed
+        :timestamp 0.0)))))
 
 (defun open-gripper (side &key (max-effort 100.0) (position 0.085))
   (cram-language::on-open-gripper side max-effort position)
@@ -263,7 +265,8 @@
                        (max_effort command) max-effort)
               :result-timeout 1.0)
           (cram-occasions-events:on-event
-           (make-instance 'cram-plan-occasions-events:robot-state-changed)))
+           (make-instance 'cram-plan-occasions-events:robot-state-changed
+                          :timestamp 0.0)))
       (with-vars-bound (?carried-object ?gripper-link)
           (lazy-car (prolog `(and (object-in-hand ?carried-object ,side)
                                   (robot ?robot)
