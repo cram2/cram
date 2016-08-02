@@ -78,12 +78,17 @@ is fundamentally different."
                        `(and (robot ?robot)
                              (planning-group ?robot ,side ?group))))))
          (pose-in-tll
-           (cl-transforms-stamped:transform-pose-stamped
-            *transformer*
-            :pose pose
-            :target-frame *robot-torso-frame*
-            :timeout *tf-default-timeout*
-            :use-current-ros-time t)))
+           (progn
+             (tf:wait-for-transform
+              *transformer*
+              :time 0.0
+              :source-frame (tf:frame-id pose)
+              :target-frame *robot-torso-frame*)
+             (cl-transforms-stamped:transform-pose-stamped
+              *transformer*
+              :pose (tf:copy-pose-stamped pose :stamp 0.0)
+              :target-frame *robot-torso-frame*
+              :timeout *tf-default-timeout*))))
     (let ((state-0 (moveit:plan-link-movement
                     wrist-frame arm-group pose-in-tll
                     :touch-links
