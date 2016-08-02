@@ -596,10 +596,9 @@
                                            (when (desig-prop-value
                                                   object-designator
                                                   :dimensions)
-                                             (+ (/ (elt (desig-prop-value
-                                                         object-designator
-                                                         :dimensions)
-                                                        2)
+                                             (+ (/ (tf:z (desig-prop-value
+                                                          object-designator
+                                                          :dimensions))
                                                    2)
                                                 0.1))
                                            0.1)))
