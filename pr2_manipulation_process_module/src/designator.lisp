@@ -480,7 +480,7 @@
     (desig-prop ?object (:at ?objloc))
     (current-designator ?objloc ?current-objloc)
     (desig-prop ?current-objloc (:in :gripper))
-    (setof ?grasp (and (desig-prop ?current-objloc (pose ?objpose))
+    (setof ?grasp (and (desig-prop ?current-objloc (:pose ?objpose))
                        (arm-for-pose ?objpose ?arm)
                        (member ?arm (:left :right))
                        (once
