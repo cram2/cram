@@ -108,7 +108,8 @@
   
   (<- (%object ?world ?name ?obj)
     (bound ?name)
-    (lisp-type ?name symbol)
+    (or (lisp-type ?name symbol)
+        (lisp-type ?name string))
     (not (bound ?obj))
     (bullet-world ?world)
     (lisp-fun object ?world ?name ?obj)

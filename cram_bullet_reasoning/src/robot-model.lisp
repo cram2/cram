@@ -67,7 +67,7 @@
 instance of class OBJECT. `link' must be a string, the name of the
 link. If `loose' is non-NIL, it means that if the link moves, the pose
 of the object should _not_ be updated."
-  (object nil :type symbol)
+  (object nil :type (or symbol string))
   (link "" :type string)
   (loose nil :type (or nil t)))
 
@@ -118,7 +118,8 @@ of the object should _not_ be updated."
   attached to.")
   (:method ((robot-object robot-object) (object object))
     (with-slots (attached-objects) robot-object
-      (mapcar #'attachment-link (car (cdr (assoc (name object) attached-objects)))))))
+      (mapcar #'attachment-link (car (cdr (assoc (name object) attached-objects
+                                                 :test #'equal)))))))
 
 (defgeneric attach-object (robot-object obj link &key loose)
   (:documentation "Adds `obj' to the set of attached objects. If
@@ -129,7 +130,8 @@ of the object should _not_ be updated."
       (error 'simple-error :format-control "Link ~a unknown"
              :format-arguments (list link)))
     (with-slots (attached-objects) robot-object
-      (let ((obj-attachment (assoc (name obj) attached-objects))
+      (let ((obj-attachment (assoc (name obj) attached-objects
+                                   :test #'equal))
             (new-attachment
               (make-attachment
                :object (name obj) :link link :loose loose)))
