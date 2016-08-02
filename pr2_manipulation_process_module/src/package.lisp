@@ -45,7 +45,8 @@
   (:shadowing-import-from #:cram-designators object object-designator)
   (:export pr2-manipulation-process-module
            wait-for-controller
-           reorient-object)
+           reorient-object
+           close-radius)
   (:desig-properties #:trajectory #:type #:to #:open #:obj #:side #:sides #:close
                      #:grasp #:put-down #:pose #:parked #:lift
                      #:carry #:at #:orientation #:in #:gripper #:both-grippers
