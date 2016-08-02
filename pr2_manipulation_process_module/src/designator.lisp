@@ -238,7 +238,10 @@
   
   (<- (holding-arms ?desig ?arms)
     (current-designator ?desig ?current-desig)
-    (gripper-arms-in-belief ?current-desig ?arms))
+    (or (and (gripper-arms-in-belief ?current-desig ?arms)
+             (not (equal ?arms nil)))
+        (and (gripper-arms-in-desig ?current-desig ?arms)
+             (not (equal ?arms nil)))))
   
   (<- (handled-obj-desig? ?designator)
     (obj-desig? ?designator)
@@ -475,6 +478,15 @@
   
   (<- (grasp-type ?_ ?grasp-type)
     (equal ?grasp-type :push))
+  
+  (<- (gripper-arms-in-desig ?object ?arms)
+    (desig-prop ?object (:at ?objloc))
+    (current-designator ?objloc ?current-objloc)
+    (desig-prop ?current-objloc (:in :gripper))
+    (setof ?arm (and (desig-prop ?current-objloc (:pose ?objpose))
+                     (arm-for-pose ?objpose ?arm)
+                     (member ?arm (:left :right)))
+           ?arms))
   
   (<- (object-grasps-in-gripper ?object ?grasps)
     (desig-prop ?object (:at ?objloc))
