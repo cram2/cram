@@ -293,7 +293,7 @@
     (object->grasp-assignments ?current-obj ?grasp-assignments)
     (-> (desig-prop ?desig (:distance ?distance))
         (true)
-        (== ?distance 0.02)))
+        (== ?distance 0.1)))
 
   (<- (grasp-type ?obj ?grasp-type)
     (not (equal ?obj nil))
