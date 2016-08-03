@@ -222,7 +222,7 @@ square depth image of size `pixels' and the index of the depth image."
     (world location robot-name camera-minimal-height camera-maximal-height size resolution)
   (declare (type btr:bt-reasoning-world world)
            (type location-designator location)
-           (type symbol robot-name)
+           (type (or symbol string) robot-name)
            (type number camera-maximal-height camera-minimal-height size resolution))
   (let* ((robot (btr:object world robot-name))
          (objects-to-render (remove robot (objects world))))
@@ -234,7 +234,7 @@ square depth image of size `pixels' and the index of the depth image."
 (defun make-object-visibility-costmap
     (world object-name robot-name camera-minimal-height camera-maximal-height size resolution)
   (declare (type btr:bt-reasoning-world world)
-           (type symbol object-name robot-name)
+           (type (or symbol string) object-name robot-name)
            (type number camera-maximal-height camera-minimal-height size resolution))
   (let* ((object (btr:object world object-name))
          (robot (btr:object world robot-name))
