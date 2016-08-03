@@ -104,15 +104,20 @@
 (defun call-nav-action (client desig)
   (let* ((goal-location (desig-prop-value desig :goal))
          (timeout (or (desig-prop-value desig :timeout)
-                      10.0))
+                      100.0))
          (goal-pose (reference goal-location))
          (goal-pose-in-fixed-frame
-           (cl-transforms-stamped:transform-pose-stamped
-            *transformer*
-            :pose goal-pose
-            :target-frame *fixed-frame*
-            :timeout *tf-default-timeout*
-            :use-current-ros-time t)))
+           (progn
+             (tf:wait-for-transform
+              *transformer*
+              :time 0.0
+              :source-frame (tf:frame-id goal-pose)
+              :target-frame *fixed-frame*)
+             (cl-transforms-stamped:transform-pose-stamped
+              *transformer*
+              :pose (tf:copy-pose-stamped goal-pose :stamp 0.0)
+              :target-frame *fixed-frame*
+              :timeout *tf-default-timeout*))))
     (roslisp:publish (roslisp:advertise "/ppp" "geometry_msgs/PoseStamped")
                      (to-msg goal-pose-in-fixed-frame))
     (actionlib-lisp:wait-for-server client)
