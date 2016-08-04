@@ -91,7 +91,7 @@
                         :avoid_collisions T
                         :pose_stamped (to-msg
                                         (pose->pose-stamped ik-base-frame-name 0.0 pose))
-                        :timeout 0.01))
+                        :timeout 0.005))
       (cond ((eql error-code
                   (roslisp-msg-protocol:symbol-code
                    'moveit_msgs-msg:moveiterrorcodes

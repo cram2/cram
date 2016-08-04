@@ -208,53 +208,55 @@
                                                        (cl-transforms:make-3d-vector x y z)
                                                        angle)
                                                 :service-namespace namespace)
-                                               (format t ".")
+                                               ;(format t ".")
                                                (setf (aref map z-index y-index x-index angle-index) 1))
-                                              (t (format t "x")
+                                              (t ;(format t "x")
                                                  (setf (aref map z-index y-index x-index angle-index) 0))))
                             finally (format t "~%")))
           finally (return map))))
 
-(defun generate-moveit-reachability-map (map link-name group-name ik-base-name)
-  (with-slots (minimum maximum resolution orientations) map
-    (loop with map = (make-array
-                      (list
-                       (1+ (round (- (cl-transforms:z maximum)
-                                     (cl-transforms:z minimum))
-                                  (cl-transforms:z resolution)))
-                       (1+ (round (- (cl-transforms:y maximum)
-                                     (cl-transforms:y minimum))
-                                  (cl-transforms:y resolution)))
-                       (1+ (round (- (cl-transforms:x maximum)
-                                     (cl-transforms:x minimum))
-                                  (cl-transforms:x resolution)))
-                       (length orientations))
-                      :element-type 'bit)
-          for z from (cl-transforms:z minimum)
-            by (cl-transforms:z resolution)
-          for z-index from 0 below (array-dimension map 0)
-          do (loop for y from (cl-transforms:y minimum)
-                     by (cl-transforms:y resolution)
-                   for y-index from 0 below (array-dimension map 1)
-                   do (format t "y: ~a z: ~a~%" y z)
-                      (loop for x from (cl-transforms:x minimum)
-                              by (cl-transforms:x resolution)
-                            for x-index from 0 below (array-dimension map 2)
-                            do (loop for angle in orientations
-                                     for angle-index from 0
-                                     do (cond ((moveit-find-ik-solution
-                                                 :pose (cl-transforms:make-pose
-                                                         (cl-transforms:make-3d-vector x y z)
-                                                         angle)
-                                                 :ik-link-name link-name
-                                                 :group-name group-name
-                                                 :ik-base-frame-name ik-base-name)
-                                               ;;(format t ".")
-                                               (setf (aref map z-index y-index x-index angle-index) 1))
-                                              (t ;;(format t "x")
-                                                 (setf (aref map z-index y-index x-index angle-index) 0))))
-                            finally (format t "~%")))
-          finally (return map))))
+(defun generate-moveit-reachability-map (reachability-map link-name group-name ik-base-name)
+  (with-slots (minimum maximum resolution orientations) reachability-map
+    (setf (reachability-map reachability-map)
+      (loop with map = (make-array
+                        (list
+                         (1+ (round (- (cl-transforms:z maximum)
+                                       (cl-transforms:z minimum))
+                                    (cl-transforms:z resolution)))
+                         (1+ (round (- (cl-transforms:y maximum)
+                                       (cl-transforms:y minimum))
+                                    (cl-transforms:y resolution)))
+                         (1+ (round (- (cl-transforms:x maximum)
+                                       (cl-transforms:x minimum))
+                                    (cl-transforms:x resolution)))
+                         (length orientations))
+                        :element-type 'bit)
+            for z from (cl-transforms:z minimum)
+              by (cl-transforms:z resolution)
+            for z-index from 0 below (array-dimension map 0)
+            do (loop for y from (cl-transforms:y minimum)
+                       by (cl-transforms:y resolution)
+                     for y-index from 0 below (array-dimension map 1)
+                     do (format t "y: ~a z: ~a~%" y z)
+                        (loop for x from (cl-transforms:x minimum)
+                                by (cl-transforms:x resolution)
+                              for x-index from 0 below (array-dimension map 2)
+                              do (loop for angle in orientations
+                                       for angle-index from 0
+                                       do (cond ((moveit-find-ik-solution
+                                                   :pose (cl-transforms:make-pose
+                                                           (cl-transforms:make-3d-vector x y z)
+                                                           angle)
+                                                   :ik-link-name link-name
+                                                   :group-name group-name
+                                                   :ik-base-frame-name ik-base-name)
+                                                 ;;(format t ".")
+                                                 (setf (aref map z-index y-index x-index angle-index) 1))
+                                                (t ;;(format t "x")
+                                                   (setf (aref map z-index y-index x-index angle-index) 0))))
+                              finally (format t "~%")))
+            finally (return map)))
+    reachability-map))
 
 (defun generate-inverse-reachability-map (reachability-map)
   "Returns a new four-dimensional array that represents an inverse
@@ -303,8 +305,11 @@ result is: (z y x orientation)"
                                                      orientation-index)
                                                (cond ((origin-reachable-p
                                                        (cl-transforms:make-3d-vector x y z) orientation)
-                                                      (format t ".") 1)
-                                                     (t (format t "x") 0)))))
+                                                       ;;(format t ".")
+                                                       1)
+                                                     (t 
+                                                       ;;(format t "x")
+                                                       0)))))
                         (format t "~%")))
       inverse-reachability-map-matrix)))
 
