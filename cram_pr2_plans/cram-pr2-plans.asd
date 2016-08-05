@@ -45,4 +45,4 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "grasping-plate" :depends-on ("package"))))))
+     (:file "grasping" :depends-on ("package"))))))
