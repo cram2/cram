@@ -31,7 +31,7 @@
 
 (defvar *giskard-action-client* nil)
 
-(defparameter *giskard-action-timeout* 20.0
+(defparameter *giskard-action-timeout* 7.0
   "How many seconds to wait before returning from giskard action.")
 (defparameter *giskard-convergence-delta-xy* 0.005 "in meters")
 (defparameter *giskard-convergence-delta-theta* 0.1 "in radiants, about 6 degrees")
@@ -83,33 +83,36 @@ Did you load a robot description package?")
       (init-giskard-action-client)))
 
 (defun make-giskard-action-goal (left-pose right-pose)
-  (declare (type (or null cl-transforms:pose cl-transforms-stamped:pose-stamped)
+  (declare (type (or cl-transforms:pose cl-transforms-stamped:pose-stamped)
                  left-pose right-pose))
-  (if (and left-pose right-pose)
-      (actionlib:make-action-goal
-          (get-giskard-action-client)
-        (goal left_ee command) (cl-transforms-stamped:to-msg left-pose)
-        (process left_ee command) t
-        (goal right_ee command) (cl-transforms-stamped:to-msg right-pose)
-        (process right_ee command) t)
-      (if left-pose
-          (actionlib:make-action-goal
-              (get-giskard-action-client)
-            (goal left_ee command) (cl-transforms-stamped:to-msg left-pose)
-            (process left_ee command) t
-            (process right_ee command) nil)
-          (if right-pose
-              (actionlib:make-action-goal
-                  (get-giskard-action-client)
-                (goal right_ee command) (cl-transforms-stamped:to-msg right-pose)
-                (process left_ee command) nil
-                (process right_ee command) t)
-              (actionlib:make-action-goal
-                  (get-giskard-action-client))))))
+  (actionlib:make-action-goal
+      (get-giskard-action-client)
+    (goal left_ee command) (cl-transforms-stamped:to-msg left-pose)
+    (process left_ee command) t
+    (goal right_ee command) (cl-transforms-stamped:to-msg right-pose)
+    (process right_ee command) t))
 
 (defun ensure-giskard-input-parameters (frame left-goal right-goal)
-  (values (when left-goal (ensure-pose-in-frame left-goal frame))
-          (when right-goal (ensure-pose-in-frame right-goal frame))))
+  (values (ensure-pose-in-frame (or left-goal
+                                    (cl-transforms-stamped:transform-pose-stamped
+                                     cram-tf:*transformer*
+                                     :timeout cram-tf:*tf-default-timeout*
+                                     :target-frame frame
+                                     :pose (cl-transforms-stamped:pose->pose-stamped
+                                            *left-tool-frame*
+                                            0.0
+                                            (cl-transforms:make-identity-pose))))
+                                frame)
+          (ensure-pose-in-frame (or right-goal
+                                    (cl-transforms-stamped:transform-pose-stamped
+                                     cram-tf:*transformer*
+                                     :timeout cram-tf:*tf-default-timeout*
+                                     :target-frame frame
+                                     :pose (cl-transforms-stamped:pose->pose-stamped
+                                            *right-tool-frame*
+                                            0.0
+                                            (cl-transforms:make-identity-pose))))
+                                frame)))
 
 (defun ensure-giskard-goal-reached (status goal-position-left goal-position-right
                                     goal-frame-left goal-frame-right
