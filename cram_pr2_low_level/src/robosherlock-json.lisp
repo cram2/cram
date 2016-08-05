@@ -85,9 +85,10 @@
                       ;;   (:handle `("HANDLE" ,value))
                       ;;   (:size `("SIZE" ,value)))
                       (list (etypecase key
-                              (keyword (if (eq key :type)
-                                           :detection
-                                           (symbol-name key)))
+                              (keyword (symbol-name key);;  (if (eq key :type)
+                                              ;; :detection
+                                              ;; (symbol-name key))
+                               )
                               (string (string-upcase key)))
                             value)))
                   key-value-pairs-list))
@@ -101,37 +102,6 @@
           ))
     (values key-value-pairs-list quantifier)))
 
-(defun parse-robosherlock-designator (yason-string)
-  (let* ((yason-hash-table (yason:parse yason-string))
-         (pose-hash-table (gethash "POSE" yason-hash-table))
-         (frame-id (gethash "frame_id" pose-hash-table))
-         (pos-x (gethash "pos_x" pose-hash-table))
-         (pos-y (gethash "pos_y" pose-hash-table))
-         (pos-z (gethash "pos_z" pose-hash-table))
-         (rot-x (gethash "rot_x" pose-hash-table))
-         (rot-y (gethash "rot_y" pose-hash-table))
-         (rot-z (gethash "rot_z" pose-hash-table))
-         (rot-w (gethash "rot_w" pose-hash-table))
-         (stamp (gethash "stamp" pose-hash-table))
-         (object-pose (cl-transforms-stamped:make-pose-stamped
-                       frame-id
-                       stamp
-                       (cl-transforms:make-3d-vector pos-x pos-y pos-z)
-                       (cl-transforms:make-quaternion rot-x rot-y rot-z rot-w)))
-         (object-pose-in-base (cl-transforms-stamped:transform-pose-stamped
-                               cram-tf:*transformer*
-                               :use-current-ros-time t
-                               :timeout 10.0
-                               :pose object-pose
-                               :target-frame cram-tf:*robot-base-frame*))
-         (object-pose-projected-onto-semantic-map
-           (cl-transforms-stamped:copy-pose-stamped
-            object-pose-in-base
-            :origin (cl-transforms:copy-3d-vector
-                     (cl-transforms:origin object-pose-in-base)
-                     :z 0.85))))
-    object-pose-projected-onto-semantic-map))
-
 (defun ensure-robosherlock-result (result quantifier)
   (unless result
     (cpl:fail 'pr2-low-level-failure :description "robosherlock didn't answer"))
@@ -140,16 +110,16 @@
       (cpl:fail 'pr2-low-level-failure :description "couldn't find the object"))
     (etypecase quantifier
       (keyword (ecase quantifier
-                 ((:a :an) (parse-robosherlock-designator (aref result 0))
+                 ((:a :an) (parse-robosherlock-result (aref result 0))
                   ;; this case should return a lazy list but I don't like them so...
                   )
                  (:the (if (= number-of-objects 1)
-                           (parse-robosherlock-designator (aref result 0))
+                           (parse-robosherlock-result (aref result 0))
                            (cpl:fail 'pr2-low-level-failure
                                      :description "There was more than one of THE object")))
-                 (:all (map 'list #'parse-robosherlock-designator result))))
+                 (:all (map 'list #'parse-robosherlock-result result))))
       (number (if (= number-of-objects quantifier)
-                  (map 'list #'parse-robosherlock-designator result)
+                  (map 'list #'parse-robosherlock-result result)
                   (cpl:fail 'pr2-low-level-failure
                             :description (format nil "perception returned ~a objects
 although there should've been ~a"

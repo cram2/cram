@@ -72,4 +72,5 @@
                                                  "joint-trajectory"
                                                  "joint-states"))
      (:file "giskard-cartesian" :depends-on ("package" "low-level-common"))
-     (:file "robosherlock-json" :depends-on ("package" "low-level-common"))))))
+     (:file "json-parser" :depends-on ("package"))
+     (:file "robosherlock-json" :depends-on ("package" "json-parser" "low-level-common"))))))
