@@ -109,14 +109,22 @@
                                    (:left "l_wrist_roll_link")
                                    (:right "r_wrist_roll_link")))
                                (arm-in-tll
-                                 (cl-transforms-stamped:transform-pose-stamped
-                                  *transformer*
-                                  :pose (make-pose-stamped
-                                         frame-id (ros-time)
-                                         (cl-transforms:make-identity-vector)
-                                         (cl-transforms:make-identity-rotation))
-                                  :target-frame *robot-torso-frame*
-                                  :timeout *tf-default-timeout*))
+                                 (let ((tll-pose
+                                         (make-pose-stamped
+                                          frame-id 0.0
+                                          (cl-transforms:make-identity-vector)
+                                          (cl-transforms:make-identity-rotation))))
+                                   (tf:wait-for-transform
+                                    *transformer*
+                                    :timeout *tf-default-timeout*
+                                    :time (tf:stamp tll-pose)
+                                    :source-frame (tf:frame-id tll-pose)
+                                    :target-frame *robot-torso-frame*)
+                                   (cl-transforms-stamped:transform-pose-stamped
+                                    *transformer*
+                                    :pose tll-pose
+                                    :target-frame *robot-torso-frame*
+                                    :timeout *tf-default-timeout*)))
                                (raised
                                  (copy-pose-stamped
                                   arm-in-tll
@@ -389,16 +397,23 @@
 (define-hook cram-language::on-finish-putdown (log-id success))
 
 (defun make-putdown-pose (putdown-location &key (z-offset 0.0))
-  (let* ((putdown-pose (or (desig-prop-value putdown-location 'pose)
-                           (pose-pointing-away-from-base
-                            (reference putdown-location))))
+  (let* ((putdown-pose (tf:copy-pose-stamped
+                        (or (desig-prop-value putdown-location 'pose)
+                            (pose-pointing-away-from-base
+                             (reference putdown-location)))
+                        :stamp 0.0))
          (pose-in-tll
-           (cl-transforms-stamped:transform-pose-stamped
-            *transformer*
-            :pose putdown-pose
-            :target-frame *robot-torso-frame*
-            :timeout *tf-default-timeout*
-            :use-current-ros-time t)))
+           (progn
+             (tf:wait-for-transform
+              *transformer*
+              :time (tf:stamp putdown-pose)
+              :source-frame (tf:frame-id putdown-pose)
+              :target-frame *robot-torso-frame*)
+             (cl-transforms-stamped:transform-pose-stamped
+              *transformer*
+              :pose putdown-pose
+              :target-frame *robot-torso-frame*
+              :timeout *tf-default-timeout*))))
     (copy-pose-stamped
      pose-in-tll :origin (cl-transforms:v+ (cl-transforms:origin pose-in-tll)
                                            (cl-transforms:make-3d-vector 0.0 0.0 z-offset)))))
@@ -581,10 +596,9 @@
                                            (when (desig-prop-value
                                                   object-designator
                                                   :dimensions)
-                                             (+ (/ (elt (desig-prop-value
-                                                         object-designator
-                                                         :dimensions)
-                                                        2)
+                                             (+ (/ (tf:z (desig-prop-value
+                                                          object-designator
+                                                          :dimensions))
                                                    2)
                                                 0.1))
                                            0.1)))

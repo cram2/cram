@@ -136,8 +136,7 @@
                     (declare (ignore f))
                     (ros-error (move arm) "Goal in collision.")
                     (cram-language::on-finish-move-arm log-id nil)
-                    (error 'manipulation-pose-occupied
-                           :result (list side pose-stamped))))
+))
                (let* ((objects-in-hand
                         (lazy-mapcar (lambda (bdgs)
                                        (with-vars-bound (?o) bdgs
@@ -269,12 +268,17 @@ trying to assume the pose `pose'."
   (let* ((link-identity-pose (pose->pose-stamped
                               link-name 0.0
                               (cl-transforms:make-identity-pose)))
-         (link-in-pose-frame (cl-transforms-stamped:transform-pose-stamped
-                              *transformer*
-                              :pose link-identity-pose
-                              :target-frame (frame-id pose-stamped)
-                              :timeout *tf-default-timeout*
-                              :use-current-ros-time t)))
+         (link-in-pose-frame (progn
+                               (tf:wait-for-transform
+                                *transformer*
+                                :time (tf:stamp link-identity-pose)
+                                :source-frame (tf:frame-id link-identity-pose)
+                                :target-frame (tf:frame-id pose-stamped))
+                               (cl-transforms-stamped:transform-pose-stamped
+                                *transformer*
+                                :pose link-identity-pose
+                                :target-frame (frame-id pose-stamped)
+                                :timeout *tf-default-timeout*))))
     (cl-transforms:v-dist (cl-transforms:origin link-in-pose-frame)
                           (cl-transforms:origin pose-stamped))))
 

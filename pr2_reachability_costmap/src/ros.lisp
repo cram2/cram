@@ -40,7 +40,7 @@
         (setf (gethash name *persistent-ik-services*)
               (make-instance 'roslisp:persistent-service
                 :service-name name
-                :service-type "iai_kinematics_msgs/GetPositionIK")))))
+                :service-type "moveit_msgs/GetPositionIK")))))
 
 (defun get-ik-solver-info (namespace)
   (or (gethash namespace *ik-solver-info*)
@@ -48,7 +48,7 @@
             (roslisp:with-fields (kinematic_solver_info)
                 (roslisp:call-service
                  (concatenate 'string namespace "/get_ik_solver_info")
-                 "iai_kinematics_msgs/GetKinematicSolverInfo")
+                 "moveit_msgs/GetKinematicSolverInfo")
               kinematic_solver_info))))
 
 (defun get-ik-solver-joints (namespace)
@@ -73,6 +73,42 @@
      velocity zero-vector
      effort zero-vector)))
 
+(defun moveit-find-ik-solution (&key ik-link-name group-name ik-base-frame-name pose)
+  (declare (type string ik-link-name)
+           (type string group-name)
+           (type string ik-base-frame-name)
+           (type cl-transforms:pose pose))
+  ;;(format t "IK for ~a in group ~a with base ~a~%" ik-link-name group-name ik-base-frame-name)
+  (let* ((dummy nil))
+    (declare (ignore dummy))
+    (roslisp:with-fields ((error-code (val error_code))
+                          (joint-state (joint_state solution)))
+        (roslisp:call-service
+          "/compute_ik" "moveit_msgs/GetPositionIK"
+          :ik_request (roslisp:make-message "moveit_msgs/PositionIKRequest"
+                        :ik_link_name ik-link-name
+                        :group_name group-name
+                        :avoid_collisions T
+                        :pose_stamped (to-msg
+                                        (pose->pose-stamped ik-base-frame-name 0.0 pose))
+                        :timeout 0.005))
+      (cond ((eql error-code
+                  (roslisp-msg-protocol:symbol-code
+                   'moveit_msgs-msg:moveiterrorcodes
+                   :success))
+             joint-state)
+            ((eql error-code
+                  (roslisp-msg-protocol:symbol-code
+                   'moveit_msgs-msg:moveiterrorcodes
+                   :no_ik_solution))
+             nil)
+            (t (error 'simple-error
+                      :format-control "IK service failed: ~a"
+                      :format-arguments (list
+                                         (roslisp-msg-protocol:code-symbol
+                                          'moveit_msgs-msg:moveiterrorcodes
+                                          error-code))))))))
+
 (defun find-ik-solution (&key service-namespace pose (ik-base-frame *robot-torso-frame*))
   (declare (type string service-namespace)
            (type cl-transforms:pose pose))
@@ -82,7 +118,7 @@
         (roslisp:call-persistent-service
          (get-persistent-service (concatenate 'string service-namespace "/get_ik"))
          (roslisp:make-request
-          "iai_kinematics_msgs/GetPositionIK"
+          "moveit_msgs/GetPositionIK"
           (:ik_link_name :ik_request) ik-link
           (:pose_stamped :ik_request) (to-msg
                                        (pose->pose-stamped ik-base-frame 0.0 pose))

@@ -195,7 +195,8 @@
 
 (def-fact-group pr2-manipulation-designators (action-desig
                                               cram-language::grasp-effort
-                                              reorient-object)
+                                              reorient-object
+                                              close-radius)
   
   (<- (maximum-object-tilt nil ?max-tilt)
     (symbol-value pi ?max-tilt))
@@ -237,7 +238,10 @@
   
   (<- (holding-arms ?desig ?arms)
     (current-designator ?desig ?current-desig)
-    (gripper-arms-in-belief ?current-desig ?arms))
+    (or (and (gripper-arms-in-belief ?current-desig ?arms)
+             (not (equal ?arms nil)))
+        (and (gripper-arms-in-desig ?current-desig ?arms)
+             (not (equal ?arms nil)))))
   
   (<- (handled-obj-desig? ?designator)
     (obj-desig? ?designator)
@@ -292,7 +296,7 @@
     (object->grasp-assignments ?current-obj ?grasp-assignments)
     (-> (desig-prop ?desig (:distance ?distance))
         (true)
-        (== ?distance 0.02)))
+        (== ?distance 0.1)))
 
   (<- (grasp-type ?obj ?grasp-type)
     (not (equal ?obj nil))
@@ -369,6 +373,9 @@
               :only-reachable t ?cost)
     (not (equal ?cost nil)))
 
+  (<- (close-radius ?object ?radius)
+    (fail))
+
   (<- (arm-handle-assignment ?object ?arm-handle-combo ?grasp-assignment)
     (desig-prop ?object (:type :semantic-handle))
     (member (?arm . ?handle) ?arm-handle-combo)
@@ -378,6 +385,10 @@
     (lisp-fun reference ?location ?pose)
     (open-gripper ?arm)
     (object-pose-reachable ?object ?pose ?arm)
+    (once (or (close-radius ?object ?radius)
+              ;; TODO(winkler): Additionally, check the object
+              ;; properties here.
+              (equal ?radius 0.0)))
     (lisp-fun make-grasp-assignment
               :side ?arm
               :grasp-type pull
@@ -386,6 +397,7 @@
               :pregrasp-offset ?pregrasp-offset
               :grasp-offset ?grasp-offset
               :gripper-offset ?gripper-offset
+              :close-radius ?radius
               ?grasp-assignment))
 
   (<- (arm-handle-assignment ?object ?arm-handle-combo ?grasp-assignment)
@@ -400,6 +412,10 @@
     (lisp-fun reference ?location ?pose)
     (open-gripper ?arm)
     (object-pose-reachable ?object ?pose ?arm)
+    (once (or (close-radius ?object ?radius)
+              ;; TODO(winkler): Additionally, check the object
+              ;; properties here.
+              (equal ?radius 0.0)))
     (lisp-fun make-grasp-assignment
               :side ?arm
               :grasp-type ?grasp-type
@@ -408,6 +424,7 @@
               :pregrasp-offset ?pregrasp-offset
               :grasp-offset ?grasp-offset
               :gripper-offset ?gripper-offset
+              :close-radius ?radius
               ?grasp-assignment))
   
   (<- (grasped-object-handle (?object ?handle))
@@ -462,11 +479,20 @@
   (<- (grasp-type ?_ ?grasp-type)
     (equal ?grasp-type :push))
   
+  (<- (gripper-arms-in-desig ?object ?arms)
+    (desig-prop ?object (:at ?objloc))
+    (current-designator ?objloc ?current-objloc)
+    (desig-prop ?current-objloc (:in :gripper))
+    (setof ?arm (and (desig-prop ?current-objloc (:pose ?objpose))
+                     (arm-for-pose ?objpose ?arm)
+                     (member ?arm (:left :right)))
+           ?arms))
+  
   (<- (object-grasps-in-gripper ?object ?grasps)
     (desig-prop ?object (:at ?objloc))
     (current-designator ?objloc ?current-objloc)
     (desig-prop ?current-objloc (:in :gripper))
-    (setof ?grasp (and (desig-prop ?current-objloc (pose ?objpose))
+    (setof ?grasp (and (desig-prop ?current-objloc (:pose ?objpose))
                        (arm-for-pose ?objpose ?arm)
                        (member ?arm (:left :right))
                        (once
