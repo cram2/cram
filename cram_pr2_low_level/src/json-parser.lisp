@@ -71,7 +71,7 @@
          (object-pose-in-base (cl-transforms-stamped:transform-pose-stamped
                                cram-tf:*transformer*
                                :use-current-ros-time t
-                               :timeout 10.0
+                               :timeout *tf-default-timeout*
                                :pose object-pose
                                :target-frame cram-tf:*robot-base-frame*)))
     (list name object-pose-in-base)))
