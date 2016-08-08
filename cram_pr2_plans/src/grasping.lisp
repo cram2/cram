@@ -49,7 +49,7 @@
 (defparameter *cutlery-pregrasp-z-offset* 0.4 "in meters")
 (defparameter *cutlery-grasp-z-offset* 0.002 "in meters")
 
-(defparameter *cup-grasp-z-offset* 0.03 "in meters")
+(defparameter *cup-grasp-z-offset* 0.09 "in meters")
 (defparameter *cup-pregrasp-xy-offset* 0.2 "in meters")
 (defparameter *cup-pregrasp-z-offset* 0.4 "in meters")
 
@@ -544,11 +544,11 @@
 (defun get-cup-lift-pose (grasp-pose)
   (translate-pose grasp-pose :z-offset *cup-pregrasp-z-offset*))
 
-(defun top-level-pick-cup (&key (?color "") (?arm :right) (?grasp :side))
+(defun top-level-pick-cup (&key (?type "Cup") (?color "") (?arm :right) (?grasp :side))
   (with-pr2-process-modules
     (move-pr2-arms-out-of-sight)
     (let* ((?object-desig (desig:an object
-                                    (type "Cup")
+                                    (type ?type)
                                     (color ?color)))
            (?updated-object-desig (cram-plan-library:perform
                                    (desig:an action
