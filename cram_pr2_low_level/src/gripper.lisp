@@ -33,6 +33,8 @@
 
 (defparameter *gripper-action-timeout* 10.0 "in seconds")
 
+(defparameter *gripper-minimal-position* 0.0017235310878717042d0 "in meters")
+
 (defvar *gripper-action-clients* '(:left nil :right nil)
   "A list to store PR2 gripper action clients for left and right gripper.")
 
@@ -93,8 +95,8 @@
                        position)))
             (keyword (ecase position
                        (:open 0.085)
-                       (:close 0.0)
-                       (:grip 0.0)))))
+                       (:close *gripper-minimal-position*)
+                       (:grip *gripper-minimal-position*)))))
         (max-effort
           (or max-effort
               (etypecase position
@@ -145,9 +147,20 @@ goal: ~a, current: ~a, delta: ~a." goal-position current-position convergence-de
                (cpl:retry)))
           (let ((actionlib:*action-server-timeout* 10.0)
                 (action-client (get-gripper-action-client left-or-right)))
-            (actionlib:call-goal
-             action-client
-             (make-gripper-action-goal action-client goal-position max-effort)
-             :timeout action-timeout)))
+            (if (eql position :grip) ; double check that we really grasped properly
+                (progn
+                  (actionlib:call-goal
+                   action-client
+                   (make-gripper-action-goal action-client goal-position max-effort)
+                   :timeout action-timeout)
+                  (cpl:sleep 0.5)
+                  (actionlib:call-goal
+                   action-client
+                   (make-gripper-action-goal action-client goal-position max-effort)
+                   :timeout action-timeout))
+                (actionlib:call-goal
+                 action-client
+                 (make-gripper-action-goal action-client goal-position max-effort)
+                 :timeout action-timeout))))
       (ensure-gripper-goal-reached result status position goal-position delta)
       (values result status))))
