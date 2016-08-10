@@ -73,14 +73,14 @@
   (cl-transforms-stamped:make-pose-stamped
    "base_footprint"
    0.0
-   (cl-transforms:make-3d-vector 0.4 -0.3 1.6)
+   (cl-transforms:make-3d-vector 0.4 -0.3 1.55)
    (cl-transforms:make-quaternion 0.029319081708036543d0 -0.018714920400581137d0
                                   0.5257710356470319d0 0.8499146788218482d0)))
 (defparameter *pr2-left-arm-out-of-sight-gripper-pose*
   (cl-transforms-stamped:make-pose-stamped
    "base_footprint"
    0.0
-   (cl-transforms:make-3d-vector 0.4 0.3 1.6)
+   (cl-transforms:make-3d-vector 0.4 0.3 1.55)
    (cl-transforms:make-quaternion 0.9215513103717499d0 -0.387996037470125d0
                                   -0.014188589447636247d0 -9.701489976338351d-4)))
 
