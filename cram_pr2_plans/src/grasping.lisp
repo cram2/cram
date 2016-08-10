@@ -242,21 +242,25 @@
                                        :arm arm))
          (error "can only grasp plates from a side")))
     ((:bottle :drink :sigg_bottle :reine_butter_milch)
-     (let* ((translation (cl-transforms:origin object-pose))
-            (x-obj (cl-transforms:x translation))
-            (y-obj (cl-transforms:y translation)))
-       (calculate-cup-grasp-pose x-obj y-obj
-                                 *kitchen-sink-block-z*
-                                 *bottle-grasp-z-offset*
-                                 arm grasp)))
-    ((:cup)
-     (let* ((translation (cl-transforms:origin object-pose))
-            (x-obj (cl-transforms:x translation))
-            (y-obj (cl-transforms:y translation)))
-       (calculate-cup-grasp-pose x-obj y-obj
-                                 *kitchen-sink-block-z*
-                                 *cup-grasp-z-offset*
-                                 arm grasp)))))
+     (if (or (eq grasp :side) (eq grasp :front))
+         (let* ((translation (cl-transforms:origin object-pose))
+                (x-obj (cl-transforms:x translation))
+                (y-obj (cl-transforms:y translation)))
+           (calculate-cup-grasp-pose x-obj y-obj
+                                     *kitchen-sink-block-z*
+                                     *bottle-grasp-z-offset*
+                                     arm grasp))
+         (error "can only grasp bottles from a side or front")))
+    ((:cup :CUP_ECO_ORANGE)
+     (if (or (eq grasp :side) (eq grasp :front))
+         (let* ((translation (cl-transforms:origin object-pose))
+                (x-obj (cl-transforms:x translation))
+                (y-obj (cl-transforms:y translation)))
+           (calculate-cup-grasp-pose x-obj y-obj
+                                     *kitchen-sink-block-z*
+                                     *cup-grasp-z-offset*
+                                     arm grasp))
+         (error "can only grasp cups from a side or front")))))
 
 (defun get-object-grasp-pose (object-designator arm grasp)
   (get-object-type-grasp-pose
@@ -271,8 +275,49 @@
 (defun get-object-grasp-lift-pose (grasp-pose)
   (translate-pose grasp-pose :z-offset *lift-z-offset*))
 
-(defun get-cutlery-pregrasp-pose (grasp-pose)
-  (translate-pose grasp-pose :z-offset *cutlery-pregrasp-z-offset*))
+
+
+(defun get-object-type-pregrasp-pose (object-type grasp-pose arm grasp)
+  (case object-type
+    ((:fork :knife :cutlery
+            :fork_blue_plastic :fork_red_plastic :knife_red_plastic :knife_blue_plastic)
+     (if (eq grasp :top)
+         (translate-pose grasp-pose :z-offset *cutlery-pregrasp-z-offset*)
+         (error "can only grasp cutlery from top")))
+    ((:plate :red_spotted_plate)
+     (if (eq grasp :side)
+         (translate-pose grasp-pose
+                         :y-offset (case arm
+                                     (:right (- *plate-pregrasp-y-offset*))
+                                     (:left *plate-pregrasp-y-offset*)
+                                     (t (error "arm can be :left or :right")))
+                         :z-offset *plate-pregrasp-z-offset*)
+         (error "can only grasp plates from a side")))
+    ((:bottle :drink :sigg_bottle :reine_butter_milch)
+     (case grasp
+       (:front (translate-pose grasp-pose :x-offset (- *bottle-pregrasp-xy-offset*)
+                                          :z-offset *bottle-pregrasp-z-offset*))
+       (:side (case arm
+                (:left (translate-pose grasp-pose :y-offset *bottle-pregrasp-xy-offset*
+                                                  :z-offset *bottle-pregrasp-z-offset*))
+                (:right (translate-pose grasp-pose :y-offset (- *bottle-pregrasp-xy-offset*)
+                                                   :z-offset *bottle-pregrasp-z-offset*))
+                (t (error "arm can only be :left or :right"))))
+       (t (error "grasp can only be :side or :front"))))
+    ((:cup :CUP_ECO_ORANGE)
+     (case grasp
+       (:front (translate-pose grasp-pose :x-offset (- *cup-pregrasp-xy-offset*)
+                                          :z-offset *cup-pregrasp-z-offset*))
+       (:side (case arm
+                (:left (translate-pose grasp-pose :y-offset *cup-pregrasp-xy-offset*
+                                                  :z-offset *cup-pregrasp-z-offset*))
+                (:right (translate-pose grasp-pose :y-offset (- *cup-pregrasp-xy-offset*)
+                                                   :z-offset *cup-pregrasp-z-offset*))
+                (t (error "arm can only be :left or :right"))))
+       (t (error "grasp can only be :side or :front"))))))
+
+
+
 
 (defun top-level-pick-cutlery (&optional (?color ""))
   (with-pr2-process-modules
@@ -286,7 +331,8 @@
                                              (object ?object-desig))))
            (?cutlery-grasp-pose
              (get-object-grasp-pose ?updated-object-desig :right :top))
-           (?cutlery-pregrasp-pose (get-cutlery-pregrasp-pose ?cutlery-grasp-pose))
+           (?cutlery-pregrasp-pose
+             (get-object-type-pregrasp-pose :cutlery ?cutlery-grasp-pose :right :top))
            (?cutlery-lift-pose (get-object-grasp-lift-pose ?cutlery-grasp-pose)))
       (pr2-ll:visualize-marker ?cutlery-grasp-pose)
       (cpl:with-failure-handling
@@ -358,7 +404,8 @@
     (let* ((?cutlery-grasp-pose
              (get-object-type-grasp-pose :cutlery (calculate-cutlery-destination-pose)
                                          :right :top))
-           (?cutlery-pregrasp-pose (get-cutlery-pregrasp-pose ?cutlery-grasp-pose))
+           (?cutlery-pregrasp-pose
+             (get-object-type-pregrasp-pose :cutlery ?cutlery-grasp-pose :right :top))
            (?cutlery-lift-pose (get-object-grasp-lift-pose ?cutlery-grasp-pose)))
       (pr2-ll:visualize-marker ?cutlery-grasp-pose)
       (cpl:with-failure-handling
@@ -412,13 +459,7 @@
 
 
 
-(defun get-plate-pregrasp-pose (grasp-pose arm)
-  (translate-pose grasp-pose
-                  :y-offset (case arm
-                              (:right (- *plate-pregrasp-y-offset*))
-                              (:left *plate-pregrasp-y-offset*)
-                              (t (error "arm can be :left or :right")))
-                  :z-offset *plate-pregrasp-z-offset*))
+
 
 (defun get-plate-second-pregrasp-pose (grasp-pose arm)
   (translate-pose grasp-pose
@@ -444,11 +485,13 @@
                                              (to detect)
                                              (object ?object-desig))))
            (?left-grasp-pose (get-object-grasp-pose ?updated-object-desig :left :side))
-           (?left-pregrasp-pose (get-plate-pregrasp-pose ?left-grasp-pose :left))
+           (?left-pregrasp-pose
+             (get-object-type-pregrasp-pose :plate ?left-grasp-pose :left :side))
            (?left-2nd-pregrasp-pose (get-plate-second-pregrasp-pose ?left-grasp-pose :left))
            (?left-lift-pose (get-object-grasp-lift-pose ?left-grasp-pose))
            (?right-grasp-pose (get-object-grasp-pose ?updated-object-desig :right :side))
-           (?right-pregrasp-pose (get-plate-pregrasp-pose ?right-grasp-pose :right))
+           (?right-pregrasp-pose
+             (get-object-type-pregrasp-pose :plate ?right-grasp-pose :right :side))
            (?right-2nd-pregrasp-pose (get-plate-second-pregrasp-pose ?right-grasp-pose :right))
            (?right-lift-pose (get-object-grasp-lift-pose ?right-grasp-pose)))
       (pr2-ll:visualize-marker ?left-grasp-pose :id 1 :r-g-b-list '(1 0 1))
@@ -549,17 +592,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; CUPS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(defun get-cup-pregrasp-pose (grasp-pose arm grasp)
-  (case grasp
-    (:front (translate-pose grasp-pose :x-offset (- *cup-pregrasp-xy-offset*)
-                                       :z-offset *cup-pregrasp-z-offset*))
-    (:side (case arm
-             (:left (translate-pose grasp-pose :y-offset *cup-pregrasp-xy-offset*
-                                               :z-offset *cup-pregrasp-z-offset*))
-             (:right (translate-pose grasp-pose :y-offset (- *cup-pregrasp-xy-offset*)
-                                                :z-offset *cup-pregrasp-z-offset*))
-             (t (error "arm can only be :left or :right"))))
-    (t (error "grasp can only be :side or :front"))))
+
 
 (defun get-cup-second-pregrasp-pose (grasp-pose arm grasp)
    (case grasp
@@ -581,7 +614,7 @@
                                              (to detect)
                                              (object ?object-desig))))
            (?cup-grasp-pose (get-object-grasp-pose ?updated-object-desig ?arm ?grasp))
-           (?cup-pregrasp-pose (get-cup-pregrasp-pose ?cup-grasp-pose ?arm ?grasp))
+           (?cup-pregrasp-pose (get-object-type-pregrasp-pose :cup ?cup-grasp-pose ?arm ?grasp))
            (?cup-lift-pose (get-object-grasp-lift-pose ?cup-grasp-pose))
            (?cup-2nd-pregrasp-pose (get-cup-second-pregrasp-pose ?cup-grasp-pose ?arm ?grasp)))
       (pr2-ll:visualize-marker ?cup-grasp-pose)
@@ -660,7 +693,7 @@
   (with-pr2-process-modules
     (move-pr2-arms-out-of-sight)
     (let* ((?cup-grasp-pose (get-cup-put-pose ?arm ?grasp))
-           (?cup-pregrasp-pose (get-cup-pregrasp-pose ?cup-grasp-pose ?arm ?grasp))
+           (?cup-pregrasp-pose (get-object-type-pregrasp-pose :cup ?cup-grasp-pose ?arm ?grasp))
            (?cup-lift-pose (get-object-grasp-lift-pose ?cup-grasp-pose)))
       (pr2-ll:visualize-marker ?cup-grasp-pose)
       (cpl:with-failure-handling
