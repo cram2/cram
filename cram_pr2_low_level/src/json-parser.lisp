@@ -49,6 +49,14 @@
                          (parse-json-node key-name (cdr key-value-cons))))
                      alist)))
 
+(defun parse-nested-node (name node)
+  (mapcar (lambda (key-value-pair)
+            (destructuring-bind (key value)
+                key-value-pair
+             (list (intern (concatenate 'string (string-upcase name) "-" (string-upcase key))
+                           :keyword) value)))
+          (parse-alist node)))
+
 (defmacro getassoc (key alist)
   `(cdr (assoc ,key ,alist :test #'equal)))
 
@@ -64,6 +72,17 @@
 
 (defmethod parse-json-node ((name (eql :type)) node)
   (list name (intern (string-upcase node) :keyword)))
+(defmethod parse-json-node ((name (eql :shape)) node)
+  (list name (intern (string-upcase node) :keyword)))
+(defmethod parse-json-node ((name (eql :size)) node)
+  (list name (intern (string-upcase node) :keyword)))
+(defmethod parse-json-node ((name (eql :source)) node)
+  (list name (intern (string-upcase node) :keyword)))
+
+(defmethod parse-json-node ((name (eql :segment)) node)
+  (parse-nested-node name node))
+(defmethod parse-json-node ((name (eql :boundingbox)) node)
+  (parse-nested-node :bb node))
 
 (defmethod parse-json-node ((name (eql :pose)) node)
   (if (getassoc "POSE" node)
@@ -106,18 +125,17 @@
   ;;                          :key #'first)))
   (find :type (parse-alist node) :key #'car))
 
+(defmethod parse-json-node ((name (eql :dimensions-2d)) node)
+  (list name (let ((parsed-dimensions (parse-alist node)))
+               (cl-transforms:make-3d-vector (second (assoc :width parsed-dimensions))
+                                             (second (assoc :height parsed-dimensions)) 0))))
+
 (defmethod parse-json-node ((name (eql :dimensions-3d)) node)
   (list name (let ((parsed-dimensions (parse-alist node)))
                (cl-transforms:make-3d-vector (second (assoc :width parsed-dimensions))
                                              (second (assoc :depth parsed-dimensions))
                                              (second (assoc :height parsed-dimensions))))))
 
-(defmethod parse-json-node ((name (eql :boundingbox)) node)
-  (mapcar (lambda (key-value-pair)
-            (destructuring-bind (key value)
-                key-value-pair
-             (list (intern (concatenate 'string "BB-" (string-upcase key)) :keyword) value)))
-          (parse-alist node)))
 
 (defun flatten-one-level (tree)
   (let (flattened-tree)
