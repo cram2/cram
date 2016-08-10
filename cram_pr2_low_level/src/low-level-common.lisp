@@ -105,7 +105,8 @@
                                 (topic "visualization_marker")
                                 (r-g-b-list '(1 0 0))
                                 (marker-type :arrow)
-                                (id 1))
+                                (id 1)
+                                (in-frame cram-tf:*fixed-frame*))
   (declare (type (or cl-transforms:pose cl-transforms-stamped:pose-stamped))
            (type string topic))
   (let ((point (cl-transforms:origin pose))
@@ -117,7 +118,7 @@
                                            (typecase pose
                                              (cl-transforms-stamped:pose-stamped
                                               (cl-transforms-stamped:frame-id pose))
-                                             (t cram-tf:*fixed-frame*))
+                                             (t (or in-frame cram-tf:*fixed-frame*)))
                                            ns "goal_locations"
                                            id id
                                            type (roslisp:symbol-code
@@ -134,7 +135,7 @@
                                            (w orientation pose) (cl-transforms:w rot)
                                            (x scale) 0.1
                                            (y scale) 0.05
-                                           (z scale) 0.05
+                                           (z scale) 0.01
                                            (r color) (first r-g-b-list)
                                            (g color) (second r-g-b-list)
                                            (b color) (third r-g-b-list)
