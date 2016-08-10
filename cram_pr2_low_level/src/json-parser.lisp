@@ -41,28 +41,42 @@
             :format-arguments (list name)))
     (list name node)))
 
-(defun parse-hash-table (hash-table)
-  (loop for key being the hash-keys of hash-table
-          using (hash-value value)
-        for key-name = (intern (string-upcase key) :keyword)
-        for parsed-key-value-list = (parse-json-node key-name value)
-        if parsed-key-value-list
-          collect parsed-key-value-list))
+(defun parse-alist (alist)
+  (remove-if #'null
+             (mapcar (lambda (key-value-cons)
+                       (let ((key-name (intern (string-upcase (car key-value-cons))
+                                               :keyword)))
+                         (parse-json-node key-name (cdr key-value-cons))))
+                     alist)))
+
+(defmacro getassoc (key alist)
+  `(cdr (assoc ,key ,alist :test #'equal)))
+
+(defmethod parse-json-node (name (node list))
+  (let ((parsed-node (parse-alist node)))
+    (if name
+        (list name parsed-node)
+        parsed-node)))
 
 (defmethod parse-json-node ((name (eql :_designator_type)) node) nil)
 (defmethod parse-json-node ((name (eql :timestamp)) node) nil)
 (defmethod parse-json-node ((name (eql :pipelineid)) node) nil)
 
+(defmethod parse-json-node ((name (eql :type)) node)
+  (list name (intern (string-upcase node) :keyword)))
+
 (defmethod parse-json-node ((name (eql :pose)) node)
-  (let* ((frame-id (gethash "frame_id" node))
-         (pos-x (gethash "pos_x" node))
-         (pos-y (gethash "pos_y" node))
-         (pos-z (gethash "pos_z" node))
-         (rot-x (gethash "rot_x" node))
-         (rot-y (gethash "rot_y" node))
-         (rot-z (gethash "rot_z" node))
-         (rot-w (gethash "rot_w" node))
-         (stamp (gethash "stamp" node))
+  (if (getassoc "POSE" node)
+      (list name (parse-alist node))
+      (let* ((frame-id (getassoc "frame_id" node))
+         (pos-x (getassoc "pos_x" node))
+         (pos-y (getassoc "pos_y" node))
+         (pos-z (getassoc "pos_z" node))
+         (rot-x (getassoc "rot_x" node))
+         (rot-y (getassoc "rot_y" node))
+         (rot-z (getassoc "rot_z" node))
+         (rot-w (getassoc "rot_w" node))
+         (stamp (getassoc "stamp" node))
          (object-pose (cl-transforms-stamped:make-pose-stamped
                        frame-id
                        stamp
@@ -74,11 +88,11 @@
                                :timeout *tf-default-timeout*
                                :pose object-pose
                                :target-frame cram-tf:*robot-base-frame*)))
-    (list name object-pose-in-base)))
+    (list name object-pose-in-base))))
 
 (defmethod parse-json-node ((name (eql :color)) node)
   (cons name (mapcar #'first
-                     (subseq (sort (parse-hash-table node)
+                     (subseq (sort (parse-alist node)
                                    #'> :key #'second)
                              0 3))))
 
@@ -90,10 +104,10 @@
   ;;                                 :key (lambda (x)
   ;;                                        (second (find :confidence x :key #'car))))
   ;;                          :key #'first)))
-  (find :type (parse-hash-table node) :key #'car))
+  (find :type (parse-alist node) :key #'car))
 
 (defmethod parse-json-node ((name (eql :dimensions-3d)) node)
-  (list name (let ((parsed-dimensions (parse-hash-table node)))
+  (list name (let ((parsed-dimensions (parse-alist node)))
                (cl-transforms:make-3d-vector (second (assoc :width parsed-dimensions))
                                              (second (assoc :depth parsed-dimensions))
                                              (second (assoc :height parsed-dimensions))))))
@@ -103,29 +117,29 @@
             (destructuring-bind (key value)
                 key-value-pair
              (list (intern (concatenate 'string "BB-" (string-upcase key)) :keyword) value)))
-          (parse-hash-table node)))
-
-(defmethod parse-json-node (name (node hash-table))
-  (let* ((parsed-node (parse-hash-table node)))
-    (if name
-        (list name parsed-node)
-        parsed-node)))
+          (parse-alist node)))
 
 (defun flatten-one-level (tree)
   (let (flattened-tree)
     (mapc (lambda (key-value-pair)
-            (if (listp (first key-value-pair))
-                (mapc (lambda (inner-key-value-pair)
-                        (push inner-key-value-pair flattened-tree))
-                      key-value-pair)
-                (push key-value-pair flattened-tree)))
+            (let ((key (first key-value-pair))
+                  (value (second key-value-pair)))
+              (if (listp key)
+                  (mapc (lambda (inner-key-value-pair)
+                          (push inner-key-value-pair flattened-tree))
+                        key-value-pair)
+                  (let ((index-of-key-in-flattened
+                          (position key flattened-tree :key #'car)))
+                    (if index-of-key-in-flattened
+                        (nconc (nth index-of-key-in-flattened flattened-tree) (list value)) 
+                        (push key-value-pair flattened-tree))))))
           tree)
     flattened-tree))
 
 (defun parse-robosherlock-result (json-string)
   (desig:make-designator
    :object
-   (flatten-one-level (parse-hash-table (yason:parse json-string)))))
+   (flatten-one-level (parse-json-node nil (yason:parse json-string :object-as :alist)))))
 
 
 
