@@ -47,7 +47,7 @@
 (defparameter *plate-2nd-pregrasp-z-offset* 0.035 "in meters") ; grippers can't go into table
 
 (defparameter *cutlery-pregrasp-z-offset* 0.4 "in meters")
-(defparameter *cutlery-grasp-z-offset* 0.002 "in meters")
+(defparameter *cutlery-grasp-z-offset* 0.01 "in meters") ; 1 cm because TCP is not at the edge
 
 (defparameter *cup-grasp-z-offset* 0.09 "in meters")
 (defparameter *cup-pregrasp-xy-offset* 0.2 "in meters")
@@ -57,6 +57,7 @@
 (defparameter *bottle-pregrasp-xy-offset* 0.2 "in meters")
 (defparameter *bottle-pregrasp-z-offset* 0.4 "in meters")
 
+(defparameter *lift-z-offset* 0.4 "in meters")
 
 (defparameter *pr2-right-arm-joint-names-list*
   '("r_shoulder_pan_joint" "r_shoulder_lift_joint" "r_upper_arm_roll_joint"
@@ -72,14 +73,14 @@
   (cl-transforms-stamped:make-pose-stamped
    "base_footprint"
    0.0
-   (cl-transforms:make-3d-vector 0.4 -0.3 1.4)
+   (cl-transforms:make-3d-vector 0.4 -0.3 1.6)
    (cl-transforms:make-quaternion 0.029319081708036543d0 -0.018714920400581137d0
                                   0.5257710356470319d0 0.8499146788218482d0)))
 (defparameter *pr2-left-arm-out-of-sight-gripper-pose*
   (cl-transforms-stamped:make-pose-stamped
    "base_footprint"
    0.0
-   (cl-transforms:make-3d-vector 0.4 0.3 1.4)
+   (cl-transforms:make-3d-vector 0.4 0.3 1.6)
    (cl-transforms:make-quaternion 0.9215513103717499d0 -0.387996037470125d0
                                   -0.014188589447636247d0 -9.701489976338351d-4)))
 
@@ -147,9 +148,12 @@
                  (left ?left-pose-to-go)
                  (right ?right-pose-to-go))))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; CUTLERY ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun calculate-cutlery-grasp-pose (yaw x-obj y-obj z-support z-obj-offset &optional arm)
-  (declare (ignore arm))
+(defun get-object-pose (object-designator)
+  (cadar (desig:desig-prop-value object-designator :pose)))
+
+(defun calculate-cutlery-grasp-pose (yaw x-obj y-obj z-support z-obj-offset)
   "same for both arms"
   (cl-transforms-stamped:pose->pose-stamped
    cram-tf:*robot-base-frame*
@@ -165,29 +169,110 @@
                      (-1 0 0 ,(+ z-support z-obj-offset))
                      (0 0 0 1))))))))
 
-(defun get-cutlery-grasp-pose (object-designator)
-  (let* ((object-pose (desig:desig-prop-value object-designator :pose))
-         (theta (cl-transforms:get-yaw (cl-transforms:orientation object-pose)))
-         (translation (cl-transforms:origin object-pose))
-         (x-obj (cl-transforms:x translation))
-         (y-obj (cl-transforms:y translation)))
-    (calculate-cutlery-grasp-pose theta x-obj y-obj
-                                  *kitchen-sink-block-z*
-                                  *cutlery-grasp-z-offset*)))
+(defun calculate-plate-grasp-pose (x-obj y-obj y-obj-offset
+                                   z-support z-obj-offset &key arm (roll (/ pi 3)))
+  (cl-transforms-stamped:pose->pose-stamped
+   cram-tf:*robot-base-frame*
+   0.0
+   (cl-transforms:transform->pose
+    (cl-transforms:matrix->transform
+     (let ((sin-roll (sin roll))
+           (cos-roll (cos roll)))
+       (make-array '(4 4)
+                   :initial-contents
+                   (case arm
+                    (:right `((0 0 -1 ,x-obj)
+                              (,cos-roll ,(- sin-roll) 0 ,(- y-obj y-obj-offset))
+                              (,(- sin-roll) ,(- cos-roll) 0 ,(+ z-support z-obj-offset))
+                              (0 0 0 1)))
+                    (:left `((0 0 -1 ,x-obj)
+                             (,(- cos-roll) ,(- sin-roll) 0 ,(+ y-obj y-obj-offset))
+                             (,(- sin-roll) ,cos-roll 0 ,(+ z-support z-obj-offset))
+                             (0 0 0 1)))
+                    (t (error "get only get grasp poses for :left or :right arms")))))))))
 
-(defun get-cutlery-put-pose ()
-  ;; (calculate-cutlery-grasp-pose 0.0 (+ 0.7 (random 0.2)) (- (random 0.4))
-  ;;                               *kitchen-sink-block-z*
-  ;;                               *cutlery-grasp-z-offset*)
-  (calculate-cutlery-grasp-pose 0.0 0.7 -0.7
-                                *kitchen-sink-block-z*
-                                *cutlery-grasp-z-offset*))
+(defun calculate-cup-grasp-pose (x-obj y-obj z-support z-obj-offset &optional arm grasp) 
+  "same for both arms"
+  (cl-transforms-stamped:pose->pose-stamped
+   cram-tf:*robot-base-frame*
+   0.0
+   (cl-transforms:transform->pose
+    (cl-transforms:matrix->transform
+     (make-array '(4 4)
+                 :initial-contents
+                 (case grasp
+                   (:front `((1 0 0 ,x-obj)
+                             (0 1 0 ,y-obj)
+                             (0 0 1 ,(+ z-support z-obj-offset))
+                             (0 0 0 1)))
+                   (:side `((0 ,(case arm
+                                  (:left 1)
+                                  (:right -1)
+                                  (t (error "arm can only be :left or :right"))) 0 ,x-obj)
+                            (,(case arm
+                                (:left -1)
+                                (:right 1)
+                                (t (error "arm can only be :left or :right"))) 0 0 ,y-obj)
+                            (0 0 1 ,(+ z-support z-obj-offset))
+                            (0 0 0 1)))
+                   (t (error "grasp can only be :side or :front"))))))))
+
+
+(defun get-object-type-grasp-pose (object-type object-pose arm grasp)
+  (case object-type
+    ((:fork :knife :cutlery
+            :fork_blue_plastic :fork_red_plastic :knife_red_plastic :knife_blue_plastic)
+     (if (eq grasp :top)
+         (let* ((yaw (cl-transforms:get-yaw (cl-transforms:orientation object-pose)))
+                (translation (cl-transforms:origin object-pose))
+                (x-obj (cl-transforms:x translation))
+                (y-obj (cl-transforms:y translation)))
+           (calculate-cutlery-grasp-pose yaw x-obj y-obj
+                                         *kitchen-sink-block-z*
+                                         *cutlery-grasp-z-offset*))
+         (error "can only grasp cutlery from top")))
+    ((:plate :red_spotted_plate)
+     (if (eq grasp :side)
+         (let* ((translation (cl-transforms:origin object-pose))
+                (x-obj (cl-transforms:x translation))
+                (y-obj (cl-transforms:y translation)))
+           (calculate-plate-grasp-pose x-obj y-obj *plate-grasp-y-offset*
+                                       *kitchen-sink-block-z*
+                                       *plate-grasp-z-offset*
+                                       :arm arm))
+         (error "can only grasp plates from a side")))
+    ((:bottle :drink :sigg_bottle :reine_butter_milch)
+     (let* ((translation (cl-transforms:origin object-pose))
+            (x-obj (cl-transforms:x translation))
+            (y-obj (cl-transforms:y translation)))
+       (calculate-cup-grasp-pose x-obj y-obj
+                                 *kitchen-sink-block-z*
+                                 *bottle-grasp-z-offset*
+                                 arm grasp)))
+    ((:cup)
+     (let* ((translation (cl-transforms:origin object-pose))
+            (x-obj (cl-transforms:x translation))
+            (y-obj (cl-transforms:y translation)))
+       (calculate-cup-grasp-pose x-obj y-obj
+                                 *kitchen-sink-block-z*
+                                 *cup-grasp-z-offset*
+                                 arm grasp)))))
+
+(defun get-object-grasp-pose (object-designator arm grasp)
+  (get-object-type-grasp-pose
+   (desig:desig-prop-value object-designator :type)
+   (get-object-pose object-designator)
+   arm grasp))
+
+(defun get-object-type-lift-pose (object-type object-pose arm grasp)
+  (translate-pose (get-object-type-grasp-pose object-type object-pose arm grasp)
+                  :z-offset *lift-z-offset*))
+
+(defun get-object-grasp-lift-pose (grasp-pose)
+  (translate-pose grasp-pose :z-offset *lift-z-offset*))
 
 (defun get-cutlery-pregrasp-pose (grasp-pose)
   (translate-pose grasp-pose :z-offset *cutlery-pregrasp-z-offset*))
-
-(defun get-cutlery-lift-pose (grasp-pose)
-  (get-cutlery-pregrasp-pose grasp-pose))
 
 (defun top-level-pick-cutlery (&optional (?color ""))
   (with-pr2-process-modules
@@ -199,9 +284,10 @@
                                    (desig:an action
                                              (to detect)
                                              (object ?object-desig))))
-           (?cutlery-grasp-pose (get-cutlery-grasp-pose ?updated-object-desig))
+           (?cutlery-grasp-pose
+             (get-object-grasp-pose ?updated-object-desig :right :top))
            (?cutlery-pregrasp-pose (get-cutlery-pregrasp-pose ?cutlery-grasp-pose))
-           (?cutlery-lift-pose (get-cutlery-lift-pose ?cutlery-grasp-pose)))
+           (?cutlery-lift-pose (get-object-grasp-lift-pose ?cutlery-grasp-pose)))
       (pr2-ll:visualize-marker ?cutlery-grasp-pose)
       (cpl:with-failure-handling
           ((pr2-ll:pr2-low-level-failure (e)
@@ -259,12 +345,21 @@
                    (to ?cutlery-lift-pose))))
       (move-pr2-right-arm-out-of-sight))))
 
+(defun calculate-cutlery-destination-pose ()
+  (cl-transforms:make-pose
+   (cl-transforms:make-3d-vector (+ 0.7 (random 0.2))
+                                 (- (random 0.4))
+                                 *kitchen-sink-block-z*)
+   (cl-transforms:make-identity-rotation)))
+
 (defun top-level-place-cutlery ()
   (with-pr2-process-modules
     (move-pr2-right-arm-out-of-sight)
-    (let* ((?cutlery-grasp-pose (get-cutlery-put-pose))
+    (let* ((?cutlery-grasp-pose
+             (get-object-type-grasp-pose :cutlery (calculate-cutlery-destination-pose)
+                                         :right :top))
            (?cutlery-pregrasp-pose (get-cutlery-pregrasp-pose ?cutlery-grasp-pose))
-           (?cutlery-lift-pose (get-cutlery-lift-pose ?cutlery-grasp-pose)))
+           (?cutlery-lift-pose (get-object-grasp-lift-pose ?cutlery-grasp-pose)))
       (pr2-ll:visualize-marker ?cutlery-grasp-pose)
       (cpl:with-failure-handling
           ((pr2-ll:pr2-low-level-failure (e)
@@ -313,36 +408,9 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;; PLATE ;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun calculate-plate-grasp-pose (x-obj y-obj y-obj-offset
-                                   z-support z-obj-offset &key arm (roll (/ pi 3)))
-  (cl-transforms-stamped:pose->pose-stamped
-   cram-tf:*robot-base-frame*
-   0.0
-   (cl-transforms:transform->pose
-    (cl-transforms:matrix->transform
-     (let ((sin-roll (sin roll))
-           (cos-roll (cos roll)))
-       (make-array '(4 4)
-                   :initial-contents
-                   (case arm
-                    (:right `((0 0 -1 ,x-obj)
-                              (,cos-roll ,(- sin-roll) 0 ,(- y-obj y-obj-offset))
-                              (,(- sin-roll) ,(- cos-roll) 0 ,(+ z-support z-obj-offset))
-                              (0 0 0 1)))
-                    (:left `((0 0 -1 ,x-obj)
-                             (,(- cos-roll) ,(- sin-roll) 0 ,(+ y-obj y-obj-offset))
-                             (,(- sin-roll) ,cos-roll 0 ,(+ z-support z-obj-offset))
-                             (0 0 0 1)))
-                    (t (error "get only get grasp poses for :left or :right arms")))))))))
 
-(defun get-plate-grasp-pose (object-designator arm)
-  (let* ((object-pose (desig:desig-prop-value object-designator :pose))
-         (translation (cl-transforms:origin object-pose))
-         (x-obj (cl-transforms:x translation))
-         (y-obj (cl-transforms:y translation)))
-    (calculate-plate-grasp-pose x-obj y-obj *plate-grasp-y-offset*
-                                *kitchen-sink-block-z* *plate-grasp-z-offset*
-                                :arm arm)))
+
+
 
 (defun get-plate-pregrasp-pose (grasp-pose arm)
   (translate-pose grasp-pose
@@ -375,14 +443,14 @@
                                    (desig:an action
                                              (to detect)
                                              (object ?object-desig))))
-           (?left-grasp-pose (get-plate-grasp-pose ?updated-object-desig :left))
+           (?left-grasp-pose (get-object-grasp-pose ?updated-object-desig :left :side))
            (?left-pregrasp-pose (get-plate-pregrasp-pose ?left-grasp-pose :left))
            (?left-2nd-pregrasp-pose (get-plate-second-pregrasp-pose ?left-grasp-pose :left))
-           (?left-lift-pose (get-plate-lift-pose ?left-grasp-pose :left))
-           (?right-grasp-pose (get-plate-grasp-pose ?updated-object-desig :right))
+           (?left-lift-pose (get-object-grasp-lift-pose ?left-grasp-pose))
+           (?right-grasp-pose (get-object-grasp-pose ?updated-object-desig :right :side))
            (?right-pregrasp-pose (get-plate-pregrasp-pose ?right-grasp-pose :right))
            (?right-2nd-pregrasp-pose (get-plate-second-pregrasp-pose ?right-grasp-pose :right))
-           (?right-lift-pose (get-plate-lift-pose ?right-grasp-pose :right)))
+           (?right-lift-pose (get-object-grasp-lift-pose ?right-grasp-pose)))
       (pr2-ll:visualize-marker ?left-grasp-pose :id 1 :r-g-b-list '(1 0 1))
       (pr2-ll:visualize-marker ?right-grasp-pose :id 2 :r-g-b-list '(1 0 1))
       (cpl:with-failure-handling
@@ -480,45 +548,6 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; CUPS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun calculate-cup-grasp-pose (x-obj y-obj z-support z-obj-offset &optional arm grasp) 
-  "same for both arms"
-  (cl-transforms-stamped:pose->pose-stamped
-   cram-tf:*robot-base-frame*
-   0.0
-   (cl-transforms:transform->pose
-    (cl-transforms:matrix->transform
-     (make-array '(4 4)
-                 :initial-contents
-                 (case grasp
-                   (:front `((1 0 0 ,x-obj)
-                             (0 1 0 ,y-obj)
-                             (0 0 1 ,(+ z-support z-obj-offset))
-                             (0 0 0 1)))
-                   (:side `((0 ,(case arm
-                                  (:left 1)
-                                  (:right -1)
-                                  (t (error "arm can only be :left or :right"))) 0 ,x-obj)
-                            (,(case arm
-                                (:left -1)
-                                (:right 1)
-                                (t (error "arm can only be :left or :right"))) 0 0 ,y-obj)
-                            (0 0 1 ,(+ z-support z-obj-offset))
-                            (0 0 0 1)))
-                   (t (error "grasp can only be :side or :front"))))))))
-
-(defun get-cup-grasp-pose (object-designator arm grasp)
-  (let* ((object-pose (desig:desig-prop-value object-designator :pose))
-         (translation (cl-transforms:origin object-pose))
-         (x-obj (cl-transforms:x translation))
-         (y-obj (cl-transforms:y translation)))
-    (calculate-cup-grasp-pose x-obj y-obj
-                              *kitchen-sink-block-z* *cup-grasp-z-offset*
-                              arm grasp)))
-
-(defun get-cup-put-pose (arm grasp)
-  (calculate-cup-grasp-pose 0.8 -0.6
-                            *kitchen-sink-block-z* *cup-grasp-z-offset*
-                            arm grasp))
 
 (defun get-cup-pregrasp-pose (grasp-pose arm grasp)
   (case grasp
@@ -541,9 +570,6 @@
              (t (error "arm can only be :left or :right"))))
     (t (error "grasp can only be :side or :front"))))
 
-(defun get-cup-lift-pose (grasp-pose)
-  (translate-pose grasp-pose :z-offset *cup-pregrasp-z-offset*))
-
 (defun top-level-pick-cup (&key (?type "Cup") (?color "") (?arm :right) (?grasp :side))
   (with-pr2-process-modules
     (move-pr2-arms-out-of-sight)
@@ -554,9 +580,9 @@
                                    (desig:an action
                                              (to detect)
                                              (object ?object-desig))))
-           (?cup-grasp-pose (get-cup-grasp-pose ?updated-object-desig ?arm ?grasp))
+           (?cup-grasp-pose (get-object-grasp-pose ?updated-object-desig ?arm ?grasp))
            (?cup-pregrasp-pose (get-cup-pregrasp-pose ?cup-grasp-pose ?arm ?grasp))
-           (?cup-lift-pose (get-cup-lift-pose ?cup-grasp-pose))
+           (?cup-lift-pose (get-object-grasp-lift-pose ?cup-grasp-pose))
            (?cup-2nd-pregrasp-pose (get-cup-second-pregrasp-pose ?cup-grasp-pose ?arm ?grasp)))
       (pr2-ll:visualize-marker ?cup-grasp-pose)
       (cpl:with-failure-handling
@@ -625,12 +651,17 @@
                    (to ?cup-lift-pose))))
       (move-pr2-arms-out-of-sight))))
 
+(defun get-cup-put-pose (arm grasp)
+  (calculate-cup-grasp-pose 0.8 -0.6
+                            *kitchen-sink-block-z* *cup-grasp-z-offset*
+                            arm grasp))
+
 (defun top-level-place-cup (&key (?arm :right) (?grasp :side))
   (with-pr2-process-modules
     (move-pr2-arms-out-of-sight)
     (let* ((?cup-grasp-pose (get-cup-put-pose ?arm ?grasp))
            (?cup-pregrasp-pose (get-cup-pregrasp-pose ?cup-grasp-pose ?arm ?grasp))
-           (?cup-lift-pose (get-cup-lift-pose ?cup-grasp-pose)))
+           (?cup-lift-pose (get-object-grasp-lift-pose ?cup-grasp-pose)))
       (pr2-ll:visualize-marker ?cup-grasp-pose)
       (cpl:with-failure-handling
           ((pr2-ll:pr2-low-level-failure (e)
