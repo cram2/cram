@@ -28,13 +28,21 @@
 
 (in-package :cram-robot-interfaces)
 
-(def-fact-group arms (arm required-arms available-arms end-effector-link
+(def-fact-group arms (arm arm-joints arm-links required-arms available-arms end-effector-link
                           robot-tool-frame
                           gripper-joint gripper-link
                           robot-arms-parking-joint-states end-effector-parking-pose
                           robot-pre-grasp-joint-states planning-group)
   ;; Unifies ?side with the name of an arm that is present on the ?robot.
   (<- (arm ?robot ?arm)
+    (fail))
+
+  ;; Unifies ?arm with the list of joints for that arm.
+  (<- (arm-joints ?robot ?arm ?joints)
+    (fail))
+
+  ;; Unifies ?arm with a list of links for that arm (includes gripper links).
+  (<- (arm-links ?robot ?arm ?links)
     (fail))
 
   ;; ?sides is unified with the list of arms that are required to
