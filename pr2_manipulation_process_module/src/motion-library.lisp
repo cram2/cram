@@ -377,7 +377,7 @@ the manipulation parameter sets `parameter-sets' and executes the code
                                          (when time-end
                                            (setf time-offset time-end))
                                          trajectory)))))
-                               parameter-sets)))
+                               ,parameter-sets)))
                :ignore-va t))
             (assume (pose-slot-name &optional ignore-collisions raise-elbow)
               (cond ((listp pose-slot-name)
