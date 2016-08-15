@@ -132,6 +132,21 @@
                   "r_gripper_motor_slider_link"
                   "r_gripper_motor_screw_link"))))
 
+(defun get-hand-link-names (arm)
+  (ecase side
+    (:left (list "l_gripper_l_finger_tip_link"
+                 "l_gripper_r_finger_tip_link"
+                 "l_gripper_l_finger_link"
+                 "l_gripper_r_finger_link"
+                 "l_gripper_l_finger_tip_frame"
+                 "l_gripper_palm_link"))
+    (:right (list "r_gripper_l_finger_tip_link"
+                  "r_gripper_r_finger_tip_link"
+                  "r_gripper_l_finger_link"
+                  "r_gripper_r_finger_link"
+                  "r_gripper_l_finger_tip_frame"
+                  "r_gripper_palm_link"))))
+
 (def-fact-group pr2-metadata (robot
                               
                               robot-base-frame robot-torso-link-joint
@@ -211,7 +226,7 @@
 
 (def-fact-group pr2-manipulation-knowledge (grasp
                                             side
-                                            arm arm-joints arm-links
+                                            arm arm-joints arm-links hand-links
                                             object-type-grasp
                                             object-designator-grasp
                                             orientation-matters
@@ -231,6 +246,9 @@
 
   (<- (arm-links pr2 ?arm ?links)
     (lisp-fun get-arm-link-names ?arm ?links))
+
+  (<- (hand-links pr2 ?arm ?links)
+    (lisp-fun get-hand-link-names ?arm ?links))
 
   (<- (object-type-grasp :mug ?grasp (?side))
     (grasp pr2 ?grasp)
