@@ -53,6 +53,7 @@
 (defvar *gripper-grab-action-left* nil)
 (defvar *gripper-grab-action-right* nil)
 
+;; TODO: are these variables used anywhere? They're not used in this package, nor exported.
 (defvar *trajectory-action-left* nil)
 (defvar *trajectory-action-right* nil)
 (defvar *trajectory-action-both* nil)
@@ -68,6 +69,7 @@
 ;;                            (cl-transforms:euler->quaternion :ax pi)))
 
 (defun init-pr2-manipulation-process-module ()
+  ;; TODO: make this robot-agnostic, so we could reuse this package (which actually contains generic low-level manipulation plans) for other robots too.
   (setf *gripper-action-left*
         (actionlib:make-action-client
          "/l_gripper_controller/gripper_action"
@@ -76,6 +78,7 @@
         (actionlib:make-action-client
          "/r_gripper_controller/gripper_action"
          "pr2_controllers_msgs/Pr2GripperCommandAction"))
+  ;; TODO: apart from here, *trajectory-action-torso* isn't used anywhere else in the package, nor is it exported.
   (setf *trajectory-action-torso*
         (actionlib:make-action-client
          "/torso_controller/joint_trajectory_action"
@@ -104,21 +107,11 @@
                       :name name)))
 
 (defun register-current-arm-pose (name side)
-  (let* ((joints (ecase side
-                   (:right (list "r_shoulder_pan_joint"
-                                 "r_shoulder_lift_joint"
-                                 "r_upper_arm_roll_joint"
-                                 "r_elbow_flex_joint"
-                                 "r_forearm_roll_joint"
-                                 "r_wrist_flex_joint"
-                                 "r_wrist_roll_joint"))
-                   (:left (list "l_shoulder_pan_joint"
-                                "l_shoulder_lift_joint"
-                                "l_upper_arm_roll_joint"
-                                "l_elbow_flex_joint"
-                                "l_forearm_roll_joint"
-                                "l_wrist_flex_joint"
-                                "l_wrist_roll_joint"))))
+  ;; TODO: replace this with a prolog call (which would take the joint names to be what's appropriate for the used robot, whatever it is)
+  (let* ((joints (cut:var-value '?joints
+                                (first (prolog:prolog
+                                         `(and (robot ?robot)
+                                               (arm-joints ?robot ,side ?joints))))))
          (joint-values (mapcar (lambda (joint)
                                  (moveit:get-joint-value joint))
                                joints)))
@@ -131,81 +124,33 @@
                      (eql side (arm-side arm-pose))))))
 
 (defun links-for-arm-side (side)
-  (ecase side
-    (:left (list "l_shoulder_pan_link"
-                 "l_shoulder_lift_link"
-                 "l_upper_arm_roll_link"
-                 "l_upper_arm_link"
-                 "l_elbow_flex_link"
-                 "l_forearm_roll_link"
-                 "l_forearm_link"
-                 "l_wrist_flex_link"
-                 "l_wrist_roll_link"
-                 "l_gripper_led_frame"
-                 "l_gripper_motor_accelerometer_link"
-                 "l_gripper_tool_frame"
-                 "l_gripper_r_finger_link"
-                 "l_gripper_r_finger_tip_link"
-                 "l_gripper_l_finger_tip_frame"
-                 "l_gripper_l_finger_link"
-                 "l_gripper_l_finger_tip_link"
-                 "l_gripper_motor_slider_link"
-                 "l_gripper_motor_screw_link"
-                 "l_gripper_palm_link"
-                 "l_force_torque_link"
-                 "l_force_torque_adapter_link"))
-    (:right (list "r_gripper_palm_link"
-                  "r_shoulder_pan_link"
-                  "r_shoulder_lift_link"
-                  "r_upper_arm_roll_link"
-                  "r_upper_arm_link"
-                  "r_elbow_flex_link"
-                  "r_forearm_roll_link"
-                  "r_forearm_link"
-                  "r_wrist_flex_link"
-                  "r_wrist_roll_link"
-                  "r_gripper_led_frame"
-                  "r_gripper_motor_accelerometer_link"
-                  "r_gripper_tool_frame"
-                  "r_gripper_r_finger_link"
-                  "r_gripper_r_finger_tip_link"
-                  "r_gripper_l_finger_tip_frame"
-                  "r_gripper_l_finger_link"
-                  "r_gripper_l_finger_tip_link"
-                  "r_gripper_motor_slider_link"
-                  "r_gripper_motor_screw_link"))))
+  (cut:var-value '?links
+                 (first (prolog:prolog
+                          `(and (robot ?robot)
+                                (arm-links ?robot ,side ?links))))))
 
 (define-hook cram-language::on-prepare-move-arm (side pose-stamped planning-group ignore-collisions))
 (define-hook cram-language::on-finish-move-arm (log-id success))
 
-(defun execute-move-arm-poses (side poses-stamped
+(defun execute-move-arm-poses (side poses-stamped goal-spec
                                &key allowed-collision-objects
                                  ignore-collisions
                                  plan-only
                                  start-state
                                  collidable-objects
                                  max-tilt)
+  ;; TODO: this function is not exported nor called from anywhere inside the package. Keep?
   (ros-info (pr2 manip-pm) "Executing multi-pose arm movement")
-  (let* ((trajectories
-           (mapcar
-            (lambda (pose-stamped)
-              (multiple-value-bind
-                    (trajectory start)
-                  (execute-move-arm-pose
-                   side pose-stamped
-                   :allowed-collision-objects allowed-collision-objects
-                   :ignore-collisions ignore-collisions
-                   :plan-only t
-                   :start-state start-state
-                   :collidable-objects collidable-objects
-                   :max-tilt max-tilt)
-                (setf start-state start)
-                trajectory))
-            poses-stamped))
-         (trajectory (moveit:concatenate-trajectories
-                      trajectories :ignore-va t)))
-    (cond (plan-only trajectory)
-          (t (moveit:execute-trajectory trajectory)))))
+  (let* ((updated-goal-spec (mot-man:enriched-goal-specification goal-spec
+                                                                 :keys `((:allowed-collision-objects ,allowed-collision-objects)
+                                                                         (:ignore-collisions ,ignore-collisions)
+                                                                         (:collidable-objects collidable-objects)
+                                                                         (:max-tilt ,max-tilt)
+                                                                         (:plan-only ,plan-only)
+                                                                         (:start-state ,start-state))
+                                                                 :arm-pose-goals `((,side ,poses-stamped)))))
+    (cond (plan-only (mot-man:trajectory (mot-man:execute-arm-action updated-goal-spec)))
+          (t (mot-man:execute-arm-action updated-goal-spec)))))
 
 (defun gripper-at-pose-p (side pose-stamped
                           &key cartesian-thres angular-thres)
