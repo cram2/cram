@@ -133,7 +133,7 @@
                   "r_gripper_motor_screw_link"))))
 
 (defun get-hand-link-names (arm)
-  (ecase side
+  (ecase arm
     (:left (list "l_gripper_l_finger_tip_link"
                  "l_gripper_r_finger_tip_link"
                  "l_gripper_l_finger_link"
@@ -148,7 +148,6 @@
                   "r_gripper_palm_link"))))
 
 (def-fact-group pr2-metadata (robot
-                              
                               robot-base-frame robot-torso-link-joint
                               robot-odom-frame
                               camera-frame camera-minimal-height camera-maximal-height
