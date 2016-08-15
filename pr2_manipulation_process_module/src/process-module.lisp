@@ -129,9 +129,6 @@
                           `(and (robot ?robot)
                                 (arm-links ?robot ,side ?links))))))
 
-(define-hook cram-language::on-prepare-move-arm (side pose-stamped planning-group ignore-collisions))
-(define-hook cram-language::on-finish-move-arm (log-id success))
-
 (defun execute-move-arm-poses (side poses-stamped goal-spec
                                &key allowed-collision-objects
                                  ignore-collisions
@@ -144,12 +141,12 @@
   (let* ((updated-goal-spec (mot-man:enriched-goal-specification goal-spec
                                                                  :keys `((:allowed-collision-objects ,allowed-collision-objects)
                                                                          (:ignore-collisions ,ignore-collisions)
-                                                                         (:collidable-objects collidable-objects)
+                                                                         (:collidable-objects ,collidable-objects)
                                                                          (:max-tilt ,max-tilt)
                                                                          (:plan-only ,plan-only)
                                                                          (:start-state ,start-state))
                                                                  :arm-pose-goals `((,side ,poses-stamped)))))
-    (cond (plan-only (mot-man:trajectory (mot-man:execute-arm-action updated-goal-spec)))
+    (cond (plan-only (mot-man:trajectories (mot-man:execute-arm-action updated-goal-spec)))
           (t (mot-man:execute-arm-action updated-goal-spec)))))
 
 (defun gripper-at-pose-p (side pose-stamped
