@@ -352,7 +352,7 @@ positions, grasp-type, effort to use) are defined in the list
                                   (cl-transforms:origin pose))))))
                    global-gripper-poses)))
     (mot-man:execute-arm-action (mot-man:enriched-goal-specification goal-spec
-                                                                    :keys `((:quiet t) (:ignore-collisions t) (:raise-elbow ,arms))
+                                                                    :keys `((:quiet t) (:ignore-collisions t) (:raise-elbow ,sides))
                                                                     :arm-pose-goals translated-gripper-poses))))
 
 

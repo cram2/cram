@@ -104,8 +104,7 @@
   (let ((arms (force-ll arms)))
     (ros-info (pr2 park) "Park arms ~a" arms)
     (when (> (length arms) 1)
-      (let* (()
-             (arm-pose-goals (mapcar (lambda (arm)
+      (let* ((arm-pose-goals (mapcar (lambda (arm)
                                        (let* ((frame-id (link-name arm))
                                               (arm-in-tll (progn
                                                             (tf:wait-for-transform *transformer*
@@ -503,8 +502,8 @@
   (let* ((grasp-assignment (first grasp-assignments))
          (target-side (case (side grasp-assignment)
                         (:left :right)
-                        (:right :left))))
-    (let* ((target-pose (make-pose-stamped
+                        (:right :left)))
+         (target-pose (make-pose-stamped
                          *robot-torso-frame* 0.0
                          (make-3d-vector 0.4 0.0 0.2)
                          (case (side grasp-assignment)
@@ -516,10 +515,10 @@
                                       (declare (ignore f))
                                       (return-from motion-block)))
           (mot-man:execute-arm-action (mot-man:enriched-goal-specification goal-spec
-                                                                           :arm-pose-goals (list (list (side grasp-assignment) hand-pose))))
+                                                                           :arm-pose-goals (list (list (side grasp-assignment) hand-pose))))))
       (let ((old-allowed-arms *allowed-arms*))
         (setf *allowed-arms* `(,target-side))
-        (grasp-ex (make-designator :action nil) object)
+        (grasp-ex (make-designator :action nil) object goal-spec)
         (setf *allowed-arms* old-allowed-arms))
       (open-gripper (side grasp-assignment))
       (cram-language::on-handover-transition
@@ -542,7 +541,7 @@
                                                                                                      (link-name (side grasp-assignment))
                                                                                                      0.0
                                                                                                      (make-3d-vector -0.05 0.0 0.0)
-                                                                                                     (euler->quaternion)))))))))
+                                                                                                     (euler->quaternion))))))))
 
 (def-action-handler put-down (object-designator location grasp-assignments goal-spec)
   (unless (and object-designator location)

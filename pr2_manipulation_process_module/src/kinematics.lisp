@@ -71,12 +71,6 @@ distance is used. Otherwise, the (unweighted) quadratic joint-space
 integral is calculated. Both methods may not be mixed as their scale
 is fundamentally different."
   (let* ((wrist-frame (link-name side))
-         (arm-group (cut:var-value
-                     '?group
-                     (first
-                      (prolog:prolog
-                       `(and (robot ?robot)
-                             (planning-group ?robot ,side ?group))))))
          (pose-in-tll
            (progn
              (tf:wait-for-transform
