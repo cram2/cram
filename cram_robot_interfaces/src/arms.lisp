@@ -59,6 +59,10 @@
   (<- (end-effector-link ?robot ?arm ?link-name)
     (fail))
 
+  ;; Unifies ?arm with a list of links for the hand of that arm.
+  (<- (hand-links ?robot ?arm ?links)
+    (fail))
+
   ;; Defines tool frames for arms.
   (<- (robot-tool-frame ?robot ?arm ?frame)
     (fail))
