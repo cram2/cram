@@ -67,7 +67,88 @@
 
 (def-tool (cl-transforms:make-3d-vector 1 0 0) 0.20)
 
+
+(defun get-arm-joint-names (arm)
+  ;; TODO: the proper way to do this is to read them out of the srdl, so that we don't need to write the same thing, consistently, in several places
+  (ecase arm
+    (:right (list "r_shoulder_pan_joint"
+                  "r_shoulder_lift_joint"
+                  "r_upper_arm_roll_joint"
+                  "r_elbow_flex_joint"
+                  "r_forearm_roll_joint"
+                  "r_wrist_flex_joint"
+                  "r_wrist_roll_joint"))
+    (:left (list "l_shoulder_pan_joint"
+                 "l_shoulder_lift_joint"
+                 "l_upper_arm_roll_joint"
+                 "l_elbow_flex_joint"
+                 "l_forearm_roll_joint"
+                 "l_wrist_flex_joint"
+                 "l_wrist_roll_joint"))))
+
+(defun get-arm-link-names (arm)
+  ;; TODO: the proper way to do this is to read them out of the srdf, so that we don't need to write the same thing, consistently, in several places
+  (ecase arm
+    (:left (list "l_shoulder_pan_link"
+                 "l_shoulder_lift_link"
+                 "l_upper_arm_roll_link"
+                 "l_upper_arm_link"
+                 "l_elbow_flex_link"
+                 "l_forearm_roll_link"
+                 "l_forearm_link"
+                 "l_wrist_flex_link"
+                 "l_wrist_roll_link"
+                 "l_gripper_led_frame"
+                 "l_gripper_motor_accelerometer_link"
+                 "l_gripper_tool_frame"
+                 "l_gripper_r_finger_link"
+                 "l_gripper_r_finger_tip_link"
+                 "l_gripper_l_finger_tip_frame"
+                 "l_gripper_l_finger_link"
+                 "l_gripper_l_finger_tip_link"
+                 "l_gripper_motor_slider_link"
+                 "l_gripper_motor_screw_link"
+                 "l_gripper_palm_link"
+                 "l_force_torque_link"
+                 "l_force_torque_adapter_link"))
+    (:right (list "r_gripper_palm_link"
+                  "r_shoulder_pan_link"
+                  "r_shoulder_lift_link"
+                  "r_upper_arm_roll_link"
+                  "r_upper_arm_link"
+                  "r_elbow_flex_link"
+                  "r_forearm_roll_link"
+                  "r_forearm_link"
+                  "r_wrist_flex_link"
+                  "r_wrist_roll_link"
+                  "r_gripper_led_frame"
+                  "r_gripper_motor_accelerometer_link"
+                  "r_gripper_tool_frame"
+                  "r_gripper_r_finger_link"
+                  "r_gripper_r_finger_tip_link"
+                  "r_gripper_l_finger_tip_frame"
+                  "r_gripper_l_finger_link"
+                  "r_gripper_l_finger_tip_link"
+                  "r_gripper_motor_slider_link"
+                  "r_gripper_motor_screw_link"))))
+
+(defun get-hand-link-names (arm)
+  (ecase side
+    (:left (list "l_gripper_l_finger_tip_link"
+                 "l_gripper_r_finger_tip_link"
+                 "l_gripper_l_finger_link"
+                 "l_gripper_r_finger_link"
+                 "l_gripper_l_finger_tip_frame"
+                 "l_gripper_palm_link"))
+    (:right (list "r_gripper_l_finger_tip_link"
+                  "r_gripper_r_finger_tip_link"
+                  "r_gripper_l_finger_link"
+                  "r_gripper_r_finger_link"
+                  "r_gripper_l_finger_tip_frame"
+                  "r_gripper_palm_link"))))
+
 (def-fact-group pr2-metadata (robot
+                              
                               robot-base-frame robot-torso-link-joint
                               robot-odom-frame
                               camera-frame camera-minimal-height camera-maximal-height
@@ -145,7 +226,7 @@
 
 (def-fact-group pr2-manipulation-knowledge (grasp
                                             side
-                                            arm
+                                            arm arm-joints arm-links hand-links
                                             object-type-grasp
                                             object-designator-grasp
                                             orientation-matters
@@ -159,6 +240,15 @@
 
   (<- (arm pr2 ?arm)
     (side pr2 ?arm))
+
+  (<- (arm-joints pr2 ?arm ?joints)
+    (lisp-fun get-arm-joint-names ?arm ?joints))
+
+  (<- (arm-links pr2 ?arm ?links)
+    (lisp-fun get-arm-link-names ?arm ?links))
+
+  (<- (hand-links pr2 ?arm ?links)
+    (lisp-fun get-hand-link-names ?arm ?links))
 
   (<- (object-type-grasp :mug ?grasp (?side))
     (grasp pr2 ?grasp)
