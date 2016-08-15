@@ -28,7 +28,7 @@
 
 (in-package :cram-robot-interfaces)
 
-(def-fact-group arms (arm arm-joints arm-links required-arms available-arms end-effector-link
+(def-fact-group arms (arm arm-joints arm-links hand-links required-arms available-arms end-effector-link
                           robot-tool-frame
                           gripper-joint gripper-link
                           robot-arms-parking-joint-states end-effector-parking-pose
