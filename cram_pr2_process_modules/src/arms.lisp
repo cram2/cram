@@ -29,22 +29,28 @@
 
 (in-package :pr2-pms)
 
+(defun fill-in-with-nils (some-list desired-length)
+  (let ((current-length (length some-list)))
+    (if (> desired-length current-length)
+        (append some-list (make-list (- desired-length current-length)))
+        some-list)))
+
 (def-process-module pr2-arms-pm (action-designator)
-  (destructuring-bind (command goal-pose which-arm)
+  (destructuring-bind (command pose-left pose-right)
       (reference action-designator)
     (ecase command
       (move-arm
        (handler-case
-           (case which-arm
-             (:both
-              (unless (and (listp goal-pose)
-                           (= (length goal-pose) 2))
-                (error "when moving both arms goal pose should be a list of 2 elements."))
-              (pr2-ll:call-giskard-action :left (first goal-pose)
-                                          :right (second goal-pose)))
-             (:left (pr2-ll:call-giskard-action :left goal-pose))
-             (:right (pr2-ll:call-giskard-action :right goal-pose))
-             (t (error "arm can only be :left, :right or :both")))
+           (if (and (listp pose-left)
+                    (listp pose-right))
+               (let ((max-length (max (length pose-left) (length pose-right))))
+                 (mapc (lambda (single-pose-left single-pose-right)
+                         (pr2-ll:call-giskard-action :left single-pose-left
+                                                     :right single-pose-right))
+                       (fill-in-with-nils pose-left max-length)
+                       (fill-in-with-nils pose-right max-length)))
+               (pr2-ll:call-giskard-action :left pose-left
+                                           :right pose-right))
          (cram-plan-failures:manipulation-failed ()
            (cpl:fail 'cram-plan-failures:manipulation-failed :action action-designator)))))))
 
@@ -54,13 +60,19 @@
 ;;     (pr2-pms::pr2-arms-pm)
 ;;   (cpl:top-level
 ;;     (cpm:pm-execute-matching
-;;      (desig:an action (to move) (right arm) (to ((0.5 0.5 1.5) (0 0 0 1))))))
+;;      (desig:an action (to move-arm) (right ((0.5 0.5 1.5) (0 0 0 1)))))))
 ;;
 ;; (cram-process-modules:with-process-modules-running
 ;;     (pr2-pms::pr2-arms-pm)
 ;;   (cpl:top-level
 ;;     (cpm:pm-execute-matching
 ;;      (desig:an action
-;;                (to move) (both arms)
+;;                (to move-arm)
 ;;                (right ((0.5 -0.5 1.5) (0 0 0 1)))
 ;;                (left ((0.5 0.5 1.5) (0 0 0 1)))))))
+;;
+;; (cram-process-modules:with-process-modules-running
+;;     (pr2-pms::pr2-arms-pm)
+;;   (cpl:top-level
+;;     (cpm:pm-execute-matching
+;;      (desig:an action (to move-arm) (right (((1 1 1) (0 0 0 1)) nil ((1 1 1) (0 0 0 1))))))))
