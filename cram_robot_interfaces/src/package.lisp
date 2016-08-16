@@ -39,7 +39,7 @@
    #:camera-frame #:camera-minimal-height #:camera-maximal-height
    #:robot-pan-tilt-links #:robot-pan-tilt-joints
    ;; arms
-   #:arm #:arm-joints #:arm-links #:required-arms #:available-arms
+   #:arm #:arm-joints #:arm-links #:hand-links #:required-arms #:available-arms
    #:end-effector-link #:gripper-link #:gripper-joint #:robot-tool-frame
    #:planning-group
    #:robot-arms-parking-joint-states #:end-effector-parking-pose
