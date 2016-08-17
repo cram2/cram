@@ -49,8 +49,8 @@
                                   '(:a :an :some :the)))
                      (let ((quantifier (first key-value-pair-list))
                            (type-symbol (second key-value-pair-list))
-                           (key-value-pairs-evaluated (caddr key-value-pair-list)))
-                       `(,quantifier ,type-symbol ,key-value-pairs-evaluated))
+                           (key-value-pairs-evaluated (cddr key-value-pair-list)))
+                       `(,quantifier ,type-symbol ,@key-value-pairs-evaluated))
                      `(list ,@(loop for key-value-pair in key-value-pair-list
                                     collecting (parse key-value-pair))))
                  (if (symbolp key-value-pair-list) ; we're at a leaf
