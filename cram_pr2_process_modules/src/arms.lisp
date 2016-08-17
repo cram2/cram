@@ -41,16 +41,19 @@
     (ecase command
       (move-arm
        (handler-case
-           (if (and (listp pose-left)
-                    (listp pose-right))
-               (let ((max-length (max (length pose-left) (length pose-right))))
-                 (mapc (lambda (single-pose-left single-pose-right)
-                         (pr2-ll:call-giskard-action :left single-pose-left
-                                                     :right single-pose-right))
-                       (fill-in-with-nils pose-left max-length)
-                       (fill-in-with-nils pose-right max-length)))
-               (pr2-ll:call-giskard-action :left pose-left
-                                           :right pose-right))
+           (progn
+             (unless (listp pose-left)
+               (setf pose-left (list pose-left)))
+             (unless (listp pose-right)
+               (setf pose-right (list pose-right)))
+             (let ((max-length (max (length pose-left) (length pose-right))))
+               (mapc (lambda (single-pose-left single-pose-right)
+                       (pr2-ll:visualize-marker (list single-pose-left single-pose-right)
+                                                :r-g-b-list '(1 0 1))
+                       (pr2-ll:call-giskard-action :left single-pose-left
+                                                   :right single-pose-right))
+                     (fill-in-with-nils pose-left max-length)
+                     (fill-in-with-nils pose-right max-length))))
          (cram-plan-failures:manipulation-failed ()
            (cpl:fail 'cram-plan-failures:manipulation-failed :action action-designator)))))))
 
