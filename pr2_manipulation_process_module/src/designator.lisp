@@ -33,7 +33,7 @@
 (defun make-empty-goal-specification ()
   ;; TODO: should have some query here to get the default goal-spec type, rather than hard-code it.
   ;; TODO: similar, have some reasoning for which fall-back to use, rather than just hard-code it
-  (mot-man:make-goal-specification :giskard-goal-specification :fallback-converter (list #'cram-moveit-manager:fallback-to-moveit)))
+  (mot-man:make-goal-specification :giskard-goal-specification :fallback-converter (list (mot-man:make-fallback-converter :moveit-goal-specification))))
 
 (defun make-message (type-str slots)
   (apply #'roslisp::make-message-fn type-str slots))
