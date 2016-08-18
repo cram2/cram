@@ -33,6 +33,7 @@
   <build_depend>pr2_mechanism_msgs</build_depend>
   <build_depend>pr2_msgs</build_depend>
   <build_depend>cram_pr2_designators</build_depend>
+  <build_depend>cram_motion_manager</build_depend>
   <build_depend>cram_moveit</build_depend>
   
   <!-- Dependencies needed after this package is compiled. -->
@@ -53,6 +54,7 @@
   <run_depend>pr2_mechanism_msgs</run_depend>
   <run_depend>pr2_msgs</run_depend>
   <run_depend>cram_pr2_designators</run_depend>
+  <run_depend>cram_motion_manager</run_depend>
   <run_depend>cram_moveit</run_depend>
 
 </package>
