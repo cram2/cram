@@ -27,7 +27,13 @@
 
 (in-package :pr2-manipulation-process-module)
 
+;; TODO: when porting for other robots, this should be ok ... but watch out for it.
 (defparameter *allowed-arms* `(:left :right))
+
+(defun make-empty-goal-specification ()
+  ;; TODO: should have some query here to get the default goal-spec type, rather than hard-code it.
+  ;; TODO: similar, have some reasoning for which fall-back to use, rather than just hard-code it
+  (mot-man:make-goal-specification :giskard-goal-specification :fallback-converter (list #'cram-moveit-manager:fallback-to-moveit)))
 
 (defun make-message (type-str slots)
   (apply #'roslisp::make-message-fn type-str slots))
@@ -254,39 +260,52 @@
     (desig-prop ?obj-loc (:in :gripper)))
   
   ;; On the PR2 we don't need an open pose
-  (<- (action-desig ?desig (noop ?desig))
+  (<- (action-desig ?desig (noop ?desig ?goal-spec))
     (trajectory-desig? ?desig)
-    (desig-prop ?desig (:pose :open)))
+    (desig-prop ?desig (:pose :open))
+    (lisp-fun make-empty-goal-specification ?goal-spec))
 
-  (<- (action-desig ?desig (park-object ?obj ?grasp-assignments))
+  (<- (action-desig ?desig (park-object ?obj ?grasp-assignments ?goal-spec))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :park))
     (or (desig-prop ?desig (:obj ?obj))
         (desig-prop ?desig (:object ?obj)))
     (current-designator ?obj ?current-obj)
-    (object->grasp-assignments ?current-obj ?grasp-assignments))
+    (object->grasp-assignments ?current-obj ?grasp-assignments)
+    ;; TODO: if you want to add task-related information from the action designator to the goal-spec,
+    ;; this is the place to do it.
+    (lisp-fun make-empty-goal-specification ?goal-spec))
   
-  (<- (action-desig ?desig (park-arms ?arms))
+  (<- (action-desig ?desig (park-arms ?arms ?goal-spec))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :park))
-    (free-arms ?arms))
+    (free-arms ?arms)
+    ;; TODO: if you want to add task-related information from the action designator to the goal-spec,
+    ;; this is the place to do it.
+    (lisp-fun make-empty-goal-specification ?goal-spec))
 
-  (<- (action-desig ?desig (lift nil nil ?distance))
+  (<- (action-desig ?desig (lift nil nil ?distance ?goal-spec))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :lift))
     (desig-prop ?desig (:obj nil))
     (-> (desig-prop ?desig (:distance ?distance))
         (true)
-        (== ?distance 0.1)))
+        (== ?distance 0.1))
+    ;; TODO: if you want to add task-related information from the action designator to the goal-spec,
+    ;; this is the place to do it.
+    (lisp-fun make-empty-goal-specification ?goal-spec))
 
-  (<- (action-desig ?desig (handover ?object ?grasp-assignments))
+  (<- (action-desig ?desig (handover ?object ?grasp-assignments ?goal-spec))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :handover))
     (desig-prop ?desig (:obj ?obj))
     (current-designator ?obj ?object)
-    (object->grasp-assignments ?object ?grasp-assignments))
+    (object->grasp-assignments ?object ?grasp-assignments)
+    ;; TODO: if you want to add task-related information from the action designator to the goal-spec,
+    ;; this is the place to do it.
+    (lisp-fun make-empty-goal-specification ?goal-spec))
 
-  (<- (action-desig ?desig (lift ?current-obj ?grasp-assignments ?distance))
+  (<- (action-desig ?desig (lift ?current-obj ?grasp-assignments ?distance ?goal-spec))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :lift))
     (or (desig-prop ?desig (:obj ?obj))
@@ -296,7 +315,10 @@
     (object->grasp-assignments ?current-obj ?grasp-assignments)
     (-> (desig-prop ?desig (:distance ?distance))
         (true)
-        (== ?distance 0.1)))
+        (== ?distance 0.1))
+    ;; TODO: if you want to add task-related information from the action designator to the goal-spec,
+    ;; this is the place to do it.
+    (lisp-fun make-empty-goal-specification ?goal-spec))
 
   (<- (grasp-type ?obj ?grasp-type)
     (not (equal ?obj nil))
@@ -305,14 +327,17 @@
 
   (<- (grasp-type ?_ :push))
 
-  (<- (action-desig ?desig (park ?arms ?obj ?obstacles))
+  (<- (action-desig ?desig (park ?arms ?obj ?obstacles ?goal-spec))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :carry))
     (or (desig-prop ?desig (:obj ?obj))
         (desig-prop ?desig (:object ?obj)))
     (current-designator ?obj ?current-obj)
     (holding-arms ?current-obj ?arms)
-    (obstacles ?desig ?obstacles))
+    (obstacles ?desig ?obstacles)
+    ;; TODO: if you want to add task-related information from the action designator to the goal-spec,
+    ;; this is the place to do it.
+    (lisp-fun make-empty-goal-specification ?goal-spec))
   
   (<- (free-arm ?free-arm)
     (robot ?robot)
@@ -325,19 +350,25 @@
     (lisp-fun arm-for-pose ?pose ?arm)
     (not (equal ?arm nil)))
   
-  (<- (action-desig ?desig (grasp ?desig ?current-obj))
+  (<- (action-desig ?desig (grasp ?desig ?current-obj ?goal-spec))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :grasp))
     (or (desig-prop ?desig (:obj ?obj))
         (desig-prop ?desig (:object ?obj)))
-    (newest-effective-designator ?obj ?current-obj))
+    (newest-effective-designator ?obj ?current-obj)
+    ;; TODO: if you want to add task-related information from the action designator to the goal-spec,
+    ;; this is the place to do it.
+    (lisp-fun make-empty-goal-specification ?goal-spec))
 
-  (<- (action-desig ?desig (shove-into ?current-obj ?target-pose))
+  (<- (action-desig ?desig (shove-into ?current-obj ?target-pose ?goal-spec))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :shove-into))
     (desig-prop ?desig (:obj ?obj))
     (current-designator ?obj ?current-obj)
-    (desig-prop ?desig (:pose ?target-pose)))
+    (desig-prop ?desig (:pose ?target-pose))
+    ;; TODO: if you want to add task-related information from the action designator to the goal-spec,
+    ;; this is the place to do it.
+    (lisp-fun make-empty-goal-specification ?goal-spec))
 
   (<- (grasp-offsets top-slide-down ?pregrasp-offset ?grasp-offset)
     (symbol-value *pregrasp-top-slide-down-offset* ?pregrasp-offset)
@@ -510,17 +541,23 @@
     (object-grasps-in-gripper ?object ?grasps)
     (lisp-fun cons->grasp-assignments ?grasps ?grasp-assignments))
 
-  (<- (action-desig ?desig (pull-open ?semantic-handle))
+  (<- (action-desig ?desig (pull-open ?semantic-handle ?goal-spec))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :pull-open))
-    (desig-prop ?desig (:handle ?semantic-handle)))
+    (desig-prop ?desig (:handle ?semantic-handle))
+    ;; TODO: if you want to add task-related information from the action designator to the goal-spec,
+    ;; this is the place to do it.
+    (lisp-fun make-empty-goal-specification ?goal-spec))
   
-  (<- (action-desig ?desig (open-container ?arm ?loc ?degree))
+  (<- (action-desig ?desig (open-container ?arm ?loc ?degree ?goal-spec))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :open))
     (desig-prop ?desig (:location ?loc))
     (desig-prop ?desig (:degree ?degree))
-    (free-arm ?arm))
+    (free-arm ?arm)
+    ;; TODO: if you want to add task-related information from the action designator to the goal-spec,
+    ;; this is the place to do it.
+    (lisp-fun make-empty-goal-specification ?goal-spec))
   
   (<- (grasp-assignments ?semantic-handle ?grasp-assignments)
     (desig-prop ?semantic-handle (:type :semantic-handle))
@@ -531,14 +568,17 @@
             ?semantic-handle ?arm-handle-combo ?grasp-assignment)
            ?grasp-assignments))
 
-  (<- (action-desig ?desig (put-down ?current-obj ?loc ?grasp-assignments))
+  (<- (action-desig ?desig (put-down ?current-obj ?loc ?grasp-assignments ?goal-spec))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :put-down))
     (or (desig-prop ?desig (:obj ?obj))
         (desig-prop ?desig (:object ?obj)))
     (desig-prop ?desig (:at ?loc))
     (current-designator ?obj ?current-obj)
-    (object->grasp-assignments ?current-obj ?grasp-assignments))
+    (object->grasp-assignments ?current-obj ?grasp-assignments)
+    ;; TODO: if you want to add task-related information from the action designator to the goal-spec,
+    ;; this is the place to do it.
+    (lisp-fun make-empty-goal-specification ?goal-spec))
 
   (<- (putdown-pose ?object ?original-pose ?segments ?putdown-pose)
     (lisp-fun rotated-poses ?object ?original-pose
@@ -549,7 +589,7 @@
   
   (<- (action-desig ?desig (pull ?current-obj ?arms
                                  ?direction ?distance
-                                 ?obstacles))
+                                 ?obstacles ?goal-spec))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :pull))
     (or (desig-prop ?desig (:obj ?obj))
@@ -560,11 +600,14 @@
     (fail) ;; This predicate needs to be refactored
     (grasped-object-part ?obj ?grasped)
     (holding-arms ?current-obj ?arms)
-    (obstacles ?desig ?obstacles))
+    (obstacles ?desig ?obstacles)
+    ;; TODO: if you want to add task-related information from the action designator to the goal-spec,
+    ;; this is the place to do it.
+    (lisp-fun make-empty-goal-specification ?goal-spec))
   
   (<- (action-desig ?desig (push ?current-obj ?arms
                                  ?direction ?distance
-                                 ?obstacles))
+                                 ?obstacles ?goal-spec))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :push))
     (or (desig-prop ?desig (:obj ?obj))
@@ -573,7 +616,10 @@
     (desig-prop ?desig (:direction ?direction))
     (current-designator ?obj ?current-obj)
     (holding-arms ?current-obj ?arms)
-    (obstacles ?desig ?obstacles)))
+    (obstacles ?desig ?obstacles)
+    ;; TODO: if you want to add task-related information from the action designator to the goal-spec,
+    ;; this is the place to do it.
+    (lisp-fun make-empty-goal-specification ?goal-spec)))
 
 (def-fact-group manipulation-process-module (matching-process-module available-process-module)
 
