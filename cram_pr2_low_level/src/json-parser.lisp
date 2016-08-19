@@ -155,9 +155,7 @@
     flattened-tree))
 
 (defun parse-robosherlock-result (json-string)
-  (desig:make-designator
-   :object
-   (flatten-one-level (parse-json-node nil (yason:parse json-string :object-as :alist)))))
+  (flatten-one-level (parse-json-node nil (yason:parse json-string :object-as :alist))))
 
 
 

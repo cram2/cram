@@ -76,21 +76,12 @@
           (mapcar (lambda (key-value-pair)
                     (destructuring-bind (key value)
                         key-value-pair
-                      ;; (ecase key
-                      ;;   (:detection `("DETECTION"
-                      ;;                 ,(ecase value
-                      ;;                    ("red_spotted_plate" (list key value)))))
-                      ;;   (:shape `("SHAPE" ,value))
-                      ;;   (:color `("COLOR" ,value))
-                      ;;   (:handle `("HANDLE" ,value))
-                      ;;   (:size `("SIZE" ,value)))
                       (list (etypecase key
-                              (keyword (symbol-name key);;  (if (eq key :type)
-                                              ;; :detection
-                                              ;; (symbol-name key))
-                               )
+                              (keyword (symbol-name key))
                               (string (string-upcase key)))
-                            value)))
+                            (etypecase value ; RS is only case-sensitive on "TYPE"s
+                              (keyword (string-capitalize (symbol-name value)))
+                              (string value)))))
                   key-value-pairs-list))
         (quantifier quantifier
           ;; (etypecase quantifier
@@ -125,10 +116,11 @@
 although there should've been ~a"
                                                  number-of-objects quantifier)))))))
 
-(defun call-robosherlock-service (key-value-pairs-list &key (quantifier :a))
+(defparameter *rs-result-debug* nil)
+(defun call-robosherlock-service (keyword-key-value-pairs-list &key (quantifier :a))
   (declare (type (or keyword number) quantifier))
   (multiple-value-bind (key-value-pairs-list quantifier)
-      (ensure-robosherlock-input-parameters key-value-pairs-list quantifier)
+      (ensure-robosherlock-input-parameters keyword-key-value-pairs-list quantifier)
     (roslisp:with-fields (answer)
         (cpl:with-failure-handling
             (((or simple-error roslisp:service-call-error) (e)
@@ -143,7 +135,11 @@ although there should've been ~a"
           (roslisp:call-persistent-service
            (get-robosherlock-service)
            (make-robosherlock-query key-value-pairs-list)))
-      (ensure-robosherlock-result answer quantifier))))
+      (setf *rs-result-debug* answer)
+      (desig:make-designator
+       :object
+       (append keyword-key-value-pairs-list
+               (ensure-robosherlock-result answer quantifier))))))
 
 
 
