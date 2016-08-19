@@ -327,7 +327,7 @@
 
   (<- (grasp-type ?_ :push))
 
-  (<- (action-desig ?desig (park ?arms ?obj ?obstacles ?goal-spec))
+  (<- (action-desig ?desig (park ?arms ?obj ?goal-spec ?obstacles))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :carry))
     (or (desig-prop ?desig (:obj ?obj))
