@@ -39,10 +39,14 @@
                cram-pr2-process-modules
                cram-process-modules
                cram-designators
-               cram-plan-library)
+               cram-plan-library
+               cram-prolog)
 
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "grasping" :depends-on ("package"))))))
+     (:file "grasping" :depends-on ("package"))
+     (:file "designators" :depends-on ("package" "grasping"))
+     (:file "pick-and-place" :depends-on ("package" "grasping" "designators"))
+     (:file "pour" :depends-on ("package" "grasping"))))))

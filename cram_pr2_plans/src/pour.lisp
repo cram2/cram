@@ -27,8 +27,19 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
+(in-package :pr2-plans)
 
-(defpackage cram-pr2-plans
-  (:nicknames :pr2-plans)
-  (:use #:common-lisp #:cram-prolog #:cram-designators))
+;; (an action
+;;     (to pour)
+;;     (destination (an object))
+;;     (source (an object))
+;;     (theme (some stuff))
+;;     (goal drink-poured)
+;;     (phases (a motion (type approaching))
+;;             (a motion
+;;                (type tilting)
+;;                (angle )
+;;                ())
+;;             (a motion (type tilting) (angle -x)
+;;             (a motion (type retracting))))
+
