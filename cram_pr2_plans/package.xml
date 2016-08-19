@@ -19,4 +19,5 @@
   <depend>cram_process_modules</depend>
   <depend>cram_designators</depend>
   <depend>cram_plan_library</depend>
+  <depend>cram_prolog</depend>
 </package>

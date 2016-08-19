@@ -31,31 +31,30 @@
 
 ;;; THE ASSUMPTION IS that all objects are lying flat on the table
 ;;; The Z axis can point either upwards or down, that's not fixed.
-;;; X is the main axis, the longer eigenvector or the cluster point distribution
-
-;;; Rgrasp is in robot coordinate frame, i.e. transform from gripper to robot frame
-;;; tgrasp is in object frame
+;;; X is the main axis, the longer eigenvector of the cluster point distribution
+;;; Tgrasp is in robot coordinate frame, i.e. transform from gripper to robot frame
 
 (defparameter *kitchen-sink-block-z* 0.85 "in meters")
 
 (defparameter *plate-diameter* 0.26 "in meters")
-(defparameter *plate-grasp-y-offset* (- (/ *plate-diameter* 2) 0.05) "in meters")
-;; (defparameter *plate-grasp-z-offset* 0.015 "in meters")
-(defparameter *plate-grasp-z-offset* 0.06 "in meters") ; red stacked on blue plate
 (defparameter *plate-pregrasp-y-offset* 0.2 "in meters")
+(defparameter *plate-grasp-y-offset* (- (/ *plate-diameter* 2) 0.015;; 0.05
+                                        ) "in meters")
 (defparameter *plate-pregrasp-z-offset* 0.4 "in meters")
 (defparameter *plate-2nd-pregrasp-z-offset* 0.035 "in meters") ; grippers can't go into table
+(defparameter *plate-grasp-z-offset* 0.05 "in meters")
+;; (defparameter *plate-grasp-z-offset* 0.06 "in meters") ; red stacked on blue plate
 
 (defparameter *cutlery-pregrasp-z-offset* 0.4 "in meters")
 (defparameter *cutlery-grasp-z-offset* 0.01 "in meters") ; 1 cm because TCP is not at the edge
 
-(defparameter *cup-grasp-z-offset* 0.09 "in meters")
 (defparameter *cup-pregrasp-xy-offset* 0.2 "in meters")
 (defparameter *cup-pregrasp-z-offset* 0.4 "in meters")
+(defparameter *cup-grasp-z-offset* 0.09 "in meters")
 
-(defparameter *bottle-grasp-z-offset* 0.09 "in meters")
 (defparameter *bottle-pregrasp-xy-offset* 0.2 "in meters")
 (defparameter *bottle-pregrasp-z-offset* 0.4 "in meters")
+(defparameter *bottle-grasp-z-offset* 0.09 "in meters")
 
 (defparameter *lift-z-offset* 0.4 "in meters")
 
@@ -84,8 +83,6 @@
    (cl-transforms:make-quaternion 0.9215513103717499d0 -0.387996037470125d0
                                   -0.014188589447636247d0 -9.701489976338351d-4)))
 
-(setf cram-tf:*tf-default-timeout* 20)
-
 (defmacro with-pr2-process-modules (&body body)
   `(cram-process-modules:with-process-modules-running
        (pr2-pms::pr2-perception-pm pr2-pms::pr2-base-pm pr2-pms::pr2-arms-pm
@@ -93,65 +90,24 @@
      (cpl:top-level
        ,@body)))
 
-(defun translate-pose (pose &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
-  (cl-transforms-stamped:copy-pose-stamped
-   pose
-   :origin (let ((pose-origin (cl-transforms:origin pose)))
-             (cl-transforms:copy-3d-vector
-              pose-origin
-              :x (let ((x-pose-origin (cl-transforms:x pose-origin)))
-                   (+ x-pose-origin x-offset))
-              :y (let ((y-pose-origin (cl-transforms:y pose-origin)))
-                   (+ y-pose-origin y-offset))
-              :z (let ((z-pose-origin (cl-transforms:z pose-origin)))
-                   (+ z-pose-origin z-offset))))))
-
-
-(defun move-pr2-right-arm-out-of-sight ()
-  ;; (pr2-ll:call-joint-angle-action
-  ;;  :right
-  ;;  *pr2-right-arm-out-of-sight-joint-positions*)
+(defun move-pr2-arms-out-of-sight (&key (arm :both))
   (cpl:with-failure-handling
       ((pr2-ll:pr2-low-level-failure (e)
          (declare (ignore e))
          (return)))
-    (let ((?cartesian-pose-to-go *pr2-right-arm-out-of-sight-gripper-pose*))
+    (let (?left-pose-to-go ?right-pose-to-go)
+      (case arm
+        (:left (setf ?left-pose-to-go *pr2-left-arm-out-of-sight-gripper-pose*))
+        (:right (setf ?right-pose-to-go *pr2-right-arm-out-of-sight-gripper-pose*))
+        (:both (setf ?left-pose-to-go *pr2-left-arm-out-of-sight-gripper-pose*)
+         (setf ?right-pose-to-go *pr2-right-arm-out-of-sight-gripper-pose*)))
       (cram-plan-library:perform
        (desig:an action
-                 (to move)
-                 (right arm)
-                 (to ?cartesian-pose-to-go))))))
-
-(defun move-pr2-left-arm-out-of-sight ()
-  (cpl:with-failure-handling
-      ((pr2-ll:pr2-low-level-failure (e)
-         (declare (ignore e))
-         (return)))
-    (let ((?cartesian-pose-to-go *pr2-left-arm-out-of-sight-gripper-pose*))
-      (cram-plan-library:perform
-       (desig:an action
-                 (to move)
-                 (left arm)
-                 (to ?cartesian-pose-to-go))))))
-
-(defun move-pr2-arms-out-of-sight ()
-  (cpl:with-failure-handling
-      ((pr2-ll:pr2-low-level-failure (e)
-         (declare (ignore e))
-         (return)))
-    (let ((?left-pose-to-go *pr2-left-arm-out-of-sight-gripper-pose*)
-          (?right-pose-to-go *pr2-right-arm-out-of-sight-gripper-pose*))
-      (cram-plan-library:perform
-       (desig:an action
-                 (to move)
-                 (both arms)
+                 (to move-arm-motion)
                  (left ?left-pose-to-go)
                  (right ?right-pose-to-go))))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; CUTLERY ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defun get-object-pose (object-designator)
-  (cadar (desig:desig-prop-value object-designator :pose)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; GRASP CONFIGURATIONS ;;;;;;;;;;;;;;;;;;;;;
 
 (defun calculate-cutlery-grasp-pose (yaw x-obj y-obj z-support z-obj-offset)
   "same for both arms"
@@ -170,7 +126,7 @@
                      (0 0 0 1))))))))
 
 (defun calculate-plate-grasp-pose (x-obj y-obj y-obj-offset
-                                   z-support z-obj-offset &key arm (roll (/ pi 3)))
+                                   z-support z-obj-offset &key arm (roll (/ pi 4)))
   (cl-transforms-stamped:pose->pose-stamped
    cram-tf:*robot-base-frame*
    0.0
@@ -201,7 +157,8 @@
      (make-array '(4 4)
                  :initial-contents
                  (case grasp
-                   (:front `((1 0 0 ,x-obj)
+                   (:front `((1 0 0 ,(+ x-obj 0;; -0.04
+                                        )) ;  hack to fix perception problem
                              (0 1 0 ,y-obj)
                              (0 0 1 ,(+ z-support z-obj-offset))
                              (0 0 0 1)))
@@ -217,11 +174,27 @@
                             (0 0 0 1)))
                    (t (error "grasp can only be :side or :front"))))))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; GENERAL USE FUNCTIONS ;;;;;;;;;;;;;;;;;;;;
+
+(defun get-object-pose (object-designator)
+  (cadar (desig:desig-prop-value object-designator :pose)))
+
+(defun translate-pose (pose &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
+  (cl-transforms-stamped:copy-pose-stamped
+   pose
+   :origin (let ((pose-origin (cl-transforms:origin pose)))
+             (cl-transforms:copy-3d-vector
+              pose-origin
+              :x (let ((x-pose-origin (cl-transforms:x pose-origin)))
+                   (+ x-pose-origin x-offset))
+              :y (let ((y-pose-origin (cl-transforms:y pose-origin)))
+                   (+ y-pose-origin y-offset))
+              :z (let ((z-pose-origin (cl-transforms:z pose-origin)))
+                   (+ z-pose-origin z-offset))))))
 
 (defun get-object-type-grasp-pose (object-type object-pose arm grasp)
   (case object-type
-    ((:fork :knife :cutlery
-            :fork_blue_plastic :fork_red_plastic :knife_red_plastic :knife_blue_plastic)
+    ((:fork :knife :cutlery)
      (if (eq grasp :top)
          (let* ((yaw (cl-transforms:get-yaw (cl-transforms:orientation object-pose)))
                 (translation (cl-transforms:origin object-pose))
@@ -231,7 +204,7 @@
                                          *kitchen-sink-block-z*
                                          *cutlery-grasp-z-offset*))
          (error "can only grasp cutlery from top")))
-    ((:plate :red_spotted_plate)
+    ((:plate)
      (if (eq grasp :side)
          (let* ((translation (cl-transforms:origin object-pose))
                 (x-obj (cl-transforms:x translation))
@@ -241,7 +214,7 @@
                                        *plate-grasp-z-offset*
                                        :arm arm))
          (error "can only grasp plates from a side")))
-    ((:bottle :drink :sigg_bottle :reine_butter_milch)
+    ((:bottle :drink)
      (if (or (eq grasp :side) (eq grasp :front))
          (let* ((translation (cl-transforms:origin object-pose))
                 (x-obj (cl-transforms:x translation))
@@ -251,7 +224,7 @@
                                      *bottle-grasp-z-offset*
                                      arm grasp))
          (error "can only grasp bottles from a side or front")))
-    ((:cup :CUP_ECO_ORANGE)
+    ((:cup)
      (if (or (eq grasp :side) (eq grasp :front))
          (let* ((translation (cl-transforms:origin object-pose))
                 (x-obj (cl-transforms:x translation))
@@ -275,16 +248,13 @@
 (defun get-object-grasp-lift-pose (grasp-pose)
   (translate-pose grasp-pose :z-offset *lift-z-offset*))
 
-
-
 (defun get-object-type-pregrasp-pose (object-type grasp-pose arm grasp)
   (case object-type
-    ((:fork :knife :cutlery
-            :fork_blue_plastic :fork_red_plastic :knife_red_plastic :knife_blue_plastic)
+    ((:fork :knife :cutlery)
      (if (eq grasp :top)
          (translate-pose grasp-pose :z-offset *cutlery-pregrasp-z-offset*)
          (error "can only grasp cutlery from top")))
-    ((:plate :red_spotted_plate)
+    ((:plate)
      (if (eq grasp :side)
          (translate-pose grasp-pose
                          :y-offset (case arm
@@ -293,7 +263,7 @@
                                      (t (error "arm can be :left or :right")))
                          :z-offset *plate-pregrasp-z-offset*)
          (error "can only grasp plates from a side")))
-    ((:bottle :drink :sigg_bottle :reine_butter_milch)
+    ((:bottle :drink)
      (case grasp
        (:front (translate-pose grasp-pose :x-offset (- *bottle-pregrasp-xy-offset*)
                                           :z-offset *bottle-pregrasp-z-offset*))
@@ -304,7 +274,7 @@
                                                    :z-offset *bottle-pregrasp-z-offset*))
                 (t (error "arm can only be :left or :right"))))
        (t (error "grasp can only be :side or :front"))))
-    ((:cup :CUP_ECO_ORANGE)
+    ((:cup)
      (case grasp
        (:front (translate-pose grasp-pose :x-offset (- *cup-pregrasp-xy-offset*)
                                           :z-offset *cup-pregrasp-z-offset*))
@@ -316,80 +286,45 @@
                 (t (error "arm can only be :left or :right"))))
        (t (error "grasp can only be :side or :front"))))))
 
+(defun get-object-type-2nd-pregrasp-pose (object-type grasp-pose arm grasp)
+  (case object-type
+    ((:fork :knife :cutlery)
+     ;; (if (eq grasp :top)
+     ;;     (translate-pose grasp-pose :z-offset *cutlery-pregrasp-z-offset*)
+     ;;     (error "can only grasp cutlery from top"))
+     nil)
+    ((:plate)
+     (if (eq grasp :side)
+         (translate-pose grasp-pose
+                         :y-offset (case arm
+                                     (:left *plate-pregrasp-y-offset*)
+                                     (:right (- *plate-pregrasp-y-offset*))
+                                     (t (error "arm can be :left or :right")))
+                         :z-offset *plate-2nd-pregrasp-z-offset*)
+         (error "can only grasp plates from a side")))
+    ((:bottle :drink)
+     (case grasp
+       (:front (translate-pose grasp-pose :x-offset (- *bottle-pregrasp-xy-offset*)))
+       (:side (case arm
+                (:left (translate-pose grasp-pose :y-offset *bottle-pregrasp-xy-offset*))
+                (:right (translate-pose grasp-pose :y-offset (- *bottle-pregrasp-xy-offset*)))
+                (t (error "arm can only be :left or :right"))))
+       (t (error "grasp can only be :side or :front"))))
+    ((:cup)
+     (case grasp
+       (:front (translate-pose grasp-pose :x-offset (- *cup-pregrasp-xy-offset*)))
+       (:side (case arm
+                (:left (translate-pose grasp-pose :y-offset *cup-pregrasp-xy-offset*))
+                (:right (translate-pose grasp-pose :y-offset (- *cup-pregrasp-xy-offset*)))
+                (t (error "arm can only be :left or :right"))))
+       (t (error "grasp can only be :side or :front"))))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; RANDOM GARBAGE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
-(defun top-level-pick-cutlery (&optional (?color ""))
-  (with-pr2-process-modules
-    (move-pr2-right-arm-out-of-sight)
-    (let* ((?object-desig (desig:an object
-                                    (type "Cutlery")
-                                    (color ?color)))
-           (?updated-object-desig (cram-plan-library:perform
-                                   (desig:an action
-                                             (to detect)
-                                             (object ?object-desig))))
-           (?cutlery-grasp-pose
-             (get-object-grasp-pose ?updated-object-desig :right :top))
-           (?cutlery-pregrasp-pose
-             (get-object-type-pregrasp-pose :cutlery ?cutlery-grasp-pose :right :top))
-           (?cutlery-lift-pose (get-object-grasp-lift-pose ?cutlery-grasp-pose)))
-      (pr2-ll:visualize-marker ?cutlery-grasp-pose)
-      (cpl:with-failure-handling
-          ((pr2-ll:pr2-low-level-failure (e)
-             (roslisp:ros-warn (top-level pick) "~a" e)
-             (return)))
-        (cram-plan-library:perform
-         (desig:an action
-                   (to move)
-                   (right arm)
-                   (to ?cutlery-pregrasp-pose))))
-      (print "pregrasped")
-      (cpl:with-failure-handling
-          ((pr2-ll:pr2-low-level-failure (e)
-             (roslisp:ros-warn (top-level pick) "~a" e)
-             (return)))
-        (cram-plan-library:perform
-         (desig:an action
-                   (to open)
-                   (right gripper))))
-      (print "opened gripper")
-      (cpl:with-retry-counters ((approach-retries 1))
-        (cpl:with-failure-handling
-            ((pr2-ll:pr2-low-level-failure (e)
-               (cpl:do-retry approach-retries
-                 (roslisp:ros-warn (top-level pick) "~a" e)
-                 (cpl:retry))
-               (return)))
-          (cram-plan-library:perform
-           (desig:an action
-                     (to move)
-                     (right arm)
-                     (to ?cutlery-grasp-pose)))))
-      (print "at grasp pose")
-      (cpl:with-retry-counters ((grasping-retries 1))
-        (cpl:with-failure-handling
-            ((pr2-ll:pr2-low-level-failure (e)
-               (cpl:do-retry grasping-retries
-                 (roslisp:ros-warn (top-level pick) "~a" e)
-                 (cpl:retry))
-               (cpl:fail 'cram-plan-failures:gripping-failed)))
-          (cram-plan-library:perform
-           (desig:an action
-                     (to grip)
-                     (object (desig:an object (type cutlery)))
-                     (with right)))))
-      (print "grasped")
-      (cpl:with-failure-handling
-          ((pr2-ll:pr2-low-level-failure (e)
-             (roslisp:ros-warn (top-level pick) "~a" e)
-             (return)))
-        (cram-plan-library:perform
-         (desig:an action
-                   (to move)
-                   (right arm)
-                   (to ?cutlery-lift-pose))))
-      (move-pr2-right-arm-out-of-sight))))
+(defun get-cup-put-pose (arm grasp)
+  (calculate-cup-grasp-pose 0.8 -0.6
+                            *kitchen-sink-block-z* *cup-grasp-z-offset*
+                            arm grasp))
 
 (defun calculate-cutlery-destination-pose ()
   (cl-transforms:make-pose
@@ -398,380 +333,61 @@
                                  *kitchen-sink-block-z*)
    (cl-transforms:make-identity-rotation)))
 
-(defun top-level-place-cutlery ()
-  (with-pr2-process-modules
-    (move-pr2-right-arm-out-of-sight)
-    (let* ((?cutlery-grasp-pose
-             (get-object-type-grasp-pose :cutlery (calculate-cutlery-destination-pose)
-                                         :right :top))
-           (?cutlery-pregrasp-pose
-             (get-object-type-pregrasp-pose :cutlery ?cutlery-grasp-pose :right :top))
-           (?cutlery-lift-pose (get-object-grasp-lift-pose ?cutlery-grasp-pose)))
-      (pr2-ll:visualize-marker ?cutlery-grasp-pose)
-      (cpl:with-failure-handling
-          ((pr2-ll:pr2-low-level-failure (e)
-             (roslisp:ros-warn (top-level pick) "~a" e)
-             (return)))
-        (cram-plan-library:perform
-         (desig:an action
-                   (to move)
-                   (right arm)
-                   (to ?cutlery-lift-pose))))
-      (print "lifted")
-      (cpl:with-retry-counters ((approach-retries 1))
-        (cpl:with-failure-handling
-            ((pr2-ll:pr2-low-level-failure (e)
-               (cpl:do-retry approach-retries
-                 (roslisp:ros-warn (top-level pick) "~a" e)
-                 (cpl:retry))
-               (return)))
-          (cram-plan-library:perform
-           (desig:an action
-                     (to move)
-                     (right arm)
-                     (to ?cutlery-grasp-pose)))))
-      (print "at grasp pose")
-      (cpl:with-failure-handling
-          ((pr2-ll:pr2-low-level-failure (e)
-             (declare (ignore e))
-             (return)))
-        (cram-plan-library:perform
-         (desig:an action
-                   (to open)
-                   (right gripper))))
-      (print "released grasp")
-      (cpl:with-failure-handling
-          ((pr2-ll:pr2-low-level-failure (e)
-             (roslisp:ros-warn (top-level pick) "~a" e)
-             (return)))
-        (cram-plan-library:perform
-         (desig:an action
-                   (to move)
-                   (right arm)
-                   (to ?cutlery-pregrasp-pose))))
-      (print "pregrasped")
-      (move-pr2-right-arm-out-of-sight))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; TF and convergance testing ;;;;;;;;;;;;;;;;;;;;;;
 
+(defparameter *velocities* '())
+(defun bla (goal-pose)
+  (setf *velocities* nil)
+  (let ((old-dist (cl-transforms:v-norm (cl-transforms:origin (cl-transforms-stamped:transform-pose-stamped
+                cram-tf:*transformer*
+                :pose goal-pose
+                :target-frame "r_gripper_tool_frame"
+                :timeout cram-tf:*tf-default-timeout*
+                :use-current-ros-time t)))))
+    (roslisp:loop-at-most-every 0.5
+      (let* ((goal-in-tcp-frame
+               (cl-transforms-stamped:transform-pose-stamped
+                cram-tf:*transformer*
+                :pose goal-pose
+                :target-frame "r_gripper_tool_frame"
+                :timeout cram-tf:*tf-default-timeout*
+                :use-current-ros-time t))
+             (distance-xy (cl-transforms:v-norm (cl-transforms:origin goal-in-tcp-frame)))
+             (distance-angle (cl-transforms:q-norm (cl-transforms:orientation goal-in-tcp-frame))))
+        ;; (format t "xy: ~a~%angle: ~a~%~%" distance-xy distance-angle)
+        ;; (roslisp:ros-info (bla bla) "~a" goal-in-tcp-frame)
+        (roslisp:ros-info (bla velocity) "~a" (- old-dist distance-xy))
+        (push (- old-dist distance-xy) *velocities* )
+        (setf old-dist distance-xy)))))
 
-;;;;;;;;;;;;;;;;;;;;;;;; PLATE ;;;;;;;;;;;;;;;;;;;;;;;;
+(defun time-to-mili (time)
+  (- time 1.470923d9))
 
-
-
-
-
-
-
-(defun get-plate-second-pregrasp-pose (grasp-pose arm)
-  (translate-pose grasp-pose
-                  :y-offset (case arm
-                              (:right (- *plate-pregrasp-y-offset*))
-                              (:left *plate-pregrasp-y-offset*)
-                              (t (error "arm can be :left or :right")))
-                  :z-offset *plate-2nd-pregrasp-z-offset*))
-
-(defun get-plate-lift-pose (grasp-pose arm)
-  (declare (ignore arm))
-  (translate-pose grasp-pose
-                  :z-offset *plate-pregrasp-y-offset*))
-
-(defun top-level-pick-plate (&optional (?color ""))
-  (with-pr2-process-modules
-    (move-pr2-arms-out-of-sight)
-    (let* ((?object-desig (desig:an object
-                                    (type "plate")
-                                    (color ?color)))
-           (?updated-object-desig (cram-plan-library:perform
-                                   (desig:an action
-                                             (to detect)
-                                             (object ?object-desig))))
-           (?left-grasp-pose (get-object-grasp-pose ?updated-object-desig :left :side))
-           (?left-pregrasp-pose
-             (get-object-type-pregrasp-pose :plate ?left-grasp-pose :left :side))
-           (?left-2nd-pregrasp-pose (get-plate-second-pregrasp-pose ?left-grasp-pose :left))
-           (?left-lift-pose (get-object-grasp-lift-pose ?left-grasp-pose))
-           (?right-grasp-pose (get-object-grasp-pose ?updated-object-desig :right :side))
-           (?right-pregrasp-pose
-             (get-object-type-pregrasp-pose :plate ?right-grasp-pose :right :side))
-           (?right-2nd-pregrasp-pose (get-plate-second-pregrasp-pose ?right-grasp-pose :right))
-           (?right-lift-pose (get-object-grasp-lift-pose ?right-grasp-pose)))
-      (pr2-ll:visualize-marker ?left-grasp-pose :id 1 :r-g-b-list '(1 0 1))
-      (pr2-ll:visualize-marker ?right-grasp-pose :id 2 :r-g-b-list '(1 0 1))
-      (cpl:with-failure-handling
-          ((pr2-ll:pr2-low-level-failure (e)
-             (roslisp:ros-warn (top-level pick) "~a" e)
-             (return)))
-        (cram-plan-library:perform
-         (desig:an action
-                   (to move)
-                   (both arms)
-                   (left ?left-pregrasp-pose)
-                   (right ?right-pregrasp-pose))))
-      (print "pregrasped")
-      (cpl:with-failure-handling
-          ((pr2-ll:pr2-low-level-failure (e)
-             (roslisp:ros-warn (top-level pick) "~a" e)
-             (return)))
-        (cram-plan-library:perform
-         (desig:an action
-                   (to open)
-                   (right gripper))))
-      (print "opened right gripper")
-      (cpl:with-failure-handling
-          ((pr2-ll:pr2-low-level-failure (e)
-             (roslisp:ros-warn (top-level pick) "~a" e)
-             (return)))
-        (cram-plan-library:perform
-         (desig:an action
-                   (to open)
-                   (left gripper))))
-      (print "opened left gripper")
-      (cpl:with-failure-handling
-          ((pr2-ll:pr2-low-level-failure (e)
-             (roslisp:ros-warn (top-level pick) "~a" e)
-             (return)))
-        (cram-plan-library:perform
-         (desig:an action
-                   (to move)
-                   (both arms)
-                   (left ?left-2nd-pregrasp-pose)
-                   (right ?right-2nd-pregrasp-pose))))
-      (print "second pregrasped")
-      (cpl:with-retry-counters ((approach-retries 1))
-        (cpl:with-failure-handling
-            ((pr2-ll:pr2-low-level-failure (e)
-               (cpl:do-retry approach-retries
-                 (roslisp:ros-warn (top-level pick) "~a" e)
-                 (cpl:retry))
-               (return)))
-          (cram-plan-library:perform
-           (desig:an action
-                     (to move)
-                     (both arms)
-                     (left ?left-grasp-pose)
-                     (right ?right-grasp-pose)))))
-      (print "at grasp pose")
-      (cpl:with-retry-counters ((grasping-retries 1))
-        (cpl:with-failure-handling
-            ((pr2-ll:pr2-low-level-failure (e)
-               (cpl:do-retry grasping-retries
-                 (roslisp:ros-warn (top-level pick) "~a" e)
-                 (cpl:retry))
-               (cpl:fail 'cram-plan-failures:gripping-failed)))
-          (cram-plan-library:perform
-           (desig:an action
-                     (to grip)
-                     (object (desig:an object (type cutlery)))
-                     (with left)))))
-      (cpl:with-retry-counters ((grasping-retries 1))
-        (cpl:with-failure-handling
-            ((pr2-ll:pr2-low-level-failure (e)
-               (cpl:do-retry grasping-retries
-                 (roslisp:ros-warn (top-level pick) "~a" e)
-                 (cpl:retry))
-               (cpl:fail 'cram-plan-failures:gripping-failed)))
-          (cram-plan-library:perform
-           (desig:an action
-                     (to grip)
-                     (object (desig:an object (type cutlery)))
-                     (with right)))))
-      (print "grasped")
-      (cpl:with-failure-handling
-          ((pr2-ll:pr2-low-level-failure (e)
-             (roslisp:ros-warn (top-level pick) "~a" e)
-             (return)))
-        (cram-plan-library:perform
-         (desig:an action
-                   (to move)
-                   (both arms)
-                   (left ?left-lift-pose)
-                   (right ?right-lift-pose)))))))
-
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; CUPS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-
-
-(defun get-cup-second-pregrasp-pose (grasp-pose arm grasp)
-   (case grasp
-    (:front (translate-pose grasp-pose :x-offset (- *cup-pregrasp-xy-offset*)))
-    (:side (case arm
-             (:left (translate-pose grasp-pose :y-offset *cup-pregrasp-xy-offset*))
-             (:right (translate-pose grasp-pose :y-offset (- *cup-pregrasp-xy-offset*)))
-             (t (error "arm can only be :left or :right"))))
-    (t (error "grasp can only be :side or :front"))))
-
-(defun top-level-pick-cup (&key (?type "Cup") (?color "") (?arm :right) (?grasp :side))
-  (with-pr2-process-modules
-    (move-pr2-arms-out-of-sight)
-    (let* ((?object-desig (desig:an object
-                                    (type ?type)
-                                    (color ?color)))
-           (?updated-object-desig (cram-plan-library:perform
-                                   (desig:an action
-                                             (to detect)
-                                             (object ?object-desig))))
-           (?cup-grasp-pose (get-object-grasp-pose ?updated-object-desig ?arm ?grasp))
-           (?cup-pregrasp-pose (get-object-type-pregrasp-pose :cup ?cup-grasp-pose ?arm ?grasp))
-           (?cup-lift-pose (get-object-grasp-lift-pose ?cup-grasp-pose))
-           (?cup-2nd-pregrasp-pose (get-cup-second-pregrasp-pose ?cup-grasp-pose ?arm ?grasp)))
-      (pr2-ll:visualize-marker ?cup-grasp-pose)
-      (cpl:with-failure-handling
-          ((pr2-ll:pr2-low-level-failure (e)
-             (roslisp:ros-warn (top-level pick) "~a" e)
-             (return)))
-        (cram-plan-library:perform
-         (desig:an action
-                   (to move)
-                   (?arm arm)
-                   (to ?cup-pregrasp-pose))))
-      (print "pregrasped")
-      (cpl:with-failure-handling
-          ((pr2-ll:pr2-low-level-failure (e)
-             (roslisp:ros-warn (top-level pick) "~a" e)
-             (return)))
-        (cram-plan-library:perform
-         (desig:an action
-                   (to open)
-                   (?arm gripper))))
-      (print "opened gripper")
-      (cpl:with-failure-handling
-          ((pr2-ll:pr2-low-level-failure (e)
-             (roslisp:ros-warn (top-level pick) "~a" e)
-             (return)))
-        (cram-plan-library:perform
-         (desig:an action
-                   (to move)
-                   (?arm arm)
-                   (to ?cup-2nd-pregrasp-pose))))
-      (print "second pregrasped")
-      (cpl:with-retry-counters ((approach-retries 1))
-        (cpl:with-failure-handling
-            ((pr2-ll:pr2-low-level-failure (e)
-               (cpl:do-retry approach-retries
-                 (roslisp:ros-warn (top-level pick) "~a" e)
-                 (cpl:retry))
-               (return)))
-          (cram-plan-library:perform
-           (desig:an action
-                     (to move)
-                     (?arm arm)
-                     (to ?cup-grasp-pose)))))
-      (print "at grasp pose")
-      (cpl:with-retry-counters ((grasping-retries 1))
-        (cpl:with-failure-handling
-            ((pr2-ll:pr2-low-level-failure (e)
-               (cpl:do-retry grasping-retries
-                 (roslisp:ros-warn (top-level pick) "~a" e)
-                 (cpl:retry))
-               (cpl:fail 'cram-plan-failures:gripping-failed)))
-          (cram-plan-library:perform
-           (desig:an action
-                     (to grip)
-                     (object (desig:an object (type mug)))
-                     (with ?arm)))))
-      (print "grasped")
-      (cpl:with-failure-handling
-          ((pr2-ll:pr2-low-level-failure (e)
-             (roslisp:ros-warn (top-level pick) "~a" e)
-             (return)))
-        (cram-plan-library:perform
-         (desig:an action
-                   (to move)
-                   (?arm arm)
-                   (to ?cup-lift-pose))))
-      (move-pr2-arms-out-of-sight))))
-
-(defun get-cup-put-pose (arm grasp)
-  (calculate-cup-grasp-pose 0.8 -0.6
-                            *kitchen-sink-block-z* *cup-grasp-z-offset*
-                            arm grasp))
-
-(defun top-level-place-cup (&key (?arm :right) (?grasp :side))
-  (with-pr2-process-modules
-    (move-pr2-arms-out-of-sight)
-    (let* ((?cup-grasp-pose (get-cup-put-pose ?arm ?grasp))
-           (?cup-pregrasp-pose (get-object-type-pregrasp-pose :cup ?cup-grasp-pose ?arm ?grasp))
-           (?cup-lift-pose (get-object-grasp-lift-pose ?cup-grasp-pose)))
-      (pr2-ll:visualize-marker ?cup-grasp-pose)
-      (cpl:with-failure-handling
-          ((pr2-ll:pr2-low-level-failure (e)
-             (roslisp:ros-warn (top-level pick) "~a" e)
-             (return)))
-        (cram-plan-library:perform
-         (desig:an action
-                   (to move)
-                   (?arm arm)
-                   (to ?cup-lift-pose))))
-      (print "lifted")
-      (cpl:with-retry-counters ((approach-retries 1))
-        (cpl:with-failure-handling
-            ((pr2-ll:pr2-low-level-failure (e)
-               (cpl:do-retry approach-retries
-                 (roslisp:ros-warn (top-level pick) "~a" e)
-                 (cpl:retry))
-               (return)))
-          (cram-plan-library:perform
-           (desig:an action
-                     (to move)
-                     (?arm arm)
-                     (to ?cup-grasp-pose)))))
-      (print "at grasp pose")
-      (cpl:with-failure-handling
-          ((pr2-ll:pr2-low-level-failure (e)
-             (declare (ignore e))
-             (return)))
-        (cram-plan-library:perform
-         (desig:an action
-                   (to open)
-                   (?arm gripper))))
-      (print "released grasp")
-      (cpl:with-failure-handling
-          ((pr2-ll:pr2-low-level-failure (e)
-             (roslisp:ros-warn (top-level pick) "~a" e)
-             (return)))
-        (cram-plan-library:perform
-         (desig:an action
-                   (to move)
-                   (?arm arm)
-                   (to ?cup-pregrasp-pose))))
-      (print "pregrasped")
-      (move-pr2-arms-out-of-sight))))
-
-
-(defun pick-and-place-stuff ()
-  (top-level-pick-cutlery "blue")
-  (top-level-place-cutlery)
-  (top-level-pick-cup :?color "yellow")
-  (top-level-place-cup :?grasp :front)
-  (top-level-pick-plate "red"))
-
-
-
-;; (an action
-;;     (to pick-up)
-;;     (object (an object (type cutlery) ...))
-;;     (phases (a motion
-;;                (type reaching)
-;;                (pregasp-poses ...))
-;;             (a motion (type grasping))
-;;             (a motion (type lifting) (object #object))))
-
-;; (an action
-;;     (to pour)
-;;     (destination (an object))
-;;     (source (an object))
-;;     (theme (some stuff))
-;;     (goal drink-poured)
-;;     (phases (a motion (type approach-destination))
-;;             (a motion
-;;                (type tilting)
-;;                (angle )
-;;                ())
-;;             (a motion (type untilting))
-;;             (a motion (type moving-out-of-way))))
-
-;; (an aciton
-;;     (to put-down))
+(defun tf-test ()
+  (handler-case
+    (roslisp:loop-at-most-every 0.1
+      (let ((time (roslisp:ros-time)))
+        (print (time-to-mili time))
+        (print (cl-tf:lookup-transform cram-tf:*transformer*
+                                       "base_footprint"
+                                       "r_gripper_tool_frame"
+                                       :timeout 2
+                                       :time time))))
+  ;; (cl-transforms-stamped:transform-stamped-error (e)
+  ;;   (format t "error: ~a~%" e)
+  ;;   (map 'list (lambda (x)
+  ;;                (format t "~%fill-p: ~a~%" (slot-value x 'cl-tf::fill-pointer))
+  ;;                (format t "newest-stamp: ~3$~%" (time-to-mili (slot-value x 'cl-tf::newest-stamp)))
+  ;;                (map 'list (lambda (pose-stamped)
+  ;;                             (if (typep pose-stamped 'cl-tf:transform-stamped)
+  ;;                                 (format t "~3$ " (time-to-mili (cl-tf:stamp pose-stamped)))
+  ;;                                 (format t "NIL ")))
+  ;;                     (slot-value x 'cl-tf::transforms-cache))
+  ;;                (format t "~%~%"))
+  ;;        (slot-value (gethash "r_gripper_tool_frame"
+  ;;                             (slot-value  cram-tf:*transformer* 'cl-tf::transforms))
+  ;;                    'cl-tf::cache))
+  ;;   (slot-value (gethash "r_gripper_tool_frame" 
+  ;;                             (slot-value  cram-tf:*transformer* 'cl-tf::transforms))
+  ;;                    'cl-tf::cache))
+  ))
