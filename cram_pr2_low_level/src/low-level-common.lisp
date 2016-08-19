@@ -145,10 +145,11 @@
                                                         (g color) (second r-g-b-list)
                                                         (b color) (third r-g-b-list)
                                                         (a color) 1.0)))
-               (roslisp:ros-warn (ll visualize-marker) "asked to visualize a null pose"))))
+               ;; (roslisp:ros-warn (ll visualize-marker) "asked to visualize a null pose")
+               )))
     (if (listp pose/s)
         (if (< (length pose/s) 1)
-            (roslisp:ros-warn (ll visualize-marker) "asked to visualize a null pose")
+            ;; (roslisp:ros-warn (ll visualize-marker) "asked to visualize a null pose")
             (mapcar (lambda (pose id)
                       (declare (type (or null
                                          cl-transforms:pose
