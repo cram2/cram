@@ -40,13 +40,17 @@
                cram-process-modules
                cram-designators
                cram-plan-library
-               cram-prolog)
+               cram-prolog
+               cl-tf2
+               cram-math)
 
   :components
   ((:module "src"
     :components
     ((:file "package")
      (:file "grasping" :depends-on ("package"))
-     (:file "designators" :depends-on ("package" "grasping"))
-     (:file "pick-and-place" :depends-on ("package" "grasping" "designators"))
-     (:file "pour" :depends-on ("package" "grasping"))))))
+     (:file "designators-pick-and-place" :depends-on ("package" "grasping"))
+     (:file "pick-and-place" :depends-on ("package" "grasping" "designators-pick-and-place"))
+     (:file "designators-pour" :depends-on ("package" "grasping"
+                                                      "designators-pick-and-place"))
+     (:file "pour" :depends-on ("package" "grasping" "designators-pour"))))))

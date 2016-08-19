@@ -88,7 +88,7 @@
                      (right ?right-grasp-poses)))))
     (copy-designator action-designator :new-description `((:phases ,phases)))))
 
-(def-fact-group pr2-manipulation-plans (action-desig)
+(def-fact-group pr2-pick-and-place-plans (action-desig)
 
   (<- (object-type-grip-maximum-effort :cup 50))
   (<- (object-type-grip-maximum-effort :mondamin 30))
