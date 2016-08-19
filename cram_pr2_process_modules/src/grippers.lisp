@@ -52,5 +52,5 @@
 ;;     (cpm:pm-execute-matching
 ;;      (desig:an action
 ;;                (to grip)
-;;                (object (an object (type mondamin)))
+;;                (effort 50)
 ;;                (with right)))))
