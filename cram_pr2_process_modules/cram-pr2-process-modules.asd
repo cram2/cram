@@ -35,7 +35,6 @@
                cram-prolog
                cram-designators
                cram-pr2-low-level
-               cram-pr2-description
                cram-tf)
 
   :components

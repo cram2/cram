@@ -14,6 +14,5 @@
   <depend>cram_prolog</depend>
   <depend>cram_designators</depend>
   <depend>cram_pr2_low_level</depend>
-  <depend>cram_pr2_description</depend>
   <depend>cram_tf</depend>
 </package>
