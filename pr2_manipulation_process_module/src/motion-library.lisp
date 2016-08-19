@@ -157,6 +157,10 @@ motion."
                                              (when (slot-value parameter-set slot-name)
                                                (list (arm parameter-set) (slot-value parameter-set slot-name))))
                                            parameter-sets)))
+    (ros-info (pr2 motion) "Preliminary IK check")
+    (loop for (arm pose) in arm-pose-goals
+          do (unless (cost-reach-pose nil arm pose (tf:make-identity-pose) (tf:make-identity-pose) :only-reachable t)
+               (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable)))
     (cpl:with-failure-handling
         ((moveit:control-failed (f)
            (declare (ignore f))
