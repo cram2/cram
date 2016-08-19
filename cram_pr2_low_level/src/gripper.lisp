@@ -138,33 +138,35 @@ goal: ~a, current: ~a, delta: ~a." goal-position current-position convergence-de
            (type number delta action-timeout))
   "`goal-position' can be :open, :close, :grip or a joint position."
   (multiple-value-bind (goal-position max-effort)
-      (ensure-gripper-input-parameters position max-effort)
-    (unless (listp left-or-right)
-      (setf left-or-right (list left-or-right))
-      (mapcar (lambda (l-or-r)
-                (multiple-value-bind (result status)
-                     (cpl:with-failure-handling
-                         ((simple-error (e)
-                            (format t "Actionlib error occured!~%~a~%Reinitializing...~%~%" e)
-                            (init-gripper-action-clients)
-                            (cpl:retry)))
-                       (let ((actionlib:*action-server-timeout* 10.0)
-                             (action-client (get-gripper-action-client l-or-r)))
-                         (if (eql position :grip) ; double check that we really grasped properly
-                             (progn
-                               (actionlib:call-goal
-                                action-client
-                                (make-gripper-action-goal action-client goal-position max-effort)
-                                :timeout action-timeout)
-                               (cpl:sleep 0.5)
-                               (actionlib:call-goal
-                                action-client
-                                (make-gripper-action-goal action-client goal-position max-effort)
-                                :timeout action-timeout))
-                             (actionlib:call-goal
-                              action-client
-                              (make-gripper-action-goal action-client goal-position max-effort)
-                              :timeout action-timeout))))
-                   (ensure-gripper-goal-reached result status position goal-position delta)
-                   (values result status)))
-              left-or-right))))
+       (ensure-gripper-input-parameters position max-effort)
+    (flet ((move-the-hand-yo (l-or-r)
+             (multiple-value-bind (result status)
+                 (cpl:with-failure-handling
+                     ((simple-error (e)
+                        (format t "Actionlib error occured!~%~a~%Reinitializing...~%~%" e)
+                        (init-gripper-action-clients)
+                        (cpl:retry)))
+                   (let ((actionlib:*action-server-timeout* 10.0)
+                         (action-client (get-gripper-action-client l-or-r)))
+                     (if (eql position :grip) ; double check that we really grasped properly
+                         (progn
+                           (actionlib:call-goal
+                            action-client
+                            (make-gripper-action-goal action-client goal-position max-effort)
+                            :timeout action-timeout)
+                           (cpl:sleep 0.5)
+                           (actionlib:call-goal
+                            action-client
+                            (make-gripper-action-goal action-client goal-position max-effort)
+                            :timeout action-timeout))
+                         (actionlib:call-goal
+                          action-client
+                          (make-gripper-action-goal action-client goal-position max-effort)
+                          :timeout action-timeout))))
+               (ensure-gripper-goal-reached result status position goal-position delta)
+               (values result status))))
+      (if (and left-or-right (listp left-or-right))
+          (cpl:par
+            (move-the-hand-yo (first left-or-right))
+            (move-the-hand-yo (second left-or-right)))
+          (move-the-hand-yo left-or-right)))))
