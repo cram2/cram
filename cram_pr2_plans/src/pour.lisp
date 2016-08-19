@@ -35,6 +35,7 @@
 ;;     (source (an object))
 ;;     (theme (some stuff))
 ;;     (goal drink-poured)
+;;     (arm right)
 ;;     (phases (a motion (type approaching))
 ;;             (a motion
 ;;                (type tilting)
@@ -43,3 +44,102 @@
 ;;             (a motion (type tilting) (angle -x)
 ;;             (a motion (type retracting))))
 
+;; - mug-top-behind-maker: {x-coord: mug-top-to-maker-top}
+;; - mug-top-left-maker: {y-coord: mug-top-to-maker-top}
+;; - mug-top-above-maker: {z-coord: mug-top-to-maker-top}
+;; - mug-behind-itself: {x-coord: mug-top-to-mug-bottom}
+;; - mug-left-itself: {y-coord: mug-top-to-mug-bottom}
+;; - mug-above-itself: {z-coord: mug-top-to-mug-bottom}
+;;
+;; - {controllable-weight: 0.001}
+;; - {constraint-weight: 10.001}
+;; - {min-trans-vel: -0.1946}
+;; - {max-trans-vel: 0.1946}
+;; - {min-rot-vel: -1.2061}
+;; - {max-rot-vel: 1.2061}
+;; soft-constraints:
+;; - soft-constraint:
+;;   - double-sub: [-0.036, mug-top-behind-maker]
+;;   - double-sub: [0.0051, mug-top-behind-maker]
+;;   - constraint-weight
+;;   - mug-top-behind-maker
+;; - soft-constraint:
+;;   - double-sub: [-0.038, mug-top-left-maker]
+;;   - double-sub: [-0.011, mug-top-left-maker]
+;;   - constraint-weight
+;;   - mug-top-left-maker
+;; - soft-constraint:
+;;   - double-sub: [0.1767, mug-top-above-maker]
+;;   - double-sub: [0.2181, mug-top-above-maker]
+;;   - constraint-weight
+;;   - mug-top-above-maker
+;; - soft-constraint:
+;;   - double-sub: [-0.0768, mug-behind-itself]
+;;   - double-sub: [-0.0354, mug-behind-itself]
+;;   - constraint-weight
+;;   - mug-behind-itself
+;; - soft-constraint:
+;;   - double-sub: [0.0698, mug-left-itself]
+;;   - double-sub: [0.0981, mug-left-itself]
+;;   - constraint-weight
+;;   - mug-left-itself
+;; - soft-constraint:
+;;   - double-sub: [-0.0394, mug-above-itself]
+;;   - double-sub: [-0.0206, mug-above-itself]
+;;   - constraint-weight
+;;   - mug-above-itself
+
+(defun top-level-pick-and-pour (&key (?arm :right))
+  (with-pr2-process-modules
+    (move-pr2-arms-out-of-sight :arm :right)
+    (let* ((?bottle-desig (desig:an object
+                                    (type bottle)))
+           (?perceived-bottle-desig (cram-plan-library:perform
+                                     (desig:an action
+                                               (to detect-motion)
+                                               (object ?bottle-desig)))))
+      (plan-lib:perform (desig:an action
+                                  (to my-pick-up)
+                                  (arm ?arm)
+                                  (object ?perceived-bottle-desig)))
+      (move-pr2-arms-out-of-sight :arm :right)
+      (let* ((?cup-desig (desig:an object
+                                   (type cup)))
+             (?perceived-cup-desig (cram-plan-library:perform
+                                    (desig:an action
+                                              (to detect-motion)
+                                              (object ?cup-desig)))))
+        (plan-lib:perform (desig:an action
+                                    (to my-pour)
+                                    (arm ?arm)
+                                    (source ?perceived-bottle-desig)
+                                    (destination ?perceived-cup-desig)))
+        (plan-lib:perform (desig:an action
+                                    (to my-pour)
+                                    (arm ?arm)
+                                    (source ?perceived-bottle-desig)
+                                    (destination ?perceived-cup-desig)))
+        (move-pr2-arms-out-of-sight :arm :right)))))
+
+(defun top-level-pour (&key (?arm :right))
+  (with-pr2-process-modules
+    (move-pr2-arms-out-of-sight :arm :right)
+    (let* ((?cup-desig (desig:an object
+                                 (type cup)))
+           (?perceived-cup-desig (cram-plan-library:perform
+                                  (desig:an action
+                                            (to detect-motion)
+                                            (object ?cup-desig))))
+           (?bottle-desig (desig:an object
+                                    (type bottle))))
+      (plan-lib:perform (desig:an action
+                                  (to my-pour)
+                                  (arm ?arm)
+                                  (source ?bottle-desig)
+                                  (destination ?perceived-cup-desig)))
+      (plan-lib:perform (desig:an action
+                                  (to my-pour)
+                                  (arm ?arm)
+                                  (source ?bottle-desig)
+                                  (destination ?perceived-cup-desig)))
+      (move-pr2-arms-out-of-sight :arm :right))))

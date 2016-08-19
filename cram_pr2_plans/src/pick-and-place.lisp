@@ -115,7 +115,7 @@
   (declare (type desig:action-designator action-designator))
   (let ((phases (desig:desig-prop-value action-designator :phases)))
     (mapc (lambda (phase)
-            (print phase)
+            (format t "Executing phase: ~%~a~%~%" phase)
             (cram-plan-library:perform phase))
           phases)))
 

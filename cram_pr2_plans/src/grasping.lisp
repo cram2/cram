@@ -48,15 +48,18 @@
 (defparameter *cutlery-pregrasp-z-offset* 0.4 "in meters")
 (defparameter *cutlery-grasp-z-offset* 0.01 "in meters") ; 1 cm because TCP is not at the edge
 
-(defparameter *cup-pregrasp-xy-offset* 0.2 "in meters")
+(defparameter *cup-pregrasp-xy-offset* 0.1 "in meters")
 (defparameter *cup-pregrasp-z-offset* 0.4 "in meters")
 (defparameter *cup-grasp-z-offset* 0.09 "in meters")
 
-(defparameter *bottle-pregrasp-xy-offset* 0.2 "in meters")
+(defparameter *bottle-pregrasp-xy-offset* 0.1 "in meters")
 (defparameter *bottle-pregrasp-z-offset* 0.4 "in meters")
 (defparameter *bottle-grasp-z-offset* 0.09 "in meters")
 
 (defparameter *lift-z-offset* 0.4 "in meters")
+
+(defparameter *pour-xy-offset* 0.12 "in meters")
+(defparameter *pour-z-offset* -0.04 "in meters")
 
 (defparameter *pr2-right-arm-joint-names-list*
   '("r_shoulder_pan_joint" "r_shoulder_lift_joint" "r_upper_arm_roll_joint"
@@ -82,6 +85,11 @@
    (cl-transforms:make-3d-vector 0.4 0.3 1.55)
    (cl-transforms:make-quaternion 0.9215513103717499d0 -0.387996037470125d0
                                   -0.014188589447636247d0 -9.701489976338351d-4)))
+
+(defun overwrite-tf-listener ()
+  (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client)))
+;;; Use TF2 buffer until TF1 bug is solved.... ..... ..
+(roslisp-utilities:register-ros-init-function overwrite-tf-listener)
 
 (defmacro with-pr2-process-modules (&body body)
   `(cram-process-modules:with-process-modules-running
@@ -191,6 +199,20 @@
                    (+ y-pose-origin y-offset))
               :z (let ((z-pose-origin (cl-transforms:z pose-origin)))
                    (+ z-pose-origin z-offset))))))
+
+(defun rotate-once-pose (pose angle axis)
+  (cl-transforms-stamped:copy-pose-stamped
+   pose
+   :orientation (let ((pose-orientation (cl-transforms:orientation pose)))
+                  (cl-transforms:q*
+                   (cl-transforms:axis-angle->quaternion
+                    (case axis
+                      (:x (cl-transforms:make-3d-vector 1 0 0))
+                      (:y (cl-transforms:make-3d-vector 0 1 0))
+                      (:z (cl-transforms:make-3d-vector 0 0 1))
+                      (t (error "in ROTATE-ONCE-POSE forgot to specify axis properly: ~a" axis)))
+                    angle)
+                   pose-orientation))))
 
 (defun get-object-type-grasp-pose (object-type object-pose arm grasp)
   (case object-type
@@ -319,10 +341,39 @@
                 (t (error "arm can only be :left or :right"))))
        (t (error "grasp can only be :side or :front"))))))
 
+(defun get-object-type-pour-pose (object-type object-pose arm grasp)
+  (let ((grasp-pose (get-object-type-grasp-pose object-type object-pose arm grasp)))
+    (translate-pose grasp-pose
+                    :x-offset (case grasp
+                                (:front (- *pour-xy-offset*))
+                                (:side 0.0)
+                                (error "can only pour from :side or :front"))
+                    :y-offset (case grasp
+                                (:front 0.0)
+                                (:side (case arm
+                                         (:left *pour-xy-offset*)
+                                         (:right (- *pour-xy-offset*))
+                                         (t (error "arm can only be :left or :right"))))
+                                (error "can only pour from :side or :front"))
+                               :z-offset (+ *bottle-grasp-z-offset*
+                                            *pour-z-offset*))))
+
+(defun get-tilted-pose (initial-poses angle arm grasp)
+  (let ((initial-pose (if (listp initial-poses)
+                          (car (last initial-poses))
+                          initial-poses)))
+    (case grasp
+      (:front (rotate-once-pose initial-pose angle :y))
+      (:side (case arm
+               (:left (rotate-once-pose initial-pose angle :x))
+               (:right (rotate-once-pose initial-pose (- angle) :x))
+               (t (error "arm can only be :left or :right"))))
+      (t (error "can only pour from :side or :front")))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; RANDOM GARBAGE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun get-cup-put-pose (arm grasp)
-  (calculate-cup-grasp-pose 0.8 -0.6
+  (calculate-cup-grasp-pose 0.7 -0.2
                             *kitchen-sink-block-z* *cup-grasp-z-offset*
                             arm grasp))
 
