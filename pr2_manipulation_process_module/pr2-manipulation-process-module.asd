@@ -48,6 +48,7 @@
                semantic-map-collision-environment
                pr2_mechanism_msgs-srv
                cram-pr2-designators
+               cram-motion-manager
                cram-moveit)
   :components
   ((:module "src"
