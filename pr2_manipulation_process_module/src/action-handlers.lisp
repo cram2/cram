@@ -58,7 +58,7 @@
                   ,@body)
                 (setf ,lazy-values (lazy-cdr ,lazy-values))))))
 
-(def-action-handler park-object (object grasp-assignments)
+(def-action-handler park-object (object grasp-assignments goal-spec)
   (declare (ignore object))
   (ros-info (pr2 manip-pm) "Parking object")
   ;; TODO(winkler): Differentiate here between objects held with one
@@ -81,9 +81,10 @@
                      (ecase (side grasp-assignment)
                        (:left *park-pose-left-default*)
                        (:right *park-pose-right-default*))))))
-           grasp-assignments)))
+           grasp-assignments)
+   goal-spec))
 
-(def-action-handler park-arms (arms)
+(def-action-handler park-arms (arms goal-spec)
   (ros-info (pr2 manip-pm) "Parking free arms: ~a" arms)
   (execute-parks
    (mapcar (lambda (arm)
@@ -94,51 +95,40 @@
               :park-pose
               (ecase arm
                 (:left *park-pose-left-default*)
-                (:right *park-pose-right-default*))))
-           arms)))
+                (:right *park-pose-right-default*))
+              :blindly t))
+           arms)
+   goal-spec))
 
-(def-action-handler park (arms obj &optional obstacles)
+(def-action-handler park (arms obj goal-spec &optional obstacles)
   (declare (ignore obstacles))
   (let ((arms (force-ll arms)))
     (ros-info (pr2 park) "Park arms ~a" arms)
     (when (> (length arms) 1)
-      (let ((trajectories
-              (mapcar (lambda (arm)
-                        (let* ((frame-id
-                                 (ecase arm
-                                   (:left "l_wrist_roll_link")
-                                   (:right "r_wrist_roll_link")))
-                               (arm-in-tll
-                                 (let ((tll-pose
-                                         (make-pose-stamped
-                                          frame-id 0.0
-                                          (cl-transforms:make-identity-vector)
-                                          (cl-transforms:make-identity-rotation))))
-                                   (tf:wait-for-transform
-                                    *transformer*
-                                    :timeout *tf-default-timeout*
-                                    :time (tf:stamp tll-pose)
-                                    :source-frame (tf:frame-id tll-pose)
-                                    :target-frame *robot-torso-frame*)
-                                   (cl-transforms-stamped:transform-pose-stamped
-                                    *transformer*
-                                    :pose tll-pose
-                                    :target-frame *robot-torso-frame*
-                                    :timeout *tf-default-timeout*)))
-                               (raised
-                                 (copy-pose-stamped
-                                  arm-in-tll
-                                  :origin
-                                  (cl-transforms:v+
-                                   (cl-transforms:origin arm-in-tll)
-                                   (cl-transforms:make-3d-vector -0.1 0 0.1)))))
-                          (execute-move-arm-pose
-                           arm raised :plan-only t
-                                      :quiet t
-                                      :allowed-collision-objects
-                                      `(,(desig-prop-value obj :name)))))
-                      arms)))
-        (moveit::execute-trajectories trajectories)))
+      (let* ((arm-pose-goals (mapcar (lambda (arm)
+                                       (let* ((frame-id (link-name arm))
+                                              (arm-in-tll (progn
+                                                            (tf:wait-for-transform *transformer*
+                                                                                   :timeout *tf-default-timeout*
+                                                                                   :time 0.0
+                                                                                   :source-frame frame-id
+                                                                                   :target-frame *robot-torso-frame*)
+                                                            (cl-transforms-stamped:transform-pose-stamped *transformer*
+                                                                                                          :pose (make-pose-stamped frame-id 0.0
+                                                                                                                                   (cl-transforms:make-identity-vector)
+                                                                                                                                   (cl-transforms:make-identity-rotation))
+                                                                                                          :target-frame *robot-torso-frame*
+                                                                                                          :timeout *tf-default-timeout*)))
+                                              (raised (copy-pose-stamped arm-in-tll
+                                                                         :origin (cl-transforms:v+ (cl-transforms:origin arm-in-tll)
+                                                                                                   (cl-transforms:make-3d-vector -0.1 0 0.1)))))
+                                         (list arm frame-id raised)))
+                                     arms))
+             (updated-goal-spec (mot-man:enriched-goal-specification goal-spec
+                                                                     :keys `((:quiet t)
+                                                                             (:allowed-collision-objects (,(desig-prop-value obj :name))))
+                                                                     :arm-pose-goals arm-pose-goals)))
+        (mot-man:execute-arm-action updated-goal-spec)))
     (unless (> (length arms) 1)
       (let ((grasp-type (desig-prop-value obj :grasp-type)))
         (cond
@@ -198,17 +188,17 @@
                                              *robot-torso-frame* (ros-time)
                                              (cl-transforms:make-3d-vector 0.1 -0.45 0.3)
                                              (cl-transforms:euler->quaternion :ay (/ pi -2)))))))))
-                       (execute-move-arm-pose
-                        arm carry-pose
-                        :allowed-collision-objects allowed-collision-objects
-                        :ignore-collisions ignore-collisions)))))))))))))
+                       (mot-man:execute-arm-action (mot-man:enriched-goal-specification goal-spec
+                                                                                        :keys `((:allowed-collision-objects ,allowed-collision-objects)
+                                                                                                (:ignore-collisions ,ignore-collisions))
+                                                                                        :arm-pose-goals (list (list arm carry-pose))))))))))))))))
 
-(def-action-handler lift (obj grasp-assignments distance)
+(def-action-handler lift (obj grasp-assignments distance goal-spec)
   (declare (ignore obj))
   (let ((arms (mapcar #'side grasp-assignments)))
     (unless arms
       (error 'simple-error :format-control "No arms for lifting infered."))
-    (execute-lift grasp-assignments distance)))
+    (execute-lift grasp-assignments distance goal-spec)))
 
 (define-hook cram-language::on-handover-transition (side-old side-new object-name))
 (define-hook cram-language::on-begin-grasp (obj-desig))
@@ -235,7 +225,7 @@
               efforts))))
           (t 100))))
 
-(defun perform-grasps (action-desig object assignments-list &key log-id)
+(defun perform-grasps (action-desig object assignments-list goal-spec &key log-id)
   (let* ((obj (or (newest-effective-designator object) object))
          (obj-at (desig-prop-value obj :at))
          (obj-pose (when obj-at (reference obj-at)))
@@ -299,7 +289,7 @@
                                                 (:pregrasp-pose ,(pregrasp-pose param-set))
                                                 (:grasp-pose ,(grasp-pose param-set)))))
                                     params))))
-        (execute-grasps obj-name params)
+        (execute-grasps obj-name params goal-spec)
         (dolist (param-set params)
           (with-vars-strictly-bound (?link-name)
               (lazy-car
@@ -324,11 +314,7 @@
                              params))
              at)))))))
 
-(def-action-handler grasp (action-desig object)
-  "Handles the grasping of any given `object'. Calculates proper grasping poses for the object, based on physical gripper characteristics, free grippers, object grasp points (handles), grasp type for this object, and position of the object relative to the robot's grippers. `action-desig' is the action designator instance that triggered this handler's execution, and is later updated with more precise grasping information based on the actual infered action."
-  (grasp-ex action-desig object))
-
-(defun grasp-ex (action-desig object)
+(defun grasp-ex (action-desig object goal-spec)
   (display-object-handles object)
   (let ((grasp-assignments (prolog:prolog `(grasp-assignments ,object ?grasp-assignments))))
     (unless
@@ -354,12 +340,16 @@
                              (ros-info (pr2 manip-pm) " - ~a/~a"
                                        (grasp-type assignment)
                                        (side assignment)))
-                           (perform-grasps action-desig object assignments-list :log-id log-id)
+                           (perform-grasps action-desig object assignments-list goal-spec :log-id log-id)
                            (ros-info (pr2 manip-pm) "Successful grasp")
                            (setf success t)
                            (success))
                       (cram-language::on-finish-grasp log-id success))))))))
       (cpl:fail 'manipulation-pose-unreachable))))
+
+(def-action-handler grasp (action-desig object goal-spec)
+  "Handles the grasping of any given `object'. Calculates proper grasping poses for the object, based on physical gripper characteristics, free grippers, object grasp points (handles), grasp type for this object, and position of the object relative to the robot's grippers. `action-desig' is the action designator instance that triggered this handler's execution, and is later updated with more precise grasping information based on the actual infered action."
+  (grasp-ex action-desig object goal-spec))
 
 (defun pose-pointing-away-from-base (object-pose)
   (let ((ref-frame "base_link")
@@ -455,25 +445,14 @@
              (putdown-hand-pose (grasp-assignment->putdown-pose
                                  grasp-assignment putdown-pose))
              (unhand-pose (grasp-assignment->unhand-pose
-                           grasp-assignment putdown-pose))
-             (link-name
-               (link-name side))
-             (planning-group
-               (cut:var-value
-                '?group
-                (first
-                 (prolog:prolog
-                  `(and (robot ?robot)
-                        (planning-group ?robot ,side ?group)))))))
+                           grasp-assignment putdown-pose)))
         (publish-pose putdown-hand-pose "putdownhandpose")
         (publish-pose pre-putdown-pose "preputdownpose")
         (publish-pose unhand-pose "unhandpose")
-        (unless (moveit:plan-link-movements
-                 link-name planning-group
-                 `(,pre-putdown-pose
-                   ,putdown-hand-pose
-                   ,unhand-pose)
-                 :destination-validity-only t)
+        (unless (mot-man:all-ok 
+                  (mot-man:execute-arm-action
+                    (mot-man:make-goal-specification :ik-check-goal-specification
+                                                     :arm-pose-goals (list (list side `(,pre-putdown-pose ,putdown-hand-pose ,unhand-pose))))))
           (cpl:fail 'manipulation-failure))
         (make-instance
          'putdown-parameters
@@ -501,38 +480,31 @@
            (grasp-assignment->pose (grasp-assignment object-pose)
              (gripper-grasp-pose grasp-assignment (make-identity-pose) object-pose)))
     (let* ((side (slot-value grasp-assignment 'side))
-           (pose (grasp-assignment->pose grasp-assignment object-pose))
-           (link-name
-             (link-name side))
-           (planning-group
-             (cut:var-value
-              '?group
-              (first
-               (prolog:prolog
-                `(and (robot ?robot)
-                      (planning-group ?robot ,side ?group)))))))
+           (pose (grasp-assignment->pose grasp-assignment object-pose)))
       (publish-pose pose "handpose")
-      (unless (moveit:plan-link-movements
-               link-name planning-group `(,pose)
-               :destination-validity-only t)
+      (unless (mot-man:all-ok 
+                (mot-man:execute-arm-action
+                  (mot-man:make-goal-specification :ik-check-goal-specification
+                                                   :arm-pose-goals (list (list side `(,pose))))))
         (cpl:fail 'manipulation-failure))
       pose)))
 
-(defun perform-putdowns (object-designator grasp-assignments putdown-pose)
+(defun perform-putdowns (object-designator grasp-assignments putdown-pose goal-spec)
   (let ((putdown-parameter-sets
           (mapcar (lambda (grasp-assignment)
                     (hand-poses-for-putdown
                      grasp-assignment putdown-pose))
                   grasp-assignments)))
     (execute-putdowns (desig-prop-value object-designator :name)
-                      putdown-parameter-sets)))
+                      putdown-parameter-sets
+                      goal-spec)))
 
-(def-action-handler handover (object grasp-assignments)
+(def-action-handler handover (object grasp-assignments goal-spec)
   (let* ((grasp-assignment (first grasp-assignments))
          (target-side (case (side grasp-assignment)
                         (:left :right)
-                        (:right :left))))
-    (let* ((target-pose (make-pose-stamped
+                        (:right :left)))
+         (target-pose (make-pose-stamped
                          *robot-torso-frame* 0.0
                          (make-3d-vector 0.4 0.0 0.2)
                          (case (side grasp-assignment)
@@ -543,41 +515,36 @@
         (cpl:with-failure-handling ((moveit:control-failed (f)
                                       (declare (ignore f))
                                       (return-from motion-block)))
-          (execute-move-arm-pose (side grasp-assignment) hand-pose)))
+          (mot-man:execute-arm-action (mot-man:enriched-goal-specification goal-spec
+                                                                           :arm-pose-goals (list (list (side grasp-assignment) hand-pose))))))
       (let ((old-allowed-arms *allowed-arms*))
         (setf *allowed-arms* `(,target-side))
-        (grasp-ex (make-designator :action nil) object)
+        (grasp-ex (make-designator :action nil) object goal-spec)
         (setf *allowed-arms* old-allowed-arms))
       (open-gripper (side grasp-assignment))
       (cram-language::on-handover-transition
        (side grasp-assignment) target-side (desig-prop-value object :name))
       (sleep 5)
-      (execute-move-arm-pose
-       target-side
-       (make-pose-stamped
-        (case target-side
-          (:left "l_wrist_roll_link")
-          (:right "r_wrist_roll_link"))
-        0.0
-        (make-3d-vector -0.05 0.0 0.0)
-        (euler->quaternion)))
+      (mot-man:execute-arm-action (mot-man:enriched-goal-specification goal-spec
+                                                                       :arm-pose-goals (list (list target-side
+                                                                                                   (make-pose-stamped
+                                                                                                     (link-name target-side)
+                                                                                                     0.0
+                                                                                                     (make-3d-vector -0.05 0.0 0.0)
+                                                                                                     (euler->quaternion))))))
       (moveit:detach-collision-object-from-link
        (desig-prop-value object :name)
-       (case (side grasp-assignment)
-         (:left "l_wrist_roll_link")
-         (:right "r_wrist_roll_link"))
+       (link-name (side grasp-assignment))
        :current-pose-stamped target-pose)
-      (execute-move-arm-pose
-       (side grasp-assignment)
-       (make-pose-stamped
-        (case (side grasp-assignment)
-          (:left "l_wrist_roll_link")
-          (:right "r_wrist_roll_link"))
-        0.0
-        (make-3d-vector -0.05 0.0 0.0)
-        (euler->quaternion))))))
+      (mot-man:execute-arm-action (mot-man:enriched-goal-specification goal-spec
+                                                                       :arm-pose-goals (list (list (side grasp-assignment)
+                                                                                                   (make-pose-stamped
+                                                                                                     (link-name (side grasp-assignment))
+                                                                                                     0.0
+                                                                                                     (make-3d-vector -0.05 0.0 0.0)
+                                                                                                     (euler->quaternion))))))))
 
-(def-action-handler put-down (object-designator location grasp-assignments)
+(def-action-handler put-down (object-designator location grasp-assignments goal-spec)
   (unless (and object-designator location)
     (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))
   (assert (> (length grasp-assignments) 0) ()
@@ -600,7 +567,7 @@
                                                           object-designator
                                                           :dimensions))
                                                    2)
-                                                0.1))
+                                                0.01))
                                            0.1)))
          (lazy-putdown-poses
            (prolog:prolog
@@ -619,7 +586,7 @@
                             (ros-info (pr2 manip-pm) "Trying next putdown-pose.")
                             (return-from next-putdown-pose)))
                        (publish-pose putdown-pose "putdownpose")
-                       (perform-putdowns object-designator grasp-assignments putdown-pose)
+                       (perform-putdowns object-designator grasp-assignments putdown-pose goal-spec)
                        (setf success t)
                        (success))))
            (cpl:fail 'manipulation-failure)
