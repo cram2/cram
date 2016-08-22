@@ -324,8 +324,10 @@ configuration."
 ;;       (+ distance-pregrasp distance-grasp))))
 
 (defun is-pose-reachable (pose arm &key arm-offset-pose)
-  (let ((pose (cond (arm-offset-pose (relative-pose pose arm-offset-pose))
-                    (t pose))))
+  (let ((pose (tf:copy-pose-stamped
+               (cond (arm-offset-pose (relative-pose pose arm-offset-pose))
+                     (t pose))
+               :stamp 0.0)))
     (roslisp:publish (roslisp:advertise "/testpose" "geometry_msgs/PoseStamped")
                      (to-msg pose))
     (cpl:with-failure-handling
