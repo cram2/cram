@@ -71,12 +71,6 @@ distance is used. Otherwise, the (unweighted) quadratic joint-space
 integral is calculated. Both methods may not be mixed as their scale
 is fundamentally different."
   (let* ((wrist-frame (link-name side))
-         (arm-group (cut:var-value
-                     '?group
-                     (first
-                      (prolog:prolog
-                       `(and (robot ?robot)
-                             (planning-group ?robot ,side ?group))))))
          (pose-in-tll
            (progn
              (tf:wait-for-transform
@@ -89,13 +83,10 @@ is fundamentally different."
               :pose (tf:copy-pose-stamped pose :stamp 0.0)
               :target-frame *robot-torso-frame*
               :timeout *tf-default-timeout*))))
-    (let ((state-0 (moveit:plan-link-movement
-                    wrist-frame arm-group pose-in-tll
-                    :touch-links
-                    (links-for-arm-side side)
-                    :allowed-collision-objects
-                    allowed-collision-objects
-                    :destination-validity-only t
-                    :highlight-links highlight-links)))
+    (let ((state-0 (mot-man:all-ok (mot-man:execute-arm-action
+                                     (mot-man:make-goal-specification :ik-check-goal-specification
+                                                                      :keys `((:allowed-collision-objects ,allowed-collision-objects)
+                                                                              (:highlight-links ,highlight-links))
+                                                                      :arm-pose-goals (list (list side wrist-frame pose-in-tll)))))))
       (when state-0
         (moveit:pose-distance wrist-frame pose)))))
