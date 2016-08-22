@@ -44,7 +44,6 @@
    (object-part :accessor object-part :initform nil :initarg :object-part)
    (max-collisions-tolerance :accessor max-collisions-tolerance :initform nil :initarg :max-collisions-tolerance)
    (blindly :accessor blindly :initform nil :initarg :blindly)))
-   (max-collisions-tolerance :accessor max-collisions-tolerance :initform nil :initarg :max-collisions-tolerance)))
 
 (defclass grasp-parameters (manipulation-parameters)
   ((grasp-pose :accessor grasp-pose :initform nil :initarg :grasp-pose)
@@ -351,16 +350,17 @@ positions, grasp-type, effort to use) are defined in the list
           )
         ;; (cpl:par-loop (param-set parameter-sets)
         ;;   (open-gripper (arm param-set)))
+        (dolist (param-set parameter-sets)
+          (moveit:detach-collision-object-from-link
+           object-name (link-name (arm param-set))))
         (block unhand
           (cpl:with-failure-handling
               ((cram-plan-failures:manipulation-failure (f)
                  (declare (ignore f))
+                 (ros-warn (pr2 motion) "Couldn't assume unhand pose, resorting to safe pose.")
                  (assume 'safe-pose goal-spec t)
                  (return-from unhand)))
-            (assume 'unhand-pose goal-spec))))))
-  (dolist (param-set parameter-sets)
-    (moveit:detach-collision-object-from-link
-     object-name (link-name (arm param-set)))))
+            (assume 'unhand-pose goal-spec)))))))
 
 (defun execute-linear-motion (sides vector goal-spec)
   ;; TODO: this doesn't actually guarantee a linear motion in cartesian space yet.
