@@ -95,7 +95,8 @@
               :park-pose
               (ecase arm
                 (:left *park-pose-left-default*)
-                (:right *park-pose-right-default*))))
+                (:right *park-pose-right-default*))
+              :blindly t))
            arms)
    goal-spec))
 
@@ -566,7 +567,7 @@
                                                           object-designator
                                                           :dimensions))
                                                    2)
-                                                0.1))
+                                                0.01))
                                            0.1)))
          (lazy-putdown-poses
            (prolog:prolog
