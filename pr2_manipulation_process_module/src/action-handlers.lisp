@@ -95,7 +95,8 @@
               :park-pose
               (ecase arm
                 (:left *park-pose-left-default*)
-                (:right *park-pose-right-default*))))
+                (:right *park-pose-right-default*))
+              :blindly t))
            arms)
    goal-spec))
 

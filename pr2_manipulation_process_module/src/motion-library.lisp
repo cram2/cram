@@ -42,6 +42,8 @@
    (safe-pose :accessor safe-pose :initform nil :initarg :safe-pose)
    (grasp-type :accessor grasp-type :initform nil :initarg :grasp-type)
    (object-part :accessor object-part :initform nil :initarg :object-part)
+   (max-collisions-tolerance :accessor max-collisions-tolerance :initform nil :initarg :max-collisions-tolerance)
+   (blindly :accessor blindly :initform nil :initarg :blindly)))
    (max-collisions-tolerance :accessor max-collisions-tolerance :initform nil :initarg :max-collisions-tolerance)))
 
 (defclass grasp-parameters (manipulation-parameters)
@@ -155,33 +157,41 @@ motion."
                             nil))
          (arm-pose-goals (cpl:mapcar-clean (lambda (parameter-set)
                                              (when (slot-value parameter-set slot-name)
-                                               (list (arm parameter-set) (slot-value parameter-set slot-name))))
+                                               (list (arm parameter-set)
+                                                     (slot-value parameter-set slot-name)
+                                                     (slot-value parameter-set 'blindly))))
                                            parameter-sets)))
     (ros-info (pr2 motion) "Preliminary IK check")
-    (loop for (arm pose) in arm-pose-goals
-          do (unless (cost-reach-pose nil arm pose (tf:make-identity-pose) (tf:make-identity-pose) :only-reachable t)
-               (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable)))
-    (cpl:with-failure-handling
-        ((moveit:control-failed (f)
-           (declare (ignore f))
-           (when catch-control-failures
-             (cpl:retry)))
-         (cram-plan-failures:manipulation-failure (f)
-           (declare (ignore f))
-           (when (and max-collisions-tolerance
-                      (> max-collisions-tolerance 0))
-             (decf max-collisions-tolerance)
-             (when (< max-collisions-tolerance 1)
-               (setf max-collisions-tolerance nil)
-               (setf ignore-collisions t))
-             (cpl:retry))))
-      (mot-man:execute-arm-action (mot-man:enriched-goal-specification goal-spec
-                                                                       :keys `((:ignore-collisions ,ignore-collisions)
-                                                                               (:raise-elbow ,raised-elbows))
-                                                                      :arm-pose-goals arm-pose-goals))
-      (unless (pose-assumed parameter-sets slot-name)
-        (ros-warn (pr2 manip-pm) "Failed to assume at least one pose (distance too large).")
-        (cpl:fail 'cram-plan-failures:manipulation-failure)))))
+    (loop for (arm pose blindly) in arm-pose-goals
+          unless blindly
+            do (unless (cost-reach-pose nil arm pose nil nil :only-reachable t)
+                 (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable)))
+    (let ((arm-pose-goals (mapcar (lambda (set)
+                                    (destructuring-bind (arm pose blindly) set
+                                      `(,arm ,pose)))
+                                  arm-pose-goals)))
+      (cpl:with-failure-handling
+          ((moveit:control-failed (f)
+             (declare (ignore f))
+             (when catch-control-failures
+               (cpl:retry)))
+           (cram-plan-failures:manipulation-failure (f)
+             (declare (ignore f))
+             (when (and max-collisions-tolerance
+                        (> max-collisions-tolerance 0))
+               (decf max-collisions-tolerance)
+               (when (< max-collisions-tolerance 1)
+                 (setf max-collisions-tolerance nil)
+                 (setf ignore-collisions t))
+               (cpl:retry))))
+        (mot-man:execute-arm-action (mot-man:enriched-goal-specification
+                                     goal-spec
+                                     :keys `((:ignore-collisions ,ignore-collisions)
+                                             (:raise-elbow ,raised-elbows))
+                                     :arm-pose-goals arm-pose-goals))
+        (unless (pose-assumed parameter-sets slot-name)
+          (ros-warn (pr2 manip-pm) "Failed to assume at least one pose (distance too large).")
+          (cpl:fail 'cram-plan-failures:manipulation-failure))))))
 
 (defmacro with-parameter-sets (parameter-sets &body body)
   "Defines parameter-set specific functions (like assuming poses) for
