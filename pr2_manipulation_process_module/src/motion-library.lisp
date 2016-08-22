@@ -42,7 +42,8 @@
    (safe-pose :accessor safe-pose :initform nil :initarg :safe-pose)
    (grasp-type :accessor grasp-type :initform nil :initarg :grasp-type)
    (object-part :accessor object-part :initform nil :initarg :object-part)
-   (max-collisions-tolerance :accessor max-collisions-tolerance :initform nil :initarg :max-collisions-tolerance)))
+   (max-collisions-tolerance :accessor max-collisions-tolerance :initform nil :initarg :max-collisions-tolerance)
+   (blindly :accessor blindly :initform nil :initarg :blindly)))
 
 (defclass grasp-parameters (manipulation-parameters)
   ((grasp-pose :accessor grasp-pose :initform nil :initarg :grasp-pose)
@@ -68,128 +69,6 @@
     (object-name gripper-effort gripper-close-pos side pregrasp-pose safe-pose))
 (define-hook cram-language::on-grasp-object (object-name side))
 (define-hook cram-language::on-putdown-object (object-name side))
-
-(defun execute-move-arm-pose (side pose-stamped
-                              &key allowed-collision-objects
-                                ignore-collisions
-                                plan-only
-                                start-state
-                                collidable-objects
-                                max-tilt
-                                quiet
-                                ignore-position-check
-                                raise-elbow)
-  (unless quiet (ros-info (pr2 manip-pm) "Executing arm movement"))
-  (cond ((and (not ignore-position-check)
-              (gripper-at-pose-p side pose-stamped))
-         (ros-info (pr2 manip-pm) "Gripper ~a already at target pose, skipping movement."
-                   side)
-         nil)
-        (t
-         (let* ((allowed-collision-objects
-                  (cond (ignore-collisions
-                         (append allowed-collision-objects
-                                 (links-for-arm-side side)))
-                        (t allowed-collision-objects)))
-                (link-name (link-name side))
-                (planning-group (cut:var-value
-                                 '?group
-                                 (first
-                                  (prolog:prolog
-                                   `(and (robot ?robot)
-                                         (planning-group ?robot ,side ?group)))))))
-           (let ((log-id (first (cram-language::on-prepare-move-arm
-                                 link-name pose-stamped
-                                 planning-group ignore-collisions))))
-             (cpl:with-failure-handling
-                 ((moveit:no-ik-solution (f)
-                    (declare (ignore f))
-                    (ros-error (move arm) "No IK solution found.")
-                    (cram-language::on-finish-move-arm log-id nil)
-                    (error 'manipulation-pose-unreachable
-                           :result (list side pose-stamped)))
-                  (moveit:planning-failed (f)
-                    (declare (ignore f))
-                    (ros-error (move arm) "Planning failed.")
-                    (cram-language::on-finish-move-arm log-id nil)
-                    (error 'manipulation-pose-unreachable
-                           :result (list side pose-stamped)))
-                  (moveit:goal-violates-path-constraints (f)
-                    (declare (ignore f))
-                    (ros-error (move arm) "Goal violates path constraints.")
-                    (cram-language::on-finish-move-arm log-id nil)
-                    (error 'manipulation-pose-unreachable
-                           :result (list side pose-stamped)))
-                  (moveit:invalid-goal-constraints (f)
-                    (declare (ignore f))
-                    (ros-error (move arm) "Invalid goal constraints.")
-                    (cram-language::on-finish-move-arm log-id nil)
-                    (error 'manipulation-pose-unreachable
-                           :result (list side pose-stamped)))
-                  (moveit:timed-out (f)
-                    (declare (ignore f))
-                    (ros-error (move arm) "Timeout.")
-                    (cram-language::on-finish-move-arm log-id nil)
-                    (error 'manipulation-pose-unreachable
-                           :result (list side pose-stamped)))
-                  (moveit:goal-in-collision (f)
-                    (declare (ignore f))
-                    (ros-error (move arm) "Goal in collision.")
-                    (cram-language::on-finish-move-arm log-id nil)
-))
-               (let* ((objects-in-hand
-                        (lazy-mapcar (lambda (bdgs)
-                                       (with-vars-bound (?o) bdgs
-                                         (current-desig ?o)))
-                                     (prolog:prolog `(cram-plan-occasions-events:object-in-hand
-                                                      ?o ?side))))
-                      (object-names-in-hand
-                        (force-ll
-                         (lazy-mapcar (lambda (object)
-                                        (string-upcase (desig-prop-value object :name)))
-                                      objects-in-hand)))
-                      (touch-links-hand (case side
-                                          (:left (list "l_gripper_l_finger_tip_link"
-                                                       "l_gripper_r_finger_tip_link"
-                                                       "l_gripper_l_finger_link"
-                                                       "l_gripper_r_finger_link"
-                                                       "l_gripper_l_finger_tip_frame"
-                                                       "l_gripper_palm_link"))
-                                          (:right (list "r_gripper_l_finger_tip_link"
-                                                        "r_gripper_r_finger_tip_link"
-                                                        "r_gripper_l_finger_link"
-                                                        "r_gripper_r_finger_link"
-                                                        "r_gripper_l_finger_tip_frame"
-                                                        "r_gripper_palm_link")))))
-                 (cond ((let ((result
-                                (multiple-value-bind (start trajectory)
-                                  (moveit:move-link-pose
-                                   link-name
-                                   planning-group pose-stamped
-                                   :ignore-collisions ignore-collisions
-                                   :allowed-collision-objects allowed-collision-objects
-                                   :touch-links (links-for-arm-side side)
-                                   :plan-only plan-only
-                                   :start-state start-state
-                                   :collidable-objects collidable-objects
-                                   :max-tilt max-tilt
-                                   :raise-elbow raise-elbow
-                                   :additional-touch-link-groups `(,object-names-in-hand)
-                                   :additional-collision-objects-groups `(,touch-links-hand)
-                                   :additional-values `(t))
-                                  ;;:reference-frame "base_link")
-                                  (declare (ignorable start))
-                                  (values trajectory start))))
-                        (cram-language::on-finish-move-arm log-id t)
-                        (let ((bs-update (cram-occasions-events:on-event
-                                          (make-instance
-                                           'cram-plan-occasions-events:robot-state-changed
-                                           :timestamp 0.0))))
-                          (cond (plan-only result)
-                                (t bs-update)))))
-                     (t (cram-language::on-finish-move-arm log-id nil)
-                        (error 'manipulation-failed
-                               :result (list side pose-stamped)))))))))))
 
 (defun wait-for-gripper-at-position (arm position &key (threshold 0.01))
   (let ((last-state -1))
@@ -217,52 +96,6 @@
      :header header
      :name joint-names
      :position positions)))
-
-(defun arm-pose->trajectory (arm pose &key ignore-collisions raise-elbow
-                                        ignore-position-check (time-offset 0))
-  "Calculated a trajectory from the current pose of gripper `arm' when
-trying to assume the pose `pose'."
-  (cpl:with-failure-handling
-      (((or cram-plan-failures::manipulation-failure
-            moveit::moveit-failure) (f)
-         (declare (ignore f))
-         (ros-error
-          (pr2 grasp)
-          "Failed to generate trajectory for ~a."
-          arm)))
-    (let ((result (execute-move-arm-pose
-                   arm pose
-                   :quiet t :plan-only t
-                   :ignore-collisions ignore-collisions
-                   :raise-elbow raise-elbow
-                   :ignore-position-check ignore-position-check)))
-      (when result
-        (let ((end-time 0))
-          (values
-           (roslisp:with-fields (joint_trajectory) result
-             (roslisp:modify-message-copy
-              result
-              :joint_trajectory
-              (roslisp:with-fields (points)
-                  joint_trajectory
-                (roslisp:modify-message-copy
-                 joint_trajectory
-                 :points
-                 (map 'vector (lambda (point)
-                                (roslisp:with-fields (time_from_start)
-                                    point
-                                  (let ((time-put (+ time_from_start
-                                                     time-offset)))
-                                    (when (> time-put end-time)
-                                      (setf end-time time-put))
-                                    (roslisp:modify-message-copy
-                                     point
-                                     :time_from_start time-put))))
-                      points)))))
-           end-time))))
-    ;; (execute-move-arm-pose arm pose :quiet t :plan-only t
-    ;;                                 :ignore-collisions ignore-collisions)
-    ))
 
 (defun link-distance-from-pose (link-name pose-stamped)
   (let* ((link-identity-pose (pose->pose-stamped
@@ -301,7 +134,7 @@ trying to assume the pose `pose'."
                                        parameter-set))
                                    parameter-sets))))
 
-(defun assume-poses (parameter-sets slot-name
+(defun assume-poses (parameter-sets slot-name goal-spec
                      &key ignore-collisions raise-elbow (catch-control-failures t))
   "Moves all arms defined in `parameter-sets' into the poses given by
 the slot `slot-name' as defined in the respective parameter-sets. If
@@ -311,79 +144,79 @@ motion."
             (length parameter-sets) slot-name
             (cond ((= (length parameter-sets) 1) "")
                   (t "s")))
-  (let ((max-collisions-tolerance
-          (loop for parameter-set in parameter-sets
-                as max-collisions-tolerance = (max-collisions-tolerance parameter-set)
-                when max-collisions-tolerance
-                  maximizing max-collisions-tolerance)))
-    (cpl:with-failure-handling
-        ((moveit:control-failed (f)
-           (declare (ignore f))
-           (when catch-control-failures
-             (cpl:retry)))
-         (cram-plan-failures:manipulation-failure (f)
-           (declare (ignore f))
-           (when (and max-collisions-tolerance
-                      (> max-collisions-tolerance 0))
-             (decf max-collisions-tolerance)
-             (when (< max-collisions-tolerance 1)
-               (setf max-collisions-tolerance nil)
-               (setf ignore-collisions t))
-             (cpl:retry))))
-      (cond ((= (length parameter-sets) 1)
-             (when (slot-value (first parameter-sets) slot-name)
-               (execute-move-arm-pose
-                (arm (first parameter-sets))
-                (slot-value (first parameter-sets) slot-name)
-                :raise-elbow (and raise-elbow
-                                  (arm (first parameter-sets)))
-                :ignore-collisions ignore-collisions)))
-            (t (moveit:execute-trajectories
-                (cpl:mapcar-clean
-                 (lambda (parameter-set)
-                   (when (slot-value parameter-set slot-name)
-                     (arm-pose->trajectory
-                      (arm parameter-set)
-                      (slot-value parameter-set slot-name)
-                      :ignore-collisions ignore-collisions
-                      :raise-elbow (arm parameter-set))))
-                 parameter-sets)
-                :ignore-va t)))
-      (unless (pose-assumed parameter-sets slot-name)
-        (ros-warn (pr2 manip-pm) "Failed to assume at least one pose (distance too large).")
-        (cpl:fail 'cram-plan-failures:manipulation-failure)))))
+  (let* ((max-collisions-tolerance
+           (loop for parameter-set in parameter-sets
+                 as max-collisions-tolerance = (max-collisions-tolerance parameter-set)
+                 when max-collisions-tolerance
+                   maximizing max-collisions-tolerance))
+         (raised-elbows (if raise-elbow
+                            (mapcar (lambda (parameter-set)
+                                      (arm parameter-set))
+                                    parameter-sets)
+                            nil))
+         (arm-pose-goals (cpl:mapcar-clean (lambda (parameter-set)
+                                             (when (slot-value parameter-set slot-name)
+                                               (list (arm parameter-set)
+                                                     (slot-value parameter-set slot-name)
+                                                     (slot-value parameter-set 'blindly))))
+                                           parameter-sets)))
+    (ros-info (pr2 motion) "Preliminary IK check")
+    (loop for (arm pose blindly) in arm-pose-goals
+          unless blindly
+            do (unless (cost-reach-pose nil arm pose nil nil :only-reachable t)
+                 (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable)))
+    (let ((arm-pose-goals (mapcar (lambda (set)
+                                    (destructuring-bind (arm pose blindly) set
+                                      `(,arm ,pose)))
+                                  arm-pose-goals)))
+      (cpl:with-failure-handling
+          ((moveit:control-failed (f)
+             (declare (ignore f))
+             (when catch-control-failures
+               (cpl:retry)))
+           (cram-plan-failures:manipulation-failure (f)
+             (declare (ignore f))
+             (when (and max-collisions-tolerance
+                        (> max-collisions-tolerance 0))
+               (decf max-collisions-tolerance)
+               (when (< max-collisions-tolerance 1)
+                 (setf max-collisions-tolerance nil)
+                 (setf ignore-collisions t))
+               (cpl:retry))))
+        (mot-man:execute-arm-action (mot-man:enriched-goal-specification
+                                     goal-spec
+                                     :keys `((:ignore-collisions ,ignore-collisions)
+                                             (:raise-elbow ,raised-elbows))
+                                     :arm-pose-goals arm-pose-goals))
+        (unless (pose-assumed parameter-sets slot-name)
+          (ros-warn (pr2 manip-pm) "Failed to assume at least one pose (distance too large).")
+          (cpl:fail 'cram-plan-failures:manipulation-failure))))))
 
 (defmacro with-parameter-sets (parameter-sets &body body)
   "Defines parameter-set specific functions (like assuming poses) for
 the manipulation parameter sets `parameter-sets' and executes the code
 `body' in this environment."
-  `(labels ((assume-multiple (pose-slot-names)
-              (moveit:execute-trajectories
-               (loop for pose-slot-name in pose-slot-names
-                     with time-offset = 0
-                     append (destructuring-bind (pose-slot-name ignore-collisions)
-                                pose-slot-name
-                              (cpl:mapcar-clean
-                               (lambda (parameter-set)
-                                 (when (slot-value parameter-set pose-slot-name)
-                                   (let ((result (arm-pose->trajectory
-                                                  (arm parameter-set)
-                                                  (slot-value parameter-set pose-slot-name)
-                                                  :ignore-collisions ignore-collisions
-                                                  :raise-elbow (arm parameter-set)
-                                                  :time-offset (or time-offset 0.0d0))))
-                                     (when result
-                                       (multiple-value-bind (trajectory time-end) result
-                                         (when time-end
-                                           (setf time-offset time-end))
-                                         trajectory)))))
-                               parameter-sets)))
-               :ignore-va t))
-            (assume (pose-slot-name &optional ignore-collisions raise-elbow)
+  `(labels ((assume-multiple (pose-slot-names goal-spec)
+              (loop for pose-slot-name in pose-slot-names do
+                (let* ((ignore-collisions (second pose-slot-name))
+                       (pose-slot-name (first pose-slot-name))
+                       (arm-pose-goals (cpl:mapcar-clean (lambda (parameter-set)
+                                                           (when (slot-value parameter-set pose-slot-name)
+                                                             (list (arm parameter-set) (slot-value parameter-set pose-slot-name))))
+                                                         ,parameter-sets))
+                       ;; Enriching a goal-spec does not change the original goal-spec, but returns a new one.
+                       ;; We can use this, as here, to enforce some sequencing in how the arm pose goals are reached:
+                       ;; rather than send all pose goals, send a pose goal then execute, send the next goal when the previous
+                       ;; one completes etc.
+                       (updated-goal-spec (mot-man:enriched-goal-specification goal-spec
+                                                                               :keys (list (list :ignore-collisions ignore-collisions))
+                                                                               :arm-pose-goals arm-pose-goals)))
+                  (mot-man:execute-arm-action updated-goal-spec))))
+            (assume (pose-slot-name goal-spec &optional ignore-collisions raise-elbow)
               (cond ((listp pose-slot-name)
-                     (assume-multiple pose-slot-name))
+                     (assume-multiple pose-slot-name goal-spec))
                     (t (assume-poses
-                        ,parameter-sets pose-slot-name
+                        ,parameter-sets pose-slot-name goal-spec
                         :ignore-collisions ignore-collisions
                         :raise-elbow raise-elbow
                         :catch-control-failures t)))))
@@ -396,9 +229,9 @@ arm `arm'."
                                 `(and (robot ?robot)
                                       (end-effector-link ?robot ,arm ?link))))))
 
-(defun execute-parks (parameter-sets)
+(defun execute-parks (parameter-sets goal-spec)
   (with-parameter-sets parameter-sets
-    (assume 'park-pose)))
+    (assume 'park-pose goal-spec)))
 
 (defun open-gripper-if-necessary (arm &key (threshold 0.08))
   "Opens the gripper on the robot's arm `arm' if its current position
@@ -414,7 +247,7 @@ is smaller than `threshold'."
 than `threshold'."
   (< (get-gripper-state arm) threshold))
 
-(defun execute-grasps (object-name parameter-sets)
+(defun execute-grasps (object-name parameter-sets goal-spec)
   "Executes simultaneous grasping of the object given by the name
 `object-name'. The grasps (object-relative gripper positions,
 grasp-type, effort to use) are defined in the list `parameter-sets'."
@@ -425,8 +258,8 @@ grasp-type, effort to use) are defined in the list `parameter-sets'."
                 cram-plan-failures:object-lost) (f)
              (declare (ignore f))
              (ros-warn (pr2 manip-pm) "Falling back to safe pose")
-             (assume 'safe-pose t raise-elbow)))
-        (assume 'pregrasp-pose nil raise-elbow)
+             (assume 'safe-pose goal-spec t raise-elbow)))
+        (assume 'pregrasp-pose goal-spec nil raise-elbow)
         (cpl:par-loop (parameter-set parameter-sets)
           (open-gripper-if-necessary (arm parameter-set)))
         (cpl:with-failure-handling
@@ -434,9 +267,9 @@ grasp-type, effort to use) are defined in the list `parameter-sets'."
                   cram-plan-failures:object-lost) (f)
                (declare (ignore f))
                (ros-warn (pr2 manip-pm) "Falling back to pregrasp pose")
-               (assume 'pregrasp-pose nil raise-elbow)))
+               (assume 'pregrasp-pose goal-spec nil raise-elbow)))
           ;; (moveit:without-collision-object object-name
-          (assume 'grasp-pose nil raise-elbow)
+          (assume 'grasp-pose goal-spec nil raise-elbow)
           (loop for parameter-set in parameter-sets do
             (ros-info (pr2 manip-pm) "Closing gripper for arm ~a~%"
                       (arm parameter-set))
@@ -464,7 +297,7 @@ grasp-type, effort to use) are defined in the list `parameter-sets'."
             (moveit:attach-collision-object-to-link
              object-name (link-name (arm parameter-set)))))))))
 
-(defun execute-putdowns (object-name parameter-sets)
+(defun execute-putdowns (object-name parameter-sets goal-spec)
   "Executes simultaneous putting down of the object in hand given by
 the name `object-name'. The current grasps (object-relative gripper
 positions, grasp-type, effort to use) are defined in the list
@@ -474,16 +307,16 @@ positions, grasp-type, effort to use) are defined in the list
         (((or cram-plan-failures:manipulation-failure
               cram-plan-failures:manipulation-pose-unreachable) (f)
            (declare (ignore f))
-           (assume 'safe-pose t)
+           (assume 'safe-pose goal-spec t)
            (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable)))
-      (assume 'pre-putdown-pose)
+      (assume 'pre-putdown-pose goal-spec)
       (cpl:with-failure-handling
           (((or cram-plan-failures:manipulation-failure
                 cram-plan-failures:manipulation-pose-unreachable) (f)
              (declare (ignore f))
-             (assume 'pre-putdown-pose)
+             (assume 'pre-putdown-pose goal-spec)
              (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable)))
-        (assume 'putdown-pose t)
+        (assume 'putdown-pose goal-spec t)
         (dolist (param-set parameter-sets)
           (cram-language::on-putdown-object object-name (arm param-set))
           (open-gripper (arm param-set))
@@ -491,18 +324,21 @@ positions, grasp-type, effort to use) are defined in the list
           )
         ;; (cpl:par-loop (param-set parameter-sets)
         ;;   (open-gripper (arm param-set)))
+        (dolist (param-set parameter-sets)
+          (moveit:detach-collision-object-from-link
+           object-name (link-name (arm param-set))))
         (block unhand
           (cpl:with-failure-handling
               ((cram-plan-failures:manipulation-failure (f)
                  (declare (ignore f))
-                 (assume 'safe-pose t)
+                 (ros-warn (pr2 motion) "Couldn't assume unhand pose, resorting to safe pose.")
+                 (assume 'safe-pose goal-spec t)
                  (return-from unhand)))
-            (assume 'unhand-pose))))))
-  (dolist (param-set parameter-sets)
-    (moveit:detach-collision-object-from-link
-     object-name (link-name (arm param-set)))))
+            (assume 'unhand-pose goal-spec)))))))
 
-(defun execute-linear-motion (sides vector)
+(defun execute-linear-motion (sides vector goal-spec)
+  ;; TODO: this doesn't actually guarantee a linear motion in cartesian space yet.
+  ;; Also, this function doesn't seem to be used anywhere. Keep?
   (let* ((global-gripper-poses
            (mapcar (lambda (side)
                      (cons
@@ -510,9 +346,7 @@ positions, grasp-type, effort to use) are defined in the list
                       (cl-transforms-stamped:transform-pose-stamped
                        *transformer*
                        :pose (cl-transforms-stamped:pose->pose-stamped
-                              (case side
-                                (:left "l_wrist_roll_link")
-                                (:right "r_wrist_roll_link"))
+                              (link-name side)
                               0.0
                               (cl-transforms:make-identity-pose))
                        :target-frame *fixed-frame*
@@ -522,30 +356,24 @@ positions, grasp-type, effort to use) are defined in the list
            (mapcar (lambda (global-gripper-pose)
                      (let ((pose (cdr global-gripper-pose))
                            (side (car global-gripper-pose)))
-                       (cons
+                       (list
                         side
+                        (link-name side)
                         (cl-transforms-stamped:copy-pose-stamped
                          pose
                          :origin (cl-transforms:v+
                                   vector
                                   (cl-transforms:origin pose))))))
                    global-gripper-poses)))
-    (moveit:execute-trajectories
-     (mapcar (lambda (target-arm-pose)
-               (destructuring-bind (arm . pose)
-                   target-arm-pose
-                 (execute-move-arm-pose
-                  arm pose :plan-only t
-                           :quiet t
-                           :raise-elbow arm
-                           :ignore-collisions t)))
-             translated-gripper-poses))))
+    (mot-man:execute-arm-action (mot-man:enriched-goal-specification goal-spec
+                                                                    :keys `((:quiet t) (:ignore-collisions t) (:raise-elbow ,sides))
+                                                                    :arm-pose-goals translated-gripper-poses))))
 
 
-(defun execute-lift (grasp-assignments distance)
+(defun execute-lift (grasp-assignments distance goal-spec)
   (let ((target-arm-poses
           (mapcar (lambda (grasp-assignment)
-                    (cons (side grasp-assignment)
+                    (list (side grasp-assignment)
                           (let ((pose-straight
                                   (cl-transforms-stamped:transform-pose-stamped
                                    *transformer*
@@ -562,19 +390,9 @@ positions, grasp-type, effort to use) are defined in the list
                                       (cl-transforms:make-3d-vector 0 0 (or *lift-distance-override*
                                                                             distance)))))))
                   grasp-assignments)))
-    (cond ((= (length grasp-assignments) 1)
-           (destructuring-bind (arm . pose) (first target-arm-poses)
-             (execute-move-arm-pose arm pose :ignore-collisions t)))
-          (t
-           (moveit:execute-trajectories
-            (mapcar (lambda (target-arm-pose)
-                      (destructuring-bind (arm . pose)
-                          target-arm-pose
-                        (execute-move-arm-pose
-                         arm pose :plan-only t
-                                  :quiet t
-                                  :ignore-collisions t)))
-                    target-arm-poses))))))
+    (mot-man:execute-arm-action (mot-man:enriched-goal-specification goal-spec
+                                                                     :keys '((:ignore-collisions t))
+                                                                     :arm-pose-goals target-arm-poses))))
 
 (defun relative-pose (pose pose-offset &key (time (ros-time)))
   "Applies the pose `pose-offset' as transformation into the pose

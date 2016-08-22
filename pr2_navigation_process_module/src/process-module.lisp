@@ -104,7 +104,7 @@
 (defun call-nav-action (client desig)
   (let* ((goal-location (desig-prop-value desig :goal))
          (timeout (or (desig-prop-value desig :timeout)
-                      100.0))
+                      10.0))
          (goal-pose (reference goal-location))
          (goal-pose-in-fixed-frame
            (progn
@@ -124,7 +124,7 @@
     (multiple-value-bind (result status)
         (actionlib-lisp:send-goal-and-wait
          client (make-action-goal goal-pose-in-fixed-frame)
-         timeout timeout)
+         timeout 1.0)
       (declare (ignorable result status))
       (roslisp:ros-info (pr2-nav process-module) "Nav action finished.")
       (unless (goal-reached? (copy-pose-stamped
