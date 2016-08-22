@@ -238,7 +238,11 @@ configuration."
 (defun cost-reach-pose (obj arm pose pregrasp-offset grasp-offset
                         &key allowed-collision-objects
                           only-reachable)
-  (let* ((distance-pregrasp
+  (let* ((pose (tf:copy-pose-stamped pose :stamp 0.0))
+         (pregrasp-offset (or pregrasp-offset (tf:make-identity-pose)))
+         (grasp-offset (or grasp-offset (tf:make-identity-pose)))
+         (ignore-object (not obj))
+         (distance-pregrasp
            (cond (only-reachable (is-pose-reachable
                                   pose arm
                                   :arm-offset-pose pregrasp-offset))
@@ -249,24 +253,27 @@ configuration."
                                  pregrasp-offset
                                  :highlight-links
                                  (links-for-arm-side arm)))))))
-         (distance-grasp (when (and distance-pregrasp (> distance-pregrasp 0))
-                           (moveit:remove-collision-object
-                            (desig-prop-value obj :name))
-                           (prog1
-                               (cond (only-reachable (is-pose-reachable
-                                                      pose arm
-                                                      :arm-offset-pose grasp-offset))
-                                     (t (cdr (assoc arm
-                                                    (arms-pose-distances
-                                                     (list arm) pose
-                                                     :arms-offset-pose
-                                                     grasp-offset
-                                                     :allowed-collision-objects
-                                                     allowed-collision-objects
-                                                     :highlight-links
-                                                     (links-for-arm-side arm))))))
-                             (moveit:add-collision-object
-                              (desig-prop-value obj :name))))))
+         (distance-grasp
+           (when (and distance-pregrasp (> distance-pregrasp 0))
+             (unless ignore-object
+               (moveit:remove-collision-object
+                (desig-prop-value obj :name)))
+             (prog1
+                 (cond (only-reachable (is-pose-reachable
+                                        pose arm
+                                        :arm-offset-pose grasp-offset))
+                       (t (cdr (assoc arm
+                                      (arms-pose-distances
+                                       (list arm) pose
+                                       :arms-offset-pose
+                                       grasp-offset
+                                       :allowed-collision-objects
+                                       allowed-collision-objects
+                                       :highlight-links
+                                       (links-for-arm-side arm))))))
+               (unless ignore-object
+                 (moveit:add-collision-object
+                  (desig-prop-value obj :name)))))))
     (roslisp:ros-info (pr2 manip-pm) "Pregrasp: ~a, Grasp: ~a"
                       distance-pregrasp distance-grasp)
     (when (and distance-grasp (> distance-grasp 0))
@@ -317,8 +324,10 @@ configuration."
 ;;       (+ distance-pregrasp distance-grasp))))
 
 (defun is-pose-reachable (pose arm &key arm-offset-pose)
-  (let ((pose (cond (arm-offset-pose (relative-pose pose arm-offset-pose))
-                    (t pose))))
+  (let ((pose (tf:copy-pose-stamped
+               (cond (arm-offset-pose (relative-pose pose arm-offset-pose))
+                     (t pose))
+               :stamp 0.0)))
     (roslisp:publish (roslisp:advertise "/testpose" "geometry_msgs/PoseStamped")
                      (to-msg pose))
     (cpl:with-failure-handling
