@@ -196,31 +196,6 @@ motion."
   "Defines parameter-set specific functions (like assuming poses) for
 the manipulation parameter sets `parameter-sets' and executes the code
 `body' in this environment."
-;; <<<<<<< HEAD
-;;   `(labels ((assume-multiple (pose-slot-names)
-;;               (moveit:execute-trajectories
-;;                (loop for pose-slot-name in pose-slot-names
-;;                      with time-offset = 0
-;;                      append (destructuring-bind (pose-slot-name ignore-collisions)
-;;                                 pose-slot-name
-;;                               (cpl:mapcar-clean
-;;                                (lambda (parameter-set)
-;;                                  (when (slot-value parameter-set pose-slot-name)
-;;                                    (let ((result (arm-pose->trajectory
-;;                                                   (arm parameter-set)
-;;                                                   (slot-value parameter-set pose-slot-name)
-;;                                                   :ignore-collisions ignore-collisions
-;;                                                   :raise-elbow (arm parameter-set)
-;;                                                   :time-offset (or time-offset 0.0d0))))
-;;                                      (when result
-;;                                        (multiple-value-bind (trajectory time-end) result
-;;                                          (when time-end
-;;                                            (setf time-offset time-end))
-;;                                          trajectory)))))
-;;                                ,parameter-sets)))
-;;                :ignore-va t))
-;;             (assume (pose-slot-name &optional ignore-collisions raise-elbow)
-;; =======
   `(labels ((assume-multiple (pose-slot-names goal-spec)
               (loop for pose-slot-name in pose-slot-names do
                 (let* ((ignore-collisions (second pose-slot-name))
@@ -238,7 +213,6 @@ the manipulation parameter sets `parameter-sets' and executes the code
                                                                                :arm-pose-goals arm-pose-goals)))
                   (mot-man:execute-arm-action updated-goal-spec))))
             (assume (pose-slot-name goal-spec &optional ignore-collisions raise-elbow)
-;;>>>>>>> 3f2470245ceeef585c7f8ab3b523f26416d19458
               (cond ((listp pose-slot-name)
                      (assume-multiple pose-slot-name goal-spec))
                     (t (assume-poses
