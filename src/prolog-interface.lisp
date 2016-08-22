@@ -39,6 +39,8 @@
 
 (define-hook cram-utilities::on-prepare-json-prolog-prove (request))
 (define-hook cram-utilities::on-finish-json-prolog-prove (id))
+(define-hook cram-utilities::on-json-prolog-query-next-solution-result (query-id result))
+(define-hook cram-utilities::on-json-prolog-query-finish (query-id))
 
 (defun call-prolog-service (name type &rest request)
   (let ((log-id (first (cram-utilities::on-prepare-json-prolog-prove request)))
@@ -74,6 +76,7 @@
   (let ((*read-default-float-format* 'double-float))
     (lazy-list ()
       (cond (*finish-marker*
+             (cram-utilities::on-json-prolog-query-finish query-id)
              (call-prolog-service (concatenate 'string *service-namespace* "/finish")
                                   'json_prolog_msgs-srv:PrologFinish
                                   :id query-id)
@@ -91,9 +94,11 @@
                  (:query_failed (error 'simple-error
                                        :format-control "Prolog query failed: ~a"
                                        :format-arguments (list (json_prolog_msgs-srv:solution next-value))))
-                 (:ok (cont (json-bdgs->prolog-bdgs (json_prolog_msgs-srv:solution next-value)
-                                                    :lispify lispify
-                                                    :package package))))))))))
+                 (:ok (cont (let ((result (json-bdgs->prolog-bdgs (json_prolog_msgs-srv:solution next-value)
+                                                                  :lispify lispify
+                                                                  :package package)))
+                              (cram-utilities::on-json-prolog-query-next-solution-result query-id result)
+                              result))))))))))
 
 (defun check-connection ()
   "Returns T if the json_prolog could be found, otherwise NIL."
