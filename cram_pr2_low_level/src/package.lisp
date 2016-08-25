@@ -34,7 +34,8 @@
   (:use #:common-lisp #:cram-tf)
   (:export
    ;; actionlib actions
-   #:call-giskard-action
+   #:call-giskard-cartesian-action
+   #:call-giskard-joint-action
    #:call-gripper-action
    #:call-joint-trajectory-action
    #:call-joint-angle-action
@@ -45,6 +46,8 @@
    ;; joint-states
    #:joint-states
    #:joint-positions
+   #:get-arm-joint-states
+   #:normalize-joint-angles
    ;; low-level-common
    #:pr2-low-level-failure
    #:actionlib-action-timed-out

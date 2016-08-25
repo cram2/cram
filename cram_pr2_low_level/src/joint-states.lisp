@@ -117,3 +117,6 @@ as multiple values."
                                  "_forearm_roll_joint"
                                  "_wrist_flex_joint"
                                  "_wrist_roll_joint"))))
+
+(defun normalize-joint-angles (list-of-angles)
+  (mapcar #'cl-transforms:normalize-angle list-of-angles))
