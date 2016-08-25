@@ -33,6 +33,7 @@
 
   :depends-on (roslisp
                roslisp-utilities
+               cl-transforms
                cl-transforms-stamped
                cl-tf
                actionlib
@@ -71,6 +72,9 @@
      (:file "kinematics-trajectory" :depends-on ("package"
                                                  "joint-trajectory"
                                                  "joint-states"))
-     (:file "giskard-cartesian" :depends-on ("package" "low-level-common"))
+     (:file "giskard-common" :depends-on ("package" "low-level-common"))
+     (:file "giskard-cartesian" :depends-on ("package" "low-level-common" "giskard-common"))
+     (:file "giskard-joint" :depends-on ("package" "low-level-common" "giskard-common"
+                                                   "joint-states"))
      (:file "json-parser" :depends-on ("package"))
      (:file "robosherlock-json" :depends-on ("package" "json-parser" "low-level-common"))))))

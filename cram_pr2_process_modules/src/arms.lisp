@@ -50,8 +50,8 @@
                (mapc (lambda (single-pose-left single-pose-right)
                        (pr2-ll:visualize-marker (list single-pose-left single-pose-right)
                                                 :r-g-b-list '(1 0 1))
-                       (pr2-ll:call-giskard-action :left single-pose-left
-                                                   :right single-pose-right))
+                       (pr2-ll:call-giskard-cartesian-action :left single-pose-left
+                                                             :right single-pose-right))
                      (fill-in-with-nils pose-left max-length)
                      (fill-in-with-nils pose-right max-length))))
          (cram-plan-failures:manipulation-failed ()
