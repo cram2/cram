@@ -105,4 +105,15 @@ as multiple values."
       (roslisp:msg-slot-value last-joint-state-msg :header)
       :stamp))))
 
-
+(defun get-arm-joint-states (arm)
+  (joint-positions (mapcar (alexandria:curry
+                            #'concatenate 'string (ecase arm
+                                                    (:left "l")
+                                                    (:right "r")))
+                           (list "_shoulder_pan_joint"
+                                 "_shoulder_lift_joint"
+                                 "_upper_arm_roll_joint"
+                                 "_elbow_flex_joint"
+                                 "_forearm_roll_joint"
+                                 "_wrist_flex_joint"
+                                 "_wrist_roll_joint"))))
