@@ -29,6 +29,9 @@
 (in-package :cram-robot-interfaces)
 
 (def-fact-group arms (arm arm-joints arm-links hand-links required-arms available-arms end-effector-link
+                          arm-base-joints arm-tool-joints arm-base-links
+                          joint-upper-limit joint-lower-limit joint-type joint-axis joint-origin
+                          joint-parent-link joint-child-link 
                           robot-tool-frame
                           gripper-joint gripper-link
                           robot-arms-parking-joint-states end-effector-parking-pose
@@ -45,9 +48,49 @@
   (<- (arm-links ?robot ?arm ?links)
     (fail))
 
+  ;; Unifies ?arm with the list of base joints for that arm (e.g., for the PR2 it's the torso).
+  (<- (arm-base-joints ?robot ?arm ?joints)
+    (fail))
+
+  ;; Unifies ?arm with the list of tool joints for that arm (e.g., for the PR2 it's the palm and tool joints).
+  (<- (arm-tool-joints ?robot ?arm ?joints)
+    (fail))
+
+  ;; Unifies ?arm with a list of base links for that arm (e.g., for the PR2 it's the torso).
+  (<- (arm-base-links ?robot ?arm ?links)
+    (fail))
+
   ;; ?sides is unified with the list of arms that are required to
   ;; manipulate the object indicated by the object designator ?object.
   (<- (required-arms ?object-designator ?arms)
+    (fail))
+
+  ;; Unifies a joint name with the lower limit for that joint.
+  (<- (joint-lower-limit ?robot ?joint-name ?value)
+    (fail))
+
+  ;; Unifies a joint name with the upper limit for that joint.
+  (<- (joint-upper-limit ?robot ?joint-name ?value)
+    (fail))
+
+  ;; Unifies a joint name with the type for that joint.
+  (<- (joint-type ?robot ?joint-name ?type)
+    (fail))
+
+  ;; Unifies a joint name with the axis for that joint.
+  (<- (joint-axis ?robot ?joint-name ?axis)
+    (fail))
+
+  ;; Unifies a joint name with the origin transform for that joint.
+  (<- (joint-origin ?robot ?joint-name ?transform)
+    (fail))
+
+  ;; Unifies a joint name with the parent link name for that joint.
+  (<- (joint-parent ?robot ?joint-name ?parent)
+    (fail))
+
+  ;; Unifies a joint name with the child link name for that joint.
+  (<- (joint-child ?robot ?joint-name ?child)
     (fail))
 
   ;; Similar to REQUIRED-ARMS but only unifies with currently unused
