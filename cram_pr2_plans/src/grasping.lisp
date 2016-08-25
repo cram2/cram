@@ -86,11 +86,6 @@
    (cl-transforms:make-quaternion 0.9215513103717499d0 -0.387996037470125d0
                                   -0.014188589447636247d0 -9.701489976338351d-4)))
 
-(defun overwrite-tf-listener ()
-  (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client)))
-;;; Use TF2 buffer until TF1 bug is solved.... ..... ..
-(roslisp-utilities:register-ros-init-function overwrite-tf-listener)
-
 (defmacro with-pr2-process-modules (&body body)
   `(cram-process-modules:with-process-modules-running
        (pr2-pms::pr2-perception-pm pr2-pms::pr2-base-pm pr2-pms::pr2-arms-pm
@@ -384,7 +379,7 @@
                                  *kitchen-sink-block-z*)
    (cl-transforms:make-identity-rotation)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; TF and convergance testing ;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; convergence testing ;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *velocities* '())
 (defun bla (goal-pose)
@@ -410,35 +405,3 @@
         (roslisp:ros-info (bla velocity) "~a" (- old-dist distance-xy))
         (push (- old-dist distance-xy) *velocities* )
         (setf old-dist distance-xy)))))
-
-(defun time-to-mili (time)
-  (- time 1.470923d9))
-
-(defun tf-test ()
-  (handler-case
-    (roslisp:loop-at-most-every 0.1
-      (let ((time (roslisp:ros-time)))
-        (print (time-to-mili time))
-        (print (cl-tf:lookup-transform cram-tf:*transformer*
-                                       "base_footprint"
-                                       "r_gripper_tool_frame"
-                                       :timeout 2
-                                       :time time))))
-  ;; (cl-transforms-stamped:transform-stamped-error (e)
-  ;;   (format t "error: ~a~%" e)
-  ;;   (map 'list (lambda (x)
-  ;;                (format t "~%fill-p: ~a~%" (slot-value x 'cl-tf::fill-pointer))
-  ;;                (format t "newest-stamp: ~3$~%" (time-to-mili (slot-value x 'cl-tf::newest-stamp)))
-  ;;                (map 'list (lambda (pose-stamped)
-  ;;                             (if (typep pose-stamped 'cl-tf:transform-stamped)
-  ;;                                 (format t "~3$ " (time-to-mili (cl-tf:stamp pose-stamped)))
-  ;;                                 (format t "NIL ")))
-  ;;                     (slot-value x 'cl-tf::transforms-cache))
-  ;;                (format t "~%~%"))
-  ;;        (slot-value (gethash "r_gripper_tool_frame"
-  ;;                             (slot-value  cram-tf:*transformer* 'cl-tf::transforms))
-  ;;                    'cl-tf::cache))
-  ;;   (slot-value (gethash "r_gripper_tool_frame" 
-  ;;                             (slot-value  cram-tf:*transformer* 'cl-tf::transforms))
-  ;;                    'cl-tf::cache))
-  ))
