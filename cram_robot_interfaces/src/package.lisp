@@ -40,6 +40,9 @@
    #:robot-pan-tilt-links #:robot-pan-tilt-joints
    ;; arms
    #:arm #:arm-joints #:arm-links #:hand-links #:required-arms #:available-arms
+   #:arm-base-joints #:arm-tool-joints #:arm-base-links
+   #:joint-lower-limit #:joint-upper-limit
+   #:joint-type #:joint-axis #:joint-origin #:joint-parent-link #:joint-child-link
    #:end-effector-link #:gripper-link #:gripper-joint #:robot-tool-frame
    #:planning-group
    #:robot-arms-parking-joint-states #:end-effector-parking-pose
