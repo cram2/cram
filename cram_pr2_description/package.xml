@@ -17,11 +17,17 @@
   <build_depend>cram_robot_interfaces</build_depend>
   <build_depend>cram_designators</build_depend>
   <build_depend>cl_transforms_stamped</build_depend>
+  <build_depend>cl_urdf</build_depend>
+  <build_depend>roslisp</build_depend>
+  <build_depend>roslisp_utilities</build_depend>
 
   <!-- Dependencies needed after this package is compiled. -->
   <run_depend>cram_prolog</run_depend>
   <run_depend>cram_robot_interfaces</run_depend>
   <run_depend>cram_designators</run_depend>
   <run_depend>cl_transforms_stamped</run_depend>
+  <run_depend>cl_urdf</run_depend>
+  <run_depend>roslisp</run_depend>
+  <run_depend>roslisp_utilities</run_depend>
 
 </package>
