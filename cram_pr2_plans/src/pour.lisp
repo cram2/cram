@@ -104,7 +104,8 @@
                                   (object ?perceived-bottle-desig)))
       (move-pr2-arms-out-of-sight :arm :right)
       (let* ((?cup-desig (desig:an object
-                                   (type cup)))
+                                   ;; (type cup)
+                                   (cad-model "cup_eco_orange")))
              (?perceived-cup-desig (cram-plan-library:perform
                                     (desig:an action
                                               (to detect-motion)
@@ -125,7 +126,9 @@
   (with-pr2-process-modules
     (move-pr2-arms-out-of-sight :arm :right)
     (let* ((?cup-desig (desig:an object
-                                 (type cup)))
+                                 (cad-model "cup_eco_orange")
+                                 ;; (type cup)
+                                 ))
            (?perceived-cup-desig (cram-plan-library:perform
                                   (desig:an action
                                             (to detect-motion)
@@ -143,3 +146,12 @@
                                   (source ?bottle-desig)
                                   (destination ?perceived-cup-desig)))
       (move-pr2-arms-out-of-sight :arm :right))))
+
+(defun pour-giskard ()
+  (cpl:top-level
+    (pr2-ll::call-giskard-yaml-action
+     :yaml-string (read-yaml-file :tilt)
+     :action-timeout 20.0)
+    (pr2-ll::call-giskard-yaml-action
+     :yaml-string (read-yaml-file :tilt-back)
+     :action-timeout 20.0)))
