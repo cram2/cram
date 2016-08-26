@@ -100,7 +100,7 @@ is replaced with replacement."
   ;; get the ros parameter value.
   (setf *robot-description* (cl-urdf:parse-urdf (replace-all (roslisp:get-param robot-description-param) "\\" "  "))))
 
-(roslisp-utilities:register-ros-init-function init-robot-description)
+;; (roslisp-utilities:register-ros-init-function init-robot-description)
 
 (defun get-joint-description (joint-name)
   (when *robot-description*
