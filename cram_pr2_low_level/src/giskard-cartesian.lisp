@@ -29,9 +29,6 @@
 
 (in-package :pr2-ll)
 
-(defvar *left-tool-frame* nil "Tool frame of the left arm. Initialized from pr2-description.")
-(defvar *right-tool-frame* nil "Tool frame of the right arm. Initialized from pr2-desc.")
-
 (defun make-giskard-cartesian-convergence (arm
                                            convergence-delta-xy convergence-delta-theta)
   (let ((prefix (ecase arm

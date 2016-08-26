@@ -37,6 +37,9 @@
 (defparameter *giskard-convergence-delta-theta* 0.1 "in radiants, about 6 degrees")
 (defparameter *giskard-convergence-delta-joint* 0.17 "in radiants, about 10 degrees")
 
+(defvar *left-tool-frame* nil "Tool frame of the left arm. Initialized from pr2-description.")
+(defvar *right-tool-frame* nil "Tool frame of the right arm. Initialized from pr2-desc.")
+
 (defun init-giskard-action-client ()
   (setf *giskard-action-client* (actionlib:make-action-client
                                  "controller_action_server/move"
