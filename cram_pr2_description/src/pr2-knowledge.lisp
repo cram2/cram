@@ -74,10 +74,31 @@
 ;; Will need an SRDF parser to extract that information. Until then, a lot
 ;; of the predicates will be manually filled with data.
 
+
+;; WARNING: the only reason this function exists here is because some urdfs
+;; on the real robot contain a bad \\ string. They (or their xacro sources)
+;; should be cleaned up.
+(defun replace-all (string part replacement &key (test #'char=))
+  "Returns a new string in which all the occurences of the part 
+is replaced with replacement."
+  (with-output-to-string (out)
+    (loop with part-length = (length part)
+          for old-pos = 0 then (+ pos part-length)
+          for pos = (search part string
+                            :start2 old-pos
+                            :test test)
+          do (write-string string out
+                           :start old-pos
+                           :end (or pos (length string)))
+          when pos do (write-string replacement out)
+          while pos)))
+
 (defparameter *robot-description* nil)
 
 (defun init-robot-description (&optional (robot-description-param "robot_description"))
-  (setf *robot-description* (cl-urdf:parse-urdf (roslisp:get-param robot-description-param))))
+  ;; TODO: see above: clean the urdfs/xacros, then remove the replace-all call and just
+  ;; get the ros parameter value.
+  (setf *robot-description* (cl-urdf:parse-urdf (replace-all (roslisp:get-param robot-description-param) "\\" "  "))))
 
 (roslisp-utilities:register-ros-init-function init-robot-description)
 
