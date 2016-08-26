@@ -33,7 +33,10 @@
   :depends-on (cram-prolog
                cram-designators
                cram-robot-interfaces
-               cl-transforms-stamped)
+               cl-transforms-stamped
+               cl-urdf
+               roslisp
+               roslisp-utilities)
   :components
   ((:module "src"
     :components
