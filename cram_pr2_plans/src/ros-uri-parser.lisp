@@ -1,9 +1,10 @@
-;;; Copyright (c) 2016, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
-;;; All rights reserved.
 ;;;
+;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; All rights reserved.
+;;; 
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;;
+;;; 
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
@@ -13,7 +14,7 @@
 ;;;       Technische Universitaet Muenchen nor the names of its contributors 
 ;;;       may be used to endorse or promote products derived from this software 
 ;;;       without specific prior written permission.
-;;;
+;;; 
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -25,35 +26,22 @@
 ;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
+;;;
 
-(defsystem cram-pr2-plans
-  :author "Gayane Kazhoyan"
-  :maintainer "Gayane Kazhoyan"
-  :license "BSD"
+(in-package :pr2-plans)
 
-  :depends-on (cl-transforms
-               cl-transforms-stamped
-               cram-tf
-               cram-language
-               cram-pr2-low-level
-               cram-pr2-process-modules
-               cram-process-modules
-               cram-designators
-               cram-plan-library
-               cram-prolog
-               cl-tf2
-               cram-math)
-
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "grasping" :depends-on ("package"))
-     (:file "designators-pick-and-place" :depends-on ("package" "grasping"))
-     (:file "pick-and-place" :depends-on ("package" "grasping" "designators-pick-and-place"))
-     (:file "designators-pour" :depends-on ("package" "grasping"
-                                                      "designators-pick-and-place"))
-     (:file "ros-uri-parser" :depends-on ("package"))
-     (:file "read-controller-yamls" :depends-on ("package" "ros-uri-parser"))
-     (:file "pour" :depends-on ("package" "grasping" "designators-pour"
-                                          "read-controller-yamls"))))))
+(defun parse-uri (uri)
+  (let ((uri-package-prefix "package://"))
+    (cond ((equal (subseq uri 0 (length uri-package-prefix))
+                  uri-package-prefix)
+           (let* ((uri-sans-prefix (subseq uri (length uri-package-prefix)))
+                  (package-name (subseq uri-sans-prefix 0
+                                        (position #\/ uri-sans-prefix)))
+                  (package-path (car (ros-load:rospack "find" package-name))))
+             (when package-path
+               (pathname
+                (concatenate
+                 'string
+                 package-path "/"
+                 (subseq uri-sans-prefix (position #\/ uri-sans-prefix)))))))
+          (t (pathname uri)))))
