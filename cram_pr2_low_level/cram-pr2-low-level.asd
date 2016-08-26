@@ -76,6 +76,7 @@
      (:file "giskard-cartesian" :depends-on ("package" "low-level-common" "giskard-common"))
      (:file "giskard-joint" :depends-on ("package" "low-level-common" "giskard-common"
                                                    "joint-states"))
-     (:file "giskard-yaml" :depends-on ("package" "giskard-common"))
+     (:file "yaml-builder" :depends-on ("package"))
+     (:file "giskard-yaml" :depends-on ("package" "giskard-common" "yaml-builder"))
      (:file "json-parser" :depends-on ("package"))
      (:file "robosherlock-json" :depends-on ("package" "json-parser" "low-level-common"))))))
