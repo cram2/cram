@@ -35,6 +35,7 @@
 ;;; Tgrasp is in robot coordinate frame, i.e. transform from gripper to robot frame
 
 (defparameter *kitchen-sink-block-z* 0.85 "in meters")
+(defparameter *kitchen-meal-table-z* 0.76 "in meters")
 
 (defparameter *plate-diameter* 0.26 "in meters")
 (defparameter *plate-pregrasp-y-offset* 0.2 "in meters")
@@ -48,11 +49,11 @@
 (defparameter *cutlery-pregrasp-z-offset* 0.4 "in meters")
 (defparameter *cutlery-grasp-z-offset* 0.01 "in meters") ; 1 cm because TCP is not at the edge
 
-(defparameter *cup-pregrasp-xy-offset* 0.1 "in meters")
+(defparameter *cup-pregrasp-xy-offset* 0.05 "in meters")
 (defparameter *cup-pregrasp-z-offset* 0.4 "in meters")
 (defparameter *cup-grasp-z-offset* 0.09 "in meters")
 
-(defparameter *bottle-pregrasp-xy-offset* 0.1 "in meters")
+(defparameter *bottle-pregrasp-xy-offset* 0.05 "in meters")
 (defparameter *bottle-pregrasp-z-offset* 0.4 "in meters")
 (defparameter *bottle-grasp-z-offset* 0.09 "in meters")
 
@@ -218,7 +219,7 @@
                 (x-obj (cl-transforms:x translation))
                 (y-obj (cl-transforms:y translation)))
            (calculate-cutlery-grasp-pose yaw x-obj y-obj
-                                         *kitchen-sink-block-z*
+                                         *kitchen-meal-table-z*
                                          *cutlery-grasp-z-offset*))
          (error "can only grasp cutlery from top")))
     ((:plate)
@@ -227,7 +228,7 @@
                 (x-obj (cl-transforms:x translation))
                 (y-obj (cl-transforms:y translation)))
            (calculate-plate-grasp-pose x-obj y-obj *plate-grasp-y-offset*
-                                       *kitchen-sink-block-z*
+                                       *kitchen-meal-table-z*
                                        *plate-grasp-z-offset*
                                        :arm arm))
          (error "can only grasp plates from a side")))
@@ -237,7 +238,7 @@
                 (x-obj (cl-transforms:x translation))
                 (y-obj (cl-transforms:y translation)))
            (calculate-cup-grasp-pose x-obj y-obj
-                                     *kitchen-sink-block-z*
+                                     *kitchen-meal-table-z*
                                      *bottle-grasp-z-offset*
                                      arm grasp))
          (error "can only grasp bottles from a side or front")))
@@ -247,7 +248,7 @@
                 (x-obj (cl-transforms:x translation))
                 (y-obj (cl-transforms:y translation)))
            (calculate-cup-grasp-pose x-obj y-obj
-                                     *kitchen-sink-block-z*
+                                     *kitchen-meal-table-z*
                                      *cup-grasp-z-offset*
                                      arm grasp))
          (error "can only grasp cups from a side or front")))))
@@ -369,14 +370,15 @@
 
 (defun get-cup-put-pose (arm grasp)
   (calculate-cup-grasp-pose 0.7 -0.2
-                            *kitchen-sink-block-z* *cup-grasp-z-offset*
+                            *kitchen-meal-table-z*
+                            *cup-grasp-z-offset*
                             arm grasp))
 
 (defun calculate-cutlery-destination-pose ()
   (cl-transforms:make-pose
    (cl-transforms:make-3d-vector (+ 0.7 (random 0.2))
                                  (- (random 0.4))
-                                 *kitchen-sink-block-z*)
+                                 *kitchen-meal-table-z*)
    (cl-transforms:make-identity-rotation)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; convergence testing ;;;;;;;;;;;;;;;;;;;;;;
