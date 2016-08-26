@@ -67,6 +67,75 @@
 
 (def-tool (cl-transforms:make-3d-vector 1 0 0) 0.20)
 
+;;;; URDF-related LISP code
+
+;; TODO: actually, the SRDF contains more information (such as groupings of
+;; joints/links into collections such as right/left arm, hand links etc.
+;; Will need an SRDF parser to extract that information. Until then, a lot
+;; of the predicates will be manually filled with data.
+
+(defparameter *robot-description* nil)
+
+(defun init-robot-description (&optional (robot-description-param "robot_description"))
+  (setf *robot-description* (cl-urdf:parse-urdf (roslisp:get-param robot-description-param))))
+
+(roslisp-utilities:register-ros-init-function init-robot-description)
+
+(defun get-joint-description (joint-name)
+  (when *robot-description*
+    (gethash joint-name (cl-urdf:joints *robot-description*))))
+
+(defun get-joint-type (joint-name)
+  (let* ((joint-description (get-joint-description joint-name)))
+    (when joint-description
+      (cl-urdf:joint-type joint-description))))
+
+(defun get-joint-lower-limit (joint-name)
+  (let* ((joint-description (get-joint-description joint-name)))
+    (when (and joint-description (not (equal (get-joint-type joint-name) :continuous)))
+      (cl-urdf:lower (cl-urdf:limits joint-description)))))
+
+(defun get-joint-upper-limit (joint-name)
+  (let* ((joint-description (get-joint-description joint-name)))
+    (when (and joint-description (not (equal (get-joint-type joint-name) :continuous)))
+      (cl-urdf:upper (cl-urdf:limits joint-description)))))
+
+(defun get-joint-axis (joint-name)
+  (let* ((joint-description (get-joint-description joint-name)))
+    (when joint-description
+      (cl-urdf:axis joint-description))))
+
+(defun get-joint-origin (joint-name)
+  (let* ((joint-description (get-joint-description joint-name)))
+    (when joint-description
+      (cl-urdf:origin joint-description))))
+
+(defun get-joint-parent (joint-name)
+  (let* ((joint-description (get-joint-description joint-name)))
+    (when joint-description
+      (cl-urdf:name (cl-urdf:parent joint-description)))))
+
+(defun get-joint-child (joint-name)
+  (let* ((joint-description (get-joint-description joint-name)))
+    (when joint-description
+      (cl-urdf:name (cl-urdf:child joint-description)))))
+
+;;;;
+
+(defun get-arm-base-joint-names (arm)
+  (declare (ignore arm))
+  (list "torso_lift_joint"))
+
+(defun get-arm-tool-joint-names (arm)
+  (case arm
+    (:left
+      (list "l_gripper_palm_joint" "l_gripper_tool_joint"))
+    (:right
+      (list "r_gripper_palm_joint" "r_gripper_tool_joint"))))
+
+(defun get-arm-base-link-names (arm)
+  (declare (ignore arm))
+  (list "torso_lift_link"))
 
 (defun get-arm-joint-names (arm)
   ;; TODO: the proper way to do this is to read them out of the srdl, so that we don't need to write the same thing, consistently, in several places
@@ -226,6 +295,10 @@
 (def-fact-group pr2-manipulation-knowledge (grasp
                                             side
                                             arm arm-joints arm-links hand-links
+                                            arm-base-joints arm-tool-joints arm-base-links
+                                            joint-lower-limit joint-upper-limit
+                                            joint-type joint-axis joint-origin
+                                            joint-parent-link joint-child-link 
                                             object-type-grasp
                                             object-designator-grasp
                                             orientation-matters
@@ -243,8 +316,61 @@
   (<- (arm-joints pr2 ?arm ?joints)
     (lisp-fun get-arm-joint-names ?arm ?joints))
 
+  (<- (arm-base-joints pr2 ?arm ?joints)
+    (lisp-fun get-arm-base-joint-names ?arm ?joints))
+
+  (<- (arm-tool-joints pr2 ?arm ?joints)
+    (lisp-fun get-arm-tool-joint-names ?arm ?joints))
+
+  (<- (joint-lower-limit pr2 ?joint-name ?value)
+    (lisp-fun get-joint-lower-limit ?joint-name ?value))
+
+  (<- (joint-upper-limit pr2 ?joint-name ?value)
+    (lisp-fun get-joint-upper-limit ?joint-name ?value))
+
+  (<- (joint-type pr2 ?joint-name ?type)
+    (lisp-fun get-joint-type ?joint-name ?type))
+
+  (<- (joint-axis pr2 ?joint-name ?axis)
+    (lisp-fun get-joint-axis ?joint-name ?axis))
+
+  (<- (joint-origin pr2 ?joint-name ?transform)
+    (lisp-fun get-joint-origin ?joint-name ?transform))
+
+  (<- (joint-parent-link pr2 ?joint-name ?parent)
+    (lisp-fun get-joint-parent ?joint-name ?parent))
+
+  (<- (joint-child-link pr2 ?joint-name ?child)
+    (lisp-fun get-joint-child ?joint-name ?child))
+
+;;  (<- (joint-lower-limit pr2 "torso_lift_joint" 0.0115))
+;;  (<- (joint-upper-limit pr2 "torso_lift_joint" 0.325))
+;;  (<- (joint-lower-limit pr2 "l_shoulder_pan_joint" -0.5646))
+;;  (<- (joint-upper-limit pr2 "l_shoulder_pan_joint" 2.1353))
+;;  (<- (joint-lower-limit pr2 "l_shoulder_lift_joint" -0.3536))
+;;  (<- (joint-upper-limit pr2 "l_shoulder_lift_joint" 1.2963))
+;;  (<- (joint-lower-limit pr2 "l_upper_arm_roll_joint" -0.65))
+;;  (<- (joint-upper-limit pr2 "l_upper_arm_roll_joint" 3.75))
+;;  (<- (joint-lower-limit pr2 "l_elbow_flex_joint" -2.1213))
+;;  (<- (joint-upper-limit pr2 "l_elbow_flex_joint" -0.15))
+;;  (<- (joint-lower-limit pr2 "l_wrist_flex_joint" -2.0))
+;;  (<- (joint-upper-limit pr2 "l_wrist_flex_joint" -0.1))
+;;  (<- (joint-lower-limit pr2 "r_shoulder_pan_joint" -2.1353))
+;;  (<- (joint-upper-limit pr2 "r_shoulder_pan_joint" 0.5646))
+;;  (<- (joint-lower-limit pr2 "r_shoulder_lift_joint" -0.3536))
+;;  (<- (joint-upper-limit pr2 "r_shoulder_lift_joint" 1.2963))
+;;  (<- (joint-lower-limit pr2 "r_upper_arm_roll_joint" -3.75))
+;;  (<- (joint-upper-limit pr2 "r_upper_arm_roll_joint" 0.65))
+;;  (<- (joint-lower-limit pr2 "r_elbow_flex_joint" -2.1213))
+;;  (<- (joint-upper-limit pr2 "r_elbow_flex_joint" -0.15))
+;;  (<- (joint-lower-limit pr2 "r_wrist_flex_joint" -2.0))
+;;  (<- (joint-upper-limit pr2 "r_wrist_flex_joint" -0.1))
+
   (<- (arm-links pr2 ?arm ?links)
     (lisp-fun get-arm-link-names ?arm ?links))
+
+  (<- (arm-base-links pr2 ?arm ?links)
+    (lisp-fun get-arm-base-link-names ?arm ?links))
 
   (<- (hand-links pr2 ?arm ?links)
     (lisp-fun get-hand-link-names ?arm ?links))
