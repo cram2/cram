@@ -76,12 +76,16 @@
           (mapcar (lambda (key-value-pair)
                     (destructuring-bind (key value)
                         key-value-pair
-                      (list (etypecase key
-                              (keyword (symbol-name key))
-                              (string (string-upcase key)))
-                            (etypecase value ; RS is only case-sensitive on "TYPE"s
-                              (keyword (string-capitalize (symbol-name value)))
-                              (string value)))))
+                      (if (and (eql key :type) (eql value :cup))
+                          ;(list :detection "")
+                          ;(list :type "Cup")
+                           (list :cad-model "cup_eco_orange")
+                          (list (etypecase key
+                                  (keyword (symbol-name key))
+                                  (string (string-upcase key)))
+                                (etypecase value ; RS is only case-sensitive on "TYPE"s
+                                  (keyword (string-capitalize (symbol-name value)))
+                                  (string value))))))
                   key-value-pairs-list))
         (quantifier quantifier
           ;; (etypecase quantifier
@@ -149,7 +153,9 @@ although there should've been ~a"
 ;; rosservice call /RoboSherlock/json_query ":query "{\"_designator_type\":7, \"COLOR\":\"red\", \"COLOR\":\"blue\"}'"
 ;; rosservice call /RoboSherlock/json_query "query: '{\"_designator_type\":7, \"DETECTION\":\"cutlery\", \"COLOR\":\"red\"}'"
 
+;; (pr2-ll:call-robosherlock-service '((:cad-model "cup_eco_orange")))
 
+;; (pr2-ll:call-robosherlock-service '((:detection :human)))
 
 ;; answer: ['{"_designator_type":7,
 ;;            "TIMESTAMP":1468431426.0368367,
