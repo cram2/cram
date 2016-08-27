@@ -51,27 +51,33 @@
 
 (defparameter *cup-pregrasp-xy-offset* 0.05 "in meters")
 (defparameter *cup-pregrasp-z-offset* 0.4 "in meters")
-(defparameter *cup-grasp-z-offset* 0.09 "in meters")
+(defparameter *cup-grasp-z-offset* 0.085 "in meters")
 
 (defparameter *bottle-pregrasp-xy-offset* 0.05 "in meters")
 (defparameter *bottle-pregrasp-z-offset* 0.4 "in meters")
-(defparameter *bottle-grasp-z-offset* 0.09 "in meters")
+(defparameter *bottle-grasp-z-offset* 0.1 "in meters")
 
 (defparameter *lift-z-offset* 0.4 "in meters")
 
 (defparameter *pour-xy-offset* 0.12 "in meters")
 (defparameter *pour-z-offset* -0.04 "in meters")
 
-(defparameter *pr2-right-arm-joint-names-list*
-  '("r_shoulder_pan_joint" "r_shoulder_lift_joint" "r_upper_arm_roll_joint"
-    "r_elbow_flex_joint" "r_forearm_roll_joint" "r_wrist_flex_joint"
-    "r_wrist_roll_joint")
-  "right arm joint names list")
+;; (defparameter *pr2-right-arm-joint-names-list*
+;;   '("r_shoulder_pan_joint" "r_shoulder_lift_joint" "r_upper_arm_roll_joint"
+;;     "r_elbow_flex_joint" "r_forearm_roll_joint" "r_wrist_flex_joint"
+;;     "r_wrist_roll_joint")
+;;   "right arm joint names list")
 (defparameter *pr2-right-arm-out-of-sight-joint-positions*
-  '(-1.019571035104263d0 -0.35240589506980174d0 -1.2175261637487018d0
-    -1.2277736100819567d0 -0.5681516927854576d0 -0.801287536774071d0
-    -4.735392876572174d0)
+  '(-1.712587449591307d0 -0.2567290370386635d0 -1.4633501125737374d0
+    -2.1221670650093913d0 1.7663253481913623d0 -0.07942669250968948d0
+    0.05106258161229582d0)
   "joint positions for right arm to move the arm away from sight")
+(defparameter *pr2-left-arm-out-of-sight-joint-positions*
+  '(1.9652919379395388d0 -0.26499816732737785d0 1.3837617139225473d0
+    -2.1224566064321584d0 16.99646118944817d0 -0.07350789589924167d0
+    -50.282675816750015d0)
+  "joint positions for right arm to move the arm away from sight")
+
 (defparameter *pr2-right-arm-out-of-sight-gripper-pose*
   (cl-transforms-stamped:make-pose-stamped
    "base_footprint"
@@ -91,25 +97,27 @@
   `(cram-process-modules:with-process-modules-running
        (pr2-pms::pr2-perception-pm pr2-pms::pr2-base-pm pr2-pms::pr2-arms-pm
                                    pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm)
+;     ,@body
      (cpl:top-level
-       ,@body)))
+       ,@body)
+     ))
 
 (defun move-pr2-arms-out-of-sight (&key (arm :both))
   (cpl:with-failure-handling
       ((pr2-ll:pr2-low-level-failure (e)
          (declare (ignore e))
          (return)))
-    (let (?left-pose-to-go ?right-pose-to-go)
+    (let (?left-configuration-to-go ?right-configuration-to-go)
       (case arm
-        (:left (setf ?left-pose-to-go *pr2-left-arm-out-of-sight-gripper-pose*))
-        (:right (setf ?right-pose-to-go *pr2-right-arm-out-of-sight-gripper-pose*))
-        (:both (setf ?left-pose-to-go *pr2-left-arm-out-of-sight-gripper-pose*)
-         (setf ?right-pose-to-go *pr2-right-arm-out-of-sight-gripper-pose*)))
+        (:left (setf ?left-configuration-to-go *pr2-left-arm-out-of-sight-joint-positions*))
+        (:right (setf ?right-configuration-to-go *pr2-right-arm-out-of-sight-joint-positions*))
+        (:both (setf ?left-configuration-to-go *pr2-left-arm-out-of-sight-joint-positions*)
+         (setf ?right-configuration-to-go *pr2-right-arm-out-of-sight-joint-positions*)))
       (cram-plan-library:perform
        (desig:an action
-                 (to move-arm-motion)
-                 (left ?left-pose-to-go)
-                 (right ?right-pose-to-go))))))
+                 (to move-joints-motion)
+                 (left ?left-configuration-to-go)
+                 (right ?right-configuration-to-go))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; GRASP CONFIGURATIONS ;;;;;;;;;;;;;;;;;;;;;
 
@@ -369,7 +377,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; RANDOM GARBAGE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun get-cup-put-pose (arm grasp)
-  (calculate-cup-grasp-pose 0.7 -0.2
+  (calculate-cup-grasp-pose 0.5 0.3
                             *kitchen-meal-table-z*
                             *cup-grasp-z-offset*
                             arm grasp))
