@@ -123,7 +123,7 @@
   ;;                                 :key (lambda (x)
   ;;                                        (second (find :confidence x :key #'car))))
   ;;                          :key #'first)))
-  (find :type (parse-alist node) :key #'car))
+  (find :class (parse-alist node) :key #'car))
 
 (defmethod parse-json-node ((name (eql :dimensions-2d)) node)
   (list name (let ((parsed-dimensions (parse-alist node)))
