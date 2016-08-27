@@ -36,24 +36,30 @@
         some-list)))
 
 (def-process-module pr2-arms-pm (action-designator)
-  (destructuring-bind (command pose-left pose-right)
+  (destructuring-bind (command goal-left goal-right)
       (reference action-designator)
     (ecase command
       (move-arm
        (handler-case
            (progn
-             (unless (listp pose-left)
-               (setf pose-left (list pose-left)))
-             (unless (listp pose-right)
-               (setf pose-right (list pose-right)))
-             (let ((max-length (max (length pose-left) (length pose-right))))
+             (unless (listp goal-left)
+               (setf goal-left (list goal-left)))
+             (unless (listp goal-right)
+               (setf goal-right (list goal-right)))
+             (let ((max-length (max (length goal-left) (length goal-right))))
                (mapc (lambda (single-pose-left single-pose-right)
                        (pr2-ll:visualize-marker (list single-pose-left single-pose-right)
                                                 :r-g-b-list '(1 0 1))
                        (pr2-ll:call-giskard-cartesian-action :left single-pose-left
                                                              :right single-pose-right))
-                     (fill-in-with-nils pose-left max-length)
-                     (fill-in-with-nils pose-right max-length))))
+                     (fill-in-with-nils goal-left max-length)
+                     (fill-in-with-nils goal-right max-length))))
+         (cram-plan-failures:manipulation-failed ()
+           (cpl:fail 'cram-plan-failures:manipulation-failed :action action-designator))))
+      (move-joints
+       (handler-case
+           (pr2-ll:call-giskard-joint-action :left goal-left
+                                             :right goal-right)
          (cram-plan-failures:manipulation-failed ()
            (cpl:fail 'cram-plan-failures:manipulation-failed :action action-designator)))))))
 
