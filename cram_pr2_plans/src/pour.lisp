@@ -148,10 +148,47 @@
       (move-pr2-arms-out-of-sight :arm :right))))
 
 (defun pour-giskard ()
-  (cpl:top-level
-    (pr2-ll::call-giskard-yaml-action
-     :yaml-string (read-yaml-file :tilt)
-     :action-timeout 20.0)
-    (pr2-ll::call-giskard-yaml-action
-     :yaml-string (read-yaml-file :tilt-back)
-     :action-timeout 20.0)))
+                                        ;with-pr2-process-modules
+  (pr2-ll::call-giskard-yaml-action
+   :yaml-string (read-yaml-file :approach)
+   :action-timeout 20.0)
+  (pr2-ll::call-giskard-yaml-action
+   :yaml-string (read-yaml-file :tilt)
+   :action-timeout 20.0)
+  (pr2-ll::call-giskard-yaml-action
+   :yaml-string (read-yaml-file :tilt-back)
+   :action-timeout 20.0))
+
+(defun top-level-two-arm-pour ()
+  (with-pr2-process-modules
+    (move-pr2-arms-out-of-sight)
+    (let* ((?bottle-desig (desig:an object
+                                    (type bottle)))
+           (?perceived-bottle-desig (cram-plan-library:perform
+                                     (desig:an action
+                                               (to detect-motion)
+                                               (object ?bottle-desig)))))
+      (plan-lib:perform (desig:an action
+                                  (to my-pick-up)
+                                  (arm right)
+                                  (object ?perceived-bottle-desig)))
+      (move-pr2-arms-out-of-sight :arm :right)
+      (let* ((?cup-desig (desig:an object
+                                   (type cup)
+                                   ;; (cad-model "cup_eco_orange")
+                                   ))
+             (?perceived-cup-desig (cram-plan-library:perform
+                                    (desig:an action
+                                              (to detect-motion)
+                                              (object ?cup-desig)))))
+        (plan-lib:perform (desig:an action
+                                  (to my-pick-up)
+                                  (arm left)
+                                  (object ?perceived-cup-desig)))
+        (pour-giskard)
+        (cpl:par
+          (top-level-place :?arm :left :?object ?perceived-cup-desig)
+          (top-level-place :?arm :right :?object ?perceived-bottle-desig))
+        (move-pr2-arms-out-of-sight :arm :right)))))
+
+

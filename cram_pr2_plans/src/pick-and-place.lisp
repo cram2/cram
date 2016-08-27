@@ -120,11 +120,37 @@
           phases)))
 
 (defun top-level-pick-up (?type &key (?arm '(:left :right)) (?color ""))
+                                        ;with-pr2-process-modules
+  (move-pr2-arms-out-of-sight)
+  (let* ((?object-desig (desig:an object
+                                  (type ?type)
+                                  (color ?color)))
+         (?updated-object-desig (cram-plan-library:perform
+                                 (desig:an action
+                                           (to detect-motion)
+                                           (object ?object-desig)))))
+    (plan-lib:perform (desig:an action
+                                (to my-pick-up)
+                                (arm ?arm)
+                                (object ?updated-object-desig)))))
+
+(defun top-level-place (&key ?type (?arm '(:left :right)) ?pose ?object)
+                                        ;with-pr2-process-modules
+  (move-pr2-arms-out-of-sight)
+  (let ((?put-down-pose (or ?pose (get-cup-put-pose ?arm :front)))
+        (?object-desig (or ?object (desig:an object (type ?type)))))
+    (plan-lib:perform (desig:an action
+                                (to my-place)
+                                (arm ?arm)
+                                (object ?object-desig)
+                                ;; (at ?put-down-pose)
+                                ))))
+
+(defun top-level-pick-and-place (?type &key (?arm '(:left :right)))
   (with-pr2-process-modules
     (move-pr2-arms-out-of-sight)
     (let* ((?object-desig (desig:an object
-                                    (type ?type)
-                                    (color ?color)))
+                                    (type ?type)))
            (?updated-object-desig (cram-plan-library:perform
                                    (desig:an action
                                              (to detect-motion)
@@ -132,14 +158,8 @@
       (plan-lib:perform (desig:an action
                                   (to my-pick-up)
                                   (arm ?arm)
-                                  (object ?updated-object-desig))))))
-
-(defun top-level-place (?type &key (?arm '(:left :right)))
-  (with-pr2-process-modules
-    (move-pr2-arms-out-of-sight)
-    (let ((?put-down-pose (get-cup-put-pose ?arm :front)))
+                                  (object ?updated-object-desig)))
       (plan-lib:perform (desig:an action
                                   (to my-place)
                                   (arm ?arm)
-                                  (object (desig:an object (type ?type)))
-                                  (at ?put-down-pose))))))
+                                  (object ?updated-object-desig))))))
