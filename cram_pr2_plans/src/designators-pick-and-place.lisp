@@ -159,12 +159,15 @@
     (current-designator ?object-designator ?current-object-designator)
     (desig-prop ?current-object-designator (:type ?object-type))
     (object-type-grasp ?object-type ?grasp)
-    (-> (desig-prop ?action-designator (:at ?pose))
-        (-> (lisp-type ?pose designator)
-            (desig-location-prop ?pose ?object-pose)
-            (or (cram-tf:pose ?object-pose ?pose)
-                (equal ?pose ?object-pose)))
-        (lisp-fun get-object-pose ?object-designator ?object-pose))
+    ;; where to put:
+    (lisp-fun get-object-pose ?object-designator ?object-desig-pose)
+    (-> (lisp-pred identity ?object-desig-pose)
+        (equal ?object-pose ?object-desig-pose)
+        (and (desig-prop ?action-designator (:at ?pose))
+             (-> (lisp-type ?pose designator)
+                 (desig-location-prop ?pose ?object-pose)
+                 (or (cram-tf:pose ?object-pose ?pose)
+                     (equal ?pose ?object-pose)))))
     ;; (or (equal ?object-type :plate)
     ;;     (equal ?object-type :cutlery)
     ;;     (equal ?object-type :cup)
@@ -193,8 +196,8 @@
     (lisp-fun get-object-type-2nd-pregrasp-pose ?object-type ?right-grasp-pose :right ?grasp
               ?right-2nd-pregrasp-pose)
     ;;
-    (equal ?left-grasp-poses (?left-grasp-pose ?left-2nd-pregrasp-pose ?left-pregrasp-pose))
-    (equal ?right-grasp-poses (?right-grasp-pose ?right-2nd-pregrasp-pose ?right-pregrasp-pose))
+    (equal ?left-grasp-poses (?left-2nd-pregrasp-pose ?left-pregrasp-pose))
+    (equal ?right-grasp-poses (?right-2nd-pregrasp-pose ?right-pregrasp-pose))
     ;; create new designator with updated appended action-description
     (lisp-fun append-place-action-designator ?action-designator ?arm
               ?left-put-poses ?right-put-poses
