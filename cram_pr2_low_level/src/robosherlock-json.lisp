@@ -121,6 +121,7 @@ although there should've been ~a"
                                                  number-of-objects quantifier)))))))
 
 (defparameter *rs-result-debug* nil)
+(defparameter *rs-result-designator* nil)
 (defun call-robosherlock-service (keyword-key-value-pairs-list &key (quantifier :a))
   (declare (type (or keyword number) quantifier))
   (multiple-value-bind (key-value-pairs-list quantifier)
@@ -140,10 +141,14 @@ although there should've been ~a"
            (get-robosherlock-service)
            (make-robosherlock-query key-value-pairs-list)))
       (setf *rs-result-debug* answer)
-      (desig:make-designator
-       :object
-       (append keyword-key-value-pairs-list
-               (ensure-robosherlock-result answer quantifier))))))
+      (let ((rs-result (desig:make-designator
+                        :object
+                        (reduce (alexandria:rcurry (cut:flip #'adjoin) :key #'car)
+                                keyword-key-value-pairs-list
+                                :initial-value
+                                (ensure-robosherlock-result answer quantifier)))))
+        (setf *rs-result-designator* rs-result)
+        rs-result))))
 
 
 
