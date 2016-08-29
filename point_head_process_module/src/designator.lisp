@@ -32,7 +32,13 @@
 (defvar *action-client* nil)
 
 (defun make-action-goal (pose-stamped)
-  (let* ((target-frame "base_link")
+  ;; HACK(winkler): Some code somewhere sends lists of poses rather
+  ;; than a pose itself and I can't find which one it is right
+  ;; now. The next statements are a dirty hack around that until I
+  ;; figure out which code is responsible for this.
+  (let* ((pose-stamped (cond ((listp pose-stamped) (first pose-stamped))
+                             (t pose-stamped)))
+         (target-frame "base_link")
          (pose-stamped
            (or (when (eql pose-stamped :forward)
                  (make-pose-stamped
