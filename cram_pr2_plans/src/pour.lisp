@@ -147,16 +147,36 @@
                                   (destination ?perceived-cup-desig)))
       (move-pr2-arms-out-of-sight :arm :right))))
 
+(defparameter *constraints* '((:approach
+                               (name . (lower upper)) (name lower upper))
+                              (:tilt
+                               (constraint-1 23 34) (constraint-2 45 47))
+                              (:tilt-back
+                               (name 23 5))))
+
+(defun georgs-function (yaml-string list-of-constraints)
+  (declare (type string yaml-string)
+           (type list list-of-constraints))
+  "The list of constraints looks like the following:
+'((constraint-1 23 34)
+  (constraint-2 45 47))"
+  yaml-string)
+
+(defun put-together-yaml (phase)
+  (georgs-function
+   (read-yaml-file phase)
+   (cdr (assoc phase *constraints*))))
+
 (defun pour-giskard ()
                                         ;with-pr2-process-modules
   (pr2-ll::call-giskard-yaml-action
-   :yaml-string (read-yaml-file :approach)
+   :yaml-string (put-together-yaml :approach)
    :action-timeout 20.0)
   (pr2-ll::call-giskard-yaml-action
-   :yaml-string (read-yaml-file :tilt)
+   :yaml-string (put-together-yaml :tilt)
    :action-timeout 20.0)
   (pr2-ll::call-giskard-yaml-action
-   :yaml-string (read-yaml-file :tilt-back)
+   :yaml-string (put-together-yaml :tilt-back)
    :action-timeout 20.0))
 
 (defun top-level-two-arm-pour ()
