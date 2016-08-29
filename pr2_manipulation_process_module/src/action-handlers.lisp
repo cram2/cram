@@ -563,11 +563,11 @@
                                            (when (desig-prop-value
                                                   object-designator
                                                   :dimensions)
-                                             (+ (/ (tf:z (desig-prop-value
-                                                          object-designator
-                                                          :dimensions))
-                                                   2)
-                                                0.01))
+                                             ;;(+ (/ (tf:z (desig-prop-value
+                                             ;;             object-designator
+                                             ;;             :dimensions))
+                                             ;;      2)
+                                                0.02);;)
                                            0.1)))
          (lazy-putdown-poses
            (prolog:prolog
