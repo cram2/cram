@@ -29,10 +29,10 @@
 
 (in-package :pr2-plans)
 
-(defun append-pour-action-designator (action-designator ?arm
-                                      ?left-pour-poses ?right-pour-poses
-                                      ?left-tilt-pose ?right-tilt-pose
-                                      ?left-retract-poses ?right-retract-poses)
+(defun append-pour-cartesian-action-designator (action-designator ?arm
+                                                ?left-pour-poses ?right-pour-poses
+                                                ?left-tilt-pose ?right-tilt-pose
+                                                ?left-retract-poses ?right-retract-poses)
   (case ?arm
     (:left (setf ?right-pour-poses nil
                  ?right-retract-poses nil
@@ -48,19 +48,48 @@
                       (to my-approach)
                       (left ?left-pour-poses)
                       (right ?right-pour-poses))
-                  ;; (an action
-                  ;;     (to my-tilt-angle)
-                  ;;     (left ?left-pour-poses)
-                  ;;     (right ?right-pour-poses)
-                  ;;     (angle ?angle))
                   (an action
-                      (to my-tilt-to)
+                      (to my-tilt-down)
                       (left ?left-tilt-pose)
                       (right ?right-tilt-pose))
                   (an action
-                      (to my-tilt-to)
+                      (to my-tilt-back)
                       (left ?left-pour-poses)
                       (right ?right-pour-poses))
+                  (an action
+                      (to my-retract)
+                      (left ?left-retract-poses)
+                      (right ?right-retract-poses)))))
+    (copy-designator action-designator :new-description `((:phases ,phases)))))
+
+(defun append-pour-giskard-action-designator (action-designator arm
+                                              source-pose destination-pose
+                                              source-type destination-type
+                                              ?left-retract-poses ?right-retract-poses)
+  (case arm
+    (:left (setf ?right-retract-poses nil))
+    (:right (setf ?left-retract-poses nil)))
+  ;; (-> (equal ?arm (:left :right))
+  ;;       (format "both arms~%")
+  ;;       (format "one arm: ~a~%" ?arm))
+  ;; (setf ?left-grasp-poses (reverse ?left-grasp-poses))
+  ;; (setf ?right-grasp-poses (reverse ?right-grasp-poses))
+  (let* ((pouring-constraints (call-learned-constraints-service
+                               source-type source-pose
+                               destination-type destination-pose))
+         (?approach-constraints (cadr (assoc :approach pouring-constraints)))
+         (?tilt-down-constraints (cadr (assoc :tilt-down pouring-constraints)))
+         (?tilt-back-constraints (cadr (assoc :tilt-back pouring-constraints)))
+         (phases (list
+                  (an action
+                      (to approach)
+                      (constraints ?approach-constraints))
+                  (an action
+                      (to tilt-down)
+                      (constraints ?tilt-down-constraints))
+                  (an action
+                      (to tilt-back)
+                      (constraints ?tilt-back-constraints))
                   (an action
                       (to my-retract)
                       (left ?left-retract-poses)
@@ -80,21 +109,29 @@
         (desig-prop ?action-designator (:type :my-pouring)))
     (once (or (desig-prop ?action-designator (:arm ?arm))
               (equal ?arm (:left :right))))
+    ;; source
     (desig-prop ?action-designator (:source ?source-designator))
     (current-designator ?source-designator ?current-source-designator)
     (desig-prop ?current-source-designator (:type ?source-type))
+    (lisp-fun get-object-pose ?current-source-designator ?source-pose)
     (object-type-grasp ?source-type ?grasp)
-    (desig-prop ?action-designator (:destination ?destination-designator))
+    ;; destination / target
+    (desig-prop ?action-designator (:target ?destination-designator))
     (current-designator ?destination-designator ?current-destination-designator)
+    (desig-prop ?current-destination-designator (:type ?destination-type))
     (lisp-fun get-object-pose ?current-destination-designator ?destination-pose)
     ;; so we have (an action (to pour) (destination (an object (pose ...) (type ...))))
     ;; now we need to add the phases with the corresponding via-points and angles
     ;; find the missing info
+    ;; cartesian pouring:
     (lisp-fun get-object-type-pour-pose ?source-type ?destination-pose :left ?grasp
               ?left-pour-pose)
     (lisp-fun get-object-type-pour-pose ?source-type ?destination-pose :right ?grasp
               ?right-pour-pose)
-    ;;
+    (lisp-fun cram-math:degrees->radians 100 ?angle)
+    (lisp-fun get-tilted-pose ?left-pour-pose ?angle :left ?grasp ?left-tilt-pose)
+    (lisp-fun get-tilted-pose ?right-pour-pose ?angle :right ?grasp ?right-tilt-pose)
+    ;; retract phase:
     (lisp-fun get-object-type-grasp-pose ?source-type ?destination-pose :left ?grasp
               ?left-grasp-pose)
     (lisp-fun get-object-type-grasp-pose ?source-type ?destination-pose :right ?grasp
@@ -104,14 +141,15 @@
               ?left-retract-pose)
     (lisp-fun get-object-type-pregrasp-pose ?source-type ?right-grasp-pose :right ?grasp
               ?right-retract-pose)
-    ;;
-    (lisp-fun cram-math:degrees->radians 100 ?angle)
-    (lisp-fun get-tilted-pose ?left-pour-pose ?angle :left ?grasp ?left-tilt-pose)
-    (lisp-fun get-tilted-pose ?right-pour-pose ?angle :right ?grasp ?right-tilt-pose)
     ;; create new designator with updated appended action-description
-    (lisp-fun append-pour-action-designator ?action-designator ?arm
-              ?left-pour-pose ?right-pour-pose
-              ?left-tilt-pose ?right-tilt-pose
+    ;; (lisp-fun append-pour-cartesian-action-designator ?action-designator ?arm
+    ;;           ?left-pour-pose ?right-pour-pose
+    ;;           ?left-tilt-pose ?right-tilt-pose
+    ;;           ?left-retract-pose ?right-retract-pose
+    ;;           ?updated-action-designator)
+    (lisp-fun append-pour-giskard-action-designator ?action-designator ?arm
+              ?source-pose ?destination-pose
+              ?source-type ?destination-type
               ?left-retract-pose ?right-retract-pose
               ?updated-action-designator))
 
@@ -134,4 +172,11 @@
     (desig-prop ?action-designator (:left ?left-poses))
     (desig-prop ?action-designator (:right ?right-poses))
     (lisp-fun car-last ?left-poses ?left-last-pose)
-    (lisp-fun car-last ?right-poses ?right-last-pose)))
+    (lisp-fun car-last ?right-poses ?right-last-pose))
+
+  (<- (action-desig ?action-designator (giskard-yaml ?phase ?constraints))
+    (or (desig-prop ?action-designator (:to :approach))
+        (desig-prop ?action-designator (:to :tilt-down))
+        (desig-prop ?action-designator (:to :tilt-back)))
+    (desig-prop ?action-designator (:to ?phase))
+    (desig-prop ?action-designator (:constraints ?constraints))))

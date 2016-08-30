@@ -31,32 +31,106 @@
 
 ;; (an action
 ;;     (to pour)
-;;     (destination (an object))
 ;;     (source (an object))
-;;     (theme (some stuff))
-;;     (goal drink-poured)
-;;     (arm right)
+;;     (target (an object))
+;;   -  (theme (some stuff))
+;;   -  (goal drink-poured)
+;;   ?  (arm right)
 ;;     (phases (a motion (type approaching))
 ;;             (a motion
-;;                (type tilting)
+;;                (type tilt-down)
 ;;                (angle )
 ;;                ())
-;;             (a motion (type tilting) (angle -x)
+;;             (a motion (type tilt-back)
+;;                       (constraints (source-top-behind-target-top 12 23)
+;;                                    (source-top-left-target-top 0.04 0.57)
 ;;             (a motion (type retracting))))
 
-;; - mug-top-behind-maker: {x-coord: mug-top-to-maker-top}
-;; - mug-top-left-maker: {y-coord: mug-top-to-maker-top}
-;; - mug-top-above-maker: {z-coord: mug-top-to-maker-top}
-;; - mug-behind-itself: {x-coord: mug-top-to-mug-bottom}
-;; - mug-left-itself: {y-coord: mug-top-to-mug-bottom}
-;; - mug-above-itself: {z-coord: mug-top-to-mug-bottom}
-;;
-;; - {controllable-weight: 0.001}
-;; - {constraint-weight: 10.001}
-;; - {min-trans-vel: -0.1946}
-;; - {max-trans-vel: 0.1946}
-;; - {min-rot-vel: -1.2061}
-;; - {max-rot-vel: 1.2061}
+
+
+;; Input: cup in base_link, bottle in base_link
+  ;;  name: tilt_back
+  ;;   constraints: 
+  ;;     - 
+  ;;       name: source_left_itself
+  ;;       lower: 0.17160918768
+  ;;       upper: 0.175651417877
+  ;;     - 
+  ;;       name: source_top_above_goal_target_top ; source_top_above_target_top
+  ;;       lower: 0.0506713657833
+  ;;       upper: 0.0601368737079
+  ;;     - 
+  ;;       name: source_above_itself            ; source_top_above_source_bottom
+  ;;       lower: -0.0355860225202
+  ;;       upper: -0.0228787381723
+  ;;     - 
+  ;;       name: source_behind_itself
+  ;;       lower: -0.0435688405115
+  ;;       upper: -0.0299401394795
+  ;;     - 
+  ;;       name: source_top_behind_goal_target_top
+  ;;       lower: -0.0123281616118
+  ;;       upper: -0.00443432333723
+  ;;     - 
+  ;;       name: source_top_left_goal_target_top
+  ;;       lower: -0.0175524394121
+  ;;       upper: -0.0129251489616
+  ;; - 
+  ;;   name: tilt_down
+  ;;   constraints: 
+  ;;     - 
+  ;;       name: source_left_itself
+  ;;       lower: 0.166978793623
+  ;;       upper: 0.171221504047
+  ;;     - 
+  ;;       name: source_top_above_goal_target_top
+  ;;       lower: 0.0351830346321
+  ;;       upper: 0.0424454599667
+  ;;     - 
+  ;;       name: source_above_itself
+  ;;       lower: -0.0565096525695
+  ;;       upper: -0.0511978531642
+  ;;     - 
+  ;;       name: source_behind_itself
+  ;;       lower: -0.0409957359998
+  ;;       upper: -0.025745088615
+  ;;     - 
+  ;;       name: source_top_behind_goal_target_top
+  ;;       lower: -0.00946009677249
+  ;;       upper: -0.00202902833224
+  ;;     - 
+  ;;       name: source_top_left_goal_target_top
+  ;;       lower: -0.0133496650731
+  ;;       upper: -0.0102149032488
+  ;; - 
+  ;;   name: move_above
+  ;;   constraints: 
+  ;;     - 
+  ;;       name: source_left_itself
+  ;;       lower: 0.171364527114
+  ;;       upper: 0.175911635164
+  ;;     - 
+  ;;       name: source_top_above_goal_target_top
+  ;;       lower: 0.0562834368678
+  ;;       upper: 0.0680672259882
+  ;;     - 
+  ;;       name: source_above_itself
+  ;;       lower: -0.0347799722306
+  ;;       upper: -0.0236473652741
+  ;;     - 
+  ;;       name: source_behind_itself
+  ;;       lower: -0.0429654419749
+  ;;       upper: -0.0277158142335
+  ;;     - 
+  ;;       name: source_top_behind_goal_target_top
+  ;;       lower: -0.00826726491721
+  ;;       upper: -0.000473181881838
+  ;;     - 
+  ;;       name: source_top_left_goal_target_top
+  ;;       lower: -0.0168588836555
+  ;;       upper: -0.0109408055036
+
+
 ;; soft-constraints:
 ;; - soft-constraint:
 ;;   - double-sub: [-0.036, mug-top-behind-maker]
@@ -74,12 +148,12 @@
 ;;   - constraint-weight
 ;;   - mug-top-above-maker
 ;; - soft-constraint:
-;;   - double-sub: [-0.0768, mug-behind-itself]
+;;   - double-sub: [-0.0768, mug-behind-itself] mug-top-behind-mug-bottom
 ;;   - double-sub: [-0.0354, mug-behind-itself]
 ;;   - constraint-weight
 ;;   - mug-behind-itself
 ;; - soft-constraint:
-;;   - double-sub: [0.0698, mug-left-itself]
+;;   - double-sub: [0.0698, mug-left-itself] 
 ;;   - double-sub: [0.0981, mug-left-itself]
 ;;   - constraint-weight
 ;;   - mug-left-itself
@@ -162,21 +236,14 @@
   (constraint-2 45 47))"
   yaml-string)
 
-(defun put-together-yaml (phase)
+(defun put-together-yaml (phase constraints)
   (georgs-function
    (read-yaml-file phase)
-   (cdr (assoc phase *constraints*))))
+   constraints))
 
-(defun pour-giskard ()
-                                        ;with-pr2-process-modules
+(defun giskard-yaml (phase constraints)
   (pr2-ll::call-giskard-yaml-action
-   :yaml-string (put-together-yaml :approach)
-   :action-timeout 20.0)
-  (pr2-ll::call-giskard-yaml-action
-   :yaml-string (put-together-yaml :tilt)
-   :action-timeout 20.0)
-  (pr2-ll::call-giskard-yaml-action
-   :yaml-string (put-together-yaml :tilt-back)
+   :yaml-string (put-together-yaml phase constraints)
    :action-timeout 20.0))
 
 (defun top-level-two-arm-pour ()
