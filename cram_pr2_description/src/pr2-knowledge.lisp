@@ -98,7 +98,9 @@ is replaced with replacement."
 (defun init-robot-description (&optional (robot-description-param "robot_description"))
   ;; TODO: see above: clean the urdfs/xacros, then remove the replace-all call and just
   ;; get the ros parameter value.
-  (setf *robot-description* (cl-urdf:parse-urdf (replace-all (roslisp:get-param robot-description-param) "\\" "  "))))
+  (let ((urdf-string (roslisp:get-param robot-description-param nil)))
+    (when urdf-string
+      (setf *robot-description* (cl-urdf:parse-urdf (replace-all urdf-string "\\" "  "))))))
 
 ;; (roslisp-utilities:register-ros-init-function init-robot-description)
 
