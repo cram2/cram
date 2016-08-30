@@ -31,7 +31,7 @@
 
 (defparameter *controller-filenames*
   '((:approach "pr2_move_above_controller" "pr2_move_above_thresholds")
-    (:tilt "pr2_tilt_down_controller" "pr2_tilt_down_thresholds")
+    (:tilt-down "pr2_tilt_down_controller" "pr2_tilt_down_thresholds")
     (:tilt-back "pr2_tilt_back_controller" "pr2_tilt_back_thresholds")))
 
 (defun file-string (path)
@@ -47,4 +47,5 @@
                       "package://giskard_examples/controller_specs/pr2_pouring_example/~a.yaml"
                       (second (assoc controller *controller-filenames*))))
          (yaml-in-a-string (file-string (namestring (parse-uri uri)))))
+    (format t "EXECUTING URI: ~a~%~%" uri)
     yaml-in-a-string))
