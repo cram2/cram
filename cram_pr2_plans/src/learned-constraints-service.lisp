@@ -44,7 +44,6 @@
                                 &optional (liquid-volume 0.0))
            (declare (type cl-transforms-stamped:pose-stamped pose-stamped)
                     (type keyword role))
-           (print pose-stamped)
            "role can either be :source or :target"
            (roslisp:make-message
             "giskard_msgs/TaskObject"
