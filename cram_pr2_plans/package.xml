@@ -22,4 +22,6 @@
   <depend>cram_prolog</depend>
   <depend>cl_tf2</depend>
   <depend>cram_math</depend>
+  <depend>cram_beliefstate</depend>
+  <depend>giskard_msgs</depend>
 </package>
