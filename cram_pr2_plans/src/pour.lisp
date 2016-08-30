@@ -279,3 +279,10 @@
         (move-pr2-arms-out-of-sight :arm :right)))))
 
 
+;; Example input designator for pouring (learned constraints server must be running):
+;; (with-pr2-process-modules
+;;              (reference (desig:an action
+;;                      (to my-pour)
+;;                      (arm (left right))
+;;                      (source (desig:an object (type bottle) (pose ((pose *pr2-right-arm-out-of-sight-gripper-pose*)))))
+;;                      (target (desig:an object (type cup) (pose ((pose *pr2-left-arm-out-of-sight-gripper-pose*))))))))
