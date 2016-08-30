@@ -78,8 +78,8 @@
                         key-value-pair
                       (if (and (eql key :type) (eql value :cup))
                           ;(list :detection "")
-                          ;(list :type "Cup")
-                           (list :cad-model "cup_eco_orange")
+                          (list :type "Cup")
+                          ;(list :cad-model "cup_eco_orange")
                           (list (etypecase key
                                   (keyword (symbol-name key))
                                   (string (string-upcase key)))
