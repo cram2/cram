@@ -51,22 +51,19 @@
 
 (defparameter *cup-pregrasp-xy-offset* 0.05 "in meters")
 (defparameter *cup-pregrasp-z-offset* 0.4 "in meters")
-(defparameter *cup-grasp-z-offset* 0.085 "in meters")
+(defparameter *cup-grasp-xy-offset* 0.01 "in meters")
+(defparameter *cup-grasp-z-offset* 0.07 "in meters") ; 0.08?
 
 (defparameter *bottle-pregrasp-xy-offset* 0.05 "in meters")
 (defparameter *bottle-pregrasp-z-offset* 0.4 "in meters")
-(defparameter *bottle-grasp-z-offset* 0.1 "in meters")
+(defparameter *bottle-grasp-xy-offset* 0.01 "in meters")
+(defparameter *bottle-grasp-z-offset* 0.095 "in meters") ; 0.105?
 
 (defparameter *lift-z-offset* 0.4 "in meters")
 
 (defparameter *pour-xy-offset* 0.12 "in meters")
 (defparameter *pour-z-offset* -0.04 "in meters")
 
-;; (defparameter *pr2-right-arm-joint-names-list*
-;;   '("r_shoulder_pan_joint" "r_shoulder_lift_joint" "r_upper_arm_roll_joint"
-;;     "r_elbow_flex_joint" "r_forearm_roll_joint" "r_wrist_flex_joint"
-;;     "r_wrist_roll_joint")
-;;   "right arm joint names list")
 (defparameter *pr2-right-arm-out-of-sight-joint-positions*
   '(-1.712587449591307d0 -0.2567290370386635d0 -1.4633501125737374d0
     -2.1221670650093913d0 1.7663253481913623d0 -0.07942669250968948d0
@@ -93,14 +90,38 @@
    (cl-transforms:make-quaternion 0.9215513103717499d0 -0.387996037470125d0
                                   -0.014188589447636247d0 -9.701489976338351d-4)))
 
+(defparameter *meal-table-left-base-pose*
+  (cl-transforms-stamped:make-pose-stamped
+   "map"
+   0.0
+   (cl-transforms:make-3d-vector -0.957d0 -0.4285d0 0.0)
+   (cl-transforms:make-quaternion 0.003900727422091458d0 8.651259911397491d-4
+                                  0.7314595125485168d0 -0.6818731681074452d0)))
+(defparameter *meal-table-right-base-pose*
+  (cl-transforms-stamped:make-pose-stamped
+   "map"
+   0.0
+   (cl-transforms:make-3d-vector -1.8547d0 -0.381d0 0.0d0)
+   (cl-transforms:axis-angle->quaternion (cl-transforms:make-3d-vector 0 0 1) (/ pi -2))))
+(defparameter *meal-table-left-base-look-pose*
+  (cl-transforms-stamped:make-pose-stamped
+   "base_footprint"
+   0.0
+   (cl-transforms:make-3d-vector 0.555226d0 -0.47345d0 0.7566d0)
+   (cl-transforms:make-identity-rotation)))
+(defparameter *meal-table-right-base-look-pose*
+  (cl-transforms-stamped:make-pose-stamped
+   "base_footprint"
+   0.0
+   (cl-transforms:make-3d-vector 0.65335d0 0.076d0 0.758d0)
+   (cl-transforms:make-identity-rotation)))
+
 (defmacro with-pr2-process-modules (&body body)
   `(cram-process-modules:with-process-modules-running
        (pr2-pms::pr2-perception-pm pr2-pms::pr2-base-pm pr2-pms::pr2-arms-pm
                                    pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm)
-;     ,@body
      (cpl:top-level
-       ,@body)
-     ))
+       ,@body)))
 
 (defun move-pr2-arms-out-of-sight (&key (arm :both))
   (cpl:with-failure-handling
@@ -159,7 +180,8 @@
                              (0 0 0 1)))
                     (t (error "get only get grasp poses for :left or :right arms")))))))))
 
-(defun calculate-cup-grasp-pose (x-obj y-obj z-support z-obj-offset &optional arm grasp) 
+(defun calculate-cup-grasp-pose (x-obj y-obj z-support z-obj-offset
+                                 &optional arm grasp)
   "same for both arms"
   (cl-transforms-stamped:pose->pose-stamped
    cram-tf:*robot-base-frame*
@@ -169,8 +191,7 @@
      (make-array '(4 4)
                  :initial-contents
                  (case grasp
-                   (:front `((1 0 0 ,(+ x-obj 0;; -0.04
-                                        )) ;  hack to fix perception problem
+                   (:front `((1 0 0 ,x-obj)
                              (0 1 0 ,y-obj)
                              (0 0 1 ,(+ z-support z-obj-offset))
                              (0 0 0 1)))
@@ -245,7 +266,15 @@
          (let* ((translation (cl-transforms:origin object-pose))
                 (x-obj (cl-transforms:x translation))
                 (y-obj (cl-transforms:y translation)))
-           (calculate-cup-grasp-pose x-obj y-obj
+           (calculate-cup-grasp-pose (case grasp
+                                       (:side x-obj)
+                                       (:front (+ x-obj *bottle-grasp-xy-offset*)))
+                                     (case grasp
+                                       (:side (case arm
+                                                (:left (- y-obj *bottle-grasp-xy-offset*))
+                                                (:right (+ y-obj *bottle-grasp-xy-offset*))
+                                                (error "arm can only be left or right")))
+                                       (:front y-obj))
                                      *kitchen-meal-table-z*
                                      *bottle-grasp-z-offset*
                                      arm grasp))
@@ -255,7 +284,15 @@
          (let* ((translation (cl-transforms:origin object-pose))
                 (x-obj (cl-transforms:x translation))
                 (y-obj (cl-transforms:y translation)))
-           (calculate-cup-grasp-pose x-obj y-obj
+           (calculate-cup-grasp-pose (case grasp
+                                       (:side x-obj)
+                                       (:front (+ x-obj *cup-grasp-xy-offset*)))
+                                     (case grasp
+                                       (:side (case arm
+                                                (:left (- y-obj *cup-grasp-xy-offset*))
+                                                (:right (+ y-obj *cup-grasp-xy-offset*))
+                                                (error "arm can only be left or right")))
+                                       (:front y-obj))
                                      *kitchen-meal-table-z*
                                      *cup-grasp-z-offset*
                                      arm grasp))
