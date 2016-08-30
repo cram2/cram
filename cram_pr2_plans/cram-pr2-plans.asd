@@ -42,7 +42,10 @@
                cram-plan-library
                cram-prolog
                cl-tf2
-               cram-math)
+               cram-math
+               cram-beliefstate
+               giskard_msgs-msg
+               giskard_msgs-srv)
 
   :components
   ((:module "src"
@@ -55,5 +58,6 @@
                                                       "designators-pick-and-place"))
      (:file "ros-uri-parser" :depends-on ("package"))
      (:file "read-controller-yamls" :depends-on ("package" "ros-uri-parser"))
+     (:file "learned-constraints-service" :depends-on ("package"))
      (:file "pour" :depends-on ("package" "grasping" "designators-pour"
                                           "read-controller-yamls"))))))
