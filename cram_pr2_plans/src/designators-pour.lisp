@@ -49,11 +49,11 @@
                       (left ?left-pour-poses)
                       (right ?right-pour-poses))
                   (an action
-                      (to my-tilt-down)
+                      (to my-tilt-to)
                       (left ?left-tilt-pose)
                       (right ?right-tilt-pose))
                   (an action
-                      (to my-tilt-back)
+                      (to my-tilt-to)
                       (left ?left-pour-poses)
                       (right ?right-pour-poses))
                   (an action
@@ -82,6 +82,10 @@
          (?tilt-back-constraints (cadr (assoc :tilt-back pouring-constraints)))
          (phases (list
                   (an action
+                      (to my-retract)
+                      (left ?left-retract-poses)
+                      (right ?right-retract-poses))
+                  (an action
                       (to approach)
                       (constraints ?approach-constraints))
                   (an action
@@ -105,7 +109,7 @@
 (def-fact-group pr2-pouring-plans (action-desig)
 
   (<- (action-desig ?action-designator (perform-phases-in-sequence ?updated-action-designator))
-    (or (desig-prop ?action-designator (:to :my-pour))
+    (or (desig-prop ?action-designator (:to :my-pour)) ;; cartesian
         (desig-prop ?action-designator (:type :my-pouring)))
     (once (or (desig-prop ?action-designator (:arm ?arm))
               (equal ?arm (:left :right))))
@@ -142,16 +146,57 @@
     (lisp-fun get-object-type-pregrasp-pose ?source-type ?right-grasp-pose :right ?grasp
               ?right-retract-pose)
     ;; create new designator with updated appended action-description
-    ;; (lisp-fun append-pour-cartesian-action-designator ?action-designator ?arm
-    ;;           ?left-pour-pose ?right-pour-pose
-    ;;           ?left-tilt-pose ?right-tilt-pose
-    ;;           ?left-retract-pose ?right-retract-pose
-    ;;           ?updated-action-designator)
+    (lisp-fun append-pour-cartesian-action-designator ?action-designator ?arm
+              ?left-pour-pose ?right-pour-pose
+              ?left-tilt-pose ?right-tilt-pose
+              ?left-retract-pose ?right-retract-pose
+              ?updated-action-designator))
+
+
+  (<- (action-desig ?action-designator (perform-phases-in-sequence ?updated-action-designator))
+    (or (desig-prop ?action-designator (:to :pour-activity)) ;; yaml
+        (desig-prop ?action-designator (:type :pouring-activity)))
+    (desig-prop ?action-designator (:arm ?arm))
+    ;; source
+    (desig-prop ?action-designator (:source ?source-designator))
+    (current-designator ?source-designator ?current-source-designator)
+    (desig-prop ?current-source-designator (:type ?source-type))
+    (lisp-fun get-object-pose ?current-source-designator ?source-pose)
+    (object-type-grasp ?source-type ?source-grasp)
+    ;; destination / target
+    (desig-prop ?action-designator (:target ?destination-designator))
+    (current-designator ?destination-designator ?current-destination-designator)
+    (desig-prop ?current-destination-designator (:type ?destination-type))
+    (lisp-fun get-object-pose ?current-destination-designator ?destination-pose)
+    (object-type-grasp ?destination-type ?destination-grasp)
+    ;; so we have (an action (to pour) (destination (an object (pose ...) (type ...))))
+    ;; now we need to add the phases with the corresponding via-points and angles
+    ;; find the missing info
+    ;; retract phase:
+    (lisp-fun get-object-type-grasp-pose ?source-type ?source-pose
+              :left ?source-grasp ?left-source-grasp-pose)
+    (lisp-fun get-object-type-grasp-pose ?source-type ?source-pose
+              :right ?source-grasp ?right-source-grasp-pose)
+    (lisp-fun get-object-type-grasp-pose ?destination-type ?destination-pose
+              :left ?destination-grasp ?left-destination-grasp-pose)
+    (lisp-fun get-object-type-grasp-pose ?destination-type ?destination-pose
+              :right ?destination-grasp ?right-destination-grasp-pose)
+    ;;
+    (lisp-fun get-object-type-pregrasp-pose ?source-type ?left-source-grasp-pose
+              :left ?source-grasp ?left-source-retract-pose)
+    (lisp-fun get-object-type-pregrasp-pose ?source-type ?right-source-grasp-pose
+              :right ?source-grasp ?right-source-retract-pose)
+    (lisp-fun get-object-type-pregrasp-pose ?destination-type ?left-destination-grasp-pose
+              :left ?destination-grasp ?left-destination-retract-pose)
+    (lisp-fun get-object-type-pregrasp-pose ?destination-type ?right-destination-grasp-pose
+              :right ?destination-grasp ?right-destination-retract-pose)
+    ;; create new designator with updated appended action-description
     (lisp-fun append-pour-giskard-action-designator ?action-designator ?arm
               ?source-pose ?destination-pose
               ?source-type ?destination-type
-              ?left-retract-pose ?right-retract-pose
+              ?left-destination-retract-pose ?right-source-retract-pose
               ?updated-action-designator))
+
 
   (<- (action-desig ?action-designator (move-arms-in-sequence ?left-poses ?right-poses))
     (desig-prop ?action-designator (:to :my-approach))
