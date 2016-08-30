@@ -205,10 +205,17 @@
               ?updated-action-designator))
 
    (<- (action-desig ?action-designator (move-arms-in-sequence ?left-poses ?right-poses))
-    (or (desig-prop ?action-designator (:to :my-reach))
+    (or ;; (desig-prop ?action-designator (:to :my-reach)) ; because of logging
         (desig-prop ?action-designator (:to :my-lift))
         (desig-prop ?action-designator (:to :my-retract))
         (desig-prop ?action-designator (:to :my-put)))
+    (once (or (desig-prop ?action-designator (:left ?left-poses))
+              (equal ?left-poses nil)))
+    (once (or (desig-prop ?action-designator (:right ?right-poses))
+              (equal ?right-poses nil))))
+
+  (<- (action-desig ?action-designator (reach ?left-poses ?right-poses))
+    (desig-prop ?action-designator (:to :my-reach)) ; because of logging
     (once (or (desig-prop ?action-designator (:left ?left-poses))
               (equal ?left-poses nil)))
     (once (or (desig-prop ?action-designator (:right ?right-poses))
