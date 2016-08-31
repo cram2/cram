@@ -30,7 +30,7 @@
 (defparameter *pregrasp-offset*
   (cl-transforms:make-pose
    (cl-transforms:make-3d-vector
-    -0.31 0.0 0.0)
+    -0.20 0.0 0.0)
    (cl-transforms:euler->quaternion :ax (/ pi -2))))
 (defparameter *pregrasp-top-slide-down-offset*
   (cl-transforms:make-pose
@@ -50,7 +50,7 @@
 (defparameter *grasp-offset*
   (cl-transforms:make-pose
    (cl-transforms:make-3d-vector
-    -0.22 0.0 0.0)
+    -0.10 0.0 0.0)
    (cl-transforms:euler->quaternion :ax (/ pi -2))))
 (defparameter *pre-putdown-offset*
   (cl-transforms:make-pose
