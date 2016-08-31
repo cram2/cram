@@ -620,7 +620,7 @@
            (map 'vector
                 (lambda (handle)
                   (let ((pose (reference (desig-prop-value handle :at))))
-                    (to-msg pose)))
+                    (to-msg (tf:pose-stamped->pose pose))))
                 absolute-handles)))
     (let ((publisher (roslisp:advertise "objecthandleposes" "geometry_msgs/PoseArray")))
       (roslisp:publish publisher
