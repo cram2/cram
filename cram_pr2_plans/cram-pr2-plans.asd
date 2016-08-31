@@ -52,6 +52,7 @@
     :components
     ((:file "package")
      (:file "grasping" :depends-on ("package"))
+     (:file "occasions-events" :depends-on ("package"))
      (:file "designators-pick-and-place" :depends-on ("package" "grasping"))
      (:file "pick-and-place" :depends-on ("package" "grasping" "designators-pick-and-place"))
      (:file "designators-pour" :depends-on ("package" "grasping"
