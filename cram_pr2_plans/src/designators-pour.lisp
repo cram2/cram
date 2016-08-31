@@ -45,19 +45,19 @@
   (let* (;; (?minus-angle (- ?angle))
          (phases (list
                   (an action
-                      (to my-approach)
+                      (to approach-action)
                       (left ?left-pour-poses)
                       (right ?right-pour-poses))
                   (an action
-                      (to my-tilt-to)
+                      (to tilt-to-action)
                       (left ?left-tilt-pose)
                       (right ?right-tilt-pose))
                   (an action
-                      (to my-tilt-to)
+                      (to tilt-to-action)
                       (left ?left-pour-poses)
                       (right ?right-pour-poses))
                   (an action
-                      (to my-retract)
+                      (to retract-action)
                       (left ?left-retract-poses)
                       (right ?right-retract-poses)))))
     (copy-designator action-designator :new-description `((:phases ,phases)))))
@@ -82,7 +82,7 @@
          (?tilt-back-constraints (cadr (assoc :tilt-back pouring-constraints)))
          (phases (list
                   (an action
-                      (to my-retract)
+                      (to retract-action)
                       (left ?left-retract-poses)
                       (right ?right-retract-poses))
                   (an action
@@ -95,7 +95,7 @@
                       (to tilt-back)
                       (constraints ?tilt-back-constraints))
                   (an action
-                      (to my-retract)
+                      (to retract-action)
                       (left ?left-retract-poses)
                       (right ?right-retract-poses)))))
     (copy-designator action-designator :new-description `((:phases ,phases)))))
@@ -109,10 +109,10 @@
 (def-fact-group pr2-pouring-plans (action-desig)
 
   (<- (action-desig ?action-designator (perform-phases-in-sequence ?updated-action-designator))
-    (or (desig-prop ?action-designator (:to :my-pour)) ;; cartesian
-        (desig-prop ?action-designator (:type :my-pouring)))
-    (once (or (desig-prop ?action-designator (:arm ?arm))
-              (equal ?arm (:left :right))))
+    (or (desig-prop ?action-designator (:to :pour-activity)) ;; cartesian one-armed
+        (desig-prop ?action-designator (:type :pouring-activity)))
+    (desig-prop ?action-designator (:arm ?arm))
+    (not (equal ?arm (:left :right)))
     ;; source
     (desig-prop ?action-designator (:source ?source-designator))
     (current-designator ?source-designator ?current-source-designator)
@@ -154,9 +154,10 @@
 
 
   (<- (action-desig ?action-designator (perform-phases-in-sequence ?updated-action-designator))
-    (or (desig-prop ?action-designator (:to :pour-activity)) ;; yaml
+    (or (desig-prop ?action-designator (:to :pour-activity)) ;; yaml two-arm
         (desig-prop ?action-designator (:type :pouring-activity)))
     (desig-prop ?action-designator (:arm ?arm))
+    (equal ?arm (:left :right))
     ;; source
     (desig-prop ?action-designator (:source ?source-designator))
     (current-designator ?source-designator ?current-source-designator)
@@ -199,7 +200,7 @@
 
 
   (<- (action-desig ?action-designator (move-arms-in-sequence ?left-poses ?right-poses))
-    (desig-prop ?action-designator (:to :my-approach))
+    (desig-prop ?action-designator (:to :approach-action))
     (once (or (desig-prop ?action-designator (:left ?left-poses))
               (equal ?left-poses nil)))
     (once (or (desig-prop ?action-designator (:right ?right-poses))
@@ -213,7 +214,7 @@
   ;;   (lisp-fun get-tilted-pose ?left-initial-poses ?angle ...))
 
   (<- (action-desig ?action-designator (move-arms-in-sequence ?left-last-pose ?right-last-pose))
-    (desig-prop ?action-designator (:to :my-tilt-to))
+    (desig-prop ?action-designator (:to :tilt-to-action))
     (desig-prop ?action-designator (:left ?left-poses))
     (desig-prop ?action-designator (:right ?right-poses))
     (lisp-fun car-last ?left-poses ?left-last-pose)

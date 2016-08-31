@@ -163,8 +163,8 @@
 ;;   - constraint-weight
 ;;   - mug-above-itself
 
-(defun top-level-pick-and-pour (&key (?arm :right))
-  (move-pr2-arms-out-of-sight :arm :right)
+(defun pick-and-pour-one-arm-plan (&key (?arm :right))
+  (move-pr2-arms-out-of-sight :arm ?arm)
   (let* ((?bottle-desig (desig:an object
                                   (type bottle)))
          (?perceived-bottle-desig (cram-plan-library:perform
@@ -172,35 +172,34 @@
                                              (to detect-motion)
                                              (object ?bottle-desig)))))
     (plan-lib:perform (desig:an action
-                                (to my-pick-up)
+                                (to pick-up-activity)
                                 (arm ?arm)
                                 (object ?perceived-bottle-desig)))
     (move-pr2-arms-out-of-sight :arm :right)
     (let* ((?cup-desig (desig:an object
-                                 ;; (type cup)
+                                 (type cup)
                                  (cad-model "cup_eco_orange")))
            (?perceived-cup-desig (cram-plan-library:perform
                                   (desig:an action
                                             (to detect-motion)
                                             (object ?cup-desig)))))
       (plan-lib:perform (desig:an action
-                                  (to my-pour)
+                                  (to pour-activity)
                                   (arm ?arm)
                                   (source ?perceived-bottle-desig)
                                   (destination ?perceived-cup-desig)))
       (plan-lib:perform (desig:an action
-                                  (to my-pour)
+                                  (to pour-activity)
                                   (arm ?arm)
                                   (source ?perceived-bottle-desig)
                                   (destination ?perceived-cup-desig)))
-      (move-pr2-arms-out-of-sight :arm :right))))
+      (move-pr2-arms-out-of-sight :arm ?arm))))
 
-(defun top-level-pour (&key (?arm :right))
-  (move-pr2-arms-out-of-sight :arm :right)
+(defun pour-one-arm-plan (&key (?arm :right))
+  (move-pr2-arms-out-of-sight :arm ?arm)
   (let* ((?cup-desig (desig:an object
                                (cad-model "cup_eco_orange")
-                               ;; (type cup)
-                               ))
+                               (type cup)))
          (?perceived-cup-desig (cram-plan-library:perform
                                 (desig:an action
                                           (to detect-motion)
@@ -208,23 +207,16 @@
          (?bottle-desig (desig:an object
                                   (type bottle))))
     (plan-lib:perform (desig:an action
-                                (to my-pour)
+                                (to pour-activity)
                                 (arm ?arm)
                                 (source ?bottle-desig)
                                 (destination ?perceived-cup-desig)))
     (plan-lib:perform (desig:an action
-                                (to my-pour)
+                                (to pour-activity)
                                 (arm ?arm)
                                 (source ?bottle-desig)
                                 (destination ?perceived-cup-desig)))
-    (move-pr2-arms-out-of-sight :arm :right)))
-
-(defparameter *constraints* '((:approach
-                               (name . (lower upper)) (name lower upper))
-                              (:tilt
-                               (constraint-1 23 34) (constraint-2 45 47))
-                              (:tilt-back
-                               (name 23 5))))
+    (move-pr2-arms-out-of-sight :arm ?arm)))
 
 (defun georgs-function (yaml-string list-of-constraints)
   (declare (type string yaml-string)
@@ -244,7 +236,7 @@
    :yaml-string (put-together-yaml phase constraints)
    :action-timeout 60.0))
 
-(defun top-level-two-arm-pour ()
+(defun pour-two-arm-plan ()
   ;; prepare
   (let ((?navigation-goal *meal-table-right-base-pose*)
         (?ptu-goal *meal-table-right-base-look-pose*))
@@ -264,10 +256,10 @@
                                              (to detect-motion)
                                              (object ?bottle-desig)))))
     (plan-lib:perform (desig:an action
-                                (to my-pick-up)
+                                (to pick-up-activity)
                                 (arm right)
                                 (object ?perceived-bottle-desig)))
-    (move-pr2-arms-out-of-sight :arm :right)
+    (move-pr2-arms-out-of-sight)
     (let* ((?cup-desig (desig:an object
                                  (type cup)
                                  (cad-model "cup_eco_orange")))
@@ -276,7 +268,7 @@
                                             (to detect-motion)
                                             (object ?cup-desig)))))
       (plan-lib:perform (desig:an action
-                                  (to my-pick-up)
+                                  (to pick-up-activity)
                                   (arm left)
                                   (object ?perceived-cup-desig)))
       (plan-lib:perform (desig:an action
@@ -286,9 +278,9 @@
                                   (target ?perceived-cup-desig)
                                   (pour-volume 0.0002)))
       (cpl:par
-        (top-level-place :?arm :left :?object ?perceived-cup-desig)
-        (top-level-place :?arm :right :?object ?perceived-bottle-desig))
-      (move-pr2-arms-out-of-sight :arm :right))))
+        (place-plan :?arm :left :?object ?perceived-cup-desig)
+        (place-plan :?arm :right :?object ?perceived-bottle-desig))
+      (move-pr2-arms-out-of-sight))))
 
 
 ;; Example input designator for pouring (learned constraints server must be running):

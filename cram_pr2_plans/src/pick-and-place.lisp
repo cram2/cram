@@ -40,7 +40,7 @@
     (mapc (lambda (?left-pose ?right-pose)
             (cpl:with-failure-handling
                 ((pr2-ll:pr2-low-level-failure (e)
-                   (roslisp:ros-warn (top-level grasp) "~a" e)
+                   (roslisp:ros-warn (pick-and-place grasp) "~a" e)
                    ;; ignore failures
                    (return)))
               (cram-plan-library:perform
@@ -91,7 +91,7 @@
     (mapc (lambda (?left-pose ?right-pose)
             (cpl:with-failure-handling
                 ((pr2-ll:pr2-low-level-failure (e)
-                   (roslisp:ros-warn (top-level grasp) "~a" e)
+                   (roslisp:ros-warn (pick-and-place reach) "~a" e)
                    ;; ignore failures
                    (return)))
               (with-logging-reach (?left-pose ?right-pose)
@@ -106,7 +106,7 @@
 (cpl:def-cram-function open-gripper (?left-or-right)
   (cpl:with-failure-handling
       ((pr2-ll:pr2-low-level-failure (e)
-         (roslisp:ros-warn (top-level open-gripper) "~a" e)
+         (roslisp:ros-warn (pick-and-place open-gripper) "~a" e)
          ;; ignore failures
          (return)))
     (cram-plan-library:perform
@@ -153,7 +153,7 @@
     (mapc (lambda (?left-pregrasp-poses ?right-pregrasp-poses)
             (cpl:with-failure-handling
                 ((pr2-ll:pr2-low-level-failure (e)
-                   (roslisp:ros-warn (top-level grasp) "~a" e)
+                   (roslisp:ros-warn (pick-and-place grasp) "~a" e)
                    (return)))
               (cram-plan-library:perform
                (desig:an action
@@ -169,7 +169,7 @@
       (cpl:with-failure-handling
           ((pr2-ll:pr2-low-level-failure (e)
              (cpl:do-retry approach-retries
-               (roslisp:ros-warn (top-level grasp) "~a" e)
+               (roslisp:ros-warn (pick-and-place grasp) "~a" e)
                (cpl:retry))
              (return)))
         (with-logging-grasp (?left-grasp-pose ?right-grasp-pose)
@@ -207,7 +207,7 @@
     (cpl:with-failure-handling
         ((pr2-ll:pr2-low-level-failure (e)
            (cpl:do-retry grasping-retries
-             (roslisp:ros-warn (top-level pick) "~a" e)
+             (roslisp:ros-warn (pick-and-place grip) "~a" e)
              (cpl:retry))
            (cpl:fail 'cram-plan-failures:gripping-failed)))
       (with-logging-grip (?left-or-right ?effort)
@@ -241,7 +241,7 @@
             (cram-plan-library:perform phase))
           phases)))
 
-(defun top-level-pick-up (?type &key (?arm '(:left :right)) (?color ""))
+(defun pick-up-plan (?type &key (?arm '(:left :right)) (?color ""))
   (move-pr2-arms-out-of-sight)
   (let* ((?object-desig (desig:an object
                                   (type ?type)
@@ -251,29 +251,29 @@
                                            (to detect-motion)
                                            (object ?object-desig)))))
     (plan-lib:perform (desig:an action
-                                (to my-pick-up)
+                                (to pick-up-activity)
                                 (arm ?arm)
                                 (object ?updated-object-desig)))))
 
-(defun top-level-place (&key ?type (?arm '(:left :right)) ?pose ?object)
+(defun place-plan (&key ?type (?arm '(:left :right)) ?pose ?object)
   (let ((?put-down-pose (or ?pose (get-cup-put-pose ?arm :front)))
         (?object-desig (or ?object (desig:an object (type ?type)))))
     (plan-lib:perform (desig:an action
-                                (to my-place)
+                                (to place-activity)
                                 (arm ?arm)
                                 (object ?object-desig)
                                 (at ?put-down-pose)))))
 
-(defun top-level-pick-and-place (?type &key (?arm '(:left :right)))
+(defun pick-and-place-plan (?type &key (?arm '(:left :right)))
   (move-pr2-arms-out-of-sight)
   (let* ((?object-desig (desig:an object
                                   (type ?type)))
          (?updated-object-desig (logged-perceive ?object-desig)))
     (plan-lib:perform (desig:an action
-                                (to my-pick-up)
+                                (to pick-up-activity)
                                 (arm ?arm)
                                 (object ?updated-object-desig)))
     (plan-lib:perform (desig:an action
-                                (to my-place)
+                                (to place-activity)
                                 (arm ?arm)
                                 (object ?updated-object-desig)))))
