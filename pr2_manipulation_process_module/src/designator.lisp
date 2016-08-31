@@ -401,7 +401,9 @@
     (once (grasp-offsets ?grasp-type ?pregrasp-offset ?grasp-offset))
     (lisp-fun cost-reach-pose ?object ?arm ?pose
               ?pregrasp-offset ?grasp-offset
-              :only-reachable t ?cost)
+              :only-reachable t
+              :ignore-collisions-grasp t
+              ?cost)
     (not (equal ?cost nil)))
 
   (<- (close-radius ?object ?radius)
