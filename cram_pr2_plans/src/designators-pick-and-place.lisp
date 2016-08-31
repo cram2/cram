@@ -44,22 +44,22 @@
                   ?left-lift-pose nil)))
   (let ((phases (list
                  (an action
-                    (to my-reach)
+                    (to reach-action)
                     (left ?left-pregrasp-poses)
                     (right ?right-pregrasp-poses))
                  (an action
-                    (to my-open)
+                    (to open-action)
                     (?arm gripper))
                  (an action
-                    (to my-grasp)
+                    (to grasp-action)
                     (left ?left-grasp-pose)
                     (right ?right-grasp-pose))
                  (an action
-                    (to my-grip)
+                    (to grip-action)
                     (with ?arm)
                     (effort ?object-grip-effort))
                  (an action
-                    (to my-lift)
+                    (to lift-action)
                     (left ?left-lift-pose)
                     (right ?right-lift-pose)))))
     (copy-designator action-designator :new-description `((:phases ,phases)))))
@@ -76,14 +76,14 @@
   ;; (setf ?right-grasp-poses (reverse ?right-grasp-poses))
   (let ((phases (list
                  (an action
-                     (to my-put)
+                     (to put-action)
                      (left ?left-put-poses)
                      (right ?right-put-poses))
                  (an action
-                     (to my-open)
+                     (to open-action)
                      (?arm gripper))
                  (an action
-                     (to my-retract)
+                     (to retract-action)
                      (left ?left-grasp-poses)
                      (right ?right-grasp-poses)))))
     (copy-designator action-designator :new-description `((:phases ,phases)))))
@@ -106,8 +106,8 @@
   (<- (object-type-grasp :cup :front))
 
   (<- (action-desig ?action-designator (perform-phases-in-sequence ?updated-action-designator))
-    (or (desig-prop ?action-designator (:to :my-pick-up))
-        (desig-prop ?action-designator (:type :my-picking-up)))
+    (or (desig-prop ?action-designator (:to :pick-up-activity))
+        (desig-prop ?action-designator (:type :picking-up-activity)))
     (once (or (desig-prop ?action-designator (:arm ?arm))
               (equal ?arm (:left :right))))
     (desig-prop ?action-designator (:object ?object-designator))
@@ -151,8 +151,8 @@
               ?left-lift-pose ?right-lift-pose ?updated-action-designator))
 
   (<- (action-desig ?action-designator (perform-phases-in-sequence ?updated-action-designator))
-    (or (desig-prop ?action-designator (:to :my-place))
-        (desig-prop ?action-designator (:type :my-placing)))
+    (or (desig-prop ?action-designator (:to :place-activity))
+        (desig-prop ?action-designator (:type :placing-activity)))
     (once (or (desig-prop ?action-designator (:arm ?arm))
               (equal ?arm (:left :right))))
     (desig-prop ?action-designator (:object ?object-designator))
@@ -206,33 +206,33 @@
 
    (<- (action-desig ?action-designator (move-arms-in-sequence ?left-poses ?right-poses))
     (or ;; (desig-prop ?action-designator (:to :my-reach)) ; because of logging
-        (desig-prop ?action-designator (:to :my-lift))
-        (desig-prop ?action-designator (:to :my-retract))
-        (desig-prop ?action-designator (:to :my-put)))
+        (desig-prop ?action-designator (:to :lift-action))
+        (desig-prop ?action-designator (:to :retract-action))
+        (desig-prop ?action-designator (:to :put-action)))
     (once (or (desig-prop ?action-designator (:left ?left-poses))
               (equal ?left-poses nil)))
     (once (or (desig-prop ?action-designator (:right ?right-poses))
               (equal ?right-poses nil))))
 
   (<- (action-desig ?action-designator (reach ?left-poses ?right-poses))
-    (desig-prop ?action-designator (:to :my-reach)) ; because of logging
+    (desig-prop ?action-designator (:to :reach-action)) ; because of logging
     (once (or (desig-prop ?action-designator (:left ?left-poses))
               (equal ?left-poses nil)))
     (once (or (desig-prop ?action-designator (:right ?right-poses))
               (equal ?right-poses nil))))
 
   (<- (action-desig ?action-designator (open-gripper ?left-or-right))
-    (desig-prop ?action-designator (:to :my-open))
+    (desig-prop ?action-designator (:to :open-action))
     (desig-prop ?action-designator (?left-or-right :gripper)))
 
   (<- (action-desig ?action-designator (grasp ?left-grasp-poses ?right-grasp-poses))
-    (desig-prop ?action-designator (:to :my-grasp))
+    (desig-prop ?action-designator (:to :grasp-action))
     (once (or (desig-prop ?action-designator (:left ?left-grasp-poses))
               (equal ?left-grasp-poses nil)))
     (once (or (desig-prop ?action-designator (:right ?right-grasp-poses))
               (equal ?right-grasp-poses nil))))
 
   (<- (action-desig ?action-designator (grip ?left-or-right ?object-grip-effort))
-    (desig-prop ?action-designator (:to :my-grip))
+    (desig-prop ?action-designator (:to :grip-action))
     (desig-prop ?action-designator (:with ?left-or-right))
     (desig-prop ?action-designator (:effort ?object-grip-effort))))
