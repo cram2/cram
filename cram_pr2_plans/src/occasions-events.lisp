@@ -29,10 +29,18 @@
 
 (in-package :pr2-plans)
 
-(defvar *objects-in-hand* '((:left) (:right))
+(defvar *objects-in-hand* nil
   "An assoc list of objects in hand of structure (arm grasp object-designator). E.g.:
  ((:left (an object (type bottle) (pose ((pose blabla)))) :side)
   (:right (an object (type cup)) :front))")
+
+(defun reset-objects-in-hand ()
+  (setf *objects-in-hand* '((:left) (:right))))
+
+(defun reset-beliefstate ()
+  (reset-objects-in-hand))
+
+(roslisp-utilities:register-ros-init-function reset-beliefstate)
 
 (defun get-object-in-hand (arm)
   "Returns two values: object designator and grasp."
@@ -46,7 +54,7 @@
     (error "arm can only be left or right"))
   (let ((already-in-hand (get-object-in-hand arm)))
     (when already-in-hand
-      (error "object ~a is already in ~a hand" already-in-hand arm))
+      (warn "object ~a is already in ~a hand" already-in-hand arm))
     (setf (cdr (assoc arm *objects-in-hand*))
           (list object-designator grasp))))
 
