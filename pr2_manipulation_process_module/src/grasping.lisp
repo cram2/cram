@@ -237,7 +237,7 @@ configuration."
 
 (defun cost-reach-pose (obj arm pose pregrasp-offset grasp-offset
                         &key allowed-collision-objects
-                          only-reachable)
+                          only-reachable ignore-collisions-grasp)
   (let* ((pose (tf:copy-pose-stamped pose :stamp 0.0))
          (pregrasp-offset (or pregrasp-offset (tf:make-identity-pose)))
          (grasp-offset (or grasp-offset (tf:make-identity-pose)))
@@ -261,8 +261,10 @@ configuration."
              (prog1
                  (cond (only-reachable (is-pose-reachable
                                         pose arm
-                                        :arm-offset-pose grasp-offset))
+                                        :arm-offset-pose grasp-offset
+                                        :ignore-collisions ignore-collisions-grasp))
                        (t (cdr (assoc arm
+                                      ;; ignore collisions missing here
                                       (arms-pose-distances
                                        (list arm) pose
                                        :arms-offset-pose
@@ -323,7 +325,7 @@ configuration."
 ;;     (when (and distance-grasp (> distance-grasp 0))
 ;;       (+ distance-pregrasp distance-grasp))))
 
-(defun is-pose-reachable (pose arm &key arm-offset-pose)
+(defun is-pose-reachable (pose arm &key arm-offset-pose ignore-collisions)
   (let ((pose (tf:copy-pose-stamped
                (cond (arm-offset-pose (relative-pose pose arm-offset-pose))
                      (t pose))
@@ -339,7 +341,8 @@ configuration."
              (ecase arm
                (:left "left_arm")
                (:right "right_arm"))
-             pose)
+             pose
+             :avoid-collisions (not ignore-collisions))
         1))))
 
 (defun arms-pose-distances (arms pose
