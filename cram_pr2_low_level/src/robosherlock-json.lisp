@@ -126,29 +126,35 @@ although there should've been ~a"
   (declare (type (or keyword number) quantifier))
   (multiple-value-bind (key-value-pairs-list quantifier)
       (ensure-robosherlock-input-parameters keyword-key-value-pairs-list quantifier)
-    (roslisp:with-fields (answer)
-        (cpl:with-failure-handling
-            (((or simple-error roslisp:service-call-error) (e)
-               (format t "Service call error occured!~%~a~%Reinitializing...~%~%" e)
-               (destroy-robosherlock-service)
-               (init-robosherlock-service)
-               (let ((restart (find-restart 'roslisp:reconnect)))
-                 (if restart
-                     (progn (roslisp:wait-duration 5.0)
-                            (invoke-restart 'roslisp:reconnect))
-                     (progn (cpl:retry))))))
-          (roslisp:call-persistent-service
-           (get-robosherlock-service)
-           (make-robosherlock-query key-value-pairs-list)))
-      (setf *rs-result-debug* answer)
-      (let ((rs-result (desig:make-designator
-                        :object
-                        (reduce (alexandria:rcurry (cut:flip #'adjoin) :key #'car)
-                                keyword-key-value-pairs-list
-                                :initial-value
-                                (ensure-robosherlock-result answer quantifier)))))
-        (setf *rs-result-designator* rs-result)
-        rs-result))))
+
+    (flet ((make-robosherlock-designator (rs-answer)
+           (desig:make-designator
+            :object
+            (reduce (alexandria:rcurry (cut:flip #'adjoin) :key #'car)
+                    keyword-key-value-pairs-list
+                    :initial-value rs-answer))))
+
+     (roslisp:with-fields (answer)
+         (cpl:with-failure-handling
+             (((or simple-error roslisp:service-call-error) (e)
+                (format t "Service call error occured!~%~a~%Reinitializing...~%~%" e)
+                (destroy-robosherlock-service)
+                (init-robosherlock-service)
+                (let ((restart (find-restart 'roslisp:reconnect)))
+                  (if restart
+                      (progn (roslisp:wait-duration 5.0)
+                             (invoke-restart 'roslisp:reconnect))
+                      (progn (cpl:retry))))))
+           (roslisp:call-persistent-service
+            (get-robosherlock-service)
+            (make-robosherlock-query key-value-pairs-list)))
+       (setf *rs-result-debug* answer)
+       (let* ((rs-parsed-result (ensure-robosherlock-result answer quantifier))
+              (rs-result (ecase quantifier
+                           ((:a :an :the) (make-robosherlock-designator rs-parsed-result))
+                           (:all (map 'list #'make-robosherlock-designator rs-parsed-result)))))
+         (setf *rs-result-designator* rs-result)
+         rs-result)))))
 
 
 
