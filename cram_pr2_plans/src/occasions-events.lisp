@@ -29,7 +29,7 @@
 
 (in-package :pr2-plans)
 
-(defparameter *objects-in-hand* '((:left) (:right))
+(defvar *objects-in-hand* '((:left) (:right))
   "An assoc list of objects in hand of structure (arm grasp object-designator). E.g.:
  ((:left (an object (type bottle) (pose ((pose blabla)))) :side)
   (:right (an object (type cup)) :front))")
@@ -59,14 +59,16 @@
     ;; TODO: add ?ROBOT argument to this predicate!
     (bound ?side)
     (not (bound ?object))
-    (list-fun get-object-in-hand ?side ?object))
+    (lisp-fun get-object-in-hand ?side ?object)
+    (lisp-pred identity ?object))
 
   (<- (cram-plan-occasions-events:object-in-hand ?object ?side)
     ;; TODO: add ?ROBOT argument to this predicate!
     (not (bound ?side))
     (not (bound ?object))
     (member ?side (:left :right))
-    (list-fun get-object-in-hand ?side ?object))
+    (lisp-fun get-object-in-hand ?side ?object)
+    (lisp-pred identity ?object))
 
   (<- (cram-plan-occasions-events:object-in-hand ?object ?side)
     ;; TODO: add ?ROBOT argument to this predicate!

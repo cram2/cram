@@ -91,8 +91,11 @@
 (def-fact-group pr2-pick-and-place-plans (action-desig)
 
   (<- (object-type-grip-maximum-effort :cup 50))
-  (<- (object-type-grip-maximum-effort :mondamin 30))
-  (<- (object-type-grip-maximum-effort :handle 50))
+  (<- (object-type-grip-maximum-effort :bottle 60))
+  (<- (object-type-grip-maximum-effort :plate 100))
+  (<- (object-type-grip-maximum-effort :cutlery 30))
+  (<- (object-type-grip-maximum-effort :fork 30))
+  (<- (object-type-grip-maximum-effort :knife 30))
 
   (<- (gripper-action-maximum-effort ?object-designator ?maximum-effort)
     (current-designator ?object-designator ?current-object-designator)
@@ -105,7 +108,10 @@
   (<- (object-type-grasp :bottle :side))
   (<- (object-type-grasp :cup :front))
 
-  (<- (action-desig ?action-designator (perform-phases-in-sequence ?updated-action-designator))
+  (<- (action-desig ?action-designator (pick-up-activity ?updated-action-designator
+                                                         ?current-object-designator
+                                                         ?arm
+                                                         ?grasp))
     (or (desig-prop ?action-designator (:to :pick-up-activity))
         (desig-prop ?action-designator (:type :picking-up-activity)))
     (once (or (desig-prop ?action-designator (:arm ?arm))
@@ -150,12 +156,13 @@
               ?maximum-effort
               ?left-lift-pose ?right-lift-pose ?updated-action-designator))
 
-  (<- (action-desig ?action-designator (perform-phases-in-sequence ?updated-action-designator))
+  (<- (action-desig ?action-designator (place-activity ?updated-action-designator
+                                                       ?arm))
     (or (desig-prop ?action-designator (:to :place-activity))
         (desig-prop ?action-designator (:type :placing-activity)))
-    (once (or (desig-prop ?action-designator (:arm ?arm))
-              (equal ?arm (:left :right))))
-    (desig-prop ?action-designator (:object ?object-designator))
+    (desig-prop ?action-designator (:arm ?arm))
+    (once (or (cpoe:object-in-hand ?object-designator ?arm)
+              (desig-prop ?action-designator (:object ?object-designator))))
     (current-designator ?object-designator ?current-object-designator)
     (desig-prop ?current-object-designator (:type ?object-type))
     (object-type-grasp ?object-type ?grasp)
