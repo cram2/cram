@@ -40,6 +40,8 @@
                cram-process-modules
                cram-designators
                cram-plan-library
+               cram-plan-occasions-events
+               cram-plan-occasions
                cram-prolog
                cl-tf2
                cram-math

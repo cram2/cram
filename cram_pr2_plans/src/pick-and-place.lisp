@@ -241,6 +241,11 @@
             (cram-plan-library:perform phase))
           phases)))
 
+(defun pick-up-activity (action-designator object arm grasp)
+  (perform-phases-in-sequence action-designator)
+  (cram-occasions-events:on-event
+   (make-instance 'object-gripped :object object :arm arm :grasp grasp)))
+
 (defun pick-up-plan (?type &key (?arm '(:left :right)) (?color ""))
   (move-pr2-arms-out-of-sight)
   (let* ((?object-desig (desig:an object
@@ -255,7 +260,12 @@
                                 (arm ?arm)
                                 (object ?updated-object-desig)))))
 
-(defun place-plan (&key ?type (?arm '(:left :right)) ?pose ?object)
+(defun place-activity (action-designator arm)
+  (perform-phases-in-sequence action-designator)
+  (cram-occasions-events:on-event
+   (make-instance 'object-released :arm arm)))
+
+(defun place-plan (&key (?arm :right) ?type ?pose ?object)
   (let ((?put-down-pose (or ?pose (get-cup-put-pose ?arm :front)))
         (?object-desig (or ?object (desig:an object (type ?type)))))
     (plan-lib:perform (desig:an action
@@ -264,7 +274,7 @@
                                 (object ?object-desig)
                                 (at ?put-down-pose)))))
 
-(defun pick-and-place-plan (?type &key (?arm '(:left :right)))
+(defun pick-and-place-plan (?type &key (?arm :right))
   (move-pr2-arms-out-of-sight)
   (let* ((?object-desig (desig:an object
                                   (type ?type)))
@@ -275,5 +285,4 @@
                                 (object ?updated-object-desig)))
     (plan-lib:perform (desig:an action
                                 (to place-activity)
-                                (arm ?arm)
-                                (object ?updated-object-desig)))))
+                                (arm ?arm)))))
