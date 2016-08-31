@@ -251,10 +251,12 @@
   ;; 
   (let* ((?bottle-desig (desig:an object
                                   (type bottle)))
-         (?perceived-bottle-desig (cram-plan-library:perform
-                                   (desig:an action
-                                             (to detect-motion)
-                                             (object ?bottle-desig)))))
+         (?perceived-bottle-desig (logged-perceive ?bottle-desig)
+                                  ;; (cram-plan-library:perform
+                                  ;;  (desig:an action
+                                  ;;            (to detect-motion)
+                                  ;;            (object ?bottle-desig)))
+                                  ))
     (plan-lib:perform (desig:an action
                                 (to pick-up-activity)
                                 (arm right)
@@ -263,22 +265,23 @@
     (let* ((?cup-desig (desig:an object
                                  (type cup)
                                  (cad-model "cup_eco_orange")))
-           (?perceived-cup-desig (cram-plan-library:perform
-                                  (desig:an action
-                                            (to detect-motion)
-                                            (object ?cup-desig)))))
+           (?perceived-cup-desigs (cram-plan-library:perform
+                                   (desig:an action
+                                             (to detect-motion)
+                                             (objects ?cup-desig))))
+           (?first-cup-to-pour (car (last ?perceived-cup-desigs))))
       (plan-lib:perform (desig:an action
                                   (to pick-up-activity)
                                   (arm left)
-                                  (object ?perceived-cup-desig)))
+                                  (object ?first-cup-to-pour)))
       (plan-lib:perform (desig:an action
                                   (to pour-activity)
                                   (arm (left right))
                                   (source ?perceived-bottle-desig)
-                                  (target ?perceived-cup-desig)
+                                  (target ?first-cup-to-pour)
                                   (pour-volume 0.0002)))
       (cpl:par
-        (place-plan :?arm :left :?object ?perceived-cup-desig)
+        (place-plan :?arm :left :?object ?first-cup-to-pour)
         (place-plan :?arm :right :?object ?perceived-bottle-desig))
       (move-pr2-arms-out-of-sight))))
 
