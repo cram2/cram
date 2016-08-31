@@ -160,11 +160,12 @@ motion."
                                                      (slot-value parameter-set slot-name)
                                                      (slot-value parameter-set 'blindly))))
                                            parameter-sets)))
-    (ros-info (pr2 motion) "Preliminary IK check")
-    (loop for (arm pose blindly) in arm-pose-goals
-          unless blindly
-            do (unless (cost-reach-pose nil arm pose nil nil :only-reachable t)
-                 (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable)))
+    (unless ignore-collisions
+      (ros-info (pr2 motion) "Preliminary IK check")
+      (loop for (arm pose blindly) in arm-pose-goals
+            unless blindly
+              do (unless (cost-reach-pose nil arm pose nil nil :only-reachable t)
+                   (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))))
     (let ((arm-pose-goals (mapcar (lambda (set)
                                     (destructuring-bind (arm pose blindly) set
                                       `(,arm ,pose)))
@@ -269,7 +270,8 @@ grasp-type, effort to use) are defined in the list `parameter-sets'."
                (ros-warn (pr2 manip-pm) "Falling back to pregrasp pose")
                (assume 'pregrasp-pose goal-spec nil raise-elbow)))
           ;; (moveit:without-collision-object object-name
-          (assume 'grasp-pose goal-spec nil raise-elbow)
+          ;; NOTE(winkler): Added ignoring collisions here.
+          (assume 'grasp-pose goal-spec t raise-elbow)
           (loop for parameter-set in parameter-sets do
             (ros-info (pr2 manip-pm) "Closing gripper for arm ~a~%"
                       (arm parameter-set))
