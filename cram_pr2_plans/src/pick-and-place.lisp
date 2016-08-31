@@ -274,10 +274,14 @@
                                 (object ?object-desig)
                                 (at ?put-down-pose)))))
 
-(defun pick-and-place-plan (?type &key (?arm :right))
+(defun pick-and-place-plan (?type &key (?arm :right) ?cad-model)
   (move-pr2-arms-out-of-sight)
-  (let* ((?object-desig (desig:an object
-                                  (type ?type)))
+  (let* ((?object-desig (if ?cad-model
+                            (desig:an object
+                                      (type ?type)
+                                      (cad-model ?cad-model))
+                            (desig:an object
+                                      (type ?type))))
          (?updated-object-desig (logged-perceive ?object-desig)))
     (plan-lib:perform (desig:an action
                                 (to pick-up-activity)
