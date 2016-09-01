@@ -69,12 +69,10 @@
                      cl-transforms:point cl-transforms-stamped:point-stamped
                      cl-transforms:pose cl-transforms-stamped:pose-stamped)))
   "Returns a point-stamped in `frame'"
-  (print (type-of point))
   (let ((frame (or (when (typep point 'cl-transforms-stamped:pose-stamped)
                      (cl-transforms-stamped:frame-id point))
                    frame
                    cram-tf:*robot-base-frame*)))
-    (print frame)
     (ensure-point-in-frame
      (etypecase point
        (cl-transforms:point ; also covers 3d-vector and point-stamped

@@ -41,7 +41,7 @@
                cram-designators
                cram-plan-library
                cram-plan-occasions-events
-               cram-plan-occasions
+               cram-occasions-events
                cram-prolog
                cl-tf2
                cram-math

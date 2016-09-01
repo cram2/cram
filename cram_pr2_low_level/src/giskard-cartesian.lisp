@@ -76,7 +76,8 @@
                                      :pose (cl-transforms-stamped:pose->pose-stamped
                                             *left-tool-frame*
                                             0.0
-                                            (cl-transforms:make-identity-pose))))
+                                            (cl-transforms:make-identity-pose))
+                                     :use-current-ros-time t))
                                 frame)
           (ensure-pose-in-frame (or right-goal
                                     (cl-transforms-stamped:transform-pose-stamped
@@ -86,7 +87,8 @@
                                      :pose (cl-transforms-stamped:pose->pose-stamped
                                             *right-tool-frame*
                                             0.0
-                                            (cl-transforms:make-identity-pose))))
+                                            (cl-transforms:make-identity-pose))
+                                     :use-current-ros-time t))
                                 frame)))
 
 (defun ensure-giskard-cartesian-goal-reached (status goal-position-left goal-position-right

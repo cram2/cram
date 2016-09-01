@@ -33,9 +33,7 @@
 ;;     (to pour)
 ;;     (source (an object))
 ;;     (target (an object))
-;;   -  (theme (some stuff))
-;;   -  (goal drink-poured)
-;;   ?  (arm right)
+;;     (arm right)
 ;;     (phases (a motion (type approaching))
 ;;             (a motion
 ;;                (type tilt-down)
@@ -130,39 +128,6 @@
   ;;       lower: -0.0168588836555
   ;;       upper: -0.0109408055036
 
-
-;; soft-constraints:
-;; - soft-constraint:
-;;   - double-sub: [-0.036, mug-top-behind-maker]
-;;   - double-sub: [0.0051, mug-top-behind-maker]
-;;   - constraint-weight
-;;   - mug-top-behind-maker
-;; - soft-constraint:
-;;   - double-sub: [-0.038, mug-top-left-maker]
-;;   - double-sub: [-0.011, mug-top-left-maker]
-;;   - constraint-weight
-;;   - mug-top-left-maker
-;; - soft-constraint:
-;;   - double-sub: [0.1767, mug-top-above-maker]
-;;   - double-sub: [0.2181, mug-top-above-maker]
-;;   - constraint-weight
-;;   - mug-top-above-maker
-;; - soft-constraint:
-;;   - double-sub: [-0.0768, mug-behind-itself] mug-top-behind-mug-bottom
-;;   - double-sub: [-0.0354, mug-behind-itself]
-;;   - constraint-weight
-;;   - mug-behind-itself
-;; - soft-constraint:
-;;   - double-sub: [0.0698, mug-left-itself] 
-;;   - double-sub: [0.0981, mug-left-itself]
-;;   - constraint-weight
-;;   - mug-left-itself
-;; - soft-constraint:
-;;   - double-sub: [-0.0394, mug-above-itself]
-;;   - double-sub: [-0.0206, mug-above-itself]
-;;   - constraint-weight
-;;   - mug-above-itself
-
 (defun pick-and-pour-one-arm-plan (&key (?arm :right))
   (move-pr2-arms-out-of-sight :arm ?arm)
   (let* ((?bottle-desig (desig:an object
@@ -236,6 +201,19 @@
    :yaml-string (put-together-yaml phase constraints)
    :action-timeout 60.0))
 
+(defun go-to-initial-pouring-configuration-plan ()
+  ;;  pouring initial configuration
+  (cpl:with-failure-handling
+      ((pr2-ll:pr2-low-level-failure (e)
+         (declare (ignore e))
+         (return)))
+    (let ((?left-initial-configuration *pr2-left-arm-pouring-joint-positions*)
+        (?right-initial-configuration *pr2-right-arm-pouring-joint-positions*))
+    (plan-lib:perform (desig:an action
+                                (to move-joints-motion)
+                                (left ?left-initial-configuration)
+                                (right ?right-initial-configuration))))))
+
 (defun pour-two-arm-plan ()
   ;; prepare
   (let ((?navigation-goal *meal-table-right-base-pose*)
@@ -248,42 +226,67 @@
       (plan-lib:perform (desig:an action
                                   (to look-motion)
                                   (at ?ptu-goal)))))
-  ;; 
+  ;; perceive and grasp bottle with the right arm
   (let* ((?bottle-desig (desig:an object
                                   (type bottle)))
-         (?perceived-bottle-desig (logged-perceive ?bottle-desig)
-                                  ;; (cram-plan-library:perform
-                                  ;;  (desig:an action
-                                  ;;            (to detect-motion)
-                                  ;;            (object ?bottle-desig)))
-                                  ))
+         (?perceived-bottle-desig (logged-perceive ?bottle-desig)))
+    (drive-and-pick-up-plan ?perceived-bottle-desig :?arm :right))
+  ;; perceive cups and grasp the rightmost cup
+  (move-pr2-arms-out-of-sight)
+  (let* ((?cup-desig (desig:an object
+                               (type cup)
+                               (cad-model "cup_eco_orange")))
+         (?first-cup-to-pour (logged-perceive ?cup-desig
+                                              :quantifier :all
+                                              :object-chosing-function
+                                              (lambda (desigs)
+                                                (car (last desigs))))))
+    (drive-and-pick-up-plan ?first-cup-to-pour :?arm :left))
+  ;(go-to-initial-pouring-configuration-plan)
+  ;; pour
+  (plan-lib:perform (desig:an action
+                              (to pour-activity)
+                              (arm (left right))
+                              (source right)
+                              (target left)
+                              (pour-volume 0.0002)))
+  ;; place the object in left hand
+  (place-plan :?arm :left)
+  ;; drive to the left part of table
+  (let ((?nav-goal *meal-table-left-base-pose*))
+    (cpl:par
+      (plan-lib:perform (desig:an action
+                                  (to go-motion)
+                                  (to ?nav-goal)))
+      (move-pr2-arms-out-of-sight)))
+  ;; perceive leftmost cup and pour into it
+  (let* ((?cup-desig (desig:an object
+                               (type cup)
+                               (cad-model "cup_eco_orange")))
+         (?second-cup-to-pour (logged-perceive ?cup-desig
+                                                 :quantifier :all
+                                                 :object-chosing-function
+                                                 #'car)))
+    ;; drive towards second cup
+    (drive-towards-and-look-at-object-plan ?second-cup-to-pour :?arm :right)
+    ;; perform pouring using object-in-hand-s
     (plan-lib:perform (desig:an action
-                                (to pick-up-activity)
+                                (to pour-activity)
                                 (arm right)
-                                (object ?perceived-bottle-desig)))
-    (move-pr2-arms-out-of-sight)
-    (let* ((?cup-desig (desig:an object
-                                 (type cup)
-                                 (cad-model "cup_eco_orange")))
-           (?perceived-cup-desigs (cram-plan-library:perform
-                                   (desig:an action
-                                             (to detect-motion)
-                                             (objects ?cup-desig))))
-           (?first-cup-to-pour (car (last ?perceived-cup-desigs))))
+                                (target ?second-cup-to-pour)
+                                (pour-volume 0.0002))))
+  ;; drive to the right and put down the bottle
+  (drive-and-place-plan :?arm :right)
+  ;; finalize
+  (cpl:with-failure-handling
+      ((pr2-ll:pr2-low-level-failure (e)
+         (declare (ignore e))
+         (return)))
+    (cpl:par
+      (move-pr2-arms-out-of-sight)
       (plan-lib:perform (desig:an action
-                                  (to pick-up-activity)
-                                  (arm left)
-                                  (object ?first-cup-to-pour)))
-      (plan-lib:perform (desig:an action
-                                  (to pour-activity)
-                                  (arm (left right))
-                                  (source ?perceived-bottle-desig)
-                                  (target ?first-cup-to-pour)
-                                  (pour-volume 0.0002)))
-      (cpl:par
-        (place-plan :?arm :left :?object ?first-cup-to-pour)
-        (place-plan :?arm :right :?object ?perceived-bottle-desig))
-      (move-pr2-arms-out-of-sight))))
+                                  (to look-motion)
+                                  (at ((2 0 1) (0 0 0 1))))))))
 
 
 ;; Example input designator for pouring (learned constraints server must be running):
@@ -291,5 +294,20 @@
 ;;              (reference (desig:an action
 ;;                      (to my-pour)
 ;;                      (arm (left right))
-;;                      (source (desig:an object (type bottle) (pose ((pose *pr2-right-arm-out-of-sight-gripper-pose*)))))
-;;                      (target (desig:an object (type cup) (pose ((pose *pr2-left-arm-out-of-sight-gripper-pose*))))))))
+;;                      (source (desig:an object (type bottle) (pose ((pose ?pr2-right-arm-out-of-sight-gripper-pose)))))
+;;                      (target (desig:an object (type cup) (pose ((pose ?pr2-left-arm-out-of-sight-gripper-pose))))))))
+
+
+;;; arms down
+;; (plan-lib:perform (desig:an action
+;;                             (to move-arm-motion)
+;;                             (left ((0.09611d0 0.68d0 0.35466d0)
+;;                                    (-0.45742778331019085d0
+;;                                     0.3060123951483878d0
+;;                                     0.3788581151804847d0
+;;                                     0.744031427853262d0)))
+;;                             (right ((0.0848d0 -0.712d0 0.35541d0)
+;;                                     (-0.061062529688043946d0
+;;                                      -0.6133522138254498d0
+;;                                      0.197733462359113d0
+;;                                      -0.7622151317882601d0)))))

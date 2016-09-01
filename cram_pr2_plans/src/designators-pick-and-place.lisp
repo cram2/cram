@@ -242,4 +242,8 @@
   (<- (action-desig ?action-designator (grip ?left-or-right ?object-grip-effort))
     (desig-prop ?action-designator (:to :grip-action))
     (desig-prop ?action-designator (:with ?left-or-right))
-    (desig-prop ?action-designator (:effort ?object-grip-effort))))
+    (desig-prop ?action-designator (:effort ?object-grip-effort)))
+
+  (<- (action-desig ?action-designator (look-at ?object-designator))
+    (desig-prop ?action-designator (:to :look-at-action))
+    (desig-prop ?action-designator (:object ?object-designator))))

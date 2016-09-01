@@ -101,13 +101,13 @@
                        stamp
                        (cl-transforms:make-3d-vector pos-x pos-y pos-z)
                        (cl-transforms:make-quaternion rot-x rot-y rot-z rot-w)))
-         (object-pose-in-base (cl-transforms-stamped:transform-pose-stamped
+         (object-pose-in-map (cl-transforms-stamped:transform-pose-stamped
                                cram-tf:*transformer*
                                :use-current-ros-time t
                                :timeout *tf-default-timeout*
                                :pose object-pose
-                               :target-frame cram-tf:*robot-base-frame*)))
-    (list name object-pose-in-base))))
+                               :target-frame cram-tf:*fixed-frame*)))
+    (list name object-pose-in-map))))
 
 (defmethod parse-json-node ((name (eql :color)) node)
   (cons name (mapcar #'first

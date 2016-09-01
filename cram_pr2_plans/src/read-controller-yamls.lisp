@@ -30,9 +30,9 @@
 (in-package :pr2-plans)
 
 (defparameter *controller-filenames*
-  '((:approach "pr2_move_above_controller" "pr2_move_above_thresholds")
-    (:tilt-down "pr2_tilt_down_controller" "pr2_tilt_down_thresholds")
-    (:tilt-back "pr2_tilt_back_controller" "pr2_tilt_back_thresholds")))
+  '((:approach "move_above_controller" "move_above_thresholds")
+    (:tilt-down "tilt_down_controller" "tilt_down_thresholds")
+    (:tilt-back "tilt_back_controller" "tilt_back_thresholds")))
 
 (defun file-string (path)
   "snippet from Rosetta-Code"
@@ -44,7 +44,7 @@
 (defun read-yaml-file (controller)
   (declare (type keyword controller))
   (let* ((uri (format nil
-                      "package://giskard_examples/controller_specs/pr2_pouring_example/~a.yaml"
+                      "package://giskard_examples/controller_specs/pr2_pouring_example/real/learned_models/tight_constraints/~a.yaml"
                       (second (assoc controller *controller-filenames*))))
          (yaml-in-a-string (file-string (namestring (parse-uri uri)))))
     (format t "EXECUTING URI: ~a~%~%" uri)
