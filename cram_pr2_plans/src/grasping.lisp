@@ -104,7 +104,7 @@
   (cl-transforms-stamped:make-pose-stamped
    "map"
    0.0
-   (cl-transforms:make-3d-vector -1.47d0 -0.43d0 0.0)
+   (cl-transforms:make-3d-vector -1.12d0 -0.42d0 0.0)
    (cl-transforms:axis-angle->quaternion (cl-transforms:make-3d-vector 0 0 1) (/ pi -2))))
 (defparameter *meal-table-right-base-pose*
   (cl-transforms-stamped:make-pose-stamped
@@ -116,7 +116,7 @@
   (cl-transforms-stamped:make-pose-stamped
    "base_footprint"
    0.0
-   (cl-transforms:make-3d-vector 0.555226d0 -0.47345d0 0.7566d0)
+   (cl-transforms:make-3d-vector 0.7d0 -0.12d0 0.7578d0)
    (cl-transforms:make-identity-rotation)))
 (defparameter *meal-table-right-base-look-pose*
   (cl-transforms-stamped:make-pose-stamped

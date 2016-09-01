@@ -63,4 +63,5 @@
      (:file "read-controller-yamls" :depends-on ("package" "ros-uri-parser"))
      (:file "learned-constraints-service" :depends-on ("package"))
      (:file "pour" :depends-on ("package" "grasping" "designators-pour"
-                                          "read-controller-yamls"))))))
+                                          "read-controller-yamls"))
+     (:file "demo-plan" :depends-on ("package" "pour"))))))
