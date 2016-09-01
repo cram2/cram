@@ -237,6 +237,8 @@ configuration."
 
 (defun cost-reach-pose (obj arm pose pregrasp-offset grasp-offset
                         &key allowed-collision-objects
+                          only-reachable ignore-collisions-grasp
+                          gripper-offset-pose)
                           only-reachable ignore-collisions-grasp)
   (let* ((pose (tf:copy-pose-stamped pose :stamp 0.0))
          (pregrasp-offset (or pregrasp-offset (tf:make-identity-pose)))
@@ -245,12 +247,14 @@ configuration."
          (distance-pregrasp
            (cond (only-reachable (is-pose-reachable
                                   pose arm
-                                  :arm-offset-pose pregrasp-offset))
+                                  :arm-offset-pose pregrasp-offset
+                                  :gripper-offset-pose gripper-offset-pose))
                  (t (cdr (assoc arm
                                 (arms-pose-distances
                                  (list arm) pose
                                  :arms-offset-pose
                                  pregrasp-offset
+                                 ;; gripper offset missing here
                                  :highlight-links
                                  (links-for-arm-side arm)))))))
          (distance-grasp
@@ -262,7 +266,8 @@ configuration."
                  (cond (only-reachable (is-pose-reachable
                                         pose arm
                                         :arm-offset-pose grasp-offset
-                                        :ignore-collisions ignore-collisions-grasp))
+                                        :ignore-collisions ignore-collisions-grasp
+                                        :gripper-offset-pose gripper-offset-pose))
                        (t (cdr (assoc arm
                                       ;; ignore collisions missing here
                                       (arms-pose-distances
@@ -271,6 +276,7 @@ configuration."
                                        grasp-offset
                                        :allowed-collision-objects
                                        allowed-collision-objects
+                                       ;; gripper offset missing here
                                        :highlight-links
                                        (links-for-arm-side arm))))))
                (unless ignore-object
@@ -325,11 +331,15 @@ configuration."
 ;;     (when (and distance-grasp (> distance-grasp 0))
 ;;       (+ distance-pregrasp distance-grasp))))
 
-(defun is-pose-reachable (pose arm &key arm-offset-pose ignore-collisions)
-  (let ((pose (tf:copy-pose-stamped
-               (cond (arm-offset-pose (relative-pose pose arm-offset-pose))
-                     (t pose))
-               :stamp 0.0)))
+(defun is-pose-reachable (pose arm &key arm-offset-pose ignore-collisions (gripper-offset-pose (tf:make-identity-pose)))
+  (let* ((gripper-offset-pose (or gripper-offset-pose
+                                  (tf:make-identity-pose)))
+         (pose (tf:copy-pose-stamped
+                (cond (arm-offset-pose
+                       (relative-pose
+                        pose (relative-pose arm-offset-pose gripper-offset-pose)))
+                      (t (relative-pose pose gripper-offset-pose)))
+                :stamp 0.0)))
     (roslisp:publish (roslisp:advertise "/testpose" "geometry_msgs/PoseStamped")
                      (to-msg pose))
     (cpl:with-failure-handling
