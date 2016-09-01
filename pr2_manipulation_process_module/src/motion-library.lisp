@@ -234,7 +234,7 @@ arm `arm'."
 
 (defun execute-parks (parameter-sets goal-spec)
   (with-parameter-sets parameter-sets
-    (assume 'park-pose goal-spec)))
+    (assume 'park-pose goal-spec t)))
 
 (defun open-gripper-if-necessary (arm &key (threshold 0.08))
   "Opens the gripper on the robot's arm `arm' if its current position
