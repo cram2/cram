@@ -81,9 +81,9 @@
   '(0.543886 0.156374 1.54255 1.51628 0.237611 1.32027 4.69513))
 
 (defparameter *pr2-right-arm-pouring-joint-positions*
-  '(0.556869 0.2 1.57977 1.02886 94.3445 1.18356 1.377))
+  '(-0.556869 -0.2 -1.57977 -1.02886 -94.3445 -1.18356 1.377))
 (defparameter *pr2-left-arm-pouring-joint-positions*
-  '(0.962039 0.150617 1.56769 1.41351 6.01118 1.41351 4.70187))
+  '(0.962039 0.150617 1.56769 -1.41351 -6.01118 -1.41351 4.70187))
 
 (defparameter *pr2-right-arm-out-of-sight-gripper-pose*
   (cl-transforms-stamped:make-pose-stamped
