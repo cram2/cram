@@ -400,7 +400,7 @@ positions, grasp-type, effort to use) are defined in the list
                                                                      :keys '((:ignore-collisions t))
                                                                      :arm-pose-goals target-arm-poses))))
 
-(defun relative-pose (pose pose-offset &key (time (ros-time)))
+(defmethod relative-pose ((pose cl-tf:pose-stamped) pose-offset &key (time (ros-time)))
   "Applies the pose `pose-offset' as transformation into the pose
 `pose' and returns the result in the frame of `pose'."
   (pose->pose-stamped
@@ -409,3 +409,9 @@ positions, grasp-type, effort to use) are defined in the list
    (cl-transforms:transform-pose
     (cl-transforms:pose->transform pose)
     pose-offset)))
+
+(defmethod relative-pose ((pose cl-tf:pose) pose-offset &rest rest)
+  (declare (ignore rest))
+  (cl-transforms:transform-pose
+   (cl-transforms:pose->transform pose)
+   pose-offset))
