@@ -320,7 +320,7 @@ positions, grasp-type, effort to use) are defined in the list
              (declare (ignore f))
              (assume 'pre-putdown-pose goal-spec)
              (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable)))
-        (let ((id (cram-language::on-begin-lowering-object object-name)))
+        (let ((id (first (cram-language::on-begin-lowering-object object-name))))
           (assume 'putdown-pose goal-spec t)
           (cram-language::on-finish-lowering-object id))
         (dolist (param-set parameter-sets)
