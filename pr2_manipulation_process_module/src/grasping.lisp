@@ -239,7 +239,6 @@ configuration."
                         &key allowed-collision-objects
                           only-reachable ignore-collisions-grasp
                           gripper-offset-pose)
-                          only-reachable ignore-collisions-grasp)
   (let* ((pose (tf:copy-pose-stamped pose :stamp 0.0))
          (pregrasp-offset (or pregrasp-offset (tf:make-identity-pose)))
          (grasp-offset (or grasp-offset (tf:make-identity-pose)))
