@@ -60,7 +60,7 @@
     (drive-and-pick-up-plan ?first-cup-to-pour :?arm :left)))
 
 (defun step-3-pour-two-arms ()
-  ;(go-to-initial-pouring-configuration-plan)
+  (go-to-initial-pouring-configuration-plan)
   (plan-lib:perform (desig:an action
                               (to pour-activity)
                               (arm (left right))
