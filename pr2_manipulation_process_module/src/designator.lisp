@@ -370,15 +370,15 @@
     ;; this is the place to do it.
     (lisp-fun make-empty-goal-specification ?goal-spec))
 
-  (<- (grasp-offsets top-slide-down ?pregrasp-offset ?grasp-offset)
+  (<- (grasp-offsets ?_ top-slide-down ?pregrasp-offset ?grasp-offset)
     (symbol-value *pregrasp-top-slide-down-offset* ?pregrasp-offset)
     (symbol-value *grasp-offset* ?grasp-offset))
 
-  (<- (grasp-offsets pull ?pregrasp-offset ?grasp-offset)
+  (<- (grasp-offsets ?_ pull ?pregrasp-offset ?grasp-offset)
     (symbol-value *pregrasp-pull-offset* ?pregrasp-offset)
     (symbol-value *grasp-pull-offset* ?grasp-offset))
 
-  (<- (grasp-offsets ?_ ?pregrasp-offset ?grasp-offset) ;; For example, 'push'
+  (<- (grasp-offsets ?_ ?_ ?pregrasp-offset ?grasp-offset) ;; For example, 'push'
     (symbol-value *pregrasp-offset* ?pregrasp-offset)
     (symbol-value *grasp-offset* ?grasp-offset))
   
@@ -398,11 +398,13 @@
   
   (<- (object-pose-reachable ?object ?pose ?arm)
     (once (grasp-type ?object ?grasp-type))
-    (once (grasp-offsets ?grasp-type ?pregrasp-offset ?grasp-offset))
+    (once (grasp-offsets ?arm ?grasp-type ?pregrasp-offset ?grasp-offset))
+    (once (gripper-offset ?arm ?gripper-offset))
     (lisp-fun cost-reach-pose ?object ?arm ?pose
               ?pregrasp-offset ?grasp-offset
               :only-reachable t
               :ignore-collisions-grasp t
+              :gripper-offset-pose ?gripper-offset
               ?cost)
     (not (equal ?cost nil)))
 
@@ -412,7 +414,7 @@
   (<- (arm-handle-assignment ?object ?arm-handle-combo ?grasp-assignment)
     (desig-prop ?object (:type :semantic-handle))
     (member (?arm . ?handle) ?arm-handle-combo)
-    (once (grasp-offsets pull ?pregrasp-offset ?grasp-offset))
+    (once (grasp-offsets ?arm pull ?pregrasp-offset ?grasp-offset))
     (gripper-offset ?arm ?gripper-offset)
     (desig-prop ?handle (:at ?location))
     (lisp-fun reference ?location ?pose)
@@ -438,7 +440,7 @@
     (member (?arm . ?handle) ?arm-handle-combo)
     (once (or (grasp-type ?handle ?grasp-type)
               (grasp-type ?object ?grasp-type)))
-    (once (grasp-offsets ?grasp-type ?pregrasp-offset ?grasp-offset))
+    (once (grasp-offsets ?arm ?grasp-type ?pregrasp-offset ?grasp-offset))
     (once (gripper-offset ?arm ?gripper-offset))
     (absolute-handle ?object ?handle ?absolute-handle)
     (desig-prop ?absolute-handle (:at ?location))
@@ -494,7 +496,7 @@
               :use-all-arms ?use-all-arms
               :allowed-arms ?sides
               ?combos))
-
+  
   (<- (grasp-assignments ?object ?grasp-assignments)
     (not (desig-prop ?object (:type :semantic-handle)))
     (free-arms-handles-combos ?object ?arm-handle-combos)
