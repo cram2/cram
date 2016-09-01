@@ -75,6 +75,16 @@
     -50.282675816750015d0)
   "joint positions for right arm to move the arm away from sight")
 
+(defparameter *pr2-right-arm-pouring-joint-positions*
+  '(0.556869 0.2 1.57977 1.02886 94.3445 1.18356 1.377))
+(defparameter *pr2-left-arm-pouring-joint-positions*
+  '(0.543886 0.156374 1.54255 1.51628 0.237611 1.32027 4.69513))
+
+(defparameter *pr2-right-arm-pouring-joint-positions*
+  '(0.556869 0.2 1.57977 1.02886 94.3445 1.18356 1.377))
+(defparameter *pr2-left-arm-pouring-joint-positions*
+  '(0.962039 0.150617 1.56769 1.41351 6.01118 1.41351 4.70187))
+
 (defparameter *pr2-right-arm-out-of-sight-gripper-pose*
   (cl-transforms-stamped:make-pose-stamped
    "base_footprint"
@@ -94,9 +104,8 @@
   (cl-transforms-stamped:make-pose-stamped
    "map"
    0.0
-   (cl-transforms:make-3d-vector -0.957d0 -0.4285d0 0.0)
-   (cl-transforms:make-quaternion 0.003900727422091458d0 8.651259911397491d-4
-                                  0.7314595125485168d0 -0.6818731681074452d0)))
+   (cl-transforms:make-3d-vector -1.47d0 -0.43d0 0.0)
+   (cl-transforms:axis-angle->quaternion (cl-transforms:make-3d-vector 0 0 1) (/ pi -2))))
 (defparameter *meal-table-right-base-pose*
   (cl-transforms-stamped:make-pose-stamped
    "map"
@@ -123,22 +132,28 @@
      (cpl:top-level
        ,@body)))
 
-(defun move-pr2-arms-out-of-sight (&key (arm :both))
+(defun move-pr2-arms-out-of-sight (&key (arm '(:left :right)))
   (cpl:with-failure-handling
       ((pr2-ll:pr2-low-level-failure (e)
          (declare (ignore e))
          (return)))
+    (unless (listp arm)
+      (setf arm (list arm)))
     (let (?left-configuration-to-go ?right-configuration-to-go)
-      (case arm
-        (:left (setf ?left-configuration-to-go *pr2-left-arm-out-of-sight-joint-positions*))
-        (:right (setf ?right-configuration-to-go *pr2-right-arm-out-of-sight-joint-positions*))
-        (:both (setf ?left-configuration-to-go *pr2-left-arm-out-of-sight-joint-positions*)
-         (setf ?right-configuration-to-go *pr2-right-arm-out-of-sight-joint-positions*)))
+      (when (member :left arm)
+        (setf ?left-configuration-to-go *pr2-left-arm-out-of-sight-joint-positions*))
+      (when (member :right arm)
+        (setf ?right-configuration-to-go *pr2-right-arm-out-of-sight-joint-positions*))
       (cram-plan-library:perform
        (desig:an action
                  (to move-joints-motion)
                  (left ?left-configuration-to-go)
                  (right ?right-configuration-to-go))))))
+
+(defun overwrite-transformer ()
+  (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client)))
+
+;; (roslisp-utilities:register-ros-init-function overwrite-transformer)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; GRASP CONFIGURATIONS ;;;;;;;;;;;;;;;;;;;;;
 
@@ -240,63 +255,64 @@
                    pose-orientation))))
 
 (defun get-object-type-grasp-pose (object-type object-pose arm grasp)
-  (case object-type
-    ((:fork :knife :cutlery)
-     (if (eq grasp :top)
-         (let* ((yaw (cl-transforms:get-yaw (cl-transforms:orientation object-pose)))
-                (translation (cl-transforms:origin object-pose))
-                (x-obj (cl-transforms:x translation))
-                (y-obj (cl-transforms:y translation)))
-           (calculate-cutlery-grasp-pose yaw x-obj y-obj
-                                         *kitchen-meal-table-z*
-                                         *cutlery-grasp-z-offset*))
-         (error "can only grasp cutlery from top")))
-    ((:plate)
-     (if (eq grasp :side)
-         (let* ((translation (cl-transforms:origin object-pose))
-                (x-obj (cl-transforms:x translation))
-                (y-obj (cl-transforms:y translation)))
-           (calculate-plate-grasp-pose x-obj y-obj *plate-grasp-y-offset*
-                                       *kitchen-meal-table-z*
-                                       *plate-grasp-z-offset*
-                                       :arm arm))
-         (error "can only grasp plates from a side")))
-    ((:bottle :drink)
-     (if (or (eq grasp :side) (eq grasp :front))
-         (let* ((translation (cl-transforms:origin object-pose))
-                (x-obj (cl-transforms:x translation))
-                (y-obj (cl-transforms:y translation)))
-           (calculate-cup-grasp-pose (case grasp
-                                       (:side x-obj)
-                                       (:front (+ x-obj *bottle-grasp-xy-offset*)))
-                                     (case grasp
-                                       (:side (case arm
-                                                (:left (- y-obj *bottle-grasp-xy-offset*))
-                                                (:right (+ y-obj *bottle-grasp-xy-offset*))
-                                                (error "arm can only be left or right")))
-                                       (:front y-obj))
-                                     *kitchen-meal-table-z*
-                                     *bottle-grasp-z-offset*
-                                     arm grasp))
-         (error "can only grasp bottles from a side or front")))
-    ((:cup)
-     (if (or (eq grasp :side) (eq grasp :front))
-         (let* ((translation (cl-transforms:origin object-pose))
-                (x-obj (cl-transforms:x translation))
-                (y-obj (cl-transforms:y translation)))
-           (calculate-cup-grasp-pose (case grasp
-                                       (:side x-obj)
-                                       (:front (+ x-obj *cup-grasp-xy-offset*)))
-                                     (case grasp
-                                       (:side (case arm
-                                                (:left (- y-obj *cup-grasp-xy-offset*))
-                                                (:right (+ y-obj *cup-grasp-xy-offset*))
-                                                (error "arm can only be left or right")))
-                                       (:front y-obj))
-                                     *kitchen-meal-table-z*
-                                     *cup-grasp-z-offset*
-                                     arm grasp))
-         (error "can only grasp cups from a side or front")))))
+  (let ((object-pose (pr2-ll:ensure-pose-in-frame object-pose cram-tf:*robot-base-frame*)))
+   (case object-type
+     ((:fork :knife :cutlery)
+      (if (eq grasp :top)
+          (let* ((yaw (cl-transforms:get-yaw (cl-transforms:orientation object-pose)))
+                 (translation (cl-transforms:origin object-pose))
+                 (x-obj (cl-transforms:x translation))
+                 (y-obj (cl-transforms:y translation)))
+            (calculate-cutlery-grasp-pose yaw x-obj y-obj
+                                          *kitchen-meal-table-z*
+                                          *cutlery-grasp-z-offset*))
+          (error "can only grasp cutlery from top")))
+     ((:plate)
+      (if (eq grasp :side)
+          (let* ((translation (cl-transforms:origin object-pose))
+                 (x-obj (cl-transforms:x translation))
+                 (y-obj (cl-transforms:y translation)))
+            (calculate-plate-grasp-pose x-obj y-obj *plate-grasp-y-offset*
+                                        *kitchen-meal-table-z*
+                                        *plate-grasp-z-offset*
+                                        :arm arm))
+          (error "can only grasp plates from a side")))
+     ((:bottle :drink)
+      (if (or (eq grasp :side) (eq grasp :front))
+          (let* ((translation (cl-transforms:origin object-pose))
+                 (x-obj (cl-transforms:x translation))
+                 (y-obj (cl-transforms:y translation)))
+            (calculate-cup-grasp-pose (case grasp
+                                        (:side x-obj)
+                                        (:front (+ x-obj *bottle-grasp-xy-offset*)))
+                                      (case grasp
+                                        (:side (case arm
+                                                 (:left (- y-obj *bottle-grasp-xy-offset*))
+                                                 (:right (+ y-obj *bottle-grasp-xy-offset*))
+                                                 (error "arm can only be left or right")))
+                                        (:front y-obj))
+                                      *kitchen-meal-table-z*
+                                      *bottle-grasp-z-offset*
+                                      arm grasp))
+          (error "can only grasp bottles from a side or front")))
+     ((:cup)
+      (if (or (eq grasp :side) (eq grasp :front))
+          (let* ((translation (cl-transforms:origin object-pose))
+                 (x-obj (cl-transforms:x translation))
+                 (y-obj (cl-transforms:y translation)))
+            (calculate-cup-grasp-pose (case grasp
+                                        (:side x-obj)
+                                        (:front (+ x-obj *cup-grasp-xy-offset*)))
+                                      (case grasp
+                                        (:side (case arm
+                                                 (:left (- y-obj *cup-grasp-xy-offset*))
+                                                 (:right (+ y-obj *cup-grasp-xy-offset*))
+                                                 (error "arm can only be left or right")))
+                                        (:front y-obj))
+                                      *kitchen-meal-table-z*
+                                      *cup-grasp-z-offset*
+                                      arm grasp))
+          (error "can only grasp cups from a side or front"))))))
 
 (defun get-object-grasp-pose (object-designator arm grasp)
   (get-object-type-grasp-pose
@@ -305,104 +321,111 @@
    arm grasp))
 
 (defun get-object-type-lift-pose (object-type object-pose arm grasp)
-  (translate-pose (get-object-type-grasp-pose object-type object-pose arm grasp)
-                  :z-offset *lift-z-offset*))
+  (let ((object-pose (pr2-ll:ensure-pose-in-frame object-pose cram-tf:*robot-base-frame*)))
+   (translate-pose (get-object-type-grasp-pose object-type object-pose arm grasp)
+                   :z-offset *lift-z-offset*)))
 
 (defun get-object-grasp-lift-pose (grasp-pose)
-  (translate-pose grasp-pose :z-offset *lift-z-offset*))
+  (let ((grasp-pose (pr2-ll:ensure-pose-in-frame grasp-pose cram-tf:*robot-base-frame*)))
+   (translate-pose grasp-pose :z-offset *lift-z-offset*)))
 
 (defun get-object-type-pregrasp-pose (object-type grasp-pose arm grasp)
-  (case object-type
-    ((:fork :knife :cutlery)
-     (if (eq grasp :top)
-         (translate-pose grasp-pose :z-offset *cutlery-pregrasp-z-offset*)
-         (error "can only grasp cutlery from top")))
-    ((:plate)
-     (if (eq grasp :side)
-         (translate-pose grasp-pose
-                         :y-offset (case arm
-                                     (:right (- *plate-pregrasp-y-offset*))
-                                     (:left *plate-pregrasp-y-offset*)
-                                     (t (error "arm can be :left or :right")))
-                         :z-offset *plate-pregrasp-z-offset*)
-         (error "can only grasp plates from a side")))
-    ((:bottle :drink)
-     (case grasp
-       (:front (translate-pose grasp-pose :x-offset (- *bottle-pregrasp-xy-offset*)
-                                          :z-offset *bottle-pregrasp-z-offset*))
-       (:side (case arm
-                (:left (translate-pose grasp-pose :y-offset *bottle-pregrasp-xy-offset*
-                                                  :z-offset *bottle-pregrasp-z-offset*))
-                (:right (translate-pose grasp-pose :y-offset (- *bottle-pregrasp-xy-offset*)
+  (let ((grasp-pose (pr2-ll:ensure-pose-in-frame grasp-pose cram-tf:*robot-base-frame*)))
+   (case object-type
+     ((:fork :knife :cutlery)
+      (if (eq grasp :top)
+          (translate-pose grasp-pose :z-offset *cutlery-pregrasp-z-offset*)
+          (error "can only grasp cutlery from top")))
+     ((:plate)
+      (if (eq grasp :side)
+          (translate-pose grasp-pose
+                          :y-offset (case arm
+                                      (:right (- *plate-pregrasp-y-offset*))
+                                      (:left *plate-pregrasp-y-offset*)
+                                      (t (error "arm can be :left or :right")))
+                          :z-offset *plate-pregrasp-z-offset*)
+          (error "can only grasp plates from a side")))
+     ((:bottle :drink)
+      (case grasp
+        (:front (translate-pose grasp-pose :x-offset (- *bottle-pregrasp-xy-offset*)
+                                           :z-offset *bottle-pregrasp-z-offset*))
+        (:side (case arm
+                 (:left (translate-pose grasp-pose :y-offset *bottle-pregrasp-xy-offset*
                                                    :z-offset *bottle-pregrasp-z-offset*))
-                (t (error "arm can only be :left or :right"))))
-       (t (error "grasp can only be :side or :front"))))
-    ((:cup)
-     (case grasp
-       (:front (translate-pose grasp-pose :x-offset (- *cup-pregrasp-xy-offset*)
-                                          :z-offset *cup-pregrasp-z-offset*))
-       (:side (case arm
-                (:left (translate-pose grasp-pose :y-offset *cup-pregrasp-xy-offset*
-                                                  :z-offset *cup-pregrasp-z-offset*))
-                (:right (translate-pose grasp-pose :y-offset (- *cup-pregrasp-xy-offset*)
+                 (:right (translate-pose grasp-pose :y-offset (- *bottle-pregrasp-xy-offset*)
+                                                    :z-offset *bottle-pregrasp-z-offset*))
+                 (t (error "arm can only be :left or :right"))))
+        (t (error "grasp can only be :side or :front"))))
+     ((:cup)
+      (case grasp
+        (:front (translate-pose grasp-pose :x-offset (- *cup-pregrasp-xy-offset*)
+                                           :z-offset *cup-pregrasp-z-offset*))
+        (:side (case arm
+                 (:left (translate-pose grasp-pose :y-offset *cup-pregrasp-xy-offset*
                                                    :z-offset *cup-pregrasp-z-offset*))
-                (t (error "arm can only be :left or :right"))))
-       (t (error "grasp can only be :side or :front"))))))
+                 (:right (translate-pose grasp-pose :y-offset (- *cup-pregrasp-xy-offset*)
+                                                    :z-offset *cup-pregrasp-z-offset*))
+                 (t (error "arm can only be :left or :right"))))
+        (t (error "grasp can only be :side or :front")))))))
 
 (defun get-object-type-2nd-pregrasp-pose (object-type grasp-pose arm grasp)
-  (case object-type
-    ((:fork :knife :cutlery)
-     ;; (if (eq grasp :top)
-     ;;     (translate-pose grasp-pose :z-offset *cutlery-pregrasp-z-offset*)
-     ;;     (error "can only grasp cutlery from top"))
-     nil)
-    ((:plate)
-     (if (eq grasp :side)
-         (translate-pose grasp-pose
-                         :y-offset (case arm
-                                     (:left *plate-pregrasp-y-offset*)
-                                     (:right (- *plate-pregrasp-y-offset*))
-                                     (t (error "arm can be :left or :right")))
-                         :z-offset *plate-2nd-pregrasp-z-offset*)
-         (error "can only grasp plates from a side")))
-    ((:bottle :drink)
-     (case grasp
-       (:front (translate-pose grasp-pose :x-offset (- *bottle-pregrasp-xy-offset*)))
-       (:side (case arm
-                (:left (translate-pose grasp-pose :y-offset *bottle-pregrasp-xy-offset*))
-                (:right (translate-pose grasp-pose :y-offset (- *bottle-pregrasp-xy-offset*)))
-                (t (error "arm can only be :left or :right"))))
-       (t (error "grasp can only be :side or :front"))))
-    ((:cup)
-     (case grasp
-       (:front (translate-pose grasp-pose :x-offset (- *cup-pregrasp-xy-offset*)))
-       (:side (case arm
-                (:left (translate-pose grasp-pose :y-offset *cup-pregrasp-xy-offset*))
-                (:right (translate-pose grasp-pose :y-offset (- *cup-pregrasp-xy-offset*)))
-                (t (error "arm can only be :left or :right"))))
-       (t (error "grasp can only be :side or :front"))))))
+  (let ((grasp-pose (pr2-ll:ensure-pose-in-frame grasp-pose cram-tf:*robot-base-frame*)))
+   (case object-type
+     ((:fork :knife :cutlery)
+      ;; (if (eq grasp :top)
+      ;;     (translate-pose grasp-pose :z-offset *cutlery-pregrasp-z-offset*)
+      ;;     (error "can only grasp cutlery from top"))
+      nil)
+     ((:plate)
+      (if (eq grasp :side)
+          (translate-pose grasp-pose
+                          :y-offset (case arm
+                                      (:left *plate-pregrasp-y-offset*)
+                                      (:right (- *plate-pregrasp-y-offset*))
+                                      (t (error "arm can be :left or :right")))
+                          :z-offset *plate-2nd-pregrasp-z-offset*)
+          (error "can only grasp plates from a side")))
+     ((:bottle :drink)
+      (case grasp
+        (:front (translate-pose grasp-pose :x-offset (- *bottle-pregrasp-xy-offset*)))
+        (:side (case arm
+                 (:left (translate-pose grasp-pose :y-offset *bottle-pregrasp-xy-offset*))
+                 (:right (translate-pose grasp-pose :y-offset (- *bottle-pregrasp-xy-offset*)))
+                 (t (error "arm can only be :left or :right"))))
+        (t (error "grasp can only be :side or :front"))))
+     ((:cup)
+      (case grasp
+        (:front (translate-pose grasp-pose :x-offset (- *cup-pregrasp-xy-offset*)))
+        (:side (case arm
+                 (:left (translate-pose grasp-pose :y-offset *cup-pregrasp-xy-offset*))
+                 (:right (translate-pose grasp-pose :y-offset (- *cup-pregrasp-xy-offset*)))
+                 (t (error "arm can only be :left or :right"))))
+        (t (error "grasp can only be :side or :front")))))))
 
 (defun get-object-type-pour-pose (object-type object-pose arm grasp)
-  (let ((grasp-pose (get-object-type-grasp-pose object-type object-pose arm grasp)))
-    (translate-pose grasp-pose
-                    :x-offset (case grasp
-                                (:front (- *pour-xy-offset*))
-                                (:side 0.0)
-                                (error "can only pour from :side or :front"))
-                    :y-offset (case grasp
-                                (:front 0.0)
-                                (:side (case arm
-                                         (:left *pour-xy-offset*)
-                                         (:right (- *pour-xy-offset*))
-                                         (t (error "arm can only be :left or :right"))))
-                                (error "can only pour from :side or :front"))
-                               :z-offset (+ *bottle-grasp-z-offset*
-                                            *pour-z-offset*))))
+  (let ((object-pose (pr2-ll:ensure-pose-in-frame object-pose cram-tf:*robot-base-frame*)))
+   (let ((grasp-pose (get-object-type-grasp-pose object-type object-pose arm grasp)))
+     (translate-pose grasp-pose
+                     :x-offset (case grasp
+                                 (:front (- *pour-xy-offset*))
+                                 (:side 0.0)
+                                 (error "can only pour from :side or :front"))
+                     :y-offset (case grasp
+                                 (:front 0.0)
+                                 (:side (case arm
+                                          (:left *pour-xy-offset*)
+                                          (:right (- *pour-xy-offset*))
+                                          (t (error "arm can only be :left or :right"))))
+                                 (error "can only pour from :side or :front"))
+                     :z-offset (+ *bottle-grasp-z-offset*
+                                  *pour-z-offset*)))))
 
 (defun get-tilted-pose (initial-poses angle arm grasp)
-  (let ((initial-pose (if (listp initial-poses)
+  (let ((initial-pose (pr2-ll:ensure-pose-in-frame
+                       (if (listp initial-poses)
                           (car (last initial-poses))
-                          initial-poses)))
+                          initial-poses)
+                       cram-tf:*robot-base-frame*)))
     (case grasp
       (:front (rotate-once-pose initial-pose angle :y))
       (:side (case arm

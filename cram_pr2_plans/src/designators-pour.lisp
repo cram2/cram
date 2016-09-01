@@ -82,10 +82,6 @@
          (?tilt-back-constraints (cadr (assoc :tilt-back pouring-constraints)))
          (phases (list
                   (an action
-                      (to retract-action)
-                      (left ?left-retract-poses)
-                      (right ?right-retract-poses))
-                  (an action
                       (to approach)
                       (constraints ?approach-constraints))
                   (an action
@@ -114,7 +110,8 @@
     (desig-prop ?action-designator (:arm ?arm))
     (not (equal ?arm (:left :right)))
     ;; source
-    (desig-prop ?action-designator (:source ?source-designator))
+    (once (or (cpoe:object-in-hand ?source-designator ?arm)
+              (desig-prop ?action-designator (:source ?source-designator))))
     (current-designator ?source-designator ?current-source-designator)
     (desig-prop ?current-source-designator (:type ?source-type))
     (lisp-fun get-object-pose ?current-source-designator ?source-pose)
@@ -159,13 +156,15 @@
     (desig-prop ?action-designator (:arm ?arm))
     (equal ?arm (:left :right))
     ;; source
-    (desig-prop ?action-designator (:source ?source-designator))
+    (once (or (cpoe:object-in-hand ?source-designator :right)
+              (desig-prop ?action-designator (:source ?source-designator))))
     (current-designator ?source-designator ?current-source-designator)
     (desig-prop ?current-source-designator (:type ?source-type))
     (lisp-fun get-object-pose ?current-source-designator ?source-pose)
     (object-type-grasp ?source-type ?source-grasp)
     ;; destination / target
-    (desig-prop ?action-designator (:target ?destination-designator))
+    (once (or (cpoe:object-in-hand ?destination-designator :left)
+              (desig-prop ?action-designator (:target ?destination-designator))))
     (current-designator ?destination-designator ?current-destination-designator)
     (desig-prop ?current-destination-designator (:type ?destination-type))
     (lisp-fun get-object-pose ?current-destination-designator ?destination-pose)

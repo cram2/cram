@@ -20,7 +20,7 @@
   <depend>cram_designators</depend>
   <depend>cram_plan_library</depend>
   <depend>cram_plan_occasions_events</depend>
-  <depend>cram_plan_occasions</depend>
+  <depend>cram_occasions_events</depend>
   <depend>cram_prolog</depend>
   <depend>cl_tf2</depend>
   <depend>cram_math</depend>

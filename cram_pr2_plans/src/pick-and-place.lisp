@@ -217,19 +217,37 @@
                    (with ?left-or-right)
                    (effort ?effort)))))))
 
-(cpl:def-cram-function logged-perceive (?object-designator)
+(cpl:def-cram-function logged-perceive (?object-designator
+                                        &key
+                                        (quantifier :a)
+                                        (object-chosing-function #'identity))
   (let ((id (beliefstate:start-node "UIMA-PERCEIVE" nil)))
-    (beliefstate:add-designator-to-node ?object-designator
-                                        id :annotation "perception-request")
-    (let ((resulting-designator (cram-plan-library:perform
-                                 (desig:an action
-                                           (to detect-motion)
-                                           (object ?object-designator)))))
+    (beliefstate:add-designator-to-node ?object-designator id
+                                        :annotation "perception-request")
+    (let* ((resulting-designators
+             (case quantifier
+               (:all (cram-plan-library:perform
+                      (desig:an action
+                                (to detect-motion)
+                                (objects ?object-designator))))
+               (t (cram-plan-library:perform
+                   (desig:an action
+                             (to detect-motion)
+                             (object ?object-designator))))))
+           (resulting-designator
+             (funcall object-chosing-function resulting-designators)))
       (beliefstate:add-object-to-node
        resulting-designator id :annotation "perception-result")
       (beliefstate:add-topic-image-to-active-node cram-beliefstate::*kinect-topic-rgb*)
       (beliefstate:stop-node id :success (not (eql resulting-designator nil)))
       resulting-designator)))
+
+(defun look-at (object-designator)
+  (let ((?pose (get-object-pose object-designator)))
+    (cram-plan-library:perform
+     (desig:an action
+               (to look-motion)
+               (at ?pose)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;; activities ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -246,33 +264,79 @@
   (cram-occasions-events:on-event
    (make-instance 'object-gripped :object object :arm arm :grasp grasp)))
 
-(defun pick-up-plan (?type &key (?arm '(:left :right)) (?color ""))
+(defun drive-towards-and-look-at-object-plan (?object-designator &key (?arm :right))
+  (let* ((object-pose-in-base (get-object-pose ?object-designator))
+         (object-pose-in-map (cl-transforms-stamped:transform-pose-stamped
+                              cram-tf:*transformer*
+                              :timeout cram-tf:*tf-default-timeout*
+                              :pose object-pose-in-base
+                              :target-frame cram-tf:*fixed-frame*
+                              :use-current-ros-time t))
+         (new-x-for-base (- (cl-transforms:x (cl-transforms:origin object-pose-in-map))
+                            (case ?arm
+                              (:left 0.2)
+                              (:right -0.2)
+                              (t (error "arm can only be left or right")))))
+         (robot-pose-in-map (cram-tf:robot-current-pose))
+         (?goal-for-base (cl-transforms-stamped:copy-pose-stamped
+                          robot-pose-in-map
+                          :origin (cl-transforms:copy-3d-vector
+                                   (cl-transforms:origin robot-pose-in-map)
+                                   :x new-x-for-base))))
+    (cpl:par
+      (plan-lib:perform (desig:an action
+                                  (to go-motion)
+                                  (to ?goal-for-base)))
+      (plan-lib:perform (desig:an action
+                               (to look-at-action)
+                               (object ?object-designator))))))
+
+(defun drive-and-pick-up-plan (?object-designator &key (?arm :right))
+  ;; navigate to a better pose
+  (drive-towards-and-look-at-object-plan ?object-designator :?arm ?arm)
+  (plan-lib:perform (desig:an action
+                              (to pick-up-activity)
+                              (arm ?arm)
+                              (object ?object-designator))))
+
+(defun perceive-and-pick-up-plan (?type &key (?arm '(:left :right))
+                             ?color ?cad-model)
   (move-pr2-arms-out-of-sight)
-  (let* ((?object-desig (desig:an object
-                                  (type ?type)
-                                  (color ?color)))
-         (?updated-object-desig (cram-plan-library:perform
-                                 (desig:an action
-                                           (to detect-motion)
-                                           (object ?object-desig)))))
-    (plan-lib:perform (desig:an action
-                                (to pick-up-activity)
-                                (arm ?arm)
-                                (object ?updated-object-desig)))))
+  (let ((object-description `((:type ,?type))))
+    (when ?color
+      (push `(:color ,?color) object-description))
+    (when ?cad-model
+      (push `(:cad-model ,?cad-model) object-description))
+    (let* ((?object-desig (desig:make-designator :object object-description))
+           (?updated-object-desig (cram-plan-library:perform
+                                   (desig:an action
+                                             (to detect-motion)
+                                             (object ?object-desig)))))
+      (plan-lib:perform (desig:an action
+                                  (to look-at-action)
+                                  (object ?updated-object-desig)))
+      (plan-lib:perform (desig:an action
+                                  (to pick-up-activity)
+                                  (arm ?arm)
+                                  (object ?updated-object-desig))))))
 
 (defun place-activity (action-designator arm)
   (perform-phases-in-sequence action-designator)
   (cram-occasions-events:on-event
    (make-instance 'object-released :arm arm)))
 
-(defun place-plan (&key (?arm :right) ?type ?pose ?object)
-  (let ((?put-down-pose (or ?pose (get-cup-put-pose ?arm :front)))
-        (?object-desig (or ?object (desig:an object (type ?type)))))
+(defun drive-and-place-plan (&key (?arm :right))
+  (let ((?object-designator (get-object-in-hand ?arm)))
+    (drive-towards-and-look-at-object-plan ?object-designator :?arm ?arm)
     (plan-lib:perform (desig:an action
                                 (to place-activity)
-                                (arm ?arm)
-                                (object ?object-desig)
-                                (at ?put-down-pose)))))
+                                (arm ?arm))))
+  ;; (let ((?put-down-pose (or ?pose (get-cup-put-pose ?arm :front))))
+  ;;   (plan-lib:perform (desig:an action
+  ;;                               (to place-activity)
+  ;;                               (arm ?arm)
+  ;;                               (at ?put-down-pose))))
+  )
 
 (defun pick-and-place-plan (?type &key (?arm :right) ?cad-model)
   (move-pr2-arms-out-of-sight)

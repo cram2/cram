@@ -87,7 +87,8 @@
    :pose (cl-transforms-stamped:ensure-pose-stamped
           pose frame 0.0)
    :target-frame frame
-   :timeout cram-tf:*tf-default-timeout*))
+   :timeout cram-tf:*tf-default-timeout*
+   :use-current-ros-time t))
 
 (defun ensure-point-in-frame (point frame)
   (declare (type (or cl-transforms:point cl-transforms-stamped:point-stamped)))
