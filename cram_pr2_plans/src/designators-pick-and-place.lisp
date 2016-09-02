@@ -104,6 +104,8 @@
               (equal ?maximum-effort nil))))
 
   (<- (object-type-grasp :cutlery :top))
+  (<- (object-type-grasp :fork :top))
+  (<- (object-type-grasp :knife :top))
   (<- (object-type-grasp :plate :side))
   (<- (object-type-grasp :bottle :side))
   (<- (object-type-grasp :cup :front))
@@ -213,7 +215,7 @@
 
    (<- (action-desig ?action-designator (move-arms-in-sequence ?left-poses ?right-poses))
     (or ;; (desig-prop ?action-designator (:to :my-reach)) ; because of logging
-        (desig-prop ?action-designator (:to :lift-action))
+        ;; (desig-prop ?action-designator (:to :lift-action))
         (desig-prop ?action-designator (:to :retract-action))
         (desig-prop ?action-designator (:to :put-action)))
     (once (or (desig-prop ?action-designator (:left ?left-poses))
@@ -227,6 +229,13 @@
               (equal ?left-poses nil)))
     (once (or (desig-prop ?action-designator (:right ?right-poses))
               (equal ?right-poses nil))))
+
+    (<- (action-desig ?action-designator (lift ?left-pose ?right-pose))
+    (desig-prop ?action-designator (:to :lift-action)) ; because of logging
+    (once (or (desig-prop ?action-designator (:left ?left-pose))
+              (equal ?left-pose nil)))
+    (once (or (desig-prop ?action-designator (:right ?right-pose))
+              (equal ?right-pose nil))))
 
   (<- (action-desig ?action-designator (open-gripper ?left-or-right))
     (desig-prop ?action-designator (:to :open-action))

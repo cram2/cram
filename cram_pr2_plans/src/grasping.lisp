@@ -47,12 +47,13 @@
 ;; (defparameter *plate-grasp-z-offset* 0.06 "in meters") ; red stacked on blue plate
 
 (defparameter *cutlery-pregrasp-z-offset* 0.4 "in meters")
-(defparameter *cutlery-grasp-z-offset* 0.01 "in meters") ; 1 cm because TCP is not at the edge
+(defparameter *cutlery-grasp-z-offset* 0.02 "in meters") ; 1 cm because TCP is not at the edge
 
 (defparameter *cup-pregrasp-xy-offset* 0.05 "in meters")
 (defparameter *cup-pregrasp-z-offset* 0.4 "in meters")
 (defparameter *cup-grasp-xy-offset* 0.01 "in meters")
-(defparameter *cup-grasp-z-offset* 0.07 "in meters") ; 0.08?
+(defparameter *cup-grasp-z-offset* 0.08 "in meters") ; 0.07?
+(defparameter *cup-center-z* 0.044)
 
 (defparameter *bottle-pregrasp-xy-offset* 0.05 "in meters")
 (defparameter *bottle-pregrasp-z-offset* 0.4 "in meters")
@@ -74,16 +75,26 @@
     -2.1224566064321584d0 16.99646118944817d0 -0.07350789589924167d0
     -50.282675816750015d0)
   "joint positions for right arm to move the arm away from sight")
-
-(defparameter *pr2-right-arm-pouring-joint-positions*
-  '(0.556869 0.2 1.57977 1.02886 94.3445 1.18356 1.377))
-(defparameter *pr2-left-arm-pouring-joint-positions*
-  '(0.543886 0.156374 1.54255 1.51628 0.237611 1.32027 4.69513))
+(defparameter *pr2-right-arm-out-of-sight-flipped-joint-positions*
+  '(-1.6863889585064997d0 -0.1975125908655453d0 -1.045465435053814d0
+    -1.6784448346188787d0 -76.25678428315953d0 -0.4330236861590935d0
+    -50.649577448004365d0)
+  "joint positions for right arm to move the arm away from sight")
+(defparameter *pr2-left-arm-out-of-sight-flipped-joint-positions*
+  '(2.0658576647935627d0 -0.0465740758716759d0 0.64709164157929d0
+    -1.8113443476689572d0 -11.712932369941111d0 -0.9136651430224094d0
+    15.839744451087977d0)
+  "joint positions for right arm to move the arm away from sight")
 
 (defparameter *pr2-right-arm-pouring-joint-positions*
   '(-0.556869 -0.2 -1.57977 -1.02886 -94.3445 -1.18356 1.377))
 (defparameter *pr2-left-arm-pouring-joint-positions*
-  '(0.962039 0.150617 1.56769 -1.41351 -6.01118 -1.41351 4.70187))
+  '(0.543886 0.156374 1.54255 -1.51628 0.237611 -1.32027 4.69513))
+
+;; (defparameter *pr2-right-arm-pouring-joint-positions*
+;;   '(-0.556869 -0.2 -1.57977 -1.02886 -94.3445 -1.18356 1.377))
+;; (defparameter *pr2-left-arm-pouring-joint-positions*
+;;   '(0.962039 0.150617 1.56769 -1.41351 -6.01118 -1.41351 4.70187))
 
 (defparameter *pr2-right-arm-out-of-sight-gripper-pose*
   (cl-transforms-stamped:make-pose-stamped
@@ -112,11 +123,17 @@
    0.0
    (cl-transforms:make-3d-vector -1.8547d0 -0.381d0 0.0d0)
    (cl-transforms:axis-angle->quaternion (cl-transforms:make-3d-vector 0 0 1) (/ pi -2))))
-(defparameter *meal-table-left-base-look-pose*
+(defparameter *meal-table-left-base-look-down-pose*
   (cl-transforms-stamped:make-pose-stamped
    "base_footprint"
    0.0
    (cl-transforms:make-3d-vector 0.7d0 -0.12d0 0.7578d0)
+   (cl-transforms:make-identity-rotation)))
+(defparameter *meal-table-left-base-look-pose*
+  (cl-transforms-stamped:make-pose-stamped
+   "base_footprint"
+   0.0
+   (cl-transforms:make-3d-vector 0.75d0 -0.12d0 1.11d0)
    (cl-transforms:make-identity-rotation)))
 (defparameter *meal-table-right-base-look-pose*
   (cl-transforms-stamped:make-pose-stamped
@@ -132,7 +149,7 @@
      (cpl:top-level
        ,@body)))
 
-(defun move-pr2-arms-out-of-sight (&key (arm '(:left :right)))
+(defun move-pr2-arms-out-of-sight (&key (arm '(:left :right)) flipped)
   (cpl:with-failure-handling
       ((pr2-ll:pr2-low-level-failure (e)
          (declare (ignore e))
@@ -141,9 +158,13 @@
       (setf arm (list arm)))
     (let (?left-configuration-to-go ?right-configuration-to-go)
       (when (member :left arm)
-        (setf ?left-configuration-to-go *pr2-left-arm-out-of-sight-joint-positions*))
+        (setf ?left-configuration-to-go (if flipped
+                                            *pr2-left-arm-out-of-sight-flipped-joint-positions*
+                                            *pr2-left-arm-out-of-sight-joint-positions*)))
       (when (member :right arm)
-        (setf ?right-configuration-to-go *pr2-right-arm-out-of-sight-joint-positions*))
+        (setf ?right-configuration-to-go (if flipped
+                                             *pr2-right-arm-out-of-sight-flipped-joint-positions*
+                                             *pr2-right-arm-out-of-sight-joint-positions*)))
       (cram-plan-library:perform
        (desig:an action
                  (to move-joints-motion)
@@ -402,23 +423,39 @@
                  (t (error "arm can only be :left or :right"))))
         (t (error "grasp can only be :side or :front")))))))
 
-(defun get-object-type-pour-pose (object-type object-pose arm grasp)
-  (let ((object-pose (pr2-ll:ensure-pose-in-frame object-pose cram-tf:*robot-base-frame*)))
-   (let ((grasp-pose (get-object-type-grasp-pose object-type object-pose arm grasp)))
-     (translate-pose grasp-pose
-                     :x-offset (case grasp
-                                 (:front (- *pour-xy-offset*))
-                                 (:side 0.0)
-                                 (error "can only pour from :side or :front"))
-                     :y-offset (case grasp
-                                 (:front 0.0)
-                                 (:side (case arm
-                                          (:left *pour-xy-offset*)
-                                          (:right (- *pour-xy-offset*))
-                                          (t (error "arm can only be :left or :right"))))
-                                 (error "can only pour from :side or :front"))
-                     :z-offset (+ *bottle-grasp-z-offset*
-                                  *pour-z-offset*)))))
+(defun chose-higher-cup (desigs)
+  (let* ((first (car desigs))
+         (second (car (last desigs)))
+         (first-z (desig:desig-prop-value first :bb-dist-to-plane))
+         (second-z (desig:desig-prop-value second :bb-dist-to-plane)))
+    (if (> first-z second-z)
+        first
+        second)))
+
+(defun get-object-type-pour-pose (object-type object-designator arm grasp)
+  (let ((z-offset (desig:desig-prop-value object-designator :bb-dist-to-plane)))
+    (let ((*kitchen-meal-table-z* (+ *kitchen-meal-table-z*
+                                     z-offset
+                                     (- *cup-center-z*))))
+      (let* ((object-pose (pr2-ll:ensure-pose-in-frame
+                           (get-object-pose object-designator)
+                           cram-tf:*robot-base-frame*))
+             (grasp-pose (get-object-type-grasp-pose object-type object-pose arm grasp)))
+        (print grasp-pose)
+        (translate-pose grasp-pose
+                        :x-offset (case grasp
+                                    (:front (- *pour-xy-offset*))
+                                    (:side 0.0)
+                                    (error "can only pour from :side or :front"))
+                        :y-offset (case grasp
+                                    (:front 0.0)
+                                    (:side (case arm
+                                             (:left *pour-xy-offset*)
+                                             (:right (- *pour-xy-offset*))
+                                             (t (error "arm can only be :left or :right"))))
+                                    (error "can only pour from :side or :front"))
+                        :z-offset (+ *bottle-grasp-z-offset*
+                                     *pour-z-offset*))))))
 
 (defun get-tilted-pose (initial-poses angle arm grasp)
   (let ((initial-pose (pr2-ll:ensure-pose-in-frame
