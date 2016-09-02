@@ -30,11 +30,13 @@
 (in-package :pr2-pms)
 
 (def-process-module pr2-ptu-pm (action-designator)
-  (destructuring-bind (command pose) (reference action-designator)
+  (destructuring-bind (command goal-type goal) (reference action-designator)
     (ecase command
       (look-at
        (handler-case
-           (pr2-ll:call-ptu-action :point pose)
+           (ecase goal-type
+             (:point (pr2-ll:call-ptu-action :point goal))
+             (:frame (pr2-ll:call-ptu-action :frame goal)))
          (cram-plan-failures:look-at-failed ()
            (cpl:fail 'cram-plan-failures:look-at-failed :action action-designator)))))))
 

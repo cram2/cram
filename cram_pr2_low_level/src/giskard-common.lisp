@@ -31,7 +31,7 @@
 
 (defvar *giskard-action-client* nil)
 
-(defparameter *giskard-action-timeout* 20.0
+(defparameter *giskard-action-timeout* 10.0
   "How many seconds to wait before returning from giskard action.")
 (defparameter *giskard-convergence-delta-xy* 0.005 "in meters")
 (defparameter *giskard-convergence-delta-theta* 0.1 "in radiants, about 6 degrees")

@@ -69,32 +69,41 @@
   (case arm
     (:left (setf ?right-retract-poses nil))
     (:right (setf ?left-retract-poses nil)))
-  ;; (-> (equal ?arm (:left :right))
-  ;;       (format "both arms~%")
-  ;;       (format "one arm: ~a~%" ?arm))
   ;; (setf ?left-grasp-poses (reverse ?left-grasp-poses))
   ;; (setf ?right-grasp-poses (reverse ?right-grasp-poses))
-  (let* ((pouring-constraints (call-learned-constraints-service
-                               source-type source-pose
-                               destination-type destination-pose))
-         (?approach-constraints (cadr (assoc :approach pouring-constraints)))
-         (?tilt-down-constraints (cadr (assoc :tilt-down pouring-constraints)))
-         (?tilt-back-constraints (cadr (assoc :tilt-back pouring-constraints)))
-         (phases (list
-                  (an action
-                      (to approach)
-                      (constraints ?approach-constraints))
-                  (an action
-                      (to tilt-down)
-                      (constraints ?tilt-down-constraints))
-                  (an action
-                      (to tilt-back)
-                      (constraints ?tilt-back-constraints))
-                  (an action
-                      (to retract-action)
-                      (left ?left-retract-poses)
-                      (right ?right-retract-poses)))))
-    (copy-designator action-designator :new-description `((:phases ,phases)))))
+  (let ((source-pose source-pose) ;; TODO: lookup pose of end-effectors here r_gripper_tool_frame
+        (destination-pose destination-pose)) ;;;;          l_gripper_tool_frame
+    ;; (cl-tf:transform-pose-stamped
+    ;;         cram-tf:*transformer*
+    ;;         :target-frame cram-tf:*robot-base-frame*
+    ;;         :pose (cl-tf:make-pose-stamped
+    ;;                pr2-ll::*left-tool-frame*
+    ;;                0.0
+    ;;                (cl-tf:make-identity-vector)
+    ;;                (cl-tf:make-identity-rotation))
+    ;;         :timeout cram-tf:*tf-default-timeout*)
+    (let* ((pouring-constraints (call-learned-constraints-service
+                                 source-type source-pose
+                                 destination-type destination-pose))
+           (?approach-constraints (cadr (assoc :approach pouring-constraints)))
+           (?tilt-down-constraints (cadr (assoc :tilt-down pouring-constraints)))
+           (?tilt-back-constraints (cadr (assoc :tilt-back pouring-constraints)))
+           (phases (list
+                    (an action
+                        (to approach)
+                        (constraints ?approach-constraints))
+                    (an action
+                        (to tilt-down)
+                        (constraints ?tilt-down-constraints))
+                    (an action
+                        (to tilt-back)
+                        (constraints ?tilt-back-constraints))
+                    ;; (an action
+                    ;;     (to retract-action)
+                    ;;     (left ?left-retract-poses)
+                    ;;     (right ?right-retract-poses))
+                    )))
+      (copy-designator action-designator :new-description `((:phases ,phases))))))
 
 ;; (declaim (inline car-last))
 (defun car-last (some-list)
@@ -125,10 +134,10 @@
     ;; now we need to add the phases with the corresponding via-points and angles
     ;; find the missing info
     ;; cartesian pouring:
-    (lisp-fun get-object-type-pour-pose ?source-type ?destination-pose :left ?grasp
-              ?left-pour-pose)
-    (lisp-fun get-object-type-pour-pose ?source-type ?destination-pose :right ?grasp
-              ?right-pour-pose)
+    (lisp-fun get-object-type-pour-pose ?source-type ?current-destination-designator
+              :left ?grasp ?left-pour-pose)
+    (lisp-fun get-object-type-pour-pose ?source-type ?current-destination-designator
+              :right ?grasp ?right-pour-pose)
     (lisp-fun cram-math:degrees->radians 100 ?angle)
     (lisp-fun get-tilted-pose ?left-pour-pose ?angle :left ?grasp ?left-tilt-pose)
     (lisp-fun get-tilted-pose ?right-pour-pose ?angle :right ?grasp ?right-tilt-pose)
@@ -150,7 +159,7 @@
               ?updated-action-designator))
 
 
-  (<- (action-desig ?action-designator (perform-phases-in-sequence ?updated-action-designator))
+  (<- (action-desig ?action-designator (pour-activity ?updated-action-designator))
     (or (desig-prop ?action-designator (:to :pour-activity)) ;; yaml two-arm
         (desig-prop ?action-designator (:type :pouring-activity)))
     (desig-prop ?action-designator (:arm ?arm))

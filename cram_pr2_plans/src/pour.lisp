@@ -128,6 +128,39 @@
   ;;       lower: -0.0168588836555
   ;;       upper: -0.0109408055036
 
+(defmacro with-logging-pour ((source-designator target-designator)
+                             &body body)
+  `(let ((log-id (let ((id (beliefstate:start-node "POUR" `() 2)))
+                   (beliefstate:add-topic-image-to-active-node
+                    cram-beliefstate::*kinect-topic-rgb*)
+                   (beliefstate:add-designator-to-node
+                    ,source-designator
+                    id :annotation "object-acted-on")
+                   (beliefstate:add-designator-to-node
+                    ,target-designator
+                    id :annotation "object-acted-on")
+                   (beliefstate:add-designator-to-node
+                    (desig:an action
+                              (to pour-activity)
+                              (arm both)
+                              (source ,source-designator)
+                              (target ,target-designator)
+                              (pour-volume 0.0002))
+                    id :annotation "CRAMActionDesignator")
+                   id))
+         (success nil))
+     (unwind-protect
+          (progn
+            ,@body
+            (setf success t))
+       (beliefstate:add-topic-image-to-active-node
+        cram-beliefstate::*kinect-topic-rgb*)
+       (beliefstate:stop-node log-id :success success))))
+
+(defun pour-activity (action-designator)
+  (with-logging-pour ((get-object-in-hand :right) (get-object-in-hand :left))
+      (perform-phases-in-sequence action-designator)))
+
 (defun pick-and-pour-one-arm-plan (&key (?arm :right))
   (move-pr2-arms-out-of-sight :arm ?arm)
   (let* ((?bottle-desig (desig:an object

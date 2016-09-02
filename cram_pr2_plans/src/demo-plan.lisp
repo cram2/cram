@@ -30,74 +30,144 @@
 (in-package :pr2-plans)
 
 (defun step-0-prepare ()
-  (let ((?navigation-goal *meal-table-right-base-pose*)
-        (?ptu-goal *meal-table-right-base-look-pose*))
-    (cpl:par
-      (move-pr2-arms-out-of-sight)
-      (plan-lib:perform (desig:an action
-                                  (to go-motion)
-                                  (to ?navigation-goal)))
-      (plan-lib:perform (desig:an action
-                                  (to look-motion)
-                                  (at ?ptu-goal))))))
+  (cpl:with-failure-handling
+      ((pr2-ll:pr2-low-level-failure (e)
+         (roslisp:ros-warn (demo step-0) "~a" e)
+         (return)))
+
+    (let ((?navigation-goal *meal-table-right-base-pose*)
+          (?ptu-goal *meal-table-right-base-look-pose*))
+      (cpl:par
+        (move-pr2-arms-out-of-sight)
+        (plan-lib:perform (desig:an action
+                                    (to go-motion)
+                                    (to ?navigation-goal)))
+        (plan-lib:perform (desig:an action
+                                    (to look-motion)
+                                    (at ?ptu-goal)))))))
 
 (defun step-1-grasp-bottle ()
-  (let* ((?bottle-desig (desig:an object
-                                  (type bottle)))
-         (?perceived-bottle-desig (logged-perceive ?bottle-desig)))
-    (drive-and-pick-up-plan ?perceived-bottle-desig :?arm :right)))
+  (flet ((step-1-inner ()
+           (let* ((?bottle-desig (desig:an object
+                                           (type bottle)))
+                  (?perceived-bottle-desig (perceive ?bottle-desig)))
+             (drive-and-pick-up-plan ?perceived-bottle-desig :?arm :right))))
+    (cpl:with-retry-counters ((bottle-grasp-tries 2))
+      (cpl:with-failure-handling
+          ((pr2-ll:pr2-low-level-failure (e)
+             (roslisp:ros-warn (demo step-1) "~a" e)
+             (if (get-object-in-hand :right)
+                 (return)
+                 (cpl:do-retry bottle-grasp-tries
+                   (roslisp:ros-warn (demo step-1) "~a" e)
+                   (step-0-prepare)
+                   (cpl:retry)))))
+
+        (step-1-inner)))))
 
 (defun step-2-grasp-first-cup ()
-  (move-pr2-arms-out-of-sight)
-  (let* ((?cup-desig (desig:an object
-                               (type cup)
-                               (cad-model "cup_eco_orange")))
-         (?first-cup-to-pour (logged-perceive ?cup-desig
-                                              :quantifier :all
-                                              :object-chosing-function
-                                              (lambda (desigs)
-                                                (car (last desigs))))))
-    (drive-and-pick-up-plan ?first-cup-to-pour :?arm :left)))
+  (flet ((step-2-inner ()
+           (move-pr2-arms-out-of-sight)
+           (let* ((?cup-desig (desig:an object
+                                        (type cup)
+                                        (color "yellow")
+                                        (cad-model "cup_eco_orange")))
+                  (?first-cup-to-pour (perceive ?cup-desig
+                                                :quantifier :all
+                                                :object-chosing-function
+                                                (lambda (desigs)
+                                                  (car (last desigs))))))
+             (drive-and-pick-up-plan ?first-cup-to-pour :?arm :left))))
+
+    (cpl:with-retry-counters ((bottle-grasp-tries 2))
+      (cpl:with-failure-handling
+          ((pr2-ll:pr2-low-level-failure (e)
+             (roslisp:ros-warn (demo step-2) "~a" e)
+             (if (get-object-in-hand :left)
+                 (return)
+                 (cpl:do-retry bottle-grasp-tries
+                   (roslisp:ros-warn (demo step-2) "Retrying")
+                   (cpl:retry)))))
+
+        (step-2-inner)))))
 
 (defun step-3-pour-two-arms ()
-  (go-to-initial-pouring-configuration-plan)
-  (plan-lib:perform (desig:an action
-                              (to pour-activity)
-                              (arm (left right))
-                              (source right)
-                              (target left)
-                              (pour-volume 0.0002))))
+  (cpl:with-failure-handling
+      ((pr2-ll:pr2-low-level-failure (e)
+         (roslisp:ros-warn (demo step-3) "~a" e)
+         (return)))
 
-(defun step-4-place-cup ()
-  (place-plan :?arm :left))
-
-(defun step-5-drive-to-the-left ()
-  (let ((?nav-goal *meal-table-left-base-pose*))
-    (cpl:par
-      (plan-lib:perform (desig:an action
-                                  (to go-motion)
-                                  (to ?nav-goal)))
-      (move-pr2-arms-out-of-sight))))
-
-(defun step-6-pour-into-second-cup ()
-  (let* ((?cup-desig (desig:an object
-                               (type cup)
-                               (cad-model "cup_eco_orange")))
-         (?second-cup-to-pour (logged-perceive ?cup-desig
-                                                 :quantifier :all
-                                                 :object-chosing-function
-                                                 #'car)))
-    ;; drive towards second cup
-    (drive-towards-and-look-at-object-plan ?second-cup-to-pour :?arm :right)
-    ;; perform pouring using object-in-hand-s
+    (go-to-initial-pouring-configuration-plan)
+    (let ((?left-gripper pr2-ll::*left-tool-frame*))
+      (cram-plan-library:perform (desig:an action
+                                           (type looking-motion)
+                                           (frame ?left-gripper))))
     (plan-lib:perform (desig:an action
                                 (to pour-activity)
-                                (arm right)
-                                (target ?second-cup-to-pour)
-                                (pour-volume 0.0002)))))
+                                (arm (left right))
+                                (source right)
+                                (target left)
+                                (pour-volume 0.0002)))
+    (go-to-initial-pouring-configuration-plan)))
+
+(defun step-4-place-cup ()
+  (cpl:with-failure-handling
+      ((pr2-ll:pr2-low-level-failure (e)
+         (roslisp:ros-warn (demo step-4) "~a" e)
+         (return)))
+
+    (drive-and-place-plan :?arm :left)))
+
+(defun step-5-drive-to-the-left ()
+  (cpl:with-failure-handling
+      ((pr2-ll:pr2-low-level-failure (e)
+         (roslisp:ros-warn (demo step-5) "~a" e)
+         (return)))
+
+    (let ((?nav-goal *meal-table-left-base-pose*))
+      (cpl:par
+        (plan-lib:perform (desig:an action
+                                    (to go-motion)
+                                    (to ?nav-goal)))
+        (move-pr2-arms-out-of-sight)))))
+
+(defun step-6-pour-into-second-cup ()
+  (cpl:with-retry-counters ((second-pour-tries 2))
+    (cpl:with-failure-handling
+        ((pr2-ll:pr2-low-level-failure (e)
+           (roslisp:ros-warn (demo step-6) "~a" e)
+           (cpl:do-retry second-pour-tries
+                 (roslisp:ros-warn (demo step-6) "Retrying")
+                 (cpl:retry))
+           (return)))
+
+      (let* ((?cup-desig (desig:an object
+                                   (type cup)
+                                   (color "yellow")))
+             (?second-cup-to-pour (perceive ?cup-desig
+                                            :quantifier :all
+                                            :object-chosing-function
+                                            #'chose-higher-cup)))
+        ;; drive towards second cup
+        (drive-towards-object-plan ?second-cup-to-pour :?arm :right)
+        ;; perform pouring using object-in-hand-s
+        (cpl:par
+          (plan-lib:perform (desig:an action
+                                      (to look-at-action)
+                                      (object ?second-cup-to-pour)))
+          (plan-lib:perform (desig:an action
+                                      (to pour-activity)
+                                      (arm right)
+                                      (target ?second-cup-to-pour)
+                                      (pour-volume 0.0002))))))))
 
 (defun step-7-place-bottle ()
-  (drive-and-place-plan :?arm :right))
+  (cpl:with-failure-handling
+      ((pr2-ll:pr2-low-level-failure (e)
+         (roslisp:ros-warn (demo step-5) "~a" e)
+         (return)))
+
+    (drive-and-place-plan :?arm :right)))
 
 (defun step-8-finalize ()
   (cpl:with-failure-handling
@@ -112,7 +182,9 @@
 
 (defun demo-plan (&optional (step 0))
   (with-pr2-process-modules
-    (mapc #'funcall
+    (mapc (lambda (fun)
+            (print fun)
+            (funcall fun))
           (subseq (list
                    ;; prepare
                    #'step-0-prepare
@@ -131,7 +203,8 @@
                    ;; drive to the right and put down the bottle
                    #'step-7-place-bottle
                    ;; finalize
-                   #'step-8-finalize)
+                   #'step-8-finalize
+                   )
                   step))))
 
 ;;; arms down
