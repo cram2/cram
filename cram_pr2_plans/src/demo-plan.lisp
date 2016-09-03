@@ -107,7 +107,7 @@
                                 (arm (left right))
                                 (source right)
                                 (target left)
-                                (pour-volume 0.0001)))
+                                (pour-volume 2.77019964e-05)))
     (go-to-initial-pouring-configuration-plan)))
 
 (defun step-4-place-cup ()
@@ -132,34 +132,39 @@
         (move-pr2-arms-out-of-sight)))))
 
 (defun step-6-pour-into-second-cup ()
-  (cpl:with-retry-counters ((second-pour-tries 2))
-    (cpl:with-failure-handling
-        ((pr2-ll:pr2-low-level-failure (e)
-           (roslisp:ros-warn (demo step-6) "~a" e)
-           (cpl:do-retry second-pour-tries
-                 (roslisp:ros-warn (demo step-6) "Retrying")
-                 (cpl:retry))
-           (return)))
+  (flet ((step-6-inner ()
+           (let* ((?cup-desig (desig:an object
+                                        (type cup)
+                                        (color "yellow")))
+                  (?second-cup-to-pour (perceive ?cup-desig
+                                                 :quantifier :all
+                                                 :object-chosing-function
+                                                 #'chose-higher-cup)))
+             (when (< (desig:desig-prop-value ?second-cup-to-pour :bb-dist-to-plane) 0.1)
+               (cpl:fail 'pr2-ll:pr2-low-level-failure
+                         :description "couldn't perceive cup in hand"))
+             ;; drive towards second cup
+             (drive-towards-object-plan ?second-cup-to-pour :?arm :right)
+             ;; perform pouring using object-in-hand-s
+             (cpl:par
+               (plan-lib:perform (desig:an action
+                                           (to look-at-action)
+                                           (object ?second-cup-to-pour)))
+               (plan-lib:perform (desig:an action
+                                           (to pour-activity)
+                                           (arm right)
+                                           (target ?second-cup-to-pour)
+                                           (pour-volume 0.0002)))))))
+    (cpl:with-retry-counters ((second-pour-tries 20))
+      (cpl:with-failure-handling
+          ((pr2-ll:pr2-low-level-failure (e)
+             (roslisp:ros-warn (demo step-6) "~a" e)
+             (cpl:do-retry second-pour-tries
+               (roslisp:ros-warn (demo step-6) "Retrying")
+               (cpl:retry))
+             (return)))
 
-      (let* ((?cup-desig (desig:an object
-                                   (type cup)
-                                   (color "yellow")))
-             (?second-cup-to-pour (perceive ?cup-desig
-                                            :quantifier :all
-                                            :object-chosing-function
-                                            #'chose-higher-cup)))
-        ;; drive towards second cup
-        (drive-towards-object-plan ?second-cup-to-pour :?arm :right)
-        ;; perform pouring using object-in-hand-s
-        (cpl:par
-          (plan-lib:perform (desig:an action
-                                      (to look-at-action)
-                                      (object ?second-cup-to-pour)))
-          (plan-lib:perform (desig:an action
-                                      (to pour-activity)
-                                      (arm right)
-                                      (target ?second-cup-to-pour)
-                                      (pour-volume 0.0002))))))))
+        (step-6-inner)))))
 
 (defun step-7-place-bottle ()
   (cpl:with-failure-handling
