@@ -128,6 +128,9 @@
   ;;       lower: -0.0168588836555
   ;;       upper: -0.0109408055036
 
+(defun wait (duration)
+  (cpl:sleep duration))
+
 (defmacro with-logging-pour ((source-designator target-designator)
                              &body body)
   `(let ((log-id (let ((id (beliefstate:start-node "POUR" `() 2)))

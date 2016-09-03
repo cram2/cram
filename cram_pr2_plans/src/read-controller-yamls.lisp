@@ -44,7 +44,7 @@
 (defun read-yaml-file (controller)
   (declare (type keyword controller))
   (let* ((uri (format nil
-                      "package://giskard_examples/controller_specs/pr2_pouring_example/templates/~a.yaml"
+                      "package://giskard_examples/controller_specs/pr2_pouring_example/templates/~a.yaml.lisp"
                       (second (assoc controller *controller-filenames*))))
          (yaml-in-a-string (file-string (namestring (parse-uri uri)))))
     (format t "EXECUTING URI: ~a~%~%" uri)
