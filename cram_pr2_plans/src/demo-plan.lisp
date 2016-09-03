@@ -107,7 +107,7 @@
                                 (arm (left right))
                                 (source right)
                                 (target left)
-                                (pour-volume 0.0002)))
+                                (pour-volume 0.0001)))
     (go-to-initial-pouring-configuration-plan)))
 
 (defun step-4-place-cup ()

@@ -189,7 +189,7 @@
     (object-type-grasp ?destination-type ?destination-grasp)
     ;; volume
     (desig-prop ?action-designator (:pour-volume ?pour-volume))
-    (equal ?liquid-in-source 0.0004)
+    (equal ?liquid-in-source 0.0002)
     ;; so we have (an action (to pour) (destination (an object (pose ...) (type ...))))
     ;; now we need to add the phases with the corresponding via-points and angles
     ;; find the missing info
