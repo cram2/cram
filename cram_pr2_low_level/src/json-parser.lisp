@@ -70,6 +70,9 @@
 (defmethod parse-json-node ((name (eql :timestamp)) node) nil)
 (defmethod parse-json-node ((name (eql :pipelineid)) node) nil)
 
+(defmethod parse-json-node ((name (eql :id)) node)
+  (list :cluster-id node))
+
 (defmethod parse-json-node ((name (eql :type)) node)
   (list name (intern (string-upcase node) :keyword)))
 (defmethod parse-json-node ((name (eql :shape)) node)
