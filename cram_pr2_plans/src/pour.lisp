@@ -216,34 +216,9 @@
                                 (destination ?perceived-cup-desig)))
     (move-pr2-arms-out-of-sight :arm ?arm)))
 
-(defun georgs-function (yaml-format constraints)
-  (declare (type string yaml-format)
-           (type list constraints))
-  "The list of constraints looks like the following:
-'((constraint-1 23 34)
-  (constraint-2 45 47))"
-  (let* ((constraint-indeces
-           '(("source_top_behind_goal_target_top" 0)
-             ("source_top_left_goal_target_top" 1)
-             ("source_top_above_goal_target_top"2)
-             ("source_behind_itself" 6)
-             ("source_left_itself" 7)
-             ("source_above_itself" 8)))
-         (replacements (make-array (* 2 (length constraint-indeces)))))
-    (dolist (constraint constraints)
-      (let ((index (second (find (car constraint) constraint-indeces :key #'car :test #'string=))))
-        (setf (elt replacements index) (second constraint))
-        (setf (elt replacements (+ index 3)) (third constraint))))
-    (apply #'format nil yaml-format (coerce replacements 'list))))
-
-(defun put-together-yaml (phase constraints)
-  (georgs-function
-   (read-yaml-file phase)
-   constraints))
-
 (defun giskard-yaml (phase constraints)
   (pr2-ll::call-giskard-yaml-action
-   :yaml-string (put-together-yaml phase constraints)
+   :yaml-string (constraints-into-controller (read-yaml-file phase) constraints)
    :action-timeout 60.0))
 
 (defun go-to-initial-pouring-configuration-plan ()
