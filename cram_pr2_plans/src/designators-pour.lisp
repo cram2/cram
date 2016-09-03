@@ -110,6 +110,9 @@
                     (an action
                         (to tilt-back)
                         (constraints ?tilt-back-constraints))
+                    (an action
+                        (to wait)
+                        (duration 3.0))
                     ;; (an action
                     ;;     (to retract-action)
                     ;;     (left ?left-retract-poses)
@@ -150,7 +153,7 @@
               :left ?grasp ?left-pour-pose)
     (lisp-fun get-object-type-pour-pose ?source-type ?current-destination-designator
               :right ?grasp ?right-pour-pose)
-    (lisp-fun cram-math:degrees->radians 100 ?angle)
+    (lisp-fun cram-math:degrees->radians 120 ?angle)
     (lisp-fun get-tilted-pose ?left-pour-pose ?angle :left ?grasp ?left-tilt-pose)
     (lisp-fun get-tilted-pose ?right-pour-pose ?angle :right ?grasp ?right-tilt-pose)
     ;; retract phase:
@@ -192,7 +195,7 @@
     (object-type-grasp ?destination-type ?destination-grasp)
     ;; volume
     (desig-prop ?action-designator (:pour-volume ?pour-volume))
-    (equal ?liquid-in-source 0.0004)
+    (equal ?liquid-in-source 0.00025)
     ;; so we have (an action (to pour) (destination (an object (pose ...) (type ...))))
     ;; now we need to add the phases with the corresponding via-points and angles
     ;; find the missing info
