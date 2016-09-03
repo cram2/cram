@@ -64,6 +64,7 @@
 
 (defun append-pour-giskard-action-designator (action-designator arm
                                               source-type destination-type
+                                              pour-volume liquid-in-source
                                               ?left-retract-poses ?right-retract-poses)
   (case arm
     (:left (setf ?right-retract-poses nil))
@@ -91,7 +92,8 @@
 
     (let* ((pouring-constraints (call-learned-constraints-service
                                  source-type source-pose
-                                 destination-type destination-pose))
+                                 destination-type destination-pose
+                                 pour-volume liquid-in-source))
            (?approach-constraints (cadr (assoc :approach pouring-constraints)))
            (?tilt-down-constraints (cadr (assoc :tilt-down pouring-constraints)))
            (?tilt-back-constraints (cadr (assoc :tilt-back pouring-constraints)))
@@ -185,6 +187,9 @@
     (desig-prop ?current-destination-designator (:type ?destination-type))
     (lisp-fun get-object-pose ?current-destination-designator ?destination-pose)
     (object-type-grasp ?destination-type ?destination-grasp)
+    ;; volume
+    (desig-prop ?action-designator (:pour-volume ?pour-volume))
+    (equal ?liquid-in-source 0.0004)
     ;; so we have (an action (to pour) (destination (an object (pose ...) (type ...))))
     ;; now we need to add the phases with the corresponding via-points and angles
     ;; find the missing info
@@ -209,6 +214,7 @@
     ;; create new designator with updated appended action-description
     (lisp-fun append-pour-giskard-action-designator ?action-designator ?arm
               ?source-type ?destination-type
+              ?pour-volume ?liquid-in-source
               ?left-destination-retract-pose ?right-source-retract-pose
               ?updated-action-designator))
 
