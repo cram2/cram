@@ -89,7 +89,11 @@
                        (constraints (map 'list (lambda (constraint)
                                                  (roslisp:with-fields (name lower upper)
                                                      constraint
-                                                   (list name lower upper)))
+                                                   (list name
+                                                         (read-from-string
+                                                          (format nil "~,4f" lower))
+                                                         (read-from-string
+                                                          (format nil "~,4f" upper)))))
                                          constraints)))
                    (list name constraints))))
        result))

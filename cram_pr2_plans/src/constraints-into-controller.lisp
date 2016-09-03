@@ -36,12 +36,12 @@
 '((constraint-1 23 34)
   (constraint-2 45 47))"
   (let* ((constraint-indeces
-           '(("source_top_behind_goal_target_top" 0)
-             ("source_top_left_goal_target_top" 1)
-             ("source_top_above_goal_target_top"2)
-             ("source_behind_itself" 6)
-             ("source_left_itself" 7)
-             ("source_above_itself" 8)))
+           '(("source_top_behind_target_top" 0)
+             ("source_top_left_target_top" 1)
+             ("source_top_above_target_top"2)
+             ("source_top_behind_source_bottom" 6)
+             ("source_top_left_source_bottom" 7)
+             ("source_top_above_source_bottom" 8)))
          (replacements (make-array (* 2 (length constraint-indeces)))))
     (dolist (constraint constraints)
       (let ((index (second (find (car constraint) constraint-indeces :key #'car :test #'string=))))

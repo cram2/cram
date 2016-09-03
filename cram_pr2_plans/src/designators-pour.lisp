@@ -105,6 +105,9 @@
                         (to tilt-down)
                         (constraints ?tilt-down-constraints))
                     (an action
+                        (to wait)
+                        (duration 3.0))
+                    (an action
                         (to tilt-back)
                         (constraints ?tilt-back-constraints))
                     ;; (an action
@@ -189,7 +192,7 @@
     (object-type-grasp ?destination-type ?destination-grasp)
     ;; volume
     (desig-prop ?action-designator (:pour-volume ?pour-volume))
-    (equal ?liquid-in-source 0.0002)
+    (equal ?liquid-in-source 0.0004)
     ;; so we have (an action (to pour) (destination (an object (pose ...) (type ...))))
     ;; now we need to add the phases with the corresponding via-points and angles
     ;; find the missing info
@@ -245,4 +248,8 @@
         (desig-prop ?action-designator (:to :tilt-down))
         (desig-prop ?action-designator (:to :tilt-back)))
     (desig-prop ?action-designator (:to ?phase))
-    (desig-prop ?action-designator (:constraints ?constraints))))
+    (desig-prop ?action-designator (:constraints ?constraints)))
+
+  (<- (action-desig ?action-designator (wait ?duration))
+    (desig-prop ?action-designator (:to :wait))
+    (desig-prop ?action-designator (:duration ?duration))))
