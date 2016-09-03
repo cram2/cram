@@ -63,7 +63,6 @@
     (copy-designator action-designator :new-description `((:phases ,phases)))))
 
 (defun append-pour-giskard-action-designator (action-designator arm
-                                              source-pose destination-pose
                                               source-type destination-type
                                               ?left-retract-poses ?right-retract-poses)
   (case arm
@@ -71,17 +70,25 @@
     (:right (setf ?left-retract-poses nil)))
   ;; (setf ?left-grasp-poses (reverse ?left-grasp-poses))
   ;; (setf ?right-grasp-poses (reverse ?right-grasp-poses))
-  (let ((source-pose source-pose) ;; TODO: lookup pose of end-effectors here r_gripper_tool_frame
-        (destination-pose destination-pose)) ;;;;          l_gripper_tool_frame
-    ;; (cl-tf:transform-pose-stamped
-    ;;         cram-tf:*transformer*
-    ;;         :target-frame cram-tf:*robot-base-frame*
-    ;;         :pose (cl-tf:make-pose-stamped
-    ;;                pr2-ll::*left-tool-frame*
-    ;;                0.0
-    ;;                (cl-tf:make-identity-vector)
-    ;;                (cl-tf:make-identity-rotation))
-    ;;         :timeout cram-tf:*tf-default-timeout*)
+  (let ((source-pose (cl-tf:transform-pose-stamped
+                      cram-tf:*transformer*
+                      :target-frame cram-tf:*robot-base-frame*
+                      :pose (cl-tf:make-pose-stamped
+                             pr2-ll::*right-tool-frame*
+                             0.0
+                             (cl-tf:make-identity-vector)
+                             (cl-tf:make-identity-rotation))
+                      :timeout cram-tf:*tf-default-timeout*))
+        (destination-pose (cl-tf:transform-pose-stamped
+                           cram-tf:*transformer*
+                           :target-frame cram-tf:*robot-base-frame*
+                           :pose (cl-tf:make-pose-stamped
+                                  pr2-ll::*left-tool-frame*
+                                  0.0
+                                  (cl-tf:make-identity-vector)
+                                  (cl-tf:make-identity-rotation))
+                           :timeout cram-tf:*tf-default-timeout*)))
+
     (let* ((pouring-constraints (call-learned-constraints-service
                                  source-type source-pose
                                  destination-type destination-pose))
@@ -201,7 +208,6 @@
               :right ?destination-grasp ?right-destination-retract-pose)
     ;; create new designator with updated appended action-description
     (lisp-fun append-pour-giskard-action-designator ?action-designator ?arm
-              ?source-pose ?destination-pose
               ?source-type ?destination-type
               ?left-destination-retract-pose ?right-source-retract-pose
               ?updated-action-designator))
