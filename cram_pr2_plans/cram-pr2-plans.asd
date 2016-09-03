@@ -57,11 +57,14 @@
      (:file "occasions-events" :depends-on ("package"))
      (:file "designators-pick-and-place" :depends-on ("package" "grasping"))
      (:file "pick-and-place" :depends-on ("package" "grasping" "designators-pick-and-place"))
+     (:file "learned-constraints-service" :depends-on ("package"))
      (:file "designators-pour" :depends-on ("package" "grasping"
-                                                      "designators-pick-and-place"))
+                                                      "designators-pick-and-place"
+                                                      "learned-constraints-service"))
      (:file "ros-uri-parser" :depends-on ("package"))
      (:file "read-controller-yamls" :depends-on ("package" "ros-uri-parser"))
-     (:file "learned-constraints-service" :depends-on ("package"))
+     (:file "constraints-into-controller" :depends-on ("package"))
      (:file "pour" :depends-on ("package" "grasping" "designators-pour"
-                                          "read-controller-yamls"))
+                                          "read-controller-yamls"
+                                          "constraints-into-controller"))
      (:file "demo-plan" :depends-on ("package" "pour"))))))

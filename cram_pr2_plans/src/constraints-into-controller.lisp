@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2016, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2016, Georg Bartels <georg.bartels@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -29,23 +29,22 @@
 
 (in-package :pr2-plans)
 
-(defparameter *controller-filenames*
-  '((:approach "move_above_controller" "move_above_thresholds")
-    (:tilt-down "tilt_down_controller" "tilt_down_thresholds")
-    (:tilt-back "tilt_back_controller" "tilt_back_thresholds")))
-
-(defun file-string (path)
-  "snippet from Rosetta-Code"
-  (with-open-file (stream path)
-    (let ((data (make-string (file-length stream))))
-      (read-sequence data stream)
-      data)))
-
-(defun read-yaml-file (controller)
-  (declare (type keyword controller))
-  (let* ((uri (format nil
-                      "package://giskard_examples/controller_specs/pr2_pouring_example/templates/~a.yaml"
-                      (second (assoc controller *controller-filenames*))))
-         (yaml-in-a-string (file-string (namestring (parse-uri uri)))))
-    (format t "EXECUTING URI: ~a~%~%" uri)
-    yaml-in-a-string))
+(defun constraints-into-controller (yaml-format constraints)
+  (declare (type string yaml-format)
+           (type list constraints))
+  "The list of constraints looks like the following:
+'((constraint-1 23 34)
+  (constraint-2 45 47))"
+  (let* ((constraint-indeces
+           '(("source_top_behind_goal_target_top" 0)
+             ("source_top_left_goal_target_top" 1)
+             ("source_top_above_goal_target_top"2)
+             ("source_behind_itself" 6)
+             ("source_left_itself" 7)
+             ("source_above_itself" 8)))
+         (replacements (make-array (* 2 (length constraint-indeces)))))
+    (dolist (constraint constraints)
+      (let ((index (second (find (car constraint) constraint-indeces :key #'car :test #'string=))))
+        (setf (elt replacements index) (second constraint))
+        (setf (elt replacements (+ index 3)) (third constraint))))
+    (apply #'format nil yaml-format (coerce replacements 'list))))
