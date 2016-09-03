@@ -284,6 +284,10 @@
     ;; this is the place to do it.
     (lisp-fun make-empty-goal-specification ?goal-spec))
 
+  (<- (action-desig ?desig (park-none))
+    (trajectory-desig? ?desig)
+    (desig-prop ?desig (:to :park)))
+  
   (<- (action-desig ?desig (lift nil nil ?distance ?goal-spec))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :lift))
