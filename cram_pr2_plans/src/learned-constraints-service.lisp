@@ -36,7 +36,7 @@
 
 (defun make-learned-constraints-request (source-name-keyword source-pose-stamped
                                          target-name-keyword target-pose-stamped
-                                         pour-volume)
+                                         pour-volume liquid-in-source)
   (declare (type keyword target-name-keyword source-name-keyword)
            (type cl-transforms-stamped:pose-stamped target-pose-stamped source-pose-stamped))
 
@@ -54,7 +54,8 @@
             :liquid_volume liquid-volume)))
 
     (let* ((target (make-task-object-msg target-name-keyword target-pose-stamped :target))
-           (source (make-task-object-msg source-name-keyword source-pose-stamped :source)))
+           (source (make-task-object-msg source-name-keyword source-pose-stamped
+                                         :source liquid-in-source)))
       (roslisp:make-request
        giskard_msgs-srv:querymotion
        :task (roslisp:make-message
@@ -95,7 +96,9 @@
 
 (defun call-learned-constraints-service (source-name-keyword source-pose-stamped
                                          target-name-keyword target-pose-stamped
-                                         &optional (pour-volume 0.0))
+                                         &optional
+                                           (pour-volume 0.0)
+                                           (liquid-in-source 0.0))
   (loop until (roslisp:wait-for-service *learned-constraints-service-name* 5)
         do (roslisp:ros-info (learned-constr-service) "Waiting for learned constraints service."))
   (multiple-value-bind (source-name-keyword source-pose-stamped
@@ -108,5 +111,5 @@
          'giskard_msgs-srv:querymotion
          (make-learned-constraints-request source-name-keyword source-pose-stamped
                                            target-name-keyword target-pose-stamped
-                                           pour-volume))
+                                           pour-volume liquid-in-source))
       (ensure-learned-constraints-result phases))))
