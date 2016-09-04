@@ -129,7 +129,7 @@
   ;;       upper: -0.0109408055036
 
 (defun wait (duration)
-  (cpl:sleep duration))
+  (roslisp:wait-duration duration))
 
 (defmacro with-logging-pour ((source-designator target-designator)
                              &body body)
