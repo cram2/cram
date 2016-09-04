@@ -360,7 +360,7 @@
                             (case ?arm
                               (:left 0.2)
                               (:right -0.2)
-                              (t (error "arm can only be left or right")))))
+                              (t 0.0))))
          (robot-pose-in-map (cram-tf:robot-current-pose))
          (?goal-for-base (cl-transforms-stamped:copy-pose-stamped
                           robot-pose-in-map
