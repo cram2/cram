@@ -92,7 +92,7 @@
           (otherwise (assert nil)))))
     (format stream "~:@_")))
 
-(define-hook cram-language::on-preparing-task-execution (name log-parameters log-pattern))
+(define-hook cram-language::on-preparing-task-execution (name log-parameters log-pattern lambda-list parameters))
 (define-hook cram-language::on-finishing-task-execution (id))
 
 (defmacro with-task-tree-node ((&key
@@ -108,7 +108,7 @@
             (*current-task-tree-node* (ensure-tree-node *current-path*)))
        (declare (special *current-path* *current-task-tree-node*))
        (let ((log-id (first (cram-language::on-preparing-task-execution
-                             ,name ,log-parameters ,log-pattern))))
+                             ,name ,log-parameters ,log-pattern ',lambda-list ,parameters))))
          (unwind-protect
               (join-task
                (sb-thread:with-mutex ((task-tree-node-lock
