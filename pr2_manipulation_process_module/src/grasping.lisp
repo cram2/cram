@@ -30,7 +30,12 @@
 (defparameter *pregrasp-offset*
   (cl-transforms:make-pose
    (cl-transforms:make-3d-vector
-    -0.31 0.0 0.0)
+    -0.20 0.0 0.0)
+   (cl-transforms:euler->quaternion :ax (/ pi -2))))
+(defparameter *pregrasp-left-offset*
+  (cl-transforms:make-pose
+   (cl-transforms:make-3d-vector
+    -0.24 0.0 0.0)
    (cl-transforms:euler->quaternion :ax (/ pi -2))))
 (defparameter *pregrasp-top-slide-down-offset*
   (cl-transforms:make-pose
@@ -50,7 +55,12 @@
 (defparameter *grasp-offset*
   (cl-transforms:make-pose
    (cl-transforms:make-3d-vector
-    -0.22 0.0 0.0)
+    -0.10 0.0 0.0)
+   (cl-transforms:euler->quaternion :ax (/ pi -2))))
+(defparameter *grasp-left-offset*
+  (cl-transforms:make-pose
+   (cl-transforms:make-3d-vector
+    -0.14 0.0 0.0)
    (cl-transforms:euler->quaternion :ax (/ pi -2))))
 (defparameter *pre-putdown-offset*
   (cl-transforms:make-pose
@@ -237,7 +247,8 @@ configuration."
 
 (defun cost-reach-pose (obj arm pose pregrasp-offset grasp-offset
                         &key allowed-collision-objects
-                          only-reachable)
+                          only-reachable ignore-collisions-grasp
+                          gripper-offset-pose)
   (let* ((pose (tf:copy-pose-stamped pose :stamp 0.0))
          (pregrasp-offset (or pregrasp-offset (tf:make-identity-pose)))
          (grasp-offset (or grasp-offset (tf:make-identity-pose)))
@@ -245,12 +256,14 @@ configuration."
          (distance-pregrasp
            (cond (only-reachable (is-pose-reachable
                                   pose arm
-                                  :arm-offset-pose pregrasp-offset))
+                                  :arm-offset-pose pregrasp-offset
+                                  :gripper-offset-pose gripper-offset-pose))
                  (t (cdr (assoc arm
                                 (arms-pose-distances
                                  (list arm) pose
                                  :arms-offset-pose
                                  pregrasp-offset
+                                 ;; gripper offset missing here
                                  :highlight-links
                                  (links-for-arm-side arm)))))))
          (distance-grasp
@@ -261,14 +274,18 @@ configuration."
              (prog1
                  (cond (only-reachable (is-pose-reachable
                                         pose arm
-                                        :arm-offset-pose grasp-offset))
+                                        :arm-offset-pose grasp-offset
+                                        :ignore-collisions ignore-collisions-grasp
+                                        :gripper-offset-pose gripper-offset-pose))
                        (t (cdr (assoc arm
+                                      ;; ignore collisions missing here
                                       (arms-pose-distances
                                        (list arm) pose
                                        :arms-offset-pose
                                        grasp-offset
                                        :allowed-collision-objects
                                        allowed-collision-objects
+                                       ;; gripper offset missing here
                                        :highlight-links
                                        (links-for-arm-side arm))))))
                (unless ignore-object
@@ -323,11 +340,15 @@ configuration."
 ;;     (when (and distance-grasp (> distance-grasp 0))
 ;;       (+ distance-pregrasp distance-grasp))))
 
-(defun is-pose-reachable (pose arm &key arm-offset-pose)
-  (let ((pose (tf:copy-pose-stamped
-               (cond (arm-offset-pose (relative-pose pose arm-offset-pose))
-                     (t pose))
-               :stamp 0.0)))
+(defun is-pose-reachable (pose arm &key arm-offset-pose ignore-collisions (gripper-offset-pose (tf:make-identity-pose)))
+  (let* ((gripper-offset-pose (or gripper-offset-pose
+                                  (tf:make-identity-pose)))
+         (pose (tf:copy-pose-stamped
+                (cond (arm-offset-pose
+                       (relative-pose
+                        pose (relative-pose arm-offset-pose gripper-offset-pose)))
+                      (t (relative-pose pose gripper-offset-pose)))
+                :stamp 0.0)))
     (roslisp:publish (roslisp:advertise "/testpose" "geometry_msgs/PoseStamped")
                      (to-msg pose))
     (cpl:with-failure-handling
@@ -339,7 +360,8 @@ configuration."
              (ecase arm
                (:left "left_arm")
                (:right "right_arm"))
-             pose)
+             pose
+             :avoid-collisions (not ignore-collisions))
         1))))
 
 (defun arms-pose-distances (arms pose

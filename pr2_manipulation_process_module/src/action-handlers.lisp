@@ -59,30 +59,51 @@
                 (setf ,lazy-values (lazy-cdr ,lazy-values))))))
 
 (def-action-handler park-object (object grasp-assignments goal-spec)
-  (declare (ignore object))
-  (ros-info (pr2 manip-pm) "Parking object")
-  ;; TODO(winkler): Differentiate here between objects held with one
-  ;; arm (simple, default park pose), and multiple arms (keep
-  ;; transformation between the grippers as they are all attached to
-  ;; the same rigid object somewhere)
-  (execute-parks
-   (mapcar (lambda (grasp-assignment)
-             (make-instance
-              'park-parameters
-              :arm (side grasp-assignment)
-              :max-collisions-tolerance 3
-              :park-pose
-              (cond ((eql (grasp-type grasp-assignment)
-                          :top-slide-down)
-                     (ecase (side grasp-assignment)
-                       (:left *park-pose-left-top-slide-down*)
-                       (:right *park-pose-right-top-slide-down*)))
-                    (t
-                     (ecase (side grasp-assignment)
-                       (:left *park-pose-left-default*)
-                       (:right *park-pose-right-default*))))))
-           grasp-assignments)
-   goal-spec))
+  (let ((robosherlock-class (desig-prop-value object :robosherlock-class)))
+    (ros-info (pr2 manip-pm) "Parking object '~a'" robosherlock-class)
+    ;; TODO(winkler): Differentiate here between objects held with one
+    ;; arm (simple, default park pose), and multiple arms (keep
+    ;; transformation between the grippers as they are all attached to
+    ;; the same rigid object somewhere)
+    (execute-parks
+     (mapcar (lambda (grasp-assignment)
+               (cond ((string= robosherlock-class "Cup")
+                      (make-instance
+                       'park-parameters
+                       :arm (side grasp-assignment)
+                       :max-collisions-tolerance 3
+                       :park-pose
+                       (ecase (side grasp-assignment)
+                         (:left
+                          (tf:make-pose-stamped
+                           "torso_lift_link" (ros-time)
+                           (cl-transforms:make-3d-vector 0.1 0.45 0.3)
+                           (cl-transforms:euler->quaternion)))
+                         (:right
+                          (tf:make-pose-stamped
+                           "torso_lift_link" (ros-time)
+                           (cl-transforms:make-3d-vector 0.1 -0.45 0.3)
+                           (cl-transforms:euler->quaternion))))))
+                     (t
+                      (make-instance
+                       'park-parameters
+                       :arm (side grasp-assignment)
+                       :max-collisions-tolerance 3
+                       :park-pose
+                       (cond ((eql (grasp-type grasp-assignment)
+                                   :top-slide-down)
+                              (ecase (side grasp-assignment)
+                                (:left *park-pose-left-top-slide-down*)
+                                (:right *park-pose-right-top-slide-down*)))
+                             (t
+                              (ecase (side grasp-assignment)
+                                (:left *park-pose-left-default*)
+                                (:right *park-pose-right-default*))))))))
+             grasp-assignments)
+     goal-spec)))
+
+(def-action-handler park-none ()
+  )
 
 (def-action-handler park-arms (arms goal-spec)
   (ros-info (pr2 manip-pm) "Parking free arms: ~a" arms)
@@ -173,10 +194,11 @@
                                           (cl-transforms:make-3d-vector 0.3 0.5 1.3)
                                           (cl-transforms:euler->quaternion
                                            :ax 0 :ay (/ pi -2))))
-                                        (t (make-pose-stamped
-                                            *robot-torso-frame* (ros-time)
-                                            (cl-transforms:make-3d-vector 0.1 0.45 0.3)
-                                            (cl-transforms:euler->quaternion :ay (/ pi -2))))))
+                                        (t (object-park-pose arm obj))))
+                             ;; (make-pose-stamped
+                                            ;; *robot-torso-frame* (ros-time)
+                                            ;; (cl-transforms:make-3d-vector 0.1 0.45 0.3)
+                                            ;; (cl-transforms:euler->quaternion :ay (/ pi -2))))))
                                (:right (cond
                                          ((eql grasp-type :top-slide-down)
                                           (make-pose-stamped
@@ -184,14 +206,62 @@
                                            (cl-transforms:make-3d-vector 0.3 -0.5 1.3)
                                            (cl-transforms:euler->quaternion
                                             :ax 0 :ay (/ pi -2))))
-                                         (t (make-pose-stamped
-                                             *robot-torso-frame* (ros-time)
-                                             (cl-transforms:make-3d-vector 0.1 -0.45 0.3)
-                                             (cl-transforms:euler->quaternion :ay (/ pi -2)))))))))
+                                         (t (object-park-pose arm obj)))))))
+                                          ;; (make-pose-stamped
+                                          ;;    *robot-torso-frame* (ros-time)
+                                          ;;    (cl-transforms:make-3d-vector 0.1 -0.45 0.3)
+                                          ;;    (cl-transforms:euler->quaternion :ay (/ pi -2)))))))))
                        (mot-man:execute-arm-action (mot-man:enriched-goal-specification goal-spec
                                                                                         :keys `((:allowed-collision-objects ,allowed-collision-objects)
                                                                                                 (:ignore-collisions ,ignore-collisions))
                                                                                         :arm-pose-goals (list (list arm carry-pose))))))))))))))))
+
+             (defparameter *park-pose-left-default*
+  (make-pose-stamped
+   "torso_lift_link" (ros-time)
+   (cl-transforms:make-3d-vector 0.1 0.45 0.3)
+   (cl-transforms:euler->quaternion))); :ay (/ pi -2))))
+(defparameter *park-pose-right-default*
+  (make-pose-stamped
+   "torso_lift_link" (ros-time)
+   (cl-transforms:make-3d-vector 0.1 -0.45 0.3)
+   (cl-transforms:euler->quaternion))); :ay (/ pi -2))))
+
+
+(defun object-park-pose (side obj)
+  (let ((rs-class (desig-prop-value obj :robosherlock-class)))
+    (cond ((string= rs-class "Plate")
+           (ecase side
+             (:left (make-pose-stamped
+                     "torso_lift_link" (ros-time)
+                     (cl-transforms:make-3d-vector 0.1 0.45 0.3)
+                     (cl-transforms:euler->quaternion :ax (/ pi -2))))
+             (:right
+              (make-pose-stamped
+               "torso_lift_link" (ros-time)
+               (cl-transforms:make-3d-vector 0.1 -0.45 0.3)
+               (cl-transforms:euler->quaternion :ax (/ pi -2))))))
+          ((string= rs-class "Cup")
+           (ecase side
+             (:left (make-pose-stamped
+                     "torso_lift_link" (ros-time)
+                     (cl-transforms:make-3d-vector 0.1 0.45 0.3)
+                     (cl-transforms:euler->quaternion)))
+             (:right
+              (make-pose-stamped
+               "torso_lift_link" (ros-time)
+               (cl-transforms:make-3d-vector 0.1 -0.45 0.3)
+               (cl-transforms:euler->quaternion)))))
+          (t (ecase side
+               (:left (make-pose-stamped
+                       "torso_lift_link" (ros-time)
+                       (cl-transforms:make-3d-vector 0.1 0.45 0.3)
+                       (cl-transforms:euler->quaternion :ay (/ pi 2))))
+               (:right
+                (make-pose-stamped
+                 "torso_lift_link" (ros-time)
+                 (cl-transforms:make-3d-vector 0.1 -0.45 0.3)
+                 (cl-transforms:euler->quaternion :ay (/ pi 2)))))))))
 
 (def-action-handler lift (obj grasp-assignments distance goal-spec)
   (declare (ignore obj))
@@ -563,11 +633,11 @@
                                            (when (desig-prop-value
                                                   object-designator
                                                   :dimensions)
-                                             (+ (/ (tf:z (desig-prop-value
-                                                          object-designator
-                                                          :dimensions))
-                                                   2)
-                                                0.01))
+                                             ;;(+ (/ (tf:z (desig-prop-value
+                                             ;;             object-designator
+                                             ;;             :dimensions))
+                                             ;;      2)
+                                                0.02);;)
                                            0.1)))
          (lazy-putdown-poses
            (prolog:prolog
@@ -609,24 +679,32 @@
       (cram-language::on-finish-putdown log-id success))))
 
 (defmethod display-object-handles ((object object-designator))
-  (let* ((relative-handles (desig-prop-values object :handle))
-         (reorient-object
-           (var-value '?r (first (prolog:prolog `(reorient-object-globally ,object ?r)))))
-         (absolute-handles
-           (mapcar (lambda (handle)
-                     (absolute-handle object handle :reorient reorient-object))
-                   relative-handles))
-         (pose-msgs
-           (map 'vector
-                (lambda (handle)
-                  (let ((pose (reference (desig-prop-value handle :at))))
-                    (to-msg pose)))
-                absolute-handles)))
-    (let ((publisher (roslisp:advertise "objecthandleposes" "geometry_msgs/PoseArray")))
-      (roslisp:publish publisher
-                       (roslisp:make-message
-                        "geometry_msgs/PoseArray"
-                        (frame_id header) (frame-id
-                                           (reference (desig-prop-value
-                                                       (first absolute-handles) :at)))
-                        (poses) pose-msgs)))))
+  )
+  ;; (let* ((relative-handles (desig-prop-values object :handle))
+  ;;        (reorient-object
+  ;;          (var-value '?r (first (prolog:prolog `(reorient-object-globally ,object ?r)))))
+  ;;        (absolute-handles
+  ;;          (mapcar (lambda (handle)
+  ;;                    (absolute-handle object handle :reorient reorient-object))
+  ;;                  relative-handles))
+  ;;        (pose-msgs
+  ;;          (map 'vector
+  ;;               (lambda (handle)
+  ;;                 (let ((pose (reference (desig-prop-value handle :at))))
+  ;;                   (to-msg (tf:pose-stamped->pose pose))))
+  ;;               absolute-handles)))
+  ;;   (let ((publisher (roslisp:advertise "objecthandlepose" "geometry_msgs/PoseStamped")))
+  ;;     (roslisp:publish publisher
+  ;;                      (roslisp:make-message
+  ;;                       "geometry_msgs/PoseStamped"
+  ;;                       (frame_id header) (frame-id
+  ;;                                          (reference (desig-prop-value
+  ;;                                                      (first absolute-handles) :at)))
+  ;;                       (pose) (elt pose-msgs 4))))))
+      ;; (roslisp:publish publisher
+      ;;                  (roslisp:make-message
+      ;;                   "geometry_msgs/PoseArray"
+      ;;                   (frame_id header) (frame-id
+      ;;                                      (reference (desig-prop-value
+      ;;                                                  (first absolute-handles) :at)))
+      ;;                   (poses) pose-msgs)))))
