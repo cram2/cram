@@ -69,6 +69,8 @@
     (object-name gripper-effort gripper-close-pos side pregrasp-pose safe-pose))
 (define-hook cram-language::on-grasp-object (object-name side))
 (define-hook cram-language::on-putdown-object (object-name side))
+(define-hook cram-language::on-begin-lowering-object (object-name))
+(define-hook cram-language::on-finish-lowering-object (id))
 
 (defun wait-for-gripper-at-position (arm position &key (threshold 0.01))
   (let ((last-state -1))
@@ -160,11 +162,12 @@ motion."
                                                      (slot-value parameter-set slot-name)
                                                      (slot-value parameter-set 'blindly))))
                                            parameter-sets)))
-    (ros-info (pr2 motion) "Preliminary IK check")
-    (loop for (arm pose blindly) in arm-pose-goals
-          unless blindly
-            do (unless (cost-reach-pose nil arm pose nil nil :only-reachable t)
-                 (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable)))
+    (unless ignore-collisions
+      (ros-info (pr2 motion) "Preliminary IK check")
+      (loop for (arm pose blindly) in arm-pose-goals
+            unless blindly
+              do (unless (cost-reach-pose nil arm pose nil nil :only-reachable t)
+                   (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable))))
     (let ((arm-pose-goals (mapcar (lambda (set)
                                     (destructuring-bind (arm pose blindly) set
                                       `(,arm ,pose)))
@@ -231,7 +234,7 @@ arm `arm'."
 
 (defun execute-parks (parameter-sets goal-spec)
   (with-parameter-sets parameter-sets
-    (assume 'park-pose goal-spec)))
+    (assume 'park-pose goal-spec t)))
 
 (defun open-gripper-if-necessary (arm &key (threshold 0.08))
   "Opens the gripper on the robot's arm `arm' if its current position
@@ -269,7 +272,8 @@ grasp-type, effort to use) are defined in the list `parameter-sets'."
                (ros-warn (pr2 manip-pm) "Falling back to pregrasp pose")
                (assume 'pregrasp-pose goal-spec nil raise-elbow)))
           ;; (moveit:without-collision-object object-name
-          (assume 'grasp-pose goal-spec nil raise-elbow)
+          ;; NOTE(winkler): Added ignoring collisions here.
+          (assume 'grasp-pose goal-spec t raise-elbow)
           (loop for parameter-set in parameter-sets do
             (ros-info (pr2 manip-pm) "Closing gripper for arm ~a~%"
                       (arm parameter-set))
@@ -316,7 +320,9 @@ positions, grasp-type, effort to use) are defined in the list
              (declare (ignore f))
              (assume 'pre-putdown-pose goal-spec)
              (cpl:fail 'cram-plan-failures:manipulation-pose-unreachable)))
-        (assume 'putdown-pose goal-spec t)
+        (let ((id (first (cram-language::on-begin-lowering-object object-name))))
+          (assume 'putdown-pose goal-spec t)
+          (cram-language::on-finish-lowering-object id))
         (dolist (param-set parameter-sets)
           (cram-language::on-putdown-object object-name (arm param-set))
           (open-gripper (arm param-set))
@@ -394,7 +400,7 @@ positions, grasp-type, effort to use) are defined in the list
                                                                      :keys '((:ignore-collisions t))
                                                                      :arm-pose-goals target-arm-poses))))
 
-(defun relative-pose (pose pose-offset &key (time (ros-time)))
+(defmethod relative-pose ((pose cl-tf:pose-stamped) pose-offset &key (time (ros-time)))
   "Applies the pose `pose-offset' as transformation into the pose
 `pose' and returns the result in the frame of `pose'."
   (pose->pose-stamped
@@ -403,3 +409,9 @@ positions, grasp-type, effort to use) are defined in the list
    (cl-transforms:transform-pose
     (cl-transforms:pose->transform pose)
     pose-offset)))
+
+(defmethod relative-pose ((pose cl-tf:pose) pose-offset &rest rest)
+  (declare (ignore rest))
+  (cl-transforms:transform-pose
+   (cl-transforms:pose->transform pose)
+   pose-offset))
