@@ -1,5 +1,20 @@
 <launch>
-  <include file="$(find iai_maps)/launch/iai_maps.launch" />
+  <arg name="model" default="$(find iai_kitchen_defs)/room/kitchen_area.urdf.xml"/>
+  <param name="kitchen_description" command="$(find xacro)/xacro.py '$(arg model)'" />
+  
+  <node pkg="tf" type="static_transform_publisher" name="kitchen_link_broadcaster" 
+    args="-3.45 -4.35 0 -3.141 0 0 /map /iai_kitchen/kitchen_link 200">
+  </node>
+
+  <node pkg="robot_state_chain_publisher" type="state_chain_publisher"
+    name="kitchen_state_publisher" output="screen">
+    <param name="tf_prefix" value="/iai_kitchen"/>
+    <param name="publish_frequency" value="2"/>
+    <remap from="robot_description" to="kitchen_description" />
+  </node>
+
+  <include file="$(find iai_maps)/launch/map.launch" />
+  <include file="$(find iai_maps)/launch/json.launch" />
   <param name="robot_description_lowres"
          command="$(find xacro)/xacro.py
                   '$(find pr2_description_lowres)/robots/pr2.urdf.xacro'"/>

@@ -58,7 +58,7 @@
 ;; roslaunch spatial_relations_demo demo.launch
 (defvar *robot-urdf-lowres* nil)
 (defvar *kitchen-urdf* nil)
-(defun start-ros-and-bullet ()
+(defun start-ros-and-bullet (&optional (pi-rotation '(0 0 0 1)) (sem-map-xyz '(0 0 0)))
   (init "localhost")
   (setf *tf-default-timeout* 1.0)
   (unless *robot-urdf-lowres*
@@ -67,7 +67,8 @@
   (unless *kitchen-urdf*
     (setf *kitchen-urdf*
           (cl-urdf:parse-urdf (roslisp:get-param "kitchen_description"))))
-  (let ((pi-rotation '(0 0 1 0)))
+  (let ((pi-rotation '(0 0 1 0))
+        (sem-map-xyz '(-3.45 -4.35 0)))
     (clear-costmap-vis-object)
     (prolog
      `(and
@@ -79,7 +80,7 @@
                        :normal (0 0 1) :constant 0
                        :disable-collisions-with (?robot)))
        (semantic-map-object-name ?map-name)
-       (assert (object ?w :semantic-map ?map-name ((-3.45 -4.35 0) ,pi-rotation)
+       (assert (object ?w :semantic-map ?map-name (,sem-map-xyz ,pi-rotation)
                        :urdf ,*kitchen-urdf*))
        (assert (object ?w :urdf ?robot ((0 0 0) (0 0 0 1)) :urdf
                        ,*robot-urdf-lowres*))
