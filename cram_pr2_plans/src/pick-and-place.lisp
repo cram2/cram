@@ -29,6 +29,52 @@
 
 (in-package :pr2-plans)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;; overriding logging code: super ugly hack :) ;;;;;;;
+
+(cram-beliefstate::def-logging-hook cram-language::on-preparing-performing-action-designator (designator matching-process-modules)
+  (print "on-preparing-performing-action-designator")
+  (let ((id (beliefstate:start-node
+             "PERFORM-ACTION-DESIGNATOR"
+             (list
+              (list :description
+                    nil;; (desig:description designator)
+                    )
+              (list :matching-process-modules
+                    matching-process-modules))
+             2)))
+    (beliefstate:add-designator-to-node (make-designator :action ()) ;; designator
+                                        id)
+    id))
+
+(defun cram-beliefstate::add-designator-to-node (designator node-id &key (annotation "") (relative-context-id))
+  (let ((designator (if (typep designator 'list)
+                        (car designator)
+                        designator)))
+    (let* ((type (etypecase designator
+                   (cram-designators:action-designator "ACTION")
+                   (cram-designators:location-designator "LOCATION")
+                   (cram-designators:human-designator "HUMAN")
+                   (cram-designators:object-designator "OBJECT")
+                   (cram-designators:designator "DESIGNATOR")))
+           (memory-address (write-to-string
+                            (sb-kernel:get-lisp-obj-address designator)))
+           (description (description designator))
+           (result (cram-beliefstate::alter-node
+                    (remove-if-not
+                     #'identity
+                     (list (list :command :add-designator)
+                           (list :type type)
+                           (list :annotation annotation)
+                           (list :memory-address memory-address)
+                           (list :description description)
+                           (when relative-context-id
+                             (list :_relative_context_id relative-context-id))))
+                    :node-id node-id)))
+      (when result
+        (let* ((desig-id (desig-prop-value (first result) :id)))
+          desig-id)))))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; actions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpl:def-cram-function move-arms-in-sequence (?left-poses ?right-poses)
