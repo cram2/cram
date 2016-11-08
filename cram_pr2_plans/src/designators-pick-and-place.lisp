@@ -93,9 +93,9 @@
   (<- (object-type-grip-maximum-effort :cup 50))
   (<- (object-type-grip-maximum-effort :bottle 60))
   (<- (object-type-grip-maximum-effort :plate 100))
-  (<- (object-type-grip-maximum-effort :cutlery 30))
-  (<- (object-type-grip-maximum-effort :fork 30))
-  (<- (object-type-grip-maximum-effort :knife 30))
+  (<- (object-type-grip-maximum-effort :cutlery 100))
+  (<- (object-type-grip-maximum-effort :fork 100))
+  (<- (object-type-grip-maximum-effort :knife 100))
 
   (<- (gripper-action-maximum-effort ?object-designator ?maximum-effort)
     (current-designator ?object-designator ?current-object-designator)
