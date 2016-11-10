@@ -69,23 +69,29 @@
 
 (defun ensure-point-stamped (pose-specification)
   (etypecase pose-specification
-    (point-stamped pose-specification)
-    (pose-stamped
-     (make-point-stamped
-      (frame-id pose-specification)
-      (stamp pose-specification)
+    (cl-transforms-stamped:point-stamped pose-specification)
+    (cl-transforms-stamped:pose-stamped
+     (cl-transforms-stamped:make-point-stamped
+      (cl-transforms-stamped:frame-id pose-specification)
+      (cl-transforms-stamped:stamp pose-specification)
       (cl-transforms:origin pose-specification)))
     (cl-transforms:3d-vector
-     (make-point-stamped *fixed-frame* 0.0 pose-specification))
+     (cl-transforms-stamped:make-point-stamped
+      *fixed-frame*
+      0.0
+      pose-specification))
     (cl-transforms:pose
-     (make-point-stamped *fixed-frame* 0.0 (cl-transforms:origin pose-specification)))))
+     (cl-transforms-stamped:make-point-stamped
+      *fixed-frame*
+      0.0
+      (cl-transforms:origin pose-specification)))))
 
 (defun get-closest-orientation (pose orientations)
   "Returns the orientation in `orientation' that is closest to the
   orientation of `pose'. If `pose' is of type TF:POSE-STAMPED,
   transforms it first into the fixed frame."
   (let ((pose (etypecase pose
-                (pose-stamped
+                (cl-transforms-stamped:pose-stamped
                  (cl-transforms-stamped:transform-pose-stamped
                   *transformer*
                   :pose pose :target-frame *fixed-frame* :timeout *tf-default-timeout*))
