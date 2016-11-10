@@ -27,6 +27,7 @@
   <depend>cram_semantic_map_designators</depend>
   <depend>alexandria</depend>
   <depend>cram_bullet_reasoning_utilities</depend>
+  <depend>pr2_reachability_costmap</depend>
 
   <!-- launch file -->
   <exec_depend>iai_maps</exec_depend>

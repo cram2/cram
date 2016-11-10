@@ -49,7 +49,8 @@
                cram-pr2-designators
                cram-semantic-map-designators
                alexandria
-               cram-bullet-reasoning-utilities)
+               cram-bullet-reasoning-utilities
+               pr2-reachability-costmap)
   :components
   ((:module "src"
     :components
