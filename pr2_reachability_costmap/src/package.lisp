@@ -29,12 +29,12 @@
 (in-package :cl-user)
 
 (defpackage pr2-reachability-costmap
-  (:use #:common-lisp #:location-costmap #:cram-prolog #:cl-transforms-stamped)
+  (:use #:common-lisp #:location-costmap #:cram-prolog)
   (:import-from #:cram-tf
                 *fixed-frame* *transformer* *tf-default-timeout* *robot-torso-frame*)
   (:export generate-map-main reachability-map side maximum minimum
            resolution orientations reachability-map pose-reachable-p
-           pose-reachability inverse-reachability-map origin
+           pose-reachability inverse-reachability-map ;origin
            inverse-pose-reachability inverse-map-origin size
            find-ik-solution get-reachability-map inverse-map-size
            make-inverse-reachability-costmap))
