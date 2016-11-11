@@ -402,17 +402,7 @@
                               :pose object-pose-in-base
                               :target-frame cram-tf:*fixed-frame*
                               :use-current-ros-time t))
-         (new-x-for-base (- (cl-transforms:x (cl-transforms:origin object-pose-in-map))
-                            (case ?arm
-                              (:left 0.2)
-                              (:right -0.2)
-                              (t 0.0))))
-         (robot-pose-in-map (cram-tf:robot-current-pose))
-         (?goal-for-base (cl-transforms-stamped:copy-pose-stamped
-                          robot-pose-in-map
-                          :origin (cl-transforms:copy-3d-vector
-                                   (cl-transforms:origin robot-pose-in-map)
-                                   :x new-x-for-base))))
+         (?goal-for-base (pose-to-reach-object object-pose-in-map ?arm)))
     (plan-lib:perform (desig:an action
                                 (to go-motion)
                                 (to ?goal-for-base)))))
