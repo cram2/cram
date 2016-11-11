@@ -47,7 +47,10 @@
                cram-math
                cram-beliefstate
                giskard_msgs-msg
-               giskard_msgs-srv)
+               giskard_msgs-srv
+               cram-semantic-map-costmap
+               cram-robot-pose-gaussian-costmap
+               pr2-reachability-costmap)
 
   :components
   ((:module "src"
@@ -56,7 +59,10 @@
      (:file "grasping" :depends-on ("package"))
      (:file "occasions-events" :depends-on ("package"))
      (:file "designators-pick-and-place" :depends-on ("package" "grasping"))
-     (:file "pick-and-place" :depends-on ("package" "grasping" "designators-pick-and-place"))
+     (:file "costmaps" :depends-on ("package"))
+     (:file "pick-and-place" :depends-on ("package" "grasping"
+                                                    "designators-pick-and-place"
+                                                    "costmaps"))
      (:file "learned-constraints-service" :depends-on ("package"))
      (:file "designators-pour" :depends-on ("package" "grasping"
                                                       "designators-pick-and-place"
