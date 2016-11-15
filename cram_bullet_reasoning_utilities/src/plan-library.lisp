@@ -41,4 +41,4 @@
     (let ((perceived-object (plan-lib:perceive-object :a the-object)))
       (unless (desig-equal the-object perceived-object)
         (equate the-object perceived-object))
-      the-object)))
+      perceived-object)))
