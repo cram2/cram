@@ -1,19 +1,20 @@
 <?xml version="1.0"?>
 <package>
   <name>cram_intermediate_tutorial</name>
-  <version>0.0.2</version>
+  <version>0.2.2</version>
   <description>The cram_intermediate_tutorial package</description>
 
   <author email="blandc@cs.uni-bremen.de">Mihai Pomarlan</author>
-  <author email="bbrieber@tzi.de">Benjamin Brieber</author>
+  <author>Benjamin Brieber</author>
 
   <maintainer email="blandc@cs.uni-bremen.de">Mihai Pomarlan</maintainer>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
 
   <license>BSD</license>
 
   <url type="website">http://cram-system.org/tutorials</url>
-  <url type="bugtracker">https://github.com/cram-code/cram_tutorials/issues</url>
-  <url type="repository">https://github.com/cram-code/cram_tutorials</url>
+  <url type="bugtracker">https://github.com/cram2/cram_tutorials/issues</url>
+  <url type="repository">https://github.com/cram2/cram_tutorials</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 
