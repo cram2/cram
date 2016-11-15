@@ -1,6 +1,6 @@
 <package>
   <name>pr2_description_lowres</name>
-  <version>0.2.1</version>
+  <version>0.2.2</version>
   <description>
   pr2_description_lowres
 
@@ -11,19 +11,19 @@
 
   </description>
   <author>John Hsu, Eric Berger</author>
-  <maintainer email="musterman@fictional.de">Add Maintainer here</maintainer>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
   <license>BSD</license>
-  <url>http://ros.org/wiki/pr2_description</url>
 
-  <!-- Dependencies which this package needs to build itself. -->
+  <url type="website">http://cram-system.org</url>
+  <url type="bugtracker">https://github.com/cram2/cram_pr2/issues</url>
+  <url type="repository">https://github.com/cram2/cram_pr2</url>
+
   <buildtool_depend>catkin</buildtool_depend>
 
-  <!-- Dependencies needed to compile this package. -->
   <build_depend>convex_decomposition</build_depend>
   <build_depend>ivcon</build_depend>
   <build_depend>urdf</build_depend>
 
-  <!-- Dependencies needed after this package is compiled. -->
   <run_depend>convex_decomposition</run_depend>
   <run_depend>ivcon</run_depend>
   <run_depend>urdf</run_depend>

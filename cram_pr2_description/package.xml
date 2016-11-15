@@ -1,18 +1,19 @@
 <package>
   <name>cram_pr2_description</name>
-  <version>0.2.1</version>
+  <version>0.2.2</version>
   <description>
      cram_pr2_description
   </description>
   <author>Lorenz Moesenlechner</author>
   <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
   <license>BSD</license>
-  <url>http://ros.org/wiki/cram_pr2_description</url>
 
-  <!-- Dependencies which this package needs to build itself. -->
+  <url type="website">http://cram-system.org</url>
+  <url type="bugtracker">https://github.com/cram2/cram_pr2/issues</url>
+  <url type="repository">https://github.com/cram2/cram_pr2</url>
+
   <buildtool_depend>catkin</buildtool_depend>
 
-  <!-- Dependencies needed to compile this package. -->
   <build_depend>cram_prolog</build_depend>
   <build_depend>cram_robot_interfaces</build_depend>
   <build_depend>cram_designators</build_depend>
@@ -21,7 +22,6 @@
   <build_depend>roslisp</build_depend>
   <build_depend>roslisp_utilities</build_depend>
 
-  <!-- Dependencies needed after this package is compiled. -->
   <run_depend>cram_prolog</run_depend>
   <run_depend>cram_robot_interfaces</run_depend>
   <run_depend>cram_designators</run_depend>
@@ -29,5 +29,4 @@
   <run_depend>cl_urdf</run_depend>
   <run_depend>roslisp</run_depend>
   <run_depend>roslisp_utilities</run_depend>
-
 </package>
