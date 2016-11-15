@@ -1,20 +1,19 @@
 <package>
   <name>alexandria</name>
-  <version>0.2.1</version>
+  <version>0.2.2</version>
   <description>
       3rd party library: Alexandria
   </description>
 
   <author>Many</author>
 
-  <maintainer email="moesenle@cs.tum.edu">Lorenz Moesenlechner</maintainer>
-  <maintainer email="georg.bartels@cs.uni-bremen.de">Georg Bartels</maintainer>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
 
   <license>Public domain</license>
 
   <url type="website">http://common-lisp.net/project/alexandria/</url>
-  <url type="bugtracker">https://github.com/cram-code/cram_core/issues</url>
-  <url type="repository">https://github.com/cram-code/cram_core</url>
+  <url type="bugtracker">https://github.com/cram2/cram_3rdparty/issues</url>
+  <url type="repository">https://github.com/cram2/cram_3rdparty</url>
   <url type="repository">git://common-lisp.net/projects/alexandria/alexandria.git</url>
   <!--external-version>b1c6ee03c41e0db97989ae38e70da4d8263e09d1</external-version-->
 
