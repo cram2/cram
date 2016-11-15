@@ -1,19 +1,19 @@
 <package>
   <name>cram_robot_interfaces</name>
-  <version>0.2.1</version>
+  <version>0.2.2</version>
   <description>
     CRAM Manipulation Knowledge package
   </description>
 
-  <author email="moesenle@cs.tum.edu">Lorenz Moesenlechner</author>
+  <author>Lorenz Moesenlechner</author>
 
-  <maintainer email="moesenle@cs.tum.edu">Lorenz Moesenlechner</maintainer>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
 
   <license>BSD</license>
 
-  <url type="website">http://ros.org/wiki/cram_robot_interfaces</url>
-  <url type="bugtracker">https://github.com/cram-code/cram_highlevel/issues</url>
-  <url type="repository">https://github.com/cram-code/cram_highlevel</url>
+  <url type="website">http://cram-system.org</url>
+  <url type="bugtracker">https://github.com/cram2/cram_plans/issues</url>
+  <url type="repository">https://github.com/cram2/cram_plans</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 

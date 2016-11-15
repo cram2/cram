@@ -1,20 +1,20 @@
 <package>
   <name>cram_tf</name>
-  <version>0.2.1</version>
+  <version>0.2.2</version>
   <description>
     This package supplies application specific functionalities for
     designators with in the ROS system.
   </description>
 
-  <author email="moesenle@cs.tum.edu">Lorenz Moesenlechner</author>
+  <author>Lorenz Moesenlechner</author>
 
   <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
 
   <license>BSD</license>
 
   <url type="website">http://cram-system.org</url>
-  <url type="bugtracker">https://github.com/cram-code/cram_highlevel/issues</url>
-  <url type="repository">https://github.com/cram-code/cram_highlevel</url>
+  <url type="bugtracker">https://github.com/cram2/cram_plans/issues</url>
+  <url type="repository">https://github.com/cram2/cram_plans</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 
