@@ -1,19 +1,15 @@
 <package>
   <name>cram_json_prolog</name>
-  <version>0.2.1</version>
+  <version>0.2.2</version>
   <description>
-
      cram_json_prolog
-
   </description>
   <author>Lorenz Moesenlechner</author>
   <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
   <license>BSD</license>
 
-  <!-- Dependencies which this package needs to build itself. -->
   <buildtool_depend>catkin</buildtool_depend>
 
-  <!-- Dependencies needed to compile this package. -->
   <build_depend>sbcl</build_depend>
   <build_depend>roslisp</build_depend>
   <build_depend>json_prolog_msgs</build_depend>
@@ -22,7 +18,6 @@
   <build_depend>cram_prolog</build_depend>
   <build_depend>alexandria</build_depend>
 
-  <!-- Dependencies needed after this package is compiled. -->
   <run_depend>sbcl</run_depend>
   <run_depend>roslisp</run_depend>
   <run_depend>json_prolog_msgs</run_depend>
@@ -30,5 +25,4 @@
   <run_depend>cram_utilities</run_depend>
   <run_depend>cram_prolog</run_depend>
   <run_depend>alexandria</run_depend>
-
 </package>
