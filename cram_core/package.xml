@@ -1,25 +1,23 @@
 <!-- <?xml version="1.0"?> -->
 <package>
   <name>cram_core</name>
-  <version>0.2.1</version>
+  <version>0.2.2</version>
   <description>
      A set of libraries for implementing AI enabled robot control programs.
   </description>
 
-  <maintainer email="moesenle@cs.tum.edu">Lorenz Moesenlechner</maintainer>
-  <maintainer email="georg.bartels@cs.uni-bremen.de">Georg Bartels</maintainer>
+  <author>Lorenz Moesenlechner</author>
 
-  <author email="moesenle@cs.tum.edu">Lorenz Moesenlechner</author>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
 
   <license>BSD</license>
 
-  <url type="website">http://cram-project.org</url>
-  <url type="website">http://ros.org/wiki/cram_core</url>
-  <url type="bugtracker">https://github.com/cram-code/cram_core/issues</url>
-  <url type="repository">https://github.com/cram-code/cram_core</url>
+  <url type="website">http://cram-system.org</url>
+  <url type="bugtracker">https://github.com/cram2/cram_core/issues</url>
+  <url type="repository">https://github.com/cram2/cram_core</url>
 
   <buildtool_depend>catkin</buildtool_depend>
-  
+
   <run_depend>cram_designators</run_depend>
   <run_depend>cram_execution_trace</run_depend>
   <run_depend>cram_language</run_depend>
