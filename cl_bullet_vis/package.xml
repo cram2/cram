@@ -1,20 +1,19 @@
 <package>
   <name>cl_bullet_vis</name>
-  <version>0.2.1</version>
+  <version>0.2.2</version>
   <description>
-
      cl_bullet_vis
-
   </description>
   <author>Lorenz Moesenlechner</author>
-  <maintainer email="musterman@fictional.de">Add Maintainer here</maintainer>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
   <license>BSD</license>
-  <url>http://ros.org/wiki/cl_bullet_vis</url>
 
-  <!-- Dependencies which this package needs to build itself. -->
+  <url type="website">http://cram-system.org</url>
+  <url type="bugtracker">https://github.com/cram2/cram_3d_world/issues</url>
+  <url type="repository">https://github.com/cram2/cram_3d_world</url>
+
   <buildtool_depend>catkin</buildtool_depend>
 
-  <!-- Dependencies needed to compile this package. -->
   <build_depend>cl_bullet</build_depend>
   <build_depend>cram_physics_utils</build_depend>
   <build_depend>cl_opengl</build_depend>
@@ -24,7 +23,6 @@
   <build_depend>alexandria</build_depend>
   <build_depend>lisp_unit</build_depend>
 
-  <!-- Dependencies needed after this package is compiled. -->
   <run_depend>cl_bullet</run_depend>
   <run_depend>cram_physics_utils</run_depend>
   <run_depend>cl_opengl</run_depend>
@@ -33,7 +31,6 @@
   <run_depend>trivial_garbage</run_depend>
   <run_depend>alexandria</run_depend>
   <run_depend>lisp_unit</run_depend>
-
 </package>
 
 

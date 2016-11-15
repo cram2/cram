@@ -1,25 +1,22 @@
 <package>
   <name>cl_opengl</name>
-  <version>0.2.1</version>
+  <version>0.2.2</version>
   <description>
-
      cl_opengl
-
   </description>
   <author>Lorenz Moesenlechner</author>
-  <maintainer email="musterman@fictional.de">Add Maintainer here</maintainer>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
   <license>BSD</license>
-  <url>http://ros.org/wiki/cl_opengl</url>
 
-  <!-- Dependencies which this package needs to build itself. -->
+  <url type="website">http://cram-system.org</url>
+  <url type="bugtracker">https://github.com/cram2/cram_3d_world/issues</url>
+  <url type="repository">https://github.com/cram2/cram_3d_world</url>
+
   <buildtool_depend>catkin</buildtool_depend>
 
-  <!-- Dependencies needed to compile this package. -->
   <build_depend>cffi</build_depend>
 
-  <!-- Dependencies needed after this package is compiled. -->
   <run_depend>cffi</run_depend>
-
 </package>
 
 
