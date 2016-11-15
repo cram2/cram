@@ -1,20 +1,19 @@
 <package>
   <name>point_head_process_module</name>
-  <version>0.2.1</version>
+  <version>0.2.2</version>
   <description>
-
      point_head_process_module
-
   </description>
   <author>Lorenz Moesenlechner</author>
-  <maintainer email="musterman@fictional.de">Add Maintainer here</maintainer>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
   <license>BSD</license>
-  <url>http://ros.org/wiki/point_head_process_module</url>
 
-  <!-- Dependencies which this package needs to build itself. -->
+  <url type="website">http://cram-system.org</url>
+  <url type="bugtracker">https://github.com/cram2/cram_pr2/issues</url>
+  <url type="repository">https://github.com/cram2/cram_pr2</url>
+
   <buildtool_depend>catkin</buildtool_depend>
 
-  <!-- Dependencies needed to compile this package. -->
   <build_depend>pr2_controllers_msgs</build_depend>
   <build_depend>actionlib_lisp</build_depend>
   <build_depend>cram_process_modules</build_depend>
@@ -28,7 +27,6 @@
   <build_depend>alexandria</build_depend>
   <build_depend>cram_robot_interfaces</build_depend>
 
-  <!-- Dependencies needed after this package is compiled. -->
   <run_depend>pr2_controllers_msgs</run_depend>
   <run_depend>actionlib_lisp</run_depend>
   <run_depend>cram_process_modules</run_depend>
@@ -41,7 +39,6 @@
   <run_depend>roslisp_utilities</run_depend>
   <run_depend>alexandria</run_depend>
   <run_depend>cram_robot_interfaces</run_depend>
-
 </package>
 
 
