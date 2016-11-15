@@ -1,20 +1,19 @@
 <package>
   <name>cl_bullet</name>
-  <version>0.2.1</version>
+  <version>0.2.2</version>
   <description>
-     cl_bullet: 
-     A Common Lisp wrapper of the bullet physics engine
-
+     cl_bullet: A Common Lisp wrapper of the bullet physics engine
   </description>
   <author>Lorenz Moesenlechner</author>
-  <maintainer email="musterman@fictional.de">Add Maintainer here</maintainer>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
   <license>BSD</license>
-  <url>http://ros.org/wiki/cl_bullet</url>
 
-  <!-- Dependencies which this package needs to build itself. -->
+  <url type="website">http://cram-system.org</url>
+  <url type="bugtracker">https://github.com/cram2/cram_3d_world/issues</url>
+  <url type="repository">https://github.com/cram2/cram_3d_world</url>
+
   <buildtool_depend>catkin</buildtool_depend>
 
-  <!-- Dependencies needed to compile this package. -->
   <build_depend>sbcl</build_depend>
   <build_depend>bullet</build_depend>
   <build_depend>cffi</build_depend>
@@ -24,7 +23,6 @@
   <build_depend>cl_transforms</build_depend>
   <build_depend>cram_utilities</build_depend>
 
-  <!-- Dependencies needed after this package is compiled. -->
   <run_depend>sbcl</run_depend>
   <run_depend>bullet</run_depend>
   <run_depend>cffi</run_depend>
@@ -37,7 +35,6 @@
   <export>
     <cpp lflags="-Wl,-rpath,${LD_LIBRARY_PATH} -L${LD_LIBRARY_PATH} -lbullet_cl"/>
   </export>
-
 </package>
 
 

@@ -1,20 +1,19 @@
 <package>
   <name>cram_bullet_reasoning_designators</name>
-  <version>0.2.1</version>
+  <version>0.2.2</version>
   <description>
-
      cram_bullet_reasoning_designators
-
   </description>
   <author>Lorenz Moesenlechner</author>
-  <maintainer email="musterman@fictional.de">Add Maintainer here</maintainer>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
   <license>BSD</license>
-  <url>http://ros.org/wiki/cram_bullet_reasoning_designators</url>
 
-  <!-- Dependencies which this package needs to build itself. -->
+  <url type="website">http://cram-system.org</url>
+  <url type="bugtracker">https://github.com/cram2/cram_3d_world/issues</url>
+  <url type="repository">https://github.com/cram2/cram_3d_world</url>
+
   <buildtool_depend>catkin</buildtool_depend>
 
-  <!-- Dependencies needed to compile this package. -->
   <build_depend>cram_prolog</build_depend>
   <build_depend>cram_tf</build_depend>
   <build_depend>cram_utilities</build_depend>
@@ -31,7 +30,6 @@
   <build_depend>cl_bullet</build_depend>
   <build_depend>cl_bullet_vis</build_depend>
 
-  <!-- Dependencies needed after this package is compiled. -->
   <run_depend>cram_prolog</run_depend>
   <run_depend>cram_tf</run_depend>
   <run_depend>cram_utilities</run_depend>
@@ -47,5 +45,4 @@
   <run_depend>cl_opengl</run_depend>
   <run_depend>cl_bullet</run_depend>
   <run_depend>cl_bullet_vis</run_depend>
-
 </package>

@@ -1,11 +1,14 @@
 <package>
   <name>cram_3d_world</name>
-  <version>0.2.1</version>
+  <version>0.2.2</version>
   <description>cram_3d_world</description>
   <author>Lorenz Moesenlechner</author>
   <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
   <license>BSD</license>
-  <url>http://cram-system.org</url>
+
+  <url type="website">http://cram-system.org</url>
+  <url type="bugtracker">https://github.com/cram2/cram_3d_world/issues</url>
+  <url type="repository">https://github.com/cram2/cram_3d_world</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 
