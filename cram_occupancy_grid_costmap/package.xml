@@ -1,10 +1,10 @@
 <package>
   <name>cram_occupancy_grid_costmap</name>
-  <version>0.2.1</version>
+  <version>0.2.2</version>
   <description>
     Occupancy Grid Costmap package
   </description>
-  <author email="moesenle@cs.tum.edu">Lorenz Moesenlechner</author>
+  <author>Lorenz Moesenlechner</author>
   <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
   <license>BSD</license>
   <url type="website">http://cram-system.org</url>
