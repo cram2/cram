@@ -1,20 +1,20 @@
 <package>
   <name>gsll</name>
-  <version>0.2.1</version>
+  <version>0.2.2</version>
   <description>
       3rd party library: GSLL a GSL wrapper for common lisp
   </description>
 
-  <author></author>
+  <author>Liam M. Healy</author>
 
-  <maintainer email="moesenle@cs.tum.edu">Lorenz Moesenlechner</maintainer>
-  <maintainer email="georg.bartels@cs.uni-bremen.de">Georg Bartels</maintainer>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
 
   <license>GPL</license>
 
   <url type="website">http://common-lisp.net/project/gsll/</url>
-  <url type="bugtracker">https://github.com/cram-code/cram_core/issues</url>
-  <url type="repository">https://github.com/cram-code/cram_core</url>
+  <url type="bugtracker">https://github.com/cram2/cram_3rdparty/issues</url>
+  <url type="repository">https://github.com/cram2/cram_3rdparty</url>
+  <url type="repository">https://gitlab.common-lisp.net/antik/gsll</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 

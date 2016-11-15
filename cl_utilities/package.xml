@@ -1,14 +1,13 @@
 <package>
   <name>cl_utilities</name>
-  <version>0.2.1</version>
+  <version>0.2.2</version>
   <description>
     3rd party library: CL-UTILITIES
   </description>
 
   <author>Peter Scott</author>
 
-  <maintainer email="moesenle@cs.tum.edu">Lorenz Moesenlechner</maintainer>
-  <maintainer email="georg.bartels@cs.uni-bremen.de">Georg Bartels</maintainer>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
 
   <license>Public domain</license>
 

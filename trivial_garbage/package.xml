@@ -1,20 +1,19 @@
 <package>
   <name>trivial_garbage</name>
-  <version>0.2.1</version>
+  <version>0.2.2</version>
   <description>
       3rd party library: trivial-garbage
   </description>
 
   <author>Luis Oliveira</author>
 
-  <maintainer email="moesenle@cs.tum.edu">Lorenz Moesenlechner</maintainer>
-  <maintainer email="georg.bartels@cs.uni-bremen.de">Georg Bartels</maintainer>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
 
   <license>Public domain</license>
 
   <url type="website">http://www.cliki.net/trivial-garbage</url>
-  <url type="bugtracker">https://github.com/cram-code/cram_core/issues</url>
-  <url type="repository">https://github.com/cram-code/cram_core</url>
+  <url type="bugtracker">https://github.com/cram2/cram_3rdparty/issues</url>
+  <url type="repository">https://github.com/cram2/cram_3rdparty</url>
   <url type="repository">https://github.com/trivial-garbage/trivial-garbage.git</url>
   <!--external-version>5adca9908632124ca28bd17355ac281352fd97cb</external-version-->
 
