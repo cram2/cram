@@ -1,19 +1,18 @@
 <package>
   <name>cram_robot_pose_gaussian_costmap</name>
-  <version>0.2.1</version>
+  <version>0.2.2</version>
   <description>
     Gaussian distribution costmaps for robot poses
   </description>
 
-  <author email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</author>
+  <author>Gayane Kazhoyan</author>
   <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
 
   <license>BSD</license>
 
-  <url type="website">http://cram-project.org</url>
-  <url type="website">http://ros.org/wiki/robot_pose_gaussian_costmap</url>
-  <url type="bugtracker">https://github.com/cram-code/cram_highlevel/issues</url>
-  <url type="repository">https://github.com/cram-code/cram_highlevel</url>
+  <url type="website">http://cram-system.org</url>
+  <url type="bugtracker">https://github.com/cram2/cram_costmaps/issues</url>
+  <url type="repository">https://github.com/cram2/cram_costmaps</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 
