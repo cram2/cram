@@ -1,12 +1,17 @@
 <?xml version="1.0"?>
 <package>
   <name>cram_semantic_maps</name>
-  <version>0.2.1</version>
+  <version>0.2.2</version>
   <description>The cram_semantic_maps metapackage</description>
 
+  <author>Gayane Kazhoyan</author>
   <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+
   <license>BSD</license>
+
   <url type="website">http://cram-system.org</url>
+  <url type="bugtracker">https://github.com/cram2/cram_semantic_maps/issues</url>
+  <url type="repository">https://github.com/cram2/cram_semantic_maps</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 
