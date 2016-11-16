@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :btr-costmaps)
+(in-package :btr-costmap)
 
 (defmethod costmap-generator-name->score ((name (eql 'supporting-object))) 3)
 (defmethod costmap-generator-name->score ((name (eql 'slot-generator))) 5)
