@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-spatial-relations-costmap
+(defsystem cram-bullet-reasoning-costmaps
   :author "Gayane Kazhoyan"
   :license "BSD"
   :depends-on (cram-designators

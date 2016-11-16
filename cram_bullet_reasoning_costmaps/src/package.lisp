@@ -28,8 +28,8 @@
 
 (in-package :cl-user)
 
-(defpackage cram-spatial-relations-costmap
-  (:nicknames #:spatial-relations-costmap)
+(defpackage cram-bullet-reasoning-costmaps
+  (:nicknames #:btr-costmaps)
   (:use #:desig
         #:location-costmap
         #:common-lisp

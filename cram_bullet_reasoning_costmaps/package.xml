@@ -1,8 +1,8 @@
 <package>
-  <name>cram_spatial_relations_costmap</name>
+  <name>cram_bullet_reasoning_costmaps</name>
   <version>0.2.2</version>
   <description>
-     spatial_relations_costmap
+     Costmaps that use the Bullet World, e.g. spatial relations from AABBs
   </description>
   <author>Gayane Kazhoyan</author>
   <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
