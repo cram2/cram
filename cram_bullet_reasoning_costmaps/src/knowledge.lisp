@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :spatial-relations-costmap)
+(in-package :btr-costmaps)
 
 ;; TODO change after near and far is refactored
 ;; TODO maybe remove collision costmap completely, but rather just disable and uncomment
