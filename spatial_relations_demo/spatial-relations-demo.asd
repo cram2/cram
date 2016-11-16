@@ -29,7 +29,7 @@
 (defsystem spatial-relations-demo
   :author "eris"
   :license "BSD"
-  :depends-on (cram-bullet-reasoning-costmaps
+  :depends-on (cram-bullet-reasoning-costmap
                cl-urdf
                cram-designators
                cram-location-costmap
