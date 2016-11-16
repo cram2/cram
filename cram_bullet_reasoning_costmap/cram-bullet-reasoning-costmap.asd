@@ -26,16 +26,21 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
-
-(defpackage cram-bullet-reasoning-costmaps
-  (:nicknames #:btr-costmaps)
-  (:use #:desig
-        #:location-costmap
-        #:common-lisp
-        #:cram-prolog
-        #:semantic-map-costmap
-        #:btr
-        #:cram-utilities)
-  (:shadowing-import-from #:btr object pose object-pose width height))
-
+(defsystem cram-bullet-reasoning-costmap
+  :author "Gayane Kazhoyan"
+  :license "BSD"
+  :depends-on (cram-designators
+               cram-location-costmap
+               cram-prolog
+               cram-semantic-map-costmap
+               cram-bullet-reasoning
+               cram-utilities
+               cram-bullet-reasoning-belief-state)
+  :components
+  ((:module "src"
+    :components
+    ((:file "package")
+     (:file "designator-integration" :depends-on ("package"))
+     (:file "cost-functions" :depends-on ("package"))
+     (:file "prolog" :depends-on ("package"))
+     (:file "knowledge" :depends-on ("package"))))))

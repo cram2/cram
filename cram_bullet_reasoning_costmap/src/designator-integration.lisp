@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :btr-costmaps)
+(in-package :btr-costmap)
 
 (register-location-validation-function
  5 potential-field-costmap-pose-validator
