@@ -43,8 +43,8 @@
                  moveit_msgs-srv
                  moveit_msgs-msg
                  sensor_msgs-msg
-                 household_objects_database_msgs-msg
-                 household_objects_database_msgs-srv
+                 ;; household_objects_database_msgs-msg
+                 ;; household_objects_database_msgs-srv
                  cram-location-costmap
                  cram-designators
                  roslisp-utilities
@@ -62,8 +62,8 @@
                (:file "objects"
                 :depends-on ("package" "reasoning-world" "textures" "utils"))
                (:file "items" :depends-on ("package" "objects" "utils"))
-               (:file "ros-household-object-database"
-                :depends-on ("package" "objects" "items"))
+               ;; (:file "ros-household-object-database"
+               ;;  :depends-on ("package" "objects" "items"))
                (:file "aabb" :depends-on ("package" "objects"))
                (:file "debug-window" :depends-on ("package"))
                (:file "world-utils"

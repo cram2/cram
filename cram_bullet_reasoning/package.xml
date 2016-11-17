@@ -28,5 +28,5 @@
   <depend>cram_tf</depend>
   <depend>roslisp_utilities</depend>
   <depend>cram_utilities</depend>
-  <depend>household_objects_database_msgs</depend>
+  <!-- <depend>household_objects_database_msgs</depend> -->
 </package>
