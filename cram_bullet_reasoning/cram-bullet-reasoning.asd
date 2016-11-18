@@ -70,14 +70,20 @@
        (:file "world-facts"
         :depends-on ("package" "reasoning-world" "items" "objects" "debug-window" "world-utils"))
        (:file "prolog-handlers" :depends-on ("package" "reasoning-world" "world-facts"))
-       (:file "robot-model" :depends-on ("package" "objects" "utils" "reasoning-world"))
-       (:file "robot-model-utils" :depends-on ("package" "robot-model"))
-       (:file "robot-model-facts"
-        :depends-on ("package" "world-facts" "prolog-handlers" "robot-model" "robot-model-utils"))
+       (:module "temporal-reasoning"
+        :depends-on ("package" "reasoning-world" "world-facts" "utils")
+        :components
+        ((:file "events")
+         (:file "timeline" :depends-on ("events"))
+         (:file "prolog")))
        (:file "pose-generators" :depends-on ("package" "utils" "aabb" "world-facts"))
        (:file "pose-sampling-facts" :depends-on ("package" "world-facts" "pose-generators"))
        (:file "pose-facts"
         :depends-on ("package" "aabb" "world-utils" "pose-generators" "objects" "world-facts"))
+       (:file "robot-model" :depends-on ("package" "objects" "utils" "reasoning-world"))
+       (:file "robot-model-utils" :depends-on ("package" "robot-model"))
+       (:file "robot-model-facts"
+        :depends-on ("package" "world-facts" "prolog-handlers" "robot-model" "robot-model-utils"))
        (:file "gl-scenes" :depends-on ("package" "debug-window"))
        (:file "visibility-reasoning" :depends-on ("package" "gl-scenes"))
        (:file "visibility-facts"
@@ -85,17 +91,12 @@
        (:file "reachability" :depends-on ("package" "robot-model-utils"))
        (:file "reachability-facts"
         :depends-on ("package" "world-facts" "prolog-handlers" "robot-model-utils" "reachability"))
-       (:file "semantic-map" :depends-on ("package" "objects" "utils" "robot-model" "items"))
+       (:file "semantic-map" :depends-on ("package" "objects" "utils"))
+       (:file "simple-semantic-map" :depends-on ("package" "semantic-map"))
        (:file "urdf-semantic-map"
         :depends-on ("package" "reasoning-world" "semantic-map" "robot-model"))
-       (:file "simple-semantic-map" :depends-on ("package" "semantic-map"))
-       (:file "semantic-map-facts" :depends-on ("package" "semantic-map" "world-facts"))
+       (:file "semantic-map-facts"
+        :depends-on ("package" "semantic-map" "urdf-semantic-map" "world-facts"))
        (:file "articulated-objects" :depends-on ("package" "semantic-map"))
        (:file "action-facts"
-        :depends-on ("package" "world-facts" "prolog-handlers" "articulated-objects"))
-       (:module "temporal-reasoning"
-        :depends-on ("package" "reasoning-world" "world-facts" "utils")
-        :components
-        ((:file "events")
-         (:file "timeline" :depends-on ("events"))
-         (:file "prolog")))))))
+        :depends-on ("package" "world-facts" "prolog-handlers" "articulated-objects"))))))
