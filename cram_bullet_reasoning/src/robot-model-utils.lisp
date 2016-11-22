@@ -109,46 +109,6 @@ sensor_msgs/JointStates message."
                                        :element-type 'float
                                        :initial-element 0.0)))
 
-(defun get-link-chain (robot-urdf start end)
-  "Returns the chain of links from the link named `start' to the link
-  named `end'"
-  (labels ((walk-tree (curr end &optional path)
-             (let ((from-joint (cl-urdf:from-joint curr)))
-               (cond ((eq curr end)
-                      (cons curr path))
-                     ((not from-joint)
-                      nil)
-                     ((eq (cl-urdf:joint-type from-joint) :fixed)
-                      (walk-tree (cl-urdf:parent (cl-urdf:from-joint curr)) end path))
-                     (t
-                      (walk-tree (cl-urdf:parent (cl-urdf:from-joint curr))
-                                 end (cons curr path)))))))
-    (let ((start-link (gethash start (cl-urdf:links robot)))
-          (end-link (gethash end (cl-urdf:links robot))))
-      (assert start-link nil "Link `~a' unknown" start)
-      (assert end-link nil "Link `~a' unknown" end)
-      (walk-tree end-link start-link))))
-
-(defun get-joint-chain (robot-urdf start end)
-  "Returns the chain of joints from the link named `start' to the link
-  named `end'"
-  (labels ((walk-tree (curr end &optional path)
-             (let ((from-joint (cl-urdf:from-joint curr)))
-               (cond ((eq curr end)
-                      path)
-                     ((not from-joint)
-                      nil)
-                     ((eq (cl-urdf:joint-type from-joint) :fixed)
-                      (walk-tree (cl-urdf:parent (cl-urdf:from-joint curr)) end path))
-                     (t
-                      (walk-tree (cl-urdf:parent (cl-urdf:from-joint curr))
-                                 end (cons from-joint path)))))))
-    (let ((start-link (gethash start (cl-urdf:links robot)))
-          (end-link (gethash end (cl-urdf:links robot))))
-      (assert start-link nil "Link `~a' unknown" start)
-      (assert end-link nil "Link `~a' unknown" end)
-      (walk-tree end-link start-link))))
-
 ;; (defun make-seed-states (robot joint-names &optional (steps 3))
 ;;   "Returns a sequence of possible seed states. The first seed state is
 ;; the current state represented by `robot' the other states are
