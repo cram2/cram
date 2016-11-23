@@ -45,19 +45,20 @@
                                (:left "l")
                                (:right "r"))
                              "_gripper_controller/gripper_action")))
-    (setf (getf *gripper-action-clients* left-or-right)
-          (actionlib:make-action-client
-           action-server-name
-           "pr2_controllers_msgs/Pr2GripperCommandAction"))
-    (loop until (actionlib:wait-for-server
-                 (getf *gripper-action-clients* left-or-right)
-                 5.0)
-          do (roslisp:ros-info (gripper-action)
-                               "Waiting for ~a gripper action server."
-                               left-or-right))
-    (roslisp:ros-info (gripper-action)
-                      "~a gripper action client created."
-                      left-or-right)))
+    (prog1
+        (setf (getf *gripper-action-clients* left-or-right)
+              (actionlib:make-action-client
+               action-server-name
+               "pr2_controllers_msgs/Pr2GripperCommandAction"))
+      (loop until (actionlib:wait-for-server
+                   (getf *gripper-action-clients* left-or-right)
+                   5.0)
+            do (roslisp:ros-info (gripper-action)
+                                 "Waiting for ~a gripper action server."
+                                 left-or-right))
+      (roslisp:ros-info (gripper-action)
+                        "~a gripper action client created."
+                        left-or-right))))
 
 (defun init-gripper-action-clients ()
   (mapc #'init-gripper-action-client '(:left :right)))

@@ -35,13 +35,14 @@
 (defparameter *torso-convergence-delta* 0.005 "in meters")
 
 (defun init-torso-action-client ()
-  (setf *torso-action-client* (actionlib:make-action-client
-                               "torso_controller/position_joint_action"
-                               "pr2_controllers_msgs/SingleJointPositionAction"))
-  (loop until (actionlib:wait-for-server *torso-action-client* 5.0)
-        do (roslisp:ros-info (torso-action-client)
-                             "Waiting for torso controller actionlib server..."))
-  (roslisp:ros-info (torso-action-client) "Torso shape action client created."))
+  (prog1
+      (setf *torso-action-client* (actionlib:make-action-client
+                                   "torso_controller/position_joint_action"
+                                   "pr2_controllers_msgs/SingleJointPositionAction"))
+    (loop until (actionlib:wait-for-server *torso-action-client* 5.0)
+          do (roslisp:ros-info (torso-action-client)
+                               "Waiting for torso controller actionlib server..."))
+    (roslisp:ros-info (torso-action-client) "Torso shape action client created.")))
 
 (defun destroy-torso-action-client ()
   (setf *torso-action-client* nil))

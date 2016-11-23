@@ -41,19 +41,20 @@
                                (:left "l")
                                (:right "r"))
                              "_arm_controller/joint_trajectory_action")))
-    (setf (getf *joint-trajectory-action-clients* left-or-right)
-          (actionlib:make-action-client
-           action-server-name
-           "pr2_controllers_msgs/JointTrajectoryAction"))
-    (loop until (actionlib:wait-for-server
-                 (getf *joint-trajectory-action-clients* left-or-right)
-                 5.0)
-          do (roslisp:ros-info (joint-trajectory-action)
-                               "Waiting for ~a arm action server."
-                               left-or-right))
-    (roslisp:ros-info (joint-trajectory-action)
-                      "~a arm action client created."
-                      left-or-right)))
+    (prog1
+        (setf (getf *joint-trajectory-action-clients* left-or-right)
+              (actionlib:make-action-client
+               action-server-name
+               "pr2_controllers_msgs/JointTrajectoryAction"))
+      (loop until (actionlib:wait-for-server
+                   (getf *joint-trajectory-action-clients* left-or-right)
+                   5.0)
+            do (roslisp:ros-info (joint-trajectory-action)
+                                 "Waiting for ~a arm action server."
+                                 left-or-right))
+      (roslisp:ros-info (joint-trajectory-action)
+                        "~a arm action client created."
+                        left-or-right))))
 
 (defun destroy-joint-trajectory-action-clients ()
   (setf *joint-trajectory-action-clients* '(:left nil :right nil)))
