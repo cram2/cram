@@ -38,11 +38,12 @@
   "Initializes *robosherlock-service* ROS publisher"
   (loop until (roslisp:wait-for-service *robosherlock-service-name* 5)
         do (roslisp:ros-info (robosherlock-service) "Waiting for robosherlock service."))
-  (setf *robosherlock-service*
-        (make-instance 'roslisp:persistent-service
-          :service-name *robosherlock-service-name*
-          :service-type 'iai_robosherlock_msgs-srv:rsqueryservice))
-  (roslisp:ros-info (robosherlock-service) "Robosherlock service client created."))
+  (prog1
+      (setf *robosherlock-service*
+            (make-instance 'roslisp:persistent-service
+              :service-name *robosherlock-service-name*
+              :service-type 'iai_robosherlock_msgs-srv:rsqueryservice))
+    (roslisp:ros-info (robosherlock-service) "Robosherlock service client created.")))
 
 (defun get-robosherlock-service ()
   (if (and *robosherlock-service*
