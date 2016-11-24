@@ -31,4 +31,5 @@
 (defpackage cram-pr2-description
   (:use #:common-lisp
         #:cram-prolog
-        #:cram-robot-interfaces))
+        #:cram-robot-interfaces)
+  (:export #:pr2))
