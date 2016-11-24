@@ -31,4 +31,5 @@
 
 (defpackage cram-pr2-arm-kinematics
   (:nicknames :pr2-ik-fk)
-  (:use #:common-lisp))
+  (:use #:common-lisp)
+  (:export #:*use-arm-kinematics-interface*))
