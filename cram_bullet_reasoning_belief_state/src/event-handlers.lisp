@@ -146,7 +146,6 @@
   "Returns a new location designator that indicates a location in the
   robot's gripper."
   (declare (type object object))
-  (roslisp:ros-info () "making desig in gripper ~a~%~%~%~%" gripper-link)
   (let* ((object-pose (pose->pose-stamped *fixed-frame* 0.0 (btr:pose object)))
          (robot (get-robot-object)))
     (assert (member gripper-link (btr:object-attached robot object) :test #'equal))
