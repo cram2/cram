@@ -15,5 +15,9 @@
   <depend>cram_tf</depend>
   <depend>cl_transforms_stamped</depend>
   <depend>cl_transforms</depend>
+  <depend>moveit_msgs</depend>
+  <depend>cram_prolog</depend>
+  <depend>cram_utilities</depend>
+  <depend>roslisp</depend>
   <exec_depend>pr2_arm_kinematics</exec_depend>
 </package>
