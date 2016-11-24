@@ -47,7 +47,8 @@
                cram-semantic-map
                cram-semantic-map-designators
                cram-tf
-               cl-tf)
+               cl-tf
+               cram-pr2-arm-kinematics)
   :components
   ((:module "src"
     :components
