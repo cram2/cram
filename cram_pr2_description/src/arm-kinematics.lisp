@@ -154,11 +154,6 @@
                   "r_gripper_l_finger_tip_frame"
                   "r_gripper_palm_link"))))
 
-(defmethod side->ik-group-name ((side symbol))
-  (ecase side
-    (:right "right_arm")
-    (:left "left_arm")))
-
 (def-fact-group pr2-arm-kinematics-facts (end-effector-link
                                           robot-tool-frame
                                           gripper-link gripper-joint
