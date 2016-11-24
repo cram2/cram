@@ -31,10 +31,20 @@
   :maintainer "Gayane Kazhoyan"
   :license "BSD"
 
-  :depends-on (cram-robot-interfaces)
+  :depends-on (cram-robot-interfaces
+               cram-pr2-description
+               cram-tf
+               cl-transforms-stamped
+               cl-transforms
+               moveit_msgs-srv
+               moveit_msgs-msg
+               cram-prolog
+               cram-utilities
+               roslisp)
 
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "ik-fk" :depends-on ("package"))))))
+     (:file "ik" :depends-on ("package"))
+     (:file "fk" :depends-on ("package" "ik"))))))

@@ -38,7 +38,6 @@ When `*use-arm-kinematics-interface*' is set, use separate services for each arm
                                    :left "pr2_left_arm_kinematics/get_ik"
                                    :right "pr2_right_arm_kinematics/get_ik"))
 
-
 (defvar *ik-persistent-services* '(:moveit nil :left nil :right nil)
   "a persistent service for ik requests")
 
@@ -71,63 +70,24 @@ When `*use-arm-kinematics-interface*' is set, use separate services for each arm
 (roslisp-utilities:register-ros-cleanup-function destroy-ik-persistent-services)
 
 
-;;; only arm-kinematics, moveit is general, you give the chain, not ask for it
+(defun get-pr2-arm-joints-list (arm)
+  (cut:var-value '?joints
+                 (car (prolog:prolog `(cram-robot-interfaces:arm-joints
+                                       cram-pr2-description:pr2 ,arm ?joints)))))
 
-(defparameter *ik-info-service-names* '(:left "pr2_left_arm_kinematics/get_ik_solver_info"
-                                        :right "pr2_right_arm_kinematics/get_ik_solver_info"))
+(defun get-pr2-ee-link (arm)
+  (cut:var-value '?link
+                 (car (prolog:prolog `(cram-robot-interfaces:end-effector-link
+                                       cram-pr2-description:pr2 ,arm ?link)))))
 
-(defparameter *fk-info-service-names* '(:left "pr2_left_arm_kinematics/get_fk_solver_info"
-                                        :right "pr2_right_arm_kinematics/get_fk_solver_info"))
-
-(defvar *ik-solver-infos* '(:left nil :right nil)
-  "ik solver infos for the left and right arm ik solvers")
-
-(defvar *fk-solver-infos* '(:left nil :right nil)
-  "fk solver infos for the left and right arm fk solvers")
-
-(defun get-ik-solver-info (left-or-right)
-  "Only applicable to arm_kinematics package, with moveit the chain is given in the request."
-  (or (getf *ik-solver-infos* left-or-right)
-      (setf (getf *ik-solver-infos* left-or-right)
-            (roslisp:with-fields (kinematic_solver_info)
-                (roslisp:call-service
-                 (getf *ik-info-service-names* left-or-right)
-                 'moveit_msgs-srv:getkinematicsolverinfo)
-              kinematic_solver_info))))
-
-(defun get-ik-solver-joints (left-or-right)
-  (roslisp:with-fields (joint_names)
-      (get-ik-solver-info left-or-right)
-    joint_names))
-
-(defun get-ik-solver-link (left-or-right)
-  (roslisp:with-fields (link_names)
-      (get-ik-solver-info left-or-right)
-    (aref link_names 0)))
-
-(defun get-fk-solver-info (left-or-right)
-  (or (getf *fk-solver-infos* left-or-right)
-      (setf (getf *fk-solver-infos* left-or-right)
-            (roslisp:with-fields (kinematic_solver_info)
-                (roslisp:call-service
-                 (getf *fk-info-service-names* left-or-right)
-                 'moveit_msgs-srv:getkinematicsolverinfo)
-              kinematic_solver_info))))
-
-(defun get-fk-solver-joints (left-or-right)
-  (roslisp:with-fields (joint_names)
-      (get-fk-solver-info left-or-right)
-    joint_names))
-
-(defun get-fk-links (left-or-right)
-  (ecase left-or-right
-    (:left (vector "l_wrist_roll_link" "l_elbow_flex_link"))
-    (:right (vector "r_wrist_roll_link" "r_elbow_flex_link"))))
-
+(defun get-pr2-planning-group (arm)
+  (cut:var-value '?group
+                 (car (prolog:prolog `(cram-robot-interfaces:planning-group
+                                       cram-pr2-description:pr2 ,arm ?group)))))
 
 
 (defun make-zero-seed-state (left-or-right)
-  (let* ((joint-names (get-ik-solver-joints left-or-right))
+  (let* ((joint-names (map 'vector #'identity (get-pr2-arm-joints-list left-or-right)))
          (zero-vector (apply #'vector (make-list
                                        (length joint-names)
                                        :initial-element 0.0))))
@@ -138,19 +98,19 @@ When `*use-arm-kinematics-interface*' is set, use separate services for each arm
      velocity zero-vector
      effort zero-vector)))
 
-(defun make-current-seed-state (left-or-right)
-  (let* ((joint-names-vector (get-ik-solver-joints left-or-right))
-         (joint-names (map 'list #'identity joint-names-vector))
-         (joint-states (map 'vector #'joint-state-position (joint-states joint-names)))
-         (zero-vector (apply #'vector (make-list
-                                       (length joint-names)
-                                       :initial-element 0.0))))
-    (roslisp:make-message
-     "sensor_msgs/JointState"
-     name joint-names-vector
-     position joint-states
-     velocity zero-vector
-     effort zero-vector)))
+;; (defun make-bullet-current-seed-state (left-or-right)
+;;   (let* ((joint-names-vector (get-ik-solver-joints left-or-right))
+;;          (joint-names (map 'list #'identity joint-names-vector))
+;;          (joint-states (map 'vector #'joint-state-position (joint-states joint-names)))
+;;          (zero-vector (apply #'vector (make-list
+;;                                        (length joint-names)
+;;                                        :initial-element 0.0))))
+;;     (roslisp:make-message
+;;      "sensor_msgs/JointState"
+;;      name joint-names-vector
+;;      position joint-states
+;;      velocity zero-vector
+;;      effort zero-vector)))
 
 
 ;; (defun make-bullet-seed-states (robot-OBJECT robot-urdf joint-names &optional (steps 3))
@@ -208,10 +168,6 @@ When `*use-arm-kinematics-interface*' is set, use separate services for each arm
 ;;                                                   (gethash name lower-limits))
 ;;                                                (- steps 1)))))))))))))
 
-
-
-;; add TCP frame option
-
 (defun get-ee-pose-from-tcp-pose (tcp-pose
                                   &optional (tcp-in-ee-pose (cl-transforms:make-identity-pose)))
   (declare (type cl-transforms-stamped:pose-stamped tcp-pose)
@@ -226,12 +182,14 @@ When `*use-arm-kinematics-interface*' is set, use separate services for each arm
      (cl-transforms:translation goal-trans)
      (cl-transforms:rotation goal-trans))))
 
-(defun call-kinematics-ik-service (left-or-right cartesian-pose
-                                   &key (ik-base-frame cram-tf:*robot-torso-frame*)
+
+(defun call-kinematics-ik-service (cartesian-pose
+                                   &key left-or-right seed-state
+                                     (ik-base-frame cram-tf:*robot-torso-frame*)
                                      (tcp-in-ee-pose (cl-transforms:make-identity-pose)))
   (declare (type keyword left-or-right)
-           (type cl-transforms:pose cartesian-pose))
-  (let ((ik-link (get-ik-solver-link left-or-right)))
+           (type cl-transforms-stamped:pose-stamped cartesian-pose))
+  (let ((ik-link (get-pr2-ee-link left-or-right)))
     (handler-case
         (roslisp:with-fields ((error-code (val error_code))
                               (joint-state (joint_state solution)))
@@ -242,65 +200,55 @@ When `*use-arm-kinematics-interface*' is set, use separate services for each arm
               (:ik_link_name :ik_request) ik-link
               (:pose_stamped :ik_request) (cl-transforms-stamped:to-msg
                                            (get-ee-pose-from-tcp-pose
-                                            (cl-transforms-stamped:pose->pose-stamped
-                                             ik-base-frame
-                                             0.0
-                                             cartesian-pose)
+                                            (cl-transforms-stamped:transform-pose-stamped
+                                             cram-tf:*transformer*
+                                             :pose (cl-transforms-stamped:copy-pose-stamped
+                                                    cartesian-pose :stamp 0.0)
+                                             :target-frame ik-base-frame
+                                             :timeout cram-tf:*tf-default-timeout*)
                                             tcp-in-ee-pose))
-              (:joint_state :robot_state :ik_request) (make-zero-seed-state left-or-right)
+              (:joint_state :robot_state :ik_request) (or seed-state
+                                                          (make-zero-seed-state left-or-right))
               (:timeout :ik_request) 1.0))
-          (cond ((eql error-code
-                      (roslisp-msg-protocol:symbol-code
-                       'moveit_msgs-msg:moveiterrorcodes
-                       :success)) joint-state)
-                ((eql error-code
-                      (roslisp-msg-protocol:symbol-code
-                       'moveit_msgs-msg:moveiterrorcodes
-                       :no_ik_solution)) nil)
-                (t (roslisp:ros-warn (call-kinematics-ik-service)
+          (if (eql error-code
+                   (roslisp-msg-protocol:symbol-code
+                    'moveit_msgs-msg:moveiterrorcodes
+                    :success))
+              joint-state
+              (and (roslisp:ros-warn (call-kinematics-ik-service)
                                      "IK service failed: ~a"
                                      (roslisp-msg-protocol:code-symbol
                                       'moveit_msgs-msg:moveiterrorcodes
-                                      error-code)))))
+                                      error-code))
+                   nil)))
       (roslisp:service-call-error ()
         (roslisp:ros-warn (call-kinematics-ik-service) "No IK solution found.")
         nil))))
 
-(defun strip-joint-state! (joint-state arm)
-  "This hack is called 'oh I hate moveit' and will stay here until moveit
-acquires a nicer ROS API which will never happen because Ioan got bought by
-Google, or until somebody writes a nice ROS API wrapper around the moveit
-C++ API which has a very low probability happening because ain't nobody's got
-time for that :(..."
-  (let* ((arm-joints `(("left_arm" "l_shoulder_pan_joint"
-                                   "l_shoulder_lift_joint"
-                                   "l_upper_arm_roll_joint"
-                                   "l_elbow_flex_joint"
-                                   "l_forearm_roll_joint"
-                                   "l_wrist_flex_joint"
-                                   "l_wrist_roll_joint")
-                       ("right_arm"  "r_shoulder_pan_joint"
-                                     "r_shoulder_lift_joint"
-                                     "r_upper_arm_roll_joint"
-                                     "r_elbow_flex_joint"
-                                     "r_forearm_roll_joint"
-                                     "r_wrist_flex_joint"
-                                     "r_wrist_roll_joint")))
-         (joints (slot-value joint-state 'sensor_msgs-msg::name))
-         (indeces (mapcar #'(lambda (item) (position item joints :test #'equal))
-                          (cdr (assoc arm arm-joints :test #'equal)))))
-    (mapc #'(lambda (a-slot)
-                (setf (slot-value joint-state a-slot)
-                      (map 'vector #'(lambda (a-position)
-                                       (elt (slot-value joint-state a-slot) a-position))
-                           indeces)))
-            `(sensor_msgs-msg::name sensor_msgs-msg::position))))
 
-(defmethod call-moveit-ik-service (planning-group cartesian-pose
-                                   &key (ik-base-frame cram-tf:*robot-torso-frame*)
-                                     (tcp-in-ee-pose (cl-transforms:make-identity-pose)))
+(defun strip-joint-state (joint-state-msg left-or-right)
+  "From the joint state message of a full robot extracts only the arm joints.
+Uses SIDE EFFECTS!"
+  (flet ((take-indexed-elems-from-list-into-vector (the-list indices)
+           (map 'vector #'(lambda (a-position) (elt the-list a-position)) indices)))
+
+   (let* ((joints (slot-value joint-state-msg 'sensor_msgs-msg:name))
+          (indices (mapcar #'(lambda (item) (position item joints :test #'equal))
+                           (get-pr2-arm-joints-list left-or-right))))
+     (roslisp:with-fields (header name position)
+         joint-state-msg
+       (roslisp:make-message
+        "sensor_msgs/JointState"
+        :header header
+        :name (take-indexed-elems-from-list-into-vector name indices)
+        :position (take-indexed-elems-from-list-into-vector position indices))))))
+
+(defun call-moveit-ik-service (cartesian-pose
+                               &key left-or-right
+                                 (ik-base-frame cram-tf:*robot-torso-frame*)
+                                 (tcp-in-ee-pose (cl-transforms:make-identity-pose)))
   (declare (type cl-transforms-stamped:pose-stamped cartesian-pose)
-           (type string planning-group))
+           (type keyword left-or-right))
   (let* ((pose (cl-transforms-stamped:transform-pose-stamped
                 cram-tf:*transformer*
                 :pose (cl-transforms-stamped:copy-pose-stamped
@@ -326,61 +274,32 @@ time for that :(..."
           ;;               "moveit_msgs/RobotState"
           ;;               :joint_state (or seed-state
           ;;                                (btr:make-robot-joint-state-msg robot)))
-          :group_name planning-group
+          :group_name (get-pr2-planning-group left-or-right)
           :timeout 1.0))
-      (when (eql error-code (roslisp-msg-protocol:symbol-code
-                             'moveit_msgs-msg:moveiterrorcodes
-                             :success))
-        (strip-joint-state! solution planning-group)
-        (list solution)))))
+      (if (eql error-code (roslisp-msg-protocol:symbol-code
+                           'moveit_msgs-msg:moveiterrorcodes
+                           :success))
+          (strip-joint-state solution left-or-right)
+          (progn (roslisp:ros-warn (compute-iks) "IK moveit solver failed.")
+                 nil)))))
 
-(defun call-fk-service (left-or-right link-names-vector
-                        &optional (fk-base-frame "torso_lift_link"))
-  (declare (type keyword left-or-right))
-  (handler-case
-      (roslisp:with-fields ((response-error-code (val error_code))
-                            pose_stamped fk_link_names)
-          (progn
-            (roslisp:wait-for-service (concatenate 'string
-                                                   (getf *ik-service-namespaces* left-or-right)
-                                                   "/get_fk_solver_info") 10.0)
-            (roslisp:call-service
-             (concatenate 'string (getf *ik-service-namespaces* left-or-right) "/get_fk")
-             "moveit_msgs/GetPositionFK"
-             (roslisp:make-request
-              "moveit_msgs/GetPositionFK"
-              (:frame_id :header) fk-base-frame
-              :fk_link_names (or link-names-vector (get-fk-links left-or-right))
-              (:joint_state :robot_state) (make-current-seed-state left-or-right))))
-        (cond ((eql response-error-code
-                    (roslisp-msg-protocol:symbol-code
-                     'moveit_msgs-msg:moveiterrorcodes
-                     :success))
-               (map 'list
-                    (lambda (name pose-stamped-msg)
-                            (list name (cl-transforms-stamped:from-msg pose-stamped-msg)))
-                    fk_link_names
-                    pose_stamped))
-              (t (error 'simple-error
-                        :format-control "FK service failed: ~a"
-                        :format-arguments (list
-                                           (roslisp-msg-protocol:code-symbol
-                                            'moveit_msgs-msg:moveiterrorcodes
-                                            response-error-code))))))
-    (simple-error (e)
-      (format t "~a~%FK service call freaked out. Hmmm...~%" e))))
-
-(defun call-ik-service-and-joint-trajectory-action (left-or-right cartesian-pose-list)
-  (call-joint-trajectory-action
-   left-or-right
-   (mapcar (lambda (cartesian-pose)
-             (let ((ik-solution (call-ik-service left-or-right cartesian-pose)))
-              (when ik-solution
-                (roslisp:msg-slot-value ik-solution :position))))
-           cartesian-pose-list)))
-
-
-
-
-
-
+(defmethod cram-robot-interfaces:compute-iks (pose-stamped
+                                              &key link-name arm robot-state seed-state
+                                                (pose-stamped-frame
+                                                 cram-tf:*robot-torso-frame*)
+                                                (tcp-in-ee-pose
+                                                 (cl-transforms:make-identity-pose)))
+  (declare (ignore link-name robot-state))
+  (let ((solution
+          (if *use-arm-kinematics-interface*
+              (call-kinematics-ik-service pose-stamped
+                                          :left-or-right arm
+                                          :seed-state seed-state
+                                          :ik-base-frame pose-stamped-frame
+                                          :tcp-in-ee-pose tcp-in-ee-pose)
+              (call-moveit-ik-service pose-stamped
+                                      :left-or-right arm
+                                      :ik-base-frame pose-stamped-frame
+                                      :tcp-in-ee-pose tcp-in-ee-pose))))
+    (when solution
+      (list solution))))
