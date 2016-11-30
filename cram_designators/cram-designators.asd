@@ -32,6 +32,10 @@
                                                        "designator-id-mixin"
                                                        "equate-notification-mixin"
                                                        "designator-protocol"))
+               (:file "motion-designator" :depends-on ("package"
+                                                       "designator-id-mixin"
+                                                       "equate-notification-mixin"
+                                                       "designator-protocol"))
                (:file "location-designator" :depends-on ("package"
                                                          "designator-id-mixin"
                                                          "equate-notification-mixin"
