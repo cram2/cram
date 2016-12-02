@@ -45,7 +45,7 @@
     (desig-prop ?action-designator (:destination ?where))
     (-> (lisp-type ?where designator)
         (desig-location-prop ?where ?pose)
-        (or (cl-transforms:pose ?pose ?where)
+        (or (cram-tf:pose ?pose ?where)
             (equal ?where ?pose))))
 
   (<- (action-desig ?action-designator (drive ?pose))
