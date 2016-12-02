@@ -29,21 +29,18 @@
 
 (in-package :cram-robot-interfaces)
 
-(defgeneric compute-ik (pose-stamped &key link-name planning-group robot-state
-                                       target-frame seed-state tcp-frame)
+(defgeneric compute-iks (pose-stamped &key link-name arm robot-state seed-state
+                                        pose-stamped-frame tcp-in-ee-pose)
   (:documentation "Computes an inverse kinematics solution (if possible)
 to position the link `link-name' in the goal pose `pose-stamped'
-specified in the frame of the pose or `target-frame' when given,
-where only the links in `planning-group' can be moved to achieve the solution.
-When given, `robot-state' is used as initial pose of robot joints,
-otherwise TF data is used. `seed-state' is the initial seed for the
-iterative search for solution. When `tcp-frame' (i.e. tool center point) is given
-the goal pose is automatically transformed to take it into account.
-Returns a ROS message with solution states of the joints in the `planning-group'."))
-
-(defgeneric side->ik-group-name (side)
-  (:documentation "Returns the name of the kinematic chain group
-that corresponds to side indicator `side' used for the IK service."))
+specified in the frame of the pose or `pose-stamped-frame' when given,
+where only the links in `arm' can be moved to achieve the solution.
+When given, `robot-state' is the initial pose of robot joints,
+otherwise TF data is used. `seed-state' is the seed for the solver.
+ When `tcp-in-ee-pose' (i.e. pose of tool center point
+in end effector frame) is given the goal pose is automatically transformed
+to take it into account.
+Returns a ROS JointState message with solution states of the joints in the `arm'."))
 
 (def-fact-group reachability-designators ()
 
