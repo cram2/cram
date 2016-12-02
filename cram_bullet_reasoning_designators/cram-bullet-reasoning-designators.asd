@@ -36,7 +36,7 @@
                cram-location-costmap
                cram-tf
                cram-utilities
-               cram-bullet-reasoning-belief-state
+               cram-bullet-reasoning-belief-state ; for obj-desig <-> bullet instance
                cram-robot-interfaces
                cram-math
                cl-opengl

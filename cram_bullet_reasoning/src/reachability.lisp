@@ -142,7 +142,9 @@ tool length."
   (declare (type robot-object robot)
            (type cl-transforms:pose pose)
            (type (or cl-transforms:pose null) tool-frame))
-  (let ((reference-frame (cl-urdf:name (cl-urdf:root-link (slot-value robot 'urdf)))))
+  (let (;; Reference frame should rather be the torso link, not the base link
+        ;; (reference-frame (cl-urdf:name (cl-urdf:root-link (slot-value robot 'urdf))))
+        )
     (compute-iks
      (etypecase pose
        (pose-stamped pose)
