@@ -55,7 +55,7 @@
    ;; objects
    #:orientation-matters
    ;; designator prolog utils
-   #:compute-ik #:side->ik-group-name
+   #:compute-iks
    #:reachability-designator #:designator-reach-pose
    #:reachability-designator-p #:visibility-designator-p
    #:trajectory-desig? #:constraints-desig?
