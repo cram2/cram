@@ -187,6 +187,22 @@
                                                     (/ size-y 2)
                                                     (/ size-z 2))))))))
 
+(defmethod add-object ((world bt-world) (type (eql :colored-box)) name pose
+                       &key mass size color)
+  (destructuring-bind (size-x size-y size-z) size
+    (make-object world name
+                 (list
+                  (make-instance
+                      'rigid-body
+                    :name name :mass mass :pose (ensure-pose pose)
+                    :collision-shape (make-instance
+                                         'colored-box-shape
+                                       :half-extents (cl-transforms:make-3d-vector
+                                                      (/ size-x 2)
+                                                      (/ size-y 2)
+                                                      (/ size-z 2))
+                                       :color color))))))
+
 (defmethod add-object ((world bt-world) (type (eql :static-plane)) name pose
                        &key normal constant)
   (destructuring-bind (normal-x normal-y normal-z) normal
