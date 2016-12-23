@@ -31,6 +31,7 @@
 (def-fact-group semantic-map-object-poses (desig-solution)
   (<- (desig-solution ?designator ?solution)
     (desig-prop ?designator (:of ?object))
+    (obj-desig? ?object)
     (lisp-fun current-desig ?object ?current-object)
     (lisp-fun semantic-map-object-poses ?current-object ?poses)
     (member ?solution ?poses)))
