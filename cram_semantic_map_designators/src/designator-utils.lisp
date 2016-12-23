@@ -87,3 +87,13 @@
 (defun semantic-map-object-poses (designator)
   (let ((objects (designator->semantic-map-objects designator (get-semantic-map))))
     (mapcar #'sem-map-utils:pose objects)))
+
+(defun semantic-map-object-name-to-pose (name)
+  (let* ((map (or (get-semantic-map)
+                  (error "Semantic map was NIL, ROS node not running?")))
+         (part (semantic-map-part map name)))
+    (if part
+        (slot-value part 'pose)
+        (warn 'simple-warning
+              :format-control "Couldn't find ~a in the semantic map"
+              :format-arguments (list name)))))
