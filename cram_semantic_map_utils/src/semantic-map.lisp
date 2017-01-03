@@ -66,7 +66,8 @@
               (mapcar (lambda (elem)
                         (destructuring-bind (key . val) elem
                           (cons key (copy-semantic-map-object val))))
-                      (alexandria:hash-table-alist (slot-value map 'parts))))))
+                      (alexandria:hash-table-alist (slot-value map 'parts)))
+              :test (hash-table-test (slot-value map 'parts)))))
   (:method ((null null))
     nil)
   (:method ((part semantic-map-part))
