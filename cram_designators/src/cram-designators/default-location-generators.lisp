@@ -60,6 +60,7 @@
   (<- (desig-solution ?desig ?solution)
     (loc-desig? ?desig)
     (desig-prop ?desig (:of ?obj))
+    (obj-desig? ?obj)
     (lisp-fun current-desig ?obj ?curr-obj)
     (desig-prop ?curr-obj (:at ?loc))
     (desig-solutions ?loc ?locations)
