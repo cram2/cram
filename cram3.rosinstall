@@ -11,9 +11,6 @@
     uri: https://github.com/cram2/cram_core.git
     version: cram3
 - git:
-    local-name: cram_costmaps
-    uri: https://github.com/cram2/cram_costmaps.git
-- git:
     local-name: cram_json_prolog
     uri: https://github.com/cram2/cram_json_prolog.git
 - git:
