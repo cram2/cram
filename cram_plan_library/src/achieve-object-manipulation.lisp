@@ -131,7 +131,7 @@
         (perform carry-action)
         (monitor-action carry-action))
       (ros-info (achieve plan-lib) "Went into carry pose.")))
-  ?obj)
+  (current-desig ?obj))
 
 (def-goal (achieve (object-in-hand ?obj))
   (ros-info (achieve plan-lib) "(achieve (object-in-hand))")
@@ -214,7 +214,8 @@
                  (retry))
                (fail 'manipulation-pose-unreachable)))
           (perform park-action)
-          (monitor-action park-action))))))
+          (monitor-action park-action)
+          (current-desig ?obj))))))
 
 (def-goal (achieve (object-placed-at ?obj ?loc))
   (ros-info (achieve plan-lib) "(achieve (object-placed-at))")
