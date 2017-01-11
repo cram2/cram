@@ -33,7 +33,7 @@
           (push the-list btr::*mesh-files*))
         '((:sigg-bottle "package://spatial_relations_demo/resource/sigg_bottle.dae" nil)
           (:red-metal-plate "package://spatial_relations_demo/resource/red_metal_plate.stl" nil)
-          (:cup-eco-orange "package://spatial_relations_demo/resource/cup_eco_orange.dae" nil)
+          (:cup "package://spatial_relations_demo/resource/cup_eco_orange.dae" nil)
           (:buttermilk "package://spatial_relations_demo/resource/buttermilk.dae" nil)
           (:blue-metal-plate "package://spatial_relations_demo/resource/blue_metal_plate.stl" nil)
           (:fork-plastic "package://spatial_relations_demo/resource/fork_plastic.dae" nil)
@@ -42,8 +42,8 @@
                           :pose '((1.6449657570028138 0.9328318650954215 0.9536247253418)
                                   (0 0 0 1))
                           :color '(1 1 1 1))
-  (btr-utils:spawn-object 'cup-eco-orange-1 :cup-eco-orange
-                          :pose '((1.6598523033633232 0.32165466946515064 0.9032633) (0 0 0 1))
+  (btr-utils:spawn-object 'cup-eco-orange-1 :cup
+                          :pose '((1.3598523033633232 1.02165466946515064 0.9032633) (0 0 0 1))
                           :color '(0.7137255 0.5803922 0.24705882 1))
   (btr-utils:spawn-object 'buttermilk :buttermilk
                           :pose '((1.721512325480535 0.544442728338611 0.932348633)
@@ -62,18 +62,18 @@
                                   (-0.0017352337446245264d0 1.3109851315570755d-4
                                    0.6757622542426927d0 0.7371176132561236d0))
                           :color '(0.7137255 0.24705882 0.26666668 1))
-  (btr:add-object *current-bullet-world* :colored-box 'salt
-                  '((1.7044382997562537 0.7396026807638739 0.9199178637695944)
-                    (0 0 0 1))
-                  :mass 0.2 :size '(0.050647392869 0.0686575695872 0.128500342369)
-                  :color '(1 1 0 1))
-  (btr:add-object *current-bullet-world* :colored-box 'vollmilch
-                  '((1.5287036222473342 1.0806849182155376 0.9602075024661253)
-                    (0 0 0 1))
-                  :mass 0.2 :size '(0.0679999813437 0.099999986589 0.185872137547)
-                  :color '(1 1 1 1))
+  ;; (btr:add-object *current-bullet-world* :colored-box 'salt
+  ;;                 '((1.7044382997562537 0.7396026807638739 0.9199178637695944)
+  ;;                   (0 0 0 1))
+  ;;                 :mass 0.2 :size '(0.050647392869 0.0686575695872 0.128500342369)
+  ;;                 :color '(1 1 0 1))
+  ;; (btr:add-object *current-bullet-world* :colored-box 'vollmilch
+  ;;                 '((1.5287036222473342 1.0806849182155376 0.9602075024661253)
+  ;;                   (0 0 0 1))
+  ;;                 :mass 0.2 :size '(0.0679999813437 0.099999986589 0.185872137547)
+  ;;                 :color '(1 1 1 1))
 
-  (btr-utils:spawn-object 'cup-eco-orange-2 :cup-eco-orange
+  (btr-utils:spawn-object 'cup-eco-orange-2 :cup
                           :pose '((-1.6432683127849896 -1.1857389681738502 0.7812669118)
                                   (0 0 0 1))
                           :color '(0.7137255 0.5803922 0.24705882 1))
@@ -94,20 +94,61 @@
 
   (btr:simulate *current-bullet-world* 10)
 
-  (move-robot '((0.4500001271565755d0 0.700000254313151d0 0)
-                (0.0d0 0.0d0 -0.1322081625626083d0 0.9912219717777405d0)))
+  ;; (move-robot '((0.4500001271565755d0 0.700000254313151d0 0)
+  ;;               (0.0d0 0.0d0 -0.1322081625626083d0 0.9912219717777405d0)))
   ;(move-robot '((0.6670132632707153 0.6223482855401716 0) (0 0 0 1)))
   )
+
+
+(defun detect (object-designator)
+  (car (cram-projection::projection-environment-result-result
+        (with-projection-environment pr2-bullet-projection-environment
+          (plan-lib:perceive-object
+           :a
+           object-designator)))))
+
+(defun pick-up (object-designator)
+  (car (cram-projection::projection-environment-result-result
+        (with-projection-environment pr2-bullet-projection-environment
+          (plan-lib:achieve `(object-in-hand ,object-designator))))))
+
+(defun place (object-designator location-designator)
+  (car (cram-projection::projection-environment-result-result
+        (with-projection-environment pr2-bullet-projection-environment
+          (plan-lib:achieve `(object-placed-at ,object-designator ,location-designator))))))
+
+(def-fact-group pick-and-placing-actions (action-desig)
+
+  (<- (action-desig ?action-designator (detect ?object-designator))
+    (or (desig-prop ?action-designator (:to :detect))
+        (desig-prop ?action-designator (:type :detecting)))
+    (desig-prop ?action-designator (:object ?object-designator)))
+
+  (<- (action-desig ?action-designator (pick-up ?object-designator))
+    (or (desig-prop ?action-designator (:to :pick-up))
+        (desig-prop ?action-designator (:type :picking-up)))
+    (desig-prop ?action-designator (:object ?object-designator)))
+
+  (<- (action-desig ?action-designator (place ?object-designator ?location-designator))
+    (or (desig-prop ?action-designator (:to :place))
+        (desig-prop ?action-designator (:type :placing)))
+    (desig-prop ?action-designator (:object ?object-designator))
+    (desig-prop ?action-designator (:at ?location-designator))))
+
 
 (def-fact-group manipulations (object-type-grasp orientation-matters)
   (<- (object-type-grasp :blue-metal-plate :front (:left)))
 
   (<- (object-type-grasp :knife-plastic :top (:right)))
 
+  (<- (object-type-grasp :cup :front (:right)))
+  (<- (object-type-grasp :cup :front (:left)))
+
   (<- (orientation-matters ?object-designator)
     (lisp-fun desig:current-desig ?object-designator ?current-object-designator)
     (or (desig:desig-prop ?current-object-designator (:type :knife-plastic))
         (desig:desig-prop ?current-object-designator (:type :fork-plastic)))))
+
 
 (defun only-pick ()
   (with-projection-environment pr2-bullet-projection-environment
@@ -116,9 +157,9 @@
               (find-object-on-counter :blue-metal-plate "Cupboard" "kitchen_sink_block")))
         (let ((knife-designator
                 (find-object-on-counter :knife-plastic "Cupboard" "kitchen_sink_block")))
-          (achieve `(object-in-hand ,blue-plate-designator))
+          (plan-lib:achieve `(object-in-hand ,blue-plate-designator))
           (setf blue-plate-designator (current-desig blue-plate-designator))
-          (achieve `(object-in-hand ,knife-designator))
+          (plan-lib:achieve `(object-in-hand ,knife-designator))
           (setf knife-designator (current-desig knife-designator)))))))
 
 (defun execute-pick-and-place ()
@@ -132,9 +173,9 @@
                 (find-object-on-counter :blue-metal-plate "Cupboard" "kitchen_sink_block")))
           (let ((knife-designator
                   (find-object-on-counter :knife-plastic "Cupboard" "kitchen_sink_block")))
-            (achieve `(object-in-hand ,blue-plate-designator))
+            (plan-lib:achieve `(object-in-hand ,blue-plate-designator))
             (setf blue-plate-designator (current-desig blue-plate-designator))
-            (achieve `(object-in-hand ,knife-designator))
+            (plan-lib:achieve `(object-in-hand ,knife-designator))
             (setf knife-designator (current-desig knife-designator))
 
             (let ((blue-plate-location (make-designator
@@ -145,7 +186,7 @@
                                                     (:left-of ,red-plate-designator)
                                                     (:far-from ,red-plate-designator)))))
               (format t "now trying to achieve the location of blue plate on kitchen-island~%")
-              (achieve `(object-placed-at ,blue-plate-designator ,blue-plate-location))
+              (plan-lib:achieve `(object-placed-at ,blue-plate-designator ,blue-plate-location))
               (setf blue-plate-designator (current-desig blue-plate-designator))
 
               (let ((on-kitchen-island (make-designator
@@ -156,4 +197,37 @@
                                                     (:right-of ,blue-plate-designator)
                                                     (:near ,blue-plate-designator)))))
                 (format t "now trying to achieve the location of mondamin on kitchen-island~%")
-                (achieve `(object-placed-at ,knife-designator ,on-kitchen-island))))))))))
+                (plan-lib:achieve `(object-placed-at ,knife-designator ,on-kitchen-island))))))))))
+
+
+#-sbcl
+
+(top-level
+        (perform
+         (an action
+             (type detecting)
+             (object (an object
+                         (at (a location (on "Cupboard") (name "kitchen_sink_block")))
+                         (type cup))))))
+#-sbcl
+
+(top-level
+        (perform
+         (an action
+             (to pick-up)
+             (object (an object
+                         (at (a location (on "Cupboard") (name "kitchen_sink_block")))
+                         (type cup))))))
+
+#-sbcl
+(
+
+(setf ?obj *)
+(top-level
+        (perform
+         (an action
+             (to place)
+             (object ?obj)
+             (at (a location (on "Cupboard") (name "kitchen_sink_block"))))))
+
+)
