@@ -10,6 +10,7 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>roslisp</depend>
+  <depend>cram_designators</depend>
   <!-- <depend>roslisp_utilities</depend> -->
   <!-- <depend>cl_transforms</depend> -->
   <!-- <depend>cl_transforms_stamped</depend> -->
@@ -21,7 +22,6 @@
   <!-- <depend>cram_utilities</depend> -->
   <!-- <depend>cram_process_modules</depend> -->
   <!-- <depend>cram_prolog</depend> -->
-  <!-- <depend>cram_designators</depend> -->
   <!-- <depend>cram_tf</depend> -->
   <!-- <depend>cram_robot_interfaces</depend> -->
   <!-- <depend>cram_plan_failures</depend> -->

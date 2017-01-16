@@ -33,6 +33,7 @@
   :license "BSD"
 
   :depends-on (roslisp
+               cram-designators
                )
 
   :components

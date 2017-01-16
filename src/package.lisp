@@ -33,4 +33,5 @@
   (:nicknames #:commander)
   (:use #:common-lisp)
   (:export
+   #:human-command
    ))

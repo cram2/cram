@@ -29,3 +29,7 @@
 
 (in-package :commander)
 
+(defun human-command (action-designator)
+  (format t "Executing ~a action on ~a~%"
+          (desig:desig-prop-value action-designator :type)
+          (desig:desig-prop-value action-designator :actor)))
