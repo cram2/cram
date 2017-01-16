@@ -34,6 +34,10 @@
 
   :depends-on (roslisp
                cram-designators
+               cram-sherpa-blue-wasp
+               cram-sherpa-red-wasp
+               cram-sherpa-hawk
+               cram-sherpa-donkey
                )
 
   :components

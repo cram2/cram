@@ -29,7 +29,12 @@
 
 (in-package :commander)
 
+;; Examples:
+;; (commander:human-command (desig:an action (type going) (goal "bridge")))
+;; (commander:human-command (desig:an action (type scanning) (area "bridge")))
+;; 
 (defun human-command (action-designator)
-  (format t "Executing ~a action on ~a~%"
+  (format t "Executing ~a action on robot ~a~%"
           (desig:desig-prop-value action-designator :type)
-          (desig:desig-prop-value action-designator :actor)))
+          (desig:desig-prop-value action-designator :actor))
+  (desig:reference action-designator))

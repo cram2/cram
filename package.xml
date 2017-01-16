@@ -11,21 +11,8 @@
 
   <depend>roslisp</depend>
   <depend>cram_designators</depend>
-  <!-- <depend>roslisp_utilities</depend> -->
-  <!-- <depend>cl_transforms</depend> -->
-  <!-- <depend>cl_transforms_stamped</depend> -->
-  <!-- <depend>cl_tf</depend> -->
-  <!-- <depend>actionlib_lisp</depend> -->
-  <!-- <depend>yason</depend> -->
-  <!-- <depend>alexandria</depend> -->
-  <!-- <depend>cram_language</depend> -->
-  <!-- <depend>cram_utilities</depend> -->
-  <!-- <depend>cram_process_modules</depend> -->
-  <!-- <depend>cram_prolog</depend> -->
-  <!-- <depend>cram_tf</depend> -->
-  <!-- <depend>cram_robot_interfaces</depend> -->
-  <!-- <depend>cram_plan_failures</depend> -->
-  <!-- <depend>sensor_msgs</depend> -->
-  <!-- <depend>geometry_msgs</depend> -->
-  <!-- <depend>visualization_msgs</depend> -->
+  <depend>cram_sherpa_blue_wasp</depend>
+  <depend>cram_sherpa_red_wasp</depend>
+  <depend>cram_sherpa_hawk</depend>
+  <depend>cram_sherpa_donkey</depend>
 </package>
