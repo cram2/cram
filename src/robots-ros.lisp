@@ -29,3 +29,29 @@
 
 (in-package :commander)
 
+(defmethod yason:encode ((object symbol) &optional (stream *standard-output*))
+  (write-char #\" stream)
+  (princ object stream)
+  (write-char #\" stream))
+
+(defmethod yason:encode ((object desig:designator) &optional (stream *standard-output*))
+  (yason:encode (list 'desig:a
+                      (car (rassoc (type-of object)
+                                   (get 'desig:make-designator :desig-types)))
+                      (alexandria:alist-hash-table (desig:properties object)))
+                stream))
+
+(defun action-designator->json (action-designator)
+  (let ((stream (make-string-output-stream)))
+    (yason:encode action-designator stream)
+    (get-output-stream-string stream)))
+
+(defun par-perform (action-designator)
+  "Calls the action performing ROS service.
+It has to come back immediately for the HMI interface not to be blocked."
+  
+  )
+
+(defun reference (action-designator)
+  "Calls the action designator reference ROS service"
+  )
