@@ -10,9 +10,11 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>roslisp</depend>
+  <depend>roslisp_utilities</depend>
   <depend>cram_designators</depend>
   <depend>cram_sherpa_blue_wasp</depend>
   <depend>cram_sherpa_red_wasp</depend>
   <depend>cram_sherpa_hawk</depend>
   <depend>cram_sherpa_donkey</depend>
+  <depend>sherpa_msgs</depend>
 </package>

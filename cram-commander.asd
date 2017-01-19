@@ -33,12 +33,14 @@
   :license "BSD"
 
   :depends-on (roslisp
+               roslisp-utilities
                cram-designators
                cram-sherpa-blue-wasp
                cram-sherpa-red-wasp
                cram-sherpa-hawk
                cram-sherpa-donkey
-               )
+               sherpa_msgs-msg
+               sherpa_msgs-srv)
 
   :components
   ((:module "src"

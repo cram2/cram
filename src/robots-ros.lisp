@@ -29,29 +29,42 @@
 
 (in-package :commander)
 
+(defparameter *reference-service-name* "/reference_designator")
+(defparameter *perform-service-name* "/perform_designator")
+
+(defparameter *reference-service-type* 'sherpa_msgs-srv:ReferenceDesignator)
+(defparameter *perform-service-type* 'sherpa_msgs-srv:PerformDesignator)
+
 (defmethod yason:encode ((object symbol) &optional (stream *standard-output*))
   (write-char #\" stream)
   (princ object stream)
   (write-char #\" stream))
 
 (defmethod yason:encode ((object desig:designator) &optional (stream *standard-output*))
-  (yason:encode (list 'desig:a
-                      (car (rassoc (type-of object)
-                                   (get 'desig:make-designator :desig-types)))
-                      (alexandria:alist-hash-table (desig:properties object)))
-                stream))
+  (format stream "[\"A\",\"~a\","
+          (car (rassoc (type-of object)
+                       (get 'desig:make-designator :desig-types))))
+  (yason:encode-alist (desig:properties object) stream)
+  (write-char #\] stream))
 
 (defun action-designator->json (action-designator)
   (let ((stream (make-string-output-stream)))
     (yason:encode action-designator stream)
     (get-output-stream-string stream)))
 
-(defun par-perform (action-designator)
+(defun call-reference (action-designator agent-namespace)
+  "Calls the action designator reference ROS service"
+  (roslisp:call-service
+   (concatenate 'string agent-namespace *reference-service-name*)
+   *reference-service-type*
+   :designator (action-designator->json action-designator)))
+
+(defun call-perform (action-designator agent-namespace)
   "Calls the action performing ROS service.
 It has to come back immediately for the HMI interface not to be blocked."
-  
-  )
+  (roslisp:call-service
+   (concatenate 'string agent-namespace *perform-service-name*)
+   *perform-service-type*
+   :designator (action-designator->json action-designator)))
 
-(defun reference (action-designator)
-  "Calls the action designator reference ROS service"
-  )
+
