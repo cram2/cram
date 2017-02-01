@@ -35,12 +35,10 @@
   :depends-on (roslisp
                roslisp-utilities
                cram-designators
-               cram-sherpa-blue-wasp
-               cram-sherpa-red-wasp
-               cram-sherpa-hawk
-               cram-sherpa-donkey
+               cram-sherpa-robots-common
                sherpa_msgs-msg
-               sherpa_msgs-srv)
+               sherpa_msgs-srv
+               actionlib)
 
   :components
   ((:module "src"

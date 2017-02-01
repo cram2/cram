@@ -33,7 +33,72 @@
 (defparameter *perform-service-name* "/perform_designator")
 
 (defparameter *reference-service-type* 'sherpa_msgs-srv:ReferenceDesignator)
-(defparameter *perform-service-type* 'sherpa_msgs-srv:PerformDesignator)
+(defparameter *perform-action-type* "sherpa_msgs/PerformDesignatorAction")
+
+(defparameter *perform-action-timeout* 5
+  "How many seconds to wait before returning from perform_designator action.")
+
+(defvar *perform-action-clients* (make-hash-table :test #'equal)
+  "Hash table where key is agent-namespace and value is its perform client")
+
+(defun init-perform-action-client (agent-namespace)
+  (let ((ros-name (concatenate 'string agent-namespace *perform-service-name*)))
+    (setf (gethash agent-namespace *perform-action-clients*)
+          (actionlib:make-action-client ros-name *perform-action-type*))
+   (loop until (actionlib:wait-for-server (gethash agent-namespace *perform-action-clients*) 5.0)
+         do (roslisp:ros-info (commander perform-client)
+                              "Waiting for ~a action server..." ros-name))
+   ;; (dotimes (seconds 5) ; give the client some time to settle down
+   ;;     (roslisp:ros-info (robots-common action-client)
+   ;;                       "Goal subscribers: ~a~%"
+   ;;                       (mapcar (lambda (connection)
+   ;;                                 (roslisp::subscriber-uri connection))
+   ;;                               (roslisp::subscriber-connections
+   ;;                                (actionlib::goal-pub ,action-var-name))))
+   ;;     (cpl:sleep 1))
+   (roslisp:ros-info (commander perform-client) "~a action client created." ros-name)
+   (gethash agent-namespace *perform-action-clients*)))
+
+(defun destroy-perform-action-clients ()
+  (maphash (lambda (agent-namespace client)
+             (setf client nil)
+             (remhash agent-namespace *perform-action-clients*))
+           *perform-action-clients*))
+
+(roslisp-utilities:register-ros-cleanup-function destroy-perform-action-clients)
+;; (roslisp-utilities:register-ros-init-function ,init-function-name)
+;; The init function is necessary because there is a bug when
+;; nodes don't subscribe to a publisher started from a terminal executable
+
+(defun get-perform-action-client (agent-namespace)
+  (or (gethash agent-namespace *perform-action-clients*)
+      (init-perform-action-client agent-namespace)))
+
+(defun call-perform-action (agent-namespace &key action-goal action-timeout)
+  (declare (type (or null sherpa_msgs-msg:PerformDesignatorGoal) action-goal)
+           (type (or null number) action-timeout))
+  (roslisp:ros-info (commander perform-client)
+                    "Calling CALL-PERFORM-ACTION on ~a with goal:~%~a"
+                    agent-namespace action-goal)
+  (unless action-timeout
+    (setf action-timeout *perform-action-timeout*))
+  (cpl:with-failure-handling
+      ((simple-error (e)
+         (format t "Actionlib error occured!~%~a~%Reinitializing...~%~%" e)
+         (init-perform-action-client agent-namespace)
+         (cpl:retry)))
+    (let ((actionlib:*action-server-timeout* 10.0))
+      (actionlib:send-goal
+       (get-perform-action-client agent-namespace)
+       action-goal
+       #'print #'print))))
+
+(defun make-perform-action-goal (action-or-motion-designator)
+  (declare (type desig:designator action-or-motion-designator))
+  (robots-common:make-symbol-type-message
+   'sherpa_msgs-msg:PerformDesignatorGoal
+   :designator (action-designator->json action-or-motion-designator)))
+
 
 (defmethod yason:encode ((object symbol) &optional (stream *standard-output*))
   (write-char #\" stream)
@@ -59,12 +124,11 @@
    *reference-service-type*
    :designator (action-designator->json action-designator)))
 
-(defun call-perform (action-designator agent-namespace)
+(defun call-perform (action-designator &optional agent-name)
   "Calls the action performing ROS service.
 It has to come back immediately for the HMI interface not to be blocked."
-  (roslisp:call-service
-   (concatenate 'string agent-namespace *perform-service-name*)
-   *perform-service-type*
-   :designator (action-designator->json action-designator)))
+  (call-perform-action
+   (robots-common:rosify_ agent-name)
+   :action-goal (make-perform-action-goal action-designator)))
 
 
