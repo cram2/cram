@@ -15,7 +15,7 @@
   <url type="bugtracker">https://github.com/cram2/cram_3rdparty/issues</url>
   <url type="repository">https://github.com/cram2/cram_3rdparty</url>
   <url type="repository">https://github.com/hanshuebner/yason.git</url>
-  <!--external-version>v0.7.2</external-version-->
+  <!--external-version>v0.7.6</external-version-->
 
   <buildtool_depend>catkin</buildtool_depend>
 

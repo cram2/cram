@@ -91,7 +91,7 @@
                  (encode-key/value key value stream)))
              object)
     object))
-                 
+
 (defmethod encode ((object vector) &optional (stream *standard-output*))
   (with-aggregate/object (stream #\[ #\])
     (loop for value across object
@@ -99,7 +99,7 @@
                (encode value stream)))
     object))
 
-(defun encode-list% (object &optional (stream *standard-output*))
+(defmethod encode ((object list) &optional (stream *standard-output*))
   (with-aggregate/object (stream #\[ #\])
     (dolist (value object)
       (with-element-output ()
@@ -110,55 +110,19 @@
   (let ((string (string key)))
     (encode-key/value string value stream)))
 
-(defun encode-alist% (object &optional (stream *standard-output*))
+(defun encode-alist (object &optional (stream *standard-output*))
   (with-aggregate/object (stream #\{ #\})
     (loop for (key . value) in object
-       do
-         (with-element-output ()
-           (if (consp value)
-               (progn
-                 (format stream "\"~a\":" key)
-                 (encode value stream))
-               (progn
-                 (encode-assoc-key/value key value stream)))))
+          do (with-element-output ()
+               (encode-assoc-key/value key value stream)))
     object))
-  
-(defun encode-plist% (object &optional (stream *standard-output*))
-  (with-aggregate/object (stream #\{ #\})
-    (loop for (key value) on object by #'cddr
-       do
-         (with-element-output ()
-           (if (consp value)
-               (progn
-                 (format stream "\"~a\":" key)
-                 (encode value stream))
-               (encode-assoc-key/value key value stream))))
-    object))
-
-(defvar *list->object-convention* :keyword-string)
-
-(defun can-map-to-json-object (my-list)
-  (case *list->object-convention*
-    (:plist (keywordp (car my-list)))
-    (:alist (if (consp (car my-list))
-                (keywordp (caar my-list))))))
-
-(defmethod encode ((object list) &optional (stream *standard-output*))
-  (if (can-map-to-json-object object)
-      (case *list->object-convention*
-        (:plist
-         (encode-plist% object stream))
-        (:alist
-         (encode-alist% object stream)))
-      (encode-list% object stream)))
-
-(defun encode-alist (object &optional (stream *standard-output*))
-  (let ((*list->object-convention* :alist))
-    (encode object stream)))
 
 (defun encode-plist (object &optional (stream *standard-output*))
-  (let ((*list->object-convention* :plist))
-    (encode object stream)))
+  (with-aggregate/object (stream #\{ #\})
+    (loop for (key value) on object by #'cddr
+          do (with-element-output ()
+               (encode-assoc-key/value key value stream)))
+    object))
 
 (defmethod encode ((object (eql 'true)) &optional (stream *standard-output*))
   (write-string "true" stream)
@@ -317,6 +281,26 @@ type for which an ENCODE method is defined."
   "Encode plist ELEMENTS as object elements."
   (loop for (key value) on elements by #'cddr
         do (encode-object-element key value)))
+
+(defun encode-object-slots (object slots)
+  "For each slot in SLOTS, encode that slot on OBJECT as an object element.
+Equivalent to calling ENCODE-OBJECT-ELEMENT for each slot where the
+key is the slot name, and the value is the (SLOT-VALUE OBJECT slot)"
+  (loop for slot in slots
+     do (encode-object-element (string slot)
+                               (slot-value object slot))))
+
+(define-compiler-macro encode-object-slots (&whole form &environment env object raw-slots)
+  "Compiler macro to allow open-coding with encode-object-slots when slots are literal list."
+  (let ((slots (macroexpand raw-slots env)))
+    (cond
+      ((null slots) nil)
+      ((eq (car slots) 'quote)
+       (setf slots (cadr slots))        ; Get the quoted list
+       `(with-slots ,slots ,object
+          ,@(loop for slot in slots
+               collect `(encode-object-element ,(string slot) ,slot))))
+      (t form))))
 
 (defmacro with-object-element ((key) &body body)
   "Open a new encoding context to encode a JSON object element.  KEY
