@@ -64,6 +64,9 @@
     local-name: cram_manipulation
     uri: https://github.com/cram2/cram_manipulation.git
 - git:
+    local-name: giskard_msgs
+    uri: https://github.com/SemRoCo/giskard_msgs.git
+- git:
     local-name: cram_pr2
     uri: https://github.com/cram2/cram_pr2.git
     version: cram3
