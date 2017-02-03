@@ -73,7 +73,7 @@
   (with-rendering-lock
     (gl:matrix-mode :projection)
     (gl:load-identity)
-    (glu:perspective 50 (/ (glut:width window) (glut:height window)) 0.1 100)
+    (glu:perspective 50 (/ (glut:width window) (glut:height window)) 0.1 1000)
     (gl:matrix-mode :modelview)
     (init-camera)
     (gl:enable :light0 :lighting :cull-face :depth-test :color-material :blend :rescale-normal)
