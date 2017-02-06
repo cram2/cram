@@ -124,11 +124,11 @@
    *reference-service-type*
    :designator (action-designator->json action-designator)))
 
-(defun call-perform (action-designator &optional agent-name)
+(defun call-perform (action-designator agent-string-or-nil)
   "Calls the action performing ROS service.
 It has to come back immediately for the HMI interface not to be blocked."
   (call-perform-action
-   (robots-common:rosify_ agent-name)
+   agent-string-or-nil
    :action-goal (make-perform-action-goal action-designator)))
 
 

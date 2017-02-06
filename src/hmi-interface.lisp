@@ -37,4 +37,8 @@
   (format t "Executing ~a action on robot ~a~%"
           (desig:desig-prop-value action-designator :type)
           (desig:desig-prop-value action-designator :actor))
-  (desig:reference action-designator))
+  (call-perform (desig:make-designator :action
+                                       (remove :actor
+                                               (desig:properties action-designator)
+                                               :key #'car))
+                (desig:desig-prop-value action-designator :actor)))
