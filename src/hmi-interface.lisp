@@ -35,7 +35,8 @@
 ;; 
 (defun human-command (action-designator)
   (format t "Executing ~a action on robot ~a~%"
-          (desig:desig-prop-value action-designator :type)
+          (or (desig:desig-prop-value action-designator :type)
+              (desig:desig-prop-value action-designator :to))
           (desig:desig-prop-value action-designator :actor))
   (call-perform (desig:make-designator (get-designator-type-keyword action-designator)
                                        (remove :actor
