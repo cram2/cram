@@ -74,6 +74,12 @@
   (or (gethash agent-namespace *perform-action-clients*)
       (init-perform-action-client agent-namespace)))
 
+(defun action-result-callback (status-msg result-msg)
+  (format t "STATUS: ~a~%RESULT: ~a~%" status-msg result-msg))
+
+(defun action-feedback-callback (feedback-msg)
+  (format t "FEEDBACK: ~a~%" feedback-msg))
+
 (defun call-perform-action (agent-namespace &key action-goal action-timeout)
   (declare (type (or null sherpa_msgs-msg:PerformDesignatorGoal) action-goal)
            (type (or null number) action-timeout))
@@ -91,7 +97,7 @@
       (actionlib:send-goal
        (get-perform-action-client agent-namespace)
        action-goal
-       #'print #'print))))
+       #'action-result-callback #'action-feedback-callback))))
 
 (defun make-perform-action-goal (action-or-motion-designator)
   (declare (type desig:designator action-or-motion-designator))
@@ -99,6 +105,10 @@
    'sherpa_msgs-msg:PerformDesignatorGoal
    :designator (action-designator->json action-or-motion-designator)))
 
+(defun get-designator-type-keyword (designator)
+  (declare (type (or null desig:designator) designator))
+  (car (rassoc (type-of designator)
+               (get 'desig:make-designator :desig-types))))
 
 (defmethod yason:encode ((object symbol) &optional (stream *standard-output*))
   (write-char #\" stream)
@@ -107,8 +117,7 @@
 
 (defmethod yason:encode ((object desig:designator) &optional (stream *standard-output*))
   (format stream "[\"A\",\"~a\","
-          (car (rassoc (type-of object)
-                       (get 'desig:make-designator :desig-types))))
+          (get-designator-type-keyword object))
   (yason:encode-alist (desig:properties object) stream)
   (write-char #\] stream))
 
