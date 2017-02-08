@@ -41,6 +41,10 @@
 (defvar *perform-action-clients* (make-hash-table :test #'equal)
   "Hash table where key is agent-namespace and value is its perform client")
 
+(defvar *active-goals* (make-hash-table :test #'equal)
+  "A hash table of hash tables of active goal handles,
+key is the agent namespace, value is a hash table of goal-handle ID and its handle.")
+
 (defun init-perform-action-client (agent-namespace)
   (let ((ros-name (concatenate 'string agent-namespace *perform-service-name*)))
     (setf (gethash agent-namespace *perform-action-clients*)
@@ -74,15 +78,21 @@
   (or (gethash agent-namespace *perform-action-clients*)
       (init-perform-action-client agent-namespace)))
 
-(defun action-result-callback (status-msg result-msg)
+(defun action-result-callback (agent-namespace goal-unique-id status-msg result-msg)
+  (format t "Goal ~a of ~a finished~%" goal-unique-id agent-namespace)
+  (remhash goal-unique-id (gethash agent-namespace *active-goals*))
   (format t "STATUS: ~a~%RESULT: ~a~%" status-msg result-msg))
 
 (defun action-feedback-callback (feedback-msg)
   (format t "FEEDBACK: ~a~%" feedback-msg))
 
-(defun call-perform-action (agent-namespace &key action-goal action-timeout)
+;; (defun action-active-callback ()
+;;   (format t "ACTIVE"))
+
+(defun call-perform-action (agent-namespace goal-unique-id &key action-goal action-timeout)
   (declare (type (or null sherpa_msgs-msg:PerformDesignatorGoal) action-goal)
-           (type (or null number) action-timeout))
+           (type (or null number) action-timeout)
+           (type string goal-unique-id))
   (roslisp:ros-info (commander perform-client)
                     "Calling CALL-PERFORM-ACTION on ~a with goal:~%~a"
                     agent-namespace action-goal)
@@ -97,7 +107,8 @@
       (actionlib:send-goal
        (get-perform-action-client agent-namespace)
        action-goal
-       #'action-result-callback #'action-feedback-callback))))
+       (alexandria:curry #'action-result-callback agent-namespace goal-unique-id)
+       #'action-feedback-callback))))
 
 (defun make-perform-action-goal (action-or-motion-designator)
   (declare (type desig:designator action-or-motion-designator))
@@ -144,11 +155,48 @@
    *reference-service-type*
    :designator (action-designator->json action-designator)))
 
-(defun call-perform (action-designator agent-string-or-nil)
+(defun add-to-active-goals (agent-namespace goal-unique-id goal-handle)
+  (declare (type string agent-namespace goal-unique-id)
+           (type actionlib::client-goal-handle goal-handle))
+  (unless (gethash agent-namespace *active-goals*)
+    (setf (gethash agent-namespace *active-goals*)
+          (make-hash-table :test #'equal)))
+  (setf (gethash goal-unique-id (gethash agent-namespace *active-goals*))
+        goal-handle))
+
+(defun cancel-actions (agent-namespace)
+  (declare (type string agent-namespace))
+  (roslisp:ros-info (commander perform-client)
+                    "STOPPING all goals of ~a" agent-namespace)
+  (let ((current-goals-hash-tbl (gethash agent-namespace *active-goals*)))
+    (roslisp:ros-info (commander perform-client)
+                      "Currently active ~a goals" (hash-table-count current-goals-hash-tbl))
+    (maphash #'(lambda (goal-unique-id goal-handle)
+                 (actionlib:cancel-goal goal-handle)
+                 (remhash goal-unique-id current-goals-hash-tbl))
+             current-goals-hash-tbl)))
+
+(defun generate-unique-id (agent-namespace)
+  "because actionlib goal-id is not accessible in callbacks"
+  (format nil "~a_~10,5$" agent-namespace (roslisp:ros-time)))
+
+(defun call-perform (action-designator agent-namespace)
+  (declare (type desig:designator action-designator)
+           (type (or null string) agent-namespace))
   "Calls the action performing ROS service.
-It has to come back immediately for the HMI interface not to be blocked."
-  (call-perform-action
-   agent-string-or-nil
-   :action-goal (make-perform-action-goal action-designator)))
+It has to come back immediately for the HMI interface not to be blocked
+If the action is of type STOPPING it will stop all the goals of the agent."
+  (unless agent-namespace
+    (setf agent-namespace (choose-agent action-designator)))
+  (if (or (eq :stop (desig:desig-prop-value action-designator :to))
+          (eq :stopping (desig:desig-prop-value action-designator :type)))
+      (cancel-actions agent-namespace)
+      (let ((goal-unique-id (generate-unique-id agent-namespace)))
+        (add-to-active-goals
+         agent-namespace goal-unique-id
+         (call-perform-action
+          agent-namespace
+          goal-unique-id
+          :action-goal (make-perform-action-goal action-designator))))))
 
 

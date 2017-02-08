@@ -15,4 +15,5 @@
   <depend>cram_sherpa_robots_common</depend>
   <depend>sherpa_msgs</depend>
   <depend>actionlib_lisp</depend>
+  <depend>alexandria</depend>
 </package>

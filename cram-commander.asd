@@ -38,7 +38,9 @@
                cram-sherpa-robots-common
                sherpa_msgs-msg
                sherpa_msgs-srv
-               actionlib)
+               actionlib
+               alexandria ; for curry in result callback
+               )
 
   :components
   ((:module "src"
