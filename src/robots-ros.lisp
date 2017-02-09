@@ -169,12 +169,13 @@ key is the agent namespace, value is a hash table of goal-handle ID and its hand
   (roslisp:ros-info (commander perform-client)
                     "STOPPING all goals of ~a" agent-namespace)
   (let ((current-goals-hash-tbl (gethash agent-namespace *active-goals*)))
-    (roslisp:ros-info (commander perform-client)
-                      "Currently active ~a goals" (hash-table-count current-goals-hash-tbl))
-    (maphash #'(lambda (goal-unique-id goal-handle)
-                 (actionlib:cancel-goal goal-handle)
-                 (remhash goal-unique-id current-goals-hash-tbl))
-             current-goals-hash-tbl)))
+    (when current-goals-hash-tbl
+      (roslisp:ros-info (commander perform-client)
+                        "Currently active ~a goals" (hash-table-count current-goals-hash-tbl))
+      (maphash #'(lambda (goal-unique-id goal-handle)
+                   (actionlib:cancel-goal goal-handle)
+                   (remhash goal-unique-id current-goals-hash-tbl))
+               current-goals-hash-tbl))))
 
 (defun generate-unique-id (agent-namespace)
   "because actionlib goal-id is not accessible in callbacks"
