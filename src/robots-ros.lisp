@@ -78,10 +78,13 @@ key is the agent namespace, value is a hash table of goal-handle ID and its hand
   (or (gethash agent-namespace *perform-action-clients*)
       (init-perform-action-client agent-namespace)))
 
-(defun action-result-callback (agent-namespace goal-unique-id status-msg result-msg)
+(defun action-result-callback (agent-namespace goal-unique-id action-designator start-time
+                               status-msg result-msg)
   (format t "Goal ~a of ~a finished~%" goal-unique-id agent-namespace)
   (remhash goal-unique-id (gethash agent-namespace *active-goals*))
-  (format t "STATUS: ~a~%RESULT: ~a~%" status-msg result-msg))
+  (format t "STATUS: ~a~%RESULT: ~a~%" status-msg result-msg)
+  (format t "Now logging ~a~%" action-designator)
+  (robots-common::log-owl action-designator :start-time start-time))
 
 (defun action-feedback-callback (feedback-msg)
   (format t "FEEDBACK: ~a~%" feedback-msg))
@@ -89,7 +92,8 @@ key is the agent namespace, value is a hash table of goal-handle ID and its hand
 ;; (defun action-active-callback ()
 ;;   (format t "ACTIVE"))
 
-(defun call-perform-action (agent-namespace goal-unique-id &key action-goal action-timeout)
+(defun call-perform-action (agent-namespace goal-unique-id
+                            &key action-goal action-timeout action-designator)
   (declare (type (or null sherpa_msgs-msg:PerformDesignatorGoal) action-goal)
            (type (or null number) action-timeout)
            (type string goal-unique-id))
@@ -107,7 +111,8 @@ key is the agent namespace, value is a hash table of goal-handle ID and its hand
       (actionlib:send-goal
        (get-perform-action-client agent-namespace)
        action-goal
-       (alexandria:curry #'action-result-callback agent-namespace goal-unique-id)
+       (alexandria:curry #'action-result-callback
+                         agent-namespace goal-unique-id action-designator (roslisp:ros-time))
        #'action-feedback-callback))))
 
 (defun make-perform-action-goal (action-or-motion-designator)
@@ -198,6 +203,7 @@ If the action is of type STOPPING it will stop all the goals of the agent."
          (call-perform-action
           agent-namespace
           goal-unique-id
-          :action-goal (make-perform-action-goal action-designator))))))
+          :action-goal (make-perform-action-goal action-designator)
+          :action-designator action-designator)))))
 
 
