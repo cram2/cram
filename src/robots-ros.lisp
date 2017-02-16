@@ -83,9 +83,10 @@ key is the agent namespace, value is a hash table of goal-handle ID and its hand
   (format t "Goal ~a of ~a finished~%" goal-unique-id agent-namespace)
   (remhash goal-unique-id (gethash agent-namespace *active-goals*))
   (format t "STATUS: ~a~%RESULT: ~a~%" status-msg result-msg)
-  (format t "Now logging ~a~%" action-designator)
-  (robots-common::log-owl action-designator :start-time start-time
-                                            :agent (robots-common:derosify agent-namespace)))
+  ;; (format t "Now logging ~a~%" action-designator)
+  ;; (robots-common::log-owl action-designator :start-time start-time
+  ;;                                           :agent (robots-common:derosify agent-namespace))
+  )
 
 (defun action-feedback-callback (feedback-msg)
   (format t "FEEDBACK: ~a~%" feedback-msg))
