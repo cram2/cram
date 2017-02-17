@@ -33,95 +33,7 @@
 (defparameter *perform-service-name* "/perform_designator")
 
 (defparameter *reference-service-type* 'sherpa_msgs-srv:ReferenceDesignator)
-(defparameter *perform-action-type* "sherpa_msgs/PerformDesignatorAction")
-
-(defparameter *perform-action-timeout* 5
-  "How many seconds to wait before returning from perform_designator action.")
-
-(defvar *perform-action-clients* (make-hash-table :test #'equal)
-  "Hash table where key is agent-namespace and value is its perform client")
-
-(defvar *active-goals* (make-hash-table :test #'equal)
-  "A hash table of hash tables of active goal handles,
-key is the agent namespace, value is a hash table of goal-handle ID and its handle.")
-
-(defun init-perform-action-client (agent-namespace)
-  (let ((ros-name (concatenate 'string agent-namespace *perform-service-name*)))
-    (setf (gethash agent-namespace *perform-action-clients*)
-          (actionlib:make-action-client ros-name *perform-action-type*))
-   (loop until (actionlib:wait-for-server (gethash agent-namespace *perform-action-clients*) 5.0)
-         do (roslisp:ros-info (commander perform-client)
-                              "Waiting for ~a action server..." ros-name))
-   ;; (dotimes (seconds 5) ; give the client some time to settle down
-   ;;     (roslisp:ros-info (robots-common action-client)
-   ;;                       "Goal subscribers: ~a~%"
-   ;;                       (mapcar (lambda (connection)
-   ;;                                 (roslisp::subscriber-uri connection))
-   ;;                               (roslisp::subscriber-connections
-   ;;                                (actionlib::goal-pub ,action-var-name))))
-   ;;     (cpl:sleep 1))
-   (roslisp:ros-info (commander perform-client) "~a action client created." ros-name)
-   (gethash agent-namespace *perform-action-clients*)))
-
-(defun destroy-perform-action-clients ()
-  (maphash (lambda (agent-namespace client)
-             (setf client nil)
-             (remhash agent-namespace *perform-action-clients*))
-           *perform-action-clients*))
-
-(roslisp-utilities:register-ros-cleanup-function destroy-perform-action-clients)
-;; (roslisp-utilities:register-ros-init-function ,init-function-name)
-;; The init function is necessary because there is a bug when
-;; nodes don't subscribe to a publisher started from a terminal executable
-
-(defun get-perform-action-client (agent-namespace)
-  (or (gethash agent-namespace *perform-action-clients*)
-      (init-perform-action-client agent-namespace)))
-
-(defun action-result-callback (agent-namespace goal-unique-id action-designator start-time
-                               status-msg result-msg)
-  (format t "Goal ~a of ~a finished~%" goal-unique-id agent-namespace)
-  (remhash goal-unique-id (gethash agent-namespace *active-goals*))
-  (format t "STATUS: ~a~%RESULT: ~a~%" status-msg result-msg)
-  ;; (format t "Now logging ~a~%" action-designator)
-  ;; (robots-common::log-owl action-designator :start-time start-time
-  ;;                                           :agent (robots-common:derosify agent-namespace))
-  )
-
-(defun action-feedback-callback (feedback-msg)
-  (format t "FEEDBACK: ~a~%" feedback-msg))
-
-;; (defun action-active-callback ()
-;;   (format t "ACTIVE"))
-
-(defun call-perform-action (agent-namespace goal-unique-id
-                            &key action-goal action-timeout action-designator)
-  (declare (type (or null sherpa_msgs-msg:PerformDesignatorGoal) action-goal)
-           (type (or null number) action-timeout)
-           (type string goal-unique-id))
-  (roslisp:ros-info (commander perform-client)
-                    "Calling CALL-PERFORM-ACTION on ~a with goal:~%~a"
-                    agent-namespace action-goal)
-  (unless action-timeout
-    (setf action-timeout *perform-action-timeout*))
-  (cpl:with-failure-handling
-      ((simple-error (e)
-         (format t "Actionlib error occured!~%~a~%Reinitializing...~%~%" e)
-         (init-perform-action-client agent-namespace)
-         (cpl:retry)))
-    (let ((actionlib:*action-server-timeout* 10.0))
-      (actionlib:send-goal
-       (get-perform-action-client agent-namespace)
-       action-goal
-       (alexandria:curry #'action-result-callback
-                         agent-namespace goal-unique-id action-designator (roslisp:ros-time))
-       #'action-feedback-callback))))
-
-(defun make-perform-action-goal (action-or-motion-designator)
-  (declare (type desig:designator action-or-motion-designator))
-  (robots-common:make-symbol-type-message
-   'sherpa_msgs-msg:PerformDesignatorGoal
-   :designator (action-designator->json action-or-motion-designator)))
+(defparameter *perform-service-type* 'sherpa_msgs-srv:PerformDesignator)
 
 (defun get-designator-type-keyword (designator)
   (declare (type (or null desig:designator) designator))
@@ -162,32 +74,6 @@ key is the agent namespace, value is a hash table of goal-handle ID and its hand
    *reference-service-type*
    :designator (action-designator->json action-designator)))
 
-(defun add-to-active-goals (agent-namespace goal-unique-id goal-handle)
-  (declare (type string agent-namespace goal-unique-id)
-           (type actionlib::client-goal-handle goal-handle))
-  (unless (gethash agent-namespace *active-goals*)
-    (setf (gethash agent-namespace *active-goals*)
-          (make-hash-table :test #'equal)))
-  (setf (gethash goal-unique-id (gethash agent-namespace *active-goals*))
-        goal-handle))
-
-(defun cancel-actions (agent-namespace)
-  (declare (type string agent-namespace))
-  (roslisp:ros-info (commander perform-client)
-                    "STOPPING all goals of ~a" agent-namespace)
-  (let ((current-goals-hash-tbl (gethash agent-namespace *active-goals*)))
-    (when current-goals-hash-tbl
-      (roslisp:ros-info (commander perform-client)
-                        "Currently active ~a goals" (hash-table-count current-goals-hash-tbl))
-      (maphash #'(lambda (goal-unique-id goal-handle)
-                   (actionlib:cancel-goal goal-handle)
-                   (remhash goal-unique-id current-goals-hash-tbl))
-               current-goals-hash-tbl))))
-
-(defun generate-unique-id (agent-namespace)
-  "because actionlib goal-id is not accessible in callbacks"
-  (format nil "~a_~10,5$" agent-namespace (roslisp:ros-time)))
-
 (defun call-perform (action-designator agent-namespace)
   (declare (type desig:designator action-designator)
            (type (or null string) agent-namespace))
@@ -196,16 +82,9 @@ It has to come back immediately for the HMI interface not to be blocked
 If the action is of type STOPPING it will stop all the goals of the agent."
   (unless agent-namespace
     (setf agent-namespace (choose-agent action-designator)))
-  (if (or (eq :stop (desig:desig-prop-value action-designator :to))
-          (eq :stopping (desig:desig-prop-value action-designator :type)))
-      (cancel-actions agent-namespace)
-      (let ((goal-unique-id (generate-unique-id agent-namespace)))
-        (add-to-active-goals
-         agent-namespace goal-unique-id
-         (call-perform-action
-          agent-namespace
-          goal-unique-id
-          :action-goal (make-perform-action-goal action-designator)
-          :action-designator action-designator)))))
+  (roslisp:call-service
+   (concatenate 'string agent-namespace *perform-service-name*)
+   *perform-service-type*
+   :designator (action-designator->json action-designator)))
 
 
