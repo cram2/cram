@@ -129,8 +129,8 @@ calls the generator functions and runs normalization."
                             #'costmap-generator-name->score
                             #'generator-name)))
       (let ((new-cost-map (cma:make-double-matrix
-                           (round (/ width resolution))
-                           (round (/ height resolution))
+                           (truncate (/ width resolution))
+                           (truncate (/ height resolution))
                            :initial-element 1.0d0))
             (sum 0.0d0))
         (dolist (generator (cost-functions map))
