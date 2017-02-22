@@ -40,12 +40,15 @@
                sherpa_msgs-srv
                actionlib
                alexandria ; for curry in result callback
+               json-prolog
+               cram-utilities
                )
 
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "choose-agent" :depends-on ("package"))
+     (:file "battery" :depends-on ("package"))
+     (:file "choose-agent" :depends-on ("package" "battery"))
      (:file "robots-ros" :depends-on ("package" "choose-agent"))
      (:file "hmi-interface" :depends-on ("package" "robots-ros"))))))
