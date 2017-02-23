@@ -29,6 +29,9 @@
 
 (in-package :commander)
 
+
+;; Battery fluents will have values that are either NIL or a list (robot-name battery-level battery-drain)
+;; Drain can be negative, which means the battery is being charged.
 (defparameter *red-wasp-battery* (cpl-impl:make-fluent :name :red-wasp-battery :value nil))
 (defparameter *blue-wasp-battery* (cpl-impl:make-fluent :name :blue-wasp-battery :value nil))
 (defparameter *monitoring-battery* (cpl-impl:make-fluent :name :battery-monitoring :value nil))
@@ -42,10 +45,13 @@
   (let* ((red-battery (if (cpl-impl:value *red-wasp-battery*)
                         (roslisp:make-message "sherpa_msgs/LoggedBattery"
                                               :robot_name "red_wasp"
-                                              :battery_level (second (cpl-impl:value *red-))
-                                              :battery_drain ())))
+                                              :battery_level (second (cpl-impl:value *red-wasp-battery*))
+                                              :battery_drain (second (cpl-impl:value *red-wasp-battery*)))))
          (blue-battery (if (cpl-impl:value *blue-wasp-battery*)
-                        (roslisp:make-message )))
+                        (roslisp:make-message "sherpa_msgs/LoggedBattery"
+                                              :robot_name "blue_wasp"
+                                              :battery_level (second (cpl-impl:value *blue-wasp-battery*))
+                                              :battery_drain (second (cpl-impl:value *blue-wasp-battery*)))))
          (batteries (list red-battery blue-battery))
          (batteries (remove nil batteries)))
     (roslisp:make-message "sherpa_msgs/LoggedBatteryList"

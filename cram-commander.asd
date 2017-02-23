@@ -40,7 +40,7 @@
                sherpa_msgs-srv
                actionlib
                alexandria ; for curry in result callback
-               json-prolog
+               cram-json-prolog
                cram-utilities
                )
 
