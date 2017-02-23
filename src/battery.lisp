@@ -39,7 +39,7 @@
 
 (defun battery-callback (robot-name fl msg)
   (roslisp:with-fields (battery_level battery_drain) msg
-    (setf (cpl-impl:value fl) (list robot-name battery-level drain))))
+    (setf (cpl-impl:value fl) (list robot-name battery_level battery_drain))))
 
 (defun get-battery-monitor-message ()
   (let* ((red-battery (if (cpl-impl:value *red-wasp-battery*)
