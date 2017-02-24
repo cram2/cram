@@ -80,11 +80,30 @@
   "Calls the action performing ROS service.
 It has to come back immediately for the HMI interface not to be blocked
 If the action is of type STOPPING it will stop all the goals of the agent."
-  (unless agent-namespace
-    (setf agent-namespace (choose-agent action-designator)))
-  (roslisp:call-service
-   (concatenate 'string agent-namespace *perform-service-name*)
-   *perform-service-type*
-   :designator (action-designator->json action-designator)))
 
+  (labels ((commander-perform (action-designator ?agent-namespace)
+             (if (or (eq :charge (desig:desig-prop-value action-designator :to))
+                     (eq :charging (desig:desig-prop-value action-designator :type)))
+                 (progn
+                   (call-perform (desig:an action
+                                           (to land)
+                                           (at (desig:a location (reachable-for "donkey"))))
+                                 ?agent-namespace)
+                   ;; todo: wait until the guy landed
+                   (call-perform (desig:an action (to mount) (agent ?agent-namespace))
+                                 "donkey")
+                   ;; todo: wait until charged
+                   (call-perform (desig:an action (to unmount) (agent ?agent-namespace))
+                                 "donkey")
+                   T)
+                 nil)))
 
+    (unless agent-namespace
+      (setf agent-namespace (choose-agent action-designator)))
+
+    (unless (commander-perform action-designator agent-namespace)
+
+      (roslisp:call-service
+       (concatenate 'string agent-namespace *perform-service-name*)
+       *perform-service-type*
+       :designator (action-designator->json action-designator)))))
