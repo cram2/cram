@@ -32,9 +32,9 @@
 
 ;; Battery fluents will have values that are either NIL or a list (robot-name battery-level battery-drain)
 ;; Drain can be negative, which means the battery is being charged.
-(defvar *red-wasp-battery* (cpl-impl:make-fluent :name :red-wasp-battery :value nil))
-(defvar *blue-wasp-battery* (cpl-impl:make-fluent :name :blue-wasp-battery :value nil))
-(defvar *monitoring-battery* (cpl-impl:make-fluent :name :battery-monitoring :value nil))
+(defparameter *red-wasp-battery* (cpl-impl:make-fluent :name :red-wasp-battery :value nil))
+(defparameter *blue-wasp-battery* (cpl-impl:make-fluent :name :blue-wasp-battery :value nil))
+(defparameter *monitoring-battery* (cpl-impl:make-fluent :name :battery-monitoring :value nil))
 (defvar *battery-monitoring-publisher* nil)
 (defvar *battery-publisher-thread* nil)
 
