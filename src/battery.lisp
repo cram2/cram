@@ -71,15 +71,17 @@
                      (lambda (msg) (battery-callback "red_wasp" *red-wasp-battery* msg)))
   (roslisp:subscribe "blue_wasp/battery" "sherpa_msgs/Battery"
                      (lambda (msg) (battery-callback "blue_wasp" *blue-wasp-battery* msg)))
+  (setf (cpl-impl:value *monitoring-battery*) T)
   (setf *battery-monitoring-publisher*
         (roslisp:advertise "logged_battery" "sherpa_msgs/LoggedBatteryList"))
   (setf *battery-publisher-thread* (sb-thread:make-thread #'resend-battery)))
 
 (defun shutdown-battery-monitors ()
-  (setf *red-wasp-battery* (cpl-impl:make-fluent :name :red-wasp-battery :value nil))
-  (setf *blue-wasp-battery* (cpl-impl:make-fluent :name :blue-wasp-battery :value nil))
-  (setf *monitoring-battery* (cpl-impl:make-fluent :name :battery-monitoring :value nil))
+  (setf (cpl-impl:value *red-wasp-battery*) nil)
+  (setf (cpl-impl:value *blue-wasp-battery*) nil)
+  (setf (cpl-impl:value *monitoring-battery*) nil)
   (setf *battery-monitoring-publisher* nil)
+  ;; May also let the thread return naturally once monitoring-battery is set to nil
   (when (and *battery-publisher-thread* (sb-thread:thread-alive-p *battery-publisher-thread*))
     (sb-thread:terminate-thread *battery-publisher-thread*)))
 
