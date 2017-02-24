@@ -32,46 +32,56 @@
 
 ;; Battery fluents will have values that are either NIL or a list (robot-name battery-level battery-drain)
 ;; Drain can be negative, which means the battery is being charged.
-(defparameter *red-wasp-battery* (cpl-impl:make-fluent :name :red-wasp-battery :value nil))
-(defparameter *blue-wasp-battery* (cpl-impl:make-fluent :name :blue-wasp-battery :value nil))
-(defparameter *monitoring-battery* (cpl-impl:make-fluent :name :battery-monitoring :value nil))
-(defparameter *battery-monitoring-publisher* nil)
+(defvar *red-wasp-battery* (cpl-impl:make-fluent :name :red-wasp-battery :value nil))
+(defvar *blue-wasp-battery* (cpl-impl:make-fluent :name :blue-wasp-battery :value nil))
+(defvar *monitoring-battery* (cpl-impl:make-fluent :name :battery-monitoring :value nil))
+(defvar *battery-monitoring-publisher* nil)
+(defvar *battery-publisher-thread* nil)
 
 (defun battery-callback (robot-name fl msg)
-  (roslisp:with-fields (battery_level battery_drain) msg
-    (setf (cpl-impl:value fl) (list robot-name battery_level battery_drain))))
+  (when (and msg robot-name fl)
+    (roslisp:with-fields (battery_level battery_drain) msg
+      (setf (cpl-impl:value fl) (list robot-name battery_level battery_drain)))))
 
 (defun get-battery-monitor-message ()
-  (let* ((red-battery (if (cpl-impl:value *red-wasp-battery*)
+  (let* ((red-battery (when (cpl-impl:value *red-wasp-battery*)
                         (roslisp:make-message "sherpa_msgs/LoggedBattery"
                                               :robot_name "red_wasp"
                                               :battery_level (second (cpl-impl:value *red-wasp-battery*))
                                               :battery_drain (second (cpl-impl:value *red-wasp-battery*)))))
-         (blue-battery (if (cpl-impl:value *blue-wasp-battery*)
-                        (roslisp:make-message "sherpa_msgs/LoggedBattery"
-                                              :robot_name "blue_wasp"
-                                              :battery_level (second (cpl-impl:value *blue-wasp-battery*))
-                                              :battery_drain (second (cpl-impl:value *blue-wasp-battery*)))))
+         (blue-battery (when (cpl-impl:value *blue-wasp-battery*)
+                         (roslisp:make-message "sherpa_msgs/LoggedBattery"
+                                               :robot_name "blue_wasp"
+                                               :battery_level (second (cpl-impl:value *blue-wasp-battery*))
+                                               :battery_drain (second (cpl-impl:value *blue-wasp-battery*)))))
          (batteries (list red-battery blue-battery))
          (batteries (remove nil batteries)))
+    (format t "red-bat  ~a blue-bat ~a" red-battery blue-battery)
     (roslisp:make-message "sherpa_msgs/LoggedBatteryList"
                           :stamp (roslisp:ros-time)
                           :batteries (coerce batteries 'vector))))
 
 (defun resend-battery ()
   (loop while (cpl-impl:value *monitoring-battery*) do
-    (progn
-      (roslisp:wait-duration 1)
-      (roslisp:publish *battery-monitoring-publisher* (get-battery-monitor-message)))))
+    (roslisp:wait-duration 1)
+    (roslisp:publish *battery-monitoring-publisher* (get-battery-monitor-message))))
 
 (defun setup-battery-monitors ()
-  (roslisp:subscribe "red_wasp/battery" "sherpa_msgs/Battery" (lambda (msg) (battery-callback "red_wasp" *red-wasp-battery* msg)))
-  (roslisp:subscribe "blue_wasp/battery" "sherpa_msgs/Battery" (lambda (msg) (battery-callback "blue_wasp" *blue-wasp-battery* msg)))
-  (setf *battery-monitoring-publisher* (roslisp:advertise "logged_battery" "sherpa_msgs/LoggedBatteryList"))
-  (sb-thread:make-thread #'resend-battery))
+  (roslisp:subscribe "red_wasp/battery" "sherpa_msgs/Battery"
+                     (lambda (msg) (battery-callback "red_wasp" *red-wasp-battery* msg)))
+  (roslisp:subscribe "blue_wasp/battery" "sherpa_msgs/Battery"
+                     (lambda (msg) (battery-callback "blue_wasp" *blue-wasp-battery* msg)))
+  (setf *battery-monitoring-publisher*
+        (roslisp:advertise "logged_battery" "sherpa_msgs/LoggedBatteryList"))
+  (setf *battery-publisher-thread* (sb-thread:make-thread #'resend-battery)))
 
 (defun shutdown-battery-monitors ()
-  (setf (cpl-impl:value *monitoring-battery*) nil))
+  (setf *red-wasp-battery* (cpl-impl:make-fluent :name :red-wasp-battery :value nil))
+  (setf *blue-wasp-battery* (cpl-impl:make-fluent :name :blue-wasp-battery :value nil))
+  (setf *monitoring-battery* (cpl-impl:make-fluent :name :battery-monitoring :value nil))
+  (setf *battery-monitoring-publisher* nil)
+  (when (and *battery-publisher-thread* (sb-thread:thread-alive-p *battery-publisher-thread*))
+    (sb-thread:terminate-thread *battery-publisher-thread*)))
 
 (roslisp-utilities:register-ros-init-function setup-battery-monitors)
 (roslisp-utilities:register-ros-cleanup-function shutdown-battery-monitors)
