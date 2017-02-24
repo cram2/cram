@@ -55,6 +55,7 @@
          (batteries (list red-battery blue-battery))
          (batteries (remove nil batteries)))
     (roslisp:make-message "sherpa_msgs/LoggedBatteryList"
+                          :stamp (roslisp:ros-time)
                           :batteries (coerce batteries 'vector))))
 
 (defun resend-battery ()
