@@ -48,15 +48,14 @@
                         (roslisp:make-message "sherpa_msgs/LoggedBattery"
                                               :robot_name "red_wasp"
                                               :battery_level (second (cpl-impl:value *red-wasp-battery*))
-                                              :battery_drain (second (cpl-impl:value *red-wasp-battery*)))))
+                                              :battery_drain (third (cpl-impl:value *red-wasp-battery*)))))
          (blue-battery (when (cpl-impl:value *blue-wasp-battery*)
                          (roslisp:make-message "sherpa_msgs/LoggedBattery"
                                                :robot_name "blue_wasp"
                                                :battery_level (second (cpl-impl:value *blue-wasp-battery*))
-                                               :battery_drain (second (cpl-impl:value *blue-wasp-battery*)))))
+                                               :battery_drain (third (cpl-impl:value *blue-wasp-battery*)))))
          (batteries (list red-battery blue-battery))
          (batteries (remove nil batteries)))
-    (format t "red-bat  ~a blue-bat ~a" red-battery blue-battery)
     (roslisp:make-message "sherpa_msgs/LoggedBatteryList"
                           :stamp (roslisp:ros-time)
                           :batteries (coerce batteries 'vector))))
