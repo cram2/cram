@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2016, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,27 +27,9 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-commander
-  :author "Gayane Kazhoyan"
-  :maintainer "Gayane Kazhoyan"
-  :license "BSD"
+(in-package :commander)
 
-  :depends-on (roslisp
-               roslisp-utilities
-               cram-designators
-               cram-sherpa-robots-common
-               sherpa_msgs-msg
-               sherpa_msgs-srv
-               actionlib
-               alexandria ; for curry in result callback
-               cram-json-prolog
-               cram-utilities)
-
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "battery" :depends-on ("package"))
-     (:file "choose-agent" :depends-on ("package" "battery"))
-     (:file "robots-ros" :depends-on ("package" "choose-agent"))
-     (:file "hmi-interface" :depends-on ("package" "robots-ros"))))))
+(defun charge-command ()
+  ;; cannot have circular dependency between files!
+  ;; call-perform can only be called within itself, so see implementation in robots-ros
+  )
