@@ -75,8 +75,14 @@
   "Returns the 2-dimensional aabb of a semantic-map object"
   (let* ((transform (when pose (cl-transforms:reference-transform pose)))
          (dimensions/2 (cl-transforms:v* dimensions 0.5))
-         (bb-pts (list (cl-transforms:v* dimensions/2 -1)
-                       dimensions/2)))
+         (bb-pts (mapcar (lambda (v)
+                           (destructuring-bind (x y z) v
+                             (cl-transforms:make-3d-vector
+                              (* (cl-transforms:x dimensions/2) x)
+                              (* (cl-transforms:y dimensions/2) y)
+                              (* (cl-transforms:z dimensions/2) z))))
+                         '((-1 -1 -1) (-1 -1 1) (-1 1 -1) (-1 1 1)
+                           (1 -1 -1) (1 -1 1) (1 1 -1) (1 1 1)))))
     (apply
      #'get-aabb
      (if transform
