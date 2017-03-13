@@ -29,13 +29,18 @@
 
 (in-package :cl-user)
 
-(defpackage :cram-tf
+(defpackage cram-tf
   (:use #:cl #:desig #:cut #:prolog
         #:cl-transforms-stamped #:cl-transforms
         #:cram-robot-interfaces)
   (:export #:make-euclidean-distance-filter
            ;; utilities
            #:poses-equal-p
+           #:frame-to-pose-in-fixed-frame
+           #:pose->flat-list
+           #:pose->flat-list-w-first
+           #:flat-list->pose
+           #:flat-list-w-first->pose
            ;; prolog facts
            #:pose #:pose-stamped #:position #:orientation #:poses-equal
            ;; robot current pose
