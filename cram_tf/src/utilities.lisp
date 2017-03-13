@@ -47,3 +47,41 @@
                               (make-identity-vector)
                               (make-identity-rotation))
      :target-frame *fixed-frame*)))
+
+(defun pose->flat-list (pose)
+  (let* ((xyz (cl-transforms:origin pose))
+         (qqqw (cl-transforms:orientation pose))
+         (x (cl-transforms:x xyz))
+         (y (cl-transforms:y xyz))
+         (z (cl-transforms:z xyz))
+         (q1 (cl-transforms:x qqqw))
+         (q2 (cl-transforms:y qqqw))
+         (q3 (cl-transforms:z qqqw))
+         (w (cl-transforms:w qqqw)))
+    (list x y z q1 q2 q3 w)))
+
+(defun pose->flat-list-w-first (pose)
+  (let* ((xyz (cl-transforms:origin pose))
+         (qqqw (cl-transforms:orientation pose))
+         (x (cl-transforms:x xyz))
+         (y (cl-transforms:y xyz))
+         (z (cl-transforms:z xyz))
+         (q1 (cl-transforms:x qqqw))
+         (q2 (cl-transforms:y qqqw))
+         (q3 (cl-transforms:z qqqw))
+         (w (cl-transforms:w qqqw)))
+    (list x y z w q1 q2 q3)))
+
+(defun flat-list->pose (pose-list)
+  (destructuring-bind (x y z q1 q2 q3 w)
+      pose-list
+    (cl-transforms:make-pose
+     (cl-transforms:make-3d-vector x y z)
+     (cl-transforms:make-quaternion q1 q2 q3 w))))
+
+(defun flat-list-w-first->pose (pose-list)
+  (destructuring-bind (x y z w q1 q2 q3)
+      pose-list
+    (cl-transforms:make-pose
+     (cl-transforms:make-3d-vector x y z)
+     (cl-transforms:make-quaternion q1 q2 q3 w))))
