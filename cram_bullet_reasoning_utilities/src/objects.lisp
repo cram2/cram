@@ -29,6 +29,17 @@
 
 (in-package :bullet-reasoning-utilities)
 
+(defun object-instance (object-name)
+  (var-value '?instance
+             (car (prolog-?w `(%object ?w ,object-name ?instance)))))
+
+(defun object-pose (object-name)
+  (pose (object-instance object-name)))
+
+(defun object-exists (object-name)
+  (typep (object-instance object-name) 'btr:object))
+
+
 (defgeneric spawn-object (name type &key pose color world)
   (:method (name type &key pose color world)
     (var-value
@@ -59,6 +70,7 @@
   (:method ()
     (prolog-?w `(item-type ?w ?obj ?type) `(retract (object ?w ?obj)) '(fail))))
 
+
 (defun move-object (object-name &optional new-pose)
   (if new-pose
       (prolog-?w
@@ -66,6 +78,17 @@
       (prolog-?w
         '(scenario-objects-init-pose ?pose)
         `(assert (object-pose ?w ,object-name ?pose)))))
+
+(defun translate-object (object-name &optional (x-delta 0.0) (y-delta 0.0) (z-delta 0.0))
+  (let* ((object-pose (object-pose object-name))
+         (new-pose (cl-transforms:copy-pose
+                    object-pose
+                    :origin (cl-transforms:copy-3d-vector
+                             (cl-transforms:origin object-pose)
+                             :x (+ x-delta (cl-transforms:x (cl-transforms:origin object-pose)))
+                             :y (+ y-delta (cl-transforms:y (cl-transforms:origin object-pose)))
+                             :z (+ z-delta (cl-transforms:z (cl-transforms:origin object-pose)))))))
+    (move-object object-name new-pose)))
 
 (defun move-object-onto (object-name onto-type &optional onto-name)
   (let* ((size
@@ -79,18 +102,28 @@
     (prolog
      `(assert-object-pose-on ,object-name ,on-designator))))
 
-(defun object-instance (object-name)
-  (var-value '?instance
-             (car (prolog-?w `(%object ?w ,object-name ?instance)))))
-
-(defun object-pose (object-name)
-  (pose (object-instance object-name)))
-
-(defun object-exists (object-name)
-  (typep (object-instance object-name) 'btr:object))
 
 (defun item-exists (object-name)
   (typep (object-instance object-name) 'btr:item))
+
+
+(defun spawn-object-aabb-box (object-name
+                              &key
+                                (box-name (gensym (concatenate
+                                                   'string
+                                                   (symbol-name object-name)
+                                                   "-BOX")))
+                                (world *current-bullet-world*))
+  (let* ((aabb (aabb (object-instance object-name)))
+         (aabb-pose (cl-transforms:make-pose
+                     (cl-bullet:bounding-box-center aabb)
+                     (cl-transforms:make-identity-rotation)))
+         (aabb-size (with-slots (cl-transforms:x cl-transforms:y cl-transforms:z)
+                        (cl-bullet:bounding-box-dimensions aabb)
+                      (list cl-transforms:x cl-transforms:y cl-transforms:z))))
+    (add-object world :box box-name aabb-pose :mass 0.0 :size aabb-size)
+    box-name))
+
 
 (declaim (inline move-object object-instance object-pose object-exists item-exists))
 
