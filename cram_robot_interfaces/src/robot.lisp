@@ -41,3 +41,17 @@
 
   (<- (robot-torso-link-joint ?robot-name ?torso-link ?torso-joint)
     (fail)))
+
+
+(defun current-robot-symbol ()
+  (let ((robot-symbol
+          (cut:var-value '?r (car (prolog:prolog '(robot ?r))))))
+    (if (cut:is-var robot-symbol)
+        NIL
+        robot-symbol)))
+
+(defun current-robot-package ()
+  (symbol-package (current-robot-symbol)))
+
+(defun current-robot-name ()
+  (symbol-name (current-robot-symbol)))
