@@ -93,7 +93,15 @@
     (lisp-fun w ?o ?w))
 
   (<- (poses-equal ?pose-1 ?pose-2 (?dist-sigma ?ang-sigma))
-    (lisp-pred poses-equal-p ?pose-1 ?pose-2 ?dist-sigma ?ang-sigma)))
+    (lisp-pred poses-equal-p ?pose-1 ?pose-2 ?dist-sigma ?ang-sigma))
+
+
+  (<- (location-pose ?location ?pose)
+    (-> (lisp-type ?location designator)
+        (and (desig-solutions ?location ?poses)
+             (member ?pose ?poses))
+        (or (pose ?pose ?location)
+            (equal ?location ?pose)))))
 
 
 ;; todo(@gaya): ugliest piece of code ever...

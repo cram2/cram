@@ -37,12 +37,11 @@
            ;; utilities
            #:poses-equal-p
            #:frame-to-pose-in-fixed-frame
-           #:pose->flat-list
-           #:pose->flat-list-w-first
-           #:flat-list->pose
-           #:flat-list-w-first->pose
+           #:pose->flat-list #:pose->flat-list-w-first
+           #:flat-list->pose #:flat-list-w-first->pose
            ;; prolog facts
            #:pose #:pose-stamped #:position #:orientation #:poses-equal
+           #:location-pose
            ;; robot current pose
            #:robot-current-pose
            ;; setup
