@@ -32,8 +32,8 @@
 (defparameter *reference-service-name* "/reference_designator")
 (defparameter *perform-service-name* "/perform_designator")
 
-(defparameter *reference-service-type* 'sherpa_msgs-srv:ReferenceDesignator)
-(defparameter *perform-service-type* 'sherpa_msgs-srv:PerformDesignator)
+(defparameter *reference-service-type* 'cram_commander-srv:ReferenceDesignator)
+(defparameter *perform-service-type* 'cram_commander-srv:PerformDesignator)
 
 (defun get-designator-type-keyword (designator)
   (declare (type (or null desig:designator) designator))
@@ -83,25 +83,13 @@ If the action is of type STOPPING it will stop all the goals of the agent."
 
 
   (labels ((commander-perform (action-designator ?agent-namespace)
-             (if (or (eq :charge (desig:desig-prop-value action-designator :to))
-                     (eq :charging (desig:desig-prop-value action-designator :type)))
-                 (progn
-                   (call-perform (desig:an action
-                                           (to land)
-                                           (at (desig:a location
-                                                        (reachable-for "donkey")
-                                                        (viewpoint ?agent-namespace))))
-                                 ?agent-namespace)
-                   ;; todo: wait until the guy landed
-                   ;; no need to wait until the guy landed as the donkey does that itself
-                   (call-perform (desig:an action (to mount) (agent ?agent-namespace))
-                                 "donkey")
-                   ;; No automatic unmounting, Fereshta will have to call herself
-                   ;; ;; todo: wait until charged
-                   ;; (call-perform (desig:an action (to unmount) (agent ?agent-namespace))
-                   ;;               "donkey")
-                   T)
-                 nil)))
+             (declare (ignore action-designator ?agent-namespace))
+             ;; (if (or (eq :charge (desig:desig-prop-value action-designator :to))
+             ;;         (eq :charging (desig:desig-prop-value action-designator :type)))
+             ;;     (call-perform (desig:an action (to mount) (agent ?agent-namespace))
+             ;;                     "donkey")
+             ;;     nil)
+             ))
 
 
     (unless agent-namespace

@@ -35,19 +35,18 @@
   :depends-on (roslisp
                roslisp-utilities
                cram-designators
-               cram-sherpa-robots-common
-               sherpa_msgs-msg
-               sherpa_msgs-srv
-               actionlib
                alexandria ; for curry in result callback
-               cram-json-prolog
-               cram-utilities)
+               cram_commander-srv
+               yason
+               cl-transforms
+               cram-language ; for stopping threads
+               cram-executive)
 
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "battery" :depends-on ("package"))
-     (:file "choose-agent" :depends-on ("package" "battery"))
+     (:file "choose-agent" :depends-on ("package"))
      (:file "robots-ros" :depends-on ("package" "choose-agent"))
-     (:file "hmi-interface" :depends-on ("package" "robots-ros"))))))
+     (:file "action-json-parser" :depends-on ("package"))
+     (:file "action-designator-server" :depends-on ("package" "action-json-parser"))))))

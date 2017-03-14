@@ -31,7 +31,8 @@
 
 (defpackage cram-commander
   (:nicknames #:commander)
-  (:use #:common-lisp)
+  (:use #:common-lisp #:cram-prolog)
   (:export
-   #:human-command
-   ))
+   #:call-perform
+   #:run-perform-server
+   #:run-reference-server))

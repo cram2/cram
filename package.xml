@@ -7,14 +7,19 @@
   <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
   <license>BSD</license>
 
+  <url type="website">http://cram-system.org</url>
+  <url type="bugtracker">https://github.com/cram2/cram_commander/issues</url>
+  <url type="repository">https://github.com/cram2/cram_commander</url>
+
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>roslisp</depend>
   <depend>roslisp_utilities</depend>
   <depend>cram_designators</depend>
-  <depend>cram_sherpa_robots_common</depend>
-  <depend>sherpa_msgs</depend>
-  <depend>actionlib_lisp</depend>
-  <depend>cram_json_prolog</depend>
   <depend>alexandria</depend>
+
+  <depend>std_msgs</depend>
+
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
 </package>

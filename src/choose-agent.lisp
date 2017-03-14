@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2017, Mihai Pomarlan <blandc@cs.uni-bremen.de>
+;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -31,4 +31,4 @@
 
 (defun choose-agent (action-designator)
   (declare (ignore action-designator))
-  "red_wasp")
+  nil)
