@@ -17,6 +17,10 @@
   <depend>roslisp_utilities</depend>
   <depend>cram_designators</depend>
   <depend>alexandria</depend>
+  <depend>yason</depend>
+  <depend>cl_transforms</depend>
+  <depend>cram_language</depend>
+  <depend>cram_executive</depend>
 
   <depend>std_msgs</depend>
 
