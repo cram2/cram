@@ -45,6 +45,10 @@
                :format-arguments (list desig)
                :designator desig))))
 
+(def-fact-group default-action-solution (action-desig)
+  (<- (action-desig ?designator ?solution)
+    (fail)))
+
 (defmethod resolve-designator ((desig action-designator) (role t))
   (lazy-mapcan (lambda (bdg)
                  (let ((action-desig (var-value '?act bdg)))
