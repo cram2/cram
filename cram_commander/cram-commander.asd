@@ -36,11 +36,11 @@
                roslisp-utilities
                cram-designators
                alexandria ; for curry in result callback
-               cram_commander-srv
                yason
                cl-transforms
                cram-language ; for stopping threads
-               cram-executive)
+               cram-executive
+               cram_commander-srv)
 
   :components
   ((:module "src"
