@@ -240,14 +240,18 @@ either :ACCEPT, :REJECT, :MAYBE-REJECT or :UNKNOWN."
   `function-name' needs to be a symbol representing the function to delete."
   (setf *location-generators*
         (remove function-name *location-generators*
-                :key #'location-resolution-function-function)))
+                :key #'location-resolution-function-function))
+  (setf *disabled-location-generators*
+        (remove function-name *disabled-location-generators*)))
 
 (defun delete-location-validation-function (function-name)
   "Delete a validation-function from the list of registered validation functions.
    `function-name' needs to be a symbol representing the function to delete."
   (setf *location-validation-functions*
         (remove function-name *location-validation-functions*
-                :key #'location-resolution-function-function)))
+                :key #'location-resolution-function-function))
+  (setf *disabled-validation-functions*
+        (remove function-name *disabled-validation-functions*)))
 
 (defun enable-location-generator-function (function-name)
   (setf *disabled-location-generators*
