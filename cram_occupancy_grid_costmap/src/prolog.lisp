@@ -1,4 +1,4 @@
-;;; Copyright (c) 2015, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -26,32 +26,36 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-robot-interfaces)
+(in-package :occupancy-grid-costmap)
 
-(def-fact-group robot (robot robot-base-frame robot-torso-link-joint
-                             robot-odom-frame)
-  (<- (robot ?robot-name)
-    (fail))
+(defmethod costmap-generator-name->score ((name (eql 'static-occupied)))
+  15)
 
-  (<- (robot-base-frame ?robot-name ?base-frame)
-    (fail))
+(defmethod costmap-generator-name->score ((name (eql 'free-space)))
+  15)
 
-  (<- (robot-odom-frame ?robot-name ?odom-frame)
-    (fail))
+(def-fact-group occupancy-grid-costmap (desig-costmap)
+  
+  (<- (drivable-location-costmap ?cm ?padding)
+    (costmap ?cm)
+    (-> (symbol-value *current-map* ?map)
+        (and
+         (inverted-occupancy-grid ?map ?free-space)
+         (occupancy-grid ?map ?static-occupied (padding ?padding))
+         (costmap-add-function free-space (make-occupancy-grid-cost-function ?free-space) ?cm)
+         (costmap-add-function static-occupied
+                               (make-occupancy-grid-cost-function ?static-occupied :invert t)
+                               ?cm))
+        (true)))
 
-  (<- (robot-torso-link-joint ?robot-name ?torso-link ?torso-joint)
-    (fail)))
+  (<- (desig-costmap ?desig ?cm)
+    (desig-prop ?desig (:to :see))
+    (costmap ?cm)
+    (costmap-padding ?padding)
+    (drivable-location-costmap ?cm ?padding))
 
-
-(defun current-robot-symbol ()
-  (let ((robot-symbol
-          (cut:var-value '?r (car (prolog:prolog '(robot ?r))))))
-    (if (cut:is-var robot-symbol)
-        NIL
-        robot-symbol)))
-
-(defun current-robot-package ()
-  (symbol-package (current-robot-symbol)))
-
-(defun current-robot-name ()
-  (symbol-name (current-robot-symbol)))
+  (<- (desig-costmap ?desig ?cm)
+    (cram-robot-interfaces:reachability-designator ?desig)
+    (costmap ?cm)
+    (costmap-manipulation-padding ?padding)
+    (drivable-location-costmap ?cm ?padding)))

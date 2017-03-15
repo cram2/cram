@@ -110,6 +110,10 @@ If the value is greater than 1, the samples' orientations differ by `sample-step
 
 (def-fact-group location-costmap-utils ()
 
+  ;; default costmap resolver to define the predicate
+  (<- (desig-costmap ?designator ?costmap)
+    (fail))
+
   (<- (merged-desig-costmap ?desig ?cm)
     ;; bagof collects all true solutions for c into costmaps
     (bagof ?c (desig-costmap ?desig ?c) ?costmaps)
