@@ -1,6 +1,6 @@
 <package>
   <name>cram_plan_failures</name>
-  <version>0.2.2</version>
+  <version>0.3.0</version>
   <description>
     This package defines general plan failures use by the high level
     plan library.

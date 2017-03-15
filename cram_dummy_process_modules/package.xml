@@ -1,6 +1,6 @@
 <package>
   <name>cram_dummy_process_modules</name>
-  <version>0.2.2</version>
+  <version>0.3.0</version>
   <description>
     Fake process module implementation
   </description>
