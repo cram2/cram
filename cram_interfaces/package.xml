@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>cram_plans</name>
-  <version>0.2.2</version>
-  <description>The cram_plans package</description>
+  <name>cram_common</name>
+  <version>0.3.0</version>
+  <description>The cram_common metapackage</description>
 
   <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
   <license>BSD</license>
