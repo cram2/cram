@@ -1,9 +1,9 @@
 <package>
   <name>cram_pr2_launch_files</name>
-  <version>0.0.1</version>
+  <version>0.3.0</version>
   <description>
      cram_pr2_launch_files
-</description>
+  </description>
   <author>Gayane Kazhoyan</author>
   <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
   <license>BSD</license>
