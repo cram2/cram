@@ -13,8 +13,12 @@
     <remap from="robot_description" to="kitchen_description" />
   </node>
 
+  <param name="initial_package" type="string" value="knowrob_map_data" />
+  <param name="initial_goal" type="string" value="owl_parse('package://spatial_relations_demo/owl/room.owl')" />
+  <node name="json_prolog" pkg="json_prolog" type="json_prolog_node" cwd="node" output="screen" />
+
   <include file="$(find iai_maps)/launch/map.launch" />
-  <include file="$(find iai_maps)/launch/json.launch" />
+
   <param name="robot_description_lowres"
          command="$(find xacro)/xacro.py
                   '$(find pr2_description_lowres)/robots/pr2.urdf.xacro'"/>

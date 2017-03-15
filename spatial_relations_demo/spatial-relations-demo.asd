@@ -27,9 +27,9 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
 (defsystem spatial-relations-demo
-  :author "eris"
+  :author "gaya"
   :license "BSD"
-  :depends-on (cram-spatial-relations-costmap
+  :depends-on (cram-bullet-reasoning-costmap
                cl-urdf
                cram-designators
                cram-location-costmap
@@ -59,4 +59,5 @@
      (:file "restricted-area-costmap" :depends-on ("package"))
      (:file "scenario-interface" :depends-on ("package"))
      (:file "table-setting" :depends-on ("package" "scenario-interface"))
-     (:file "pancake-making" :depends-on ("package"))))))
+     (:file "pancake-making" :depends-on ("package"))
+     (:file "pick-and-place" :depends-on ("package"))))))

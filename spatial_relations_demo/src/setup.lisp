@@ -61,12 +61,20 @@
 (defun start-ros-and-bullet (&optional (pi-rotation '(0 0 0 1)) (sem-map-xyz '(0 0 0)))
   (init "localhost")
   (setf *tf-default-timeout* 1.0)
+  
   (unless *robot-urdf-lowres*
     (setf *robot-urdf-lowres*
           (cl-urdf:parse-urdf (roslisp:get-param "robot_description_lowres"))))
   (unless *kitchen-urdf*
     (setf *kitchen-urdf*
-          (cl-urdf:parse-urdf (roslisp:get-param "kitchen_description"))))
+          (cl-urdf:parse-urdf (roslisp:get-param "kitchen_description")))
+    (setf (slot-value
+           (gethash "pancake_table_table_joint"
+                    (slot-value cram-bullet-reasoning-utilities::*kitchen-urdf* 'cl-urdf:joints))
+           'cl-urdf:origin)
+          (cl-transforms:make-transform
+           (cl-transforms:make-3d-vector -2.8 -3.55 0)
+           (cl-transforms:make-identity-rotation))))
   (let ((pi-rotation '(0 0 1 0))
         (sem-map-xyz '(-3.45 -4.35 0)))
     (clear-costmap-vis-object)
