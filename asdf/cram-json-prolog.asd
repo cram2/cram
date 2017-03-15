@@ -1,1 +1,0 @@
-../cram-json-prolog.asd
