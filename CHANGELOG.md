@@ -82,3 +82,6 @@ ChangeLog
 2016-11-14 [gauss_costmap] commented out BULLET-GENERATOR: it wasn't used anywhere anyway and allowed to get rid of bullet dependency
 
 2016-11-15 cleaned up package.xmls
+
+
+### [0.2.1] - 2016-01-28
