@@ -1,4 +1,4 @@
-;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2012, Gayane Kazhoyan <kazhoyan@in.tum.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -26,30 +26,21 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-bullet-reasoning-designators
-  :author "Lorenz Moesenlechner"
+(defsystem cram-bullet-reasoning-costmap
+  :author "Gayane Kazhoyan"
   :license "BSD"
-
-  :depends-on (cram-prolog
-               cram-bullet-reasoning
-               cram-designators
+  :depends-on (cram-designators
                cram-location-costmap
-               cram-tf
+               cram-prolog
+               cram-semantic-map-costmap
+               cram-bullet-reasoning
                cram-utilities
-               cram-bullet-reasoning-belief-state ; for obj-desig <-> bullet instance
-               cram-robot-interfaces
-               cram-math
-               cl-opengl
-               cl-bullet
-               cl-bullet-vis)
+               cram-bullet-reasoning-belief-state)
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "costmap-generators" :depends-on ("package"))
-     (:file "visibility-costmap" :depends-on ("package"))
-     (:file "location-designator-facts" :depends-on ("package"
-                                                     "costmap-generators"
-                                                     "visibility-costmap"))
-     (:file "location-designator-integration" :depends-on ("package"
-                                                           "location-designator-facts"))))))
+     (:file "designator-integration" :depends-on ("package"))
+     (:file "cost-functions" :depends-on ("package"))
+     (:file "prolog" :depends-on ("package"))
+     (:file "knowledge" :depends-on ("package"))))))
