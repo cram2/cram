@@ -129,8 +129,8 @@ calls the generator functions and runs normalization."
                             #'costmap-generator-name->score
                             #'generator-name)))
       (let ((new-cost-map (cma:make-double-matrix
-                           (round (/ width resolution))
-                           (round (/ height resolution))
+                           (truncate (/ width resolution))
+                           (truncate (/ height resolution))
                            :initial-element 1.0d0))
             (sum 0.0d0))
         (dolist (generator (cost-functions map))
@@ -182,6 +182,7 @@ calls the generator functions and runs normalization."
        :origin-x (origin-x cm-1)
        :origin-y (origin-y cm-1)
        :resolution (resolution cm-1)
+       :visualization-z (visualization-z cm-1)
        :cost-functions (reduce #'append (mapcar #'cost-functions costmaps)
                                :initial-value (cost-functions cm-1))
        :height-generators (mapcan (compose #'copy-list #'height-generators)

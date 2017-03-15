@@ -37,7 +37,8 @@
            :reader grid-height)
    (origin-x :reader origin-x :initarg :origin-x :type double-float)
    (origin-y :reader origin-y :initarg :origin-y :type double-float)
-   (resolution :reader resolution :initarg :resolution :type double-float)))
+   (resolution :reader resolution :initarg :resolution :type double-float)
+   (visualization-z :reader visualization-z :initarg :visualization-z :type double-float)))
 
 (defclass occupancy-grid (occupancy-grid-metadata)
   ((grid :reader grid :type (simple-array fixnum 2)))

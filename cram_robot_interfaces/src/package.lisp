@@ -35,6 +35,7 @@
    #:trajectory-point
    ;; robot
    #:robot #:robot-base-frame #:robot-torso-link-joint #:robot-odom-frame
+   #:current-robot-symbol #:current-robot-package #:current-robot-name
    ;; ptu
    #:camera-frame #:camera-minimal-height #:camera-maximal-height
    #:robot-pan-tilt-links #:robot-pan-tilt-joints
@@ -55,7 +56,7 @@
    ;; objects
    #:orientation-matters
    ;; designator prolog utils
-   #:compute-ik #:side->ik-group-name
+   #:compute-iks
    #:reachability-designator #:designator-reach-pose
    #:reachability-designator-p #:visibility-designator-p
    #:trajectory-desig? #:constraints-desig?
