@@ -79,10 +79,11 @@
     ((event cram-plan-occasions-events:robot-state-changed))
   (update-tf))
 
-(defmethod cram-robot-interfaces:compute-ik :before
-    (pose-stamped &key link-name planning-group robot-state target-frame seed-state tcp-frame)
-  (declare (ignore pose-stamped link-name planning-group
-                   target-frame tcp-frame seed-state))
+(defmethod cram-robot-interfaces:compute-iks :before (pose-stamped
+                                                      &key link-name arm robot-state
+                                                        seed-state pose-stamped-frame
+                                                        tcp-in-ee-pose)
+  (declare (ignore pose-stamped link-name arm seed-state pose-stamped-frame tcp-in-ee-pose))
   (let ((time (roslisp:ros-time)))
     ;; tell the tf transformer where the robot currently is in the global
     ;; fixed coordinate system

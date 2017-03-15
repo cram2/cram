@@ -89,8 +89,9 @@
                         :ik_link_name ik-link-name
                         :group_name group-name
                         :avoid_collisions T
-                        :pose_stamped (to-msg
-                                        (pose->pose-stamped ik-base-frame-name 0.0 pose))
+                        :pose_stamped (cl-transforms-stamped:to-msg
+                                       (cl-transforms-stamped:pose->pose-stamped
+                                        ik-base-frame-name 0.0 pose))
                         :timeout 0.005))
       (cond ((eql error-code
                   (roslisp-msg-protocol:symbol-code
@@ -120,8 +121,9 @@
          (roslisp:make-request
           "moveit_msgs/GetPositionIK"
           (:ik_link_name :ik_request) ik-link
-          (:pose_stamped :ik_request) (to-msg
-                                       (pose->pose-stamped ik-base-frame 0.0 pose))
+          (:pose_stamped :ik_request) (cl-transforms-stamped:to-msg
+                                       (cl-transforms-stamped:pose->pose-stamped
+                                        ik-base-frame 0.0 pose))
           (:joint_state :ik_seed_state :ik_request) (make-seed-state service-namespace)
           (:timeout :ik_request) 1.0))
       (cond ((eql error-code
