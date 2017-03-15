@@ -204,7 +204,7 @@
                   :owl-name owlname
                   :urdf-link-name (urdf-name owlname)
                   :pose (if (= (length ?pose) 7)
-                            (destructuring-bind (x y z q1 q2 q3 w)
+                            (destructuring-bind (x y z w q1 q2 q3)
                                 ?pose
                              (cl-transforms:make-pose
                               (cl-transforms:make-3d-vector x y z)
