@@ -45,6 +45,10 @@
                :format-arguments (list desig)
                :designator desig))))
 
+(def-fact-group default-motion-solution (motion-desig)
+  (<- (motion-desig ?designator ?solution)
+    (fail)))
+
 (defmethod resolve-designator ((desig motion-designator) (role t))
   (lazy-mapcan (lambda (bdg)
                  (let ((motion-desig (var-value '?motion bdg)))
