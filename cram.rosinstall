@@ -10,18 +10,16 @@
 - git:
     local-name: cram_core
     uri: https://github.com/cram2/cram_core.git
-    version: cram3
 
-# Plans and high-level interfaces:
+######### Plans and high-level interfaces: ###############
 - git:
     local-name: roslisp_common
     uri: https://github.com/ros/roslisp_common.git
 - git:
-    local-name: cram_plans
-    uri: https://github.com/cram2/cram_plans.git
-    version: cram3
+    local-name: cram_common
+    uri: https://github.com/cram2/cram_common.git
 
-########### Semantic map functionality and other KnowRob interfaces: ########
+########### KnowRob interfaces including semantic map functionality: ########
 # (requires an installed KnowRob, maybe from a different workspace)
 # - git:
 #     local-name: knowrob
@@ -34,15 +32,13 @@
     local-name: cram_json_prolog
     uri: https://github.com/cram2/cram_json_prolog.git
 - git:
-    local-name: cram_semantic_maps
-    uri: https://github.com/cram2/cram_semantic_maps.git
-    version: cram3
+    local-name: cram_knowrob
+    uri: https://github.com/cram2/cram_knowrob.git
 
 ####### Belief state representation and geometric reasoning: #############
 - git:
     local-name: cram_3d_world
     uri: https://github.com/cram2/cram_3d_world.git
-    version: cram3
 
 ########### Logging infrastructure: ################
 - git:
@@ -69,7 +65,6 @@
 - git:
     local-name: cram_pr2
     uri: https://github.com/cram2/cram_pr2.git
-    version: cram3
 - git:
     local-name: robot_state_chain_publisher
     uri: https://github.com/code-iai/robot_state_chain_publisher.git
@@ -79,7 +74,6 @@
 - git:
     local-name: cram_projection_demos
     uri: https://github.com/cram2/cram_projection_demos.git
-    version: cram3
 # - git:
 #     local-name: iai_robots
 #     uri: https://github.com/code-iai/iai_robots.git
