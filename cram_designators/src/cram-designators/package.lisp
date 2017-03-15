@@ -68,6 +68,7 @@
            #:register-object-desig-resolver
            #:resolve-object-desig
            #:action-designator #:action-desig #:action
+           #:motion-designator #:motion-desig
            #:location-designator
            #:*location-generator-max-retries*
            #:register-location-generator
