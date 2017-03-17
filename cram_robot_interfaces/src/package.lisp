@@ -31,23 +31,19 @@
 (defpackage cram-robot-interfaces
   (:use #:common-lisp #:cram-prolog #:cram-designators)
   (:export
-   ;; trajectories
-   #:trajectory-point
-   ;; robot
-   #:robot #:robot-base-frame #:robot-torso-link-joint #:robot-odom-frame
-   #:current-robot-symbol #:current-robot-package #:current-robot-name
-   ;; ptu
-   #:camera-frame #:camera-minimal-height #:camera-maximal-height
-   #:robot-pan-tilt-links #:robot-pan-tilt-joints
    ;; arms
-   #:arm #:arm-joints #:arm-links #:hand-links #:required-arms #:available-arms
-   #:arm-base-joints #:arm-tool-joints #:arm-base-links
-   #:joint-lower-limit #:joint-upper-limit
-   #:joint-type #:joint-axis #:joint-origin #:joint-parent-link #:joint-child-link
-   #:end-effector-link #:gripper-link #:gripper-joint #:robot-tool-frame
-   #:planning-group
+   #:arm #:required-arms #:available-arms
+   #:arm-joints #:arm-links #:arm-base-joints #:arm-base-links #:arm-tool-joints
+   #:hand-links #:end-effector-link #:robot-tool-frame #:gripper-link #:gripper-joint
+   #:joint-lower-limit #:joint-upper-limit #:joint-type #:joint-axis #:joint-origin
+   #:joint-parent-link #:joint-child-link
    #:robot-arms-parking-joint-states #:end-effector-parking-pose
-   #:robot-pre-grasp-joint-states
+   #:robot-pre-grasp-joint-states #:planning-group
+   ;; designator utils
+   #:compute-iks
+   #:reachability-designator #:designator-reach-pose
+   #:reachability-designator-p #:visibility-designator-p
+   #:trajectory-desig? #:constraints-desig?
    ;; grasps
    #:def-grasp #:def-tool #:get-grasp #:get-grasps #:get-grasp-names
    #:calculate-bounding-box-tool-length #:get-tool-direction-vector
@@ -55,10 +51,13 @@
    #:grasp #:side #:object-type-grasp #:object-designator-grasp
    ;; objects
    #:orientation-matters
-   ;; designator prolog utils
-   #:compute-iks
-   #:reachability-designator #:designator-reach-pose
-   #:reachability-designator-p #:visibility-designator-p
-   #:trajectory-desig? #:constraints-desig?
+   ;; ptu
+   #:camera-frame #:camera-minimal-height #:camera-maximal-height
+   #:robot-pan-tilt-links #:robot-pan-tilt-joints
+   ;; robot
+   #:robot #:robot-base-frame #:robot-torso-link-joint #:robot-odom-frame
+   #:current-robot-symbol #:current-robot-package #:current-robot-name
+   ;; trajectories
+   #:trajectory-point
    ;; utilities
    #:symbol-to-prolog-rule))

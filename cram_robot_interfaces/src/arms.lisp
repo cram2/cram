@@ -28,16 +28,30 @@
 
 (in-package :cram-robot-interfaces)
 
-(def-fact-group arms (arm arm-joints arm-links hand-links required-arms available-arms end-effector-link
-                          arm-base-joints arm-tool-joints arm-base-links
-                          joint-upper-limit joint-lower-limit joint-type joint-axis joint-origin
-                          joint-parent-link joint-child-link 
-                          robot-tool-frame
-                          gripper-joint gripper-link
-                          robot-arms-parking-joint-states end-effector-parking-pose
-                          robot-pre-grasp-joint-states planning-group)
+(def-fact-group arms (;; rules describing the robot arms
+                      arm required-arms available-arms
+                      arm-joints arm-links arm-base-joints arm-base-links arm-tool-joints
+                      hand-links end-effector-link robot-tool-frame gripper-joint gripper-link
+                      ;; rules for extracting joint properties
+                      joint-upper-limit joint-lower-limit joint-type joint-axis joint-origin
+                      joint-parent-link joint-child-link
+                      ;; specific configurations
+                      robot-arms-parking-joint-states end-effector-parking-pose
+                      robot-pre-grasp-joint-states planning-group)
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;; rules describing the robot arms
+
   ;; Unifies ?side with the name of an arm that is present on the ?robot.
   (<- (arm ?robot ?arm)
+    (fail))
+
+  ;; ?arms is unified with the list of arms that are required to
+  ;; manipulate the object indicated by the ?object-designator.
+  (<- (required-arms ?object-designator ?arms)
+    (fail))
+
+  ;; Similar to REQUIRED-ARMS but only unifies with currently unused arms.
+  (<- (available-arms ?object-designator ?arms)
     (fail))
 
   ;; Unifies ?arm with the list of joints for that arm.
@@ -52,18 +66,36 @@
   (<- (arm-base-joints ?robot ?arm ?joints)
     (fail))
 
-  ;; Unifies ?arm with the list of tool joints for that arm (e.g., for the PR2 it's the palm and tool joints).
-  (<- (arm-tool-joints ?robot ?arm ?joints)
-    (fail))
-
   ;; Unifies ?arm with a list of base links for that arm (e.g., for the PR2 it's the torso).
   (<- (arm-base-links ?robot ?arm ?links)
     (fail))
 
-  ;; ?sides is unified with the list of arms that are required to
-  ;; manipulate the object indicated by the object designator ?object.
-  (<- (required-arms ?object-designator ?arms)
+  ;; Unifies ?arm with the list of tool joints for that arm
+  ;; (e.g., for the PR2 it's the palm and tool joints).
+  (<- (arm-tool-joints ?robot ?arm ?joints)
     (fail))
+
+    ;; Unifies ?arm with a list of links for the hand of that arm.
+  (<- (hand-links ?robot ?arm ?links)
+    (fail))
+
+    ;; Defines end-effector links for arms.
+  (<- (end-effector-link ?robot ?arm ?link-name)
+    (fail))
+
+   ;; Defines tool frames for arms.
+  (<- (robot-tool-frame ?robot ?arm ?frame)
+    (fail))
+
+  ;; Defines joints of robot's grippers
+  (<- (gripper-joint ?robot ?arm ?joint)
+    (fail))
+
+  ;; Defines links of the grippers of the robot
+  (<- (gripper-link ?robot ?arm ?link)
+    (fail))
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;; rules for extracting joint properties
 
   ;; Unifies a joint name with the lower limit for that joint.
   (<- (joint-lower-limit ?robot ?joint-name ?value)
@@ -93,33 +125,7 @@
   (<- (joint-child ?robot ?joint-name ?child)
     (fail))
 
-  ;; Similar to REQUIRED-ARMS but only unifies with currently unused
-  ;; arms.
-  (<- (available-arms ?object-designator ?arms)
-    (fail))
-
-  ;; Defines end-effector links for arms.
-  (<- (end-effector-link ?robot ?arm ?link-name)
-    (fail))
-
-  ;; Unifies ?arm with a list of links for the hand of that arm.
-  (<- (hand-links ?robot ?arm ?links)
-    (fail))
-
-  ;; Defines tool frames for arms.
-  (<- (robot-tool-frame ?robot ?arm ?frame)
-    (fail))
-
-  ;; Defines links of the grippers of the robot
-  (<- (gripper-link ?robot ?arm ?link)
-    (fail))
-
-  ;; Defines joints of robot's grippers
-  (<- (gripper-joint ?robot ?arm ?joint)
-    (fail))
-
-  (<- (planning-group ?robot ?arms ?group-name)
-    (fail))
+  ;;;;;;;;;;;;;;;;;;;;;;;;; specific configurations
 
   (<- (robot-arms-parking-joint-states ?robot ?joint-states)
     (fail))
@@ -131,3 +137,7 @@
 
   (<- (robot-pre-grasp-joint-states ?robot ?joint-states)
     (fail)))
+
+  (<- (planning-group ?robot ?arms ?group-name)
+    (fail))
+
