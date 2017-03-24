@@ -1,4 +1,4 @@
-;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.DE>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -30,17 +30,20 @@
   :author "Lorenz Moesenlechner"
   :license "BSD"
 
-  :depends-on (cram-plan-occasions-events
-               cram-robot-interfaces
+  :depends-on (;cram-plan-occasions-events
+               ;cram-robot-interfaces
                cram-prolog
                cram-designators
-               cram-semantic-map-utils
-               cram-semantic-map
+               ;cram-semantic-map-utils
+               ;cram-semantic-map
                cram-tf
-               cram-bullet-reasoning)
+               ;cram-bullet-reasoning
+               )
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "semantic-map" :depends-on ("package"))
-     (:file "pick-and-place" :depends-on ("package"))))))
+     (:file "motions" :depends-on ("package"))
+     ;; (:file "semantic-map" :depends-on ("package"))
+     ;; (:file "pick-and-place" :depends-on ("package"))
+     ))))
