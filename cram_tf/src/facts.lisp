@@ -98,7 +98,7 @@
 
   (<- (location-pose ?location ?pose)
     (-> (lisp-type ?location designator)
-        (and (desig-solutions ?location ?poses)
+        (and (designator-groundings ?location ?poses)
              (member ?pose ?poses))
         (or (pose ?pose ?location)
             (equal ?location ?pose)))))
