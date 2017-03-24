@@ -67,8 +67,8 @@
            #:object-designator-data #:object-pose #:object-identifier
            #:register-object-desig-resolver
            #:resolve-object-desig
-           #:action-designator #:action-desig #:action
-           #:motion-designator #:motion-desig
+           #:action-designator #:action-grounding #:action
+           #:motion-designator #:motion-grounding
            #:location-designator
            #:*location-generator-max-retries*
            #:register-location-generator
@@ -100,6 +100,8 @@
            ;; Properties & prolog related stuff
            #:loc-desig?
            #:obj-desig?
+           #:action-desig?
+           #:motion-desig?
            #:desig-prop #:desig-class
            #:desig-timestamp #:desig-description
            #:effective-designator #:desig-value
