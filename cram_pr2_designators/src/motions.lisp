@@ -29,14 +29,14 @@
 
 (in-package :cram-pr2-designators)
 
-(def-fact-group pr2-navigation-motions (motion-desig)
+(def-fact-group pr2-navigation-motions (motion-grounding)
 
-  (<- (motion-desig ?motion-designator (drive ?pose))
+  (<- (motion-grounding ?motion-designator (drive ?pose))
     (desig-prop ?motion-designator (:type :going))
     (desig-prop ?motion-designator (:pose ?pose))
     (lisp-type ?pose cl-transforms-stamped:pose-stamped))
 
-  (<- (motion-desig ?motion-designator (drive ?pose))
+  (<- (motion-grounding ?motion-designator (drive ?pose))
     (desig-prop ?motion-designator (:type :going))
     (or (and (desig-prop ?motion-designator (:pose ?pose)))
         (and (or (desig-prop ?motion-designator (:destination ?location))
@@ -50,9 +50,9 @@
     (cram-tf:location-pose ?where ?pose)))
 
 
-(def-fact-group pr2-ptu-motions (motion-desig)
+(def-fact-group pr2-ptu-motions (motion-grounding)
 
-  (<- (motion-desig ?motion-designator (look-at :point ?pose))
+  (<- (motion-grounding ?motion-designator (look-at :point ?pose))
     (or (desig-prop ?motion-designator (:to :look))
         (desig-prop ?motion-designator (:type :looking)))
     (or(desig-prop ?motion-designator (:at ?location)))
@@ -63,7 +63,7 @@
                  (desig-prop ?motion-designator (:object ?obj-or-loc)))
              (desig-location-prop ?obj-or-loc ?pose))))
 
-  (<- (motion-desig ?motion-designator (look-at :point ?pose))
+  (<- (motion-grounding ?motion-designator (look-at :point ?pose))
     
     (desig-prop ?motion-designator (:at ?where))
     (-> (lisp-type ?where designator)
@@ -71,7 +71,7 @@
         (or (cram-tf:pose ?pose ?where)
             (equal ?where ?pose))))
 
-  (<- (motion-desig ?motion-designator (look-at :frame ?frame))
+  (<- (motion-grounding ?motion-designator (look-at :frame ?frame))
     (desig-prop ?motion-designator (:type :looking))
     (desig-prop ?motion-designator (:frame ?frame)))
 
@@ -79,7 +79,7 @@
     (not (projection-running ?_))))
 
 
-(def-fact-group pr2-perception-actions (motion-desig
+(def-fact-group pr2-perception-actions (motion-grounding
                                         matching-process-module
                                         available-process-module)
 
@@ -92,7 +92,7 @@
     ;; (desig-prop ?current-object-designator (:type ?object-type))
     )
 
-  (<- (motion-desig ?motion-designator (detect ?object-properties ?quantifier))
+  (<- (motion-grounding ?motion-designator (detect ?object-properties ?quantifier))
     (or (desig-prop ?motion-designator (:type :detecting))
         (desig-prop ?motion-designator (:to :detect)))
     (or (and (desig-prop ?motion-designator (:object ?object-designator))
@@ -108,7 +108,7 @@
     (not (projection-running ?_))))
 
 
-(def-fact-group pr2-gripper-actions (motion-desig
+(def-fact-group pr2-gripper-actions (motion-grounding
                                      matching-process-module
                                      available-process-module)
 
@@ -124,23 +124,23 @@
                  (desig-prop ?motion-designator (:to :close)))
              (desig-prop ?motion-designator (?_ :gripper)))))
 
-  (<- (motion-desig ?motion-designator (gripper-action :open ?which-gripper))
+  (<- (motion-grounding ?motion-designator (gripper-action :open ?which-gripper))
     (desig-prop ?motion-designator (:type :opening))
     (desig-prop ?motion-designator (:gripper ?which-gripper)))
 
-  (<- (motion-desig ?motion-designator (gripper-action :open ?which-gripper))
+  (<- (motion-grounding ?motion-designator (gripper-action :open ?which-gripper))
     (desig-prop ?motion-designator (:to :open))
     (desig-prop ?motion-designator (?which-gripper :gripper)))
 
-  (<- (motion-desig ?motion-designator (gripper-action :close ?which-gripper))
+  (<- (motion-grounding ?motion-designator (gripper-action :close ?which-gripper))
     (desig-prop ?motion-designator (:type :closing))
     (desig-prop ?motion-designator (:gripper ?which-gripper)))
 
-  (<- (motion-desig ?motion-designator (gripper-action :close ?which-gripper))
+  (<- (motion-grounding ?motion-designator (gripper-action :close ?which-gripper))
     (desig-prop ?motion-designator (:to :close))
     (desig-prop ?motion-designator (?which-gripper :gripper)))
 
-  (<- (motion-desig ?motion-designator (gripper-action :grip ?which-gripper ?maximum-effort))
+  (<- (motion-grounding ?motion-designator (gripper-action :grip ?which-gripper ?maximum-effort))
     (or (desig-prop ?motion-designator (:type :gripping))
         (desig-prop ?motion-designator (:to :grip)))
     (or (desig-prop ?motion-designator (:gripper ?which-gripper))
@@ -152,7 +152,7 @@
     (not (projection-running ?_))))
 
 
-(def-fact-group pr2-arm-actions (motion-desig
+(def-fact-group pr2-arm-actions (motion-grounding
                                  matching-process-module
                                  available-process-module)
 
@@ -164,7 +164,7 @@
     (or (desig-prop ?motion-designator (:left ?locations))
         (desig-prop ?motion-designator (:right ?locations))))
 
-  (<- (motion-desig ?motion-designator (move-arm ?pose-left ?pose-right))
+  (<- (motion-grounding ?motion-designator (move-arm ?pose-left ?pose-right))
     (or (desig-prop ?motion-designator (:to :move-arm))
         (desig-prop ?motion-designator (:type :moving-arm)))
     (-> (desig-prop ?motion-designator (:left ?left-location))
@@ -174,7 +174,7 @@
         (%parse-poses ?right-location ?pose-right)
         (equal ?pose-right nil)))
 
-  (<- (motion-desig ?motion-designator (move-joints ?left-configuration ?right-configuration))
+  (<- (motion-grounding ?motion-designator (move-joints ?left-configuration ?right-configuration))
     (or (desig-prop ?motion-designator (:to :move-joints))
         (desig-prop ?motion-designator (:type :moving-joints)))
     (-> (desig-prop ?motion-designator (:left ?left-configuration))
