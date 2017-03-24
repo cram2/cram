@@ -96,6 +96,14 @@
                    (mapcar (rcurry #'var-value bdgs) args))
         (list bdgs)))))
 
+(def-prolog-handler assert-type (bdgs object type)
+  (when *break-on-lisp-errors*
+    (unless (typep object type)
+      (error 'simple-error
+             :format-control "~a had to be of type ~a"
+             :format-arguments (list object type))))
+  (list bdgs))
+
 (def-prolog-handler bound (bdgs pattern)
   (when (is-bound pattern bdgs)
     (list bdgs)))
