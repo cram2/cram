@@ -77,9 +77,9 @@
            #:list-location-validation-functions
            #:accept-solution
            #:reject-solution
-           #:desig-solution #:loc-desig? #:obj-desig-location
+           #:location-grounding #:obj-desig-location
            #:desig-reference
-           #:desig-solutions
+           #:designator-groundings
            #:loc-desig-location
            #:object #:location
            #:designator-pose
@@ -100,7 +100,6 @@
            ;; Properties & prolog related stuff
            #:loc-desig?
            #:obj-desig?
-           #:desig-solution
            #:desig-prop #:desig-class
            #:desig-timestamp #:desig-description
            #:effective-designator #:desig-value
