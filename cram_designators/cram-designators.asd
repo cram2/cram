@@ -52,6 +52,7 @@
                                            "designator-protocol"
                                            "object-designator"
                                            "location-designator"
-                                           "action-designator"))
+                                           "action-designator"
+                                           "motion-designator"))
                (:file "utils" :depends-on ("package"))
                (:file "initialization-macros" :depends-on ("package"))))))))

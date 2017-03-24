@@ -64,6 +64,9 @@
   (<- (action-desig? ?designator)
     (lisp-type ?designator action-designator))
 
+  (<- (motion-desig? ?designator)
+    (lisp-type ?designator motion-designator))
+
   (<- (desig-location-prop ?desig ?loc)
     (obj-desig? ?desig)
     (lisp-fun obj-desig-location ?desig ?loc)

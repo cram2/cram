@@ -45,16 +45,17 @@
                :format-arguments (list desig)
                :designator desig))))
 
-(def-fact-group default-motion-solution (motion-desig)
-  (<- (motion-desig ?designator ?solution)
-    (fail)))
+(def-fact-group default-motion-solution (motion-grounding)
+  (<- (motion-grounding ?designator ?solution)
+    (not (motion-desig? ?designator))
+    (error "ACTION-GROUNDING can only be called on action designators and not ~a" ?designator)))
 
 (defmethod resolve-designator ((desig motion-designator) (role t))
   (lazy-mapcan (lambda (bdg)
                  (let ((motion-desig (var-value '?motion bdg)))
                    (unless (is-var motion-desig)
                      (list motion-desig))))
-               (prolog `(motion-desig ,desig ?motion))))
+               (prolog `(motion-grounding ,desig ?motion))))
 
 (defmethod next-solution ((desig motion-designator))
   (reference desig)
