@@ -96,8 +96,8 @@
         *performing-threads*)
   (setf *performing-threads* nil))
 
-(def-fact-group robot-agnostic-desigs (desig:action-desig)
-  (<- (action-desig ?action-designator (stop-all-actions))
+(def-fact-group robot-agnostic-desigs (desig:action-grounding)
+  (<- (action-grounding ?action-designator (stop-all-actions))
     (or (desig-prop ?action-designator (:type :stoppping))
         (desig-prop ?action-designator (:to :stop)))))
 

@@ -90,3 +90,10 @@
             (ensure-pose-stamped solution *fixed-frame* 0.0)
             (error "cram-tf:*fixed-frame* must be set."))
         solution)))
+
+;; (defgeneric ground (designator)
+;;   (:documentation "Returns a designator with properties augmented with subsymbolic data"))
+
+;; (defmethod ground ((designator location-desginator))
+;;   "Calls reference and appends that to the pose"
+;;   )

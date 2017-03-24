@@ -102,7 +102,7 @@ Returns a ROS JointState message with solution states of the joints in the `arm'
   (eq (desig-prop-value designator :to) :see))
 
 
-(def-fact-group manipulation-designators (action-desig)
+(def-fact-group manipulation-designators ()
   (<- (trajectory-desig? ?desig)
     (lisp-pred typep ?desig action-designator)
     (desig-prop ?desig (:type :trajectory)))
