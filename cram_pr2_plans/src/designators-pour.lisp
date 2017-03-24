@@ -126,9 +126,9 @@
       (car (last some-list))
       some-list))
 
-(def-fact-group pr2-pouring-plans (action-desig)
+(def-fact-group pr2-pouring-plans (action-grounding)
 
-  (<- (action-desig ?action-designator (perform-phases-in-sequence ?updated-action-designator))
+  (<- (action-grounding ?action-designator (perform-phases-in-sequence ?updated-action-designator))
     (or (desig-prop ?action-designator (:to :pour-activity)) ;; cartesian one-armed
         (desig-prop ?action-designator (:type :pouring-activity)))
     (desig-prop ?action-designator (:arm ?arm))
@@ -174,7 +174,7 @@
               ?updated-action-designator))
 
 
-  (<- (action-desig ?action-designator (pour-activity ?updated-action-designator))
+  (<- (action-grounding ?action-designator (pour-activity ?updated-action-designator))
     (or (desig-prop ?action-designator (:to :pour-activity)) ;; yaml two-arm
         (desig-prop ?action-designator (:type :pouring-activity)))
     (desig-prop ?action-designator (:arm ?arm))
@@ -225,34 +225,34 @@
               ?updated-action-designator))
 
 
-  (<- (action-desig ?action-designator (move-arms-in-sequence ?left-poses ?right-poses))
+  (<- (action-grounding ?action-designator (move-arms-in-sequence ?left-poses ?right-poses))
     (desig-prop ?action-designator (:to :approach-action))
     (once (or (desig-prop ?action-designator (:left ?left-poses))
               (equal ?left-poses nil)))
     (once (or (desig-prop ?action-designator (:right ?right-poses))
               (equal ?right-poses nil))))
 
-  ;; (<- (action-desig ?action-designator (tilt ?left-goal-pose ?right-goal-pose))
+  ;; (<- (action-grounding ?action-designator (tilt ?left-goal-pose ?right-goal-pose))
   ;;   (desig-prop ?action-designator (:to :my-tilt-angle))
   ;;   (desig-prop ?action-designator (:left ?left-initial-poses))
   ;;   (desig-prop ?action-designator (:right ?right-initial-poses))
   ;;   (desig-prop ?action-designator (:angle ?angle))
   ;;   (lisp-fun get-tilted-pose ?left-initial-poses ?angle ...))
 
-  (<- (action-desig ?action-designator (move-arms-in-sequence ?left-last-pose ?right-last-pose))
+  (<- (action-grounding ?action-designator (move-arms-in-sequence ?left-last-pose ?right-last-pose))
     (desig-prop ?action-designator (:to :tilt-to-action))
     (desig-prop ?action-designator (:left ?left-poses))
     (desig-prop ?action-designator (:right ?right-poses))
     (lisp-fun car-last ?left-poses ?left-last-pose)
     (lisp-fun car-last ?right-poses ?right-last-pose))
 
-  (<- (action-desig ?action-designator (giskard-yaml ?phase ?constraints))
+  (<- (action-grounding ?action-designator (giskard-yaml ?phase ?constraints))
     (or (desig-prop ?action-designator (:to :approach))
         (desig-prop ?action-designator (:to :tilt-down))
         (desig-prop ?action-designator (:to :tilt-back)))
     (desig-prop ?action-designator (:to ?phase))
     (desig-prop ?action-designator (:constraints ?constraints)))
 
-  (<- (action-desig ?action-designator (wait ?duration))
+  (<- (action-grounding ?action-designator (wait ?duration))
     (desig-prop ?action-designator (:to :wait))
     (desig-prop ?action-designator (:duration ?duration))))

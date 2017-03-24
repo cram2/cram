@@ -29,7 +29,7 @@
 
 (in-package :pr2-pms)
 
-(def-fact-group pr2-navigation-actions (action-desig
+(def-fact-group pr2-navigation-actions (motion-grounding
                                         matching-process-module
                                         available-process-module)
 

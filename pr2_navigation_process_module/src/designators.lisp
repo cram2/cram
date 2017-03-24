@@ -29,9 +29,9 @@
 
 (in-package :pr2-nav-pm)
 
-(def-fact-group pr2-navigation-designators (action-desig)
+(def-fact-group pr2-navigation-designators (action-grounding)
   
-  (<- (action-desig ?designator ?designator)
+  (<- (action-grounding ?designator ?designator)
     (desig-prop ?designator (:type :navigation))
     (desig-prop ?designator (:goal ?goal-location))))
 
