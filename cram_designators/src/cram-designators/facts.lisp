@@ -114,7 +114,7 @@
       (effective-designator ?desig)
       (lisp-fun reference ?desig ?reference))
 
-    (<- (desig-solutions ?desig ?solutions)
+    (<- (designator-groundings ?desig ?solutions)
       (ground ?desig)
       (lisp-fun designator-solutions ?desig ?solutions)
       (not (== ?solutions ())))
