@@ -199,7 +199,7 @@
                             (prolog:prolog `(reorient-object ,object ?ro))))))
     (find t ro-s)))
 
-(def-fact-group pr2-manipulation-designators (action-desig
+(def-fact-group pr2-manipulation-designators (action-grounding
                                               cram-language::grasp-effort
                                               reorient-object
                                               close-radius)
@@ -260,12 +260,12 @@
     (desig-prop ?obj-loc (:in :gripper)))
   
   ;; On the PR2 we don't need an open pose
-  (<- (action-desig ?desig (noop ?desig ?goal-spec))
+  (<- (action-grounding ?desig (noop ?desig ?goal-spec))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:pose :open))
     (lisp-fun make-empty-goal-specification ?goal-spec))
 
-  (<- (action-desig ?desig (park-object ?obj ?grasp-assignments ?goal-spec))
+  (<- (action-grounding ?desig (park-object ?obj ?grasp-assignments ?goal-spec))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :park))
     (or (desig-prop ?desig (:obj ?obj))
@@ -276,7 +276,7 @@
     ;; this is the place to do it.
     (lisp-fun make-empty-goal-specification ?goal-spec))
   
-  (<- (action-desig ?desig (park-arms ?arms ?goal-spec))
+  (<- (action-grounding ?desig (park-arms ?arms ?goal-spec))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :park))
     (free-arms ?arms)
@@ -284,11 +284,11 @@
     ;; this is the place to do it.
     (lisp-fun make-empty-goal-specification ?goal-spec))
 
-  (<- (action-desig ?desig (park-none))
+  (<- (action-grounding ?desig (park-none))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :park)))
   
-  (<- (action-desig ?desig (lift nil nil ?distance ?goal-spec))
+  (<- (action-grounding ?desig (lift nil nil ?distance ?goal-spec))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :lift))
     (desig-prop ?desig (:obj nil))
@@ -299,7 +299,7 @@
     ;; this is the place to do it.
     (lisp-fun make-empty-goal-specification ?goal-spec))
 
-  (<- (action-desig ?desig (handover ?object ?grasp-assignments ?goal-spec))
+  (<- (action-grounding ?desig (handover ?object ?grasp-assignments ?goal-spec))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :handover))
     (desig-prop ?desig (:obj ?obj))
@@ -309,7 +309,7 @@
     ;; this is the place to do it.
     (lisp-fun make-empty-goal-specification ?goal-spec))
 
-  (<- (action-desig ?desig (lift ?current-obj ?grasp-assignments ?distance ?goal-spec))
+  (<- (action-grounding ?desig (lift ?current-obj ?grasp-assignments ?distance ?goal-spec))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :lift))
     (or (desig-prop ?desig (:obj ?obj))
@@ -331,7 +331,7 @@
 
   (<- (grasp-type ?_ :push))
 
-  (<- (action-desig ?desig (park ?arms ?obj ?goal-spec ?obstacles))
+  (<- (action-grounding ?desig (park ?arms ?obj ?goal-spec ?obstacles))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :carry))
     (or (desig-prop ?desig (:obj ?obj))
@@ -354,7 +354,7 @@
     (lisp-fun arm-for-pose ?pose ?arm)
     (not (equal ?arm nil)))
   
-  (<- (action-desig ?desig (grasp ?desig ?current-obj ?goal-spec))
+  (<- (action-grounding ?desig (grasp ?desig ?current-obj ?goal-spec))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :grasp))
     (or (desig-prop ?desig (:obj ?obj))
@@ -364,7 +364,7 @@
     ;; this is the place to do it.
     (lisp-fun make-empty-goal-specification ?goal-spec))
 
-  (<- (action-desig ?desig (shove-into ?current-obj ?target-pose ?goal-spec))
+  (<- (action-grounding ?desig (shove-into ?current-obj ?target-pose ?goal-spec))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :shove-into))
     (desig-prop ?desig (:obj ?obj))
@@ -549,7 +549,7 @@
     (object-grasps-in-gripper ?object ?grasps)
     (lisp-fun cons->grasp-assignments ?grasps ?grasp-assignments))
 
-  (<- (action-desig ?desig (pull-open ?semantic-handle ?goal-spec))
+  (<- (action-grounding ?desig (pull-open ?semantic-handle ?goal-spec))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :pull-open))
     (desig-prop ?desig (:handle ?semantic-handle))
@@ -557,7 +557,7 @@
     ;; this is the place to do it.
     (lisp-fun make-empty-goal-specification ?goal-spec))
   
-  (<- (action-desig ?desig (open-container ?arm ?loc ?degree ?goal-spec))
+  (<- (action-grounding ?desig (open-container ?arm ?loc ?degree ?goal-spec))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :open))
     (desig-prop ?desig (:location ?loc))
@@ -576,7 +576,7 @@
             ?semantic-handle ?arm-handle-combo ?grasp-assignment)
            ?grasp-assignments))
 
-  (<- (action-desig ?desig (put-down ?current-obj ?loc ?grasp-assignments ?goal-spec))
+  (<- (action-grounding ?desig (put-down ?current-obj ?loc ?grasp-assignments ?goal-spec))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :put-down))
     (or (desig-prop ?desig (:obj ?obj))
@@ -595,7 +595,7 @@
               ?rotated-poses)
     (member ?putdown-pose ?rotated-poses))
   
-  (<- (action-desig ?desig (pull ?current-obj ?arms
+  (<- (action-grounding ?desig (pull ?current-obj ?arms
                                  ?direction ?distance
                                  ?obstacles ?goal-spec))
     (trajectory-desig? ?desig)
@@ -613,7 +613,7 @@
     ;; this is the place to do it.
     (lisp-fun make-empty-goal-specification ?goal-spec))
   
-  (<- (action-desig ?desig (push ?current-obj ?arms
+  (<- (action-grounding ?desig (push ?current-obj ?arms
                                  ?direction ?distance
                                  ?obstacles ?goal-spec))
     (trajectory-desig? ?desig)

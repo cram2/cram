@@ -88,7 +88,7 @@
                      (right ?right-grasp-poses)))))
     (copy-designator action-designator :new-description `((:phases ,phases)))))
 
-(def-fact-group pr2-pick-and-place-plans (action-desig)
+(def-fact-group pr2-pick-and-place-plans (action-grounding)
 
   (<- (object-type-grip-maximum-effort :cup 50))
   (<- (object-type-grip-maximum-effort :bottle 60))
@@ -110,7 +110,7 @@
   (<- (object-type-grasp :bottle :side))
   (<- (object-type-grasp :cup :front))
 
-  (<- (action-desig ?action-designator (pick-up-activity ?updated-action-designator
+  (<- (action-grounding ?action-designator (pick-up-activity ?updated-action-designator
                                                          ?current-object-designator
                                                          ?arm
                                                          ?grasp))
@@ -158,7 +158,7 @@
               ?maximum-effort
               ?left-lift-pose ?right-lift-pose ?updated-action-designator))
 
-  (<- (action-desig ?action-designator (place-activity ?updated-action-designator
+  (<- (action-grounding ?action-designator (place-activity ?updated-action-designator
                                                        ?arm))
     (or (desig-prop ?action-designator (:to :place-activity))
         (desig-prop ?action-designator (:type :placing-activity)))
@@ -213,7 +213,7 @@
               ?left-grasp-poses ?right-grasp-poses
               ?updated-action-designator))
 
-   (<- (action-desig ?action-designator (move-arms-in-sequence ?left-poses ?right-poses))
+   (<- (action-grounding ?action-designator (move-arms-in-sequence ?left-poses ?right-poses))
     (or ;; (desig-prop ?action-designator (:to :my-reach)) ; because of logging
         ;; (desig-prop ?action-designator (:to :lift-action))
         (desig-prop ?action-designator (:to :retract-action))
@@ -223,36 +223,36 @@
     (once (or (desig-prop ?action-designator (:right ?right-poses))
               (equal ?right-poses nil))))
 
-  (<- (action-desig ?action-designator (reach ?left-poses ?right-poses))
+  (<- (action-grounding ?action-designator (reach ?left-poses ?right-poses))
     (desig-prop ?action-designator (:to :reach-action)) ; because of logging
     (once (or (desig-prop ?action-designator (:left ?left-poses))
               (equal ?left-poses nil)))
     (once (or (desig-prop ?action-designator (:right ?right-poses))
               (equal ?right-poses nil))))
 
-    (<- (action-desig ?action-designator (lift ?left-pose ?right-pose))
+    (<- (action-grounding ?action-designator (lift ?left-pose ?right-pose))
     (desig-prop ?action-designator (:to :lift-action)) ; because of logging
     (once (or (desig-prop ?action-designator (:left ?left-pose))
               (equal ?left-pose nil)))
     (once (or (desig-prop ?action-designator (:right ?right-pose))
               (equal ?right-pose nil))))
 
-  (<- (action-desig ?action-designator (open-gripper ?left-or-right))
+  (<- (action-grounding ?action-designator (open-gripper ?left-or-right))
     (desig-prop ?action-designator (:to :open-action))
     (desig-prop ?action-designator (?left-or-right :gripper)))
 
-  (<- (action-desig ?action-designator (grasp ?left-grasp-poses ?right-grasp-poses))
+  (<- (action-grounding ?action-designator (grasp ?left-grasp-poses ?right-grasp-poses))
     (desig-prop ?action-designator (:to :grasp-action))
     (once (or (desig-prop ?action-designator (:left ?left-grasp-poses))
               (equal ?left-grasp-poses nil)))
     (once (or (desig-prop ?action-designator (:right ?right-grasp-poses))
               (equal ?right-grasp-poses nil))))
 
-  (<- (action-desig ?action-designator (grip ?left-or-right ?object-grip-effort))
+  (<- (action-grounding ?action-designator (grip ?left-or-right ?object-grip-effort))
     (desig-prop ?action-designator (:to :grip-action))
     (desig-prop ?action-designator (:with ?left-or-right))
     (desig-prop ?action-designator (:effort ?object-grip-effort)))
 
-  (<- (action-desig ?action-designator (look-at ?object-designator))
+  (<- (action-grounding ?action-designator (look-at ?object-designator))
     (desig-prop ?action-designator (:to :look-at-action))
     (desig-prop ?action-designator (:object ?object-designator))))
