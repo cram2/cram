@@ -47,8 +47,8 @@
 
 (def-fact-group default-action-grounding (action-grounding)
   (<- (action-grounding ?designator ?solution)
-    (not (action-desig? ?designator))
-    (error "ACTION-GROUNDING can only be called on action designators and not ~a" ?designator)))
+    (assert-type ?designator action-designator "default action-grounding")
+    (fail)))
 
 (defmethod resolve-designator ((desig action-designator) (role t))
   (lazy-mapcan (lambda (bdg)

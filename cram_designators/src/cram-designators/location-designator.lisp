@@ -292,8 +292,8 @@ reject all invalid solutions.")
 
 (def-fact-group location-designator-generators (location-grounding)
   (<- (location-grounding ?desig ?solution)
-    (not (loc-desig? ?desig))
-    (error "LOCATION-GROUNDING can only be called on location designators and not ~a" ?desig))
+    (assert-type ?designator location-designator "default location-grounding")
+    (fail))
 
   ;; (<- (location-grounding ?desig ?solution)
   ;;   (desig-prop ?desig (:pose ?solution)))
