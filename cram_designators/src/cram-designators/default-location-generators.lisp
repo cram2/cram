@@ -54,7 +54,7 @@ reject all invalid solutions.")
 (def-fact-group location-designator-generators (location-grounding)
   (<- (location-grounding ?desig ?solution)
     (not (loc-desig? ?desig))
-    (error "GROUNDED-LOCATION can only be called on location designators and not ~a" ?desig))
+    (error "LOCATION-GROUNDING can only be called on location designators and not ~a" ?desig))
 
   (<- (location-grounding ?desig ?solution)
     (desig-prop ?desig (:pose ?solution)))
