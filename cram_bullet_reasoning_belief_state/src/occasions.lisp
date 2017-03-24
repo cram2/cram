@@ -74,7 +74,7 @@
     (bullet-world ?world)
     (lisp-fun desig:current-desig ?location-designator ?current-location)
     (lisp-pred identity ?current-location)
-    (desig:desig-solutions ?current-location ?_)
+    (desig:designator-groundings ?current-location ?_)
     (or (object-pose ?world ?object-name ?object-pose)
         (object-bottom-pose ?world ?object-name ?object-pose))
     (lisp-pred desig:validate-location-designator-solution ?current-location ?object-pose))

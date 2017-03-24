@@ -52,7 +52,7 @@
     ;; reasoning. If we can find a solution for the designator, we are
     ;; done already.
     (desig:designator :location ((:to :see) (:obj ?obj)) ?to-see-desig)
-    (desig-solutions ?to-see-desig (?_ . ?_)))
+    (designator-groundings ?to-see-desig (?_ . ?_)))
 
   (<- (achieve ?w (visible ?obj)
                ((execute (open ?sem-map ?link))))

@@ -35,7 +35,7 @@
   (:use #:common-lisp #:prolog #:cl-bullet #:bt-vis #:cut
         #:cram-robot-interfaces #:cl-transforms-stamped #:cram-tf)
   (:import-from #:alexandria compose curry rcurry with-gensyms copy-hash-table)
-  (:import-from #:desig desig-solutions)
+  (:import-from #:desig designator-groundings)
   (:shadowing-import-from #:cl-bullet points pose)
   (:shadow copy-object)
   (:export *current-bullet-world* *current-timeline*
