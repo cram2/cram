@@ -289,9 +289,6 @@ either :ACCEPT, :REJECT, :MAYBE-REJECT or :UNKNOWN."
     (fail))
 
   ;; (<- (location-grounding ?desig ?solution)
-  ;;   (desig-prop ?desig (:pose ?solution)))
-
-  ;; (<- (location-grounding ?desig ?solution)
   ;;   (desig-prop ?desig (:of ?obj))
   ;;   (obj-desig? ?obj)
   ;;   (lisp-fun current-desig ?obj ?curr-obj)
