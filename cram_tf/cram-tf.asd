@@ -13,7 +13,8 @@
                :cram-robot-interfaces
                :cl-tf
                :roslisp-utilities
-               :roslisp)
+               :roslisp
+               :cram-designator-specification)
   :components
   ((:module "src"
             :components
