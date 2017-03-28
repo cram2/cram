@@ -30,13 +30,14 @@
   :author "Lorenz Moesenlechner"
   :license "BSD"
 
-  :depends-on (;cram-plan-occasions-events
-               ;cram-robot-interfaces
-               cram-prolog
+  :depends-on (cram-prolog
                cram-designators
+               cram-designator-specification
+               cram-tf
+               ;cram-plan-occasions-events
+               ;cram-robot-interfaces
                ;cram-semantic-map-utils
                ;cram-semantic-map
-               cram-tf
                ;cram-bullet-reasoning
                )
   :components
