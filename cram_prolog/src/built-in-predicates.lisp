@@ -98,10 +98,12 @@
 
 (def-prolog-handler assert-type (bdgs object type error-tag)
   (when *break-on-lisp-errors*
-    (unless (typep object type)
+    (unless (typep (var-value object bdgs) (var-value type bdgs))
       (error 'simple-error
              :format-control "[~a]: ~a had to be of type ~a"
-             :format-arguments (list error-tag object type))))
+             :format-arguments (list error-tag
+                                     (var-value object bdgs)
+                                     (var-value type bdgs)))))
   (list bdgs))
 
 (def-prolog-handler bound (bdgs pattern)
