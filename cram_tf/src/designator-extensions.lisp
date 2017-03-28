@@ -91,6 +91,10 @@
             (error "cram-tf:*fixed-frame* must be set."))
         solution)))
 
+(def-fact-group desig-tf-solutions (location-grounding)
+  (<- (location-grounding ?desig ?solution)
+    (spec:property ?desig (:pose ?solution))))
+
 ;; (defgeneric ground (designator)
 ;;   (:documentation "Returns a designator with properties augmented with subsymbolic data"))
 
