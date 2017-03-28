@@ -285,7 +285,7 @@ either :ACCEPT, :REJECT, :MAYBE-REJECT or :UNKNOWN."
 
 (def-fact-group location-designator-generators (location-grounding)
   (<- (location-grounding ?desig ?solution)
-    (assert-type ?designator location-designator "default location-grounding")
+    (assert-type ?desig location-designator "default location-grounding")
     (fail))
 
   ;; (<- (location-grounding ?desig ?solution)
