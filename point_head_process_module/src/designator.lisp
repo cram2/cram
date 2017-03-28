@@ -72,22 +72,22 @@
      (z pointing_axis) 0.0
      target point-stamped-msg)))
 
-(def-fact-group point-head (action-desig)
+(def-fact-group point-head (action-grounding)
 
-  (<- (action-desig ?desig (point ?act))
+  (<- (action-grounding ?desig (point ?act))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :see))
     (desig-prop ?desig (:pose ?pose))
     (lisp-fun make-action-goal ?pose ?act))
 
-  (<- (action-desig ?desig (point ?act))
+  (<- (action-grounding ?desig (point ?act))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :see))
     (desig-prop ?desig (:location ?loc))
     (loc-desig-location ?loc ?pose)
     (lisp-fun make-action-goal ?pose ?act))
 
-  (<- (action-desig ?desig (point ?act))
+  (<- (action-grounding ?desig (point ?act))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :see))
     (or (desig-prop ?desig (:obj ?obj))
@@ -95,20 +95,20 @@
     (desig-location-prop ?obj ?pose)
     (lisp-fun make-action-goal ?pose ?act))
     
-  (<- (action-desig ?desig (follow ?act))
+  (<- (action-grounding ?desig (follow ?act))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :follow))
     (desig-prop ?desig (:pose ?pose))
     (lisp-fun make-action-goal ?pose ?act))
 
-  (<- (action-desig ?desig (follow ?act))
+  (<- (action-grounding ?desig (follow ?act))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :follow))
     (desig-prop ?desig (:location ?loc))
     (loc-desig-location ?loc ?pose)
     (lisp-fun make-action-goal ?pose ?act))
 
-  (<- (action-desig ?desig (follow ?act))
+  (<- (action-grounding ?desig (follow ?act))
     (trajectory-desig? ?desig)
     (desig-prop ?desig (:to :follow))
     (or (desig-prop ?desig (:obj ?obj))
