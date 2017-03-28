@@ -136,8 +136,10 @@
     (fail))
 
   (<- (robot-pre-grasp-joint-states ?robot ?joint-states)
-    (fail)))
+    (fail))
 
   (<- (planning-group ?robot ?arms ?group-name)
-    (fail))
+    (fail)))
+
+
 
