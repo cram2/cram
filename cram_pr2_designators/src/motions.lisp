@@ -40,31 +40,30 @@
 
 (def-fact-group pr2-ptu-motions (motion-grounding)
 
-  (<- (motion-grounding ?designator (look-at :pose ?pose))
+  (<- (motion-grounding ?designator (look-at ?pose))
     (property ?designator (:type :looking))
     (property ?designator (:target ?location-designator))
     (designator-groundings ?location-designator ?poses)
     (member ?pose ?poses))
 
-  (<- (motion-grounding ?designator (look-at :frame ?frame))
+  (<- (motion-grounding ?designator (look-at ?frame))
     (property ?designator (:type :looking))
     (property ?designator (:frame ?frame)))
 
-  (<- (motion-grounding ?designator (look-at :direction ?direction))
+  (<- (motion-grounding ?designator (look-at ?direction))
     (property ?designator (:type :looking))
     (property ?designator (:direction ?direction))))
 
 
 (def-fact-group pr2-perception-motions (motion-grounding)
 
-  (<- (motion-grounding ?designator (detect ?object-properties ?quantifier))
+  (<- (motion-grounding ?designator (detect ?object-designator ?quantifier))
     (property ?designator (:type :detecting))
     (or (and (property ?designator (:object ?object-designator))
              (equal ?quantifier :an))
         (and (property ?designator (:objects ?object-designator))
              (equal ?quantifier :all)))
-    (current-designator ?object-designator ?current-object-designator)
-    (desig-description ?current-object-designator ?object-properties)))
+    (current-designator ?object-designator ?current-object-designator)))
 
 
 (def-fact-group pr2-gripper-motions (motion-grounding)
