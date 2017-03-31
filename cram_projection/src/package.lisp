@@ -29,6 +29,7 @@
 (in-package :cl-user)
 
 (defpackage cram-projection
+  (:nicknames #:proj)
   (:use #:common-lisp)
   (:export define-projection-environment
            define-special-projection-variable
