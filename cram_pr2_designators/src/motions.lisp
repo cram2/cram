@@ -48,7 +48,11 @@
 
   (<- (motion-grounding ?designator (look-at :frame ?frame))
     (property ?designator (:type :looking))
-    (property ?designator (:frame ?frame))))
+    (property ?designator (:frame ?frame)))
+
+  (<- (motion-grounding ?designator (look-at :direction ?direction))
+    (property ?designator (:type :looking))
+    (property ?designator (:direction ?direction))))
 
 
 (def-fact-group pr2-perception-motions (motion-grounding)
