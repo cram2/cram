@@ -76,7 +76,7 @@
     (assert-type ?value number "MOTION PROPERTY"))
 
   (<- (property ?designator (?keyword-key ?value))
-    (member ?string-key (:gripper))
+    (member ?string-key (:gripper :direction))
     (property-member (?keyword-key ?value) ?designator)
     (assert-type ?value keyword "MOTION PROPERTY"))
 
