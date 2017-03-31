@@ -81,7 +81,7 @@
             (remove *current-costmap-sample* (gl-objects *debug-window*)))
       (setf *current-costmap-sample* nil))))
 
-(defun add-costmap-function-object (costmap &optional (z 0.0))
+(defun add-costmap-function-object (costmap)
   (sb-thread:with-mutex (*debug-window-lock*)
     (when (and *current-costmap-function* *debug-window*)
       (setf (gl-objects *debug-window*)
