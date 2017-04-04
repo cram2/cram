@@ -62,6 +62,8 @@ is replaced with replacement."
       (setf *robot-description* (cl-urdf:parse-urdf (replace-all urdf-string "\\" "  "))))))
 
 (defun get-joint-description (joint-name)
+  (unless *robot-description*
+    (init-robot-description))
   (when *robot-description*
     (gethash joint-name (cl-urdf:joints *robot-description*))))
 
