@@ -181,8 +181,10 @@
     (lisp-fun search "r_gripper" ?link ?pos)
     (lisp-pred identity ?pos))
 
-  (<- (gripper-joint pr2 :left "l_gripper_joint"))
-  (<- (gripper-joint pr2 :right "r_gripper_joint"))
+  (<- (gripper-joint pr2 :left "l_gripper_l_finger_joint"))
+  (<- (gripper-joint pr2 :left "l_gripper_r_finger_joint"))
+  (<- (gripper-joint pr2 :right "r_gripper_l_finger_joint"))
+  (<- (gripper-joint pr2 :right "r_gripper_r_finger_joint"))
 
   (<- (planning-group pr2 :left "left_arm"))
   (<- (planning-group pr2 :right "right_arm"))
