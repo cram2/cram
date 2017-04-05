@@ -35,4 +35,6 @@
         )
   ;; (:import-from #:cram-tf
   ;;               *fixed-frame* *transformer* *tf-default-timeout*)
- )
+  (:export
+   ;; motions
+   #:drive #:look-at #:detect #:gripper-action #:move-tcp #:move-joints))
