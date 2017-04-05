@@ -61,7 +61,7 @@
     (assert-type ?location desig:location-designator "MOTION PROPERTY"))
 
   (<- (property ?designator (?object-key ?object))
-    (member ?location-key (:object :objects))
+    (member ?object-key (:object :objects))
     (property-member (?object-key ?object) ?designator)
     (assert-type ?object desig:object-designator "MOTION PROPERTY"))
 
