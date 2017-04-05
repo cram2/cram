@@ -85,7 +85,7 @@
 
 (def-fact-group pr2-arm-motions (motion-grounding)
 
-  (<- (motion-grounding ?designator (move-arm ?left-pose ?right-pose))
+  (<- (motion-grounding ?designator (move-tcp ?left-pose ?right-pose))
     (property ?designator (:type :moving-tcp))
     (-> (property ?designator (:left-target ?left-location))
         (and (designator-groundings ?left-location ?left-poses)
