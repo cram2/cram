@@ -29,7 +29,7 @@
 
 (in-package :cram-pr2-failures)
 
-(define-condition perception-failure (simple-plan-failure))
+(define-condition perception-failure (simple-plan-failure) ())
 
 (define-condition perception-object-not-found (plan-failure)
   ((object :initarg :object :initform nil :reader object-not-found-object)))
