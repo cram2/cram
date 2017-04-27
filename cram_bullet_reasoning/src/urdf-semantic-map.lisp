@@ -90,18 +90,20 @@ Be especially careful with BTR::COPY-OBJECT."))
            (typep obj 'item))))
 
 (defmethod (setf link-pose) :around (new-value (sem-map urdf-semantic-map-object) name)
-  (with-slots (urdf links link-offsets) sem-map
+  (with-slots (urdf links link-offsets semantic-map) sem-map
     (let* ((link (gethash name links))
            (sem-map-obj (lazy-car
                          (sem-map-utils:sub-parts-with-name
-                          sem-map (owl-name-from-urdf-name sem-map name)))))
-      (sem-map-utils:update-pose
-       sem-map-obj (cl-transforms:transform->pose
-                    (cl-transforms:transform*
-                     (cl-transforms:reference-transform (pose link))
-                     (gethash (sem-map-utils:urdf-name sem-map-obj)
-                              link-offsets)))
-       :relative nil :recursive t))))
+                          semantic-map (owl-name-from-urdf-name sem-map name)))))
+      (if link
+          (sem-map-utils:update-pose
+           sem-map-obj (cl-transforms:transform->pose
+                        (cl-transforms:transform*
+                         (cl-transforms:reference-transform (pose link))
+                         (gethash (sem-map-utils:urdf-name sem-map-obj)
+                                  link-offsets)))
+           :relative nil :recursive t)
+          (warn "URDF semantic map link ~s is not physical. Cannot move, sorry." name)))))
 
 (defun update-semantic-map-joint (sem-map joint-name)
   (with-slots (urdf links link-offsets semantic-map joint-states)

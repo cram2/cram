@@ -54,4 +54,4 @@ database.")
 (defun get-designator-object (object-designator)
   (let ((object-name (get-designator-object-name object-designator)))
     (when object-name
-      (object *current-bullet-world* object-name))))
+      (btr:object btr:*current-bullet-world* object-name))))
