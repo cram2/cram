@@ -28,7 +28,7 @@
 
 (in-package :cram-bullet-reasoning-belief-state)
 
-(defmethod clear-belief object-identifiers ()
+(defmethod cram-occasions-events:clear-belief object-identifiers ()
   (clrhash *object-identifier-to-instance-mappings*))
 
 (defgeneric register-object-designator-data (data &key type)
@@ -61,17 +61,16 @@ just updated. Otherwise a new instance is created."))
                         (setf (gethash (desig:object-identifier data)
                                        *object-identifier-to-instance-mappings*)
                               (gensym (string (desig:object-identifier data)))))))
-    (prolog `(and (bullet-world ?world)
-                  (-> (object ?world ,instance-name)
-                      (assert ?world (btr:object-pose
-                                      ,instance-name
-                                      ,(desig:object-pose data)))
-                      (assert ?world (btr:object :mesh ,instance-name
-                                                 ,(desig:object-pose data)
-                                                 :mesh ,(object-mesh data)
-                                                 :mass ,(object-mass data)
-                                                 :types ,(list type)
-                                                 :disable-face-culling t)))))))
+    (prolog `(and (btr:bullet-world ?world)
+                  (-> (btr:object ?world ,instance-name)
+                      (btr:assert ?world
+                                  (btr:object-pose ,instance-name ,(desig:object-pose data)))
+                      (btr:assert ?world
+                                  (btr:object :mesh ,instance-name ,(desig:object-pose data)
+                                              :mesh ,(object-mesh data)
+                                              :mass ,(object-mass data)
+                                              :types ,(list type)
+                                              :disable-face-culling t)))))))
 
 (defmethod register-object-designator-data
     ((data cram-physics-utils:object-point-data-mixin) &key type)

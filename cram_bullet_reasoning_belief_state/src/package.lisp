@@ -29,16 +29,7 @@
 (in-package :cl-user)
 
 (defpackage cram-bullet-reasoning-belief-state
-  (:use #:common-lisp #:cram-plan-library
-        #:cram-plan-occasions-events #:cram-occasions-events
-        #:cram-bullet-reasoning #:cram-prolog #:cram-utilities
-        #:cl-transforms-stamped #:cram-tf
-        #:cram-robot-interfaces)
-  (:shadowing-import-from #:cram-bullet-reasoning
-                          side at throughout object during holds pose)
-  (:shadowing-import-from #:cram-plan-occasions-events object-attached)
-  (:shadowing-import-from #:cram-occasions-events event)
-  (:shadowing-import-from #:cram-robot-interfaces end-effector-link robot)
+  (:use #:common-lisp #:cram-prolog)
   (:export get-designator-object-name get-designator-object
            object-designator-name
            ;; event handlers

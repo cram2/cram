@@ -28,9 +28,9 @@
 
 (in-package :cram-bullet-reasoning-belief-state)
 
-(defmethod on-event attach-objects ((event object-attached))
-  (let* ((robot (get-robot-object))
-         (current-event-object (desig:current-desig (event-object event)))
+(defmethod cram-occasions-events:on-event attach-objects ((event cpoe:object-attached))
+  (let* ((robot (btr:get-robot-object))
+         (current-event-object (desig:current-desig (cpoe:event-object event)))
          (object (get-designator-object current-event-object)))
     (when object
       (cond ((btr:object-attached robot object)
@@ -38,83 +38,83 @@
              ;; the gripper. In that case, we update the designator
              ;; location designator by extending the current location
              ;; by a second pose in the gripper.
-             (attach-object robot object (event-link event) :loose t)
+             (btr:attach-object robot object (cpoe:event-link event) :loose t)
              (desig:with-desig-props (at) current-event-object
                (assert (eql (desig:desig-prop-value at :in) :gripper))
                (update-object-designator-location
                 current-event-object
                 (desig:extend-designator-properties
-                 at `((:pose ,(object-pose-in-frame
-                               object
-                               (event-link event))))))))
+                 at `((:pose ,(object-pose-in-frame object (cpoe:event-link event))))))))
             (t
-             (attach-object robot object (event-link event) :loose nil)
+             (btr:attach-object robot object (cpoe:event-link event) :loose nil)
              (update-object-designator-location
               current-event-object
               (desig:extend-designator-properties
-               (make-object-location-in-gripper object (event-link event))
-               `((:pose ,(object-pose-in-frame object *robot-base-frame*))))))))
-    (timeline-advance
-     *current-timeline*
-     (make-event
-      *current-bullet-world*
-      `(pick-up ,(event-object event) ,(event-side event))))))
+               (make-object-location-in-gripper object (cpoe:event-link event))
+               `((:pose ,(object-pose-in-frame object cram-tf:*robot-base-frame*))))))))
+    (btr:timeline-advance
+     btr:*current-timeline*
+     (btr:make-event
+      btr:*current-bullet-world*
+      `(pick-up ,(cpoe:event-object event) ,(cpoe:event-side event))))))
 
-(defmethod on-event detach-objects ((event object-detached))
-  (let ((robot (get-robot-object))
-        (object (get-designator-object (event-object event))))
+(defmethod cram-occasions-events:on-event detach-objects ((event cpoe:object-detached))
+  (let ((robot (btr:get-robot-object))
+        (object (get-designator-object (cpoe:event-object event))))
     (when object
-      (detach-object robot object (event-link event))
-      (simulate *current-bullet-world* 10)
+      (btr:detach-object robot object (cpoe:event-link event))
+      (btr:simulate btr:*current-bullet-world* 10)
       (update-object-designator-location
-       (desig:current-desig (event-object event))
-       (make-object-location (get-designator-object-name
-                              (event-object event)))))
-    (timeline-advance
-     *current-timeline*
-     (make-event
-      *current-bullet-world*
-      `(put-down ,(event-object event) ,(event-side event))))
-    (timeline-advance
-     *current-timeline*
-     (make-event
-      *current-bullet-world*
-      `(location-change ,(event-object event))))))
+       (desig:current-desig (cpoe:event-object event))
+       (make-object-location (get-designator-object-name (cpoe:event-object event)))))
+    (btr:timeline-advance
+     btr:*current-timeline*
+     (btr:make-event
+      btr:*current-bullet-world*
+      `(put-down ,(cpoe:event-object event) ,(cpoe:event-side event))))
+    (btr:timeline-advance
+     btr:*current-timeline*
+     (btr:make-event
+      btr:*current-bullet-world*
+      `(location-change ,(cpoe:event-object event))))))
 
-(defmethod on-event robot-moved ((event robot-state-changed))
+(defmethod cram-occasions-events:on-event robot-moved ((event cpoe:robot-state-changed))
   (unless cram-projection:*projection-environment*
-    (let ((robot (get-robot-object)))
+    (let ((robot (btr:get-robot-object)))
       (when robot
-        (set-robot-state-from-tf
-         *transformer* robot :timestamp (event-timestamp event)))))
-  (timeline-advance
-   *current-timeline*
-   (make-event
-    *current-bullet-world*
+        (btr:set-robot-state-from-tf
+         cram-tf:*transformer*
+         robot
+         :timestamp (cram-occasions-events:event-timestamp event)))))
+  (btr:timeline-advance
+   btr:*current-timeline*
+   (btr:make-event
+    btr:*current-bullet-world*
     `(location-change robot))))
 
-(defmethod on-event open-or-close-object ((event object-articulation-event))
-  (with-slots (object-designator opening-distance) event
+(defmethod cram-occasions-events:on-event open-or-close-object
+    ((event cpoe:object-articulation-event))
+  (with-slots (cpoe:object-designator cpoe:opening-distance) event
     (let ((perceived-object (desig:reference
-                             (desig:newest-effective-designator object-designator)))
+                             (desig:newest-effective-designator cpoe:object-designator)))
           (semantic-map-object
-            (with-vars-strictly-bound (?semantic-map)
-                (lazy-car
+            (cut:with-vars-strictly-bound (?semantic-map)
+                (cut:lazy-car
                  (prolog `(and
-                           (bullet-world ?world)
-                           (semantic-map ?world ?semantic-map-name)
-                           (%object ?world ?semantic-map-name
-                                    ?semantic-map))))
+                           (btr:bullet-world ?world)
+                           (btr:semantic-map ?world ?semantic-map-name)
+                           (btr:%object ?world ?semantic-map-name ?semantic-map))))
               ?semantic-map)))
-      (set-articulated-object-joint-position
-       semantic-map-object (desig:object-identifier perceived-object)
-       opening-distance))))
+      (btr:set-articulated-object-joint-position
+       semantic-map-object
+       (desig:object-identifier perceived-object)
+       cpoe:opening-distance))))
 
-(defmethod on-event object-perceived ((event object-perceived-event))
+(defmethod cram-occasions-events:on-event object-perceived ((event cpoe:object-perceived-event))
   (unless cram-projection:*projection-environment*
     (register-object-designator-data
-     (desig:reference (event-object-designator event))
-     :type (desig:desig-prop-value (event-object-designator event) :type))))
+     (desig:reference (cpoe:event-object-designator event))
+     :type (desig:desig-prop-value (cpoe:event-object-designator event) :type))))
 
 (defun update-object-designator-location (object-designator location-designator)
   (desig:make-designator
@@ -124,32 +124,38 @@
    object-designator))
 
 (defun get-supporting-object-bounding-box (object-name)
-  (with-vars-bound (?supporting-name ?supporting-link)
-      (lazy-car (prolog `(or (supported-by ?_ ,object-name ?supporting-name ?supporting-link)
-                             (supported-by ?_ ,object-name ?supporting-name))))
-    (unless (is-var ?supporting-name)
-      (if (is-var ?supporting-link)
-          (aabb (object *current-bullet-world* ?supporting-name))
-          (aabb (gethash
-                 ?supporting-link
-                 (links (object *current-bullet-world* ?supporting-name))))))))
+  (cut:with-vars-bound (?supporting-name ?supporting-link)
+      (cut:lazy-car (prolog
+                     `(or (btr:supported-by ?_ ,object-name ?supporting-name ?supporting-link)
+                          (btr:supported-by ?_ ,object-name ?supporting-name))))
+    (unless (cut:is-var ?supporting-name)
+      (if (cut:is-var ?supporting-link)
+          (btr:aabb (btr:object btr:*current-bullet-world* ?supporting-name))
+          (btr:aabb (gethash
+                     ?supporting-link
+                     (btr:links (btr:object btr:*current-bullet-world* ?supporting-name))))))))
 
 (defun make-object-location (object-name)
-  (let ((object (object *current-bullet-world* object-name)))
+  (let ((object (btr:object btr:*current-bullet-world* object-name)))
     (assert object)
     (desig:make-designator
      :location
-     `((:pose ,(pose->pose-stamped
-                *fixed-frame* (cut:current-timestamp) (cl-bullet:pose object)))))))
+     `((:pose ,(cl-transforms-stamped:pose->pose-stamped
+                cram-tf:*fixed-frame*
+                (cut:current-timestamp)
+                (cl-bullet:pose object)))))))
 
 (defun make-object-location-in-gripper (object gripper-link)
   "Returns a new location designator that indicates a location in the
   robot's gripper."
-  (declare (type object object))
-  (let* ((object-pose (pose->pose-stamped *fixed-frame* 0.0 (btr:pose object)))
-         (robot (get-robot-object)))
+  (declare (type btr:object object))
+  (let* ((object-pose (cl-transforms-stamped:pose->pose-stamped
+                       cram-tf:*fixed-frame*
+                       0.0
+                       (btr:pose object)))
+         (robot (btr:get-robot-object)))
     (assert (member gripper-link (btr:object-attached robot object) :test #'equal))
-    (let ((supporting-bounding-box (get-supporting-object-bounding-box (name object))))
+    (let ((supporting-bounding-box (get-supporting-object-bounding-box (btr:name object))))
       (desig:make-designator
        :location
        `((:in :gripper) (:pose ,(object-pose-in-frame object gripper-link))
@@ -164,12 +170,15 @@
                            (t 0.0))))))))
 
 (defun object-pose-in-frame (object frame)
-  (declare (type object object)
+  (declare (type btr:object object)
            (type string frame))
-  (copy-pose-stamped
+  (cl-transforms-stamped:copy-pose-stamped
    (cl-transforms-stamped:transform-pose-stamped
-    *transformer*
-    :pose (pose->pose-stamped *fixed-frame* 0.0 (btr:pose object))
+    cram-tf:*transformer*
+    :pose (cl-transforms-stamped:pose->pose-stamped
+           cram-tf:*fixed-frame*
+           0.0
+           (btr:pose object))
     :target-frame frame
-    :timeout *tf-default-timeout*)
+    :timeout cram-tf:*tf-default-timeout*)
    :stamp 0.0))

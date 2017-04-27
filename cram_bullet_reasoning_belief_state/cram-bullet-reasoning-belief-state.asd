@@ -37,15 +37,16 @@
                cram-bullet-reasoning
                cram-occasions-events
                cram-plan-occasions-events
-               cram-plan-library
                cram-language ; for DEFINE-TASK-VARIABLE in utitlities
-               cram-physics-utils
-               ;; ros-init-function-s
+               cram-physics-utils ; for object designator mesh stuff
+               ;; ros-init-function-s for time
                roslisp-utilities
                roslisp
-               cram-utilities
                cram-robot-interfaces
-               cram-tf)
+               cram-tf
+               cl-transforms-stamped
+               cl-transforms
+               cl-bullet)
   :components
   ((:module "src"
     :components
