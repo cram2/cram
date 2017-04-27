@@ -28,15 +28,15 @@
 
 (in-package :cram-semantic-map-designators)
 
-(def-fact-group semantic-map-object-poses (desig-solution)
-  (<- (desig-solution ?designator ?solution)
+(def-fact-group semantic-map-object-poses (location-grounding)
+  (<- (location-grounding ?designator ?solution)
     (desig-prop ?designator (:of ?object))
     (lisp-type ?object object-designator)
     (lisp-fun current-desig ?object ?current-object)
     (lisp-fun semantic-map-object-poses ?current-object ?poses)
     (member ?solution ?poses))
 
-  (<- (desig-solution ?designator ?solution)
+  (<- (location-grounding ?designator ?solution)
     (desig-prop ?designator (:of ?object))
     (lisp-type ?object string)
     (lisp-fun semantic-map-object-name-to-pose ?object ?solution)))
