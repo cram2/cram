@@ -58,36 +58,36 @@
   (<- (property ?designator (?location-key ?location))
     (member ?location-key (:target :left-target :right-target))
     (property-member (?location-key ?location) ?designator)
-    (assert-type ?location desig:location-designator "MOTION PROPERTY"))
+    (assert-type ?location desig:location-designator "MOTION SPEC:PROPERTY"))
 
   (<- (property ?designator (?object-key ?object))
     (member ?object-key (:object :objects))
     (property-member (?object-key ?object) ?designator)
-    (assert-type ?object desig:object-designator "MOTION PROPERTY"))
+    (assert-type ?object desig:object-designator "MOTION SPEC:PROPERTY"))
 
   (<- (property ?designator (?string-key ?value))
     (member ?string-key (:frame))
     (property-member (?string-key ?value) ?designator)
-    (assert-type ?value string "MOTION PROPERTY"))
+    (assert-type ?value string "MOTION SPEC:PROPERTY"))
 
   (<- (property ?designator (?number-key ?value))
-    (member ?string-key (:effort))
+    (member ?number-key (:effort))
     (property-member (?number-key ?value) ?designator)
-    (assert-type ?value number "MOTION PROPERTY"))
+    (assert-type ?value number "MOTION SPEC:PROPERTY"))
 
   (<- (property ?designator (?keyword-key ?value))
-    (member ?string-key (:gripper :direction))
+    (member ?keyword-key (:gripper :direction))
     (property-member (?keyword-key ?value) ?designator)
-    (assert-type ?value keyword "MOTION PROPERTY"))
+    (assert-type ?value keyword "MOTION SPEC:PROPERTY"))
 
   (<- (property ?designator (?list-key ?value))
-    (member ?string-key (:left-configuration :right-configuration))
+    (member ?list-key (:left-configuration :right-configuration))
     (property-member (?list-key ?value) ?designator)
-    (assert-type ?value list "MOTION PROPERTY")))
+    (assert-type ?value list "MOTION SPEC:PROPERTY")))
 
 
 (def-fact-group location-designator-specs (property)
 
   (<- (property ?designator (:pose ?pose-stamped))
     (property-member (:pose ?pose-stamped) ?designator)
-    (assert-type ?pose-stamped cl-transforms-stamped:pose-stamped "location property")))
+    (assert-type ?pose-stamped cl-transforms-stamped:pose-stamped "location SPEC:PROPERTY")))
