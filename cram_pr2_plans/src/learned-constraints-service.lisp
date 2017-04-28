@@ -71,9 +71,9 @@
         (target-name-keyword
           (intern (string-upcase target-name-keyword) :keyword))
         (source-pose-stamped
-          (pr2-ll:ensure-pose-in-frame source-pose-stamped cram-tf:*robot-base-frame*))
+          (cram-tf:ensure-pose-in-frame source-pose-stamped cram-tf:*robot-base-frame*))
         (target-pose-stamped
-          (pr2-ll:ensure-pose-in-frame target-pose-stamped cram-tf:*robot-base-frame*)))
+          (cram-tf:ensure-pose-in-frame target-pose-stamped cram-tf:*robot-base-frame*)))
     (values source-name-keyword source-pose-stamped
             target-name-keyword target-pose-stamped)))
 

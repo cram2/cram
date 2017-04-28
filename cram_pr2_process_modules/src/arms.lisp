@@ -54,14 +54,14 @@
                                                              :right single-pose-right))
                      (fill-in-with-nils goal-left max-length)
                      (fill-in-with-nils goal-right max-length))))
-         (cram-plan-failures:manipulation-failed ()
-           (cpl:fail 'cram-plan-failures:manipulation-failed :action action-designator))))
+         (cram-pr2-failures:manipulation-failure ()
+           (cpl:fail 'cram-pr2-failures:manipulation-failure :action action-designator))))
       (move-joints
        (handler-case
            (pr2-ll:call-giskard-joint-action :left goal-left
                                              :right goal-right)
-         (cram-plan-failures:manipulation-failed ()
-           (cpl:fail 'cram-plan-failures:manipulation-failed :action action-designator)))))))
+         (cram-pr2-failures:manipulation-failure ()
+           (cpl:fail 'cram-pr2-failures:manipulation-failure :action action-designator)))))))
 
 ;;; Examples:
 ;;

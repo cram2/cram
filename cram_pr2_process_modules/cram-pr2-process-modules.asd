@@ -35,7 +35,8 @@
                cram-prolog
                cram-designators
                cram-pr2-low-level
-               cram-tf)
+               cram-tf
+               cram-pr2-failures)
 
   :components
   ((:module "src"
