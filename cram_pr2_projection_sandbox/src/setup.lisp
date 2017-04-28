@@ -52,3 +52,30 @@
   )
 
 (roslisp-utilities:register-ros-init-function init-projection)
+
+(defun add-objects-to-mesh-list (&optional (ros-package "cram_pr2_projection_sandbox"))
+  (mapcar (lambda (object-filename-and-object-extension)
+            (declare (type list object-filename-and-object-extension))
+            (destructuring-bind (object-filename object-extension)
+                object-filename-and-object-extension
+              (let ((lisp-name (roslisp-utilities:lispify-ros-underscore-name
+                                object-filename :keyword)))
+                (pushnew (list lisp-name
+                               (format nil "package://~a/resource/~a.~a"
+                                       ros-package object-filename object-extension)
+                               nil)
+                         btr::*mesh-files*
+                         :key #'car)
+                lisp-name)))
+          (mapcar (lambda (pathname)
+                    (list (pathname-name pathname) (pathname-type pathname)))
+                  (directory (physics-utils:parse-uri
+                              (format nil "package://~a/resource/*.*" ros-package))))))
+
+(defun spawn-objects ()
+  (let ((objects (add-objects-to-mesh-list)))
+    (mapcar (lambda (object-type)
+              (btr-utils:spawn-object (format nil "~a1" object-type) object-type))
+            objects)))
+
+;; todo: create places where objects can theoretically be spawned: in shelves, on counters.

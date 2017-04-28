@@ -36,6 +36,8 @@
                cram-tf
                cram-prolog
                roslisp-utilities
+               cram-bullet-reasoning
+               cram-physics-utils
                ;; pouring-demo
                cram-projection
                cram-pr2-projection
