@@ -20,6 +20,7 @@
 
   <build_depend>cram_designators</build_depend>
   <build_depend>cl_transforms_stamped</build_depend>
+  <build_depend>cl_transforms</build_depend>
   <build_depend>cram_utilities</build_depend>
   <build_depend>cram_prolog</build_depend>
   <build_depend>cram_robot_interfaces</build_depend>
@@ -29,6 +30,7 @@
 
   <run_depend>cram_designators</run_depend>
   <run_depend>cl_transforms_stamped</run_depend>
+  <run_depend>cl_transforms</run_depend>
   <run_depend>cram_utilities</run_depend>
   <run_depend>cram_prolog</run_depend>
   <run_depend>cram_robot_interfaces</run_depend>

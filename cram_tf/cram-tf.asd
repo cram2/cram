@@ -8,6 +8,7 @@
   :description "Coordinate-frame transformation specific stuff for designators."
   :depends-on (:cram-designators
                :cl-transforms-stamped
+               :cl-transforms
                :cram-utilities
                :cram-prolog
                :cram-robot-interfaces
@@ -23,5 +24,5 @@
              (:file "designator-extensions" :depends-on ("package" "setup"))
              (:file "robot-current-pose" :depends-on ("package" "setup"))
              (:file "designator-filters" :depends-on ("package"))
-             (:file "utilities" :depends-on ("package"))
+             (:file "utilities" :depends-on ("package" "setup"))
              (:file "facts" :depends-on ("package" "utilities"))))))

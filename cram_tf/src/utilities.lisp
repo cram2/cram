@@ -85,3 +85,24 @@
     (cl-transforms:make-pose
      (cl-transforms:make-3d-vector x y z)
      (cl-transforms:make-quaternion q1 q2 q3 w))))
+
+(defun ensure-pose-in-frame (pose frame)
+  (declare (type (or null cl-transforms:pose cl-transforms-stamped:pose-stamped)))
+  (when pose
+    (cl-transforms-stamped:transform-pose-stamped
+     *transformer*
+     :pose (cl-transforms-stamped:ensure-pose-stamped pose frame 0.0)
+     :target-frame frame
+     :timeout *tf-default-timeout*
+     :use-current-ros-time t)))
+
+(defun ensure-point-in-frame (point frame)
+  (declare (type (or cl-transforms:point cl-transforms-stamped:point-stamped)))
+  (cl-transforms-stamped:transform-point-stamped
+   *transformer*
+   :point (if (typep point 'cl-transforms-stamped:point-stamped)
+              point
+              (cl-transforms-stamped:make-point-stamped
+               frame 0.0 point))
+   :target-frame frame
+   :timeout *tf-default-timeout*))
