@@ -30,7 +30,14 @@
 
 (defpackage cram-bullet-reasoning-belief-state
   (:use #:common-lisp #:cram-prolog)
-  (:export get-designator-object-name get-designator-object
-           object-designator-name
-           ;; event handlers
-           object-pose-in-frame))
+  (:export
+   ;; utilities
+   #:get-designator-object-name #:get-designator-object
+   ;; occasions
+   #:object-designator-name
+   ;; event handlers
+   #:object-pose-in-frame
+   ;; belief-state
+   #:*robot-urdf* #:*kitchen-urdf*
+   #:*robot-parameter* #:*kitchen-parameter*
+   #:setup-world-database))
