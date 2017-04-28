@@ -276,7 +276,7 @@
                    pose-orientation))))
 
 (defun get-object-type-grasp-pose (object-type object-pose arm grasp)
-  (let ((object-pose (pr2-ll:ensure-pose-in-frame object-pose cram-tf:*robot-base-frame*)))
+  (let ((object-pose (cram-tf:ensure-pose-in-frame object-pose cram-tf:*robot-base-frame*)))
    (case object-type
      ((:fork :knife :cutlery)
       (if (eq grasp :top)
@@ -342,16 +342,16 @@
    arm grasp))
 
 (defun get-object-type-lift-pose (object-type object-pose arm grasp)
-  (let ((object-pose (pr2-ll:ensure-pose-in-frame object-pose cram-tf:*robot-base-frame*)))
+  (let ((object-pose (cram-tf:ensure-pose-in-frame object-pose cram-tf:*robot-base-frame*)))
    (translate-pose (get-object-type-grasp-pose object-type object-pose arm grasp)
                    :z-offset *lift-z-offset*)))
 
 (defun get-object-grasp-lift-pose (grasp-pose)
-  (let ((grasp-pose (pr2-ll:ensure-pose-in-frame grasp-pose cram-tf:*robot-base-frame*)))
+  (let ((grasp-pose (cram-tf:ensure-pose-in-frame grasp-pose cram-tf:*robot-base-frame*)))
    (translate-pose grasp-pose :z-offset *lift-z-offset*)))
 
 (defun get-object-type-pregrasp-pose (object-type grasp-pose arm grasp)
-  (let ((grasp-pose (pr2-ll:ensure-pose-in-frame grasp-pose cram-tf:*robot-base-frame*)))
+  (let ((grasp-pose (cram-tf:ensure-pose-in-frame grasp-pose cram-tf:*robot-base-frame*)))
    (case object-type
      ((:fork :knife :cutlery)
       (if (eq grasp :top)
@@ -390,7 +390,7 @@
         (t (error "grasp can only be :side or :front")))))))
 
 (defun get-object-type-2nd-pregrasp-pose (object-type grasp-pose arm grasp)
-  (let ((grasp-pose (pr2-ll:ensure-pose-in-frame grasp-pose cram-tf:*robot-base-frame*)))
+  (let ((grasp-pose (cram-tf:ensure-pose-in-frame grasp-pose cram-tf:*robot-base-frame*)))
    (case object-type
      ((:fork :knife :cutlery)
       ;; (if (eq grasp :top)
@@ -437,7 +437,7 @@
     (let ((*kitchen-meal-table-z* (+ *kitchen-meal-table-z*
                                      z-offset
                                      (- *cup-center-z*))))
-      (let* ((object-pose (pr2-ll:ensure-pose-in-frame
+      (let* ((object-pose (cram-tf:ensure-pose-in-frame
                            (get-object-pose object-designator)
                            cram-tf:*robot-base-frame*))
              (grasp-pose (get-object-type-grasp-pose object-type object-pose arm grasp)))
@@ -458,7 +458,7 @@
                                      *pour-z-offset*))))))
 
 (defun get-tilted-pose (initial-poses angle arm grasp)
-  (let ((initial-pose (pr2-ll:ensure-pose-in-frame
+  (let ((initial-pose (cram-tf:ensure-pose-in-frame
                        (if (listp initial-poses)
                           (car (last initial-poses))
                           initial-poses)

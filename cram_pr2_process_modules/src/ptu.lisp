@@ -37,8 +37,9 @@
            (ecase goal-type
              (:point (pr2-ll:call-ptu-action :point goal))
              (:frame (pr2-ll:call-ptu-action :frame goal)))
-         (cram-plan-failures:look-at-failed ()
-           (cpl:fail 'cram-plan-failures:look-at-failed :action action-designator)))))))
+         ;; (cram-pr2:look-at-failed ()
+         ;;   (cpl:fail 'cram-plan-failures:look-at-failed :action action-designator))
+         )))))
 
 ;; Examples:
 ;;

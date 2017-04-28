@@ -111,10 +111,10 @@
                                           :both
                                           :left)
                                       :right))
-                            (?left-pose (pr2-ll::ensure-pose-in-frame
+                            (?left-pose (cram-tf:ensure-pose-in-frame
                                          ?left-pose
                                          cram-tf:*fixed-frame*))
-                            (?right-pose (pr2-ll::ensure-pose-in-frame
+                            (?right-pose (cram-tf:ensure-pose-in-frame
                                           ?right-pose
                                           cram-tf:*fixed-frame*)))
                         (desig:an action
@@ -190,12 +190,12 @@
                                         :both
                                         :left)
                                     :right))
-                            (?left-grasp-pose (pr2-ll::ensure-pose-in-frame
-                                         ?left-grasp-pose
-                                         cram-tf:*fixed-frame*))
-                            (?right-grasp-pose (pr2-ll::ensure-pose-in-frame
-                                          ?right-grasp-pose
-                                          cram-tf:*fixed-frame*)))
+                          (?left-grasp-pose (cram-tf:ensure-pose-in-frame
+                                             ?left-grasp-pose
+                                             cram-tf:*fixed-frame*))
+                          (?right-grasp-pose (cram-tf:ensure-pose-in-frame
+                                              ?right-grasp-pose
+                                              cram-tf:*fixed-frame*)))
                       (desig:an action
                                 (to move-arm-motion)
                                 (arm ?arm)
@@ -300,10 +300,10 @@
                                           :both
                                           :left)
                                       :right))
-                            (?left-pose (pr2-ll::ensure-pose-in-frame
+                            (?left-pose (cram-tf:ensure-pose-in-frame
                                          ?left-pose
                                          cram-tf:*fixed-frame*))
-                            (?right-pose (pr2-ll::ensure-pose-in-frame
+                            (?right-pose (cram-tf:ensure-pose-in-frame
                                           ?right-pose
                                           cram-tf:*fixed-frame*)))
                         (desig:an action
