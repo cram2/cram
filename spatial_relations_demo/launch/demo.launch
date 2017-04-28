@@ -8,9 +8,9 @@
        corresponding srdf for the lowres, but highres is too heavy for a lightweight
        reasoning engine -->
 
-  <param name="robot_description"
-         command="$(find xacro)/xacro.py
-                  '$(find pr2_description)/robots/pr2.urdf.xacro'"/>
+  <!-- <param name="robot_description" -->
+  <!--        command="$(find xacro)/xacro.py -->
+  <!--                 '$(find pr2_description)/robots/pr2.urdf.xacro'"/> -->
   <param name="robot_description_semantic"
          textfile="$(find pr2_moveit_config)/config/pr2.srdf" />
 
