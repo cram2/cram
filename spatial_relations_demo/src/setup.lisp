@@ -64,7 +64,7 @@
   
   (unless *robot-urdf-lowres*
     (setf *robot-urdf-lowres*
-          (cl-urdf:parse-urdf (roslisp:get-param "robot_description_lowres"))))
+          (cl-urdf:parse-urdf (roslisp:get-param "robot_description"))))
   (unless *kitchen-urdf*
     (setf *kitchen-urdf*
           (cl-urdf:parse-urdf (roslisp:get-param "kitchen_description")))
