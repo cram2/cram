@@ -117,19 +117,19 @@
         (with-projection-environment pr2-bullet-projection-environment
           (plan-lib:achieve `(object-placed-at ,object-designator ,location-designator))))))
 
-(def-fact-group pick-and-placing-actions (action-desig)
+(def-fact-group pick-and-placing-actions (action-grounding)
 
-  (<- (action-desig ?action-designator (detect ?object-designator))
+  (<- (action-grounding ?action-designator (detect ?object-designator))
     (or (desig-prop ?action-designator (:to :detect))
         (desig-prop ?action-designator (:type :detecting)))
     (desig-prop ?action-designator (:object ?object-designator)))
 
-  (<- (action-desig ?action-designator (pick-up ?object-designator))
+  (<- (action-grounding ?action-designator (pick-up ?object-designator))
     (or (desig-prop ?action-designator (:to :pick-up))
         (desig-prop ?action-designator (:type :picking-up)))
     (desig-prop ?action-designator (:object ?object-designator)))
 
-  (<- (action-desig ?action-designator (place ?object-designator ?location-designator))
+  (<- (action-grounding ?action-designator (place ?object-designator ?location-designator))
     (or (desig-prop ?action-designator (:to :place))
         (desig-prop ?action-designator (:type :placing)))
     (desig-prop ?action-designator (:object ?object-designator))
