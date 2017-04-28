@@ -19,7 +19,10 @@
 
   <include file="$(find iai_maps)/launch/map.launch" />
 
-  <param name="robot_description_lowres"
+  <!-- <param name="robot_description_lowres" -->
+  <!--        command="$(find xacro)/xacro.py -->
+  <!--                 '$(find pr2_description_lowres)/robots/pr2.urdf.xacro'"/> -->
+  <param name="robot_description"
          command="$(find xacro)/xacro.py
-                  '$(find pr2_description_lowres)/robots/pr2.urdf.xacro'"/>
+                  '$(find pr2_description)/robots/pr2.urdf.xacro'"/>
 </launch>
