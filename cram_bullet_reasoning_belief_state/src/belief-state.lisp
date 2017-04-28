@@ -38,7 +38,7 @@
 
 (defvar *robot-urdf* nil)
 (defvar *kitchen-urdf* nil)
-(defparameter *robot-parameter* "robot_description_lowres")
+(defparameter *robot-parameter* "robot_description")
 (defparameter *kitchen-parameter* "kitchen_description")
 
 (defun setup-world-database ()
