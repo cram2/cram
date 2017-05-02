@@ -220,14 +220,16 @@
     (move-pr2-arms-out-of-sight :arm ?arm)))
 
 (defun giskard-yaml (phase constraints)
-  (pr2-ll::call-giskard-yaml-action
-   :yaml-string (constraints-into-controller (read-yaml-file phase) constraints)
-   :action-timeout 60.0))
+  ;; TODO: change this to (a motion (type moving-joints) (constraints ?yaml-string))
+  ;; (pr2-ll::call-giskard-yaml-action
+  ;;  :yaml-string (constraints-into-controller (read-yaml-file phase) constraints)
+  ;;  :action-timeout 60.0)
+  )
 
 (defun go-to-initial-pouring-configuration-plan ()
   ;;  pouring initial configuration
   (cpl:with-failure-handling
-      ((pr2-ll:pr2-low-level-failure (e)
+      ((pr2-fail:low-level-failure (e)
          (declare (ignore e))
          (return)))
     (let ((?left-initial-configuration *pr2-left-arm-pouring-joint-positions*)

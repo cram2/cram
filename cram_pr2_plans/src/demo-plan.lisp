@@ -31,7 +31,7 @@
 
 (defun step-0-prepare ()
   (cpl:with-failure-handling
-      ((pr2-ll:pr2-low-level-failure (e)
+      ((pr2-fail:low-level-failure (e)
          (roslisp:ros-warn (demo step-0) "~a" e)
          (return)))
 
@@ -54,7 +54,7 @@
              (drive-and-pick-up-plan ?perceived-bottle-desig :?arm :right))))
     (cpl:with-retry-counters ((bottle-grasp-tries 2))
       (cpl:with-failure-handling
-          ((pr2-ll:pr2-low-level-failure (e)
+          ((pr2-fail:low-level-failure (e)
              (roslisp:ros-warn (demo step-1) "~a" e)
              (if (get-object-in-hand :right)
                  (return)
@@ -81,7 +81,7 @@
 
     (cpl:with-retry-counters ((bottle-grasp-tries 2))
       (cpl:with-failure-handling
-          ((pr2-ll:pr2-low-level-failure (e)
+          ((pr2-fail:low-level-failure (e)
              (roslisp:ros-warn (demo step-2) "~a" e)
              (if (get-object-in-hand :left)
                  (return)
@@ -93,12 +93,22 @@
 
 (defun step-3-pour-two-arms ()
   (cpl:with-failure-handling
-      ((pr2-ll:pr2-low-level-failure (e)
+      ((pr2-fail:low-level-failure (e)
          (roslisp:ros-warn (demo step-3) "~a" e)
          (return)))
 
     (go-to-initial-pouring-configuration-plan)
-    (let ((?left-gripper pr2-ll::*left-tool-frame*))
+    (let ((?left-gripper
+            (cut:with-vars-bound (?left-tool-frame)
+                (cut:lazy-car
+                 (prolog:prolog
+                  `(and (cram-robot-interfaces:robot ?robot)
+                        (cram-robot-interfaces:robot-tool-frame ?robot :left ?left-tool-frame))))
+              (if (cut:is-var ?left-tool-frame)
+                  (roslisp:ros-info (low-level giskard-init)
+                                    "?left-tool-frame is unknown. ~
+                                     Did you load a robot description package?")
+                  ?left-tool-frame))))
       (cram-plan-library:perform (desig:an action
                                            (type looking-motion)
                                            (frame ?left-gripper))))
@@ -112,7 +122,7 @@
 
 (defun step-4-place-cup ()
   (cpl:with-failure-handling
-      ((pr2-ll:pr2-low-level-failure (e)
+      ((pr2-fail:low-level-failure (e)
          (roslisp:ros-warn (demo step-4) "~a" e)
          (return)))
 
@@ -120,7 +130,7 @@
 
 (defun step-5-drive-to-the-left ()
   (cpl:with-failure-handling
-      ((pr2-ll:pr2-low-level-failure (e)
+      ((pr2-fail:low-level-failure (e)
          (roslisp:ros-warn (demo step-5) "~a" e)
          (return)))
 
@@ -141,7 +151,7 @@
                                                  :object-chosing-function
                                                  #'chose-higher-cup)))
              (when (< (desig:desig-prop-value ?second-cup-to-pour :bb-dist-to-plane) 0.1)
-               (cpl:fail 'pr2-ll:pr2-low-level-failure
+               (cpl:fail 'pr2-fail:low-level-failure
                          :description "couldn't perceive cup in hand"))
              ;; drive towards second cup
              (drive-towards-object-plan ?second-cup-to-pour :?arm :right)
@@ -157,7 +167,7 @@
                                            (pour-volume 0.0002)))))))
     (cpl:with-retry-counters ((second-pour-tries 20))
       (cpl:with-failure-handling
-          ((pr2-ll:pr2-low-level-failure (e)
+          ((pr2-fail:low-level-failure (e)
              (roslisp:ros-warn (demo step-6) "~a" e)
              (cpl:do-retry second-pour-tries
                (roslisp:ros-warn (demo step-6) "Retrying")
@@ -168,7 +178,7 @@
 
 (defun step-7-place-bottle ()
   (cpl:with-failure-handling
-      ((pr2-ll:pr2-low-level-failure (e)
+      ((pr2-fail:low-level-failure (e)
          (roslisp:ros-warn (demo step-5) "~a" e)
          (return)))
 
@@ -176,7 +186,7 @@
 
 (defun step-8-finalize ()
   (cpl:with-failure-handling
-      ((pr2-ll:pr2-low-level-failure (e)
+      ((pr2-fail:low-level-failure (e)
          (declare (ignore e))
          (return)))
     (cpl:par
@@ -185,32 +195,42 @@
                                   (to look-motion)
                                   (at ((2 0 1) (0 0 0 1))))))))
 
+#+this-is-commented-out-because-it-is-only-for-real-robot-not-simulation
 (defun demo-plan (&optional (step 0))
-  (with-pr2-process-modules
-    (mapc (lambda (fun)
-            (print fun)
-            (funcall fun))
-          (subseq (list
-                   ;; prepare
-                   #'step-0-prepare
-                   ;; perceive and grasp bottle with the right arm
-                   #'step-1-grasp-bottle
-                   ;; perceive cups and grasp the rightmost cup
-                   #'step-2-grasp-first-cup
-                   ;; pour
-                   #'step-3-pour-two-arms
-                   ;; place the object in left hand
-                   #'step-4-place-cup
-                   ;; drive to the left part of table
-                   #'step-5-drive-to-the-left
-                   ;; perceive leftmost cup and pour into it
-                   #'step-6-pour-into-second-cup
-                   ;; drive to the right and put down the bottle
-                   #'step-7-place-bottle
-                   ;; finalize
-                   #'step-8-finalize
-                   )
-                  step))))
+  (cram-process-modules:with-process-modules-running
+      (pr2-pms::pr2-perception-pm pr2-pms::pr2-base-pm pr2-pms::pr2-arms-pm
+                                  pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm)
+    (cpl:top-level
+      (with-pr2-process-modules
+        (mapc (lambda (fun)
+                (print fun)
+                (funcall fun))
+              (subseq (list
+                       ;; prepare
+                       #'step-0-prepare
+                       ;; perceive and grasp bottle with the right arm
+                       #'step-1-grasp-bottle
+                       ;; perceive cups and grasp the rightmost cup
+                       #'step-2-grasp-first-cup
+                       ;; pour
+                       #'step-3-pour-two-arms
+                       ;; place the object in left hand
+                       #'step-4-place-cup
+                       ;; drive to the left part of table
+                       #'step-5-drive-to-the-left
+                       ;; perceive leftmost cup and pour into it
+                       #'step-6-pour-into-second-cup
+                       ;; drive to the right and put down the bottle
+                       #'step-7-place-bottle
+                       ;; finalize
+                       #'step-8-finalize)
+                      step))))))
+
+
+
+
+
+
 
 ;;; arms down
 ;; (plan-lib:perform (desig:an action

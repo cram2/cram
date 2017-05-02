@@ -77,6 +77,12 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; actions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun fill-in-with-nils (some-list desired-length)
+  (let ((current-length (length some-list)))
+    (if (> desired-length current-length)
+        (append some-list (make-list (- desired-length current-length)))
+        some-list)))
+
 (cpl:def-cram-function move-arms-in-sequence (?left-poses ?right-poses)
   (unless (listp ?left-poses)
     (setf ?left-poses (list ?left-poses)))
@@ -85,7 +91,7 @@
   (let ((max-length (max (length ?left-poses) (length ?right-poses))))
     (mapc (lambda (?left-pose ?right-pose)
             (cpl:with-failure-handling
-                ((pr2-ll:pr2-low-level-failure (e)
+                ((pr2-fail:low-level-failure (e)
                    (roslisp:ros-warn (pick-and-place grasp) "~a" e)
                    ;; ignore failures
                    (return)))
@@ -94,8 +100,8 @@
                          (to move-arm-motion)
                          (left ?left-pose)
                          (right ?right-pose)))))
-          (pr2-pms::fill-in-with-nils ?left-poses max-length)
-          (pr2-pms::fill-in-with-nils ?right-poses max-length))))
+          (fill-in-with-nils ?left-poses max-length)
+          (fill-in-with-nils ?right-poses max-length))))
 
 (defmacro with-logging-reach ((?left-pose ?right-pose) &body body)
   `(progn
@@ -103,7 +109,8 @@
                      (beliefstate:add-topic-image-to-active-node
                       cram-beliefstate::*kinect-topic-rgb*)
                      (beliefstate:add-designator-to-node
-                      pr2-ll::*rs-result-designator*
+                      ;; pr2-ll::*rs-result-designator*
+                      (desig:make-designator :object '())
                       id :annotation "object-acted-on")
                      (beliefstate:add-designator-to-node
                       (let ((?arm (if ,?left-pose
@@ -141,7 +148,7 @@
   (let ((max-length (max (length ?left-poses) (length ?right-poses))))
     (mapc (lambda (?left-pose ?right-pose)
             (cpl:with-failure-handling
-                ((pr2-ll:pr2-low-level-failure (e)
+                ((pr2-fail:low-level-failure (e)
                    (roslisp:ros-warn (pick-and-place reach) "~a" e)
                    ;; ignore failures
                    (return)))
@@ -150,13 +157,13 @@
                          (to move-arm-motion)
                          (left ?left-pose)
                          (right ?right-pose)))))
-          (pr2-pms::fill-in-with-nils (butlast ?left-poses) max-length)
-          (pr2-pms::fill-in-with-nils (butlast ?right-poses) max-length)))
+          (fill-in-with-nils (butlast ?left-poses) max-length)
+          (fill-in-with-nils (butlast ?right-poses) max-length)))
 
   (let ((?left-pose (car (last ?left-poses)))
         (?right-pose (car (last ?right-poses))))
     (cpl:with-failure-handling
-        ((pr2-ll:pr2-low-level-failure (e)
+        ((pr2-fail:low-level-failure (e)
            (roslisp:ros-warn (pick-and-place reach) "~a" e)
            (return)))
       (with-logging-reach (?left-pose ?right-pose)
@@ -168,7 +175,7 @@
 
 (cpl:def-cram-function open-gripper (?left-or-right)
   (cpl:with-failure-handling
-      ((pr2-ll:pr2-low-level-failure (e)
+      ((pr2-fail:low-level-failure (e)
          (roslisp:ros-warn (pick-and-place open-gripper) "~a" e)
          ;; ignore failures
          (return)))
@@ -182,7 +189,8 @@
                    (beliefstate:add-topic-image-to-active-node
                     cram-beliefstate::*kinect-topic-rgb*)
                    (beliefstate:add-designator-to-node
-                    pr2-ll::*rs-result-designator*
+                    ;; pr2-ll::*rs-result-designator*
+                    (desig:make-designator :object '())
                     id :annotation "object-acted-on")
                    (beliefstate:add-designator-to-node
                     (let ((?arm (if ,?left-grasp-pose
@@ -221,7 +229,7 @@
   (let ((max-length (max (length ?left-grasp-poses) (length ?right-grasp-poses))))
     (mapc (lambda (?left-pregrasp-poses ?right-pregrasp-poses)
             (cpl:with-failure-handling
-                ((pr2-ll:pr2-low-level-failure (e)
+                ((pr2-fail:low-level-failure (e)
                    (roslisp:ros-warn (pick-and-place grasp) "~a" e)
                    (return)))
               (cram-plan-library:perform
@@ -229,14 +237,14 @@
                          (to move-arm-motion)
                          (left ?left-pregrasp-poses)
                          (right ?right-pregrasp-poses)))))
-          (pr2-pms::fill-in-with-nils (butlast ?left-grasp-poses) max-length)
-          (pr2-pms::fill-in-with-nils (butlast ?right-grasp-poses) max-length)))
+          (fill-in-with-nils (butlast ?left-grasp-poses) max-length)
+          (fill-in-with-nils (butlast ?right-grasp-poses) max-length)))
 
   (let ((?left-grasp-pose (car (last ?left-grasp-poses)))
         (?right-grasp-pose (car (last ?right-grasp-poses))))
     (cpl:with-retry-counters ((approach-retries retries))
       (cpl:with-failure-handling
-          ((pr2-ll:pr2-low-level-failure (e)
+          ((pr2-fail:low-level-failure (e)
              (cpl:do-retry approach-retries
                (roslisp:ros-warn (pick-and-place grasp) "~a" e)
                (cpl:retry))
@@ -253,7 +261,8 @@
                    (beliefstate:add-topic-image-to-active-node
                     cram-beliefstate::*kinect-topic-rgb*)
                    (beliefstate:add-designator-to-node
-                    pr2-ll::*rs-result-designator*
+                    ;; pr2-ll::*rs-result-designator*
+                    (desig:make-designator :object '())
                     id :annotation "object-acted-on")
                    (beliefstate:add-designator-to-node
                     (desig:an action
@@ -274,11 +283,11 @@
 (cpl:def-cram-function grip (?left-or-right ?effort)
   (cpl:with-retry-counters ((grasping-retries 1))
     (cpl:with-failure-handling
-        ((pr2-ll:pr2-low-level-failure (e)
+        ((pr2-fail:low-level-failure (e)
            (cpl:do-retry grasping-retries
              (roslisp:ros-warn (pick-and-place grip) "~a" e)
              (cpl:retry))
-           (cpl:fail 'pr2-ll:pr2-low-level-failure)))
+           (cpl:fail 'pr2-fail:low-level-failure)))
       (with-logging-grip (?left-or-right ?effort)
         (cram-plan-library:perform
          (desig:an action
@@ -292,7 +301,8 @@
                      (beliefstate:add-topic-image-to-active-node
                       cram-beliefstate::*kinect-topic-rgb*)
                      (beliefstate:add-designator-to-node
-                      pr2-ll::*rs-result-designator*
+                      ;; pr2-ll::*rs-result-designator*
+                      (desig:make-designator :object '())
                       id :annotation "object-acted-on")
                      (beliefstate:add-designator-to-node
                       (let ((?arm (if ,?left-pose
@@ -324,7 +334,7 @@
 
 (cpl:def-cram-function lift (?left-pose ?right-pose)
   (cpl:with-failure-handling
-      ((pr2-ll:pr2-low-level-failure (e)
+      ((pr2-fail:low-level-failure (e)
          (roslisp:ros-warn (pick-and-place lift) "~a" e)
          (return)))
     (with-logging-lift (?left-pose ?right-pose)
@@ -352,11 +362,11 @@
                                  (object-chosing-function #'identity))
   (cpl:with-retry-counters ((perceive-retries 5))
     (cpl:with-failure-handling
-        ((pr2-ll:pr2-low-level-failure (e)
+        ((pr2-fail:low-level-failure (e)
            (cpl:do-retry perceive-retries
              (roslisp:ros-warn (pick-and-place perceive) "~a" e)
              (cpl:retry))
-           (cpl:fail 'pr2-ll:pr2-low-level-failure :description "couldn't find object")))
+           (cpl:fail 'pr2-fail:low-level-failure :description "couldn't find object")))
       (with-logging-perceive (?object-designator)
         (let* ((resulting-designators
                  (case quantifier
