@@ -101,4 +101,8 @@
     (once (or (property ?designator (:left-configuration ?left-config))
               (equal ?left-config nil)))
     (once (or (property ?designator (:right-configuration ?right-config))
-              (equal ?right-config nil)))))
+              (equal ?right-config nil))))
+
+  (<- (motion-grounding ?designator (move-with-constraints ?constraints-string))
+    (property ?designator (:type :moving-with-constraints))
+    (property ?designator (:constraints ?constraints-string))))
