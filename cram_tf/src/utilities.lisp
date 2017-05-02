@@ -106,3 +106,30 @@
                frame 0.0 point))
    :target-frame frame
    :timeout *tf-default-timeout*))
+
+(defun translate-pose (pose &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
+  (cl-transforms-stamped:copy-pose-stamped
+   pose
+   :origin (let ((pose-origin (cl-transforms:origin pose)))
+             (cl-transforms:copy-3d-vector
+              pose-origin
+              :x (let ((x-pose-origin (cl-transforms:x pose-origin)))
+                   (+ x-pose-origin x-offset))
+              :y (let ((y-pose-origin (cl-transforms:y pose-origin)))
+                   (+ y-pose-origin y-offset))
+              :z (let ((z-pose-origin (cl-transforms:z pose-origin)))
+                   (+ z-pose-origin z-offset))))))
+
+(defun rotate-pose (pose axis angle)
+  (cl-transforms-stamped:copy-pose-stamped
+   pose
+   :orientation (let ((pose-orientation (cl-transforms:orientation pose)))
+                  (cl-transforms:q*
+                   (cl-transforms:axis-angle->quaternion
+                    (case axis
+                      (:x (cl-transforms:make-3d-vector 1 0 0))
+                      (:y (cl-transforms:make-3d-vector 0 1 0))
+                      (:z (cl-transforms:make-3d-vector 0 0 1))
+                      (t (error "[CRAM-TF:ROTATE-POSE] axis ~a not specified properly" axis)))
+                    angle)
+                   pose-orientation))))
