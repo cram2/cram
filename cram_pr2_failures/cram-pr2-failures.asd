@@ -37,6 +37,7 @@
   ((:module "src"
             :components
             ((:file "package")
-             (:file "manipulation" :depends-on ("package"))
-             (:file "navigation" :depends-on ("package"))
-             (:file "perception" :depends-on ("package"))))))
+             (:file "common" :depends-on ("package"))
+             (:file "manipulation" :depends-on ("package" "common"))
+             (:file "navigation" :depends-on ("package" "common"))
+             (:file "perception" :depends-on ("package" "common"))))))
