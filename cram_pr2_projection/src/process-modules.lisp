@@ -68,14 +68,17 @@
 ;;;;;;;;;;;;;;;;; ARMS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module pr2-proj-arms (motion-designator)
-  (destructuring-bind (command arg-1 arg-2) (desig:reference motion-designator)
+  (destructuring-bind (command arg-1 &rest arg-2) (desig:reference motion-designator)
     (ecase command
       (cram-pr2-designators:move-tcp
        (handler-case
-           (move-tcp arg-1 arg-2)))
+           (move-tcp arg-1 (car arg-2))))
       (cram-pr2-designators::move-joints
        (handler-case
-           (move-joints arg-1 arg-2))))))
+           (move-joints arg-1 (car arg-2))))
+      (cram-pr2-designators::move-with-constraints
+       (handler-case
+           (move-with-constraints arg-1))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;; PREDICATES ;;;;;;;;;;;;;;;;;;;;;;;;
