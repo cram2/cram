@@ -188,6 +188,10 @@
     (move-joints (get-ik-joint-positions :left left-tcp-pose)
                  (get-ik-joint-positions :right right-tcp-pose))))
 
+(defun move-with-constraints (constraints-string)
+  (declare (ignore constraints-string))
+  (warn "Moving with constraints is not supported in projection! Ignoring."))
+
 
 
 
