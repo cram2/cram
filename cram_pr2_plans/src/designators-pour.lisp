@@ -71,54 +71,68 @@
     (:right (setf ?left-retract-poses nil)))
   ;; (setf ?left-grasp-poses (reverse ?left-grasp-poses))
   ;; (setf ?right-grasp-poses (reverse ?right-grasp-poses))
-  (let ((source-pose (cl-tf:transform-pose-stamped
-                      cram-tf:*transformer*
-                      :target-frame cram-tf:*robot-base-frame*
-                      :pose (cl-tf:make-pose-stamped
-                             pr2-ll::*right-tool-frame*
-                             0.0
-                             (cl-tf:make-identity-vector)
-                             (cl-tf:make-identity-rotation))
-                      :timeout cram-tf:*tf-default-timeout*))
-        (destination-pose (cl-tf:transform-pose-stamped
-                           cram-tf:*transformer*
-                           :target-frame cram-tf:*robot-base-frame*
-                           :pose (cl-tf:make-pose-stamped
-                                  pr2-ll::*left-tool-frame*
-                                  0.0
-                                  (cl-tf:make-identity-vector)
-                                  (cl-tf:make-identity-rotation))
-                           :timeout cram-tf:*tf-default-timeout*)))
+  (cut:with-vars-bound (?left-tool-frame ?right-tool-frame)
+      (cut:lazy-car
+       (prolog:prolog
+        `(and (cram-robot-interfaces:robot ?robot)
+              (cram-robot-interfaces:robot-tool-frame ?robot :left ?left-tool-frame)
+              (cram-robot-interfaces:robot-tool-frame ?robot :right ?right-tool-frame))))
+    (if (cut:is-var ?left-tool-frame)
+        (roslisp:ros-error (low-level giskard-init)
+                           "?left-tool-frame is unknown. ~
+                           Did you load a robot description package?")
+        (if (cut:is-var ?right-tool-frame)
+            (roslisp:ros-error (low-level giskard-init)
+                               "?right-tool-frame is unknown. ~
+                                Did you load a robot description package?")
+            (let ((source-pose (cl-tf:transform-pose-stamped
+                                cram-tf:*transformer*
+                                :target-frame cram-tf:*robot-base-frame*
+                                :pose (cl-tf:make-pose-stamped
+                                       ?right-tool-frame
+                                       0.0
+                                       (cl-tf:make-identity-vector)
+                                       (cl-tf:make-identity-rotation))
+                                :timeout cram-tf:*tf-default-timeout*))
+                  (destination-pose (cl-tf:transform-pose-stamped
+                                     cram-tf:*transformer*
+                                     :target-frame cram-tf:*robot-base-frame*
+                                     :pose (cl-tf:make-pose-stamped
+                                            ?left-tool-frame
+                                            0.0
+                                            (cl-tf:make-identity-vector)
+                                            (cl-tf:make-identity-rotation))
+                                     :timeout cram-tf:*tf-default-timeout*)))
 
-    (let* ((pouring-constraints (call-learned-constraints-service
-                                 source-type source-pose
-                                 destination-type destination-pose
-                                 pour-volume liquid-in-source))
-           (?approach-constraints (cadr (assoc :approach pouring-constraints)))
-           (?tilt-down-constraints (cadr (assoc :tilt-down pouring-constraints)))
-           (?tilt-back-constraints (cadr (assoc :tilt-back pouring-constraints)))
-           (phases (list
-                    (an action
-                        (to approach)
-                        (constraints ?approach-constraints))
-                    (an action
-                        (to tilt-down)
-                        (constraints ?tilt-down-constraints))
-                    (an action
-                        (to wait)
-                        (duration 3.0))
-                    (an action
-                        (to tilt-back)
-                        (constraints ?tilt-back-constraints))
-                    (an action
-                        (to wait)
-                        (duration 3.0))
-                    ;; (an action
-                    ;;     (to retract-action)
-                    ;;     (left ?left-retract-poses)
-                    ;;     (right ?right-retract-poses))
-                    )))
-      (copy-designator action-designator :new-description `((:phases ,phases))))))
+              (let* ((pouring-constraints (call-learned-constraints-service
+                                           source-type source-pose
+                                           destination-type destination-pose
+                                           pour-volume liquid-in-source))
+                     (?approach-constraints (cadr (assoc :approach pouring-constraints)))
+                     (?tilt-down-constraints (cadr (assoc :tilt-down pouring-constraints)))
+                     (?tilt-back-constraints (cadr (assoc :tilt-back pouring-constraints)))
+                     (phases (list
+                              (an action
+                                  (to approach)
+                                  (constraints ?approach-constraints))
+                              (an action
+                                  (to tilt-down)
+                                  (constraints ?tilt-down-constraints))
+                              (an action
+                                  (to wait)
+                                  (duration 3.0))
+                              (an action
+                                  (to tilt-back)
+                                  (constraints ?tilt-back-constraints))
+                              (an action
+                                  (to wait)
+                                  (duration 3.0))
+                              ;; (an action
+                              ;;     (to retract-action)
+                              ;;     (left ?left-retract-poses)
+                              ;;     (right ?right-retract-poses))
+                              )))
+                (copy-designator action-designator :new-description `((:phases ,phases)))))))))
 
 ;; (declaim (inline car-last))
 (defun car-last (some-list)
