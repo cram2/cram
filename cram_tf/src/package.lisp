@@ -40,6 +40,7 @@
            #:pose->flat-list #:pose->flat-list-w-first
            #:flat-list->pose #:flat-list-w-first->pose
            #:ensure-pose-in-frame #:ensure-point-in-frame
+           #:translate-pose #:rotate-pose
            ;; prolog facts
            #:pose #:pose-stamped #:position #:orientation #:poses-equal
            #:location-pose
