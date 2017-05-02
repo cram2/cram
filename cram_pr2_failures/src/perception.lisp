@@ -29,9 +29,9 @@
 
 (in-package :cram-pr2-failures)
 
-(define-condition perception-failure (simple-plan-failure) ())
+(define-condition perception-low-level-failure (low-level-failure) ())
 
-(define-condition perception-object-not-found (plan-failure)
+(define-condition perception-object-not-found (perception-low-level-failure)
   ((object :initarg :object :initform nil :reader object-not-found-object)))
 
 ;; (define-condition look-at-failed (simple-plan-failure)
