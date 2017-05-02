@@ -32,15 +32,15 @@
 ;; roslaunch cram_pr2_projection_sandbox sandbox.launch
 
 (defun init-projection ()
-;; (def-fact-group costmap-metadata ()
-;;   (<- (location-costmap:costmap-size 12 12))
-;;   (<- (location-costmap:costmap-origin -6 -6))
-;;   (<- (location-costmap:costmap-resolution 0.05))
+(def-fact-group costmap-metadata ()
+  (<- (location-costmap:costmap-size 12 12))
+  (<- (location-costmap:costmap-origin -6 -6))
+  (<- (location-costmap:costmap-resolution 0.05))
 
-;;   (<- (location-costmap:costmap-padding 0.2))
-;;   (<- (location-costmap:costmap-manipulation-padding 0.2))
-;;   (<- (location-costmap:costmap-in-reach-distance 0.9))
-;;   (<- (location-costmap:costmap-reach-minimal-distance 0.1)))
+  (<- (location-costmap:costmap-padding 0.2))
+  (<- (location-costmap:costmap-manipulation-padding 0.2))
+  (<- (location-costmap:costmap-in-reach-distance 0.9))
+  (<- (location-costmap:costmap-reach-minimal-distance 0.1)))
 
   ;; (setf cram-bullet-reasoning-belief-state:*robot-parameter* "robot_description")
 
@@ -52,30 +52,3 @@
   )
 
 (roslisp-utilities:register-ros-init-function init-projection)
-
-(defun add-objects-to-mesh-list (&optional (ros-package "cram_pr2_projection_sandbox"))
-  (mapcar (lambda (object-filename-and-object-extension)
-            (declare (type list object-filename-and-object-extension))
-            (destructuring-bind (object-filename object-extension)
-                object-filename-and-object-extension
-              (let ((lisp-name (roslisp-utilities:lispify-ros-underscore-name
-                                object-filename :keyword)))
-                (pushnew (list lisp-name
-                               (format nil "package://~a/resource/~a.~a"
-                                       ros-package object-filename object-extension)
-                               nil)
-                         btr::*mesh-files*
-                         :key #'car)
-                lisp-name)))
-          (mapcar (lambda (pathname)
-                    (list (pathname-name pathname) (pathname-type pathname)))
-                  (directory (physics-utils:parse-uri
-                              (format nil "package://~a/resource/*.*" ros-package))))))
-
-(defun spawn-objects ()
-  (let ((objects (add-objects-to-mesh-list)))
-    (mapcar (lambda (object-type)
-              (btr-utils:spawn-object (format nil "~a1" object-type) object-type))
-            objects)))
-
-;; todo: create places where objects can theoretically be spawned: in shelves, on counters.

@@ -30,15 +30,18 @@
 (defsystem cram-pr2-projection-sandbox
   :author "gaya"
   :license "BSD"
-  :depends-on (;; setup
+  :depends-on (;; general
+               cram-semantic-map-costmap
+               ;; setup
                cram-bullet-reasoning-belief-state
                cram-occasions-events
                cram-tf
                cram-prolog
                roslisp-utilities
+               ;; pouring-demo
                cram-bullet-reasoning
                cram-physics-utils
-               ;; pouring-demo
+               cram-bullet-reasoning-utilities
                cram-projection
                cram-pr2-projection
                cram-language
