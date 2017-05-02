@@ -37,4 +37,5 @@
   ;;               *fixed-frame* *transformer* *tf-default-timeout*)
   (:export
    ;; motions
-   #:drive #:look-at #:detect #:gripper-action #:move-tcp #:move-joints))
+   #:drive #:look-at #:detect #:gripper-action
+   #:move-tcp #:move-joints #:move-with-constraints))
