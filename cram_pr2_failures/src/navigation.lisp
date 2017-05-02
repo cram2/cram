@@ -29,10 +29,10 @@
 
 (in-package :cram-pr2-failures)
 
-(define-condition navigation-failure (simple-plan-failure)
+(define-condition navigation-low-level-failure (low-level-failure)
   ((location :initarg :location :initform nil :reader navigation-failure-location)))
 
-(define-condition navigation-pose-unreachable (navigation-failure) ())
+(define-condition navigation-pose-unreachable (navigation-low-level-failure) ())
 
 ;; (define-condition location-not-reached-failure (navigation-failure) ())
 

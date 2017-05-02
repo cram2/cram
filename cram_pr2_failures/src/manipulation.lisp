@@ -29,23 +29,15 @@
 
 (in-package :cram-pr2-failures)
 
-(define-condition manipulation-failure (simple-plan-failure) ()
-  ;; ((result :initarg :result :reader result :initform nil))
-  ;; (:default-initargs :format-control "manipulation-failure")
-  )
+(define-condition manipulation-low-level-failure (low-level-failure) ())
 
-(define-condition gripping-failed (manipulation-failure)
+(define-condition gripping-failed (manipulation-low-level-failure)
   ((action :initarg :object :initform nil :reader gripping-failed-action)))
 
 (define-condition gripper-closed-completely (gripping-failed) ())
 
-(define-condition manipulation-pose-unreachable (manipulation-failure) ())
+(define-condition manipulation-goal-not-reached (manipulation-low-level-failure) ())
 
-;; (define-condition manipulation-pose-occupied (manipulation-failure) ())
-
-;; (define-condition manipulation-object-lost (manipulation-failure) ())
-
-;; (define-condition manipulation-pickup-failed (manipulation-pose-unreachable) ())
-
+(define-condition manipulation-pose-unreachable (manipulation-low-level-failure) ())
 
 
