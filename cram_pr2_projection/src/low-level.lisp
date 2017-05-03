@@ -44,11 +44,12 @@
 
 (defun look-at-pose-stamped (pose-stamped)
   (declare (type cl-transforms-stamped:pose-stamped pose-stamped))
-  (assert
-   (prolog:prolog
-    `(and (btr:bullet-world ?world)
-          (cram-robot-interfaces:robot ?robot)
-          (btr:head-pointing-at ?world ?robot ,pose-stamped)))))
+  (let ((pose-in-world (cram-tf:ensure-pose-in-frame pose-stamped cram-tf:*fixed-frame*)))
+    (assert
+     (prolog:prolog
+      `(and (btr:bullet-world ?world)
+            (cram-robot-interfaces:robot ?robot)
+            (btr:head-pointing-at ?world ?robot ,pose-in-world))))))
 
 (defgeneric look-at (pose-or-frame-or-direction)
   (:method ((pose cl-transforms-stamped:pose-stamped))
@@ -74,6 +75,22 @@
 
 ;;;;;;;;;;;;;;;;; PERCEPTION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun extend-perceived-object-designator (input-designator name-pose-type-list)
+  (destructuring-bind (name pose type) name-pose-type-list
+    (let ((pose-stamped (cram-tf:ensure-pose-in-frame pose cram-tf:*fixed-frame*)))
+      (let ((output-designator
+              (desig:copy-designator
+               input-designator
+               :new-description
+               `((:type ,type)
+                 (:location ,(desig:make-designator :location `((:pose ,pose-stamped))))
+                 (:name ,name)))))
+        (setf (slot-value output-designator 'desig:data)
+              (make-instance 'desig:object-designator-data
+                :object-identifier name
+                :pose pose-stamped))
+        (desig:equate input-designator output-designator)))))
+
 (defun detect (input-designator quantifier)
   (declare (type desig:object-designator input-designator)
            (type keyword quantifier))
@@ -98,34 +115,25 @@
                                       `((prolog:== ?object-type ,object-type)))
                                   (btr:item-type ?world ?object-name ?object-type)
                                   (btr:visible ?world ?robot ?object-name)
-                                  (btr:pose ?world ?object-name ?object-pose))))))
+                                  (btr:pose ?world ?object-name ?object-pose)))))))
 
-         ;; if multiple objects are visible and need to find :an object (not :all objects)
-         ;; only take the first result
-         (quantified-name-pose-type-lists
-           (case quantifier
-             (:all name-pose-type-lists)
-             ((:a :an) (list (first name-pose-type-lists)))
-             (t (error "[PROJECTION DETECT]: Quantifier can only be a/an or all.")))))
+    ;; check if objects were found
+    (unless name-pose-type-lists
+      (cpl:fail 'pr2-fail:perception-object-not-found :object input-designator
+                :description (format nil "Could not find object ~a." input-designator)))
 
-    ;; extend the input-designator with the information found through visibility check:
+    ;; Extend the input-designator with the information found through visibility check:
     ;; name & pose & type of the object,
-    ;; equate the input-designator to the new output-designator
-    (mapcar (lambda (name-pose-type-list)
-              (destructuring-bind (name pose type)
-                  name-pose-type-list
-                (let ((output-designator
-                        (desig:extend-designator-properties
-                         input-designator
-                         `((:type ,type)
-                           (:location ,(desig:make-designator :location `((:pose ,pose))))
-                           (:name name)))))
-                  (setf (slot-value output-designator 'desig:data)
-                        (make-instance 'desig:object-designator-data
-                          :object-identifier name
-                          :pose pose))
-                  (desig:equate input-designator output-designator))))
-            quantified-name-pose-type-lists)))
+    ;; equate the input-designator to the new output-designator.
+    ;; If multiple objects are visible, return multiple equated objects,
+    ;; otherwise only take first found object. I.e. need to find :an object (not :all objects)
+    (case quantifier
+      (:all (mapcar (alexandria:curry #'extend-perceived-object-designator input-designator)
+                    name-pose-type-lists))
+      ((:a :an) (extend-perceived-object-designator
+                 input-designator
+                 (first name-pose-type-lists)))
+      (t (error "[PROJECTION DETECT]: Quantifier can only be a/an or all.")))))
 
 ;;;;;;;;;;;;;;;;; GRIPPERS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
