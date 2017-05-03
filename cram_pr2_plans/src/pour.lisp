@@ -169,9 +169,9 @@
   (let* ((?bottle-desig (desig:an object
                                   (type bottle)))
          (?perceived-bottle-desig (cram-plan-library:perform
-                                   (desig:an action
-                                             (to detect-motion)
-                                             (object ?bottle-desig)))))
+                                   (desig:a motion
+                                            (type detecting)
+                                            (object ?bottle-desig)))))
     (plan-lib:perform (desig:an action
                                 (to pick-up-activity)
                                 (arm ?arm)
@@ -181,9 +181,9 @@
                                  (type cup)
                                  (cad-model "cup_eco_orange")))
            (?perceived-cup-desig (cram-plan-library:perform
-                                  (desig:an action
-                                            (to detect-motion)
-                                            (object ?cup-desig)))))
+                                  (desig:a motion
+                                           (type detecting)
+                                           (object ?cup-desig)))))
       (plan-lib:perform (desig:an action
                                   (to pour-activity)
                                   (arm ?arm)
@@ -202,9 +202,9 @@
                                (cad-model "cup_eco_orange")
                                (type cup)))
          (?perceived-cup-desig (cram-plan-library:perform
-                                (desig:an action
-                                          (to detect-motion)
-                                          (object ?cup-desig))))
+                                (desig:a motion
+                                         (type detecting)
+                                         (object ?cup-desig))))
          (?bottle-desig (desig:an object
                                   (type bottle))))
     (plan-lib:perform (desig:an action
@@ -234,10 +234,10 @@
          (return)))
     (let ((?left-initial-configuration *pr2-left-arm-pouring-joint-positions*)
         (?right-initial-configuration *pr2-right-arm-pouring-joint-positions*))
-    (plan-lib:perform (desig:an action
-                                (to move-joints-motion)
-                                (left ?left-initial-configuration)
-                                (right ?right-initial-configuration))))))
+    (plan-lib:perform (desig:a motion
+                               (type moving-joints)
+                               (left-configuration ?left-initial-configuration)
+                               (right-configuration ?right-initial-configuration))))))
 
 
 ;; Example input designator for pouring (learned constraints server must be running):

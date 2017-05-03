@@ -160,10 +160,10 @@
                                              *pr2-right-arm-out-of-sight-flipped-joint-positions*
                                              *pr2-right-arm-out-of-sight-joint-positions*)))
       (cram-plan-library:perform
-       (desig:an action
-                 (to move-joints-motion)
-                 (left ?left-configuration-to-go)
-                 (right ?right-configuration-to-go))))))
+       (desig:a motion
+                (type moving-joints)
+                (left-configuration ?left-configuration-to-go)
+                (right-configuration ?right-configuration-to-go))))))
 
 (defun overwrite-transformer ()
   (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client)))

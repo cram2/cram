@@ -96,10 +96,10 @@
                    ;; ignore failures
                    (return)))
               (cram-plan-library:perform
-               (desig:an action
-                         (to move-arm-motion)
-                         (left ?left-pose)
-                         (right ?right-pose)))))
+               (desig:a motion
+                        (type moving-tcp)
+                        (left-target (desig:a location (pose ?left-pose)))
+                        (right-target (desig:a location (pose ?right-pose)))))))
           (fill-in-with-nils ?left-poses max-length)
           (fill-in-with-nils ?right-poses max-length))))
 
@@ -124,11 +124,11 @@
                             (?right-pose (cram-tf:ensure-pose-in-frame
                                           ?right-pose
                                           cram-tf:*fixed-frame*)))
-                        (desig:an action
-                                  (to move-arm-motion)
-                                  (arm ?arm)
-                                  (left ,?left-pose)
-                                  (right ,?right-pose)))
+                        (desig:a motion
+                                 (type moving-tcp)
+                                 (arm ?arm)
+                                 (left-target (desig:a location (pose ,?left-pose)))
+                                 (right-target (desig:a location (pose ,?right-pose)))))
                       id :annotation "CRAMActionDesignator")
                      id))
            (success nil))
@@ -153,10 +153,10 @@
                    ;; ignore failures
                    (return)))
               (cram-plan-library:perform
-               (desig:an action
-                         (to move-arm-motion)
-                         (left ?left-pose)
-                         (right ?right-pose)))))
+               (desig:a motion
+                        (type moving-tcp)
+                        (left-target (desig:a location (pose ?left-pose)))
+                        (right-target (desig:a location (pose ?right-pose)))))))
           (fill-in-with-nils (butlast ?left-poses) max-length)
           (fill-in-with-nils (butlast ?right-poses) max-length)))
 
@@ -168,10 +168,10 @@
            (return)))
       (with-logging-reach (?left-pose ?right-pose)
         (cram-plan-library:perform
-         (desig:an action
-                   (to move-arm-motion)
-                   (left ?left-pose)
-                   (right ?right-pose)))))))
+         (desig:a motion
+                  (type moving-tcp)
+                  (left-target (desig:a location (pose ?left-pose)))
+                  (right-target (desig:a location (pose ?right-pose)))))))))
 
 (cpl:def-cram-function open-gripper (?left-or-right)
   (cpl:with-failure-handling
@@ -180,9 +180,9 @@
          ;; ignore failures
          (return)))
     (cram-plan-library:perform
-     (desig:an action
-               (to open-motion)
-               (?left-or-right gripper)))))
+     (desig:a motion
+              (type opening)
+              (gripper ?left-or-right)))))
 
 (defmacro with-logging-grasp ((?left-grasp-pose ?right-grasp-pose) &body body)
   `(let ((log-id (let ((id (beliefstate:start-node "GRASP" `() 2)))
@@ -204,11 +204,11 @@
                           (?right-grasp-pose (cram-tf:ensure-pose-in-frame
                                               ?right-grasp-pose
                                               cram-tf:*fixed-frame*)))
-                      (desig:an action
-                                (to move-arm-motion)
-                                (arm ?arm)
-                                (left ,?left-grasp-pose)
-                                (right ,?right-grasp-pose)))
+                      (desig:a motion
+                               (type moving-tcp)
+                               (arm ?arm)
+                               (left-target (desig:a location (pose ,?left-grasp-pose)))
+                               (right-target (desig:a location (pose ,?right-grasp-pose)))))
                     id :annotation "CRAMActionDesignator")
                    id))
          (success nil))
@@ -233,10 +233,10 @@
                    (roslisp:ros-warn (pick-and-place grasp) "~a" e)
                    (return)))
               (cram-plan-library:perform
-               (desig:an action
-                         (to move-arm-motion)
-                         (left ?left-pregrasp-poses)
-                         (right ?right-pregrasp-poses)))))
+               (desig:a motion
+                        (type moving-tcp)
+                        (left-target (desig:a location (pose ?left-pregrasp-poses)))
+                        (right-target (desig:a location (pose ?right-pregrasp-poses)))))))
           (fill-in-with-nils (butlast ?left-grasp-poses) max-length)
           (fill-in-with-nils (butlast ?right-grasp-poses) max-length)))
 
@@ -251,10 +251,10 @@
              (return)))
         (with-logging-grasp (?left-grasp-pose ?right-grasp-pose)
           (cram-plan-library:perform
-           (desig:an action
-                     (to move-arm-motion)
-                     (left ?left-grasp-pose)
-                     (right ?right-grasp-pose))))))))
+           (desig:a motion
+                    (type moving-tcp)
+                    (left-target (desig:a location (pose ?left-grasp-pose)))
+                    (right-target (desig:a location (pose ?right-grasp-pose))))))))))
 
 (defmacro with-logging-grip ((?left-or-right ?effort) &body body)
   `(let ((log-id (let ((id (beliefstate:start-node "GRIP" `() 2)))
@@ -265,10 +265,10 @@
                     (desig:make-designator :object '())
                     id :annotation "object-acted-on")
                    (beliefstate:add-designator-to-node
-                    (desig:an action
-                              (to grip-motion)
-                              (arm ,?left-or-right)
-                              (effort ,?effort))
+                    (desig:a motion
+                             (type gripping)
+                             (gripper ,?left-or-right)
+                             (effort ,?effort))
                     id :annotation "CRAMActionDesignator")
                    id))
          (success nil))
@@ -290,10 +290,10 @@
            (cpl:fail 'pr2-fail:low-level-failure)))
       (with-logging-grip (?left-or-right ?effort)
         (cram-plan-library:perform
-         (desig:an action
-                   (to grip-motion)
-                   (with ?left-or-right)
-                   (effort ?effort)))))))
+         (desig:a motion
+                  (type gripping)
+                  (gripper ?left-or-right)
+                  (effort ?effort)))))))
 
 (defmacro with-logging-lift ((?left-pose ?right-pose) &body body)
   `(progn
@@ -316,11 +316,11 @@
                             (?right-pose (cram-tf:ensure-pose-in-frame
                                           ?right-pose
                                           cram-tf:*fixed-frame*)))
-                        (desig:an action
-                                  (to move-arm-motion)
-                                  (arm ?arm)
-                                  (left ,?left-pose)
-                                  (right ,?right-pose)))
+                        (desig:a motion
+                                 (type moving-tcp)
+                                 (arm ?arm)
+                                 (left-target (desig:a location (pose ,?left-pose)))
+                                 (right-target (desig:a location (pose ,?right-pose)))))
                       id :annotation "CRAMActionDesignator")
                      id))
            (success nil))
@@ -339,10 +339,10 @@
          (return)))
     (with-logging-lift (?left-pose ?right-pose)
       (cram-plan-library:perform
-       (desig:an action
-                 (to move-arm-motion)
-                 (left ?left-pose)
-                 (right ?right-pose))))))
+       (desig:a motion
+                (type moving-tcp)
+                (left-target (desig:a location (pose ?left-pose)))
+                (right-target (desig:a location (pose ?right-pose))))))))
 
 (defmacro with-logging-perceive ((input-desig) &body body)
   `(let ((id (beliefstate:start-node "UIMA-PERCEIVE" nil)))
@@ -371,13 +371,13 @@
         (let* ((resulting-designators
                  (case quantifier
                    (:all (cram-plan-library:perform
-                          (desig:an action
-                                    (to detect-motion)
-                                    (objects ?object-designator))))
+                          (desig:a motion
+                                   (type detecting)
+                                   (objects ?object-designator))))
                    (t (cram-plan-library:perform
-                       (desig:an action
-                                 (to detect-motion)
-                                 (object ?object-designator))))))
+                       (desig:a motion
+                                (type detecting)
+                                (object ?object-designator))))))
                (resulting-designator
                  (funcall object-chosing-function resulting-designators)))
           resulting-designator)))))
@@ -385,9 +385,9 @@
 (defun look-at (object-designator)
   (let ((?pose (get-object-pose object-designator)))
     (cram-plan-library:perform
-     (desig:an action
-               (to look-motion)
-               (at ?pose)))))
+     (desig:a motion
+              (type looking)
+              (target (desig:a location (pose ?pose)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;; activities ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -413,9 +413,9 @@
                               :target-frame cram-tf:*fixed-frame*
                               :use-current-ros-time t))
          (?goal-for-base (pose-to-reach-object object-pose-in-map ?arm)))
-    (plan-lib:perform (desig:an action
-                                (to go-motion)
-                                (to ?goal-for-base)))))
+    (plan-lib:perform (desig:a motion
+                               (type going)
+                               (target (desig:a location (pose ?goal-for-base)))))))
 
 (defun drive-and-pick-up-plan (?object-designator &key (?arm :right))
   ;; navigate to a better pose
