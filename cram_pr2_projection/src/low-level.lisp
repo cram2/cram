@@ -83,7 +83,7 @@
                input-designator
                :new-description
                `((:type ,type)
-                 (:location ,(desig:make-designator :location `((:pose ,pose-stamped))))
+                 (:pose ((nil ,pose-stamped)))
                  (:name ,name)))))
         (setf (slot-value output-designator 'desig:data)
               (make-instance 'desig:object-designator-data
