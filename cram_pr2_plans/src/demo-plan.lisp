@@ -39,12 +39,12 @@
           (?ptu-goal *meal-table-right-base-look-pose*))
       (cpl:par
         (move-pr2-arms-out-of-sight)
-        (plan-lib:perform (desig:an action
-                                    (to go-motion)
-                                    (to ?navigation-goal)))
-        (plan-lib:perform (desig:an action
-                                    (to look-motion)
-                                    (at ?ptu-goal)))))))
+        (plan-lib:perform (desig:a motion
+                                   (type going)
+                                   (target ?navigation-goal)))
+        (plan-lib:perform (desig:a motion
+                                   (type looking)
+                                   (target ?ptu-goal)))))))
 
 (defun step-1-grasp-bottle ()
   (flet ((step-1-inner ()
@@ -109,9 +109,9 @@
                                     "?left-tool-frame is unknown. ~
                                      Did you load a robot description package?")
                   ?left-tool-frame))))
-      (cram-plan-library:perform (desig:an action
-                                           (type looking-motion)
-                                           (frame ?left-gripper))))
+      (cram-plan-library:perform (desig:a motion
+                                          (type looking)
+                                          (frame ?left-gripper))))
     (plan-lib:perform (desig:an action
                                 (to pour-activity)
                                 (arm (left right))
@@ -136,9 +136,9 @@
 
     (let ((?nav-goal *meal-table-left-base-pose*))
       (cpl:par
-        (plan-lib:perform (desig:an action
-                                    (to go-motion)
-                                    (to ?nav-goal)))
+        (plan-lib:perform (desig:a motion
+                                   (type going)
+                                   (target ?nav-goal)))
         (move-pr2-arms-out-of-sight)))))
 
 (defun step-6-pour-into-second-cup ()
@@ -191,9 +191,9 @@
          (return)))
     (cpl:par
       (move-pr2-arms-out-of-sight)
-      (plan-lib:perform (desig:an action
-                                  (to look-motion)
-                                  (at ((2 0 1) (0 0 0 1))))))))
+      (plan-lib:perform (desig:a motion
+                                 (type looking)
+                                 (target ((2 0 1) (0 0 0 1))))))))
 
 #+this-is-commented-out-because-it-is-only-for-real-robot-not-simulation
 (defun demo-plan (&optional (step 0))
