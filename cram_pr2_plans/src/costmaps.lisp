@@ -29,16 +29,16 @@
 
 (in-package :pr2-plans)
 
-(defun init-costmaps ()
-  (def-fact-group costmap-metadata ()
-    (<- (location-costmap:costmap-size 12 12))
-    (<- (location-costmap:costmap-origin -6 -6))
-    (<- (location-costmap:costmap-resolution 0.05))
+(defun init-stuff ()
+  ;; (def-fact-group costmap-metadata ()
+  ;;   (<- (location-costmap:costmap-size 12 12))
+  ;;   (<- (location-costmap:costmap-origin -6 -6))
+  ;;   (<- (location-costmap:costmap-resolution 0.05))
 
-    (<- (location-costmap:costmap-padding 0.2))
-    (<- (location-costmap:costmap-manipulation-padding 0.2))
-    (<- (location-costmap:costmap-in-reach-distance 0.9))
-    (<- (location-costmap:costmap-reach-minimal-distance 0.1)))
+  ;;   (<- (location-costmap:costmap-padding 0.2))
+  ;;   (<- (location-costmap:costmap-manipulation-padding 0.2))
+  ;;   (<- (location-costmap:costmap-in-reach-distance 0.9))
+  ;;   (<- (location-costmap:costmap-reach-minimal-distance 0.1)))
 
   (def-fact-group semantic-map-data ()
     (<- (semantic-map-object-name :kitchen)))
@@ -50,7 +50,7 @@
 
   (setf prolog:*break-on-lisp-errors* t))
 
-(roslisp-utilities:register-ros-init-function init-costmaps)
+(roslisp-utilities:register-ros-init-function init-stuff)
 
 (defun pose-to-reach-object (object-pose-in-map arm)
   (let* ((new-x-for-base (- (cl-transforms:x (cl-transforms:origin object-pose-in-map))
