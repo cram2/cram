@@ -86,22 +86,30 @@
      (cl-transforms:make-3d-vector x y z)
      (cl-transforms:make-quaternion q1 q2 q3 w))))
 
-(defun ensure-pose-in-frame (pose frame &key use-current-ros-time)
+(defun ensure-pose-in-frame (pose frame &key use-current-ros-time use-zero-time)
   (declare (type (or null cl-transforms:pose cl-transforms-stamped:pose-stamped)))
   (when pose
     (cl-transforms-stamped:transform-pose-stamped
      *transformer*
-     :pose (cl-transforms-stamped:ensure-pose-stamped pose frame 0.0)
+     :pose (cl-transforms-stamped:ensure-pose-stamped
+            (if use-zero-time
+                (cl-transforms-stamped:copy-pose-stamped pose :stamp 0.0)
+                pose)
+            frame
+            0.0)
      :target-frame frame
      :timeout *tf-default-timeout*
      :use-current-ros-time use-current-ros-time)))
 
-(defun ensure-point-in-frame (point frame &key use-current-ros-time)
+(defun ensure-point-in-frame (point frame &key use-current-ros-time use-zero-time)
   (declare (type (or cl-transforms:point cl-transforms-stamped:point-stamped)))
   (cl-transforms-stamped:transform-point-stamped
    *transformer*
    :point (if (typep point 'cl-transforms-stamped:point-stamped)
-              point
+              (if use-zero-time
+                  (with-slots (frame-id origin) point
+                    (cl-transforms-stamped:make-point-stamped frame-id 0.0 origin))
+                  point)
               (cl-transforms-stamped:make-point-stamped
                frame 0.0 point))
    :target-frame frame
