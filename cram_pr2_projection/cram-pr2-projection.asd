@@ -45,6 +45,7 @@
                cram-pr2-designators
                cram-pr2-failures
                cram-process-modules
+               alexandria ; for CURRY in low-level perception
                )
   :components
   ((:module "src"
