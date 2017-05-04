@@ -41,10 +41,10 @@
         (move-pr2-arms-out-of-sight)
         (plan-lib:perform (desig:a motion
                                    (type going)
-                                   (target ?navigation-goal)))
+                                   (target (desig:a location (pose ?navigation-goal)))))
         (plan-lib:perform (desig:a motion
                                    (type looking)
-                                   (target ?ptu-goal)))))))
+                                   (target (desig:a location (pose ?ptu-goal)))))))))
 
 (defun step-1-grasp-bottle ()
   (flet ((step-1-inner ()
@@ -138,7 +138,7 @@
       (cpl:par
         (plan-lib:perform (desig:a motion
                                    (type going)
-                                   (target ?nav-goal)))
+                                   (target (desig:a location (pose ?nav-goal)))))
         (move-pr2-arms-out-of-sight)))))
 
 (defun step-6-pour-into-second-cup ()

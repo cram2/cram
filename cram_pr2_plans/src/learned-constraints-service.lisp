@@ -71,9 +71,15 @@
         (target-name-keyword
           (intern (string-upcase target-name-keyword) :keyword))
         (source-pose-stamped
-          (cram-tf:ensure-pose-in-frame source-pose-stamped cram-tf:*robot-base-frame*))
+          (cram-tf:ensure-pose-in-frame
+           source-pose-stamped
+           cram-tf:*robot-base-frame*
+           :use-zero-time t))
         (target-pose-stamped
-          (cram-tf:ensure-pose-in-frame target-pose-stamped cram-tf:*robot-base-frame*)))
+          (cram-tf:ensure-pose-in-frame
+           target-pose-stamped
+           cram-tf:*robot-base-frame*
+           :use-zero-time t)))
     (values source-name-keyword source-pose-stamped
             target-name-keyword target-pose-stamped)))
 
