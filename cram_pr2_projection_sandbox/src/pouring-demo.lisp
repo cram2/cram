@@ -29,7 +29,7 @@
 
 (in-package :proj-sand)
 
-(defun test ()
+(defun test-projection ()
   (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
     (cpl:top-level
       (exe:perform
@@ -44,6 +44,14 @@
                      (cl-transforms:make-3d-vector 0.5 0.3 1.0)
                      (cl-transforms:make-identity-rotation))))
          (desig:a motion (type moving-tcp) (left-target (desig:a location (pose ?pose)))))))))
+
+(defun test-desigs ()
+  (let ((?pose (desig:reference (desig:a location
+                                         (on "CounterTop")
+                                         (name "iai_kitchen_meal_table_counter_top")))))
+    (desig:reference (desig:a location
+                              (to see)
+                              (obj (desig:an object (at (desig:a location (pose ?pose)))))))))
 
 (defun add-objects-to-mesh-list (&optional (ros-package "cram_pr2_projection_sandbox"))
   (mapcar (lambda (object-filename-and-object-extension)
@@ -65,9 +73,29 @@
                               (format nil "package://~a/resource/*.*" ros-package))))))
 
 (defun spawn-objects ()
-  (let ((objects (add-objects-to-mesh-list)))
-    (mapcar (lambda (object-type)
-              (btr-utils:spawn-object (format nil "~a1" object-type) object-type))
-            objects)))
+  (let ((object-types (add-objects-to-mesh-list)))
+    ;; spawn at default location
+    (let ((objects (mapcar (lambda (object-type)
+                             (btr-utils:spawn-object
+                              (intern (format nil "~a-1" object-type) :keyword)
+                              object-type))
+                           object-types)))
+      ;; move on top of counter tops
+      (mapcar (lambda (btr-object)
+                (let* ((aabb-z (cl-transforms:z
+                                (cl-bullet:bounding-box-dimensions (btr:aabb btr-object))))
+                       (new-pose (cram-tf:translate-pose
+                                  (desig:reference
+                                   (desig:a location
+                                            (on "CounterTop")
+                                            (name "iai_kitchen_meal_table_counter_top")))
+                                  :z-offset (/ aabb-z 2.0))))
+                  (btr-utils:move-object (btr:name btr-object) new-pose)))
+              objects)))
+  ;; stabilize world
+  (btr:simulate btr:*current-bullet-world* 100))
 
-;; todo: create places where objects can theoretically be spawned: in shelves, on counters.
+(defun test-pr2-plans ()
+  (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+    (cpl:top-level
+      (pr2-plans::step-0-prepare))))
