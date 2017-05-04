@@ -30,25 +30,38 @@
 (defsystem cram-pr2-projection-sandbox
   :author "gaya"
   :license "BSD"
-  :depends-on (;; general
-               cram-semantic-map-costmap
-               ;; setup
-               cram-bullet-reasoning-belief-state
-               cram-occasions-events
+
+  :depends-on (roslisp-utilities ; for ros-init-function
+
+               cl-transforms
+               cl-transforms-stamped
+               cl-tf
                cram-tf
-               cram-prolog
-               roslisp-utilities
-               ;; pouring-demo
-               cram-bullet-reasoning
-               cram-physics-utils
-               cram-bullet-reasoning-utilities
-               cram-projection
-               cram-pr2-projection
+
                cram-language
                cram-executive
-               cl-tf
-               cl-transforms
-               cram-designators)
+               cram-designators
+               cram-prolog
+               cram-projection
+               cram-occasions-events
+
+               cram-physics-utils ; for reading "package://" paths
+               cl-bullet ; for handling BOUNDING-BOX datastructures
+               cram-bullet-reasoning
+               cram-bullet-reasoning-belief-state
+               cram-bullet-reasoning-utilities
+
+               cram-pr2-projection ; for projection process modules
+
+               cram-semantic-map-costmap
+               cram-bullet-reasoning-costmap
+               cram-bullet-reasoning-designators
+               cram-robot-pose-gaussian-costmap
+               cram-occupancy-grid-costmap
+               cram-location-costmap
+
+               cram-pr2-plans)
+
   :components
   ((:module "src"
     :components

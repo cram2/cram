@@ -32,23 +32,23 @@
 ;; roslaunch cram_pr2_projection_sandbox sandbox.launch
 
 (defun init-projection ()
-(def-fact-group costmap-metadata ()
-  (<- (location-costmap:costmap-size 12 12))
-  (<- (location-costmap:costmap-origin -6 -6))
-  (<- (location-costmap:costmap-resolution 0.05))
+  (def-fact-group costmap-metadata ()
+    (<- (location-costmap:costmap-size 12 12))
+    (<- (location-costmap:costmap-origin -6 -6))
+    (<- (location-costmap:costmap-resolution 0.05))
 
-  (<- (location-costmap:costmap-padding 0.2))
-  (<- (location-costmap:costmap-manipulation-padding 0.2))
-  (<- (location-costmap:costmap-in-reach-distance 0.9))
-  (<- (location-costmap:costmap-reach-minimal-distance 0.1)))
+    (<- (location-costmap:costmap-padding 0.2))
+    (<- (location-costmap:costmap-manipulation-padding 0.2))
+    (<- (location-costmap:costmap-in-reach-distance 0.9))
+    (<- (location-costmap:costmap-reach-minimal-distance 0.1)))
 
-  ;; (setf cram-bullet-reasoning-belief-state:*robot-parameter* "robot_description")
+  (setf cram-bullet-reasoning-belief-state:*robot-parameter* "robot_description")
+  (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "no_urdf_for_kitchen")
 
   (cram-occasions-events:clear-belief)
 
   (setf cram-tf:*tf-default-timeout* 2.0)
 
-  (setf prolog:*break-on-lisp-errors* t)
-  )
+  (setf prolog:*break-on-lisp-errors* t))
 
 (roslisp-utilities:register-ros-init-function init-projection)
