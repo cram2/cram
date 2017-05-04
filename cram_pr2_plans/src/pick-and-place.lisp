@@ -120,10 +120,12 @@
                                       :right))
                             (?left-pose (cram-tf:ensure-pose-in-frame
                                          ?left-pose
-                                         cram-tf:*fixed-frame*))
+                                         cram-tf:*fixed-frame*
+                                         :use-zero-time t))
                             (?right-pose (cram-tf:ensure-pose-in-frame
                                           ?right-pose
-                                          cram-tf:*fixed-frame*)))
+                                          cram-tf:*fixed-frame*
+                                         :use-zero-time t)))
                         (desig:a motion
                                  (type moving-tcp)
                                  (arm ?arm)
@@ -141,6 +143,7 @@
          (beliefstate:stop-node log-id :success success)))))
 
 (cpl:def-cram-function reach (?left-poses ?right-poses)
+              (format t "left: ~a~%right: ~a~%" ?left-poses ?right-poses)
   (unless (listp ?left-poses)
     (setf ?left-poses (list ?left-poses)))
   (unless (listp ?right-poses)
@@ -162,6 +165,7 @@
 
   (let ((?left-pose (car (last ?left-poses)))
         (?right-pose (car (last ?right-poses))))
+    (format t "left: ~a~% rigth: ~a~%" ?left-pose ?right-pose)
     (cpl:with-failure-handling
         ((pr2-fail:low-level-failure (e)
            (roslisp:ros-warn (pick-and-place reach) "~a" e)
@@ -200,10 +204,12 @@
                                     :right))
                           (?left-grasp-pose (cram-tf:ensure-pose-in-frame
                                              ?left-grasp-pose
-                                             cram-tf:*fixed-frame*))
+                                             cram-tf:*fixed-frame*
+                                             :use-zero-time t))
                           (?right-grasp-pose (cram-tf:ensure-pose-in-frame
                                               ?right-grasp-pose
-                                              cram-tf:*fixed-frame*)))
+                                              cram-tf:*fixed-frame*
+                                              :use-zero-time t)))
                       (desig:a motion
                                (type moving-tcp)
                                (arm ?arm)
@@ -312,10 +318,12 @@
                                       :right))
                             (?left-pose (cram-tf:ensure-pose-in-frame
                                          ?left-pose
-                                         cram-tf:*fixed-frame*))
+                                         cram-tf:*fixed-frame*
+                                         :use-zero-time t))
                             (?right-pose (cram-tf:ensure-pose-in-frame
                                           ?right-pose
-                                          cram-tf:*fixed-frame*)))
+                                          cram-tf:*fixed-frame*
+                                          :use-zero-time t)))
                         (desig:a motion
                                  (type moving-tcp)
                                  (arm ?arm)
@@ -367,20 +375,21 @@
              (roslisp:ros-warn (pick-and-place perceive) "~a" e)
              (cpl:retry))
            (cpl:fail 'pr2-fail:low-level-failure :description "couldn't find object")))
-      (with-logging-perceive (?object-designator)
-        (let* ((resulting-designators
-                 (case quantifier
-                   (:all (cram-plan-library:perform
-                          (desig:a motion
-                                   (type detecting)
-                                   (objects ?object-designator))))
-                   (t (cram-plan-library:perform
-                       (desig:a motion
-                                (type detecting)
-                                (object ?object-designator))))))
-               (resulting-designator
-                 (funcall object-chosing-function resulting-designators)))
-          resulting-designator)))))
+      ; (with-logging-perceive (?object-designator)
+      (let* ((resulting-designators
+               (case quantifier
+                 (:all (cram-plan-library:perform
+                        (desig:a motion
+                                 (type detecting)
+                                 (objects ?object-designator))))
+                 (t (cram-plan-library:perform
+                     (desig:a motion
+                              (type detecting)
+                              (object ?object-designator))))))
+             (resulting-designator
+               (funcall object-chosing-function resulting-designators)))
+        resulting-designator))))
+; )
 
 (defun look-at (object-designator)
   (let ((?pose (get-object-pose object-designator)))
