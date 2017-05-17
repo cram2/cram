@@ -172,11 +172,10 @@
                 "moveit_msgs/GetPositionIK"
                 (:ik_link_name :ik_request) ik-link
                 (:pose_stamped :ik_request) (cl-transforms-stamped:to-msg
-                                             (cl-transforms-stamped:transform-pose-stamped
-                                              cram-tf:*transformer*
-                                              :timeout cram-tf:*tf-default-timeout*
-                                              :pose cartesian-pose
-                                              :target-frame cram-tf:*robot-torso-frame*))
+                                             (cram-tf:ensure-pose-in-frame
+                                              cartesian-pose
+                                              cram-tf:*robot-torso-frame*
+                                              :use-zero-time t))
                 (:joint_state :robot_state :ik_request) (make-zero-seed-state left-or-right)
                 (:timeout :ik_request) 1.0)))
           (cond ((eql response-error-code

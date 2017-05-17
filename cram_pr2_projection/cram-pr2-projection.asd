@@ -40,6 +40,7 @@
                cl-transforms
                cl-transforms-stamped
                cl-tf
+               cram-occasions-events
                cram-plan-occasions-events
                cram-pr2-description ; to get kinematic structure names
                cram-pr2-designators

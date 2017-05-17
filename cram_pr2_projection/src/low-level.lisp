@@ -38,7 +38,22 @@
    (prolog:prolog
     `(and (cram-robot-interfaces:robot ?robot)
           (btr:bullet-world ?w)
-          (btr:assert ?w (btr:object-pose ?robot ,target))))))
+          (btr:assert ?w (btr:object-pose ?robot ,target)))))
+  (cram-occasions-events:on-event
+   (make-instance 'cram-plan-occasions-events:robot-state-changed)))
+
+;;;;;;;;;;;;;;;;; TORSO ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun move-torso (joint-angle)
+  (declare (type number joint-angle))
+  (assert
+   (prolog:prolog
+    `(and (cram-robot-interfaces:robot ?robot)
+          (btr:bullet-world ?w)
+          (cram-robot-interfaces:robot-torso-link-joint ?robot ?_ ?joint)
+          (assert (btr:joint-state ?w ?robot ((?joint ,joint-angle)))))))
+  (cram-occasions-events:on-event
+   (make-instance 'cram-plan-occasions-events:robot-state-changed)))
 
 ;;;;;;;;;;;;;;;;; PTU ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -49,7 +64,9 @@
      (prolog:prolog
       `(and (btr:bullet-world ?world)
             (cram-robot-interfaces:robot ?robot)
-            (btr:head-pointing-at ?world ?robot ,pose-in-world))))))
+            (btr:head-pointing-at ?world ?robot ,pose-in-world))))
+    (cram-occasions-events:on-event
+     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
 (defgeneric look-at (pose-or-frame-or-direction)
   (:method ((pose cl-transforms-stamped:pose-stamped))
@@ -137,6 +154,19 @@
 
 ;;;;;;;;;;;;;;;;; GRIPPERS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun action-end-effector-links (action-designator)
+  (cut:force-ll
+   (cut:lazy-mapcar (lambda (solution)
+                      (cut:with-vars-bound (?end-effector-link) solution
+                        (unless (cut:is-var ?end-effector-link)
+                          ?end-effector-link)))
+                    (prolog:prolog
+                     `(and
+                       (trajectory-point ,action-designator ?_ ?side)
+                       (robot ?robot)
+                       (end-effector-link ?robot ?side ?end-effector-link))))))
+
+
 (defun gripper-action (action-type arm &optional maximum-effort)
   (declare (ignore maximum-effort))
   "Opens or closes the specific gripper."
@@ -146,17 +176,34 @@
     (lambda (solution-bindings)
       (prolog:prolog
        `(assert ?world (btr:joint-state ?robot ((?joint ,(case action-type
-                                                          (:open '?max-limit)
-                                                          ((:close :grip) '?min-limit)
-                                                          (t (error "[PROJ GRIP] failed")))))))
+                                                           (:open '?max-limit)
+                                                           ((:close :grip) '?min-limit)
+                                                           (t (error "[PROJ GRIP] failed")))))))
        solution-bindings))
 
-    (prolog:prolog
-     `(and (cram-robot-interfaces:robot ?robot)
-           (cram-robot-interfaces:gripper-joint ?robot ,arm ?joint)
-           (cram-robot-interfaces:joint-lower-limit ?robot ?joint ?min-limit)
-           (cram-robot-interfaces:joint-upper-limit ?robot ?joint ?max-limit)
-           (btr:bullet-world ?world))))))
+    (assert
+     (prolog:prolog
+      `(and (cram-robot-interfaces:robot ?robot)
+            (cram-robot-interfaces:gripper-joint ?robot ,arm ?joint)
+            (cram-robot-interfaces:joint-lower-limit ?robot ?joint ?min-limit)
+            (cram-robot-interfaces:joint-upper-limit ?robot ?joint ?max-limit)
+            (btr:bullet-world ?world))))))
+  (cram-occasions-events:on-event
+   (make-instance 'cram-plan-occasions-events:robot-state-changed))
+
+  (let (end-effector-link
+        (cut:var-value
+          '?ee-link
+          (car (prolog:prolog
+                `(and (cram-robot-interfaces:robot ?robot)
+                      (cram-robot-interfaces:end-effector-link ?robot ,arm ?ee-link)))))))
+  
+  (let ((gripper-links (action-end-effector-links designator)))
+         (assert gripper-links)
+         (dolist (gripper-link gripper-links t)
+           (cram-occasions-events:on-event
+            (make-instance 'cram-plan-occasions-events:object-attached
+              :object current-object :link gripper-link)))))
 
 ;;;;;;;;;;;;;;;;; ARMS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -175,26 +222,41 @@
                (let ((joint-name-value-list (mapcar (lambda (name value)
                                                       (list name (* value 1.0d0)))
                                                     joint-names joint-values)))
-                 (prolog:prolog
-                  `(and
-                    (btr:bullet-world ?world)
-                    (cram-robot-interfaces:robot ?robot)
-                    (assert ?world (btr:joint-state ?robot ,joint-name-value-list)))))))))
+                 (assert
+                  (prolog:prolog
+                   `(and
+                     (btr:bullet-world ?world)
+                     (cram-robot-interfaces:robot ?robot)
+                     (assert ?world (btr:joint-state ?robot ,joint-name-value-list))))))))))
     (set-configuration :left left-configuration)
-    (set-configuration :right right-configuration)))
+    (set-configuration :right right-configuration)
+    (cram-occasions-events:on-event
+     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+
+(defparameter *gripper-length* 0.2 "PR2's gripper length in meters, for calculating TCP -> EE")
 
 (defun move-tcp (left-tcp-pose right-tcp-pose)
   (declare (type (or cl-transforms-stamped:pose-stamped null) left-tcp-pose right-tcp-pose))
-  (flet ((get-ik-joint-positions (arm tcp-pose)
+  (flet ((tcp-pose->ee-pose (tcp-pose)
            (when tcp-pose
-             (let ((ik-solution-msg (call-ik-service arm tcp-pose ; seed-state ; is todo
+             (cl-transforms-stamped:pose->pose-stamped
+              (cl-transforms-stamped:frame-id tcp-pose)
+              (cl-transforms-stamped:stamp tcp-pose)
+              (cl-transforms:transform-pose
+               (cl-transforms:pose->transform tcp-pose)
+               (cl-transforms:make-pose
+                (cl-transforms:make-3d-vector (- *gripper-length*) 0 0)
+                (cl-transforms:make-identity-rotation))))))
+         (get-ik-joint-positions (arm ee-pose)
+           (when ee-pose
+             (let ((ik-solution-msg (call-ik-service arm ee-pose ; seed-state ; is todo
                                                      )))
                (unless ik-solution-msg
                  (cpl:fail 'pr2-fail:manipulation-pose-unreachable))
                (map 'list #'identity
                     (roslisp:msg-slot-value ik-solution-msg 'sensor_msgs-msg:position))))))
-    (move-joints (get-ik-joint-positions :left left-tcp-pose)
-                 (get-ik-joint-positions :right right-tcp-pose))))
+    (move-joints (get-ik-joint-positions :left (tcp-pose->ee-pose left-tcp-pose))
+                 (get-ik-joint-positions :right (tcp-pose->ee-pose right-tcp-pose)))))
 
 (defun move-with-constraints (constraints-string)
   (declare (ignore constraints-string))
