@@ -39,9 +39,11 @@
                      (cl-transforms:make-identity-rotation))))
          (desig:a motion (type going) (target (desig:a location (pose ?pose))))))
       (exe:perform
+       (desig:a motion (type moving-torso) (joint-angle 0.15)))
+      (exe:perform
        (let ((?pose (cl-tf:make-pose-stamped
                      cram-tf:*robot-base-frame* 0.0
-                     (cl-transforms:make-3d-vector 0.5 0.3 1.0)
+                     (cl-transforms:make-3d-vector 0.7 0.3 0.85)
                      (cl-transforms:make-identity-rotation))))
          (desig:a motion (type moving-tcp) (left-target (desig:a location (pose ?pose)))))))))
 
@@ -91,7 +93,11 @@
                                             (name "iai_kitchen_meal_table_counter_top")))
                                   :z-offset (/ aabb-z 2.0))))
                   (btr-utils:move-object (btr:name btr-object) new-pose)))
-              objects)))
+              objects)
+      ;; bottle gets special treatment
+      (btr-utils:move-object :bottle-1 (cl-transforms:make-pose
+                                        (cl-transforms:make-3d-vector -2 -0.9 0.861667d0)
+                                        (cl-transforms:make-identity-rotation)))))
   ;; stabilize world
   (btr:simulate btr:*current-bullet-world* 100))
 
@@ -99,3 +105,16 @@
   (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
     (cpl:top-level
       (pr2-plans::step-0-prepare))))
+
+(defun test-projection-perception ()
+  (spawn-objects)
+  (test-pr2-plans)
+  (cpl:sleep 1)
+  (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+    (cpl:top-level
+      (exe:perform
+       (let ((?object-designator
+               (desig:an object (type bottle))))
+         (desig:a motion
+                  (type detecting)
+                  (object ?object-designator)))))))
