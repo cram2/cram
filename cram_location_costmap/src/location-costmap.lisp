@@ -182,7 +182,7 @@ calls the generator functions and runs normalization."
        :origin-x (origin-x cm-1)
        :origin-y (origin-y cm-1)
        :resolution (resolution cm-1)
-       :visualization-z (visualization-z cm-1)
+       ;:visualization-z (visualization-z cm-1)
        :cost-functions (reduce #'append (mapcar #'cost-functions costmaps)
                                :initial-value (cost-functions cm-1))
        :height-generators (mapcan (compose #'copy-list #'height-generators)
