@@ -45,7 +45,7 @@
            #:global-fluent-value
            #:occupancy-grid
            #:grid-width #:grid-height #:origin-x #:origin-y
-           #:resolution #:width #:height #:visualization-z
+           #:resolution #:width #:height ;#:visualization-z
            #:inverted-occupancy-grid
            #:costmap-metadata
            #:costmap
