@@ -38,6 +38,13 @@
     (member ?pose ?poses)))
 
 
+(def-fact-group pr2-torso-motions (motion-grounding)
+
+  (<- (motion-grounding ?designator (move-torso ?joint-angle))
+    (property ?designator (:type :moving-torso))
+    (property ?designator (:joint-angle ?joint-angle))))
+
+
 (def-fact-group pr2-ptu-motions (motion-grounding)
 
   (<- (motion-grounding ?designator (look-at ?pose))
