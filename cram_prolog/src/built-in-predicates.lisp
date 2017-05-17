@@ -98,12 +98,25 @@
 
 (def-prolog-handler assert-type (bdgs object type error-tag)
   (when *break-on-lisp-errors*
-    (unless (typep (var-value object bdgs) (var-value type bdgs))
-      (error 'simple-error
-             :format-control "[~a]: ~a had to be of type ~a"
-             :format-arguments (list error-tag
-                                     (var-value object bdgs)
-                                     (var-value type bdgs)))))
+    (cond ((listp type)
+           (unless (eql (car type) 'or)
+             (error 'simple-error
+                    :format-control "[~a]: in ~a, composite types can only be constructed with OR"
+                    :format-arguments (list error-tag (var-value type bdgs))))
+           (unless (some (alexandria:curry #'typep (var-value object bdgs))
+                         (cdr (var-value type bdgs)))
+             (error 'simple-error
+                    :format-control "[~a]: ~a had to be of type ~a"
+                    :format-arguments (list error-tag
+                                            (var-value object bdgs)
+                                            (var-value type bdgs)))))
+          (t
+           (unless (typep (var-value object bdgs) (var-value type bdgs))
+              (error 'simple-error
+                     :format-control "[~a]: ~a had to be of type ~a"
+                     :format-arguments (list error-tag
+                                             (var-value object bdgs)
+                                             (var-value type bdgs)))))))
   (list bdgs))
 
 (def-prolog-handler bound (bdgs pattern)
