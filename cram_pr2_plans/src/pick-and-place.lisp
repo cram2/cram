@@ -29,52 +29,6 @@
 
 (in-package :pr2-plans)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;; overriding logging code: super ugly hack :) ;;;;;;;
-
-(cram-beliefstate::def-logging-hook cram-language::on-preparing-performing-action-designator (designator matching-process-modules)
-  (print "on-preparing-performing-action-designator")
-  (let ((id (beliefstate:start-node
-             "PERFORM-ACTION-DESIGNATOR"
-             (list
-              (list :description
-                    nil;; (desig:description designator)
-                    )
-              (list :matching-process-modules
-                    matching-process-modules))
-             2)))
-    (beliefstate:add-designator-to-node (make-designator :action ()) ;; designator
-                                        id)
-    id))
-
-(defun cram-beliefstate::add-designator-to-node (designator node-id &key (annotation "") (relative-context-id))
-  (let ((designator (if (typep designator 'list)
-                        (car designator)
-                        designator)))
-    (let* ((type (etypecase designator
-                   (cram-designators:action-designator "ACTION")
-                   (cram-designators:location-designator "LOCATION")
-                   (cram-designators:human-designator "HUMAN")
-                   (cram-designators:object-designator "OBJECT")
-                   (cram-designators:designator "DESIGNATOR")))
-           (memory-address (write-to-string
-                            (sb-kernel:get-lisp-obj-address designator)))
-           (description (description designator))
-           (result (cram-beliefstate::alter-node
-                    (remove-if-not
-                     #'identity
-                     (list (list :command :add-designator)
-                           (list :type type)
-                           (list :annotation annotation)
-                           (list :memory-address memory-address)
-                           (list :description description)
-                           (when relative-context-id
-                             (list :_relative_context_id relative-context-id))))
-                    :node-id node-id)))
-      (when result
-        (let* ((desig-id (desig-prop-value (first result) :id)))
-          desig-id)))))
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; actions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun fill-in-with-nils (some-list desired-length)
@@ -83,99 +37,81 @@
         (append some-list (make-list (- desired-length current-length)))
         some-list)))
 
+
 (cpl:def-cram-function move-arms-in-sequence (?left-poses ?right-poses)
   (unless (listp ?left-poses)
     (setf ?left-poses (list ?left-poses)))
   (unless (listp ?right-poses)
     (setf ?right-poses (list ?right-poses)))
   (let ((max-length (max (length ?left-poses) (length ?right-poses))))
+
     (mapc (lambda (?left-pose ?right-pose)
+
             (cpl:with-failure-handling
-                ((pr2-fail:low-level-failure (e)
+                ((pr2-fail:low-level-failure (e) ; ignore failures
                    (roslisp:ros-warn (pick-and-place grasp) "~a" e)
-                   ;; ignore failures
                    (return)))
-              (cram-plan-library:perform
+
+              (exe:perform
                (desig:a motion
                         (type moving-tcp)
                         (left-target (desig:a location (pose ?left-pose)))
                         (right-target (desig:a location (pose ?right-pose)))))))
+
           (fill-in-with-nils ?left-poses max-length)
           (fill-in-with-nils ?right-poses max-length))))
 
-(defmacro with-logging-reach ((?left-pose ?right-pose) &body body)
-  `(progn
-     (let ((log-id (let ((id (beliefstate:start-node "REACH" `() 2)))
-                     (beliefstate:add-topic-image-to-active-node
-                      cram-beliefstate::*kinect-topic-rgb*)
-                     (beliefstate:add-designator-to-node
-                      ;; pr2-ll::*rs-result-designator*
-                      (desig:make-designator :object '())
-                      id :annotation "object-acted-on")
-                     (beliefstate:add-designator-to-node
-                      (let ((?arm (if ,?left-pose
-                                      (if ,?right-pose
-                                          :both
-                                          :left)
-                                      :right))
-                            (?left-pose (cram-tf:ensure-pose-in-frame
-                                         ?left-pose
-                                         cram-tf:*fixed-frame*
-                                         :use-zero-time t))
-                            (?right-pose (cram-tf:ensure-pose-in-frame
-                                          ?right-pose
-                                          cram-tf:*fixed-frame*
-                                         :use-zero-time t)))
-                        (desig:a motion
-                                 (type moving-tcp)
-                                 (arm ?arm)
-                                 (left-target (desig:a location (pose ,?left-pose)))
-                                 (right-target (desig:a location (pose ,?right-pose)))))
-                      id :annotation "CRAMActionDesignator")
-                     id))
-           (success nil))
-       (unwind-protect
-            (progn
-              ,@body
-              (setf success t))
-         (beliefstate:add-topic-image-to-active-node
-          cram-beliefstate::*kinect-topic-rgb*)
-         (beliefstate:stop-node log-id :success success)))))
 
-(cpl:def-cram-function reach (?left-poses ?right-poses)
-              (format t "left: ~a~%right: ~a~%" ?left-poses ?right-poses)
-  (unless (listp ?left-poses)
-    (setf ?left-poses (list ?left-poses)))
-  (unless (listp ?right-poses)
-    (setf ?right-poses (list ?right-poses)))
-  (let ((max-length (max (length ?left-poses) (length ?right-poses))))
+(defun create-moving-tcp-motion-designator (?left-pose ?right-pose)
+  (declare (type (or null cl-transforms-stamped:pose-stamped) ?left-pose ?right-pose))
+  (let ((?left-target-key-value
+          (when ?left-pose
+            `(:left-target ,(desig:a location (pose ?left-pose)))))
+        (?right-target-key-value
+          (when ?right-pose
+            `(:right-target ,(desig:a location (pose ?right-pose))))))
+    (desig:a motion
+             (type moving-tcp)
+             ?left-target-key-value
+             ?right-target-key-value)))
+
+(cpl:def-cram-function reach (left-poses right-poses)
+  ;; Make `?left-poses' and `?right-poses' to lists if they are not already
+  (unless (listp left-poses)
+    (setf left-poses (list left-poses)))
+  (unless (listp right-poses)
+    (setf right-poses (list right-poses)))
+
+  ;; Move arms through all but last poses of `?left-poses' and `?right-poses'
+  ;; while ignoring failures: accuracy is not so important in pre-reach.
+  (let ((max-length (max (length left-poses) (length right-poses))))
+
     (mapc (lambda (?left-pose ?right-pose)
-            (cpl:with-failure-handling
-                ((pr2-fail:low-level-failure (e)
-                   (roslisp:ros-warn (pick-and-place reach) "~a" e)
-                   ;; ignore failures
-                   (return)))
-              (cram-plan-library:perform
-               (desig:a motion
-                        (type moving-tcp)
-                        (left-target (desig:a location (pose ?left-pose)))
-                        (right-target (desig:a location (pose ?right-pose)))))))
-          (fill-in-with-nils (butlast ?left-poses) max-length)
-          (fill-in-with-nils (butlast ?right-poses) max-length)))
 
-  (let ((?left-pose (car (last ?left-poses)))
-        (?right-pose (car (last ?right-poses))))
-    (format t "left: ~a~% rigth: ~a~%" ?left-pose ?right-pose)
+            (cpl:with-failure-handling
+                ((pr2-fail:low-level-failure (e) ; ignore failures
+                   (roslisp:ros-warn (pick-and-place reach) "~a" e)
+                   (return)))
+
+              (exe:perform
+               (create-moving-tcp-motion-designator ?left-pose ?right-pose))))
+
+          (fill-in-with-nils (butlast left-poses) max-length)
+          (fill-in-with-nils (butlast right-poses) max-length)))
+
+  ;; Move arm to the last pose of `?left-poses' and `?right-poses'.
+  ;; Ignore failures again for now. In future maybe do something smarter.
+  (let ((?left-pose (car (last left-poses)))
+        (?right-pose (car (last right-poses))))
+
     (cpl:with-failure-handling
-        ((pr2-fail:low-level-failure (e)
+        ((pr2-fail:low-level-failure (e) ; ignore failures
            (roslisp:ros-warn (pick-and-place reach) "~a" e)
            (return)))
-      (with-logging-reach (?left-pose ?right-pose)
-        (cram-plan-library:perform
-         (desig:a motion
-                  (type moving-tcp)
-                  (left-target (desig:a location (pose ?left-pose)))
-                  (right-target (desig:a location (pose ?right-pose)))))))))
+
+      (exe:perform
+       (create-moving-tcp-motion-designator ?left-pose ?right-pose)))))
+
 
 (cpl:def-cram-function open-gripper (?left-or-right)
   (cpl:with-failure-handling
@@ -183,48 +119,10 @@
          (roslisp:ros-warn (pick-and-place open-gripper) "~a" e)
          ;; ignore failures
          (return)))
-    (cram-plan-library:perform
+    (exe:perform
      (desig:a motion
               (type opening)
               (gripper ?left-or-right)))))
-
-(defmacro with-logging-grasp ((?left-grasp-pose ?right-grasp-pose) &body body)
-  `(let ((log-id (let ((id (beliefstate:start-node "GRASP" `() 2)))
-                   (beliefstate:add-topic-image-to-active-node
-                    cram-beliefstate::*kinect-topic-rgb*)
-                   (beliefstate:add-designator-to-node
-                    ;; pr2-ll::*rs-result-designator*
-                    (desig:make-designator :object '())
-                    id :annotation "object-acted-on")
-                   (beliefstate:add-designator-to-node
-                    (let ((?arm (if ,?left-grasp-pose
-                                    (if ,?right-grasp-pose
-                                        :both
-                                        :left)
-                                    :right))
-                          (?left-grasp-pose (cram-tf:ensure-pose-in-frame
-                                             ?left-grasp-pose
-                                             cram-tf:*fixed-frame*
-                                             :use-zero-time t))
-                          (?right-grasp-pose (cram-tf:ensure-pose-in-frame
-                                              ?right-grasp-pose
-                                              cram-tf:*fixed-frame*
-                                              :use-zero-time t)))
-                      (desig:a motion
-                               (type moving-tcp)
-                               (arm ?arm)
-                               (left-target (desig:a location (pose ,?left-grasp-pose)))
-                               (right-target (desig:a location (pose ,?right-grasp-pose)))))
-                    id :annotation "CRAMActionDesignator")
-                   id))
-         (success nil))
-     (unwind-protect
-          (progn
-            ,@body
-            (setf success t))
-       (beliefstate:add-topic-image-to-active-node
-        cram-beliefstate::*kinect-topic-rgb*)
-       (beliefstate:stop-node log-id :success success))))
 
 (cpl:def-cram-function grasp (?left-grasp-poses ?right-grasp-poses &optional (retries 0))
   (unless (listp ?left-grasp-poses)
@@ -238,7 +136,7 @@
                 ((pr2-fail:low-level-failure (e)
                    (roslisp:ros-warn (pick-and-place grasp) "~a" e)
                    (return)))
-              (cram-plan-library:perform
+              (exe:perform
                (desig:a motion
                         (type moving-tcp)
                         (left-target (desig:a location (pose ?left-pregrasp-poses)))
@@ -255,36 +153,11 @@
                (roslisp:ros-warn (pick-and-place grasp) "~a" e)
                (cpl:retry))
              (return)))
-        (with-logging-grasp (?left-grasp-pose ?right-grasp-pose)
-          (cram-plan-library:perform
+        (exe:perform
            (desig:a motion
                     (type moving-tcp)
                     (left-target (desig:a location (pose ?left-grasp-pose)))
-                    (right-target (desig:a location (pose ?right-grasp-pose))))))))))
-
-(defmacro with-logging-grip ((?left-or-right ?effort) &body body)
-  `(let ((log-id (let ((id (beliefstate:start-node "GRIP" `() 2)))
-                   (beliefstate:add-topic-image-to-active-node
-                    cram-beliefstate::*kinect-topic-rgb*)
-                   (beliefstate:add-designator-to-node
-                    ;; pr2-ll::*rs-result-designator*
-                    (desig:make-designator :object '())
-                    id :annotation "object-acted-on")
-                   (beliefstate:add-designator-to-node
-                    (desig:a motion
-                             (type gripping)
-                             (gripper ,?left-or-right)
-                             (effort ,?effort))
-                    id :annotation "CRAMActionDesignator")
-                   id))
-         (success nil))
-     (unwind-protect
-          (progn
-            ,@body
-            (setf success t))
-       (beliefstate:add-topic-image-to-active-node
-        cram-beliefstate::*kinect-topic-rgb*)
-       (beliefstate:stop-node log-id :success success))))
+                    (right-target (desig:a location (pose ?right-grasp-pose)))))))))
 
 (cpl:def-cram-function grip (?left-or-right ?effort)
   (cpl:with-retry-counters ((grasping-retries 1))
@@ -294,75 +167,22 @@
              (roslisp:ros-warn (pick-and-place grip) "~a" e)
              (cpl:retry))
            (cpl:fail 'pr2-fail:low-level-failure)))
-      (with-logging-grip (?left-or-right ?effort)
-        (cram-plan-library:perform
+      (exe:perform
          (desig:a motion
                   (type gripping)
                   (gripper ?left-or-right)
-                  (effort ?effort)))))))
-
-(defmacro with-logging-lift ((?left-pose ?right-pose) &body body)
-  `(progn
-     (let ((log-id (let ((id (beliefstate:start-node "LIFT" `() 2)))
-                     (beliefstate:add-topic-image-to-active-node
-                      cram-beliefstate::*kinect-topic-rgb*)
-                     (beliefstate:add-designator-to-node
-                      ;; pr2-ll::*rs-result-designator*
-                      (desig:make-designator :object '())
-                      id :annotation "object-acted-on")
-                     (beliefstate:add-designator-to-node
-                      (let ((?arm (if ,?left-pose
-                                      (if ,?right-pose
-                                          :both
-                                          :left)
-                                      :right))
-                            (?left-pose (cram-tf:ensure-pose-in-frame
-                                         ?left-pose
-                                         cram-tf:*fixed-frame*
-                                         :use-zero-time t))
-                            (?right-pose (cram-tf:ensure-pose-in-frame
-                                          ?right-pose
-                                          cram-tf:*fixed-frame*
-                                          :use-zero-time t)))
-                        (desig:a motion
-                                 (type moving-tcp)
-                                 (arm ?arm)
-                                 (left-target (desig:a location (pose ,?left-pose)))
-                                 (right-target (desig:a location (pose ,?right-pose)))))
-                      id :annotation "CRAMActionDesignator")
-                     id))
-           (success nil))
-       (unwind-protect
-            (progn
-              ,@body
-              (setf success t))
-         (beliefstate:add-topic-image-to-active-node
-          cram-beliefstate::*kinect-topic-rgb*)
-         (beliefstate:stop-node log-id :success success)))))
+                  (effort ?effort))))))
 
 (cpl:def-cram-function lift (?left-pose ?right-pose)
   (cpl:with-failure-handling
       ((pr2-fail:low-level-failure (e)
          (roslisp:ros-warn (pick-and-place lift) "~a" e)
          (return)))
-    (with-logging-lift (?left-pose ?right-pose)
-      (cram-plan-library:perform
+    (exe:perform
        (desig:a motion
                 (type moving-tcp)
                 (left-target (desig:a location (pose ?left-pose)))
-                (right-target (desig:a location (pose ?right-pose))))))))
-
-(defmacro with-logging-perceive ((input-desig) &body body)
-  `(let ((id (beliefstate:start-node "UIMA-PERCEIVE" nil)))
-     (beliefstate:add-designator-to-node
-      ,input-desig id :annotation "perception-request")
-     (let ((output-desig ,@body))
-       (beliefstate:add-object-to-node
-        output-desig id :annotation "perception-result")
-       (beliefstate:add-topic-image-to-active-node
-        cram-beliefstate::*kinect-topic-rgb*)
-       (beliefstate:stop-node id :success (not (null output-desig)))
-       output-desig)))
+                (right-target (desig:a location (pose ?right-pose)))))))
 
 (cpl:def-cram-function perceive (?object-designator
                                  &key
@@ -375,25 +195,24 @@
              (roslisp:ros-warn (pick-and-place perceive) "~a" e)
              (cpl:retry))
            (cpl:fail 'pr2-fail:low-level-failure :description "couldn't find object")))
-      ; (with-logging-perceive (?object-designator)
       (let* ((resulting-designators
                (case quantifier
-                 (:all (cram-plan-library:perform
+                 (:all (exe:perform
                         (desig:a motion
                                  (type detecting)
                                  (objects ?object-designator))))
-                 (t (cram-plan-library:perform
+                 (t (exe:perform
                      (desig:a motion
                               (type detecting)
                               (object ?object-designator))))))
              (resulting-designator
                (funcall object-chosing-function resulting-designators)))
+        ;; (format t "found object ~a~%" resulting-designator)
         resulting-designator))))
-; )
 
 (defun look-at (object-designator)
   (let ((?pose (get-object-pose object-designator)))
-    (cram-plan-library:perform
+    (exe:perform
      (desig:a motion
               (type looking)
               (target (desig:a location (pose ?pose)))))))
@@ -405,10 +224,11 @@
   (let ((phases (desig:desig-prop-value action-designator :phases)))
     (mapc (lambda (phase)
             (format t "Executing phase: ~%~a~%~%" phase)
-            (cram-plan-library:perform phase))
+            (exe:perform phase))
           phases)))
 
-(defun pick-up-activity (action-designator object arm grasp)
+(defun pick-up (action-designator object arm grasp)
+  (format t "PICK UP ACTION DESIG: ~a~%" action-designator)
   (perform-phases-in-sequence action-designator)
   (cram-occasions-events:on-event
    (make-instance 'object-gripped :object object :arm arm :grasp grasp)))
@@ -422,21 +242,21 @@
                               :target-frame cram-tf:*fixed-frame*
                               :use-current-ros-time t))
          (?goal-for-base (pose-to-reach-object object-pose-in-map ?arm)))
-    (plan-lib:perform (desig:a motion
-                               (type going)
-                               (target (desig:a location (pose ?goal-for-base)))))))
+    (exe:perform (desig:a motion
+                          (type going)
+                          (target (desig:a location (pose ?goal-for-base)))))))
 
 (defun drive-and-pick-up-plan (?object-designator &key (?arm :right))
   ;; navigate to a better pose
   (drive-towards-object-plan ?object-designator :?arm ?arm)
   (cpl:par
-    (plan-lib:perform (desig:an action
-                               (to look-at-action)
-                               (object ?object-designator)))
-    (plan-lib:perform (desig:an action
-                                (to pick-up-activity)
-                                (arm ?arm)
-                                (object ?object-designator)))))
+    (exe:perform (desig:an action
+                           (type looking-at)
+                           (object ?object-designator)))
+    (exe:perform (desig:an action
+                           (type picking-up)
+                           (arm ?arm)
+                           (object ?object-designator)))))
 
 (defun perceive-and-drive-and-pick-up-plan (?type &key (?arm '(:left :right))
                                                     ?color ?cad-model)
@@ -461,12 +281,12 @@
   (let ((?object-designator (get-object-in-hand ?arm)))
     (drive-towards-object-plan ?object-designator :?arm ?arm)
     (cpl:par
-      (plan-lib:perform (desig:an action
-                               (to look-at-action)
-                               (object ?object-designator)))
-      (plan-lib:perform (desig:an action
-                                  (to place-activity)
-                                  (arm ?arm)))))
+      (exe:perform (desig:an action
+                             (type looking-at)
+                             (object ?object-designator)))
+      (exe:perform (desig:an action
+                             (to place-activity)
+                             (arm ?arm)))))
   ;; (let ((?put-down-pose (or ?pose (get-cup-put-pose ?arm :front))))
   ;;   (plan-lib:perform (desig:an action
   ;;                               (to place-activity)
@@ -476,6 +296,6 @@
 
 (defun pick-and-place-plan (?type &key (?arm :right) ?color ?cad-model)
   (perceive-and-drive-and-pick-up-plan ?type :?arm ?arm :?color ?color :?cad-model ?cad-model)
-  (plan-lib:perform (desig:an action
-                              (to place-activity)
-                              (arm ?arm))))
+  (exe:perform (desig:an action
+                         (to place-activity)
+                         (arm ?arm))))

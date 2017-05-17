@@ -45,19 +45,19 @@
   (let* (;; (?minus-angle (- ?angle))
          (phases (list
                   (an action
-                      (to approach-action)
+                      (to approach)
                       (left ?left-pour-poses)
                       (right ?right-pour-poses))
                   (an action
-                      (to tilt-to-action)
+                      (to tilt-to)
                       (left ?left-tilt-pose)
                       (right ?right-tilt-pose))
                   (an action
-                      (to tilt-to-action)
+                      (to tilt-to)
                       (left ?left-pour-poses)
                       (right ?right-pour-poses))
                   (an action
-                      (to retract-action)
+                      (to retract)
                       (left ?left-retract-poses)
                       (right ?right-retract-poses)))))
     (copy-designator action-designator :new-description `((:phases ,phases)))))
@@ -128,7 +128,7 @@
                                   (to wait)
                                   (duration 3.0))
                               ;; (an action
-                              ;;     (to retract-action)
+                              ;;     (to retract)
                               ;;     (left ?left-retract-poses)
                               ;;     (right ?right-retract-poses))
                               )))
@@ -240,7 +240,7 @@
 
 
   (<- (action-grounding ?action-designator (move-arms-in-sequence ?left-poses ?right-poses))
-    (desig-prop ?action-designator (:to :approach-action))
+    (desig-prop ?action-designator (:to :approach))
     (once (or (desig-prop ?action-designator (:left ?left-poses))
               (equal ?left-poses nil)))
     (once (or (desig-prop ?action-designator (:right ?right-poses))
@@ -254,7 +254,7 @@
   ;;   (lisp-fun get-tilted-pose ?left-initial-poses ?angle ...))
 
   (<- (action-grounding ?action-designator (move-arms-in-sequence ?left-last-pose ?right-last-pose))
-    (desig-prop ?action-designator (:to :tilt-to-action))
+    (desig-prop ?action-designator (:to :tilt-to))
     (desig-prop ?action-designator (:left ?left-poses))
     (desig-prop ?action-designator (:right ?right-poses))
     (lisp-fun car-last ?left-poses ?left-last-pose)

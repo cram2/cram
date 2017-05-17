@@ -39,12 +39,12 @@
           (?ptu-goal *meal-table-right-base-look-pose*))
       (cpl:par
         (move-pr2-arms-out-of-sight)
-        (plan-lib:perform (desig:a motion
-                                   (type going)
-                                   (target (desig:a location (pose ?navigation-goal)))))
-        (plan-lib:perform (desig:a motion
-                                   (type looking)
-                                   (target (desig:a location (pose ?ptu-goal)))))))))
+        (exe:perform (desig:a motion
+                              (type going)
+                              (target (desig:a location (pose ?navigation-goal)))))
+        (exe:perform (desig:a motion
+                              (type looking)
+                              (target (desig:a location (pose ?ptu-goal)))))))))
 
 (defun step-1-grasp-bottle ()
   (flet ((step-1-inner ()
@@ -109,15 +109,15 @@
                                     "?left-tool-frame is unknown. ~
                                      Did you load a robot description package?")
                   ?left-tool-frame))))
-      (cram-plan-library:perform (desig:a motion
-                                          (type looking)
-                                          (frame ?left-gripper))))
-    (plan-lib:perform (desig:an action
-                                (to pour-activity)
-                                (arm (left right))
-                                (source right)
-                                (target left)
-                                (pour-volume 2.77019964e-05)))
+      (exe:perform (desig:a motion
+                            (type looking)
+                            (frame ?left-gripper))))
+    (exe:perform (desig:an action
+                           (to pour-activity)
+                           (arm (left right))
+                           (source right)
+                           (target left)
+                           (pour-volume 2.77019964e-05)))
     (go-to-initial-pouring-configuration-plan)))
 
 (defun step-4-place-cup ()
@@ -136,9 +136,9 @@
 
     (let ((?nav-goal *meal-table-left-base-pose*))
       (cpl:par
-        (plan-lib:perform (desig:a motion
-                                   (type going)
-                                   (target (desig:a location (pose ?nav-goal)))))
+        (exe:perform (desig:a motion
+                              (type going)
+                              (target (desig:a location (pose ?nav-goal)))))
         (move-pr2-arms-out-of-sight)))))
 
 (defun step-6-pour-into-second-cup ()
@@ -157,14 +157,14 @@
              (drive-towards-object-plan ?second-cup-to-pour :?arm :right)
              ;; perform pouring using object-in-hand-s
              (cpl:par
-               (plan-lib:perform (desig:an action
-                                           (to look-at-action)
-                                           (object ?second-cup-to-pour)))
-               (plan-lib:perform (desig:an action
-                                           (to pour-activity)
-                                           (arm right)
-                                           (target ?second-cup-to-pour)
-                                           (pour-volume 0.0002)))))))
+               (exe:perform (desig:an action
+                                      (type looking-at)
+                                      (object ?second-cup-to-pour)))
+               (exe:perform (desig:an action
+                                      (to pour-activity)
+                                      (arm right)
+                                      (target ?second-cup-to-pour)
+                                      (pour-volume 0.0002)))))))
     (cpl:with-retry-counters ((second-pour-tries 20))
       (cpl:with-failure-handling
           ((pr2-fail:low-level-failure (e)
@@ -191,9 +191,9 @@
          (return)))
     (cpl:par
       (move-pr2-arms-out-of-sight)
-      (plan-lib:perform (desig:a motion
-                                 (type looking)
-                                 (target ((2 0 1) (0 0 0 1))))))))
+      (exe:perform (desig:a motion
+                            (type looking)
+                            (target ((2 0 1) (0 0 0 1))))))))
 
 #+this-is-commented-out-because-it-is-only-for-real-robot-not-simulation
 (defun demo-plan (&optional (step 0))
@@ -233,7 +233,7 @@
 
 
 ;;; arms down
-;; (plan-lib:perform (desig:an action
+;; (exe:perform (desig:an action
 ;;                             (to move-arm-motion)
 ;;                             (left ((0.09611d0 0.68d0 0.35466d0)
 ;;                                    (-0.45742778331019085d0

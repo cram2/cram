@@ -42,9 +42,11 @@
                cram-process-modules
                cram-math
                cram-occasions-events
+               cram-executive
+               cram-utilities ; for cut:var-value of prolog stuff
 
-               cram-plan-library
                cram-plan-occasions-events
+               ;; cram-bullet-reasoning-belief-state ; for event handling ; using own stuff for now
 
                giskard_msgs-msg
                giskard_msgs-srv
@@ -56,7 +58,8 @@
                cram-robot-pose-gaussian-costmap
                pr2-reachability-costmap
 
-               cram-beliefstate)
+               ;; cram-beliefstate ; got rid of logging hooks, going to use other logging
+               )
 
   :components
   ((:module "src"

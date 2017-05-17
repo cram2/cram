@@ -159,7 +159,7 @@
         (setf ?right-configuration-to-go (if flipped
                                              *pr2-right-arm-out-of-sight-flipped-joint-positions*
                                              *pr2-right-arm-out-of-sight-joint-positions*)))
-      (cram-plan-library:perform
+      (exe:perform
        (desig:a motion
                 (type moving-joints)
                 (left-configuration ?left-configuration-to-go)
