@@ -38,6 +38,15 @@
        (handler-case
            (drive argument))))))
 
+;;;;;;;;;;;;;;;;; TORSO ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(cpm:def-process-module pr2-proj-torso (motion-designator)
+  (destructuring-bind (command argument) (desig:reference motion-designator)
+    (ecase command
+      (cram-pr2-designators:move-torso
+       (handler-case
+           (move-torso argument))))))
+
 ;;;;;;;;;;;;;;;;; PTU ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module pr2-proj-ptu (motion-designator)
@@ -59,11 +68,11 @@
 ;;;;;;;;;;;;;;;;; GRIPPERS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module pr2-proj-grippers (motion-designator)
-  (destructuring-bind (command arg-1 arg-2 arg-3) (desig:reference motion-designator)
+  (destructuring-bind (command arg-1 arg-2 &rest arg-3) (desig:reference motion-designator)
     (ecase command
       (cram-pr2-designators:gripper-action
        (handler-case
-           (gripper-action arg-1 arg-2 arg-3))))))
+           (gripper-action arg-1 arg-2 (car arg-3)))))))
 
 ;;;;;;;;;;;;;;;;; ARMS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -87,6 +96,9 @@
 
   (<- (cpm:matching-process-module ?motion-designator pr2-proj-navigation)
     (desig:desig-prop ?motion-designator (:type :going)))
+
+  (<- (cpm:matching-process-module ?motion-designator pr2-proj-torso)
+    (desig:desig-prop ?motion-designator (:type :moving-torso)))
 
   (<- (cpm:matching-process-module ?motion-designator pr2-proj-ptu)
     (desig:desig-prop ?motion-designator (:type :looking)))

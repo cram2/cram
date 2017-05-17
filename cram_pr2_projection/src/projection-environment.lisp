@@ -45,7 +45,8 @@
    (*projection-clock* (make-instance 'cram-projection:partially-ordered-clock))
    (cut:*timestamp-function* #'projection-timestamp-function))
   :process-module-definitions
-  (pr2-proj-navigation pr2-proj-ptu pr2-proj-perception pr2-proj-grippers pr2-proj-arms)
+  (pr2-proj-navigation pr2-proj-torso pr2-proj-ptu pr2-proj-perception
+                       pr2-proj-grippers pr2-proj-arms)
   :startup (set-tf-from-bullet)
   :shutdown (setf *last-timeline* cram-bullet-reasoning:*current-timeline*)
   )
@@ -56,7 +57,8 @@
 
   (<- (cpm:available-process-module ?pm)
    (member ?pm
-           (pr2-proj-navigation pr2-proj-ptu pr2-proj-perception pr2-proj-grippers pr2-proj-arms))
+           (pr2-proj-navigation pr2-proj-torso pr2-proj-ptu pr2-proj-perception
+                                pr2-proj-grippers pr2-proj-arms))
    (symbol-value cram-projection:*projection-environment* pr2-bullet-projection-environment))
 
   (<- (cpm::projection-running ?pm)
