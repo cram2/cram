@@ -188,22 +188,21 @@
             (cram-robot-interfaces:joint-lower-limit ?robot ?joint ?min-limit)
             (cram-robot-interfaces:joint-upper-limit ?robot ?joint ?max-limit)
             (btr:bullet-world ?world))))))
+
   (cram-occasions-events:on-event
    (make-instance 'cram-plan-occasions-events:robot-state-changed))
 
-  (let (end-effector-link
-        (cut:var-value
-          '?ee-link
-          (car (prolog:prolog
-                `(and (cram-robot-interfaces:robot ?robot)
-                      (cram-robot-interfaces:end-effector-link ?robot ,arm ?ee-link)))))))
-  
-  (let ((gripper-links (action-end-effector-links designator)))
-         (assert gripper-links)
-         (dolist (gripper-link gripper-links t)
-           (cram-occasions-events:on-event
-            (make-instance 'cram-plan-occasions-events:object-attached
-              :object current-object :link gripper-link)))))
+  ;; (let ((end-effector-link
+  ;;         (cut:var-value
+  ;;          '?ee-link
+  ;;          (car (prolog:prolog
+  ;;                `(and (cram-robot-interfaces:robot ?robot)
+  ;;                      (cram-robot-interfaces:end-effector-link ?robot ,arm ?ee-link)))))))
+  ;;   (assert end-effector-link)
+  ;;   (cram-occasions-events:on-event
+  ;;    (make-instance 'cram-plan-occasions-events:object-attached
+  ;;      :object current-object :link gripper-link)))
+  )
 
 ;;;;;;;;;;;;;;;;; ARMS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -252,7 +251,8 @@
              (let ((ik-solution-msg (call-ik-service arm ee-pose ; seed-state ; is todo
                                                      )))
                (unless ik-solution-msg
-                 (cpl:fail 'pr2-fail:manipulation-pose-unreachable))
+                 (cpl:fail 'pr2-fail:manipulation-pose-unreachable
+                           :description (format nil "~a is unreachable for EE." ee-pose)))
                (map 'list #'identity
                     (roslisp:msg-slot-value ik-solution-msg 'sensor_msgs-msg:position))))))
     (move-joints (get-ik-joint-positions :left (tcp-pose->ee-pose left-tcp-pose))
