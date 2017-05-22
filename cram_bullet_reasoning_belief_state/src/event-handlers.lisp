@@ -28,55 +28,73 @@
 
 (in-package :cram-bullet-reasoning-belief-state)
 
-(defmethod cram-occasions-events:on-event attach-objects ((event cpoe:object-attached))
-  (let* ((robot (btr:get-robot-object))
-         (current-event-object (desig:current-desig (cpoe:event-object event)))
-         (object (get-designator-object current-event-object)))
-    (when object
-      (cond ((btr:object-attached robot object)
-             ;; If the object is already attached, it is already in
-             ;; the gripper. In that case, we update the designator
-             ;; location designator by extending the current location
-             ;; by a second pose in the gripper.
-             (btr:attach-object robot object (cpoe:event-link event) :loose t)
-             (desig:with-desig-props (at) current-event-object
-               (assert (eql (desig:desig-prop-value at :in) :gripper))
-               (update-object-designator-location
-                current-event-object
-                (desig:extend-designator-properties
-                 at `((:pose ,(object-pose-in-frame object (cpoe:event-link event))))))))
-            (t
-             (btr:attach-object robot object (cpoe:event-link event) :loose nil)
-             (update-object-designator-location
-              current-event-object
-              (desig:extend-designator-properties
-               (make-object-location-in-gripper object (cpoe:event-link event))
-               `((:pose ,(object-pose-in-frame object cram-tf:*robot-base-frame*))))))))
-    (btr:timeline-advance
-     btr:*current-timeline*
-     (btr:make-event
-      btr:*current-bullet-world*
-      `(pick-up ,(cpoe:event-object event) ,(cpoe:event-side event))))))
+(defmethod cram-occasions-events:on-event btr-attach-object ((event cpoe:object-attached))
+  (let ((robot-object (btr:get-robot-object))
+        (link (cpoe:event-link event))
+        (btr-object (btr:object btr:*current-bullet-world* (cpoe:event-object-name event))))
+    (when btr-object
+      (if (btr:object-attached robot-object btr-object)
+          (btr:attach-object robot-object btr-object link :loose t)
+          (btr:attach-object robot-object btr-object link :loose nil)))))
 
-(defmethod cram-occasions-events:on-event detach-objects ((event cpoe:object-detached))
-  (let ((robot (btr:get-robot-object))
-        (object (get-designator-object (cpoe:event-object event))))
-    (when object
-      (btr:detach-object robot object (cpoe:event-link event))
-      (btr:simulate btr:*current-bullet-world* 10)
-      (update-object-designator-location
-       (desig:current-desig (cpoe:event-object event))
-       (make-object-location (get-designator-object-name (cpoe:event-object event)))))
-    (btr:timeline-advance
-     btr:*current-timeline*
-     (btr:make-event
-      btr:*current-bullet-world*
-      `(put-down ,(cpoe:event-object event) ,(cpoe:event-side event))))
-    (btr:timeline-advance
-     btr:*current-timeline*
-     (btr:make-event
-      btr:*current-bullet-world*
-      `(location-change ,(cpoe:event-object event))))))
+(defmethod cram-occasions-events:on-event btr-detach-object ((event cpoe:object-detached))
+  (let ((robot-object (btr:get-robot-object))
+        (link (cpoe:event-link event))
+        ;; (object-name (desig:object-identifier (desig:reference (cpoe:event-object-name event))))
+        (btr-object (btr:object btr:*current-bullet-world* (cpoe:event-object-name event))))
+    (when btr-object
+      (btr:detach-object robot-object btr-object link)
+      (btr:simulate btr:*current-bullet-world* 10))))
+
+;; (defmethod cram-occasions-events:on-event attach-objects ((event cpoe:object-attached))
+;;   (let* ((robot (btr:get-robot-object))
+;;          (current-event-object (desig:current-desig (cpoe:event-object event)))
+;;          (object (get-designator-object current-event-object)))
+;;     (when object
+;;       (cond ((btr:object-attached robot object)
+;;              ;; If the object is already attached, it is already in
+;;              ;; the gripper. In that case, we update the designator
+;;              ;; location designator by extending the current location
+;;              ;; by a second pose in the gripper.
+;;              (btr:attach-object robot object (cpoe:event-link event) :loose t)
+;;              (desig:with-desig-props (at) current-event-object
+;;                (assert (eql (desig:desig-prop-value at :in) :gripper))
+;;                (update-object-designator-location
+;;                 current-event-object
+;;                 (desig:extend-designator-properties
+;;                  at `((:pose ,(object-pose-in-frame object (cpoe:event-link event))))))))
+;;             (t
+;;              (btr:attach-object robot object (cpoe:event-link event) :loose nil)
+;;              (update-object-designator-location
+;;               current-event-object
+;;               (desig:extend-designator-properties
+;;                (make-object-location-in-gripper object (cpoe:event-link event))
+;;                `((:pose ,(object-pose-in-frame object cram-tf:*robot-base-frame*))))))))
+;;     (btr:timeline-advance
+;;      btr:*current-timeline*
+;;      (btr:make-event
+;;       btr:*current-bullet-world*
+;;       `(pick-up ,(cpoe:event-object event) ,(cpoe:event-side event))))))
+
+;; (defmethod cram-occasions-events:on-event detach-objects ((event cpoe:object-detached))
+;;   (let ((robot (btr:get-robot-object))
+;;         (object (get-designator-object (cpoe:event-object event))))
+;;     (when object
+;;       (btr:detach-object robot object (cpoe:event-link event))
+;;       (btr:simulate btr:*current-bullet-world* 10)
+;;       (update-object-designator-location
+;;        (desig:current-desig (cpoe:event-object event))
+;;        (make-object-location (get-designator-object-name (cpoe:event-object event)))))
+;;     (btr:timeline-advance
+;;      btr:*current-timeline*
+;;      (btr:make-event
+;;       btr:*current-bullet-world*
+;;       `(put-down ,(cpoe:event-object event) ,(cpoe:event-side event))))
+;;     (btr:timeline-advance
+;;      btr:*current-timeline*
+;;      (btr:make-event
+;;       btr:*current-bullet-world*
+;;       `(location-change ,(cpoe:event-object event))))))
 
 (defmethod cram-occasions-events:on-event robot-moved ((event cpoe:robot-state-changed))
   (unless cram-projection:*projection-environment*
