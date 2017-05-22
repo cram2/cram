@@ -39,8 +39,8 @@
 
     (<- (location-costmap:costmap-padding 0.2))
     (<- (location-costmap:costmap-manipulation-padding 0.2))
-    (<- (location-costmap:costmap-in-reach-distance 0.9))
-    (<- (location-costmap:costmap-reach-minimal-distance 0.1)))
+    (<- (location-costmap:costmap-in-reach-distance 0.6))
+    (<- (location-costmap:costmap-reach-minimal-distance 0.2)))
 
   (setf cram-bullet-reasoning-belief-state:*robot-parameter* "robot_description")
   (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "no_urdf_for_kitchen")

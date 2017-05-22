@@ -60,7 +60,7 @@
                cram-occupancy-grid-costmap
                cram-location-costmap
 
-               cram-pr2-plans
+               cram-pr2-pick-place-plans
                cram-pr2-description)
 
   :components
