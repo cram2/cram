@@ -154,55 +154,79 @@
 
 ;;;;;;;;;;;;;;;;; GRIPPERS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun action-end-effector-links (action-designator)
-  (cut:force-ll
-   (cut:lazy-mapcar (lambda (solution)
-                      (cut:with-vars-bound (?end-effector-link) solution
-                        (unless (cut:is-var ?end-effector-link)
-                          ?end-effector-link)))
-                    (prolog:prolog
-                     `(and
-                       (trajectory-point ,action-designator ?_ ?side)
-                       (robot ?robot)
-                       (end-effector-link ?robot ?side ?end-effector-link))))))
-
-
 (defun gripper-action (action-type arm &optional maximum-effort)
   (declare (ignore maximum-effort))
   "Opens or closes the specific gripper."
-  (cut:force-ll
-   (cut:lazy-mapcar
+  (mapc
 
-    (lambda (solution-bindings)
-      (prolog:prolog
-       `(assert ?world (btr:joint-state ?robot ((?joint ,(case action-type
+   (lambda (solution-bindings)
+     (prolog:prolog
+      `(and
+        (btr:bullet-world ?world)
+        (assert ?world (btr:joint-state ?robot ((?joint ,(case action-type
                                                            (:open '?max-limit)
                                                            ((:close :grip) '?min-limit)
-                                                           (t (error "[PROJ GRIP] failed")))))))
-       solution-bindings))
+                                                           (t (error "[PROJ GRIP] failed"))))))))
+      solution-bindings))
 
-    (assert
-     (prolog:prolog
-      `(and (cram-robot-interfaces:robot ?robot)
-            (cram-robot-interfaces:gripper-joint ?robot ,arm ?joint)
-            (cram-robot-interfaces:joint-lower-limit ?robot ?joint ?min-limit)
-            (cram-robot-interfaces:joint-upper-limit ?robot ?joint ?max-limit)
-            (btr:bullet-world ?world))))))
+   (cut:force-ll
+    (prolog:prolog
+     `(and (cram-robot-interfaces:robot ?robot)
+           (cram-robot-interfaces:gripper-joint ?robot ,arm ?joint)
+           (cram-robot-interfaces:joint-lower-limit ?robot ?joint ?min-limit)
+           (cram-robot-interfaces:joint-upper-limit ?robot ?joint ?max-limit)))))
 
+  ;; robot-state-changed event
   (cram-occasions-events:on-event
    (make-instance 'cram-plan-occasions-events:robot-state-changed))
 
-  ;; (let ((end-effector-link
-  ;;         (cut:var-value
-  ;;          '?ee-link
-  ;;          (car (prolog:prolog
-  ;;                `(and (cram-robot-interfaces:robot ?robot)
-  ;;                      (cram-robot-interfaces:end-effector-link ?robot ,arm ?ee-link)))))))
-  ;;   (assert end-effector-link)
-  ;;   (cram-occasions-events:on-event
-  ;;    (make-instance 'cram-plan-occasions-events:object-attached
-  ;;      :object current-object :link gripper-link)))
-  )
+  ;; object-attached event
+  (when (eql action-type :grip) ; if action was gripping check if gripper collided with an item
+    (mapc ; for all items colliding with gripper of `arm' emit the event
+
+     (lambda (solution-bindings)
+       (cut:with-vars-bound (?object-name ?ee-link)
+           solution-bindings
+         (if (cut:is-var ?object-name)
+             (cpl:fail 'pr2-fail:gripping-failed :description "There was no object to grip")
+             (if (cut:is-var ?ee-link)
+                 (error "[GRIPPER LOW-LEVEL] Couldn't find robot's EE link.")
+                 (cram-occasions-events:on-event
+                  (make-instance 'cpoe:object-attached
+                    :object-name ?object-name :link ?ee-link :arm arm))))))
+
+     (cut:force-ll
+        (prolog:prolog
+         `(and (btr:bullet-world ?world)
+               (cram-robot-interfaces:robot ?robot)
+               (prolog:setof
+                ?on
+                (and (btr:contact ?world ?robot ?on ?link)
+                     (cram-robot-interfaces:gripper-link ?robot ,arm ?link))
+                ?object-names)
+               (member ?object-name ?object-names)
+               (btr:%object ?world ?object-name ?object-instance)
+               (prolog:lisp-type ?object-instance btr:item)
+               (cram-robot-interfaces:end-effector-link ?robot ,arm ?ee-link))))))
+
+  ;; object-detached event
+  (when (eql action-type :open) ; if action is opening, check if there was an object in gripper
+    (let ((link (cut:var-value
+                 '?ee-link
+                 (car (prolog:prolog
+                       `(and (cram-robot-interfaces:robot ?robot)
+                             (cram-robot-interfaces:end-effector-link ?robot ,arm ?ee-link)))))))
+      (when (cut:is-var link) (error "[GRIPPER LOW-LEVEL] Couldn't find robot's EE link."))
+      (mapc (lambda (attachment-data)
+              (mapc (lambda (attachment)
+                      (when (string-equal (btr::attachment-link attachment) link)
+                        (cram-occasions-events:on-event
+                         (make-instance 'cpoe:object-detached
+                           :object-name (btr::attachment-object attachment)
+                           :link link
+                           :arm arm))))
+                    (second attachment-data)))
+            (btr:attached-objects (btr:get-robot-object))))))
 
 ;;;;;;;;;;;;;;;;; ARMS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
