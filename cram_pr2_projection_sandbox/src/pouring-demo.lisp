@@ -39,7 +39,9 @@
                      (cl-transforms:make-identity-rotation))))
          (desig:a motion (type going) (target (desig:a location (pose ?pose))))))
       (exe:perform
-       (desig:a motion (type moving-torso) (joint-angle 0.15)))
+       (desig:a motion (type moving-torso) (joint-angle 0.3)))
+      (exe:perform
+       (desig:a motion (type opening) (gripper left)))
       (exe:perform
        (let ((?pose (cl-tf:make-pose-stamped
                      cram-tf:*robot-base-frame* 0.0
@@ -101,10 +103,26 @@
   ;; stabilize world
   (btr:simulate btr:*current-bullet-world* 100))
 
+(defun prepare ()
+  (cpl:with-failure-handling
+          ((pr2-fail:low-level-failure (e)
+             (roslisp:ros-warn (demo step-0) "~a" e)
+             (return)))
+
+        (let ((?navigation-goal pr2-pp-plans::*meal-table-right-base-pose*)
+              (?ptu-goal pr2-pp-plans::*meal-table-right-base-look-pose*))
+          (cpl:par
+            (pr2-pp-plans::move-pr2-arms-out-of-sight)
+            (exe:perform (desig:a motion
+                                  (type going)
+                                  (target (desig:a location (pose ?navigation-goal)))))
+            (exe:perform (desig:a motion
+                                  (type looking)
+                                  (target (desig:a location (pose ?ptu-goal)))))))))
 (defun test-pr2-plans ()
   (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
     (cpl:top-level
-      (pr2-plans::step-0-prepare))))
+      (prepare))))
 
 (defun test-projection-perception ()
   (spawn-objects)
@@ -118,3 +136,32 @@
          (desig:a motion
                   (type detecting)
                   (object ?object-designator)))))))
+
+(defun test-grasp-bottle ()
+  (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+    (cpl:top-level
+      (flet ((step-1-inner ()
+               (let* ((?bottle-desig (desig:an object
+                                               (type bottle)))
+                      (?perceived-bottle-desig (pr2-pp-plans::perceive ?bottle-desig)))
+                 (pr2-pp-plans::drive-and-pick-up-plan ?perceived-bottle-desig :?arm :right))))
+        (cpl:with-retry-counters ((bottle-grasp-tries 2))
+          (cpl:with-failure-handling
+              ((pr2-fail:low-level-failure (e)
+                 (roslisp:ros-warn (demo step-1) "~a" e)
+                 ;; (if (pr2-pp-plans::get-object-in-hand :right)
+                 ;;     (return)
+                 ;;     (cpl:do-retry bottle-grasp-tries
+                 ;;       (roslisp:ros-warn (demo step-1) "~a" e)
+                 ;;       (prepare)
+                 ;;       (cpl:retry)))
+                 ))
+
+            (step-1-inner)))))))
+
+(defun test-place-bottle ()
+  (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+    (cpl:top-level
+      (exe:perform (desig:an action
+                             (type placing)
+                             (arm right))))))
