@@ -124,7 +124,7 @@
     (property ?action-designator (:object ?object-designator))
     (current-designator ?object-designator ?current-object-desig)
     (property ?current-object-desig (:type ?object-type))
-    (once (or (spec:property ?action-designator (:arm ?arm))
+    (once (or (property ?action-designator (:arm ?arm))
               (equal ?arm (:left :right)))) ; default value of ?arm when not given
     ;; infer missing information like ?grasp type, gripping ?maximum-effort, manipulation poses
     (object-type-grasp ?object-type ?grasp)
@@ -146,8 +146,8 @@
     (property ?current-object-designator (:type ?object-type))
     ;; infer missing information
     (object-type-grasp ?object-type ?grasp)
-    (lisp-fun get-object-pose ?object-designator ?object-desig-pose)
-    (-> (lisp-pred identity ?object-desig-pose) ; if object-pose is unknown take it from desig
+    (lisp-fun get-object-pose ?current-object-designator ?object-pose)
+    (-> (lisp-pred identity ?object-desig-pose) ; if object-pose is unknown take it from act-desig
         (equal ?object-pose ?object-desig-pose)
         (and (desig-prop ?action-designator (:at ?pose))
              (-> (lisp-type ?pose designator)
@@ -157,9 +157,7 @@
     (lisp-fun get-object-manipulation-poses ?object-type ?object-pose :left ?grasp ?left-poses)
     (lisp-fun get-object-manipulation-poses ?object-type ?object-pose :right ?grasp ?right-poses)
     ;; create new designator with updated appended action-description
-    (lisp-fun append-place-action-designator ?action-designator ?arm
-              ?left-put-poses ?right-put-poses
-              ?left-grasp-poses ?right-grasp-poses
+    (lisp-fun append-place-action-designator ?action-designator ?arm ?left-poses ?right-poses
               ?updated-action-designator))
 
    (<- (action-grounding ?action-designator (move-arms-in-sequence ?left-poses ?right-poses))
