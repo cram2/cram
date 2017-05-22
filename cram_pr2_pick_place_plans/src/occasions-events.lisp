@@ -108,37 +108,10 @@ closed a gripper around an object."))
                          :format-control "OBJECT-GRIPPED event requires OBJECT."))))
 
 (defmethod cram-occasions-events:on-event object-in-hand ((event object-gripped))
-  (set-object-in-hand (event-arm event) (event-grasp event) (event-object event))
-
-  (let* ((robot (btr:get-robot-object))
-         (link (cut:var-value
-                '?ee-link
-                (car (prolog:prolog
-                      `(and (cram-robot-interfaces:robot ?robot)
-                            (cram-robot-interfaces:end-effector-link
-                             ?robot ,(event-arm event) ?ee-link))))))
-         (object-name (desig:object-identifier (desig:reference (event-object event))))
-         (btr-object (btr:object btr:*current-bullet-world* object-name)))
-    (when btr-object
-      (if (btr:object-attached robot btr-object)
-          (btr:attach-object robot btr-object link :loose t)
-          (btr:attach-object robot btr-object link :loose nil)))))
+  (set-object-in-hand (event-arm event) (event-grasp event) (event-object event)))
 
 (defmethod cram-occasions-events:on-event object-in-hand ((event object-released))
-  (delete-object-in-hand (event-arm event))
-
-  (let* ((robot (btr:get-robot-object))
-         (link (cut:var-value
-                '?ee-link
-                (car (prolog:prolog
-                      `(and (cram-robot-interfaces:robot ?robot)
-                            (cram-robot-interfaces:end-effector-link
-                             ?robot ,(event-arm event) ?ee-link))))))
-         (object-name (desig:object-identifier (desig:reference (event-object event))))
-         (btr-object (btr:object btr:*current-bullet-world* object-name)))
-    (when btr-object
-      (btr:detach-object robot btr-object link)
-      (btr:simulate btr:*current-bullet-world* 10))))
+  (delete-object-in-hand (event-arm event)))
 
 ;; (cram-occasions-events:on-event
 ;;            (make-instance 'object-gripped
