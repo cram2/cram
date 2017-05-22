@@ -62,8 +62,8 @@
   changes, i.e. whenever the robot has moved."))
 
 (defclass object-connection-event (event)
-  ((object
-    :initarg :object :reader event-object
+  ((object-name
+    :initarg :object-name :reader event-object-name
     :initform (error
                'simple-error
                :format-control "OBJECT-CONNECTION-EVENT requires an object."))
@@ -72,11 +72,30 @@
     :initform (error
                'simple-error
                :format-control "OBJECT-CONNECTION-EVENT requires a link."))
-   (side
-    :initarg :side :reader event-side
-    :initform nil))
+   (arm
+    :initarg :arm :reader event-arm
+    :initform (error
+               'simple-error
+               :format-control "OBJECT-CONNECTION-EVENT requires an arm.")))
   (:documentation "Base class for all events that indicate that a
   physical connection between an object and the robot changed."))
+
+;; (defclass object-connection-event (event)
+;;   ((object
+;;     :initarg :object :reader event-object
+;;     :initform (error
+;;                'simple-error
+;;                :format-control "OBJECT-CONNECTION-EVENT requires an object."))
+;;    (link
+;;     :initarg :link :reader event-link
+;;     :initform (error
+;;                'simple-error
+;;                :format-control "OBJECT-CONNECTION-EVENT requires a link."))
+;;    (side
+;;     :initarg :side :reader event-side
+;;     :initform nil))
+;;   (:documentation "Base class for all events that indicate that a
+;;   physical connection between an object and the robot changed."))
 
 (defclass object-attached (object-connection-event) ())
 

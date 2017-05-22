@@ -46,6 +46,9 @@
            #:link #:event-link #:side #:event-side
            #:opening-distance
 
+           ;; object connection event
+           #:event-arm #:event-object-name
+
            ;; occasion-declarations
            ;; Symbols used in plans and thus the execution trace.
            #:object-in-hand
