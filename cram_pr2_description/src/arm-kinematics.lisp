@@ -175,9 +175,11 @@
   (<- (robot-tool-frame pr2 :right "r_gripper_tool_frame"))
 
   (<- (gripper-link pr2 :left ?link)
+    (bound ?link)
     (lisp-fun search "l_gripper" ?link ?pos)
     (lisp-pred identity ?pos))
   (<- (gripper-link pr2 :right ?link)
+    (bound ?link)
     (lisp-fun search "r_gripper" ?link ?pos)
     (lisp-pred identity ?pos))
 
