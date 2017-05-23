@@ -45,6 +45,8 @@
   (setf cram-bullet-reasoning-belief-state:*robot-parameter* "robot_description")
   (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "no_urdf_for_kitchen")
 
+  (sem-map:get-semantic-map)
+
   (cram-occasions-events:clear-belief)
 
   (setf cram-tf:*tf-default-timeout* 2.0)
@@ -52,3 +54,9 @@
   (setf prolog:*break-on-lisp-errors* t))
 
 (roslisp-utilities:register-ros-init-function init-projection)
+
+(defmethod location-costmap:on-visualize-costmap opengl ((map location-costmap:location-costmap))
+  (btr:add-costmap-function-object map))
+
+(defmethod location-costmap:on-visualize-costmap-sample opengl ((point cl-transforms:3d-vector))
+  (btr:add-costmap-sample-object point))

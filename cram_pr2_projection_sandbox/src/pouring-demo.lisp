@@ -149,13 +149,12 @@
           (cpl:with-failure-handling
               ((pr2-fail:low-level-failure (e)
                  (roslisp:ros-warn (demo step-1) "~a" e)
-                 ;; (if (pr2-pp-plans::get-object-in-hand :right)
-                 ;;     (return)
-                 ;;     (cpl:do-retry bottle-grasp-tries
-                 ;;       (roslisp:ros-warn (demo step-1) "~a" e)
-                 ;;       (prepare)
-                 ;;       (cpl:retry)))
-                 ))
+                 (if (pr2-pp-plans::get-object-in-hand :right)
+                     (return)
+                     (cpl:do-retry bottle-grasp-tries
+                       (roslisp:ros-warn (demo step-1) "~a" e)
+                       (prepare)
+                       (cpl:retry)))))
 
             (step-1-inner)))))))
 
