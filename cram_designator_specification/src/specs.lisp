@@ -94,6 +94,12 @@
 
 (def-fact-group action-designator-specs (property)
 
+  (<- (property ?designator (?location-key ?location))
+    (lisp-pred typep ?designator desig:action-designator)
+    (member ?location-key (:target))
+    (property-member (?location-key ?location) ?designator)
+    (assert-type ?location desig:location-designator "ACTION SPEC:PROPERTY"))
+
   (<- (property ?designator (:arm ?value))
     (lisp-pred typep ?designator desig:action-designator)
     (property-member (:arm ?value) ?designator)
