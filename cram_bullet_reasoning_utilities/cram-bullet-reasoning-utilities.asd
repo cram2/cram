@@ -35,7 +35,6 @@
                cram-tf
                cram-bullet-reasoning
                cram-utilities
-               cram-plan-library
                cram-language
                cram-robot-interfaces)
   :components
@@ -45,5 +44,4 @@
      (:file "misc" :depends-on ("package"))
      (:file "objects-database" :depends-on ("package"))
      (:file "objects" :depends-on ("package" "objects-database"))
-     (:file "robot" :depends-on ("package"))
-     (:file "plan-library" :depends-on ("package"))))))
+     (:file "robot" :depends-on ("package"))))))

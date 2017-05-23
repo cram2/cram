@@ -44,8 +44,6 @@
    spawn-object kill-object kill-all-objects move-object move-object-onto
    object-instance object-pose object-exists item-exists
    assert-object-pose assert-object-pose-on
-   ;; plan-library.lisp
-   find-object-on-counter
    ;; robot.lisp
    robot-name move-robot move-robot-away park-robot
    ;; setup.lisp
