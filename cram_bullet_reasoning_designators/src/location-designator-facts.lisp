@@ -50,6 +50,8 @@
 
   (<- (visibility-costmap-size 3.0))
 
+  ;; poses reachable-from ?pose for the robot
+  ;; ?pose should usually be robot's current pose I suppose
   (<- (desig-costmap ?desig ?cm)
     (costmap ?cm)
     (desig-prop ?desig (:reachable-from ?pose))
@@ -62,6 +64,7 @@
                           (make-location-cost-function ?pose ?distance)
                           ?cm))
 
+  ;; spatial relation ON for bullet objects
   (<- (desig-costmap ?designator ?costmap)
     (desig-prop ?designator (:on ?object))
     (bullet-world ?world)

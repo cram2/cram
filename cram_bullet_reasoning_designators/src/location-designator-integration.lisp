@@ -51,9 +51,6 @@
  2 check-ik-solution
  "For designators to reach, checks if IK solutions are present for all
  poses in ")
-(disable-location-validation-function 'check-ik-solution)
-;; Currently, this validation function is disabled as it takes way to long
-;; to "theoretically" check for IK results for a certain robot pose.
 
 (register-location-validation-function
  10 validate-designator-solution
