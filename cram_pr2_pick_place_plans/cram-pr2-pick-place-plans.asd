@@ -58,10 +58,25 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "grasping" :depends-on ("package"))
+     (:file "utilities" :depends-on ("package"))
+
+     ;; actions such as REACHING, LIFTING, GRASPING, GRIPPING, LOOKING-AT, etc.
+     (:file "atomic-action-plans" :depends-on ("package" "utilities"))
+     (:file "atomic-action-designators" :depends-on ("package" "atomic-action-plans"))
+
+     ;; PICKING-UP and PLACING actions
      (:file "occasions-events" :depends-on ("package"))
-     (:file "designators-pick-and-place" :depends-on ("package" "grasping"))
-     (:file "costmaps" :depends-on ("package"))
-     (:file "pick-and-place" :depends-on ("package" "grasping"
-                                                    "designators-pick-and-place"
-                                                    "costmaps"))))))
+     (:file "pick-place-plans" :depends-on ("package"
+                                            "atomic-action-designators"
+                                            "occasions-events"))
+     (:file "grasping-knowledge" :depends-on ("package" "utilities"))
+     (:file "pick-place-designators" :depends-on ("package"
+                                                  "utilities"
+                                                  "pick-place-plans"
+                                                  "grasping-knowledge"))
+
+     ;; high-level plans such as DRIVE-AND-PICK-UP, PERCEIVE, etc.
+     (:file "high-level-plans" :depends-on ("package"
+                                            "utilities"
+                                            "atomic-action-designators"
+                                            "pick-place-designators"))))))
