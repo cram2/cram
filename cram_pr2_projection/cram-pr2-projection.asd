@@ -36,7 +36,7 @@
                cram-utilities
                cram-bullet-reasoning
                cram-tf
-               cram-robot-interfaces    ; for ROBOT predicate
+               cram-robot-interfaces    ; for ROBOT predicate and COMPUTE-IKS
                cl-transforms
                cl-transforms-stamped
                cl-tf

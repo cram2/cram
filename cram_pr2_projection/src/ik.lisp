@@ -154,7 +154,7 @@
                        'moveit_msgs-msg:moveiterrorcodes
                        error-code)))))))
 
-(defun call-ik-service (left-or-right cartesian-pose)
+(defun call-ik-service (left-or-right cartesian-pose &optional seed-state)
   (declare (type keyword left-or-right)
            (type cl-transforms-stamped:pose-stamped cartesian-pose))
   (let ((ik-link (get-ik-solver-link left-or-right)))
@@ -176,7 +176,8 @@
                                               cartesian-pose
                                               cram-tf:*robot-torso-frame*
                                               :use-zero-time t))
-                (:joint_state :robot_state :ik_request) (make-zero-seed-state left-or-right)
+                (:joint_state :robot_state :ik_request) (or seed-state
+                                                            (make-zero-seed-state left-or-right))
                 (:timeout :ik_request) 1.0)))
           (cond ((eql response-error-code
                       (roslisp-msg-protocol:symbol-code
@@ -232,3 +233,33 @@
                                             response-error-code))))))
     (simple-error (e)
       (format t "~a~%FK service call freaked out. Hmmm...~%" e))))
+
+
+(defmethod cram-robot-interfaces:compute-iks (pose-stamped
+                                              &key link-name arm robot-state seed-state
+                                                (pose-stamped-frame
+                                                 cram-tf:*robot-torso-frame*)
+                                                (tcp-in-ee-pose
+                                                 (cl-transforms:make-identity-pose)))
+  (declare (ignore link-name robot-state))
+  (let* ((tcp-pose (cl-transforms-stamped:transform-pose-stamped
+                    cram-tf:*transformer*
+                    :pose (cl-transforms-stamped:copy-pose-stamped
+                           pose-stamped :stamp 0.0)
+                    :target-frame pose-stamped-frame
+                    :timeout cram-tf:*tf-default-timeout*))
+         (goal-trans (cl-transforms:transform*
+                      (cl-transforms:reference-transform tcp-pose)
+                      (cl-transforms:transform-inv
+                       (cl-transforms:reference-transform tcp-in-ee-pose))))
+         (ee-pose (cl-transforms-stamped:make-pose-stamped
+                   (cl-transforms-stamped:frame-id tcp-pose)
+                   (cl-transforms-stamped:stamp tcp-pose)
+                   (cl-transforms:translation goal-trans)
+                   (cl-transforms:rotation goal-trans)))
+         (solution
+           (call-ik-service arm
+                            ee-pose
+                            seed-state)))
+    (when solution
+      (list solution))))
