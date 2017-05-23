@@ -146,39 +146,14 @@
     (property ?current-object-designator (:type ?object-type))
     ;; infer missing information
     (object-type-grasp ?object-type ?grasp)
-    (lisp-fun get-object-pose ?current-object-designator ?object-pose)
-    (-> (lisp-pred identity ?object-desig-pose) ; if object-pose is unknown take it from act-desig
-        (equal ?object-pose ?object-desig-pose)
-        (and (desig-prop ?action-designator (:at ?pose))
-             (-> (lisp-type ?pose designator)
-                 (desig-location-prop ?pose ?object-pose)
-                 (or (cram-tf:pose ?object-pose ?pose)
-                     (equal ?pose ?object-pose)))))
+    ;; take object-pose from action-designator target otherwise from object-designator pose
+    (-> (property ?action-designator (:target ?location))
+        (and (desig:current-designator ?location ?current-location-designator)
+             (desig:designator-groundings ?current-location-designator ?poses)
+             (member ?object-pose ?poses))
+        (lisp-fun get-object-pose ?current-object-designator ?object-pose))
     (lisp-fun get-object-manipulation-poses ?object-type ?object-pose :left ?grasp ?left-poses)
     (lisp-fun get-object-manipulation-poses ?object-type ?object-pose :right ?grasp ?right-poses)
     ;; create new designator with updated appended action-description
     (lisp-fun append-place-action-designator ?action-designator ?arm ?left-poses ?right-poses
-              ?updated-action-designator))
-
-   (<- (action-grounding ?action-designator (move-arms-in-sequence ?left-poses ?right-poses))
-    (or (desig-prop ?action-designator (:type :reaching))
-        (desig-prop ?action-designator (:type :lifting))
-        (desig-prop ?action-designator (:type :putting))
-        (desig-prop ?action-designator (:type :retracting)))
-    (once (or (desig-prop ?action-designator (:left ?left-poses))
-              (equal ?left-poses nil)))
-    (once (or (desig-prop ?action-designator (:right ?right-poses))
-              (equal ?right-poses nil))))
-
-  (<- (action-grounding ?action-designator (open-gripper ?left-or-right))
-    (desig-prop ?action-designator (:type :opening))
-    (desig-prop ?action-designator (:gripper ?left-or-right)))
-
-  (<- (action-grounding ?action-designator (grip ?left-or-right ?object-grip-effort))
-    (desig-prop ?action-designator (:type :gripping))
-    (desig-prop ?action-designator (:arm ?left-or-right))
-    (desig-prop ?action-designator (:effort ?object-grip-effort)))
-
-  (<- (action-grounding ?action-designator (look-at ?object-designator))
-    (desig-prop ?action-designator (:type :looking-at))
-    (desig-prop ?action-designator (:object ?object-designator))))
+              ?updated-action-designator)))
