@@ -50,4 +50,5 @@
            #:*transformer*
            #:*tf-default-timeout*
            #:*fixed-frame* #:*robot-base-frame* #:*odom-frame*
-           #:*robot-torso-frame* #:*robot-torso-joint*))
+           #:*robot-torso-frame* #:*robot-torso-joint*
+           #:*robot-left-tool-frame* #:*robot-right-tool-frame*))
