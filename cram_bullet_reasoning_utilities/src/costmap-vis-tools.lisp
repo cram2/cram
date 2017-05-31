@@ -30,14 +30,17 @@
 (in-package :bullet-reasoning-utilities)
 
 (defun visualize-designator-costmaps (designator)
-  (declare (type location-designator designator))
+  (declare (type desig:location-designator designator))
+  "Visualizes costmaps associated with a location designator."
+  (format t "[BTR-UTILS CM] Visualizing costmaps of ~a~%" designator)
   (mapcar
    (lambda (costmap-pair)
      (let ((costmap (cdar costmap-pair)))
-       (format t "cm: ~a~%" (location-costmap:generator-name
-                             (car (location-costmap:cost-functions costmap))))
+       (format t "[BTR-UTILS CM] Costmap named ~a~%"
+               (location-costmap:generator-name
+                (car (location-costmap:cost-functions costmap))))
        (location-costmap:get-cost-map costmap)
        (sleep 3)))
-   (force-ll (prolog `(and (desig-costmap ,designator ?cm)))))
-  (format t "cm: combined costmap~%")
-  (reference designator))
+   (force-ll (prolog `(and (location-costmap:desig-costmap ,designator ?cm)))))
+  (format t "[BTR-UTILS CM] Combined costmap~%")
+  (desig:reference designator))
