@@ -1,5 +1,5 @@
-cram_thorin
+cram_boxy
 ========
 
-CRAM packages related to the Thorin project, specifically, Boxy packages.
+
 

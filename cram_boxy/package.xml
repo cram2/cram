@@ -1,14 +1,12 @@
-<package format="2">
-  <name>cram_thorin_low_level</name>
+<package>
+  <name>cram_boxy</name>
   <version>0.0.0</version>
-  <description>
-     Low-level code for Boxy in Thorin project
-  </description>
+  <description>Metapackage for Boxy robot's code</description>
   <author>Gayane Kazhoyan</author>
   <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
   <license>BSD</license>
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <depend>roslisp</depend>
+  <run_depend>cram_boxy_description</run_depend>
 </package>
