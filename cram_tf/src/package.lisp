@@ -41,6 +41,7 @@
            #:flat-list->pose #:flat-list-w-first->pose
            #:ensure-pose-in-frame #:ensure-point-in-frame
            #:translate-pose #:rotate-pose
+           #:tf-frame-converged
            ;; prolog facts
            #:pose #:pose-stamped #:position #:orientation #:poses-equal
            #:location-pose

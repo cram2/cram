@@ -142,3 +142,19 @@
                       (t (error "[CRAM-TF:ROTATE-POSE] axis ~a not specified properly" axis)))
                     angle)
                    pose-orientation))))
+
+(defun tf-frame-converged (goal-frame goal-pose-stamped delta-xy delta-theta)
+  (let* ((pose-in-frame
+           (cl-transforms-stamped:transform-pose-stamped
+            cram-tf:*transformer*
+            :pose goal-pose-stamped
+            :target-frame goal-frame
+            :timeout cram-tf:*tf-default-timeout*
+            :use-current-ros-time t))
+         (goal-dist (max (abs (cl-transforms:x (cl-transforms:origin pose-in-frame)))
+                         (abs (cl-transforms:y (cl-transforms:origin pose-in-frame)))))
+         (goal-angle (cl-transforms:normalize-angle
+                      (cl-transforms:get-yaw
+                       (cl-transforms:orientation pose-in-frame)))))
+    (and (<= goal-dist delta-xy)
+         (<= (abs goal-angle) delta-theta))))
