@@ -52,6 +52,12 @@ or in general at compile-time.")
 
 (defvar *robot-torso-joint* nil)
 
+(defvar *robot-left-tool-frame* nil
+  "Tool frame of the left arm. Initialized from CRAM robot description.")
+(defvar *robot-right-tool-frame* nil
+  "Tool frame of the right arm. Initialized from CRAM robot desciption.")
+
+
 
 (defun init-tf ()
   (macrolet ((initialize-var (dynamic-var prolog-var)
@@ -78,15 +84,28 @@ or in general at compile-time.")
     (roslisp:ros-info (cram-tf init-tf)
                       "*tf-default-timeout* is ~a." *tf-default-timeout*)
 
-    (with-vars-bound (?base-frame ?torso-frame ?torso-joint ?odom-frame)
+    (with-vars-bound (?odom-frame)
         (lazy-car (prolog `(and (robot ?robot)
-                                (robot-base-frame ?robot ?base-frame)
-                                (robot-odom-frame ?robot ?odom-frame)
+                                (robot-odom-frame ?robot ?odom-frame))))
+      (initialize-var *odom-frame* ?odom-frame))
+
+    (with-vars-bound (?base-frame)
+        (lazy-car (prolog `(and (robot ?robot)
+                                (robot-base-frame ?robot ?base-frame))))
+      (initialize-var *robot-base-frame* ?base-frame))
+
+    (with-vars-bound (?torso-frame ?torso-joint)
+        (lazy-car (prolog `(and (robot ?robot)
                                 (robot-torso-link-joint ?robot ?torso-frame ?torso-joint))))
-      (initialize-var *robot-base-frame* ?base-frame)
       (initialize-var *robot-torso-frame* ?torso-frame)
-      (initialize-var *robot-torso-joint* ?torso-joint)
-      (initialize-var *odom-frame* ?odom-frame))))
+      (initialize-var *robot-torso-joint* ?torso-joint))
+
+    (with-vars-bound (?left-tool-frame ?right-tool-frame)
+        (lazy-car (prolog `(and (robot ?robot)
+                                (robot-tool-frame ?robot :left ?left-tool-frame)
+                                (robot-tool-frame ?robot :right ?right-tool-frame))))
+      (initialize-var *robot-left-tool-frame* ?left-tool-frame)
+      (initialize-var *robot-right-tool-frame* ?right-tool-frame))))
 
 (defun destroy-tf ()
   (setf *transformer* nil)
