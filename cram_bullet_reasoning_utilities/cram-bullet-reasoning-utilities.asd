@@ -27,21 +27,23 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
 (defsystem cram-bullet-reasoning-utilities
-  :author "eris"
+  :author "Gayane Kazhoyan"
   :license "BSD"
   :depends-on (cram-designators
-               cram-location-costmap
                cram-prolog
-               cram-tf
-               cram-bullet-reasoning
                cram-utilities
                cram-language
-               cram-robot-interfaces)
+
+               cram-location-costmap
+               cram-tf
+               cram-robot-interfaces
+
+               cram-bullet-reasoning)
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "misc" :depends-on ("package"))
+     (:file "costmap-vis-tools" :depends-on ("package"))
      (:file "objects-database" :depends-on ("package"))
      (:file "objects" :depends-on ("package" "objects-database"))
      (:file "robot" :depends-on ("package"))))))
