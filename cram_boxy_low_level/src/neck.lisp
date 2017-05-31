@@ -10,10 +10,9 @@
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
-;;;     * Neither the name of the Institute for Artificial Intelligence/
-;;;       Universitaet Bremen nor the names of its contributors may be used to
-;;;       endorse or promote products derived from this software without
-;;;       specific prior written permission.
+;;;     * Neither the name of Willow Garage, Inc. nor the names of its
+;;;       contributors may be used to endorse or promote products derived from
+;;;       this software without specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,4 +26,24 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :thorin-ll)
+(in-package :boxy-ll)
+
+(defvar *neck-configuration-publisher* nil "ROS publisher for MoveIT desired_joints message.")
+
+(defun init-neck-configuration-publisher ()
+  (setf *neck-configuration-publisher*
+        (roslisp:advertise "desired_joints" "boxy_moveit_config/pose_w_joints")))
+
+(defun destroy-neck-configuration-publisher ()
+  (setf *neck-configuration-publisher* nil))
+
+(roslisp-utilities:register-ros-init-function init-neck-configuration-publisher)
+(roslisp-utilities:register-ros-cleanup-function destroy-neck-configuration-publisher)
+
+(defun move-neck-joint (joint-configuration)
+  (declare (type list joint-configuration))
+  (roslisp::publish *neck-configuration-publisher*
+                    (roslisp::make-message
+                     'boxy_moveit_config:pose_w_joints
+                     :joint_values (map 'vector #'identity joint-configuration))))
+
