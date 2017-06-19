@@ -32,4 +32,4 @@
 (defpackage cram-boxy-description
   (:nicknames #:boxy-descr)
   (:use #:common-lisp #:cram-prolog #:cram-robot-interfaces)
-  (:export))
+  (:export #:boxy))
