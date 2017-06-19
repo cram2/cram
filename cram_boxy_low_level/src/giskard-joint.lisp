@@ -31,26 +31,27 @@
 
 (defparameter *giskard-convergence-delta-joint* 0.17 "in radiants, about 10 degrees")
 
-(defun make-giskard-joint-convergence (arm convergence-delta-joint)
-  (let ((prefix (ecase arm
-                  (:right "r")
-                  (:left "l"))))
-    (map 'vector (lambda (error-name)
-                   (roslisp:make-message
-                    "giskard_msgs/semanticfloat64"
-                    :semantics (concatenate 'string prefix error-name)
-                    :value convergence-delta-joint))
-         '("_shoulder_pan_error"
-           "_shoulder_lift_error"
-           "_upper_arm_roll_error"
-           "_elbow_flex_error"
-           "_forearm_roll_error"
-           "_wrist_flex_error"
-           "_wrist_roll_error"))))
+;; (defun make-giskard-joint-convergence (arm convergence-delta-joint)
+;;   (let ((prefix (ecase arm
+;;                   (:right "right")
+;;                   (:left "left"))))
+;;     (map 'vector (lambda (error-name)
+;;                    (roslisp:make-message
+;;                     "giskard_msgs/semanticfloat64"
+;;                     :semantics (concatenate 'string prefix error-name)
+;;                     :value convergence-delta-joint))
+;;          '("_arm_0_error"
+;;            "_arm_1_error"
+;;            "_arm_2_error"
+;;            "_arm_3_error"
+;;            "_arm_4_error"
+;;            "_arm_5_error"
+;;            "_arm_6_error"))))
 
 (defun make-giskard-joint-action-goal (left-configuration right-configuration
                                        &optional convergence-delta-joint)
-  (declare (type list left-configuration right-configuration))
+  (declare (type list left-configuration right-configuration)
+           (ignore convergence-delta-joint))
   (roslisp:make-message
    'giskard_msgs-msg:WholeBodyGoal
    (:type :command)
@@ -59,18 +60,26 @@
    (roslisp:symbol-code 'giskard_msgs-msg:armcommand :joint_goal)
    (:goal_configuration :left_ee :command)
    (apply #'vector left-configuration)
-   (:convergence_thresholds :left_ee :command)
-   (if convergence-delta-joint
-       (make-giskard-joint-convergence :left convergence-delta-joint)
-       (vector))
+   ;; (:convergence_thresholds :left_ee :command)
+   ;; (if convergence-delta-joint
+   ;;     (make-giskard-joint-convergence :left convergence-delta-joint)
+   ;;     (vector))
    (:type :right_ee :command)
    (roslisp:symbol-code 'giskard_msgs-msg:armcommand :joint_goal)
    (:goal_configuration :right_ee :command)
    (apply #'vector right-configuration)
-   (:convergence_thresholds :right_ee :command)
-   (if convergence-delta-joint
-       (make-giskard-joint-convergence :right convergence-delta-joint)
-       (vector))))
+   ;; (:convergence_thresholds :right_ee :command)
+   ;; (if convergence-delta-joint
+   ;;     (make-giskard-joint-convergence :right convergence-delta-joint)
+   ;;     (vector))
+   ))
+
+(defun get-arm-joint-states (arm)
+  (joint-positions
+   (cut:var-value '?joints
+                  (cut:lazy-car
+                   (prolog:prolog
+                    `(cram-robot-interfaces:arm-joints boxy-descr:boxy ,arm ?joints))))))
 
 (defun ensure-giskard-joint-input-parameters (left-goal right-goal)
   (flet ((ensure-giskard-joint-goal (goal arm)
@@ -87,7 +96,7 @@
                                           goal-configuration-left goal-configuration-right
                                           convergence-delta-joint)
   (when (eql status :timeout)
-    (cpl:fail 'actionlib-action-timed-out :description "Giskard action timed out"))
+    (cpl:fail 'pr2-fail:actionlib-action-timed-out :description "Giskard action timed out"))
   (when (eql status :preempted)
     (roslisp:ros-warn (low-level giskard) "Giskard action preempted.")
     (return-from ensure-giskard-joint-goal-reached))
