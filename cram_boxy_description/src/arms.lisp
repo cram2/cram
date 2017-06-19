@@ -29,11 +29,41 @@
 
 (in-package :boxy-descr)
 
-(def-fact-group boxy-arm-facts (end-effector-link
-                                robot-tool-frame)
+(def-fact-group boxy-arm-facts (end-effector-link robot-tool-frame
+                                                  arm-joints arm-links)
 
   (<- (end-effector-link boxy :left "left_arm_7_link"))
   (<- (end-effector-link boxy :right "right_arm_7_link"))
 
   (<- (robot-tool-frame boxy :left "left_gripper_tool_frame"))
-  (<- (robot-tool-frame boxy :right "right_gripper_tool_frame")))
+  (<- (robot-tool-frame boxy :right "right_gripper_tool_frame"))
+
+  (<- (arm-joints boxy :left ("left_arm_0_joint"
+                              "left_arm_1_joint"
+                              "left_arm_2_joint"
+                              "left_arm_3_joint"
+                              "left_arm_4_joint"
+                              "left_arm_5_joint"
+                              "left_arm_6_joint")))
+  (<- (arm-joints boxy :right ("right_arm_0_joint"
+                               "right_arm_1_joint"
+                               "right_arm_2_joint"
+                               "right_arm_3_joint"
+                               "right_arm_4_joint"
+                               "right_arm_5_joint"
+                               "right_arm_6_joint")))
+
+  (<- (arm-links boxy :left ("left_arm_0_link"
+                             "left_arm_1_link"
+                             "left_arm_2_link"
+                             "left_arm_3_link"
+                             "left_arm_4_link"
+                             "left_arm_5_link"
+                             "left_arm_6_link")))
+  (<- (arm-links boxy :right ("right_arm_0_link"
+                              "right_arm_1_link"
+                              "right_arm_2_link"
+                              "right_arm_3_link"
+                              "right_arm_4_link"
+                              "right_arm_5_link"
+                              "right_arm_6_link"))))
