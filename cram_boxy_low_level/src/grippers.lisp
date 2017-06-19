@@ -32,13 +32,13 @@
   "ROS publisher for Boxy gripper driver on goal_position message.")
 
 (defun init-gripper-position-publishers ()
-  (setf (getf *neck-configuration-publisher* :left)
+  (setf (getf *gripper-publishers* :left)
         (roslisp:advertise "left_arm_gripper/goal_position" "iai_wsg_50_msgs/PositionCmd"))
-  (setf (getf *neck-configuration-publisher* :right)
+  (setf (getf *gripper-publishers* :right)
         (roslisp:advertise "right_arm_gripper/goal_position" "iai_wsg_50_msgs/PositionCmd")))
 
 (defun destroy-gripper-position-publishers ()
-  (setf *neck-configuration-publisher* '(:left nil :right nil)))
+  (setf *gripper-publishers* '(:left nil :right nil)))
 
 (roslisp-utilities:register-ros-init-function init-gripper-position-publishers)
 (roslisp-utilities:register-ros-cleanup-function destroy-gripper-position-publishers)
