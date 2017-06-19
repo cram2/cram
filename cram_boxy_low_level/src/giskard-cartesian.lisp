@@ -32,20 +32,20 @@
 (defparameter *giskard-convergence-delta-xy* 0.005 "in meters")
 (defparameter *giskard-convergence-delta-theta* 0.1 "in radiants, about 6 degrees")
 
-(defun make-giskard-cartesian-convergence (arm
-                                           convergence-delta-xy convergence-delta-theta)
-  (let ((prefix (ecase arm
-                  (:right "r")
-                  (:left "l"))))
-    (vector
-     (roslisp:make-message
-      "giskard_msgs/semanticfloat64"
-      :semantics (concatenate 'string prefix "_trans_error")
-      :value convergence-delta-xy)
-     (roslisp:make-message
-      "giskard_msgs/semanticfloat64"
-      :semantics (concatenate 'string prefix "_rot_error")
-      :value convergence-delta-theta))))
+;; (defun make-giskard-cartesian-convergence (arm
+;;                                            convergence-delta-xy convergence-delta-theta)
+;;   (let ((prefix (ecase arm
+;;                   (:right "r")
+;;                   (:left "l"))))
+;;     (vector
+;;      (roslisp:make-message
+;;       "giskard_msgs/semanticfloat64"
+;;       :semantics (concatenate 'string prefix "_trans_error")
+;;       :value convergence-delta-xy)
+;;      (roslisp:make-message
+;;       "giskard_msgs/semanticfloat64"
+;;       :semantics (concatenate 'string prefix "_rot_error")
+;;       :value convergence-delta-theta))))
 
 (defun make-giskard-cartesian-action-goal (left-pose right-pose
                                            convergence-delta-xy convergence-delta-theta)
@@ -90,7 +90,7 @@
                                               goal-frame-left goal-frame-right
                                               convergence-delta-xy convergence-delta-theta)
   (when (eql status :timeout)
-    (cpl:fail 'actionlib-action-timed-out :description "Giskard action timed out"))
+    (cpl:fail 'pr2-fail:actionlib-action-timed-out :description "Giskard action timed out"))
   (when (eql status :preempted)
     (roslisp:ros-warn (low-level giskard) "Giskard action preempted.")
     (return-from ensure-giskard-cartesian-goal-reached))

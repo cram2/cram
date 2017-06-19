@@ -33,6 +33,6 @@
   (make-simple-action-client
    'giskard
    "controller_action_server/move" "giskard_msgs/WholeBodyAction"
-   10))
+   60))
 
 (roslisp-utilities:register-ros-init-function make-giskard-action-client)
