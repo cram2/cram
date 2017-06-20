@@ -40,7 +40,7 @@
                cl-transforms
                cram-tf
                cram-pr2-failures
-               ;; for reading out tool frame names
+               ;; for reading out arm joint names
                cram-robot-interfaces
                cram-utilities
                cram-prolog
@@ -49,7 +49,8 @@
                giskard_msgs-msg
                move_base_msgs-msg
                visualization_msgs-msg
-               boxy_moveit_config
+               iai_wsg_50_msgs-msg
+               iai_control_msgs-msg ; neck message
                )
   :components
   ((:module "src"

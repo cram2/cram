@@ -32,7 +32,7 @@
 
 (defun init-neck-configuration-publisher ()
   (setf *neck-configuration-publisher*
-        (roslisp:advertise "desired_joints" "boxy_moveit_config/pose_w_joints")))
+        (roslisp:advertise "desired_joints" "iai_control_msgs/pose_w_joints")))
 
 (defun destroy-neck-configuration-publisher ()
   (setf *neck-configuration-publisher* nil))
@@ -42,8 +42,9 @@
 
 (defun move-neck-joint (joint-configuration)
   (declare (type list joint-configuration))
+  "Neck has 6 joints, so as `joint-configuration' use a list of length 6."
   (roslisp::publish *neck-configuration-publisher*
                     (roslisp::make-message
-                     'boxy_moveit_config:pose_w_joints
+                     'iai_control_msgs-msg:pose_w_joints
                      :joint_values (map 'vector #'identity joint-configuration))))
 
