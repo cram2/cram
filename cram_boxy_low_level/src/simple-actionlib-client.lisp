@@ -125,9 +125,11 @@ do their magic invisibly in the background.
 
 
 (defun destroy-simple-action-clients ()
+  (setf *action-timeouts* (make-hash-table))
+  (setf *action-ros-names* (make-hash-table))
+  (setf *action-ros-types* (make-hash-table))
   (loop for client-name being the hash-keys in *action-clients*
         do (setf (gethash client-name *action-clients*) nil))
-  (setf *action-clients* nil)
-  (setf *action-timeouts* nil))
+  (setf *action-clients* (make-hash-table)))
 
 (roslisp-utilities:register-ros-cleanup-function destroy-simple-action-clients)
