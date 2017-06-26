@@ -43,7 +43,7 @@
 (roslisp-utilities:register-ros-init-function init-gripper-position-publishers)
 (roslisp-utilities:register-ros-cleanup-function destroy-gripper-position-publishers)
 
-(defun move-gripper-joint (&key goal-position left-or-right effort)
+(defun move-gripper-joint (&key goal-position action-type left-or-right effort)
   (declare (type (or keyword list) left-or-right)
            (type number goal-position effort))
   (roslisp:publish

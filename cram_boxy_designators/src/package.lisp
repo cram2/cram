@@ -32,4 +32,10 @@
 (defpackage cram-boxy-designators
   (:nicknames #:boxy-desig)
   (:use #:common-lisp #:cram-prolog #:cram-designator-specification)
-  (:export))
+  (:export
+   ;; motions
+   #:move-base
+   #:move-neck
+   #:move-gripper-joint
+   #:move-tcp
+   #:move-arm-joints))
