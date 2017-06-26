@@ -36,3 +36,6 @@
   (:documentation "Failure thrown by low-level modules: robot or projection PMs.")
   (:report (lambda (condition stream)
              (format stream (error-description condition)))))
+
+(define-condition actionlib-action-timed-out (low-level-failure) ()
+  (:documentation "Actionlib action timeout was reached"))

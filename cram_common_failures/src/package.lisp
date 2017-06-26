@@ -35,6 +35,7 @@
   (:export
    ;; common
    #:low-level-failure
+   #:actionlib-action-timed-out
    ;; manipulation
    #:manipulation-low-level-failure
    #:gripping-failed
