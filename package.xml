@@ -18,6 +18,6 @@
   <depend>cl_transforms</depend>
   <depend>cl_transforms_stamped</depend>
   <depend>cram_tf</depend>
-  <depend>cram_pr2_failures</depend>
+  <depend>cram_common_failures</depend>
   <depend>cram_designators</depend>
 </package>

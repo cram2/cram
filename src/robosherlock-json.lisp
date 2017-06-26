@@ -100,10 +100,10 @@
 
 (defun ensure-robosherlock-result (result quantifier)
   (unless result
-    (cpl:fail 'pr2-fail:low-level-failure :description "robosherlock didn't answer"))
+    (cpl:fail 'common-fail:low-level-failure :description "robosherlock didn't answer"))
   (let ((number-of-objects (length result)))
     (when (< number-of-objects 1)
-      (cpl:fail 'pr2-fail:perception-object-not-found :description "couldn't find the object"))
+      (cpl:fail 'common-fail:perception-object-not-found :description "couldn't find the object"))
     (etypecase quantifier
       (keyword (ecase quantifier
                  ((:a :an) (parse-json-result (aref result 0))
@@ -111,12 +111,12 @@
                   )
                  (:the (if (= number-of-objects 1)
                            (parse-json-result (aref result 0))
-                           (cpl:fail 'pr2-fail:perception-low-level-failure
+                           (cpl:fail 'common-fail:perception-low-level-failure
                                      :description "There was more than one of THE object")))
                  (:all (map 'list #'parse-json-result result))))
       (number (if (= number-of-objects quantifier)
                   (map 'list #'parse-json-result result)
-                  (cpl:fail 'pr2-fail:perception-low-level-failure
+                  (cpl:fail 'common-fail:perception-low-level-failure
                             :description (format nil "perception returned ~a objects ~
                                                       although there should've been ~a"
                                                  number-of-objects quantifier)))))))

@@ -40,7 +40,7 @@
                cl-transforms
                cl-transforms-stamped
                cram-tf
-               cram-pr2-failures
+               cram-common-failures
                cram-designators)
   :components
   ((:module "src"
