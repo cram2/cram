@@ -1,0 +1,12 @@
+<package format="2">
+  <name>cram_boxy_plans</name>
+  <version>0.0.0</version>
+  <description>
+    CRAM plans for Boxy
+  </description>
+  <author>Gayane Kazhoyan</author>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+</package>
