@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-fail)
+(in-package :common-fail)
 
 (define-condition low-level-failure (cpl:simple-plan-failure)
   ((description :initarg :description
