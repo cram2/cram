@@ -33,8 +33,7 @@
 
   :depends-on (cram-process-modules
                cram-designators
-               cram-prolog
-               )
+               cram-prolog)
   :components
   ((:module "src"
     :components

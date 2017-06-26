@@ -35,7 +35,7 @@
   (destructuring-bind (command argument)
       (desig:reference motion-designator)
     (ecase command
-      (boxy-designators:go
+      (boxy-designators:move-base
        (boxy-ll:move-base-nav-pcontroller :goal-pose argument)))))
 
 ;;;;;;;;;;;;;;;;;;;; NECK ;;;;;;;;;;;;;;;;;;;;;;;;
@@ -44,7 +44,7 @@
   (destructuring-bind (command argument)
       (desig:reference motion-designator)
     (ecase command
-      (boxy-designators:look-at
+      (boxy-designators:move-neck
        (boxy-ll:move-neck-joint :goal-configuration argument)))))
 
 ;;;;;;;;;;;;;;;;;;;; GRIPPERS ;;;;;;;;;;;;;;;;;;;;;;;;
@@ -53,7 +53,7 @@
   (destructuring-bind (command action-type which-gripper &optional position effort)
       (desig:reference motion-designator)
     (ecase command
-      (boxy-designators:gripper-action
+      (boxy-designators:move-gripper-joint
        (boxy-ll:move-gripper-joint :goal-position position
                                    :left-or-right which-gripper
                                    :effort effort)))))
