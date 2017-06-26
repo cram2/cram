@@ -40,11 +40,11 @@
 (roslisp-utilities:register-ros-init-function init-neck-configuration-publisher)
 (roslisp-utilities:register-ros-cleanup-function destroy-neck-configuration-publisher)
 
-(defun move-neck-joint (joint-configuration)
-  (declare (type list joint-configuration))
-  "Neck has 6 joints, so as `joint-configuration' use a list of length 6."
+(defun move-neck-joint (&key goal-configuration)
+  (declare (type list goal-configuration))
+  "Neck has 6 joints, so as `goal-configuration' use a list of length 6."
   (roslisp::publish *neck-configuration-publisher*
                     (roslisp::make-message
                      'iai_control_msgs-msg:pose_w_joints
-                     :joint_values (map 'vector #'identity joint-configuration))))
+                     :joint_values (map 'vector #'identity goal-configuration))))
 
