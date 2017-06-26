@@ -105,7 +105,7 @@
 
 (defun prepare ()
   (cpl:with-failure-handling
-          ((pr2-fail:low-level-failure (e)
+          ((common-fail:low-level-failure (e)
              (roslisp:ros-warn (demo step-0) "~a" e)
              (return)))
 
@@ -147,7 +147,7 @@
                  (pr2-pp-plans::drive-and-pick-up-plan ?perceived-bottle-desig :?arm :right))))
         (cpl:with-retry-counters ((bottle-grasp-tries 2))
           (cpl:with-failure-handling
-              ((pr2-fail:low-level-failure (e)
+              ((common-fail:low-level-failure (e)
                  (roslisp:ros-warn (demo step-1) "~a" e)
                  (if (pr2-pp-plans::get-object-in-hand :right)
                      (return)
