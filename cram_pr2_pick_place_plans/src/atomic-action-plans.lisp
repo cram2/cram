@@ -63,7 +63,7 @@
     (mapc (lambda (?left-pose ?right-pose)
 
             (cpl:with-failure-handling
-                ((pr2-fail:manipulation-low-level-failure (e) ; ignore failures
+                ((common-fail:manipulation-low-level-failure (e) ; ignore failures
                    (roslisp:ros-warn (pick-and-place move-arms-in-sequence) "~a~%Ignoring." e)
                    (return)))
 
@@ -78,7 +78,7 @@
         (?right-pose (car (last right-poses))))
 
     (cpl:with-failure-handling
-        ((pr2-fail:manipulation-low-level-failure (e) ; propagate failures up
+        ((common-fail:manipulation-low-level-failure (e) ; propagate failures up
            (roslisp:ros-error (pick-and-place reach) "~a~%Failing." e)
            ;; (roslisp:ros-warn (pick-and-place reach) "~a~%Ignoring." e)
            ;; (return)
@@ -90,7 +90,7 @@
 
 (cpl:def-cram-function open-gripper (?left-or-right)
   (cpl:with-failure-handling
-      ((pr2-fail:low-level-failure (e) ; ignore failures
+      ((common-fail:low-level-failure (e) ; ignore failures
          (roslisp:ros-warn (pick-and-place open-gripper) "~a" e)
          (return)))
     (exe:perform
@@ -102,11 +102,11 @@
 (cpl:def-cram-function grip (?left-or-right ?effort)
   (cpl:with-retry-counters ((grasping-retries 1))
     (cpl:with-failure-handling
-        ((pr2-fail:low-level-failure (e) ; regrasp once then propagate up
+        ((common-fail:low-level-failure (e) ; regrasp once then propagate up
            (cpl:do-retry grasping-retries
              (roslisp:ros-warn (pick-and-place grip) "~a" e)
              (cpl:retry))
-           (cpl:fail 'pr2-fail:low-level-failure)))
+           (cpl:fail 'common-fail:low-level-failure)))
       (exe:perform
          (desig:a motion
                   (type gripping)

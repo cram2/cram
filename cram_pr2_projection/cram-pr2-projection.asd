@@ -44,7 +44,7 @@
                cram-plan-occasions-events
                cram-pr2-description ; to get kinematic structure names
                cram-pr2-designators
-               cram-pr2-failures
+               cram-common-failures
                cram-process-modules
                alexandria ; for CURRY in low-level perception
                )

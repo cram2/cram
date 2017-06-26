@@ -51,7 +51,7 @@
                giskard_msgs-msg
                giskard_msgs-srv
 
-               cram-pr2-failures
+               cram-common-failures
                ;; cram-pr2-process-modules ; only needed when running on real robot
 
                cram-semantic-map-costmap

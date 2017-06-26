@@ -145,7 +145,7 @@
 
 (defun move-pr2-arms-out-of-sight (&key (arm '(:left :right)) flipped)
   (cpl:with-failure-handling
-      ((pr2-fail:low-level-failure (e)
+      ((common-fail:low-level-failure (e)
          (declare (ignore e))
          (return)))
     (unless (listp arm)

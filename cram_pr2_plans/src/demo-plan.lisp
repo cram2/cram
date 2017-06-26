@@ -31,7 +31,7 @@
 
 (defun step-0-prepare ()
   (cpl:with-failure-handling
-      ((pr2-fail:low-level-failure (e)
+      ((common-fail:low-level-failure (e)
          (roslisp:ros-warn (demo step-0) "~a" e)
          (return)))
 
@@ -54,7 +54,7 @@
              (drive-and-pick-up-plan ?perceived-bottle-desig :?arm :right))))
     (cpl:with-retry-counters ((bottle-grasp-tries 2))
       (cpl:with-failure-handling
-          ((pr2-fail:low-level-failure (e)
+          ((common-fail:low-level-failure (e)
              (roslisp:ros-warn (demo step-1) "~a" e)
              (if (get-object-in-hand :right)
                  (return)
@@ -81,7 +81,7 @@
 
     (cpl:with-retry-counters ((bottle-grasp-tries 2))
       (cpl:with-failure-handling
-          ((pr2-fail:low-level-failure (e)
+          ((common-fail:low-level-failure (e)
              (roslisp:ros-warn (demo step-2) "~a" e)
              (if (get-object-in-hand :left)
                  (return)
@@ -93,7 +93,7 @@
 
 (defun step-3-pour-two-arms ()
   (cpl:with-failure-handling
-      ((pr2-fail:low-level-failure (e)
+      ((common-fail:low-level-failure (e)
          (roslisp:ros-warn (demo step-3) "~a" e)
          (return)))
 
@@ -122,7 +122,7 @@
 
 (defun step-4-place-cup ()
   (cpl:with-failure-handling
-      ((pr2-fail:low-level-failure (e)
+      ((common-fail:low-level-failure (e)
          (roslisp:ros-warn (demo step-4) "~a" e)
          (return)))
 
@@ -130,7 +130,7 @@
 
 (defun step-5-drive-to-the-left ()
   (cpl:with-failure-handling
-      ((pr2-fail:low-level-failure (e)
+      ((common-fail:low-level-failure (e)
          (roslisp:ros-warn (demo step-5) "~a" e)
          (return)))
 
@@ -151,7 +151,7 @@
                                                  :object-chosing-function
                                                  #'chose-higher-cup)))
              (when (< (desig:desig-prop-value ?second-cup-to-pour :bb-dist-to-plane) 0.1)
-               (cpl:fail 'pr2-fail:low-level-failure
+               (cpl:fail 'common-fail:low-level-failure
                          :description "couldn't perceive cup in hand"))
              ;; drive towards second cup
              (drive-towards-object-plan ?second-cup-to-pour :?arm :right)
@@ -167,7 +167,7 @@
                                       (pour-volume 0.0002)))))))
     (cpl:with-retry-counters ((second-pour-tries 20))
       (cpl:with-failure-handling
-          ((pr2-fail:low-level-failure (e)
+          ((common-fail:low-level-failure (e)
              (roslisp:ros-warn (demo step-6) "~a" e)
              (cpl:do-retry second-pour-tries
                (roslisp:ros-warn (demo step-6) "Retrying")
@@ -178,7 +178,7 @@
 
 (defun step-7-place-bottle ()
   (cpl:with-failure-handling
-      ((pr2-fail:low-level-failure (e)
+      ((common-fail:low-level-failure (e)
          (roslisp:ros-warn (demo step-5) "~a" e)
          (return)))
 
@@ -186,7 +186,7 @@
 
 (defun step-8-finalize ()
   (cpl:with-failure-handling
-      ((pr2-fail:low-level-failure (e)
+      ((common-fail:low-level-failure (e)
          (declare (ignore e))
          (return)))
     (cpl:par

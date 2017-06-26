@@ -85,7 +85,7 @@
   (when (eql status :timeout)
     (cpl:fail 'actionlib-action-timed-out :description "PTU action timed out."))
   (unless (eql status :succeeded)
-    (cpl:fail 'pr2-fail:low-level-failure :description "PTU action did not succeed."))
+    (cpl:fail 'common-fail:low-level-failure :description "PTU action did not succeed."))
   ;; todo: would be nice to check if the point is actually visible from the
   ;; end configuration
   ;; using looking-at or point-head-at from cram_3d_world

@@ -35,7 +35,7 @@
                    (object-chosing-function #'identity))
   (cpl:with-retry-counters ((perceive-retries 5))
     (cpl:with-failure-handling
-        ((pr2-fail:perception-object-not-found (e)
+        ((common-fail:perception-object-not-found (e)
            (cpl:do-retry perceive-retries
              (roslisp:ros-warn (pick-and-place perceive) "~a" e)
              (cpl:retry))))

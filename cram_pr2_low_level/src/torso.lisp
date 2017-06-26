@@ -85,7 +85,7 @@
     (cpl:fail 'actionlib-action-timed-out :description "Torso action timed out"))
   (let ((current-position (car (joint-positions (list cram-tf:*robot-torso-joint*)))))
    (unless (values-converged current-position goal-position convergence-delta)
-     (cpl:fail 'pr2-fail:low-level-failure
+     (cpl:fail 'common-fail:low-level-failure
                :description (format nil "Torso action did not converge to the goal:
 goal: ~a, current: ~a, delta: ~a." goal-position current-position convergence-delta)))))
 

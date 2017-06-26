@@ -136,7 +136,7 @@
 
     ;; check if objects were found
     (unless name-pose-type-lists
-      (cpl:fail 'pr2-fail:perception-object-not-found :object input-designator
+      (cpl:fail 'common-fail:perception-object-not-found :object input-designator
                 :description (format nil "Could not find object ~a." input-designator)))
 
     ;; Extend the input-designator with the information found through visibility check:
@@ -188,7 +188,7 @@
        (cut:with-vars-bound (?object-name ?ee-link)
            solution-bindings
          (if (cut:is-var ?object-name)
-             (cpl:fail 'pr2-fail:gripping-failed :description "There was no object to grip")
+             (cpl:fail 'common-fail:gripping-failed :description "There was no object to grip")
              (if (cut:is-var ?ee-link)
                  (error "[GRIPPER LOW-LEVEL] Couldn't find robot's EE link.")
                  (cram-occasions-events:on-event
@@ -275,7 +275,7 @@
              (let ((ik-solution-msg (call-ik-service arm ee-pose ; seed-state ; is todo
                                                      )))
                (unless ik-solution-msg
-                 (cpl:fail 'pr2-fail:manipulation-pose-unreachable
+                 (cpl:fail 'common-fail:manipulation-pose-unreachable
                            :description (format nil "~a is unreachable for EE." ee-pose)))
                (map 'list #'identity
                     (roslisp:msg-slot-value ik-solution-msg 'sensor_msgs-msg:position))))))
