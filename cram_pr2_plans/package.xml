@@ -26,6 +26,7 @@
   <depend>cram_math</depend>
   <depend>cram_beliefstate</depend>
   <depend>giskard_msgs</depend>
+  <depend>cram_common_failures</depend>
   <depend>cram_semantic_map_costmap</depend>
   <depend>cram_robot_pose_gaussian_costmap</depend>
   <depend>pr2_reachability_costmap</depend>

@@ -199,7 +199,7 @@
 (defun go-to-initial-pouring-configuration-plan ()
   ;;  pouring initial configuration
   (cpl:with-failure-handling
-      ((pr2-fail:low-level-failure (e)
+      ((common-fail:low-level-failure (e)
          (declare (ignore e))
          (return)))
     (let ((?left-initial-configuration *pr2-left-arm-pouring-joint-positions*)

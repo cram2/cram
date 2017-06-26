@@ -48,7 +48,7 @@
                cram-plan-occasions-events
                cram-bullet-reasoning ; for event handling with belief state
 
-               cram-pr2-failures
+               cram-common-failures
 
                ;; pr2-reachability-costmap ; doesn't work somehow
                cram-semantic-map-costmap

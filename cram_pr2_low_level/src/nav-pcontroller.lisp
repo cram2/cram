@@ -72,7 +72,7 @@
     (cpl:fail 'actionlib-action-timed-out :description "Nav-pcontroller action timed out"))
   (unless (tf-frame-converged cram-tf:*robot-base-frame* goal-pose
                               convergence-delta-xy convergence-delta-theta)
-    (cpl:fail 'pr2-fail:navigation-low-level-failure
+    (cpl:fail 'common-fail:navigation-low-level-failure
               :description (format nil "Nav-pcontroller did not converge to goal:
 ~a should have been at ~a with delta-xy of ~a and delta-angle of ~a."
                                    cram-tf:*robot-base-frame* goal-pose

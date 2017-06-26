@@ -45,7 +45,7 @@
                cram-prolog
                cram-robot-interfaces
                cram-pr2-description ; for tool frames
-               cram-pr2-failures
+               cram-common-failures
                sensor_msgs-msg
                geometry_msgs-msg
                visualization_msgs-msg

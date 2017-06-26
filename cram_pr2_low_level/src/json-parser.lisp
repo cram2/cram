@@ -157,9 +157,6 @@
           tree)
     flattened-tree))
 
-(defun parse-robosherlock-result (json-string)
-  (flatten-one-level (parse-json-node nil (yason:parse json-string :object-as :alist))))
-
 
 
 ;; rosservice call /RoboSherlock/json_query "query: '{\"_designator_type\":7, \"HANDLE\":\"\"}'"

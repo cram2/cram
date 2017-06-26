@@ -48,7 +48,7 @@
     (mapc (lambda (?left-pose ?right-pose)
 
             (cpl:with-failure-handling
-                ((pr2-fail:low-level-failure (e) ; ignore failures
+                ((common-fail:low-level-failure (e) ; ignore failures
                    (roslisp:ros-warn (pick-and-place grasp) "~a" e)
                    (return)))
 
@@ -89,7 +89,7 @@
     (mapc (lambda (?left-pose ?right-pose)
 
             (cpl:with-failure-handling
-                ((pr2-fail:low-level-failure (e) ; ignore failures
+                ((common-fail:low-level-failure (e) ; ignore failures
                    (roslisp:ros-warn (pick-and-place reach) "~a" e)
                    (return)))
 
@@ -105,7 +105,7 @@
         (?right-pose (car (last right-poses))))
 
     (cpl:with-failure-handling
-        ((pr2-fail:low-level-failure (e) ; ignore failures
+        ((common-fail:low-level-failure (e) ; ignore failures
            (roslisp:ros-warn (pick-and-place reach) "~a" e)
            (return)))
 
@@ -115,7 +115,7 @@
 
 (cpl:def-cram-function open-gripper (?left-or-right)
   (cpl:with-failure-handling
-      ((pr2-fail:low-level-failure (e)
+      ((common-fail:low-level-failure (e)
          (roslisp:ros-warn (pick-and-place open-gripper) "~a" e)
          ;; ignore failures
          (return)))
@@ -133,7 +133,7 @@
   (let ((max-length (max (length ?left-grasp-poses) (length ?right-grasp-poses))))
     (mapc (lambda (?left-pregrasp-poses ?right-pregrasp-poses)
             (cpl:with-failure-handling
-                ((pr2-fail:low-level-failure (e)
+                ((common-fail:low-level-failure (e)
                    (roslisp:ros-warn (pick-and-place grasp) "~a" e)
                    (return)))
               (exe:perform
@@ -148,7 +148,7 @@
         (?right-grasp-pose (car (last ?right-grasp-poses))))
     (cpl:with-retry-counters ((approach-retries retries))
       (cpl:with-failure-handling
-          ((pr2-fail:low-level-failure (e)
+          ((common-fail:low-level-failure (e)
              (cpl:do-retry approach-retries
                (roslisp:ros-warn (pick-and-place grasp) "~a" e)
                (cpl:retry))
@@ -162,11 +162,11 @@
 (cpl:def-cram-function grip (?left-or-right ?effort)
   (cpl:with-retry-counters ((grasping-retries 1))
     (cpl:with-failure-handling
-        ((pr2-fail:low-level-failure (e)
+        ((common-fail:low-level-failure (e)
            (cpl:do-retry grasping-retries
              (roslisp:ros-warn (pick-and-place grip) "~a" e)
              (cpl:retry))
-           (cpl:fail 'pr2-fail:low-level-failure)))
+           (cpl:fail 'common-fail:low-level-failure)))
       (exe:perform
          (desig:a motion
                   (type gripping)
@@ -175,7 +175,7 @@
 
 (cpl:def-cram-function lift (?left-pose ?right-pose)
   (cpl:with-failure-handling
-      ((pr2-fail:low-level-failure (e)
+      ((common-fail:low-level-failure (e)
          (roslisp:ros-warn (pick-and-place lift) "~a" e)
          (return)))
     (exe:perform
@@ -190,11 +190,11 @@
                                  (object-chosing-function #'identity))
   (cpl:with-retry-counters ((perceive-retries 5))
     (cpl:with-failure-handling
-        ((pr2-fail:low-level-failure (e)
+        ((common-fail:low-level-failure (e)
            (cpl:do-retry perceive-retries
              (roslisp:ros-warn (pick-and-place perceive) "~a" e)
              (cpl:retry))
-           (cpl:fail 'pr2-fail:low-level-failure :description "couldn't find object")))
+           (cpl:fail 'common-fail:low-level-failure :description "couldn't find object")))
       (let* ((resulting-designators
                (case quantifier
                  (:all (exe:perform

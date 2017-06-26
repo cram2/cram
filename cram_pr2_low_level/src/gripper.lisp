@@ -122,10 +122,10 @@
            (values-converged current-position goal-position convergence-delta)))
     (if (eql original-goal-position :grip) ; gripper should not completely close
         (when converged-p
-          (cpl:fail 'pr2-fail:gripper-closed-completely
+          (cpl:fail 'common-fail:gripper-closed-completely
                     :description "Tried to grasp but ended up closing the gripper."))
         (unless converged-p
-          (cpl:fail 'pr2-fail:gripping-failed
+          (cpl:fail 'common-fail:gripping-failed
                     :description (format nil "Gripper action did not converge to the goal:
 goal: ~a, current: ~a, delta: ~a." goal-position current-position convergence-delta))))))
 
