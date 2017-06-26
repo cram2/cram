@@ -90,14 +90,14 @@
                                               goal-frame-left goal-frame-right
                                               convergence-delta-xy convergence-delta-theta)
   (when (eql status :timeout)
-    (cpl:fail 'pr2-fail:actionlib-action-timed-out :description "Giskard action timed out"))
+    (cpl:fail 'common-fail:actionlib-action-timed-out :description "Giskard action timed out"))
   (when (eql status :preempted)
     (roslisp:ros-warn (low-level giskard) "Giskard action preempted.")
     (return-from ensure-giskard-cartesian-goal-reached))
   (when goal-position-left
     (unless (cram-tf:tf-frame-converged goal-frame-left goal-position-left
                                         convergence-delta-xy convergence-delta-theta)
-      (cpl:fail 'pr2-fail:manipulation-goal-not-reached
+      (cpl:fail 'common-fail:manipulation-goal-not-reached
                 :description (format nil "Giskard did not converge to goal:
 ~a should have been at ~a with delta-xy of ~a and delta-angle of ~a."
                                      goal-frame-left goal-position-left
@@ -105,7 +105,7 @@
   (when goal-position-right
     (unless (cram-tf:tf-frame-converged goal-frame-right goal-position-right
                                         convergence-delta-xy convergence-delta-theta)
-      (cpl:fail 'pr2-fail:manipulation-goal-not-reached
+      (cpl:fail 'common-fail:manipulation-goal-not-reached
                 :description (format nil "Giskard did not converge to goal:
 ~a should have been at ~a with delta-xy of ~a and delta-angle of ~a."
                                      goal-frame-right goal-position-right

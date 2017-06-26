@@ -39,7 +39,7 @@
                cl-transforms-stamped
                cl-transforms
                cram-tf
-               cram-pr2-failures
+               cram-common-failures
                ;; for reading out arm joint names
                cram-robot-interfaces
                cram-utilities
