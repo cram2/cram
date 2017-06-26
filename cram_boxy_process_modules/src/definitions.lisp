@@ -35,7 +35,7 @@
   (destructuring-bind (command argument)
       (desig:reference motion-designator)
     (ecase command
-      (boxy-designators:move-base
+      (boxy-desig:move-base
        (boxy-ll:move-base-nav-pcontroller :goal-pose argument)))))
 
 ;;;;;;;;;;;;;;;;;;;; NECK ;;;;;;;;;;;;;;;;;;;;;;;;
@@ -44,7 +44,7 @@
   (destructuring-bind (command argument)
       (desig:reference motion-designator)
     (ecase command
-      (boxy-designators:move-neck
+      (boxy-desig:move-neck
        (boxy-ll:move-neck-joint :goal-configuration argument)))))
 
 ;;;;;;;;;;;;;;;;;;;; GRIPPERS ;;;;;;;;;;;;;;;;;;;;;;;;
@@ -53,15 +53,16 @@
   (destructuring-bind (command action-type which-gripper &optional position effort)
       (desig:reference motion-designator)
     (ecase command
-      (boxy-designators:move-gripper-joint
-       (boxy-ll:move-gripper-joint :goal-position position
+      (boxy-desig:move-gripper-joint
+       (boxy-ll:move-gripper-joint :action-type action-type
                                    :left-or-right which-gripper
+                                   :goal-position position
                                    :effort effort)))))
 
 ;;;;;;;;;;;;;;;;;;;; BODY ;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module boxy-body-pm (motion-designator)
-  (flet ((defun fill-in-with-nils (some-list desired-length)
+  (flet ((fill-in-with-nils (some-list desired-length)
            (let ((current-length (length some-list)))
              (if (> desired-length current-length)
                  (append some-list (make-list (- desired-length current-length)))
@@ -69,7 +70,7 @@
     (destructuring-bind (command goal-left goal-right)
         (desig:reference motion-designator)
       (ecase command
-        (boxy-designators:move-tcp
+        (boxy-desig:move-tcp
          (progn
                (unless (listp goal-left)
                  (setf goal-left (list goal-left)))
@@ -83,7 +84,7 @@
                                                               :goal-pose-right single-pose-right))
                        (fill-in-with-nils goal-left max-length)
                        (fill-in-with-nils goal-right max-length)))))
-        (boxy-designators:move-arm-joints
+        (boxy-desig:move-arm-joints
          (boxy-ll:move-arms-giskard-joint :goal-configuration-left goal-left
-                                          :goal-configuration-right goal-right)))))))
+                                          :goal-configuration-right goal-right))))))
 
