@@ -34,7 +34,10 @@
          (transform-list
            (cut:var-value
             '?transform
-            (car (json-prolog:prolog `("get_object_transform" ,kr-object-id ?transform))))))
+            (car
+             (json-prolog:prolog-1 `("get_object_transform" ,kr-object-id ?transform)
+                                   :mode 1
+                                   :package :kr-belief)))))
     (knowrob->cram :transform transform-list)))
 
 (defun get-all-object-transforms ()
@@ -43,7 +46,9 @@
                 bindings
               (list (knowrob->cram :symbol ?object_id)
                     (knowrob->cram :transform ?transform))))
-          (cut:force-ll (json-prolog:prolog `("get_object_transform" ?object_id ?transform)))))
+          (cut:force-ll
+           (json-prolog:prolog `("get_object_transform" ?object_id ?transform)
+                               :package :kr-belief))))
 
 (defun get-object-grasps (object-id)
   (let ((kr-object-id (cram->knowrob object-id)))
@@ -52,8 +57,10 @@
             (cut:var-value
              '?grasp_specs
              (car
-              (json-prolog:prolog
-               `("get_current_grasps_on_object" ,kr-object-id ?grasp_specs)))))))
+              (json-prolog:prolog-1
+               `("get_current_grasps_on_object" ,kr-object-id ?grasp_specs)
+               :mode 1
+               :package :kr-belief))))))
 
 (defun get-all-object-grasps ()
   (mapcar (lambda (bindings)
@@ -61,14 +68,18 @@
                       (knowrob->cram :grasp-spec grasp-spec))
                     (cut:var-value '?grasp_specs bindings)))
           (cut:force-ll
-           (json-prolog:prolog `("get_current_grasps_on_object" ?object_id ?grasp_specs)))))
+           (json-prolog:prolog `("get_current_grasps_on_object" ?object_id ?grasp_specs)
+                               :package :kr-belief))))
 
 (defun get-object-in-gripper (gripper-id)
   (let ((kr-gripper-id (cram->knowrob gripper-id)))
-   (mapcar (lambda (object-id)
-             (knowrob->cram :symbol object-id))
-           (car (json-prolog:prolog
-                 `("get_current_objects_in_gripper" ,kr-gripper-id ?object_ids))))))
+    (mapcar (lambda (object-id)
+              (knowrob->cram :symbol object-id))
+            (car
+             (json-prolog:prolog-1
+              `("get_current_objects_in_gripper" ,kr-gripper-id ?object_ids)
+              :mode 1
+              :package :kr-belief)))))
 
 (defun get-possible-object-grasps (object-id &optional gripper-id)
   (let ((kr-object-id (cram->knowrob object-id))
@@ -79,34 +90,47 @@
       '?grasp-ids
       (car
        (if gripper-id
-           (json-prolog:prolog
-            `("get_currently_possible_grasps_on_object" ,kr-object-id ,kr-gripper-id ?grasp-ids))
-           (json-prolog:prolog
-            `("get_currently_possible_grasps_on_object" ,kr-object-id ?grasp-ids))))))))
+           (json-prolog:prolog-1
+            `("get_currently_possible_grasps_on_object" ,kr-object-id ,kr-gripper-id ?grasp-ids)
+            :mode 1
+            :package :kr-belief)
+           (json-prolog:prolog-1
+            `("get_currently_possible_grasps_on_object" ,kr-object-id ?grasp-ids)
+            :mode 1
+            :package :kr-belief)))))))
 
 (defun get-assemblages (&key object-id assemblage-id)
   (let ((kr-object-id (cram->knowrob object-id))
         (kr-assemblage-id (cram->knowrob assemblage-id)))
     (knowrob->cram
-           :symbol
-           (if object-id
-               (cut:var-value
-                '?assemblage_ids
-                (car (json-prolog:prolog
-                      `("get_assemblages_with_object" ,kr-object-id ?assemblage_ids))))
-               (if assemblage-id
-                   (cut:var-value
-                    '?object_ids
-                    (car (json-prolog:prolog
-                          `("get_objects_in_assemblage" ,kr-assemblage-id ?object_ids))))
-                   (error "one of object-id or assemblage-id has to be specified."))))))
+     :symbol
+     (if object-id
+         (cut:var-value
+          '?assemblage_ids
+          (car
+           (json-prolog:prolog-1
+            `("get_assemblages_with_object" ,kr-object-id ?assemblage_ids)
+            :mode 1
+            :package :kr-belief)))
+         (if assemblage-id
+             (cut:var-value
+              '?object_ids
+              (car
+               (json-prolog:prolog-1
+                `("get_objects_in_assemblage" ,kr-assemblage-id ?object_ids)
+                :mode 1
+                :package :kr-belief)))
+             (error "one of object-id or assemblage-id has to be specified."))))))
 
 (defun get-all-assemblages ()
   (knowrob->cram
    :symbol
    (cut:var-value
     '?assemblage_ids
-    (car (json-prolog:prolog `("get_known_assemblage_ids" ?assemblage_ids))))))
+    (car
+     (json-prolog:prolog-1 `("get_known_assemblage_ids" ?assemblage_ids)
+                           :mode 1
+                           :package :kr-belief)))))
 
 (defun get-object-at-location (object-type location translation-threshold rotation-threshold)
   (declare (type cl-transforms-stamped:transform-stamped location))
@@ -116,7 +140,10 @@
            :symbol
            (cut:var-value
             '?object_id
-            (car (json-prolog:prolog `("get_object_at_location"
-                                       ,kr-object-type ,kr-location
-                                       ,translation-threshold ,rotation-threshold
-                                       ?object_id)))))))
+            (car
+             (json-prolog:prolog `("get_object_at_location"
+                                   ,kr-object-type ,kr-location
+                                   ,translation-threshold ,rotation-threshold
+                                   ?object_id)
+                                 :mode 1
+                                 :package :kr-belief))))))

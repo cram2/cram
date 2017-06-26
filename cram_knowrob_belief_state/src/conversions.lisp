@@ -146,12 +146,18 @@
 ;;   (log-owl-action :go designator :start-time start-time :agent agent))
 
 
-(defgeneric knowrob->cram (object-type object))
+(defgeneric knowrob->cram (object-type object &key &allow-other-keys))
 
-(defmethod knowrob->cram ((object-type (eql :symbol)) knowrob-symbol)
-  (string-trim "'" (symbol-name knowrob-symbol)))
+(defmethod knowrob->cram ((object-type (eql :symbol)) knowrob-symbol &key keep-namespace)
+  (let ((trimmed-string (string-trim "'" (symbol-name knowrob-symbol))))
+    (if keep-namespace
+        trimmed-string
+        (let ((position-of-# (position #\# trimmed-string :from-end t)))
+          (if position-of-#
+              (subseq trimmed-string (1+ position-of-#))
+              trimmed-string)))))
 
-(defmethod knowrob->cram ((object-type (eql :transform)) transform-list)
+(defmethod knowrob->cram ((object-type (eql :transform)) transform-list &key)
   "`transform-list' looks like this:
  [string reference_frame, string target_frame, [float x, y, z], [float x, y, z, w]]"
   (cl-transforms-stamped:make-transform-stamped
@@ -161,7 +167,7 @@
      (apply #'cl-transforms:make-3d-vector (third transform-list))
      (apply #'cl-transforms:make-quaternion (fourth transform-list))))
 
-(defmethod knowrob->cram ((object-type (eql :grasp-spec)) grasp-spec-list)
+(defmethod knowrob->cram ((object-type (eql :grasp-spec)) grasp-spec-list &key)
   "`grasp-spec-list' looks like this:
  [string Gripper, string Object, string Robot,
   [string reference_frame, string target_frame, [float x, y, z], [float x, y, z, w]]]"
