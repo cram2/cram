@@ -1,8 +1,8 @@
 <package>
-  <name>cram_pr2_failures</name>
+  <name>cram_common_failures</name>
   <version>0.3.0</version>
   <description>
-    This package defines general plan failures used by the PR2 pick and place plan library.
+    This package defines general plan failures used, e.g., by the PR2 pick and place plan library.
   </description>
 
   <author>Gayane Kazhoyan</author>
@@ -12,8 +12,8 @@
   <license>BSD</license>
 
   <url type="website">http://cram-system.org</url>
-  <url type="bugtracker">https://github.com/cram2/cram_pr2/issues</url>
-  <url type="repository">https://github.com/cram2/cram_pr2</url>
+  <url type="bugtracker">https://github.com/cram2/cram_common/issues</url>
+  <url type="repository">https://github.com/cram2/cram_common</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 

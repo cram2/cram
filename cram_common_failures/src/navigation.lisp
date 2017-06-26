@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-pr2-failures)
+(in-package :common-fail)
 
 (define-condition navigation-low-level-failure (low-level-failure)
   ((location :initarg :location :initform nil :reader navigation-failure-location)))

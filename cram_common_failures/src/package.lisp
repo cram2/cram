@@ -29,8 +29,8 @@
 
 (in-package :cl-user)
 
-(defpackage cram-pr2-failures
-  (:nicknames #:pr2-fail)
+(defpackage cram-common-failures
+  (:nicknames #:common-fail)
   (:use #:cpl)
   (:export
    ;; common
