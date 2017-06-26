@@ -31,7 +31,7 @@
 
 (defun make-giskard-action-client ()
   (make-simple-action-client
-   'giskard
+   'giskard-action
    "controller_action_server/move" "giskard_msgs/WholeBodyAction"
    60))
 

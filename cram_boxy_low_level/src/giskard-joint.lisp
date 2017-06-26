@@ -118,19 +118,20 @@
       (ensure-giskard-joint-arm-goal-reached :right goal-configuration-right))))
 
 (defun move-arms-giskard-joint (&key
-                                  left-configuration right-configuration action-timeout
+                                  goal-configuration-left goal-configuration-right action-timeout
                                   (convergence-delta-joint *giskard-convergence-delta-joint*))
-  (declare (type list left-configuration right-configuration)
+  (declare (type list goal-configuration-left goal-configuration-right)
            (type (or null number) action-timeout convergence-delta-joint))
-  (multiple-value-bind (left-configuration right-configuration)
-      (ensure-giskard-joint-input-parameters left-configuration right-configuration)
+  (multiple-value-bind (goal-configuration-left goal-configuration-right)
+      (ensure-giskard-joint-input-parameters goal-configuration-left goal-configuration-right)
     (multiple-value-bind (result status)
         (call-simple-action-client
          'giskard
-         :action-goal (make-giskard-joint-action-goal left-configuration right-configuration
-                                                      ;; convergence-delta-joint
-                                                      )
+         :action-goal (make-giskard-joint-action-goal
+                       goal-configuration-left goal-configuration-right
+                       ;; convergence-delta-joint
+                       )
          :action-timeout action-timeout)
-      (ensure-giskard-joint-goal-reached status left-configuration right-configuration
+      (ensure-giskard-joint-goal-reached status goal-configuration-left goal-configuration-right
                                          convergence-delta-joint)
       (values result status))))

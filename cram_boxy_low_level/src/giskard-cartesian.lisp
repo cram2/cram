@@ -48,7 +48,7 @@
 ;;       :value convergence-delta-theta))))
 
 (defun make-giskard-cartesian-action-goal (left-pose right-pose
-                                           convergence-delta-xy convergence-delta-theta)
+                                           &optional convergence-delta-xy convergence-delta-theta)
   (declare (ignore convergence-delta-xy convergence-delta-theta)
            (type (or cl-transforms:pose cl-transforms-stamped:pose-stamped)
                  left-pose right-pose))
@@ -112,24 +112,24 @@
                                      convergence-delta-xy convergence-delta-theta)))))
 
 (defun move-arms-giskard-cartesian (&key
-                                      left-pose right-pose action-timeout
+                                      goal-pose-left goal-pose-right action-timeout
                                       (pose-base-frame cram-tf:*robot-base-frame*)
                                       (left-tool-frame cram-tf:*robot-left-tool-frame*)
                                       (right-tool-frame cram-tf:*robot-right-tool-frame*)
                                       (convergence-delta-xy *giskard-convergence-delta-xy*)
                                       (convergence-delta-theta *giskard-convergence-delta-theta*))
-  (declare (type (or null cl-transforms-stamped:pose-stamped) left-pose right-pose)
+  (declare (type (or null cl-transforms-stamped:pose-stamped) goal-pose-left goal-pose-right)
            (type (or null string) pose-base-frame left-tool-frame right-tool-frame)
            (type (or null number) action-timeout convergence-delta-xy convergence-delta-theta))
-  (multiple-value-bind (left-pose right-pose)
-      (ensure-giskard-cartesian-input-parameters pose-base-frame left-pose right-pose)
+  (multiple-value-bind (goal-pose-left goal-pose-right)
+      (ensure-giskard-cartesian-input-parameters pose-base-frame goal-pose-left goal-pose-right)
     (multiple-value-bind (result status)
-        (call-simple-action-client 'giskard
+        (call-simple-action-client 'giskard-action
                                    :action-goal (make-giskard-cartesian-action-goal
-                                                 left-pose right-pose
+                                                 goal-pose-left goal-pose-right
                                                  convergence-delta-xy convergence-delta-theta)
                                    :action-timeout action-timeout)
-      (ensure-giskard-cartesian-goal-reached status left-pose right-pose
+      (ensure-giskard-cartesian-goal-reached status goal-pose-left goal-pose-right
                                              left-tool-frame right-tool-frame
                                              convergence-delta-xy convergence-delta-theta)
       (values result status))))

@@ -35,7 +35,7 @@
 
 (defun init-nav-pcontroller-action-client-and-read-params ()
   (make-simple-action-client
-   'nav-pcontroller
+   'nav-pcontroller-action
    "nav_pcontroller/move_base" "move_base_msgs/MoveBaseAction"
    60.0)
 
@@ -63,10 +63,10 @@
                                    cram-tf:*robot-base-frame* goal-pose
                                    convergence-delta-xy convergence-delta-theta))))
 
-(defun move-base--nav-pcontroller (&key goal-pose action-timeout
-                                     (convergence-delta-xy *xy-goal-tolerance*)
-                                     (convergence-delta-theta *yaw-goal-tolerance*)
-                                     visualize)
+(defun move-base-nav-pcontroller (&key goal-pose action-timeout
+                                    (convergence-delta-xy *xy-goal-tolerance*)
+                                    (convergence-delta-theta *yaw-goal-tolerance*)
+                                    visualize)
   (declare (type (or null cl-transforms-stamped:pose-stamped) goal-pose)
            (type (or null number) action-timeout convergence-delta-xy convergence-delta-theta)
            (type boolean visualize))
@@ -75,7 +75,7 @@
       (visualize-marker goal-pose :topic "low-level-goals"))
     (multiple-value-bind (result status)
         (call-simple-action-client
-         'nav-pcontroller
+         'nav-pcontroller-action
          :action-goal (make-nav-p-action-goal goal-pose)
          :action-timeout action-timeout)
       (roslisp:ros-info (navigation low-level) "Nav action finished.")

@@ -43,14 +43,17 @@
 (roslisp-utilities:register-ros-init-function init-gripper-position-publishers)
 (roslisp-utilities:register-ros-cleanup-function destroy-gripper-position-publishers)
 
-(defun actuate-gripper (&key left-or-right position effort)
+(defun move-gripper-joint (&key goal-position left-or-right effort)
   (declare (type (or keyword list) left-or-right)
-           (type number position effort))
+           (type number goal-position effort))
   (roslisp:publish
    (getf *gripper-publishers* left-or-right)
    (roslisp::make-message
     'iai_wsg_50_msgs-msg:PositionCmd
-    :pos position
+    :pos goal-position
     :speed 30.0
     :force effort)))
 
+;; speed can be up to 60
+;; force can be up to 35
+;; /left_arm_gripper /right_arm_gripper
