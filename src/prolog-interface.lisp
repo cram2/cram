@@ -108,22 +108,23 @@
        0.2)
       (ros-warn (json-prolog) "Node is not running.")))
 
-(defun prolog (exp &key (prologify t) (lispify nil) (package *package*))
+(defun prolog (exp &key (prologify t) (lispify nil) (mode 0) (package *package*))
   (let ((query-id (make-query-id)))
     (prolog-result->bdgs
      query-id
      (call-prolog-service (concatenate 'string *service-namespace* "/query")
                           'json_prolog_msgs-srv:PrologQuery
                           :id query-id
+                          :mode mode
                           :query (prolog->json exp :prologify prologify))
      :lispify lispify :package package)))
 
-(defun prolog-1 (exp &key (prologify t) (lispify nil) (package *package*))
+(defun prolog-1 (exp &key (mode 0) (prologify t) (lispify nil) (package *package*))
   "Like PROLOG but closes the query after the first solution."
-  (let ((bdgs (prolog exp :prologify prologify :lispify lispify :package package)))
+  (let ((bdgs (prolog exp :prologify prologify :lispify lispify :mode mode :package package)))
     (finish-query bdgs)))
 
-(defun prolog-simple (query-str &key (lispify nil) (package *package*))
+(defun prolog-simple (query-str &key (mode 0) (lispify nil) (package *package*))
   "Takes a prolog expression (real prolog, not the lispy version) and
 evaluates it."
   (let ((query-id (make-query-id)))
@@ -132,12 +133,13 @@ evaluates it."
      (call-prolog-service (concatenate 'string *service-namespace* "/simple_query")
                           'json_prolog_msgs-srv:PrologQuery
                           :id query-id
+                          :mode mode
                           :query query-str)
      :lispify lispify :package package)))
 
-(defun prolog-simple-1 (query-str &key (lispify nil) (package *package*))
+(defun prolog-simple-1 (query-str &key (lispify nil) (mode 0) (package *package*))
   "Like PROLOG-SIMPLE but closes the query after the first solution."
-  (let ((bdgs (prolog-simple query-str :lispify lispify :package package)))
+  (let ((bdgs (prolog-simple query-str :lispify lispify :mode mode :package package)))
     (finish-query bdgs)))
   
 (defun finish-query (result)
