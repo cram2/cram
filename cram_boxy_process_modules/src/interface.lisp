@@ -28,7 +28,8 @@
 
 (in-package :boxy-pm)
 
-(def-fact-group boxy-matching-pms (cpm:matching-process-module)
+(def-fact-group boxy-matching-pms (cpm:matching-process-module
+                                   cpm:available-process-module)
 
   (<- (cpm:matching-process-module ?motion-designator boxy-base-pm)
     (desig:desig-prop ?motion-designator (:type :going)))

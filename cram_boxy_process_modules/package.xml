@@ -10,5 +10,5 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <depend>roslisp</depend>
+  <!-- <depend>roslisp</depend> -->
 </package>
