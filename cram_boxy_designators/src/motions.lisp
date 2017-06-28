@@ -60,7 +60,7 @@
     (once (or (property ?designator (:effort ?effort))
               (equal ?effort nil))))
 
-  (<- (desig:motion-grounding ?designator (move-gripper-joint :grip ?which-gripper ?position NIL))
+  (<- (desig:motion-grounding ?designator (move-gripper-joint nil ?which-gripper ?position NIL))
     (property ?designator (:type :moving-gripper-joint))
     (property ?designator (:gripper ?which-gripper))
     (property ?designator (:joint-angle ?position)))
