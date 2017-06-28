@@ -31,23 +31,23 @@
 (def-fact-group boxy-matching-pms (cpm:matching-process-module
                                    cpm:available-process-module)
 
-  (<- (cpm:matching-process-module ?motion-designator boxy-base-pm)
+  (<- (cpm:matching-process-module ?motion-designator base-pm)
     (desig:desig-prop ?motion-designator (:type :going)))
 
-  (<- (cpm:matching-process-module ?motion-designator boxy-neck-pm)
+  (<- (cpm:matching-process-module ?motion-designator neck-pm)
     (desig:desig-prop ?motion-designator (:type :looking)))
 
-  (<- (cpm:matching-process-module ?motion-designator boxy-grippers-pm)
+  (<- (cpm:matching-process-module ?motion-designator grippers-pm)
     (and (or (desig:desig-prop ?motion-designator (:type :gripping))
              (desig:desig-prop ?motion-designator (:type :opening))
              (desig:desig-prop ?motion-designator (:type :closing))
              (desig:desig-prop ?motion-designator (:type :moving-gripper-joint)))
          (desig:desig-prop ?motion-designator (:gripper ?_))))
 
-  (<- (cpm:matching-process-module ?motion-designator boxy-body-pm)
+  (<- (cpm:matching-process-module ?motion-designator body-pm)
     (or (desig:desig-prop ?motion-designator (:type :moving-tcp))
         (desig:desig-prop ?motion-designator (:type :moving-arm-joints))))
 
   (<- (cpm:available-process-module ?pm)
-    (member ?pm (boxy-base-pm boxy-neck-pm boxy-grippers-pm boxy-body-pm))
+    (member ?pm (base-pm neck-pm grippers-pm body-pm))
     (not (cpm:projection-running ?_))))

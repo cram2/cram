@@ -34,7 +34,7 @@
   (:use #:common-lisp #:cram-prolog)
   (:export
    ;; definitions
-   #:boxy-base-pm
-   #:boxy-neck-pm
-   #:boxy-grippers-pm
-   #:boxy-body-pm))
+   #:base-pm
+   #:neck-pm
+   #:grippers-pm
+   #:body-pm))

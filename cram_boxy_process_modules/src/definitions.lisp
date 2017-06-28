@@ -31,7 +31,7 @@
 
 ;;;;;;;;;;;;;;;;;;;; BASE ;;;;;;;;;;;;;;;;;;;;;;;;
 
-(cpm:def-process-module boxy-base-pm (motion-designator)
+(cpm:def-process-module base-pm (motion-designator)
   (destructuring-bind (command argument)
       (desig:reference motion-designator)
     (ecase command
@@ -40,7 +40,7 @@
 
 ;;;;;;;;;;;;;;;;;;;; NECK ;;;;;;;;;;;;;;;;;;;;;;;;
 
-(cpm:def-process-module boxy-neck-pm (motion-designator)
+(cpm:def-process-module neck-pm (motion-designator)
   (destructuring-bind (command argument)
       (desig:reference motion-designator)
     (ecase command
@@ -49,7 +49,7 @@
 
 ;;;;;;;;;;;;;;;;;;;; GRIPPERS ;;;;;;;;;;;;;;;;;;;;;;;;
 
-(cpm:def-process-module boxy-grippers-pm (motion-designator)
+(cpm:def-process-module grippers-pm (motion-designator)
   (destructuring-bind (command action-type which-gripper &optional position effort)
       (desig:reference motion-designator)
     (ecase command
@@ -61,7 +61,7 @@
 
 ;;;;;;;;;;;;;;;;;;;; BODY ;;;;;;;;;;;;;;;;;;;;;;;;
 
-(cpm:def-process-module boxy-body-pm (motion-designator)
+(cpm:def-process-module body-pm (motion-designator)
   (flet ((fill-in-with-nils (some-list desired-length)
            (let ((current-length (length some-list)))
              (if (> desired-length current-length)
