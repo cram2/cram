@@ -28,6 +28,9 @@
 
 (in-package :boxy-ll)
 
+(defparameter *gripper-minimal-position* 0.0 "in millimeters")
+(defparameter *gripper-maximal-position* 10.0 "in millimeters")
+
 (defvar *gripper-publishers* '(:left nil :right nil)
   "ROS publisher for Boxy gripper driver on goal_position message.")
 
@@ -43,16 +46,52 @@
 (roslisp-utilities:register-ros-init-function init-gripper-position-publishers)
 (roslisp-utilities:register-ros-cleanup-function destroy-gripper-position-publishers)
 
-(defun move-gripper-joint (&key goal-position action-type left-or-right effort)
+(defun ensure-gripper-input-parameters (action-type position effort)
+  (let ((position
+          (cond
+            (position
+             (cond
+               ((< position *gripper-minimal-position*)
+                (roslisp:ros-warn (gripper-action)
+                                  "POSITION (~a) cannot be < 0.0. Clipping."
+                                  position)
+                *gripper-minimal-position*)
+               ((> position *gripper-maximal-position*)
+                (roslisp:ros-warn (gripper-action)
+                                  "POSITION (~a) shouldn't be > 0.085. Clipping."
+                                  position)
+                *gripper-maximal-position*)
+               (t
+                position)))
+            (action-type
+             (ecase action-type
+               (:open *gripper-maximal-position*)
+               (:close *gripper-minimal-position*)
+               (:grip *gripper-minimal-position*)))))
+        (effort
+          (or effort
+              (cond
+                (position 30.0)
+                (action-type (ecase action-type
+                               (:open 30.0)
+                               (:close 30.0) ; because of stupid gazebo
+                               (:grip 15.0)))))))
+    (values position effort)))
+
+(defun move-gripper-joint (&key action-type left-or-right goal-position effort)
   (declare (type (or keyword list) left-or-right)
-           (type number goal-position effort))
-  (roslisp:publish
-   (getf *gripper-publishers* left-or-right)
-   (roslisp::make-message
-    'iai_wsg_50_msgs-msg:PositionCmd
-    :pos goal-position
-    :speed 30.0
-    :force effort)))
+           (type (or null number) goal-position effort))
+  (multiple-value-bind (goal-position effort)
+      (ensure-gripper-input-parameters action-type goal-position effort)
+    (format t "action-type: ~a~%left-or-right: ~a~%goal-position: ~a~%effort: ~a~%"
+            action-type left-or-right goal-position effort)
+    (roslisp:publish
+     (getf *gripper-publishers* left-or-right)
+     (roslisp::make-message
+      'iai_wsg_50_msgs-msg:PositionCmd
+      :pos goal-position
+      :speed 50.0
+      :force effort))))
 
 ;; speed can be up to 60
 ;; force can be up to 35
