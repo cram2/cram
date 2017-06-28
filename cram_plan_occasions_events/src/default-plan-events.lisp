@@ -112,3 +112,25 @@
     :initform  (error
                 'simple-error
                 :format-control "OBJECT-ARTICULATION-EVENT requires an opening distance."))))
+
+(defclass object-gripped (cram-occasions-events:event)
+  ((arm :initarg :arm
+        :reader event-arm
+        :initform (error 'simple-error
+                         :format-control "OBJECT-GRIPPED event requires ARM."))
+   (object :initarg :object
+           :reader event-object
+           :initform (error 'simple-error
+                            :format-control "OBJECT-GRIPPED event requires OBJECT."))
+   (grasp :initarg :grasp
+          :reader event-grasp
+          :initform (error 'simple-error
+                           :format-control "OBJECT-GRIPPED event requires GRASP.")))
+  (:documentation "Event that is generated whenever the robot successfully
+closed a gripper around an object."))
+
+(defclass object-released (cram-occasions-events:event)
+  ((arm :initarg :arm
+        :reader event-arm
+        :initform (error 'simple-error
+                         :format-control "OBJECT-GRIPPED event requires OBJECT."))))
