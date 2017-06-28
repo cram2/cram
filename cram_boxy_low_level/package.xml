@@ -13,7 +13,6 @@
   <depend>roslisp</depend>
   <depend>actionlib</depend>
   <depend>roslisp_utilities</depend>
-  <depend>roslisp_msg_protocol</depend>
   <depend>cram_language</depend>
   <depend>cl_transforms_stamped</depend>
   <depend>cl_transforms</depend>
