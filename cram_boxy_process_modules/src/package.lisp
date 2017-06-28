@@ -32,4 +32,9 @@
 (defpackage cram-boxy-process-modules
   (:nicknames #:boxy-pm)
   (:use #:common-lisp #:cram-prolog)
-  (:export))
+  (:export
+   ;; definitions
+   #:boxy-base-pm
+   #:boxy-neck-pm
+   #:boxy-grippers-pm
+   #:boxy-body-pm))
