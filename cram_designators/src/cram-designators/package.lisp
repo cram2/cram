@@ -109,4 +109,4 @@
            #:equated-desigs
            #:desig
            ;; initialization macros
-           #:a #:an))
+           #:a #:an #:when))
