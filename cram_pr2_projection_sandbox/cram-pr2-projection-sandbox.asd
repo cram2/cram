@@ -45,6 +45,8 @@
                cram-projection
                cram-occasions-events
 
+               cram-common-failures
+
                cram-physics-utils ; for reading "package://" paths
                cl-bullet ; for handling BOUNDING-BOX datastructures
                cram-bullet-reasoning
