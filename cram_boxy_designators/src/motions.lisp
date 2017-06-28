@@ -32,7 +32,7 @@
 
   ;;;;;;;;;;;;;;;;;;;; BASE ;;;;;;;;;;;;;;;;;;;;;;;;
 
-  (<- (desig:motion-grounding ?motion-designator (move-base goal-pose))
+  (<- (desig:motion-grounding ?designator (move-base goal-pose))
     (property ?designator (:type :going))
     (property ?designator (:target ?location-designator))
     (desig:designator-groundings ?location-designator ?poses)
