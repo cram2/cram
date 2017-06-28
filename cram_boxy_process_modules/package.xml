@@ -10,5 +10,9 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <!-- <depend>roslisp</depend> -->
+  <depend>cram_process_modules</depend>
+  <depend>cram_designators</depend>
+  <depend>cram_prolog</depend>
+  <depend>cram_boxy_designators</depend>
+  <depend>cram_boxy_low_level</depend>
 </package>

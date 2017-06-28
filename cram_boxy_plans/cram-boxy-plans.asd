@@ -31,12 +31,22 @@
   :maintainer "Gayane Kazhoyan"
   :license "BSD"
 
-  :depends-on (cram-designators
+  :depends-on (roslisp
+
+               cram-designators
                cram-executive
+               cram-language
                cram-designator-specification
-               cram-prolog)
+               cram-prolog
+
+               cram-common-failures
+
+               cram-robosherlock
+
+               cl-transforms-stamped
+               cl-transforms)
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "atomic-actions" :depends-on ("package"))))))
+     (:file "atomic-action-plans" :depends-on ("package"))))))

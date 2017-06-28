@@ -11,4 +11,21 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>roslisp</depend>
+  <depend>actionlib</depend>
+  <depend>roslisp_utilities</depend>
+  <depend>roslisp_msg_protocol</depend>
+  <depend>cram_language</depend>
+  <depend>cl_transforms_stamped</depend>
+  <depend>cl_transforms</depend>
+  <depend>cram_tf</depend>
+  <depend>cram_common_failures</depend>
+  <depend>cram_robot_interfaces</depend>
+  <depend>cram_utilities</depend>
+  <depend>cram_prolog</depend>
+  <depend>cram_boxy_description</depend>
+  <depend>giskard_msgs</depend>
+  <depend>move_base_msgs</depend>
+  <depend>visualization_msgs</depend>
+  <depend>iai_wsg_50_msgs</depend>
+  <depend>iai_control_msgs</depend>
 </package>
