@@ -43,17 +43,28 @@
 (defun parse-key-value-pairs (key-value-pairs)
   (labels ((parse (key-value-pair-list)
              (if (listp key-value-pair-list)
-                 (if (and (symbolp (first key-value-pair-list))
-                          (member (intern (string-upcase (first key-value-pair-list))
-                                          :keyword)
-                                  '(:a :an :some :the)))
-                     (let ((quantifier (first key-value-pair-list))
-                           (type-symbol (second key-value-pair-list))
-                           (key-value-pairs-evaluated (cddr key-value-pair-list)))
-                       `(,quantifier ,type-symbol ,@key-value-pairs-evaluated))
-                     `(list ,@(loop for key-value-pair in key-value-pair-list
-                                    collecting (parse key-value-pair))))
-                 (if (symbolp key-value-pair-list) ; we're at a leaf
+                 (cond (;; new designator construct
+                        (and (symbolp (first key-value-pair-list))
+                             (member (intern (string-upcase (first key-value-pair-list))
+                                             :keyword)
+                                     '(:a :an :some :the)))
+                        (let ((quantifier (first key-value-pair-list))
+                              (type-symbol (second key-value-pair-list))
+                              (key-value-pairs-evaluated (cddr key-value-pair-list)))
+                          `(,quantifier ,type-symbol ,@key-value-pairs-evaluated)))
+                       ;; WHEN construct: (WHEN ?x (key ?x))
+                       ((and (symbolp (first key-value-pair-list))
+                             (eq (first key-value-pair-list) 'desig:when)
+                             (eq (length key-value-pair-list) 3))
+                        (when (second key-value-pair-list)
+                          `(list ,@(loop for key-value-pair in (cddr key-value-pair-list)
+                                         collecting (parse key-value-pair)))))
+                       ;; standard key-value pair
+                       (t
+                        `(list ,@(loop for key-value-pair in key-value-pair-list
+                                       collecting (parse key-value-pair)))))
+                 (if (symbolp key-value-pair-list)
+                     ;; we're at a leaf
                      (variable-value-or-keyword key-value-pair-list)
                      key-value-pair-list))))
     (parse key-value-pairs)))
@@ -61,7 +72,7 @@
 (defmacro a (type &rest key-value-pairs-list)
   (let ((type-keyword (intern (string-upcase type) :keyword)))
     `(make-designator ,type-keyword
-                      ,(parse-key-value-pairs key-value-pairs-list))))
+                      ,(remove NIL (parse-key-value-pairs key-value-pairs-list)))))
 
 (defmacro an (&rest body)
   `(a ,@body))
