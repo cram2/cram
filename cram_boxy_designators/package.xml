@@ -9,4 +9,8 @@
   <license>BSD</license>
 
   <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>cram_designators</depend>
+  <depend>cram_prolog</depend>
+  <depend>cram_designator_specification</depend>
 </package>
