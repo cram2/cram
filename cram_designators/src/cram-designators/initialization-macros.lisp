@@ -57,8 +57,8 @@
                              (eq (first key-value-pair-list) 'desig:when)
                              (eq (length key-value-pair-list) 3))
                         `(when ,(variable-value-or-keyword (second key-value-pair-list))
-                           (list ,@(loop for key-value-pair in (cddr key-value-pair-list)
-                                         collecting (parse key-value-pair)))))
+                           ,@(loop for key-value-pair in (cddr key-value-pair-list)
+                                   collecting (parse key-value-pair))))
                        ;; standard key-value pair
                        (t
                         `(list ,@(loop for key-value-pair in key-value-pair-list
