@@ -56,8 +56,8 @@
                        ((and (symbolp (first key-value-pair-list))
                              (eq (first key-value-pair-list) 'desig:when)
                              (eq (length key-value-pair-list) 3))
-                        (when (second key-value-pair-list)
-                          `(list ,@(loop for key-value-pair in (cddr key-value-pair-list)
+                        `(when ,(variable-value-or-keyword (second key-value-pair-list))
+                           (list ,@(loop for key-value-pair in (cddr key-value-pair-list)
                                          collecting (parse key-value-pair)))))
                        ;; standard key-value pair
                        (t
@@ -72,7 +72,7 @@
 (defmacro a (type &rest key-value-pairs-list)
   (let ((type-keyword (intern (string-upcase type) :keyword)))
     `(make-designator ,type-keyword
-                      ,(remove NIL (parse-key-value-pairs key-value-pairs-list)))))
+                      (remove NIL ,(parse-key-value-pairs key-value-pairs-list)))))
 
 (defmacro an (&rest body)
   `(a ,@body))
