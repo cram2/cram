@@ -32,4 +32,7 @@
 (defpackage cram-robosherlock
   (:nicknames #:rs)
   (:use #:common-lisp)
-  (:export ))
+  (:export
+   ;; robosherlock-json
+   #:call-robosherlock-service
+   #:get-object-pose))

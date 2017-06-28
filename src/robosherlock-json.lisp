@@ -158,6 +158,9 @@
           rs-result)))))
 
 
+(defun get-object-pose (object-designator)
+  (cadar (desig:desig-prop-value object-designator :pose)))
+
 
 ;; rosservice call /RoboSherlock/json_query "query: '{\"_designator_type\":7, \"HANDLE\":\"\"}'"
 ;; rosservice call /RoboSherlock/json_query "query: '{\"_designator_type\":7, \"DETECTION\":\"red_spotted_plate\"}'"
