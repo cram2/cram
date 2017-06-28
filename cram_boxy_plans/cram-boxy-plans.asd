@@ -36,12 +36,15 @@
                cram-designators
                cram-executive
                cram-language
-               cram-designator-specification
                cram-prolog
+               cram-occasions-events
 
+               cram-designator-specification
                cram-common-failures
+               cram-plan-occasions-events
 
                cram-robosherlock
+               cram-knowrob-belief-state
 
                cl-transforms-stamped
                cl-transforms)
@@ -49,4 +52,7 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "atomic-action-plans" :depends-on ("package"))))))
+     (:file "atomic-action-plans" :depends-on ("package"))
+     (:file "atomic-action-designators" :depends-on ("package" "atomic-action-plans"))
+     (:file "composite-plans" :depends-on ("package" "atomic-action-designators"))
+     (:file "composite-plan-designators" :depends-on ("package" "composite-plans"))))))

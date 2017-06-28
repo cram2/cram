@@ -30,6 +30,6 @@
 (in-package :cl-user)
 
 (defpackage cram-boxy-plans
-  (:nicknames #:boxy-plan)
+  (:nicknames #:boxy-plans)
   (:use #:common-lisp #:cram-prolog #:cram-designator-specification)
   (:export))
