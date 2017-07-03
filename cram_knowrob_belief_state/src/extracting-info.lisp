@@ -29,6 +29,16 @@
 
 (in-package :kr-belief)
 
+(defun get-class-instance (cram-class)
+  (let* ((kr-class (cram->knowrob cram-class :namespace-id :thorin_parts))
+         (kr-instance (cut:var-value
+                       '?name
+                       (car
+                        (json-prolog:prolog-1 `("owl_individual_of" ?name ,kr-class)
+                                              :mode 1
+                                              :package :kr-belief)))))
+    (knowrob->cram :symbol kr-instance)))
+
 (defun get-object-transform (object-id)
   (let* ((kr-object-id (cram->knowrob object-id))
          (transform-list
@@ -50,7 +60,7 @@
            (json-prolog:prolog `("get_object_transform" ?object_id ?transform)
                                :package :kr-belief))))
 
-(defun get-object-grasps (object-id)
+(defun get-current-object-grasps (object-id)
   (let ((kr-object-id (cram->knowrob object-id)))
     (mapcar (lambda (grasp-spec)
               (knowrob->cram :grasp-spec grasp-spec))
@@ -62,7 +72,15 @@
                :mode 1
                :package :kr-belief))))))
 
-(defun get-all-object-grasps ()
+;; CL-USER>(kr-belief::get-current-object-grasps "http://knowrob.org/kb/thorin_simulation.owl#CamaroBody1")
+;; (("right_gripper" "http://knowrob.org/kb/thorin_simulation.owl#CamaroBody1"
+;;   "boxy"
+;;   #<CL-TRANSFORMS-STAMPED:TRANSFORM-STAMPED 
+;;    FRAME-ID: "right_gripper_tool_frame", CHILD-FRAME-ID: "http://knowrob.org/kb/thorin_simulation.owl#CamaroBody1", STAMP: 0.0
+;;    #<3D-VECTOR (0.0d0 0.0d0 0.016d0)>
+;;    #<QUATERNION (0.7071067811865476d0 -0.7071067811865476d0 0.0d0 0.0d0)>>))
+
+(defun get-current-grasps ()
   (mapcar (lambda (bindings)
             (mapcar (lambda (grasp-spec)
                       (knowrob->cram :grasp-spec grasp-spec))
@@ -82,22 +100,24 @@
               :package :kr-belief)))))
 
 (defun get-possible-object-grasps (object-id &optional gripper-id)
-  (let ((kr-object-id (cram->knowrob object-id))
+  (let ((kr-object-id (cram->knowrob object-id :namespace-id :thorin_simulation))
         (kr-gripper-id (cram->knowrob gripper-id)))
-    (knowrob->cram
-     :symbol
-     (cut:var-value
-      '?grasp-ids
-      (car
-       (if gripper-id
-           (json-prolog:prolog-1
-            `("get_currently_possible_grasps_on_object" ,kr-object-id ,kr-gripper-id ?grasp-ids)
-            :mode 1
-            :package :kr-belief)
-           (json-prolog:prolog-1
-            `("get_currently_possible_grasps_on_object" ,kr-object-id ?grasp-ids)
-            :mode 1
-            :package :kr-belief)))))))
+    (mapcar (lambda (grasp-id)
+              (knowrob->cram :symbol grasp-id))
+            (cut:var-value
+             '?grasp_ids
+             (car
+              (if gripper-id
+                  (json-prolog:prolog-1
+                   `("get_currently_possible_grasps_on_object" ,kr-object-id ,kr-gripper-id
+                                                               ?grasp_ids)
+                   :mode 1
+                   :package :kr-belief)
+                  (json-prolog:prolog-1
+                   `("get_currently_possible_grasps_on_object" ,kr-object-id
+                                                               ?grasp_ids)
+                   :mode 1
+                   :package :kr-belief)))))))
 
 (defun get-assemblages (&key object-id assemblage-id)
   (let ((kr-object-id (cram->knowrob object-id))
@@ -147,3 +167,9 @@
                                    ?object_id)
                                  :mode 1
                                  :package :kr-belief))))))
+
+#+as;dflkajs;dflksaj
+(
+ (kr-belief::get-class-instance :camaro-body)
+ (kr-belief::get-possible-object-grasps "http://knowrob.org/kb/thorin_simulation.owl#CamaroBody1")
+)

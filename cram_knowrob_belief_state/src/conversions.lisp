@@ -53,6 +53,8 @@
 (defparameter *cram-knowrob-names*
   '(;; agents
     ;; (:red-wasp "SherpaWaspRed" :knowrob :log)
+    ;; agent parts
+    (:camaro-body "CamaroBody")
     ;; sensors
     ;; (:engine "Engine" :knowrob :log)
     ;; objects
@@ -89,24 +91,17 @@
   (append-namespace *default-namespace*
                     (format nil "timepoint_~,3f" (or time (roslisp:ros-time)))))
 
+(defmethod cram->knowrob ((cram-name string) &key)
+  "If it's a string then it is probably already a valid knowrob name"
+  cram-name)
+
 (defmethod cram->knowrob ((cram-name symbol) &key namespace-id)
   (declare (type (or null keyword) namespace-id))
-  (let ((name-entry (cdr (assoc cram-name *cram-knowrob-names*))))
+  (let ((kr-name (or (second (assoc cram-name *cram-knowrob-names*))
+                     (roslisp-utilities:rosify-lisp-name cram-name))))
     (if namespace-id
-        (append-namespace (nth (case namespace-id (:class 1) (:individual 2)) name-entry)
-                          (first name-entry))
-        (first name-entry))))
-
-(defun owl-individual-of-class (class)
-  (let ((name (cut:var-value
-               '?name
-               (car
-                (json-prolog:prolog
-                 `("owl_individual_of" ?name ,class)
-                 :package :robots-common)))))
-    (if (cut:is-var name)
-        NIL
-        (string-trim "'" (symbol-name name)))))
+        (append-namespace namespace-id kr-name)
+        kr-name)))
 
 (defmethod cram->knowrob ((transform-st cl-transforms-stamped:transform-stamped) &key)
   (let* ((parent-frame (cl-transforms-stamped:frame-id transform-st))
@@ -148,14 +143,15 @@
 
 (defgeneric knowrob->cram (object-type object &key &allow-other-keys))
 
-(defmethod knowrob->cram ((object-type (eql :symbol)) knowrob-symbol &key keep-namespace)
+(defmethod knowrob->cram ((object-type (eql :symbol)) knowrob-symbol &key strip-namespace)
   (let ((trimmed-string (string-trim "'" (symbol-name knowrob-symbol))))
-    (if keep-namespace
-        trimmed-string
-        (let ((position-of-# (position #\# trimmed-string :from-end t)))
-          (if position-of-#
-              (subseq trimmed-string (1+ position-of-#))
-              trimmed-string)))))
+    (if strip-namespace
+        (let* ((position-of-# (position #\# trimmed-string :from-end t))
+               (no-ns-string (if position-of-#
+                                 (subseq trimmed-string (1+ position-of-#))
+                                 trimmed-string)))
+          (roslisp-utilities:lispify-ros-name no-ns-string))
+        trimmed-string)))
 
 (defmethod knowrob->cram ((object-type (eql :transform)) transform-list &key)
   "`transform-list' looks like this:
