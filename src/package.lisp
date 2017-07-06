@@ -35,4 +35,4 @@
   (:export
    ;; robosherlock-json
    #:call-robosherlock-service
-   #:get-object-pose))
+   #:get-object-transform))

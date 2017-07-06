@@ -66,7 +66,6 @@
         (list name parsed-node)
         parsed-node)))
 
-(defmethod parse-json-node ((name (eql :_designator_type)) node) nil)
 (defmethod parse-json-node ((name (eql :timestamp)) node) nil)
 (defmethod parse-json-node ((name (eql :pipelineid)) node) nil)
 
@@ -87,10 +86,29 @@
 (defmethod parse-json-node ((name (eql :boundingbox)) node)
   (parse-nested-node :bb node))
 
-(defmethod parse-json-node ((name (eql :pose)) node)
-  (if (getassoc "POSE" node)
-      (list name (parse-alist node))
-      (let* ((frame-id (getassoc "frame_id" node))
+;; (defmethod parse-json-node ((name (eql :pose)) node)
+;;   (setf *rs-result-debug* node)
+;;   (if (getassoc "pose" node)
+;;       (list name (parse-alist node))
+;;       (let* ((frame-id (getassoc "frame_id" node))
+;;              (pos-x (getassoc "pos_x" node))
+;;              (pos-y (getassoc "pos_y" node))
+;;              (pos-z (getassoc "pos_z" node))
+;;              (rot-x (getassoc "rot_x" node))
+;;              (rot-y (getassoc "rot_y" node))
+;;              (rot-z (getassoc "rot_z" node))
+;;              (rot-w (getassoc "rot_w" node))
+;;              (stamp (getassoc "stamp" node))
+;;              (object-pose (cl-transforms-stamped:make-pose-stamped
+;;                            frame-id
+;;                            stamp
+;;                            (cl-transforms:make-3d-vector pos-x pos-y pos-z)
+;;                            (cl-transforms:make-quaternion rot-x rot-y rot-z rot-w))))
+;;         (list name object-pose))))
+
+(defmethod parse-json-node ((name (eql :transform)) node)
+  (let* ((frame-id (getassoc "frame_id" node))
+         (child-frame-id (getassoc "child_frame_id" node))
          (pos-x (getassoc "pos_x" node))
          (pos-y (getassoc "pos_y" node))
          (pos-z (getassoc "pos_z" node))
@@ -99,18 +117,16 @@
          (rot-z (getassoc "rot_z" node))
          (rot-w (getassoc "rot_w" node))
          (stamp (getassoc "stamp" node))
-         (object-pose (cl-transforms-stamped:make-pose-stamped
+         (child-position-of-# (position #\# child-frame-id :from-end t))
+         (object-pose (cl-transforms-stamped:make-transform-stamped
                        frame-id
+                       (if child-position-of-#
+                           (subseq child-frame-id (1+ child-position-of-#))
+                           child-frame-id)
                        stamp
                        (cl-transforms:make-3d-vector pos-x pos-y pos-z)
-                       (cl-transforms:make-quaternion rot-x rot-y rot-z rot-w)))
-         (object-pose-in-map (cl-transforms-stamped:transform-pose-stamped
-                               cram-tf:*transformer*
-                               :use-current-ros-time t
-                               :timeout cram-tf:*tf-default-timeout*
-                               :pose object-pose
-                               :target-frame cram-tf:*fixed-frame*)))
-    (list name object-pose-in-map))))
+                       (cl-transforms:make-quaternion rot-x rot-y rot-z rot-w))))
+    (list name object-pose)))
 
 (defmethod parse-json-node ((name (eql :color)) node)
   (cons name (mapcar #'first
@@ -160,58 +176,51 @@
 (defun parse-json-result (json-string)
   (flatten-one-level (parse-json-node nil (yason:parse json-string :object-as :alist))))
 
-;; rosservice call /RoboSherlock/json_query "query: '{\"_designator_type\":7, \"HANDLE\":\"\"}'"
-;; rosservice call /RoboSherlock/json_query "query: '{\"_designator_type\":7, \"LABEL\":\"red_spotted_plate\"}'"
-;; rosservice call /RoboSherlock/json_query ":query "{\"_designator_type\":7, \"SHAPE\":\"round\"}'"
-;; rosservice call /RoboSherlock/json_query ":query "{\"_designator_type\":7, \"COLOR\":\"red\", \"COLOR\":\"blue\"}'"
-;; rosservice call /RoboSherlock/json_query "query: '{\"_designator_type\":7, \"TYPE\":\"Cutlery\", \"COLOR\":\"red\"}'"
-
-
-
-;; answer: ['{"_designator_type":7,
-;;            "TIMESTAMP":1468431426.0368367,
-;;            "CLUSTERID":3.0,
-;;            "BOUNDINGBOX":{"_designator_type":3,
-;;                           "POSE":{"_designator_type":4,
-;;                                   "seq":0,
-;;                                   "frame_id":"head_mount_kinect_rgb_optical_frame",
-;;                                   "stamp":1468431426036836672,
-;;                                   "pos_x":-0.3824820239015819,
-;;                                   "pos_y":0.08422647909290526,
-;;                                   "pos_z":1.0731382941783395
-;;                                   ,"rot_x":0.7288296241525841,
-;;                                   "rot_y":-0.5690367079709026,
-;;                                   "rot_z":0.23528549195063853,
-;;                                   "rot_w":0.29940828792304299},
-;;                          "SIZE":"medium",
-;;                          "DIMENSIONS-3D":{"_designator_type":3,
-;;                                           "WIDTH":0.25294819474220278,
-;;                                           "HEIGHT":0.26393774151802065,
-;;                                           "DEPTH":0.018034279346466066}},
-;;            "DETECTION":{"_designator_type":3,
-;;                         "CONFIDENCE":1819.9918212890625,
-;;                         "SOURCE":"DeCafClassifier",
-;;                         "TYPE":"red_spotted_plate"},
-;;            "POSE":{"_designator_type":4,"seq":0,
-;;                    "frame_id":"head_mount_kinect_rgb_optical_frame",
-;;                    "stamp":1468431426036836672,
-;;                    "pos_x":-0.3824820239015819,
-;;                    "pos_y":0.08422647909290526,
-;;                    "pos_z":1.0731382941783395,
-;;                    "rot_x":0.7288296241525841,
-;;                    "rot_y":-0.5690367079709026,
-;;                    "rot_z":0.23528549195063853,
-;;                    "rot_w":0.29940828792304299},
-;;            "COLOR":{"_designator_type":3,
-;;                     "red":0.9489008188247681,
-;;                     "white":0.026660431176424028,
-;;                     "yellow":0.015434985980391503,
-;;                     "grey":0.005963517352938652,
-;;                     "magenta":0.0026894293259829284,
-;;                     "black":0.0003507951332721859,
-;;                     "green":0.0,
-;;                     "cyan":0.0,
-;;                     "blue":0.0},
-;;            "SHAPE":"round",
-;;            "SHAPE":"flat"}']
-
+ ;; (#<CRAM-DESIGNATORS:OBJECT-DESIGNATOR
+ ;;   ((:TYPE :WHEEL)
+ ;;    (:CLUSTER-ID "http://knowrob.org/kb/thorin_simulation.owl#Wheel1")
+ ;;    (:POSE
+ ;;     ((:SOURCE :SIMULATION)
+ ;;      (:TRANSFORM
+ ;;       #<CL-TRANSFORMS-STAMPED:TRANSFORM-STAMPED 
+ ;;   FRAME-ID: "map", CHILD-FRAME-ID: "Wheel1", STAMP: 1499343257775080150
+ ;;   #<3D-VECTOR (-0.9950000047683716d0 1.5770000219345093d0 0.8920000195503235d0)>
+ ;;   #<QUATERNION (0.0d0 0.0d0 0.0d0 1.0d0)>>)))
+ ;;    (:CLASS ((:CONFIDENCE 1.0) (:NAME "Wheel"))))
+ ;;   {10085D63C3}>
+ ;; #<CRAM-DESIGNATORS:OBJECT-DESIGNATOR
+ ;;   ((:TYPE :WHEEL)
+ ;;    (:CLUSTER-ID "http://knowrob.org/kb/thorin_simulation.owl#Wheel2")
+ ;;    (:POSE
+ ;;     ((:SOURCE :SIMULATION)
+ ;;      (:TRANSFORM
+ ;;       #<CL-TRANSFORMS-STAMPED:TRANSFORM-STAMPED 
+ ;;   FRAME-ID: "map", CHILD-FRAME-ID: "Wheel2", STAMP: 1499343257782435062
+ ;;   #<3D-VECTOR (-0.9950000047683716d0 1.5269999504089355d0 0.8920000195503235d0)>
+ ;;   #<QUATERNION (0.0d0 0.0d0 0.0d0 1.0d0)>>)))
+ ;;    (:CLASS ((:CONFIDENCE 1.0) (:NAME "Wheel"))))
+ ;;   {10085D6783}>
+ ;; #<CRAM-DESIGNATORS:OBJECT-DESIGNATOR
+ ;;   ((:TYPE :WHEEL)
+ ;;    (:CLUSTER-ID "http://knowrob.org/kb/thorin_simulation.owl#Wheel3")
+ ;;    (:POSE
+ ;;     ((:SOURCE :SIMULATION)
+ ;;      (:TRANSFORM
+ ;;       #<CL-TRANSFORMS-STAMPED:TRANSFORM-STAMPED 
+ ;;   FRAME-ID: "map", CHILD-FRAME-ID: "Wheel3", STAMP: 1499343257788766092
+ ;;   #<3D-VECTOR (-0.9950000047683716d0 1.4769999980926514d0 0.8920000195503235d0)>
+ ;;   #<QUATERNION (0.0d0 0.0d0 0.0d0 1.0d0)>>)))
+ ;;    (:CLASS ((:CONFIDENCE 1.0) (:NAME "Wheel"))))
+ ;;   {10085D6B43}>
+ ;; #<CRAM-DESIGNATORS:OBJECT-DESIGNATOR
+ ;;   ((:TYPE :WHEEL)
+ ;;    (:CLUSTER-ID "http://knowrob.org/kb/thorin_simulation.owl#Wheel4")
+ ;;    (:POSE
+ ;;     ((:SOURCE :SIMULATION)
+ ;;      (:TRANSFORM
+ ;;       #<CL-TRANSFORMS-STAMPED:TRANSFORM-STAMPED 
+ ;;   FRAME-ID: "map", CHILD-FRAME-ID: "Wheel4", STAMP: 1499343257795483558
+ ;;   #<3D-VECTOR (-0.9950000047683716d0 1.4270000457763672d0 0.8920000195503235d0)>
+ ;;   #<QUATERNION (0.0d0 0.0d0 0.0d0 1.0d0)>>)))
+ ;;    (:CLASS ((:CONFIDENCE 1.0) (:NAME "Wheel"))))
+ ;;   {10085D6F03}>)
