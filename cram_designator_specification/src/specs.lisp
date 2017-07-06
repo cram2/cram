@@ -114,9 +114,15 @@
 
   (<- (property ?designator (?object-key ?object))
     (lisp-pred typep ?designator desig:action-designator)
-    (member ?object-key (:object))
+    (member ?object-key (:object :on-object :with-object))
     (property-member (?object-key ?object) ?designator)
-    (assert-type ?object desig:object-designator "ACTION SPEC:PROPERTY")))
+    (assert-type ?object desig:object-designator "ACTION SPEC:PROPERTY"))
+
+  (<- (property ?designator (?number-key ?value))
+    (lisp-pred typep ?designator desig:action-designator)
+    (member ?number-key (:position :effort))
+    (property-member (?number-key ?value) ?designator)
+    (assert-type ?value number "ACTION SPEC:PROPERTY")))
 
 
 (def-fact-group location-designator-specs (property)
