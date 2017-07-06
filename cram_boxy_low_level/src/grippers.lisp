@@ -29,7 +29,7 @@
 (in-package :boxy-ll)
 
 (defparameter *gripper-minimal-position* 0.0 "in millimeters")
-(defparameter *gripper-maximal-position* 10.0 "in millimeters")
+(defparameter *gripper-maximal-position* 100.0 "in millimeters")
 
 (defvar *gripper-publishers* '(:left nil :right nil)
   "ROS publisher for Boxy gripper driver on goal_position message.")
@@ -94,5 +94,5 @@
       :force effort))))
 
 ;; speed can be up to 60
-;; force can be up to 35
+;; force can be up to 50
 ;; /left_arm_gripper /right_arm_gripper
