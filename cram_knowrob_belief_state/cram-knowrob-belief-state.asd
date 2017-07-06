@@ -43,4 +43,5 @@
      (:file "conversions" :depends-on ("package"))
      (:file "assertions" :depends-on ("package" "conversions"))
      (:file "extracting-info" :depends-on ("package" "conversions"))
-     (:file "grasping" :depends-on ("package"))))))
+     (:file "grasping" :depends-on ("package"))
+     (:file "placing" :depends-on ("package" "grasping"))))))
