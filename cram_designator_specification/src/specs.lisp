@@ -100,9 +100,16 @@
     (property-member (?location-key ?location) ?designator)
     (assert-type ?location desig:location-designator "ACTION SPEC:PROPERTY"))
 
-  (<- (property ?designator (:arm ?value))
+  (<- (property ?designator (?list-key ?value))
     (lisp-pred typep ?designator desig:action-designator)
-    (property-member (:arm ?value) ?designator)
+    (member ?list-key (:left-targets :right-targets))
+    (property-member (?list-key ?value) ?designator)
+    (assert-type ?value list "ACTION SPEC:PROPERTY"))
+
+  (<- (property ?designator (?keyword-or-list-key ?value))
+    (lisp-pred typep ?designator desig:action-designator)
+    (member ?keyword-or-list-key (:gripper :arm))
+    (property-member (?keyword-or-list-key ?value) ?designator)
     (assert-type ?value (or keyword list) "ACTION SPEC:PROPERTY"))
 
   (<- (property ?designator (?object-key ?object))
