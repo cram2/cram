@@ -150,9 +150,9 @@
     ;; infer missing information like ?grasp type, gripping ?effort, manipulation poses
     (lisp-fun kr-belief::get-object-type-grasp ?object-type ?grasp)
     (lisp-fun kr-belief::get-object-type-gripping-effort ?object-type ?effort)
-    (lisp-fun cram-robosherlock:get-object-pose ?current-object-desig ?object-pose)
+    (lisp-fun cram-robosherlock:get-object-transform ?current-object-desig ?object-transform)
     (lisp-fun kr-belief::get-object-manipulation-poses ?object-type ?context-object-type
-              :left ?grasp ?object-pose ?left-poses)
+              :left ?grasp ?object-transform ?left-poses)
     ;; (lisp-fun kr-belief::get-object-manipulation-poses ?object-type ?context-object-type
     ;;           :right ?grasp ?object-pose ?right-poses)
     (equal ?right-poses NIL) ; for now only use left arm
@@ -176,9 +176,10 @@
         (and (desig:current-designator ?location ?current-location-designator)
              (desig:designator-groundings ?current-location-designator ?poses)
              (member ?object-pose ?poses))
-        (lisp-fun cram-robosherlock:get-object-pose ?current-object-designator ?object-pose))
+        (lisp-fun cram-robosherlock:get-object-transform ?current-object-designator
+                  ?object-transform))
     (lisp-fun kr-belief::get-object-manipulation-poses ?object-type :chassie-holder :left ?grasp
-               ?object-pose ?left-poses)
+               ?object-transform ?left-poses)
     ;; (lisp-fun kr-belief::get-object-manipulation-poses ?object-type :axle-holder :right ?grasp
     ;;           ?object-pose ?right-poses)
     (equal ?right-poses NIL) ; only use the left arm for now
@@ -202,9 +203,10 @@
         (and (desig:current-designator ?location ?current-location-designator)
              (desig:designator-groundings ?current-location-designator ?poses)
              (member ?object-pose ?poses))
-        (lisp-fun cram-robosherlock:get-object-pose ?current-object-designator ?object-pose))
+        (lisp-fun cram-robosherlock:get-object-transform ?current-object-designator
+                  ?object-transform))
     (lisp-fun kr-belief::get-object-manipulation-poses ?object-type ?context-object-type
-              :left ?grasp ?object-pose ?left-poses)
+              :left ?grasp ?object-transform ?left-poses)
     ;; (lisp-fun kr-belief::get-object-manipulation-poses ?object-type ?context-object-type
     ;;           :right ?grasp ?object-pose ?right-poses)
     (equal ?right-poses NIL) ; only use the left arm for now
