@@ -78,16 +78,12 @@
           (mapcar (lambda (key-value-pair)
                     (destructuring-bind (key value)
                         key-value-pair
-                      (if (and (eql key :type) (eql value :cup))
-                          ;(list :detection "")
-                          (list :type "Cup")
-                          ;(list :cad-model "cup_eco_orange")
-                          (list (etypecase key
-                                  (keyword (string-downcase (symbol-name key)))
-                                  (string (string-downcase key)))
-                                (etypecase value ; RS is only case-sensitive on "TYPE"s
-                                  (keyword (string-capitalize (symbol-name value)))
-                                  (string value))))))
+                      (list (etypecase key
+                              (keyword (string-downcase (symbol-name key)))
+                              (string (string-downcase key)))
+                            (etypecase value ; RS is only case-sensitive on "TYPE"s
+                              (keyword (remove #\- (string-capitalize (symbol-name value))))
+                              (string value)))))
                   key-value-pairs-list))
         (quantifier quantifier
           ;; (etypecase quantifier
