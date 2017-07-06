@@ -52,8 +52,11 @@
 
 (defun perceive (?object-designator
                  &key
-                   (quantifier :a)
-                   (object-chosing-function #'identity))
+                   ;; (quantifier :a)
+                   ;; (object-chosing-function #'identity)
+                   (quantifier :all)
+                   (object-chosing-function #'car)
+                   )
   (cpl:with-retry-counters ((perceive-retries 5))
     (cpl:with-failure-handling
         ((common-fail:perception-object-not-found (e)
@@ -61,27 +64,31 @@
              (roslisp:ros-warn (boxy-plans perceive) "~a" e)
              (cpl:retry))))
       (let* ((resulting-designators
-               (case quantifier
-                 (:all
-                  (cram-robosherlock:call-robosherlock-service
-                   `((type detecting)
-                     (objects ,?object-designator))
-                   :quantifier :all)
-                  ;; (exe:perform
-                  ;;  (desig:a motion
-                  ;;           (type detecting)
-                  ;;           (objects ?object-designator)))
-                  )
-                 (t
-                  (cram-robosherlock:call-robosherlock-service
-                   `((type detecting)
-                     (objects ,?object-designator))
-                   :quantifier :a)
-                  ;; (exe:perform
-                  ;;  (desig:a motion
-                  ;;           (type detecting)
-                  ;;           (object ?object-designator)))
-                  )))
+               (cram-robosherlock:call-robosherlock-service
+                (desig:properties ?object-designator)
+                :quantifier quantifier)
+               ;; (case quantifier
+               ;;   (:all
+               ;;    (cram-robosherlock:call-robosherlock-service
+               ;;     `((type detecting)
+               ;;       (objects ,?object-designator))
+               ;;     :quantifier :all)
+               ;;    ;; (exe:perform
+               ;;    ;;  (desig:a motion
+               ;;    ;;           (type detecting)
+               ;;    ;;           (objects ?object-designator)))
+               ;;    )
+               ;;   (t
+               ;;    (cram-robosherlock:call-robosherlock-service
+               ;;     `((type detecting)
+               ;;       (objects ,?object-designator))
+               ;;     :quantifier :a)
+               ;;    ;; (exe:perform
+               ;;    ;;  (desig:a motion
+               ;;    ;;           (type detecting)
+               ;;    ;;           (object ?object-designator)))
+               ;;    ))
+               )
              (resulting-designator
                (funcall object-chosing-function resulting-designators)))
         resulting-designator))))
