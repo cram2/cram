@@ -34,11 +34,13 @@
   :depends-on (cram-json-prolog
                cram-utilities
                cl-transforms-stamped
-               cl-transforms)
+               cl-transforms
+               cram-tf)
   :components
   ((:module "src"
     :components
     ((:file "package")
      (:file "conversions" :depends-on ("package"))
      (:file "assertions" :depends-on ("package" "conversions"))
-     (:file "extracting-info" :depends-on ("package" "conversions"))))))
+     (:file "extracting-info" :depends-on ("package" "conversions"))
+     (:file "grasping" :depends-on ("package"))))))
