@@ -60,5 +60,5 @@
   (<- (desig:action-grounding ?action-designator (set-gripper-to-position ?left-or-right
                                                                           ?position))
     (property ?action-designator (:type :setting-gripper))
-    (property ?action-designator (:arm ?left-or-right))
+    (property ?action-designator (:gripper ?left-or-right))
     (property ?action-designator (:position ?position))))
