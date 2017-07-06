@@ -33,68 +33,48 @@
 
 (defgeneric get-object-type-grasp (object-type)
   (:documentation "Returns either of :top, :side, :front. Default is :top.")
-  (:method (object-type) :top))
+  (:method (object-type) :top)
+  (:method ((object-type (eql :porsche-body))) :top)
+  (:method ((object-type (eql :camaro-body))) :top)
+  (:method ((object-type (eql :chassis))) :side)
+  (:method ((object-type (eql :axle))) :top)
+  (:method ((object-type (eql :wheel))) :top))
 
 (defgeneric get-object-type-gripping-effort (object-type)
   (:documentation "Returns effort in Nm, e.g. 50. Default is 35.")
-  (:method (object-type) 35))
+  (:method (object-type) 35)
+  (:method ((object-type (eql :porsche-body))) 35)
+  (:method ((object-type (eql :camaro-body))) 35)
+  (:method ((object-type (eql :chassis))) 50)
+  (:method ((object-type (eql :axle))) 50)
+  (:method ((object-type (eql :wheel))) 40))
 
-(defgeneric get-object-to-gripper-transform (grasp-object-type context-object-type arm grasp)
+(defgeneric get-object-type-gripper-opening (object-type)
+  (:documentation "How wide to open the gripper before grasping, in mm. Default is 100.")
+  (:method (object-type) 100)
+  (:method ((object-type (eql :axle))) 20))
+
+(defgeneric get-object-to-gripper-transform (object-type arm grasp)
   (:documentation "Returns a pose stamped representing oTg -- transfrom from object to gripper.
 
-To calculate oTg from imitation learning data i.e. two transforms bTo and bTg:
-oTg == (bTo)-1 * bTg
-Example: data on axle holder:
-  bTo ==
-    $ rosrun tf tf_echo base_footprint ref_AxleHolder1
-    At time 1499177742.762
-    - Translation: [1.039, 0.163, 0.883]
-    - Rotation: in Quaternion [-0.693, 0.720, -0.027, 0.031]
-  bTg ==
-    $ rosrun tf tf_echo base_footprint left_gripper_tool_fme
-    At time 1499178054.197
-    - Translation: [1.053, 0.150, 0.929]
-    - Rotation: in Quaternion [0.021, 0.999, -0.032, 0.010]
-  oTg == (bTo)-1 * bTg ==
+oTg == oPg, i.e. the pose of gripper in the object coordinate frame."))
 
- (cl-transforms:transform*
-  (cl-transforms:transform-inv
-   (cl-transforms:make-transform
-    (cl-transforms:make-3d-vector 1.039 0.163 0.883)
-    (cl-transforms:make-quaternion -0.693 0.720 -0.027 0.031)))
-  (cl-transforms:make-transform
-   (cl-transforms:make-3d-vector 1.053 0.150 0.929)
-   (cl-transforms:make-quaternion 0.021 0.999 -0.032 0.010)))
- #<CL-TRANSFORMS:TRANSFORM
- #<3D-VECTOR (0.012127715413096402d0 -0.01820510689051602d0 -0.04474920283146444d0)>
- #<QUATERNION (0.0036481743658164957d0 0.0465142121651832d0 0.7067386179595874d0 0.7059345895867556d0)>>
-"))
-
-(defun get-object-type-grasp-pose (grasp-object-type context-object-type arm grasp
-                                   object-transform)
+(defun get-object-type-grasp-pose (object-type arm grasp object-transform)
   (declare (type cl-transforms-stamped:transform-stamped object-transform))
   "Returns a pose stamped representing bTg -- transfrom from base to gripper.
 
-Take object transform, ensure it's from base frame  -- bTo.
+Take object-transform, ensure it's from base frame  -- bTo.
 Multiply from the right with the transform from object to gripper -- bTo * oTg == bTg."
 
-  (let ((object-gripper-transform
-          (get-object-to-gripper-transform grasp-object-type context-object-type arm grasp)))
-
-    (unless (equal (cl-transforms-stamped:frame-id object-transform)
+  (unless (equal (cl-transforms-stamped:frame-id object-transform)
                    cram-tf:*robot-base-frame*)
       (error "In grasp calculations the OBJECT-TRANSFORM did not have ~
 correct parent frame: ~a and ~a"
              (cl-transforms-stamped:frame-id object-transform)
              cram-tf:*robot-base-frame*))
 
-    (unless (equal (cl-transforms-stamped:child-frame-id object-transform)
-                   (cl-transforms-stamped:frame-id object-gripper-transform))
-      (error "In grasp calculations the OBJECT-TRANSFORM object frame was not the same ~
-as the object frame of OBJECT-GRIPPER-TRANSFORM: ~a and ~a"
-             (cl-transforms-stamped:child-frame-id object-transform)
-             (cl-transforms-stamped:frame-id object-gripper-transform)))
-
+  (let ((object-gripper-transform
+          (get-object-to-gripper-transform object-type arm grasp)))
     (cl-transforms-stamped:pose->pose-stamped
      cram-tf:*robot-base-frame*
      0.0
@@ -111,49 +91,28 @@ as the object frame of OBJECT-GRIPPER-TRANSFORM: ~a and ~a"
 (defgeneric get-object-type-lift-pose (object-type arm grasp grasp-pose)
   (:documentation "Returns a pose stamped"))
 
-(defun get-object-manipulation-poses (grasp-object-type context-object-type arm grasp
-                                      object-transform)
+(defun get-object-grasping-poses (object-type arm grasp object-transform)
   "Returns a list of (pregrasp-pose 2nd-pregrasp-pose grasp-pose lift-pose)"
-  (let ((grasp-pose (get-object-type-grasp-pose grasp-object-type context-object-type arm grasp
-                                                object-transform)))
-    (list (get-object-type-pregrasp-pose grasp-object-type arm grasp grasp-pose)
-          (get-object-type-2nd-pregrasp-pose grasp-object-type arm grasp grasp-pose)
+  (let ((grasp-pose (get-object-type-grasp-pose object-type arm grasp object-transform)))
+    (list (get-object-type-pregrasp-pose object-type arm grasp grasp-pose)
+          (get-object-type-2nd-pregrasp-pose object-type arm grasp grasp-pose)
           grasp-pose
-          (get-object-type-lift-pose grasp-object-type arm grasp grasp-pose))))
+          (get-object-type-lift-pose object-type arm grasp grasp-pose))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;; axle ;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod get-object-type-grasp ((object-type (eql :porsche-body))) :top)
-(defmethod get-object-type-grasp ((object-type (eql :camaro-body))) :top)
-(defmethod get-object-type-grasp ((object-type (eql :chassis))) :side)
-(defmethod get-object-type-grasp ((object-type (eql :axle))) :top)
-(defmethod get-object-type-grasp ((object-type (eql :wheel))) :top)
-
-(defmethod get-object-type-gripping-effort ((object-type (eql :porsche-body))) 35)
-(defmethod get-object-type-gripping-effort ((object-type (eql :camaro-body))) 35)
-(defmethod get-object-type-gripping-effort ((object-type (eql :chassis))) 50)
-(defmethod get-object-type-gripping-effort ((object-type (eql :axle))) 50)
-(defmethod get-object-type-gripping-effort ((object-type (eql :wheel))) 40)
-
-(defmethod get-object-to-gripper-transform ((grasp-object-type (eql :axle))
-                                            (context-object-type (eql :axle-holder))
+(defmethod get-object-to-gripper-transform ((object-type (eql :axle))
                                             (arm (eql :left))
                                             (grasp (eql :top)))
   (cl-transforms-stamped:make-transform-stamped
-   "AxleHolder1"
+   "object_of_type_Axle"
    "left_gripper_tool_frame"
    0.0
-   (cl-transforms:make-3d-vector 0.0121277154132d0 -0.018205106890d0 -0.04474920283d0)
-   (cl-transforms:make-quaternion 0.00364817436581d0 0.0465142121d0 0.7067386179d0 0.70593458d0)))
-(defmethod get-object-to-gripper-transform ((grasp-object-type (eql :axle))
-                                            (context-object-type (eql :chassis-holder))
-                                            (arm (eql :left))
-                                            (grasp (eql :top)))
-  (cl-transforms-stamped:make-transform-stamped
-   "ChassisHolder1"
-   "left_gripper_tool_frame"
-   0.0
-   (cl-transforms:make-3d-vector 0.010852097346d0 -0.0233582391227d0 -0.103511464387d0)
-   (cl-transforms:make-quaternion 0.030193600025d0 -0.013846026078d0 0.727875116d0 0.68490470d0)))
+   (cl-transforms:make-3d-vector 0.0d0 0.0d0 0.0d0)
+   (cl-transforms:matrix->quaternion
+    #2A((-1 0 0)
+        (0 1 0)
+        (0 0 -1)))))
 (defmethod get-object-type-pregrasp-pose ((object-type (eql :axle))
                                           (arm (eql :left))
                                           (grasp (eql :top))
@@ -163,11 +122,57 @@ as the object frame of OBJECT-GRIPPER-TRANSFORM: ~a and ~a"
                                       (arm (eql :left))
                                       (grasp (eql :top))
                                       grasp-pose)
-  (get-object-type-pregrasp-pose object-type arm grasp grasp-pose))
+  (cram-tf:translate-pose grasp-pose :z-offset *default-z-offset*))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; chassis ;;;;;;;;;;;;;;;;;;
 
+(defmethod get-object-to-gripper-transform ((object-type (eql :chassis))
+                                            (arm (eql :left))
+                                            (grasp (eql :side)))
+  (cl-transforms-stamped:make-transform-stamped
+   "object_of_type_Chassis"
+   "left_gripper_tool_frame"
+   0.0
+   (cl-transforms:make-3d-vector 0.0d0 0.0d0 0.0d0)
+   (cl-transforms:matrix->quaternion
+    #2A((0 -1 0)
+        (0 0 -1)
+        (1 0 0)))))
+(defmethod get-object-type-pregrasp-pose ((object-type (eql :chassis))
+                                          (arm (eql :left))
+                                          (grasp (eql :side))
+                                          grasp-pose)
+  (cram-tf:translate-pose grasp-pose :y-offset *default-z-offset*))
+(defmethod get-object-type-lift-pose ((object-type (eql :chassis))
+                                      (arm (eql :left))
+                                      (grasp (eql :side))
+                                      grasp-pose)
+  (cram-tf:translate-pose grasp-pose :z-offset *default-z-offset*))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; camaro-body ;;;;;;;;;;;;;;;;
 
+(defmethod get-object-to-gripper-transform ((object-type (eql :camaro-body))
+                                            (arm (eql :left))
+                                            (grasp (eql :top)))
+  (cl-transforms-stamped:make-transform-stamped
+   "object_of_type_CamaroBody"
+   "left_gripper_tool_frame"
+   0.0
+   (cl-transforms:make-3d-vector 0.0d0 0.0d0 0.0d0)
+   (cl-transforms:matrix->quaternion
+    #2A((0 1 0)
+        (1 0 0)
+        (0 0 -1)))))
+(defmethod get-object-type-pregrasp-pose ((object-type (eql :camaro-body))
+                                          (arm (eql :left))
+                                          (grasp (eql :top))
+                                          grasp-pose)
+  (cram-tf:translate-pose grasp-pose :z-offset *default-z-offset*))
+(defmethod get-object-type-lift-pose ((object-type (eql :camaro-body))
+                                      (arm (eql :left))
+                                      (grasp (eql :top))
+                                      grasp-pose)
+  (cram-tf:translate-pose grasp-pose :z-offset *default-z-offset*))
 
 
 
