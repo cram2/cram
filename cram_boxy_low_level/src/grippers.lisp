@@ -31,6 +31,9 @@
 (defparameter *gripper-minimal-position* 0.0 "in millimeters")
 (defparameter *gripper-maximal-position* 100.0 "in millimeters")
 
+(defparameter *gripper-action-timeout* 3.0 "in seconds")
+(defparameter *gripper-convergence-delta* 0.01 "in meters")
+
 (defvar *gripper-publishers* '(:left nil :right nil)
   "ROS publisher for Boxy gripper driver on goal_position message.")
 
@@ -81,17 +84,33 @@
 (defun move-gripper-joint (&key action-type left-or-right goal-position effort)
   (declare (type (or keyword list) left-or-right)
            (type (or null number) goal-position effort))
-  (multiple-value-bind (goal-position effort)
-      (ensure-gripper-input-parameters action-type goal-position effort)
-    (format t "action-type: ~a~%left-or-right: ~a~%goal-position: ~a~%effort: ~a~%"
-            action-type left-or-right goal-position effort)
-    (roslisp:publish
-     (getf *gripper-publishers* left-or-right)
-     (roslisp::make-message
-      'iai_wsg_50_msgs-msg:PositionCmd
-      :pos goal-position
-      :speed 50.0
-      :force effort))))
+
+  (flet ((goal-reached (robot-state-msg)
+           (declare (ignore robot-state-msg))
+           (let ((current-position (car (joint-positions '("left_gripper_joint")))))
+             (< (abs (- current-position (/ goal-position 1000.0)))
+                *gripper-convergence-delta*))))
+
+   (multiple-value-bind (goal-position effort)
+       (ensure-gripper-input-parameters action-type goal-position effort)
+     (format t "action-type: ~a~%left-or-right: ~a~%goal-position: ~a~%effort: ~a~%"
+             action-type left-or-right goal-position effort)
+     (roslisp:publish
+      (getf *gripper-publishers* left-or-right)
+      (roslisp::make-message
+       'iai_wsg_50_msgs-msg:PositionCmd
+       :pos goal-position
+       :speed 50.0
+       :force effort))
+     (let ((reached-fluent (cpl:fl-funcall #'goal-reached *robot-joint-states-msg*)))
+       (cpl:pursue
+         (cpl:wait-for reached-fluent)
+         (cpl:seq
+           (cpl:sleep *gripper-action-timeout*)
+           (cpl:fail 'common-fail:gripping-failed
+                     :description (format nil "gripper did not reach goal: is ~a, should be ~a."
+                                          (car (joint-positions '("left_gripper_joint")))
+                                          (/ goal-position 1000.0)))))))))
 
 ;; speed can be up to 60
 ;; force can be up to 50

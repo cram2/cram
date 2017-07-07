@@ -33,6 +33,8 @@
 (defvar *yaw-goal-tolerance* 0.1 "in radiants, about 6 degrees.")
 ;; There are VARs (not PARAMETERs) as they're read from the ROS param server
 
+(defparameter *nav-p-timeout* 20.0 "in seconds")
+
 (defun init-nav-pcontroller-action-client-and-read-params ()
   (make-simple-action-client
    'nav-pcontroller-action
@@ -63,7 +65,8 @@
                                    cram-tf:*robot-base-frame* goal-pose
                                    convergence-delta-xy convergence-delta-theta))))
 
-(defun move-base-nav-pcontroller (&key goal-pose action-timeout
+(defun move-base-nav-pcontroller (&key goal-pose
+                                    (action-timeout *nav-p-timeout*)
                                     (convergence-delta-xy *xy-goal-tolerance*)
                                     (convergence-delta-theta *yaw-goal-tolerance*)
                                     visualize)
