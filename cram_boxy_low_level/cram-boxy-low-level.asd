@@ -72,4 +72,4 @@
                                            "low-level-common"
                                            "simple-actionlib-client"))
      (:file "neck" :depends-on ("package"))
-     (:file "grippers" :depends-on ("package"))))))
+     (:file "grippers" :depends-on ("package" "joint-states"))))))
