@@ -29,8 +29,8 @@
 
 (in-package :kr-belief)
 
-(defparameter *z-of-chassis-holder* 0.1 "In meters.")
-(defparameter *x-of-chassis-holder-hole* 0.03 "In meters.")
+(defparameter *z-of-chassis-holder* 0.2 "In meters.")
+(defparameter *x-of-chassis-holder-hole* 0.042 "In meters.")
 
 (defgeneric get-object-placement-transform (on-object-type object-type arm grasp)
   (:documentation "Returns a transform from on-object to gripper -- ooTg."))
