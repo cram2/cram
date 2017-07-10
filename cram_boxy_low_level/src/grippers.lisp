@@ -28,11 +28,11 @@
 
 (in-package :boxy-ll)
 
-(defparameter *gripper-minimal-position* 0.0 "in millimeters")
-(defparameter *gripper-maximal-position* 100.0 "in millimeters")
+(defparameter *gripper-minimal-position* 6.5 "in millimeters")
+(defparameter *gripper-maximal-position* 109.0 "in millimeters")
 
 (defparameter *gripper-action-timeout* 3.0 "in seconds")
-(defparameter *gripper-convergence-delta* 0.01 "in meters")
+(defparameter *gripper-convergence-delta* 0.003 "in meters")
 
 (defvar *gripper-publishers* '(:left nil :right nil)
   "ROS publisher for Boxy gripper driver on goal_position message.")
@@ -102,15 +102,17 @@
        :pos goal-position
        :speed 50.0
        :force effort))
-     (let ((reached-fluent (cpl:fl-funcall #'goal-reached *robot-joint-states-msg*)))
-       (cpl:pursue
-         (cpl:wait-for reached-fluent)
-         (cpl:seq
-           (cpl:sleep *gripper-action-timeout*)
-           (cpl:fail 'common-fail:gripping-failed
-                     :description (format nil "gripper did not reach goal: is ~a, should be ~a."
-                                          (car (joint-positions '("left_gripper_joint")))
-                                          (/ goal-position 1000.0)))))))))
+     (cpl:sleep *gripper-action-timeout*)
+     ;; (let ((reached-fluent (cpl:fl-funcall #'goal-reached *robot-joint-states-msg*)))
+     ;;   (cpl:pursue
+     ;;     (cpl:wait-for reached-fluent)
+     ;;     (cpl:seq
+     ;;       (cpl:sleep *gripper-action-timeout*)
+     ;;       (cpl:fail 'common-fail:gripping-failed
+     ;;                 :description (format nil "gripper did not reach goal: is ~a, should be ~a."
+     ;;                                      (car (joint-positions '("left_gripper_joint")))
+     ;;                                      (/ goal-position 1000.0))))))
+     )))
 
 ;; speed can be up to 60
 ;; force can be up to 50
