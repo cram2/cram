@@ -68,7 +68,9 @@
          :documentation "Data this designator describes or nil if the
                         designator was resolved yet.")
    (lock :initform (sb-thread:make-mutex)
-         :documentation "Lock for synchronizing reference calls.")))
+         :documentation "Lock for synchronizing reference calls.")
+   (quantifier :reader quantifier :initform :a
+               :documentation "Quantifier can be :a, :an, :all etc.")))
 
 (defgeneric make-designator (class description &optional parent)
   (:documentation "Returns a new designator of type `class', matching

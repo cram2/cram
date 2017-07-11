@@ -77,6 +77,15 @@
 (defmacro an (&rest body)
   `(a ,@body))
 
+(defmacro all (type &rest key-value-pairs-list)
+  (let ((type-keyword (intern (string-right-trim '(#\S) (string-upcase type)) :keyword))
+        (local-var-name (gensym "DESIG")))
+    `(let ((,local-var-name
+             (make-designator ,type-keyword
+                              (remove NIL ,(parse-key-value-pairs key-value-pairs-list)))))
+       (setf (slot-value ,local-var-name 'quantifier) :all)
+       ,local-var-name)))
+
 ;; (defmacro some (&rest body)
 ;;   `(a ,@body))
 ;;
