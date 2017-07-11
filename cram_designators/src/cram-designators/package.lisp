@@ -40,7 +40,7 @@
   (:export #:designator #:timestamp #:description #:properties
            #:parent #:successor #:designator-error
            #:*default-role*
-           #:effective #:data #:equate #:desig-equal #:reference
+           #:effective #:data #:equate #:desig-equal #:reference #:quantifier
            #:next-solution #:register-designator-class
            #:make-designator
            #:copy-designator
@@ -109,4 +109,4 @@
            #:equated-desigs
            #:desig
            ;; initialization macros
-           #:a #:an #:when))
+           #:a #:an #:all #:when))
