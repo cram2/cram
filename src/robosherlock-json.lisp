@@ -154,9 +154,4 @@
           (setf *rs-result-designator* rs-result)
           rs-result)))))
 
-
-(defun get-object-transform (object-designator)
-  (car (getassoc :transform (desig:desig-prop-value object-designator :pose))))
-
-
 ;; rosservice call /RoboSherlock/json_query "query: '{\"detect\": {\"type\": \"Wheel\"}}'"

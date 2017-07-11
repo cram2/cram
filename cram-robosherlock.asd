@@ -47,4 +47,5 @@
     :components
     ((:file "package")
      (:file "json-parser" :depends-on ("package"))
-     (:file "robosherlock-json" :depends-on ("package" "json-parser"))))))
+     (:file "robosherlock-json" :depends-on ("package" "json-parser"))
+     (:file "api" :depends-on ("package" "robosherlock-json"))))))
