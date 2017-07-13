@@ -37,29 +37,33 @@ look up stuff from TF.")
   (declare (type desig:object-designator object-designator))
   (if *no-robosherlock-mode*
       ;; use TF to find out object coordinates
-      (let ((object-type (desig:desig-prop-value object-designator :type)))
-        (loop for i = 1 then (1+ i)
-              for object-frame = (concatenate 'string
-                                              (remove #\- (string-capitalize
-                                                           (symbol-name object-type)))
-                                              (write-to-string i))
-              for transform = (handler-case
-                                  (cl-transforms-stamped:lookup-transform
-                                   cram-tf:*transformer*
-                                   cram-tf:*robot-base-frame*
-                                   object-frame
-                                   :time 0.0
-                                   :timeout 0.0)
-                                (cl-transforms-stamped:transform-stamped-error ()
-                                  NIL))
-              until (not transform)
-              do (print object-frame)
-              collect (desig:make-designator
-                       :object
-                       (reduce (alexandria:rcurry (cut:flip #'adjoin) :key #'car)
-                               (desig:properties object-designator)
-                               :initial-value `((:pose ((:transform ,transform)))
-                                                (:name ,object-frame))))))
+      (let* ((object-type
+               (desig:desig-prop-value object-designator :type))
+             (all-objects
+               (loop for i = 1 then (1+ i)
+                     for object-frame = (concatenate 'string
+                                                     (remove #\- (string-capitalize
+                                                                  (symbol-name object-type)))
+                                                     (write-to-string i))
+                     for transform = (handler-case
+                                         (cl-transforms-stamped:lookup-transform
+                                          cram-tf:*transformer*
+                                          cram-tf:*robot-base-frame*
+                                          object-frame
+                                          :time 0.0
+                                          :timeout 0.0)
+                                       (cl-transforms-stamped:transform-stamped-error ()
+                                         NIL))
+                     until (not transform)
+                     collect (desig:make-designator
+                              :object
+                              (reduce (alexandria:rcurry (cut:flip #'adjoin) :key #'car)
+                                      (desig:properties object-designator)
+                                      :initial-value `((:pose ((:transform ,transform)))
+                                                       (:name ,object-frame)))))))
+        (ecase (desig:quantifier object-designator)
+          ((:a :an) (car all-objects))
+          (:all all-objects)))
       ;; use RoboSherlock to find out object coordinates
       (call-robosherlock-service (desig:properties object-designator)
                                  :quantifier (desig:quantifier object-designator))))
