@@ -28,8 +28,8 @@
 
 (in-package :boxy-ll)
 
-(defparameter *gripper-minimal-position* 6.5 "in millimeters")
-(defparameter *gripper-maximal-position* 109.0 "in millimeters")
+(defparameter *gripper-minimal-position* 0.0065 "in meters")
+(defparameter *gripper-maximal-position* 0.109 "in meters")
 
 (defparameter *gripper-action-timeout* 3.0 "in seconds")
 (defparameter *gripper-convergence-delta* 0.003 "in meters")
@@ -56,13 +56,13 @@
              (cond
                ((< position *gripper-minimal-position*)
                 (roslisp:ros-warn (gripper-action)
-                                  "POSITION (~a) cannot be < 0.0. Clipping."
-                                  position)
+                                  "POSITION (~a) cannot be < ~a. Clipping."
+                                  position *gripper-minimal-position*)
                 *gripper-minimal-position*)
                ((> position *gripper-maximal-position*)
                 (roslisp:ros-warn (gripper-action)
-                                  "POSITION (~a) shouldn't be > 0.085. Clipping."
-                                  position)
+                                  "POSITION (~a) shouldn't be > ~a. Clipping."
+                                  position *gripper-maximal-position*)
                 *gripper-maximal-position*)
                (t
                 position)))
@@ -77,29 +77,30 @@
                 (position 30.0)
                 (action-type (ecase action-type
                                (:open 30.0)
-                               (:close 30.0) ; because of stupid gazebo
+                               (:close 30.0)
                                (:grip 15.0)))))))
     (values position effort)))
 
 (defun move-gripper-joint (&key action-type left-or-right goal-position effort)
   (declare (type (or keyword list) left-or-right)
            (type (or null number) goal-position effort))
+  "`goal-position' is in meters."
 
   (flet ((goal-reached (robot-state-msg)
            (declare (ignore robot-state-msg))
            (let ((current-position (car (joint-positions '("left_gripper_joint")))))
-             (< (abs (- current-position (/ goal-position 1000.0)))
+             (< (abs (- current-position goal-position))
                 *gripper-convergence-delta*))))
 
    (multiple-value-bind (goal-position effort)
        (ensure-gripper-input-parameters action-type goal-position effort)
-     (format t "action-type: ~a~%left-or-right: ~a~%goal-position: ~a~%effort: ~a~%"
-             action-type left-or-right goal-position effort)
+     (format t "action-type: ~a~%left-or-right: ~a~%goal-position: ~a cm~%effort: ~a~%"
+             action-type left-or-right (* goal-position 100.0) effort)
      (roslisp:publish
       (getf *gripper-publishers* left-or-right)
       (roslisp::make-message
        'iai_wsg_50_msgs-msg:PositionCmd
-       :pos goal-position
+       :pos (* goal-position 1000.0) ; expected to be in milimiters
        :speed 50.0
        :force effort))
      (cpl:sleep *gripper-action-timeout*)
