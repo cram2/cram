@@ -50,45 +50,8 @@
    (make-instance 'cpoe:object-released :arm arm)))
 
 
-(defun perceive (?object-designator
-                 &key
-                   ;; (quantifier :a)
-                   ;; (object-chosing-function #'identity)
-                   (quantifier :all)
-                   (object-chosing-function #'car)
-                   )
-  (cpl:with-retry-counters ((perceive-retries 5))
-    (cpl:with-failure-handling
-        ((common-fail:perception-object-not-found (e)
-           (cpl:do-retry perceive-retries
-             (roslisp:ros-warn (boxy-plans perceive) "~a" e)
-             (cpl:retry))))
-      (let* ((resulting-designators
-               (cram-robosherlock:call-robosherlock-service
-                (desig:properties ?object-designator)
-                :quantifier quantifier)
-               ;; (case quantifier
-               ;;   (:all
-               ;;    (cram-robosherlock:call-robosherlock-service
-               ;;     `((type detecting)
-               ;;       (objects ,?object-designator))
-               ;;     :quantifier :all)
-               ;;    ;; (exe:perform
-               ;;    ;;  (desig:a motion
-               ;;    ;;           (type detecting)
-               ;;    ;;           (objects ?object-designator)))
-               ;;    )
-               ;;   (t
-               ;;    (cram-robosherlock:call-robosherlock-service
-               ;;     `((type detecting)
-               ;;       (objects ,?object-designator))
-               ;;     :quantifier :a)
-               ;;    ;; (exe:perform
-               ;;    ;;  (desig:a motion
-               ;;    ;;           (type detecting)
-               ;;    ;;           (object ?object-designator)))
-               ;;    ))
-               )
-             (resulting-designator
-               (funcall object-chosing-function resulting-designators)))
-        resulting-designator))))
+(cpl:def-cram-function look (?left-goal-pose ?right-goal-pose)
+  (exe:perform (desig:an action
+                         (type reaching)
+                         (left-poses (?left-goal-pose))
+                         (right-poses (?right-goal-pose)))))

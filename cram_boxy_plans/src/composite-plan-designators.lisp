@@ -51,16 +51,16 @@
                                                   (position ?gripper-opening))
                                         (desig:an action
                                                   (type reaching)
-                                                  (left-targets ?left-reach-poses)
-                                                  (right-targets ?right-reach-poses))
+                                                  (left-poses ?left-reach-poses)
+                                                  (right-poses ?right-reach-poses))
                                         (desig:an action
                                                   (type gripping)
                                                   (arm ?arm)
                                                   (effort ?grip-effort))
                                         (desig:an action
                                                   (type lifting)
-                                                  (left-targets ?left-lift-pose)
-                                                  (right-targets ?right-lift-pose))))))))
+                                                  (left-poses ?left-lift-pose)
+                                                  (right-poses ?right-lift-pose))))))))
 
 (defun append-place-action-designator (action-designator ?arm
                                        left-manipulation-poses right-manipulation-poses)
@@ -82,19 +82,19 @@
                            `((:phases ,(list
                                         (desig:an action
                                                   (type reaching)
-                                                  (left-targets ?left-reach-poses)
-                                                  (right-targets ?right-reach-poses))
+                                                  (left-poses ?left-reach-poses)
+                                                  (right-poses ?right-reach-poses))
                                         (desig:an action
                                                   (type putting)
-                                                  (left-targets ?left-put-pose)
-                                                  (right-targets ?right-put-pose))
+                                                  (left-poses ?left-put-pose)
+                                                  (right-poses ?right-put-pose))
                                         (desig:an action
                                                   (type releasing)
                                                   (gripper ?arm))
                                         (desig:an action
                                                   (type retracting)
-                                                  (left-targets ?left-retract-poses)
-                                                  (right-targets ?right-retract-poses))))))))
+                                                  (left-poses ?left-retract-poses)
+                                                  (right-poses ?right-retract-poses))))))))
 
 (defun append-connect-action-designator (action-designator ?arm
                                          left-manipulation-poses right-manipulation-poses)
@@ -118,31 +118,31 @@
                            `((:phases ,(list
                                         (desig:an action
                                                   (type reaching)
-                                                  (left-targets ?left-reach-poses)
-                                                  (right-targets ?right-reach-poses))
+                                                  (left-poses ?left-reach-poses)
+                                                  (right-poses ?right-reach-poses))
                                         (desig:an action
                                                   (type pushing)
-                                                  (left-targets ?left-push-pose)
-                                                  (right-targets ?right-push-pose))
+                                                  (left-poses ?left-push-pose)
+                                                  (right-poses ?right-push-pose))
                                         (desig:an action
                                                   (type releasing)
                                                   (gripper ?arm))
                                         (desig:an action
                                                   (type retracting)
-                                                  (left-targets ?left-retract-poses)
-                                                  (right-targets ?right-retract-poses))))))))
+                                                  (left-poses ?left-retract-poses)
+                                                  (right-poses ?right-retract-poses))))))))
 
-(defun cram-robosherlock:get-object-transform (object-designator)
-  (let* ((object-type (desig:desig-prop-value object-designator :type))
-         (object-frame (concatenate 'string
-                                    (remove #\- (string-capitalize (symbol-name object-type)))
-                                    "1")))
-    (cl-transforms-stamped:lookup-transform
-     cram-tf:*transformer*
-     cram-tf:*robot-base-frame*
-     object-frame
-     :time 0.0
-     :timeout cram-tf:*tf-default-timeout*)))
+;; (defun cram-robosherlock:get-object-transform (object-designator)
+;;   (let* ((object-type (desig:desig-prop-value object-designator :type))
+;;          (object-frame (concatenate 'string
+;;                                     (remove #\- (string-capitalize (symbol-name object-type)))
+;;                                     "1")))
+;;     (cl-transforms-stamped:lookup-transform
+;;      cram-tf:*transformer*
+;;      cram-tf:*robot-base-frame*
+;;      object-frame
+;;      :time 0.0
+;;      :timeout cram-tf:*tf-default-timeout*)))
 
 (def-fact-group pr2-pick-and-place-plans (desig:action-grounding)
   (<- (desig:action-grounding ?action-designator (pick-up ?updated-action-designator
@@ -179,13 +179,14 @@
     (desig:current-designator ?on-object-designator ?current-on-object-designator)
     (format "c: ~a~%" ?current-on-object-designator)
     (property ?current-on-object-designator (:type ?on-object-type))
-    ;; infer missing information
     (lisp-fun cram-robosherlock:get-object-transform ?current-on-object-designator
               ?on-object-transform)
+    ;; infer missing information
     (lisp-fun kr-belief::get-object-type-grasp ?object-type ?grasp)
     (lisp-fun kr-belief::get-object-placing-poses ?on-object-type ?object-type :left ?grasp
               ?on-object-transform ?left-poses)
-    (equal ?right-poses NIL) ; only use the left arm for now
+    ;; only use the left arm for now
+    (equal ?right-poses NIL)
     ;; create new designator with updated appended action-description
     (lisp-fun append-place-action-designator ?action-designator ?arm ?left-poses ?right-poses
               ?updated-action-designator))
@@ -200,36 +201,57 @@
     (property ?action-designator (:with-object ?with-object-designator))
     (desig:current-designator ?with-object-designator ?current-with-object-designator)
     (property ?current-with-object-designator (:type ?with-object-type))
-    ;; infer missing information
-    (lisp-fun cram-robosherlock:get-object-transform ?current-with-object-desig
+    (lisp-fun cram-robosherlock:get-object-transform ?current-with-object-designator
               ?with-object-transform)
+    ;; infer missing information
     (lisp-fun kr-belief::get-object-type-grasp ?object-type ?grasp)
     (lisp-fun kr-belief::get-object-placing-poses ?with-object-type ?object-type :left ?grasp
               ?with-object-transform ?left-poses)
-    (equal ?right-poses NIL) ; only use the left arm for now
+    ;; only use the left arm for now
+    (equal ?right-poses NIL)
     ;; create new designator with updated appended action-description
     (lisp-fun append-connect-action-designator ?action-designator ?arm ?left-poses ?right-poses
-              ?updated-action-designator)))
+              ?updated-action-designator))
+
+  (<- (desig:action-grounding ?action-designator (look ?left-goal-pose ?right-goal-pose))
+    (property ?action-designator (:type :looking))
+    (property ?action-designator (:camera :wrist))
+    (property ?action-designator (:object ?object-designator))
+    (desig:current-designator ?object-designator ?current-object-designator)
+    (lisp-fun cram-robosherlock:get-object-transform ?current-object-designator ?object-transform)
+    ;; infer missing information
+    (lisp-fun kr-belief::get-object-look-pose :left ?object-transform ?left-goal-pose)
+    ;; the only wrist camera is on left arm
+    (equal ?right-goal-pose NIL)))
 
 #-asdf
 (
- (cram-process-modules:with-process-modules-running
-     (boxy-pm:base-pm boxy-pm:neck-pm boxy-pm:grippers-pm boxy-pm:body-pm)
-   (cpl:top-level
-     (exe:perform
-      (desig:an action
-                (type picking-up)
-                (object (desig:an object (type chassis)))
-                (arm left)
-                ))))
- (cram-process-modules:with-process-modules-running
-     (boxy-pm:base-pm boxy-pm:neck-pm boxy-pm:grippers-pm boxy-pm:body-pm)
-   (cpl:top-level
-     (exe:perform
-      (desig:an action
-                (type placing)
-                (object (desig:an object (type chassis)))
-                (on-object (desig:an object (type chassis-holder)))
-                (arm left)
-                ))))
-)
+ (let ((?obj (boxy-plans::detect (desig:an object (type chassis)))))
+   (cram-process-modules:with-process-modules-running
+       (boxy-pm:base-pm boxy-pm:neck-pm boxy-pm:grippers-pm boxy-pm:body-pm)
+     (cpl:top-level
+       (exe:perform
+        (desig:an action
+                  (type picking-up)
+                  (object ?obj)
+                  (arm left))))))
+ (let ((?obj (boxy-plans::detect (desig:an object (type chassis-holder)))))
+           (cram-process-modules:with-process-modules-running
+               (boxy-pm:base-pm boxy-pm:neck-pm boxy-pm:grippers-pm boxy-pm:body-pm)
+             (cpl:top-level
+               (exe:perform
+                (desig:an action
+                          (type placing)
+                          (object (desig:an object (type chassis)))
+                          (on-object ?obj)
+                          (arm left))))))
+ (let ((?obj (boxy-plans::detect (desig:an object (type camaro-body)))))
+   (cram-process-modules:with-process-modules-running
+       (boxy-pm:base-pm boxy-pm:neck-pm boxy-pm:grippers-pm boxy-pm:body-pm)
+     (cpl:top-level
+       (exe:perform
+        (desig:an action
+                  (type looking)
+                  (object ?obj)
+                  (camera wrist))))))
+ )
