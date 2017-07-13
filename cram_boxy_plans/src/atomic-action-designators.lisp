@@ -37,9 +37,9 @@
         (property ?action-designator (:type :retracting))
         (property ?action-designator (:type :lifting))
         (property ?action-designator (:type :putting)))
-    (once (or (property ?action-designator (:left-targets ?left-poses))
+    (once (or (property ?action-designator (:left-poses ?left-poses))
               (equal ?left-poses nil)))
-    (once (or (property ?action-designator (:right-targets ?right-poses))
+    (once (or (property ?action-designator (:right-poses ?right-poses))
               (equal ?right-poses nil))))
 
   (<- (desig:action-grounding ?action-designator (release ?left-or-right))
