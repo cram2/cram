@@ -42,6 +42,13 @@
     (once (or (property ?action-designator (:right-poses ?right-poses))
               (equal ?right-poses nil))))
 
+  (<- (desig:action-grounding ?action-designator (wiggle ?left-poses ?right-poses))
+    (property ?action-designator (:type :pushing))
+    (once (or (property ?action-designator (:left-poses ?left-poses))
+              (equal ?left-poses nil)))
+    (once (or (property ?action-designator (:right-poses ?right-poses))
+              (equal ?right-poses nil))))
+
   (<- (desig:action-grounding ?action-designator (release ?left-or-right))
     (or (property ?action-designator (:type :releasing))
         (property ?action-designator (:type :opening)))

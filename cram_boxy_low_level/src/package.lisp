@@ -52,4 +52,6 @@
    ;; neck
    #:move-neck-joint
    ;; grippers
-   #:move-gripper-joint))
+   #:move-gripper-joint
+   ;; wiggle
+   #:move-arm-wiggle))

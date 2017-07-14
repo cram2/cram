@@ -46,7 +46,8 @@
 
   (<- (cpm:matching-process-module ?motion-designator body-pm)
     (or (desig:desig-prop ?motion-designator (:type :moving-tcp))
-        (desig:desig-prop ?motion-designator (:type :moving-arm-joints))))
+        (desig:desig-prop ?motion-designator (:type :moving-arm-joints))
+        (desig:desig-prop ?motion-designator (:type :wiggling-tcp))))
 
   (<- (cpm:available-process-module ?pm)
     (member ?pm (base-pm neck-pm grippers-pm body-pm))

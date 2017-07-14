@@ -67,24 +67,27 @@
              (if (> desired-length current-length)
                  (append some-list (make-list (- desired-length current-length)))
                  some-list))))
-    (destructuring-bind (command goal-left goal-right)
+    (destructuring-bind (command argument-1 argument-2)
         (desig:reference motion-designator)
       (ecase command
         (boxy-desig:move-tcp
-         (progn
-               (unless (listp goal-left)
-                 (setf goal-left (list goal-left)))
-               (unless (listp goal-right)
-                 (setf goal-right (list goal-right)))
-               (let ((max-length (max (length goal-left) (length goal-right))))
-                 (mapc (lambda (single-pose-left single-pose-right)
-                         (boxy-ll::visualize-marker (list single-pose-left single-pose-right)
-                                                    :r-g-b-list '(1 0 1))
-                         (boxy-ll:move-arms-giskard-cartesian :goal-pose-left single-pose-left
-                                                              :goal-pose-right single-pose-right))
-                       (fill-in-with-nils goal-left max-length)
-                       (fill-in-with-nils goal-right max-length)))))
+         (let ((goal-left argument-1)
+               (goal-right argument-2))
+           (progn
+             (unless (listp goal-left)
+               (setf goal-left (list goal-left)))
+             (unless (listp goal-right)
+               (setf goal-right (list goal-right)))
+             (let ((max-length (max (length goal-left) (length goal-right))))
+               (mapc (lambda (single-pose-left single-pose-right)
+                       (boxy-ll::visualize-marker (list single-pose-left single-pose-right)
+                                                  :r-g-b-list '(1 0 1))
+                       (boxy-ll:move-arms-giskard-cartesian :goal-pose-left single-pose-left
+                                                            :goal-pose-right single-pose-right))
+                     (fill-in-with-nils goal-left max-length)
+                     (fill-in-with-nils goal-right max-length))))))
         (boxy-desig:move-arm-joints
-         (boxy-ll:move-arms-giskard-joint :goal-configuration-left goal-left
-                                          :goal-configuration-right goal-right))))))
-
+         (boxy-ll:move-arms-giskard-joint :goal-configuration-left argument-1
+                                          :goal-configuration-right argument-2))
+        (boxy-desig:move-tcp-wiggle
+         (boxy-ll:move-arm-wiggle :arm argument-1 :goal-pose argument-2))))))
