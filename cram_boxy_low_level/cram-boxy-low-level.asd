@@ -51,14 +51,14 @@
                visualization_msgs-msg
                iai_wsg_50_msgs-msg
                iai_control_msgs-msg ; neck message
-               )
+               wiggle_msgs-msg)
   :components
   ((:module "src"
     :components
     ((:file "package")
      (:file "low-level-common" :depends-on ("package"))
      (:file "simple-actionlib-client" :depends-on ("package"))
-     (:file "giskard-common" :depends-on ("package"))
+     (:file "giskard-common" :depends-on ("package" "simple-actionlib-client"))
      (:file "giskard-cartesian" :depends-on ("package"
                                              "simple-actionlib-client"
                                              "giskard-common"))
@@ -72,4 +72,6 @@
                                            "low-level-common"
                                            "simple-actionlib-client"))
      (:file "neck" :depends-on ("package"))
-     (:file "grippers" :depends-on ("package" "joint-states"))))))
+     (:file "grippers" :depends-on ("package" "joint-states"))
+     (:file "wiggle" :depends-on ("package" "simple-actionlib-client"
+                                            "giskard-cartesian"))))))

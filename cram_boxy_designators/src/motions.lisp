@@ -83,4 +83,11 @@
     (once (or (property ?designator (:left-configuration ?left-config))
               (equal ?left-config nil)))
     (once (or (property ?designator (:right-configuration ?right-config))
-              (equal ?right-config nil)))))
+              (equal ?right-config nil))))
+
+  (<- (desig:motion-grounding ?designator (move-tcp-wiggle ?arm ?pose))
+    (property ?designator (:type :wiggling-tcp))
+    (property ?designator (:arm ?arm))
+    (property ?designator (:target ?location-designator))
+    (desig:designator-groundings ?location-designator ?poses)
+    (member ?pose ?poses)))

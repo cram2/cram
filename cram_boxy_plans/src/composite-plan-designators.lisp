@@ -66,15 +66,15 @@
                                        left-manipulation-poses right-manipulation-poses)
   "`?arm' can be :left, :right or (:left :right)."
   (let ((arm-as-list (if (listp ?arm) ?arm (list ?arm)))
-        ?left-reach-poses ?left-put-pose ?left-retract-poses
-        ?right-reach-poses ?right-put-pose ?right-retract-poses)
+        ?left-reach-poses ?left-put-poses ?left-retract-poses
+        ?right-reach-poses ?right-put-poses ?right-retract-poses)
     (when (member :left arm-as-list)
       (setf ?left-reach-poses (subseq left-manipulation-poses 0 1)
-            ?left-put-pose (second left-manipulation-poses)
+            ?left-put-poses (subseq left-manipulation-poses 1 2)
             ?left-retract-poses (subseq left-manipulation-poses 2)))
     (when (member :right arm-as-list)
       (setf ?right-reach-poses (subseq right-manipulation-poses 0 1)
-            ?right-put-pose (second right-manipulation-poses)
+            ?right-put-poses (subseq right-manipulation-poses 1 2)
             ?right-retract-poses (subseq right-manipulation-poses 2)))
 
     (desig:copy-designator action-designator
@@ -86,8 +86,8 @@
                                                   (right-poses ?right-reach-poses))
                                         (desig:an action
                                                   (type putting)
-                                                  (left-poses ?left-put-pose)
-                                                  (right-poses ?right-put-pose))
+                                                  (left-poses ?left-put-poses)
+                                                  (right-poses ?right-put-poses))
                                         (desig:an action
                                                   (type releasing)
                                                   (gripper ?arm))
@@ -100,18 +100,17 @@
                                          left-manipulation-poses right-manipulation-poses)
   "`?arm' can be :left, :right or (:left :right)."
   (let ((arm-as-list (if (listp ?arm) ?arm (list ?arm)))
-        (left-manipulation-poses (reverse left-manipulation-poses))
-        (right-manipulation-poses (reverse right-manipulation-poses))
-        ?left-reach-poses ?left-push-pose ?left-retract-poses
-        ?right-reach-poses ?right-push-pose ?right-retract-poses)
+        ?left-reach-poses ?left-push-poses ?left-retract-poses
+        ?right-reach-poses ?right-push-poses ?right-retract-poses)
     (when (member :left arm-as-list)
       (setf ?left-reach-poses (subseq left-manipulation-poses 0 1)
-            ?left-push-pose (second left-manipulation-poses)
+            ?left-push-poses (subseq left-manipulation-poses 1 2)
             ?left-retract-poses (subseq left-manipulation-poses 2)))
     (when (member :right arm-as-list)
       (setf ?right-reach-poses (subseq right-manipulation-poses 0 1)
-            ?right-push-pose (second right-manipulation-poses)
+            ?right-push-poses (subseq right-manipulation-poses 1 2)
             ?right-retract-poses (subseq right-manipulation-poses 2)))
+    (format t "leftupshpo: ~a~%" left-manipulation-poses)
 
     (desig:copy-designator action-designator
                            :new-description
@@ -122,8 +121,8 @@
                                                   (right-poses ?right-reach-poses))
                                         (desig:an action
                                                   (type pushing)
-                                                  (left-poses ?left-push-pose)
-                                                  (right-poses ?right-push-pose))
+                                                  (left-poses ?left-push-poses)
+                                                  (right-poses ?right-push-poses))
                                         (desig:an action
                                                   (type releasing)
                                                   (gripper ?arm))
@@ -254,4 +253,30 @@
                   (type looking)
                   (object ?obj)
                   (camera wrist))))))
- )
+ (let ((?pose (cl-transforms-stamped:transform-pose-stamped
+                       cram-tf:*transformer*
+                       :target-frame cram-tf:*robot-base-frame*
+                       :pose (cl-transforms-stamped:make-pose-stamped
+                              cram-tf:*robot-left-tool-frame*
+                              0.0
+                              (cl-transforms:make-identity-vector)
+                              (cl-transforms:make-identity-rotation)))))
+           (cram-process-modules:with-process-modules-running
+               (boxy-pm:base-pm boxy-pm:neck-pm boxy-pm:grippers-pm boxy-pm:body-pm)
+             (cpl:top-level
+               (cram-executive:perform
+                (desig:a action
+                         (type pushing)
+                         (left-poses (?pose)))))))
+ (let ((?obj (boxy-plans::detect (desig:an object (type axle))))
+               (?with-obj (boxy-plans::detect (desig:an object (type chassis)))))
+           (cram-process-modules:with-process-modules-running
+               (boxy-pm:base-pm boxy-pm:neck-pm boxy-pm:grippers-pm boxy-pm:body-pm)
+             (cpl:top-level
+               (exe:perform
+                (desig:an action
+                          (type connecting)
+                          (object ?obj)
+                          (with-object ?with-obj)
+                          (arm left))))))
+)

@@ -27,4 +27,5 @@
   <depend>visualization_msgs</depend>
   <depend>iai_wsg_50_msgs</depend>
   <depend>iai_control_msgs</depend>
+  <depend>wiggle_msgs</depend>
 </package>

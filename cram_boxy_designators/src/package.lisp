@@ -38,4 +38,5 @@
    #:move-neck
    #:move-gripper-joint
    #:move-tcp
-   #:move-arm-joints))
+   #:move-arm-joints
+   #:move-tcp-wiggle))
