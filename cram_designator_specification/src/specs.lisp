@@ -81,7 +81,7 @@
 
   (<- (property ?designator (?keyword-key ?value))
     (lisp-pred typep ?designator desig:motion-designator)
-    (member ?keyword-key (:gripper :direction))
+    (member ?keyword-key (:gripper :direction :arm))
     (property-member (?keyword-key ?value) ?designator)
     (assert-type ?value keyword "MOTION SPEC:PROPERTY"))
 
