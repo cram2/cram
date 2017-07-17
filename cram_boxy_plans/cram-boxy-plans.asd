@@ -55,4 +55,5 @@
      (:file "atomic-action-plans" :depends-on ("package"))
      (:file "atomic-action-designators" :depends-on ("package" "atomic-action-plans"))
      (:file "composite-plans" :depends-on ("package" "atomic-action-designators"))
-     (:file "composite-plan-designators" :depends-on ("package" "composite-plans"))))))
+     (:file "composite-plan-designators" :depends-on ("package" "composite-plans"))
+     (:file "high-level-plans" :depends-on ("package" "composite-plan-designators"))))))

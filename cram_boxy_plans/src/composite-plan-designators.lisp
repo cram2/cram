@@ -143,7 +143,7 @@
 ;;      :time 0.0
 ;;      :timeout cram-tf:*tf-default-timeout*)))
 
-(def-fact-group pr2-pick-and-place-plans (desig:action-grounding)
+(def-fact-group boxy-pick-place-connect-look-designators (desig:action-grounding)
   (<- (desig:action-grounding ?action-designator (pick-up ?updated-action-designator
                                                           ?current-object-desig
                                                           ?arm ?grasp))
@@ -222,61 +222,3 @@
     (lisp-fun kr-belief::get-object-look-pose :left ?object-transform ?left-goal-pose)
     ;; the only wrist camera is on left arm
     (equal ?right-goal-pose NIL)))
-
-#-asdf
-(
- (let ((?obj (boxy-plans::detect (desig:an object (type chassis)))))
-   (cram-process-modules:with-process-modules-running
-       (boxy-pm:base-pm boxy-pm:neck-pm boxy-pm:grippers-pm boxy-pm:body-pm)
-     (cpl:top-level
-       (exe:perform
-        (desig:an action
-                  (type picking-up)
-                  (object ?obj)
-                  (arm left))))))
- (let ((?obj (boxy-plans::detect (desig:an object (type chassis-holder)))))
-           (cram-process-modules:with-process-modules-running
-               (boxy-pm:base-pm boxy-pm:neck-pm boxy-pm:grippers-pm boxy-pm:body-pm)
-             (cpl:top-level
-               (exe:perform
-                (desig:an action
-                          (type placing)
-                          (object (desig:an object (type chassis)))
-                          (on-object ?obj)
-                          (arm left))))))
- (let ((?obj (boxy-plans::detect (desig:an object (type camaro-body)))))
-   (cram-process-modules:with-process-modules-running
-       (boxy-pm:base-pm boxy-pm:neck-pm boxy-pm:grippers-pm boxy-pm:body-pm)
-     (cpl:top-level
-       (exe:perform
-        (desig:an action
-                  (type looking)
-                  (object ?obj)
-                  (camera wrist))))))
- (let ((?pose (cl-transforms-stamped:transform-pose-stamped
-                       cram-tf:*transformer*
-                       :target-frame cram-tf:*robot-base-frame*
-                       :pose (cl-transforms-stamped:make-pose-stamped
-                              cram-tf:*robot-left-tool-frame*
-                              0.0
-                              (cl-transforms:make-identity-vector)
-                              (cl-transforms:make-identity-rotation)))))
-           (cram-process-modules:with-process-modules-running
-               (boxy-pm:base-pm boxy-pm:neck-pm boxy-pm:grippers-pm boxy-pm:body-pm)
-             (cpl:top-level
-               (cram-executive:perform
-                (desig:a action
-                         (type pushing)
-                         (left-poses (?pose)))))))
- (let ((?obj (boxy-plans::detect (desig:an object (type axle))))
-               (?with-obj (boxy-plans::detect (desig:an object (type chassis)))))
-           (cram-process-modules:with-process-modules-running
-               (boxy-pm:base-pm boxy-pm:neck-pm boxy-pm:grippers-pm boxy-pm:body-pm)
-             (cpl:top-level
-               (exe:perform
-                (desig:an action
-                          (type connecting)
-                          (object ?obj)
-                          (with-object ?with-obj)
-                          (arm left))))))
-)

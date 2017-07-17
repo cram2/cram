@@ -126,7 +126,7 @@
       (ensure-giskard-joint-input-parameters goal-configuration-left goal-configuration-right)
     (multiple-value-bind (result status)
         (call-simple-action-client
-         'giskard
+         'giskard-action
          :action-goal (make-giskard-joint-action-goal
                        goal-configuration-left goal-configuration-right
                        ;; convergence-delta-joint
