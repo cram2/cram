@@ -52,23 +52,34 @@
   (declare (ignore convergence-delta-xy convergence-delta-theta)
            (type (or cl-transforms:pose cl-transforms-stamped:pose-stamped)
                  left-pose right-pose))
-  (roslisp:make-message
-   'giskard_msgs-msg:WholeBodyGoal
-    (:type :command)
-    (roslisp:symbol-code 'giskard_msgs-msg:wholebodycommand :standard_controller)
-    (:type :left_ee :command)
-    (roslisp:symbol-code 'giskard_msgs-msg:armcommand :cartesian_goal)
-    (:goal_pose :left_ee :command)
-    (cl-transforms-stamped:to-msg left-pose)
-    ;; (:convergence_thresholds :left_ee :command)
-    ;; (make-giskard-cartesian-convergence :left convergence-delta-xy convergence-delta-theta)
-    (:type :right_ee :command)
-    (roslisp:symbol-code 'giskard_msgs-msg:armcommand :cartesian_goal)
-    (:goal_pose :right_ee :command)
-    (cl-transforms-stamped:to-msg right-pose)
-    ;; (:convergence_thresholds :right_ee :command)
-    ;; (make-giskard-cartesian-convergence :right convergence-delta-xy convergence-delta-theta)
-    ))
+  (let* ((right-arm-joint-names
+           (cut:var-value
+            '?joint-names
+            (car (prolog:prolog
+                  `(and (cram-robot-interfaces:robot ?robot)
+                        (cram-robot-interfaces:arm-joints ?robot :right ?joint-names))))))
+         (right-arm-joint-values (boxy-ll:joint-positions  right-arm-joint-names)))
+    (roslisp:make-message
+     'giskard_msgs-msg:WholeBodyGoal
+     (:type :command)
+     (roslisp:symbol-code 'giskard_msgs-msg:wholebodycommand :standard_controller)
+     (:type :left_ee :command)
+     (roslisp:symbol-code 'giskard_msgs-msg:armcommand :cartesian_goal)
+     (:goal_pose :left_ee :command)
+     (cl-transforms-stamped:to-msg left-pose)
+     ;; (:convergence_thresholds :left_ee :command)
+     ;; (make-giskard-cartesian-convergence :left convergence-delta-xy convergence-delta-theta)
+     ;; (:type :right_ee :command)
+     ;; (roslisp:symbol-code 'giskard_msgs-msg:armcommand :cartesian_goal)
+     ;; (:goal_pose :right_ee :command)
+     ;; (cl-transforms-stamped:to-msg right-pose)
+     ;; ;; (:convergence_thresholds :right_ee :command)
+     ;; ;; (make-giskard-cartesian-convergence :right convergence-delta-xy convergence-delta-theta)
+     (:type :right_ee :command)
+     (roslisp:symbol-code 'giskard_msgs-msg:armcommand :joint_goal)
+     (:goal_configuration :right_ee :command)
+     ;; sending right arm goal as a joint state because our right arm is broken at the moment
+     (apply #'vector right-arm-joint-values))))
 
 (defun ensure-giskard-cartesian-input-parameters (frame left-pose right-pose)
   (values (cram-tf:ensure-pose-in-frame
