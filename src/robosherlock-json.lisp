@@ -59,14 +59,15 @@
 (roslisp-utilities:register-ros-cleanup-function destroy-robosherlock-service)
 
 
-(defun make-robosherlock-query (&optional key-value-pairs-list)
+(defun make-robosherlock-query (detect-or-inspect &optional key-value-pairs-list)
   (let* ((query (reduce (lambda (query-so-far key-value-pair)
                           (concatenate 'string query-so-far
                                        (format nil "\"~a\":\"~a\", "
                                                (first key-value-pair)
                                                (second key-value-pair))))
                         key-value-pairs-list
-                        :initial-value "{\"detect\":{"))
+                        :initial-value (format nil "{\"~a\":{"
+                                               (string-downcase (symbol-name detect-or-inspect)))))
          (query-without-last-comma (string-right-trim '(#\, #\ ) query))
          (query-with-closing-bracket (concatenate 'string query-without-last-comma "}}")))
     (roslisp:make-request
@@ -120,7 +121,8 @@
 
 (defparameter *rs-result-debug* nil)
 (defparameter *rs-result-designator* nil)
-(defun call-robosherlock-service (keyword-key-value-pairs-list &key (quantifier :all))
+(defun call-robosherlock-service (detect-or-inspect keyword-key-value-pairs-list
+                                  &key (quantifier :all))
   (declare (type (or keyword number) quantifier))
   (multiple-value-bind (key-value-pairs-list quantifier)
       (ensure-robosherlock-input-parameters keyword-key-value-pairs-list quantifier)
@@ -145,7 +147,7 @@
                        (progn (cpl:retry))))))
             (roslisp:call-persistent-service
              (get-robosherlock-service)
-             (make-robosherlock-query key-value-pairs-list)))
+             (make-robosherlock-query detect-or-inspect key-value-pairs-list)))
         (setf *rs-result-debug* answer)
         (let* ((rs-parsed-result (ensure-robosherlock-result answer quantifier))
                (rs-result (ecase quantifier

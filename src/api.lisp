@@ -33,7 +33,7 @@
   "Toggles if we want to use the robosherlock service for detecting or just
 look up stuff from TF.")
 
-(defun detect (object-designator)
+(defun perceive (detect-or-inspect object-designator)
   (declare (type desig:object-designator object-designator))
   (if *no-robosherlock-mode*
       ;; use TF to find out object coordinates
@@ -65,7 +65,8 @@ look up stuff from TF.")
           ((:a :an) (car all-objects))
           (:all all-objects)))
       ;; use RoboSherlock to find out object coordinates
-      (call-robosherlock-service (desig:properties object-designator)
+      (call-robosherlock-service detect-or-inspect
+                                 (desig:properties object-designator)
                                  :quantifier (desig:quantifier object-designator))))
 
 (defun get-object-transform (object-designator)

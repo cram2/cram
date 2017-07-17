@@ -36,4 +36,4 @@
    ;; robosherlock-json
    #:call-robosherlock-service
    #:get-object-transform
-   #:detect))
+   #:perceive))
