@@ -58,16 +58,17 @@
     ((:file "package")
      (:file "low-level-common" :depends-on ("package"))
      (:file "simple-actionlib-client" :depends-on ("package"))
-     (:file "giskard-common" :depends-on ("package" "simple-actionlib-client"))
-     (:file "giskard-cartesian" :depends-on ("package"
-                                             "simple-actionlib-client"
-                                             "giskard-common"))
      (:file "joint-states" :depends-on ("package"))
      (:file "giskard-joint" :depends-on ("package"
                                          "low-level-common"
                                          "simple-actionlib-client"
                                          "giskard-common"
                                          "joint-states"))
+     (:file "giskard-common" :depends-on ("package" "simple-actionlib-client"))
+     (:file "giskard-cartesian" :depends-on ("package"
+                                             "simple-actionlib-client"
+                                             "giskard-common"
+                                             "giskard-joint"))
      (:file "nav-pcontroller" :depends-on ("package"
                                            "low-level-common"
                                            "simple-actionlib-client"))

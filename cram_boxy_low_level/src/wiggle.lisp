@@ -72,7 +72,7 @@
 
 (defun move-arm-wiggle (&key
                           arm goal-pose (duration 5.0)
-                                        ; TODO: get rid of 60 when Simon updates the action
+                          ;; TODO: get rid of 5 when Simon updates the action interface
                           action-timeout
                           (pose-base-frame cram-tf:*robot-base-frame*)
                           (left-tool-frame cram-tf:*robot-left-tool-frame*)
