@@ -29,6 +29,9 @@
 
 (in-package :kr-belief)
 
+(defparameter *left-arm-out-of-field-of-view-state*
+  '(-1.858d0 0.70571d0 0.9614d0 -0.602d0 -2.5922d0 -1.94065d0 -1.28735d0))
+
 (defparameter *default-look-z-offset* 0.3 "in meters")
 
 (defun get-object-look-pose (arm object-transform)

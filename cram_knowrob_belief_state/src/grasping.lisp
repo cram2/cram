@@ -50,9 +50,9 @@
   (:method ((object-type (eql :wheel))) 40))
 
 (defgeneric get-object-type-gripper-opening (object-type)
-  (:documentation "How wide to open the gripper before grasping, in mm. Default is 100.")
-  (:method (object-type) 100)
-  (:method ((object-type (eql :axle))) 20))
+  (:documentation "How wide to open the gripper before grasping, in m. Default is 0.10.")
+  (:method (object-type) 0.10)
+  (:method ((object-type (eql :axle))) 0.02))
 
 (defgeneric get-object-to-gripper-transform (object-type arm grasp)
   (:documentation "Returns a pose stamped representing oTg -- transfrom from object to gripper.
