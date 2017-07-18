@@ -47,7 +47,7 @@
                         (and (symbolp (first key-value-pair-list))
                              (member (intern (string-upcase (first key-value-pair-list))
                                              :keyword)
-                                     '(:a :an :some :the)))
+                                     '(:a :an :all :some :the)))
                         (let ((quantifier (first key-value-pair-list))
                               (type-symbol (second key-value-pair-list))
                               (key-value-pairs-evaluated (cddr key-value-pair-list)))
