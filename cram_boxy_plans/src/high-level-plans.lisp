@@ -40,14 +40,36 @@
                 (type moving-arm-joints)
                 (left-configuration ?left-configuration))))))
 
-(defun find-object (?object-type)
+(defun find-object-on-holder (?object-type ?holder-object-type)
+  ;; move arms from field of view
+  (move-arms-from-field-of-view)
+  ;; detect holder object with kinect
+  (let ((?holder-object
+          (exe:perform (desig:an action
+                                 (type detecting)
+                                 (object (desig:an object (type ?holder-object-type)))))))
+    ;; move wrist with camera above object to look closer
+    (exe:perform
+     (desig:an action
+               (type looking)
+               (object ?holder-object)
+               (camera wrist)))
+    ;; inspect object using camera wrist
+    (exe:perform (desig:an action
+                           (type inspecting)
+                           (object (desig:an object (type ?holder-object-type)))
+                           (for (desig:an object (type ?object-type)))
+                           ;; (for (desig:all objects (type ?object-type)))
+                           ))))
+
+(defun find-object-on-surface (?object-type)
   ;; move arms from field of view
   (move-arms-from-field-of-view)
   ;; detect object with kinect
-  (let ((?object
-          (exe:perform (desig:an action
-                                 (type detecting)
-                                 (object (desig:an object (type ?object-type)))))))
+  (let* ((?object
+           (exe:perform (desig:an action
+                                  (type detecting)
+                                  (object (desig:an object (type ?object-type)))))))
     ;; move wrist with camera above object to look closer
     (exe:perform
      (desig:an action
@@ -55,76 +77,34 @@
                (object ?object)
                (camera wrist)))
     ;; inspect object using camera wrist
-    (desig:equate ?object
-                  (exe:perform (desig:an action
-                                 (type inspecting)
-                                 (object (desig:an object (type ?object-type))))))
-    ;; move arms from field of view
-    ;; (move-arms-from-field-of-view)
-    ;; return found object
-    (desig:current-desig ?object)))
+    (exe:perform (desig:an action
+                           (type inspecting)
+                           (object (desig:an object (type ?object-type)))
+                           (for pose)))))
 
+(defun find-object (object-type &optional holder-object-type)
+  (if holder-object-type
+      (find-object-on-holder object-type holder-object-type)
+      (find-object-on-surface object-type)))
 
+(defun attach (?object-type ?holder-object-type ?with-object-type ?with-holder-object-type)
+  ;; find object
+  (let ((?object (boxy-plans::find-object ?object-type ?holder-object-type))
+        ;; find object to which to attach
+        (?with-object (boxy-plans::find-object ?with-object-type ?with-holder-object-type)))
+    ;; pick up object
+    (exe:perform
+     (desig:an action
+               (type picking-up)
+               (object ?object)
+               (arm left)))
+    ;; attach objects
+    (cram-executive:perform
+     (desig:a action
+              (type connecting)
+              (arm left)
+              (object ?object)
+              (with-object ?with-object)))))
 
-
-
-
-
-
-(defun test-stuff ()
-  (let ((?obj (boxy-plans::detect (desig:an object (type chassis)))))
-    (cram-process-modules:with-process-modules-running
-        (boxy-pm:base-pm boxy-pm:neck-pm boxy-pm:grippers-pm boxy-pm:body-pm)
-      (cpl:top-level
-        (exe:perform
-         (desig:an action
-                   (type picking-up)
-                   (object ?obj)
-                   (arm left))))))
-  (let ((?obj (boxy-plans::detect (desig:an object (type chassis-holder)))))
-    (cram-process-modules:with-process-modules-running
-        (boxy-pm:base-pm boxy-pm:neck-pm boxy-pm:grippers-pm boxy-pm:body-pm)
-      (cpl:top-level
-        (exe:perform
-         (desig:an action
-                   (type placing)
-                   (object (desig:an object (type chassis)))
-                   (on-object ?obj)
-                   (arm left))))))
-  (let ((?obj (boxy-plans::detect (desig:an object (type camaro-body)))))
-    (cram-process-modules:with-process-modules-running
-        (boxy-pm:base-pm boxy-pm:neck-pm boxy-pm:grippers-pm boxy-pm:body-pm)
-      (cpl:top-level
-        (exe:perform
-         (desig:an action
-                   (type looking)
-                   (object ?obj)
-                   (camera wrist))))))
-  (let ((?pose (cl-transforms-stamped:transform-pose-stamped
-                cram-tf:*transformer*
-                :target-frame cram-tf:*robot-base-frame*
-                :pose (cl-transforms-stamped:make-pose-stamped
-                       cram-tf:*robot-left-tool-frame*
-                       0.0
-                       (cl-transforms:make-identity-vector)
-                       (cl-transforms:make-identity-rotation)))))
-    (cram-process-modules:with-process-modules-running
-        (boxy-pm:base-pm boxy-pm:neck-pm boxy-pm:grippers-pm boxy-pm:body-pm)
-      (cpl:top-level
-        (cram-executive:perform
-         (desig:a action
-                  (type pushing)
-                  (left-poses (?pose)))))))
-  (let ((?obj (boxy-plans::detect (desig:an object (type axle))))
-        (?with-obj (boxy-plans::detect (desig:an object (type chassis)))))
-    (cram-process-modules:with-process-modules-running
-        (boxy-pm:base-pm boxy-pm:neck-pm boxy-pm:grippers-pm boxy-pm:body-pm)
-      (cpl:top-level
-        (exe:perform
-         (desig:an action
-                   (type connecting)
-                   (object ?obj)
-                   (with-object ?with-obj)
-                   (arm left)))))))
 
 
