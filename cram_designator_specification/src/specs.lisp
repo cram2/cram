@@ -40,19 +40,6 @@
 ;;   (:method ((desig desig:designator) key)
 ;;     (desig:description desig)))
 
-(def-fact-group all-designator-specs (property)
-
-  (<- (property-member (?key ?value) ?designator)
-    (assert-type ?designator desig:designator "PROPERTY-MEMBER")
-    (lisp-fun desig:description ?designator ?props)
-    (member (?key ?value) ?props))
-
-  (<- (property ?designator (?key ?value))
-    (bound ?key)
-    (bound ?value)
-    (property-member (?key ?value) ?designator)))
-
-
 (def-fact-group motion-designator-specs (property)
 
   (<- (property ?designator (?location-key ?location))
@@ -122,7 +109,12 @@
     (lisp-pred typep ?designator desig:action-designator)
     (member ?number-key (:position :effort))
     (property-member (?number-key ?value) ?designator)
-    (assert-type ?value number "ACTION SPEC:PROPERTY")))
+    (assert-type ?value number "ACTION SPEC:PROPERTY"))
+
+  (<- (property ?designator (:for ?for-value))
+    (lisp-pred typep ?designator desig:action-designator)
+    (property-member (:for ?for-value) ?designator)
+    (assert-type ?for-value (or keyword desig:object-designator) "ACTION SPEC:PROPERTY")))
 
 
 (def-fact-group location-designator-specs (property)
@@ -139,3 +131,16 @@
     (lisp-pred typep ?designator desig:object-designator)
     (property-member (:type ?type) ?designator)
     (assert-type ?type keyword "OBJECT SPEC:PROPERTY")))
+
+
+(def-fact-group all-designator-specs (property)
+
+  (<- (property-member (?key ?value) ?designator)
+    (assert-type ?designator desig:designator "PROPERTY-MEMBER")
+    (lisp-fun desig:description ?designator ?props)
+    (member (?key ?value) ?props))
+
+  (<- (property ?designator (?key ?value))
+    (bound ?key)
+    ;; (bound ?value) ; set default behaviour to not throw errors if no spec is defined
+    (property-member (?key ?value) ?designator)))
