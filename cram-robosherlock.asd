@@ -41,7 +41,9 @@
                cl-transforms-stamped
                cram-tf
                cram-common-failures
-               cram-designators)
+               cram-designators
+               cram-knowrob-belief-state ; for converting knowrob id to cram id
+               )
   :components
   ((:module "src"
     :components

@@ -70,7 +70,7 @@
 (defmethod parse-json-node ((name (eql :pipelineid)) node) nil)
 
 (defmethod parse-json-node ((name (eql :id)) node)
-  (list :cluster-id node))
+  (list :name (kr-belief::knowrob->cram :string node)))
 
 (defmethod parse-json-node ((name (eql :type)) node)
   (list name (intern (string-upcase node) :keyword)))
@@ -117,16 +117,33 @@
          (rot-z (getassoc "rot_z" node))
          (rot-w (getassoc "rot_w" node))
          (stamp (getassoc "stamp" node))
-         (child-position-of-# (position #\# child-frame-id :from-end t))
-         (object-pose (cl-transforms-stamped:make-transform-stamped
-                       frame-id
-                       (if child-position-of-#
-                           (subseq child-frame-id (1+ child-position-of-#))
-                           child-frame-id)
-                       stamp
-                       (cl-transforms:make-3d-vector pos-x pos-y pos-z)
-                       (cl-transforms:make-quaternion rot-x rot-y rot-z rot-w))))
-    (list name object-pose)))
+         (object-transform
+           (cl-transforms:make-transform
+            (cl-transforms:make-3d-vector pos-x pos-y pos-z)
+            (cl-transforms:make-quaternion rot-x rot-y rot-z rot-w))))
+    ;; string knowrob namespace from frame IDs
+    (let ((child-frame-position-of-# (position #\# child-frame-id :from-end t)))
+      (when child-frame-position-of-#
+        (setf child-frame-id (subseq child-frame-id (1+ child-frame-position-of-#)))))
+    ;; make sure transform is defined in robot-base-frame
+    (let ((object-transform-stamped
+            (if (equalp frame-id cram-tf:*robot-base-frame*)
+                (cl-transforms-stamped:transform->transform-stamped
+                 frame-id
+                 child-frame-id
+                 stamp
+                 object-transform)
+                (let ((transform-to-base-frame (cl-transforms-stamped:lookup-transform
+                                                cram-tf:*transformer*
+                                                cram-tf:*robot-base-frame*
+                                                frame-id
+                                                :timeout cram-tf:*tf-default-timeout*)))
+                  (cl-transforms-stamped:transform->transform-stamped
+                   cram-tf:*robot-base-frame*
+                   child-frame-id
+                   (cl-transforms-stamped:stamp transform-to-base-frame)
+                   (cl-transforms:transform* transform-to-base-frame object-transform))))))
+      (list name object-transform-stamped))))
 
 (defmethod parse-json-node ((name (eql :color)) node)
   (cons name (mapcar #'first
@@ -143,6 +160,12 @@
   ;;                                        (second (find :confidence x :key #'car))))
   ;;                          :key #'first)))
   (find :class (parse-alist node) :key #'car))
+
+(defmethod parse-json-node ((name (eql :class)) node) ; ignore confidence entry for now
+  (list :type (let ((parsed-nested-key-values (parse-alist node)))
+                (kr-belief::knowrob->cram :string
+                                          (second (assoc :name parsed-nested-key-values))
+                                          :package :keyword))))
 
 (defmethod parse-json-node ((name (eql :dimensions-2d)) node)
   (list name (let ((parsed-dimensions (parse-alist node)))

@@ -29,7 +29,7 @@
 
 (in-package :rs)
 
-(defparameter *no-robosherlock-mode* t
+(defparameter *no-robosherlock-mode* nil
   "Toggles if we want to use the robosherlock service for detecting or just
 look up stuff from TF.")
 
