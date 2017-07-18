@@ -48,6 +48,10 @@
    :arm (roslisp:symbol-code 'wiggle_msgs-msg:WiggleGoal (ecase arm
                                                            (:left :left_arm)
                                                            (:right :right_arm)))
+   :upperbound_x 0.01 ; in meters
+   :upperbound_y 0.01 ; in meters
+   :upperbound_angle 0.04 ; in rad
+   :cycle_time 1.0 ; in seconds
    :goal_pose (cl-transforms-stamped:to-msg goal-pose)
    (:data :timeout) timeout))
 
