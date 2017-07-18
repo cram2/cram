@@ -143,15 +143,19 @@
 
 (defgeneric knowrob->cram (object-type object &key &allow-other-keys))
 
-(defmethod knowrob->cram ((object-type (eql :symbol)) knowrob-symbol &key strip-namespace)
+(defmethod knowrob->cram ((object-type (eql :string)) knowrob-string &key (strip-namespace t)
+                                                                       (package *package*))
+  (if strip-namespace
+      (let* ((position-of-# (position #\# knowrob-string :from-end t))
+             (no-ns-string (if position-of-#
+                               (subseq knowrob-string (1+ position-of-#))
+                               knowrob-string)))
+        (roslisp-utilities:lispify-ros-name no-ns-string package))
+      knowrob-string))
+
+(defmethod knowrob->cram ((object-type (eql :symbol)) knowrob-symbol &key (strip-namespace t))
   (let ((trimmed-string (string-trim "'" (symbol-name knowrob-symbol))))
-    (if strip-namespace
-        (let* ((position-of-# (position #\# trimmed-string :from-end t))
-               (no-ns-string (if position-of-#
-                                 (subseq trimmed-string (1+ position-of-#))
-                                 trimmed-string)))
-          (roslisp-utilities:lispify-ros-name no-ns-string))
-        trimmed-string)))
+    (knowrob->cram :string trimmed-string :strip-namespace strip-namespace)))
 
 (defmethod knowrob->cram ((object-type (eql :transform)) transform-list &key)
   "`transform-list' looks like this:
