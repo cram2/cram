@@ -70,7 +70,12 @@
 (defmethod parse-json-node ((name (eql :pipelineid)) node) nil)
 
 (defmethod parse-json-node ((name (eql :id)) node)
-  (list :name (kr-belief::knowrob->cram :string node)))
+  (list :name (roslisp-utilities:lispify-ros-name
+               (let ((knowrob-string (string-trim "'" node)))
+                 (let* ((position-of-# (position #\# knowrob-string :from-end t)))
+                   (if position-of-#
+                       (subseq knowrob-string (1+ position-of-#))
+                       knowrob-string))))))
 
 (defmethod parse-json-node ((name (eql :type)) node)
   (list name (intern (string-upcase node) :keyword)))
@@ -163,9 +168,8 @@
 
 (defmethod parse-json-node ((name (eql :class)) node) ; ignore confidence entry for now
   (list :type (let ((parsed-nested-key-values (parse-alist node)))
-                (kr-belief::knowrob->cram :string
-                                          (second (assoc :name parsed-nested-key-values))
-                                          :package :keyword))))
+                (roslisp-utilities:lispify-ros-name
+                 (second (assoc :name parsed-nested-key-values))))))
 
 (defmethod parse-json-node ((name (eql :dimensions-2d)) node)
   (list name (let ((parsed-dimensions (parse-alist node)))
