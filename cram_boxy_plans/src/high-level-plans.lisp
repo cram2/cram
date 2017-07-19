@@ -40,7 +40,9 @@
                 (type moving-arm-joints)
                 (left-configuration ?left-configuration))))))
 
-(defun find-object-on-holder (?object-type ?holder-object-type)
+(defun find-object-on-holder (?object-type ?holder-object-type &key (one-or-all :one))
+  (declare (type keyword one-or-all))
+  "`one-or-all' can only be :one or :all"
   ;; move arms from field of view
   (move-arms-from-field-of-view)
   ;; detect holder object with kinect
@@ -55,12 +57,15 @@
                (object ?holder-object)
                (camera wrist)))
     ;; inspect object using camera wrist
-    (exe:perform (desig:an action
-                           (type inspecting)
-                           (object (desig:an object (type ?holder-object-type)))
-                           (for (desig:an object (type ?object-type)))
-                           ;; (for (desig:all objects (type ?object-type)))
-                           ))))
+    (ecase one-or-all
+      (:one (exe:perform (desig:an action
+                                   (type inspecting)
+                                   (object (desig:an object (type ?holder-object-type)))
+                                   (for (desig:an object (type ?object-type))))))
+      (:all (exe:perform (desig:an action
+                                   (type inspecting)
+                                   (object (desig:an object (type ?holder-object-type)))
+                                   (for (desig:all objects (type ?object-type)))))))))
 
 (defun find-object-on-surface (?object-type)
   ;; move arms from field of view
@@ -82,16 +87,18 @@
                            (object (desig:an object (type ?object-type)))
                            (for pose)))))
 
-(defun find-object (object-type &optional holder-object-type)
+(defun find-object (object-type &key holder-object-type (one-or-all :one))
   (if holder-object-type
-      (find-object-on-holder object-type holder-object-type)
+      (find-object-on-holder object-type holder-object-type :one-or-all one-or-all)
       (find-object-on-surface object-type)))
 
 (defun attach (?object-type ?holder-object-type ?with-object-type ?with-holder-object-type)
   ;; find object
-  (let ((?object (boxy-plans::find-object ?object-type ?holder-object-type))
+  (let ((?object (boxy-plans::find-object ?object-type
+                                          :holder-object-type ?holder-object-type))
         ;; find object to which to attach
-        (?with-object (boxy-plans::find-object ?with-object-type ?with-holder-object-type)))
+        (?with-object (boxy-plans::find-object ?with-object-type
+                                               :holder-object-type ?with-holder-object-type)))
     ;; pick up object
     (exe:perform
      (desig:an action
@@ -105,6 +112,3 @@
               (arm left)
               (object ?object)
               (with-object ?with-object)))))
-
-
-
