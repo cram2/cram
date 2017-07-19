@@ -47,16 +47,19 @@
     (json-prolog:prolog
      `("assert_object_at_location" ,kr-object-type ,kr-object-id ,kr-location))))
 
-(defun assert-object-grasped (gripper-id object-id robot-id grasp-class)
-  (knowrob->cram
-   :symbol
-   (cut:var-value
-    '?grasp_id
-    (car
-     (json-prolog:prolog-1 `("assert_grasp_on_object"
-                             ,gripper-id ,object-id ,robot-id ,grasp-class ?grasp_id)
-                           :mode 1
-                           :package :kr-belief)))))
+(defun assert-object-grasped (gripper-id object-id robot-id kr-grasp-class)
+  (let ((kr-gripper-id gripper-id)
+        (kr-object-id (cram->knowrob object-id :namespace-id :thorin_simulation))
+        (kr-robot-id robot-id))
+    (knowrob->cram
+     :symbol
+     (cut:var-value
+      '?grasp_id
+      (car
+       (json-prolog:prolog-1 `("assert_grasp_on_object"
+                               ,kr-gripper-id ,kr-object-id ,kr-robot-id ,kr-grasp-class ?grasp_id)
+                             :mode 1
+                             :package :kr-belief))))))
 
 (defun retract-object-grasped (grasp-id)
   (json-prolog:prolog `("assert_ungrasp" ,grasp-id)))

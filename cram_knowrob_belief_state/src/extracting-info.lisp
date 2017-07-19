@@ -61,7 +61,7 @@
                                :package :kr-belief))))
 
 (defun get-current-object-grasps (object-id)
-  (let ((kr-object-id (cram->knowrob object-id)))
+  (let ((kr-object-id (cram->knowrob object-id :namespace-id :thorin_simulation)))
     (mapcar (lambda (grasp-spec)
               (knowrob->cram :grasp-spec grasp-spec))
             (cut:var-value
@@ -99,11 +99,17 @@
               :mode 1
               :package :kr-belief)))))
 
+;; (defun get-grasp-and-pregrasp (gripper-id object-id grasp-id)
+;;   (Json-prolog:prolog-1
+;;    `("get_pre_grasp_position" ,gripper-id ,object-id ,grasp-id ?transform)
+;;    :mode 1
+;;    :package :kr-belief))
+
 (defun get-possible-object-grasps (object-id &optional gripper-id)
   (let ((kr-object-id (cram->knowrob object-id :namespace-id :thorin_simulation))
         (kr-gripper-id (cram->knowrob gripper-id)))
     (mapcar (lambda (grasp-id)
-              (knowrob->cram :symbol grasp-id))
+              (knowrob->cram :string grasp-id :strip-namespace nil))
             (cut:var-value
              '?grasp_ids
              (car

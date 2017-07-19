@@ -91,9 +91,13 @@
   (append-namespace *default-namespace*
                     (format nil "timepoint_~,3f" (or time (roslisp:ros-time)))))
 
-(defmethod cram->knowrob ((cram-name string) &key)
-  "If it's a string then it is probably already a valid knowrob name"
-  cram-name)
+(defmethod cram->knowrob ((cram-name string) &key namespace-id)
+  (if namespace-id
+      (if (position #\# cram-name :from-end t)
+          ;; if it already has a namespace, don't mess with it
+          cram-name
+          (append-namespace namespace-id cram-name))
+      cram-name))
 
 (defmethod cram->knowrob ((cram-name symbol) &key namespace-id)
   (declare (type (or null keyword) namespace-id))
@@ -143,19 +147,20 @@
 
 (defgeneric knowrob->cram (object-type object &key &allow-other-keys))
 
-(defmethod knowrob->cram ((object-type (eql :string)) knowrob-string &key (strip-namespace t)
-                                                                       (package *package*))
-  (if strip-namespace
-      (let* ((position-of-# (position #\# knowrob-string :from-end t))
-             (no-ns-string (if position-of-#
-                               (subseq knowrob-string (1+ position-of-#))
-                               knowrob-string)))
-        (roslisp-utilities:lispify-ros-name no-ns-string package))
-      knowrob-string))
+(defmethod knowrob->cram ((object-type (eql :string)) knowrob-symbol &key (strip-namespace t))
+  (let ((knowrob-string (string-trim "'" (symbol-name knowrob-symbol))))
+    (if strip-namespace
+      (let* ((position-of-# (position #\# knowrob-string :from-end t)))
+        (if position-of-#
+            (subseq knowrob-string (1+ position-of-#))
+            knowrob-string))
+      knowrob-string)))
 
-(defmethod knowrob->cram ((object-type (eql :symbol)) knowrob-symbol &key (strip-namespace t))
-  (let ((trimmed-string (string-trim "'" (symbol-name knowrob-symbol))))
-    (knowrob->cram :string trimmed-string :strip-namespace strip-namespace)))
+(defmethod knowrob->cram ((object-type (eql :symbol)) knowrob-symbol &key (strip-namespace t)
+                                                                       (package *package*))
+  (roslisp-utilities:lispify-ros-name
+   (knowrob->cram :string knowrob-symbol :strip-namespace strip-namespace)
+   package))
 
 (defmethod knowrob->cram ((object-type (eql :transform)) transform-list &key)
   "`transform-list' looks like this:
