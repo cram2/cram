@@ -62,9 +62,13 @@
 (defun make-robosherlock-query (detect-or-inspect &optional key-value-pairs-list)
   (let* ((query (reduce (lambda (query-so-far key-value-pair)
                           (concatenate 'string query-so-far
-                                       (format nil "\"~a\":\"~a\", "
-                                               (first key-value-pair)
-                                               (second key-value-pair))))
+                                       (if (listp (second key-value-pair))
+                                           (format nil "\"~a\":[\"~a\"], "
+                                                   (first key-value-pair)
+                                                   (first (second key-value-pair)))
+                                           (format nil "\"~a\":\"~a\", "
+                                                   (first key-value-pair)
+                                                   (second key-value-pair)))))
                         key-value-pairs-list
                         :initial-value (format nil "{\"~a\":{"
                                                (string-downcase (symbol-name detect-or-inspect)))))
@@ -84,7 +88,10 @@
                               (string (string-downcase key)))
                             (etypecase value ; RS is only case-sensitive on "TYPE"s
                               (keyword (remove #\- (string-capitalize (symbol-name value))))
-                              (string value)))))
+                              (string value)
+                              (list (mapcar (lambda (item)
+                                              (string-downcase (symbol-name item)))
+                                            value))))))
                   key-value-pairs-list))
         (quantifier quantifier
           ;; (etypecase quantifier
@@ -93,7 +100,7 @@
           ;;              (:the :the)
           ;;              (:all :all)))
           ;;   (number quantifier))
-          ))
+                    ))
     (values key-value-pairs-list quantifier)))
 
 (defun ensure-robosherlock-result (result quantifier)
