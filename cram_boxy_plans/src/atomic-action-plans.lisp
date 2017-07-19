@@ -70,10 +70,11 @@
           (?right-pose (car (last right-poses))))
 
       (cpl:with-failure-handling
-          ((common-fail:manipulation-low-level-failure (e) ; propagate failures up
-             (roslisp:ros-error (boxy-plans move-arms-in-sequence) "~a~%Failing." e)
-             ;; (roslisp:ros-warn (pick-and-place reach) "~a~%Ignoring." e)
-             ;; (return)
+          ((common-fail:manipulation-low-level-failure (e)
+             ;; propagate failures up
+             ;; (roslisp:ros-error (boxy-plans move-arms-in-sequence) "~a~%Failing." e)
+             (roslisp:ros-warn (pick-and-place reach) "~a~%Ignoring." e)
+             (return)
              ))
 
         (exe:perform
