@@ -93,12 +93,12 @@
       (find-object-on-surface object-type)))
 
 (defun attach (?object-type ?holder-object-type ?with-object-type ?with-holder-object-type)
-  ;; find object
-  (let ((?object (boxy-plans::find-object ?object-type
-                                          :holder-object-type ?holder-object-type))
-        ;; find object to which to attach
+  (let (;; find object to which to attach
         (?with-object (boxy-plans::find-object ?with-object-type
-                                               :holder-object-type ?with-holder-object-type)))
+                                               :holder-object-type ?with-holder-object-type))
+        ;; find object
+        (?object (boxy-plans::find-object ?object-type
+                                          :holder-object-type ?holder-object-type)))
     ;; pick up object
     (exe:perform
      (desig:an action
