@@ -99,8 +99,9 @@ do their magic invisibly in the background.
 (defun call-simple-action-client (name &key action-goal action-timeout)
   (declare (type (or null roslisp-msg-protocol:ros-message) action-goal)
            (type (or null number) action-timeout))
-  (roslisp:ros-info (simple-action-client call)
-                    "Calling ~a actionlib client with goal:~%~a" name action-goal)
+  ;; (roslisp:ros-info (simple-action-client call)
+  ;;                   "Calling ~a actionlib client with goal:~%~a" name action-goal)
+  (roslisp:ros-info (simple-action-client call) "Calling ~a actionlib client." name)
   (unless action-timeout
     (setf action-timeout (gethash name *action-timeouts*)))
   (cpl:with-failure-handling
@@ -113,9 +114,11 @@ do their magic invisibly in the background.
       (if client
           (multiple-value-bind (result status)
               (actionlib:call-goal client action-goal :timeout action-timeout)
+            ;; (roslisp:ros-info (simple-action-client call)
+            ;;                   "Done with calling ~a with status ~a and result:~%~a"
+            ;;                   name status result)
             (roslisp:ros-info (simple-action-client call)
-                              "Done with calling ~a with status ~a and result:~%~a"
-                              name status result)
+                              "Calling ~a returned with status ~a." name status)
             (values result status))
           (progn
             (roslisp:ros-info (simple-action-client call)
