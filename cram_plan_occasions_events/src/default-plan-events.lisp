@@ -133,4 +133,8 @@ closed a gripper around an object."))
   ((arm :initarg :arm
         :reader event-arm
         :initform (error 'simple-error
-                         :format-control "OBJECT-GRIPPED event requires OBJECT."))))
+                         :format-control "OBJECT-GRIPPED event requires OBJECT."))
+   (object :initarg :object ; maybe some epic robots can release only one of two objects they hold
+           :reader event-object
+           :initform (error 'simple-error
+                            :format-control "OBJECT-GRIPPED event requires OBJECT."))))
