@@ -94,8 +94,6 @@
 
    (multiple-value-bind (goal-position effort)
        (ensure-gripper-input-parameters action-type goal-position effort)
-     (format t "action-type: ~a~%left-or-right: ~a~%goal-position: ~a cm~%effort: ~a~%"
-             action-type left-or-right (* goal-position 100.0) effort)
      (roslisp:publish
       (getf *gripper-publishers* left-or-right)
       (roslisp::make-message
