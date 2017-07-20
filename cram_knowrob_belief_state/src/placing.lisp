@@ -105,5 +105,5 @@ correct parent frame: ~a and ~a"
    (cl-transforms:make-3d-vector 0 0 0)
    (cl-transforms:matrix->quaternion
     #2A((0 1 0)
-        (1 0 0)
-        (0 0 -1)))))
+        (-1 0 0)
+        (0 0 1)))))
