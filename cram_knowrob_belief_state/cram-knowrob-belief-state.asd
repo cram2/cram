@@ -35,7 +35,9 @@
                cram-utilities
                cl-transforms-stamped
                cl-transforms
-               cram-tf)
+               cram-tf
+               cram-occasions-events
+               cram-plan-occasions-events)
   :components
   ((:module "src"
     :components

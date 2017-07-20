@@ -61,23 +61,28 @@
                              :mode 1
                              :package :kr-belief))))))
 
-(defun retract-object-grasped (grasp-id)
-  (json-prolog:prolog `("assert_ungrasp" ,grasp-id)))
+(defun retract-object-grasped (object-id kr-gripper-id)
+  (let ((kr-object-id (cram->knowrob object-id :namespace-id :thorin_simulation)))
+   (json-prolog:prolog `("assert_ungrasp" ,kr-object-id ,kr-gripper-id))))
 
-(defun assert-assemblage (assemblage-type connection-type
-                          reference-object-id primary-object secondary-object)
+(defun assert-assemblage (assemblage-type connection-type object-id with-object-id)
   "`primary-object' and `secondary-object' are individuals of type AtomicPart or Assemblage"
-  (knowrob->cram
-   :symbol
-   (cut:var-value
-    '?assemblage_id
-    (car
-     (json-prolog:prolog-1 `("assert_assemblage_created"
-                             ,assemblage-type ,connection-type
-                             ,reference-object-id ,primary-object ,secondary-object
-                             ?assemblage_id)
-                           :mode 1
-                           :package :kr-belief)))))
+  (let ((kr-assemblage-type (cram->knowrob assemblage-type :namespace-id :thorin_assemblages))
+        (kr-connection-type (cram->knowrob connection-type :namespace-id :thorin_parts))
+        (kr-object-id (cram->knowrob object-id :namespace-id :thorin_simulation))
+        (kr-with-object-id (cram->knowrob with-object-id :namespace-id :thorin_simulation)))
+    (knowrob->cram
+            :string
+            (cut:var-value
+             '?assemblage_id
+             (car
+              (json-prolog:prolog-1 `("assert_assemblage_created"
+                                      ,kr-assemblage-type ,kr-connection-type
+                                      ,kr-with-object-id ,kr-with-object-id ,kr-object-id
+                                      ?assemblage_id)
+                                    :mode 1
+                                    :package :kr-belief)))
+            :strip-namespace nil)))
 
 (defun retract-assemblage (assemblage-id)
   (json-prolog:prolog `("assert_assemblage_destroyed" ,assemblage-id)))

@@ -29,14 +29,70 @@
 
 (in-package :kr-belief)
 
-(defun set-object-in-hand (arm grasp object-designator)
-  (let* ((object-name (desig:desig-prop-value object-designator :name))
+;;; object-in-hand assert and retract
+
+(defmethod cram-occasions-events:on-event object-in-hand ((event cpoe:object-gripped))
+  (let* (;; (arm (cpoe:event-arm event))
+         ;; (grasp (cpoe:event-grasp event))
+         (object-designator (cpoe:event-object event))
+         (object-name (desig:desig-prop-value object-designator :name))
          (gripper-id "left_gripper")
          (kr-grasp-class (car (get-possible-object-grasps object-name gripper-id))))
     (assert-object-grasped gripper-id object-name "boxy" kr-grasp-class)))
 
-(defmethod cram-occasions-events:on-event object-in-hand ((event cpoe:object-gripped))
-  (set-object-in-hand (cpoe:event-arm event) (cpoe:event-grasp event) (cpoe:event-object event)))
-
 (defmethod cram-occasions-events:on-event object-in-hand ((event cpoe:object-released))
-  (delete-object-in-hand (cpoe:event-arm event)))
+  (let* (;; (arm (cpoe:event-arm event))
+         (object-designator (cpoe:event-object event))
+         (object-name (desig:desig-prop-value object-designator :name))
+         (kr-gripper-id "left_gripper"))
+    (retract-object-grasped object-name kr-gripper-id)))
+
+
+;;; assemblage connections assert and retract
+
+(defclass object-connection-event (cram-occasions-events:event)
+  ((object
+    :initarg :object :reader event-object
+    :type desig:object-designator
+    :initform (error
+               'simple-error
+               :format-control "OBJECT-CONNECTION-EVENT requires an object."))
+   (with-object
+    :initarg :with-object :reader event-with-object
+    :type desig:object-designator
+    :initform (error
+               'simple-error
+               :format-control "OBJECT-CONNECTION-EVENT requires a with-object."))
+   ;; (affordance
+   ;;  :initarg :arm :reader event-arm
+   ;;  :type keyword
+   ;;  :initform (error
+   ;;             'simple-error
+   ;;             :format-control "OBJECT-CONNECTION-EVENT requires an affordance."))
+   )
+  (:documentation "Base class for all events that indicate that a
+  physical connection between an object and the with-object changed."))
+
+(defclass object-attached (object-connection-event) ())
+
+(defclass object-detached (object-connection-event) ())
+
+(defmethod cram-occasions-events:on-event objects-connected ((event object-attached))
+  (let* ((object-designator (event-object event))
+         (with-object-designator (event-with-object event))
+         (object-name (desig:desig-prop-value object-designator :name))
+         (with-object-name (desig:desig-prop-value with-object-designator :name)))
+    (ecase object-name
+      (:axle1
+       (assert-assemblage :chassis-with-front-axle :axle-snap-in-front
+                          object-name with-object-name))
+      (:axle2
+       (assert-assemblage :chassis-with-axles :axle-snap-in-back
+                          object-name with-object-name))
+      (:camaro-body1
+       (assert-assemblage :body-on-chassis :chassis-snap-in-connection
+                          object-name with-object-name)))))
+
+(defmethod cram-occasions-events:on-event objects-connected ((event object-detached))
+  (format t "Detached was no implemented for this scenario yet. ~
+             The prolog query has to change to accept assemblage description and not ID."))
