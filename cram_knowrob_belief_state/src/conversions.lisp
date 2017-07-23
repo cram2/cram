@@ -166,8 +166,8 @@
   "`transform-list' looks like this:
  [string reference_frame, string target_frame, [float x, y, z], [float x, y, z, w]]"
   (cl-transforms-stamped:make-transform-stamped
-     (knowrob->cram :symbol (first transform-list))
-     (knowrob->cram :symbol (second transform-list))
+     (knowrob->cram :string (first transform-list))
+     (knowrob->cram :string (second transform-list))
      0.0
      (apply #'cl-transforms:make-3d-vector (third transform-list))
      (apply #'cl-transforms:make-quaternion (fourth transform-list))))

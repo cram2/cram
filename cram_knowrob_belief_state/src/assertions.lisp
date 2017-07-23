@@ -29,6 +29,9 @@
 
 (in-package :kr-belief)
 
+(defun reset-beliefstate ()
+  (json-prolog:prolog-1 `("reset_beliefstate") :mode 1 :package :kr-belief))
+
 (defun generate-object-id (object-type)
   (knowrob->cram
    :symbol
