@@ -75,4 +75,5 @@
      (:file "neck" :depends-on ("package"))
      (:file "grippers" :depends-on ("package" "joint-states"))
      (:file "wiggle" :depends-on ("package" "simple-actionlib-client"
-                                            "giskard-cartesian"))))))
+                                            "giskard-cartesian"))
+     (:file "force-torque-sensor" :depends-on ("package"))))))

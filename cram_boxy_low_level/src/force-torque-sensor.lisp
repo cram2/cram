@@ -10,10 +10,9 @@
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
-;;;     * Neither the name of the Institute for Artificial Intelligence/
-;;;       Universitaet Bremen nor the names of its contributors may be used to
-;;;       endorse or promote products derived from this software without
-;;;       specific prior written permission.
+;;;     * Neither the name of Willow Garage, Inc. nor the names of its
+;;;       contributors may be used to endorse or promote products derived from
+;;;       this software without specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,33 +26,26 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
+(in-package :boxy-ll)
 
-(defpackage cram-boxy-low-level
-  (:nicknames #:boxy-ll)
-  (:use #:common-lisp)
-  (:export
-   ;; low-level-common
-   ;; simple-actionlib-client
-   #:make-simple-action-client
-   #:call-simple-action-client
-   ;; giskard-common
-   ;; giskard-cartesian
-   #:move-arms-giskard-cartesian
-   ;; joint-states
-   #:joint-state
-   #:joint-states
-   #:joint-positions
-   #:normalize-joint-angles
-   ;; giskard-joint
-   #:move-arms-giskard-joint
-   ;; nav-pcontroller
-   #:move-base-nav-pcontroller
-   ;; neck
-   #:move-neck-joint
-   ;; grippers
-   #:move-gripper-joint
-   ;; wiggle
-   #:move-arm-wiggle
-   ;; force-torque-sensor
-   #:*force-torque-state-fluent*))
+(defvar *force-torque-state-sub* nil
+  "Subscriber for robot's 6dof force-torque wrist sensor.")
+
+(defvar *force-torque-state-fluent* (cpl:make-fluent :name :force-torque-state)
+  "ROS message containing robot's left gripper state ROS message.")
+
+(defun init-force-torque-state-sub ()
+  "Initializes *left-gripper-state-sub*"
+  (flet ((force-torque-state-sub-cb (force-torque-state-msg)
+           (setf (cpl:value *force-torque-state-msg*) force-torque-state-msg)))
+    (setf *force-torque-state-sub*
+          (roslisp:subscribe "namespace/topic"
+                             "iai_msgs/MessageType"
+                             #'force-torque-state-sub-cb))))
+
+(defun destroy-force-torque-state-sub ()
+  (setf *force-torque-state-sub* nil))
+
+(roslisp-utilities:register-ros-init-function init-force-torque-state-sub)
+(roslisp-utilities:register-ros-cleanup-function destroy-force-torque-state-sub)
+
