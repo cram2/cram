@@ -45,15 +45,15 @@
 (defun get-object-placing-poses (on-object-name on-object-type object-name object-type
                                  arm grasp on-object-transform)
   "Returns a list of (pregrasp-pose 2nd-pregrasp-pose grasp-pose lift-pose)"
-  (flet ((transform-stamped-inv (transform-stamped)
-           (let ((frame-id (cl-transforms-stamped:frame-id transform-stamped))
-                 (child-frame-id (cl-transforms-stamped:child-frame-id transform-stamped))
-                 (stamp (cl-transforms-stamped:stamp transform-stamped)))
-             (cl-transforms-stamped:transform->transform-stamped
-              child-frame-id
-              frame-id
-              stamp
-              (cl-transforms:transform-inv transform-stamped))))
+  (flet (;; (transform-stamped-inv (transform-stamped)
+         ;;   (let ((frame-id (cl-transforms-stamped:frame-id transform-stamped))
+         ;;         (child-frame-id (cl-transforms-stamped:child-frame-id transform-stamped))
+         ;;         (stamp (cl-transforms-stamped:stamp transform-stamped)))
+         ;;     (cl-transforms-stamped:transform->transform-stamped
+         ;;      child-frame-id
+         ;;      frame-id
+         ;;      stamp
+         ;;      (cl-transforms:transform-inv transform-stamped))))
 
          (get-connection-id (object-name connect-to-object-name)
            (ecase object-name
@@ -70,14 +70,11 @@
                       arm on-object-transform ; bToo
                       ;; (get-object-placement-transform ; oToo aka gToo
                       ;;  on-object-name object-name "left_gripper" grasp)))) ; bToo * ooTg = bTg
-                      (transform-stamped-inv
-                       (get-object-connection-transform
-                        (get-connection-id object-name on-object-name)
-                        object-name
-                        on-object-name)
-                       ;; (get-object-placement-transform ; oToo aka gToo
-                       ;;  on-object-type on-object-name object-type object-name arm grasp)
-                       )
+                      ;; (transform-stamped-inv )
+                      (get-object-connection-transform ; ooTo aka ooTg
+                       (get-connection-id object-name on-object-name)
+                       on-object-name
+                       object-name)
                       (cram->knowrob object-name)))) ; bToo * ooTg = bTg
       (list (get-object-type-lift-pose object-type arm grasp put-pose)
             put-pose
