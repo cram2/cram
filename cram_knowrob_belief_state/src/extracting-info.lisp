@@ -39,6 +39,17 @@
                                               :package :kr-belief)))))
     (knowrob->cram :symbol kr-instance)))
 
+;; (defun get-instance-class (cram-name)
+;;   (let* ((kr-name (cram->knowrob cram-name :namespace-id :thorin_simulation))
+;;          (kr-classes (mapcar (lambda (bindings)
+;;                                (knowrob->cram :symbol (cut:var-value '?class bindings)
+;;                                               :package :keyword))
+;;                              (cut:force-ll
+;;                               (json-prolog:prolog `("owl_individual_of" ,kr-name ?class)
+;;                                                   :package :kr-belief)))))
+;;     (car (intersection kr-classes '(:axle :axle-holder :chassis :chassis-holder :camaro-body)))))
+;; Ugly hack because knowrob cannot tell what's the class of an object in any better way :P
+
 (defun get-object-transform (object-id)
   (let* ((kr-object-id (cram->knowrob object-id))
          (transform-list
@@ -72,14 +83,6 @@
                :mode 1
                :package :kr-belief))))))
 
-;; CL-USER>(kr-belief::get-current-object-grasps "http://knowrob.org/kb/thorin_simulation.owl#CamaroBody1")
-;; (("right_gripper" "http://knowrob.org/kb/thorin_simulation.owl#CamaroBody1"
-;;   "boxy"
-;;   #<CL-TRANSFORMS-STAMPED:TRANSFORM-STAMPED 
-;;    FRAME-ID: "right_gripper_tool_frame", CHILD-FRAME-ID: "http://knowrob.org/kb/thorin_simulation.owl#CamaroBody1", STAMP: 0.0
-;;    #<3D-VECTOR (0.0d0 0.0d0 0.016d0)>
-;;    #<QUATERNION (0.7071067811865476d0 -0.7071067811865476d0 0.0d0 0.0d0)>>))
-
 (defun get-current-grasps ()
   (mapcar (lambda (bindings)
             (mapcar (lambda (grasp-spec)
@@ -98,12 +101,6 @@
               `("get_current_objects_in_gripper" ,kr-gripper-id ?object_ids)
               :mode 1
               :package :kr-belief)))))
-
-;; (defun get-grasp-and-pregrasp (gripper-id object-id grasp-id)
-;;   (Json-prolog:prolog-1
-;;    `("get_pre_grasp_position" ,gripper-id ,object-id ,grasp-id ?transform)
-;;    :mode 1
-;;    :package :kr-belief))
 
 (defun get-possible-object-grasps (object-id &optional gripper-id)
   (let ((kr-object-id (cram->knowrob object-id :namespace-id :thorin_simulation))
@@ -124,6 +121,42 @@
                                                                ?grasp_ids)
                    :mode 1
                    :package :kr-belief)))))))
+
+(defun get-object-manipulation-transform (manipulation-type gripper-id object-id grasp-id)
+  (declare (type keyword manipulation-type))
+  (let ((kr-gripper-id (cram->knowrob gripper-id))
+        (kr-object-id (cram->knowrob object-id :namespace-id :thorin_simulation))
+        (kr-grasp-id (car (get-possible-object-grasps object-id gripper-id)))
+        (kr-query (ecase manipulation-type
+                    (:grasp "get_grasp_position")
+                    (:pregrasp "get_pre_grasp_position")
+                    (:lift "get_post_grasp_position"))))
+   (knowrob->cram
+    :transform
+    (cut:var-value
+     '?transform
+     (car
+      (json-prolog:prolog-1
+       `(,kr-query ,kr-gripper-id ,kr-object-id ,kr-grasp-id ?transform)
+       :mode 1
+       :package :kr-belief))))))
+
+(defun get-object-connection-transform (connection-id object-id connect-to-object-id)
+  (let ((kr-connection-id (cram->knowrob connection-id :namespace-id :thorin_parts))
+        (kr-object-id (cram->knowrob object-id :namespace-id :thorin_simulation))
+        (kr-connect-to-object-id (cram->knowrob connect-to-object-id
+                                                :namespace-id :thorin_simulation)))
+   (knowrob->cram
+    :transform
+    (cut:var-value
+     '?transform
+     (car
+      (json-prolog:prolog-1
+       ;; note that in KnowRob the order of object-id and connect-to-object-id doesn't matter
+       `("get_connection_transform" ,kr-connection-id ,kr-connect-to-object-id ,kr-object-id
+                                    ?transform)
+       :mode 1
+       :package :kr-belief))))))
 
 (defun get-assemblages (&key object-id assemblage-id)
   (let ((kr-object-id (cram->knowrob object-id))
