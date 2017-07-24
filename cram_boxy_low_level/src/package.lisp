@@ -56,4 +56,4 @@
    ;; wiggle
    #:move-arm-wiggle
    ;; force-torque-sensor
-   #:*force-torque-state-fluent*))
+   #:*wrench-state-fluent*))
