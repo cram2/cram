@@ -55,5 +55,6 @@
    #:move-gripper-joint
    ;; wiggle
    #:move-arm-wiggle
+   #:move-arm-wiggle-until-wrench-too-high
    ;; force-torque-sensor
    #:*wrench-state-fluent*))

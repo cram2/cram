@@ -28,6 +28,8 @@
 
 (in-package :boxy-ll)
 
+(defparameter *wrench-too-high-limit* 3.0 "In N/m.")
+
 (defvar *wrench-state-sub* nil
   "Subscriber for robot's 6dof force-torque wrist sensor.")
 
@@ -39,8 +41,8 @@
   (flet ((wrench-state-sub-cb (wrench-state-msg)
            (setf (cpl:value *wrench-state-fluent*) wrench-state-msg)))
     (setf *wrench-state-sub*
-          (roslisp:subscribe "namespace/topic"
-                             "iai_msgs/MessageType"
+          (roslisp:subscribe "left_arm_kms40/wrench_zeroed"
+                             "geometry_msgs/WrenchStamped"
                              #'wrench-state-sub-cb))))
 
 (defun destroy-wrench-state-sub ()
@@ -49,3 +51,7 @@
 (roslisp-utilities:register-ros-init-function init-wrench-state-sub)
 (roslisp-utilities:register-ros-cleanup-function destroy-wrench-state-sub)
 
+(defun zero-wrench-sensor ()
+  (loop until (roslisp:wait-for-service "ft_cleaner/update_offset" 5.0)
+        do (roslisp:ros-info (force-torque-sensor zero-sensor) "Waiting for zeroing service..."))
+  (roslisp:call-service "ft_cleaner/update_offset" 'std_srvs-srv:trigger))

@@ -33,7 +33,7 @@
   (make-simple-action-client
    'wiggle-action
    "wiggle_wiggle_wiggle" "wiggle_msgs/WiggleAction"
-   60.0))
+   15.0))
 
 (roslisp-utilities:register-ros-init-function make-wiggle-action-client)
 
@@ -75,9 +75,7 @@
                                    convergence-delta-xy convergence-delta-theta))))
 
 (defun move-arm-wiggle (&key
-                          arm goal-pose (duration 5.0)
-                          ;; TODO: get rid of 5 when Simon updates the action interface
-                          action-timeout
+                          arm goal-pose action-timeout
                           (pose-base-frame cram-tf:*robot-base-frame*)
                           (left-tool-frame cram-tf:*robot-left-tool-frame*)
                           (right-tool-frame cram-tf:*robot-right-tool-frame*)
@@ -85,17 +83,44 @@
                           (convergence-delta-theta *giskard-convergence-delta-theta*))
   (declare (type cl-transforms-stamped:pose-stamped goal-pose)
            (type (or null string) pose-base-frame left-tool-frame right-tool-frame)
-           (type (or null number)
-                 duration action-timeout convergence-delta-xy convergence-delta-theta)
+           (type (or null number) action-timeout convergence-delta-xy convergence-delta-theta)
            (type keyword arm))
+
+  (unless action-timeout
+    (setf action-timeout (get-action-timeout 'wiggle-action)))
+
   (let ((goal-pose (ensure-wiggle-input pose-base-frame goal-pose)))
     (multiple-value-bind (result status)
         (call-simple-action-client 'wiggle-action
                                    :action-goal (make-wiggle-action-goal arm goal-pose
-                                                                         duration)
+                                                                         action-timeout)
                                    :action-timeout action-timeout)
       (ensure-wiggle-output status goal-pose (ecase arm
                                                (:left left-tool-frame)
                                                (:right right-tool-frame))
                             convergence-delta-xy convergence-delta-theta)
       (values result status))))
+
+
+(defun move-arm-wiggle-until-wrench-too-high (&key arm goal-pose action-timeout)
+  (declare (type cl-transforms-stamped:pose-stamped goal-pose)
+           (type (or null number) action-timeout)
+           (type keyword arm))
+
+  (flet ((enough-pushing (wrench-state-fluent)
+           (> (abs (roslisp:msg-slot-value
+                    (roslisp:msg-slot-value
+                     (roslisp:msg-slot-value
+                      (cpl:value wrench-state-fluent)
+                      'geometry_msgs-msg:wrench)
+                     'geometry_msgs-msg:force)
+                    'geometry_msgs-msg:z))
+              *wrench-too-high-limit*)))
+
+    (zero-wrench-sensor)
+
+    (let ((enough-pushing-fluent
+            (cpl:fl-funcall #'enough-pushing *wrench-state-fluent*)))
+      (cpl:pursue
+        (cpl:wait-for enough-pushing-fluent)
+        (move-arm-wiggle :arm arm :goal-pose goal-pose :action-timeout action-timeout)))))

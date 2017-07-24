@@ -90,4 +90,4 @@
          (boxy-ll:move-arms-giskard-joint :goal-configuration-left argument-1
                                           :goal-configuration-right argument-2))
         (boxy-desig:move-tcp-wiggle
-         (boxy-ll:move-arm-wiggle :arm argument-1 :goal-pose argument-2))))))
+         (boxy-ll:move-arm-wiggle-until-wrench-too-high :arm argument-1 :goal-pose argument-2))))))

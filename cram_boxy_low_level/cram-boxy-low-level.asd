@@ -46,6 +46,8 @@
                cram-prolog
                cram-boxy-description
                ;; msgs for low-level communication
+               geometry_msgs-msg ; for force-torque sensor wrench
+               std_srvs-srv ; for zeroing force-torque sensor
                giskard_msgs-msg
                move_base_msgs-msg
                visualization_msgs-msg
@@ -74,6 +76,6 @@
                                            "simple-actionlib-client"))
      (:file "neck" :depends-on ("package"))
      (:file "grippers" :depends-on ("package" "joint-states"))
+     (:file "force-torque-sensor" :depends-on ("package"))
      (:file "wiggle" :depends-on ("package" "simple-actionlib-client"
-                                            "giskard-cartesian"))
-     (:file "force-torque-sensor" :depends-on ("package"))))))
+                                            "giskard-cartesian" "force-torque-sensor"))))))
