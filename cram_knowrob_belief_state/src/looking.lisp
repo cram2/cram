@@ -29,6 +29,10 @@
 
 (in-package :kr-belief)
 
+(defparameter *neck-good-looking-state* '(-1.232d0 -3.0114d0 -0.87761d0 0.79121d0 1.1403d0 0.3335d0))
+
+(defparameter *neck-out-of-arm-workspace-state* '(-1.15d0 -2.207d0 -0.878d0 0.349d0 1.549d0 0.134d0))
+
 (defparameter *left-arm-out-of-field-of-view-state*
   '(-1.858d0 0.70571d0 0.9614d0 -0.602d0 -2.5922d0 -1.94065d0 -1.28735d0))
 
