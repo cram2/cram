@@ -30,6 +30,8 @@
 
 (defparameter *wrench-too-high-limit* 3.0 "In N/m.")
 
+(defparameter *wrench-zeroing-service-retries* 3 "how many times")
+
 (defvar *wrench-state-sub* nil
   "Subscriber for robot's 6dof force-torque wrist sensor.")
 
@@ -52,6 +54,12 @@
 (roslisp-utilities:register-ros-cleanup-function destroy-wrench-state-sub)
 
 (defun zero-wrench-sensor ()
-  (loop until (roslisp:wait-for-service "ft_cleaner/update_offset" 5.0)
-        do (roslisp:ros-info (force-torque-sensor zero-sensor) "Waiting for zeroing service..."))
-  (roslisp:call-service "ft_cleaner/update_offset" 'std_srvs-srv:trigger))
+  (loop for i from 1 to *wrench-zeroing-service-retries*
+        until (roslisp:wait-for-service "ft_cleaner/update_offset" 5.0)
+        do (roslisp:ros-info (force-torque-sensor zero-sensor) "Waiting for zeroing service...")
+        finally (if (> i *wrench-zeroing-service-retries*)
+                    (progn
+                      (roslisp:ros-warn (force-torque-sensor zero-sensor)
+                                        "Service unreachable. Stop using force-torque sensor.")
+                      (setf *wrench-zeroing-service-retries* 0))
+                    (roslisp:call-service "ft_cleaner/update_offset" 'std_srvs-srv:trigger))))
