@@ -108,14 +108,15 @@
            (type keyword arm))
 
   (flet ((enough-pushing (wrench-state-fluent)
-           (> (abs (roslisp:msg-slot-value
-                    (roslisp:msg-slot-value
-                     (roslisp:msg-slot-value
-                      (cpl:value wrench-state-fluent)
-                      'geometry_msgs-msg:wrench)
-                     'geometry_msgs-msg:force)
-                    'geometry_msgs-msg:z))
-              *wrench-too-high-limit*)))
+           (when (cpl:value wrench-state-fluent)
+             (> (abs (roslisp:msg-slot-value
+                      (roslisp:msg-slot-value
+                       (roslisp:msg-slot-value
+                        (cpl:value wrench-state-fluent)
+                        'geometry_msgs-msg:wrench)
+                       'geometry_msgs-msg:force)
+                      'geometry_msgs-msg:z))
+                *wrench-too-high-limit*))))
 
     (zero-wrench-sensor)
 
