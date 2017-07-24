@@ -72,6 +72,9 @@
   (or (gethash name *action-clients*)
       (init-simple-action-client name)))
 
+(defun get-action-timeout (name)
+  (gethash name *action-timeouts*))
+
 
 (defun make-simple-action-client (name ros-name ros-type timeout &key initialize-now)
   (declare (type symbol name)
