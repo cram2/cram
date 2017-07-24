@@ -54,42 +54,59 @@
   (:method (object-type) 0.10)
   (:method ((object-type (eql :axle))) 0.02))
 
-(defun get-gripper-in-base-pose (arm base-object-transform gripper-object-transform gripper-frame)
+(defun transform-stamped-inv (transform-stamped)
+  (let ((frame-id (cl-transforms-stamped:frame-id transform-stamped))
+        (child-frame-id (cl-transforms-stamped:child-frame-id transform-stamped))
+        (stamp (cl-transforms-stamped:stamp transform-stamped)))
+    (cl-transforms-stamped:transform->transform-stamped
+     child-frame-id
+     frame-id
+     stamp
+     (cl-transforms:transform-inv transform-stamped))))
+
+(defun multiply-transform-stampeds (x-frame z-frame
+                                    x-y-transform y-z-transform
+                                    &key (result-as-pose-or-transform :transform))
   (declare (type cl-transforms-stamped:transform-stamped
-                 base-object-transform gripper-object-transform))
-  "Returns a pose stamped representing bTg -- transfrom from base to gripper.
+                 x-y-transform y-z-transform)
+           (type keyword result-as-pose-or-transform)
+           (type string x-frame z-frame))
+  "Returns a pose stamped representing xTz -- transfrom from x-frame to z-frame.
 
-Take base-object-transform, ensure it's from base frame  -- bTo.
-Multiply from the right with the transform from object to gripper -- bTo * oTg == bTg."
+Take xTy, ensure it's from x-frame.
+Multiply from the right with the yTz transform -- xTy * yTz == xTz."
 
-  (unless (equal (cl-transforms-stamped:frame-id base-object-transform)
-                 cram-tf:*robot-base-frame*)
-      (error "In grasp calculations the BASE-OBJECT-TRANSFORM did not have ~
-correct parent frame: ~a and ~a"
-             (cl-transforms-stamped:frame-id base-object-transform)
-             cram-tf:*robot-base-frame*))
+  (unless (equal (cl-transforms-stamped:frame-id x-y-transform) x-frame)
+      (error "In multiply-transform-stampeds X-Y-TRANSFORM did not have ~
+              correct parent frame: ~a and ~a"
+             (cl-transforms-stamped:frame-id x-y-transform) x-frame))
 
-  (unless (equal (cl-transforms-stamped:frame-id gripper-object-transform)
-                 gripper-frame)
-      (error "In grasp calculations the GRIPPER-OBJECT-TRANSFORM did not have ~
-correct parent frame: ~a and ~a"
-             (cl-transforms-stamped:frame-id gripper-object-transform)
-             gripper-frame))
+  (unless (equal (cl-transforms-stamped:child-frame-id y-z-transform) z-frame)
+      (error "In multiply-transform-stampeds Y-Z-TRANSFORM did not have ~
+              correct child frame: ~a and ~a"
+             (cl-transforms-stamped:child-frame-id y-z-transform) z-frame))
 
-  (unless (equal (cl-transforms-stamped:child-frame-id base-object-transform)
-                 (cl-transforms-stamped:child-frame-id gripper-object-transform))
-      (error "In grasp calculations the object frame of  BASE-OBJECT-TRANSFORM and ~
-              GRIPPER-OBJECT-TRANSFORM did not have correct parent frame: ~a and ~a"
-             (cl-transforms-stamped:child-frame-id base-object-transform)
-             (cl-transforms-stamped:child-frame-id gripper-object-transform)))
+  (unless (equal (cl-transforms-stamped:child-frame-id x-y-transform)
+                 (cl-transforms-stamped:frame-id y-z-transform))
+      (error "In multiply-transform-stampeds X-Y-TRANSFORM and ~
+              Y-Z-TRANSFORM did not have equal corresponding frames: ~a and ~a"
+             (cl-transforms-stamped:child-frame-id x-y-transform)
+             (cl-transforms-stamped:frame-id y-z-transform)))
 
-  (cl-transforms-stamped:pose->pose-stamped
-   cram-tf:*robot-base-frame*
-   0.0
-   (cl-transforms:transform->pose
-    (cl-transforms:transform*
-     base-object-transform
-     (cl-transforms:transform-inv gripper-object-transform)))))
+  (let ((multiplied-transforms
+          (cl-transforms:transform* x-y-transform y-z-transform)))
+    (ecase result-as-pose-or-transform
+      (:pose
+       (cl-transforms-stamped:pose->pose-stamped
+        x-frame
+        0.0
+        (cl-transforms:transform->pose multiplied-transforms)))
+      (:transform
+       (cl-transforms-stamped:transform->transform-stamped
+        x-frame
+        z-frame
+        0.0
+        multiplied-transforms)))))
 
 ;; (defun get-object-grasping-poses (object-name arm grasp object-transform)
 ;;   "Returns a list of (pregrasp-pose 2nd-pregrasp-pose grasp-pose lift-pose)"
@@ -115,11 +132,13 @@ correct parent frame: ~a and ~a"
 
 (defun get-object-grasping-poses (object-name object-type arm grasp object-transform)
   "Returns a list of (pregrasp-pose 2nd-pregrasp-pose grasp-pose lift-pose)"
-  (let ((grasp-pose (get-gripper-in-base-pose
-                     arm object-transform ; bTo
-                     (get-object-manipulation-transform ; gTo
-                      :grasp "left_gripper" object-name grasp)
-                     cram-tf:*robot-left-tool-frame*))) ; bTo * oTg = bTg
+  (let ((grasp-pose (multiply-transform-stampeds
+                     cram-tf:*robot-base-frame* cram-tf:*robot-left-tool-frame*
+                     object-transform ; bTo
+                     (transform-stamped-inv
+                      (get-object-manipulation-transform ; gTo
+                       :grasp "left_gripper" object-name grasp)) ; oTg
+                     :result-as-pose-or-transform :pose))) ; bTo * oTg = bTg
     (list (get-object-type-pregrasp-pose object-type arm grasp grasp-pose)
           (get-object-type-2nd-pregrasp-pose object-type arm grasp grasp-pose)
           grasp-pose

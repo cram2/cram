@@ -102,7 +102,7 @@
               :mode 1
               :package :kr-belief)))))
 
-(defun get-possible-object-grasps (object-id &optional gripper-id)
+(defun get-currently-possible-object-grasps (object-id &optional gripper-id)
   (let ((kr-object-id (cram->knowrob object-id :namespace-id :thorin_simulation))
         (kr-gripper-id (cram->knowrob gripper-id)))
     (mapcar (lambda (grasp-id)
@@ -122,6 +122,24 @@
                    :mode 1
                    :package :kr-belief)))))))
 
+(defun get-possible-object-grasps (object-id &optional gripper-id)
+  (let ((kr-object-id (cram->knowrob object-id :namespace-id :thorin_simulation))
+        (kr-gripper-id (cram->knowrob gripper-id)))
+    (mapcar (lambda (grasp-id)
+              (knowrob->cram :string grasp-id :strip-namespace nil))
+            (cut:var-value
+             '?grasp_ids
+             (car
+              (if gripper-id
+                  (json-prolog:prolog-1
+                   `("get_possible_grasps_on_object" ,kr-object-id ,kr-gripper-id ?grasp_ids)
+                   :mode 1
+                   :package :kr-belief)
+                  (json-prolog:prolog-1
+                   `("get_possible_grasps_on_object" ,kr-object-id ?grasp_ids)
+                   :mode 1
+                   :package :kr-belief)))))))
+
 (defun get-object-manipulation-transform (manipulation-type gripper-id object-id grasp-id)
   (declare (type keyword manipulation-type))
   (let ((kr-gripper-id (cram->knowrob gripper-id))
@@ -131,17 +149,18 @@
                     (:grasp "get_grasp_position")
                     (:pregrasp "get_pre_grasp_position")
                     (:lift "get_post_grasp_position"))))
-   (knowrob->cram
-    :transform
-    (cut:var-value
-     '?transform
-     (car
-      (json-prolog:prolog-1
-       `(,kr-query ,kr-gripper-id ,kr-object-id ,kr-grasp-id ?transform)
-       :mode 1
-       :package :kr-belief))))))
+    (assert kr-grasp-id)
+    (knowrob->cram
+     :transform
+     (cut:var-value
+      '?transform
+      (car
+       (json-prolog:prolog-1
+        `(,kr-query ,kr-gripper-id ,kr-object-id ,kr-grasp-id ?transform)
+        :mode 1
+        :package :kr-belief))))))
 
-(defun get-object-connection-transform (connection-id object-id connect-to-object-id)
+(defun get-object-connection-transform (connection-id connect-to-object-id object-id)
   (let ((kr-connection-id (cram->knowrob connection-id :namespace-id :thorin_parts))
         (kr-object-id (cram->knowrob object-id :namespace-id :thorin_simulation))
         (kr-connect-to-object-id (cram->knowrob connect-to-object-id
