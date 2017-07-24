@@ -28,24 +28,24 @@
 
 (in-package :boxy-ll)
 
-(defvar *force-torque-state-sub* nil
+(defvar *wrench-state-sub* nil
   "Subscriber for robot's 6dof force-torque wrist sensor.")
 
-(defvar *force-torque-state-fluent* (cpl:make-fluent :name :force-torque-state)
+(defvar *wrench-state-fluent* (cpl:make-fluent :name :wrench-state)
   "ROS message containing robot's left gripper state ROS message.")
 
-(defun init-force-torque-state-sub ()
-  "Initializes *left-gripper-state-sub*"
-  (flet ((force-torque-state-sub-cb (force-torque-state-msg)
-           (setf (cpl:value *force-torque-state-msg*) force-torque-state-msg)))
-    (setf *force-torque-state-sub*
+(defun init-wrench-state-sub ()
+  "Initializes *wrench-state-sub*"
+  (flet ((wrench-state-sub-cb (wrench-state-msg)
+           (setf (cpl:value *wrench-state-fluent*) wrench-state-msg)))
+    (setf *wrench-state-sub*
           (roslisp:subscribe "namespace/topic"
                              "iai_msgs/MessageType"
-                             #'force-torque-state-sub-cb))))
+                             #'wrench-state-sub-cb))))
 
-(defun destroy-force-torque-state-sub ()
-  (setf *force-torque-state-sub* nil))
+(defun destroy-wrench-state-sub ()
+  (setf *wrench-state-sub* nil))
 
-(roslisp-utilities:register-ros-init-function init-force-torque-state-sub)
-(roslisp-utilities:register-ros-cleanup-function destroy-force-torque-state-sub)
+(roslisp-utilities:register-ros-init-function init-wrench-state-sub)
+(roslisp-utilities:register-ros-cleanup-function destroy-wrench-state-sub)
 
