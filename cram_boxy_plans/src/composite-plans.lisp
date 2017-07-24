@@ -42,18 +42,19 @@
                                 ?gripper-opening  ?grip-effort
                                 ?left-reach-poses ?right-reach-poses
                                 ?left-lift-poses ?right-lift-poses)
-  (roslisp:ros-info (boxy-plans pick-up) "Opening gripper")
-  (exe:perform
-   (desig:an action
-             (type setting-gripper)
-             (gripper ?arm)
-             (position ?gripper-opening)))
-  (roslisp:ros-info (boxy-plans pick-up) "Reaching")
-  (exe:perform
-   (desig:an action
-             (type reaching)
-             (left-poses ?left-reach-poses)
-             (right-poses ?right-reach-poses)))
+  (cpl:par
+    (roslisp:ros-info (boxy-plans pick-up) "Opening gripper")
+    (exe:perform
+     (desig:an action
+               (type setting-gripper)
+               (gripper ?arm)
+               (position ?gripper-opening)))
+    (roslisp:ros-info (boxy-plans pick-up) "Reaching")
+    (exe:perform
+     (desig:an action
+               (type reaching)
+               (left-poses ?left-reach-poses)
+               (right-poses ?right-reach-poses))))
   (roslisp:ros-info (boxy-plans pick-up) "Gripping")
   (exe:perform
    (desig:an action
