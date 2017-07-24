@@ -32,7 +32,7 @@
 (defparameter *gripper-maximal-position* 0.1065 "in meters")
 
 (defparameter *gripper-action-timeout* 3.0 "in seconds")
-(defparameter *gripper-convergence-delta* 0.0055 "in meters")
+(defparameter *gripper-convergence-delta* 0.01 "in meters")
 
 (defvar *gripper-publishers* '(:left nil :right nil)
   "ROS publisher for Boxy gripper driver on goal_position message.")
