@@ -24,6 +24,7 @@
   <depend>cram_boxy_description</depend>
   <depend>geometry_msgs</depend>
   <depend>std_srvs</depend>
+  <depend>sensor_msgs</depend>
   <depend>giskard_msgs</depend>
   <depend>move_base_msgs</depend>
   <depend>visualization_msgs</depend>

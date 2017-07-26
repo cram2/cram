@@ -35,11 +35,11 @@
         left-reach-poses left-lift-poses
         right-reach-poses right-lift-poses)
     (when (member :left arm-as-list)
-      (setf left-reach-poses (subseq left-manipulation-poses 0 3)
-            left-lift-poses (subseq left-manipulation-poses 3)))
+      (setf left-reach-poses (subseq left-manipulation-poses 0 2)
+            left-lift-poses (subseq left-manipulation-poses 2)))
     (when (member :right arm-as-list)
-      (setf right-reach-poses (subseq right-manipulation-poses 0 3)
-            right-lift-poses (subseq right-manipulation-poses 3)))
+      (setf right-reach-poses (subseq right-manipulation-poses 0 2)
+            right-lift-poses (subseq right-manipulation-poses 2)))
     (list left-reach-poses right-reach-poses left-lift-poses right-lift-poses)))
 
 (defun extract-place-manipulation-poses (arm left-manipulation-poses right-manipulation-poses)
@@ -48,13 +48,13 @@
         left-reach-poses left-put-poses left-retract-poses
         right-reach-poses right-put-poses right-retract-poses)
     (when (member :left arm-as-list)
-      (setf left-reach-poses (subseq left-manipulation-poses 0 1)
-            left-put-poses (subseq left-manipulation-poses 1 2)
-            left-retract-poses (subseq left-manipulation-poses 2)))
+      (setf left-reach-poses (subseq left-manipulation-poses 0 2)
+            left-put-poses (subseq left-manipulation-poses 2 3)
+            left-retract-poses (subseq left-manipulation-poses 3)))
     (when (member :right arm-as-list)
-      (setf right-reach-poses (subseq right-manipulation-poses 0 1)
-            right-put-poses (subseq right-manipulation-poses 1 2)
-            right-retract-poses (subseq right-manipulation-poses 2)))
+      (setf right-reach-poses (subseq right-manipulation-poses 0 2)
+            right-put-poses (subseq right-manipulation-poses 2 3)
+            right-retract-poses (subseq right-manipulation-poses 3)))
     (list left-reach-poses right-reach-poses left-put-poses right-put-poses
           left-retract-poses right-retract-poses)))
 
@@ -126,6 +126,7 @@
   (<- (desig:action-grounding ?action-designator (connect ?arm
                                                           ?current-object-designator
                                                           ?with-object-designator
+                                                          ?gripper-opening
                                                           ?left-reach-poses ?right-reach-poses
                                                           ?left-push-poses ?right-push-poses
                                                           ?left-retract-poses ?right-retract-poses))
@@ -140,6 +141,7 @@
     (desig:current-designator ?with-object-designator ?current-with-object-designator)
     (property ?current-with-object-designator (:type ?with-object-type))
     (property ?current-with-object-designator (:name ?with-object-name))
+    (lisp-fun kr-belief::get-object-type-gripper-opening ?object-type ?gripper-opening)
     (lisp-fun cram-robosherlock:get-object-transform ?current-with-object-designator
               ?with-object-transform)
     ;; infer missing information
@@ -162,4 +164,8 @@
     ;; infer missing information
     (lisp-fun kr-belief::get-object-look-pose :left ?object-transform ?left-goal-pose)
     ;; the only wrist camera is on left arm
-    (equal ?right-goal-pose NIL)))
+    (equal ?right-goal-pose NIL))
+
+  (<- (desig:action-grounding ?action-designator (detect ?object-designator))
+    (property ?action-designator (:type :detecting))
+    (property ?action-designator (:object ?object-designator))))

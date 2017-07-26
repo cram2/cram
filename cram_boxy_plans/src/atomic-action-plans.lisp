@@ -46,7 +46,8 @@
     ;; Move arms through all but last poses of `?left-poses' and `?right-poses'
     ;; while ignoring failures: accuracy is not so important in intermediate poses.
     (let ((max-length (max (length left-poses) (length right-poses))))
-
+      (format t "~%~%GOT POSES: ~a~%" left-poses)
+      (format t "~%BUT LAST: ~a~%" (fill-in-with-nils (butlast left-poses) max-length))
       (mapc (lambda (?left-pose ?right-pose)
 
               (cpl:with-failure-handling
@@ -162,5 +163,6 @@
         ((common-fail:perception-object-not-found (e)
            (cpl:do-retry perceive-retries
              (roslisp:ros-warn (boxy-plans perceive) "~a" e)
+             (cpl:sleep 1.0)
              (cpl:retry))))
       (cram-robosherlock:perceive detect-or-inspect object-designator))))

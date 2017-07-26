@@ -28,11 +28,12 @@
 
 (in-package :boxy-ll)
 
-(defparameter *gripper-minimal-position* 0.0115 "in meters")
-(defparameter *gripper-maximal-position* 0.1065 "in meters")
+(defparameter *gripper-minimal-position* 0.007 "in meters")
+(defparameter *gripper-maximal-position* 0.108 "in meters")
 
 (defparameter *gripper-action-timeout* 3.0 "in seconds")
-(defparameter *gripper-convergence-delta* 0.01 "in meters")
+(defparameter *gripper-velocity-convergence-delta* 0.00000001 "in meters/second")
+(defparameter *gripper-convergence-delta* 0.001 "in meters")
 
 (defvar *gripper-publishers* '(:left nil :right nil)
   "ROS publisher for Boxy gripper driver on goal_position message.")
@@ -51,26 +52,26 @@
 
 ;;;;;;;; goal convergence fluent ;;;;;;;;;;;;;;;;;;;;
 
-(defvar *left-gripper-state-sub* nil
-  "Subscriber for robot's left gripper state topic.")
+;; (defvar *left-gripper-state-sub* nil
+;;   "Subscriber for robot's left gripper state topic.")
 
-(defvar *left-gripper-state-msg* (cpl:make-fluent :name :left-gripper-state)
-  "ROS message containing robot's left gripper state ROS message.")
+;; (defvar *left-gripper-state-msg* (cpl:make-fluent :name :left-gripper-state)
+;;   "ROS message containing robot's left gripper state ROS message.")
 
-(defun init-gripper-state-sub ()
-  "Initializes *left-gripper-state-sub*"
-  (flet ((gripper-state-sub-cb (gripper-state-msg)
-           (setf (cpl:value *left-gripper-state-msg*) gripper-state-msg)))
-    (setf *left-gripper-state-sub*
-          (roslisp:subscribe "left_arm_gripper/state"
-                             "iai_wsg_50_msgs/Status"
-                             #'gripper-state-sub-cb))))
+;; (defun init-gripper-state-sub ()
+;;   "Initializes *left-gripper-state-sub*"
+;;   (flet ((gripper-state-sub-cb (gripper-state-msg)
+;;            (setf (cpl:value *left-gripper-state-msg*) gripper-state-msg)))
+;;     (setf *left-gripper-state-sub*
+;;           (roslisp:subscribe "left_arm_gripper/state"
+;;                              "iai_wsg_50_msgs/Status"
+;;                              #'gripper-state-sub-cb))))
 
-(defun destroy-gripper-state-sub ()
-  (setf *left-gripper-state-sub* nil))
+;; (defun destroy-gripper-state-sub ()
+;;   (setf *left-gripper-state-sub* nil))
 
-(roslisp-utilities:register-ros-init-function init-gripper-state-sub)
-(roslisp-utilities:register-ros-cleanup-function destroy-gripper-state-sub)
+;; (roslisp-utilities:register-ros-init-function init-gripper-state-sub)
+;; (roslisp-utilities:register-ros-cleanup-function destroy-gripper-state-sub)
 
 ;;;;;;;;;;;; end of goal convergence fluent ;;;;;;;;;;;;;;
 
@@ -118,25 +119,28 @@
      (roslisp::make-message
       'iai_wsg_50_msgs-msg:PositionCmd
       :pos (* goal-position 1000.0) ; expected to be in milimiters
-      :speed 50.0
+      :speed 100.0
       :force effort))
 
-    ;; (cpl:sleep *gripper-action-timeout*)
+    (cpl:sleep 1.0)
 
-    (flet ((goal-reached (gripper-state-msg)
-             (< (abs (- (roslisp:msg-slot-value (cpl:value gripper-state-msg)
-                                                'iai_wsg_50_msgs-msg:width)
-                        goal-position))
-                *gripper-convergence-delta*)))
+    (flet ((goal-reached (state-msg)
+             (if (eql action-type :grip)
+                 (< (abs (car (joint-velocities '("left_gripper_joint") state-msg)))
+                    *gripper-velocity-convergence-delta*)
+                 (< (abs (- (car (joint-positions '("left_gripper_joint") state-msg))
+                            goal-position))
+                    *gripper-convergence-delta*))))
 
-      (let ((reached-fluent (cpl:fl-funcall #'goal-reached *left-gripper-state-msg*)))
+      (let ((reached-fluent (cpl:fl-funcall #'goal-reached *robot-joint-states-msg*)))
         (cpl:pursue
           (cpl:wait-for reached-fluent)
           (cpl:seq
             (cpl:sleep *gripper-action-timeout*)
             (cpl:fail 'common-fail:gripping-failed
                       :description (format nil "gripper did not reach goal: is ~a, should be ~a."
-                                           (car (joint-positions '("left_gripper_joint")))
+                                           (car (joint-positions '("left_gripper_joint")
+                                                                 *robot-joint-states-msg*))
                                            goal-position))))))))
 
 ;; speed can be up to 60

@@ -70,10 +70,6 @@
     (property ?action-designator (:gripper ?left-or-right))
     (property ?action-designator (:position ?position)))
 
-  (<- (desig:action-grounding ?action-designator (perceive :detect ?object-designator))
-    (property ?action-designator (:type :detecting))
-    (property ?action-designator (:object ?object-designator)))
-
   (<- (desig:action-grounding ?action-designator (perceive :inspect ?augmented-designator))
     (property ?action-designator (:type :inspecting))
     (property ?action-designator (:object ?object-designator))
