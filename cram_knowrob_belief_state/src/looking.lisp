@@ -29,14 +29,19 @@
 
 (in-package :kr-belief)
 
-(defparameter *neck-good-looking-state* '(-1.232d0 -3.0114d0 -0.87761d0 0.79121d0 1.1403d0 0.3335d0))
+(defparameter *neck-good-looking-state* '(-1.176d0 -3.1252d0 -0.8397d0 0.83967d0 1.1347d0 -0.0266d0))
 
-(defparameter *neck-out-of-arm-workspace-state* '(-1.15d0 -2.207d0 -0.878d0 0.349d0 1.549d0 0.134d0))
+(defparameter *neck-out-of-arm-workspace-state* '(-1.3155d0 -1.181355d0 -1.9562d0
+                                                  0.142417d0 1.13492d0 0.143467d0))
 
 (defparameter *left-arm-out-of-field-of-view-state*
   '(-1.858d0 0.70571d0 0.9614d0 -0.602d0 -2.5922d0 -1.94065d0 -1.28735d0))
 
-(defparameter *default-look-z-offset* 0.3 "in meters")
+(defparameter *left-arm-nicer-configuration*
+  '(-1.2274070978164673 0.8496202230453491 -0.10349386930465698 -1.0852965116500854 -0.4587952196598053 1.259474515914917 -0.06962397694587708))
+
+(defparameter *default-look-z-offset* 0.2 "in meters")
+(defparameter *default-look-x-offset* 0.15 "in meters")
 
 (defun get-object-look-pose (arm object-transform)
   (declare (type cl-transforms-stamped:transform-stamped object-transform))
@@ -60,14 +65,15 @@ correct parent frame: ~a and ~a"
                 0.0
                 (cl-transforms:make-3d-vector 0 0 0)
                 (cl-transforms:matrix->quaternion
-                 #2A((0 -1 0)
-                     (-1 0 0)
+                 #2A((-1 0 0)
+                     (0 1 0)
                      (0 0 -1)))))
              (object-x-in-base (cl-transforms:x (cl-transforms:translation object-transform)))
              (object-y-in-base (cl-transforms:y (cl-transforms:translation object-transform)))
              (object-z-in-base (cl-transforms:z (cl-transforms:translation object-transform)))
+             (offset-object-x (- object-x-in-base *default-look-x-offset*))
              (offset-object-z (+ object-z-in-base *default-look-z-offset*)))
         (cl-transforms-stamped:copy-pose-stamped
          gripper-initial-pose
-         :origin (cl-transforms:make-3d-vector object-x-in-base object-y-in-base offset-object-z)))
+         :origin (cl-transforms:make-3d-vector offset-object-x object-y-in-base offset-object-z)))
       NIL))
