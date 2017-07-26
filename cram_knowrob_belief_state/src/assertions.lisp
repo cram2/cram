@@ -66,7 +66,8 @@
 
 (defun retract-object-grasped (object-id kr-gripper-id)
   (let ((kr-object-id (cram->knowrob object-id :namespace-id :thorin_simulation)))
-   (json-prolog:prolog `("assert_ungrasp" ,kr-object-id ,kr-gripper-id))))
+    (json-prolog:prolog `("assert_ungrasp" ,kr-object-id ,kr-gripper-id)))
+  (json-prolog:prolog `("assert_ungrasp" ?_ ?_)))
 
 (defun assert-assemblage (assemblage-type connection-type object-id with-object-id)
   "`primary-object' and `secondary-object' are individuals of type AtomicPart or Assemblage"

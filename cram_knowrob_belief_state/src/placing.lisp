@@ -72,6 +72,7 @@
                         :grasp "left_gripper" object-name grasp))
                       :result-as-pose-or-transform :pose))) ; bTo * oTg = bTg
       (list (get-object-type-lift-pose object-type arm grasp put-pose)
+            (get-object-type-2nd-lift-pose object-type arm grasp put-pose)
             put-pose
             (get-object-type-2nd-pregrasp-pose object-type arm grasp put-pose)
             (get-object-type-pregrasp-pose object-type arm grasp put-pose)))))

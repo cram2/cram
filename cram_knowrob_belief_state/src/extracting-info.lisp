@@ -51,7 +51,7 @@
 ;; Ugly hack because knowrob cannot tell what's the class of an object in any better way :P
 
 (defun get-object-transform (object-id)
-  (let* ((kr-object-id (cram->knowrob object-id))
+  (let* ((kr-object-id (cram->knowrob object-id :namespace-id :thorin_simulation))
          (transform-list
            (cut:var-value
             '?transform
