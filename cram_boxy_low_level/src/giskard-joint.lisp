@@ -79,7 +79,8 @@
    (cut:var-value '?joints
                   (cut:lazy-car
                    (prolog:prolog
-                    `(cram-robot-interfaces:arm-joints boxy-descr:boxy ,arm ?joints))))))
+                    `(cram-robot-interfaces:arm-joints boxy-descr:boxy ,arm ?joints))))
+   *robot-joint-states-msg*))
 
 (defun ensure-giskard-joint-input-parameters (left-goal right-goal)
   (flet ((ensure-giskard-joint-goal (goal arm)

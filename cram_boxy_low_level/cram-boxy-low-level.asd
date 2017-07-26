@@ -52,6 +52,7 @@
                move_base_msgs-msg
                visualization_msgs-msg
                iai_wsg_50_msgs-msg
+               sensor_msgs-msg
                iai_control_msgs-msg ; neck message
                wiggle_msgs-msg)
   :components

@@ -32,13 +32,22 @@
 (defvar *joint-state-sub* nil
   "Subscriber for robot's joint state topic.")
 
+(defvar *joint-state-sub-counter* 0
+  "Counter to decrease the frequency of the subscriber callback")
+
+(defparameter *joint-state-sub-frequency-cut* 100 "in times")
+
 (defvar *robot-joint-states-msg* (cpl:make-fluent :name :robot-joint-states)
   "ROS message containing robot's current joint states.")
 
 (defun init-joint-state-sub ()
   "Initializes *joint-state-sub*"
   (flet ((joint-state-sub-cb (joint-state-msg)
-           (setf (cpl:value *robot-joint-states-msg*) joint-state-msg)))
+           (incf *joint-state-sub-counter*)
+           (if (> *joint-state-sub-counter* *joint-state-sub-frequency-cut*)
+               (progn
+                 (setf *joint-state-sub-counter* 0)
+                 (setf (cpl:value *robot-joint-states-msg*) joint-state-msg)))))
     (setf *joint-state-sub*
           (roslisp:subscribe "joint_states"
                              "sensor_msgs/JointState"
@@ -88,9 +97,10 @@ as multiple values."
       (roslisp:msg-slot-value last-joint-state-msg :header)
       :stamp))))
 
-(defun joint-positions (names)
+(defun joint-positions (names fluent)
   "Returns the joint positions as a list + timestamp"
-  (let ((last-joint-state-msg (cpl:value *robot-joint-states-msg*)))
+  (let ((last-joint-state-msg (cpl:value fluent ;; *robot-joint-states-msg*
+                                         )))
     (values
      (mapcar (lambda (name)
                (let ((index (position
@@ -99,6 +109,24 @@ as multiple values."
                              :test #'string-equal)))
                  (when index
                    (aref (roslisp:msg-slot-value last-joint-state-msg :position)
+                         index))))
+             names)
+     (roslisp:msg-slot-value
+      (roslisp:msg-slot-value last-joint-state-msg :header)
+      :stamp))))
+
+(defun joint-velocities (names fluent)
+  "Returns the joint velocities as a list + timestamp"
+  (let ((last-joint-state-msg (cpl:value fluent ;; *robot-joint-states-msg*
+                                         )))
+    (values
+     (mapcar (lambda (name)
+               (let ((index (position
+                             name
+                             (roslisp:msg-slot-value last-joint-state-msg :name)
+                             :test #'string-equal)))
+                 (when index
+                   (aref (roslisp:msg-slot-value last-joint-state-msg :velocity)
                          index))))
              names)
      (roslisp:msg-slot-value

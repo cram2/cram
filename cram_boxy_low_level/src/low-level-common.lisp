@@ -89,7 +89,7 @@
                                                         (z orientation pose) (cl-transforms:z rot)
                                                         (w orientation pose) (cl-transforms:w rot)
                                                         (x scale) 0.2
-                                                        (y scale) 0.1
+                                                        (y scale) 0.01
                                                         (z scale) 0.02
                                                         (r color) (first r-g-b-list)
                                                         (g color) (second r-g-b-list)

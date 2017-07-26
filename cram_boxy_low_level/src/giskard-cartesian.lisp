@@ -119,6 +119,9 @@
   ;;                                    convergence-delta-xy convergence-delta-theta))))
   )
 
+(defparameter *giskard-result-left-debug* nil)
+(defparameter *giskard-result-right-debug* nil)
+
 (defun move-arms-giskard-cartesian (&key
                                       goal-pose-left goal-pose-right action-timeout
                                       (pose-base-frame cram-tf:*robot-base-frame*)
@@ -131,6 +134,8 @@
            (type (or null number) action-timeout convergence-delta-xy convergence-delta-theta))
   (multiple-value-bind (goal-pose-left goal-pose-right)
       (ensure-giskard-cartesian-input-parameters pose-base-frame goal-pose-left goal-pose-right)
+    (setf *giskard-result-left-debug* goal-pose-left
+          *giskard-result-right-debug* goal-pose-right)
     (multiple-value-bind (result status)
         (call-simple-action-client 'giskard-action
                                    :action-goal (make-giskard-cartesian-action-goal

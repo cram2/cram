@@ -28,6 +28,8 @@
 
 (in-package :boxy-ll)
 
+(defparameter *neck-converngence-delta-joint-vel* 0.00001 "in radiants/sec")
+
 (defvar *neck-configuration-publisher* nil "ROS publisher for MoveIT desired_joints message.")
 
 (defun init-neck-configuration-publisher ()
@@ -43,8 +45,20 @@
 (defun move-neck-joint (&key goal-configuration)
   (declare (type list goal-configuration))
   "Neck has 6 joints, so as `goal-configuration' use a list of length 6."
+  (format t "MOVING NECK~%")
   (roslisp::publish *neck-configuration-publisher*
                     (roslisp::make-message
                      'iai_control_msgs-msg:pose_w_joints
-                     :joint_values (map 'vector #'identity goal-configuration))))
-
+                     :joint_values (map 'vector #'identity goal-configuration)))
+  (cpl:sleep 3.0)
+  (flet ((goal-reached (state-msg)
+           (values-converged
+            (joint-velocities '("neck_shoulder_pan_joint" "neck_shoulder_lift_joint"
+                                "neck_elbow_joint" "neck_wrist_1_joint" "neck_wrist_2_joint"
+                                "neck_wrist_3_joint")
+                              state-msg)
+            '(0.0 0.0 0.0 0.0 0.0 0.0)
+            *neck-converngence-delta-joint-vel*)))
+    (let ((reached-fluent (cpl:fl-funcall #'goal-reached *robot-joint-states-msg*)))
+      (cpl:wait-for reached-fluent)
+      (print "NECK REACHED"))))

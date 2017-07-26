@@ -29,22 +29,9 @@
 
 (in-package :boxy-plans)
 
-(defun move-arms-from-field-of-view ()
-  (cpl:with-failure-handling
-      ((common-fail:low-level-failure (e) ; ignore failures
-         (roslisp:ros-warn (boxy-plans arm-from-field-of-view) "~a" e)
-         (return)))
-    (let ((?left-configuration kr-belief::*left-arm-out-of-field-of-view-state*))
-      (exe:perform
-       (desig:a motion
-                (type moving-arm-joints)
-                (left-configuration ?left-configuration))))))
-
 (defun find-object-on-holder (?object-type ?holder-object-type &key (one-or-all :one))
   (declare (type keyword one-or-all))
   "`one-or-all' can only be :one or :all"
-  ;; move arms from field of view
-  (move-arms-from-field-of-view)
   ;; detect holder object with kinect
   (let ((?holder-object
           (exe:perform (desig:an action
