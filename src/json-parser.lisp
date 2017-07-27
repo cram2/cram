@@ -170,7 +170,11 @@
 (defmethod parse-json-node ((name (eql :class)) node) ; ignore confidence entry for now
   (list :type (let ((parsed-nested-key-values (parse-alist node)))
                 (roslisp-utilities:lispify-ros-name
-                 (second (assoc :name parsed-nested-key-values))
+                 (let ((knowrob-string (string-trim "'" (second (assoc :name parsed-nested-key-values)))))
+                   (let* ((position-of-# (position #\# knowrob-string :from-end t)))
+                     (if position-of-#
+                         (subseq knowrob-string (1+ position-of-#))
+                         knowrob-string)))
                  :keyword))))
 
 (defmethod parse-json-node ((name (eql :dimensions-2d)) node)
