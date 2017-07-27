@@ -33,7 +33,8 @@
 
   :depends-on (cram-designators
                cram-prolog
-               cram-designator-specification)
+               cram-designator-specification
+               cram-tf)
   :components
   ((:module "src"
     :components

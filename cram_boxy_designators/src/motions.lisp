@@ -28,6 +28,15 @@
 
 (in-package :boxy-desig)
 
+(defun calculate-pose-from-direction (distance)
+  (let* ((left-pose
+           (cl-transforms-stamped:make-pose-stamped
+            cram-tf:*robot-left-tool-frame*
+            0.0
+            (cl-transforms:make-3d-vector 0.0 0.0 distance)
+            (cl-transforms:make-identity-rotation))))
+    left-pose))
+
 (def-fact-group boxy-motion-designators (desig:motion-grounding)
 
   ;;;;;;;;;;;;;;;;;;;; BASE ;;;;;;;;;;;;;;;;;;;;;;;;
@@ -65,7 +74,7 @@
     (property ?designator (:gripper ?which-gripper))
     (property ?designator (:joint-angle ?position)))
 
-  ;;;;;;;;;;;;;;;;;;;; BODY ;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;;;;;;;;;;;;;;;;;; ARM WITH TORSO ;;;;;;;;;;;;;;;;;;;;;;;;
 
   (<- (desig:motion-grounding ?designator (move-tcp ?left-pose ?right-pose))
     (property ?designator (:type :moving-tcp))
@@ -90,4 +99,15 @@
     (property ?designator (:arm ?arm))
     (property ?designator (:target ?location-designator))
     (desig:designator-groundings ?location-designator ?poses)
-    (member ?pose ?poses)))
+    (member ?pose ?poses))
+
+  (<- (desig:motion-grounding ?designator (move-tcp-wiggle :left ?pose))
+    (property ?designator (:type :wiggling-tcp))
+    ;; (property ?designator (:arm ?arm))
+    ;; (property ?designator (:direction ?direction-keyword))
+    ;; (property ?designator (:frame ?reference-frame))
+    (property ?designator (:arm :left))
+    (property ?designator (:direction :forward))
+    (property ?designator (:distance ?distance))
+    (lisp-fun calculate-pose-from-direction ?distance ;; ?arm ?direction-keyword ?reference-frame
+              ?pose)))
