@@ -54,7 +54,11 @@
              (:chassis1 (ecase connect-to-object-name
                           (:chassis-holder1 :chassis-on-holder)))
              (:camaro-body1 (ecase connect-to-object-name
-                              (:chassis1 :chassis-snap-in-connection))))))
+                              (:chassis1 :chassis-snap-in-connection)))
+             (:seat1 (ecase connect-to-object-name
+                       (:chassis1 :seat-snap-in-front)))
+             (:seat2 (ecase connect-to-object-name
+                       (:chassis1 :seat-snap-in-back))))))
 
     (let* ((put-pose (multiply-transform-stampeds
                       cram-tf:*robot-base-frame* cram-tf:*robot-left-tool-frame*

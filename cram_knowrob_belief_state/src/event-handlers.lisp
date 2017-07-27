@@ -91,6 +91,12 @@
                           object-name with-object-name))
       (:camaro-body1
        (assert-assemblage :body-on-chassis :chassis-snap-in-connection
+                          object-name with-object-name))
+      (:seat1
+       (assert-assemblage :chassis-with-axles-and-front-seat :seat-snap-in-front
+                          object-name with-object-name))
+      (:seat2
+       (assert-assemblage :chassis-with-axles-and-seats :seat-snap-in-back
                           object-name with-object-name)))))
 
 (defmethod cram-occasions-events:on-event objects-connected ((event object-detached))

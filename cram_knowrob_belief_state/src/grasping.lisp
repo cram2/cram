@@ -206,6 +206,17 @@ Multiply from the right with the yTz transform -- xTy * yTz == xTz."
                                           grasp-pose)
   (cram-tf:translate-pose grasp-pose :z-offset *default-small-z-offset*))
 
+(defmethod get-object-type-pregrasp-pose ((object-type (eql :short-seat))
+                                          (arm (eql :left))
+                                          (grasp (eql :top))
+                                          grasp-pose)
+  (cram-tf:translate-pose grasp-pose :z-offset *default-z-offset*))
+(defmethod get-object-type-lift-pose ((object-type (eql :short-seat))
+                                      (arm (eql :left))
+                                      (grasp (eql :top))
+                                      grasp-pose)
+  (cram-tf:translate-pose grasp-pose :z-offset *default-z-offset*))
+
 
 #+everything-below-is-commented-out
 (
