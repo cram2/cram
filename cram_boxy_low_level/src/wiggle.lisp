@@ -33,7 +33,7 @@
   (make-simple-action-client
    'wiggle-action
    "wiggle_wiggle_wiggle" "wiggle_msgs/WiggleAction"
-   15.0))
+   5.0))
 
 (roslisp-utilities:register-ros-init-function make-wiggle-action-client)
 
