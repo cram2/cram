@@ -1,8 +1,8 @@
 ;; Numerical integration
 ;; Liam Healy, Wed Jul  5 2006 - 23:14
-;; Time-stamp: <2010-07-07 14:21:55EDT numerical-integration.lisp>
+;; Time-stamp: <2015-01-22 23:32:29EST numerical-integration.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2015 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -50,9 +50,9 @@
    (a :double) (b :double)
    (absolute-error :double) (relative-error :double)
    (result (:pointer :double)) (abserr (:pointer :double))
-   (neval (:pointer sizet)))
+   (neval (:pointer :sizet)))
   :callbacks
-  (callback fnstruct nil (function :double (:input :double) :slug))
+  (callback (:struct fnstruct) nil (function :double (:input :double) :slug))
   :callback-dynamic (nil (function))
   :documentation			; FDL
   "Apply the Gauss-Kronrod 10-point, 21-point, 43-point and
@@ -70,7 +70,7 @@
 ;;;;****************************************************************************
 
 (defmobject integration-workspace
-    "gsl_integration_workspace" ((size sizet))
+    "gsl_integration_workspace" ((size :sizet))
     "integration workspace"
     :documentation			; FDL
     "Make a workspace sufficient to hold n double
@@ -89,10 +89,10 @@
   ((callback :pointer)
    (a :double) (b :double)
    (absolute-error :double) (relative-error :double)
-   (limit sizet) (method integrate-method) ((mpointer workspace) :pointer)
+   (limit :sizet) (method integrate-method) ((mpointer workspace) :pointer)
    (result (:pointer :double)) (abserr (:pointer :double)))
   :callbacks
-  (callback fnstruct nil (function :double (:input :double) :slug))
+  (callback (:struct fnstruct) nil (function :double (:input :double) :slug))
   :callback-dynamic (nil (function))
   :documentation			; FDL
   "Apply an integration rule adaptively until an estimate
@@ -125,11 +125,11 @@
   "gsl_integration_qags"
   ((callback :pointer)
    (a :double) (b :double)
-   (absolute-error :double) (relative-error :double) (limit sizet)
+   (absolute-error :double) (relative-error :double) (limit :sizet)
    ((mpointer workspace) :pointer)
    (result (:pointer :double)) (abserr (:pointer :double)))
   :callbacks
-  (callback fnstruct nil (function :double (:input :double) :slug))
+  (callback (:struct fnstruct) nil (function :double (:input :double) :slug))
   :callback-dynamic (nil (function))
   :documentation			; FDL
   "Apply the Gauss-Kronrod 21-point integration rule
@@ -157,13 +157,13 @@
 	      (limit 1000) (workspace (make-integration-workspace limit)))
   "gsl_integration_qagp"
   ((callback :pointer)
-   ((foreign-pointer points) :pointer) ((dim0 points) sizet)
-   (absolute-error :double) (relative-error :double) (limit sizet)
+   ((grid:foreign-pointer points) :pointer) ((dim0 points) :sizet)
+   (absolute-error :double) (relative-error :double) (limit :sizet)
    ((mpointer workspace) :pointer)
    (result (:pointer :double)) (abserr (:pointer :double)))
   :inputs (points)
   :callbacks
-  (callback fnstruct nil (function :double (:input :double) :slug))
+  (callback (:struct fnstruct) nil (function :double (:input :double) :slug))
   :callback-dynamic (nil (function))
   :documentation			; FDL
   "Apply the adaptive integration algorithm QAGS taking
@@ -189,11 +189,11 @@
      (limit 1000) (workspace (make-integration-workspace limit)))
   "gsl_integration_qagi"
   ((callback :pointer)
-   (absolute-error :double) (relative-error :double) (limit sizet)
+   (absolute-error :double) (relative-error :double) (limit :sizet)
    ((mpointer workspace) :pointer)
    (result (:pointer :double)) (abserr (:pointer :double)))
   :callbacks
-  (callback fnstruct nil (function :double (:input :double) :slug))
+  (callback (:struct fnstruct) nil (function :double (:input :double) :slug))
   :callback-dynamic (nil (function))
   :documentation			; FDL
   "Compute the integral of the function f over the
@@ -214,11 +214,11 @@
 	      (limit 1000) (workspace (make-integration-workspace limit)))
   "gsl_integration_qagiu"
   ((callback :pointer) (a :double)
-   (absolute-error :double) (relative-error :double) (limit sizet)
+   (absolute-error :double) (relative-error :double) (limit :sizet)
    ((mpointer workspace) :pointer)
    (result (:pointer :double)) (abserr (:pointer :double)))
   :callbacks
-  (callback fnstruct nil (function :double (:input :double) :slug))
+  (callback (:struct fnstruct) nil (function :double (:input :double) :slug))
   :callback-dynamic (nil (function))
   :documentation			; FDL
   "Compute the integral of the function f over the
@@ -235,11 +235,11 @@
 	      (limit 1000) (workspace (make-integration-workspace limit)))
   "gsl_integration_qagil"
   ((callback :pointer) (b :double)
-   (absolute-error :double) (relative-error :double) (limit sizet)
+   (absolute-error :double) (relative-error :double) (limit :sizet)
    ((mpointer workspace) :pointer)
    (result (:pointer :double)) (abserr (:pointer :double)))
   :callbacks
-  (callback fnstruct nil (function :double (:input :double) :slug))
+  (callback (:struct fnstruct) nil (function :double (:input :double) :slug))
   :callback-dynamic (nil (function))
   :documentation			; FDL
   "Compute the integral of the function f over the
@@ -261,11 +261,11 @@
   "gsl_integration_qawc"
   ((callback :pointer)
    (a :double) (b :double) (c :double)
-   (absolute-error :double) (relative-error :double) (limit sizet)
+   (absolute-error :double) (relative-error :double) (limit :sizet)
    ((mpointer workspace) :pointer)
    (result (:pointer :double)) (abserr (:pointer :double)))
   :callbacks
-  (callback fnstruct nil (function :double (:input :double) :slug))
+  (callback (:struct fnstruct) nil (function :double (:input :double) :slug))
   :callback-dynamic (nil (function))
   :documentation			; FDL
   "Compute the Cauchy principal value of the integral of
@@ -321,9 +321,9 @@
   (lambda (x) (exp (* alpha x))))
 
 (save-test numerical-integration
- (integration-qng 'sin 0.0d0 pi)
- (integration-QAG 'sin 0.0d0 pi :gauss15 20)
- (integration-QAG 'sin 0.0d0 pi :gauss21 40)
+ (integration-qng 'sin 0.0d0 dpi)
+ (integration-QAG 'sin 0.0d0 dpi :gauss15 20)
+ (integration-QAG 'sin 0.0d0 dpi :gauss21 40)
  ;; Tests from gsl-1.11/integration/test.c
  ;; Functions defined in gsl-1.11/integration/tests.c
  (integration-QNG (integration-test-f1 2.6d0) 0.0d0 1.0d0 0.1d0 0.0d0)
@@ -369,4 +369,9 @@
   'integration-test-f454
   (grid:copy-to (vector 0.0d0 1.0d0 (sqrt 2.0d0) 3.0d0))
   0.0d0 1.0d-3 1000)
- (integration-QAWc 'integration-test-f459 -1.0d0 5.0d0 0.0d0 0.0d0 1.0d-3 1000))
+ (integration-QAWc 'integration-test-f459 -1.0d0 5.0d0 0.0d0 0.0d0 1.0d-3 1000)
+ ;; Check that integration-QAG is reentrant, but note this is not the
+ ;; recommended way to do multivariate integration (see Monte Carlo).
+ (integration-QAG (lambda (x)
+		    (integration-QAG (lambda (y) (* (sin x) y)) 0d0 1d0 :gauss41))
+		  0d0 pi :gauss41))

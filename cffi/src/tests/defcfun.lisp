@@ -169,7 +169,18 @@
 
   (deftest defcfun.long-long
       (my-llabs -9223372036854775807)
-    9223372036854775807))
+    9223372036854775807)
+
+  (defcfun "ullong" :unsigned-long-long
+    (n :unsigned-long-long))
+
+  #+allegro ; lp#914500
+  (pushnew 'defcfun.unsigned-long-long rt::*expected-failures*)
+
+  (deftest defcfun.unsigned-long-long
+      (let ((ullong-max (1- (expt 2 (* 8 (foreign-type-size :unsigned-long-long))))))
+        (eql ullong-max (ullong ullong-max)))
+    t))
 
 
 (defcfun "my_sqrtf" :float
@@ -411,6 +422,8 @@
     (a121 :int) (a122 :float) (a123 :unsigned-char) (a124 :unsigned-char)
     (a125 :double) (a126 :unsigned-long-long) (a127 :char))
 
+  #+(and sbcl x86) (push 'defcfun.bff.2 rtest::*expected-failures*)
+
   (deftest defcfun.bff.2
       (sum-127
        (make-pointer 2746181372) (make-pointer 177623060) -32334.0 3158055028
@@ -442,7 +455,7 @@
 ;;; regression test: defining an undefined foreign function should only
 ;;; throw some sort of warning, not signal an error.
 
-#+(or cmu (and sbcl (or (not linkage-table) win32)))
+#+(or cmucl (and sbcl (or (not linkage-table) win32)))
 (pushnew 'defcfun.undefined rt::*expected-failures*)
 
 (deftest defcfun.undefined

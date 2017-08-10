@@ -25,21 +25,20 @@
 ;;; DEALINGS IN THE SOFTWARE.
 ;;;
 
-(format t "~&;;; -------- Running tests in ~A --------~%"
-        (lisp-implementation-type))
+(in-package #:cl-user)
 
 (setf *load-verbose* nil *compile-verbose* nil *compile-print* nil)
-#+cmu (setf ext:*gc-verbose* nil)
+#+cmucl (setf ext:*gc-verbose* nil)
 
-#+(and (not asdf) (or sbcl openmcl ecl))
 (require "asdf")
 
-(asdf:operate 'asdf:load-op 'cffi-tests :verbose nil)
-(asdf:operate 'asdf:test-op 'cffi-tests)
+(format t "~&;;; -------- Running tests in ~A --------~%"
+        (uiop:implementation-identifier))
 
-(in-package #:cl-user)
+(asdf:load-system "cffi-tests" :verbose nil)
+(asdf:test-system "cffi-tests")
+
 (terpri)
 (force-output)
 
-#-allegro (quit)
-#+allegro (exit)
+(uiop:quit)

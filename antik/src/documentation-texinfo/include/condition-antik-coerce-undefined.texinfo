@@ -1,0 +1,7 @@
+@deftp {Condition} {antik:coerce-undefined}
+@tindex antik:coerce-undefined
+Class precedence list: @code{@lw{coerce-undefined}, @lw{arithmetic-error}, @lw{error}, @lw{serious-condition}, @lw{condition}, @lw{t}}
+
+Signalled when making a generalized number in which a higher type
+    (like taylor-number) is a component of a lower type (like physical-quantity).
+@end deftp

@@ -1,8 +1,8 @@
 ;; Exponential of a matrix
 ;; Liam Healy 2008-08-10 17:25:35EDT exponential.lisp
-;; Time-stamp: <2010-07-07 14:25:00EDT exponential.lisp>
+;; Time-stamp: <2014-12-26 13:18:34EST exponential.lisp>
 ;;
-;; Copyright 2008, 2009 Liam M. Healy
+;; Copyright 2008, 2009, 2010, 2014 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -19,6 +19,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (in-package :gsl)
+(named-readtables:in-readtable :antik)
 
 ;;; No documentation
 (defmfun matrix-exponential (matrix exponential &optional (mode :double))

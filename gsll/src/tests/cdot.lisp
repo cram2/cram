@@ -1,6 +1,6 @@
 ;; Regression test CDOT for GSLL, automatically generated
 ;;
-;; Copyright 2009, 2010 Liam M. Healy
+;; Copyright 2009, 2010, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -20,22 +20,22 @@
 
 (LISP-UNIT:DEFINE-TEST CDOT
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
-   (LIST #C(-1.1684039224427728d28 0.0d0))
+   (LIST #C(-6252.624f0 -6236.0503f0))
    (MULTIPLE-VALUE-LIST
     (LET ((V1
 	   (GRID:MAKE-FOREIGN-ARRAY
 	    '(COMPLEX SINGLE-FLOAT)
 	    :INITIAL-CONTENTS
-	    '(#C(-34.5 8.24) #C(3.29 -8.93) #C(34.12 -6.15)
-	      #C(49.27 -13.49) #C(32.5 42.73)
-	      #C(-17.24 43.31) #C(-16.12 -8.25) #C(21.44 -49.08))))
+	    '(#C(-34.5f0 8.24f0) #C(3.29f0 -8.93f0) #C(34.12f0 -6.15f0)
+	      #C(49.27f0 -13.49f0) #C(32.5f0 42.73f0)
+	      #C(-17.24f0 43.31f0) #C(-16.12f0 -8.25f0) #C(21.44f0 -49.08f0))))
 	  (V2
 	   (GRID:MAKE-FOREIGN-ARRAY
 	    '(COMPLEX SINGLE-FLOAT)
 	    :INITIAL-CONTENTS
-	    '(#C(32.5 42.73) #C(-17.24 43.31) #C(-16.12 -8.25)
-	      #C(21.44 -49.08) #C(-39.66 -49.46)
-	      #C(19.68 -5.55) #C(-8.82 25.37) #C(-30.58 31.67)))))
+	    '(#C(32.5f0 42.73f0) #C(-17.24f0 43.31f0) #C(-16.12f0 -8.25f0)
+	      #C(21.44f0 -49.08f0) #C(-39.66f0 -49.46f0)
+	      #C(19.68f0 -5.55f0) #C(-8.82f0 25.37f0) #C(-30.58f0 31.67f0)))))
       (CDOT V1 V2))))
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST #C(-6252.624d0 -6236.050300000001d0))

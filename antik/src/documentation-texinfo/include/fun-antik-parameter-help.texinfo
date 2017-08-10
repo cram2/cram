@@ -1,0 +1,4 @@
+@deffn {Function} {antik:parameter-help} @&optional category name stream
+@findex antik:parameter-help
+Print all information known about the parameter.  If category is nil (default), names of all categories are printed.  If name is nil, all defined parameters in that category are printed.
+@end deffn

@@ -1,0 +1,78 @@
+<html lang="en">
+<head>
+<title>Rotation - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Three-Dimensional-Space.html#Three-Dimensional-Space" title="Three Dimensional Space">
+<link rel="prev" href="Polar.html#Polar" title="Polar">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Rotation"></a>
+<p>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Polar.html#Polar">Polar</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Three-Dimensional-Space.html#Three-Dimensional-Space">Three Dimensional Space</a>
+<hr>
+</div>
+
+<h3 class="section">8.3 Rotation</h3>
+
+<p><a name="index-Rotation-in-two-and-three-dimensions-415"></a><a name="index-Functions_002c-rotation-416"></a>
+
+<div class="defun">
+&mdash; Function: <b>antik:euler-angle-rotation</b><var> rot3a rot1 rot3b &amp;optional passive<a name="index-antik_003aeuler_002dangle_002drotation-417"></a></var><br>
+<blockquote><p><a name="index-antik_003aeuler_002dangle_002drotation-418"></a>Compute the matrix for a <code>3-1-3</code> rotation.  See Curtis (9.118). 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>antik:rotate</b><var> angle &amp;optional passive<a name="index-antik_003arotate-419"></a></var><br>
+<blockquote><p><a name="index-antik_003arotate-420"></a>Create a rotation matrix in two dimensions. 
+   Passive rotation if passive is true, otherwise active. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>antik:rotate-3d</b><var> axis angle &amp;optional passive<a name="index-antik_003arotate_002d3d-421"></a></var><br>
+<blockquote><p><a name="index-antik_003arotate_002d3d-422"></a>Create a rotation matrix about the (0, <code>1</code>, 2)
+   axis in three dimensions.  Passive rotation
+   if passive is true, otherwise active. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>antik:rotate-3daa</b><var> rotation-axis angle &amp;optional passive<a name="index-antik_003arotate_002d3daa-423"></a></var><br>
+<blockquote><p><a name="index-antik_003arotate_002d3daa-424"></a>Rotation about an arbitrary axis in <code>3d</code>. 
+   See Goldstein, Poole, Safko (4.62) or
+   http://mathworld.wolfram.com/RotationFormula.html. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>antik:tait-bryan-angles</b><var> dcm<a name="index-antik_003atait_002dbryan_002dangles-425"></a></var><br>
+<blockquote><p><a name="index-antik_003atait_002dbryan_002dangles-426"></a>Find the three angles psi, theta, phi of a <code>3-2-1</code> (Tait-Bryan)
+   rotation for the direction cosine matrix. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>antik:tait-bryan-rotation</b><var> rot1 rot2 rot3 &amp;optional passive<a name="index-antik_003atait_002dbryan_002drotation-427"></a></var><br>
+<blockquote><p><a name="index-antik_003atait_002dbryan_002drotation-428"></a>Compute the matrix for a <code>3-2-1</code> (yaw-pitch-roll) rotation. 
+   See Curtis (9.124).  This transforms a vector in the body
+   frame into a vector in the external frame. 
+</p></blockquote></div>
+
+   </body></html>
+

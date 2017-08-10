@@ -1,0 +1,4 @@
+@deffn {Function} {antik:right-angle} vector
+@findex antik:right-angle
+Find an arbitrary right angle to the vector.
+@end deffn

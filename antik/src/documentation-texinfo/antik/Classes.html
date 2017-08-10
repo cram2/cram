@@ -1,0 +1,64 @@
+<html lang="en">
+<head>
+<title>Classes - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Capabilities-and-Internals.html#Capabilities-and-Internals" title="Capabilities and Internals">
+<link rel="prev" href="Capabilities-and-Internals.html#Capabilities-and-Internals" title="Capabilities and Internals">
+<link rel="next" href="Functions-and-Macros.html#Functions-and-Macros" title="Functions and Macros">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Classes"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Functions-and-Macros.html#Functions-and-Macros">Functions and Macros</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Capabilities-and-Internals.html#Capabilities-and-Internals">Capabilities and Internals</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Capabilities-and-Internals.html#Capabilities-and-Internals">Capabilities and Internals</a>
+<hr>
+</div>
+
+<h4 class="subsection">4.6.1 Classes</h4>
+
+<p><a name="index-Class_002c-foreign_002darray-246"></a>
+
+<div class="defun">
+&mdash; Class: <b>grid:foreign-array</b><var><a name="index-grid_003aforeign_002darray-247"></a></var><br>
+<blockquote><p><a name="index-grid_003aforeign_002darray-248"></a>Class precedence list: <code>foreign-array, standard-object, t</code>
+
+        <p>Arrays that can be referenced by foreign functions. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Class: <b>grid:matrix</b><var><a name="index-grid_003amatrix-249"></a></var><br>
+<blockquote><p><a name="index-grid_003amatrix-250"></a>Class precedence list: <code>matrix, foreign-array, standard-object, t</code>
+
+        <p>Foreign matrices. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Class: <b>grid:mvector</b><var><a name="index-grid_003amvector-251"></a></var><br>
+<blockquote><p><a name="index-grid_003amvector-252"></a>Class precedence list: <code>mvector, foreign-array, standard-object, t</code>
+
+        <p>Foreign vectors. 
+</p></blockquote></div>
+   The subclasses of either mvector or matrix are named with the element type, as described in the table in <a href="The-foreign_002darray-class.html#The-foreign_002darray-class">The foreign-array class</a>.
+
+   </body></html>
+

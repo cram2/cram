@@ -1,6 +1,6 @@
 ;; Regression test QUASI-RANDOM-NUMBER-GENERATORS for GSLL, automatically generated
 ;;
-;; Copyright 2009 Liam M. Healy
+;; Copyright 2009, 2014 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -27,4 +27,4 @@
     (LET ((GEN (MAKE-QUASI-RANDOM-NUMBER-GENERATOR +SOBOL+ 2))
 	  (VEC (GRID:MAKE-FOREIGN-ARRAY 'DOUBLE-FLOAT :DIMENSIONS 2)))
       (LOOP REPEAT 5 DO (QRNG-GET GEN VEC) APPEND
-	   (COERCE (GRID:COPY-TO VEC) 'LIST))))))
+	   (COERCE (GRID:COPY-TO VEC 'array 'double-float) 'LIST))))))

@@ -1,0 +1,4 @@
+@defvr {Variable} {grid:*cstd-integer-types*}
+@vindex grid:*cstd-integer-types*
+List of integer types supported by @code{cffi}, from the @code{cffi} docs.
+@end defvr

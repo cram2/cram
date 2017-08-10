@@ -1,0 +1,6 @@
+@deffn {Function} {antik:minimize-1d} function x-lower x-upper @&optional x-minimum absolute-error relative-error method
+@findex antik:minimize-1d
+Find the minimum of the function of one variable (x) between x-lower
+   and x-upper. The optional argument x-minimum is a guess of x for the
+   minimum value of the function.  Returns the argument and value at the minimum.
+@end deffn

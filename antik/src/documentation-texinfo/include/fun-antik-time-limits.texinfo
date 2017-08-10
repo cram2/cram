@@ -1,0 +1,6 @@
+@deffn {Function} {antik:time-limits} time1 time2 @&optional reference
+@findex antik:time-limits
+Make sense of time1 and time2 in absolute terms. If one is absolute,
+   and the other relative, it is presumed to be relative to the other. 
+   If they are both relative, they are presumed to be relative to reference.
+@end deffn

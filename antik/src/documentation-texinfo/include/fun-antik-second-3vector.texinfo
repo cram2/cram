@@ -1,0 +1,4 @@
+@deffn {Function} {antik:second-3vector} vec
+@findex antik:second-3vector
+Extract the second 3-vector.
+@end deffn

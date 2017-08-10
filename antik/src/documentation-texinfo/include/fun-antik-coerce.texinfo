@@ -1,0 +1,5 @@
+@deffn {Generic Function} {antik:coerce} number like
+@findex antik:coerce
+Make number into an object similar to like, or
+                   if like is a number type, into that type.
+@end deffn

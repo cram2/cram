@@ -1,8 +1,8 @@
 ;; Shuffling and sampling
 ;; Liam Healy, Sat Dec  2 2006 - 18:40
-;; Time-stamp: <2010-07-07 14:24:58EDT shuffling-sampling.lisp>
+;; Time-stamp: <2014-12-26 13:24:44EST shuffling-sampling.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2011, 2012, 2014 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -19,6 +19,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (in-package :gsl)
+(named-readtables:in-readtable :antik)
 
 ;;; These are currently defined only for vectors.
 
@@ -27,7 +28,7 @@
      &key base)
   "gsl_ran_shuffle"
   (((mpointer generator) :pointer)
-   ((foreign-pointer base) :pointer) ((dim0 base) sizet) ((grid:element-size base) sizet))
+   ((grid:foreign-pointer base) :pointer) ((dim0 base) :sizet) ((grid:element-size base) :sizet))
   :definition :method
   :inputs (base)
   :outputs (base)
@@ -46,12 +47,12 @@
      &aux
      (destarr
       (if (integerp dest)
-	  (grid:make-foreign-array (element-type src) :dimensions dest)
+	  (grid:make-foreign-array (grid:element-type src) :dimensions dest)
 	  dest)))
   "gsl_ran_choose"
   (((mpointer generator) :pointer)
-   ((foreign-pointer destarr) :pointer) ((dim0 destarr) sizet)
-   ((foreign-pointer src) :pointer) ((dim0 src) sizet) ((grid:element-size src) sizet))
+   ((grid:foreign-pointer destarr) :pointer) ((dim0 destarr) :sizet)
+   ((grid:foreign-pointer src) :pointer) ((dim0 src) :sizet) ((grid:element-size src) :sizet))
   :definition :method
   :inputs (src)
   :outputs (destarr)
@@ -74,12 +75,12 @@
      &aux
      (destarr
       (if (integerp dest)
-	  (grid:make-foreign-array (element-type src) :dimensions dest)
+	  (grid:make-foreign-array (grid:element-type src) :dimensions dest)
 	  dest)))
   "gsl_ran_sample"
   (((mpointer generator) :pointer)
-   ((foreign-pointer destarr) :pointer) ((dim0 destarr) sizet)
-   ((foreign-pointer src) :pointer) ((dim0 src) sizet) ((grid:element-size src) sizet))
+   ((grid:foreign-pointer destarr) :pointer) ((dim0 destarr) :sizet)
+   ((grid:foreign-pointer src) :pointer) ((dim0 src) :sizet) ((grid:element-size src) :sizet))
   :definition :method
   :inputs (src)
   :outputs (destarr)

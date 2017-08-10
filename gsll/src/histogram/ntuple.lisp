@@ -1,8 +1,8 @@
 ;; N-tuples
 ;; Liam Healy Sat Feb  3 2007 - 12:53
-;; Time-stamp: <2010-06-30 19:57:28EDT ntuple.lisp>
+;; Time-stamp: <2015-12-06 09:47:29EST ntuple.lisp>
 ;;
-;; Copyright 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2007, 2008, 2009, 2011, 2015 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@
 (defmfun create-ntuple (filename data foreign-type)
   "gsl_ntuple_create"
   ((filename :string) (data :pointer)
-   ((cffi:foreign-type-size foreign-type) sizet))
+   ((cffi:foreign-type-size foreign-type) :sizet))
   :c-return :pointer
   :documentation			; FDL
   "Create a new write-only ntuple file filename for
@@ -40,7 +40,7 @@
 (defmfun open-ntuple (filename data foreign-type)
   "gsl_ntuple_open"
   ((filename :string) (data :pointer)
-   ((cffi:foreign-type-size foreign-type) sizet))
+   ((cffi:foreign-type-size foreign-type) :sizet))
   :c-return :pointer
   :documentation			; FDL
   "Open an existing ntuple file filename for reading
@@ -90,7 +90,7 @@
   :callbacks
   ;; (valfn fnstruct nil (value-function :pointer (:input :pointer) :slug))
   ;; Need a second cbstruct definition:
-  (selfn fnstruct nil (select-function :pointer (:input :pointer) :slug))
+  (selfn (:struct fnstruct) nil (select-function :pointer (:input :pointer) :slug))
   ;;:callback-dynamic (nil (value-function))
   :callback-dynamic (nil (select-function))
   :documentation			; FDL
@@ -115,7 +115,7 @@
    select-function returns zero are ignored.  New entries are added to
    the histogram, so subsequent calls can be used to accumulate further
    data in the same histogram."
-    (WITH-FOREIGN-OBJECTS ((VALFN 'FNSTRUCT) (SELFN 'fnstruct))
+    (WITH-FOREIGN-OBJECTS ((VALFN '(:struct FNSTRUCT)) (SELFN '(:struct fnstruct)))
       (SETF PROJECT-NTUPLE-DYNFN0
 	    (MAKE-COMPILED-FUNCALLABLE
 	     VALUE-FUNCTION
@@ -124,8 +124,8 @@
 	    (MAKE-COMPILED-FUNCALLABLE
 	     SELECT-FUNCTION
 	     '(FUNCTION :boolean (:INPUT :POINTER) :SLUG) NIL (LIST)))
-      (SET-CBSTRUCT VALFN 'FNSTRUCT NIL (LIST 'FUNCTION 'PROJECT-NTUPLE-CBFN0))
-      (SET-CBSTRUCT SELFN 'FNSTRUCT NIL (LIST 'FUNCTION 'PROJECT-NTUPLE-CBFN1))
+      (SET-CBSTRUCT VALFN '(:struct FNSTRUCT) NIL (LIST 'FUNCTION 'PROJECT-NTUPLE-CBFN0))
+      (SET-CBSTRUCT SELFN '(:struct FNSTRUCT) NIL (LIST 'FUNCTION 'PROJECT-NTUPLE-CBFN1))
       (LET ((CRETURN
 	     (FOREIGN-FUNCALL "gsl_ntuple_project" :POINTER
 			      (MPOINTER HISTOGRAM) :POINTER NTUPLE
@@ -159,10 +159,8 @@
 
 (defparameter *ntuple-example-data-file*
   (namestring
-   (merge-pathnames 
-    "ntuple-example.dat"
-     (asdf:component-pathname
-      (asdf:find-component (asdf:find-system :gsll) "histogram"))))
+   (merge-pathnames  "ntuple-example.dat" uiop:*temporary-directory*))
+   ;;(asdf:system-relative-pathname :gsll #p"histogram/ntuple-example.dat")
   "The full path string of the ntuple example data file.  This can be created
    with the function #'make-ntuple-example-data.")
 
@@ -180,16 +178,16 @@
 
 (defun make-ntuple-example-data
     (&optional (filename *ntuple-example-data-file*))
-  (cffi:with-foreign-object (data 'ntuple-data)
-    (let ((ntuple (create-ntuple filename data 'ntuple-data))
+  (cffi:with-foreign-object (data '(:struct ntuple-data))
+    (let ((ntuple (create-ntuple filename data '(:struct ntuple-data)))
 	  (answer (make-array 100 :element-type 'fixnum :initial-element 0)))
       (dotimes (row 1000)
 	(multiple-value-bind (xi yi zi)
 	    (ntuple-example-values row)
-	  (setf (cffi:foreign-slot-value data 'ntuple-data 'num) row
-		(cffi:foreign-slot-value data 'ntuple-data 'x) xi
-		(cffi:foreign-slot-value data 'ntuple-data 'y) yi
-		(cffi:foreign-slot-value data 'ntuple-data 'z) zi)
+	  (setf (cffi:foreign-slot-value data '(:struct ntuple-data) 'num) row
+		(cffi:foreign-slot-value data '(:struct ntuple-data) 'x) xi
+		(cffi:foreign-slot-value data '(:struct ntuple-data) 'y) yi
+		(cffi:foreign-slot-value data '(:struct ntuple-data) 'z) zi)
 	  (when (< (* xi *ntuple-example-scale*) 0.1d0)
 	    (incf (aref answer (truncate (* 100 *ntuple-example-scale* (+ xi yi zi)))))))
 	(bookdata-ntuple ntuple))
@@ -197,37 +195,37 @@
       answer)))
 
 (defun ntuple-example-read (&optional (filename *ntuple-example-data-file*))
-  (cffi:with-foreign-object (data 'ntuple-data)
-    (let ((ntuple (open-ntuple filename data 'ntuple-data)))
+  (cffi:with-foreign-object (data '(:struct ntuple-data))
+    (let ((ntuple (open-ntuple filename data '(:struct ntuple-data))))
       (prog1
 	  (dotimes (row 1000 t)
 	    (multiple-value-bind (xi yi zi)
 		(ntuple-example-values row)
 	      (read-ntuple ntuple)
 	      (unless
-		  (and (eql row (cffi:foreign-slot-value data 'ntuple-data 'num))
-		       (eql xi (cffi:foreign-slot-value data 'ntuple-data 'x))
-		       (eql yi (cffi:foreign-slot-value data 'ntuple-data 'y))
-		       (eql zi (cffi:foreign-slot-value data 'ntuple-data 'z)))
+		  (and (eql row (cffi:foreign-slot-value data '(:struct ntuple-data) 'num))
+		       (eql xi (cffi:foreign-slot-value data '(:struct ntuple-data) 'x))
+		       (eql yi (cffi:foreign-slot-value data '(:struct ntuple-data) 'y))
+		       (eql zi (cffi:foreign-slot-value data '(:struct ntuple-data) 'z)))
 		(return nil))))
 	(close-ntuple ntuple)))))
 
 (defun ntuple-example-sel-func (ntuple-data)
-  (< (* (cffi:foreign-slot-value ntuple-data 'ntuple-data 'x)
+  (< (* (cffi:foreign-slot-value ntuple-data '(:struct ntuple-data) 'x)
 	 *ntuple-example-scale*)
       0.1d0))
 
 (defun ntuple-example-val-func (ntuple-data)
-  (* (+ (cffi:foreign-slot-value ntuple-data 'ntuple-data 'x)
-	(cffi:foreign-slot-value ntuple-data 'ntuple-data 'y)
-	(cffi:foreign-slot-value ntuple-data 'ntuple-data 'z))
+  (* (+ (cffi:foreign-slot-value ntuple-data '(:struct ntuple-data) 'x)
+	(cffi:foreign-slot-value ntuple-data '(:struct ntuple-data) 'y)
+	(cffi:foreign-slot-value ntuple-data '(:struct ntuple-data) 'z))
      *ntuple-example-scale*))
 
 (defun ntuple-example-histogramming
     (&optional (filename *ntuple-example-data-file*))
-  (cffi:with-foreign-object (data 'ntuple-data)
+  (cffi:with-foreign-object (data '(:struct ntuple-data))
     (let ((histo (make-histogram 100))
-	  (ntuple (open-ntuple filename data 'ntuple-data))
+	  (ntuple (open-ntuple filename data '(:struct ntuple-data)))
 	  (answer (make-ntuple-example-data filename)))
       (set-ranges-uniform histo 0.0d0 1.0d0)
       (project-ntuple
@@ -235,9 +233,15 @@
       (close-ntuple ntuple)
       ;; Check the histogram to see if it matches ntuple-example-values
       (dotimes (row 100 t)
-	(unless (= (grid:gref histo row) (aref answer row))
+	(unless (= (grid:aref histo row) (aref answer row))
 	  (return nil))))))
 
-(save-test ntuple
- (ntuple-example-read)
+(defun ntuple-example-make-read ()
+  "Create an ntuple historgram example data file, and read it."
+  (make-ntuple-example-data)
+  (ntuple-example-read))
+
+(save-test
+ ntuple
+ (ntuple-example-make-read)
  (ntuple-example-histogramming))

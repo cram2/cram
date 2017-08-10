@@ -37,6 +37,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <float.h>
+#include <stdbool.h>
 
 /* MSVC doesn't have stdint.h and uses a different syntax for stdcall */
 #ifndef _MSC_VER
@@ -72,7 +73,7 @@ char *my_strdup(const char *str)
 }
 
 DLLEXPORT
-void my_strfree(const char *str)
+void my_strfree(char *str)
 {
     free(str);
 }
@@ -83,13 +84,20 @@ long long my_llabs(long long n)
     return n < 0 ? -n : n;
 }
 
+
+DLLEXPORT
+unsigned long long ullong(unsigned long long n)
+{
+    return n == ULLONG_MAX ? n : 42;
+}
+
 /*
  * Foreign Globals
  *
  * (var_int is used in MISC-TYPES.EXPAND.3 as well)
  */
 
-DLLEXPORT char *         dll_version        = "20060907";
+DLLEXPORT char *         dll_version        = "20120107";
 
 /* TODO: look into signed char vs. unsigned char issue */
 DLLEXPORT char           var_char           = -127;
@@ -280,6 +288,24 @@ DLLEXPORT
 unsigned long bool_xor(long a, unsigned long b)
 {
     return (a && !b) || (!a && b);
+}
+
+DLLEXPORT
+unsigned sizeof_bool(void)
+{
+    return (unsigned) sizeof(_Bool);
+}
+
+DLLEXPORT
+unsigned bool_to_unsigned(_Bool b)
+{
+    return (unsigned) b;
+}
+
+DLLEXPORT
+_Bool unsigned_to_bool(unsigned u)
+{
+    return (_Bool) u;
 }
 
 /*
@@ -480,6 +506,72 @@ struct with_empty_struct {
 DLLEXPORT
 struct with_empty_struct the_with_empty_struct = { {}, 42 };
 */
+
+/*
+ * STRUCT-VALUES.*
+ */
+
+struct pair { int a, b; };
+
+DLLEXPORT
+int pair_sum(struct pair p)
+{
+    return p.a + p.b;
+}
+
+DLLEXPORT
+int pair_pointer_sum(struct pair *p)
+{
+    return p->a + p->b;
+}
+
+DLLEXPORT
+struct pair make_pair(int a, int b)
+{
+    return (struct pair) { a, b };
+}
+
+DLLEXPORT
+struct pair *alloc_pair(int a, int b)
+{
+    struct pair *p = malloc(sizeof(struct pair));
+    p->a = a;
+    p->b = b;
+    return p;
+}
+
+struct pair_plus_one {
+    struct pair p;
+    int c;
+};
+
+DLLEXPORT
+int pair_plus_one_sum(struct pair_plus_one p)
+{
+    return p.p.a + p.p.b + p.c;
+}
+
+DLLEXPORT
+int pair_plus_one_pointer_sum(struct pair_plus_one *p)
+{
+    return p->p.a + p->p.b + p->c;
+}
+
+DLLEXPORT
+struct pair_plus_one make_pair_plus_one(int a, int b, int c)
+{
+    return (struct pair_plus_one) { { a, b }, c };
+}
+
+DLLEXPORT
+struct pair_plus_one *alloc_pair_plus_one(int a, int b, int c)
+{
+    struct pair_plus_one *p = malloc(sizeof(struct pair_plus_one));
+    p->p.a = a;
+    p->p.b = b;
+    p->c = c;
+    return p;
+}
 
 /*
  * DEFCFUN.NOARGS and DEFCFUN.NOOP

@@ -2,6 +2,7 @@
   :version "0.0.0"
   :licence "Public Domain / 0-clause MIT"
   :description "Alexandria is a collection of portable public domain utilities."
+  :author "Nikodemus Siivola <nikodemus@sb-studio.net>, and others."
   :long-description
   "Alexandria is a project and a library.
 
@@ -46,9 +47,9 @@ the following constraints:
    (:file "binding" :depends-on ("package"))
    (:file "strings" :depends-on ("package"))
    (:file "conditions" :depends-on ("package"))
-   (:file "hash-tables" :depends-on ("package"))
    (:file "io" :depends-on ("package" "macros" "lists" "types"))
    (:file "macros" :depends-on ("package" "strings" "symbols"))
+   (:file "hash-tables" :depends-on ("package" "macros"))
    (:file "control-flow" :depends-on ("package" "definitions" "macros"))
    (:file "symbols" :depends-on ("package"))
    (:file "functions" :depends-on ("package" "symbols" "macros"))

@@ -1,0 +1,6 @@
+@deffn {Generic Function} {antik:state-value} attribute state @&optional state-function-generator
+@findex antik:state-value
+Get the value of the attribute from the state table.
+   If it is not present, compute it if possible with state-function-generator.
+   If state-function-generator is nil, do not compute.
+@end deffn

@@ -1,0 +1,4 @@
+@deffn {Generic Function} {antik:atan} num @&optional den default zero-enough
+@findex antik:atan
+The arctangent of the generalized or regular number.  If  absolute value of the arguments are below zero-enough, default is returned.
+@end deffn

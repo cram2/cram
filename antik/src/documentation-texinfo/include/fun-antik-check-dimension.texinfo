@@ -1,0 +1,11 @@
+@deffn {Function} {antik:check-dimension} obj units @&optional errorp zeros-have-any-dimension
+@findex antik:check-dimension
+@code{t} if one of these cases hold:
+@itemize
+@item  obj is a pdq and units have the same dimension as obj,
+@item  obj is zero and zeros-have-any-dimension is @code{t},
+@item  obj and units represent a dimensionless quantity,
+@item  obj and units are grids of the same length, and for 
+      each pair of corresponding elements, one of the above is true.
+@end itemize
+@end deffn

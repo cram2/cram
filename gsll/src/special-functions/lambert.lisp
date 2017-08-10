@@ -1,8 +1,8 @@
 ;; Lambert's W functions
 ;; Liam Healy, Fri Apr 28 2006 - 20:40
-;; Time-stamp: <2009-12-27 10:10:01EST lambert.lisp>
+;; Time-stamp: <2011-10-29 23:41:05EDT lambert.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -31,12 +31,12 @@
 ;;; W < -1 for x < 0.  
 
 (defmfun lambert-W0 (x)
-  "gsl_sf_lambert_W0_e" ((x :double) (ret sf-result))
+  "gsl_sf_lambert_W0_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The principal branch of the Lambert W function, W_0(x).")
 
 (defmfun lambert-Wm1 (x)
-  "gsl_sf_lambert_Wm1_e" ((x :double) (ret sf-result))
+  "gsl_sf_lambert_Wm1_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The secondary real-valued branch of the Lambert W function, 
    W_{-1}(x).")

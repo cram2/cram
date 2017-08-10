@@ -1,8 +1,8 @@
 ;; Dirichlet distribution
 ;; Liam Healy, Sun Oct 29 2006
-;; Time-stamp: <2010-07-07 14:24:59EDT dirichlet.lisp>
+;; Time-stamp: <2014-12-26 13:18:36EST dirichlet.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2011, 2012, 2014 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -19,6 +19,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (in-package :gsl)
+(named-readtables:in-readtable :antik)
 
 ;;; /usr/include/gsl/gsl_randist.h
 
@@ -27,10 +28,10 @@
      &key alpha (theta (vdf (dim0 alpha))))
   "gsl_ran_dirichlet"
   (((mpointer generator) :pointer)
-   ((dim0 alpha) sizet)
-   ((foreign-pointer alpha) :pointer)
+   ((dim0 alpha) :sizet)
+   ((grid:foreign-pointer alpha) :pointer)
    ;; theta had better be at least as long as alpha, or they'll be trouble
-   ((foreign-pointer theta) :pointer))
+   ((grid:foreign-pointer theta) :pointer))
   :definition :method
   :inputs (alpha)
   :outputs (theta)
@@ -54,10 +55,10 @@
 
 (defmfun dirichlet-pdf (alpha theta)
   "gsl_ran_dirichlet_pdf"
-  (((1- (dim0 alpha)) sizet)
-   ((foreign-pointer alpha) :pointer)
+  (((dim0 alpha) :sizet)
+   ((grid:foreign-pointer alpha) :pointer)
    ;; theta had better be at least as long as alpha, or they'll be trouble
-   ((foreign-pointer theta) :pointer))
+   ((grid:foreign-pointer theta) :pointer))
   :inputs (alpha theta)
   :c-return :double
   :documentation			; FDL
@@ -67,10 +68,10 @@
 
 (defmfun dirichlet-log-pdf (alpha theta)
   "gsl_ran_dirichlet_lnpdf"
-  (((1- (dim0 alpha)) sizet)
-   ((foreign-pointer alpha) :pointer)
+  (((dim0 alpha) :sizet)
+   ((grid:foreign-pointer alpha) :pointer)
    ;; theta had better be at least as long as alpha, or they'll be trouble
-   ((foreign-pointer theta) :pointer))
+   ((grid:foreign-pointer theta) :pointer))
   :inputs (alpha theta)
   :c-return :double
   :documentation			; FDL

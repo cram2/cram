@@ -1,8 +1,8 @@
 ;; Logarithm
 ;; Liam Healy, Sun Apr 30 2006 - 22:08
-;; Time-stamp: <2009-12-27 10:10:01EST logarithm.lisp>
+;; Time-stamp: <2011-10-29 23:42:37EDT logarithm.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -26,33 +26,33 @@
 
 (defmfun gsl-log ((x float))
   "gsl_sf_log_e"
-  ((x :double) (ret sf-result))
+  ((x :double) (ret (:pointer (:struct sf-result))))
   :definition :method
   :export t)
 
 (defmfun gsl-log ((x complex))
   "gsl_sf_complex_log_e"
   (((realpart x) :double) ((imagpart x) :double)
-   (re-ret sf-result) (im-ret sf-result))
+   (re-ret (:pointer (:struct sf-result)))
+   (im-ret (:pointer (:struct sf-result))))
   :definition :method
-  :return
-  ((complex (val re-ret) (val im-ret)) (complex (err re-ret) (err im-ret)))
+  :return ((complex-with-error re-ret im-ret))
   :documentation			; FDL
   "Results are returned as lnr, theta such that
   exp(lnr + i \theta) = z_r + i z_i, where theta lies in the range [-\pi,\pi].")
 
 (defmfun log-abs (x)
-  "gsl_sf_log_abs_e" ((x :double) (ret sf-result))
+  "gsl_sf_log_abs_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The natural logarithm of the magnitude of x, log(|x|), for x ne 0.")
 
 (defmfun log-1+x (x)
-  "gsl_sf_log_1plusx_e" ((x :double) (ret sf-result))
+  "gsl_sf_log_1plusx_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "log(1 + x) for x > -1 using an algorithm that is accurate for small x.")
 
 (defmfun log-1+x-m1 (x)
-  "gsl_sf_log_1plusx_mx_e" ((x :double) (ret sf-result))
+  "gsl_sf_log_1plusx_mx_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "log(1 + x) - x for x > -1 using an algorithm that is accurate for small x.")
 

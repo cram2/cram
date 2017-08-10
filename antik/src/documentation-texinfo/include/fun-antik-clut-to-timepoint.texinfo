@@ -1,0 +1,4 @@
+@deffn {Function} {antik:clut-to-timepoint} clut @&optional day-only
+@findex antik:clut-to-timepoint
+Compute the timepoint from the @code{clut}.
+@end deffn

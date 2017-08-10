@@ -1,0 +1,4 @@
+@deffn {Function} {antik:attributep} symbol-or-list @&optional error
+@findex antik:attributep
+This is a defined attribute, or list of attributes.
+@end deffn

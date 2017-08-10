@@ -1,0 +1,4 @@
+@defvr {Variable} {antik:*timescales*}
+@vindex antik:*timescales*
+All known time scales.
+@end defvr

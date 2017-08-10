@@ -1,0 +1,4 @@
+@deffn {Macro} {antik:with-system-of-units*} (&rest units-or-system) @&body body
+@findex antik:with-system-of-units*
+When executing the body, use a system of units by naming the units and optionally naming a system of units which serves as a base. Arguments 'units-or-system are symbols naming units or a system of units. If more than one system of units is given, only the first one is used; the rest are ignored. Arguments will be evaluated; names of units must be quoted.
+@end deffn

@@ -1,8 +1,8 @@
 ;; Integer powers
 ;; Liam Healy, Sun Apr 30 2006 - 22:46
-;; Time-stamp: <2009-12-27 10:10:00EST power.lisp>
+;; Time-stamp: <2011-10-29 23:43:17EDT power.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -21,7 +21,7 @@
 (in-package :gsl)
 
 (defmfun pow (x n)
-  "gsl_sf_pow_int_e" ((x :double) (n :int) (ret sf-result))
+  "gsl_sf_pow_int_e" ((x :double) (n :int) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The power x^n for integer n.  The
   power is computed using the minimum number of multiplications. For

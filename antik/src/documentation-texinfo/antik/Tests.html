@@ -1,0 +1,46 @@
+<html lang="en">
+<head>
+<title>Tests - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Introduction-to-grids.html#Introduction-to-grids" title="Introduction to grids">
+<link rel="prev" href="Package.html#Package" title="Package">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Tests"></a>
+<p>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Package.html#Package">Package</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Introduction-to-grids.html#Introduction-to-grids">Introduction to grids</a>
+<hr>
+</div>
+
+<h4 class="subsection">4.1.4 Tests</h4>
+
+<p>There are some tests defined for these modules; to run the tests, make
+sure that <samp><span class="command">asdf-system-connections</span></samp> system is loaded before
+anything else, and <samp><span class="command">lisp-unit</span></samp> is loaded, then
+<pre class="example">     (in-package :antik)
+     (lisp-unit:run-tests)
+     (in-package :grid)
+     (lisp-unit:run-tests)
+</pre>
+   </body></html>
+

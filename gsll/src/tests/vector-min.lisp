@@ -1,6 +1,6 @@
 ;; Regression test VECTOR-MIN for GSLL, automatically generated
 ;;
-;; Copyright 2009 Liam M. Healy
+;; Copyright 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -19,14 +19,13 @@
 (in-package :gsl)
 
 (LISP-UNIT:DEFINE-TEST VECTOR-MIN
-                       (LISP-UNIT::ASSERT-NUMERICAL-EQUAL (LIST -34.5)
+                       (LISP-UNIT::ASSERT-NUMERICAL-EQUAL (LIST -34.5f0)
                                                           (MULTIPLE-VALUE-LIST
                                                            (LET ((V1
                                                                   (GRID:MAKE-FOREIGN-ARRAY
                                                                    'SINGLE-FLOAT
                                                                    :INITIAL-CONTENTS
-                                                                   '(-34.5 8.24
-                                                                     3.29))))
+                                                                   '(-34.5f0 8.24f0 3.29f0))))
                                                              (MMIN V1))))
                        (LISP-UNIT::ASSERT-NUMERICAL-EQUAL (LIST -34.5d0)
                                                           (MULTIPLE-VALUE-LIST

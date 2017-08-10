@@ -1,0 +1,54 @@
+<html lang="en">
+<head>
+<title>Physical constants - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Physical-Quantities.html#Physical-Quantities" title="Physical Quantities">
+<link rel="prev" href="Physical-dimension.html#Physical-dimension" title="Physical dimension">
+<link rel="next" href="Date-and-time.html#Date-and-time" title="Date and time">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Physical-constants"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Date-and-time.html#Date-and-time">Date and time</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Physical-dimension.html#Physical-dimension">Physical dimension</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Physical-Quantities.html#Physical-Quantities">Physical Quantities</a>
+<hr>
+</div>
+
+<h3 class="section">5.4 Physical constants</h3>
+
+<p>It is possible to define physical constants which may then be used either in a mathematical expression or in a physical quantity definition
+<pre class="example">     ANTIK-USER&gt; (define-physical-constant smoot
+         #_1.70180_m (ors) smoot
+       "The unit of length named after Oliver R. Smoot.")
+     ANTIK-USER&gt; (* 3 smoot)
+     #_5.105399999999999d0_m
+     ANTIK-USER&gt; #_3_ors
+     #_5.105399999999999d0_m
+</pre>
+   <div class="defun">
+&mdash; Macro: <b>antik:define-physical-constant</b><var> name value &amp;optional synonyms print-name docstring<a name="index-antik_003adefine_002dphysical_002dconstant-336"></a></var><br>
+<blockquote><p><a name="index-antik_003adefine_002dphysical_002dconstant-337"></a>Define the variable to be the physical dimension quantity given, and also make it a unit of measure. 
+</p></blockquote></div>
+
+   </body></html>
+

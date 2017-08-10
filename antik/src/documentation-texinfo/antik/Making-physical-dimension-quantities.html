@@ -1,0 +1,103 @@
+<html lang="en">
+<head>
+<title>Making physical dimension quantities - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Physical-dimension.html#Physical-dimension" title="Physical dimension">
+<link rel="prev" href="About-physical-dimension.html#About-physical-dimension" title="About physical dimension">
+<link rel="next" href="Dimensions.html#Dimensions" title="Dimensions">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Making-physical-dimension-quantities"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Dimensions.html#Dimensions">Dimensions</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="About-physical-dimension.html#About-physical-dimension">About physical dimension</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Physical-dimension.html#Physical-dimension">Physical dimension</a>
+<hr>
+</div>
+
+<h4 class="subsection">5.3.2 Making physical dimension quantities</h4>
+
+<p><a name="index-Reader-macro_002c-physical-dimension-quantities-313"></a><a name="index-Physical-dimension-quantities_002c-creating-314"></a><a name="index-Physical-dimension-quantities-315"></a>There are two main ways to make physical quantities: the function <code>make-pq</code>, and the reader macro <code>#_</code>
+<pre class="example">     ANTIK-USER&gt; (make-pq 24.5d0 'm/s)
+     #_24.500000000000000d0_m/s
+     ANTIK-USER&gt; #_24.5_m/s
+     #_24.500000000000000d0_m/s
+</pre>
+   <p>To get the magnitude and units of a physical quantity, use <code>pqval</code>.  It returns three values: the magnitude, units, and whether a single unit expression applies to all elements of the grid magnitude:
+<pre class="example">     ANTIK-USER&gt; (pqval #_24.5_m/s)
+     24.5
+     (/ METER SECOND)
+     T
+     ANTIK-USER&gt; (pqval #m(#_1.0_km #_2.0_s #_3.0_kg))
+     #m(1000.000000000000000d0 2.000000000000000d0 3.000000000000000d0)
+     #(METER SECOND KILOGRAM)
+     NIL
+</pre>
+   <div class="defun">
+&mdash; Class: <b>antik:physical-quantity</b><var><a name="index-antik_003aphysical_002dquantity-316"></a></var><br>
+<blockquote><p><a name="index-antik_003aphysical_002dquantity-317"></a>Class precedence list: <code>physical-quantity, standard-object, t</code>
+
+        <p>A quantity with a dimension and possibly a unit,
+  e.g. length or meter. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>antik:check-dimension</b><var> obj units &amp;optional errorp zeros-have-any-dimension<a name="index-antik_003acheck_002ddimension-318"></a></var><br>
+<blockquote><p><a name="index-antik_003acheck_002ddimension-319"></a><code>t</code> if one of these cases hold:
+          <ul>
+<li>obj is a pdq and units have the same dimension as obj,
+<li>obj is zero and zeros-have-any-dimension is <code>t</code>,
+<li>obj and units represent a dimensionless quantity,
+<li>obj and units are grids of the same length, and for
+      each pair of corresponding elements, one of the above is true. 
+</ul>
+        </p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>antik:make-pq</b><var> magnitude unit-expression &amp;optional scalar-dimension<a name="index-antik_003amake_002dpq-320"></a></var><br>
+<blockquote><p><a name="index-antik_003amake_002dpq-321"></a>Make a physical dimension quantity (PDQ).  Allow for the
+   possiblity that magnitude is already a <code>pdq</code>; in this case, check
+   that the physical dimension is correct, and pass it on.  This can
+   be used as a way of assigning default units to a number. Unitless dimensions (e.g., 'length) are
+   interpeted as units in the :system-of-units.  If scalar-dimension is <code>t</code> and
+   magnitude is not a scalar, the unit-expression applies to each
+   element of the magnitude.  Otherwise it must be a grid or list of
+   the shape as the magnitude. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>antik:pqval</b><var> pq<a name="index-antik_003apqval-322"></a></var><br>
+<blockquote><p><a name="index-antik_003apqval-323"></a>Get the numerical value and the units of the physical dimension quantity.  Returns the magnitude, the units, and whether units are the same for each element of a sequence or grid. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Macro: <b>antik:with-pq</b><var> physical-quantities &amp;body body<a name="index-antik_003awith_002dpq-324"></a></var><br>
+<blockquote><p><a name="index-antik_003awith_002dpq-325"></a>Ensure that the named physical dimension quantities are of the right dimensions, or convert them from plain numbers using the current system of units as specified by (nf-option :system-of-units). 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>antik:*zero-is-dimensionless*</b><var><a name="index-antik_003a_002azero_002dis_002ddimensionless_002a-326"></a></var><br>
+<blockquote><p><a name="index-antik_003a_002azero_002dis_002ddimensionless_002a-327"></a>Numbers with zero magnitude are made dimensionless. 
+</p></blockquote></div>
+
+   </body></html>
+

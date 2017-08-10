@@ -1,6 +1,6 @@
 ;; Regression test COMBINATION for GSLL, automatically generated
 ;;
-;; Copyright 2009 Liam M. Healy
+;; Copyright 2009, 2014 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -34,14 +34,14 @@
    (MULTIPLE-VALUE-LIST
     (LET ((COMB (MAKE-COMBINATION 4 2)))
       (INIT-FIRST COMB)
-      (LOOP COLLECT (COPY-SEQ (GRID:COPY-TO COMB)) WHILE
+      (LOOP COLLECT (COPY-SEQ (GRID:COPY-TO COMB 'array 'fixnum)) WHILE
 	   (COMBINATION-NEXT COMB)))))
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST (LIST #(2 3) #(1 3) #(1 2) #(0 3) #(0 2) #(0 1)))
    (MULTIPLE-VALUE-LIST
     (LET ((COMB (MAKE-COMBINATION 4 2)))
       (INIT-LAST COMB)
-      (LOOP COLLECT (COPY-SEQ (GRID:COPY-TO COMB)) WHILE
+      (LOOP COLLECT (COPY-SEQ (GRID:COPY-TO COMB 'array 'fixnum)) WHILE
 	   (COMBINATION-PREVIOUS COMB)))))
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST

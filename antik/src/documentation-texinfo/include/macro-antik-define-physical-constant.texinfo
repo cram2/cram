@@ -1,0 +1,4 @@
+@deffn {Macro} {antik:define-physical-constant} name value @&optional synonyms print-name docstring
+@findex antik:define-physical-constant
+Define the variable to be the physical dimension quantity given, and also make it a unit of measure.
+@end deffn

@@ -1,8 +1,8 @@
 ;; Definitions for macro expansion
 ;; Liam Healy 2009-03-15 14:50:28EDT callback-compile-defs.lisp
-;; Time-stamp: <2009-12-27 09:50:34EST callback-compile-defs.lisp>
+;; Time-stamp: <2011-01-10 18:19:12EST callback-compile-defs.lisp>
 ;;
-;; Copyright 2009 Liam M. Healy
+;; Copyright 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -40,7 +40,7 @@
     `(make-cbstruct
       ',(parse-callback-static cbs 'callback-fnstruct)
       (when (dimension-names object)
-	(mappend 'list (dimension-names object) (dimensions object)))
+	(mappend 'list (dimension-names object) (grid:dimensions object)))
       ,@(mappend
 	 'list
 	 (mapcar

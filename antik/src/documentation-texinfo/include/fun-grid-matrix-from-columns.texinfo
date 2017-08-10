@@ -1,0 +1,7 @@
+@deffn {Function} {grid:matrix-from-columns} @&rest columns
+@findex grid:matrix-from-columns
+Make the matrix out of the equal-length vectors.
+   If *default-grid-type* is non-nil, resultant grid
+   will be of the specified type; otherwise, it will
+   be the same as the first column.
+@end deffn

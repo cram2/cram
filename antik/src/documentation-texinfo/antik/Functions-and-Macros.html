@@ -1,0 +1,117 @@
+<html lang="en">
+<head>
+<title>Functions and Macros - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Capabilities-and-Internals.html#Capabilities-and-Internals" title="Capabilities and Internals">
+<link rel="prev" href="Classes.html#Classes" title="Classes">
+<link rel="next" href="Condition.html#Condition" title="Condition">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Functions-and-Macros"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Condition.html#Condition">Condition</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Classes.html#Classes">Classes</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Capabilities-and-Internals.html#Capabilities-and-Internals">Capabilities and Internals</a>
+<hr>
+</div>
+
+<h4 class="subsection">4.6.2 Functions and Macros</h4>
+
+<div class="defun">
+&mdash; Function: <b>grid:all-types</b><var> alist &amp;optional right-side<a name="index-grid_003aall_002dtypes-253"></a></var><br>
+<blockquote><p><a name="index-grid_003aall_002dtypes-254"></a>A list of all types defined by symbol or definition. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>grid:cffi-cl</b><var> cffi-type<a name="index-grid_003acffi_002dcl-255"></a></var><br>
+<blockquote><p><a name="index-grid_003acffi_002dcl-256"></a>The <code>cl</code> type from the <code>cffi</code> element type. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>grid:check-dimensions</b><var> dimensions &amp;optional errorp<a name="index-grid_003acheck_002ddimensions-257"></a></var><br>
+<blockquote><p><a name="index-grid_003acheck_002ddimensions-258"></a>Check that dimension specification for a grid is a list of positive integers. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>grid:cl-cffi</b><var> cl-type<a name="index-grid_003acl_002dcffi-259"></a></var><br>
+<blockquote><p><a name="index-grid_003acl_002dcffi-260"></a>The <code>cffi</code> element type from the <code>cl</code> type. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>grid:data-class-name</b><var> category-or-rank element-type &amp;optional making-class<a name="index-grid_003adata_002dclass_002dname-261"></a></var><br>
+<blockquote><p><a name="index-grid_003adata_002dclass_002dname-262"></a>The class name from the type of element. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Macro: <b>grid:dcref</b><var> double &amp;optional index<a name="index-grid_003adcref-263"></a></var><br>
+<blockquote><p><a name="index-grid_003adcref-264"></a>Reference <code>c</code> double(s). 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>grid:element-size</b><var> object<a name="index-grid_003aelement_002dsize-265"></a></var><br>
+<blockquote><p><a name="index-grid_003aelement_002dsize-266"></a>The size of each element as stored in <code>c</code>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>grid:element-types</b><var> element-types<a name="index-grid_003aelement_002dtypes-267"></a></var><br>
+<blockquote><p><a name="index-grid_003aelement_002dtypes-268"></a>All the element types available of a given category. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>grid:element-type</b><var> grid<a name="index-grid_003aelement_002dtype-269"></a></var><br>
+<blockquote><p><a name="index-grid_003aelement_002dtype-270"></a>The element type of the grid. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Method: <b>grid:element-type</b> (<var>foreign-array foreign-array</var>)<var><a name="index-grid_003aelement_002dtype-271"></a></var><br>
+<blockquote><p>automatically generated reader method
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>grid:lookup-type</b><var> symbol alist &amp;optional reverse error<a name="index-grid_003alookup_002dtype-272"></a></var><br>
+<blockquote><p><a name="index-grid_003alookup_002dtype-273"></a>Lookup the symbol defined in the alist.  If error is non-nil it
+   should be a string describing the class of types, and this function
+   will signal an error if the type wasn't found. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Macro: <b>grid:metadata-slot</b><var> object name<a name="index-grid_003ametadata_002dslot-274"></a></var><br>
+<blockquote><p><a name="index-grid_003ametadata_002dslot-275"></a>Access a slot in the foreign-metadata. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>grid:number-class</b><var> type<a name="index-grid_003anumber_002dclass-276"></a></var><br>
+<blockquote><p><a name="index-grid_003anumber_002dclass-277"></a>Find the class corresponding to the numeric type. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>grid:spec-scalar-p</b><var> specification<a name="index-grid_003aspec_002dscalar_002dp-278"></a></var><br>
+<blockquote><p><a name="index-grid_003aspec_002dscalar_002dp-279"></a>Specification is for a scalar; if so, return that type. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>grid:st-pointerp</b><var> decl<a name="index-grid_003ast_002dpointerp-280"></a></var><br>
+<blockquote><p><a name="index-grid_003ast_002dpointerp-281"></a>If this st represents a pointer, return the type of the object. 
+</p></blockquote></div>
+
+   </body></html>
+

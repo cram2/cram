@@ -1,8 +1,8 @@
 ;; Generate a lambda that calls the user function; will be called by callback.
 ;; Liam Healy 
-;; Time-stamp: <2010-07-13 21:59:01EDT funcallable.lisp>
+;; Time-stamp: <2012-11-18 11:16:47EST funcallable.lisp>
 ;;
-;; Copyright 2009, 2010 Liam M. Healy
+;; Copyright 2009, 2010, 2011, 2012 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -25,8 +25,7 @@
 ;;;;****************************************************************************
 
 (defun value-from-dimensions (argspec dimension-values &optional total)
-  "Return a list of numerical sizes for dimensions of an array.  If
-   total = T, then return the product of those dimensions."
+  "Return argspec 'dimensions with numerical sizes for dimensions substituted for dim0, dim1.  If total = T, then return the product of those dimensions.  The list dimensions-values is a list of one or two numerical values, (dim0-value dim1-value) or (dim0-value)."
   ;; (DIM0) -> numerical value
   ;; (DIM0 DIM0) -> product of numerical values
   (let ((list
@@ -36,7 +35,8 @@
 		       'dim1
 		       (parse-callback-argspec argspec 'dimensions)))))
     (if total
-	(apply '* list) list)))
+	(apply '* list)
+	list)))
 
 (defun all-io (direction &optional (arrays t))
   "Create a function that returns dimensions for argspecs that are arrays
@@ -61,7 +61,7 @@
        arg))
    argspecs))
 
-(defun faify-form (ptr argspec)
+(defun faify-form (ptr argspec dimension-values)
   "Make the form that turns the mpointer into a foreign-array."
   ;; No finalizer, because pointer might be reused by GSL.
   (ecase (parse-callback-argspec argspec 'array-type)
@@ -69,12 +69,12 @@
      `(make-foreign-array-from-mpointer
        ,ptr
        ',(grid:cffi-cl (parse-callback-argspec argspec 'element-type))
-       ,(length (parse-callback-argspec argspec 'dimensions))
+       ,(length (value-from-dimensions argspec dimension-values))
        nil))				; no finalizer
     (:cvector				; a raw C vector
      `(grid:make-foreign-array-from-pointer
        ,ptr
-       ',(parse-callback-argspec argspec 'dimensions)
+       ',(value-from-dimensions argspec dimension-values)
        ',(grid:cffi-cl (parse-callback-argspec argspec 'element-type))
        nil))
     ((nil) ptr)))
@@ -84,25 +84,26 @@
 ;;;;****************************************************************************
 
 (defun reference-foreign-element
-    (foreign-variable-name linear-index argspec dimension-values)
-  "Form to reference, for getting or setting, the element of a foreign
-   array, or a scalar."
+    (foreign-pointer-name linear-index argspec dimension-values)
+  "Create the form to reference the element of a foreign
+   array, or a scalar, for getting or setting."
   (if (parse-callback-argspec argspec 'dimensions)
       (if (eql (parse-callback-argspec argspec 'array-type) :foreign-array)
-	  `(get-value
-	    ',(grid:data-class-name
-	       (length (value-from-dimensions argspec dimension-values))
-	       (grid:cffi-cl (parse-callback-argspec argspec 'element-type)))
-	    ,foreign-variable-name
+	  `(maref
+	    ,foreign-pointer-name
+	    ,(grid:data-class-name
+	      (length (value-from-dimensions argspec dimension-values))
+	      (grid:cffi-cl (parse-callback-argspec argspec 'element-type)))
 	    ,@(affi::delinearize-index
 	       (affi:make-affi (value-from-dimensions argspec dimension-values))
 	       linear-index))
+	  ;; Would this be better replaced with grid:faref?
 	  `(cffi:mem-aref
-	    ,foreign-variable-name
+	    ,foreign-pointer-name
 	    ',(parse-callback-argspec argspec 'element-type)
 	    ,linear-index))
       ;; not setfable if it's a scalar
-      foreign-variable-name))
+      foreign-pointer-name))
 
 (defun array-element-refs (names argspecs dimension-values)
   "A list of forms reference each array element in succession.
@@ -157,54 +158,56 @@
   (let* ((argspecs (remove :slug (parse-callback-fnspec fnspec 'arguments-spec)))
 	 (inargs-specs (vspecs-direction argspecs :input))
 	 (inargs-names
-	  (make-symbol-cardinals
-	   'input
-	   (length (remove nil (mapcar (all-io :input nil) argspecs)))))
+	   (make-symbol-cardinals
+	    'input
+	    (length (remove nil (mapcar (all-io :input nil) argspecs)))))
 	 (outarrayp (vspecs-direction argspecs :output t))
 	 (outargs-names (make-symbol-cardinals 'output (length outarrayp)))
 	 (lambda-args
-	  (loop for arg in argspecs
-	     with oarg = (copy-list outargs-names)
-	     and iarg = (copy-list inargs-names)
-	     append
-	     (if (and (eql (parse-callback-argspec arg 'io) :output)
-		      (parse-callback-argspec arg 'array-type))
-		 (list (pop oarg))
-		 (if (eql (parse-callback-argspec arg 'io) :input)
-		     (list (pop iarg))))))
+	   (loop for arg in argspecs
+		 with oarg = (copy-list outargs-names)
+		 and iarg = (copy-list inargs-names)
+		 append
+		 (if (and (eql (parse-callback-argspec arg 'io) :output)
+			  (parse-callback-argspec arg 'array-type))
+		     (list (pop oarg))
+		     (if (eql (parse-callback-argspec arg 'io) :input)
+			 (list (pop iarg))))))
 	 (function-designator
-	  (if (symbolp user-function)
-	      (let ((uf user-function)) `',uf)
-	      user-function)))
+	   (if (symbolp user-function)
+	       (let ((uf user-function)) `',uf)
+	       user-function)))
     `(lambda ,lambda-args
        ,(if (and scalarsp (or inargs-specs outarrayp))
 	    (let ((call-form
-		   `(funcall
-		     ,function-designator
-		     ,@(array-element-refs inargs-names inargs-specs dimension-values))))
+		    `(funcall
+		      ,function-designator
+		      ,@(array-element-refs inargs-names inargs-specs dimension-values))))
 	      (if outarrayp
 		  (callback-set-mvb outargs-names call-form fnspec dimension-values)
 		  ;; no specified output, return what the function returns
 		  call-form))
-	    `(funcall ,function-designator
-		      ,@(if outarrayp
-			    (append (mapcar 'faify-form inargs-names inargs-specs)
-				    (mapcar 'faify-form outargs-names outarrayp))
-			    ;; no arrays to return, just return the value
-			    (mapcar 'faify-form inargs-names inargs-specs))))
+	    (let ((faify-form-dv
+		    (alexandria:rcurry 'faify-form dimension-values)))
+	      `(funcall ,function-designator
+			,@(if outarrayp
+			      (append (mapcar faify-form-dv inargs-names inargs-specs)
+				      (mapcar faify-form-dv outargs-names outarrayp))
+			      ;; no arrays to return, just return the value
+			      (mapcar faify-form-dv inargs-names inargs-specs)))))
        ,@(case
-	  (parse-callback-fnspec fnspec 'return-spec)
-	  (:success-failure
-	   ;; We always return success, because if there is a
-	   ;; problem, a CL error should be signalled.
-	   '(+success+))
-	  (:pointer
-	   ;; For unclear reasons, some GSL functions want callbacks
-	   ;; to return a void pointer which is apparently meaningless.
-	   '((cffi:null-pointer)))
-	  ;; If it isn't either of these things, return what the
-	  ;; function returned.
-	  (otherwise nil)))))
+	     (parse-callback-fnspec fnspec 'return-spec)
+	   (:success-failure
+	    ;; We always return success, because if there is a
+	    ;; problem, a CL error should be signalled.
+	    '(+success+))
+	   (:pointer
+	    ;; For unclear reasons, some GSL functions want callbacks
+	    ;; to return a void pointer which is apparently meaningless.
+	    '((cffi:null-pointer)))
+	   ;; If it isn't either of these things, return what the
+	   ;; function returned.
+	   (otherwise nil)))))
 
 (defun make-funcallables-for-object (object)
   "Make compiled functions for the object that can be funcalled in the callback."
@@ -214,7 +217,7 @@
     (lambda (fn fnspec)
       (compile
        nil
-       (make-funcallable-form fn fnspec (scalarsp object) (dimensions object))))
+       (make-funcallable-form fn fnspec (scalarsp object) (grid:dimensions object))))
     (functions object)
     (parse-callback-static (cbinfo object) 'functions))))
 

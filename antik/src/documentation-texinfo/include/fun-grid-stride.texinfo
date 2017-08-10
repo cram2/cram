@@ -1,0 +1,4 @@
+@deffn {Function} {grid:stride} grid stride @&key destination
+@findex grid:stride
+Create a new grid with every stride-th element.
+@end deffn

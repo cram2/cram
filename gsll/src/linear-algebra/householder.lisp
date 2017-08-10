@@ -1,8 +1,8 @@
 ;; Householder Transformations
 ;; Liam Healy, Wed May 10 2006 - 10:03
-;; Time-stamp: <2010-06-29 22:51:21EDT householder.lisp>
+;; Time-stamp: <2011-04-23 17:14:09EDT householder.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -87,7 +87,7 @@
 (defmfun householder-solve
     (A b &optional x-spec
        &aux
-       (x (grid:make-foreign-array-or-default x-spec (dimensions b) t)))
+       (x (grid:ensure-foreign-array x-spec (grid:dimensions b))))
   ("gsl_linalg_HH_svx" "gsl_linalg_HH_solve")
   ((((mpointer A) :pointer) ((mpointer b) :pointer))
    (((mpointer A) :pointer) ((mpointer b) :pointer)

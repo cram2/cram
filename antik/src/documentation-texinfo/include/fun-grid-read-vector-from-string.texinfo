@@ -1,0 +1,4 @@
+@deffn {Function} {grid:read-vector-from-string} string count @&optional start end
+@findex grid:read-vector-from-string
+Read the count element vector from a string.
+@end deffn

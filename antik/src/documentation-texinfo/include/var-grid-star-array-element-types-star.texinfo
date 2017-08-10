@@ -1,0 +1,4 @@
+@defvr {Variable} {grid:*array-element-types*}
+@vindex grid:*array-element-types*
+All the array element types supported.
+@end defvr

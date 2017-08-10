@@ -1,0 +1,4 @@
+@deffn {Function} {antik:make-new-physical-state} @&rest attributes-values
+@findex antik:make-new-physical-state
+Make a new physical state with the given attribute values.
+@end deffn

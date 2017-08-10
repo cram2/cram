@@ -1,8 +1,8 @@
 ;; BLAS level 3, Matrix-matrix operations
 ;; Liam Healy, Wed Apr 26 2006 - 21:08
-;; Time-stamp: <2010-07-07 14:25:00EDT blas3.lisp>
+;; Time-stamp: <2015-12-05 09:56:16EST blas3.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2010, 2011, 2013, 2015 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -23,26 +23,21 @@
 ;;; /usr/include/gsl/gsl_blas.h
 
 ;;;;****************************************************************************
-;;;; Options
-;;;;****************************************************************************
-
-#+fsbv
-(fsbv:defcenum-aux cblas-side)
-
-;;;;****************************************************************************
 ;;;; Functions
 ;;;;****************************************************************************
 
 (defmfun matrix-product
-    ((A matrix) (B matrix)
+    ((A grid:matrix) (B grid:matrix)
      &optional
      C
      (alpha 1) (beta 1) (TransA :notrans) (TransB :notrans)
      &aux
      (Carr
       (or C
-	  (grid:make-foreign-array element-type :dimensions (matrix-product-dimensions A B)
-		       :initial-element 0))))
+	  (grid:make-foreign-array
+	   element-type
+	   :dimensions (matrix-product-dimensions A B :transa TransA :transb TransB)
+	   :initial-element 0))))
   ("gsl_blas_" :type "gemm")
   ((TransA cblas-transpose) (TransB cblas-transpose)
    (alpha :element-c-type) ((mpointer A) :pointer)
@@ -53,7 +48,7 @@
   :outputs (Carr))
 
 (defmfun matrix-product-symmetric
-    ((A matrix) (B matrix)
+    ((A grid:matrix) (B grid:matrix)
      &optional C (alpha 1) (beta 1) (uplo :upper) (side :left)
      &aux
      (Carr
@@ -71,13 +66,11 @@
 
 #+fsbv
 (defmfun matrix-product-hermitian
-    ((A matrix) (B matrix)
+    ((A grid:matrix) (B grid:matrix)
      &optional
      (C (grid:make-foreign-array element-type :dimensions (matrix-product-dimensions A B)
 		     :initial-element 0))
      (alpha 1) (beta 1) (uplo :upper) (side :left))
-  ;; This always signals an error because you can't pass a
-  ;; struct in CFFI yet.
   ("gsl_blas_" :type "hemm")
   ((side cblas-side) (uplo cblas-uplo) (alpha :element-c-type)
    ((mpointer A) :pointer) ((mpointer B) :pointer)
@@ -88,7 +81,7 @@
   :outputs (C))
 
 (defmfun matrix-product-triangular
-    ((A matrix) (B matrix)
+    ((A grid:matrix) (B grid:matrix)
      &optional (alpha 1) (uplo :upper) (TransA :notrans)
      (diag :nonunit) (side :left))
   ("gsl_blas_" :type "trmm")
@@ -101,11 +94,9 @@
   :outputs (B))
 
 (defmfun inverse-matrix-product
-    ((A matrix) (B matrix)
+    ((A grid:matrix) (B grid:matrix)
      &optional (alpha 1) (uplo :upper) (TransA :notrans)
      (diag :nonunit) (side :left))
-  ;; This signals an error for complex arguments because you can't pass a
-  ;; struct in CFFI yet.
   ("gsl_blas_" :type "trsm")
   ((side cblas-side) (uplo cblas-uplo)
    (TransA cblas-transpose) (diag cblas-diag)
@@ -116,7 +107,7 @@
   :outputs (B))
 
 (defmfun symmetric-rank-1-update
-    ((A matrix) (C matrix)
+    ((A grid:matrix) (C grid:matrix)
      &optional (alpha 1) (beta 1) (uplo :upper) (trans :notrans))
   ("gsl_blas_" :type "syrk")
   ((uplo cblas-uplo) (trans cblas-transpose)
@@ -129,7 +120,7 @@
 
 #+fsbv
 (defmfun hermitian-rank-1-update
-    ((A matrix) (C matrix)
+    ((A grid:matrix) (C grid:matrix)
      &optional (alpha 1) (beta 1) (uplo :upper) (trans :notrans))
   ("gsl_blas_" :type "herk")
   ((uplo cblas-uplo) (trans cblas-transpose)
@@ -141,7 +132,7 @@
   :outputs (C))
 
 (defmfun symmetric-rank-2-update
-    ((A matrix) (B matrix) (C matrix)
+    ((A grid:matrix) (B grid:matrix) (C grid:matrix)
      &optional (alpha 1) (beta 1) (uplo :upper) (trans :notrans))
   ("gsl_blas_" :type "syr2k")
   ((uplo cblas-uplo) (trans cblas-transpose)
@@ -155,7 +146,7 @@
 
 #+fsbv
 (defmfun hermitian-rank-2-update
-    ((A matrix) (B matrix) (C matrix)
+    ((A grid:matrix) (B grid:matrix) (C grid:matrix)
      &optional (alpha 1) (beta 1) (uplo :upper) (trans :notrans))
   ("gsl_blas_" :type "her2k")
   ((uplo cblas-uplo) (trans cblas-transpose)

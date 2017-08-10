@@ -1,0 +1,5 @@
+@deffn {Function} {antik:+} @&rest args
+@findex antik:+
+Addition of generalized or regular numbers with an
+   arbitrary number of arguments.
+@end deffn

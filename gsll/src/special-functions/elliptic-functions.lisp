@@ -1,6 +1,6 @@
 ;; Jacobian elliptic functions
 ;; Liam Healy, Mon Mar 20 2006 - 22:21
-;; Time-stamp: <2010-04-14 13:06:10EDT elliptic-functions.lisp>
+;; Time-stamp: <2010-08-07 21:41:12EDT elliptic-functions.lisp>
 ;;
 ;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
@@ -30,7 +30,7 @@
   "The Jacobian elliptic functions sn(u|m),
   cn(u|m), dn(u|m) computed by descending Landen transformations.")
 
-(defvar *elljac-K* (/ pi (* 2.0d0 0.9741726903999478375938128316d0)))
+(defvar *elljac-K* (/ dpi (* 2.0d0 0.9741726903999478375938128316d0)))
 (defvar *elljac-A* (/ (sqrt (1+ (sqrt 0.9d0)))))
 (defvar *elljac-B* (/ (expt 0.9d0 1/4) (sqrt (1+ (sqrt 0.9d0)))))
 (defvar *elljac-C* (expt 0.9d0 1/4))

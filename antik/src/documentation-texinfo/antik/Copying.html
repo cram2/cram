@@ -1,0 +1,55 @@
+<html lang="en">
+<head>
+<title>Copying - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Operations.html#Operations" title="Operations">
+<link rel="prev" href="Elements.html#Elements" title="Elements">
+<link rel="next" href="Iterate.html#Iterate" title="Iterate">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Copying"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Iterate.html#Iterate">Iterate</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Elements.html#Elements">Elements</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Operations.html#Operations">Operations</a>
+<hr>
+</div>
+
+<h4 class="subsection">4.3.2 Copying</h4>
+
+<div class="defun">
+&mdash; Generic Function: <b>grid:copy</b><var> object &amp;key specification grid-type dimensions element-type destination<a name="index-grid_003acopy-137"></a></var><br>
+<blockquote><p><a name="index-grid_003acopy-138"></a>Copy contents into existing or new object. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>grid:copy-to</b><var> object &amp;optional type<a name="index-grid_003acopy_002dto-139"></a></var><br>
+<blockquote><p><a name="index-grid_003acopy_002dto-140"></a>Make a grid of the specified type from the object. 
+</p></blockquote></div>
+   Copying is performed with the function <code>copy</code>.  This works between
+<code>grid:foreign-array</code>s, pointers, and CL arrays.  There are two
+functions provided to extract the dimensions of a vector or array:
+<code>dim0</code> and <code>dim1</code>; the latter is applicable only for matrices. 
+To copy to a grid with the same dimensions and element type, use <code>copy-to</code>.
+
+   </body></html>
+

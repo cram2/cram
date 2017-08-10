@@ -1,0 +1,4 @@
+@deffn {Function} {antik:dms-angle} angle
+@findex antik:dms-angle
+The angle as a list degrees, minutes, seconds.
+@end deffn

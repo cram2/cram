@@ -1,0 +1,152 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Getting Started &mdash; Antik 0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Antik 0 documentation" href="root.html" />
+    <link rel="next" title="Systems and Packages" href="packages.html" />
+    <link rel="prev" title="Introduction to Antik" href="intro.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="packages.html" title="Systems and Packages"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="intro.html" title="Introduction to Antik"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="root.html">Antik 0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="getting-started">
+<h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<p>Antik is normally installed using <a class="reference external" href="http://quicklisp.org/">Quicklisp</a>. Once Antik is loaded, it is advisable to set the default package to <code class="docutils literal"><span class="pre">ANTIK-USER</span></code> which is provided to make using Antik easier; see <a class="reference internal" href="packages.html#systems-packages"><span>Systems and Packages</span></a> for more details. Reader macros are defined by Antik for convenience in specifying physical dimension quantities, dates and times, and grids. These can be enabled with <code class="docutils literal"><span class="pre">set-reader</span></code>. This also sets the default floating point read type to <code class="docutils literal"><span class="pre">double-float</span></code>:</p>
+<div class="highlight-lisp"><div class="highlight"><pre><span class="p">(</span><span class="nv">ql:quickload</span> <span class="ss">:antik</span><span class="p">)</span>
+<span class="p">(</span><span class="nb">in-package</span> <span class="ss">:antik-user</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">set-reader</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>As a reassurance that the system is installed and working correctly, run the defined regression tests:</p>
+<div class="highlight-lisp"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">asdf:test-system</span> <span class="ss">:antik</span><span class="p">)</span>
+
+ <span class="nv">Unit</span> <span class="nv">Test</span> <span class="nv">Summary</span>
+  <span class="nv">| 93 assertions total</span>
+<span class="nv">  |</span> <span class="mi">93</span> <span class="nv">passed</span>
+  <span class="nv">| 0 failed</span>
+<span class="nv">  |</span> <span class="mi">0</span> <span class="nv">execution</span> <span class="nv">errors</span>
+  <span class="nv">| 0 missing tests</span>
+
+<span class="nv"> Unit Test Summary</span>
+<span class="nv">  |</span> <span class="mi">88</span> <span class="nv">assertions</span> <span class="nv">total</span>
+  <span class="nv">| 88 passed</span>
+<span class="nv">  |</span> <span class="mi">0</span> <span class="nv">failed</span>
+  <span class="nv">| 0 execution errors</span>
+<span class="nv">  |</span> <span class="mi">0</span> <span class="nv">missing</span> <span class="nv">tests</span>
+
+ <span class="no">T</span>
+</pre></div>
+</div>
+<p>The first tests definitions in the <code class="docutils literal"><span class="pre">ANTIK</span></code> package and the second in the <code class="docutils literal"><span class="pre">GRID</span></code> package. In examples given in this manual, the <code class="docutils literal"><span class="pre">&gt;</span></code> at the begining of the line is the Lisp <a class="reference external" href="https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop">REPL</a> prompt, indicated the user-typed input follows. Your prompt may differ; for example, it could be the name of the current package, e.g. <code class="docutils literal"><span class="pre">ANTIK-USER&gt;</span></code>.</p>
+<dl class="function">
+<dt id="function:antik:set-reader">
+<em class="property">function </em> (<code class="descname">set-reader</code> <em class="lambda_keyword text-muted">&amp;optional</em> (<em>readtable</em> <em>t</em>) (<em>default-float</em> (<em>quote</em> <em>double-float</em>)))<a class="headerlink" href="#function:antik:set-reader" title="Permalink to this definition">¶</a></dt>
+<dd><p>If readtable is true, set the reader to enable the three Antik reader macros <code class="docutils literal"><span class="pre">#_</span></code> (physical dimension quantity), <code class="docutils literal"><span class="pre">#d</span></code> (date/time), <code class="docutils literal"><span class="pre">#m</span></code> (grid). Set the reader to interpret float literals without an exponent marker to be the type specified. If <code class="docutils literal"><span class="pre">NIL</span></code>, leave as-is.</p>
+</dd></dl>
+
+<dl class="macro">
+<dt id="macro:antik:set-reader-in-file">
+<em class="property">macro </em> (<code class="descname">set-reader-in-file</code> <em class="lambda_keyword text-muted">&amp;optional</em> (<em>readtable</em> <em>t</em>) (<em>default-float</em> (<em>quote</em> <em>double-float</em>)))<a class="headerlink" href="#macro:antik:set-reader-in-file" title="Permalink to this definition">¶</a></dt>
+<dd><p>If readtable is true, set the reader to enable the three Antik reader macros <code class="docutils literal"><span class="pre">#_</span></code> (physical dimension quantity), <code class="docutils literal"><span class="pre">#d</span></code> (date/time), <code class="docutils literal"><span class="pre">#m</span></code> (grid). Set the reader to interpret float literals without an exponent marker to be the type specified. If <code class="docutils literal"><span class="pre">NIL</span></code>, leave as-is. Use this form in Lisp source files.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="intro.html"
+                        title="previous chapter">Introduction to Antik</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="packages.html"
+                        title="next chapter">Systems and Packages</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/starting.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="packages.html" title="Systems and Packages"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="intro.html" title="Introduction to Antik"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="root.html">Antik 0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Liam M. Healy.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>

@@ -3,6 +3,7 @@
 ;;; struct.lisp --- Foreign structure type tests.
 ;;;
 ;;; Copyright (C) 2005-2006, James Bielman  <jamesjb@jamesjb.com>
+;;; Copyright (C) 2005-2011, Luis Oliveira  <loliveira@common-lisp.net>
 ;;;
 ;;; Permission is hereby granted, free of charge, to any person
 ;;; obtaining a copy of this software and associated documentation
@@ -57,7 +58,7 @@
 
 ;; regression test: accessing a struct through a typedef
 
-(defctype xpto timeval)
+(defctype xpto (:struct timeval))
 
 (deftest struct.4
     (with-foreign-object (tv 'xpto)
@@ -109,15 +110,19 @@
 (defcstruct s-ch
   (a-char :char))
 
+(defctype s-ch (:struct s-ch))
+
 (defcstruct s-s-ch
   (another-char :char)
   (a-s-ch s-ch))
+
+(defctype s-s-ch (:struct s-s-ch))
 
 (defcvar "the_s_s_ch" s-s-ch)
 
 (deftest struct.alignment.1
     (list 'a-char (foreign-slot-value
-                   (foreign-slot-value *the-s-s-ch* 's-s-ch 'a-s-ch)
+                   (foreign-slot-pointer *the-s-s-ch* 's-s-ch 'a-s-ch)
                    's-ch 'a-char)
           'another-char (foreign-slot-value *the-s-s-ch* 's-s-ch 'another-char))
   (a-char 1 another-char 2))
@@ -128,9 +133,13 @@
   (another-char :char)
   (a-short :short))
 
+(defctype s-short (:struct s-short))
+
 (defcstruct s-s-short
   (yet-another-char :char)
   (a-s-short s-short))
+
+(defctype s-s-short (:struct s-s-short))
 
 (defcvar "the_s_s_short" s-s-short)
 
@@ -149,10 +158,14 @@
   (a-double :double)
   (another-char :char))
 
+(defctype s-double (:struct s-double))
+
 (defcstruct s-s-double
   (yet-another-char :char)
   (a-s-double s-double)
   (a-short :short))
+
+(defctype s-s-double (:struct s-s-double))
 
 (defcvar "the_s_s_double" s-s-double)
 
@@ -172,6 +185,8 @@
   (another-short :short)
   (a-s-s-double s-s-double)
   (last-char :char))
+
+(defctype s-s-s-double (:struct s-s-s-double))
 
 (defcvar "the_s_s_s_double" s-s-s-double)
 
@@ -196,10 +211,14 @@
   (a-double :double)
   (a-short  :short))
 
+(defctype s-double2 (:struct s-double2))
+
 (defcstruct s-s-double2
   (a-char        :char)
   (a-s-double2   s-double2)
   (another-short :short))
+
+(defctype s-s-double2 (:struct s-s-double2))
 
 (defcvar "the_s_s_double2" s-s-double2)
 
@@ -217,10 +236,14 @@
   (a-long-long :long-long)
   (a-short     :short))
 
+(defctype s-long-long (:struct s-long-long))
+
 (defcstruct s-s-long-long
   (a-char        :char)
   (a-s-long-long s-long-long)
   (another-short :short))
+
+(defctype s-s-long-long (:struct s-s-long-long))
 
 (defcvar "the_s_s_long_long" s-s-long-long)
 
@@ -238,9 +261,13 @@
   (a-s-double2   s-double2)
   (another-short :short))
 
+(defctype s-s-double3 (:struct s-s-double3))
+
 (defcstruct s-s-s-double3
   (a-s-s-double3  s-s-double3)
   (a-char         :char))
+
+(defctype s-s-s-double3 (:struct s-s-s-double3))
 
 (defcvar "the_s_s_s_double3" s-s-s-double3)
 
@@ -256,6 +283,8 @@
 
 
 (defcstruct empty-struct)
+
+(defctype empty-struct (:struct empty-struct))
 
 (defcstruct with-empty-struct
   (foo empty-struct)
@@ -279,8 +308,12 @@
 (defcstruct s1
   (an-int :int))
 
+(defctype s1 (:struct s1))
+
 (defcstruct s2
   (an-s1 s1))
+
+(defctype s2 (:struct s2))
 
 (deftest struct.nested-setf
     (with-foreign-object (an-s2 's2)
@@ -298,10 +331,14 @@
   (an-unsigned-long-long :unsigned-long-long)
   (a-short               :short))
 
+(defctype s-unsigned-long-long (:struct s-unsigned-long-long))
+
 (defcstruct s-s-unsigned-long-long
   (a-char                 :char)
   (a-s-unsigned-long-long s-unsigned-long-long)
   (another-short          :short))
+
+(defctype s-s-unsigned-long-long (:struct s-s-unsigned-long-long))
 
 (defcvar "the_s_s_unsigned_long_long" s-s-unsigned-long-long)
 
@@ -321,7 +358,7 @@
 
 (define-c-struct-wrapper timeval ())
 
-(define-c-struct-wrapper (timeval2 timeval) ()
+(define-c-struct-wrapper (timeval2 (:struct timeval)) ()
   (tv-secs))
 
 (defmacro with-example-timeval (var &body body)
@@ -341,4 +378,328 @@
     (with-example-timeval ptr
       (let ((obj (make-instance 'timeval2 :pointer ptr)))
         (timeval2-tv-secs obj)))
+  42)
+
+;;;# Structures as Values
+
+(defcstruct (struct-pair :class pair)
+  (a :int)
+  (b :int))
+
+(defctype struct-pair-typedef1 (:struct struct-pair))
+(defctype struct-pair-typedef2 (:pointer (:struct struct-pair)))
+
+(deftest struct.unparse.1
+    (mapcar (alexandria:compose #'cffi::unparse-type #'cffi::parse-type)
+            '(struct-pair
+              (:struct struct-pair)
+              struct-pair-typedef1
+              struct-pair-typedef2))
+  (struct-pair
+   (:struct struct-pair)
+   struct-pair-typedef1
+   struct-pair-typedef2))
+
+(deftest struct.canonicalize.1
+    (mapcar #'cffi::canonicalize-foreign-type
+            '(struct-pair
+              (:struct struct-pair)
+              struct-pair-typedef1
+              struct-pair-typedef2))
+  (:pointer
+   (:struct struct-pair)
+   (:struct struct-pair)
+   :pointer))
+
+(deftest struct.canonicalize.2
+    (mapcar #'cffi::canonicalize-foreign-type
+            '(struct-pair
+              (:struct struct-pair)
+              struct-pair-typedef1
+              struct-pair-typedef2))
+  (:pointer
+   (:struct struct-pair)
+   (:struct struct-pair)
+   :pointer))
+
+(defmethod translate-from-foreign (pointer (type pair))
+  (with-foreign-slots ((a b) pointer (:struct struct-pair))
+    (cons a b)))
+
+(defmethod translate-into-foreign-memory (object (type pair) pointer)
+  (with-foreign-slots ((a b) pointer (:struct struct-pair))
+    (setf a (car object)
+          b (cdr object))))
+
+(defmethod translate-to-foreign (object (type pair))
+  (let ((p (foreign-alloc '(:struct struct-pair))))
+    (translate-into-foreign-memory object type p)
+    (values p t)))
+
+(defmethod free-translated-object (pointer (type pair) freep)
+  (when freep
+    (foreign-free pointer)))
+
+(deftest struct-values.translation.1
+    (multiple-value-bind (p freep)
+        (convert-to-foreign '(1 . 2) 'struct-pair)
+      (assert freep)
+      (unwind-protect
+           (convert-from-foreign p 'struct-pair)
+        (free-converted-object p 'struct-pair freep)))
+  (1 . 2))
+
+(defcfun "pair_pointer_sum" :int
+  (p (:pointer (:struct struct-pair))))
+
+#+#:pointer-translation-not-yet-implemented
+(deftest struct-values.translation.2
+    (pair-pointer-sum '(1 . 2))
+  3)
+
+;;; should the return type be something along the lines of
+;;; (:pointer (:struct pair) :free t)?
+;;; LMH: error on ":free t" option?
+(defcfun "alloc_pair" (:pointer (:struct struct-pair))
+  (a :int)
+  (b :int))
+
+;; bogus: doesn't free() pointer.
+#+#:pointer-translation-not-yet-implemented
+(deftest struct-values.translation.3
+    (alloc-pair 1 2)
+  (1 . 2))
+
+(deftest struct-values.translation.mem-ref.1
+    (with-foreign-object (p '(:struct struct-pair))
+      (setf (mem-ref p '(:struct struct-pair)) '(1 . 2))
+      (with-foreign-slots ((a b) p (:struct struct-pair))
+        (values (mem-ref p '(:struct struct-pair))
+                a
+                b)))
+  (1 . 2)
+  1
+  2)
+
+(deftest struct-values.translation.mem-aref.1
+    (with-foreign-object (p '(:struct struct-pair) 2)
+      (setf (mem-aref p '(:struct struct-pair) 0) '(1 . 2)
+            (mem-aref p '(:struct struct-pair) 1) '(3 . 4))
+      (values (mem-aref p '(:struct struct-pair) 0)
+              (mem-aref p '(:struct struct-pair) 1)))
+  (1 . 2)
+  (3 . 4))
+
+(defcstruct (struct-pair-default-translate :class pair-default)
+  (a :int)
+  (b :int))
+
+(deftest struct-values-default.translation.mem-ref.1
+    (with-foreign-object (p '(:struct struct-pair-default-translate))
+      (setf (mem-ref p '(:struct struct-pair-default-translate)) '(a 1 b 2))
+      (with-foreign-slots ((a b) p (:struct struct-pair-default-translate))
+        (let ((plist (mem-ref p '(:struct struct-pair-default-translate))))
+          (values (getf plist 'a)
+                  (getf plist 'b)
+                  a
+                  b))))
+  1
+  2
+  1
+  2)
+
+(defcstruct (struct-pair+double :class pair+double)
+  (pr (:struct struct-pair-default-translate))
+  (dbl :double))
+
+(deftest struct-values-default.translation.mem-ref.2
+    (with-foreign-object (p '(:struct struct-pair+double))
+      (setf (mem-ref p '(:struct struct-pair+double)) '(pr (a 4 b 5) dbl 2.5d0))
+      (with-foreign-slots ((pr dbl) p (:struct struct-pair+double))
+        (let ((plist (mem-ref p '(:struct struct-pair+double))))
+          (values (getf (getf plist 'pr) 'a)
+                  (getf (getf plist 'pr) 'b)
+                  (getf plist 'dbl)))))
+  4
+  5
+  2.5d0)
+
+(defcstruct (struct-pair+1 :class pair+1)
+  (p (:pointer (:struct struct-pair)))
+  (c :int))
+
+(defctype struct-pair+1 (:struct struct-pair+1))
+
+(defmethod translate-from-foreign (pointer (type pair+1))
+  (with-foreign-slots ((p c) pointer struct-pair+1)
+    (cons p c)))
+
+(defmethod translate-into-foreign-memory (object (type pair+1) pointer)
+  (with-foreign-slots ((c) pointer struct-pair+1)
+    (convert-into-foreign-memory (car object)
+                                 'struct-pair
+                                 (foreign-slot-pointer pointer
+                                                       'struct-pair+1
+                                                       'p))
+    (setf c (cdr object))))
+
+(defmethod translate-to-foreign (object (type pair+1))
+  (let ((p (foreign-alloc 'struct-pair+1)))
+    (translate-into-foreign-memory object type p)
+    (values p t)))
+
+(defmethod free-translated-object (pointer (type pair+1) freep)
+  (when freep
+    (foreign-free pointer)))
+
+#+#:pointer-translation-not-yet-implemented
+(deftest struct-values.translation.ppo.1
+    (multiple-value-bind (p freep)
+        (convert-to-foreign '((1 . 2) . 3) 'struct-pair+1)
+      (assert freep)
+      (unwind-protect
+           (convert-from-foreign p 'struct-pair+1)
+        (free-converted-object p 'struct-pair+1 freep)))
+  ((1 . 2) . 3))
+
+#+#:unimplemented
+(defcfun "pair_plus_one_sum" :int
+  (p (:struct pair+1)))
+
+(defcfun "pair_plus_one_pointer_sum" :int
+  (p (:pointer (:struct struct-pair+1))))
+
+#+#:pointer-translation-not-yet-implemented
+(deftest struct-values.translation.ppo.2
+    (pair-plus-one-pointer-sum '((1 . 2) . 3))
+  6)
+
+#+#:unimplemented
+(defcfun "make_pair_plus_one" (:struct pair+1)
+  (a :int)
+  (b :int)
+  (c :int))
+
+(defcfun "alloc_pair_plus_one" struct-pair+1
+  (a :int)
+  (b :int)
+  (c :int))
+
+;; bogus: doesn't free() pointer.
+#+#:pointer-translation-not-yet-implemented
+(deftest struct-values.translation.ppo.3
+    (alloc-pair-plus-one 1 2 3)
+  ((1 . 2) . 3))
+
+#+#:unimplemented
+(defcfun "pair_sum" :int
+  (p (:struct pair)))
+
+#+#:unimplemented
+(defcfun "make_pair" (:struct pair)
+  (a :int)
+  (b :int))
+
+#|| ; TODO: load cffi-libffi for these tests to work.
+(deftest struct-values.fn.1
+    (with-foreign-object (p '(:struct pair))
+      (with-foreign-slots ((a b) p (:struct pair))
+        (setf a -1 b 2)
+        (pair-sum p)))
+  1)
+
+(deftest struct-values.fn.2
+    (pair-sum '(3 . 5))
+  8)
+
+(deftest struct-values.fn.3
+    (with-foreign-object (p '(:struct pair))
+      (make-pair 7 11 :result-pointer p)
+      (with-foreign-slots ((a b) p (:struct pair))
+        (cons a b)))
+  (7 . 11))
+
+(deftest struct-values.fn.4
+    (make-pair 13 17)
+  (13 . 17))
+||#
+
+(defcstruct single-byte-struct
+  (a :uint8))
+
+(deftest bare-struct-types.1
+    (eql (foreign-type-size 'single-byte-struct)
+         (foreign-type-size '(:struct single-byte-struct)))
+  t)
+
+(defctype single-byte-struct-alias (:struct single-byte-struct))
+
+(deftest bare-struct-types.2
+    (eql (foreign-type-size 'single-byte-struct-alias)
+         (foreign-type-size '(:struct single-byte-struct)))
+  t)
+
+;;; Old-style access to inner structure fields.
+
+(defcstruct inner-struct (x :int))
+(defcstruct old-style-outer (inner inner-struct))
+(defcstruct new-style-outer (inner (:struct inner-struct)))
+
+(deftest old-style-struct-access
+    (with-foreign-object (s '(:struct old-style-outer))
+      (let ((inner-ptr (foreign-slot-pointer s 'old-style-outer 'inner)))
+        (setf (foreign-slot-value inner-ptr 'inner-struct 'x) 42))
+      (assert (pointerp (foreign-slot-value s 'old-style-outer 'inner)))
+      (foreign-slot-value (foreign-slot-value s 'old-style-outer 'inner)
+                          'inner-struct 'x))
+  42)
+
+(deftest new-style-struct-access
+    (with-foreign-object (s '(:struct new-style-outer))
+      (let ((inner-ptr (foreign-slot-pointer s 'new-style-outer 'inner)))
+        (setf (foreign-slot-value inner-ptr 'inner-struct 'x) 42))
+      (foreign-slot-value s 'new-style-outer 'inner))
+  (x 42))
+
+;;; regression test: setting the value of aggregate slots.
+
+(defcstruct aggregate-struct
+  (x :int)
+  (pair (:struct struct-pair))
+  (y :int))
+
+(deftest set-aggregate-struct-slot
+    (with-foreign-objects ((pair-struct '(:struct struct-pair))
+                           (aggregate-struct '(:struct aggregate-struct)))
+      (with-foreign-slots ((a b) pair-struct (:struct struct-pair))
+        (setf a 1 b 2)
+        (with-foreign-slots ((x pair y) aggregate-struct (:struct aggregate-struct))
+          (setf x 42 y 42)
+          (setf pair pair-struct)
+          (values x pair y))))
+  42
+  (1 . 2)
+  42)
+
+;; TODO this needs to go through compile-file to exhibit the error
+;; ("don't know how to dump #<CFFI::AGGREGATE-STRUCT-SLOT>"), but
+;; there's no support for that, so let's leave it at toplevel here.
+(defcstruct (aggregate-struct.acc :conc-name acc-)
+  (x :int)
+  (pair (:struct struct-pair))
+  (y :int))
+
+(deftest set-aggregate-struct-slot.acc
+    (with-foreign-objects ((pair-struct '(:struct struct-pair))
+                           (aggregate-struct '(:struct aggregate-struct)))
+      (with-foreign-slots ((a b) pair-struct (:struct struct-pair))
+        (setf a 1 b 2)
+        (setf (acc-x aggregate-struct) 42)
+        (setf (acc-y aggregate-struct) 42)
+        (setf (acc-pair aggregate-struct) pair-struct)
+        (values (acc-x aggregate-struct)
+                (acc-pair aggregate-struct)
+                (acc-y aggregate-struct))))
+  42
+  (1 . 2)
   42)

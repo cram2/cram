@@ -1,8 +1,8 @@
 ;; Zeta functions
 ;; Liam Healy, Sat May 13 2006 - 23:27
-;; Time-stamp: <2009-12-27 10:09:58EST zeta.lisp>
+;; Time-stamp: <2011-10-29 23:45:11EDT zeta.lisp>
 ;;
-;; Copyright 2006, 2007, 2008 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -33,14 +33,14 @@
    "The Riemann zeta function zeta(n)."))
 
 (defmfun zeta ((n integer))
-  "gsl_sf_zeta_int_e" ((n :int) (ret sf-result))
+  "gsl_sf_zeta_int_e" ((n :int) (ret (:pointer (:struct sf-result))))
   :definition :method
   :export t
   :documentation			; FDL
   "The Riemann zeta function zeta(n) for integer n, n \ne 1.")
 
 (defmfun zeta ((s float))
-  "gsl_sf_zeta_e" ((s :double) (ret sf-result))
+  "gsl_sf_zeta_e" ((s :double) (ret (:pointer (:struct sf-result))))
   :definition :method
   :documentation			; FDL
   "The Riemann zeta function zeta(s) for arbitrary s, s \ne 1.")
@@ -53,14 +53,14 @@
   (:documentation "zeta - 1."))
 
 (defmfun zeta-1 ((n integer))
-  "gsl_sf_zetam1_int_e" ((n :int) (ret sf-result))
+  "gsl_sf_zetam1_int_e" ((n :int) (ret (:pointer (:struct sf-result))))
   :definition :method
   :export t
   :documentation			; FDL
   "The Riemann zeta function zeta(n) for integer n, n \ne 1.")
 
 (defmfun zeta-1 ((s float))
-  "gsl_sf_zetam1_e" ((s :double) (ret sf-result))
+  "gsl_sf_zetam1_e" ((s :double) (ret (:pointer (:struct sf-result))))
   :definition :method
   :documentation			; FDL
   "The Riemann zeta function zeta(s) for arbitrary s, s \ne 1.")
@@ -70,7 +70,7 @@
 ;;;;****************************************************************************
 
 (defmfun hurwitz-zeta (s q)
-  "gsl_sf_hzeta_e" ((s :double) (q :double) (ret sf-result))
+  "gsl_sf_hzeta_e" ((s :double) (q :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The Hurwitz zeta function zeta(s,q) for s > 1, q > 0.")
 
@@ -79,7 +79,7 @@
 ;;;;****************************************************************************
 
 (defmfun eta (s)
-  "gsl_sf_eta_e" ((s :double) (ret sf-result))
+  "gsl_sf_eta_e" ((s :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The eta function eta(s) for arbitrary s.")
 

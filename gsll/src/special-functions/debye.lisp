@@ -1,8 +1,8 @@
 ;; Deybe functions
 ;; Liam Healy, Sun Mar 19 2006 - 14:34
-;; Time-stamp: <2009-12-27 10:10:05EST debye.lisp>
+;; Time-stamp: <2011-10-29 23:35:07EDT debye.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -29,24 +29,24 @@ Stegun, Section 27.1.
 (in-package :gsl)
 
 (defmfun debye-1 (x)
-  "gsl_sf_debye_1_e" ((x :double) (ret sf-result))
+  "gsl_sf_debye_1_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The first-order Debye function D_1(x) = (1/x) \int_0^x dt (t/(e^t - 1)).")
 
 (defmfun debye-2 (x)
-  "gsl_sf_debye_2_e" ((x :double) (ret sf-result))
+  "gsl_sf_debye_2_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The second-order Debye function
    D_2(x) = (2/x^2) \int_0^x dt (t^2/(e^t - 1)).")
 
 (defmfun debye-3 (x)
-  "gsl_sf_debye_3_e" ((x :double) (ret sf-result))
+  "gsl_sf_debye_3_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The third-order Debye function
    D_3(x) = (3/x^3) \int_0^x dt (t^3/(e^t - 1)).")
 
 (defmfun debye-4 (x)
-  "gsl_sf_debye_4_e" ((x :double) (ret sf-result))
+  "gsl_sf_debye_4_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The fourth-order Debye function
   D_4(x) = (4/x^4) \int_0^x dt (t^4/(e^t - 1)).")

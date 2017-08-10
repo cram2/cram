@@ -1,0 +1,117 @@
+<html lang="en">
+<head>
+<title>The foreign-array class - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Creating-a-grid.html#Creating-a-grid" title="Creating a grid">
+<link rel="prev" href="Reader-macro-and-function-_0040code_007bgrid_007d.html#Reader-macro-and-function-_0040code_007bgrid_007d" title="Reader macro and function @code{grid}">
+<link rel="next" href="Simple-grids-and-default-values.html#Simple-grids-and-default-values" title="Simple grids and default values">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="The-foreign-array-class"></a>
+<a name="The-foreign_002darray-class"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Simple-grids-and-default-values.html#Simple-grids-and-default-values">Simple grids and default values</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Reader-macro-and-function-_003ccode_003egrid_003c_002fcode_003e.html#Reader-macro-and-function-_003ccode_003egrid_003c_002fcode_003e">Reader macro and function &lt;code&gt;grid&lt;/code&gt;</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Creating-a-grid.html#Creating-a-grid">Creating a grid</a>
+<hr>
+</div>
+
+<h4 class="subsection">4.2.2 The <samp><span class="command">foreign-array</span></samp> class</h4>
+
+<p><a name="index-Class_002c-foreign_002darray-103"></a><a name="index-Foreign-array-104"></a><a name="index-Array-accessible-in-non_002dLisp-language-105"></a><a name="index-C-array-106"></a><a name="index-Fortran-array-107"></a><a name="index-Array_002c-C-108"></a><a name="index-Array_002c-foreign-109"></a><a name="index-Matrix_002c-foreign-110"></a><a name="index-Vector_002c-foreign-111"></a>The <samp><span class="command">foreign-array</span></samp> class
+uses <a href="http://common-lisp.net/project/cffi/"><samp><span class="command">CFFI</span></samp></a> to allow the use
+of C arrays as grids. Load the system <code>foreign-array</code> to enable use of foreign arrays.
+
+   <p>Classes of vectors and matrices are named by appending the element
+type as hypenated words to "vector" or "matrix".  The following table
+shows the classes available on a 64-bit platform:
+   <p><table summary="">     <tr align="left"><th valign="top" width="20%">Element type </th><th valign="top" width="20%">Vector class </th><th valign="top" width="20%">Matrix class </th><th valign="top" width="20%">#m prefix
+     <br></th></tr><tr align="left"><td valign="top" width="20%">double-float
+     </td><td valign="top" width="20%"><code>vector-double-float</code>
+     </td><td valign="top" width="20%"><code>matrix-double-float</code>
+     </td><td valign="top" width="20%">1 or empty
+     <br></td></tr><tr align="left"><td valign="top" width="20%">(complex double-float)
+     </td><td valign="top" width="20%"><code>vector-complex-double-float</code>
+     </td><td valign="top" width="20%"><code>matrix-complex-double-float</code>
+     </td><td valign="top" width="20%">2
+     <br></td></tr><tr align="left"><td valign="top" width="20%">single-float
+     </td><td valign="top" width="20%"><code>vector-single-float</code>
+     </td><td valign="top" width="20%"><code>matrix-single-float</code>
+     </td><td valign="top" width="20%">3
+     <br></td></tr><tr align="left"><td valign="top" width="20%">(complex single-float)
+     </td><td valign="top" width="20%"><code>vector-complex-single-float</code>
+     </td><td valign="top" width="20%"><code>matrix-complex-single-float</code>
+     </td><td valign="top" width="20%">4
+     <br></td></tr><tr align="left"><td valign="top" width="20%">(signed-byte 8)
+     </td><td valign="top" width="20%"><code>vector-signed-byte-8</code>
+     </td><td valign="top" width="20%"><code>matrix-signed-byte-8</code>
+     </td><td valign="top" width="20%">7
+     <br></td></tr><tr align="left"><td valign="top" width="20%">(unsigned-byte 8)
+     </td><td valign="top" width="20%"><code>vector-unsigned-byte-8</code>
+     </td><td valign="top" width="20%"><code>matrix-unsigned-byte-8</code>
+     </td><td valign="top" width="20%">8
+     <br></td></tr><tr align="left"><td valign="top" width="20%">(signed-byte 16)
+     </td><td valign="top" width="20%"><code>vector-signed-byte-16</code>
+     </td><td valign="top" width="20%"><code>matrix-signed-byte-16</code>
+     </td><td valign="top" width="20%">15
+     <br></td></tr><tr align="left"><td valign="top" width="20%">(unsigned-byte 16)
+     </td><td valign="top" width="20%"><code>vector-unsigned-byte-16</code>
+     </td><td valign="top" width="20%"><code>matrix-unsigned-byte-16</code>
+     </td><td valign="top" width="20%">16
+     <br></td></tr><tr align="left"><td valign="top" width="20%">(signed-byte 32)
+     </td><td valign="top" width="20%"><code>vector-signed-byte-32</code>
+     </td><td valign="top" width="20%"><code>matrix-signed-byte-32</code>
+     </td><td valign="top" width="20%">31
+     <br></td></tr><tr align="left"><td valign="top" width="20%">(unsigned-byte 32)
+     </td><td valign="top" width="20%"><code>vector-unsigned-byte-32</code>
+     </td><td valign="top" width="20%"><code>matrix-unsigned-byte-32</code>
+     </td><td valign="top" width="20%">32
+     <br></td></tr><tr align="left"><td valign="top" width="20%">(signed-byte 64)
+     </td><td valign="top" width="20%"><code>vector-signed-byte-64</code>
+     </td><td valign="top" width="20%"><code>matrix-signed-byte-64</code>
+     </td><td valign="top" width="20%">63
+     <br></td></tr><tr align="left"><td valign="top" width="20%">(unsigned-byte 64)
+     </td><td valign="top" width="20%"><code>vector-unsigned-byte-64</code>
+     </td><td valign="top" width="20%"><code>matrix-unsigned-byte-64</code>
+     </td><td valign="top" width="20%">64
+   <br></td></tr></table>
+
+   <p>A foreign array is especially useful when sending or receiving data from a foreign library.  In that case, the generic function <code>grid:foreign-pointer</code> should be called on the foreign array in order to obtain the pointer that the foreign library needs.  The identical contents as a CL array is available with the function <code>cl-array</code> under two conditions: the <a href="http://gitorious.org/iolib/static-vectors">static-vectors</a> system is installed and supported for the CL implementation used, and foreign array was <em>not</em> made with <a href="make_002dforeign_002darray_002dfrom_002dpointer.html#make_002dforeign_002darray_002dfrom_002dpointer">make-foreign-array-from-pointer</a>.  If it does exist, this array is the same as the foreign array (not a copy), so for example changing one changes the other:
+<pre class="example">     
+     ANTIK-USER&gt; (defparameter *my-fa* (make-foreign-array 'double-float :dimensions 3))
+     ANTIK-USER&gt; *my-fa*
+     #m(0.000000000000000d0 1.000000000000000d0 2.000000000000000d0)
+     ANTIK-USER&gt; (cl-array *my-fa*)
+     #(0.0 1.0 2.0)
+     ANTIK-USER&gt; (setf (grid:aref *my-fa* 1) 33.3d0)
+     33.3
+     ANTIK-USER&gt;  *my-fa*
+     #m(0.000000000000000d0 33.300000000000000d0 2.000000000000000d0)
+     ANTIK-USER&gt; (cl-array *my-fa*)
+     #(0.0 33.3 2.0)
+     ANTIK-USER&gt; (setf (aref (cl-array *my-fa*) 1) 22.2d0)
+     22.2
+     ANTIK-USER&gt; *my-fa*
+     #m(0.000000000000000d0 22.200000000000000d0 2.000000000000000d0)
+</pre>
+   </body></html>
+

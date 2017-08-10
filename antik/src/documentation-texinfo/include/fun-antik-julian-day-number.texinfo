@@ -1,0 +1,7 @@
+@deffn {Function} {antik:julian-day-number} dtspec @&optional modified fractional-day
+@findex antik:julian-day-number
+Julian day number at noon of the day, or modified Julian day at
+   the start of the day, independent of timescale.
+   Algorithm given in
+   http://www.pauahtun.org/CalendarFAQ/cal/node3.html#SECTION003151000000000000000.
+@end deffn

@@ -15,7 +15,7 @@
   <url type="bugtracker">https://github.com/cram2/cram_3rdparty/issues</url>
   <url type="repository">https://github.com/cram2/cram_3rdparty</url>
   <url type="repository">https://github.com/cl-babel/babel.git</url>
-  <!--external-version>v0.5.0</external-version-->
+  <!--external-version>babel-20170630-git</external-version-->
 
   <buildtool_depend>catkin</buildtool_depend>
 

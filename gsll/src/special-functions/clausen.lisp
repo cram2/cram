@@ -1,8 +1,8 @@
 ;; Clausen function
 ;; Liam Healy, Sat Mar 18 2006 - 23:18
-;; Time-stamp: <2009-12-27 10:10:07EST clausen.lisp>
+;; Time-stamp: <2011-10-29 23:31:30EDT clausen.lisp>
 ;;
-;; Copyright 2006, 2007, 2008 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -21,7 +21,7 @@
 (in-package :gsl)
 
 (defmfun clausen (x)
-  "gsl_sf_clausen_e" ((x :double) (ret sf-result))
+  "gsl_sf_clausen_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The Clausen integral Cl_2(x).")
 

@@ -1,8 +1,8 @@
 ;; Example FFT: transform a pulse (using the "clean" fft interface)
 ;; Sumant Oemrawsingh, Sat Oct 31 2009 - 00:24
-;; Time-stamp: <2010-07-07 14:21:55EDT example.lisp>
+;; Time-stamp: <2011-05-26 12:37:35EDT example.lisp>
 ;;
-;; Copyright 2009 Sumant Oemrawsingh, Liam M. Healy
+;; Copyright 2009, 2010, 2011 Sumant Oemrawsingh, Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -42,10 +42,10 @@
   (assert (and (integerp dimension) (> dimension 20)))
   (let ((pulse (grid:make-foreign-array element-type :dimensions dimension))
         (init-value (coerce 1 element-type)))
-    (setf (grid:gref pulse 0) init-value)
+    (setf (grid:aref pulse 0) init-value)
     (loop for i from 1 to 10
-          do (setf (grid:gref pulse i) init-value
-                   (grid:gref pulse (- dimension i)) init-value))
+          do (setf (grid:aref pulse i) init-value
+                   (grid:aref pulse (- dimension i)) init-value))
     (forward-fourier-transform pulse)))
 
 (save-test
@@ -73,85 +73,138 @@
     (setf urand-seed 1)
     (values)))
 
+(defun make-and-init-vector (element-type size &key init-offset)
+  "Make a vector of the given element type and size. If init-offset is given,
+   it is assumed to be a valid number, with which the vector is initialised;
+   each element is set to a unique, predetermined value. See also test.c in
+   GSL's fft directory."
+  (let ((vec (grid:make-foreign-array element-type :dimensions (list size))))
+    (when init-offset
+      (loop for i from 0 below size
+            do
+            (setf (grid:aref vec i)
+                  (if (subtypep element-type 'complex)
+                    (coerce (complex (+ (* 2 i) init-offset)
+                                     (+ (* 2 i) init-offset 1))
+                            element-type)
+                    (coerce (+ i init-offset) element-type))))
+    vec)))
+
 ;; (make-urand-vector '(complex double-float) 5)
-(defun make-urand-vector (element-type dimension &key (stride 1))
+(defun make-urand-vector (element-type dimension &key (stride 1) init-offset)
   "Make a vector with random elements."
-  (let ((vec (grid:make-foreign-array `(complex ,(grid:component-float-type element-type))
-			  :dimensions (list (* stride dimension)))))
+  (let ((vec (make-and-init-vector `(complex ,(grid:component-float-type element-type))
+                                   (* stride dimension) :init-offset init-offset)))
     (loop for i from 0 below (* stride dimension) by stride
        do
-       (setf (grid:gref vec i)
+       (setf (grid:aref vec i)
 	     (if (subtypep element-type 'complex)
 		 (coerce (complex (urand) (urand)) element-type)
 		 (complex (coerce (urand) element-type)))))
     vec))
 
-(defun realpart-vector (complex-vector)
+(defun realpart-vector (complex-vector &key (stride 1) init-offset)
   "The real vector consisting of the real part of the complex vector."
   (let ((real-vector
-	 (grid:make-foreign-array
-	  (grid:component-float-type (element-type complex-vector))
-	  :dimensions (dimensions complex-vector))))
-    (loop for i below (size complex-vector) do
-	 (setf (grid:gref real-vector i)
-	       (realpart (grid:gref complex-vector i))))
+          (make-and-init-vector
+            (grid:component-float-type (grid:element-type complex-vector))
+            (size complex-vector)
+            :init-offset init-offset)))
+    (loop for i below (size complex-vector) by stride
+          do
+          (setf (grid:aref real-vector i)
+                (realpart (grid:aref complex-vector i))))
     real-vector))
 
-(defun size-vector-real (vector &key (stride 1))
+(defun copy-with-stride (vector &key (stride 1) init-offset)
+  "Copy a vector and initialize it."
+  (let ((vec
+	 (make-and-init-vector
+	  (grid:element-type vector)
+	  (size vector)
+	  :init-offset init-offset)))
+    (loop for i below (size vector) by stride
+          do
+       (setf (grid:aref vec i) (grid:aref vector i)))
+    vec))
+
+(defun size-vector-scalar (vector &key (stride 1))
   "Return the size of a vector while taking the stride into account."
-  (coerce (floor (size vector) stride) (element-type vector)))
+  (coerce (floor (size vector) stride)
+	  (if (subtypep (grid:element-type vector) 'complex)
+	      (grid:element-type vector)
+	      'double-float)))
 
+#+nil
 (defun vector/length (vector stride)
-  (elt/ vector (size-vector-real vector :stride stride)))
+  (elt/ vector (size-vector-scalar vector :stride stride)))
 
-(defun test-real-fft-noise (vector &key (stride 1))
+(defun vector/length (vector &key (stride 1))
+  (let ((element-type (grid:element-type vector)))
+    (loop with length = (size-vector-scalar vector :stride stride)
+          for i from 0 below (size vector) by stride
+          do
+          (setf (grid:aref vector i) (coerce (/ (grid:aref vector i) length) element-type)))
+  vector))
+
+(defun test-real-fft-noise (vector &key (stride 1) non-radix-2)
   "Test forward and inverse FFT for a real vector, and return both results in unpacked form."
   (let* ((forward
-	  (forward-fourier-transform (realpart-vector vector) :stride stride))
+	  (forward-fourier-transform (realpart-vector vector :stride stride :init-offset 0)
+                                     :stride stride :non-radix-2 non-radix-2))
          (inverse
-	  (forward-fourier-transform (copy forward) :half-complex t :stride stride)))
+	  (forward-fourier-transform (copy forward) :half-complex t :stride stride
+				     :non-radix-2 non-radix-2)))
     (values (unpack forward :unpack-type 'complex :stride stride)
-            (unpack (vector/length inverse stride) :stride stride))))
+            (unpack (vector/length inverse :stride stride) :stride stride))))
 
-(defun test-complex-fft-noise (vector &key (stride 1))
+(defun test-complex-fft-noise (vector &key (stride 1) non-radix-2)
   "Test forward, inverse and backward FFT for a complex vector and return all three results."
-  (let ((forward (forward-fourier-transform (copy vector) :stride stride)))
+  (let ((forward
+          (forward-fourier-transform
+            (copy-with-stride vector :stride stride :init-offset 2000)
+            :stride stride :non-radix-2 non-radix-2)))
     (values forward
-	    (inverse-fourier-transform (copy forward) :stride stride)
-	    (backward-fourier-transform (copy forward) :stride stride))))
+	    (inverse-fourier-transform (copy-with-stride forward :stride stride :init-offset 0)
+                                       :stride stride :non-radix-2 non-radix-2)
+            ;; in backward-fourier-transform, we could use copy instead of ;;
+            ;; copy-with-stride
+            (backward-fourier-transform (copy-with-stride forward :init-offset
+                                                          2000)
+                                        :stride stride :non-radix-2 non-radix-2))))
 
-(defun test-fft-noise (element-type size &key (stride 1))
-  "A test of real forward and complex forward, revese, and inverse FFT
+(defun test-fft-noise (element-type size &key (stride 1) non-radix-2)
+  "A test of real forward and complex forward, reverse, and inverse FFT
    on random noise.  Returns the result of the DFT forward Fourier transformation
    and the forward FFT, which should be the same, and the original vector and the
    inverse FFT, which should also be the same.  In addition,
    the backward Fourier transform is returned for complex vectors, which
    should be the same as the last two."
-  (let* ((random-vector (make-urand-vector element-type size :stride stride))
-	 (dft-random-vector
-	  (forward-discrete-fourier-transform random-vector :stride stride)))
+  (let* ((random-vector (make-urand-vector element-type size :stride stride
+                                           :init-offset 1000))
+         (dft-random-vector
+           (forward-discrete-fourier-transform random-vector :stride stride
+                                               :result (make-and-init-vector
+                                                         `(complex ,(grid:component-float-type element-type))
+                                                         (* size stride)
+                                                         :init-offset 3000))))
     (if (subtypep element-type 'complex)
 	(multiple-value-bind (forward inverse backward)
-	    (test-complex-fft-noise random-vector :stride stride)
+	    (test-complex-fft-noise random-vector :stride stride
+				    :non-radix-2 non-radix-2)
 	  (values
-	   dft-random-vector
-	   forward
-	   random-vector
-	   inverse
-	   (if (and (have-at-least-gsl-version '(1 12)) #+fsbv t #-fsbv nil)
-	       (elt/ (copy backward) (size-vector-real backward :stride stride))
-	       ;; Hack for old GSL version without complex vector math
-	       (grid:make-foreign-array
-		(element-type backward)
-		:dimensions (dimensions backward)
-		:initial-contents
-		(map 'list
-		     (lambda (x) (/ x (floor (size backward) stride)))
-		     (grid:copy-to backward))))))
+	   dft-random-vector		; DFT forward result for reference
+	   forward			; FFT forward result; should check
+	   random-vector		; The original vector for reference
+	   inverse			; The inverse FFT applied to the forward result
+	   (vector/length backward :stride stride)))
 	(multiple-value-bind (forward inverse)
-	    (test-real-fft-noise random-vector :stride stride)
+	    (test-real-fft-noise random-vector :stride stride
+				 :non-radix-2 non-radix-2)
 	  (values dft-random-vector forward random-vector inverse)))))
 
+;; (test-fft-noise '(complex double-float) 2 :stride 2)
+;; (test-fft-noise '(complex double-float) 10 :stride 2)
 ;; (test-fft-noise 'double-float 10 :stride 1)
 ;; (test-fft-noise '(complex double-float) 10 :stride 1)
 

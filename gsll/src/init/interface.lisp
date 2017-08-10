@@ -1,8 +1,8 @@
 ;; Macros to interface GSL functions, including definitions necessary for defmfun.
 ;; Liam Healy 
-;; Time-stamp: <2010-06-29 19:42:14EDT interface.lisp>
+;; Time-stamp: <2016-08-06 10:40:27EDT interface.lisp>
 ;;
-;; Copyright 2009 Liam M. Healy
+;; Copyright 2009, 2010, 2016 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -40,10 +40,6 @@
 ;;;;****************************************************************************
 ;;;; Declare foreign objects
 ;;;;****************************************************************************
-
-(defmacro scref (size &optional (index 0))
-  "Reference C size(s)."
-  `(cffi:mem-aref ,size 'sizet ,index))
 
 (defun wfo-declare (d cbinfo)
   `(,(grid:st-symbol d)
@@ -131,23 +127,5 @@
 	  'obsolete-gsl-version :name ',cl-symbol :gsl-name
 	  ,gsl-symbol :gsl-version ',gsl-version ))))
 
-;;;;****************************************************************************
-;;;; GSL library version
-;;;;****************************************************************************
-
-(cffi:defcvar ("gsl_version" *gsl-version* :read-only t) :string
-          "The version of the GSL library being used.")
+;;; Moved definition of *gsl-version* earlier, before map-name has been defined, so leave this here.
 (map-name '*gsl-version* "gsl_version")
-(export '*gsl-version*)
-
-(defun have-at-least-gsl-version (major-minor)
-  "The GSL version currently running is at least the specified
-  major/minor version."
-  (or (null major-minor)
-      (let* ((sep-pos (position #\. *gsl-version*))
-	     (my-major
-	      (read-from-string *gsl-version* nil nil :end sep-pos))
-	     (my-minor
-	      (read-from-string *gsl-version* nil nil :start (1+ sep-pos))))
-	(and (>= my-major (first major-minor))
-	     (>= my-minor (second major-minor))))))

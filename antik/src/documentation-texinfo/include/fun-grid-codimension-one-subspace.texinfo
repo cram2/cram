@@ -1,0 +1,7 @@
+@deffn {Function} {grid:codimension-one-subspace} grid position index @&optional destination
+@findex grid:codimension-one-subspace
+Select a subspace with rank one less than the argument grid.  The
+   position is a non-negative number indicating which dimension is to be
+   dropped, and index is the fixed value it should have.  If
+   destination is specified, the result will be written to that grid.
+@end deffn

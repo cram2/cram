@@ -1,0 +1,65 @@
+<html lang="en">
+<head>
+<title>The grid concept - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Introduction-to-grids.html#Introduction-to-grids" title="Introduction to grids">
+<link rel="prev" href="Introduction-to-grids.html#Introduction-to-grids" title="Introduction to grids">
+<link rel="next" href="Types-of-grids.html#Types-of-grids" title="Types of grids">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="The-grid-concept"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Types-of-grids.html#Types-of-grids">Types of grids</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Introduction-to-grids.html#Introduction-to-grids">Introduction to grids</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Introduction-to-grids.html#Introduction-to-grids">Introduction to grids</a>
+<hr>
+</div>
+
+<h4 class="subsection">4.1.1 The grid concept</h4>
+
+<p>In scientific and engineering computing, data is frequently organized
+into a regular pattern indexed by a finite sequence of integers, and
+thought of having a Cartesian arrangement. 
+We call these <dfn>grids</dfn>. 
+A standard form is the <dfn>array</dfn>, but we do not wish to confine
+ourselves to representation in terms of
+<a href="http://www.lispworks.com/documentation/lw50/CLHS/Body/t_array.htm">a Common Lisp array</a>.  Other examples might be a list of lists, a C array
+accessible through a foreign function interface, or an SQL table.  We
+assume a rectangular shape; that is, the range of indices permissible is
+independent of the other values of the index.  Each node of the grid is
+an <dfn>element</dfn> (or sometimes a <dfn>component</dfn>).
+
+   <p>Since we are primarily focused on the scientific and engineering
+applications, the elements will generally be numbers of some type.  Most
+of the definitions here however do not force this to be the case.
+
+   <p>The <dfn>rank</dfn> of a grid is the number of Cartesian axes, and the
+<dfn>dimensions</dfn> are a sequence of non-negative integers of length equal
+to the rank that give the number of index values possible along each
+axis.  We will call a grid of rank 1 a <dfn>vector</dfn> (where there would
+not be a confusion with the
+<a href="http://www.lispworks.com/documentation/HyperSpec/Body/t_vector.htm">CL vector</a>) and a grid of rank 2 a <dfn>matrix</dfn>.  For example, a matrix
+representing rotations in three dimensional space would have rank 2 and
+dimensions (3 3).
+
+   </body></html>
+

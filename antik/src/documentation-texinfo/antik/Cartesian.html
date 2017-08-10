@@ -1,0 +1,78 @@
+<html lang="en">
+<head>
+<title>Cartesian - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Three-Dimensional-Space.html#Three-Dimensional-Space" title="Three Dimensional Space">
+<link rel="prev" href="Three-Dimensional-Space.html#Three-Dimensional-Space" title="Three Dimensional Space">
+<link rel="next" href="Polar.html#Polar" title="Polar">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Cartesian"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Polar.html#Polar">Polar</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Three-Dimensional-Space.html#Three-Dimensional-Space">Three Dimensional Space</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Three-Dimensional-Space.html#Three-Dimensional-Space">Three Dimensional Space</a>
+<hr>
+</div>
+
+<h3 class="section">8.1 Cartesian</h3>
+
+<p><a name="index-Cartesian-space-392"></a><a name="index-Functions_002c-Cartesian-space-393"></a>
+
+<div class="defun">
+&mdash; Function: <b>antik:coordinate-unit-vector</b><var> i &amp;optional length<a name="index-antik_003acoordinate_002dunit_002dvector-394"></a></var><br>
+<blockquote><p><a name="index-antik_003acoordinate_002dunit_002dvector-395"></a>A coordinate unit vector. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>antik:coplanar</b><var> vect1-or-matrix &amp;optional vect2 vect3<a name="index-antik_003acoplanar-396"></a></var><br>
+<blockquote><p><a name="index-antik_003acoplanar-397"></a>The cosine of the angle between vect1 and the cross product of vect2 and vect3. 
+   This should be near zero if the vectors are coplanar. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>antik:distance</b><var> a b &amp;optional combination-function<a name="index-antik_003adistance-398"></a></var><br>
+<blockquote><p><a name="index-antik_003adistance-399"></a>The length of the vector and the vector difference a-b. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>antik:first-3vector</b><var> vec<a name="index-antik_003afirst_002d3vector-400"></a></var><br>
+<blockquote><p><a name="index-antik_003afirst_002d3vector-401"></a>Extract the first 3-vector. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>antik:right-angle</b><var> vector<a name="index-antik_003aright_002dangle-402"></a></var><br>
+<blockquote><p><a name="index-antik_003aright_002dangle-403"></a>Find an arbitrary right angle to the vector. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>antik:second-3vector</b><var> vec<a name="index-antik_003asecond_002d3vector-404"></a></var><br>
+<blockquote><p><a name="index-antik_003asecond_002d3vector-405"></a>Extract the second 3-vector. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>antik:vector-angle</b><var> a b<a name="index-antik_003avector_002dangle-406"></a></var><br>
+<blockquote><p><a name="index-antik_003avector_002dangle-407"></a>The short angle between a and b, and the rotation vector. 
+</p></blockquote></div>
+
+   </body></html>
+

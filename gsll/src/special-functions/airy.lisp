@@ -1,8 +1,8 @@
 ;; Airy functions
 ;; Liam Healy, Fri Mar 17 2006 - 18:41
-;; Time-stamp: <2009-12-27 10:10:07EST airy.lisp>
+;; Time-stamp: <2012-01-13 12:01:16EST airy.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -25,69 +25,77 @@
 ;;;;****************************************************************************
 
 (defmfun airy-Ai (x &optional (mode :double))
-    "gsl_sf_airy_Ai_e" ((x :double) (mode sf-mode) (ret sf-result))
+    "gsl_sf_airy_Ai_e"
+  ((x :double) (mode sf-mode) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The Airy function Ai(x).")
 
 (defmfun airy-Bi (x &optional (mode :double))
-  "gsl_sf_airy_Bi_e" ((x :double) (mode sf-mode) (ret sf-result))
+  "gsl_sf_airy_Bi_e"
+  ((x :double) (mode sf-mode) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The Airy function Bi(x).")
 
 (defmfun airy-Ai-scaled (x &optional (mode :double))
-  "gsl_sf_airy_Ai_scaled_e" ((x :double) (mode sf-mode) (ret sf-result))
+  "gsl_sf_airy_Ai_scaled_e"
+  ((x :double) (mode sf-mode) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The scaled Airy function S_A(x) Ai(x).
    For x>0 the scaling factor S_A(x) is \exp(+(2/3) x^(3/2)),
    and is 1 for x<0.")
 
 (defmfun airy-Bi-scaled (x &optional (mode :double))
-  "gsl_sf_airy_Bi_scaled_e" ((x :double) (mode sf-mode) (ret sf-result))
+  "gsl_sf_airy_Bi_scaled_e"
+  ((x :double) (mode sf-mode) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The scaled Airy function S_B(x) Bi(x).
    For x>0 the scaling factor S_B(x) is exp(-(2/3) x^(3/2)),
    and is 1 for x<0.")
 
 (defmfun airy-Ai-deriv (x &optional (mode :double))
-  "gsl_sf_airy_Ai_deriv_e" ((x :double) (mode sf-mode) (ret sf-result))
+  "gsl_sf_airy_Ai_deriv_e"
+  ((x :double) (mode sf-mode) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The Airy function derivative Ai'(x).")
 
 (defmfun airy-Bi-deriv (x &optional (mode :double))
-  "gsl_sf_airy_Bi_deriv_e" ((x :double) (mode sf-mode) (ret sf-result))
+  "gsl_sf_airy_Bi_deriv_e"
+  ((x :double) (mode sf-mode) (ret (:pointer (:struct sf-result))))
   :documentation "The Airy function derivative Bi'(x).")
 
 (defmfun airy-Ai-deriv-scaled (x &optional (mode :double))
-  "gsl_sf_airy_Ai_deriv_scaled_e" ((x :double) (mode sf-mode) (ret sf-result))
+  "gsl_sf_airy_Ai_deriv_scaled_e"
+  ((x :double) (mode sf-mode) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The scaled Airy function derivative S_A(x) Ai'(x).
   For x>0 the scaling factor S_A(x) is exp(+(2/3) x^(3/2)),
   and is 1 for x<0.")
 
 (defmfun airy-Bi-deriv-scaled (x &optional (mode :double))
-  "gsl_sf_airy_Bi_deriv_scaled_e" ((x :double) (mode sf-mode) (ret sf-result))
+  "gsl_sf_airy_Bi_deriv_scaled_e"
+  ((x :double) (mode sf-mode) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The scaled Airy function derivative S_B(x) Bi'(x).
    For x>0 the scaling factor S_B(x) is
    exp(-(2/3) x^(3/2)), and is 1 for x<0.")
 
 (defmfun airy-zero-Ai (s)
-  "gsl_sf_airy_zero_Ai_e" ((s sizet) (ret sf-result))
+  "gsl_sf_airy_zero_Ai_e" ((s :sizet) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The location of the s-th zero of the Airy function Ai(x).")
 
 (defmfun airy-zero-Bi (s)
-  "gsl_sf_airy_zero_Bi_e" ((s sizet) (ret sf-result))
+  "gsl_sf_airy_zero_Bi_e" ((s :sizet) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The location of the s-th zero of the Airy function Bi(x).")
 
 (defmfun airy-zero-Ai-deriv (s)
-  "gsl_sf_airy_zero_Ai_deriv_e" ((s sizet) (ret sf-result))
+  "gsl_sf_airy_zero_Ai_deriv_e" ((s :sizet) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The location of the s-th zero of the Airy function derivative Ai'(x).")
 
 (defmfun airy-zero-Bi-deriv (s)
-  "gsl_sf_airy_zero_Bi_deriv_e" ((s sizet) (ret sf-result))
+  "gsl_sf_airy_zero_Bi_deriv_e" ((s :sizet) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The location of the s-th zero of the Airy function derivative Bi'(x).")
 

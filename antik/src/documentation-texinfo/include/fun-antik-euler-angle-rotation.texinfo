@@ -1,0 +1,4 @@
+@deffn {Function} {antik:euler-angle-rotation} rot3a rot1 rot3b @&optional passive
+@findex antik:euler-angle-rotation
+Compute the matrix for a @code{3-1-3} rotation.  See Curtis (9.118).
+@end deffn

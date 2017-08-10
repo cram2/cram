@@ -1,0 +1,5 @@
+@deffn {Function} {antik:datime+} tp time
+@findex antik:datime+
+Add the time to the timepoint.  If time is a number,
+   it is assumed to represent seconds.
+@end deffn

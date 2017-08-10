@@ -1,0 +1,4 @@
+@deffn {Generic Function} {grid:inner} grid0 grid1
+@findex grid:inner
+The inner product of two grids.
+@end deffn

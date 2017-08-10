@@ -1,8 +1,8 @@
 ;; LU decomposition
 ;; Liam Healy, Thu Apr 27 2006 - 12:42
-;; Time-stamp: <2010-07-07 14:24:59EDT lu.lisp>
+;; Time-stamp: <2011-01-30 11:00:48EST lu.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -23,7 +23,7 @@
 ;;; /usr/include/gsl/gsl_linalg.h
 
 (defmfun LU-decomposition
-    ((A matrix) &optional (permutation (make-permutation (dim0 A))))
+    ((A grid:matrix) &optional (permutation (make-permutation (dim0 A))))
   ("gsl_linalg" :complex "_LU_decomp")
   (((mpointer A) :pointer) ((mpointer permutation) :pointer)
    (signum (:pointer :int)))
@@ -53,10 +53,10 @@
   Algorithm 3.4.1).")
 
 (defmfun LU-solve
-    ((A matrix) (b vector) permutation &optional x-spec
+    ((A grid:matrix) (b vector) permutation &optional x-spec
      &aux
      (x (if (eq x-spec t)
-	    (grid:make-foreign-array element-type :dimensions (dimensions b))
+	    (grid:make-foreign-array element-type :dimensions (grid:dimensions b))
 	    x-spec)))
   (("gsl_linalg" :complex "_LU_svx")
    ("gsl_linalg" :complex "_LU_solve"))
@@ -78,7 +78,7 @@
   will be computed there.  Otherwise it should be a supplied vector.")
 
 (defmfun LU-refine
-    ((A matrix) LU p (b vector) (x vector)
+    ((A grid:matrix) LU p (b vector) (x vector)
      &optional (residual (grid:make-foreign-array element-type :dimensions (dim0 A))))
   ("gsl_linalg" :complex "_LU_refine")
   (((mpointer A) :pointer) ((mpointer LU) :pointer)
@@ -95,7 +95,10 @@
   A x = b, using the LU decomposition of A into (LU,p). The initial
   residual r = A x - b is also computed and stored in residual. ")
 
-(defmfun LU-invert ((LU matrix) p inverse)
+(defmfun LU-invert
+    ((LU grid:matrix) p
+     &optional (inverse
+		(grid:make-foreign-array element-type :dimensions (grid:dimensions LU))))
   ("gsl_linalg" :complex "_LU_invert")
   (((mpointer LU) :pointer) ((mpointer p) :pointer)
    ((mpointer inverse) :pointer))
@@ -112,7 +115,7 @@
    the same result more efficiently and reliably (consult any
    introductory textbook on numerical linear algebra for details).")
 
- (defmfun LU-determinant ((LU matrix) signum)
+(defmfun LU-determinant ((LU grid:matrix) signum)
   ("gsl_linalg" :complex "_LU_det")
   (((mpointer LU) :pointer) (signum :int))
   :definition :generic
@@ -124,7 +127,7 @@
   decomposition, LU. The determinant is computed as the product of the
   diagonal elements of U and the sign of the row permutation signum.")
 
-(defmfun LU-log-determinant ((LU matrix))
+(defmfun LU-log-determinant ((LU grid:matrix))
   ("gsl_linalg" :complex "_LU_lndet")
   (((mpointer LU) :pointer))
   :definition :generic
@@ -137,7 +140,7 @@
    LU. This function may be useful if the direct computation of the
    determinant would overflow or underflow.")
 
-(defmfun LU-sgndet ((LU matrix) signum)
+(defmfun LU-sgndet ((LU grid:matrix) signum)
   ("gsl_linalg" :complex "_LU_sgndet")
   (((mpointer LU) :pointer) (signum :int))
   :definition :generic
@@ -147,28 +150,6 @@
   :documentation 			; FDL
   "Compute the sign or phase factor of the determinant of a matrix A,
   det(A)/|det(A)|, from its LU decomposition, LU.")
-
-;;; Invert a matrix using LU
-(export 'invert-matrix)
-(defun invert-matrix (mat)
-  "Invert the matrix."
-  (let* ((dim (first (dimensions mat)))
-	 (per (make-permutation dim))
-	 (inv (grid:make-foreign-array 'double-float :dimensions (list dim dim))))
-    (LU-decomposition mat per)
-    (lu-invert mat per inv)))
-
-;;; Examples and unit test
-
-;;; These are direct tests of matrix inversion
-
-(save-test
- lu
- (grid:copy-to
-  (invert-matrix
-   (grid:make-foreign-array 'double-float
-		:dimensions  '(2 2)
-		:initial-contents '(1.0d0 2.0d0 3.0d0 4.0d0)))))
 
 (generate-all-array-tests lu :doubles
  (let ((matrix (array-default '(4 4)))
@@ -192,7 +173,7 @@
    the index."
   (let* ((dim (dim0 matrix))
 	 (rhs (or vector
-		  (create-rhs-vector dim (element-type matrix)))))
+		  (create-rhs-vector dim (grid:element-type matrix)))))
     (multiple-value-bind (upper permutation signum)
 	(LU-decomposition (copy matrix))
       (declare (ignore signum))

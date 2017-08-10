@@ -1,6 +1,6 @@
 ;; Vectors
 ;; Liam Healy 2008-04-13 09:39:02EDT vector.lisp
-;; Time-stamp: <2010-06-28 11:03:32EDT vector.lisp>
+;; Time-stamp: <2012-01-13 12:01:37EST vector.lisp>
 ;;
 ;; Copyright 2008, 2009 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
@@ -28,7 +28,7 @@
 
 (defmfun set-basis ((object vector) index)
   ("gsl_" :category :type "_set_basis")
-  (((mpointer object) :pointer) (index sizet))
+  (((mpointer object) :pointer) (index :sizet))
   :definition :generic
   :inputs (object)
   :outputs (object)
@@ -39,7 +39,7 @@
 
 (defmfun swap-elements ((vec vector) i j)
   ("gsl_" :category :type "_swap_elements")
-  (((mpointer vec) :pointer) (i sizet) (j sizet))
+  (((mpointer vec) :pointer) (i :sizet) (j :sizet))
   :definition :generic
   :inputs (vec)
   :outputs (vec)

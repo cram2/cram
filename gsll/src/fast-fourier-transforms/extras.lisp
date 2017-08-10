@@ -76,12 +76,12 @@
          (zero-pos (if (evenp n) (- split 1) split)))
     ;; Positive frequencies
     (loop for i from zero-pos to (- n 1)
-          do (setf (grid:gref shifted (* i stride))
-                   (grid:gref vector (* (- i zero-pos) stride))))
+          do (setf (grid:aref shifted (* i stride))
+                   (grid:aref vector (* (- i zero-pos) stride))))
     ;; Negative frequencies
     (loop for i from (+ split 1) to (- n 1)
-          do (setf (grid:gref shifted (* (- i split 1) stride))
-                   (grid:gref vector (* i stride))))
+          do (setf (grid:aref shifted (* (- i split 1) stride))
+                   (grid:aref vector (* i stride))))
     shifted))
 
 (export 'fft-inverse-shift)
@@ -96,10 +96,10 @@
          (zero-pos (if (evenp n) (- split 1) split)))
     ;; Positive frequencies
     (loop for i from zero-pos to (- n 1)
-          do (setf (grid:gref inv-shifted (* (- i zero-pos) stride))
-                   (grid:gref vector (* i stride))))
+          do (setf (grid:aref inv-shifted (* (- i zero-pos) stride))
+                   (grid:aref vector (* i stride))))
     ;; Negative frequencies
     (loop for i from (+ split 1) to (- n 1)
-          do (setf (grid:gref inv-shifted (* i stride))
-                   (grid:gref vector (* (- i split 1) stride))))
+          do (setf (grid:aref inv-shifted (* i stride))
+                   (grid:aref vector (* (- i split 1) stride))))
     inv-shifted))

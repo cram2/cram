@@ -1,6 +1,6 @@
 ;; Regression test MATRIX-MULT-SCALAR for GSLL, automatically generated
 ;;
-;; Copyright 2009 Liam M. Healy
+;; Copyright 2009, 2014 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -30,7 +30,7 @@
                                              '((-34.5 8.24 3.29)
                                                (-8.93 34.12 -6.15)
                                                (49.27 -13.49 32.5)))))
-                           (GRID:COPY-TO (ELT* M1 1.39d0)))))
+                           (GRID:COPY-TO (ELT* M1 1.39d0) 'array 'single-float))))
                        (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
                         (LIST
                          #2A((-47.955d0 11.4536d0 4.5731d0)
@@ -42,7 +42,7 @@
                                              '((-34.5d0 8.24d0 3.29d0)
                                                (-8.93d0 34.12d0 -6.15d0)
                                                (49.27d0 -13.49d0 32.5d0)))))
-                           (GRID:COPY-TO (ELT* M1 1.39d0)))))
+                           (GRID:COPY-TO (ELT* M1 1.39d0) 'array 'double-float))))
                        (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
                         (LIST #2A((-88 -94 98) (-126 72 -13) (101 -6 -86)))
                         (MULTIPLE-VALUE-LIST
@@ -50,7 +50,7 @@
                                 (GRID:MAKE-FOREIGN-ARRAY '(SIGNED-BYTE 8) :INITIAL-CONTENTS
                                              '((-64 -68 71) (-91 52 -10)
                                                (73 -5 123)))))
-                           (GRID:COPY-TO (ELT* M1 1.39d0)))))
+                           (GRID:COPY-TO (ELT* M1 1.39d0) 'array '(signed-byte 8)))))
                        (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
                         (LIST #2A((93 61 6) (161 226 194) (223 42 136)))
                         (MULTIPLE-VALUE-LIST
@@ -59,7 +59,7 @@
                                              :INITIAL-CONTENTS
                                              '((67 44 189) (116 163 140)
                                                (161 215 98)))))
-                           (GRID:COPY-TO (ELT* M1 1.39d0)))))
+                           (GRID:COPY-TO (ELT* M1 1.39d0) 'array '(unsigned-byte 8)))))
                        (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
                         (LIST #2A((-88 -94 98) (-126 72 -13) (101 -6 170)))
                         (MULTIPLE-VALUE-LIST
@@ -68,7 +68,7 @@
                                              :INITIAL-CONTENTS
                                              '((-64 -68 71) (-91 52 -10)
                                                (73 -5 123)))))
-                           (GRID:COPY-TO (ELT* M1 1.39d0)))))
+                           (GRID:COPY-TO (ELT* M1 1.39d0) 'array '(signed-byte 16)))))
                        (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
                         (LIST #2A((93 61 262) (161 226 194) (223 298 136)))
                         (MULTIPLE-VALUE-LIST
@@ -77,7 +77,7 @@
                                              :INITIAL-CONTENTS
                                              '((67 44 189) (116 163 140)
                                                (161 215 98)))))
-                           (GRID:COPY-TO (ELT* M1 1.39d0)))))
+                           (GRID:COPY-TO (ELT* M1 1.39d0) 'array '(unsigned-byte 16)))))
                        (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
                         (LIST #2A((-88 -94 98) (-126 72 -13) (101 -6 170)))
                         (MULTIPLE-VALUE-LIST
@@ -86,7 +86,7 @@
                                              :INITIAL-CONTENTS
                                              '((-64 -68 71) (-91 52 -10)
                                                (73 -5 123)))))
-                           (GRID:COPY-TO (ELT* M1 1.39d0)))))
+                           (GRID:COPY-TO (ELT* M1 1.39d0) 'array '(signed-byte 32)))))
                        (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
                         (LIST #2A((93 61 262) (161 226 194) (223 298 136)))
                         (MULTIPLE-VALUE-LIST
@@ -95,7 +95,7 @@
                                              :INITIAL-CONTENTS
                                              '((67 44 189) (116 163 140)
                                                (161 215 98)))))
-                           (GRID:COPY-TO (ELT* M1 1.39d0)))))
+                           (GRID:COPY-TO (ELT* M1 1.39d0) 'array '(unsigned-byte 32)))))
 		       #+int64
                        (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
                         (LIST #2A((-88 -94 98) (-126 72 -13) (101 -6 170)))
@@ -105,7 +105,7 @@
                                              :INITIAL-CONTENTS
                                              '((-64 -68 71) (-91 52 -10)
                                                (73 -5 123)))))
-                           (GRID:COPY-TO (ELT* M1 1.39d0)))))
+                           (GRID:COPY-TO (ELT* M1 1.39d0) 'array '(signed-byte 64)))))
 		       #+int64
                        (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
                         (LIST #2A((93 61 262) (161 226 194) (223 298 136)))
@@ -115,5 +115,5 @@
                                              :INITIAL-CONTENTS
                                              '((67 44 189) (116 163 140)
                                                (161 215 98)))))
-                           (GRID:COPY-TO (ELT* M1 1.39d0))))))
+                           (GRID:COPY-TO (ELT* M1 1.39d0) 'array '(unsigned-byte 64))))))
 

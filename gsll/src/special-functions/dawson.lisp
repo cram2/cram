@@ -1,8 +1,8 @@
 ;; Dawson function
 ;; Liam Healy, Sun Mar 19 2006 - 14:31
-;; Time-stamp: <2009-12-27 10:10:06EST dawson.lisp>
+;; Time-stamp: <2011-10-29 23:34:56EDT dawson.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -29,7 +29,7 @@ gsl_sf_dawson.h.
 (in-package :gsl)
 
 (defmfun dawson (x)
-  "gsl_sf_dawson_e" ((x :double) (ret sf-result))
+  "gsl_sf_dawson_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "Dawson's integral for x.")
 

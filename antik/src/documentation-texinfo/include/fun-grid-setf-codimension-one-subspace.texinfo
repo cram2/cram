@@ -1,0 +1,6 @@
+@deffn {Function} {(setf grid:codimension-one-subspace)}
+@findex (setf grid:codimension-one-subspace)
+Set a subspace with rank one less than the argument grid.  The
+   index is a non-negative number indicating which dimension is to be
+   dropped, and position is the fixed value it should have.
+@end deffn

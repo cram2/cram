@@ -1,0 +1,4 @@
+@deffn {Function} {antik:format-attribute-name} name @&optional separate-components include-units include-name
+@findex antik:format-attribute-name
+Format the attribute name, and possibly the units.
+@end deffn

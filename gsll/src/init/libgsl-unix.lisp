@@ -1,6 +1,6 @@
 ;; CFFI-Grovel definitions for unix systems.
 ;; Liam Healy 2009-05-25 13:10:50EDT libgsl-unix.lisp
-;; Time-stamp: <2010-05-23 11:24:56EDT libgsl-unix.lisp>
+;; Time-stamp: <2012-01-13 12:01:08EST libgsl-unix.lisp>
 ;;
 ;; Copyright 2009 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
@@ -163,5 +163,3 @@
     ((:ETOLX "GSL_ETOLX"))
     ((:ETOLG "GSL_ETOLG"))
     ((:EOF "GSL_EOF")))
-
-(ctype sizet "size_t")

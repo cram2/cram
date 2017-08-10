@@ -1,0 +1,5 @@
+@deffn {Function} {grid:make-foreign-array} element-type @&rest keys @&key dimensions @&allow-other-keys
+@findex grid:make-foreign-array
+Make a @code{gsll} array with the given element type,
+   :dimensions, and :initial-contents, :initial-element or :data.
+@end deffn

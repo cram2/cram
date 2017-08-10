@@ -1,0 +1,9 @@
+@deffn {Function} {grid:make-grid} specification @&rest keys @&key initial-contents initial-element @&allow-other-keys
+@findex grid:make-grid
+Make a grid object with no or literal values specified.
+   The specification is of the form
+   ((component-type dimensions...) ... element-type)
+   If initial-contents are specified, the dimensions may be
+   omitted, 
+   ((component-type) ... element-type).
+@end deffn

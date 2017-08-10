@@ -1,0 +1,5 @@
+@deffn {Function} {antik:start-of-day} datime @&optional relative-day day-only
+@findex antik:start-of-day
+From the given datime, return the start of the given day,
+   relative-day = @code{0:} this day, @code{-1:} day before, @code{+1} next day, etc.
+@end deffn

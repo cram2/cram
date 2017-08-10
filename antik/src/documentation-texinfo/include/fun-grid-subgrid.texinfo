@@ -1,0 +1,4 @@
+@deffn {Function} {grid:subgrid} grid dimensions start @&key destination drop
+@findex grid:subgrid
+Create a grid from a block of an existing grid, e.g. a row from a matrix, or a block.  The dimensions give the dimensions of the subgrid, and start gives the lowest values of each index which corresponds to the subgrid element with all index values zero.  If drop is true, all singleton axes are dropped.
+@end deffn

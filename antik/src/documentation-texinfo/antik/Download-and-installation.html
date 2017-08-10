@@ -1,0 +1,66 @@
+<html lang="en">
+<head>
+<title>Download and installation - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="prev" href="Internals.html#Internals" title="Internals">
+<link rel="next" href="Copying-this-software.html#Copying-this-software" title="Copying this software">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Download-and-installation"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Copying-this-software.html#Copying-this-software">Copying this software</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Internals.html#Internals">Internals</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="index.html#Top">Top</a>
+<hr>
+</div>
+
+<h2 class="chapter">11 Download and installation</h2>
+
+<p><a name="index-Installation-of-Antik-449"></a><a name="index-Download-of-Antik-450"></a><a name="index-Dependencies-of-Antik-on-external-libraries-451"></a>The recommended way to download and install this software is through
+<a href="http://www.quicklisp.org/">quicklisp</a>.  Install quicklisp following
+the directions, then do one of:
+<pre class="example">     (ql:quickload "antik")
+</pre>
+   <p>Users that need the very latest version will need to fetch the
+repository via git.  The <a href="http://repo.or.cz/w/antik.git">gitweb page</a>
+gives a view of the commit history and information on cloning.  To
+clone,
+<pre class="example">     git clone <a href="git://repo.or.cz/antik.git">git://repo.or.cz/antik.git</a>
+</pre>
+   <p>The <code>Antik</code> system depends on
+     <ul>
+<li><a href="http://common-lisp.net/project/alexandria/">alexandria</a>
+<a href="http://common-lisp.net/project/cffi/">cffi</a>,
+<a href="http://www.cliki.net/trivial-garbage">trivial-garbage</a>, and
+<a href="http://www.cliki.net/SPLIT-SEQUENCE">split-sequence</a>. 
+In addition, there are two optional systems,
+<a href="http://repo.or.cz/w/fsbv.git">FSBV</a>, which permits usage of foreign
+arrays of complex number elements, and
+<a href="http://gitorious.org/iolib/static-vectors">static-vectors</a> gives
+foreign arrays a native Lisp view via the function <code>cl-array</code> for
+foreign arrays made in Lisp (not created in foreign code) for supported
+implementations (currently SBCL, CCL, ECL, LispWorks, and Allegro). 
+</ul>
+   Note: FSBV is for the time being mandatory.  Only one file is needed, and no foreign libraries, but until it is split into two separate systems, the whole thing must be loaded.
+
+   </body></html>
+

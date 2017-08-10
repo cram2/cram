@@ -1,0 +1,40 @@
+@deffn {Function} {grid:map-grid} @&key source source-affi source-dims destination destination-affi destination-specification initial-element element-function combination-function
+@findex grid:map-grid
+Make a new grid by mapping on an existing grid or on indices.
+   :source            The source grid; if not a grid, it is taken as a
+                      function to apply to the grid indices to make the
+                      element of the destination; if this is supplied,
+                      source is ignored and element-function is only applied
+                      to the default value.
+
+@table @emph
+
+@item    :source-affi       The affi to be used for extraction; defaults to
+                      making an affi from source-dims, then destination-specification. 
+
+@item    :source-dims       The dimensions of the source if source not supplied;
+                      if @code{nil}, dimensions are taken from destination-specification.
+
+@item    :destination       The destination grid, if not supplied, it will be made
+                      according to destination-affi and destination-specification.
+
+@item    :destination-affi  The affi for injection, defaults to (affi destination) 
+                      if destination is supplied, then
+                      makes an affi if destination-specification is supplied,
+                      otherwise source-affi.
+
+@item    :destination-specification The specification to use for the destination to be make,
+                      defaults to the specification of source.
+
+@item    :initial-element     The default value to set in a newly-created destination.
+@itemx    :element-function  The function to apply to each element of the source; defaults
+                      to coercing element to the element type of the destination.
+
+@item    :combination-function
+                      A designator for a function of two arguments,
+                      or nil (default).  If a function, it will be funcalled on
+                      the destination element and the transformed source element.
+                      If nil, the destination element is overwritten.
+@end table
+
+@end deffn

@@ -1,0 +1,4 @@
+@deffn {Function} {antik:set-state-value} value attribute state-table
+@findex antik:set-state-value
+Set the value of a particular attribute for this state.
+@end deffn

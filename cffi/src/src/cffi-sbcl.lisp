@@ -134,7 +134,8 @@
 (declaim (inline foreign-free))
 (defun foreign-free (ptr)
   "Free a PTR allocated by FOREIGN-ALLOC."
-  (declare (type system-area-pointer ptr))
+  (declare (type system-area-pointer ptr)
+           (optimize speed))
   (free-alien (sap-alien ptr (* (unsigned 8)))))
 
 (defmacro with-foreign-pointer ((var size &optional size-var) &body body)
@@ -212,40 +213,59 @@ WITH-POINTER-TO-VECTOR-DATA."
                                                  ,value)))))
            form))))
 
-(define-mem-accessors
-  (:char sb-sys:signed-sap-ref-8)
-  (:unsigned-char sb-sys:sap-ref-8)
-  (:short sb-sys:signed-sap-ref-16)
-  (:unsigned-short sb-sys:sap-ref-16)
-  (:int sb-sys:signed-sap-ref-32)
-  (:unsigned-int sb-sys:sap-ref-32)
-  (:long sb-sys:signed-sap-ref-word)
-  (:unsigned-long sb-sys:sap-ref-word)
-  (:long-long sb-sys:signed-sap-ref-64)
-  (:unsigned-long-long sb-sys:sap-ref-64)
-  (:float sb-sys:sap-ref-single)
-  (:double sb-sys:sap-ref-double)
-  (:pointer sb-sys:sap-ref-sap))
+;;; Look up alien type information and build both define-mem-accessors form
+;;; and convert-foreign-type function definition.
+(defmacro define-type-mapping (accessor-table alien-table)
+  (let* ((accessible-types
+           (remove 'void alien-table :key #'second))
+         (size-and-signedp-forms
+           (mapcar (lambda (name)
+                     (list (eval `(alien-size ,(second name)))
+                           (typep -1 `(alien ,(second name)))))
+                   accessible-types)))
+    `(progn
+       (define-mem-accessors
+         ,@(loop for (cffi-keyword alien-type fixed-accessor)
+                   in accessible-types
+                 and (alien-size signedp)
+                   in size-and-signedp-forms
+                 for (signed-ref unsigned-ref)
+                   = (cdr (assoc alien-size accessor-table))
+                 collect
+                 `(,cffi-keyword
+                   ,(or fixed-accessor
+                        (if signedp signed-ref unsigned-ref)
+                        (error "No accessor found for ~S"
+                               alien-type)))))
+       (defun convert-foreign-type (type-keyword)
+         (ecase type-keyword
+           ,@(loop for (cffi-keyword alien-type) in alien-table
+                   collect `(,cffi-keyword (quote ,alien-type))))))))
+
+(define-type-mapping
+    ((8  sb-sys:signed-sap-ref-8  sb-sys:sap-ref-8)
+     (16 sb-sys:signed-sap-ref-16 sb-sys:sap-ref-16)
+     (32 sb-sys:signed-sap-ref-32 sb-sys:sap-ref-32)
+     (64 sb-sys:signed-sap-ref-64 sb-sys:sap-ref-64))
+    ((:char               char)
+     (:unsigned-char      unsigned-char)
+     (:short              short)
+     (:unsigned-short     unsigned-short)
+     (:int                int)
+     (:unsigned-int       unsigned-int)
+     (:long               long)
+     (:unsigned-long      unsigned-long)
+     (:long-long          long-long)
+     (:unsigned-long-long unsigned-long-long)
+     (:float              single-float
+                          sb-sys:sap-ref-single)
+     (:double             double-float
+                          sb-sys:sap-ref-double)
+     (:pointer            system-area-pointer
+                          sb-sys:sap-ref-sap)
+     (:void               void)))
 
 ;;;# Calling Foreign Functions
-
-(defun convert-foreign-type (type-keyword)
-  "Convert a CFFI type keyword to an SB-ALIEN type."
-  (ecase type-keyword
-    (:char               'char)
-    (:unsigned-char      'unsigned-char)
-    (:short              'short)
-    (:unsigned-short     'unsigned-short)
-    (:int                'int)
-    (:unsigned-int       'unsigned-int)
-    (:long               'long)
-    (:unsigned-long      'unsigned-long)
-    (:long-long          'long-long)
-    (:unsigned-long-long 'unsigned-long-long)
-    (:float              'single-float)
-    (:double             'double-float)
-    (:pointer            'system-area-pointer)
-    (:void               'void)))
 
 (defun %foreign-type-size (type-keyword)
   "Return the size in bytes of a foreign type."
@@ -305,13 +325,17 @@ WITH-POINTER-TO-VECTOR-DATA."
 
 (defmacro %defcallback (name rettype arg-names arg-types body
                         &key convention)
-  (declare (ignore convention))
+  (check-type convention (member :stdcall :cdecl))
   `(setf (gethash ',name *callbacks*)
          (alien-sap
-          (sb-alien::alien-lambda ,(convert-foreign-type rettype)
-              ,(mapcar (lambda (sym type)
-                         (list sym (convert-foreign-type type)))
-                       arg-names arg-types)
+          (sb-alien::alien-lambda
+            #+alien-callback-conventions
+            (,convention ,(convert-foreign-type rettype))
+            #-alien-callback-conventions
+            ,(convert-foreign-type rettype)
+            ,(mapcar (lambda (sym type)
+                       (list sym (convert-foreign-type type)))
+               arg-names arg-types)
             ,body))))
 
 (defun %callback (name)
@@ -320,11 +344,31 @@ WITH-POINTER-TO-VECTOR-DATA."
 
 ;;;# Loading and Closing Foreign Libraries
 
+#+darwin
+(defun call-within-initial-thread (fn &rest args)
+  (let (result
+        error
+        (sem (sb-thread:make-semaphore)))
+    (sb-thread:interrupt-thread
+     ;; KLUDGE: find a better way to get the initial thread.
+     (car (last (sb-thread:list-all-threads)))
+     (lambda ()
+       (multiple-value-setq (result error)
+         (ignore-errors (apply fn args)))
+       (sb-thread:signal-semaphore sem)))
+    (sb-thread:wait-on-semaphore sem)
+    (if error
+        (signal error)
+        result)))
+
 (declaim (inline %load-foreign-library))
 (defun %load-foreign-library (name path)
   "Load a foreign library."
   (declare (ignore name))
-  (load-shared-object path))
+  ;; As of MacOS X 10.6.6, loading things like CoreFoundation from a
+  ;; thread other than the initial one results in a crash.
+  #+darwin (call-within-initial-thread 'load-shared-object path)
+  #-darwin (load-shared-object path))
 
 ;;; SBCL 1.0.21.15 renamed SB-ALIEN::SHARED-OBJECT-FILE but introduced
 ;;; SB-ALIEN:UNLOAD-SHARED-OBJECT which we can use instead.

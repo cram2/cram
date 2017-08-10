@@ -1,0 +1,5 @@
+@deffn {Macro} {antik:set-parameter-value} category name value
+@findex antik:set-parameter-value
+Set the parameter value, checking that the name is legitimate and
+   the value is of the correct type.
+@end deffn

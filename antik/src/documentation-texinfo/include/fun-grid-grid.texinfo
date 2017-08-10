@@ -1,0 +1,4 @@
+@deffn {Function} {grid:grid} @&rest args
+@findex grid:grid
+Make the simple grid with default properties and elements as specified in args.
+@end deffn

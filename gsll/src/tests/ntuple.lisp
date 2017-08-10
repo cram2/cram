@@ -1,6 +1,6 @@
 ;; Regression test NTUPLE for GSLL, automatically generated
 ;;
-;; Copyright 2009 Liam M. Healy
+;; Copyright 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -19,6 +19,6 @@
 (in-package :gsl)
 
 (LISP-UNIT:DEFINE-TEST NTUPLE
-  (LISP-UNIT:ASSERT-true (NTUPLE-EXAMPLE-READ))
+  (LISP-UNIT:ASSERT-true (NTUPLE-EXAMPLE-make-READ))
   (LISP-UNIT:ASSERT-true (NTUPLE-EXAMPLE-HISTOGRAMMING)))
 

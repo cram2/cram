@@ -1,0 +1,4 @@
+@deffn {Function} {grid:spec-scalar-p} specification
+@findex grid:spec-scalar-p
+Specification is for a scalar; if so, return that type.
+@end deffn

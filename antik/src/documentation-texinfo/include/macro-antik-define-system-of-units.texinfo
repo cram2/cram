@@ -1,0 +1,4 @@
+@deffn {Macro} {antik:define-system-of-units} system-name units @&optional augemented-system
+@findex antik:define-system-of-units
+Define a system of units with the given name and units, possibly by augmenting the named system of units.
+@end deffn

@@ -15,6 +15,7 @@
   <url type="website">http://www.cliki.net/SPLIT-SEQUENCE</url>
   <url type="bugtracker">https://github.com/cram2/cram_3rdparty/issues</url>
   <url type="repository">https://github.com/cram2/cram_3rdparty</url>
+  <!--external-version>split-sequence-1.2</external-version-->
 
   <buildtool_depend>catkin</buildtool_depend>
 

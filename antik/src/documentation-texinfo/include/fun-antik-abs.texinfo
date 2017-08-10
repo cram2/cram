@@ -1,0 +1,4 @@
+@deffn {Generic Function} {antik:abs} num
+@findex antik:abs
+The absolute value.
+@end deffn

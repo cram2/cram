@@ -1,0 +1,4 @@
+@deffn {Function} {antik:make-parameter} category name @&key value type attribute documentation synonyms
+@findex antik:make-parameter
+Define the parameter (global special variable) with the given name.  It will be defined in the package named by category (which will be created if necessary), and exported from it.
+@end deffn

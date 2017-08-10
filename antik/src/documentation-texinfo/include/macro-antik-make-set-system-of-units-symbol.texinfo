@@ -1,0 +1,4 @@
+@deffn {Macro} {antik:make-set-system-of-units-symbol} symbol @&rest units-or-system
+@findex antik:make-set-system-of-units-symbol
+Set the symbol macro symbol to make the system of units.
+@end deffn

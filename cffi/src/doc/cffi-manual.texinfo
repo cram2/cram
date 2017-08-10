@@ -83,27 +83,7 @@
 @alias lispcmt = asis
 @end ifnottex
 
-@c My copy of makeinfo is not generating any HTML for @result{} for
-@c some odd reason. (It certainly used to...)
-@ifhtml
-@macro result
-=>
-@end macro
-@end ifhtml
-
-@c Similar macro to @result. Its purpose is to work around the fact
-@c that &rArr; does not work properly inside @lisp.
-@ifhtml
-@macro res
-@html
-&rArr;
-@end html
-@end macro
-@end ifhtml
-
-@ifnothtml
 @alias res = result
-@end ifnothtml
 
 @c ============================= Macros =============================
 
@@ -114,10 +94,10 @@
 
 @copying
 Copyright @copyright{} 2005 James Bielman <jamesjb at jamesjb.com> @*
-Copyright @copyright{} 2005-2010 Lu@'{@dotless{i}}s Oliveira
+Copyright @copyright{} 2005-2015 Lu@'{@dotless{i}}s Oliveira
   <loliveira at common-lisp.net> @*
-Copyright @copyright{} 2005-2006 Dan Knapp <danka at accela.net>
-Copyright @copyright{} 2005-2006 Emily Backes <lucca at accela.net>
+Copyright @copyright{} 2005-2006 Dan Knapp <danka at accela.net> @*
+Copyright @copyright{} 2005-2006 Emily Backes <lucca at accela.net> @*
 Copyright @copyright{} 2006 Stephen Compall <s11 at member.fsf.org>
 
 @quotation
@@ -143,6 +123,11 @@ software or the use or other dealings in the software.}
 @end copying
 @c %**end of header
 
+@dircategory Software development
+@direntry
+* CFFI Manual: (cffi-manual).           CFFI Manual.
+@end direntry
+
 @titlepage
 @title CFFI User Manual
 @c @subtitle Version X.X
@@ -163,22 +148,23 @@ software or the use or other dealings in the software.}
 
 @menu
 * Introduction::                What is CFFI?
-* Installation::                
-* Implementation Support::      
+* Installation::
+* Implementation Support::
 * Tutorial::                    Interactive intro to using CFFI.
 * Wrapper generators::          CFFI forms from munging C source code.
-* Foreign Types::               
-* Pointers::                    
-* Strings::                     
-* Variables::                   
-* Functions::                   
-* Libraries::                   
-* Callbacks::                   
-* The Groveller::               
-* Limitations::                 
+* Foreign Types::
+* Pointers::
+* Strings::
+* Variables::
+* Functions::
+* Libraries::
+* Callbacks::
+* The Groveller::
+* Static Linking::
+* Limitations::
 * Platform-specific features::  Details about the underlying system.
 * Glossary::                    List of CFFI-specific terms and meanings.
-* Comprehensive Index::         
+* Comprehensive Index::
 
 @detailmenu
  --- Dictionary ---
@@ -221,6 +207,7 @@ Pointers
 * inc-pointer::                 Increments the address held by a pointer.
 * incf-pointer::                Increments the pointer address in a place.
 * make-pointer::                Returns a pointer to a given address.
+* mem-aptr::                    The pointer to an element of an array.
 * mem-aref::                    Accesses the value of an index in an array.
 * mem-ref::                     Dereferences a pointer.
 * null-pointer::                Returns a NULL pointer.
@@ -377,9 +364,9 @@ Furthermore, if you wish to run the testsuite,
 @uref{http://www.cliki.net/rt,,RT} is required.
 
 You may find mechanisms such as
-@uref{http://common-lisp.net/project/clbuild/,,clbuild} (recommended)
-or @uref{http://www.cliki.net/ASDF-Install,,ASDF-Install} (not as
-recommendable) helpful in getting and managing @cffi{} and its
+@uref{https://www.quicklisp.org/beta/,Quicklisp} (recommended)
+or @uref{http://common-lisp.net/project/clbuild/,,clbuild} (for advanced
+uses) helpful in getting and managing @cffi{} and its
 dependencies.
 
 
@@ -390,8 +377,9 @@ dependencies.
 @chapter Implementation Support
 
 @cffi{} supports various free and commercial Lisp implementations:
-Allegro CL, Corman CL, @sc{clisp}, @acronym{CMUCL}, @acronym{ECL},
-LispWorks, Clozure CL, @acronym{SBCL} and the Scieneer CL.
+@acronym{ABCL}, Allegro CL, Clasp, @sc{clisp}, Clozure CL,
+@acronym{CMUCL}, Corman CL, @acronym{ECL}, @acronym{GCL}, LispWorks,
+@acronym{MCL}, @acronym{SBCL} and the Scieneer CL.
 
 In general, you should work with the latest versions of each
 implementation since those will usually be tested against recent
@@ -413,6 +401,13 @@ Does not support the @code{:long-long} type natively.
 @item
 Unicode support is limited to the Basic Multilingual Plane (16-bit
 code points).
+@end itemize
+
+@subheading Clasp
+
+@itemize
+@item
+Only supports a flat namespace.
 @end itemize
 
 @subheading CMUCL
@@ -496,11 +491,10 @@ access C data from many Common Lisp implementations.
 
 @cindex foreign functions and data
 The concept can be generalized to other languages; at the time of
-writing, only @cffi{}'s C support is fairly complete, but C++
-support is being worked on.  Therefore, we will interchangeably refer
-to @dfn{foreign functions} and @dfn{foreign data}, and ``C functions''
-and ``C data''.  At no time will the word ``foreign'' carry its usual,
-non-programming meaning.
+writing, only @cffi{}'s C support is fairly complete. Therefore, we
+will interchangeably refer to @dfn{foreign functions} and @dfn{foreign
+data}, and ``C functions'' and ``C data''.  At no time will the word
+``foreign'' carry its usual, non-programming meaning.
 
 This tutorial expects you to have a working understanding of both
 Common Lisp and C, including the Common Lisp macro system.
@@ -600,9 +594,7 @@ intended to be part of the public library interface.  In those cases,
 a pure Lisp struct definition is always preferred.  In fact, many
 prefer to stay in Lisp and break the encapsulation anyway, placing the
 burden of correct library interface definition on the library.}
-
-@impnote{cffi-grovel, a project not yet part of @cffi{}, automates
-this and other processes.}
+@ref{The Groveller} automates this and other processes.
 
 Another disadvantage appears when you would rather use the foreign
 language than Lisp.  However, someone who prefers C to Lisp is not a
@@ -649,12 +641,12 @@ First of all, we will create a package to work in.  You can save these
 forms in a file, or just send them to the listener as they are.  If
 creating bindings for an @acronym{ASDF} package of yours, you will
 want to add @code{:cffi} to the @code{:depends-on} list in your
-@file{.asd} file.  Otherwise, just use the @code{asdf:oos} function to
+@file{.asd} file.  Otherwise, just use the @code{asdf:load-system} function to
 load @cffi{}.
 
 @tutorialsource{Initialization}
 @lisp
-(asdf:oos 'asdf:load-op :cffi)
+(asdf:load-system :cffi)
 
 ;;; @lispcmt{Nothing special about the "CFFI-USER" package.  We're just}
 ;;; @lispcmt{using it as a substitute for your own CL package.}
@@ -664,6 +656,7 @@ load @cffi{}.
 (in-package :cffi-user)
 
 (define-foreign-library libcurl
+  (:darwin (:or "libcurl.3.dylib" "libcurl.dylib"))
   (:unix (:or "libcurl.so.3" "libcurl.so"))
   (t (:default "libcurl")))
 
@@ -1421,7 +1414,7 @@ The above signature trivially translates into a @cffi{}
       ;; @lispcmt{We use the dynamically-bound *easy-write-procedure* to}
       ;; @lispcmt{call a closure with useful lexical context.}
       (progn (funcall (symbol-value '*easy-write-procedure*)
-                      (foreign-string-to-lisp ptr data-size nil))
+                      (foreign-string-to-lisp ptr :count data-size))
              data-size)         ;@lispcmt{indicates success}
       ;; @lispcmt{The WRITEFUNCTION should return something other than the}
       ;; @lispcmt{#bytes available to signal an error.}
@@ -1776,42 +1769,43 @@ and Lisp. @cffi{} provides various built-in types and allows the user to
 define new types.
 
 @menu
-* Built-In Types::              
-* Other Types::                 
-* Defining Foreign Types::      
-* Foreign Type Translators::    
-* Optimizing Type Translators:: 
-* Foreign Structure Types::     
-* Allocating Foreign Objects::  
+* Built-In Types::
+* Other Types::
+* Defining Foreign Types::
+* Foreign Type Translators::
+* Optimizing Type Translators::
+* Foreign Structure Types::
+* Allocating Foreign Objects::
 
 Dictionary
 
-* convert-from-foreign::        
-* convert-to-foreign::          
-* defbitfield::                 
-* defcstruct::                  
-* defcunion::                   
-* defctype::                    
-* defcenum::                    
-@c * define-type-spec-parser::  
-* define-foreign-type::         
-* define-parse-method::         
+* convert-from-foreign::
+* convert-to-foreign::
+* defbitfield::
+* defcstruct::
+* defcunion::
+* defctype::
+* defcenum::
+@c * define-type-spec-parser::
+* define-foreign-type::
+* define-parse-method::
 @c * explain-foreign-slot-value:
-* foreign-bitfield-symbols::    
-* foreign-bitfield-value::      
-* foreign-enum-keyword::        
-* foreign-enum-value::          
-* foreign-slot-names::          
-* foreign-slot-offset::         
-* foreign-slot-pointer::        
-* foreign-slot-value::          
-* foreign-type-alignment::      
-* foreign-type-size::           
-* free-converted-object::       
-* free-translated-object::      
-* translate-from-foreign::      
-* translate-to-foreign::        
-* with-foreign-slots::          
+* foreign-bitfield-symbols::
+* foreign-bitfield-value::
+* foreign-enum-keyword::
+* foreign-enum-value::
+* foreign-slot-names::
+* foreign-slot-offset::
+* foreign-slot-pointer::
+* foreign-slot-value::
+* foreign-type-alignment::
+* foreign-type-size::
+* free-converted-object::
+* free-translated-object::
+* translate-from-foreign::
+* translate-to-foreign::
+* translate-into-foreign-memory::
+* with-foreign-slots::
 @end menu
 
 @node Built-In Types, Other Types, Foreign Types, Foreign Types
@@ -1954,6 +1948,12 @@ default.
 (convert-from-foreign 0 :boolean) @result{} nil
 (convert-from-foreign 1 :boolean) @result{} t
 @end lisp
+
+@ForeignType{:bool}
+
+The @code{:bool} type represents the C99 @code{_Bool} or C++
+@code{bool}. Its size is usually 1 byte except on OSX where it's an
+@code{int}.
 
 @ForeignType{:wrapper base-type &key to-c from-c}
 
@@ -2264,14 +2264,138 @@ The equivalent @code{defcstruct} form follows:
   (reason :string))
 @end lisp
 
+@c LMH structure translation
+By default, @ref{convert-from-foreign} (and also @ref{mem-ref}) will
+make a plist with slot names as keys, and @ref{convert-to-foreign} will
+translate such a plist to a foreign structure.  A user wishing to define
+other translations should use the @code{:class} argument to
+@ref{defcstruct}, and then define methods for
+@ref{translate-from-foreign} and
+@ref{translate-into-foreign-memory} that specialize on this class,
+possibly calling @code{call-next-method} to translate from and to the
+plists rather than provide a direct interface to the foreign object.
+The macro @code{translation-forms-for-class} will generate the forms
+necessary to translate a Lisp class into a foreign structure and vice
+versa.
+@c Write separate function doc section for translation-forms-for-class?
+@c Examples, perhaps taken from the tests?
+
 Please note that this interface is only for those that must know about
 the values contained in a relevant struct.  If the library you are
 interfacing returns an opaque pointer that needs only be passed to
 other C library functions, by all means just use @code{:pointer} or a
 type-safe definition munged together with @code{defctype} and type
-translation.
+translation.  To pass or return a structure by value to a function, load
+the cffi-libffi system and specify the structure as @code{(:struct
+@var{structure-name})}.  To pass or return the pointer, you can use
+either @code{:pointer} or @code{(:pointer (:struct
+@var{structure-name}))}.
 
-@ref{defcstruct} for more details.
+@subheading Optimizing translate-into-foreign-memory
+
+Just like how @ref{translate-from-foreign} had
+@code{expand-from-foreign} to optimize away the generic function call
+and @ref{translate-to-foreign} had the same in
+@code{expand-to-foreign}, @ref{translate-into-foreign-memory} has
+@code{expand-into-foreign-memory}.
+
+Let's use our @code{person} struct in an example. However, we are
+going to spice it up by using a lisp struct rather than a plist to
+represent the person in lisp.
+
+First we redefine @code{person} very slightly.
+
+@lisp
+(defcstruct (person :class c-person)
+  (number :int)
+  (reason :string))
+@end lisp
+
+By adding @code{:class} we can specialize the @code{translate-*}
+methods on the type @code{c-person}.
+
+Next we define a lisp struct to use instead of the plists.
+
+@lisp
+(defstruct lisp-person
+  (number 0 :type integer)
+  (reason "" :type string))
+@end lisp
+
+And now let's define the type translators we know already:
+
+@lisp
+(defmethod translate-from-foreign (ptr (type c-person))
+  (with-foreign-slots ((number reason) ptr (:struct person))
+    (make-lisp-person :number number :reason reason)))
+
+(defmethod expand-from-foreign (ptr (type c-person))
+  `(with-foreign-slots ((number reason) ,ptr (:struct person))
+     (make-lisp-person :number number :reason reason)))
+
+(defmethod translate-into-foreign-memory (value (type c-person) ptr)
+  (with-foreign-slots ((number reason) ptr (:struct person))
+    (setf number (lisp-person-number value)
+          reason (lisp-person-reason value))))
+@end lisp
+
+At this point everything works, we can convert to and from our
+@code{lisp-person} and foreign @code{person}. If we macroexpand
+
+@lisp
+(setf (mem-aref ptr '(:struct person)) x)
+@end lisp
+
+we get something like:
+
+@lisp
+(let ((#:store879 x))
+  (translate-into-foreign-memory #:store879 #<c-person person>
+                                 (inc-pointer ptr 0))
+  #:store879)
+@end lisp
+
+Which is good, but now we can do better and get rid of that generic
+function call to @code{translate-into-foreign-memory}.
+
+@lisp
+(defmethod expand-into-foreign-memory (value (type c-person) ptr)
+  `(with-foreign-slots ((number reason) ,ptr (:struct person))
+     (setf number (lisp-person-number ,value)
+           reason (lisp-person-reason ,value))))
+@end lisp
+
+Now we can expand again so see the changes:
+
+@lisp
+;; this:
+(setf (mem-aref ptr '(:struct person)) x)
+
+;; expands to this
+;; (simplified, downcased, etc..)
+(let ((#:store887 x))
+  (with-foreign-slots ((number reason) (inc-pointer ptr 0) (:struct person))
+    (setf number (lisp-person-number #:store887)
+          reason (lisp-person-reason #:store887))) #:store887)
+@end lisp
+
+And there we are, no generic function overhead.
+
+@subheading Compatibility note
+
+Previous versions of CFFI accepted the
+``bare'' @var{structure-name} as a type specification, which was
+interpreted as a pointer to the structure.  This is deprecated and
+produces a style warning.  Using this deprecated form means that
+@ref{mem-aref} retains its prior meaning and returns a pointer.  Using
+the @code{(:struct @var{structure-name})} form for the type,
+@ref{mem-aref} provides a Lisp object translated from the
+structure (by default a plist).  Thus the semantics are consistent with all
+types in returning the object as represented in Lisp, and not a pointer,
+with the exception of the ``bare'' structure compatibility retained.
+In order to obtain the pointer, you should use the function @ref{mem-aptr}.
+
+See @ref{defcstruct} for more details.
 
 @node Allocating Foreign Objects, convert-from-foreign, Foreign Structure Types, Foreign Types
 @section Allocating Foreign Objects
@@ -2324,7 +2448,7 @@ documentation.
 @lisp
 CFFI-USER> (convert-to-foreign "a boat" :string)
 @result{} #<FOREIGN-ADDRESS #x097ACDC0>
-@result{} (T)
+@result{} T
 CFFI-USER> (convert-from-foreign * :string)
 @result{} "a boat"
 @end lisp
@@ -2382,10 +2506,10 @@ documentation.
 @lisp
 CFFI-USER> (convert-to-foreign t :boolean)
 @result{} 1
-@result{} (NIL)
+@result{} NIL
 CFFI-USER> (convert-to-foreign "hello, world" :string)
 @result{} #<FOREIGN-ADDRESS #x097C5F80>
-@result{} (T)
+@result{} T
 CFFI-USER> (code-char (mem-aref * :char 5))
 @result{} #\,
 @end lisp
@@ -2675,8 +2799,8 @@ A documentation string, currently ignored.
 The @code{defctype} macro provides a mechanism similar to C's
 @code{typedef} to define new types. The new type inherits
 @var{base-type}'s translators, if any. There is no way to define
-translations for types for types defined with @code{defctype}.  For
-that, you should use @ref{define-foreign-type}.
+translations for types defined with @code{defctype}.  For that,
+you should use @ref{define-foreign-type}.
 
 @subheading Examples
 @lisp
@@ -3136,7 +3260,7 @@ has no particular order.
   (tv-secs :long)
   (tv-usecs :long))
 
-CFFI> (foreign-slot-names 'timeval)
+CFFI> (foreign-slot-names '(:struct timeval))
 @result{} (TV-SECS TV-USECS)
 @end lisp
 
@@ -3179,9 +3303,9 @@ bytes of a slot in a foreign struct type.
   (tv-secs :long)
   (tv-usecs :long))
 
-CFFI> (foreign-slot-offset 'timeval 'tv-secs)
+CFFI> (foreign-slot-offset '(:struct timeval) 'tv-secs)
 @result{} 0
-CFFI> (foreign-slot-offset 'timeval 'tv-usecs)
+CFFI> (foreign-slot-offset '(:struct timeval) 'tv-usecs)
 @result{} 4
 @end lisp
 
@@ -3233,8 +3357,8 @@ For aggregate slots, this is the same value returned by
   (x :int)
   (y :int))
 
-CFFI> (with-foreign-object (ptr 'point)
-        (foreign-slot-pointer ptr 'point 'x))
+CFFI> (with-foreign-object (ptr '(:struct point))
+        (foreign-slot-pointer ptr '(:struct point) 'x))
 @result{} #<FOREIGN-ADDRESS #xBFFF6E60>
 ;; @lispcmt{Note: the exact pointer representation varies from lisp to lisp.}
 @end lisp
@@ -3282,7 +3406,7 @@ of the slot's data is returned. In C, this would be expressed as
 same extent as @var{ptr}.
 
 There are compiler macros for @code{foreign-slot-value} and its
-@code{setf} expansion that open code the memory access when 
+@code{setf} expansion that open code the memory access when
 @var{type} and @var{slot-names} are constant at compile-time.
 
 @subheading Examples
@@ -3292,12 +3416,12 @@ There are compiler macros for @code{foreign-slot-value} and its
   (x :int)
   (y :int))
 
-CFFI> (with-foreign-object (ptr 'point)
+CFFI> (with-foreign-object (ptr '(:struct point))
         ;; @lispcmt{Initialize the slots}
-        (setf (foreign-slot-value ptr 'point 'x) 42
-              (foreign-slot-value ptr 'point 'y) 42)
+        (setf (foreign-slot-value ptr '(:struct point) 'x) 42
+              (foreign-slot-value ptr '(:struct point) 'y) 42)
         ;; @lispcmt{Return a list with the coordinates}
-        (with-foreign-slots ((x y) ptr point)
+        (with-foreign-slots ((x y) ptr (:struct point))
           (list x y)))
 @result{} (42 42)
 @end lisp
@@ -3348,7 +3472,7 @@ CFFI> (foreign-type-alignment :int)
 (defcstruct foo
   (a :char))
 
-CFFI> (foreign-type-alignment 'foo)
+CFFI> (foreign-type-alignment '(:struct foo))
 @result{} 1
 @end lisp
 
@@ -3392,7 +3516,7 @@ CFFI> (foreign-type-size :double)
 @result{} 8
 CFFI> (foreign-type-size :char)
 @result{} 1
-CFFI> (foreign-type-size 'foo)
+CFFI> (foreign-type-size '(:struct foo))
 @result{} 16
 @end lisp
 
@@ -3444,8 +3568,8 @@ documentation.
 @lisp
 CFFI-USER> (convert-to-foreign "a boat" :string)
 @result{} #<FOREIGN-ADDRESS #x097ACDC0>
-@result{} (T)
-CFFI-USER> (free-converted-object * :string '(t))
+@result{} T
+CFFI-USER> (free-converted-object * :string t)
 @result{} NIL
 @end lisp
 
@@ -3546,7 +3670,7 @@ defined for built-in types.
 @c TODO: update
 
 @page
-@node translate-to-foreign, with-foreign-slots, translate-from-foreign, Foreign Types
+@node translate-to-foreign, translate-into-foreign-memory, translate-from-foreign, Foreign Types
 @heading translate-to-foreign
 @subheading Syntax
 @GenericFunction{translate-to-foreign lisp-value type-name @
@@ -3603,10 +3727,36 @@ defined for built-in types.
 
 
 @c ===================================================================
+@c TRANSLATE-INTO-FOREIGN-MEMORY
+
+@page
+@node translate-into-foreign-memory, with-foreign-slots, translate-to-foreign, Foreign Types
+@heading translate-into-foreign-memory
+@subheading Syntax
+@GenericFunction{translate-into-foreign-memory lisp-value type-name pointer}
+
+@subheading Arguments and Values
+
+@table @var
+@item lisp-value
+The Lisp value to convert to foreign representation.
+
+@item type-name
+A symbol or list @code{(:struct @var{structure-name})} naming a foreign type defined by @code{defctype}.
+
+@item pointer
+The foreign pointer where the translated object should be stored.
+@end table
+
+@subheading Description
+Translate the Lisp value into the foreign memory location given by
+pointer.  The return value is not used.
+
+@c ===================================================================
 @c WITH-FOREIGN-SLOTS
 
 @page
-@node with-foreign-slots,  , translate-to-foreign, Foreign Types
+@node with-foreign-slots,  , translate-into-foreign-memory, Foreign Types
 @heading with-foreign-slots
 @subheading Syntax
 @Macro{with-foreign-slots (vars ptr type) &body body}
@@ -3615,7 +3765,8 @@ defined for built-in types.
 
 @table @var
 @item vars
-A list of symbols.
+A list with each element a symbol, or list of length two with the
+first element @code{:pointer} and the second a symbol.
 
 @item ptr
 A foreign pointer to a structure.
@@ -3628,9 +3779,11 @@ A list of forms to be executed.
 @end table
 
 @subheading Description
-The @code{with-foreign-slots} macro creates local symbol macros for
-each var in @var{vars} to reference foreign slots in @var{ptr} of
-@var{type}.  It is similar to Common Lisp's @code{with-slots} macro.
+The @code{with-foreign-slots} macro creates local symbol macros for each
+var in @var{vars} to reference foreign slots in @var{ptr} of @var{type}.
+If the var is a list starting with @code{:pointer}, it will bind the
+pointer to the slot (rather than the value). It is similar to Common
+Lisp's @code{with-slots} macro.
 
 @subheading Examples
 @lisp
@@ -3650,9 +3803,9 @@ each var in @var{vars} to reference foreign slots in @var{ptr} of
 CFFI> (with-foreign-object (time :int)
         (setf (mem-ref time :int)
               (foreign-funcall "time" :pointer (null-pointer) :int))
-        (foreign-funcall "gmtime" :pointer time tm))
+        (foreign-funcall "gmtime" :pointer time (:pointer (:struct tm))))
 @result{} #<A Mac Pointer #x102A30>
-CFFI> (with-foreign-slots ((sec min hour mday mon year) * tm)
+CFFI> (with-foreign-slots ((sec min hour mday mon year) * (:struct tm))
         (format nil "~A:~A:~A, ~A/~A/~A"
                 hour min sec (+ 1900 year) mon mday))
 @result{} "7:22:47, 2005/8/2"
@@ -3691,28 +3844,29 @@ at store time, you may only manipulate its raw data through a pointer.
 The C compiler does this also, albeit informally.
 
 @menu
-* Basic Pointer Operations::    
-* Allocating Foreign Memory::   
-* Accessing Foreign Memory::    
+* Basic Pointer Operations::
+* Allocating Foreign Memory::
+* Accessing Foreign Memory::
 
 Dictionary
 
-* foreign-free::                
-* foreign-alloc::               
-* foreign-symbol-pointer::      
-* inc-pointer::                 
-* incf-pointer::                
-* make-pointer::                
-* mem-aref::                    
-* mem-ref::                     
-* null-pointer::                
-* null-pointer-p::              
-* pointerp::                    
-* pointer-address::             
-* pointer-eq::                  
-* with-foreign-object::         
-* with-foreign-objects::        
-* with-foreign-pointer::        
+* foreign-free::
+* foreign-alloc::
+* foreign-symbol-pointer::
+* inc-pointer::
+* incf-pointer::
+* make-pointer::
+* mem-aptr::
+* mem-aref::
+* mem-ref::
+* null-pointer::
+* null-pointer-p::
+* pointerp::
+* pointer-address::
+* pointer-eq::
+* with-foreign-object::
+* with-foreign-objects::
+* with-foreign-pointer::
 @end menu
 
 @node Basic Pointer Operations, Allocating Foreign Memory, Pointers, Pointers
@@ -4069,7 +4223,7 @@ CFFI> (foreign-string-to-lisp *two-words*)
 @c MAKE-POINTER
 
 @page
-@node make-pointer, mem-aref, incf-pointer, Pointers
+@node make-pointer, mem-aptr, incf-pointer, Pointers
 @heading make-pointer
 @subheading Syntax
 @Function{make-pointer address @res{} ptr}
@@ -4116,10 +4270,54 @@ CFFI> (typep ** 'foreign-pointer)
 
 
 @c ===================================================================
+@c MEM-APTR
+
+@page
+@node mem-aptr, mem-aref, make-pointer, Pointers
+@heading mem-aptr
+@subheading Syntax
+@Accessor{mem-aptr ptr type &optional (index 0)}
+
+@subheading Arguments and Values
+
+@table @var
+@item ptr
+A foreign pointer.
+
+@item type
+A foreign type.
+
+@item index
+An integer.
+
+@item new-value
+A Lisp value compatible with @var{type}.
+@end table
+
+@subheading Description
+The @code{mem-aptr} function finds the pointer to an element of the array.
+
+@lisp
+(mem-aptr ptr type n)
+
+;; @lispcmt{is identical to:}
+
+(inc-pointer ptr (* n (foreign-type-size type)))
+@end lisp
+
+@subheading Examples
+
+@lisp
+CFFI> (with-foreign-string (str "Hello, foreign world!")
+        (mem-aptr str :char 6))
+@result{} #.(SB-SYS:INT-SAP #X0063D4B6)
+@end lisp
+
+@c ===================================================================
 @c MEM-AREF
 
 @page
-@node mem-aref, mem-ref, make-pointer, Pointers
+@node mem-aref, mem-ref, mem-aptr, Pointers
 @heading mem-aref
 @subheading Syntax
 @Accessor{mem-aref ptr type &optional (index 0)}
@@ -4170,9 +4368,18 @@ CFFI> (with-foreign-object (array :int 10)
 @result{} (22 7 22 52 69 1 46 93 90 65)
 @end lisp
 
-@subheading See Also
-@seealso{mem-ref}
+@subheading Compatibility Note
 
+For compatibility with older versions of CFFI, @ref{mem-aref} will
+produce a pointer for the deprecated bare structure specification, but
+it is consistent with other types for the current specification form
+@code{(:struct @var{structure-name})} and provides a Lisp object
+translated from the structure (by default a plist).  In order to obtain
+the pointer, you should use the new function @ref{mem-aptr}.
+
+@subheading See Also
+@seealso{mem-ref} @*
+@seealso{mem-aptr}
 
 @c ===================================================================
 @c MEM-REF
@@ -4549,13 +4756,13 @@ without referring to any implementation-specific symbols.
 @menu
 Dictionary
 
-* *default-foreign-encoding*::  
-* foreign-string-alloc::        
-* foreign-string-free::         
-* foreign-string-to-lisp::      
-* lisp-string-to-foreign::      
-* with-foreign-string::         
-* with-foreign-strings::        
+* *default-foreign-encoding*::
+* foreign-string-alloc::
+* foreign-string-free::
+* foreign-string-to-lisp::
+* lisp-string-to-foreign::
+* with-foreign-string::
+* with-foreign-strings::
 * with-foreign-pointer-as-string::
 @end menu
 
@@ -4616,21 +4823,21 @@ CFFI> (let ((*default-foreign-encoding* :utf-16))
 
 @subheading Arguments and Values
 
-@table @var
-@item string
+@table @emph
+@item @var{string}
 A Lisp string.
 
-@item encoding
+@item @var{encoding}
 Foreign encoding. Defaults to @code{*default-foreign-encoding*}.
 
-@item null-terminated-p
+@item @var{null-terminated-p}
 Boolean, defaults to true.
 
-@item start, end
+@item @var{start}, @var{end}
 Bounding index designators of @var{string}. 0 and @code{nil}, by
 default.
 
-@item pointer
+@item @var{pointer}
 A pointer to the newly allocated foreign string.
 @end table
 
@@ -4694,7 +4901,7 @@ allocated by @code{foreign-string-alloc}.
 @node foreign-string-to-lisp, lisp-string-to-foreign, foreign-string-free, Strings
 @heading foreign-string-to-lisp
 @subheading Syntax
-@Function{foreign-string-to-lisp ptr &optional offset count max-chars @
+@Function{foreign-string-to-lisp ptr &key offset count max-chars @
                                  encoding @res{} string}
 
 @subheading Arguments and Values
@@ -4760,24 +4967,24 @@ CFFI> (foreign-string-to-lisp *)
 
 @subheading Arguments and Values
 
-@table @var
-@item string
+@table @emph
+@item @var{string}
 A Lisp string.
 
-@item buffer
+@item @var{buffer}
 A foreign pointer.
 
-@item bufsize
+@item @var{bufsize}
 An integer.
 
-@item start, end
+@item @var{start}, @var{end}
 Bounding index designators of @var{string}. 0 and @code{nil}, by
 default.
 
-@item offset
+@item @var{offset}
 An integer greater than or equal to 0. Defauls to 0.
 
-@item encoding
+@item @var{encoding}
 Foreign encoding. Defaults to @code{*default-foreign-encoding*}.
 @end table
 
@@ -4822,14 +5029,14 @@ bindings ::= @{(var-or-vars string &rest args)@}*
 
 @subheading Arguments and Values
 
-@table @var
-@item var, byte-size-var
+@table @emph
+@item @var{var}, @var{byte-size-var}
 A symbol.
 
-@item string
+@item @var{string}
 A Lisp string.
 
-@item body
+@item @var{body}
 A list of forms to be executed.
 @end table
 
@@ -4911,8 +5118,8 @@ CFFI> (with-foreign-pointer-as-string (str 6 str-size :encoding :ascii)
 @menu
 Dictionary
 
-* defcvar::                     
-* get-var-pointer::             
+* defcvar::
+* get-var-pointer::
 @end menu
 
 
@@ -5042,14 +5249,14 @@ CFFI> (mem-ref * :int)
 @chapter Functions
 
 @menu
-@c * Defining Foreign Functions::  
-@c * Calling Foreign Functions::   
+@c * Defining Foreign Functions::
+@c * Calling Foreign Functions::
 
 Dictionary
 
-* defcfun::                     
-* foreign-funcall::             
-* foreign-funcall-pointer::     
+* defcfun::
+* foreign-funcall::
+* foreign-funcall-pointer::
 * translate-camelcase-name::
 * translate-name-from-foreign::
 * translate-name-to-foreign::
@@ -5128,6 +5335,14 @@ care of doing argument promotion. Note that in this case
 @code{defcfun} will generate a Lisp @emph{macro} instead of a
 function and will only work for Lisps that support
 @code{foreign-funcall.}
+
+If a foreign structure is to be passed or returned by value (that is,
+the type is of the form @code{(:struct ...)}), then the cffi-libffi system
+must be loaded, which in turn depends on
+@uref{http://sourceware.org/libffi/,libffi}, including the header files.
+Failure to load that system will result in an error.
+Variadic functions cannot at present accept or return structures by
+value.
 
 @subheading Examples
 
@@ -5215,6 +5430,14 @@ One of @code{:cdecl} (default) or @code{:stdcall}.
 @subheading Description
 The @code{foreign-funcall} macro is the main primitive for calling
 foreign functions.
+
+If a foreign structure is to be passed or returned by value (that is,
+the type is of the form @code{(:struct ...)}), then the cffi-libffi system
+must be loaded, which in turn depends on
+@uref{http://sourceware.org/libffi/,libffi}, including the header files.
+Failure to load that system will result in an error.
+Variadic functions cannot at present accept or return structures by
+value.
 
 @emph{Note: The return value of foreign-funcall on functions with a
 :void return type is still undefined.}
@@ -5419,12 +5642,12 @@ The Lisp symbol to be used a function name.
 @end table
 
 @subheading Description
-@code{translate-name-from-foreign} is used by @code{@seealso{defcfun}}
-to handle the conversion of foreign names to lisp names. By default,
-it translates using
-@code{@seealso{translate-underscore-separated-name}}. However, you can
-create specialized methods on this function to make translating more
-closely match the foreign library's naming conventions.
+@code{translate-name-from-foreign} is used by @ref{defcfun} to handle
+the conversion of foreign names to lisp names. By default, it
+translates using @ref{translate-underscore-separated-name}. However,
+you can create specialized methods on this function to make
+translating more closely match the foreign library's naming
+conventions.
 
 Specialize @var{package} on some package. This allows other packages
 to load libraries with different naming conventions.
@@ -5438,7 +5661,7 @@ CFFI> (defmethod translate-name-from-foreign ((spec string)
                                               (package (eql *package*))
                                               &optional varp)
         (let ((name (translate-camelcase-name spec)))
-          (if varp (intern "*~a*" name) name)))
+          (if varp (intern (format nil "*~a*" name)) name)))
 @result{} #<STANDARD-METHOD TRANSLATE-NAME-FROM-FOREIGN (STRING (EQL #<Package "SOME-PACKAGE">))>
 CFFI> (defcfun "someXmlFunction" ...)
 @result{} SOME-XML-FUNCTION
@@ -5477,12 +5700,12 @@ The string representing the foreign function name.
 @end table
 
 @subheading Description
-@code{translate-name-to-foreign} is used by @code{@seealso{defcfun}}
-to handle the conversion of lisp names to foreign names. By default,
-it translates using
-@code{@seealso{translate-underscore-separated-name}}. However, you can
-create specialized methods on this function to make translating more
-closely match the foreign library's naming conventions.
+@code{translate-name-to-foreign} is used by @ref{defcfun} to handle
+the conversion of lisp names to foreign names. By default, it
+translates using @ref{translate-underscore-separated-name}. However,
+you can create specialized methods on this function to make
+translating more closely match the foreign library's naming
+conventions.
 
 Specialize @var{package} on some package. This allows other packages
 to load libraries with different naming conventions.
@@ -5530,11 +5753,9 @@ If @var{name} is a symbol, this is a string, and vice versa.
 
 @subheading Description
 @code{translate-underscore-separated-name} is a helper function for
-specializations of
-@code{@seealso{translate-name-from-foreign}} and
-@code{@seealso{translate-name-to-foreign}}. It handles the common
-case of converting between foreign underscore_separated names and lisp
-names.
+specializations of @ref{translate-name-from-foreign} and
+@ref{translate-name-to-foreign}. It handles the common case of
+converting between foreign underscore_separated names and lisp names.
 
 @subheading Examples
 
@@ -5558,8 +5779,8 @@ CFFI> (translate-camelcase-name "some_xml_function")
 @chapter Libraries
 
 @menu
-* Defining a library::          
-* Library definition style::    
+* Defining a library::
+* Library definition style::
 
 Dictionary
 
@@ -5704,7 +5925,8 @@ is intended to be a reasonably complete search path on Darwin systems.
 @subheading Examples
 
 @lisp
-CFFI> (load-foreign-library '(:framework "OpenGL"))
+CFFI> (let ((lib (load-foreign-library '(:framework "OpenGL"))))
+        (foreign-library-pathname lib))
 @result{} #P"/System/Library/Frameworks/OpenGL.framework/OpenGL"
 @end lisp
 
@@ -5880,6 +6102,15 @@ A symbol, whose result is its symbol value.
 Anything else evaluates to itself.
 @end enumerate
 
+The result of evaluating the @dfn{simple Lisp expression} should yield
+a @emph{designator} for a @emph{list} of @emph{pathname designators}.
+
+@strong{Note}: in Common Lisp, @code{#p"/foo/bar"} designates the
+@emph{bar} file within the @emph{/foo} directory whereas
+@code{#p"/foo/bar/"} designates the @emph{/foo/bar} directory. Keep
+that in mind when customising the value of
+@code{*foreign-library-directories*}.
+
 
 @subheading Examples
 
@@ -5923,21 +6154,21 @@ The following example would achieve the same effect:
 @node load-foreign-library, load-foreign-library-error, *foreign-library-directories*, Libraries
 @heading load-foreign-library
 @subheading Syntax
-@Function{load-foreign-library library @res{} handler}
+@Function{load-foreign-library library-designator @res{} library}
 
 @subheading Arguments and Values
 
 @table @var
-@item library
+@item library-designator
 A library designator.
 
-@item handler
+@item library-designator
 An instance of @code{foreign-library}.
 @end table
 
 @subheading Description
 
-Load the library indicated by @var{library}.  A @dfn{library
+Load the library indicated by @var{library-designator}. A @dfn{library
 designator} is defined as follows:
 
 @enumerate
@@ -6083,9 +6314,9 @@ time.@footnote{Namely, @acronym{CMUCL}.  See
 @menu
 Dictionary
 
-* callback::                    
-* defcallback::                 
-* get-callback::                
+* callback::
+* defcallback::
+* get-callback::
 @end menu
 
 
@@ -6354,6 +6585,20 @@ Adds @var{cc-flags} to the command line arguments used for the C compiler
 invocation.
 @end deffn
 
+@deffn {Grovel Form} pkg-config-cflags pkg &key optional
+
+Adds @var{pkg} to the command line arguments for the external program
+@code{pkg-config} and runs it to retrieve the relevant include flags
+used for the C compiler invocation. This syntax can be used instead of
+hard-coding paths using @code{cc-flags}, and ensures that include
+flags are added correctly on the build system. Assumes
+@code{pkg-config} is installed and working.  @var{pkg} is a string
+that identifies an installed @code{pkg-config} package. See the
+pkg-config manual for more information. If @var{optional} is true,
+failure to execute @code{pkg-config} does @emph{not} abort
+compilation.
+@end deffn
+
 @deffn {Grovel Form} cstruct lisp-name c-name slots
 
 Define a @cffi{} foreign struct with the slot data specfied.  Slots
@@ -6423,8 +6668,8 @@ signalled if the platform supports neither @code{AF_PACKET} nor
 
 @deffn {Grovel Form} bitfield name-and-opts &rest elements
 
-Defines a bitfield, with elements specified as @code{((lisp-name
-c-name) &key documentation)}.  @var{name-and-opts} can be either a
+Defines a bitfield, with elements specified as @code{((lisp-name &rest
+c-names) &key optional documentation)}.  @var{name-and-opts} can be either a
 symbol as name, or a list @code{(name &key base-type)}.  For example:
 @end deffn
 
@@ -6432,10 +6677,11 @@ symbol as name, or a list @code{(name &key base-type)}.  For example:
 (bitfield flags-ctype
   ((:flag-a "FLAG_A")
     :documentation "DOCU_A")
-  ((:flag-b "FLAG_B")
+  ((:flag-b "FLAG_B" "FLAG_B_ALT")
     :documentation "DOCU_B")
   ((:flag-c "FLAG_C")
-    :documentation "DOCU_C"))
+    :documentation "DOCU_C"
+    :optional t))
 @end lisp
 
 
@@ -6454,27 +6700,29 @@ Notice the use of @code{eval-when} to ensure @cffi{}-Grovel is present
 and the use of @code{(cffi-grovel:grovel-file name &key cc-flags)}
 instead of @code{(:file name)}.
 
+The @file{example-software.asd} file would look like that:
+
 @lisp
 ;;; @lispcmt{CFFI-Grovel is needed for processing grovel-file components}
-(cl:eval-when (:load-toplevel :execute)
-  (asdf:operate 'asdf:load-op 'cffi-grovel))
-
-(asdf:defsystem example-software
-  :depends-on (cffi)
+(defsystem "example-software"
+  :defsystem-depends-on ("cffi-grovel")
+  :depends-on ("cffi")
   :serial t
   :components
   ((:file "package")
-   (cffi-grovel:grovel-file "example-grovelling")
+   (:cffi-grovel-file "example-grovelling")
+   (:cffi-wrapper-file "example-wrappers")
    (:file "example")))
 @end lisp
 
-The ``package.lisp'' file would contain several @code{defpackage}
-forms, to remove circular dependencies and make building the project
-easier.  Note that you may or may not want to @code{:use} your
-internal package.
+The @file{package.lisp} file would contain one or several
+@code{defpackage} forms, to remove circular dependencies and make
+building the project easier.  Note that you may or may not want to
+@code{:use} your internal package.
 
-@impnote{Mention that it's a not a good idea to :USE when names may
-clash with, say, CL symbols.}
+@impnote{Note that it's a not a good idea to @code{:use} when names may
+clash with, say, CL symbols.
+Or you could use @code{uiop:define-package} and its @code{:mix} option.}
 
 @lisp
 (defpackage #:example-internal
@@ -6488,14 +6736,20 @@ clash with, say, CL symbols.}
 
 The internal package is created by Lisp code output from the C program
 written by @cffi{}-Grovel; if your specification file is
-exampleint.lisp, the exampleint.cffi.lisp file will contain the
+@file{exampleint.lisp}, the @file{exampleint.cffi.lisp} file will contain the
 @cffi{} definitions needed by the rest of your project.
 @xref{Groveller Syntax}.
 
 @node Groveller Implementation Notes,  , Groveller ASDF Integration, The Groveller
 @section Implementation Notes
 
-@impnote{This info might not be up-to-date.}
+@cffi{}-Grovel will generate many files that not only architecture-specific,
+but also implementation-specific, and should not be distributed.
+ASDF will generate these files in its output cache;
+if you build with multiple architectures (e.g. with NFS/AFS home
+directories) or implementations, it is critical for avoiding clashes
+to keep this cache in an implementation-dependent directory (as is the
+default).
 
 For @code{foo-internal.lisp}, the resulting @code{foo-internal.c},
 @code{foo-internal}, and @code{foo-internal.cffi.lisp} are all
@@ -6505,13 +6759,6 @@ system.  For this reason, it is not helpful to distribute any of those
 files; end users building @cffi{}-Grovel based software will need
 @code{cffi}-Grovel anyway.
 
-If you build with multiple architectures in the same directory
-(e.g. with NFS/AFS home directories), it is critical to remove these
-generated files or the resulting constants will be very incorrect.
-
-@impnote{Maybe we should tag the generated names with something host
-or OS-specific?}
-
 @impnote{For now, after some experimentation with @sc{clisp} having no
 long-long, it seems appropriate to assert that the generated @code{.c}
 files are architecture and operating-system dependent, but
@@ -6520,6 +6767,46 @@ lisp-implementation independent.  This way the same @code{.c} file
 between the implementations running on a given system.}
 
 @c TODO: document the new wrapper stuff.
+
+
+@c ===================================================================
+@c CHAPTER: Static Linking
+
+@node Static Linking, Limitations, The Groveller, Top
+@chapter Static Linking
+
+On recent enough versions of supported implementations (currently,
+GNU CLISP 2.49, CMUCL 2015-11, and SBCL 1.2.17), and with a recent
+enough ASDF (3.1.2 or later), you can create a statically linked
+Lisp executable image that includes all the C extensions
+(wrappers and any other objects output by @code{compile-op})
+as well as your Lisp code --- or a standalone application executable.
+This makes it easier to deliver your code as a single file.
+
+To dump a statically linked executable image, use:
+
+@lisp
+(asdf:load-system :cffi-grovel)
+(asdf:operate :static-image-op :example-software)
+@end lisp
+
+To dump a statically linked executable standalone application, use:
+
+@lisp
+(asdf:load-system :cffi-grovel)
+(asdf:operate :static-program-op :example-software)
+@end lisp
+
+See @uref{https://common-lisp.net/project/asdf/,,the ASDF
+manual} for documentation about @code{image-op} and @code{program-op}
+which are the parent operation classes that behave similarly except
+they don't statically link C code.
+
+@impnote{There is also an operation @code{:static-runtime-op} to create the
+statically linked runtime alone, but it's admittedly not very useful
+except as an intermediate step dependency towards building
+@code{:static-image-op} or @code{:static-program-op}.}
+
 
 
 @c ===================================================================
@@ -6540,8 +6827,6 @@ commonly used by C are insufficiently expressive.
 @xref{Tutorial-Abstraction,, Breaking the abstraction}, for more
 details.
 
-@item
-C @code{struct}s cannot be passed by value.
 @end itemize
 
 

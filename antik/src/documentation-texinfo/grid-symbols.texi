@@ -1,0 +1,532 @@
+@anchor{Variable grid:*array-element-types*}
+@defvr {Variable} {grid:*array-element-types*}
+@vindex grid:*array-element-types*
+All the array element types supported.
+@end defvr
+@anchor{Variable grid:*array-element-types-no-complex*}
+@defvr {Variable} {grid:*array-element-types-no-complex*}
+@vindex grid:*array-element-types-no-complex*
+All the array element types supported except for complex types.
+@end defvr
+@anchor{Variable grid:*complex-types*}
+@defvr {Variable} {grid:*complex-types*}
+@vindex grid:*complex-types*
+All the supported complex array element types.
+@end defvr
+@anchor{Variable grid:*cstd-cl-type-mapping*}
+@defvr {Variable} {grid:*cstd-cl-type-mapping*}
+@vindex grid:*cstd-cl-type-mapping*
+An alist of the @code{c} standard types as keywords, and the @code{cl} type
+   The exception is complex types, which don't have a definition
+   in the @code{c} standard; in that case, the @code{c} type is the foreign struct
+   definition.
+@end defvr
+@anchor{Variable grid:*cstd-integer-types*}
+@defvr {Variable} {grid:*cstd-integer-types*}
+@vindex grid:*cstd-integer-types*
+List of integer types supported by @code{cffi}, from the @code{cffi} docs.
+@end defvr
+@anchor{Variable grid:*double-types*}
+@defvr {Variable} {grid:*double-types*}
+@vindex grid:*double-types*
+All the supported double float element types.
+@end defvr
+@anchor{Variable grid:*float-complex-types*}
+@defvr {Variable} {grid:*float-complex-types*}
+@vindex grid:*float-complex-types*
+All the float or complex array element types supported.
+@end defvr
+@anchor{Variable grid:*float-types*}
+@defvr {Variable} {grid:*float-types*}
+@vindex grid:*float-types*
+All the float array element types.
+@end defvr
+@anchor{Variable grid:*grid-types*}
+@defvr {Variable} {grid:*grid-types*}
+@vindex grid:*grid-types*
+A list of (disjoint) types that are accepted as grids.  Not every
+  object of the given type is necessarily a grid, however.
+@end defvr
+@anchor{Variable grid:*print-contents*}
+@defvr {Variable} {grid:*print-contents*}
+@vindex grid:*print-contents*
+Print the contents of the foreign-array.
+@end defvr
+@anchor{Variable grid:*print-foreign-array-readably*}
+@defvr {Variable} {grid:*print-foreign-array-readably*}
+@vindex grid:*print-foreign-array-readably*
+Print the contents of the foreign-array with the #m reader macro.
+@end defvr
+@anchor{Constant grid:+foreign-pointer-class+}
+@defvr {Constant} {grid:+foreign-pointer-class+}
+@vindex grid:+foreign-pointer-class+
+The class in which foreign pointers fall.
+@end defvr
+@anchor{Constant grid:+foreign-pointer-type+}
+@defvr {Constant} {grid:+foreign-pointer-type+}
+@vindex grid:+foreign-pointer-type+
+The type of foreign pointers.
+@end defvr
+@anchor{Function grid:all-types}
+@deffn {Function} {grid:all-types} alist @&optional right-side
+@findex grid:all-types
+A list of all types defined by symbol or definition.
+@end deffn
+@anchor{Compiler-Macro grid:aref}
+@deffn {Compiler Macro} {grid:aref} grid @&rest indices
+@findex grid:aref
+Expand the aref form directly into a faster call if the type is known at compile time.
+@end deffn
+@anchor{Generic-Function grid:aref}
+@deffn {Generic Function} {grid:aref} grid @&rest indices
+@findex grid:aref
+Select the element from the grid.
+@end deffn
+@anchor{Generic-Function (setf grid:aref)}
+@deffn {Generic Function} {(setf grid:aref)}
+@findex (setf grid:aref)
+Set the element from the grid.
+@end deffn
+@anchor{Compiler-Macro grid:aref*}
+@deffn {Compiler Macro} {grid:aref*} grid linearized-index
+@findex grid:aref*
+Expand the aref* form directly into a faster call if the type is known at compile time.
+@end deffn
+@anchor{Generic-Function grid:aref*}
+@deffn {Generic Function} {grid:aref*} grid linearized-index
+@findex grid:aref*
+Select the element from the grid using a linearized index.
+@end deffn
+@anchor{Generic-Function (setf grid:aref*)}
+@deffn {Generic Function} {(setf grid:aref*)}
+@findex (setf grid:aref*)
+Set the element from the grid using a linearized index.
+@end deffn
+@anchor{Condition grid:array-mismatch}
+@deftp {Condition} {grid:array-mismatch}
+@tindex grid:array-mismatch
+Class precedence list: @code{@lw{array-mismatch}, @lw{error}, @lw{serious-condition}, @lw{condition}, @lw{t}}
+
+An error indicating that the two arrays do not have 
+   the same dimensions.
+@end deftp
+@anchor{Function grid:cffi-cl}
+@deffn {Function} {grid:cffi-cl} cffi-type
+@findex grid:cffi-cl
+The @code{cl} type from the @code{cffi} element type.
+@end deffn
+@anchor{Function grid:check-dimensions}
+@deffn {Function} {grid:check-dimensions} dimensions @&optional errorp
+@findex grid:check-dimensions
+Check that dimension specification for a grid is a list of positive integers.
+@end deffn
+@anchor{Function grid:cl-cffi}
+@deffn {Function} {grid:cl-cffi} cl-type
+@findex grid:cl-cffi
+The @code{cffi} element type from the @code{cl} type.
+@end deffn
+@anchor{Function grid:cl-single}
+@deffn {Function} {grid:cl-single} cl-type @&optional package
+@findex grid:cl-single
+The element type name as a single symbol.
+@end deffn
+@anchor{Function grid:codimension-one-subspace}
+@deffn {Function} {grid:codimension-one-subspace} grid position index @&optional destination
+@findex grid:codimension-one-subspace
+The subspace with rank one less than the argument grid.
+@end deffn
+@anchor{Function grid:component-float-type}
+@deffn {Function} {grid:component-float-type} eltype
+@findex grid:component-float-type
+The type of the component of this type (complex).
+@end deffn
+@anchor{Function grid:concatenate-grids}
+@deffn {Function} {grid:concatenate-grids} grid0 grid1 @&key axis
+@findex grid:concatenate-grids
+Concatenate the grids along the axis specified.  The new grid
+   will have the grid type specification and element type
+   as grid0.
+@end deffn
+@anchor{Function grid:contents}
+@deffn {Function} {grid:contents} grid
+@findex grid:contents
+The contents of the grid as nested lists.  This can
+   be used as the :initial-contents argument in making
+   a new grid.
+@end deffn
+@anchor{Generic-Function grid:copy}
+@deffn {Generic Function} {grid:copy} object @&key specification grid-type dimensions element-type destination
+@findex grid:copy
+Copy contents into existing or new object.
+@end deffn
+@anchor{Function grid:copy-to}
+@deffn {Function} {grid:copy-to} object @&optional type
+@findex grid:copy-to
+Make a grid of the specified type from the object.
+@end deffn
+@anchor{Function grid:cross}
+@deffn {Function} {grid:cross} grid0 grid1
+@findex grid:cross
+The cross product of two vectors, using the first three components of each.
+@end deffn
+@anchor{Function grid:data-class-name}
+@deffn {Function} {grid:data-class-name} category-or-rank element-type @&optional making-class
+@findex grid:data-class-name
+The class name from the type of element.
+@end deffn
+@anchor{Macro grid:dcref}
+@deffn {Macro} {grid:dcref} double @&optional index
+@findex grid:dcref
+Reference @code{c} double(s).
+@end deffn
+@anchor{Function grid:diagonal}
+@deffn {Function} {grid:diagonal} grid @&key offset indices destination start
+@findex grid:diagonal
+Select a subgrid where the two indices are equal or 
+   differ by the offset, e.g. the diagonal affi for the matrix.
+   The offset specifies sub- (offset<0) or super- (offset>0)
+   diagonals.
+@end deffn
+@anchor{Function (setf grid:diagonal)}
+@deffn {Function} {(setf grid:diagonal)}
+@findex (setf grid:diagonal)
+Set a subgrid where the two indices are equal or 
+   differ by the offset, e.g. the diagonal affi for the matrix.
+   The offset specifies sub- (offset<0) or super- (offset>0)
+   diagonals.  If grid is not supplied, a grid of one higher
+   dimension than diagonal with default element @code{0} is used.
+@end deffn
+@anchor{Function grid:dim0}
+@deffn {Function} {grid:dim0} object
+@findex grid:dim0
+The first dimension of the object.
+@end deffn
+@anchor{Function grid:dim1}
+@deffn {Function} {grid:dim1} object
+@findex grid:dim1
+The second dimension of the object.
+@end deffn
+@anchor{Generic-Function grid:dimensions}
+@deffn {Generic Function} {grid:dimensions} grid
+@findex grid:dimensions
+A list representing the dimensions of the generalized array.
+@end deffn
+@anchor{Method grid:dimensions ((foreign-array foreign-array))}
+@deffn {Method} {grid:dimensions} (foreign-array foreign-array)
+automatically generated reader method
+@end deffn
+@anchor{Function grid:element-size}
+@deffn {Function} {grid:element-size} object
+@findex grid:element-size
+The size of each element as stored in @code{c}.
+@end deffn
+@anchor{Generic-Function grid:element-type}
+@deffn {Generic Function} {grid:element-type} grid
+@findex grid:element-type
+The element type of the grid.
+@end deffn
+@anchor{Method grid:element-type ((foreign-array foreign-array))}
+@deffn {Method} {grid:element-type} (foreign-array foreign-array)
+automatically generated reader method
+@end deffn
+@anchor{Function grid:element-types}
+@deffn {Function} {grid:element-types} element-types
+@findex grid:element-types
+All the element types available of a given category.
+@end deffn
+@anchor{Function grid:elementwise}
+@deffn {Function} {grid:elementwise} function @&optional dimensionless-return
+@findex grid:elementwise
+Make a function on a grid as an elementwise map of a scalar
+   function.  If the result has no physical dimension, for an
+   physical-quantity argument, dimensionless-return should be @code{t}.
+@end deffn
+@anchor{Function grid:ensure-foreign-array}
+@deffn {Function} {grid:ensure-foreign-array} object @&optional dimensions element-type initial-element
+@findex grid:ensure-foreign-array
+If object is not a foreign array, make and return a foreign array
+   with the dimensions and element-type.  If object is a
+   foreign array, it is returned.
+@end deffn
+@anchor{Function grid:euclidean}
+@deffn {Function} {grid:euclidean} grid @&optional kind
+@findex grid:euclidean
+The norm of the grid. Kind can be :euclidean, for the 
+   euclidean, or 2-norm.
+@end deffn
+@anchor{Class grid:foreign-array}
+@deftp {Class} {grid:foreign-array}
+@tindex grid:foreign-array
+Class precedence list: @code{@lw{foreign-array}, @lw{standard-object}, @lw{t}}
+
+Arrays that can be referenced by foreign functions.
+@end deftp
+@anchor{Function grid:grid}
+@deffn {Function} {grid:grid} @&rest args
+@findex grid:grid
+Make the simple grid with default properties and elements as specified in args.
+@end deffn
+@anchor{Generic-Function grid:rank}
+@deffn {Generic Function} {grid:rank} grid
+@findex grid:rank
+The rank (number of dimensions) of the generalized array.
+@end deffn
+@anchor{Function grid:gridp}
+@deffn {Function} {grid:gridp} object
+@findex grid:gridp
+Object is a grid; type is returned.
+@end deffn
+@anchor{Function grid:identity-matrix}
+@deffn {Function} {grid:identity-matrix} dimension @&optional scalar type element-type
+@findex grid:identity-matrix
+A scalar multiple of the identity matrix.
+@end deffn
+@anchor{Generic-Function grid:inner}
+@deffn {Generic Function} {grid:inner} grid0 grid1
+@findex grid:inner
+The inner product of two grids.
+@end deffn
+@anchor{Function grid:lookup-type}
+@deffn {Function} {grid:lookup-type} symbol alist @&optional reverse error
+@findex grid:lookup-type
+Lookup the symbol defined in the alist.  If error is non-nil it
+   should be a string describing the class of types, and this function
+   will signal an error if the type wasn't found.
+@end deffn
+@anchor{Function grid:make-foreign-array}
+@deffn {Function} {grid:make-foreign-array} element-type @&rest keys @&key dimensions @&allow-other-keys
+@findex grid:make-foreign-array
+Make a @code{gsll} array with the given element type,
+   :dimensions, and :initial-contents, :initial-element or :data.
+@end deffn
+@anchor{Function grid:make-foreign-array-from-pointer}
+@deffn {Function} {grid:make-foreign-array-from-pointer} pointer dimensions element-type @&optional finalize
+@findex grid:make-foreign-array-from-pointer
+Given a foreign pointer to an array, make a Lisp object of 
+   class 'foreign-array that references that.  This will never
+   make a static-vector.  If finalize is true, than the array
+   memory will be freed when this object is garbage collected;
+   otherwise it is presumed that the foreign code will handle
+   that job.
+@end deffn
+@anchor{Function grid:make-grid}
+@deffn {Function} {grid:make-grid} specification @&rest keys @&key initial-contents initial-element @&allow-other-keys
+@findex grid:make-grid
+Make a grid object with no or literal values specified.
+   The specification is of the form
+   ((component-type dimensions...) ... element-type)
+   If initial-contents are specified, the dimensions may be
+   omitted, 
+   ((component-type) ... element-type).
+@end deffn
+@anchor{Function grid:map-grid}
+@deffn {Function} {grid:map-grid} @&key source source-affi source-dims destination destination-affi destination-specification initial-element element-function combination-function
+@findex grid:map-grid
+Make a new grid by mapping on an existing grid or on indices.
+   :source            The source grid; if not a grid, it is taken as a
+                      function to apply to the grid indices to make the
+                      element of the destination; if this is supplied,
+                      source is ignored and element-function is only applied
+                      to the default value.
+
+@table @emph
+
+@item    :source-affi       The affi to be used for extraction; defaults to
+                      making an affi from source-dims, then destination-specification. 
+
+@item    :source-dims       The dimensions of the source if source not supplied;
+                      if @code{nil}, dimensions are taken from destination-specification.
+
+@item    :destination       The destination grid, if not supplied, it will be made
+                      according to destination-affi and destination-specification.
+
+@item    :destination-affi  The affi for injection, defaults to (affi destination) 
+                      if destination is supplied, then
+                      makes an affi if destination-specification is supplied,
+                      otherwise source-affi.
+
+@item    :destination-specification The specification to use for the destination to be make,
+                      defaults to the specification of source.
+
+@item    :initial-element     The default value to set in a newly-created destination.
+@itemx    :element-function  The function to apply to each element of the source; defaults
+                      to coercing element to the element type of the destination.
+
+@item    :combination-function
+                      A designator for a function of two arguments,
+                      or nil (default).  If a function, it will be funcalled on
+                      the destination element and the transformed source element.
+                      If nil, the destination element is overwritten.
+@end table
+
+@end deffn
+@anchor{Function grid:map-n-grids}
+@deffn {Function} {grid:map-n-grids} @&key sources destination destination-affi destination-specification initial-element element-functions combination-function combine-destination
+@findex grid:map-n-grids
+Map on multiple source grids.  The arguments are:
+   sources:
+     A list of (grid-or-function affi), each one representing
+     either a grid or function from which data will be drawn.  
+     If it is a grid, the grid values are used.  If it is a function
+     of the appropriate number of non-negative integer arguments,
+     values will be created by calling that function on the indices.
+     If affi is not specified and grid-or-function is a grid, the affi
+     will default to the @code{affi} of that grid.
+
+@table @emph
+
+@item    destination:
+     A grid in which to put the results, or nil if one is
+     to be created.
+
+@item    destination-affi:
+     An @code{affi} for the destinattion.
+
+@item    destination-specification:
+     A specification for the destination, if destination-affi
+     is not given.
+
+@item    initial-element:  Initial value to give to the destination grid.
+@itemx    element-functions:
+     A list of functions or nil, one for each source.  This function
+     is applied to the source element before combination.
+
+@item    combination-function:
+     A function that combines each of the source values after
+     being passed through the element-functions.  If nil,
+     then just take the value from the first source.
+
+@item    combine-destination:
+     If true, pass as the first argument to the combination-function
+     the prior value of the destination grid.  Defaults to @code{t} if
+     :desination is specified; otherwise nil.
+@end table
+
+@end deffn
+@anchor{Class grid:matrix}
+@deftp {Class} {grid:matrix}
+@tindex grid:matrix
+Class precedence list: @code{@lw{matrix}, @lw{foreign-array}, @lw{standard-object}, @lw{t}}
+
+Foreign matrices.
+@end deftp
+@anchor{Function grid:matrix-from-columns}
+@deffn {Function} {grid:matrix-from-columns} @&rest columns
+@findex grid:matrix-from-columns
+Make the matrix out of the equal-length vectors.
+   If *default-grid-type* is non-nil, resultant grid
+   will be of the specified type; otherwise, it will
+   be the same as the first column.
+@end deffn
+@anchor{Class grid:mvector}
+@deftp {Class} {grid:mvector}
+@tindex grid:mvector
+Class precedence list: @code{@lw{mvector}, @lw{foreign-array}, @lw{standard-object}, @lw{t}}
+
+Foreign vectors.
+@end deftp
+@anchor{Macro grid:metadata-slot}
+@deffn {Macro} {grid:metadata-slot} object name
+@findex grid:metadata-slot
+Access a slot in the foreign-metadata.
+@end deffn
+@anchor{Function grid:norm}
+@deffn {Function} {grid:norm} grid @&optional kind
+@findex grid:norm
+The norm of the grid. Kind can be :euclidean, for the 
+   euclidean norm.
+@end deffn
+@anchor{Function grid:normalize}
+@deffn {Function} {grid:normalize} grid @&optional threshold
+@findex grid:normalize
+Find the normalized grid, i.e., each element is divided by grid
+   norm, and the normalization factor.  If the norm is less than the
+   non-nil threshold, then nil is returned; if it is zero and
+   threshold is nil, a zero grid is returned.
+@end deffn
+@anchor{Function grid:number-class}
+@deffn {Function} {grid:number-class} type
+@findex grid:number-class
+Find the class corresponding to the numeric type.
+@end deffn
+@anchor{Function grid:read-data-file}
+@deffn {Function} {grid:read-data-file} filename @&optional separator include-count discard-header
+@findex grid:read-data-file
+Read the data in the file into a list.
+@end deffn
+@anchor{Function grid:read-data-stream}
+@deffn {Function} {grid:read-data-stream} @&optional separator include-count stream
+@findex grid:read-data-stream
+Read the data from the stream and collect a list of lists of values
+   from columns separated by whitespace.  If include-count is a
+   number, line count starting at that number will be prepended as the
+   first field.
+@end deffn
+@anchor{Function grid:read-vector-from-string}
+@deffn {Function} {grid:read-vector-from-string} string count @&optional start end
+@findex grid:read-vector-from-string
+Read the count element vector from a string.
+@end deffn
+@anchor{Function grid:set-diagonal}
+@deffn {Function} {grid:set-diagonal} grid function-or-value @&optional offset value
+@findex grid:set-diagonal
+Set the diagonal of the grid by calling the function on the indices.
+   If value is non-nil, then set it to function-or-value, ignoring
+   the indices.
+@end deffn
+@anchor{Function grid:slice}
+@deffn {Function} {grid:slice} grid index-selection @&key destination drop
+@findex grid:slice
+Select slice(s) from a grid.  The index-selection is a list with
+   length equal to the rank of grid.   Each element should be one of:
+     an index, indicating the index to be selected,
+     :all, indicating the entire range if indices are to be selected,
+     :rev, indicating the entire range if indices are to be selected
+         in reverse order,
+
+@table @emph
+
+@item      (:range start end stride), indicating a range of indices to be
+         selected; if stride is omitted, it is presumed to be @code{1},
+@end table
+
+     (:select value ...), indicating explicit values to be selected.
+@end deffn
+@anchor{Function grid:spec-scalar-p}
+@deffn {Function} {grid:spec-scalar-p} specification
+@findex grid:spec-scalar-p
+Specification is for a scalar; if so, return that type.
+@end deffn
+@anchor{Generic-Function grid:specification}
+@deffn {Generic Function} {grid:specification} grid
+@findex grid:specification
+The grid specification.
+@end deffn
+@anchor{Function grid:st-pointerp}
+@deffn {Function} {grid:st-pointerp} decl
+@findex grid:st-pointerp
+If this st represents a pointer, return the type of the object.
+@end deffn
+@anchor{Function grid:stride}
+@deffn {Function} {grid:stride} grid stride @&key destination
+@findex grid:stride
+Create a new grid with every stride-th element.
+@end deffn
+@anchor{Function grid:subgrid}
+@deffn {Function} {grid:subgrid} grid dimensions start @&key destination drop
+@findex grid:subgrid
+A subgrid of the grid, e.g. a row from a matrix, or a block.
+@end deffn
+@anchor{Function (setf grid:subgrid)}
+@deffn {Function} {(setf grid:subgrid)}
+@findex (setf grid:subgrid)
+Set the subgrid of the grid.  Specify the starting indices with
+   start, and in the case that the subgrid has lower rank than the
+   grid, which axes; default is the first (rank subgrid) axes.
+@end deffn
+@anchor{Function grid:transpose}
+@deffn {Function} {grid:transpose} grid @&key indices destination start
+@findex grid:transpose
+Transpose the grid, optionally putting the result in destination at
+   the element specified by the start indices.
+@end deffn

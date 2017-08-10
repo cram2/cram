@@ -1,6 +1,6 @@
 ;; Adaptive step-size control
 ;; Liam Healy 2008-02-17 17:30:04EST control.lisp
-;; Time-stamp: <2009-12-27 09:56:56EST control.lisp>
+;; Time-stamp: <2012-01-13 12:01:24EST control.lisp>
 ;;
 ;; Copyright 2008, 2009 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
@@ -104,7 +104,7 @@
     "gsl_odeiv_control_scaled"
   ((absolute-error :double) (relative-error :double)
    (y-scaling :double) (dydt-scaling :double)
-   (absolute-scale :pointer) (dimension sizet))
+   (absolute-scale :pointer) (dimension :sizet))
   "scaled control for ordinary differential equations"
   :superclasses (ode-control)
   :initialize-name "gsl_odeiv_control_init"

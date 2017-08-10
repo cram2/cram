@@ -1,0 +1,4 @@
+@deffn {Function} {antik:seconds-per-day} datime
+@findex antik:seconds-per-day
+Compute the number of seconds in the given day.
+@end deffn

@@ -1,8 +1,8 @@
 ;; Basis splines.
 ;; Liam Healy 2008-02-18 14:43:20EST basis-splines.lisp
-;; Time-stamp: <2010-06-30 19:57:28EDT basis-splines.lisp>
+;; Time-stamp: <2016-06-15 23:07:19EDT basis-splines.lisp>
 ;;
-;; Copyright 2008, 2009 Liam M. Healy
+;; Copyright 2008, 2009, 2011, 2012, 2016 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -25,7 +25,7 @@
 ;;; Should be subclass of interpolation?
 
 (defmobject basis-spline "gsl_bspline"
-  ((order sizet) (number-of-breakpoints sizet))
+  ((order :sizet) (number-of-breakpoints :sizet))
   "basis spline"
   :gsl-version (1 9)
   :documentation			; FDL
@@ -79,29 +79,36 @@
 (defmfun number-of-coefficients (bspline)
   "gsl_bspline_ncoeffs"
   (((mpointer bspline) :pointer))
-  :c-return sizet
+  :c-return :sizet
   :gsl-version (1 9))
 
 (defmfun order ((bspline basis-spline))
   "gsl_bspline_order"
   (((mpointer bspline) :pointer))
   :definition :method
-  :c-return sizet
+  :c-return :sizet
   :gsl-version (1 9))
 
 (defmfun number-of-breakpoints (bspline)
   "gsl_bspline_nbreak"
   (((mpointer bspline) :pointer))
-  :c-return sizet
+  :c-return :sizet
   :gsl-version (1 9)
   :documentation "The number of breakpoints of the basis spline bspline.")
 
 (defmfun breakpoint (i bspline)
   "gsl_bspline_breakpoint"
-  ((i sizet) ((mpointer bspline) :pointer))
+  ((i :sizet) ((mpointer bspline) :pointer))
   :c-return :double
   :gsl-version (1 9)
   :documentation "The ith breakpoint of the basis spline bspline.")
+
+(defmfun greville-abscissa (i bspline)
+  "gsl_bspline_greville_abscissa"
+  ((i :sizet) ((mpointer bspline) :pointer))
+  :c-return :double
+  :gsl-version (1 13)
+  :documentation "Returns the location of the @math{i}-th Greville abscissa for the given B-spline basis.  For the ill-defined case when @math{k=1}, the implementation chooses to return breakpoint interval midpoints.")
 
 ;;; Examples and unit test
 
@@ -125,18 +132,18 @@
       (let* ((xi (coerce (* i (/ 15 (1- ndata))) 'double-float))
 	     (yi (+ (* (cos xi) (exp (* -0.1d0 xi)))
 		    (sample rng :gaussian :sigma sigma))))
-	(setf (grid:gref x i) xi
-	      (grid:gref y i) yi
-	      (grid:gref w i) (/ (expt sigma 2)))))
+	(setf (grid:aref x i) xi
+	      (grid:aref y i) yi
+	      (grid:aref w i) (/ (expt sigma 2)))))
     ;; Uniform breakpoints [0, 15]
     (uniform-knots 0.0d0 15.0d0 bw)
     ;; Fit matrix
     (dotimes (i ndata)
       ;; Compute B_j
-      (evaluate bw (grid:gref x i) :b B)
+      (evaluate bw (grid:aref x i) :b B)
       ;; Fill in row i of X
       (dotimes (j ncoeffs)
-	(setf (grid:gref Xmatrix i j) (grid:gref B j))))
+	(setf (grid:aref Xmatrix i j) (grid:aref B j))))
     ;; Do the fit
     (linear-mfit Xmatrix y c w nil cov mw)
     ;; Return the smoothed curve

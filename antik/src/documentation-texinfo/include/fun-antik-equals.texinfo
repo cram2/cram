@@ -1,0 +1,4 @@
+@deffn {Generic Function} {antik:=} a b
+@findex antik:=
+Numeric equal
+@end deffn

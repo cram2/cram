@@ -1,0 +1,4 @@
+@deffn {Function} {grid:dim0} object
+@findex grid:dim0
+The first dimension of the object.
+@end deffn

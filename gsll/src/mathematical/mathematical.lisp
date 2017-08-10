@@ -1,6 +1,6 @@
 ;; Mathematical functions
 ;; Liam Healy, Wed Mar  8 2006 - 22:09
-;; Time-stamp: <2010-07-20 16:56:44EDT mathematical.lisp>
+;; Time-stamp: <2010-08-07 21:35:54EDT mathematical.lisp>
 ;;
 ;; Copyright 2006, 2007, 2008, 2009, 2010 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
@@ -195,6 +195,12 @@ Function: double gsl_pow_9 (const double x)
     x < y, the function returns -1, or if x > y, the function
     returns +1."
   :return ((pmnil cr)))
+
+;;;;****************************************************************************
+;;;; pi
+;;;;****************************************************************************
+
+(defconstant dpi (coerce pi 'double-float))
 
 ;;;;****************************************************************************
 ;;;; Examples and unit test

@@ -1,8 +1,8 @@
 ;; Additional methods for lisp-unit
 ;; Liam Healy 2009-04-15 23:23:30EDT augment.lisp
-;; Time-stamp: <2010-07-07 14:24:56EDT augment.lisp>
+;; Time-stamp: <2014-02-15 18:40:50EST augment.lisp>
 ;;
-;; Copyright 2009 Liam M. Healy
+;; Copyright 2009, 2011, 2014 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -23,11 +23,11 @@
 (defmethod lisp-unit:numerical-equal
     ((result1 grid:foreign-array) (result2 grid:foreign-array) &key (test #'lisp-unit:number-equal))
   "Return true if the arrays are numerically equal according to :TEST."
-  (when (equal (dimensions result1) (dimensions result2))
+  (when (equal (grid:dimensions result1) (grid:dimensions result2))
     (lisp-unit:numerical-equal (grid:copy-to result1) (grid:copy-to result2)
 			       :test test)))
 
-;;; See cdf/test.c
+;;; See cdf/test.c, specfunc/test_sf.h
 (defconstant +test-tol0+ (* 2 +dbl-epsilon+))
 (defconstant +test-tol1+ (* 16 +dbl-epsilon+))
 (defconstant +test-tol2+ (* 256 +dbl-epsilon+))

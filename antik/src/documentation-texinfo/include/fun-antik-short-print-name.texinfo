@@ -1,0 +1,4 @@
+@deffn {Function} {antik:short-print-name} unit
+@findex antik:short-print-name
+How the unit or attribute should be printed on the screen.
+@end deffn

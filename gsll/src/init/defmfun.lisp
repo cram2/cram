@@ -1,8 +1,8 @@
 ;; Macro for defining GSL functions.
 ;; Liam Healy 2008-04-16 20:49:50EDT defmfun.lisp
-;; Time-stamp: <2010-06-27 18:03:23EDT defmfun.lisp>
+;; Time-stamp: <2016-06-14 23:39:02EDT defmfun.lisp>
 ;;
-;; Copyright 2009 Liam M. Healy
+;; Copyright 2008, 2009, 2010, 2014, 2016 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -33,7 +33,7 @@
 ;;; the interfaces to all the specific GSL functions.
 
 ;;; Required arguments to defmfun:
-;;; name        The name of the function being defined in CL
+;;; name        The name of the function being defined in CL; if NIL, then a lambda is created.
 ;;; arglist     The CL argument list for the function
 ;;; gsl-name    A string or list of strings representing the name(s) of
 ;;;             the GSL function(s)
@@ -95,7 +95,7 @@
      documentation inputs outputs before after enumeration qualifier
      gsl-version switch ((:callbacks cbinfo)) callback-dynamic callback-object)
     ,key-args
-    (declare (ignorable c-return return definition element-types
+    (declare (ignorable c-return return return-supplied-p definition element-types
       index export documentation inputs outputs
       before after enumeration qualifier
       gsl-version switch cbinfo callback-dynamic callback-object)
@@ -122,9 +122,9 @@
 	    (when (or cbinfo callback-object)
 	      (if callback-object
 		  (let ((class
-			 (if (listp callback-object)
-			     (second (first callback-object))
-			     (category-for-argument arglist callback-object))))
+			  (if (listp callback-object)
+			      (second (first callback-object))
+			      (category-for-argument arglist callback-object))))
 		    (list (mobject-fnvnames
 			   class
 			   (number-of-callbacks (get-callbacks-for-class class)))
@@ -135,7 +135,7 @@
 		      (list name 'dynfn) num-callbacks :gsl)
 		     (make-symbol-cardinals
 		      (list name 'cbfn) num-callbacks :gsl)))))
-	     #+fsbv fsbv-functions #+fsbv (list))
+	    #+fsbv fsbv-functions #+fsbv (list))
       (wrap-index-export
        (cond
 	 ((eq definition :generic)
@@ -146,35 +146,45 @@
 	  (expand-defmfun-defmethods name arglist gsl-name c-arguments key-args))
 	 ((optional-args-to-switch-gsl-functions arglist gsl-name)
 	  (expand-defmfun-optional name arglist gsl-name c-arguments key-args))
-	 ((eq definition :function)
-	  (complete-definition 'cl:defun name arglist gsl-name c-arguments key-args)))
+	 ((member definition '(nil :function))
+	  (if name
+	      (complete-definition 'cl:defun name arglist gsl-name c-arguments key-args)
+	      (complete-definition 'cl:lambda nil arglist gsl-name c-arguments key-args))))
        name gsl-name key-args))))
+
+(defun wrap-progn (args)
+  "Wrap the arguments in a progn."
+  (if (rest args)
+      #-clisp (cons 'progn args)
+      #+clisp (append (list 'let nil) args) ; CLISP bug workaround
+      (first args)))
 
 (defun wrap-index-export (expanded-body name gsl-name key-args)
   "Wrap the expanded-body with index and export if requested.
    Use a progn if needed."
   (with-defmfun-key-args key-args
     (let ((index-export
-	   (progn
-	     (if (eq index t) (setf index name))
-	     (flet ((mapnfn (gslnm) `(map-name ',index ,gslnm)))
-	       (append
-		(when index
-		  (if indexed-functions
-		      (mapcar #'mapnfn indexed-functions)
-		      (if (listp gsl-name)
-			  (mapcar #'mapnfn gsl-name)
-			  (list (mapnfn gsl-name)))))
-		(when export `((export ',name))))))))
-      `(progn
-	 ,@(if (symbolp (first expanded-body)) (list expanded-body) expanded-body)
-	 ,@(make-defmcallbacks
-	    cbinfo
-	    (second callback-dynamic-variables)
-	    (first callback-dynamic-variables))
-	 #+fsbv
-	 ,@fsbv-functions
-	 ,@index-export))))
+	    (when name
+	      (if (eq index t) (setf index name))
+	      (flet ((mapnfn (gslnm) `(map-name ',index ,gslnm)))
+		(append
+		 (when index
+		   (if indexed-functions
+		       (mapcar #'mapnfn indexed-functions)
+		       (if (listp gsl-name)
+			   (mapcar #'mapnfn gsl-name)
+			   (list (mapnfn gsl-name)))))
+		 (when export `((export ',name))))))))
+      (wrap-progn
+       (append
+	(if (symbolp (first expanded-body)) (list expanded-body) expanded-body)
+	(make-defmcallbacks
+	 cbinfo
+	 (second callback-dynamic-variables)
+	 (first callback-dynamic-variables))
+	#+fsbv
+	fsbv-functions
+	index-export)))))
 
 ;;;;****************************************************************************
 ;;;; A method for a generic function, on any class

@@ -1,8 +1,8 @@
 ;; Generators of random numbers.
 ;; Liam Healy, Sat Jul 15 2006 - 14:43
-;; Time-stamp: <2010-07-16 17:11:25EDT generators.lisp>
+;; Time-stamp: <2012-01-13 12:01:19EST generators.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2010 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -155,7 +155,7 @@
 (defmfun size ((rng-instance random-number-generator))
   "gsl_rng_size" (((mpointer rng-instance) :pointer))
   :definition :method
-  :c-return sizet
+  :c-return :sizet
   :index gsl-random-state)
 
 (export 'gsl-random-state)
@@ -169,7 +169,7 @@
     (loop for i from 0 below (length ans)
        do
        (setf (aref ans i)
-	     (mem-aref (rng-state gen) :uint8 i)))
+	     (cffi:mem-aref (rng-state gen) :uint8 i)))
     ans))
 
 ;;;;****************************************************************************

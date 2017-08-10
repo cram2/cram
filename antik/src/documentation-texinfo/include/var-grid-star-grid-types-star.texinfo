@@ -1,0 +1,5 @@
+@defvr {Variable} {grid:*grid-types*}
+@vindex grid:*grid-types*
+A list of (disjoint) types that are accepted as grids.  Not every
+  object of the given type is necessarily a grid, however.
+@end defvr

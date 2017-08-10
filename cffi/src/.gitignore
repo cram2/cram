@@ -5,6 +5,7 @@
 *.bundle
 *.so
 *.fasl
+*.xfasl
 .DS_Store
 doc/*.aux
 doc/manual/
@@ -18,8 +19,10 @@ doc/*.fns
 doc/*.ky
 doc/*.pg
 doc/*.toc
+doc/*.tps
 doc/*.tp
 doc/*.vr
 doc/*.dvi
 doc/*.cps
 doc/*.vrs
+doc/dir

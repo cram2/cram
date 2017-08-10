@@ -1,0 +1,84 @@
+<html lang="en">
+<head>
+<title>Properties - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Operations.html#Operations" title="Operations">
+<link rel="prev" href="Mapping.html#Mapping" title="Mapping">
+<link rel="next" href="AFFI.html#AFFI" title="AFFI">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Properties"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="AFFI.html#AFFI">AFFI</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Mapping.html#Mapping">Mapping</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Operations.html#Operations">Operations</a>
+<hr>
+</div>
+
+<h4 class="subsection">4.3.6 Properties</h4>
+
+<p>These functions give properties of a grid.
+
+<div class="defun">
+&mdash; Function: <b>grid:contents</b><var> grid<a name="index-grid_003acontents-223"></a></var><br>
+<blockquote><p><a name="index-grid_003acontents-224"></a>The contents of the grid as nested lists.  This can
+   be used as the :initial-contents argument in making
+   a new grid. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>grid:dim0</b><var> object<a name="index-grid_003adim0-225"></a></var><br>
+<blockquote><p><a name="index-grid_003adim0-226"></a>The first dimension of the object. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>grid:dim1</b><var> object<a name="index-grid_003adim1-227"></a></var><br>
+<blockquote><p><a name="index-grid_003adim1-228"></a>The second dimension of the object. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>grid:dimensions</b><var> grid<a name="index-grid_003adimensions-229"></a></var><br>
+<blockquote><p><a name="index-grid_003adimensions-230"></a>A list representing the dimensions of the generalized array. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Method: <b>grid:dimensions</b> (<var>foreign-array foreign-array</var>)<var><a name="index-grid_003adimensions-231"></a></var><br>
+<blockquote><p>automatically generated reader method
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>grid:gridp</b><var> object<a name="index-grid_003agridp-232"></a></var><br>
+<blockquote><p><a name="index-grid_003agridp-233"></a>Object is a grid; type is returned. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>grid:rank</b><var> grid<a name="index-grid_003arank-234"></a></var><br>
+<blockquote><p><a name="index-grid_003arank-235"></a>The rank (number of dimensions) of the generalized array. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>grid:specification</b><var> grid<a name="index-grid_003aspecification-236"></a></var><br>
+<blockquote><p><a name="index-grid_003aspecification-237"></a>The grid specification. 
+</p></blockquote></div>
+
+   </body></html>
+

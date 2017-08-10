@@ -1,0 +1,4 @@
+@deffn {Generic Function} {antik:asin} arg
+@findex antik:asin
+The arcsine of the generalized or regular number.
+@end deffn

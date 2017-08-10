@@ -1,6 +1,6 @@
 ;; Regression test GEGENBAUER for GSLL, automatically generated
 ;;
-;; Copyright 2009 Liam M. Healy
+;; Copyright 2009, 2014 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -36,5 +36,5 @@
                         (MULTIPLE-VALUE-LIST
                          (LET ((ARR (GRID:MAKE-FOREIGN-ARRAY 'DOUBLE-FLOAT :DIMENSIONS 4)))
                            (GEGENBAUER-ARRAY 1.0d0 3.0d0 ARR)
-                           (GRID:COPY-TO ARR)))))
+                           (GRID:COPY-TO ARR 'array 'double-float)))))
 

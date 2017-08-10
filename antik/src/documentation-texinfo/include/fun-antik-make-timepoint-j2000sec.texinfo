@@ -1,0 +1,4 @@
+@deffn {Function} {antik:make-timepoint-j2000sec} j2000sec @&optional day-only
+@findex antik:make-timepoint-j2000sec
+Make a timepoint from J2000sec.
+@end deffn

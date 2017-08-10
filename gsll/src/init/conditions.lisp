@@ -1,8 +1,8 @@
 ;; GSL errors                                
 ;; Liam Healy Sat Mar  4 2006 - 18:33
-;; Time-stamp: <2010-07-20 17:55:56EDT conditions.lisp>
+;; Time-stamp: <2015-06-02 17:38:15EDT conditions.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2010, 2015 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -182,3 +182,16 @@
 ;;; This insures that conditions will be signalled if GSLL is dumped
 ;;; in save-lisp-and-die.
 #+sbcl (push 'establish-handler sb-ext:*init-hooks*)
+
+;;; Convenience macro so user can specify a value to return for a particular error.
+(export 'return-value-on-error)
+(defmacro return-value-on-error (values error &body body)
+  "Return the value(s) (a value or list of values) in case the specified GSL error is signalled in the body."
+  `(restart-case
+       (handler-bind
+	   ((,error
+	      #'(lambda (condition)
+		  (declare (ignore condition))
+		  (invoke-restart 'return ,@(alexandria:ensure-list values)))))
+	 ,@body)
+     (return (&rest v) (apply 'values v))))

@@ -227,10 +227,10 @@ field-name"
 ;; TODO: figure out why the compiler macro is kicking in before
 ;; the setf expander.
 (defun %foreign-slot-value (obj type field)
-  (cffi:foreign-slot-value obj type field))
+  (cffi:foreign-slot-value obj `(:struct ,type) field))
 
 (defun (setf %foreign-slot-value) (value obj type field)
-  (setf (cffi:foreign-slot-value obj type field) value))
+  (setf (cffi:foreign-slot-value obj `(:struct ,type) field) value))
 
 (defmacro get-slot-value (obj type field)
   "Access a slot value from a structure."
@@ -484,7 +484,7 @@ library type if type is not specified."
 (defun load-foreign-library (filename &key module supporting-libraries
                              force-load)
   #+(or allegro mcl sbcl clisp) (declare (ignore module supporting-libraries))
-  #+(or cmu scl sbcl) (declare (ignore module))
+  #+(or cmucl scl sbcl) (declare (ignore module))
 
   (when (and filename (or (null (pathname-directory filename))
                           (probe-file filename)))
@@ -496,7 +496,7 @@ library type if type is not specified."
         t ;; return T, but don't reload library
         (progn
           ;; FIXME: Hmm, what are these two for?
-          #+cmu
+          #+cmucl
           (let ((type (pathname-type (parse-namestring filename))))
             (if (string-equal type "so")
                 (sys::load-object-file filename)
@@ -513,7 +513,7 @@ library type if type is not specified."
                                     (convert-supporting-libraries-to-string
                                      supporting-libraries))))
 
-          #-(or cmu scl)
+          #-(or cmucl scl)
           (cffi:load-foreign-library filename)
           (push filename *loaded-libraries*)
           t))))
@@ -523,26 +523,24 @@ library type if type is not specified."
   "Return the value of the environment variable."
   #+allegro (sys::getenv (string var))
   #+clisp (sys::getenv (string var))
-  #+(or cmu scl) (cdr (assoc (string var) ext:*environment-list* :test #'equalp
+  #+(or cmucl scl) (cdr (assoc (string var) ext:*environment-list* :test #'equalp
                              :key #'string))
-  #+gcl (si:getenv (string var))
+  #+(or ecl gcl) (si:getenv (string var))
   #+lispworks (lw:environment-variable (string var))
   #+lucid (lcl:environment-variable (string var))
   #+(or mcl ccl) (ccl::getenv var)
   #+sbcl (sb-ext:posix-getenv var)
-  #-(or allegro clisp cmu scl gcl lispworks lucid mcl ccl sbcl)
+  #-(or allegro clisp cmucl ecl scl gcl lispworks lucid mcl ccl sbcl)
   (error 'not-implemented :proc (list 'getenv var)))
 
 ;; Taken from UFFI's src/os.lisp
 ;; modified from function ASDF -- Copyright Dan Barlow and Contributors
-(defun run-shell-command (control-string  &rest args &key output)
+(defun run-shell-command (control-string &rest args)
   "Interpolate ARGS into CONTROL-STRING as if by FORMAT, and
 synchronously execute the result using a Bourne-compatible shell, with
 output to *trace-output*.  Returns the shell's exit code."
-  (unless output
-    (setq output *trace-output*))
-
-  (let ((command (apply #'format nil control-string args)))
+  (let ((command (apply #'format nil control-string args))
+        (output *trace-output*))
     #+sbcl
     (sb-impl::process-exit-code
      (sb-ext:run-program
@@ -550,7 +548,7 @@ output to *trace-output*.  Returns the shell's exit code."
       (list "-c" command)
       :input nil :output output))
 
-    #+(or cmu scl)
+    #+(or cmucl scl)
     (ext:process-exit-code
      (ext:run-program
       "/bin/sh"
@@ -576,7 +574,13 @@ output to *trace-output*.  Returns the shell's exit code."
                  :input nil :output output
                  :wait t)))
 
-    #-(or openmcl clisp lispworks allegro scl cmu sbcl)
+    #+ecl
+    (nth-value 1
+               (ext:run-program
+                "/bin/sh" (list "-c" command)
+                :input nil :output output :error nil :wait t))
+
+    #-(or openmcl ecl clisp lispworks allegro scl cmucl sbcl)
     (error "RUN-SHELL-PROGRAM not implemented for this Lisp")
     ))
 
@@ -650,9 +654,11 @@ output to *trace-output*.  Returns the shell's exit code."
         "")))
 
 (defmacro octets-to-string (octets &key encoding)
-  `(babel:octets-to-string
-    :encoding (or ,encoding cffi:*default-foreign-encoding*)))
+  `(babel:octets-to-string ,octets
+                           :encoding (or ,encoding
+                                         cffi:*default-foreign-encoding*)))
 
 (defun foreign-encoded-octet-count (str &key encoding)
-  `(babel:string-size-in-octets
-    ,str :encoding (or ,encoding cffi:*default-foreign-encoding*)))
+  (babel:string-size-in-octets str
+                               :encoding (or encoding
+                                             cffi:*default-foreign-encoding*)))

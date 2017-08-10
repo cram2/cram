@@ -1,8 +1,8 @@
 ;; Helpers for defining GSL functions on arrays
 ;; Liam Healy 2009-01-07 22:01:16EST defmfun-array.lisp
-;; Time-stamp: <2010-07-12 12:28:57EDT defmfun-array.lisp>
+;; Time-stamp: <2011-01-29 21:40:31EST defmfun-array.lisp>
 ;;
-;; Copyright 2009 Liam M. Healy
+;; Copyright 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -28,7 +28,7 @@
     (defn name arglist gsl-name c-arguments categories key-args)
   (setf categories
 	(remove-if-not
-	 (lambda (c) (member c '(both matrix vector)))
+	 (lambda (c) (member c '(both grid:matrix vector)))
 	 categories))
   (if (member 'both categories)
       (progn 
@@ -45,12 +45,12 @@
 	   (optional-args-to-switch-gsl-functions arglist gsl-name))
 	  (copy-list key-args) 'vector)
 	 (generate-methods
-	  defn 'matrix
+	  defn 'grid:matrix
 	  name arglist gsl-name
 	  (actual-array-c-type
-	   'matrix c-arguments
+	   'grid:matrix c-arguments
 	   (optional-args-to-switch-gsl-functions arglist gsl-name))
-	  (copy-list key-args) 'matrix)))
+	  (copy-list key-args) 'grid:matrix)))
       ;; Generate forms for one category
       (generate-methods
        defn (first categories)
@@ -149,18 +149,20 @@
 			base-name))))))))))
 
 (defun actual-array-class (category element-type &optional replace-both)
-  "From the category ('vector, 'matrix, or 'both) and element type,
+  "From the category ('vector, 'grid:matrix, or 'both) and element type,
    find the class name."
   (case category
     (:element-type (grid:number-class element-type))
     (:component-float-type
-     (grid:number-class (grid:component-float-type element-type)))
-    (otherwise
-     (grid:data-class-name
-      (if (and (eq category 'both) replace-both)
-	  replace-both
-	  category)
-      element-type))))
+       (grid:number-class (grid:component-float-type element-type)))
+    ((vector grid:matrix both)
+       (grid:data-class-name
+	(if (and (eq category 'both) replace-both)
+	    replace-both
+	    category)
+	element-type))
+    ;; an actual not-to-be-replaced class name
+    (otherwise category)))
 
 (defun actual-class-arglist
     (arglist element-type c-arguments &optional replace-both)

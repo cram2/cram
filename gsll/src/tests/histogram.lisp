@@ -39,7 +39,7 @@
                                                              (INCREMENT HISTO
                                                                         6.9d0
                                                                         2.0d0)
-                                                             (GRID:GREF HISTO 1))))
+                                                             (GRID:AREF HISTO 1))))
                        (LISP-UNIT::ASSERT-NUMERICAL-EQUAL (LIST 1.0d0)
                                                           (MULTIPLE-VALUE-LIST
                                                            (LET ((HISTO
@@ -53,7 +53,7 @@
                                                              (INCREMENT HISTO
                                                                         6.9d0
                                                                         2.0d0)
-                                                             (GRID:GREF HISTO 2))))
+                                                             (GRID:AREF HISTO 2))))
                        (LISP-UNIT::ASSERT-NUMERICAL-EQUAL (LIST 2.0d0)
                                                           (MULTIPLE-VALUE-LIST
                                                            (LET ((HISTO
@@ -67,7 +67,7 @@
                                                              (INCREMENT HISTO
                                                                         6.9d0
                                                                         2.0d0)
-                                                             (GRID:GREF HISTO 6))))
+                                                             (GRID:AREF HISTO 6))))
                        (LISP-UNIT:ASSERT-ERROR 'INPUT-DOMAIN
                                                (LET ((HISTO
                                                       (MAKE-HISTOGRAM 10)))
@@ -76,7 +76,7 @@
                                                                      10.0d0)
                                                  (INCREMENT HISTO 2.7d0)
                                                  (INCREMENT HISTO 6.9d0 2.0d0)
-                                                 (GRID:GREF HISTO 16)))
+                                                 (GRID:AREF HISTO 16)))
                        (LISP-UNIT::ASSERT-NUMERICAL-EQUAL (LIST 0.0d0 10.0d0)
                                                           (MULTIPLE-VALUE-LIST
                                                            (LET ((HISTO
@@ -107,7 +107,7 @@
                                                              (INCREMENT HISTO
                                                                         6.9d0
                                                                         2.0d0)
-                                                             (BINS HISTO))))
+                                                             (first (grid:dimensions HISTO)))))
                        (LISP-UNIT::ASSERT-NUMERICAL-EQUAL (LIST 5)
                                                           (MULTIPLE-VALUE-LIST
                                                            (LET ((HISTO

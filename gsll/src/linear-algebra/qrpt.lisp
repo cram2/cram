@@ -1,8 +1,8 @@
 ;; QR with column pivoting
 ;; Liam Healy, Fri Apr 28 2006 - 16:53
-;; Time-stamp: <2010-06-29 22:51:20EDT qrpt.lisp>
+;; Time-stamp: <2011-04-23 17:15:46EDT qrpt.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -60,7 +60,7 @@
     (A
      &optional
      (q (grid:make-foreign-array 'double-float :dimensions (list (dim0 A) (dim0 A))))
-     (r (grid:make-foreign-array 'double-float :dimensions (dimensions A)))
+     (r (grid:make-foreign-array 'double-float :dimensions (grid:dimensions A)))
      (tau (grid:make-foreign-array 'double-float :dimensions (min (dim0 A) (dim1 A))))
      (permutation (make-permutation (dim1 A)))
      (norm (grid:make-foreign-array 'double-float :dimensions (dim1 A))))
@@ -80,7 +80,7 @@
 (defmfun QRPT-solve
     (QR tau permutation b &optional x-spec
        &aux
-       (x (grid:make-foreign-array-or-default x-spec (dimensions b) t)))
+       (x (grid:ensure-foreign-array x-spec (grid:dimensions b))))
   ("gsl_linalg_QRPT_svx" "gsl_linalg_QRPT_solve")
   ((((mpointer QR) :pointer) ((mpointer tau) :pointer)
     ((mpointer permutation) :pointer) ((mpointer b) :pointer))
@@ -131,7 +131,7 @@
 (defmfun QRPT-Rsolve
     (QR permutation b &optional x-spec
        &aux
-       (x (grid:make-foreign-array-or-default x-spec (dimensions b) t)))
+       (x (grid:ensure-foreign-array x-spec (grid:dimensions b))))
   ("gsl_linalg_QRPT_Rsvx" "gsl_linalg_QRPT_Rsolve")
   ((((mpointer QR) :pointer) ((mpointer permutation) :pointer)
     ((mpointer b) :pointer))
@@ -180,7 +180,7 @@
 	(QR-unpack QRPT tau)
       (let* ((qr (matrix-product Q R))
 	     (ans (grid:make-foreign-array
-		   'double-float :dimensions (dimensions qr)
+		   'double-float :dimensions (grid:dimensions qr)
 		   ;; It shouldn't be necessary to initialize values
 		   ;; because we are going to setf every row,
 		   ;; Sat Dec 26 2009.

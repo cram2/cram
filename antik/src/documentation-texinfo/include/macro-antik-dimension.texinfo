@@ -1,0 +1,5 @@
+@deffn {Macro} {antik:dimension} unit-or-dimension
+@findex antik:dimension
+The dimension as a dimel (list of exponents)
+   from a unit name or dimension name.
+@end deffn

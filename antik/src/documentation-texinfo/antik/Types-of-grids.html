@@ -1,0 +1,48 @@
+<html lang="en">
+<head>
+<title>Types of grids - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Introduction-to-grids.html#Introduction-to-grids" title="Introduction to grids">
+<link rel="prev" href="The-grid-concept.html#The-grid-concept" title="The grid concept">
+<link rel="next" href="Package.html#Package" title="Package">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Types-of-grids"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Package.html#Package">Package</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="The-grid-concept.html#The-grid-concept">The grid concept</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Introduction-to-grids.html#Introduction-to-grids">Introduction to grids</a>
+<hr>
+</div>
+
+<h4 class="subsection">4.1.2 Types of grids</h4>
+
+<p>Antik defines two types of grids, <dfn>array</dfn>s, i.e. ordinary Lisp
+arrays, and <dfn>foreign array</dfn>s, which are defined in foreign memory
+and therefore are accessible by foreign libraries.  The argument
+<code>grid-type</code> to a function or the variable
+<code>grid:*default-grid-type*</code> should be bound to one of
+<code>cl:array</code> or <code>grid:foreign-array</code>, to specify an array or
+foreign-array respectively.
+
+   </body></html>
+

@@ -1,0 +1,4 @@
+@deffn {Function} {grid:make-simple-grid} @&rest args @&key grid-type dimensions element-type initial-element initial-contents
+@findex grid:make-simple-grid
+Make a simple grid by specfying the grid-type (default *default-grid-type*), dimensions (*default-dimensions*), element-type (*default-element-type*), and optionally initial-element or initial-contents.
+@end deffn

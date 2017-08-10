@@ -1,6 +1,6 @@
 ;; Regression test VECTOR-MINMAX-INDEX for GSLL, automatically generated
 ;;
-;; Copyright 2009 Liam M. Healy
+;; Copyright 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -25,12 +25,12 @@
                                                                   (GRID:MAKE-FOREIGN-ARRAY
                                                                    'SINGLE-FLOAT
                                                                    :INITIAL-CONTENTS
-                                                                   '(-34.5 8.24
-                                                                     3.29 -8.93
-                                                                     34.12
-                                                                     -6.15
-                                                                     49.27
-                                                                     -13.49))))
+                                                                   '(-34.5f0 8.24f0
+                                                                     3.29f0 -8.93f0
+                                                                     34.12f0
+                                                                     -6.15f0
+                                                                     49.27f0
+                                                                     -13.49f0))))
                                                              (MINMAX-INDEX
                                                               V1))))
                        (LISP-UNIT::ASSERT-NUMERICAL-EQUAL (LIST 0 6)

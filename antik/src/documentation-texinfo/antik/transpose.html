@@ -1,0 +1,53 @@
+<html lang="en">
+<head>
+<title>transpose - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Composition-functions.html#Composition-functions" title="Composition functions">
+<link rel="prev" href="subgrid.html#subgrid" title="subgrid">
+<link rel="next" href="Vector-products.html#Vector-products" title="Vector products">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="transpose"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Vector-products.html#Vector-products">Vector products</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="subgrid.html#subgrid">subgrid</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Composition-functions.html#Composition-functions">Composition functions</a>
+<hr>
+</div>
+
+<h5 class="subsubsection">4.3.4.12 transpose</h5>
+
+<div class="defun">
+&mdash; Function: <b>grid:transpose</b><var> grid &amp;key indices destination start<a name="index-grid_003atranspose-192"></a></var><br>
+<blockquote><p><a name="index-grid_003atranspose-193"></a>Transpose the grid, optionally putting the result in destination at
+   the element specified by the start indices. 
+</p></blockquote></div>
+<a name="index-Transpose-of-grid-194"></a><a name="index-Grid_002c-transpose-195"></a><a name="index-Matrix_002c-transpose-196"></a>The function <code>transpose</code> exchange elements paired by exchange of indices. 
+The grid can be of any rank greater than or equal to 2. 
+For example, the transpose of the above array is
+<pre class="example">     ANTIK-USER&gt; (grid::test-grid-double-float 'array '(3 4))
+     #2A((0.0 1.0 2.0 3.0) (10.0 11.0 12.0 13.0) (20.0 21.0 22.0 23.0))
+     ANTIK-USER&gt; (transpose @)
+     #2A((0.0 10.0 20.0) (1.0 11.0 21.0) (2.0 12.0 22.0) (3.0 13.0 23.0))
+</pre>
+   </body></html>
+

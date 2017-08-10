@@ -1,0 +1,6 @@
+@deffn {Function} {antik:days-} datime1 datime2
+@findex antik:days-
+Integer number of days separating the days.  Differs from datime-
+   in that the time of day doesn't matter, just the day on which the two 
+   datimes occur.
+@end deffn

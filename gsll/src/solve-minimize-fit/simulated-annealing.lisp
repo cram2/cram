@@ -1,8 +1,8 @@
 ;; Simulated Annealing
 ;; Liam Healy Sun Feb 11 2007 - 17:23
-;; Time-stamp: <2010-06-30 19:57:28EDT simulated-annealing.lisp>
+;; Time-stamp: <2012-01-13 12:01:16EST simulated-annealing.lisp>
 ;;
-;; Copyright 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2007, 2008, 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@
 ;;;; Simulated annealing argument structure
 ;;;;****************************************************************************
 
-(fsbv:defcstruct simulated-annealing-parameters
+(cffi:defcstruct simulated-annealing-parameters
   (n-tries :int)		; how many points to try for each step
   (iterations-fixed-T :int) ; how many iterations at each temperature?
   (step-size :double)		    ; max step size in the random walk
@@ -160,7 +160,13 @@
     (setf cl-generator generator)
     (let ((x0-p (make-new-sa-state state-values)))
       (simulated-annealing-int
-       (list n-tries iterations-fixed-T step-size k t-initial mu-t t-min)
+       (list 'n-tries n-tries
+	     'iterations-fixed-T iterations-fixed-T
+	     'step-size step-size
+	     'k k
+	     't-initial t-initial
+	     'mu-t mu-t
+	     't-min t-min)
        generator
        x0-p
        'sa-energy-function
@@ -180,8 +186,8 @@
    ((cffi:get-callback 'sa-copy-function) :pointer)
    ((cffi:get-callback 'sa-copy-constructor-function) :pointer)
    ((cffi:get-callback 'sa-destroy-function) :pointer)
-   (0 sizet)
-   (parameters simulated-annealing-parameters))
+   (0 :sizet)
+   (parameters (:struct simulated-annealing-parameters)))
   :c-return :void
   :export nil
   :index simulated-annealing)
@@ -193,7 +199,7 @@
 ;;; Trivial example, Sec. 24.3.1
 
 (defun trivial-example-energy (state)
-  (let ((x (grid:gref state 0)))
+  (let ((x (grid:aref state 0)))
     (declare (type double-float x) (optimize (speed 3) (safety 1)))
     (* (exp (- (expt (1- x) 2))) (sin (* 8 x)))))
 
@@ -205,15 +211,15 @@
    ;; the dynamical environment.
    (ignore rng-mpointer)
    (special cl-generator))
-  (symbol-macrolet ((x (grid:gref state 0)))
+  (symbol-macrolet ((x (grid:aref state 0)))
     (let ((rand (sample cl-generator :uniform)))
       (declare (type double-float rand))
       (setf x (+  (the double-float x) (- (* 2.0d0 rand step-size) step-size))))))
 
 (defun trivial-example-metric (state1 state2)
   (declare (optimize (speed 3) (safety 1)))
-  (abs (- (the double-float (grid:gref state1 0))
-	  (the double-float (grid:gref state2 0)))))
+  (abs (- (the double-float (grid:aref state1 0))
+	  (the double-float (grid:aref state2 0)))))
 
 (defun simulated-annealing-example ()
   (simulated-annealing
@@ -235,7 +241,7 @@
 
 ;;; exp(-square(x-1))*sin(8*x) - exp(-square(x-1000))*0.89;
 (defun trivial-test-energy (state)
-  (let ((x (grid:gref state 0)))
+  (let ((x (grid:aref state 0)))
     (- (* (exp (- (expt (1- x) 2))) (sin (* 8 x)))
        (* 0.89d0 (exp (- (expt (- x 1000) 2)))))))
 
@@ -249,7 +255,8 @@
    'trivial-test-energy
    'trivial-example-step
    'trivial-example-metric
-   'copy))
+   (lambda (source destination) 	; needs to take a destination
+     (grid:copy source :destination destination))))
 
 #|
 ;;; These tests should all come out within 1.0e-3 relative of the true

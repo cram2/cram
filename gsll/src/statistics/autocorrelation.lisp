@@ -1,8 +1,8 @@
 ;; Autocorrelation
 ;; Liam Healy, Sun Dec 31 2006 - 13:19
-;; Time-stamp: <2010-06-27 18:14:03EDT autocorrelation.lisp>
+;; Time-stamp: <2014-12-26 13:18:38EST autocorrelation.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2011, 2012, 2014 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -19,6 +19,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (in-package :gsl)
+(named-readtables:in-readtable :antik)
 
 ;;; To do: stride other than 1 when that information is availble from
 ;;; the vector.
@@ -26,8 +27,8 @@
 (defmfun autocorrelation ((data vector) &optional mean)
   (("gsl_stats" :type "_lag1_autocorrelation")
    ("gsl_stats" :type "_lag1_autocorrelation_m"))
-  ((((foreign-pointer data) :pointer) (1 :int) ((dim0 data) sizet))
-   (((foreign-pointer data) :pointer) (1 :int) ((dim0 data) sizet)
+  ((((grid:foreign-pointer data) :pointer) (1 :int) ((dim0 data) :sizet))
+   (((grid:foreign-pointer data) :pointer) (1 :int) ((dim0 data) :sizet)
     (mean :double)))
   :definition :generic
   :element-types :no-complex

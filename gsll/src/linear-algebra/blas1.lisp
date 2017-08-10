@@ -1,8 +1,8 @@
 ;; BLAS level 1, Vector operations
 ;; Liam Healy, Wed Apr 26 2006 - 15:23
-;; Time-stamp: <2010-07-07 14:25:01EDT blas1.lisp>
+;; Time-stamp: <2012-01-13 12:01:25EST blas1.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -22,11 +22,11 @@
 
 ;;; /usr/include/gsl/gsl_blas.h
 
-(defmfun dot ((vec1 vector) (vec2 vector))
+(defmfun grid:inner ((vec1 vector) (vec2 vector))
   ("gsl_blas_" :type "dot" :suffix)
   (((mpointer vec1) :pointer) ((mpointer vec2) :pointer)
    (result (:pointer :element-c-type)))
-  :definition :generic
+  :definition :methods
   :element-types :float-complex
   :inputs (vec1 vec2)
   :documentation			; FDL
@@ -79,7 +79,7 @@
   (((mpointer vec) :pointer))
   :definition :generic
   :element-types :float-complex
-  :c-return sizet
+  :c-return :sizet
   :inputs (vec)
   :documentation			; FDL
   "The index of the largest element of the vector
@@ -112,7 +112,7 @@
 (defmfun axpy
     (alpha (x vector)
 	   &optional
-	   (y (grid:make-foreign-array element-type :dimensions (dimensions x))))
+	   (y (grid:make-foreign-array element-type :dimensions (grid:dimensions x))))
   ;; This gets an error for complex types because you can't pass a
   ;; struct in CFFI yet.
   ("gsl_blas_" :type "axpy")
@@ -153,8 +153,8 @@
 
 (defmfun givens-rotation ((x vector) (y vector) (c vector) (s vector))
   ("gsl_blas_" :type "rotg")
-  (((foreign-pointer x) :pointer) ((foreign-pointer y) :pointer)
-   ((foreign-pointer c) :pointer) ((foreign-pointer s) :pointer))
+  (((grid:foreign-pointer x) :pointer) ((grid:foreign-pointer y) :pointer)
+   ((grid:foreign-pointer c) :pointer) ((grid:foreign-pointer s) :pointer))
   :definition :generic
   :element-types :float
   :inputs (x y c s)
@@ -182,9 +182,9 @@
 (defmfun modified-givens-rotation
     ((d1 vector) (d2 vector) (b1 vector) b2 (P vector))
   ("gsl_blas_" :type "rotmg")
-  (((foreign-pointer d1) :pointer) ((foreign-pointer d2) :pointer)
-   ((foreign-pointer b1) :pointer) (b2 :element-c-type)
-   ((foreign-pointer P) :pointer))
+  (((grid:foreign-pointer d1) :pointer) ((grid:foreign-pointer d2) :pointer)
+   ((grid:foreign-pointer b1) :pointer) (b2 :element-c-type)
+   ((grid:foreign-pointer P) :pointer))
   :definition :generic
   :element-types :float
   :inputs (d1 d2 b1 P)
@@ -210,7 +210,7 @@
 (generate-all-array-tests dot :float-complex
  (let ((v1 (array-default 8))
        (v2 (array-default 8)))
-   (dot v1 v2)))
+   (grid:inner v1 v2)))
 
 (generate-all-array-tests cdot :complex
  (let ((v1 (array-default 8))
@@ -264,7 +264,7 @@
        (sines (array-default 8 t))
        (cosines (array-default 8 t)))
    (loop for i below 8 do
-	(setf (grid:gref sines i) (sin (grid:gref angles i)))
-	(setf (grid:gref cosines i) (cos (grid:gref angles i))))
+	(setf (grid:aref sines i) (sin (grid:aref angles i)))
+	(setf (grid:aref cosines i) (cos (grid:aref angles i))))
    (givens-rotation v1 v2 cosines sines)
    (list (grid:copy-to v1) (grid:copy-to v2))))

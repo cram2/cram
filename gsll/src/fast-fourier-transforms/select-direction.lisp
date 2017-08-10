@@ -1,8 +1,8 @@
 ;; FFT where direction is selected.
 ;; Sumant Oemrawsingh, Sat Oct 24 2009 - 12:55
-;; Time-stamp: <2010-06-27 18:13:58EDT select-direction.lisp>
+;; Time-stamp: <2012-01-13 12:01:30EST select-direction.lisp>
 ;;
-;; Copyright 2009 Sumant Oemrawsingh, Liam M. Healy
+;; Copyright 2009, 2011 Sumant Oemrawsingh, Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@
 (defmfun fourier-transform-radix2
     ((vector vector) direction &key (stride 1) (n (expt 2 (floor (log (size vector) 2)))))
   ("gsl_fft" :type "_radix2_transform")
-  (((foreign-pointer vector) :pointer) (stride sizet) (n sizet) (direction fft-direction))
+  (((grid:foreign-pointer vector) :pointer) (stride :sizet) (n :sizet) (direction fft-direction))
   :definition :generic
   :element-types :complex
   :inputs (vector)
@@ -40,7 +40,7 @@
 (defmfun fourier-transform-dif-radix2
     ((vector vector) direction &key (stride 1) (n (expt 2 (floor (log (size vector) 2)))))
   ("gsl_fft" :type "_radix2_dif_transform")
-  (((foreign-pointer vector) :pointer) (stride sizet) (n sizet) (direction fft-direction))
+  (((grid:foreign-pointer vector) :pointer) (stride :sizet) (n :sizet) (direction fft-direction))
   :definition :generic
   :element-types :complex
   :inputs (vector)

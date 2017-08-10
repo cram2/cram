@@ -1,0 +1,6 @@
+@deffn {Function} {antik:maximize-1d} function x-lower x-upper @&optional x-maximum absolute-error relative-error method
+@findex antik:maximize-1d
+Find the maximum of the function of one variable (x) between x-lower
+   and x-upper. The optional argument x-maximum is a guess of x for the
+   maximum value of the function.  Returns the argument and value at the maximum.
+@end deffn

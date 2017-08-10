@@ -1,8 +1,8 @@
 ;; Coulumb functions
 ;; Liam Healy, Sat Mar 18 2006 - 23:23
-;; Time-stamp: <2010-07-07 14:24:53EDT coulomb.lisp>
+;; Time-stamp: <2011-10-29 23:32:13EDT coulomb.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2010, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -27,14 +27,15 @@
 ;;;;****************************************************************************
 
 (defmfun hydrogenicR-1 (x r)
-  "gsl_sf_hydrogenicR_1_e" ((x :double) (r :double) (ret sf-result))
+  "gsl_sf_hydrogenicR_1_e"
+  ((x :double) (r :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The lowest-order normalized hydrogenic bound state radial
    wavefunction R_1 := 2Z \sqrt{Z} \exp(-Z r).")
 
 (defmfun hydrogenicR (n l x r)
   "gsl_sf_hydrogenicR_e"
-  ((n :int) (l :int) (x :double) (r :double) (ret sf-result))
+  ((n :int) (l :int) (x :double) (r :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The n-th normalized hydrogenic bound state radial wavefunction,
   R_n := {2 Z^{3/2} \over n^2}  \left({2Z \over n}\right)^l
@@ -49,12 +50,17 @@
 (defmfun coulomb-wave-FG (eta x L-F k)
   "gsl_sf_coulomb_wave_FG_e"
   ((eta :double) (x :double) (L-F :double) (k :int)
-   (F sf-result) (Fp sf-result) (G sf-result) (Gp sf-result)
+   (F (:pointer (:struct sf-result))) (Fp (:pointer (:struct sf-result)))
+   (G (:pointer (:struct sf-result))) (Gp (:pointer (:struct sf-result)))
    (exp-F (:pointer :double)) (exp-G (:pointer :double)))
   :return
-  ((val F) (val Fp) (val G) (val Gp)
-   (grid:dcref exp-F) (grid:dcref exp-G)
-   (err F) (err Fp) (err G) (err Gp))
+  ((let ((vl (multiple-value-list (values-with-errors F Fp G Gp))))
+     (values-list
+      (append (subseq vl 0 4)
+	      (list
+	       (cffi:mem-aref exp-F :double)
+	       (cffi:mem-aref exp-G :double))
+	      (subseq vl 4)))))
   :documentation			; FDL
   "The Coulomb wave functions F_L(\eta,x),
   G_{L-k}(\eta,x) and their derivatives F'_L(\eta,x), G'_{L-k}(\eta,x)
@@ -70,9 +76,9 @@
 	   &aux (fc-array (vdf size-or-array)))
   "gsl_sf_coulomb_wave_F_array"
   ((L-min :double) ((1- (dim0 fc-array)) :int) (eta :double) (x :double)
-   ((foreign-pointer fc-array) :pointer) (F-exponent (:pointer :double)))
+   ((grid:foreign-pointer fc-array) :pointer) (F-exponent (:pointer :double)))
   :outputs (fc-array)
-  :return (fc-array (grid:dcref F-exponent))
+  :return (fc-array (cffi:mem-ref F-exponent :double))
   :documentation			; FDL
   "The Coulomb wave function F_L(\eta,x) for
   L = Lmin ... Lmin + kmax, storing the results in fc-array.
@@ -86,10 +92,13 @@
 	   (gc-array (vdf (or gc-size-or-array (dim0 fc-array)))))
   "gsl_sf_coulomb_wave_FG_array"
   ((L-min :double) ((1- (dim0 fc-array)) :int) (eta :double) (x :double)
-   ((foreign-pointer fc-array) :pointer) ((foreign-pointer gc-array) :pointer)
+   ((grid:foreign-pointer fc-array) :pointer) ((grid:foreign-pointer gc-array) :pointer)
    (F-exponent (:pointer :double)) (G-exponent (:pointer :double)))
   :outputs (fc-array gc-array)
-  :return (fc-array gc-array (grid:dcref F-exponent) (grid:dcref G-exponent))
+  :return (fc-array
+	   gc-array
+	   (cffi:mem-ref F-exponent :double)
+	   (cffi:mem-ref G-exponent :double))
   :documentation			; FDL
   "The functions F_L(\eta,x),
   G_L(\eta,x) for L = Lmin ... Lmin + kmax storing the
@@ -108,13 +117,13 @@
 	   (gcp-array (vdf (or gcp-size-or-array (dim0 fc-array)))))
   "gsl_sf_coulomb_wave_FGp_array"
   ((L-min :double) ((1- (dim0 fc-array)) :int) (eta :double) (x :double)
-   ((foreign-pointer fc-array) :pointer) ((foreign-pointer fcp-array) :pointer)
-   ((foreign-pointer gc-array) :pointer) ((foreign-pointer gcp-array) :pointer)
+   ((grid:foreign-pointer fc-array) :pointer) ((grid:foreign-pointer fcp-array) :pointer)
+   ((grid:foreign-pointer gc-array) :pointer) ((grid:foreign-pointer gcp-array) :pointer)
    (F-exponent (:pointer :double)) (G-exponent (:pointer :double)))
   :outputs (fc-array fcp-array gc-array gcp-array)
   :return
   (fc-array fcp-array gc-array gcp-array
-	    (grid:dcref F-exponent) (grid:dcref G-exponent))
+	    (cffi:mem-ref F-exponent :double) (cffi:mem-ref G-exponent :double))
   :documentation			; FDL
   "The functions F_L(\eta,x),
   G_L(\eta,x) and their derivatives F'_L(\eta,x),
@@ -128,9 +137,9 @@
 	   &aux (fc-array (vdf size-or-array)))
   "gsl_sf_coulomb_wave_sphF_array"
   ((L-min :double) ((1- (dim0 fc-array)) :int) (eta :double) (x :double)
-   ((foreign-pointer fc-array) :pointer) (F-exponent (:pointer :double)))
+   ((grid:foreign-pointer fc-array) :pointer) (F-exponent (:pointer :double)))
   :outputs (fc-array)
-  :return (fc-array (grid:dcref F-exponent))
+  :return (fc-array (cffi:mem-ref F-exponent :double))
   :documentation			; FDL
   "The Coulomb wave function divided by the argument
    F_L(\eta, x)/x for L = Lmin ... Lmin + kmax, storing the
@@ -143,7 +152,8 @@
 ;;;;****************************************************************************
 
 (defmfun coulomb-CL (L eta)
-  "gsl_sf_coulomb_CL_e" ((L :double) (eta :double) (ret sf-result))
+  "gsl_sf_coulomb_CL_e"
+  ((L :double) (eta :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The Coulomb wave function normalization constant C_L(\eta)
    for L > -1.")
@@ -153,7 +163,7 @@
 	   &aux (array (vdf size-or-array)))
   "gsl_sf_coulomb_CL_array"
   ((L-min :double) ((1- (dim0 array)) :int) (eta :double)
-   ((foreign-pointer array) :pointer))
+   ((grid:foreign-pointer array) :pointer))
   :outputs (array)
   :documentation			; FDL
   "The Coulomb wave function normalization constant C_L(\eta)

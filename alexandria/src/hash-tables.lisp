@@ -1,5 +1,16 @@
 (in-package :alexandria)
 
+(defmacro ensure-gethash (key hash-table &optional default)
+  "Like GETHASH, but if KEY is not found in the HASH-TABLE saves the DEFAULT
+under key before returning it. Secondary return value is true if key was
+already in the table."
+  (once-only (key hash-table)
+    (with-unique-names (value presentp)
+      `(multiple-value-bind (,value ,presentp) (gethash ,key ,hash-table)
+         (if ,presentp
+             (values ,value ,presentp)
+             (values (setf (gethash ,key ,hash-table) ,default) nil))))))
+
 (defun copy-hash-table (table &key key test size
                                    rehash-size rehash-threshold)
   "Returns a copy of hash table TABLE, with the same keys and values
@@ -77,7 +88,7 @@ TABLE."
 ALIST. Hash table is initialized using the HASH-TABLE-INITARGS."
   (let ((table (apply #'make-hash-table hash-table-initargs)))
     (dolist (cons alist)
-      (setf (gethash (car cons) table) (cdr cons)))
+      (ensure-gethash (car cons) table (cdr cons)))
     table))
 
 (defun plist-hash-table (plist &rest hash-table-initargs)
@@ -86,14 +97,5 @@ PLIST. Hash table is initialized using the HASH-TABLE-INITARGS."
   (let ((table (apply #'make-hash-table hash-table-initargs)))
     (do ((tail plist (cddr tail)))
         ((not tail))
-      (setf (gethash (car tail) table) (cadr tail)))
+      (ensure-gethash (car tail) table (cadr tail)))
     table))
-
-(defmacro ensure-gethash (key hash-table &optional default)
-  "Like GETHASH, but if KEY is not found in the HASH-TABLE saves the DEFAULT
-under key before returning it. Secondary return value is true if key was
-already in the table."
-  `(multiple-value-bind (value ok) (gethash ,key ,hash-table)
-     (if ok
-         (values value ok)
-         (values (setf (gethash ,key ,hash-table) ,default) nil))))

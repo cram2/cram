@@ -1,0 +1,4 @@
+@deffn {Function} {antik:object-as-nf} object
+@findex antik:object-as-nf
+Define a new object exactly as the current nf options print an existing one.  This function can be used for example to define a number exactly as the rounded print format of another one.
+@end deffn

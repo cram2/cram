@@ -1,0 +1,4 @@
+@deffn {Function} {antik:si} x
+@findex antik:si
+The Sine integral Si(x) = int_0^x dt sin(t)/t.
+@end deffn

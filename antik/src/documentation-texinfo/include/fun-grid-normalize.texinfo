@@ -1,0 +1,7 @@
+@deffn {Function} {grid:normalize} grid @&optional threshold
+@findex grid:normalize
+Find the normalized grid, i.e., each element is divided by grid
+   norm, and the normalization factor.  If the norm is less than the
+   non-nil threshold, then nil is returned; if it is zero and
+   threshold is nil, a zero grid is returned.
+@end deffn

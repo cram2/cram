@@ -1,8 +1,8 @@
 ;; Exponential functions
 ;; Liam Healy, Tue Mar 21 2006 - 17:05
-;; Time-stamp: <2010-05-31 23:32:15EDT exponential-functions.lisp>
+;; Time-stamp: <2011-11-24 22:56:28EST exponential-functions.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -20,29 +20,33 @@
 
 (in-package :gsl)
 
+;;; /usr/include/gsl/gsl_sf_exp.h
+
 ;;;;****************************************************************************
 ;;;; Exponential Functions
 ;;;;****************************************************************************
 
 (defmfun gsl-exp (x)
-  "gsl_sf_exp_e" ((x :double) (ret sf-result))
+  "gsl_sf_exp_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The exponential function.")
 
 (defmfun exp-scaled (x)
-  "gsl_sf_exp_e10_e" ((x :double) (ret sf-result-e10))
+  "gsl_sf_exp_e10_e" ((x :double) (ret (:pointer (:struct sf-result-e10))))
   :documentation			; FDL
   "The exponential function scaled. This function may be useful if the value
    of exp(x) would overflow the numeric range of double.")
 
 (defmfun exp-mult (x y)
-  "gsl_sf_exp_mult_e" ((x :double) (y :double) (ret sf-result))
+  "gsl_sf_exp_mult_e"
+  ((x :double) (y :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "Exponentiate x and multiply by the factor y to
    return the product y \exp(x).")
 
 (defmfun exp-mult-scaled (x y)
-  "gsl_sf_exp_mult_e10_e" ((x :double) (y :double) (ret sf-result-e10))
+  "gsl_sf_exp_mult_e10_e"
+  ((x :double) (y :double) (ret (:pointer (:struct sf-result-e10))))
   :documentation			; FDL
   "The product y \exp(x) with extended numeric range.")
 
@@ -51,26 +55,27 @@
 ;;;;****************************************************************************
 
 (defmfun expm1 (x)
-  "gsl_sf_expm1_e" ((x :double) (ret sf-result))
+  "gsl_sf_expm1_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "\exp(x)-1 using an algorithm that is accurate for small x.")
 
 (defmfun exprel (x)
-  "gsl_sf_exprel_e" ((x :double) (ret sf-result))
+  "gsl_sf_exprel_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "(\exp(x)-1)/x using an algorithm that is accurate for small x.
   For small x the algorithm is based on the expansion
   (\exp(x)-1)/x = 1 + x/2 + x^2/(2*3) + x^3/(2*3*4) + ...")
 
 (defmfun exprel-2 (x)
-  "gsl_sf_exprel_2_e" ((x :double) (ret sf-result))
+  "gsl_sf_exprel_2_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "2(\exp(x)-1-x)/x^2 using an algorithm that is accurate for small
    x.  For small x the algorithm is based on the expansion
    2(\exp(x)-1-x)/x^2 = 1 + x/3 + x^2/(3*4) + x^3/(3*4*5) + ...")
 
 (defmfun exprel-n (n x)
-  "gsl_sf_exprel_n_e" ((n :int) (x :double) (ret sf-result))
+  "gsl_sf_exprel_n_e"
+  ((n :int) (x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "N-relative exponential, which is the n-th generalization
    of the functions #'exprel and #'exprel-2.")
@@ -80,27 +85,30 @@
 ;;;;****************************************************************************
 
 (defmfun exp-err (x dx)
-  "gsl_sf_exp_err_e" ((x :double) (dx :double) (ret sf-result))
+  "gsl_sf_exp_err_e"
+  ((x :double) (dx :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "Exponentiate x with an associated absolute error dx.")
 
 (defmfun exp-err-scaled (x dx)
   "gsl_sf_exp_err_e10_e"
-  ((x :double) (dx :double) (ret sf-result-e10))
+  ((x :double) (dx :double) (ret (:pointer (:struct sf-result-e10))))
   :documentation			; FDL
   "Exponentiate x with an associated absolute error dx
   and with extended numeric range.")
 
 (defmfun exp-mult-err (x dx y dy)
   "gsl_sf_exp_mult_err_e"
-  ((x :double) (dx :double) (y :double) (dy :double) (ret sf-result))
+  ((x :double) (dx :double) (y :double) (dy :double)
+	       (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The product y \exp(x) for the quantities x, y
    with associated absolute errors dx, dy.")
 
 (defmfun exp-mult-err-scaled (x dx y dy)
   "gsl_sf_exp_mult_err_e10_e"
-  ((x :double) (dx :double) (y :double) (dy :double) (ret sf-result-e10))
+  ((x :double) (dx :double) (y :double) (dy :double)
+	       (ret (:pointer (:struct sf-result-e10))))
   :documentation			; FDL
   "The product y \exp(x) for the quantities x, y
    with associated absolute errors dx, dy and with

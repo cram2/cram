@@ -1,0 +1,6 @@
+@deftp {Condition} {antik:coerce-nil}
+@tindex antik:coerce-nil
+Class precedence list: @code{@lw{coerce-nil}, @lw{arithmetic-error}, @lw{error}, @lw{serious-condition}, @lw{condition}, @lw{t}}
+
+Signalled when gcoercing something to nil.
+@end deftp

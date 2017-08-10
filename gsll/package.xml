@@ -2,7 +2,7 @@
   <name>gsll</name>
   <version>0.3.0</version>
   <description>
-      3rd party library: GSLL a GSL wrapper for common lisp
+      3rd party library: GSLL a GNU Scientific Library (GSL) wrapper for common lisp
   </description>
 
   <author>Liam M. Healy</author>
@@ -14,19 +14,20 @@
   <url type="website">http://common-lisp.net/project/gsll/</url>
   <url type="bugtracker">https://github.com/cram2/cram_3rdparty/issues</url>
   <url type="repository">https://github.com/cram2/cram_3rdparty</url>
-  <url type="repository">https://gitlab.common-lisp.net/antik/gsll</url>
+  <url type="repository">https://gitlab.common-lisp.net/antik/gsll.git</url>
+  <!--external-version>gsll-quicklisp-dd2e7673-git</external-version-->
 
   <buildtool_depend>catkin</buildtool_depend>
 
   <build_depend>sbcl</build_depend>
   <build_depend>libgsl</build_depend>
-  <build_depend>gsd</build_depend>
+  <!-- <build_depend>gsd</build_depend> -->
   <build_depend>trivial_garbage</build_depend>
   <build_depend>cffi</build_depend>
 
   <run_depend>sbcl</run_depend>
   <run_depend>libgsl</run_depend>
-  <run_depend>gsd</run_depend>
+  <!-- <run_depend>gsd</run_depend> -->
   <run_depend>trivial_garbage</run_depend>
   <run_depend>cffi</run_depend>
 </package>
